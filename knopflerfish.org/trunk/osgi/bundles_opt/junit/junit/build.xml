@@ -36,7 +36,7 @@
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="JUnit"/>
   <property name="bundle.classpath"      value=".,junit.jar,log_api-1.0.0.jar"/>
-  <property name="dynamicimport.package" value="org.knopflerfish.service.console"/>
+  <property name="dynamicimport.package" value="org.knopflerfish.service.console,javax.servlet,javax.servlet.http,org.osgi.service.http"/>
 
   <property name="bundle.docurl" 
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt"/>
@@ -50,7 +50,7 @@
   <property name="export.package" 
             value="org.knopflerfish.service.junit;specification-version=1.0.0,junit.framework;specification-version=3.8.1"/>
 
-  <property name="import.package" value="javax.servlet,javax.servlet.http,org.osgi.framework,org.osgi.service.http,org.osgi.util.tracker"/>
+  <property name="import.package" value="org.osgi.framework,org.osgi.util.tracker"/>
 
   &bundlebuild_include;
 

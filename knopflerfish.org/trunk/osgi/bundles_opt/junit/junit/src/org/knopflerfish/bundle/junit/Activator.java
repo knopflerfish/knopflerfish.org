@@ -59,8 +59,9 @@ public class Activator implements BundleActivator {
       bc.registerService(JUnitService.class.getName(), junitService, props);
     }
 
-    httpExporter = new HttpExporter();
-    httpExporter.open();
+    tryObject("org.knopflerfish.bundle.junit.HttpExporter", "open");
+    //    httpExporter = new HttpExporter();
+    //    httpExporter.open();
 
     // register to Knopflerfish console service if possible
     tryObject("org.knopflerfish.bundle.junit.JUnitCommandGroup",
@@ -104,9 +105,9 @@ public class Activator implements BundleActivator {
       Method m = clazz.getMethod(methodName, null);
       m.invoke(obj, null);
 
-      //      System.out.println("invoked " + m);
+      System.out.println("invoked " + m);
     }  catch (Throwable th) {
-      //      System.out.println("No " + className + " available: " + th);
+      System.out.println("No " + className + " available: " + th);
     }    
   }
 }
