@@ -213,9 +213,13 @@ public class ConsoleAWT extends Panel {
       cmdPopupMenu.add(new CommandItem("ps -1", true));
       cmdPopupMenu.add(new CommandItem("log", true));
       cmdPopupMenu.add(new CommandItem("/fr refresh", true));
-      cmdPopupMenu.add(new CommandItem("start", false));
-      cmdPopupMenu.add(new CommandItem("stop", false));
-      cmdPopupMenu.add(new CommandItem("update", false));
+      cmdPopupMenu.add(new CommandItem("obr list", true));
+      cmdPopupMenu.add(new CommandItem("start <sel>", false));
+      cmdPopupMenu.add(new CommandItem("stop <sel>", false));
+      cmdPopupMenu.add(new CommandItem("update <sel>", false));
+      cmdPopupMenu.add(new CommandItem("obr install =<sel>", false));
+      cmdPopupMenu.add(new CommandItem("obr start =<sel>", false));
+      cmdPopupMenu.add(new CommandItem("<sel>", false));
 
       cmdLabel.addMouseListener(new MouseAdapter() 
         {
@@ -249,11 +253,17 @@ public class ConsoleAWT extends Panel {
       super(cmd);
       addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
+            String s = cmd;
+            String sel = text.getSelectedText();
+            if(sel != null) {
+              sel = sel.trim();
+              s = Util.replace(s, "<sel>", sel);
+            }
             if(bDirect) {
-              in.print(cmd + "\r\n");
+              in.print(s + "\r\n");
               in.flush();
             } else {
-              tfCmd.setText(cmd);
+              tfCmd.setText(s);
             }
           }
         });
