@@ -770,7 +770,7 @@ public class Loader {
   private static String[] toStringArray(Object[] val) {
     String[] r = new String[val.length];
     for(int i = 0; i < val.length; i++) {
-      r[i] = "\"" + val[i].toString() + "\"";
+      r[i] = AD.escape(val[i].toString());
     }
 
     return r;
@@ -779,7 +779,7 @@ public class Loader {
   private static String[] toStringArray(Vector val) {
     String[] r = new String[val.size()];
     for(int i = 0; i < val.size(); i++) {
-      r[i] = "\"" + val.elementAt(i).toString() + "\"";
+      r[i] = AD.escape(val.elementAt(i).toString());
     }
 
     return r;
