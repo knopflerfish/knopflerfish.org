@@ -42,6 +42,10 @@ import java.io.*;
 import java.util.*;
 import java.net.URL;
 
+/**
+ * Implementation of the ObjectClassDefinition interface.
+ *
+ */
 public class OCD implements ObjectClassDefinition {
 
 
@@ -54,9 +58,13 @@ public class OCD implements ObjectClassDefinition {
   URL      iconURL = null;
 
   /**
-   * @param desc To able to differentiate between
-   *             services and factories, description must be either
-   *             OCD.SERVICE or OCD.FACTORY
+   * Create a new, empty ObjectClassDefinition.
+   *
+   * @id unique ID of the definition.
+   * @name human-readable name of the definition. If set to <tt>null</tt>,
+   *       use <i>id</i> as name.
+   * @desc human-readable description of the definition
+   * @throws IllegalArgumentException if <i>id</i> is <null> or empty
    */
   public OCD(String id, 
 	     String name, 
@@ -67,7 +75,7 @@ public class OCD implements ObjectClassDefinition {
     }
 
     this.id    = id;
-    this.name  = name;
+    this.name  = name != null ? name : id;
     this.desc  = desc;
     this.optAttrs = new ArrayList();
     this.reqAttrs = new ArrayList();
@@ -76,6 +84,16 @@ public class OCD implements ObjectClassDefinition {
   /**
    * Creates an OCD with attribute definitions from an existing 
    * dictionary.
+   *
+   * @id unique ID of the definition.
+   * @name human-readable name of the definition. If set to <tt>null</tt>,
+   *       use <i>id</i> as name.
+   * @desc human-readable description of the definition
+   * @props set of key value pairs used for attribute definitions.
+   *        all entries in <i>props</i> will be set as REQUIRED
+   *        atttributes.
+   * @throws IllegalArgumentException if <i>id</i> is <null> or empty
+   *
    */
   public OCD(String id, 
 	     String name, 
@@ -103,6 +121,13 @@ public class OCD implements ObjectClassDefinition {
     }
   }
 
+  /**
+   * Add an attribute definition
+   *
+   * @param attr definition to add
+   * @param filter either OPTIONAL or REQUIRED
+   * @throws Illegalargumentexception if filter is not OPTIONAL or REQUIRED
+   */
   public void add(AttributeDefinition attr, int filter) {
     switch(filter) {
     case OPTIONAL:
@@ -143,31 +168,38 @@ public class OCD implements ObjectClassDefinition {
   }
 
   /**
-   * Get description of OCD. To able to differentiate between
-   * services and factories, this value should be either
-   * OCD.SERVICE or OCD.FACTORY
+   * Get description of OCD. 
    */
   public String getDescription() {
     return desc;
   }
   
-  public InputStream getIcon(int size) {
+  /**
+   * Get icon stream using the <code>getIconURL</code> URL.
+   *
+   * @param size icon size hint is ignored.
+   */
+  public InputStream getIcon(int size) throws IOException {
     if(iconURL != null) {
-      try {	
-	InputStream is =  iconURL.openStream();
-	return is;
-      } catch (Exception e) {
-	System.err.println("Failed to open URL " + iconURL + ", " + e);
-	return null;
-      }
+      return iconURL.openStream();
     } else {
       return null;
     }
 
   }
 
+  /**
+   * Set URL to icon
+   */
   public void setIconURL(URL url) {
     iconURL = url;
+  }
+
+  /**
+   * Get URL to icon data
+   */
+  public URL getIconURL() {
+    return iconURL;
   }
 
 
