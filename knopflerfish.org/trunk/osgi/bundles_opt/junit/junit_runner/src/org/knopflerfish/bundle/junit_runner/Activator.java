@@ -52,117 +52,13 @@ public class Activator implements BundleActivator
   public void start(BundleContext bc) throws BundleException {
     this.bc = bc;
 
-    doTestRun();
+    Grunt grunt = new Grunt(bc);
+
+    grunt.doGrunt();
   }
 
   public void stop(BundleContext bc) {
     this.bc = null;
-  }
-
-  void doTestRun() throws BundleException {
-    String tests = System.getProperty("org.knopflerfish.junit_runner.tests");
-    String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
-    boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
-
-
-
-    if(tests == null) {
-      tests = "";
-    }
-
-    if(outdir == null) {
-      outdir = DEFAULT_OUTDIR;
-    }
-
-    log("tests=" + tests + ", outdir=" + outdir + ", quit=" + bQuit);
-
-    File outDir = null;
-    try {
-      outDir = new File(outdir);
-      outDir.mkdirs();
-    } catch (Exception e) {
-      throw new BundleException("Failed to create outdir=" + outdir + ": " + e);
-    }
-
-    PrintWriter stylePW = null;
-    try {
-      stylePW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, "junit_style.xsl"))));
-      
-      printResource(stylePW, "/junit_style.xsl");
-    } catch (Exception e) {
-      e.printStackTrace();
-      log("Failed to copy style: " + e);
-    } finally {
-      try {
-	stylePW.close();
-      } catch (Exception ignored) { }
-    }
-
-    try {
-      StringTokenizer st = new StringTokenizer(tests);
-      String[]       ids = new String[st.countTokens()];
-      int n = 0;
-      while (st.hasMoreTokens()) {
-	ids[n++] = st.nextToken().trim();
-      }
-      
-      ServiceReference sr = bc.getServiceReference(JUnitService.class.getName());
-      if(sr == null) {
-	throw new BundleException("JUnitService is not available");
-      }
-      
-      JUnitService ju = (JUnitService)bc.getService(sr);
-      if(ju == null) {
-	throw new BundleException("JUnitService instance is not available");
-      }
-      
-      for(int i = 0; i < ids.length; i++) {
-	File outFile = new File(outDir, ids[i] + ".xml");
-	PrintWriter pw = null;
-	try {
-	  log("run test '" + ids[i] + "', out=" + outFile.getAbsolutePath());	pw = new PrintWriter(new FileOutputStream(outFile));
-	  TestSuite suite = ju.getTestSuite(ids[i], null);
-	  ju.runTest(pw, suite);
-	} catch (Exception e) {
-	  log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
-	  e.printStackTrace();
-	} finally {
-	  try { pw.close(); } catch (Exception ignored) { }
-	}
-      }
-      
-      if(bQuit) {
-	log("Quit framework after tests");
-	bc.getBundle(0).stop();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BundleException("Failed: " + e);
-    } finally {
-    }
-  }
-    
-  void log(String msg) {
-    System.out.println("junit_runner: " + msg);
-  }
-
-  void printResource(PrintWriter out, String name)  {
-    InputStream in = null;
-    try {
-      URL url = getClass().getResource(name);
-      in = url.openStream();
-      BufferedInputStream bin = new BufferedInputStream(in);
-      byte[] buf = new byte[1024];
-      int n = 0;
-      while(-1 != (n = bin.read(buf, 0, buf.length))) {
-	out.print(new String(buf, 0, n));
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      log("printResource(" + name + ") failed: " +  e);
-    } finally {
-      try { in.close(); } catch (Exception ignored) { }
-    }
   }
 
 }
