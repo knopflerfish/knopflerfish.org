@@ -151,9 +151,9 @@
 
 
     <antcall target="makehtml">
-      <param name="fromfile" value="html_src/services_main.html"/>
-      <param name="tofile"   value="services.html"/>
-      <param name="title"    value="OSGi Services tutorial"/>
+      <param name="fromfile" value="html_src/osgi_service_tutorial.html"/>
+      <param name="tofile"   value="osgi_service_tutorial.html"/>
+      <param name="title"    value="OSGi Service tutorial"/>
       <param name="desc"     value="Survival guide for handling OSGi services"/>
       <param name="CLASS_NAVIGATION_SERVICES" value="navigation_disabled"/>
     </antcall>
