@@ -26,48 +26,48 @@
  
  Properties:
 
-   org.osgi.framework.dir -
+   org.osgi.framework.dir
      Where we store persistent data.
      Default: {defaultInstDir}/fwdir
 
-   org.knopflerfish.gosg.jars -
+   org.knopflerfish.gosg.jars
      Base URL for relative install commands
      Default: file:jars/*
 
-   org.osgi.framework.system.packages -
+   org.osgi.framework.system.packages
      List of packages exported from system classloader,
      other than java.* and org.osgi.framework
 
-   org.osgi.framework.system.packages.file -
+   org.osgi.framework.system.packages.file
      File containing list of packages exported from system
      classloader,
      other than java.* and org.osgi.framework
 
-   org.knopflerfish.framework.debug.classloader -
+   org.knopflerfish.framework.debug.classloader
      Print debug information from classloader
      Default: false
 
-   org.knopflerfish.framework.debug.errors -
+   org.knopflerfish.framework.debug.errors
      Print all FrameworkEvents of type ERROR
      Default: false
 
-   org.knopflerfish.framework.debug.packages -
+   org.knopflerfish.framework.debug.packages
      Print debug information about packages
      Default: false
 
-   org.knopflerfish.framework.debug.startlevel -
+   org.knopflerfish.framework.debug.startlevel
      Print debug information about startlevel service
      Default: false
 
-   org.knopflerfish.framework.debug.url -
+   org.knopflerfish.framework.debug.url
      Print debug information about URL services
      Default: false
 
-   org.knopflerfish.framework.debug.ldap -
+   org.knopflerfish.framework.debug.ldap
      Print debug information about LDAP filters
      Default: false
 
-   org.knopflerfish.framework.ldap.nocache -
+   org.knopflerfish.framework.ldap.nocache
      Disable LDAP caching for simple filters. LDAP caching
      speeds up framework filters considerably, but uses
      more memory.
@@ -96,24 +96,24 @@
 
      Default: true
       
-   org.knopflerfish.framework.system.export.all_13 -
+   org.knopflerfish.framework.system.export.all_13
      Make system classloader export all standard JVM 1.3
      packages as javax.swing.*
      Default: false
 
-   org.knopflerfish.verbosity -
+   org.knopflerfish.verbosity
      Framework verbosity level. 0 means few messages
      Default: 0
 
-   org.knopflerfish.startlevel.use -
+   org.knopflerfish.startlevel.use
      Use the Start Level service.
      Default: true
 
-   org.knopflerfish.startlevel.level -
+   org.knopflerfish.startlevel.level
      level of start level service if used.
      Default: 1
 
-   org.knopflerfish.startlevel.initlevel -
+   org.knopflerfish.startlevel.initlevel
      Initial start level of bundles if start level
      service if used.
      Default: 1
