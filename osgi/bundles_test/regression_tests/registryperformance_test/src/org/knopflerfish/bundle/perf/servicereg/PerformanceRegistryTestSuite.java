@@ -40,7 +40,15 @@ public class PerformanceRegistryTestSuite extends TestSuite {
   int nModified      = 0;
 
 
-  class Setup extends TestCase {
+  public class Setup extends TestCase {
+    public String getName() {
+      return "Setup";
+    }
+
+    public String getDescription() {
+      return "Initialize event counters";
+    }
+
     public void runTest() throws Throwable {
       nRegistered    = 0;
       nUnregistering = 0;
@@ -48,7 +56,16 @@ public class PerformanceRegistryTestSuite extends TestSuite {
     }
   }
   
-  class Cleanup extends TestCase {
+  public class Cleanup extends TestCase {
+    public String getName() {
+      return "Cleanup";
+    }
+
+    public String getDescription() {
+      return "Remove all service listeners";
+    }
+
+
     public void runTest() throws Throwable {
       for(int i = 0; i < listeners.size(); i++) {
 	try {
@@ -61,13 +78,31 @@ public class PerformanceRegistryTestSuite extends TestSuite {
     }
   }
 
-  class AddListeners extends TestCase {
+  public class AddListeners extends TestCase {
+
+    public String getName() {
+      return "AddListeners";
+    }
+
+    public String getDescription() {
+      return "Add " + nListeners + " service listeners with a filter";
+    }
+    
     public void runTest() throws Throwable {
       addListeners(nListeners);
     }
   }
 
-  class RegisterServices extends TestCase {
+  public class RegisterServices extends TestCase {
+    public String getName() {
+      return "ModifyServices";
+    }
+
+    public String getDescription() {
+      return "Register services, and check that we get #of services (" + 
+	nServices + ") * #of listeners (" + nListeners + ")  REGISTERED events";
+    }
+
     public void runTest() throws Throwable {
       long start = System.currentTimeMillis();
       registerServices(nServices);
@@ -78,7 +113,16 @@ public class PerformanceRegistryTestSuite extends TestSuite {
     }
   }
 
-  class ModifyServices extends TestCase {
+  public class ModifyServices extends TestCase {
+    public String getName() {
+      return "ModifyServices";
+    }
+
+    public String getDescription() {
+      return "Modify all services, and check that we get #of services (" + 
+	nServices + ") * #of listeners (" + nListeners + ")  MODIFIED events";
+    }
+
     public void runTest() throws Throwable {
       long start = System.currentTimeMillis();
       modifyServices();
@@ -89,7 +133,17 @@ public class PerformanceRegistryTestSuite extends TestSuite {
     }
   }
 
-  class UnregisterServices extends TestCase {
+  public class UnregisterServices extends TestCase {
+    public String getName() {
+      return "UnregisterServices";
+    }
+
+    public String getDescription() {
+      return "Unregister all services, and check that we get #of services (" + 
+	nServices + ") * #of listeners (" + nListeners + ")  UNREGISTERING events";
+    }
+
+
     public void runTest() throws Throwable {
       long start = System.currentTimeMillis();
       unregisterServices();
