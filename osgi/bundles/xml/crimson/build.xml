@@ -22,7 +22,7 @@
   <property name="bundle.docurl"         value="http://xml.apache.org/crimson"/>
   <property name="bundle.name"           value="Crimson XML lib"/>
 
-  <property name="export.package"        value="com.sun.xml.parser ; specification-version=1.0, com.sun.xml.tree ; specification-version=1.0, com.sun.xml.util ; specification-version=1.0, org.w3c.dom ; specification-version=2.0, org.xml.sax ; specification-version=2.0, org.xml.sax.helpers ; specification-version=2.0, javax.xml.parsers ; specification-version=2.0,org.apache.crimson.jaxp,org.xml.sax.ext"/>
+  <property name="export.package"        value="org.w3c.dom ; specification-version=2.0, org.xml.sax ; specification-version=2.0, org.xml.sax.helpers ; specification-version=2.0, javax.xml.parsers ; specification-version=2.0,org.apache.crimson.jaxp,org.xml.sax.ext;specification-version=1.0"/>
 
   &bundlebuild_include;
 
