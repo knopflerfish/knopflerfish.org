@@ -89,7 +89,7 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 <p>
 Note: If you're reading this text, you're looking at the XML file via an
 XML stylesheet capable browser. The source for this page is however, the same
-as the OBR bundle reads.
+XML file as the OBR bundle reads.
 </p>
 <table>
 
