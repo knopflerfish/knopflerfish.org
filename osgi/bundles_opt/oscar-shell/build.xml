@@ -27,13 +27,13 @@
   </path>
 
 
-  <property name="bundle.description"    value="Compatability layer for bundles using the Oscar shell API."/>
+  <property name="bundle.description"    value="Compatability layer for bundles using the Oscar shell API. See readme.txt for details."/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.vendor"         value="Knopflerfish. Includes APIs defined by the Oscar project"/>
   <property name="export.package"  
             value="org.ungoverned.osgi.service.shell; specification-version=1.0.0"/>
-   <property name = "bundle.docurl"      value=""/>
+   <property name = "bundle.docurl"      value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/readme.txt"/>
   &bundlebuild_include;
 
 </project>
