@@ -65,7 +65,7 @@ public class SystemMetatypeProvider
    * Value is "!/metatype.xml"
    * </p>
    */
-  public static final String METATYPE_RESOURCE    = "!/metatype.xml";
+  public static final String METATYPE_RESOURCE    = "/metatype.xml";
 
   /**
    * Default URL to default CM values
@@ -74,7 +74,7 @@ public class SystemMetatypeProvider
    * Value is "!/cmdefaults.xml"
    * </p>
    */
-  public static final String CMDEFAULTS_RESOURCE  = "!/cmdefaults.xml";
+  public static final String CMDEFAULTS_RESOURCE  = "/cmdefaults.xml";
 
   /**
    * Manifest attribute name specifying metatype XML URL.
@@ -259,9 +259,11 @@ public class SystemMetatypeProvider
     URL url;
 
     MTP mtp = null;
-
+    
     if(defStr.startsWith("!")) {
       url = b.getResource(defStr.substring(1));
+    } else if(defStr.startsWith("/")) {
+      url = b.getResource(defStr);
     } else {
       url = new URL(defStr);
     }
