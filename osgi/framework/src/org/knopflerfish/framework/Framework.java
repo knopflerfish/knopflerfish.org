@@ -140,6 +140,10 @@ public class Framework {
   final static String osName    = System.getProperty("os.name");
   final static String osVersion = System.getProperty("os.version");
 
+  public final static boolean R3_TESTCOMPLIANT =
+    "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
+				     "false"));
+  
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
