@@ -60,7 +60,8 @@ public class HttpServer {
   private final HttpSessionManager sessionManager;
   private final TransactionManager transactionManager;
 
-  private final SocketListener socketListener;
+  private final SocketListener httpSocketListener;
+  private final SocketListener httpsSocketListener;
 
   private ServiceRegistration httpReg = null;
 
@@ -85,12 +86,12 @@ public class HttpServer {
                                             contextManager);
 
     sessionManager = new HttpSessionManager(httpConfig);
-    transactionManager = new TransactionManager(httpConfig,
-                                                log,
+    transactionManager = new TransactionManager(log,
                                                 registrations,
                                                 sessionManager);
 
-    socketListener = new SocketListener(httpConfig, log, transactionManager);
+    httpSocketListener = new SocketListener(httpConfig.HTTP, log, transactionManager, bc);
+    httpsSocketListener = new SocketListener(httpConfig.HTTPS, log, transactionManager, bc);
   }
 
 
@@ -108,8 +109,8 @@ public class HttpServer {
   public void updated() throws ConfigurationException {
 
     try {
-      transactionManager.updated();
-      socketListener.updated();
+      httpSocketListener.updated();
+      httpsSocketListener.updated();
       Dictionary conf = httpConfig.getConfiguration();
       
       Hashtable props = new Hashtable();
@@ -119,7 +120,7 @@ public class HttpServer {
 	props.put(key, val);
       }
       // UPnP Ref impl need this
-      props.put("openPort", props.get(HttpConfig.PORT_KEY));
+      props.put("openPort", props.get(HttpConfig.HTTP_PORT_KEY));
 
       // register and/or update service properties
       if(httpReg == null) {
@@ -144,12 +145,18 @@ public class HttpServer {
 
   public void destroy() {
 
-    if(socketListener != null) {      
-      socketListener.destroy();
+    if(httpSocketListener != null) 
+    {      
+        httpSocketListener.destroy();
     }
-    if(httpReg != null) {
-      httpReg.unregister();
-      httpReg = null;
+    if(httpsSocketListener != null) 
+    {      
+        httpsSocketListener.destroy();
+    }
+    if(httpReg != null) 
+    {
+        httpReg.unregister();
+        httpReg = null;
     }
   }
 

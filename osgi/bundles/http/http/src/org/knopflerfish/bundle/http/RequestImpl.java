@@ -61,7 +61,7 @@ public class RequestImpl implements Request, PoolableObject {
 
   private final RequestBase base;
 
-  private final HttpConfig httpConfig;
+  private HttpConfigWrapper httpConfig;
   private final Registrations registrations;
   private final HttpSessionManager sessionManager;
 
@@ -84,13 +84,11 @@ public class RequestImpl implements Request, PoolableObject {
 
   // constructors
 
-  public RequestImpl(final HttpConfig httpConfig,
-                     final Registrations registrations,
+  public RequestImpl(final Registrations registrations,
                      final HttpSessionManager sessionManager) {
 
     base = new RequestBase();
 
-    this.httpConfig = httpConfig;
     this.registrations = registrations;
     this.sessionManager = sessionManager;
   }
@@ -98,11 +96,12 @@ public class RequestImpl implements Request, PoolableObject {
 
   // public methods
 
-  public void init(InputStream is, InetAddress remoteAddress)
+  public void init(InputStream is, InetAddress remoteAddress, HttpConfigWrapper httpConfig)
       throws HttpException, IOException {
 
     base.init(is);
 
+    this.httpConfig = httpConfig;
     this.remoteAddress = remoteAddress;
 
     boolean http_1_1 = base.getProtocol().equals(base.HTTP_1_1_PROTOCOL);
@@ -443,13 +442,9 @@ public class RequestImpl implements Request, PoolableObject {
     return registrations.getRequestDispatcher(uri);
   }
 
-  public String getScheme() {
-    return httpConfig.isSecure() ? "https" : "http";
-  }
-
   public String getServerName() {
 
-    String host = base.getHeader(base.HOST_HEADER_KEY);
+    String host = base.getHeader(HeaderBase.HOST_HEADER_KEY);
     if (host == null || host.length() == 0)
       host = httpConfig.getHost();
     else {
@@ -487,5 +482,14 @@ public class RequestImpl implements Request, PoolableObject {
   public boolean isSecure() {
     return httpConfig.isSecure();
   }
+
+
+/* (non-Javadoc)
+ * @see javax.servlet.ServletRequest#getScheme()
+ */
+public String getScheme() 
+{
+	return httpConfig.getScheme();
+}
 
 } // RequestImpl

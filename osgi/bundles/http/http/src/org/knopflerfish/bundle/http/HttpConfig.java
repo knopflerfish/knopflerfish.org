@@ -51,7 +51,8 @@ public class HttpConfig implements ManagedService {
 
   // public constants
 
-  public final static String PORT_KEY = "port";
+  public final static String HTTP_PORT_KEY = "port.http";  
+  public final static String HTTPS_PORT_KEY = "port.https";
   public final static String HOST_KEY = "host";
   public final static String MIME_PROPS_KEY = "mime.map";
   public final static String SESSION_TIMEOUT_KEY = "session.timeout.default";
@@ -61,20 +62,24 @@ public class HttpConfig implements ManagedService {
   public final static String RESPONSE_BUFFER_SIZE_DEFAULT_KEY =
       "response.buffer.size.default";
   public final static String SERVICE_RANKING_KEY = "service.ranking";
-  public final static String SECURE_KEY = "secure";
-  public final static String CLIENT_AUTH_KEY = "client.authentication";
-  public final static String KEYSTORE_URL_KEY = "keystore.url";
-  public final static String KEYSTORE_PASS_KEY = "keystore.pass";
+  public final static String HTTP_ENABLED_KEY = "http.enabled";
+  public final static String HTTPS_ENABLED_KEY = "https.enabled";
+  
+  private static final int HTTP_PORT_DEFAULT        = 80;
+  private static final int HTTPS_PORT_DEFAULT       = 443;
 
-  private static final int PORT_DEFAULT        = 80;
-  private static final int PORT_DEFAULT_SECURE = 443;
+  //
+  public HttpConfigWrapper HTTP = new HttpConfigWrapper(false, this);
+  public HttpConfigWrapper HTTPS = new HttpConfigWrapper(true, this);
 
-
+  
+  
   // private fields
 
   private Dictionary configuration;
 
-  private int      port = PORT_DEFAULT;
+  private int      httpPort = HTTP_PORT_DEFAULT;
+  private int      httpsPort = HTTPS_PORT_DEFAULT;
   private String   host = "";
   private final    Hashtable mimeMap = new Hashtable();
   private int      defaultSessionTimeout = 1200;
@@ -83,10 +88,8 @@ public class HttpConfig implements ManagedService {
   private boolean  dnsLookup = true;
   private int      defaultResponseBufferSize = 16384;
   private int      serviceRanking = 1000; // NYI
-  private boolean  isSecure = false;
-  private boolean  clientAuth = false; // NYI
-  private String   keystoreUrl = "";
-  private String   keystorePass = "";
+  private boolean  httpsEnabled = true;
+  private boolean  httpEnabled = true;
 
 
   // constructors
@@ -109,14 +112,16 @@ public class HttpConfig implements ManagedService {
 
     final Dictionary config = new Hashtable();
 
-    boolean isSecure = Boolean.getBoolean("org.knopflerfish.http.secure");
+    //"org.knopflerfish.http.secure");
 
-    config.put(HttpConfig.PORT_KEY, 
-	       isSecure 
-	       ? Integer.getInteger("org.osgi.service.http.port.secure", 
-				    PORT_DEFAULT_SECURE) 
-	       : Integer.getInteger("org.osgi.service.http.port", 
-				    PORT_DEFAULT));
+    if (System.getProperty("org.knopflerfish.http") != null)
+    {
+    	config.put(null, System.getProperty(""));
+    }
+    config.put(HttpConfig.HTTP_PORT_KEY, Integer.getInteger("org.osgi.service.http.port", 
+            HTTP_PORT_DEFAULT));
+    config.put(HttpConfig.HTTPS_PORT_KEY, Integer.getInteger("org.osgi.service.http.port.secure", 
+            HTTPS_PORT_DEFAULT));
 
     config.put(HttpConfig.HOST_KEY, 
 	       System.getProperty("org.osgi.service.http.hostname", ""));
@@ -157,18 +162,6 @@ public class HttpConfig implements ManagedService {
 	       Boolean.valueOf(System.getProperty("org.knopflerfish.http.dnslookup", "false")));
     config.put(HttpConfig.RESPONSE_BUFFER_SIZE_DEFAULT_KEY, 
 	       Integer.getInteger("org.knopflerfish.http.response.buffer.size.default", 16384));
-    if (HttpConfig.class.getResource("/bundle_keystore") != null) {
-      config.put(HttpConfig.SECURE_KEY, new Boolean(isSecure));
-
-      config.put(HttpConfig.CLIENT_AUTH_KEY, 
-		 Boolean.valueOf(System.getProperty("org.knopflerfish.http.secure.client.auth", "false")));
-
-      config.put(HttpConfig.KEYSTORE_URL_KEY, 
-		 System.getProperty("org.knopflerfish.http.secure.keystore.file", ""));
-
-      config.put(HttpConfig.KEYSTORE_PASS_KEY, 
-		 System.getProperty("org.knopflerfish.http.secure.keystore.password", ""));
-    }
 
     return config;
   }
@@ -184,9 +177,12 @@ public class HttpConfig implements ManagedService {
       String key = (String) e.nextElement();
       Object value = configuration.get(key);
       try {
-        if (key.equals(PORT_KEY)) {
-          port = ((Integer) value).intValue();
-          this.configuration.put(key, value);
+        if (key.equals(HTTP_PORT_KEY)) {
+            httpPort = ((Integer) value).intValue();
+            this.configuration.put(key, value);
+        } else if (key.equals(HTTPS_PORT_KEY)) {
+            httpsPort = ((Integer) value).intValue();
+            this.configuration.put(key, value);
         } else if (key.equals(HOST_KEY)) {
           host = (String) value;
           this.configuration.put(key, value);
@@ -221,16 +217,12 @@ public class HttpConfig implements ManagedService {
         } else if (key.equals(SERVICE_RANKING_KEY)) {
           serviceRanking = ((Integer) value).intValue();
           this.configuration.put(key, value);
-        } else if (key.equals(SECURE_KEY)) {
-          isSecure = ((Boolean) value).booleanValue();
-          this.configuration.put("scheme", isSecure ? "https" : "http");
-        } else if (key.equals(CLIENT_AUTH_KEY)) {
-          clientAuth = ((Boolean) value).booleanValue();
-          this.configuration.put(key, value);
-        } else if (key.equals(KEYSTORE_URL_KEY)) {
-          keystoreUrl = (String) value;
-        } else if (key.equals(KEYSTORE_PASS_KEY)) {
-          keystorePass = (String) value;
+        } else if (key.equals(HTTP_ENABLED_KEY)) {
+            this.httpEnabled = ((Boolean) value).booleanValue();
+            this.configuration.put(key, value);
+        } else if (key.equals(HTTPS_ENABLED_KEY)) {
+            this.httpsEnabled = ((Boolean) value).booleanValue();
+            this.configuration.put(key, value);
         } else
           this.configuration.put(key, value);
       } catch (IndexOutOfBoundsException ioobe) {
@@ -277,35 +269,32 @@ public class HttpConfig implements ManagedService {
     return connectionTimeout;
   }
 
-  public boolean isSecure() {
-    return isSecure;
+  public boolean isHttpEnabled() {
+    return httpEnabled;
+  }
+
+  public boolean isHttpsEnabled() {
+    return httpsEnabled;
   }
 
   public String getHost() {
     return host;
   }
 
-  public int getPort() {
-    return port;
+  public int getHttpPort() {
+    return httpPort;
+  }
+  public int getHttpsPort() {
+    return httpsPort;
   }
 
-  public void setPort(int port) {
-
-    this.port = port;
-
-    configuration.put(PORT_KEY, new Integer(port));
+  public void setHttpPort(int port) {
+    this.httpPort = port;
+    configuration.put(HTTP_PORT_KEY, new Integer(port));
   }
-
-  public String getKeyStore() {
-    return keystoreUrl; // NYI
-  }
-
-  public String getKeyStorePass() {
-    return keystorePass; // NYI
-  }
-
-  public boolean getClientAuthentication() {
-    return clientAuth;
+  public void setHttpsPort(int port) {
+    this.httpsPort = port;
+    configuration.put(HTTPS_PORT_KEY, new Integer(port));
   }
 
   public boolean getDNSLookup() {
