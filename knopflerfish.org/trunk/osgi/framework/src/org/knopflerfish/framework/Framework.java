@@ -492,6 +492,7 @@ public class Framework {
 	}
       }
     }
+    eeCache = fwEE;
 
     String[] eel   = Util.splitwords(ee, ",", '\"');
     
