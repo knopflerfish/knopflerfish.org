@@ -459,20 +459,22 @@ public class Activator implements BundleActivator {
 <tr>
 <td>
 <p>
-Some libraries, like most JNDI lookup services requires a correctly set
-<b>thread context classloader</b>. If this is not set, ClassNotFoundException,
-or similar might be thrown even if you have included all necessary libs.
+Many external libraries, like most JNDI lookup services requires a correctly
+set <b>thread context classloader</b>. If this is not set, ClassNotFoundException, or similar might be thrown even if you have included all necessary libs.
 </p>
 
 <p>
 To fix this, simple spawn a new thread in the activator and do the work
-from that thread.
+from that thread. If you use the lib in any callback methods from the
+framework, as <tt>ServiceListener</tt> or <tt>BundleListener</tt> you should
+do a similar trick inside of these listeners. 
 </p>
 
 <p>
 It is <b>not</b> recommended to set the context class loader on the startup
 thread, since that might not be unique for your bundle. Effects might
-vary depending on OSGi vendor.
+vary depending on OSGi vendor. If you don't spawn a new thread, you <b>must</b>
+reset the context class loader before returning.
 </p>
 </td>
 <td>
@@ -645,6 +647,54 @@ InputStream in =
 </pre>
     </td>
   </tr>
+
+
+<!--- #refreshing -->
+<tr>
+<td class="tableheader" colspan=2>
+<a name="refreshing"></a>
+Bundles must be refreshed after an update</td>
+</tr>
+  <tr>
+    <td valign=top>
+Bundle update does <b>not</b> automatically release all exported packages.
+<p>
+This means that a bundle that has exported any package to another bundle, or
+to the framework itself, needs to be explicitly <b>refreshed</b> before
+classes in those packages are releases.
+</p>
+<p>
+If you happen to have exported the package that your BundleActivor resides in, 
+this could mean that the "old" class will be used and not the newly installed
+one.
+</p>
+    </td>
+    <td valign=top>
+Both the console and desktop provides means of calling refresh:
+<p>
+Console:
+<pre>
+ &gt; /framework refresh
+</pre>
+</p>
+<p>
+Desktop: <br>
+Bundles -&gt; Refresh bundle packages<br>
+or CTRL + R
+</p>
+<p>
+
+Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service 
+to refresh packages:
+<pre>
+  // refresh all bundles
+  packageAdmin.refreshPackages(null)
+</pre>
+
+
+    </td>
+  </tr>
+<!--- /#refreshing -->
 
 </table>
     
