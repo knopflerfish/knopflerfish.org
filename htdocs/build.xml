@@ -43,7 +43,7 @@
       <param name="fromfile" value="html_src/index_main.html"/>
       <param name="tofile"   value="index.html"/>
       <param name="title"    value="Knopflerfish OSGi"/>
-      <param name="desc"     value="The Knopflerfish OSGi framework is complete, open-sourced, OSGi R3 certified framework."/>
+      <param name="desc"     value="The Knopflerfish OSGi framework is complete, open-sourced, OSGi R3 framework."/>
       <param name="CLASS_NAVIGATION_INDEX" value="navigation_disabled"/>
     </antcall>
 
@@ -125,6 +125,9 @@
 
    <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
    <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_COMP"      value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_DOWNLOAD"  value="navigation_enabled"/>
    <property name="CLASS_NAVIGATION_LINKS"     value="navigation_enabled"/>
    <property name="CLASS_NAVIGATION_DESKTOP"   value="navigation_enabled"/>
    <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
@@ -171,6 +174,9 @@
 
 	<replacefilter token="$(CLASS_NAVIGATION_LINKS)" 
                        value="${CLASS_NAVIGATION_LINKS}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_HISTORY)" 
+                       value="${CLASS_NAVIGATION_HISTORY}"/>
 
     </replace>	       
   </target>
