@@ -221,7 +221,11 @@ public class SystemBundle extends BundleImpl {
    */
   synchronized public void update(InputStream in) throws BundleException {
     framework.checkAdminPermission();
-    Main.restart();
+    if("true".equals(System.getProperty("org.knopflerfish.framework.restart.allow", "true"))) {
+      Main.restart();
+    } else {
+      Main.shutdown(2);
+    }
   }
 
 
