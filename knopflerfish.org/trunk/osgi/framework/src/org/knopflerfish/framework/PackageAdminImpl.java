@@ -271,7 +271,7 @@ public class PackageAdminImpl implements PackageAdmin {
     t.start();
   }
 
-  QSort.Comparator BSComparator = new QSort.Comparator() {
+  Util.Comparator BSComparator = new Util.Comparator() {
       public int compare(Object o1, Object o2) {
 	BundleImpl b1 = (BundleImpl)o1;
 	BundleImpl b2 = (BundleImpl)o2;

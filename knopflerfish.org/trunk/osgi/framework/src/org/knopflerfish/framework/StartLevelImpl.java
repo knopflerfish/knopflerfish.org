@@ -202,7 +202,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	}
       }
 
-      QSort.sort(set, BSComparator);
+      Util.sort(set, BSComparator, false);
 
       for(int i = 0; i < set.size(); i++) {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
@@ -236,7 +236,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	}
       }
 
-      QSort.sort(set, reverseBSComparator);
+      Util.sort(set, BSComparator, true);
 
       for(int i = 0; i < set.size(); i++) {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
@@ -260,21 +260,12 @@ public class StartLevelImpl implements StartLevel, Runnable {
     //      b.getState() != Bundle.ACTIVE;
   }
   
-  QSort.Comparator BSComparator = new QSort.Comparator() {
+  Util.Comparator BSComparator = new Util.Comparator() {
       public int compare(Object o1, Object o2) {
 	BundleImpl b1 = (BundleImpl)o1;
 	BundleImpl b2 = (BundleImpl)o2;
 	
 	return (int)(b1.getBundleId() - b2.getBundleId());
-      }
-    };
-
-  QSort.Comparator reverseBSComparator = new QSort.Comparator() {
-      public int compare(Object o1, Object o2) {
-	BundleImpl b1 = (BundleImpl)o1;
-	BundleImpl b2 = (BundleImpl)o2;
-	
-	return -(int)(b1.getBundleId() - b2.getBundleId());
       }
     };
 
