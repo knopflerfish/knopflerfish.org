@@ -40,6 +40,14 @@ import org.knopflerfish.util.Text;
 import java.util.*;
 import java.lang.reflect.*;
 
+/**
+ * Implementation calss for AttributeDefinition.
+ *
+ * <p>
+ * This class contains get and parse methods for operations
+ * related to constructing AttributeDefinition.
+ * </p>
+ */
 public class AD implements AttributeDefinition, Comparable {
   int      type;
   int      card;
@@ -50,6 +58,12 @@ public class AD implements AttributeDefinition, Comparable {
   String[] optLabels;
   String[] optValues;
 
+  static final String SEQUENCE_SEP = ",";
+
+  /**
+   * Create an AttributeDefinition with empty descrition and no option 
+   * labels or option values.
+   */
   public AD( String id, 
 	     int type,
 	     int card,
@@ -178,6 +192,18 @@ public class AD implements AttributeDefinition, Comparable {
     return type;
   }
 
+  /**
+   * Implementation of validation function.
+   *
+   * <p>
+   * Validation of primitive types is performed by trying to create an'
+   * object from the corresponding String constructor.
+   *</p>
+   * <p>
+   * Validation of arrays and vectors is performed by splitting
+   * the input string into comma-separated words.
+   * </p>
+   */
   public String validate(String value) {
     if(card == Integer.MIN_VALUE) {
       return validateMany(value, type, Integer.MAX_VALUE);
@@ -192,6 +218,9 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
+  /**
+   * Parse a string value to an object given a cardinality and type.
+   */
   public static Object parse(String value, int card, int type) {
     if(card < 0) {
       return parseMany(value, type);
@@ -211,7 +240,7 @@ public class AD implements AttributeDefinition, Comparable {
 
   static Vector parseMany(String value, 
 			  int type) {
-    String[] items = Text.splitwords(value, ", \n\r", '\"');
+    String[] items = Text.splitwords(value, SEQUENCE_SEP, '\"');
 
     //    System.out.println("AD.parseMany '" + value + "', item count=" + items.length);
     Vector v = new Vector();
@@ -228,7 +257,7 @@ public class AD implements AttributeDefinition, Comparable {
 
     int n = 0;
 
-    String[] items = Text.splitwords(value, ", \n\r", '\"');
+    String[] items = Text.splitwords(value, SEQUENCE_SEP, '\"');
 
     if(maxItems == 0) {
       if(items.length != 1) {
@@ -300,8 +329,10 @@ public class AD implements AttributeDefinition, Comparable {
     return "";
   }
 
+  /**
+   * Parse a single value into an object given a type.
+   */
   public static Object parseSingle(String value, int type) {
-    //    System.out.println("AD.parseSingle '" + value + "', type= "+ type);
 
     switch(type) {
     case STRING: 
@@ -327,6 +358,11 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
+  /**
+   * Get java class corresponding to AttributeDefinition type.
+   *
+   * @throws IllegalArgumentException if type is not supporte.d
+   */
   public static Class getClass(int type) {
     switch(type) {
     case STRING: 
@@ -354,6 +390,8 @@ public class AD implements AttributeDefinition, Comparable {
 
   /**
    * Get the primitive java class from a specificed type.
+   *
+   * @throws IllegalArgumentException if type is not supported.
    */
   public static Class getPrimitiveClass(int type) {
     switch(type) {
@@ -380,6 +418,9 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
+  /**
+   * Convert to human-readable string.
+   */
   public String toString() {
     StringBuffer sb = new StringBuffer();
 
@@ -400,6 +441,9 @@ public class AD implements AttributeDefinition, Comparable {
     return sb.toString();
   }
 
+  /**
+   * Convert a object to string  that can be parsed by <tt>parse</tt>
+   */
   public static String toString(Object obj) {
     if(obj.getClass().isArray()) {
       return toStringFromArray(obj);
@@ -410,7 +454,7 @@ public class AD implements AttributeDefinition, Comparable {
 	String s = (String)v.elementAt(i);
 	sb.append(escape(s));
 	if(i < v.size() - 1) {
-	  sb.append(", ");
+	  sb.append(SEQUENCE_SEP);
 	}
       }
       return sb.toString();
@@ -445,7 +489,7 @@ public class AD implements AttributeDefinition, Comparable {
 	sb.append(s);
 
 	if(i < Array.getLength(array) - 1) {
-	  sb.append(", ");
+	  sb.append(SEQUENCE_SEP);
 	}
       }
     }
@@ -464,7 +508,7 @@ public class AD implements AttributeDefinition, Comparable {
 	sb.append(s);
 	
 	if(i < values.length - 1) {
-	  sb.append(", ");
+	  sb.append(SEQUENCE_SEP);
 	}
       }
     }
@@ -480,7 +524,7 @@ public class AD implements AttributeDefinition, Comparable {
       for(int i = 0; i < values.size(); i++) {
 	sb.append(values.elementAt(i));
 	if(i < values.size() - 1) {
-	  sb.append(", ");
+	  sb.append(SEQUENCE_SEP);
 	}
       }
     }
