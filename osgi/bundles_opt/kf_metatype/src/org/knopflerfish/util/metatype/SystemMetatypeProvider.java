@@ -42,6 +42,17 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Class which monitors installed bundles for metatype and CM default data.
+ *
+ * <p>
+ * When instanciated, SystemMetatypeProvider will listen for installed
+ * bundles and try to extract metatype and Cm defaults XML from the
+ * bundle jar files. This data will then be available using the 
+ * <tt>getServicePIDs</tt>, <tt>getFactoryPIDs</tt> and 
+ * <tt>getObjectClassDefinition</tt> methods.
+ * </p>
+ */
 public class SystemMetatypeProvider 
   implements MetaTypeProvider, PIDProvider {
 
@@ -50,11 +61,46 @@ public class SystemMetatypeProvider
 
   Map providers = new HashMap();
 
+  /**
+   * Default URL to metatype XML.
+   * 
+   * <p>
+   * Value is "!/metatype.xml"
+   * </p>
+   */
   public static final String METATYPE_RESOURCE    = "!/metatype.xml";
+
+  /**
+   * Default URL to default CM values
+   * 
+   * <p>
+   * Value is "!/cmdefaults.xml"
+   * </p>
+   */
   public static final String CMDEFAULTS_RESOURCE  = "!/cmdefaults.xml";
+
+  /**
+   * Manifest attribute name specifying metatype XML URL.
+   * 
+   * <p>
+   * Value is "Bundle-MetatypeURL"
+   * </p>
+   */
   public static final String ATTRIB_METATYPEURL   = "Bundle-MetatypeURL";
+
+  /**
+   * Manifest attribute name specifying CM defaults XML URL.
+   * 
+   * <p>
+   * Value is "Bundle-CMDefaultsURL"
+   * </p>
+   */
   public static final String ATTRIB_CMDEFAULTSURL = "Bundle-CMDefaultsURL";
 
+  /**
+   * Create a SystemMetatypeProvider, using the spaecified bundle context
+   * for listeners.
+   */
   public SystemMetatypeProvider(BundleContext bc) {
     this.bc = bc;
     log = new LogRef(bc);
@@ -87,7 +133,12 @@ public class SystemMetatypeProvider
     
   }
 
-  MTP loadMTP(Bundle b) throws Exception {
+  /**
+   * Explictly load a metatype provider from a bundle.
+   *
+   * @throws Exception if loading fails
+   */
+  public MTP loadMTP(Bundle b) throws Exception {
 
     String defStr = (String)b.getHeaders().get(ATTRIB_METATYPEURL);
 
@@ -189,10 +240,20 @@ public class SystemMetatypeProvider
   }
 
 
+  /**
+   * Get a loaded metatype provider, given a bundle.
+   *
+   * @return Provider if such provider is found, otherwise <tt>null</tt>.
+   */
   public MTP getMTP(Bundle b) {
     return (MTP)providers.get(b);
   }
 
+  /**
+   * Get an ObjectClassDefinition given a PID.
+   *
+   * @return ObjectClassDefinition if PID exists, otherwise <tt>null</tt>.
+   */
   public ObjectClassDefinition getObjectClassDefinition(String pid, 
 							String locale) {
     

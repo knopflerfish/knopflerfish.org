@@ -39,6 +39,9 @@ import org.osgi.service.metatype.*;
 
 import java.util.*;
 
+/**
+ * Implementation of the <tt>MetaTypeProvider</tt> interface.
+ */
 public class MTP implements MetaTypeProvider, PIDProvider {
 
   Map ocdMap = new HashMap();
@@ -128,7 +131,7 @@ public class MTP implements MetaTypeProvider, PIDProvider {
       return false;
     }
 
-    return id.equals(((AD)other).id);
+    return id.equals(((MTP)other).id);
   }
 }
  

@@ -36,7 +36,24 @@ package org.knopflerfish.util.metatype;
 
 import java.util.Set;
 
+/**
+ * Interface which allows a service to provide sets of service and factory
+ * PID (Persistant ID) strings. This is used to allow a user interface or 
+ * admin service to create new Configuration Management dictionaries. 
+ */
 public interface PIDProvider {
+  
+  /**
+   * Get set of service PIDs.
+   *
+   * @return Set of String, wher each string is a possible service PID.
+   */
   public Set getServicePIDs();
+
+  /**
+   * Get set of factory PIDs.
+   *
+   * @return Set of String, wher each string is a possible factory PID.
+   */
   public Set getFactoryPIDs();
 }
