@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="util" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+
+  <path id="bundle.compile.path">
+  </path>
+
+
+  <property name="api.pattern"  value="org/knopflerfish/util/**"/>
+
+  <property name="bundle.libonly"        value=""/>
+  <property name="bundle.category"       value="lib"/>
+  <property name="bundle.description"    value="Misc utilities"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="util"/>
+
+  &bundlebuild_include;
+
+</project>
