@@ -90,12 +90,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   PrintStream out = System.out;
 
+  long eventDelay = 500;
+
   public FrameworkTestSuite (BundleContext bc) {
     super("FrameworkTestSuite");
     this.bc = bc;
     this.bu = bc.getBundle();
     test_url_base = "bundle://" + bc.getBundle().getBundleId() + "/";
-    // test_url_base = "file:c:/cygwin/tmp/jars/";
+
+    try {
+      eventDelay = Long.getLong("org.knopflerfish.framework_tests.eventdelay", 
+				new Long(eventDelay)).longValue();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     addTest(new Setup());
     addTest(new Frame005a());
@@ -3190,6 +3198,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // Check that the expected events has reached the listeners and reset the events in the listeners
   private boolean checkListenerEvents(Object _out, boolean fwexp, int fwtype, boolean buexp, int butype, boolean sexp, int stype, Bundle bunX, ServiceReference servX ) {
     boolean listenState = true;	// assume everything will work
+
+    // Sleep a while to allow events to arrive
+    try {
+      Thread.sleep(eventDelay);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
 
     if (fwexp == true) {
       if (fListen.getEvent() != null) {
