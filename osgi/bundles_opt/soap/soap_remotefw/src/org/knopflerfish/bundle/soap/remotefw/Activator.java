@@ -19,18 +19,25 @@ public class Activator implements BundleActivator {
     this.bc = bc;
     log = new LogRef(bc);
 
-    remoteFW = new RemoteFWServer();
-    remoteFW.start();
-
-    RemoteFrameworkImpl rc = new RemoteFrameworkImpl();
-
-    bc.registerService(RemoteFramework.class.getName(),
-		       rc,
-		       new Hashtable());
+    if("true".equals(System.getProperty("org.knopflerfish.soap.remotefw.server", "true"))) {
+      remoteFW = new RemoteFWServer();
+      remoteFW.start();
+    }
+    
+    if("true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client", "true"))) {
+      RemoteFrameworkImpl rc = new RemoteFrameworkImpl();
+      
+      bc.registerService(RemoteFramework.class.getName(),
+			 rc,
+			 new Hashtable());
+    }
   }
-
+  
   public void stop(BundleContext bc) {
-    remoteFW.stop();
+    if(remoteFW != null) {
+      remoteFW.stop();
+      remoteFW = null;
+    } 
 
     this.log = null;
     this.bc  = null;
