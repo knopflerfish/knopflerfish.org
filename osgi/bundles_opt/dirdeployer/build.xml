@@ -30,6 +30,7 @@
 
   <property name="bundle.description"    value="Monitors a file system directory for bundles to deploy"/>
   <property name="bundle.category"       value="example"/>
+  <property name="bundle.name"           value="Directory deployer"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.vendor"         value="Knopflerfish"/>
 
