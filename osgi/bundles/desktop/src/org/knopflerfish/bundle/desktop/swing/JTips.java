@@ -57,7 +57,7 @@ import org.knopflerfish.util.*;
 
 public class JTips extends JPanel {
   JFrame frame = null;
-  String title = "Desktop tips";
+  String title = "Knopflerfish OSGi: tips";
 
   java.util.List tips = new ArrayList(); // String
 
@@ -114,8 +114,22 @@ public class JTips extends JPanel {
     html.setContentType("text/html");
     html.setEditable(false);
 
+    html.addHyperlinkListener(new HyperlinkListener() 
+      {
+	public void hyperlinkUpdate(HyperlinkEvent ev) {
+	  if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	    URL url = ev.getURL();
+	    try {
+	      Util.openExternalURL(url);
+	    } catch (Exception e) {
+	      Activator.log.warn("Failed to open external url=" + url, e);
+	    }
+	  }
+	}
+      });
+
     scroll = new JScrollPane(html);
-    scroll.setPreferredSize(new Dimension(300, 200));
+    scroll.setPreferredSize(new Dimension(350, 200));
 
     scroll.setBorder(BorderFactory
 		     .createCompoundBorder(BorderFactory
@@ -123,12 +137,14 @@ public class JTips extends JPanel {
 					   BorderFactory
 					   .createLoweredBevelBorder()));
 
-    nextButton = new JButton(Strings.get("next_tip"));
-    nextButton.addActionListener(new ActionListener() {
+    final ActionListener nextAction = new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  setTip((tipIx + 1) % tips.size());
 	}
-      });
+      };
+    
+    nextButton = new JButton(Strings.get("next_tip"));
+    nextButton.addActionListener(nextAction);
 
     prevButton = new JButton(Strings.get("prev_tip"));
     prevButton.addActionListener(new ActionListener() {
@@ -136,17 +152,36 @@ public class JTips extends JPanel {
 	  setTip((tipIx + tips.size() - 1) % tips.size());
 	}
       });
-    
-    ctrlPanel = new JToolBar();
-    ((JToolBar)ctrlPanel).setFloatable(false);
+
+    JPanel bottomPanel = new JPanel(new BorderLayout());
+    JPanel topPanel    = new JPanel(new BorderLayout());
+
+    ctrlPanel = new JPanel(new FlowLayout());
+    //    ((JToolBar)ctrlPanel).setFloatable(false);
+
     ctrlPanel.add(prevButton);
     ctrlPanel.add(nextButton);
 
-    JLabel icon = new JLabel(Activator.desktop.tipIcon);
+    bottomPanel.add(ctrlPanel,    BorderLayout.EAST);
 
-    add(icon,      BorderLayout.WEST);
-    add(scroll,    BorderLayout.CENTER);
-    add(ctrlPanel, BorderLayout.SOUTH);
+    JLabel titleC = new JLabel("Did you know that...");
+    titleC.setFont(new Font("Dialog", Font.BOLD, 15));
+    titleC.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
+
+    topPanel.add(titleC, BorderLayout.WEST);
+
+    JLabel icon = new JLabel(Activator.desktop.tipIcon);
+    icon.addMouseListener(new MouseAdapter() {
+	public void mouseClicked(MouseEvent ev) {
+	  nextAction.actionPerformed(null);
+	}
+      });
+    icon.setToolTipText(nextButton.getText());
+
+    add(icon,        BorderLayout.WEST);
+    add(scroll,      BorderLayout.CENTER);
+    add(bottomPanel, BorderLayout.SOUTH);
+    add(topPanel,    BorderLayout.NORTH);
 
     setTip((int)(Math.random() * tips.size()));
 
@@ -160,17 +195,13 @@ public class JTips extends JPanel {
     tipIx = ix;
 
     Tip    tip = (Tip)tips.get(tipIx % tips.size());
-    String s   = tip.toHTML();
-
+    String s   = Text.replace(tip.toHTML(), "$(BID)", Long.toString(Activator.getBC().getBundle().getBundleId()));
+    
     setHTML(Util.fontify(s));
   }
 
   void setHTML(final String s) {
-    SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  html.setText(s);
-	}
-      });
+    html.setText(s);
     
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
@@ -246,7 +277,7 @@ class Tip {
 
   public String toHTML() {
     return 
-      "<b>" + "Tip #" + id + " " + name + "</b>" + 
+      "<b>" + name + "</b>" + 
       "<p>" + main + "</p>";
   }
 
