@@ -80,8 +80,9 @@ public class JCMInfo extends JPanel {
       Set services  = pp.getServicePIDs();
       Set factories = pp.getFactoryPIDs();
 
+      String[] servicePIDs = null;
       if(services.size() > 0) {
-	String[] servicePIDs = new String[services.size()];
+	servicePIDs = new String[services.size()];
 	
 	
 	int i = 0;
@@ -97,16 +98,15 @@ public class JCMInfo extends JPanel {
 		return;
 	      } else {
 		String pid = (String)servicePIDBox.getSelectedItem();
-		ObjectClassDefinition ocd = 
-		  (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
-		setServiceOCD(ocd);
+		setServiceOCD(pid);
 	      }
 	    }
 	  });
       }
       
+      String[] factoryPIDs = null;
       if(factories.size() > 0) {
-	String[] factoryPIDs = new String[factories.size()];
+	factoryPIDs = new String[factories.size()];
 	int i = 0;
 	for(Iterator it = factories.iterator(); it.hasNext();) {
 	  factoryPIDs[i++] = (String)it.next();
@@ -120,9 +120,7 @@ public class JCMInfo extends JPanel {
 		return;
 	      } else {
 		String pid = (String)factoryPIDBox.getSelectedItem();
-		ObjectClassDefinition ocd = 
-		  (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
-		setFactoryOCD(ocd);
+		setFactoryOCD(pid);
 	      }
 	    }
 	  });
@@ -141,17 +139,34 @@ public class JCMInfo extends JPanel {
       
       main.add(upperBox,   BorderLayout.NORTH);
       main.add(jcmService, BorderLayout.CENTER);
+
+      // Set either the first service or the first factory as displayed
+      if(servicePIDs != null) {
+	setServiceOCD(servicePIDs[0]);
+      } else {
+	if(factoryPIDs != null) {
+	  setFactoryOCD(factoryPIDs[0]);
+	} else {
+	  // Neither service nor factory found in provider
+	}
+      }
     }
     invalidate();
     revalidate();
     repaint();
   }
   
-  void setServiceOCD(ObjectClassDefinition ocd) {
+  void setServiceOCD(String pid) {
+    ObjectClassDefinition ocd = 
+      (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
+    
     jcmService.setServiceOCD(ocd);
   }
 
-  void setFactoryOCD(ObjectClassDefinition ocd) {
+  void setFactoryOCD(String pid) {
+    ObjectClassDefinition ocd = 
+      (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
+
     jcmService.setFactoryOCD(ocd);
   }
 }
