@@ -120,6 +120,13 @@ public class JWizard extends JFrame implements InstallUI {
     pagePanel = new JPanel(pageCards = new CardLayout());
     pageDescription = new JLabel();
 
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    addWindowListener(new WindowAdapter() {
+	public void windowClosing(WindowEvent e) {
+	  cancel();
+	}
+      });
+
     cancelButton = new JButton(Strings.get("cancel")) {
 	{
 	  addActionListener(new ActionListener() {
