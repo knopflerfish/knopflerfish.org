@@ -57,7 +57,7 @@ How it works
 
     The servlet is available at
 
-      http://<host>:<port>/junit?<testid>
+      http://<host>:<port>/junit?id=<testid>
 
     where <testid> == value of the service.pid property exported
     in 2) 
