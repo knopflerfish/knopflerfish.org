@@ -33,14 +33,17 @@ public interface RemoteFramework  {
    * <p>
    * If the connection fails, a RuntimeException is thrown.
    * </p>
+   *
+   * @throws RuntimeException if the connection fails
    */
   public BundleContext connect(String host);
 
   /**
    * Disconnect from a previously connected framework.
    *
-   * @param bc Context representing the remote framework. Must be
-   *           a context previously returned from <tt>connect</tt>
+   * @param bc Context representing the remote framework. If the
+   *           context is not previously returned from <tt>connect</tt>,
+   *           do nothing.
    */
   public void disconnect(BundleContext bc);
 
@@ -49,6 +52,9 @@ public interface RemoteFramework  {
    *
    * @param bc Context representing the remote framework. Must be
    *           a context previously returned from <tt>connect</tt>
+   *
+   * @throws IllegalArgumentException if bc is not a context returned 
+   *                                  from <tt>connect</tt>
    */
   public Map getSystemProperties(BundleContext bc);
 }
