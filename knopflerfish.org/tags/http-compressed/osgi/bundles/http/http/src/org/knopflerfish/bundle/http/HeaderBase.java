@@ -63,6 +63,8 @@ public class HeaderBase {
   protected static final String DATE_HEADER_KEY = "Date";
   protected static final String LANGUAGE_HEADER_KEY = "Accept-Language";
   protected static final String HOST_HEADER_KEY = "Host";
+  protected static final String CONTENT_ENCODING_HEADER_KEY = "Content-Encoding";
+  protected static final String ACCEPT_ENCODING_HEADER_KEY = "Accept-Encoding";
 
 
   // private fields

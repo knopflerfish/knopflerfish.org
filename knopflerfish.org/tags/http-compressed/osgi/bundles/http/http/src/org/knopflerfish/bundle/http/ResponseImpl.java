@@ -39,12 +39,14 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.OutputStreamWriter;
 import java.util.Locale;
+import java.lang.reflect.Constructor;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.util.GregorianCalendar;
 
 import javax.servlet.ServletOutputStream;
@@ -58,8 +60,21 @@ import javax.servlet.http.HttpSession;
 
 public class ResponseImpl implements Response, PoolableObject {
 
-  // private fields
+  protected static Hashtable encoders;
 
+  static {
+    encoders = new Hashtable();
+    encoders.put("gzip", "org.knopflerfish.bundle.http.CompressedBodyOutputStream");
+    encoders.put("x-gzip", "org.knopflerfish.bundle.http.CompressedBodyOutputStream");
+  }
+
+  protected static Class[] BODYCONSARGS = new Class[] {
+    OutputStream.class,
+    ResponseImpl.class,
+    Integer.TYPE
+  };
+  // private fields
+  
   private HttpConfigWrapper httpConfig;
 
   private int statusCode = SC_OK;
@@ -95,6 +110,44 @@ public class ResponseImpl implements Response, PoolableObject {
   }
 
 
+  protected BodyOutputStream getBodyOutputStream(OutputStream os, 
+                                                 RequestImpl request,
+                                                 ResponseImpl response, 
+                                                 int size) {
+    String path = ""; // request.getPathInfo();
+    System.out.println("path=" + path);
+    String acceptEncodings = request.getHeader(HeaderBase.ACCEPT_ENCODING_HEADER_KEY);
+    
+    //    System.out.println("accept: " + acceptEncodings);
+    System.out.println("headers: " + response.headers);
+    
+    // Check if we have a matching class in encoder map
+    // If found, instanciate with out/response/in args
+    if(acceptEncodings != null) {
+      StringTokenizer st = new StringTokenizer(acceptEncodings, ",");
+      while(st.hasMoreTokens()) {
+        String enc       = st.nextToken();
+        String className = (String)encoders.get(enc.trim().toLowerCase());
+        if(className != null) {
+          try {
+            Class       clazz = Class.forName(className);
+            Constructor cons  = clazz.getConstructor(BODYCONSARGS);
+            return (BodyOutputStream)
+              cons.newInstance(new Object[] { os, 
+                                              this,
+                                              new Integer(size)});
+          } catch (Exception e) {
+            System.err.println("Failed to create body encoder for " + enc + ", " + e);
+          }
+        } else {
+          // no encoder found for this enc, try next
+        }
+      }
+    }
+    // default to uncompressed body
+    return new BodyOutputStream(os, this, httpConfig.getDefaultBufferSize());
+  }
+
   // public methods
 
   public void init(OutputStream os, final HttpConfigWrapper httpConfig)
@@ -110,8 +163,8 @@ public class ResponseImpl implements Response, PoolableObject {
     if (request != null)
       keepAlive = request.getKeepAlive();
 
-    bodyOut =
-        new BodyOutputStream(os, this, httpConfig.getDefaultBufferSize());
+    bodyOut = getBodyOutputStream(os, request, this, httpConfig.getDefaultBufferSize());
+    System.out.println("bodyOut = " + bodyOut);
   }
 
   public boolean getKeepAlive() {
