@@ -49,6 +49,7 @@ public class RemoteFWClient implements RemoteFW {
     caches.put("getInitialBundleStartLevel",  fastCache);
     caches.put("isBundlePersistentlyStarted", fastCache);
     caches.put("getBundle",                   fastCache);
+    caches.put("getBundles",                  slowCache);
     caches.put("getBundleLocation",           slowCache);
     caches.put("getBundleState",              slowCache);
     caches.put("getBundleManifest",           slowCache);
