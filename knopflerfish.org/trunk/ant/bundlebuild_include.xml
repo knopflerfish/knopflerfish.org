@@ -76,6 +76,8 @@
  <property name = "console.welcome"     value = "Knopflerfish OSGi console"/>
  <property name = "console.loginok"     value = "'quit' to end session"/>
 
+ <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
+
 
  <property name="http.host"          value="localhost"/>
  <property name="http.port"          value="8080"/>
@@ -239,6 +241,10 @@
    <taskdef name      = "bundlehtml" 
             classpath = "${antclasses}" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
+
+   <taskdef name      = "bundleobr" 
+            classpath = "${antclasses}" 
+     classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
      
  </target>
 
@@ -568,6 +574,7 @@
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
