@@ -266,6 +266,9 @@ public class SystemBundle extends BundleImpl {
     return getClass().getClassLoader();
   }
 
+  void setBundleContext(BundleContextImpl bc) {
+    bundleContext = bc;
+  }
 
   /**
    * Set system bundle state to active

@@ -98,22 +98,22 @@ class BundleImpl implements Bundle {
   /**
    * Directory for bundle data.
    */
-  private FileTree bundleDir = null;
+  protected FileTree bundleDir = null;
 
   /**
    * BundleContext for bundle.
    */
-  private BundleContextImpl bundleContext = null;
+  protected BundleContextImpl bundleContext = null;
 
   /**
    * BundleActivator for bundle.
    */
-  private BundleActivator bactivator = null;
+  protected BundleActivator bactivator = null;
 
   /**
    * List of all nativeLibs that can be used in this bundle.
    */
-  private List nativeLibs = null;
+  protected List nativeLibs = null;
 
 
   /**
