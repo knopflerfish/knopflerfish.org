@@ -49,6 +49,7 @@ class DesktopPanel extends Panel {
   CardLayout cardLayout;
   Console    console;
   StatusBar  statusBar;
+  Container  openPanel;
 
   public static final int SORT_ID    = 0;
   public static final int SORT_NAME  = 1;
@@ -80,7 +81,8 @@ class DesktopPanel extends Panel {
           selectBundleFromText(s);
         }
       });
-                                  
+
+    openPanel = new InstallPanel();
 
     //    bundlePanel.setSize(new Dimension(200, 400));
     toolbar = new Toolbar();
@@ -92,6 +94,9 @@ class DesktopPanel extends Panel {
 
     cardPanel.add(console.panel, "console");
     cardLayout.addLayoutComponent("console", console.panel);
+
+    cardPanel.add(openPanel, "opem");
+    cardLayout.addLayoutComponent("open", openPanel);
 
     statusBar = new StatusBar();
 
@@ -267,6 +272,7 @@ class DesktopPanel extends Panel {
   }
 
   public void openBundle() {
+     cardLayout.show(cardPanel, "open");
   }
 
   public void stopBundles() {
