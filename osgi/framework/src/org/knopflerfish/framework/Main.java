@@ -348,6 +348,13 @@ public class Main {
 	  if (i+1 < args.length) { 
 	    int n = Integer.parseInt(args[i+1]);
 	    if(framework.startLevelService != null) {
+	      if(n == 1) {
+		if(Debug.startlevel) {
+		  Debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
+		}
+		framework.startLevelService.bCompat = true;
+	      }
+	      
 	      framework.startLevelService.setStartLevel(n);
 	    } else {
 	      println("No start level service - ignoring start level " + n, 0);
