@@ -1,0 +1,149 @@
+<html>
+<head>
+<title>Knopflerfish OSGi console</title>
+<LINK href="console.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<form  action="/servlet/console" method="GET">
+<table width="100%" class="maintable">
+<tr class="toolview">
+<td colspan="2" class="toolview">
+<div class="toolbar">
+ <input alt="Start selected bundles" type="image" name="cmd_start" src="player_play.gif">
+ <input alt="Stop selected bundles" type="image" name="cmd_stop" src="player_stop.gif">
+ <input alt="Stop selected bundles" type="image" name="cmd_update" src="update.gif">
+ <input alt="Uninstall selected bundles" type="image" name="cmd_uninstall" src="player_eject.gif">
+ <input alt="Info on selected bundles" type="image" name="cmd_info" src="info.gif">
+ <input alt="Reload view" type="image" name="cmd_reload" src="reload_green.gif">
+ <input alt="Help" type="image" name="cmd_help" src="help.gif">
+ <input  type="submit" name="cmd_install" value="Install"">
+ <input alt="Stop selected bundles" type="text" name="cmd_install_url">
+Knopflerfish/1.2 on Windows XP/5.1</div>
+</td>
+</tr>
+<tr>
+<td class="mainview">
+<div class="shadow">
+24 bundles, 22 active
+</div>
+<table width="100%" class="bundletable">
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_17"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">HTTP root</div><div class="bundledescription">Demo HTTP root servlet</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_16"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">Desktop</div><div class="bundledescription">Swing framework desktop</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_20"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">http_test</div><div class="bundledescription">Test bundle for the http service</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_2"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">CM Service</div><div class="bundledescription">Configuration management service</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_18"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">JUnit</div><div class="bundledescription">JUnit support</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_11"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">FW Commands</div><div class="bundledescription">Framework commands</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_8"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">Device Manager</div><div class="bundledescription">Device manager</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_10"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">HTTP Server</div><div class="bundledescription">HTTP Server</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_6"/>  </td>
+  <td class="row_even">   <img border="0" src="lib.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">JSDK lib</div><div class="bundledescription">The servlet.jar from SUN jsdk lib</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_19"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">framework_test</div><div class="bundledescription">Test bundle for framework</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_7"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">bundlerepository</div><div class="bundledescription">OBR bundle repository using the KF console and desktop</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_21"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">filter_test</div><div class="bundledescription">Test bundle for framework filters</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_3"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">Console</div><div class="bundledescription">Service system console</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_13"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">CM Commands</div><div class="bundledescription">Commands for the CM service</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_22"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">constants_test</div><div class="bundledescription">Test bundle for framework constants</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_5"/>  </td>
+  <td class="row_odd">   <img border="0" src="lib_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">Crimson XML lib</div><div class="bundledescription">The Crimson XML parser</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_23"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">HTTP-console</div><div class="bundledescription">Simple HTTP console allowing framework management</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_9"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">User Admin</div><div class="bundledescription">User administration Service</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_12"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">Log Commands</div><div class="bundledescription">Log commands</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_0"/>  </td>
+  <td class="row_odd">   <img border="0" src="lib_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">System Bundle</div><div class="bundledescription">null</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_15"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">Telnet Console</div><div class="bundledescription">Telnet console </div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_4" checked />  </td>
+  <td class="row_odd">   <img border="0" src="lib.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">util</div><div class="bundledescription">Misc utilities</div>  </td>
+ </tr>
+ <tr class="row_even">  <td class="row_even">   <input type="checkbox" name="bundle_id_1"/>  </td>
+  <td class="row_even">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_even"><div class="bundlename">Log Service</div><div class="bundledescription">The Knopflerfish OSGi log service</div>  </td>
+ </tr>
+ <tr class="row_odd">  <td class="row_odd">   <input type="checkbox" name="bundle_id_14"/>  </td>
+  <td class="row_odd">   <img border="0" src="bundle_started.gif"/>  </td>
+  <td class="row_odd"><div class="bundlename">TTY Console</div><div class="bundledescription">Command line system console</div>  </td>
+ </tr>
+</table>
+</td>
+<td width="30%" class="maininfo">
+</td>
+</tr>
+<tr class="toolview">
+<td colspan="2" class="toolview">
+<div class="toolbar">
+ <input alt="Start selected bundles" type="image" name="cmd_start" src="player_play.gif">
+ <input alt="Stop selected bundles" type="image" name="cmd_stop" src="player_stop.gif">
+ <input alt="Stop selected bundles" type="image" name="cmd_update" src="update.gif">
+ <input alt="Uninstall selected bundles" type="image" name="cmd_uninstall" src="player_eject.gif">
+ <input alt="Info on selected bundles" type="image" name="cmd_info" src="info.gif">
+ <input alt="Reload view" type="image" name="cmd_reload" src="reload_green.gif">
+ <input alt="Help" type="image" name="cmd_help" src="help.gif">
+ <input  type="submit" name="cmd_install" value="Install"">
+ <input alt="Stop selected bundles" type="text" name="cmd_install_url">
+Knopflerfish/1.2 on Windows XP/5.1</div>
+</td>
+</tr>
+<table>
+<form>
+</body>
+</html>
