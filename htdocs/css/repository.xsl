@@ -87,6 +87,10 @@ read the XML file, list bundles, and install bundles and their dependencies.
 </p>
 
 <p>
+The repository URL is <a href="http://www.knopflerfish.org/repo/repository.xml">http://www.knopflerfish.org/repo/repository.xml</a>
+
+</p>
+<p>
 This repository is generated on <xsl:value-of select="bundles/date"/>
 </p>
 
@@ -152,11 +156,6 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 
 </table>
 
-<p>
-Note: If you're reading this text, you're looking at the XML file via an
-XML stylesheet capable browser. The source for this page is however, the same
-XML file as the OBR bundle reads.
-</p>
 
 <!-- stop -->
 
