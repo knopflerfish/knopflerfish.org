@@ -249,6 +249,13 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 			     opts.get("-s") != null
 			     );
     boolean needNl = false;
+    // .println("12  5/active   CM Commands               2  1/active   CM Service");
+    if(opts.get("-l") != null) {
+      out.println("   id  level/state location");
+    } else {
+      out.println("   id  level/state name");
+    }
+    out.println("   --------------------");
     for (int i = 0; i < b.length; i++) {
       String level = null;
       try {
@@ -1066,7 +1073,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       sb.append("ILLEGAL <" + bundle.getState() +"> ");
       break;
     }
-    while(sb.length() < 12) {
+    while(sb.length() < 13) {
       sb.append(" ");
     }
  
