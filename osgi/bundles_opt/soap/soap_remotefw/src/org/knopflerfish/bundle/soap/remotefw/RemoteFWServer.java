@@ -80,6 +80,11 @@ public class RemoteFWServer implements RemoteFW {
     return bids;
   }
 
+  public String      getBundleContextProperty(String key) {
+    String v = Activator.bc.getProperty(key);
+    
+    return v == null ? NULL_STR : v;
+  }
   public String  getBundleLocation(long bid) {
     Bundle b = Activator.bc.getBundle(bid);
 
