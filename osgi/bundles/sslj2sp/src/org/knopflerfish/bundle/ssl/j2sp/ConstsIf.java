@@ -34,13 +34,19 @@
 package org.knopflerfish.bundle.ssl.j2sp;
 
 /**
- * @author tenderes
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * This class is a collection of well known constants.
+ * @see "JavaTM Secure Socket Extension (JSSE)
+ * Reference Guide for the Java 2 SDK, Standard Edition, v1.4.2"
+ * Appendix A
+ * 
  */
 public interface ConstsIf
 {
-    public final String TYPE_SSL_V3     = "SSLv3";
-    public final String TYPE_TLS_V1     = "TLSv1";
+    //SSL protocol types
+    public final String PROT_SSL_V3     = "SSLv3";
+    public final String PROT_TLS_V1     = "TLSv1";
+    
+    //Keystore Types
+	public final String KS_TYPE_JKS = "JKS";
+    public final String KS_TYPE_PKC12 = "PKC12";
 }

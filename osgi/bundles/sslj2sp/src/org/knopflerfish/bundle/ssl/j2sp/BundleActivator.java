@@ -33,6 +33,7 @@
  */
 package org.knopflerfish.bundle.ssl.j2sp;
 
+import org.knopflerfish.bundle.util.LogClient;
 import org.osgi.framework.*;
 import org.osgi.service.cm.*;
 
@@ -49,25 +50,20 @@ import java.util.*;
 
 import javax.net.ssl.*;
 
-/**
- * version PH_BUILD_VERSION (c) TE 2004<br/>
- * <br/>
- * 
- * 
- * @author T Enderes
- */
 public class BundleActivator extends SSLServerSocketFactory implements org.osgi.framework.BundleActivator, ManagedService
 {
-    private final static String PID = "j2sp";
+    public final LogClient m_log = new LogClient();
     
-    private final static String m_myKeysPass = "mykeyspasswd";
-    private final static String m_myKeys = "mykeys";
+    private final static String PID = BundleActivator.class.getName();
+    
+    private final static String KEYSTOREPASS_KEY = "keystorepass";
+    private final static String KEYSTORE_KEY = "keystore";
 
     private SSLServerSocketFactory m_ssl;
     private BundleContext m_bc;
     private Dictionary m_config;
-	private final static String DEFAULT_KEYSTORE = "/resources/testkeys";
-    private final static String DEFAULT_PASSPHR = "passphrase";
+	private final static String DEFAULT_KEYSTORE_VALUE = "/resources/defaultkeys";
+    private final static String DEFAULT_PASSPHR_VALUE = "defaultpass";
 	private ServiceRegistration m_managedReg;
 
 
@@ -85,6 +81,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
 	public void start(BundleContext bc) throws Exception
 	{
             m_bc = bc;
+            m_log.init(m_bc);
             
             m_config = getDefaultConfig();
               
@@ -111,6 +108,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
         }
         
         m_ssl = null;
+        m_log.cleanup();
 	}
    
 
@@ -119,7 +117,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
         SSLContext context = null;
 		try
 		{
-			context = SSLContext.getInstance(ConstsIf.TYPE_TLS_V1);
+			context = SSLContext.getInstance(ConstsIf.PROT_TLS_V1);
 		
         } catch (NoSuchAlgorithmException e)
 		{
@@ -131,7 +129,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
 		KeyStore myKeys;
 		try
 		{
-			myKeys = KeyStore.getInstance("JKS");
+			myKeys = KeyStore.getInstance(ConstsIf.KS_TYPE_JKS);
 
 		} catch (KeyStoreException e1)
 		{
@@ -150,7 +148,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
         char[] keyPassPhrase = null; 
         try
         {
-            keyPassPhrase = ((String) m_config.get(m_myKeysPass)).toCharArray();
+            keyPassPhrase = ((String) m_config.get(KEYSTOREPASS_KEY)).toCharArray();
         
         } catch (Exception epass) {}
         
@@ -161,7 +159,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
         {        
             try 
             {
-                is = new ByteArrayInputStream((byte[]) m_config.get(m_myKeys));
+                is = new ByteArrayInputStream((byte[]) m_config.get(KEYSTORE_KEY));
     
             } catch (Exception eb) {}
         }        
@@ -171,20 +169,19 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
         {        
             try 
             {
-                ((String) m_config.get(m_myKeysPass)).toCharArray();                
-                is = new FileInputStream((String) m_config.get(m_myKeys));
+                ((String) m_config.get(KEYSTOREPASS_KEY)).toCharArray();                
+                is = new FileInputStream((String) m_config.get(KEYSTORE_KEY));
             
             } catch (Exception ef) {}
         }
         
         if (is == null) // enough nonsense, use the default keystore
         {        
-            System.out.println("WARNING: [" + PID + "]  trying default keystore now");
-            System.out.println("         [" + PID + "]  //TODO use log service");
+            m_log.warn("[" + PID + "]  trying default keystore now");
             try
             {
-                keyPassPhrase = DEFAULT_PASSPHR.toCharArray();
-    			is = getClass().getResourceAsStream(DEFAULT_KEYSTORE);
+                keyPassPhrase = DEFAULT_PASSPHR_VALUE.toCharArray();
+    			is = getClass().getResourceAsStream(DEFAULT_KEYSTORE_VALUE);
     		
             } catch (Exception edef)
     		{
@@ -198,7 +195,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
         } catch (Exception eload)
         {
             throw new ConfigurationException(
-                            m_myKeys + "," + m_myKeysPass,
+                            KEYSTORE_KEY + "," + KEYSTOREPASS_KEY,
                             "ERROR loading keys !, passphrase " + String.valueOf(keyPassPhrase));
         }
         
@@ -242,16 +239,16 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
     private Hashtable getDefaultConfig()
     {
         Hashtable properties = new Hashtable();
-        properties.put(Constants.SERVICE_VENDOR, "gatwide"); 
-        properties.put(Constants.BUNDLE_NAME, "SSL-SSFactory Managed Service");
+        properties.put(Constants.SERVICE_VENDOR, "knopflerfish"); 
+        properties.put(Constants.BUNDLE_NAME, "SSL Java2 Security Provider");
         properties.put(Constants.BUNDLE_DESCRIPTION, "This service will receive "
         + "the desired configuration used to configure and register a SSLServerSocketFactory.");
 
         properties.put(Constants.SERVICE_PID, PID);
 
-        properties.put(m_myKeysPass, DEFAULT_PASSPHR);
+        properties.put(KEYSTOREPASS_KEY, DEFAULT_PASSPHR_VALUE);
 
-        properties.put(m_myKeys, DEFAULT_KEYSTORE);
+        properties.put(KEYSTORE_KEY, DEFAULT_KEYSTORE_VALUE);
 
 
         return properties;
@@ -263,9 +260,14 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
 	 */
 	public void updated(Dictionary config) throws ConfigurationException
 	{
-        System.out.println("INFO:    [" + PID + "]  update invoked");
-        System.out.println("         [" + PID + "]  //TODO use log service");
-            
+        m_log.info("[" + PID + "]  update invoked");
+          
+        
+        /*  //TODO two things:
+         *  - use a service factory to make sure to prevent this "short preregistration" blip
+         *    before it comes in a stable state;
+         *  - prevent unnecessary executions of this thing if nothing has changed.
+         */ 
         if (config != null)
         {
             m_config = config;
@@ -281,7 +283,7 @@ public class BundleActivator extends SSLServerSocketFactory implements org.osgi.
             String state = ((m_ssl == null) ? "ERROR" : "OPERATIONAL");
             m_config.put("INTERNAL_STATE", state);
             
-            System.out.println("INFO:    [" + PID + "]  updated, INTERNAL_STATE= " + state);
+            m_log.info("[" + PID + "]  updated, INTERNAL_STATE= " + state);
             
             m_managedReg.setProperties(m_config);
         }
