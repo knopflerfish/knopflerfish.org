@@ -1,7 +1,16 @@
+INTRODUCTION
+============
+This bundle implements an HTTP service as specified by the OSGi Service
+Plaftform, R2, R3.
+
+
+CONFIGURATION:
+==============
+
 The HTTP bundle can be configured by both CM or System properties
 
 As soon as the http bundle gets a valid configuration it creates and
-registers an HttpService instance into the framework. 
+registers an HttpService instance into the framework.
 
 Note: If the server fails to bind to a port, an HttpService will still
 be registered, but the service property "port" will not be present!
@@ -16,7 +25,7 @@ The following system properties will be read when no CM is available
  org.osgi.service.http.hostname
  org.knopflerfish.http.mime.props
  org.knopflerfish.http.dnslookup
- org.knopflerfish.http.response.buffer.size.default 
+ org.knopflerfish.http.response.buffer.size.default
  org.knopflerfish.http.connection.max
  org.knopflerfish.http.connection.timeout
  org.knopflerfish.http.session.timeout.default
@@ -33,9 +42,24 @@ The http bundle accepts Factory configurations on the PID
 
 ..with the following properties:
 
-port (Integer)
-  This integer property decides the default port for the server instance.
+http.enabled (Integer)
+  If true, the bundle will start to listen on the http port.
+  The default is true.
+
+https.enabled (Integer)
+  If true, the bundle will start to listen on the https port.
+  NOTE: This functionality requires that the bundle is able to 
+  obtain a "SslServerSocketFactory" service instance from the 
+  framework.  
+  The default is true.
+  
+port.http (Integer)
+  The port number to listen for http requests.
   The default port is 80.
+
+port.https (Integer)
+  The port number to listen for https requests.
+  The default port is 443.
 
 host (String)
   This string property decides the default hostname for the server
@@ -79,3 +103,11 @@ response.buffer.size.default (Integer)
   the server will send a connection close header. The buffer size can be
   set runtime by the servlet using the HttpResponse.setBufferSize()
   method. The default is 16384 bytes.
+
+
+RELEASE NOTES:
+==============
+[te 20040822] - added HTTPS support to existing bundle. 
+  Whenever applicable this bundle will now use an external 
+  SslServerSocketFactory service to listen on the HTTPS (secure) port.
+
