@@ -22,6 +22,10 @@ th {
  vertical-align:top;
 }
 
+.marked {
+ font-weight:bold;
+}
+
 td {
  background: #ffffff;
  font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -363,7 +367,7 @@ elements. Each service or factory defines a PID and a set of attribute definitio
 
 
 
-<a name="6.3"></a><h3>6.3 Service and factory definitions - instances of XML Schema</h2>
+<a name="6.3"></a><h3>6.3 Service and factory definitions - instances of XML Schema</h3>
 
 <p>
 All service and factory definitions are instances of an XML Schema with a 
@@ -392,6 +396,8 @@ specification using a schema</div>
 </pre>
 </div>
 </div>
+
+<a name="6.3.1"></a><h3>6.3.1 Vectors and arrays</h3>
 
 <p>
 Vector and arrays are specified using the <code>&lt;xsd:sequence&gt;</code>
@@ -422,6 +428,59 @@ specification using a schema</div>
 be named "item".
 </p>
 
+
+<a name="6.3.2"></a><h3>6.3.2 Service/factory descriptions</h3>
+<p>
+A service's (and factory's) description is set using schema annotations on 
+the top level <code>complexType</code>. If no description is set, the
+empty string will be used.
+</p>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - service description</div>
+<div class="exampleInner">
+<pre>
+ &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
+   &lt;xsd:complexType name="service1"&gt;
+    &lt;xsd:annotation&gt;
+     &lt;xsd:documentation&gt;
+       <span class="marked">This is a service annotation</span>
+     &lt;/xsd:documentation&gt;
+    &lt;/xsd:annotation&gt;
+    ...
+   &lt;/xsd:complexType&gt; 
+  &lt;/xsd:schema&gt;
+</pre>
+</div>
+</div>
+
+
+<a name="6.3.3"></a><h3>6.3.3 Attribute descriptions</h3>
+<p>
+An attribute description is set using schema annotations on 
+the attribues defining element. If no description is set, the
+empty string will be used.
+</p>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - attribute description</div>
+<div class="exampleInner">
+<pre>
+ &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
+   &lt;xsd:complexType name="service1"&gt;
+    &lt;xsd:element   name="string1" type="xsd:string"&gt;
+     &lt;xsd:annotation&gt;
+      &lt;xsd:documentation&gt;
+       <span class="marked">This is an attribute annotation</span>
+      &lt;/xsd:documentation&gt;
+     &lt;/xsd:annotation&gt;
+    &lt;/xsd:element&gt;
+   &lt;/xsd:complexType&gt; 
+  &lt;/xsd:schema&gt;
+</pre>
+</div>
+</div>
+
 <a name="6.4"></a><h3>6.4 Supported data types</h3>
 
 <p>
@@ -435,7 +494,8 @@ the attribute definition.
 </p>
 
 <p>
-<code>&lt;xsd:annotation&gt;</code> elements can optionally be used to set the attribute definition description.
+<code>&lt;xsd:annotation&gt;</code> elements can optionally be used to set 
+an attribute or enumeration description.
 </p>
 
 <div class="schemaComp">
@@ -515,6 +575,49 @@ the attribute definition.
  </tr>
 
  <tr>
+  <td>BigInteger</td>
+  <td><code>&lt;xsd:element name="<b>NAME</b>" type="xsd:integer"/&gt;
+  <td>java.math.BigInteger</td>
+  <td>
+  </td>
+ </tr>
+
+ <tr>
+  <td>BigDecimal</td>
+  <td><code>&lt;xsd:element name="<b>NAME</b>" type="xsd:decimal"/&gt;</code>
+  <td>java.math.BigDecimal</td>
+  <td>
+  </td>
+ </tr>
+
+ <tr>
+  <th colspan=4>Primitive types with restrictions</th>
+ </tr>
+
+ <tr>
+  <td>Enumerated types</td>
+  <td>
+<pre>
+&lt;xsd:simpleType name = "NAME"&gt;
+ &lt;xsd:restriction base="TYPE"&gt;
+  &lt;xsd:enumeration value="VALUE1"/&gt;
+  &lt;xsd:enumeration value="VALUE2"/&gt;
+  ...
+ &lt;/xsd:restriction&gt;
+&lt;/xsd:simpleType&gt;
+</pre>
+  </td>
+  <td>As defined by TYPE. See primitive types above.
+  </td>
+  <td>Enumeration values will be stored as attribute definition <i>option values</i>. If <code>&lt;xsd:annotation&gt;</code> elements are added to an
+<code>enumeration</code>, the annotation documentation will be used as
+the attribute definition's <i>option label</i>. If no annotation documentations
+are found, the values are used as labels.
+  </td>
+ </tr>
+
+
+ <tr>
   <th colspan=4>Vectors and arrays</th>
  </tr>
 
@@ -556,14 +659,17 @@ Note: The specifed PRIMITIVE_TYPE <b>must</b> have a name of "item"
 </pre>
   </td>
   <td>
-   Java array, where each item is of the type specified by PRIMITIVE_TYPE
+   Java array, where each item is of the <b>unboxed</b> type specified by
+   PRIMITIVE_TYPE.
 <p>
 Note: The specifed PRIMITIVE_TYPE <b>must</b> have a name of "item"
 </p>
 
   </td>
 <td>
-</td<
+An Integer array is an <code>int[]</code>, a Boolean 
+array a <code>boolean[]</code>, etc.
+</td>
  </tr>
 
 </table>
