@@ -39,6 +39,7 @@ import org.osgi.service.metatype.*;
 import org.knopflerfish.util.Text;
 import java.util.*;
 import java.lang.reflect.*;
+import java.io.*;
 
 /**
  * Implementation calss for AttributeDefinition.
@@ -58,6 +59,10 @@ public class AD implements AttributeDefinition, Comparable {
   String[] optLabels;
   String[] optValues;
 
+  /**
+   * String used for separating array and vector string 
+   * representations.
+   */
   static final String SEQUENCE_SEP = ",";
 
   /**
@@ -463,14 +468,18 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
-  static String escape(String s) {
-    boolean bComma = s.indexOf(',') != -1;
-    if(bComma) {
+  /**
+   * Escape a string so that it'll be parsed as one item, even
+   * if it contains SEQUENCE_SEP.
+   */
+  public static String escape(String s) {
+    boolean bNeedEscape = s.indexOf(SEQUENCE_SEP) != -1;
+    if(bNeedEscape) {
       if(s.length() > 1 && s.startsWith("\"") && s.endsWith("\"")) {
-	bComma = false;
+	bNeedEscape = false;
       }
     }
-    if(bComma) {
+    if(bNeedEscape) {
       return "\"" + s + "\"";
     } else {
       return s;
@@ -531,44 +540,6 @@ public class AD implements AttributeDefinition, Comparable {
     return sb.toString();
   }
 
-
-  static public String toXMLSequenceVector(int type, Vector val) {
-    return "";
-  }
-
-  static public String toXMLSequenceArray(int type, Object[] val) {
-    StringBuffer sb = new StringBuffer();
-
-    sb.append("<xsd:sequence>\n");
-    for(int i = 0; i < val.length; i++) {
-      sb.append(" " + toXML(type, 0, val[i]));
-      sb.append("\n");
-    }
-    sb.append("</xsd:sequence>\n");
-
-
-    return sb.toString();
-  }
-  
-  static public String toXML(int type, int card, Object val) {
-    if(card > 0) {
-      return toXMLSequenceVector(type, (Vector)val);
-    } else if(card < 0) {
-      return toXMLSequenceArray(type, (Object[]) val);
-    } else {
-      String tag = "";
-      switch(type) {
-      case STRING:  tag = "xsd:string";  break;
-      case INTEGER: tag = "xsd:int";     break;
-      case DOUBLE:  tag = "xsd:double";  break;
-      case FLOAT:   tag = "xsd:float";   break;
-      case BOOLEAN: tag = "xsd:boolean"; break;
-      default: throw new IllegalArgumentException("Cannot print " + type);
-      }
-      
-      return "<" + tag + ">" + val.toString() + "</" + tag + ">";
-    }
-  }
 
   public int compareTo(Object other) {
     return id.compareTo(((AD)other).id);

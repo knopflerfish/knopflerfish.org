@@ -57,6 +57,10 @@ import java.util.jar.*;
  * </pre>
  */
 public class Main {
+
+  static boolean bDumpXML    = false;
+  static boolean bDumpValues = false;
+
   public static void main(String[] argv) {
 
     int i = 0;
@@ -71,6 +75,10 @@ public class Main {
 	  i++;
 	  testMetatype(argv[i], argv[i+1], true);
 	  i++;
+	} else if("-xml".equals(argv[i])) {
+	  bDumpXML = true;
+	} else if("-values".equals(argv[i])) {
+	  bDumpValues = true;
 	} else if("-help".equals(argv[i])) {
 	  printHelp();
 	  System.exit(0);
@@ -156,13 +164,23 @@ public class Main {
 	urlVal = "file:" + urlVal;
       }
       MTP mtp = Loader.loadMTPFromURL(new URL(urlDef));
-      System.out.println("loaded metatype XML from " + urlDef);
+      //      System.out.println("loaded metatype XML from " + urlDef);
+      Dictionary pids = new Hashtable();
       if(!"".equals(urlVal)) {
-	Loader.loadDefaultsFromURL(mtp, new URL(urlVal));
-	System.out.println("loaded defaults XML from " + urlVal);
+	pids = Loader.loadDefaultsFromURL(mtp, new URL(urlVal));
+	//	System.out.println("loaded defaults XML from " + urlVal);
       }
-      if(bDump) {
-	System.out.println(printMTP(mtp));
+      if(bDumpXML || bDumpValues) {
+	if(bDumpXML) {
+	  Loader.printMetatypeXML(mtp, new PrintWriter(System.out, true));
+	}
+	if(bDumpValues) {
+	  Loader.printValuesXML(pids, new PrintWriter(System.out, true));
+	}
+      } else {
+	if(bDump) {
+	  System.out.println(printMTP(mtp));
+	}
       }
     }
   }
