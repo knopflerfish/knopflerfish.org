@@ -40,10 +40,14 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class HelpCommand implements Command {
+public class HelpCommand extends IconCommand {
   ConsoleServlet console;
-
+  
   HelpCommand(ConsoleServlet console) {
+    super("cmd_help", 
+	  "Help",
+	  "Show help",
+	  Activator.RES_ALIAS + "/help.gif");
     this.console = console;
   }
 
@@ -58,21 +62,23 @@ public class HelpCommand implements Command {
 
 
     for(int i = 0; i < console.commands.length; i++) {
-      sb.append(" <div>\n");
-      StringWriter sw  = new StringWriter();
-      
-      sb.append(" <span>\n");
-      try {
-	console.commands[i].toHTML(request, new PrintWriter(sw));
-	sb.append(sw.toString());
-      } catch (Exception e) {
-	sb.append(e.toString());
+      if(console.commands[i] instanceof IconCommand) {
+	sb.append(" <div>\n");
+	StringWriter sw  = new StringWriter();
+	
+	sb.append(" <span>\n");
+	try {
+	  console.commands[i].toHTML(request, new PrintWriter(sw));
+	  sb.append(sw.toString());
+	} catch (Exception e) {
+	  sb.append(e.toString());
+	}
+	sb.append(" </span>\n");
+	sb.append(" <span style=\"vertical-align:top;\">\n");
+	sb.append(console.commands[i].getName());
+	sb.append(" </span>\n");
+	sb.append("</div>\n");
       }
-      sb.append(" </span>\n");
-      sb.append(" <span style=\"vertical-align:top;\">\n");
-      sb.append(console.commands[i].getName());
-      sb.append(" </span>\n");
-      sb.append("</div>\n");
     }
 
     //    sb.append("</table>\n");
@@ -108,25 +114,5 @@ public class HelpCommand implements Command {
 
 
     return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input alt=\"Help\"" + 
-	      " type=\"image\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + Activator.RES_ALIAS + "/help.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_help";
-  }
-
-  public String       getName() {
-    return "Help";
-  }
-
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
   }
 }

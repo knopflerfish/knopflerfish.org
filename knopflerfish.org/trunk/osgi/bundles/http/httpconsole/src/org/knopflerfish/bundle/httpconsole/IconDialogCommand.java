@@ -40,22 +40,27 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class InstallCommand implements Command {
+public class IconDialogCommand extends IconCommand {
 
-  Command installURL = new InstallURLCommand();
+  IconCommand cmd;
+
+  IconDialogCommand(IconCommand cmd) {
+    super("dialog_" + cmd.getId(),
+	  cmd.getName(),
+	  cmd.getDescription(),
+	  cmd.getIcon());
+    this.cmd = cmd;
+  }
 
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
-    if(installURL.isTrigger(request)) {
-      return installURL.run(request);
+    if(cmd.isTrigger(request)) {
+      return cmd.run(request);
     } else {
-
-      sb.append("<div class=\"shadow\">" + getName() + "</div>");
-      
       StringWriter sw = new StringWriter();
       try {
-	installURL.toHTML(request, new PrintWriter(sw));
+	cmd.toHTML(request, new PrintWriter(sw));
 	sb.append(sw.toString());
       } catch (Exception e) {
 	sb.append(Util.toHTML(e));
@@ -65,24 +70,10 @@ public class InstallCommand implements Command {
     return sb;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.println(" <input alt=\"Install bundle\"" + 
-		" type=\"image\"" + 
-		" name=\"" + getId() + "\"" + 
-		" src=\"" + Activator.RES_ALIAS + "/open.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_install";
-  }
-
-  public String getName() {
-    return "Install";
-  }
-
   public boolean isTrigger(HttpServletRequest request) {
     return 
       null != request.getParameter(getId() + ".x")
-      || installURL.isTrigger(request);
+      || cmd.isTrigger(request)
+      ;
   }
 }

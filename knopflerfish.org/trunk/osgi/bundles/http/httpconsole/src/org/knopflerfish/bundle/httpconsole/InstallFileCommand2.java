@@ -40,52 +40,81 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class InstallURLCommand extends IconCommand {
+public class InstallFileCommand2 implements Command {
+  String redir = null;
+  String msg   = null;
 
-  InstallURLCommand() {
-    super("cmd_installurl",
-	  "Install from URL",
-	  "Install bundle from URL",
-	  Activator.RES_ALIAS + "/openurl.gif");
-  }
-  
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
-   
-    String url = request.getParameter(getId() + "_url");
 
     sb.append("<div class=\"shadow\">" + getName() + "</div>");
     
-    if(!(url == null || "".equals(url))) {
-      try {
-	Bundle b = Activator.bc.installBundle(url);
-	sb.append("installed " + url + "<br/>");
-	
-      } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+    try {
+      StringBuffer filename = new StringBuffer();
+      byte[] bytes = Util.loadFormData(request, getId(), filename);
+      if(bytes == null || bytes.length == 0) {
+	sb.append("No file, or empty files selected");
+      } else {
+	InputStream in = new ByteArrayInputStream(bytes);
+	String loc = in.toString() + "." + filename;
+	Bundle b = Activator.bc.installBundle(loc, in);
+	if(b != null) {
+	  sb.append("Installed bundle of size " + 
+		    bytes.length + " bytes<br/>");
+	} else {
+	  sb.append("Failed to install bundle of size " + bytes.length + " bytes<br/>");
+	}
       }
-    } else {
-      sb.append("No URL entered");
+    } catch (Exception e) {
+      sb.append(Util.toHTML(e));
     }
+
+    redir = Activator.SERVLET_ALIAS;
+    msg   = sb.toString();
 
     return sb;
   }
 
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
     out.println("<div class=\"shadow\">" + getName() + "</div>");
-    out.print("<input alt=\"URL\"" + 
-		" type=\"text\"" + 
-		" name=\"" + getId() + "_url\">");
-    out.print(" URL<br/>");
-    out.print(" <input " + 
-		" type=\"submit\"" + 
-		" name=\"" + getId() + "\"" + 
-		" value=\"" +"Install" + "\"" + 
-		"\">");
 
+    out.print("<input alt=\"File\"" + 
+	      " type=\"file\"" + 
+	      " name=\"" + getId() + "_file\">");
+    out.print("<br/>");
+    out.print(" <input " + 
+	      " type=\"submit\"" + 
+	      " name=\"" + getId() + "\"" + 
+	      " value=\"" + "Install" + "\"" + 
+	      ">");    
   }
   
+  public String       getId() {
+    return "cmd_installfile2";
+  }
+
+  public String getName() {
+    return "Install from file";
+  }
+
+  public String getIcon() {
+    return null;
+  }
+
+  public String getDescription() {
+    return "Install bundle from file";
+  }
+
+
   public boolean isTrigger(HttpServletRequest request) {
-    return null != request.getParameter(getId());
+
+    String s = request.getHeader("content-type");
+    if(s == null) { s = ""; }
+    
+
+    boolean b = 
+      s.startsWith("multipart/form-data");
+    
+    return b;
   }
 }

@@ -41,7 +41,14 @@ import java.util.*;
 
 import org.osgi.framework.*;
 
-public class InfoCommand implements Command {
+public class InfoCommand extends IconCommand {
+  public InfoCommand() {
+    super("cmd_info", 
+	  "Info",
+	  "Show info for selected bundles",
+	  Activator.RES_ALIAS + "/info.gif");
+  }
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
@@ -49,54 +56,66 @@ public class InfoCommand implements Command {
 
     sb.append("<div class=\"shadow\">Info</div>");
     if(bids.length == 0) {
-      sb.append("No bundles selected");
-    }
+      sb.append("<div class=\"shadow\">Framework properties</div>");
+      Hashtable props = new Hashtable();
+      addProp(props, Constants.FRAMEWORK_VENDOR);
+      addProp(props, Constants.FRAMEWORK_VERSION);
+      addProp(props, Constants.FRAMEWORK_OS_NAME);
+      addProp(props, Constants.FRAMEWORK_OS_VERSION);
+      addProp(props, Constants.FRAMEWORK_PROCESSOR);
+      addProp(props, Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+      
+      printDictionary(props, sb);
 
-    for(int i = 0; i < bids.length; i++) {
-      Bundle b = Activator.bc.getBundle(bids[i]);
-      sb.append("<div class=\"shadow\">");
-      sb.append("#" + bids[i] + " " + Util.getName(b));
-      sb.append("</div>");
+      sb.append("<div class=\"shadow\">System properties</div>");
+      printDictionary(System.getProperties(), sb);
+      
+    } else {
 
-      sb.append("<table width=\"200\">");
-
-      Dictionary headers = b.getHeaders();
-      for(Enumeration e = headers.keys(); e.hasMoreElements(); ) {
-	String key = (String)e.nextElement();
-	String val = (String)headers.get(key);
-
-	val = Util.replace(val, ",", ", ");
-	val = Util.replace(val, "/", "/ ");
-	val = Util.replace(val, "\\", "\\ ");
+      for(int i = 0; i < bids.length; i++) {
+	Bundle b = Activator.bc.getBundle(bids[i]);
+	sb.append("<div class=\"shadow\">");
+	sb.append("#" + bids[i] + 
+		  " " + Util.getName(b) + 
+		  ", " + Util.getStateString(b.getState()));
+	sb.append("</div>");
 	
-	sb.append("<tr>");
-	sb.append("<td>" + key + "</td>");
-	sb.append("<td>" + val + "</td>");
-	sb.append("</tr>");
+	Dictionary headers = b.getHeaders();
+	
+	sb.append("Location: " + b.getLocation());
+	printDictionary(headers, sb);
+	
       }
-      sb.append("</table>");
     }
 
     return sb;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input alt=\"Info on selected bundles\"" + 
-	      " type=\"image\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + Activator.RES_ALIAS + "/info.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_info";
+  void addProp(Hashtable props, String key) {
+    props.put(key, Activator.bc.getProperty(key));
   }
 
-  public String getName() {
-    return "Info";
-  }
+  void printDictionary(Dictionary dict, StringBuffer sb) {
+    Vector keys = new Vector();
+    for(Enumeration e = dict.keys(); e.hasMoreElements(); ) {
+      keys.addElement(e.nextElement());
+    }
+    Util.sort(keys, Util.stringComparator, false);
 
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
+    sb.append("<table width=\"200\">");
+    for(int i = 0; i < keys.size(); i++) {
+      String key = (String)keys.elementAt(i);
+      String val = (String)dict.get(key);
+      
+      val = Util.replace(val, ",", ", ");
+      val = Util.replace(val, "/", "/ ");
+      val = Util.replace(val, "\\", "\\ ");
+      
+      sb.append("<tr>");
+      sb.append("<td>" + key + "</td>");
+      sb.append("<td>" + val + "</td>");
+      sb.append("</tr>");
+    }
+    sb.append("</table>");
   }
 }

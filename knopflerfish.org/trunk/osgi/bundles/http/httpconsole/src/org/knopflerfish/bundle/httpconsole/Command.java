@@ -43,4 +43,6 @@ public interface Command extends HTMLable {
   public String       getId();
   public boolean      isTrigger(HttpServletRequest request);
   public String       getName();
+  public String       getDescription();
+  public String       getIcon();
 }

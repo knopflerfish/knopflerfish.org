@@ -47,14 +47,20 @@ public class ConsoleServlet extends HttpServlet {
 
   ServiceReference httpSR;
 
-  Command[] commands;
+  Command[]        commands;
+
+  // the fime install command is special
+  // since it requires a multipart/form-data
+  // form encoding. 
+  InstallFileCommand installFileCommand;
 
   public ConsoleServlet(ServiceReference httpSR) {
     this.httpSR = httpSR;
 
     commands = new Command[] {
       new ReloadCommand(),
-      new InstallCommand(),
+      installFileCommand = new InstallFileCommand(),
+      new IconDialogCommand(new InstallURLCommand()),
       new StartCommand(),
       new StopCommand(),
       new UpdateCommand(),
@@ -75,26 +81,62 @@ public class ConsoleServlet extends HttpServlet {
     doGet(request, response);
   }
 
+
   public void doGet(HttpServletRequest  request, 
 		    HttpServletResponse response) 
     throws ServletException, IOException {
 
     PrintWriter out = response.getWriter();
-    
+
+    StringBuffer sb = new StringBuffer();
+
+    try {
+      handleCommands(request, sb);
+    } catch (Exception e) {
+      sb.append(Util.toHTML(e));
+    }
+
+    if(installFileCommand.installFile2.redir != null) {
+      String base  = "http://" + request.getServerName();
+      int    port = request.getServerPort();
+      
+      if(port != 80) base = base + ":" + port;
+      
+      String url = base + installFileCommand.installFile2.redir;
+      installFileCommand.installFile2.redir = null;
+      response.sendRedirect(url);
+      return;
+    }
+
+    if(installFileCommand.installFile2.msg != null) {
+      sb.append(installFileCommand.installFile2.msg);
+      installFileCommand.installFile2.msg = null;
+    }
+
     response.setContentType("text/html");
+
+    if(false) {
+      for(Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
+	String key = (String)e.nextElement();
+	String val = request.getHeader(key);
+	System.out.println("header: " + key + "=" + val);
+      }
+      
+      for(Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
+	String key = (String)e.nextElement();
+	String val = request.getParameter(key);
+	System.out.println("param: " + key + "=" + val);
+      }
+    }
 
     printHeader(out);
 
 
-    out.println("<form " + 
-		" action=\"" + Activator.SERVLET_ALIAS + "\"" + 
-		" method=\"GET\"" + 
-		">");
+    Util.formStart(out, installFileCommand.isTrigger(request));
         
-    StringBuffer sb = new StringBuffer();
     try {
       out.println("<table width=\"100%\" class=\"maintable\">");
-      handleCommands(request, sb);
+
 
       out.println("<tr class=\"toolview\">");
       out.println("<td colspan=\"2\" class=\"toolview\">");
@@ -129,7 +171,7 @@ public class ConsoleServlet extends HttpServlet {
       out.println(Util.toHTML(e));
     }
 
-    out.println("<form>");
+    Util.formStop(out);
     printFooter(out);
 
     try {
@@ -171,94 +213,6 @@ public class ConsoleServlet extends HttpServlet {
     out.println("</div>");
   }
 
-  void printObject(PrintWriter out, Object val) throws IOException {
-    if(val == null) {
-      out.println("null");
-    } else if(val.getClass().isArray()) {
-      printArray(out, (Object[])val);
-    } else if(val instanceof Vector) {
-      printVector(out, (Vector)val);
-    } else if(val instanceof Map) {
-      printMap(out, (Map)val);
-    } else if(val instanceof Set) {
-      printSet(out, (Set)val);
-    } else if(val instanceof Dictionary) {
-      printDictionary(out, (Dictionary)val);
-    } else {
-      out.print(val);
-      //      out.print(" (" + val.getClass().getName() + ")");
-    }
-  }
-
-  void printDictionary(PrintWriter out, Dictionary d) throws IOException {
-
-    out.println("<table>");
-    for(Enumeration e = d.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
-      Object val = d.get(key);
-      out.println("<tr>");
-
-      out.println("<td>");
-      printObject(out, key);
-      out.println("</td>");
-
-      out.println("<td>");
-      printObject(out, val);
-      out.println("</td>");
-
-      out.println("</tr>");
-    }
-    out.println("</table>");
-  }
-
-  void printMap(PrintWriter out, Map m) throws IOException {
-
-    out.println("<table>");
-    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
-      Object key = it.next();
-      Object val = m.get(key);
-
-      out.println("<tr>");
-
-      out.println("<td>");
-      printObject(out, key);
-      out.println("</td>");
-
-      out.println("<td>");
-      printObject(out, val);
-      out.println("</td>");
-
-      out.println("</tr>");
-    }
-    out.println("</table>");
-  }
-
-  void printArray(PrintWriter out, Object[] a) throws IOException {
-    for(int i = 0; i < a.length; i++) {
-      printObject(out, a[i]);
-      if(i < a.length - 1) {
-	out.println("<br>");
-      }
-    }
-  }
-
-  void printSet(PrintWriter out, Set a) throws IOException {
-    for(Iterator it = a.iterator(); it.hasNext();) {
-      printObject(out, it.next());
-      if(it.hasNext()) {
-	out.println("<br>");
-      }
-    }
-  }
-
-  void printVector(PrintWriter out, Vector a) throws IOException {
-    for(int i = 0; i < a.size(); i++) {
-      printObject(out, a.elementAt(i));
-      if(i < a.size() - 1) {
-	out.println("<br>");
-      }
-    }
-  }
 
   void printHeader(PrintWriter out) throws IOException {
     out.println("<html>");
@@ -275,4 +229,5 @@ public class ConsoleServlet extends HttpServlet {
     out.println("</body>");
     out.println("</html>");  
   }
+
 }

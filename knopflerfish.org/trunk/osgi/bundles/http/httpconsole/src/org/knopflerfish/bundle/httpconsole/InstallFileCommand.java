@@ -40,52 +40,56 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class InstallURLCommand extends IconCommand {
+public class InstallFileCommand implements Command {
 
-  InstallURLCommand() {
-    super("cmd_installurl",
-	  "Install from URL",
-	  "Install bundle from URL",
-	  Activator.RES_ALIAS + "/openurl.gif");
-  }
-  
+  InstallFileCommand2 installFile2 = new InstallFileCommand2();
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
-   
-    String url = request.getParameter(getId() + "_url");
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
-    
-    if(!(url == null || "".equals(url))) {
+    if(installFile2.isTrigger(request)) {
+      return installFile2.run(request);
+    } else {
+      StringWriter sw = new StringWriter();
       try {
-	Bundle b = Activator.bc.installBundle(url);
-	sb.append("installed " + url + "<br/>");
-	
+	installFile2.toHTML(request, new PrintWriter(sw));
+	sb.append(sw.toString());
       } catch (Exception e) {
 	sb.append(Util.toHTML(e));
       }
-    } else {
-      sb.append("No URL entered");
     }
 
     return sb;
   }
 
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.println("<div class=\"shadow\">" + getName() + "</div>");
-    out.print("<input alt=\"URL\"" + 
-		" type=\"text\"" + 
-		" name=\"" + getId() + "_url\">");
-    out.print(" URL<br/>");
-    out.print(" <input " + 
-		" type=\"submit\"" + 
+    out.println(" <input alt=\"" + getDescription() + "\"" + 
+		" type=\"image\"" + 
 		" name=\"" + getId() + "\"" + 
-		" value=\"" +"Install" + "\"" + 
-		"\">");
-
+		" src=\"" + getIcon() + "\">");
   }
   
+  public String       getId() {
+    return "cmd_installfile";
+  }
+
+  public String getName() {
+    return "Install file";
+  }
+
+  public String getIcon() {
+    return Activator.RES_ALIAS + "/open.gif";
+  }
+
+  public String getDescription() {
+    return "Install bundle from file";
+  }
+
+
   public boolean isTrigger(HttpServletRequest request) {
-    return null != request.getParameter(getId());
+    return 
+      null != request.getParameter(getId() + ".x")
+      || installFile2.isTrigger(request)
+      ;
   }
 }

@@ -40,7 +40,14 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class UninstallCommand implements Command {
+public class UninstallCommand extends IconCommand {
+  public UninstallCommand() {
+    super("cmd_uninstall", 
+	  "Uninstall",
+	  "Uninstall selected bundles",
+	  Activator.RES_ALIAS + "/player_eject.gif");
+  }
+  
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
@@ -65,25 +72,5 @@ public class UninstallCommand implements Command {
     
 
     return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input alt=\"Uninstall selected bundles\"" + 
-	      " type=\"image\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + Activator.RES_ALIAS + "/player_eject.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_uninstall";
-  }
-
-  public String       getName() {
-    return "Uninstall";
-  }
-
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
   }
 }

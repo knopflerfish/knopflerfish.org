@@ -40,7 +40,14 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class StopCommand implements Command {
+public class StopCommand extends IconCommand {
+  public StopCommand() {
+    super("cmd_stop", 
+	  "Stop",
+	  "Stop selected bundles",
+	  Activator.RES_ALIAS + "/player_stop.gif");
+  }
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
     
@@ -66,25 +73,5 @@ public class StopCommand implements Command {
     }
 
     return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input alt=\"Stop selected bundles\"" + 
-	      " type=\"image\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + Activator.RES_ALIAS + "/player_stop.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_stop";
-  }
-
-  public String       getName() {
-    return "Stop";
-  }
-
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
   }
 }

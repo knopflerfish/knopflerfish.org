@@ -67,7 +67,7 @@ public class StatusCommand implements Command {
       }
     }
     
-    out.print("<nobr>");
+    out.print("<nobr style=\"vertical-align:top;\">");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_VENDOR));
     out.print(" on ");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_OS_NAME));
@@ -82,6 +82,14 @@ public class StatusCommand implements Command {
 
   public String       getName() {
     return "Status";
+  }
+
+  public String getIcon() {
+    return null;
+  }
+
+  public String getDescription() {
+    return "Fframework status";
   }
 
   public boolean isTrigger(HttpServletRequest request) {

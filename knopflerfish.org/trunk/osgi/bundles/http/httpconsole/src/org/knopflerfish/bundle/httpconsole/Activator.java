@@ -163,5 +163,15 @@ public class Activator implements BundleActivator {
 	t.printStackTrace();
       }
     }
+    void warn(String msg) {
+      warn(msg, null);
+    }
+
+    void warn(String msg, Throwable t) {
+      System.out.println("WARN: " + msg);
+      if(t != null) {
+	t.printStackTrace();
+      }
+    }
   }
 }
