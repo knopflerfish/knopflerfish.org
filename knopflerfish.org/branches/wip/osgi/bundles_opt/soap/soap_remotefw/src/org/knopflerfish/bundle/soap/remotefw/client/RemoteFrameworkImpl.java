@@ -46,4 +46,13 @@ public class RemoteFrameworkImpl implements RemoteFramework {
       System.err.println("No remote bc=" + bc);
     }
   }
+
+  public Map getSystemProperties(BundleContext bc) {
+    RemoteFWClient remoteClient = (RemoteFWClient)clients.get(bc);
+    if(remoteClient != null) {
+      return remoteClient.getSystemProperties();
+    } else {
+      throw new IllegalArgumentException("No client connected to " + bc);
+    }
+  }
 }

@@ -59,6 +59,7 @@ public interface RemoteFW {
   public Map[]  getExportedPackages(long bid);
   public void   refreshPackages(long[] bids) ;
  
+  public Map    getSystemProperties();
 
 }
 
