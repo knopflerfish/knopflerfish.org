@@ -87,14 +87,21 @@ public class LDAPExpr {
   public String attrName;
   public String attrValue;
 
+  // If set to non-null, return this in toString() instead
+  // of correct, normalized form. Required to pass some
+  // incorrect R3 tests
   String bug = null;
 
   public LDAPExpr(String filter) throws InvalidSyntaxException {
 
 
-    // Workaround for bug in R3 test suite which incorrectly thinks
-    // spaces inside of names are legal
+
     if(Framework.R3_TESTCOMPLIANT) {
+      // Workaround for bug in R3 test suite which incorrectly thinks
+      // spaces inside of names are legal
+      // fix by saving the "incorrect but expected" filter string
+      // and return that in toString()
+      
       String zz  = " \n(& ( \tn ame = TestService1 ) ( ma ne = ServiceTest1 ) ) \r ";
       String zz2 = " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
       String zz3  = "(&(n ame= TestService1 )(ma ne= ServiceTest1 ))";
@@ -104,6 +111,13 @@ public class LDAPExpr {
 	bug = zz3;
       }
 
+      // The UPnP reference implementation uses 
+      // Filter.toString().indexOf("UPnP....")
+      // to look for properties. Since the filter is 
+      // normalized to lower case, indexOf never matches
+      // and the UPnP event mechanism fails.
+      // Fix by saving the original filter string
+      // and return that in toString()
       if(-1 != filter.indexOf("UPnP.device.") ||
 	 -1 != filter.indexOf("UPnP.service.")) {
 	System.out.println("UPnP: saving original filter case: " + filter);
