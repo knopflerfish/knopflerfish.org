@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.5.4 
+Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
+Bundle-Name: bundleP2_test
+Bundle-SymbolicName: bundleP2_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleP2_test for test 
+ of version control of exported packages. It imports a package.
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleP2_test.BundleActivator
+Bundle-Category: test
+Import-Package: org.knopflerfish.bundle.bundleP1_test
+Bundle-UUID: org.knopflerfish:bundleP2_test:1.0.0:all
+Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
+ n_tests\bundleP2_test
+Build-Date: Wed August 25 2004, 19:56:44
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-APIVendor: 
+

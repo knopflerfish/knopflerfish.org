@@ -48,6 +48,7 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
       ServiceRegistration sr 
 	= bc.registerService(TestSuite.class.getName(), suite, props);
     }
+    /*
     {
       TestSuite suite = new HttpSSITestSuite(bc);
       Hashtable props = new Hashtable();
@@ -55,6 +56,7 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
       ServiceRegistration sr 
 	= bc.registerService(TestSuite.class.getName(), suite, props);
     }
+    */
   }
 
   public void stop(BundleContext bc) {

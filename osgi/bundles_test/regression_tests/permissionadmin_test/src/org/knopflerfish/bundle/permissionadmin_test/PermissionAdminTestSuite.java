@@ -202,7 +202,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       boolean teststatus = true;
       clearEvents();
       try {
-	buU = Util.installBundle(bc, "bundleU_test_all-1.0.0.jar");
+	buU = Util.installBundle(bc, "bundleU_test-1.0.0.jar");
 	buU.start();
 	teststatus = true;
       }
@@ -266,7 +266,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       buV = null;
       boolean teststatus = true;
       try {
-	buV = Util.installBundle(bc, "bundleV_test_all-1.0.0.jar");
+	buV = Util.installBundle(bc, "bundleV_test-1.0.0.jar");
 	buV.start();
 	teststatus = true;
       }
@@ -447,7 +447,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       buW = null;
       boolean teststatus = true;
       try {
-	buW = Util.installBundle(bc, "bundleW_test_all-1.0.0.jar");
+	buW = Util.installBundle(bc, "bundleW_test-1.0.0.jar");
 	buW.start();
 	teststatus = true;
       }
@@ -562,7 +562,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       boolean teststatus = true;
       clearEvents();
       try {
-	buW1 = Util.installBundle(bc, "bundleW1_test_all-1.0.0.jar");
+	buW1 = Util.installBundle(bc, "bundleW1_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -831,7 +831,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       PermissionInfo pa[] = new PermissionInfo[] {pi1, pi2, pi3, pi4, pi5 ,pi6};
       
       try {
-	permissionService.setPermissions(test_url_base+"bundleP_test_all-1.0.0.jar", pa);
+	permissionService.setPermissions(test_url_base+"bundleP_test-1.0.0.jar", pa);
       }
       
       catch (SecurityException sex) {
@@ -844,10 +844,10 @@ public class PermissionAdminTestSuite extends TestSuite  {
       
       // register and start bundleP_test
       buP = null;
-      out.println(test_url_base+"bundleP_test_all-1.0.0.jar");
+      out.println(test_url_base+"bundleP_test-1.0.0.jar");
       
       try {
-	buP = bc.installBundle (test_url_base+"bundleP_test_all-1.0.0.jar");
+	buP = bc.installBundle (test_url_base+"bundleP_test-1.0.0.jar");
 	buP.start();
       }
       catch (BundleException bexcA) {
@@ -900,7 +900,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       // expevents.addElement(new devEvent("org.knopflerfish.bundle.bundleP_test.BundP", "tryService SecurityException", 1));
       
       try {
-	permissionService.setPermissions(test_url_base+"bundleP_test_all-1.0.0.jar", pa);
+	permissionService.setPermissions(test_url_base+"bundleP_test-1.0.0.jar", pa);
       }
       catch (SecurityException sex) {
 	fail("Failed to set permissions for bundleP_test, got exception " + sex + " ,FRAME205A:FAIL");

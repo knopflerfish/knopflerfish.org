@@ -177,7 +177,7 @@ public class PermissionTestSuite extends TestSuite {
       boolean teststatus = true;
       clearEvents();
       try {
-	buU = Util.installBundle(bc, "bundleU_test_all-1.0.0.jar");
+	buU = Util.installBundle(bc, "bundleU_test-1.0.0.jar");
 	buU.start();
 	teststatus = true;
       }
@@ -241,7 +241,7 @@ public class PermissionTestSuite extends TestSuite {
       buV = null;
       boolean teststatus = true;
       try {
-	buV = Util.installBundle(bc, "bundleV_test_all-1.0.0.jar");
+	buV = Util.installBundle(bc, "bundleV_test-1.0.0.jar");
 	buV.start();
 	teststatus = true;
       }
@@ -422,7 +422,7 @@ public class PermissionTestSuite extends TestSuite {
       buW = null;
       boolean teststatus = true;
       try {
-	buW = Util.installBundle(bc, "bundleW_test_all-1.0.0.jar");
+	buW = Util.installBundle(bc, "bundleW_test-1.0.0.jar");
 	buW.start();
 	teststatus = true;
       }
@@ -537,7 +537,7 @@ public class PermissionTestSuite extends TestSuite {
       boolean teststatus = true;
       clearEvents();
       try {
-	buW1 = Util.installBundle(bc, "bundleW1_test_all-1.0.0.jar");
+	buW1 = Util.installBundle(bc, "bundleW1_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {

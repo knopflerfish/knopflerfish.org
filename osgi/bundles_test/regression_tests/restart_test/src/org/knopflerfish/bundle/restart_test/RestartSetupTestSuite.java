@@ -93,18 +93,18 @@ public class RestartSetupTestSuite extends TestSuite {
       sl.setInitialBundleStartLevel(5);
 
       // install and start a bundle
-      Bundle buA = Util.installBundle(bc, "bundleA_test_all-1.0.0.jar");
+      Bundle buA = Util.installBundle(bc, "bundleA_test-1.0.0.jar");
       buA.start();
       sleep();
       state.addBundle(buA);
 
       // just install a bundle
-      Bundle buB = Util.installBundle(bc, "bundleB_test_all-1.0.0.jar");
+      Bundle buB = Util.installBundle(bc, "bundleB_test-1.0.0.jar");
       sleep();
       state.addBundle(buB);
 
       // install and start a bundle, then uninstall it
-      Bundle buC = Util.installBundle(bc, "bundleC_test_all-1.0.0.jar");
+      Bundle buC = Util.installBundle(bc, "bundleC_test-1.0.0.jar");
       buC.start();
 
       buC.uninstall();
@@ -114,7 +114,7 @@ public class RestartSetupTestSuite extends TestSuite {
       sl.setInitialBundleStartLevel(7);
 
       // install and start a bundle that will fail in the stop method
-      Bundle buF = Util.installBundle(bc, "bundleF_test_all-1.0.0.jar");
+      Bundle buF = Util.installBundle(bc, "bundleF_test-1.0.0.jar");
       buF.start();
       sleep();
       state.addBundle(buF);

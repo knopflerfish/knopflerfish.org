@@ -1,66 +1,88 @@
 <?xml version="1.0"?>
 
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
-
 <project name="bundleD_test" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <property name="topdir"       location=".."/>
 
-  <property name  = "api.pattern"
-            value = "org/knopflerfish/service/**"/>
-
-  <property name  = "impl.pattern"
-            value = "org/knopflerfish/bundle/**"/>
-
-  <property name = "outdir"   location = "${topdir}/out/${ant.project.name}"/>
-  <property name = "jardir"   location = "${topdir}/jars/${ant.project.name}"/>
-  <property name = "classes.out.dir"     location = "${outdir}/classes"/>
-  <property name = "src.dir"             location = "src"/>
-
-  <property name = "bundle.version"      value = "1.0.0"/>
-  
- <property name     = "all.jar"
-           location = "${jardir}/${ant.project.name}_all-${bundle.version}.jar"/>
+  <property name="bundle.version" value="1.0.0"/>
 
 
-  <path id = "framework.path">
-    <pathelement location = "${topdir}/framework.jar"/>
-  </path>
+<!-- osgi.jar should be set to your preferred jar containing -->
+<!-- the org.osg.* APIs                                      -->
+<property name     = "osgi.jar"
+          location = "${topdir}/../../framework.jar"/>
 
-   <target name        = "compile" 
-         description = "compiles all java sources">
+<property name     = "bundle.version" 
+          value    = "1.0.0"/>
 
-    <mkdir dir = "${classes.out.dir}"/>
+<property name     = "bundle.name" 
+          value    = "${ant.project.name}"/>
 
-    <javac destdir       = "${classes.out.dir}" 
+<property name     = "classes.out.dir" 
+          location = "${topdir}/out/${ant.project.name}/classes"/>
+
+<property name     = "jar.out.dir" 
+          location = "${topdir}/jars/"/>
+
+<property name     = "src.dir"
+          location = "src"/>
+
+<property name     = "resources.dir"
+          location = "resources"/>
+
+<property name     = "javac.target"
+          value    = "1.2"/>
+
+<property name     = "manifest.file"
+          location = "all.mf"/>
+
+<property name     = "jar.file"
+          location = "${jar.out.dir}/${ant.project.name}-${bundle.version}.jar"/>
+
+<path id="bundle.path">
+  <pathelement location="${osgi.jar}"/>
+</path>
+
+<target name="all">
+ <echo message="${ant.project.dir}"/>
+ <antcall target="compile"/>
+ <antcall target="jar"/>
+</target>
+
+<target name="compile">
+  <mkdir dir="${classes.out.dir}"/>
+
+  <javac destdir       = "${classes.out.dir}" 
            debug         = "on"
            srcdir        = "${src.dir}"
-           target        = "1.2"
-           classpathref  = "framework.path"
-           includes      = "${impl.pattern},${api.pattern}"
+           target        = "${javac.target}"
+           classpathref  = "bundle.path"
+           includes      = "**/*.java"
+  >
+  </javac>
+</target>
+
+<target name="jar">
+  <mkdir dir="${jar.out.dir}"/>
+
+  <tstamp>
+   <format property = "bundle.date" 
+          pattern  = "EE MMMM d yyyy, HH:mm:ss"
+          locale   = "en"/>
+  </tstamp>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${jar.file}"
     >
-   </javac>
-  </target>
+     <fileset dir = "${resources.dir}"/>
 
-  <target name        = "jar">
-   <mkdir dir="${jardir}/${ant.project.name}"/>
+    </jar>  
+</target>
 
-   <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${all.jar}"
-       includes = "${impl.pattern},{api.pattern}"
-    >
-   </jar>  
-  </target>
-
-  <target name = "all" depends="compile,jar">
-  </target>
-
- <target name = "clean" description = "Removes all files in utput directory">
-  <delete dir = "${outdir}"/>
-  <delete dir = "${jardir}"/>
- </target>
+<target name="clean">
+  <delete file = "${jar.file}"        />
+  <delete dir  = "${classes.out.dir}" />
+</target>
 
 </project>
 

@@ -94,7 +94,7 @@ public class ServiceTrackerTestSuite extends TestSuite {
       
       boolean teststatus = true;
       try {
-	buS = Util.installBundle(bc, "bundleS_test_all-1.0.0.jar");
+	buS = Util.installBundle(bc, "bundleS_test-1.0.0.jar");
 	buS.start();
 	teststatus = true;
 	out.println("started service bundle");
