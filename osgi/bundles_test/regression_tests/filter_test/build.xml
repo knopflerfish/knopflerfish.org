@@ -26,6 +26,7 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+   <pathelement location="${topdir}/bundles_opt/junit/junit/resources/junit.jar"/>
   </path>
   
   
