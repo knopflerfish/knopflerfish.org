@@ -116,7 +116,7 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 
  <tr>
 
-  <td style="background-color: #eeeeee;" colspan="4">
+  <td style="background-color: #eeeeee;" colspan="5">
    <xsl:choose>
     <xsl:when test=". = ''">
      Other
