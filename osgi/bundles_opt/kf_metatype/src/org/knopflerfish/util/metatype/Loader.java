@@ -807,6 +807,200 @@ public class Loader {
   }
 
 
+
+
+  /**
+   * Print sets of definitions to an XML file.
+   */
+  public static void printMetatypeXML(MetaTypeProvider mtp, 
+				      Set servicePIDs,
+				      Set factoryPIDs,
+				      PrintWriter out) {
+    out.println("<?xml version=\"1.0\"?>");
+
+    out.println("<metatype:metatype\n" + 
+		"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n" + 
+		"  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");    
+  
+    out.println("");
+
+    out.println(" <metatype:services>");
+    printOCDXML(mtp, servicePIDs, out);
+    out.println(" </metatype:services>");
+    out.println("");
+
+    out.println(" <metatype:factories>");
+    printOCDXML(mtp, factoryPIDs, out);
+    out.println(" </metatype:factories>");
+    out.println("");
+
+    out.println("</metatype:metatype>");
+  }  
+
+  /**
+   * Print a set of ObjectClassDefinitions as XML.
+   *
+   * @param mtp Metatype provider
+   * @param pids Set of String (PIDs)
+   * @param out writer to print to.
+   */
+  public static void printOCDXML(MetaTypeProvider mtp, 
+				 Set pids, 
+				 PrintWriter out) {
+    for(Iterator it = pids.iterator(); it.hasNext(); ) {
+      String pid = (String)it.next();
+      ObjectClassDefinition ocd = mtp.getObjectClassDefinition(pid, null);
+      AttributeDefinition[] ads = 
+	ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
+      out.println("   <!-- " + pid + " -->");
+      out.println("   <xsd:schema>");
+      out.print ("    <xsd:complexType " + ATTR_NAME + "=\"" + pid + "\"");
+      if(ocd instanceof OCD) {
+	OCD o2 = (OCD)ocd;
+	URL url = o2.getIconURL();
+	if(url != null) {
+	  out.print(" " + ATTR_ICONURL + "=\"" + url + "\"");
+	}
+      }
+      out.println(">");
+      printAnnotation(ocd.getDescription(), "     ", out);
+      for(int i = 0; i < ads.length; i++) {
+	printXML(out, ads[i]);
+      }
+      out.println("    </xsd:complexType>");
+      out.println("   </xsd:schema>\n");
+    }
+  }
+
+
+  static void printXMLSequence(PrintWriter out, 
+				      AttributeDefinition ad,
+				      boolean bArray) {
+    out.println("     <xsd:complexType " + ATTR_NAME + " = \"" + ad.getID() + "\">");
+    out.println("      <xsd:sequence " + ATTR_ARRAY + "=\"" + bArray + "\">");
+    out.println("       <xsd:element " + ATTR_NAME + " = \"" + ITEM + 
+		"\" " + ATTR_TYPE + "= \"" + 
+		getXSDType(ad.getType()) + "\"/>");
+    out.println("      </xsd:sequence>");
+    out.println("     </xsd:complexType>");
+
+  }
+  
+  /**
+   * Print an attribute definition as XML.
+   */
+  public static void printXML(PrintWriter out,
+			      AttributeDefinition ad) {
+    if(ad.getCardinality() > 0) {
+      printXMLSequence(out, ad, false);
+    } else if(ad.getCardinality() < 0) {
+      printXMLSequence(out, ad, true);
+    } else {
+      printXMLSingle(out, ad);
+    }
+  }
+
+  static void printXMLSingle(PrintWriter out,
+				    AttributeDefinition ad) {
+    
+    String tag = getXSDType(ad.getType());
+    
+    String[] optValues = ad.getOptionValues();
+    String[] optLabels = ad.getOptionLabels();
+    String   desc = ad.getDescription();
+
+    if(optValues != null) {
+      out.println("      <xsd:simpleType name = \"" + ad.getID() + "\">");
+      out.println("       <xsd:restriction base=\"" + tag + "\">");
+      for(int i = 0; i < optValues.length; i++) {
+	out.println("       <xsd:enumeration value=\"" + optValues[i] + "\">");
+	if(optLabels != null) {
+	  printAnnotation(optLabels[i], "        ", out);
+	}
+	out.println("       </xsd:enumeration>");
+      }
+      out.println("       </xsd:restriction>");
+      out.println("      </xsd:simpleType>");
+    } else {
+      if("".equals(desc)) {
+	out.println("     <xsd:element name=\"" + ad.getID() + "\"" +
+		    " type=\"" + tag + "\"/>");
+      } else {
+	out.println("     <xsd:element name=\"" + ad.getID() + "\"" + 
+		    " type=\"" + tag + "\">");
+	printAnnotation(desc, "      ", out);
+	out.println("     </xsd:element>");
+      }
+    }
+  }
+
+  static void printValuesXML(Dictionary pids, PrintWriter out) {
+    out.println("<?xml version=\"1.0\"?>");
+
+    out.println("<metatype:values\n" + 	"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
+    
+    out.println("");
+    
+    for(Enumeration e = pids.keys(); e.hasMoreElements(); ) {
+      String pid = (String)e.nextElement();
+
+      Dictionary props = (Dictionary)pids.get(pid);
+
+      out.println("");
+      out.println("  <!-- pid " + pid + " -->");
+      out.println("  <" + pid + ">");
+      printPropertiesXML(props, out);
+      out.println("  </" + pid + ">");
+    }
+
+    out.println("</metatype:values>");
+  }
+
+  static void printPropertiesXML(Dictionary props, PrintWriter out) {
+    for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
+      String key = (String)e.nextElement();
+      Object val = props.get(key);
+      
+      if(val instanceof Vector) {
+	out.println("   <" + key + ">");
+	Vector v = (Vector)val;
+	for(int i = 0; i < v.size(); i++) {
+	  out.println("    <item>" + v.elementAt(i) + "</item>");
+	}
+	out.println("   </" + key + ">");
+      } else if(val.getClass().isArray()) {
+	out.println("   <" + key + ">");
+	for(int i = 0; i < Array.getLength(val); i++) {
+	  out.println("    <item>" + Array.get(val, i) + "</item>");
+	}
+	out.println("   </" + key + ">");
+      } else {
+	out.println("   <" + key + ">" + val.toString() + "</" + key + ">");
+      }
+    }
+  }
+
+
+  static String getXSDType(int type) {
+    String tag = "";
+    switch(type) {
+    case AttributeDefinition.STRING:  return "xsd:string";
+    case AttributeDefinition.INTEGER: return "xsd:int";   
+    case AttributeDefinition.LONG:    return "xsd:long";  
+    case AttributeDefinition.SHORT:   return "xsd:short"; 
+    case AttributeDefinition.DOUBLE:  return "xsd:double";
+    case AttributeDefinition.FLOAT:   return "xsd:float"; 
+    case AttributeDefinition.BOOLEAN: return "xsd:boolean"; 
+    default: throw new IllegalArgumentException("Cannot print " + type);
+    }
+  }
+
+  static void printAnnotation(String s, String prefix, PrintWriter out) {
+    out.println(prefix + "<xsd:annotation>");
+    out.println(prefix + " <xsd:documentation>" + s + "</xsd:documentation>");
+    out.println(prefix + "</xsd:annotation>");
+  }
+
   static void assertTagName(XMLElement el, 
 			    String name) {
     assertTagName(el, null, name);
@@ -850,172 +1044,6 @@ public class Loader {
     }
 
     return r;
-  }
-
-
-  public static void printMetatypeXML(MTP mtp, PrintWriter out) {
-    out.println("<?xml version=\"1.0\"?>");
-
-    out.println("<metatype:metatype\n" + 
-		"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n" + 
-		"  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");    
-  
-    out.println("");
-
-    out.println(" <metatype:services>");
-    printOCDXML(mtp, mtp.getServicePIDs(), out);
-    out.println(" </metatype:services>");
-    out.println("");
-
-    out.println(" <metatype:factories>");
-    printOCDXML(mtp, mtp.getFactoryPIDs(), out);
-    out.println(" </metatype:factories>");
-    out.println("");
-
-    out.println("</metatype:metatype>");
-  }  
-
-  public static void printOCDXML(MTP mtp, Set pids, PrintWriter out) {
-    for(Iterator it = pids.iterator(); it.hasNext(); ) {
-      String pid = (String)it.next();
-      ObjectClassDefinition ocd = mtp.getObjectClassDefinition(pid, null);
-      AttributeDefinition[] ads = 
-	ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
-      out.println("   <!-- " + pid + " -->");
-      out.println("   <xsd:schema>");
-      out.println("    <xsd:complexType name=\"" + pid + "\">");
-      printAnnotation(ocd.getDescription(), "     ", out);
-      for(int i = 0; i < ads.length; i++) {
-	printXML(out, ads[i]);
-      }
-      out.println("    </xsd:complexType>");
-      out.println("   </xsd:schema>\n");
-    }
-  }
-
-
-  public static void printXMLSequence(PrintWriter out, 
-				      AttributeDefinition ad,
-				      boolean bArray) {
-    out.println("     <xsd:complexType name = \"" + ad.getID() + "\">");
-    out.println("      <xsd:sequence array=\"" + bArray + "\">");
-    out.println("       <xsd:element name = \"item\" type = \"" + 
-		getXSDType(ad.getType()) + "\"/>");
-    out.println("      </xsd:sequence>");
-    out.println("     </xsd:complexType>");
-
-  }
-  
-  public static void printXML(PrintWriter out,
-			      AttributeDefinition ad) {
-    if(ad.getCardinality() > 0) {
-      printXMLSequence(out, ad, false);
-    } else if(ad.getCardinality() < 0) {
-      printXMLSequence(out, ad, true);
-    } else {
-      printXMLSingle(out, ad);
-    }
-  }
-
-  public static void printXMLSingle(PrintWriter out,
-				    AttributeDefinition ad) {
-    
-    String tag = getXSDType(ad.getType());
-    
-    String[] optValues = ad.getOptionValues();
-    String[] optLabels = ad.getOptionLabels();
-    String   desc = ad.getDescription();
-
-    if(optValues != null) {
-      out.println("      <xsd:simpleType name = \"" + ad.getID() + "\">");
-      out.println("       <xsd:restriction base=\"" + tag + "\">");
-      for(int i = 0; i < optValues.length; i++) {
-	out.println("       <xsd:enumeration value=\"" + optValues[i] + "\">");
-	if(optLabels != null) {
-	  printAnnotation(optLabels[i], "        ", out);
-	}
-	out.println("       </xsd:enumeration>");
-      }
-      out.println("       </xsd:restriction>");
-      out.println("      </xsd:simpleType>");
-    } else {
-      if("".equals(desc)) {
-	out.println("     <xsd:element name=\"" + ad.getID() + "\"" +
-		    " type=\"" + tag + "\"/>");
-      } else {
-	out.println("     <xsd:element name=\"" + ad.getID() + "\"" + 
-		    " type=\"" + tag + "\">");
-	printAnnotation(desc, "      ", out);
-	out.println("     </xsd:element>");
-      }
-    }
-  }
-
-  static void printValuesXML(Dictionary pids, PrintWriter out) {
-    out.println("<?xml version=\"1.0\"?>");
-
-    out.println("<metatype:values\n" + 
-		"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
-    
-    out.println("");
-    
-    for(Enumeration e = pids.keys(); e.hasMoreElements(); ) {
-      String pid = (String)e.nextElement();
-
-      Dictionary props = (Dictionary)pids.get(pid);
-
-      out.println("");
-      out.println("  <!-- pid " + pid + " -->");
-      out.println("  <" + pid + ">");
-      printPropertiesXML(props, out);
-      out.println("  </" + pid + ">");
-    }
-
-    out.println("</metatype:values>");
-  }
-
-  static void printPropertiesXML(Dictionary props, PrintWriter out) {
-    for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-      String key = (String)e.nextElement();
-      Object val = props.get(key);
-      
-      if(val instanceof Vector) {
-	out.println("   <" + key + ">");
-	Vector v = (Vector)val;
-	for(int i = 0; i < v.size(); i++) {
-	  out.println("    <item>" + v.elementAt(i) + "</item>");
-	}
-	out.println("   </" + key + ">");
-      } else if(val.getClass().isArray()) {
-	out.println("   <" + key + ">");
-	for(int i = 0; i < Array.getLength(val); i++) {
-	  out.println("    <item>" + Array.get(val, i) + "</item>");
-	}
-	out.println("   </" + key + ">");
-      } else {
-	out.println("   <" + key + ">" + val.toString() + "</" + key + ">");
-      }
-    }
-  }
-
-  static String getXSDType(int type) {
-    String tag = "";
-    switch(type) {
-    case AttributeDefinition.STRING:  return "xsd:string";
-    case AttributeDefinition.INTEGER: return "xsd:int";   
-    case AttributeDefinition.LONG:    return "xsd:long";  
-    case AttributeDefinition.SHORT:   return "xsd:short"; 
-    case AttributeDefinition.DOUBLE:  return "xsd:double";
-    case AttributeDefinition.FLOAT:   return "xsd:float"; 
-    case AttributeDefinition.BOOLEAN: return "xsd:boolean"; 
-    default: throw new IllegalArgumentException("Cannot print " + type);
-    }
-  }
-
-  static void printAnnotation(String s, String prefix, PrintWriter out) {
-    out.println(prefix + "<xsd:annotation>");
-    out.println(prefix + " <xsd:documentation>" + s + "</xsd:documentation>");
-    out.println(prefix + "</xsd:annotation>");
   }
 
 }

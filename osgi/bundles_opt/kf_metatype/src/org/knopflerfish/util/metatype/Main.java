@@ -172,7 +172,10 @@ public class Main {
       }
       if(bDumpXML || bDumpValues) {
 	if(bDumpXML) {
-	  Loader.printMetatypeXML(mtp, new PrintWriter(System.out, true));
+	  Loader.printMetatypeXML(mtp, 
+				  mtp.getServicePIDs(),
+				  mtp.getFactoryPIDs(),
+				  new PrintWriter(System.out, true));
 	}
 	if(bDumpValues) {
 	  Loader.printValuesXML(pids, new PrintWriter(System.out, true));

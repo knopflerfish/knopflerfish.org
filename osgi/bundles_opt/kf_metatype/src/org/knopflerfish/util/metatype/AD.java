@@ -91,6 +91,16 @@ public class AD implements AttributeDefinition, Comparable {
 	 );
   }
 
+  /**
+   * Create a new attribute definition.
+   *
+   * @param id Unique id of the definition
+   * @param card cardinality of the definition
+   * @param type One of the type constants <tt>STRING...BOOLEAN</tt>
+   * @throws IllegalArgumentException if <i>type</i> is not supported.
+   * @throws IllegalArgumentException if <i>id</i> is <tt>null</tt> or empty
+   * @throws IllegalArgumentException if <i>desc</i> is <tt>null</tt>
+   */
   public AD(  String   id,
 	      int      type,
 	      int      card,
@@ -165,6 +175,11 @@ public class AD implements AttributeDefinition, Comparable {
     this.desc = s;
   }
 
+  /**
+   * Set the default value.
+   *
+   * @throws IllegalArgumentException if any of the values cannot be validated.
+   */
   public void setDefaultValue(String[] value) {
     String s = validate(toString(value));
     
@@ -192,6 +207,17 @@ public class AD implements AttributeDefinition, Comparable {
   }
 
 
+  /**
+   * Set values returned by <tt>getOptionValues</tt> and 
+   * <tt>getOptionLabels</tt>.
+   *
+   * @param optValues Values to be return by <tt>getOptionValues</tt>. Can
+   *                  be <tt>null</tt>.
+   * @param optLabels Values to be return by <tt>getOptionLabels</tt>. Can
+   *                  be <tt>null</tt> iff <tt>optValues</tt> is <tt>null</tt>.
+   * @throws IllegalArgumentException if optValues and optLabels are not the
+   *                                  same length.
+   */
   public void setOptions(String[] optValues, 
 			 String[] optLabels) {
     if(optValues != null) {
@@ -215,6 +241,15 @@ public class AD implements AttributeDefinition, Comparable {
     return type;
   }
 
+  /**
+   * Get the attribute type given any suported java object.
+   *
+   * @param val Any java object, including arrays of primitive types.
+   *            If <i>val</i> is a Vector, it must
+   *            contain at least one element.
+   * @return <tt>STRING...BOOLEAN</tt>
+   * @throws IllegalArgumentException if type cannot be derived.
+   */
   public static int getType(Object val) {
     if(val instanceof Vector) {
       Vector v = (Vector)val;
@@ -284,6 +319,10 @@ public class AD implements AttributeDefinition, Comparable {
 
   /**
    * Get type from an array object.
+   *
+   * @param val an array object
+   * @return <tt>STRING...BOOLEAN</tt>
+   * @throws IllegalArgumentException if type cannot be derived.
    */
   public static int getArrayType(Object val) {
 
@@ -299,6 +338,10 @@ public class AD implements AttributeDefinition, Comparable {
 
   /**
    * Get type from primitive object.
+   *
+   * @param val an object of one of the boxed primitive java object classes.
+   * @return <tt>STRING...BOOLEAN</tt>
+   * @throws IllegalArgumentException if type cannot be derived.
    */
   public static int getPrimitiveType(Object val) {
     if(val instanceof String) {
