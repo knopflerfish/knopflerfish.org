@@ -21,7 +21,6 @@
 
   <path id="bundle.compile.path">
    <pathelement location="resources/log_api-1.0.0.jar"/>
-   <pathelement location="resources/log4j-1.2.8.jar"/>
   </path>
 
 
