@@ -41,6 +41,9 @@ import java.util.*;
 import java.lang.reflect.*;
 import java.io.*;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 /**
  * Implementation calss for AttributeDefinition.
  *
@@ -195,6 +198,121 @@ public class AD implements AttributeDefinition, Comparable {
 
   public int getType() {
     return type;
+  }
+
+  public static int getType(Object val) {
+    if(val instanceof Vector) {
+      Vector v = (Vector)val;
+      if(v.size() == 0) {
+	throw new IllegalArgumentException("Vector is empty " + 
+					   "-- no type can be derived");
+      } else {
+	return getType(v.elementAt(0));
+      }
+    } else if(val.getClass().isArray()) {
+      return getArrayType(val);
+    } else {
+      return getPrimitiveType(val);
+    }
+  }
+
+  static final Class[] ARRAY_CLASSES     = new Class[BOOLEAN-STRING + 1];
+  static final Class[] PRIMITIVE_CLASSES = new Class[] {
+    String.class,  
+    Long.TYPE,  
+    Integer.TYPE,  
+    Short.TYPE,  
+    Character.TYPE,  
+    Byte.TYPE,  
+    Double.TYPE,      
+    Float.TYPE,  
+    BigInteger.class,  
+    BigDecimal.class,  
+    Boolean.TYPE,  
+  };
+  static final Class[] OBJECT_CLASSES = new Class[] {
+    String.class,  
+    Long.class,  
+    Integer.class,  
+    Short.class,  
+    Character.class,  
+    Byte.class,  
+    Double.class,      
+    Float.class,  
+    BigInteger.class,  
+    BigDecimal.class,  
+    Boolean.class,  
+  };
+
+  static {    
+    try {
+      for(int i = STRING; i <= BOOLEAN; i++) {
+	ARRAY_CLASSES[i-STRING] = 
+	  (Array.newInstance(getPrimitiveClass(i),0)).getClass();
+      }
+      /*
+      for(int i = STRING; i <= BOOLEAN; i++) {
+	Object array = Array.newInstance(getPrimitiveClass(i), 0);
+
+	System.out.println(i + ": " + getPrimitiveClass(i).getName() + 
+			   ", " + getClass(i).getName() + 
+			   ", " + array.getClass().getName() + 
+			   ", " + getArrayType(array));
+	
+      }
+      */
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(0);
+    }
+  }
+
+  /**
+   * Get type from an array object.
+   */
+  public static int getArrayType(Object val) {
+
+    // Isn't there an easier way of doing this? Like
+    // Array.getElementClass() or similar?
+    for(int i = STRING; i <= BOOLEAN; i++) {
+      if(ARRAY_CLASSES[i-STRING].equals(val.getClass())) {
+	return i;
+      }
+    }
+    throw new IllegalArgumentException("Unsupported type " + val.getClass().getName());
+  }
+
+  /**
+   * Get type from primitive object.
+   */
+  public static int getPrimitiveType(Object val) {
+    if(val instanceof String) {
+      return STRING;
+    } else if(val instanceof Integer) {
+      return INTEGER;
+    } else if(val instanceof Double) {
+      return DOUBLE;
+    } else if(val instanceof Float) {
+      return FLOAT;
+    } else if(val instanceof Integer) {
+      return INTEGER;
+    } else if(val instanceof Long) {
+      return LONG;
+    } else if(val instanceof Boolean) {
+      return BOOLEAN;
+    } else if(val instanceof Short) {
+      return SHORT;
+    } else if(val instanceof Character) {
+      return CHARACTER;
+    } else if(val instanceof BigInteger) {
+      return BIGINTEGER;
+    } else if(val instanceof BigDecimal) {
+      return BIGDECIMAL;
+    } else if(val instanceof String) {
+      return STRING;
+    } else {
+      throw new IllegalArgumentException("Unsupported type " + val.getClass().getName());
+    }
   }
 
   /**
@@ -369,28 +487,7 @@ public class AD implements AttributeDefinition, Comparable {
    * @throws IllegalArgumentException if type is not supporte.d
    */
   public static Class getClass(int type) {
-    switch(type) {
-    case STRING: 
-      return String.class;
-    case INTEGER: 
-      return Integer.class;
-    case LONG: 
-      return Long.class;
-    case BYTE: 
-      return Byte.class;
-    case SHORT: 
-      return Short.class;
-    case CHARACTER: 
-      return Character.class;
-    case DOUBLE: 
-      return Double.class;
-    case FLOAT: 
-      return Float.class;
-    case BOOLEAN:
-      return Boolean.class;
-    default:
-      throw new IllegalArgumentException("Cannot derive class from type=" + type);
-    }
+    return OBJECT_CLASSES[type - STRING];
   }
 
   /**
@@ -399,28 +496,7 @@ public class AD implements AttributeDefinition, Comparable {
    * @throws IllegalArgumentException if type is not supported.
    */
   public static Class getPrimitiveClass(int type) {
-    switch(type) {
-    case STRING: 
-      return String.class;
-    case INTEGER: 
-      return Integer.TYPE;
-    case LONG: 
-      return Long.TYPE;
-    case BYTE: 
-      return Byte.TYPE;
-    case SHORT: 
-      return Short.TYPE;
-    case CHARACTER: 
-      return Character.TYPE;
-    case DOUBLE: 
-      return Double.TYPE;
-    case FLOAT: 
-      return Float.TYPE;
-    case BOOLEAN:
-      return Boolean.TYPE;
-    default:
-      throw new IllegalArgumentException("Cannot derive primitive class from type=" + type);
-    }
+    return PRIMITIVE_CLASSES[type - STRING];
   }
 
   /**
