@@ -135,9 +135,7 @@ public class JVector extends JPanel {
 	    {
 	      String s = val.toString();
 	      
-	      //	  System.out.println("setValueAt " + row + ", val=" + val + ", s=" + s);
 	      Object obj = AD.parse(s, 0, ad.getType());
-	      //	  System.out.println(" -> obj=" + obj);
 	      v.setElementAt(obj, row);
 	    }
 	    break;
@@ -155,7 +153,7 @@ public class JVector extends JPanel {
 
     scroll.setPreferredSize(new Dimension(100, 80));
 
-    JPanel cmds = new JPanel(new FlowLayout());
+    JPanel cmds = new JPanel(new BorderLayout());
     
     addRowButton = new JButton("Add");
     addRowButton.addActionListener(new ActionListener() {
@@ -173,9 +171,14 @@ public class JVector extends JPanel {
       });
     delRowButton.setToolTipText("Delete the selected (or first) row from sequence");
     
-    cmds.add(addRowButton);
-    cmds.add(delRowButton);
 
+
+    JPanel cmdEast = new JPanel(new FlowLayout());
+
+    cmdEast.add(addRowButton);
+    cmdEast.add(delRowButton);
+
+    cmds.add(cmdEast, BorderLayout.EAST);
 
     add(scroll, BorderLayout.CENTER);    
     add(cmds, BorderLayout.SOUTH);

@@ -55,8 +55,7 @@ import java.net.*;
  * <tt>getObjectClassDefinition</tt> methods.
  * </p>
  */
-public class SystemMetatypeProvider 
-  implements MetaTypeProvider, PIDProvider {
+public class SystemMetatypeProvider extends MTP {
 
   /**
    * Default URL to metatype XML.
@@ -118,6 +117,7 @@ public class SystemMetatypeProvider
    * for listeners.
    */
   public SystemMetatypeProvider(BundleContext bc) {
+    super("system");
     this.bc = bc;
     log = new LogRef(bc);
   }
@@ -179,11 +179,11 @@ public class SystemMetatypeProvider
 	  
 	  public ObjectClassDefinition getObjectClassDefinition(String pid, 
 								String locale) {
-	    System.out.println("sysMTP.getOCD " + pid);
+	    //	    System.out.println("sysMTP.getOCD " + pid);
 
 	    OCD ocd = (OCD)cmOCDMap.get(pid);
 	    if(ocd != null) {
-	      System.out.println(" cached");
+	      //	      System.out.println(" cached");
 	      return ocd;
 	    }
 	    
@@ -201,7 +201,7 @@ public class SystemMetatypeProvider
 		}
 		if(conf != null) {
 		  Dictionary props = conf.getProperties();
-		  System.out.println(" props=" + props);
+		  //		  System.out.println(" props=" + props);
 		  ocd = new OCD(pid, pid, pid + " from CM", props);
 		  cmOCDMap.put(pid, ocd);
 		  return ocd;
@@ -219,6 +219,8 @@ public class SystemMetatypeProvider
 	  }
 	};
     }
+
+    setupMTListener();
     
   }
 
@@ -331,7 +333,18 @@ public class SystemMetatypeProvider
 	  set.add(pids[i]);
 	}
       }
-      return (String[])set.toArray();
+      for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
+	ServiceReference sr = (ServiceReference)it.next();
+	try {
+	  String[] pids = (String[])sr.getProperty("service.pids");
+	  for(int i = 0; pids != null && i < pids.length; i++) {
+	    set.add(pids[i]);
+	  }
+	} catch (Exception e) {
+	  log.warn("No service.pids property on " + sr);
+	}
+      }
+      return MTP.toStringArray(set);
     }
   }
   
@@ -346,7 +359,18 @@ public class SystemMetatypeProvider
 	  set.add(pids[i]);
 	}
       }
-      return (String[])set.toArray();
+      for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
+	ServiceReference sr = (ServiceReference)it.next();
+	try {
+	  String[] pids = (String[])sr.getProperty("factory.pids");
+	  for(int i = 0; pids != null && i < pids.length; i++) {
+	    set.add(pids[i]);
+	  }
+	} catch (Exception e) {
+	  log.warn("No factory.pids property on " + sr);
+	}
+      }
+      return MTP.toStringArray(set);
     }
   }
 
@@ -361,17 +385,19 @@ public class SystemMetatypeProvider
    * @return Provider if such provider is found, otherwise <tt>null</tt>.
    */
   public MTP getMTP(Bundle b) {
-    if(b == null) {
-      return cmMTP;
+    ServiceReference cmSR = cmTracker.getServiceReference();
+
+    MTP mtp = null;
+    if(cmSR != null && cmSR.getBundle() == b) {
+      mtp = cmMTP;
+    } else if(b.getBundleId() == 0) {
+      mtp = this;
+    } else {
+      mtp = (MTP)providers.get(b);
     }
-    MTP mtp = (MTP)providers.get(b);
-    if(mtp != null) {
-      return mtp;
-    }
-    if(b.getBundleId() == 0) {
-      return cmMTP;
-    }
-    return null;
+
+    //    System.out.println("getMTP " + b + " -> " + (mtp != null ? mtp.getId() : "null"));
+    return mtp;
   }
 
   /**
@@ -394,8 +420,68 @@ public class SystemMetatypeProvider
 	  return ocd;
 	}
       }
+      synchronized(mtMap) {
+	for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
+	  ServiceReference sr = (ServiceReference)it.next();
+	  MetaTypeProvider mt = (MetaTypeProvider)mtMap.get(sr);
+	  ObjectClassDefinition ocd = mt.getObjectClassDefinition(pid, locale);
+	  if(ocd != null) {
+	    return ocd;
+	  }
+	}
+      }
       return null;
     }
+  }
+
+  ServiceListener mtListener = null;
+
+  // ServiceReference -> MetatypeProvider
+  Map mtMap = new HashMap();
+
+  void setupMTListener() {
+    mtListener = new ServiceListener() {
+	public void serviceChanged(ServiceEvent ev) {
+	  ServiceReference sr = ev.getServiceReference();
+	  synchronized(mtMap) {
+	    switch(ev.getType()) {
+	    case ServiceEvent.REGISTERED: 
+	      {
+		MetaTypeProvider mt = (MetaTypeProvider)bc.getService(sr);
+		if(mt != this) {
+		  mtMap.put(sr, mt);
+		  String[] pids = (String[])sr.getProperty("service.pids");
+		  //		  System.out.println("got mtp " + sr + ", pids=" + (pids != null ? AD.toString(pids) : ""));
+		}
+	      }
+	      break;
+	    case ServiceEvent.UNREGISTERING:
+	      bc.ungetService(sr);
+	      mtMap.remove(sr);
+	      //	      System.out.println("lost mtp " + sr);
+	      break;
+	    }
+	  }
+	}
+      };
+    try {
+      String filter = 
+	"(objectclass=" + MetaTypeProvider.class.getName() + ")";
+      
+      ServiceReference[] srl = 
+	bc.getServiceReferences(null, filter);
+      for(int i = 0; srl != null && i < srl.length; i++) {
+	mtListener
+	  .serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
+					   srl[i]));
+      }
+      bc.addServiceListener(mtListener, filter);
+      
+    } catch(Exception e) {
+      log.error("Failed to get other providers", e);
+    }
+    
+
   }
 
   Set getCMServicePIDs() {

@@ -40,17 +40,23 @@ import org.osgi.service.metatype.*;
 import java.net.URL;
 import java.io.*;
 import java.util.*;
+import org.osgi.service.cm.*;
 
 import org.knopflerfish.util.metatype.*;
+
+import org.knopflerfish.service.log.LogRef;
 
 
 public class Activator implements BundleActivator {
   static BundleContext bc = null;
 
+  static LogRef log;
+
   SystemMetatypeProvider sysMTP;
 
-  public void start(BundleContext bc) {
-    this.bc = bc;
+  public void start(BundleContext _bc) {
+    this.bc = _bc;
+    this.log = new LogRef(bc);
 
     sysMTP = new SystemMetatypeProvider(bc);
     sysMTP.open();
@@ -62,10 +68,70 @@ public class Activator implements BundleActivator {
     },
 		       sysMTP,
 		       new Hashtable());
+
+    ManagedService config = new ManagedService() {
+	Map mtpRegs = new HashMap();
+
+	public void updated(Dictionary props) {
+
+	  synchronized(mtpRegs) {
+	    Vector v = null;
+	    if(props != null) {
+	      v = (Vector)props.get("external.metatype.urls");
+	    } 
+	    if(v == null) {
+	      v = new Vector();
+	    }
+
+	    MTP[] mtp = new MTP[v.size()];
+
+	    try {
+	      for(int i = 0; i < v.size(); i++) {
+		URL url = new URL(v.elementAt(i).toString());
+		mtp[i] = Loader.loadMTPFromURL(bc.getBundle(), url);
+	      }
+	      
+	      for(Iterator it = mtpRegs.keySet().iterator(); it.hasNext();) {
+		ServiceRegistration reg = (ServiceRegistration)it.next();
+		reg.unregister();
+	      }
+	      mtpRegs.clear();
+	      
+	      for(int i = 0; i < mtp.length; i++) {
+		Hashtable prop = new Hashtable();
+		prop.put("source.url", v.elementAt(i).toString());
+		String [] pids = mtp[i].getPids();
+		if(pids != null) {
+		  prop.put("service.pids", pids);
+		}
+		pids = mtp[i].getFactoryPids();
+		if(pids != null) {
+		  prop.put("factory.pids", pids);
+		}
+		//		System.out.println("register " + mtp[i].getId() + ", props=" + prop);
+		ServiceRegistration reg = 
+		  bc.registerService(MetaTypeProvider.class.getName(),
+				     mtp[i], prop);
+		mtpRegs.put(reg, mtp[i]);
+	      }
+	    } catch (Exception e) {
+	      log.error("Failed to set values",e);
+	    }
+	  }
+	}
+      };
+
+    Hashtable props = new Hashtable();
+    props.put("service.pid", "org.knopflerfish.util.metatype.SystemMetatypeProvider");
+
+    bc.registerService(ManagedService.class.getName(), config,
+		       props);
   }
 
   public void stop(BundleContext bc) {
     sysMTP.close();
+    this.log.close();
+    this.log = null;
     this.bc = null;
   }
 }
