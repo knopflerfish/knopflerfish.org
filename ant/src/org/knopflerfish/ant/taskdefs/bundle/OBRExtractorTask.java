@@ -331,6 +331,7 @@ public class OBRExtractorTask extends Task {
       printAttrib(out, "bundle-description",    "Bundle-Description");
       printAttrib(out, "bundle-subversionurl",  "Bundle-SubversionURL");
       printAttrib(out, "bundle-apivendor",      "Bundle-APIVendor");
+      printAttrib(out, "bundle-uuid",           "Bundle-UUID");
 
       out.println("  <bundle-updatelocation>");
       out.println(baseURL + path);
