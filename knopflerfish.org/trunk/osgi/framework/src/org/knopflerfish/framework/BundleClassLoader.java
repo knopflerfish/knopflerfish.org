@@ -293,7 +293,12 @@ final public class BundleClassLoader extends ClassLoader {
 	  if (debug) {
 	    Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " + name);
 	  }
-	  return defineClass(name, bytes, 0, bytes.length, bpkgs.bundle.protectionDomain);
+	  if(bpkgs.bundle.protectionDomain == null) {
+	    // Kaffe can't handle null protectiondomain
+	    return defineClass(name, bytes, 0, bytes.length);
+	  } else {
+	    return defineClass(name, bytes, 0, bytes.length, bpkgs.bundle.protectionDomain);
+	  }
 	}
       } catch (IOException ioe) {
 	bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
