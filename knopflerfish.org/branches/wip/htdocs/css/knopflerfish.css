@@ -115,6 +115,25 @@ A.top {
   font-weight:      bold;
 }
 
+A.navigation_enabled, A.navigation_enabled:visited, A.navigation_enabled:selected, A.navigation_enabled:active {
+ text-decoration:  none;
+ font-weight:      bold;
+}
+
+A.navigation_enabled:hover {
+ text-decoration:  underline;
+}
+
+A.navigation_disabled, A.navigation_disabled:visited, A.navigation_disabled:selected, A.navigation_disabled:active {
+ text-decoration:  none;
+ font-weight:      normal;
+}
+
+A.navigation_disabled:hover {
+ text-decoration:  none;
+}
+
+
 A, A:visited, A:selected, A:active {
  text-decoration:  none;
  font-weight:      bold;
