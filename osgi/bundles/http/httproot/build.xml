@@ -19,8 +19,8 @@
   </path>
 
 
-  <property name="bundle.description"    value="HTTP root servlet"/>
-  <property name="bundle.vendor"         value="knopflerfish.org"/>
+  <property name="bundle.description"    value="Demo HTTP root servlet"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.category"       value="example"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="HTTP root"/>
