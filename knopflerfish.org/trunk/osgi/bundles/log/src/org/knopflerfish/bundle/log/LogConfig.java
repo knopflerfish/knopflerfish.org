@@ -462,6 +462,7 @@ class LogConfig implements ManagedService{
     }
 
     public void println(String s) {
+      super.print(prefix);
       super.println(s);
       log(s);
     }
@@ -471,6 +472,7 @@ class LogConfig implements ManagedService{
     }
 
     public void println(Object x) {
+      super.print(prefix);
       super.println(x);
       log("" + x);
     }

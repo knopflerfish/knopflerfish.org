@@ -48,10 +48,12 @@ import org.osgi.service.log.LogService;
 
 public class PrefixPrintStream extends PrintStream {
   PrintStream ps;
+  PrintStream orig;
   String      prefix;
 
-  public PrefixPrintStream(PrintStream ps, String prefix) {
+  public PrefixPrintStream(PrintStream ps, String prefix, PrintStream orig) {
     super(ps);
+    this.orig   = orig;
     this.ps     = ps;
     this.prefix = prefix;
   }
@@ -59,10 +61,16 @@ public class PrefixPrintStream extends PrintStream {
   public void println(String x) {
     super.print(prefix);
     super.println(x);
+    if(orig != null) {
+      orig.println(x);
+    }
   }
 
   public void println(Object x) {
     super.print(prefix);
     super.println(x);
+    if(orig != null) {
+      orig.println(x);
+    }
   }
 }
