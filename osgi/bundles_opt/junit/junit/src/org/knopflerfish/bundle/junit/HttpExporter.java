@@ -44,10 +44,10 @@ public class HttpExporter {
 
   ServiceListener httpListener = null;
 
-  HttpExporter() {
+  public HttpExporter(BundleContext dummy) {
   }
 
-  void open() {
+  public void open() {
     openHTTP();
   }
 

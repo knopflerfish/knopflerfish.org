@@ -60,6 +60,7 @@ public class JUnitServiceImpl implements JUnitService {
 
   public void runTestXML(PrintWriter out, TestSuite suite) throws IOException {
     out.println("<?xml version=\"1.0\"?>");
+    out.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_style.xsl\"?>");
     out.print("<junit");
     out.print(" date=\"" + (new Date()) + "\"");
     out.println(">");
