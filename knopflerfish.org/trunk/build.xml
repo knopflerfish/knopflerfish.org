@@ -156,13 +156,14 @@
   <target name          = "obr"
           depends       = "compile_ant">
 
+    <property name="obr.baseurl" value="http://www.knopflerfish.org/repo/jars/"/>
     <mkdir dir="repo"/>
 
     <bundleobr  baseDir      = "osgi/jars"
                 repoXSLURL   = "../htdocs/css/repository.xsl"
                 outFile      = "repo/repository.xml"
                 repoName     = "Knopflerfish bundle repository"
-		baseURL      = "http://www.knopflerfish.org/repo/jars/"
+		baseURL      = "${obr.baseurl}"
     >
 
       <fileset dir="osgi/jars">
