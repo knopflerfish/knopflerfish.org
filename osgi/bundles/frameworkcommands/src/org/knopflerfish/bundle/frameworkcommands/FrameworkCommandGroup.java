@@ -1142,7 +1142,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       while(s.length() < 2) {
 	s.insert(0, " ");
       }
-      sb.append(s);
+      sb.append(s.toString());
     } catch (Exception ignored) { 
       sb.append("--");
     }
