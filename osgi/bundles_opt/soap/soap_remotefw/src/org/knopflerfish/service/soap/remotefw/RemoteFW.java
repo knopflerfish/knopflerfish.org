@@ -4,11 +4,15 @@ import org.osgi.framework.*;
 import java.util.*;
 
 public interface RemoteFW {
+  public static final String NULL_STR = "@@NULL@@";
+
   public void startBundle(long bid);
   public void stopBundle(long bid);
   public void updateBundle(long bid);
   public void uninstallBundle(long bid);
   public long installBundle(String location);
+
+  public long        getBundle(); 
 
   // (bid)
   public long[]     getBundles();
@@ -25,8 +29,9 @@ public interface RemoteFW {
   // (sid)
   public long[]    getServicesInUse(long bid);
 
-  // (bid, type)
+  // (sid, bid)
   public long[]    getServiceReferences(String filter);
+  public long[]    getServiceReferences2(String clazz, String filter);
 
   // (bid, type)
   public long[]    getBundleEvents();
@@ -47,4 +52,11 @@ public interface RemoteFW {
   public void    setInitialBundleStartLevel(int level);
   public int     getInitialBundleStartLevel();
   public boolean isBundlePersistentlyStarted(long bid);
+
+  public Map    getExportedPackage(String name);
+  public Map[]  getExportedPackages(long bid);
+  public void   refreshPackages(long[] bids) ;
+ 
+
 }
+

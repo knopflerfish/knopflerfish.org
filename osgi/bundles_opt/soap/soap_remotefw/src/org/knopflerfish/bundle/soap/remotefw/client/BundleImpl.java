@@ -15,11 +15,11 @@ import java.net.*;
 public class BundleImpl implements Bundle {
 
   long bid;
-  RemoteFW fw;
+  RemoteFWClient fw;
 
   long[] sids;
 
-  BundleImpl(RemoteFW fw, long bid) {
+  BundleImpl(RemoteFWClient fw, long bid) {
     this.fw  = fw;
     this.bid = bid;
 
@@ -85,18 +85,22 @@ public class BundleImpl implements Bundle {
 
   public void start() {
     fw.startBundle(bid);
+    fw.remoteBC.doEvents();
   }
   
   public void stop() {
     fw.stopBundle(bid);
+    fw.remoteBC.doEvents();
   }
 
   public void uninstall() {
     fw.uninstallBundle(bid);
+    fw.remoteBC.doEvents();
   }
 
   public void update() {
     fw.updateBundle(bid);
+    fw.remoteBC.doEvents();
   }
 
   public void update(InputStream in) {

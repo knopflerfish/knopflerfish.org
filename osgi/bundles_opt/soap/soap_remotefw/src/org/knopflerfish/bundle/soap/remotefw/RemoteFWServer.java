@@ -8,18 +8,21 @@ import org.knopflerfish.service.log.LogRef;
 import org.osgi.service.startlevel.*;
 
 import org.knopflerfish.service.soap.remotefw.*;
+import org.osgi.service.packageadmin.*;
 
-public class RemoteFWImpl implements RemoteFW {
+public class RemoteFWServer implements RemoteFW {
   
   ServiceRegistration reg = null;
 
   ServiceTracker slTracker;
+  ServiceTracker pkgTracker;
 
   Thread reaper     = null;
   boolean bReap     = false;
   long    reapDelay = 60 * 1000;
 
-  public RemoteFWImpl() {
+
+  public RemoteFWServer() {
   }
 
   public void startBundle(long bid) {
@@ -63,6 +66,9 @@ public class RemoteFWImpl implements RemoteFW {
     }
   }
 
+  public long       getBundle() {
+    return Activator.bc.getBundle().getBundleId();
+  }
 
   public long[]    getBundles() {
     Bundle[] bl = Activator.bc.getBundles();
@@ -98,16 +104,34 @@ public class RemoteFWImpl implements RemoteFW {
   }
 
   public long[]    getServiceReferences(String filter) {
+    return getServiceReferences2(null, filter);
+  }
+
+
+  public long[]    getServiceReferences2(String clazz, String filter) {
     try {
-      ServiceReference[] srl = Activator.bc.getServiceReferences(null, filter);
+      if(NULL_STR.equals(clazz)) {
+	clazz = null;
+      }
+      if(NULL_STR.equals(filter)) {
+	filter = null;
+      }
+      ServiceReference[] srl = Activator.bc.getServiceReferences(clazz, filter);
+
+      /*
+      System.out.println("server:getServiceReferences2 class=" + clazz + 
+			 ", filter=" + filter + 
+			 ", srl=" + (srl != null ? ("" + srl.length) : "null"));
+      */
       if(srl == null) {
 	return new long[0];
       }
       long[] r = new long[srl.length * 2];
       int n = 0;
       for(int i = 0; i < srl.length; i++) {
-	r[n * 2]     = srl[i].getBundle().getBundleId();
-	r[n * 2 + 1] = ((Long)srl[i].getProperty(Constants.SERVICE_ID)).longValue();
+	r[n * 2]      = ((Long)srl[i].getProperty(Constants.SERVICE_ID)).longValue();
+	r[n * 2 + 1]  = srl[i].getBundle().getBundleId();
+
 	n++;
       }
       return r;
@@ -133,6 +157,7 @@ public class RemoteFWImpl implements RemoteFW {
       i += 2;
     }
 
+    result.remove("Application-Icon");
     return result;
   }
 
@@ -250,6 +275,65 @@ public class RemoteFWImpl implements RemoteFW {
     return ((StartLevel)slTracker.getService()).isBundlePersistentlyStarted(b);
   }
 
+  public Map    getExportedPackage(String name) {
+    Map map = new HashMap();
+    ExportedPackage pkg = ((PackageAdmin)pkgTracker.getService()).getExportedPackage(name);
+    
+    putExportPackage(map, pkg);
+    return map;
+  }
+
+  public Map[]  getExportedPackages(long bid) {
+    Bundle b = Activator.bc.getBundle(bid);
+    ExportedPackage[] pkgs = ((PackageAdmin)pkgTracker.getService()).getExportedPackages(b);
+    
+    if(pkgs == null) {
+      return new Map[0];
+    }
+
+    Map[] maps = new Map[pkgs.length];
+    for(int i = 0; i < pkgs.length; i++) {
+      maps[i] = new HashMap();
+      putExportPackage(maps[i], pkgs[i]);
+    }
+    return maps;
+  }
+
+  public void   refreshPackages(long[] bids) {
+    if(bids.length == 0) {
+      ((PackageAdmin)pkgTracker.getService()).refreshPackages(null);
+      bids = null;
+    } else {
+      Bundle[] bl = new Bundle[bids.length];
+      for(int i = 0; i < bids.length; i++) {
+	bl[i] = Activator.bc.getBundle(bids[i]);
+      }
+      ((PackageAdmin)pkgTracker.getService()).refreshPackages(bl);
+    }
+
+  }
+
+  void putExportPackage(Map map, ExportedPackage pkg) {
+    if(pkg != null) {
+      Long[] bids;
+      Bundle[] bl = pkg.getImportingBundles();
+      if(bl == null) {
+	bids = new Long[0];
+      } else {
+	bids = new Long[bl.length];
+	for(int i = 0; i < bids.length; i++) {
+	  bids[i] = new Long(bl[i].getBundleId());
+	}
+      }
+      map.put("getExportingBundle", 
+	      new Long(pkg.getExportingBundle().getBundleId()));
+      map.put("getImportingBundles",     bids); 
+      map.put("getName",                 pkg.getName());
+      map.put("getSpecificationVersion", pkg.getSpecificationVersion());
+      map.put("isRemovalPending",        pkg.isRemovalPending() ? Boolean.TRUE : Boolean.FALSE);
+    }
+  }
+
   public void start() {
     if(reg == null) {
 
@@ -257,6 +341,11 @@ public class RemoteFWImpl implements RemoteFW {
 				     StartLevel.class.getName(),
 				     null);
       slTracker.open();
+
+      pkgTracker = new ServiceTracker(Activator.bc,
+				      PackageAdmin.class.getName(),
+				      null);
+      pkgTracker.open();
 
       Hashtable props = new Hashtable();
       
