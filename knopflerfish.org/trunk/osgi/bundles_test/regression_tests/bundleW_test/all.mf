@@ -1,6 +1,3 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.5.4 
-Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
 Bundle-Name: bundleW_test
 Bundle-SymbolicName: bundleW_test
 Bundle-Version: 1.0.0
@@ -13,9 +10,3 @@ Bundle-Category: test
 Export-Package: org.knopflerfish.service.bundleW_test
 Import-Package: org.knopflerfish.service.bundleW_test,org.osgi.framework
 Bundle-UUID: org.knopflerfish:bundleW_test:1.0.0:all
-Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
- n_tests\bundleW_test
-Build-Date: Wed August 25 2004, 19:57:06
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Bundle-APIVendor: 
-
