@@ -261,6 +261,8 @@ public class PackageAdminImpl implements PackageAdmin {
 		  }
 
 		  framework.bundles.startBundles(startList);
+                  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
+
 		  return null;
 		}
 	      }
