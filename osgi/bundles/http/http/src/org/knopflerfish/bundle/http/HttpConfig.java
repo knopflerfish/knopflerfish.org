@@ -47,7 +47,7 @@ import org.osgi.service.cm.ManagedService;
 import org.osgi.service.cm.ConfigurationException;
 
 
-public class HttpConfig implements ManagedService {
+public class HttpConfig {
 
   // public constants
 
@@ -122,7 +122,7 @@ public class HttpConfig implements ManagedService {
 
     config.put(HttpConfig.HTTP_PORT_KEY, Integer.getInteger("org.osgi.service.http.port", 
             HTTP_PORT_DEFAULT));
-    config.put(HttpConfig.HTTPS_PORT_KEY, Integer.getInteger("org.osgi.service.http.port.secure", 
+    config.put(HttpConfig.HTTPS_PORT_KEY, Integer.getInteger("org.osgi.service.http.secure.port", 
             HTTPS_PORT_DEFAULT));
 
     config.put(HttpConfig.HOST_KEY, 
