@@ -51,6 +51,14 @@ TH  {
  font-weight:bold
 }
 
+TD.navigation_enabled {
+
+}
+
+TD.navigation_disabled {
+ background: #ffffff;
+}
+
 TD A  {
  color:000000;
  text-decoration:none
@@ -117,7 +125,7 @@ A.top {
 
 A.navigation_enabled, A.navigation_enabled:visited, A.navigation_enabled:selected, A.navigation_enabled:active {
  text-decoration:  none;
- font-weight:      bold;
+ font-weight:      normal;
 }
 
 A.navigation_enabled:hover {
@@ -126,7 +134,7 @@ A.navigation_enabled:hover {
 
 A.navigation_disabled, A.navigation_disabled:visited, A.navigation_disabled:selected, A.navigation_disabled:active {
  text-decoration:  none;
- font-weight:      normal;
+ font-weight:      bold;
 }
 
 A.navigation_disabled:hover {
