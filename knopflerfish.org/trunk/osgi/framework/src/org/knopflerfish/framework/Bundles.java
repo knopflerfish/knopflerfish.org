@@ -99,7 +99,8 @@ class Bundles {
 		  if("http".equals(url.getProtocol()) ||
 		     "https".equals(url.getProtocol())) {
 		    String base64 = Util.base64Encode(auth);
-		    conn.setRequestProperty("Proxy-Authorization", base64);
+		    conn.setRequestProperty("Proxy-Authorization", 
+					    "Basic " + base64);
 		  }
 		}
 		bin = conn.getInputStream();
