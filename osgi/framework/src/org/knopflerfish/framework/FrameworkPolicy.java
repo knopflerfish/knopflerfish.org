@@ -69,7 +69,7 @@ class FrameworkPolicy extends Policy {
     // Also note that there's no "getPermissions" target for SercurityPermission
     
     URL u = cs.getLocation();
-    if (BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
+    if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       try {
         Long id = new Long(u.getHost());
         return getPermissions(id);
