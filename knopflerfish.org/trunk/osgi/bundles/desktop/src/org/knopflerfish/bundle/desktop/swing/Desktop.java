@@ -2095,7 +2095,7 @@ public class Desktop
   JTips tips = null;
   void showTips() {
     if(tips == null) {
-      tips = new JTips("/tips.txt");
+      tips = new JTips("/tips.html");
     }
     tips.setVisible(true);
   }
