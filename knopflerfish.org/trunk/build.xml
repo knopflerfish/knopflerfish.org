@@ -736,6 +736,7 @@
 
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
+           <include name = "osgi/jars/dirdeployer/*.jar"/>
 	   <include name = "osgi/jars/jars/junit-example1/*.jar"/>
 	   <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
 	   <include name = "osgi/jars/jars/jinidriver/*.jar"/>
@@ -744,6 +745,7 @@
 
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
+           <include name = "osgi/bundles_opt/dirdeployer/**"/>
            <include name = "osgi/bundles_opt/junit/**"/>
            <include name = "osgi/bundles_opt/jini/**"/>
            <include name = "osgi/bundles_opt/oscar-shell/**"/>
