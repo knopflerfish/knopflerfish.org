@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="depchecker" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="impl.pattern"
+            value="**"/>
+
+
+  <path id="bundle.compile.path">
+  </path>
+
+
+  <property name="bundle.description"     value="Automatic Resolve Dependencies"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+
+  &bundlebuild_include;
+
+</project>
