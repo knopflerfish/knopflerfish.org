@@ -75,6 +75,7 @@ public class ImageLabel extends Component {
         }
         public void mouseClicked(MouseEvent e) {
           if(isEnabled()) {
+            setFocus(false);
             sendActionEvent(new ActionEvent(ImageLabel.this, id++, ""));
           }
         }
