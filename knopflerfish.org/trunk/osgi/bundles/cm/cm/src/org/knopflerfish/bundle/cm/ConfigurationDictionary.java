@@ -267,7 +267,8 @@ final class ConfigurationDictionary extends Dictionary {
 
       Object val = copyValue(in.get(key));
 
-
+      // The R3 tests prefers keys with different case to be
+      // silently unified. We really prefer IllegalArgumentException
       String s     = (String)key;
       String lower = s.toLowerCase();
       if(!s.equals(lower)) {
