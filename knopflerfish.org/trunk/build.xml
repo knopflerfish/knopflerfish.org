@@ -465,7 +465,7 @@
            <include name = "osgi/jars/crimson/crimson-1.1.3.jar"/>
            <include name = "osgi/jars/cm/cm_all-1.0.0.jar"/>
            <include name = "osgi/jars/cm_cmd/cm_cmd-1.0.0.jar"/>
-           <include name = "osgi/jars/consoletty/consoletty-1.0.0.jar"/>
+           <include name = "osgi/jars/consoletty/consoletty-1.0.1.jar"/>
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
            <include name = "osgi/jars/http/http_all-1.1.0.jar"/>
            <include name = "osgi/jars/httproot/httproot-1.0.0.jar"/>
