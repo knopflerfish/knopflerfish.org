@@ -228,12 +228,11 @@ public class BundleContextImpl implements BundleContext {
 
   public Bundle[] getBundles() { 
     synchronized(bundleMap) {
-      Bundle[] bl = new Bundle[bundleMap.size()];
-      int i = 0;
-      for(Iterator it = bundleMap.keySet().iterator(); it.hasNext();) {
-	Long   bid = (Long)it.next();
-	Bundle b   = (Bundle)bundleMap.get(bid);
-	bl[i++] = b;
+      long[] bids = fw.getBundles();
+
+      Bundle[] bl = new Bundle[bids.length];
+      for(int i = 0; i < bids.length; i++) {
+	bl[i] = getBundle(bids[i]);
       }
 
       return bl;
