@@ -745,12 +745,16 @@
 	   
            <exclude name = "keystore"/>
 
+           <include name = "osgi/bundles_opt/build.xml"/>
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
            <include name = "osgi/bundles_opt/dirdeployer/**"/>
            <include name = "osgi/bundles_opt/junit/**"/>
            <include name = "osgi/bundles_opt/jini/**"/>
            <include name = "osgi/bundles_opt/oscar-shell/**"/>
+           <include name = "osgi/bundles_opt/desktop_awt/**"/>
+           <include name = "osgi/bundles_opt/serial/**"/>
+           <include name = "osgi/bundles_opt/desktop_displayers/**"/>
 
            <exclude name = "**/CVS"/>
         </zipfileset>
