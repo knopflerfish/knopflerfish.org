@@ -194,6 +194,7 @@ Draft.
 <div class="toc3"><a href="#6.4.1">6.4.1 Optional attributes</div>
 <div class="toc1"><a href="#7">7. Configuration value specification</a></div>
 <div class="toc1"><a href="#8">8. Storing Metatype and values in bundle jar files</a></div>
+<div class="toc1"><a href="#appendix">Appendix</a></div>
 
 
 
@@ -545,9 +546,18 @@ empty string will be used.
 
 <a name="6.3.3.1"></a><h4>6.3.3.1 Localized descriptions</h4>
 
+
+
 <p>
 Locale specific description strings can be set on annotations, using the 
 standard <code>xml:lang</code> attribute:
+</p>
+
+<p>
+<div class="discussion">Discussion: The Metatype API has some oddities which
+makes actual runtime implementation hard. Thus, the draft implementation
+of the KF XML does not yet read localized data. See <a href="#appendix.localization">appendix</a> for more info.
+</div>
 </p>
 
 <div class="exampleOuter">
@@ -1049,6 +1059,51 @@ bundle's jar file, i.e, bundle resource names.
 </div>
 </div>
 </div>
+
+
+<a name="appendix"></a><h2>Appendix</h2>
+
+<a name="appendix.localization"></a><h3>Localization in the Metatype API</h3>
+
+
+<ol>
+<li> The Metatype API specifies that a MetaTypeProvider can return
+   ObjectClassDefinitions based on a PID and a Locale.
+
+<li> This implies that each ObjectClassDefinition, per Locale, should have
+   it's own ID, since every ObjectClassDefinition is specified to have
+   a unique ID.
+
+<li> 2) leads to a very cumbersome mapping of ObjectClassDefinitions
+   to CM PIDs since they never can implemented as equal, even if this
+   would be possible in a given situation (as it very often is)
+
+<li> 1) also leads to a conceptually odd model, where a given Locale
+   actually could specify a ObjectClassDefinition with a *different*
+   set of attributes than another OCD with with the same PID. At, least,
+   the API does not specify that the attributes must be same.
+
+<li> 1) also leads to an expensive implementation situation where the
+   number of instances of OCDs created by a MTP multiplies by the
+   number of supported locales, even if the actual language data is
+   held  in single instances if AttributeDefinition
+
+</ol>
+
+<p>
+Conclusion: The Locale-specific methods
+<pre>
+ OCD.getName, OCD.getDescription,  OCD.getIcon
+ AD.getName, AD.getDescription and AD.getOptionLabels
+</pre>
+
+should be themselves take a Locale argument, not the MetatypeProvider.
+</p>
+
+<p>
+(...and while I'm at it, the getIcon argument "size" could just as easily be dumped since there is no chance of relying on the results. Also, returning a stream from getIcon effectively removes
+any possibility of remoting OCD instances. an URL string would be much better) 
+</p>
 
 </body>
 </html>
