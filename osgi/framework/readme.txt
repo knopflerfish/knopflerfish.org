@@ -1,3 +1,14 @@
+Contents
+=========
+
+  * Knopflerfish framework.jar startup
+  * Initial start vs restart
+  * Starting the framework
+  * Default selection of .xargs
+  * Framework System Properties
+  * System properties fot the KF Http service
+  * System properties for the KF console telnet service
+
 Knopflerfish framework.jar startup
 ==================================
 
@@ -126,3 +137,200 @@ algorithm:
      WindowsCE
      Windows2000
      WindowsXP
+
+
+Framework System Properties
+===========================
+
+   org.osgi.framework.dir
+     Where we store persistent data.
+
+     On systems not supporting a current working directory,
+     as Pocket PC, this path should be set to an explicit
+     full path.
+
+     Default: {defaultInstDir}/fwdir
+
+   org.knopflerfish.gosg.jars
+     Base URL for relative install commands
+     Default: file:jars/*
+
+   org.osgi.framework.system.packages
+     List of packages exported from system classloader,
+     other than java.* and org.osgi.framework
+
+   org.osgi.framework.system.packages.file
+     File containing list of packages exported from system
+     classloader,
+     other than java.* and org.osgi.framework
+
+   org.knopflerfish.framework.debug.classloader
+     Print debug information from classloader
+     Default: false
+
+   org.knopflerfish.framework.debug.errors
+     Print all FrameworkEvents of type ERROR
+     Default: false
+
+   org.knopflerfish.framework.debug.packages
+     Print debug information about packages
+     Default: false
+
+   org.knopflerfish.framework.debug.startlevel
+     Print debug information about startlevel service
+     Default: false
+
+   org.knopflerfish.framework.debug.url
+     Print debug information about URL services
+     Default: false
+
+   org.knopflerfish.framework.debug.ldap
+     Print debug information about LDAP filters
+     Default: false
+
+   org.knopflerfish.framework.ldap.nocache
+     Disable LDAP caching for simple filters. LDAP caching
+     speeds up framework filters considerably, but uses
+     more memory.
+
+     Default: false
+
+   org.knopflerfish.framework.bundlestorage
+     Storage implementation for bundles
+     [file, memory]
+     Default: file
+
+   org.knopflerfish.framework.bundlestorage.file.reference
+     When using file bundle storage, file: URLs can optionally
+     be referenced only, not copied to the persistant area.
+
+     If set to true, file: URLs are referenced only.
+
+     Note: Individual bundles can be reference installed
+           by using URLs of the syntax:
+
+              reference:file:<path>
+
+           This works even if the global reference flag
+           is not enabled.
+
+     Default: false
+
+
+   org.knopflerfish.framework.bundlestorage.file.unpack
+     When using file bundle storage, bundle jars can be unpacked
+     or copied as-is. Unpacking leads to faster restart and class loading
+     but takes longer for initial startup.
+
+     If set to true, unpack bundle jars.
+
+     Default: true
+      
+   org.knopflerfish.framework.system.export.all_13
+     Make system classloader export all standard JVM 1.3
+     packages as javax.swing.*
+     Default: false
+
+   org.knopflerfish.verbosity
+     Framework verbosity level. 0 means few messages
+     Default: 0
+
+   org.knopflerfish.startlevel.use
+     Use the Start Level service.
+     Default: true
+
+   org.knopflerfish.startlevel.level
+     level of start level service if used.
+     Default: 1
+
+   org.knopflerfish.startlevel.initlevel
+     Initial start level of bundles if start level
+     service if used.
+     Default: 1
+
+   java.security.manager
+     Class name of security manager. If set to empty string, uses
+     "java.lang.SecurityManager". If unset, do not use any security
+     manager.
+
+     Default: unset
+
+   java.security.policy
+     Security policy file. Used by the security manager.
+
+     Default: unset
+
+   org.knopflerfish.framework.version.fuzzy
+     If set to true, consider package version numbers
+      "x.y.0" = "x.y" 
+     otherwise consider
+      "x.y.0" > "x.y"
+
+     Default: true
+
+
+   org.knopflerfish.osgi.r3.testcompliant
+     If set to "true", make sure that all test in the OSGi R3 test 
+     suite pass, even if the tests are buggy and break the spec itself.
+
+     This affects some very special (due to bugs in the test) handling 
+     of filters and conflict between the spec concerning CM and the actual
+     tests. Bundles knowning abouth these conflicts should check the 
+     testcompliant flag and act appropiately.
+    
+     Default: false. 
+     Default is a Good Thing since it means follow the spec, not the 
+     buggy tests.
+
+   org.knopflerfish.framework.restart.allow
+     If set to "true", allow restart of framework by calling 
+     getBundle(0).update()
+
+     If "false", exit framework with exit code = 2. This can be useful
+     when a wrapper script is better at restarting cleanly than the JVM
+     itself.
+
+     Default: true
+  
+  org.knopflerfish.osgi.setcontextclassloader
+     If set to "true", set the bundle startup thread's context class
+     loader to the bundle's class loader. This is useful for checking
+     if an external lib will work better with a wrapped startup. It
+     doesn't set the context classloader for event callbacks.
+
+     Note that setting the context classloader is not mandated
+     by OSGi, and might introduce dependecies on the KF framework,
+     so this flag should only be enabled for testing purposes.
+     
+     Default: false
+
+
+System properties fot the KF Http service
+=========================================
+
+Only applicable when the Knopflerfish HTTP service is running.
+
+ org.osgi.service.http.port       
+ org.osgi.service.http.hostname
+ org.knopflerfish.http.mime.props
+ org.knopflerfish.http.dnslookup
+ org.knopflerfish.http.response.buffer.size.default 
+ org.knopflerfish.http.connection.max
+ org.knopflerfish.http.connection.timeout
+ org.knopflerfish.http.session.timeout.default
+
+See 
+  https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/http/readme.txt
+
+
+System properties for the KF console telnet service
+===================================================
+
+Only applicable when the Knopflerfish telnet console service is running.
+
+ org.knopflerfish.consoletelnet.user 
+ org.knopflerfish.consoletelnet.pwd
+ org.knopflerfish.consoletelnet.port
+
+See
+ https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/readme.txt
