@@ -123,6 +123,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame055a());
     addTest(new Frame060a());
     addTest(new Frame065a());
+    addTest(new Frame068a());
     addTest(new Frame070a());
     addTest(new Frame075a());
     addTest(new Frame080a());
@@ -1234,6 +1235,77 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  public final static String [] HELP_FRAME068A =  {
+    "Tests accessing multiple resources inside the test bundle itself",
+    "using ClassLoader.getResource"
+  };
+
+  class Frame068a extends FWTestCase {
+    public void runTest() throws Throwable {
+      int n;
+
+      // the fw_test_multi.txt resources are present in
+      // res1.jar, res2.jar and in the top bundle
+      n = countResources("/fw_test_multi.txt");
+      assertEquals("Multiple resources should be reflected by CL.getResources() > 1", 3, n); 
+
+      // the fw_test_single.txt resource is present just
+      // res2.jar
+      n = countResources("/fw_test_single.txt");
+      assertEquals("Single resources should be reflected by CL.getResources() == 1", 1, n); 
+
+
+      // the fw_test_nonexistent.txt is not present at all
+      n = countResources("/fw_test_nonexistent.txt");
+      assertEquals("Multiple nonexistent resources should be reflected by CL.getResources() == 0", 0, n); 
+
+    }
+
+    int countResources(String name) throws Exception {
+      ClassLoader cl = getClass().getClassLoader();
+      int n = 0;
+      for(Enumeration e = cl.getResources(name); e.hasMoreElements(); ) {
+        URL url = (URL)e.nextElement();
+        assertURLExists(url);
+        n++;
+      }
+      return n;
+    }
+    
+    void testRes(String name, int count) throws Exception {
+      out.println("testRes(" + name + ")");
+      ClassLoader cl = getClass().getClassLoader();
+      URL url1 = cl.getResource(name);
+      out.println(" ClassLoader url = " + url1);
+      assertURLExists(url1);
+      
+      URL url2 = bc.getBundle().getResource(name);
+      out.println(" bundle url      = " + url1);
+      assertURLExists(url2);
+      
+      int n = 1;
+      for(Enumeration e = cl.getResources(name); e.hasMoreElements(); ) {
+        URL url = (URL)e.nextElement();
+        out.println("  " + n + "              = " + url); 
+        assertURLExists(url);
+        n++;
+      }
+           
+    }
+
+    void assertURLExists(URL url) throws Exception {
+      InputStream is = null;
+      
+      try {
+        is = url.openStream();
+        assertNotNull("URL " + url + " should give a non-null stream", is);
+        return;
+      } finally {
+        try { is.close(); } catch (Exception ignored) {  }
+      }
+    }
+ }
+    
   public final static String [] HELP_FRAME070A =  {
     "Reinstalls and the updates testbundle_A.",
     "The version is checked to see if an update has been made."
