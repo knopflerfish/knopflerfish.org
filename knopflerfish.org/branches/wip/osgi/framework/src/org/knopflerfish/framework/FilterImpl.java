@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.util.Dictionary;
+import java.util.Hashtable;
 
 import org.osgi.framework.*;
 
@@ -50,7 +51,19 @@ public class FilterImpl implements Filter {
 
 
   public boolean match(ServiceReference reference) {
-    return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties());
+    if(reference instanceof ServiceReferenceImpl) {
+      // This is the normal case
+      return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties());
+    } else {
+      // This might happen if we live in a remote framework world
+      // Copy the properties the hard way
+      Hashtable props = new Hashtable();
+      String[] keys = reference.getPropertyKeys();
+      for(int i = 0; i < keys.length; i++) {
+	props.put(keys[i], reference.getProperty(keys[i]));
+      }
+      return ldap.evaluate(props);
+    }
   }
 
 
