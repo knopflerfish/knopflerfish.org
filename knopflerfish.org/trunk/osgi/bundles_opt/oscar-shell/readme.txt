@@ -1,4 +1,4 @@
-Oscar shell wrapper for Knopflerfish console
+Oscar shell wrapper for the Knopflerfish console
 --------------------------------------------
 
 The oscar-shell bundle wraps all commands defined
@@ -7,10 +7,10 @@ by the Oscar Command API
   org.ungoverned.osgi.service.shell.Command
 
 so they become directly available in the Knopflerfish console (including
-the KF desktop)
+the KF desktop).
 
-All Oscar commands commands are placed in the command 
-group "oscar"
+All Oscar commands commands are placed in the KF command 
+group "oscar".
 
 For details on the KF console API, see
 
