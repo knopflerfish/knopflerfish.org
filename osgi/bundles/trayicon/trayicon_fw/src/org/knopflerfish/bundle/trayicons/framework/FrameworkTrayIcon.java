@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.trayicons.framework;
 import org.osgi.framework.*;
 import org.osgi.util.tracker.*;
 import org.osgi.service.startlevel.*;
-import com.jeans.trayicon.*;
 import java.awt.event.*;
 
 import javax.swing.JPopupMenu;
