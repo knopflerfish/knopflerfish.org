@@ -297,10 +297,12 @@ public class Bundle extends Jar {
 
       Set publicPackages = exportPackage.keySet();
 
-      for (Iterator i = publicPackages.iterator(); i.hasNext();) {
-        String packageName = (String) i.next();
-        if (!availablePackages.contains(packageName)) {
-          log("Exported package not found in bundle: " + packageName, Project.MSG_WARN);
+      if (packageAnalysis != PACKAGE_ANALYSIS_NONE) {
+        for (Iterator i = publicPackages.iterator(); i.hasNext();) {
+          String packageName = (String) i.next();
+          if (!availablePackages.contains(packageName)) {
+            log("Exported package not found in bundle: " + packageName, Project.MSG_WARN);
+          }
         }
       }
 
@@ -318,7 +320,7 @@ public class Bundle extends Jar {
             } else {
               importPackage.put(packageName, null);
             }
-          } else {
+          } else if (packageAnalysis == PACKAGE_ANALYSIS_WARN) {
             log("Referenced package not found in bundle or imports: " + packageName, Project.MSG_WARN);
           }
         }
@@ -374,8 +376,11 @@ public class Bundle extends Jar {
       Constant constant = constants[i];
       if (constant instanceof ConstantClass) {
         String referencedClass = ((ConstantClass) constant).getBytes(constantPool);
-        String packageName = referencedClass.substring(0, referencedClass.lastIndexOf('/')).replace('/', '.');
-        referencedPackages.add(packageName);
+        int lastSlashIndex = referencedClass.lastIndexOf('/');
+        if (lastSlashIndex > -1) {
+          String packageName = referencedClass.substring(0, lastSlashIndex).replace('/', '.');
+          referencedPackages.add(packageName);
+        }
       }
     }
   }
@@ -544,6 +549,7 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredLib(ZipFileSet fileset) {
+    // TODO: handle refid
     if (fileset.getSrc(getProject()) == null) {
       addFileset(fileset);
       libs.add(fileset);
@@ -563,10 +569,11 @@ public class Bundle extends Jar {
 
   public void execute() {
     try {
+      handleClassPath();
+
       analyze();
 
       handleActivator();
-      handleClassPath();
 
       addPackageHeader(IMPORT_PACKAGE_KEY, importPackage);
       addPackageHeader(EXPORT_PACKAGE_KEY, exportPackage);
