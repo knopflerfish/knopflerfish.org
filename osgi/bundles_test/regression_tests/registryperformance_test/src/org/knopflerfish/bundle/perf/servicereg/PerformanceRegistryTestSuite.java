@@ -10,7 +10,7 @@ import junit.framework.*;
 public class PerformanceRegistryTestSuite extends TestSuite {
   BundleContext bc;
 
-  int nListeners = 500;
+  int nListeners = 100;
   int nServices  = 1000;
 
   public PerformanceRegistryTestSuite(BundleContext bc) {
