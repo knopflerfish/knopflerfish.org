@@ -77,6 +77,7 @@
  <property name = "console.loginok"     value = "'quit' to end session"/>
 
  <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
+ <property name = "bundle.apivendor"  value = ""/>
 
 
  <property name="http.host"          value="localhost"/>
@@ -353,7 +354,7 @@
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
@@ -373,6 +374,7 @@
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
     
   </bundlemanifest>
 
@@ -449,13 +451,14 @@
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-    <attribute name = "Bundle-Category"       value = "interface"/>
+    <attribute name = "Bundle-Category"       value = "API"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
@@ -493,7 +496,7 @@
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
@@ -506,6 +509,7 @@
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
@@ -559,7 +563,7 @@
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description} (API and implementation)"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
@@ -577,6 +581,7 @@
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
