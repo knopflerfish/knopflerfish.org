@@ -32,6 +32,7 @@
     <ant dir="trayicon"          target="all"/>
     <ant dir="upnp"              target="all"/>
     <ant dir="provisioning"      target="all"/>
+    <ant dir="prefs"             target="all"/>
   </target>
 
 </project>
