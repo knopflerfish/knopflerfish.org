@@ -41,6 +41,7 @@ import java.util.*;
 import java.lang.reflect.*;
 import java.io.*;
 
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -61,6 +62,8 @@ public class AD implements AttributeDefinition, Comparable {
   String   name;
   String[] optLabels;
   String[] optValues;
+
+
 
   /**
    * String used for separating array and vector string 
@@ -187,6 +190,7 @@ public class AD implements AttributeDefinition, Comparable {
   public String getName() {
     return name;
   }
+
 
   public void setOptions(String[] optValues, 
 			 String[] optLabels) {

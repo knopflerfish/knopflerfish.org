@@ -45,6 +45,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
+import java.io.*;
 
 import org.knopflerfish.util.metatype.*;
 import org.osgi.service.metatype.*;
@@ -279,12 +280,40 @@ public class JCMService extends JPanel {
       
       topPanel.add(ctrlPanel, BorderLayout.WEST);
 
+      JPanel icons = new JPanel(new FlowLayout());
+      
+
+      JLabel iconLabel = null;
+
+      InputStream iconStream = null;
+      try {
+	iconStream = ocd.getIcon(16);
+	if(iconStream != null) {
+	  try {
+	    ImageIcon icon = new ImageIcon(loadStream(iconStream));
+	    iconLabel = new JLabel(icon);
+	    icons.add(iconLabel);
+	  } catch (Exception e) {
+	    Activator.log.error("Failed to load icon", e);
+	  }
+	}
+      } catch (Exception e) {
+	Activator.log.error("Failed to get icon stream", e);
+      }
+
       String desc = ocd.getDescription();
       if(desc != null && !"".equals(desc)) {
 	JLabel infoLabel = new JLabel(CMDisplayer.infoIcon);
-	infoLabel.setToolTipText("<html>" + ocd.getDescription() + "</html>");
-	topPanel.add(infoLabel, BorderLayout.EAST);
+	String tt = "<html>" + ocd.getDescription() + "</html>";
+	infoLabel.setToolTipText(tt);
+	icons.add(infoLabel);
+	if(iconLabel != null) {
+	  iconLabel.setToolTipText(tt);
+	}
       }
+
+      topPanel.add(icons, BorderLayout.EAST);
+
       main.add(topPanel, BorderLayout.NORTH);
       main.add(mainPanel, BorderLayout.CENTER);
     }
@@ -294,6 +323,28 @@ public class JCMService extends JPanel {
     repaint();
   }
   
+
+  /**
+   * Load a stream into a byte array.
+   */
+  byte [] loadStream(InputStream is) throws IOException {
+    int     bufSize = 1024 * 2;
+    byte [] buf     = new byte[bufSize];
+
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    BufferedInputStream   in   = null;
+    try {
+      in = new BufferedInputStream(is);
+      int n;
+      while ((n = in.read(buf)) > 0) {
+	bout.write(buf, 0, n);
+      }
+      return bout.toByteArray();
+    } finally {
+      try { in.close(); } catch (Exception ignored) { } 
+    }
+  }
+
   void showFactoryConfig(String pid) {
     //    System.out.println("showFactoryConfig " + pid);
     
