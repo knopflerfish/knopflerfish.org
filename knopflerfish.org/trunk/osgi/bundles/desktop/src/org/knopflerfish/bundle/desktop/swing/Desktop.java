@@ -381,7 +381,7 @@ public class Desktop
 	    } else {
 	      displayMap.put(sr, disp);
 	      
-	      bundlePanel.addTab(name, comp);
+	      bundlePanel.addTab(name, wrapper);
 	      
 	      makeViewPopupMenu();
 	      

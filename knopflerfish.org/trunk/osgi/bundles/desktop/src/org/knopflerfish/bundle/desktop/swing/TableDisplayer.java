@@ -64,8 +64,12 @@ import java.net.URL;
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
+  BundleTableModel2 model;
+
   public TableDisplayer(BundleContext bc) {
     super(bc, "Details", "Table view of bundles", false);
+
+    model = new BundleTableModel2();
   }
   
   public JComponent newJComponent() {
@@ -78,19 +82,31 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JBundleTable comp = (JBundleTable)it.next();
-      comp.model.fireTableStructureChanged();
+      model.fireTableStructureChanged();
       comp.setColumnWidth();
     }
   }
 
+  public void valueChanged(long bid) {
+    int row = model.getRowFromBID(bid);
+    
+    if(row == -1) {
+      return;
+    }
+    for(Iterator it = components.iterator(); it.hasNext(); ) {
+      JBundleTable comp = (JBundleTable)it.next();
+      
+      comp.table.setRowSelectionInterval(row, row);
+    }
+  }
+
   class JBundleTable extends JPanel {
-    BundleTableModel2 model;
     JTable            table;
   
     public JBundleTable() {
       setLayout(new BorderLayout());
 
-      model = new BundleTableModel2();
+
       table = new JTable() {
 	  public Color getGridColor() {
 	    return getBackground().darker();
@@ -189,10 +205,18 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   public static int COL_COUNT   = 7;
   
   class BundleTableModel2 extends AbstractTableModel {
-    
-    
-    
+        
     public BundleTableModel2() {
+    }
+
+    public int getRowFromBID(long bid) {
+      Bundle[] bl = getBundleArray();
+      for(int i = 0; i < bl.length; i++) {
+	if(bl[i].getBundleId() == bid) {
+	  return i;
+	}
+      }
+      return -1;
     }
 
     public Bundle getBundle(int row) {
