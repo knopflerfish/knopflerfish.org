@@ -121,12 +121,12 @@ class Alias extends Hashtable {
 
     // backward compability
     put("log",     new String [] { "/log", "show" });
-    put("lsb",     new String [] { "/framework", "bundles" });
+    put("lsb",     new String [] { "/framework", "bundles", "-i" });
     put("lss",     new String [] { "/framework", "services" });
 
     // Oscar compatability
     put("exports", new String [] { "/framework", "package", "-b" });
-    put("ps",      new String [] { "/framework", "bundles" });
+    put("ps",      new String [] { "/framework", "bundles", "-i" });
     put("cd",      new String [] { "/framework", "cd" });
   }
 
