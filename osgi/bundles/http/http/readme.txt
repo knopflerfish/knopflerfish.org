@@ -21,7 +21,10 @@ System properties
 
 The following system properties will be read when no CM is available
 
+ org.knopflerfish.http.enabled
+ org.knopflerfish.http.secure.enabled
  org.osgi.service.http.port       
+ org.osgi.service.http.port.secure       
  org.osgi.service.http.hostname
  org.knopflerfish.http.mime.props
  org.knopflerfish.http.dnslookup
