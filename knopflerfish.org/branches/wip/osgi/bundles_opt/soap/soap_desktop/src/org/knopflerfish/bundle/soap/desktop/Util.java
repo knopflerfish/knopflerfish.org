@@ -16,6 +16,7 @@ import org.w3c.dom.*;
 
 import java.util.*;
 import java.io.*;
+import java.lang.reflect.*;
 
 public class Util {
 
@@ -54,4 +55,33 @@ public class Util {
 
     return type;
   }
+
+  public static Object toDisplay(Object val) {
+    if(val != null) {
+      if(val.getClass().isArray()) {
+	StringBuffer sb = new StringBuffer();
+	sb.append("[");
+	for(int i = 0; i < Array.getLength(val); i++) {
+	  sb.append(toDisplay(Array.get(val, i)));
+	  if(i < Array.getLength(val) - 1) {
+	    sb.append(",");
+	  }
+	}
+	sb.append("]");
+	return sb.toString();
+      }
+    }
+
+    return val;
+  }
+
+  public static void main(String[] argv) {
+    Object val = new String[][] {
+      new String[] {"apa",  "bepa"},
+      new String[] {"cepa", "depa"},
+    };
+
+    System.out.println(toDisplay(val));
+  }
+
 }

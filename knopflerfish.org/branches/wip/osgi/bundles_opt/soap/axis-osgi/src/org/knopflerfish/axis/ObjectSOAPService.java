@@ -131,10 +131,12 @@ public class ObjectSOAPService {
       if (obj == null) {
          deployWSDD(deployDoc());
          axisServer.getApplicationSession().set(serviceName, serviceObject);
+	 log.info("deployed object=" + serviceObject.getClass().getName() + 
+		  ", name=" + serviceName + ", allowedMethods=" + allowedMethods);
       } else {
-         log.error(
-                "ObjectSOAPService::deploy() service " + serviceName + 
-                " do already exist");
+	log.error(
+		  "ObjectSOAPService::deploy() service " + serviceName + 
+		  " do already exist");
       }
    }
 
@@ -153,15 +155,20 @@ public class ObjectSOAPService {
 
    private String deployDoc() {
       return 
-	"<deployment" + " xmlns=\"http://xml.apache.org/axis/wsdd/\"" + 
-	" xmlns:java=\"http://xml.apache.org/axis/wsdd/providers/java\">" + 
-	"<service name=\"" + serviceName + "\" provider=\"java:RPC\">" + 
-	"<parameter name=\"allowedMethods\" "+ 
-	"value=\"" + allowedMethods + "\"/>" + 
-	"<parameter name=\"className\" value=\"" + 
-	serviceObject.getClass().getName() + "\"/>" + 
-	"<parameter name=\"scope\" value=\"Application\"/>" + 
-	"</service>" + "</deployment>";
+	"<deployment" + 
+	" xmlns=\"http://xml.apache.org/axis/wsdd/\"\n" + 
+	" xmlns:java=\"http://xml.apache.org/axis/wsdd/providers/java\"\n" + 
+	">\n" + 
+	" <service name     = \"" + serviceName + "\"\n" + 
+	"          provider = \"java:RPC\">\n" + 
+	"   <parameter name  = \"allowedMethods\"\n"+ 
+	"              value = \"" + allowedMethods + "\"/>\n" + 
+	"   <parameter name  = \"className\"\n" + 
+	"              value=\""+serviceObject.getClass().getName()+"\"/>\n"+ 
+	"   <parameter name=\"scope\"\n" + 
+	"              value=\"Application\"/>\n" + 
+	" </service>\n" +
+	"</deployment>";
    }
   
    private void deployWSDD(String sdoc) {
