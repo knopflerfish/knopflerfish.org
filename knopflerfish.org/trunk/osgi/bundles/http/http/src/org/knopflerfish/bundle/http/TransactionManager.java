@@ -56,7 +56,7 @@ public class TransactionManager extends ThreadGroup {
   private static int managerCount = 0;
   private static int transactionCount = 0;
 
-  private final HttpConfig httpConfig;
+  private HttpConfigWrapper httpConfig;
   private final LogRef log;
 
   private final Registrations registrations;
@@ -70,85 +70,57 @@ public class TransactionManager extends ThreadGroup {
 
   // constructors
 
-  public TransactionManager(final HttpConfig httpConfig,
-                            final LogRef log,
+  public TransactionManager(final LogRef log,
                             final Registrations registrations,
                             final HttpSessionManager sessionManager) {
 
     super("HttpServer-TransactionGroup-" + managerCount++);
 
-    this.httpConfig = httpConfig;
     this.log = log;
     this.registrations = registrations;
 
     requestPool = new ObjectPool() {
       protected PoolableObject createPoolableObject() {
-        return new RequestImpl(TransactionManager.this.httpConfig,
-                               TransactionManager.this.registrations,
+        return new RequestImpl(TransactionManager.this.registrations,
                                sessionManager);
       }
     };
     responsePool = new ObjectPool() {
       protected PoolableObject createPoolableObject() {
-        return new ResponseImpl(TransactionManager.this.httpConfig);
+        return new ResponseImpl();
       }
     };
+    transactionPool = new ObjectPool() {
+        protected PoolableObject createPoolableObject() {
+          return new Transaction(log,
+                                 registrations,
+                                 requestPool,
+                                 responsePool);
+        }
+      };
   }
 
 
   // public methods
 
-  public void startTransaction(final Socket client) {
-
-    final Transaction transaction = (Transaction) transactionPool.get();
-    transaction.init(client);
-    new Thread(this,
+  public void startTransaction(final Socket client, final HttpConfigWrapper httpConfig) 
+  {
+     this.httpConfig = httpConfig;
+     final Transaction transaction = (Transaction) transactionPool.get();
+     transaction.init(client, httpConfig);
+     new Thread(this,
                transaction,
                "HttpServer-Transaction-" + transactionCount++).start();
   }
 
-  public void startTransaction(final InputStream is, final OutputStream os) {
-
+  public void startTransaction(final InputStream is, final OutputStream os, 
+  		                                             final HttpConfigWrapper httpConfig) 
+  {
+    this.httpConfig = httpConfig;
     final Transaction transaction = (Transaction) transactionPool.get();
-    transaction.init(is, os);
+    transaction.init(is, os, httpConfig);
     new Thread(this, transaction).start();
   }
-
-  public void updated() throws ConfigurationException {
-
-    final Boolean isSecure = new Boolean(httpConfig.isSecure());
-    if (!isSecure.equals(this.isSecure)) {
-      this.isSecure = isSecure;
-      if (isSecure.booleanValue()) {
-        try {
-          Class clazz = getClass().getClassLoader().loadClass("org.knopflerfish.bundle.http.SecureTransactionPool");
-          Constructor constructor = clazz.getConstructor(new Class[] { HttpConfig.class, LogRef.class, Registrations.class, ObjectPool.class, ObjectPool.class });
-          transactionPool = (ObjectPool) constructor.newInstance(new Object[] { httpConfig, log, registrations, requestPool, responsePool });
-        } catch (ClassNotFoundException cnfe) {
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, cnfe.toString());
-        } catch (NoSuchMethodException nsme) {
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, nsme.toString());
-        } catch (InstantiationException ie) {
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, ie.toString());
-        } catch (IllegalAccessException iae) {
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, iae.toString());
-        } catch (InvocationTargetException ite) {
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, ite.getTargetException().toString());
-        }
-      } else {
-        transactionPool = new ObjectPool() {
-          protected PoolableObject createPoolableObject() {
-            return new Transaction(httpConfig,
-                                   log,
-                                   registrations,
-                                   requestPool,
-                                   responsePool);
-          }
-        };
-      }
-    }
-  }
-
 
   // extends ThreadGroup
 
