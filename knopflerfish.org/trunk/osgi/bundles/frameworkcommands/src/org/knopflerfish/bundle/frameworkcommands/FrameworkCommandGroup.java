@@ -1038,7 +1038,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     StringBuffer sb = new StringBuffer();
 
     try { 
-      StringBuffer s= 
+      StringBuffer s = 
 	new StringBuffer(Integer.toString(startLevel.getBundleStartLevel(bundle)));
       while(s.length() < 2) {
 	s.insert(0, " ");
