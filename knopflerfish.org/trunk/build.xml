@@ -645,7 +645,7 @@
            <exclude name = "osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
            <include name = "osgi/bundles_opt/junit/**"/>
            <include name = "ant/**"/>
-           <include name = "osgi/jars/*_test/*_test*.jar"/>
+           <include name = "osgi/bundles_test/regression_tests/jars/*_test*.jar"/>
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
            <exclude name = "**/*.class"/>
