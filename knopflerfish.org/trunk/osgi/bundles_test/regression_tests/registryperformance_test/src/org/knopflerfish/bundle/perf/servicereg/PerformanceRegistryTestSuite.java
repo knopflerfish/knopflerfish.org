@@ -100,14 +100,15 @@ public class PerformanceRegistryTestSuite extends TestSuite {
 
     public String getDescription() {
       return "Register services, and check that we get #of services (" + 
-	nServices + ") * #of listeners (" + nListeners + ")  REGISTERED events";
+	nServices + ") * #of listeners (" + nListeners + ")  REGISTERED events (" + time + "ms)";
     }
-
+    
+    long time = 0;
     public void runTest() throws Throwable {
       long start = System.currentTimeMillis();
       registerServices(nServices);
-      long stop  = System.currentTimeMillis();
-      log("register took "  + (stop - start) + "ms");
+      time  = System.currentTimeMillis() - start;
+      log("register took "  + time + "ms");
       assertEquals("# REGISTERED events must be same as # of registered services  * # of listeners",
 		   nServices * listeners.size(), nRegistered);
     }
@@ -120,14 +121,16 @@ public class PerformanceRegistryTestSuite extends TestSuite {
 
     public String getDescription() {
       return "Modify all services, and check that we get #of services (" + 
-	nServices + ") * #of listeners (" + nListeners + ")  MODIFIED events";
+	nServices + ") * #of listeners (" + nListeners + ")  MODIFIED " + 
+	" events (" + time + "ms)";
     }
-
+    
+    long time = 0;
     public void runTest() throws Throwable {
       long start = System.currentTimeMillis();
       modifyServices();
-      long stop  = System.currentTimeMillis();
-      log("modify took "  + (stop - start) + "ms");
+      time = System.currentTimeMillis() - start;
+      log("modify took "  + time + "ms");
       assertEquals("# MODIFIED events must be same as # of modified services  * # of listeners",
 		   nServices * listeners.size(), nModified);
     }
@@ -140,15 +143,15 @@ public class PerformanceRegistryTestSuite extends TestSuite {
 
     public String getDescription() {
       return "Unregister all services, and check that we get #of services (" + 
-	nServices + ") * #of listeners (" + nListeners + ")  UNREGISTERING events";
+	nServices + ") * #of listeners (" + nListeners + ")  UNREGISTERING events (" + time + "ms)";
     }
 
-
+    long time = 0;
     public void runTest() throws Throwable {
       long start = System.currentTimeMillis();
       unregisterServices();
-      long stop  = System.currentTimeMillis();
-      log("unregister took "  + (stop - start) + "ms");
+      time = System.currentTimeMillis() - start;
+      log("unregister took "  + time + "ms");
       assertEquals("# UNREGISTERING events must be same as # of (un)registered services * # of listeners",
 		   nServices * listeners.size(), nUnregistering);
 
