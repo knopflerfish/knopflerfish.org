@@ -68,6 +68,12 @@ class Archive {
   final private static boolean unpack = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
 
   /**
+   * Controls if file: URLs should be referenced only, not copied
+   * to bundle storage dir
+   */
+  boolean bReference = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
+
+  /**
    * File handle for file that contains current archive.
    */
   private File file;
@@ -99,6 +105,12 @@ class Archive {
    * @param url URL to use to CodeSource.
    */
   Archive(File dir, int rev, InputStream is) throws IOException {
+    this(dir, rev, is, null);
+  }
+
+  File refFile = null;
+
+  Archive(File dir, int rev, InputStream is, URL source) throws IOException {
     BufferedInputStream bis = new BufferedInputStream(is, 8192);
     JarInputStream ji = null;
     boolean doUnpack = false;
@@ -138,6 +150,8 @@ class Archive {
       }
       ZipEntry ze;
       // NYI! Filter out unused files
+      // All files in OSGI-OPT/ are specified
+      // to be unused at run-time
       while ((ze = ji.getNextJarEntry()) != null) {
 	if (!ze.isDirectory()) {
 	  StringTokenizer st = new StringTokenizer(ze.getName(), "/");
@@ -151,8 +165,15 @@ class Archive {
       }
       jar = null;
     } else {
-      loadFile(file, bis, true);
-      jar = new ZipFile(file);
+      // Only copy to storage when applicable, otherwise
+      // use reference
+      if(source != null && bReference && "file".equals(source.getProtocol())) {
+	refFile = new File(source.getFile());
+	jar = new ZipFile(refFile);
+      } else {
+	loadFile(file, bis, true);
+	jar = new ZipFile(file);
+      }
       if (manifest == null) {
 	manifest = getManifest();
 	checkManifest();
@@ -169,7 +190,7 @@ class Archive {
    * @param dir Directory with saved Archive.
    * @param url URL to use to CodeSource.
    */
-  Archive(File dir, int rev) throws IOException {
+  Archive(File dir, int rev, String location) throws IOException {
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
@@ -207,8 +228,23 @@ class Archive {
       }
     }
     if (file == null || !file.exists()) {
-      throw new IOException("No saved jar file found in: " + dir.getAbsolutePath());
+      if(bReference && (location != null)) {
+	try {
+	  URL source = new URL(location);
+	  if("file".equals(source.getProtocol())) {
+	    refFile = file = new File(source.getFile());
+	  }
+	} catch (Exception e) {
+	  throw new IOException("Bad file URL stored in referenced jar in: " +
+				dir.getAbsolutePath() + 
+				", location=" + location);
+	}
+      }
+      if(file == null || !file.exists()) {
+	throw new IOException("No saved jar file found in: " + dir.getAbsolutePath() + ", old location=" + location);
+      }
     }
+    
     if (file.isDirectory()) {
       jar = null;
     } else {
@@ -306,6 +342,10 @@ class Archive {
    * @exception IOException if failed to read jar entry.
    */
   byte[] getBytes(String component) throws IOException {
+    if(bClosed) {
+      return null;
+    }
+
     ZipEntry ze;
     InputStream is;
     int len;
@@ -369,6 +409,9 @@ class Archive {
    * @return InputStream to entry or null if it doesn't exist.
    */
   InputStream getInputStream(String component) {
+    if(bClosed) {
+      return null;
+    }
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
@@ -410,6 +453,9 @@ class Archive {
    * @exception IOException if failed to read Jar file.
    */
   Archive getSubArchive(String path) throws IOException {
+    if(bClosed) {
+      return null;
+    }
     return new Archive(this, path);
   }
 
@@ -421,6 +467,9 @@ class Archive {
    * @return A string with path to native library.
    */
   String getNativeLibrary(String path) throws IOException {
+    if(bClosed) {
+      throw new IOException("Archive is closed");
+    }
     File lib;
     if (jar != null) {
       lib = getSubFile(this, path);
@@ -456,12 +505,14 @@ class Archive {
     getSubFileTree(this).delete();
   }
 
+  boolean bClosed = false;
 
   /**
    * Close archive and all open sub-archives.
    * If close fails it is silently ignored.
    */
   void close() {
+    bClosed = true; // Mark as closed to safely handle referenced files
     if (subJar == null && jar != null) {
       try {
 	jar.close();
