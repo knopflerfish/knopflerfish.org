@@ -26,4 +26,13 @@ org.knopflerfish.soap.remotefw.client
  If not set to "true", do not register any RemoteFramework
  service
 
+org.knopflerfish.soap.remotefw.client.eventinterval
+ 
+ (default 3000)
+
+ Interval in milliseconds between event notification. The remote
+ bundle context's event notification works by polling the server
+ at regular intervals. This property specifies the interval.
+
+
 

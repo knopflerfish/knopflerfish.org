@@ -59,8 +59,11 @@ public class RemoteFWClient implements RemoteFW {
     caches.put("getServiceReferences2",       fastCache);
     caches.put("getServiceProperties",        slowCache);
     caches.put("getSystemProperties",         slowCache);
-    caches.put("getStartLevel",               fastCache);
-    caches.put("getBundleStartLevel",         fastCache);
+    caches.put("getServiceEvents",            fastCache);
+    caches.put("getFrameworkEvents",          slowCache);
+    caches.put("getBundleEvents",             fastCache);
+    caches.put("getStartLevel",               slowCache);
+    caches.put("getBundleStartLevel",         slowCache);
 
     caches.put("getExportedPackage",  slowCache);
     caches.put("getExportedPackages", slowCache);
@@ -303,6 +306,7 @@ public class RemoteFWClient implements RemoteFW {
 	}
 	return r;
       } catch (Exception e) {
+	e.printStackTrace();
 	throw new NestedRuntimeException("Failed to call " + opName + ": ", e);
       }
     }

@@ -22,7 +22,7 @@ public class BundleContextImpl implements BundleContext {
 
   Thread  runner = null;
   boolean bRun   = false;
-  long    delay  = 10 * 1000;
+  long    delay  = 3 * 1000;
 
   StartLevelImpl startLevel;
   PackageAdminImpl pkgAdmin;
@@ -31,6 +31,11 @@ public class BundleContextImpl implements BundleContext {
     this.fw  = fw;
     startLevel = new StartLevelImpl(fw);
     pkgAdmin   = new PackageAdminImpl(fw);
+
+    try {
+      delay = Long.parseLong(System.getProperty("org.knopflerfish.soap.remotefw.client.eventinterval", Long.toString(delay)));
+    } catch (Exception e) {
+    }
   }
 
   void start() {
@@ -39,7 +44,13 @@ public class BundleContextImpl implements BundleContext {
 	  public void run() {
 	    while(bRun) {
 	      try {
-		doEvents();
+		if(!bInEvent) {
+		  doEvents();
+		}
+		if(bDebug) {
+		  System.out.println("sleep " + delay);
+		}
+
 		Thread.sleep(delay);
 	      } catch (Exception e) {
 		//
@@ -63,60 +74,97 @@ public class BundleContextImpl implements BundleContext {
     }
   }
 
+  Object eventLock = new Object();
+
+  int eventCount = 0;
+
+  boolean bInEvent = false;
+
   void doEvents() {
-    doBundleEvents();
-    doServiceEvents();
-    //    doFrameworkEvents();
+    synchronized(eventLock) {
+      try {
+	if(bInEvent) {
+	  Exception e = new RuntimeException("already in doEvents");
+	  e.printStackTrace();
+	  return;
+	}
+	bInEvent = true;
+	eventCount++;
+	if(bDebug) {
+	  System.out.println("doAllEvents " + eventCount);
+	}
+	doBundleEvents();
+	doServiceEvents();
+	doFrameworkEvents();
+	
+	if(bDebug) {
+	  System.out.println("done doAllEvents " + eventCount);
+	}
+      } finally {
+	bInEvent = false;
+      }
+    }
   }
 
   void doBundleEvents() {
-    long[] evs = fw.getBundleEvents();
-    if(bDebug) {
-      System.out.println("doBundleEvents " + evs.length);
-    }
-    for(int i = 0; i < evs.length / 2; i++) {
-      long bid = evs[i * 2];
-      Bundle      b  = getBundle(bid);
-      if(b == null) {
-	System.out.println("*** No bundle bid=" + bid);
-      } else {
-	BundleEvent ev = new BundleEvent((int)evs[i * 2 +1], b);
-	
-	sendBundleEvent(ev);
+    synchronized(eventLock) {
+      long[] evs = fw.getBundleEvents();
+      if(bDebug) {
+	System.out.println("doBundleEvents " + evs.length);
+      }
+      for(int i = 0; i < evs.length / 2; i++) {
+	long bid = evs[i * 2];
+	Bundle      b  = getBundle(bid);
+	if(b == null) {
+	  System.out.println("*** No bundle bid=" + bid);
+	} else {
+	  BundleEvent ev = new BundleEvent((int)evs[i * 2 +1], b);
+	  
+	  sendBundleEvent(ev);
+	}
       }
     }
   }
 
   void doFrameworkEvents() {
-    long[] evs = fw.getFrameworkEvents();
-    if(bDebug) {
-      System.out.println("doFrameworkEvents " + evs.length);
-    }
-    for(int i = 0; i < evs.length / 2; i++) {
-      FrameworkEvent ev = new FrameworkEvent((int)evs[i * 2],
-					     getBundle(evs[i*2 + 1]),
-					     null);
-
-      sendFrameworkEvent(ev);
+    synchronized(eventLock) {
+      
+      long[] evs = fw.getFrameworkEvents();
+      if(bDebug) {
+	System.out.println("doFrameworkEvents " + evs.length / 2);
+      }
+      for(int i = 0; i < evs.length / 2; i++) {
+	FrameworkEvent ev = new FrameworkEvent((int)evs[i * 2 + 1],
+					       getBundle(evs[i*2]),
+					       null);
+	
+	sendFrameworkEvent(ev);
+      }
+      
+      if(bDebug) {
+	System.out.println("*** done doFrameworkEvents " + evs.length);
+      }
     }
   }
 
   void doServiceEvents() {
-    long[] evs = fw.getServiceEvents();
-    if(bDebug) {
-      System.out.println("doServiceEvents " + evs.length);
-    }
-    for(int i = 0; i < evs.length / 2; i++) {
-      long             sid  = evs[i * 2];
-      int              type = (int)evs[i * 2 + 1];
-      ServiceReference sr   = getServiceReference(sid);
-
-      if(sr == null) {
-	System.err.println("*** no sid=" + sid);
-      } else {
-	ServiceEvent     ev   = new ServiceEvent(type, sr);
-
-	sendServiceEvent(ev);
+    synchronized(eventLock) {
+      long[] evs = fw.getServiceEvents();
+      if(bDebug) {
+	System.out.println("doServiceEvents " + evs.length);
+      }
+      for(int i = 0; i < evs.length / 2; i++) {
+	long             sid  = evs[i * 2];
+	int              type = (int)evs[i * 2 + 1];
+	ServiceReference sr   = getServiceReference(sid);
+	
+	if(sr == null) {
+	  System.err.println("*** no sid=" + sid);
+	} else {
+	  ServiceEvent     ev   = new ServiceEvent(type, sr);
+	  
+	  sendServiceEvent(ev);
+	}
       }
     }
   }

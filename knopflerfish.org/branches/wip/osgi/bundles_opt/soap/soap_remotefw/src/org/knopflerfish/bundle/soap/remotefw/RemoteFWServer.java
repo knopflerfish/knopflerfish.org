@@ -21,6 +21,7 @@ public class RemoteFWServer implements RemoteFW {
   boolean bReap     = false;
   long    reapDelay = 60 * 1000;
 
+  boolean  bDebug   = "true".equals(System.getProperty("org.knopflerfish.soap.remotefw.server.debug", "false"));
 
   public RemoteFWServer() {
   }
@@ -173,19 +174,42 @@ public class RemoteFWServer implements RemoteFW {
 
   public long[]    getFrameworkEvents() {
     synchronized(frameworkEvents) {
-      long[] r = new long[frameworkEvents.size() * 2];
-      int i = 0;
+      try {
 
-      for(Iterator it = frameworkEvents.iterator(); it.hasNext();) {
-	FrameworkEvent ev = (FrameworkEvent)it.next();
-	r[i * 2]     = ev.getBundle().getBundleId();
-	r[i * 2 + 1] = ev.getType();
-	i++;
+	long[] r = new long[frameworkEvents.size() * 2];
+	if(bDebug) {
+	  System.out.println("server: getFrameworkEvents size=" + r.length / 2);
+	}
+	int i = 0;
+	
+	for(Iterator it = frameworkEvents.iterator(); it.hasNext();) {
+	  FrameworkEvent ev = (FrameworkEvent)it.next();
+	  Bundle b = ev.getBundle();
+	  long bid = -1;
+	  if(b == null) {
+	    if(bDebug) {
+	      System.out.println("fw event: " + ev + " - no bundle");
+	    }
+	  } else {
+	    bid = b.getBundleId();
+	  }
+	  r[i * 2]     = bid;
+	  r[i * 2 + 1] = ev.getType();
+	  i++;
+	}
+
+	frameworkEvents.clear();
+	if(bDebug) {
+	  System.out.println("server: getFrameworkEvents -> " + r);
+	}
+	return r;
+      } catch (Exception e) {
+	if(bDebug) {
+	  e.printStackTrace();
+	}
       }
-
-      frameworkEvents.clear();
-      return r;
     }
+    return null;
   }
 
   public long[]    getBundleEvents() {
@@ -389,9 +413,31 @@ public class RemoteFWServer implements RemoteFW {
 	  }
 	});
       Activator.bc.addFrameworkListener(new FrameworkListener() {
-	  public void frameworkEvent(FrameworkEvent event ) {
+	  public void frameworkEvent(FrameworkEvent ev ) {
 	    synchronized(frameworkEvents) {
-	      frameworkEvents.add(event);
+	      int type = ev.getType();
+	      Bundle b = ev.getBundle();
+	      if(b == null) {
+		Object obj = ev.getSource();
+		if(bDebug) {
+		  System.out.println("obj=" + obj);
+		  if(obj != null) {
+		    System.out.println("source class=" + obj.getClass().getName());
+		  }
+		}
+		if(obj != null && (obj instanceof Bundle)) {
+		  b = (Bundle)obj;
+		}
+	      }
+	      if(bDebug) {
+		
+		System.out.println("server: add fw event: " + ev + ", type=" + type + ", bundle=" + b);
+	      }
+	      if(b != null) {
+		frameworkEvents.add(new FrameworkEvent(type,
+						       b,
+						       null));
+	      }
 	    }
 	  }
 	});
