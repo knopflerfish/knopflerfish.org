@@ -166,11 +166,11 @@ public class SystemMetatypeProvider
 
       cmMTP = new MTP("[CM]") {
 	  public String[] getPids() {
-	    return (String[])getCMServicePIDs().toArray();
+	    return MTP.toStringArray(getCMServicePIDs());
 	  }
 
 	  public String[] getFactoryPids() {
-	    return (String[])getCMFactoryPIDs().toArray();
+	    return  MTP.toStringArray(getCMFactoryPIDs());
 	  }
 	  
 	  public String[] getLocales() {
@@ -238,7 +238,8 @@ public class SystemMetatypeProvider
   }
 
   /**
-   * Explictly load a metatype provider from a bundle.
+   * Explictly load a metatype provider from a bundle and cache
+   * it for later retrival by <tt>getMTP</tt>.
    *
    * @throws Exception if loading fails
    */
@@ -288,6 +289,8 @@ public class SystemMetatypeProvider
 
     if(valStr.startsWith("!")) {
       url = b.getResource(valStr.substring(1));
+    } else if(valStr.startsWith("/")) {
+      url = b.getResource(valStr);
     } else {
       url = new URL(valStr);
     }

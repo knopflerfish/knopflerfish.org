@@ -9,7 +9,7 @@
   <xsd:schema >
    <xsd:complexType name="testconfig">
     <xsd:annotation>
-     <xsd:documentation>The log configuration sets properties for the 
+     <xsd:documentation>(test) The log configuration sets properties for the 
                         Knopflerfish log.
      </xsd:documentation>
     </xsd:annotation>
@@ -49,7 +49,7 @@
 
 
   <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
-   <xsd:complexType name="service1" iconURL="http://www.knopflerfish.org/images/knopflerfish-small.gif">
+   <xsd:complexType name="service1" iconURL="/knopflerfish-small.gif">
 
     <xsd:annotation>
      <xsd:documentation>A very simple service</xsd:documentation>
