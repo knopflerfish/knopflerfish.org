@@ -53,13 +53,7 @@ import java.awt.Dimension;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 
-import java.util.List;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.Iterator;
+import java.util.*;
 import java.io.*;
 import java.net.URL;
 
@@ -75,7 +69,21 @@ public class SpinDisplayer extends DefaultSwingBundleDisplayer {
   public void bundleChanged(BundleEvent ev) {
   }
 
+  Set spins = new HashSet();
+
   public JComponent newJComponent() {
-    return new Spin();
+    Spin spin =  new Spin();
+    spins.add(spin);
+
+    return spin;
   } 
+
+  public void close() {
+    super.close();
+    for(Iterator it = spins.iterator(); it.hasNext();) {
+      Spin spin = (Spin)it.next();
+      spin.stop();
+    }
+    spins.clear();
+  }
 }
