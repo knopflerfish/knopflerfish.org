@@ -58,6 +58,9 @@ public class Main {
   String  destdirname   = "";
   String  postHookName = null;
   String  preHookName  = null;
+  String  iconPath     = null;
+  String  licenseResName = null;
+  String  licenseTitle   = null;
 
   String  optButtons   = "base source htdocs";
 
@@ -162,6 +165,19 @@ public class Main {
 	opendirname = mf.getMainAttributes().getValue("jarunpacker-opendir");
       } catch (Exception ignored) {     }
       //      if(opendirname == null) { opendirname = ".";   }
+
+      try {
+	iconPath = mf.getMainAttributes().getValue("jarunpacker-iconpath");
+      } catch (Exception ignored) {     }
+
+      try {
+	licenseResName = mf.getMainAttributes().getValue("jarunpacker-licensepath");
+      } catch (Exception ignored) {     }
+
+      try {
+	licenseTitle = mf.getMainAttributes().getValue("jarunpacker-licensetitle");
+      } catch (Exception ignored) {     }
+
 
       try {
 	preHookName = mf.getMainAttributes().getValue("jarunpacker-prehook");
@@ -332,6 +348,15 @@ public class Main {
       }
     }
 
+    if(iconPath != null) {
+      String s = iconPath;
+      if(s.startsWith("/")) {
+	s = s.substring(1);
+      }
+      if(entry.getName().equals(s)) {
+	return true;
+      }
+    }
     if(ui != null && ui.isExcluded(entry.getName())) {
       return true;
     }
