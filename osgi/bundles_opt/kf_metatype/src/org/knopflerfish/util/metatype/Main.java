@@ -211,7 +211,13 @@ public class Main {
       padTo(sb2, 45, ' ');
       sb2.append(" " + AD.toString(ads[i].getDefaultValue()));
 
+
+      padTo(sb2, 60, ' ');
+      sb2.append(" '" + ads[i].getDescription() + "'");
+
       sb.append(sb2.toString());
+
+
       sb.append("\n");
     }
     return sb.toString();
