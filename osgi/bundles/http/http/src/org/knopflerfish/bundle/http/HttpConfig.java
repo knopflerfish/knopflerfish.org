@@ -112,12 +112,11 @@ public class HttpConfig implements ManagedService {
 
     final Dictionary config = new Hashtable();
 
-    //"org.knopflerfish.http.secure");
+    config.put(HttpConfig.HTTP_ENABLED_KEY, 
+            Boolean.valueOf(System.getProperty("org.knopflerfish.http.enabled", "true")));
+    config.put(HttpConfig.HTTPS_ENABLED_KEY, 
+            Boolean.valueOf(System.getProperty("org.knopflerfish.http.secure.enabled", "true")));
 
-    if (System.getProperty("org.knopflerfish.http") != null)
-    {
-    	config.put(null, System.getProperty(""));
-    }
     config.put(HttpConfig.HTTP_PORT_KEY, Integer.getInteger("org.osgi.service.http.port", 
             HTTP_PORT_DEFAULT));
     config.put(HttpConfig.HTTPS_PORT_KEY, Integer.getInteger("org.osgi.service.http.port.secure", 
