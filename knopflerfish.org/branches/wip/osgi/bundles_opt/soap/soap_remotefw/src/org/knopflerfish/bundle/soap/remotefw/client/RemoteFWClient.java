@@ -38,10 +38,30 @@ public class RemoteFWClient implements RemoteFW {
 
   BundleContextImpl remoteBC = null;
 
-  CacheMap cache = new CacheMap(1000);
+  Map caches = new HashMap();
 
   public RemoteFWClient() {
-    
+    CacheMap fastCache = new CacheMap(1000);
+    CacheMap slowCache = new CacheMap(10000);
+
+    caches.put("getStartLevel",               fastCache);
+    caches.put("getBundleStartLevel",         fastCache);
+    caches.put("getInitialBundleStartLevel",  fastCache);
+    caches.put("isBundlePersistentlyStarted", fastCache);
+    caches.put("getBundle",                   fastCache);
+    caches.put("getBundleLocation",           slowCache);
+    caches.put("getBundleState",              slowCache);
+    caches.put("getBundleManifest",           slowCache);
+    caches.put("getRegisteredServices",       fastCache);
+    caches.put("getServicesInUse",            fastCache);
+    caches.put("getServiceReferences",        fastCache);
+    caches.put("getServiceReferences2",       fastCache);
+    caches.put("getServiceProperties",        slowCache);
+    caches.put("getStartLevel",               fastCache);
+    caches.put("getBundleStartLevel",         fastCache);
+
+    caches.put("getExportedPackage",  slowCache);
+    caches.put("getExportedPackages", slowCache);
   }
 
 
@@ -70,6 +90,15 @@ public class RemoteFWClient implements RemoteFW {
     call     = null;
   }
 
+  void flushCache() {
+    synchronized(callLock) {
+      for(Iterator it = caches.keySet().iterator(); it.hasNext(); ) {
+	String opName = (String)it.next();
+	CacheMap cache = (CacheMap)caches.get(opName);
+	cache.clear();
+      }
+    }
+  }
   public BundleContext getBundleContext() {
     return remoteBC;
   }
@@ -77,22 +106,27 @@ public class RemoteFWClient implements RemoteFW {
 
   public void startBundle(long bid) {
     doCall("startBundle", bid);
+    flushCache();
   }
 
   public void stopBundle(long bid) {
     doCall("stopBundle", bid);
+    flushCache();
   }
 
   public void updateBundle(long bid) {
     doCall("updateBundle", bid);
+    flushCache();
   }
 
   public void uninstallBundle(long bid) {
     doCall("uninstallBundle", bid);
+    flushCache();
   }
 
   public long installBundle(String location) {
     Long bid = (Long)doCall("installBundle", location);
+    flushCache();
     return bid.longValue();
   }
   
@@ -235,17 +269,17 @@ public class RemoteFWClient implements RemoteFW {
   Object doCall(String opName, Object[] params) {
     synchronized(callLock) {
       String cacheKey = null;
+      Map cache = (Map)caches.get(opName);
+
       if(cache != null) {
 	cacheKey = opName + ":" + toDisplay(params);
 	Object cacheResult = cache.get(cacheKey);
 	
 	if(cacheResult != null) {
-	  /*
-	    if(bDebug) {
+	  if(bDebug) {
 	    System.out.println("cached " + opName + 
-	    "(" + toDisplay(params) + ")");
-	    }
-	  */
+			       "(" + toDisplay(params) + ")");
+	  }
 	  return cacheResult;
 	}
       }
