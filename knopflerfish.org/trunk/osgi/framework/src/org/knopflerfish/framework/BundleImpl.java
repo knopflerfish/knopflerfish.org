@@ -83,7 +83,7 @@ class BundleImpl implements Bundle {
   /**
    * Bundle JAR data.
    */
-  private BundleArchive archive;
+  BundleArchive archive;
 
   /**
    * Classloader for bundle.
@@ -213,6 +213,8 @@ class BundleImpl implements Bundle {
     framework.checkAdminPermission();
 
     int updState = getUpdatedState();
+
+    setPersistent(true);
     
     if(framework.startLevelService != null) {
       if(getStartLevel() > framework.startLevelService.getStartLevel()) {
@@ -220,6 +222,8 @@ class BundleImpl implements Bundle {
 	return;
       }
     }
+
+
 
     switch (updState) {
     case INSTALLED:
@@ -306,6 +310,28 @@ class BundleImpl implements Bundle {
 
 
   /**
+   * Check if setStartOnLaunch(false) is allowed.
+   */
+  boolean allowSetStartOnLaunchFalse() {
+    boolean bCompat = 
+      framework.startLevelService == null ||
+      framework.startLevelService.bCompat;
+    
+    return 
+      // never never touch on FW shutdown
+      !framework.shuttingdown && !archive.isPersistent();
+
+      /*
+	&& 
+      
+      // allow touch if in startlevel compatibility mode
+      (bCompat || 
+       // ...also allow touch if not marked as persistant startlevel active
+       !isPersistent());
+      */
+  }
+
+  /**
    * Stop this bundle.
    *
    * @see org.osgi.framework.Bundle#stop
@@ -315,6 +341,8 @@ class BundleImpl implements Bundle {
 
     bDelayedStart = false;
     
+    setPersistent(false);
+
     if(framework.startLevelService != null) {
       if(getStartLevel() <= framework.startLevelService.getStartLevel()) {
 	if(state == ACTIVE) {
@@ -328,7 +356,7 @@ class BundleImpl implements Bundle {
     case RESOLVED:
       // We don't want this bundle to start on launch after it has been
       // stopped. (Don't apply during shutdown
-      if (!framework.shuttingdown) {
+      if (allowSetStartOnLaunchFalse()) {
 	AccessController.doPrivileged(new PrivilegedAction() {
 	    public Object run() {
 	      startOnLaunch(false);
@@ -344,7 +372,7 @@ class BundleImpl implements Bundle {
 	(Throwable) AccessController.doPrivileged(new PrivilegedAction() {
 	  public Object run() {
 	    Throwable res = null;
-	    if (!framework.shuttingdown) {
+	    if (allowSetStartOnLaunchFalse()) {
 	      startOnLaunch(false);
 	    }
 	    if (bactivator != null) {
@@ -913,6 +941,16 @@ class BundleImpl implements Bundle {
     }
   }
 
+  void setPersistent(boolean value) { 
+    try {
+      archive.setPersistent(value);
+    } catch (IOException e) {
+      framework.listeners.frameworkError(this, e);
+    }
+  }
+  
+  
+
   /**
    * Filter out all services that we don't have permission to get.
    *
@@ -997,20 +1035,8 @@ class BundleImpl implements Bundle {
  // Start level related
 
   boolean isPersistent() {
-    boolean b = getStartLevel() != -1;
+    boolean b = archive.isPersistent();
     
-    // As I read the OSGi test suite, a bundle should not
-    // be considered persistenly started if its level is greater
-    // than the current startlevel.
-    //
-    // IMO, this is wrong. The bundle is still marked for persistant
-    // starting, even if if may be inactive at the moment.
-    if(framework.startLevelService != null) {
-      if(getStartLevel() > framework.startLevelService.getStartLevel()) {
-	b = false;
-      }
-    }
-
     // yup.
     b |= bDelayedStart;
 
@@ -1068,6 +1094,13 @@ class BundleImpl implements Bundle {
       sb.append(", bDelayedStart=" + bDelayedStart);
     }
 
+    if(detail > 4) {
+      try {
+	sb.append(", bPersistant=" + isPersistent());
+      }  catch (Exception e) {
+	sb.append(", bPersistant=" + e);
+      }
+    }
     if(detail > 4) {
       sb.append(", loc=" + location);
     }

@@ -84,6 +84,10 @@ public interface BundleArchive {
    */
   void setStartLevel(int level) throws IOException; 
 
+  void setPersistent(boolean b)  throws IOException;
+
+  boolean isPersistent();
+
   /**
    * Get a byte array containg the contents of named file from a bundle
    * archive.

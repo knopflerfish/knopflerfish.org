@@ -65,6 +65,7 @@ class BundleArchiveImpl implements BundleArchive
   private boolean bFake;
 
   private int startLevel = 1;
+  private boolean bPersistant = false;
 
   /**
    * Construct new bundle archive.
@@ -161,6 +162,15 @@ class BundleArchiveImpl implements BundleArchive
   
   public void setStartLevel(int level) {
     startLevel = level;
+  }
+
+  public void setPersistent(boolean b) {
+    bPersistant = b;
+  }
+
+
+  public boolean isPersistent() {
+    return bPersistant;
   }
   
   /**

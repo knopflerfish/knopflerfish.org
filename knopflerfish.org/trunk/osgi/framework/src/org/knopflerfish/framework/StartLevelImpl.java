@@ -64,6 +64,10 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   FileTree storage;
 
+  // Set to true indicates startlevel compatability mode.
+  // all bundles and current start level will be 1
+  boolean  bCompat = false;
+
   public static final String SPEC_VERSION = "1.0";
 
   public StartLevelImpl(Framework framework) {
@@ -134,9 +138,12 @@ public class StartLevelImpl implements StartLevel, Runnable {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
 
+
+
     jobQueue.insert(new Runnable() {
 	public void run() {
-	  targetStartLevel = startLevel;
+	  int sl = bCompat ? 1 : startLevel;
+	  targetStartLevel = sl;
 
 	  while(targetStartLevel > currentLevel) {
 	    increaseStartLevel();
@@ -175,7 +182,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 	if(canStart(bs)) {
 	  if(bs.getStartLevel() == currentLevel) {
-	    if(bs.bDelayedStart) {
+	    if(bs.archive.isPersistent()) {
 	      set.addElement(bs);
 	    }
 	  }
@@ -189,7 +196,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
       for(int i = 0; i < set.size(); i++) {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
 	try {
-	  bs.start();
+	  if(bs.archive.isPersistent()) {
+	    bs.start();
+	  }
 	} catch (Exception e) {
 	  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
 	}
@@ -224,6 +233,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	try {
 	  bs.stop();
 	  bs.bDelayedStart = true;
+	  bs.setPersistent(true);
 	} catch (Exception e) {
 	  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
 
@@ -284,8 +294,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
     jobQueue.insert(new Runnable() {
 	public void run() {
+	  int sl  = bCompat ? 1 : startLevel;
 
-	  bs.setStartLevel(startLevel);
+	  bs.setStartLevel(sl);
 	  syncStartLevel(bs);
 	  notifyFramework();
 	}
@@ -298,7 +309,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       if(bs.getStartLevel() <= currentLevel) {
 	if(canStart(bs)) {
-	  if(bs.bDelayedStart ||  (bs.getState() == Bundle.RESOLVED)) {
+	  if(bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
 	    try {
 	      bs.start();
 	    } catch (Exception e) {
@@ -330,7 +341,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
-    initStartLevel = startLevel;
+    initStartLevel = bCompat ? 1 : startLevel;
   }
 
   

@@ -56,6 +56,7 @@ class BundleArchiveImpl implements BundleArchive
   private final static String REV_FILE        = "revision";
   private final static String STOP_FILE       = "stopped";
   private final static String STARTLEVEL_FILE = "startlevel";
+  private final static String PERSISTENT_FILE = "persistent";
 
   /**
    * Method mapLibraryName if we run in a Java 2 environment.
@@ -82,6 +83,8 @@ class BundleArchiveImpl implements BundleArchive
   private boolean bFake = false;
 
   private int startLevel = -1;
+
+  private boolean bPersistant = false;
 
   static {
     try {
@@ -145,6 +148,11 @@ class BundleArchiveImpl implements BundleArchive
       try {
 	startLevel = Integer.parseInt(slS);
       } catch (NumberFormatException e) { }
+    }
+
+    String pS = getContent(PERSISTENT_FILE);
+    if (pS != null) {
+      bPersistant = "true".equals(pS);
     }
 
     archive       = new Archive(bundleDir, rev);
@@ -238,6 +246,19 @@ class BundleArchiveImpl implements BundleArchive
       putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
     }
   }
+
+  public void setPersistent(boolean b) throws IOException {
+    if (bPersistant != b) {
+      bPersistant = b;
+      putContent(PERSISTENT_FILE, Boolean.toString(b));
+    }
+  }
+
+
+  public boolean isPersistent() {
+    return bPersistant;
+  }
+
 
 
   /**
