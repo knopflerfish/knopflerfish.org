@@ -400,7 +400,7 @@ class Packages {
       BundleImpl b = (BundleImpl)moreBundles.get(i);
       for (Iterator j = b.getExports(); j.hasNext(); ) {
 	PkgEntry pe = (PkgEntry)j.next();
-	if (pe.pkg.provider == pe) {
+	if (pe.pkg != null && pe.pkg.provider == pe) {
 	  for (Iterator k = getPackageImporters(pe.name).iterator(); k.hasNext(); ) {
 	    Bundle ib = (Bundle)k.next();
 	    if (!affected.contains(ib)) {

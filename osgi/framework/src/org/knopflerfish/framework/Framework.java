@@ -322,9 +322,11 @@ public class Framework {
       for (int i = slist.size()-1; i >= 0; i--) {
 	Bundle b = bundles.getBundle((String)slist.get(i));
 	try {
-	  synchronized (b) {
-	    if (b.getState() == Bundle.ACTIVE) {
-	      b.stop();
+	  if(b != null) {
+	    synchronized (b) {
+	      if (b.getState() == Bundle.ACTIVE) {
+		b.stop();
+	      }
 	    }
 	  }
 	} catch (BundleException be) {
