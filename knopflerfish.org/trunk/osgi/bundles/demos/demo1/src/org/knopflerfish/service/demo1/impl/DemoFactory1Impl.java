@@ -34,67 +34,25 @@
 
 package org.knopflerfish.service.demo1.impl;
 
-import java.util.Hashtable;
 import org.osgi.framework.*;
+
 import org.knopflerfish.service.demo1.*;
 
-
 /**
- * Activator which creates and registers a Demo1 service.
+ * Implementation of the DemoFactory1 service. The intentions of this
+ * class is to show that different bundles will get different instances
+ * of a service, by the means of a ServiceFactory
  */
-public class Activator implements BundleActivator {
+public class DemoFactory1Impl implements DemoFactory1 {
+
+  Bundle b;
+
+  public DemoFactory1Impl(Bundle b) {
+    this.b = b;
+  }
   
-  private Demo1Impl demo1;
-  
-  public void start(BundleContext bc) {
-    System.out.println("start " + getClass().getName());
-
-    demo1 = new Demo1Impl();
-
-    bc.registerService(Demo1.class.getName(), 
-		       demo1, 
-		       new Hashtable());
-
-    // Create a service factory for DemoFactory1 implementations
-    ServiceFactory factory = new ServiceFactory() {
-	Hashtable services = new Hashtable();
-
-	// Will get called when a bundle request a service
-	public Object getService(Bundle b, 
-				 ServiceRegistration reg) {
-	  System.out.println("get from " + b.getBundleId());
-
-	  
-	  // Create when necessary
-	  DemoFactory1 impl = (DemoFactory1)services.get(b);
-	  if(impl == null) {
-	    impl = new DemoFactory1Impl(b);
-	    services.put(b, impl);
-	  }
-	  return impl;
-	  
-	}
-
-	// will get called when a bundle ungets a service or stops
-	public void ungetService(Bundle b, 
-				 ServiceRegistration reg,
-				 Object service) {
-	  System.out.println("unget from " + b.getBundleId());
-	  services.remove(b);
-	}
-      };
-    
-    // Note how factory only implements ServiceFactory, 
-    // but we still register as DemoFactory1 service
-    bc.registerService(DemoFactory1.class.getName(), 
-		       factory, 
-		       new Hashtable());
-    
+  public void hello() {
+    System.out.println("Hello bundle #" + b.getBundleId());
   }
 
-  public void stop(BundleContext bc) {
-    System.out.println("stop " + getClass().getName());
-
-    demo1 = null;
-  }
 }

@@ -103,6 +103,20 @@ public class Activator implements BundleActivator {
       e.printStackTrace();
     }
 
+
+    testServiceFactory();
+  }
+
+  void  testServiceFactory() {
+    // Try to get a reference to the service produced by a factory
+    ServiceReference factorySR = bc.getServiceReference(DemoFactory1.class.getName());
+    if(factorySR != null) {
+      DemoFactory1 df = (DemoFactory1)bc.getService(factorySR);
+      if(df != null) {
+	// Different bundles will get different printouts
+	df.hello();
+      }
+    }
   }
 
   
