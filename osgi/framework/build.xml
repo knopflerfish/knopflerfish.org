@@ -64,7 +64,8 @@
 
     <property name="fw.impl.version" value="3.3"/>
 
-    <echo message="${fw.impl.version}" file="resources/version"/>
+    <echo message="${fw.impl.version}"  file="resources/version"/>
+    <echo message="${framework.tstamp}" file="resources/tstamp"/>
 
     <jar basedir="${classout}"
          jarfile="${jarfile}"

@@ -240,6 +240,10 @@ public class Main {
 	} else if ("-init".equals(args[i])) {
 	  // This is done in an earlier pass, otherwise we
 	  // shoot the FW in the foot
+	} else if ("-version".equals(args[i])) {
+	  printResource("/tstamp");
+	  printResource("/revision");
+	  System.exit(0);
 	} else if ("-help".equals(args[i])) {
 	  printResource("/help.txt");
 	  System.exit(0);
