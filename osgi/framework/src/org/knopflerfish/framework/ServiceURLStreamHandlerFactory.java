@@ -166,7 +166,7 @@ public class ServiceURLStreamHandlerFactory
   URLStreamHandler getJVMClassPathHandler(String protocol) {
 
     for(int i = 0; i < jvmPkgs.length; i++) {
-      String className = jvmPkgs + "." + protocol + ".Handler";
+      String className = jvmPkgs[i] + "." + protocol + ".Handler";
       try { 
 	if(Debug.url) {
 	  Debug.println("JVMClassPath - trying URLHandler class=" + className);
