@@ -58,6 +58,7 @@ public class Activator implements BundleActivator {
   Hashtable registrations = new Hashtable();
 
 
+
   static LogRef log;
   public void start(BundleContext bc) throws BundleException {
     this.bc  = bc;
@@ -81,100 +82,54 @@ public class Activator implements BundleActivator {
       }
     }
 
-    ServiceListener listener = new ServiceListener() {
-	public void serviceChanged(ServiceEvent ev) {
-	  ServiceReference sr = ev.getServiceReference();
+    // Wrap the Http service into something more
+    // white-board-like
+    HttpWrapper wrapper = new HttpWrapper(bc);
+    wrapper.open();
 
-	  switch(ev.getType()) {
-	  case ServiceEvent.REGISTERED:
-	    setServlet(sr);
-	    break;
-	  case ServiceEvent.UNREGISTERING:
-	    unsetServlet(sr);
-	    break;
-	  }
-	}
-      };
-    
-    try {
-      bc.addServiceListener(listener, filter);
+    // By registering the servlet and the context
+    // they will be picked up by the wrapper and installed
+    // in the http service
+    Hashtable props1 = new Hashtable();
+    props1.put(HttpWrapper.PROP_ALIAS, SERVLET_ALIAS);
+    bc.registerService(HttpServlet.class.getName(), servlet, props1);
 
-      ServiceReference[] srl = bc.getServiceReferences(null, filter);
-      for(int i = 0; srl != null && i < srl.length; i++) {
-	listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
-						 srl[i]));
-      }
-    } catch (Exception e) {
-      log.error("Failed to set up listener for http service", e);
-    }
+    Hashtable props2 = new Hashtable();
+    props2.put(HttpWrapper.PROP_ALIAS, RES_ALIAS);
+    props2.put(HttpWrapper.PROP_DIR,   RES_DIR);
+    bc.registerService(HttpContext.class.getName(), context, props2);
   }
-  
+
   public void stop(BundleContext bc) throws BundleException {
+    // all is done by FW
   }
 
+  // These are registered as-in into the framework.
+  // The HttpWrapper will pick them up and handle the gory
+  // work of registering them into all actual http services
+  HttpServlet servlet = new ConsoleServlet();
 
-
-  void setServlet(ServiceReference sr) {
-
-    if(registrations.containsKey(sr)) {
-      return; // already done
-    }
-
-    log.info("set httconsole servlet for HttpService #" + 
-	     sr.getProperty("service.id") + " at " + SERVLET_ALIAS);
-
-    HttpService http = (HttpService)bc.getService(sr);
-
-    HttpContext context = new HttpContext() {
-	public URL getResource(String name) {
-
-	  // and send the plain file
-	  URL url = getClass().getResource(name);
-
-	  return url;
-	}
+  HttpContext context = new HttpContext() {
+      public URL getResource(String name) {
+	// and send the plain file
+	URL url = getClass().getResource(name);
 	
-	public String getMimeType(String reqEntry) {
-	  return null; // server decides type
-	}
-
-	public boolean handleSecurity( HttpServletRequest request,
-				       HttpServletResponse response )
-	  throws IOException 
-	{
-	  // Security is handled by server
-	  return true;
-	}
-      };
-    
-    try {
-      http.registerResources(RES_ALIAS, RES_DIR, context);
-      http.registerServlet(SERVLET_ALIAS, 
-			   new ConsoleServlet(sr), 
-			   new Hashtable(), context);
-
-      registrations.put(sr, context);
-    } catch (Exception e) {
-      log.error("Failed to register resource", e);
-    }
-  } 
-
-  void unsetServlet(ServiceReference sr) {
-    if(!registrations.containsKey(sr)) {
-      return; // nothing to do
-    }
-
-    log.info("unset httpconsole servlet for " + sr);
-    
-    HttpService http = (HttpService)bc.getService(sr);
-    
-    if(http != null) {
-      http.unregister(RES_ALIAS);
-      http.unregister(SERVLET_ALIAS);
-      bc.ungetService(sr);
-    }
-    registrations.remove(sr);
-  }
+	return url;
+      }
+      
+      public String getMimeType(String reqEntry) {
+	return null; // server decides type
+      }
+      
+      public boolean handleSecurity( HttpServletRequest request,
+				     HttpServletResponse response )
+	throws IOException 
+      {
+	// Security is handled by server
+	return true;
+      }
+    };
+  
 
   class LogRef {
     void info(String msg) {

@@ -45,8 +45,6 @@ import org.osgi.service.http.*;
 
 public class ConsoleServlet extends HttpServlet {
 
-  ServiceReference httpSR;
-
   Command[]        commands;
 
   // the fime install command is special
@@ -56,9 +54,7 @@ public class ConsoleServlet extends HttpServlet {
 
   Login login = new Login();
   
-  public ConsoleServlet(ServiceReference httpSR) {
-    this.httpSR = httpSR;
-
+  public ConsoleServlet() {
 
     commands = new Command[] {
       new ReloadCommand(),
@@ -75,6 +71,16 @@ public class ConsoleServlet extends HttpServlet {
       new ServiceInfoCommand(),
     };
 
+  }
+
+  boolean bInitalized = false;
+  // we're reusing the same servlet for all web servers, so
+  // don't init at each registation.
+  public synchronized void init() throws ServletException {
+    if(bInitalized) {
+      super.init();
+      bInitalized = true;
+    }
   }
 
 
