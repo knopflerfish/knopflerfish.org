@@ -128,7 +128,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 	      }
 	    }
 	    if(sb2.length() > 0) {
-	      sb3.append(sb2);
+	      sb3.append(sb2.toString());
 	      sb3.append("<br>");
 	      sb3.append("&nbsp;&nbsp;");
 	      Util.bundleLink(sb3, pkgs2[j].getExportingBundle());
@@ -139,7 +139,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 	sb.append("<p>");
 	if(sb3.length() > 0) {
 	  sb.append("<b>Imported packages</b>");
-	  sb.append(sb3);
+	  sb.append(sb3.toString());
 	} else {
 	  sb.append("<b>No imported packages</b>");
 	}
