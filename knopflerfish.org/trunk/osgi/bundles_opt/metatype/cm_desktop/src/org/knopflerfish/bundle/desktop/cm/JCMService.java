@@ -97,8 +97,7 @@ public class JCMService extends JPanel {
     factoryPid  = null;
 
     if(ocd != null) {
-      main.setBorder(BorderFactory
-		     .createTitledBorder(ocd.getID()));
+      main.setBorder(JCMInfo.makeBorder(this, ocd.getID()));
       
       mainPanel = new JPanel(new BorderLayout());
       
