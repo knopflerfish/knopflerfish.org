@@ -30,7 +30,7 @@ porting effort. However it took some time experimenting and studying the Axis
 code to make this work, so some of the code may be harder to understand.
 
 Note that the axis-osgi bundle depends on the commons-logging bundle to
-be installed an started. Furter if your JRE does not support an XML parser
+be installed an started. Further if your JRE does not support an XML parser
 you need to provide that as well (e.g Xerces).
 
 The axis-osgi.jar file is quite large, due to the contained axis.jar (and
@@ -94,6 +94,17 @@ The implementation has only been tested with services generated
 by exporting OSGi service via Axis, and is not complete in terms of
 all possible data types. The primitive types and arrays, are however 
 supported, both as input arguments and as results.
+
+soap_remotefw
+-------------
+
+Complete implemetation of a "remote" OSGi framework, using SOAP.
+See
+
+ soap_remotefw/readme.txt
+
+for details.
+
 
 demos
 -----
