@@ -608,6 +608,8 @@
            <include name = "osgi/jars/soap_desktop/*.jar"/>
            <include name = "osgi/jars/soap_remotefw/*.jar"/>
            <include name = "osgi/jars/soap_soapclient/*.jar"/>
+           <include name = "osgi/jars/soapobject/*.jar"/>
+           <include name = "osgi/jars/soap_demoservice/*.jar"/>
 
            <exclude name = "keystore"/>
 
