@@ -7,7 +7,8 @@ by the Oscar Command API
   org.ungoverned.osgi.service.shell.Command
 
 so they become directly available in the Knopflerfish console (including
-the KF desktop).
+the KF desktop). This is useful if you need to run bundles developed
+for Oscar in the KF framework, but still use the KF console.
 
 All Oscar commands commands are placed in the KF command 
 group "oscar".

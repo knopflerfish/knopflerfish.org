@@ -38,6 +38,10 @@ import org.knopflerfish.service.console.*;
 import org.osgi.framework.*;
 import java.util.*;
 
+/**
+ * Register a single instance of OscarShellCommandGroup, which will
+ * wrap all Oscar Command services.
+ */
 public class Activator implements BundleActivator {
 
   static BundleContext bc;
@@ -57,6 +61,7 @@ public class Activator implements BundleActivator {
   }
 
   public void stop(BundleContext bc) {
+    oscarCG = null;
     this.bc = null;
   }
 }
