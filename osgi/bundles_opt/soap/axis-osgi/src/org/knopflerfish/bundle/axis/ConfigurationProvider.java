@@ -7,10 +7,12 @@ import org.apache.axis.description.ServiceDesc;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.InputStream;
 
 /**
  * Replacement of the method getDeployedServices in SimpleProvider, since it does
- * not account for the services in the default configuration
+ * not account for the services in the default configuration.
+ * In addition dynamic loading of WSDD data added.
  *
  * @author Lasse Helander (lars-erik.helander@home.se)
  */
@@ -43,9 +45,13 @@ public class ConfigurationProvider extends org.apache.axis.configuration.SimpleP
 	  Iterator defi = defaultConfiguration.getDeployedServices();
 	  while(defi.hasNext()) {
             ServiceDesc sd = (ServiceDesc)defi.next();
-            serviceDescs.add((ServiceDesc) defi.next());		  
+            serviceDescs.add(sd);		  
           }
         }
         return serviceDescs.iterator();
+    }
+    
+    public void addWSDD(InputStream stream) {
+	System.err.println("ConfigurationProvider.addWSDD()  not yet implemented");    
     }
 }

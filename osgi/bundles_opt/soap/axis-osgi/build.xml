@@ -9,30 +9,28 @@
   <property name="topdir"       location="../../.."/>
 
   <property name  = "impl.pattern"
-            value = "org/**"/>
+            value = "org/knopflerfish/**"/>
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/api/framework.jar"/>
+   <!--pathelement location="${topdir}/api/framework.jar"/-->
+   <pathelement location="${topdir}/jars/http/http_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
    <pathelement location="resources/axis.jar"/>
    <pathelement location="imports/commons-logging.jar"/>
-   <!--pathelement location="resources/commons-discovery.jar"/-->
    <pathelement location="resources/jaxrpc.jar"/>
    <pathelement location="resources/saaj.jar"/>
-   <!--pathelement location="resources/axis-ant.jar"/-->
-   <!--pathelement location="resources/wsdl4j.jar"/-->
-   <!--pathelement location="resources/activation.jar"/-->
   </path>
 
-  <property name="import.package" value ="org.osgi.framework,org.apache.commons.logging"/>
+  <property name="import.package" value ="org.osgi.framework,org.apache.commons.logging,org.osgi.service.http,javax.servlet,javax.servlet.http"/>
 
 
   <property name="bundle.description"    value="Axis Server"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
   <property name="bundle.category"       value="experiment"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <!--property name="bundle.classpath"      value = ".,axis.jar,commons-logging.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/-->
- <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
+  <property name="bundle.version"        value="0.0.2"/>
+  <property name="bundle.activator"        value="org.knopflerfish.bundle.axis.Activator"/>
+  <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
 
  <!-- set do.bundle.custom.post to anything to trigger post target --> 
 <!--property name="do.bundle.custom.post" value="do"/-->
@@ -52,3 +50,4 @@
   &bundlebuild_include;
 
 </project>
+
