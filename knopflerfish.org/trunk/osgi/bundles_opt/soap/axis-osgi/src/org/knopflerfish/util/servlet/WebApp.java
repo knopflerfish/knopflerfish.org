@@ -1,4 +1,4 @@
-package org.knopflerfish.util;
+package org.knopflerfish.util.servlet;
 
 import java.util.*;
 import java.net.URL;
