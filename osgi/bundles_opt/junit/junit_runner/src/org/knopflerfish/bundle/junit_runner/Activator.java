@@ -37,7 +37,7 @@ package org.knopflerfish.bundle.junit_runner;
 
 import java.util.*;
 import org.osgi.framework.*;
-
+import java.net.URL;
 
 import org.knopflerfish.service.junit.*;
 import junit.framework.*;
@@ -47,6 +47,8 @@ public class Activator implements BundleActivator
 {
   BundleContext               bc = null;
   
+  static final String DEFAULT_OUTDIR = "junit_grunt";
+
   public void start(BundleContext bc) throws BundleException {
     this.bc = bc;
 
@@ -69,7 +71,7 @@ public class Activator implements BundleActivator
     }
 
     if(outdir == null) {
-      outdir = "junit_out";
+      outdir = DEFAULT_OUTDIR;
     }
 
     log("tests=" + tests + ", outdir=" + outdir + ", quit=" + bQuit);
@@ -80,6 +82,20 @@ public class Activator implements BundleActivator
       outDir.mkdirs();
     } catch (Exception e) {
       throw new BundleException("Failed to create outdir=" + outdir + ": " + e);
+    }
+
+    PrintWriter stylePW = null;
+    try {
+      stylePW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, "junit_style.xsl"))));
+      
+      printResource(stylePW, "/junit_style.xsl");
+    } catch (Exception e) {
+      e.printStackTrace();
+      log("Failed to copy style: " + e);
+    } finally {
+      try {
+	stylePW.close();
+      } catch (Exception ignored) { }
     }
 
     try {
@@ -129,6 +145,26 @@ public class Activator implements BundleActivator
   void log(String msg) {
     System.out.println("junit_runner: " + msg);
   }
+
+  void printResource(PrintWriter out, String name)  {
+    InputStream in = null;
+    try {
+      URL url = getClass().getResource(name);
+      in = url.openStream();
+      BufferedInputStream bin = new BufferedInputStream(in);
+      byte[] buf = new byte[1024];
+      int n = 0;
+      while(-1 != (n = bin.read(buf, 0, buf.length))) {
+	out.print(new String(buf, 0, n));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      log("printResource(" + name + ") failed: " +  e);
+    } finally {
+      try { in.close(); } catch (Exception ignored) { }
+    }
+  }
+
 }
   
   
