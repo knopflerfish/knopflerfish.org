@@ -38,11 +38,35 @@ package org.knopflerfish.bundle.soap.desktop;
 import org.knopflerfish.service.desktop.*;
 
 import javax.swing.*;
+import org.osgi.framework.*;
 
 public class SOAPDisplayer implements SwingBundleDisplayer {
-
+  
   public JComponent createJComponent() {
-    return new JSOAPUI("http://localhost:8080/axis/services/");
+    int port = 80;
+
+    // figure out the port the web servier is running on
+    try {
+      ServiceReference sr = Activator.bc.getServiceReference("org.osgi.service.http.HttpService");
+      
+      Object obj = null;
+      if(sr != null) {
+	obj = sr.getProperty("port");
+	if(obj == null) {
+	  obj = sr.getProperty("openPort");
+	}
+      }
+      if(obj == null) {
+	obj = System.getProperty("org.osgi.service.http.port", "80");
+      }
+      
+      port = Integer.parseInt(obj.toString());
+    } catch (Exception e) {
+	e.printStackTrace();
+    }
+    
+    String base = "http://localhost:" + port + "/axis/services/";
+    return new JSOAPUI(base);
   }
 
   public void       disposeJComponent(JComponent comp) {
