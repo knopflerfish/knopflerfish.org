@@ -106,6 +106,7 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
  <tr>
   <th>Bundle</th>
   <th>Description</th>
+  <th>Version</th>
   <th>Links<br/></th>
   <th>Vendor</th>
  </tr>
@@ -138,6 +139,10 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 
   <td style="width: 300px;">
    <xsl:value-of select="bundle-description"/>
+  </td>
+
+  <td>
+   <xsl:value-of select="bundle-version"/>
   </td>
 
   <td>
