@@ -119,7 +119,8 @@ public class TransactionManager extends ThreadGroup {
     final Boolean isSecure = new Boolean(httpConfig.isSecure());
     if (!isSecure.equals(this.isSecure)) {
       this.isSecure = isSecure;
-      if (isSecure.booleanValue()) {
+/*
+ //TODO Those transactions are not really involved in creating sockets... is there a difference in https? 
         try {
           Class clazz = getClass().getClassLoader().loadClass("org.knopflerfish.bundle.http.SecureTransactionPool");
           Constructor constructor = clazz.getConstructor(new Class[] { HttpConfig.class, LogRef.class, Registrations.class, ObjectPool.class, ObjectPool.class });
@@ -136,6 +137,7 @@ public class TransactionManager extends ThreadGroup {
           throw new ConfigurationException(HttpConfig.SECURE_KEY, ite.getTargetException().toString());
         }
       } else {
+*/      
         transactionPool = new ObjectPool() {
           protected PoolableObject createPoolableObject() {
             return new Transaction(httpConfig,
@@ -145,7 +147,7 @@ public class TransactionManager extends ThreadGroup {
                                    responsePool);
           }
         };
-      }
+//      }
     }
   }
 

@@ -90,7 +90,7 @@ public class HttpServer {
                                                 registrations,
                                                 sessionManager);
 
-    socketListener = new SocketListener(httpConfig, log, transactionManager);
+    socketListener = new SocketListener(httpConfig, log, transactionManager, bc);
   }
 
 
