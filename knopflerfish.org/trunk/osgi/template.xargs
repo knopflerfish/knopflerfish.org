@@ -59,7 +59,7 @@
 -install jsdk/jsdk-2.2.jar
 
 # The Bundle repo commands and desktop plugin
--install  bundlerepository/bundlerepository_all-1.0.0.jar
+-install  bundlerepository/bundlerepository_all-1.1.0.jar
 
 ## More basic KF bundles
 -initlevel 3
@@ -101,7 +101,7 @@ $(WINDOWS_BUNDLES)
 -start console/console_all-1.0.0.jar
 -start device/device_all-1.0.0.jar
 -start useradmin/useradmin_all-1.0.0.jar
--start bundlerepository/bundlerepository_all-1.0.0.jar
+-start bundlerepository/bundlerepository_all-1.1.0.jar
 -start consoletty/consoletty-1.0.0.jar
 -start consoletelnet/consoletelnet-1.0.0.jar
 -start frameworkcommands/frameworkcommands-1.0.0.jar
