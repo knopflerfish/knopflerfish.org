@@ -40,8 +40,22 @@ import java.io.*;
 import java.util.*;
 import org.osgi.framework.*;
 
+/**
+ * <p>
+ * Wrapper class that exposes all Oscar shell commands
+ * as a singel Knopflerfish console command group.
+ * </p>
+ *
+ * <p>
+ * This class will only get commands on demand (help and execute), and 
+ * will not keep them for longer than necessary.
+ * </p>
+ */
 public class OscarShellCommandGroup implements CommandGroup {
-  
+
+  /**
+   * The group name is always "oscar"
+   */
   public String getGroupName() {
     return "oscar";
   }
@@ -50,6 +64,10 @@ public class OscarShellCommandGroup implements CommandGroup {
     return "Commands available via the Oscar shell API";
   }
 
+  /**
+   * Build the long help text by listing all registered
+   * Oscar commands.
+   */
   public String getLongHelp() {
     StringBuffer sb = new StringBuffer();
 
@@ -88,6 +106,22 @@ public class OscarShellCommandGroup implements CommandGroup {
     return sb.toString();
   }
 
+  /**
+   * <p>
+   * Execute a single Oscar shell command by using the first
+   * argument string as command name, try to get this command
+   * service, (re)build  the command line, and finally call
+   * <tt>Command.execute</tt>
+   * </p>
+   * <p>
+   * Arguments containing spaces are surrounded with <tt>"</tt>
+   * before calling <tt>Command.execute</tt>
+   * </p>
+   * <p>
+   * If the command does not exist, or fails, print this on the
+   * output stream and return 1.
+   * </p>
+   */
   public int execute(String[] args, 
 		     Reader in, 
 		     PrintWriter out, Session session) {
@@ -115,22 +149,43 @@ public class OscarShellCommandGroup implements CommandGroup {
 
     try {
       Command cmd = (Command)Activator.bc.getService(srl[0]);
+
+      // Create a wrapper stream for both output and error
+      // streams
       ByteArrayOutputStream bout = new ByteArrayOutputStream();
       PrintStream outStream = new PrintStream(bout);
+
+      // ...and call the command
       cmd.execute(sb.toString(),outStream, outStream);
+
+      // grab the resulting string and feed it to the console
       String result = bout.toString();
       out.println(result);
+
     } catch (Exception e) {
       out.println("Failed to call " + args[0] + ": " + e);
       return 1;
     } finally {
+      // alway unget the service
       Activator.bc.getService(srl[0]);
     }
     return 0;
   }
   
 
-  ServiceReference[] getCommandReferences(String name) {
+  /**
+   * <p>
+   * Get the currently registered Oscar Command services matching a
+   * given name.
+   * </p>
+   *
+   * @param name name of command to get. If <tt>null</tt>, return
+   *             all commands.
+   * @return array of ServiceReference to Command services. Zero
+   *         services is representes by a zero.sized array.
+   *
+   */
+  protected ServiceReference[] getCommandReferences(String name) {
     String filter = 
       "(objectclass=" + Command.class.getName() + ")";
       
@@ -138,6 +193,7 @@ public class OscarShellCommandGroup implements CommandGroup {
 
     Vector v = new Vector();
     try {
+      // Get all services, then filter if necessary.
       srl = Activator.bc.getServiceReferences(null, filter);
       if(name != null) {
 	for(int i = 0; srl != null && i < srl.length; i++) {
