@@ -78,11 +78,15 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   }
 
   public void    addBundleSelectionListener(BundleSelectionListener l) {
-    listeners.add(l);
+    synchronized(listeners) {
+      listeners.add(l);
+    }
   }
   
   public void    removeBundleSelectionListener(BundleSelectionListener l) {
-    listeners.remove(l);
+    synchronized(listeners) {
+      listeners.remove(l);
+    }
   }
 
   /**
