@@ -526,21 +526,7 @@ public class CMCommands extends CommandGroupAdapter implements ServiceListener {
               ConfigurationAdmin srvCA = null;
               try {    
                 srvCA = getCA();
-                MetaDataManager mdm = new MetaDataManager();
-                if(mdm.isMetaData(url)) {
-                  InputStream is = MetaDataManager.getInputStream(url);
-                  if(is == null) {
-                    throw new Exception("URL.OpenStream returned null");
-                  }
-                  try {
-                    mdm.addMetaData(is);
-                  } finally {
-                    is.close();
-                  }        
-                  importFromMetaDataManager(out, mdm, srvCA);
-                } else {
-                  CMDataManager.handleCMData(spec, srvCA);
-                }
+		CMDataManager.handleCMData(spec, srvCA);
               } finally {
                 if(srvCA != null) {
                   bc.ungetService(refCA);
@@ -577,31 +563,6 @@ public class CMCommands extends CommandGroupAdapter implements ServiceListener {
     return retcode;
   }
 
-  private void importFromMetaDataManager(PrintWriter out, MetaDataManager mdm, ConfigurationAdmin srvCA) throws Exception {
-    Enumeration e = mdm.getPids();
-    if(!e.hasMoreElements()) {
-      throw new Exception("Found no configurations in file");
-    }
-
-    while(e.hasMoreElements()) {
-      String pid = (String)e.nextElement();
-      MetaData md = mdm.getMetaData(pid);
-      Dictionary d = md.getConfigTemplate(true);
-      if(d == null || d.isEmpty()) {
-        throw new Exception("No properties with default values defined for " + pid);
-      }
-      if(md.isFactory()) {
-        Configuration c = srvCA.createFactoryConfiguration(pid, null);
-        c.update(d);
-        out.println("Added factory configuration for " + pid);
-      } else {
-        Configuration c = srvCA.getConfiguration(pid, null);
-        c.update(d);
-        out.println("Added configuration for " + pid);
-      }
-    }
-  }
-  
   public final static String USAGE_EXPORT = "[-template] <file> [<selection>] ...";
   public final static String [] HELP_EXPORT = new String [] {
     "Export configuration data in xml format to a file.",
