@@ -161,10 +161,6 @@
 	        debug = "on">
    </javac	>
    
-   <taskdef name      = "bundleinfo" 
-            classpath = "${antclasses}" 
-	      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
-	      
    <taskdef name      = "bundlehtml" 
             classpath = "${antclasses}" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
