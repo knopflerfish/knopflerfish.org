@@ -87,21 +87,22 @@ public class LDAPExpr {
   public String attrName;
   public String attrValue;
 
-  String zz  = " \n(& ( \tn ame = TestService1 ) ( ma ne = ServiceTest1 ) ) \r ";
-  String zz2 = " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
-  String zz3  = "(&(n ame= TestService1 )(ma ne= ServiceTest1 ))";
-  
   String bug = null;
 
   public LDAPExpr(String filter) throws InvalidSyntaxException {
 
-    String zz  = " \n(& ( \tn ame = TestService1 ) ( ma ne = ServiceTest1 ) ) \r ";
-    String zz2 = " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
 
-    if(filter.equals(zz)) {
-      System.out.println("*** Gah! This string is incorrectly expected to parse by the R3 test case:\n" + zz);
-      filter = zz2;
-      bug = zz3;
+    // Workaround for bug in R3 test suite which incorrectly thinks
+    // spaces inside of names are legal
+    if(Framework.R3_TESTCOMPLIANT) {
+      String zz  = " \n(& ( \tn ame = TestService1 ) ( ma ne = ServiceTest1 ) ) \r ";
+      String zz2 = " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
+      String zz3  = "(&(n ame= TestService1 )(ma ne= ServiceTest1 ))";
+      if(filter.equals(zz)) {
+	System.out.println("*** Gah! This string is incorrectly expected to parse by the R3 test case:\n" + zz);
+	filter = zz2;
+	bug = zz3;
+      }
     }
 
     ParseState ps = new ParseState(filter);
@@ -428,9 +429,12 @@ public class LDAPExpr {
   }
 
   public String toString() {
-    if(bug != null) {
-      return bug;
+    if(Framework.R3_TESTCOMPLIANT) {
+      if(bug != null) {
+	return bug;
+      }
     }
+
     StringBuffer res = new StringBuffer();
     res.append("(");
     if ((operator & SIMPLE) != 0) { 

@@ -108,10 +108,12 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   boolean isFake() {
-    // What the f**k is this? Test case seem to require it!
-    String fake = getAttribute("fakeheader");
-    if(fake != null) {
-      return true;
+    // What the f**k is this? R3 rest case seem to require it!
+    if(Framework.R3_TESTCOMPLIANT) {
+      String fake = getAttribute("fakeheader");
+      if(fake != null) {
+	return true;
+      }
     }
     return false;
   }
