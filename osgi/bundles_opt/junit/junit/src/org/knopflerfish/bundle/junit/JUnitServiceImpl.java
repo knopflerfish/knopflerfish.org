@@ -84,9 +84,34 @@ public class JUnitServiceImpl implements JUnitService {
   }
 
   void dumpSystemProps(PrintWriter out) throws IOException {
-    out.println("<properties name=\"System.properties\">");
+
+    dumpProps(out, System.getProperties(), "System.properties");
+
+    Hashtable props = new Hashtable();
+    copyBCProp(props, Constants.FRAMEWORK_VENDOR);
+    copyBCProp(props, Constants.FRAMEWORK_VERSION);
+    copyBCProp(props, Constants.FRAMEWORK_OS_NAME);
+    copyBCProp(props, Constants.FRAMEWORK_PROCESSOR);
+    copyBCProp(props, Constants.FRAMEWORK_OS_VERSION);
+    copyBCProp(props, Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+
+    dumpProps(out, props, "Framework.properties");
+  }
+
+  void copyBCProp(Hashtable props, String name) {
+    String s = Activator.bc.getProperty(name);
+    if(s != null) {
+      props.put(name, s);
+    } else {
+      props.put(name, "[null]");
+    }
+  }
+
+  void dumpProps(PrintWriter out, 
+		 Dictionary props, 
+		 String name) throws IOException {
+    out.println("<properties name=\"" + name + "\">");
     try {
-      Properties props = System.getProperties();
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
 	String key = (String)e.nextElement();
 	Object val = props.get(key);
