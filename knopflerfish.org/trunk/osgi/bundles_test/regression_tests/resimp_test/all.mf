@@ -1,6 +1,3 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.5.4 
-Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
 Bundle-Name: resimp_test
 Bundle-SymbolicName: resimp_test
 Bundle-Version: 1.0.0
@@ -16,5 +13,3 @@ Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
  n_tests\resimp_test
 Build-Date: Wed August 25 2004, 19:57:13
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Bundle-APIVendor: 
-
