@@ -52,7 +52,7 @@ import java.lang.reflect.Constructor;
  * basic operations as install, start, stop, uninstall
  * and update.
  *
- * @author Jan Stein
+ * @author Jan Stein, Erik Wistrand
  */
 public class Main {
 
@@ -69,19 +69,14 @@ public class Main {
   // Top directory (including any trailing /)
   static String topDir              = "";
 
-  // Base config directory which will be used if zero args are supplied
-  // to main(). If this file does not exist, continue as usual.
-  //  static String defaultInstDir      = topDir + "inst" + File.separator + "gdsp";
-  static String defaultInstDir      = ".";
-
   // Xargs to use for FW init
   static String defaultXArgsInit    = "init.xargs";
 
   // Xargs to use for FW init
-  static String defaultXArgsInit2   = "remote-init.xargs";
+  static final String defaultXArgsInit2   = "remote-init.xargs";
 
   // Xargs to use for FW restart
-  static String defaultXArgsStart   = "restart.xargs";
+  static final String defaultXArgsStart   = "restart.xargs";
 
 
   // Set to true if JVM is started without any arguments
@@ -90,13 +85,29 @@ public class Main {
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
 
+  static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
+  static final String JARDIR_DEFAULT = "file:";
+
+  static final String FWDIR_PROP    = "org.osgi.framework.dir";
+  static final String FWDIR_DEFAULT = "fwdir";
+  static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
+  static final String CMDIR_DEFAULT = "cmdir";
+
+  static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
+  static final String VERBOSITY_DEFAULT = "0";
+
+
+  static final String XARGS_DEFAULT     = "default";
+
+  static final String PRODVERSION_PROP  = "org.knopflerfish.prodver";
+
   /**
    * Help class for starting the OSGi framework.
    */
   public static void main(String[] args) {
     try { 
       verbosity = 
-	Integer.parseInt(System.getProperty("org.knopflerfish.verbosity", "0"));
+	Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     version = readVersion();
@@ -115,60 +126,49 @@ public class Main {
 
     // Check if there is a default xargs file
     // Uses "init" variant if fwdir exists, otherwise
-    // uses "start" variant.
-    if(bZeroArgs) {
-      args = tryDefaultXArgs();
+    // uses "restart" variant.
+    String xargsPath = getDefaultXArgs(args);
+    if(xargsPath != null) {
+      
+      if(bZeroArgs) {
+	args = new String[] {"-xargs", xargsPath};
+      } else if(args.length == 1 && "-init".equals(args[0])) {
+	args = new String[] {"-init", "-xargs", xargsPath};
+      }
     }
+    
 
-    // Support for arguments located in separate file
-    if(args.length >= 2 && args[0].equals("-xargs")) {
-      args = loadArgs(args);
+    // expand all -xargs options
+    args = expandArgs(args);
+
+    if(verbosity > 5) {
+      for(int i = 0; i < args.length; i++) {
+	println("argv[" + i + "]=" + args[i], 5);
+      }
     }
 
     // redo this since it might have changed
-    try { verbosity = Integer.parseInt(System.getProperty("org.knopflerfish.verbosity", "0"));
+    try { 
+      verbosity = 
+	Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     if(bZeroArgs) {
       // Make sure we have a minimal setup of args
       args = sanityArgs(args);
-
     }
 
     // Set default values to something reasonable if not supplied
     // on the command line (or in xargs)
     setDefaultSysProps();
 
-    String jars = System.getProperty("org.knopflerfish.gosg.jars", "file:");
+    String[] base = getJarBase();
 
-    String[] base = Util.splitwords(jars, ";", '\"');
-    for (int i=0; i<base.length; i++) {
-      try {
-	base[i] = new URL(base[i]).toString();
-      } catch (Exception ignored) {
-      }
-      println("jars base[" + i + "]=" + base[i], 3); 
-    }
-    
-
-    int i = 0;
-    for (; i < args.length; i++) {
-      if ("-help".equals(args[i])) {
-	printHelp();
-	
-	// exit() added by EW because conflict with default
-	// values and "expected" behavoir of -help
-	System.exit(0);
-      } else if ("-init".equals(args[i])) {
-	String d = System.getProperty("org.osgi.framework.dir");
-	
-	FileTree dir = (d != null) ? new FileTree(d) : null;
-	if (dir != null) {
-	  dir.delete();
-	}
-	println("Removed all existing bundles.", 0);
-      } else {
-	break;
+    // Handle -init option before we create the FW, otherwise
+    // we might shoot ourself in the foot. Hard.
+    for(int i = 0; i < args.length; i++) {
+      if("-init".equals(args[i])) {
+	doInit();
       }
     }
 
@@ -179,24 +179,49 @@ public class Main {
       error("New Framework failed!");
     }
     
-    // If no run commands assume launch
-    if (args.length == i) {
-      args = new String [] { "-launch" };
-      i = 0;
-    }
 
     // Save these for possible restart()
     initArgs    = args;
-    initOffset  = i;
+    initOffset  = 0;
     initBase    = base;
 
-    handleArgs(args, i, base);
+    handleArgs(args, initOffset, base);
   }
 
   static String[] initArgs   = null;
   static int      initOffset = 0;
   static String[] initBase   = null;
 
+  static void doInit() {
+    String d = System.getProperty(FWDIR_PROP);
+    
+    FileTree dir = (d != null) ? new FileTree(d) : null;
+    if (dir != null) {
+      if(dir.exists()) {
+	boolean bOK = dir.delete();
+	if(bOK) {
+	  println("Removed existing fwdir " + dir.getAbsolutePath(), 0);
+	} else {
+	  println("Failed to remove existing fwdir " + dir.getAbsolutePath(), 0);
+	}
+      }
+    }
+  }
+
+  static String[] getJarBase() {
+    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+    
+    String[] base = Util.splitwords(jars, ";", '\"');
+    for (int i=0; i<base.length; i++) {
+      try {
+	base[i] = new URL(base[i]).toString();
+      } catch (Exception ignored) {
+      }
+      println("jar base[" + i + "]=" + base[i], 3); 
+    }
+
+    return base;
+  }
 
   /**
    * Handle arg line options.
@@ -211,6 +236,15 @@ public class Main {
       try {
 	if ("-exit".equals(args[i])) {
 	  println("Exit.", 0);
+	  System.exit(0);
+	} else if ("-init".equals(args[i])) {
+	  // This is done in an earlier pass, otherwise we
+	  // shoot the FW in the foot
+	} else if ("-help".equals(args[i])) {
+	  printResource("/help.txt");
+	  System.exit(0);
+	} else if ("-readme".equals(args[i])) {
+	  printResource("/readme.txt");
 	  System.exit(0);
 	} else if ("-install".equals(args[i])) {
 	  if (i+1 < args.length) { 
@@ -383,9 +417,11 @@ public class Main {
       println("location=" + location, 2);
       // URL without protocol complete it.
       for (int i=0; i<base.length; i++) {
+	println("base[" + i + "]=" + base[i], 2);
         try {
           URL url = new URL( new URL(base[i]), location );
 
+	  println("check " + url, 2);
           if ("file".equals(url.getProtocol())) {
             File f = new File(url.getFile());
             if (!f.exists() || !f.canRead()) {
@@ -410,6 +446,7 @@ public class Main {
             }
           }
           location = url.toString();
+	  println("found location=" + location, 5);
           break; // Found.
         } catch (Exception _e) {
         }
@@ -506,16 +543,45 @@ public class Main {
       });
   }
 
-
+  /**
+   * Expand all occurance of -xargs URL into a new
+   * array without any -xargs
+   */
+  static String[] expandArgs(String[] argv) {
+    Vector v = new Vector();
+    int i = 0;
+    while(i < argv.length) {
+      if ("-xargs".equals(argv[i])) {
+	if (i+1 < argv.length) { 
+	  String   xargsPath = argv[i+1];
+	  String[] moreArgs = loadArgs(xargsPath, argv);
+	  i++;
+	  String[] r = expandArgs(moreArgs);
+	  for(int j = 0; j < r.length; j++) {
+	    v.addElement(r[j]);
+	  }
+	} else {
+	  throw new IllegalArgumentException("-xargs without argument");
+	}
+      } else {
+	v.addElement(argv[i]);
+      }
+      i++;
+    }
+    String[] r = new String[v.size()];
+    
+    v.copyInto(r);
+    return r;
+  }
 
   /**
    * Print help for starting the platform.
    */
-  static void printHelp() {
+  static void printResource(String name) {
     try {
-      System.out.println(new String(Util.readResource("/help.txt")));
+      System.out.println(new String(Util.readResource(name)));
     } catch (Exception e) {
-      System.out.println("No help available");
+      System.out.println("No resource '" + name + "' available");
     }
   }
 
@@ -531,84 +597,84 @@ public class Main {
   /**
    * Helper method which tries to find default xargs files.
    */
-  static String[] tryDefaultXArgs() {
+  static String getDefaultXArgs(String[] oldArgs) {
+    boolean bInit = false;
 
-    // Get starting directory
-    String userDir = System.getProperty("user.dir");
-
-    if(userDir != null && userDir.endsWith(File.separator + "lib")) {
-      // hmmm...we seem to have started in the lib directory.
-      // prefix the default instance dir to ../
-      topDir         = ".." + File.separator;
-      defaultInstDir = topDir + defaultInstDir;
-
-      println("adjusted defaultInstDir to " + defaultInstDir, 1);
+    // If the old args has an -init somewhere, make sure
+    // we don't use the restart default xargs
+    for(int i = 0; i < oldArgs.length; i++) {
+      if("-init".equals(oldArgs[i])) {
+	bInit = true;
+      }
     }
 
-    String[] args   = new String[0];
-    File     defDir = new File(defaultInstDir);
+    String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+    File fwDir      = new File(fwDirStr);
+    File xargsFile  = null;
+    
+    File defDir = (new File(fwDir.getAbsolutePath())).getParentFile();
 
-    try {
-      String osName = Alias.unifyOsName(System.getProperty("os.name"));
-      File f = new File("init_" + osName + ".xargs");
-      if(f.exists()) {
-	defaultXArgsInit = f.getName();
-	println("using OS specific xargs=" + defaultXArgsInit, 1);
-      }
-    } catch (Exception e) {
-      
-    }
-    // Check if default instance dir exists
-    if(defDir.exists() && defDir.isDirectory()) {
-      String fwDirStr = System.getProperty("org.osgi.framework.dir");
-      if(fwDirStr == null || "".equals(fwDirStr)) {
-	fwDirStr = (new File(defDir, "fwdir")).getAbsolutePath();
-      }
-      File fwDir     = new File(fwDirStr);
-      File xargsFile = null;
+    println("fwDir="+ fwDir, 2);
+    println("defDir="+ defDir, 2);
+    println("bInit=" + bInit, 2);
 
-      // ..and select appropiate xargs file
-      if(fwDir.exists() && fwDir.isDirectory()) {
+    // ..and select appropiate xargs file
+    if(defDir != null) {
+
+      topDir = defDir + File.separator;
+
+      try {
+	String osName = Alias.unifyOsName(System.getProperty("os.name"));
+	File f = new File(defDir, "init_" + osName + ".xargs");
+	if(f.exists()) {
+	  defaultXArgsInit = f.getName();
+	  println("found OS specific xargs=" + defaultXArgsInit, 1);
+	}
+      } catch (Exception ignored) {
+	// No OS specific xargs found
+      }
+
+
+      if(!bInit && (fwDir.exists() && fwDir.isDirectory())) {
+	println("found fwdir at " + fwDir.getAbsolutePath(), 1);
 	xargsFile = new File(defDir, defaultXArgsStart);
 	if(xargsFile.exists()) {
 	  println("\n" + 
-		  "Using restart xargs file: " + xargsFile + 
+		  "Default restart xargs file: " + xargsFile + 
 		  "\n" + 
 		  "To reinitialize, remove the " + fwDir.toString() + 
 		  " directory\n", 
-		  0);
+		  5);
 	} else {
 	  File xargsFile2 = new File(defDir, defaultXArgsInit);
 	  println("No restart xargs file " + xargsFile + 
-			     ", trying " + xargsFile2 + " instead.", 0);
+		  ", trying " + xargsFile2 + " instead.", 0);
 	  xargsFile = xargsFile2;
 	}
       } else {
+	println("no fwdir at " + fwDir.getAbsolutePath(), 1);
 	xargsFile = new File(defDir, defaultXArgsInit);
 	if(xargsFile.exists()) {
 	  println("\n" + 
-		  "Using init xargs file: " + xargsFile + 
+		  "Default init xargs file: " + xargsFile + 
 		  "\n", 
-		  0);
+		  5);
 	} else {
 	  xargsFile = new File(defDir, defaultXArgsInit2);
 	  if(xargsFile.exists()) {
 	    println("\n" + 
-		    "Using secondary init xargs file: " + xargsFile + 
+		    "Deafult secondary init xargs file: " + xargsFile + 
 		    "\n", 
-		    0);
+		    5);
 	  }
 	}
       }
-
-      // ...and return the mangled args array
-      if(xargsFile != null && xargsFile.exists()) {
-	args = new String[] { "-xargs", xargsFile.toString() };
-      } else {
-	println("Default xargs file " + xargsFile + " does not exists", 1);
-      }
+    } else {
+      // No parent dir to fwdir
     }
-    return args;
+    return xargsFile != null 
+      ?  xargsFile.getAbsolutePath()
+      : null;
   }
 
   /**
@@ -616,12 +682,10 @@ public class Main {
    */
   static String[][] defaultSysProps = new String[][] {
     {"org.osgi.framework.system.packages", "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
-    {"org.knopflerfish.gosg.name",            "gdsp"},
-    {"org.knopflerfish.gdsp.instance.dir",    defaultInstDir}, 
-    {"org.osgi.framework.dir",             defaultInstDir + File.separator + "fwdir"},
-    {"org.knopflerfish.bundle.cm.store",      defaultInstDir + File.separator + "cmdir"},
+    {FWDIR_PROP,    FWDIR_DEFAULT},
+    {CMDIR_PROP,    CMDIR_DEFAULT},
   };
-
+  
 
 
   /**
@@ -655,14 +719,14 @@ public class Main {
     }
 
     // Set version info
-    if(null == System.getProperty("org.knopflerfish.gdsp.prodver")) {
-      sysProps.put("org.knopflerfish.gdsp.prodver", version);
+    if(null == System.getProperty(PRODVERSION_PROP)) {
+      sysProps.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty("org.knopflerfish.gosg.jars");
+    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
     
     if(jars == null || "".equals(jars)) {
       String jarBaseDir = topDir + "jars";
@@ -730,15 +794,11 @@ public class Main {
    * framework due to the amount of properties.
    *
    * <p>
-   * Loads file or URL specified in argv[1] (argv[0] is ignored) and 
+   * Loads a specified file or URL and
    * creates a new String array where each entry corresponds to entries
    * in the loaded file.
    * </p>
-   * <p>
-   * The resulting array consists of the newly created array, appended to 
-   * the array consisting of argv[2] to argv[argv.length-1].
-   * </p>
-   * 
+   *
    * <p>
    * File format:<br>
    *
@@ -762,39 +822,40 @@ public class Main {
    *             return original argv.
    * @return     Original argv + argv loaded from file
    */
-  static String [] loadArgs(String []args) {
+  static String [] loadArgs(String xargsPath, String[] oldArgs) {
 
-    if(args.length < 2) return args;
+    if(XARGS_DEFAULT.equals(xargsPath)) {
+      xargsPath = getDefaultXArgs(oldArgs);
+    }
     
-    java.util.Vector v = new java.util.Vector();
+
+
+    // out result
+    Vector v = new Vector();
 
     try {
       BufferedReader in = null;
 
-      URL url;
+      // Check as file first, then as a URL
 
-      // Check as URL first, then as a plain file
-      if(-1 != args[1].indexOf(":")) {
-	try {
-	  url = new URL(args[1]);
-	  
-	  in = new BufferedReader(new InputStreamReader(url.openStream()));
-	} catch (Exception e) {
-	  println("-xargs failed with " + e, 0);
-	}
+      File f = new File(xargsPath);
+      if(f.exists()) {
+	println("Loading xargs file " + f.getAbsolutePath(), 0);
+	in = new BufferedReader(new FileReader(f));
       }
+
 
       if(in == null) {
-	File f = new File(args[1]);
-	if(f.exists()) {
-	  in = new BufferedReader(new FileReader(f));
-	} else {
-	  System.err.println("No xargs file: " + f.getAbsolutePath());
-	  return args;
+	try {
+	  URL url = new URL(xargsPath);
+	  println("Loading xargs url " + url, 0);
+	  in = new BufferedReader(new InputStreamReader(url.openStream()));
+	} catch (MalformedURLException e)  {
+	  throw new IllegalArgumentException("Bad xargs URL " + xargsPath + 
+					     ": " + e);
 	}
       }
 
-      
       String line = null;
       Properties sysProps = System.getProperties();
       for(line = in.readLine(); line != null; 
@@ -829,18 +890,11 @@ public class Main {
       setSecurityManager(sysProps);
       System.setProperties(sysProps);
     } catch (Exception e) {
-      error("-xargs loading failed: " + e);
+      throw new IllegalArgumentException("xargs loading failed: " + e);
     }
-    String [] args2 = new String[args.length - 2 + v.size()];
-    int n = 0;
-    // First, copy in old argv
-    for(int i = 2; i < args.length; i++) {
-      args2[n++] = args[i];
-    } 
-    // Then, append new entries
-    for(int i = 0; i < v.size(); i++) {
-      args2[n++] = (String)v.elementAt(i);
-    } 
+    String [] args2 = new String[v.size()];
+
+    v.copyInto(args2);
     
     return args2;
   }
