@@ -36,7 +36,7 @@ import java.util.Hashtable;
 
 /**
  * Utility class with static methods for checking classes with
- * the standard OSGi profiles. See r3.book.pdf för details.
+ * the standard OSGi profiles. See r3.book.pdf for details.
  */
 public class EE {
   
