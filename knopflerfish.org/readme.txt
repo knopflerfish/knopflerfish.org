@@ -18,8 +18,11 @@ A nice windows client is available at
 
 typically you can check out the main trunk by:
 
- > mkdir knopflerfish.org
- > svn co https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ > svn co \ 
+    https://www.knopflerfish.org/svn/knopflerfish.org/trunk \
+    knopflerfish.org
+
+ This will check out "trunk" into a new directory "knopflerfish.org"
 
 If you're unsure on Subversion -- do read the Subversion book at
   http://svnbook.red-bean.com/
