@@ -25,8 +25,7 @@
    <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/remotefw/remotefw_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/bundles/xml/jaxp/resources/jaxp.jar"/>
-   <pathelement location="${topdir}/bundles/xml/jaxp/resources/parser.jar"/>
+   <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
    <pathelement location="../axis-osgi/resources/wsdl4j.jar"/>
    <pathelement location="../axis-osgi/resources/qname.jar"/>
    <pathelement location="../axis-osgi/resources/axis.jar"/>
