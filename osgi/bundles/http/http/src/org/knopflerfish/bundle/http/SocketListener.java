@@ -109,7 +109,7 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
     }
 
     isSecure = httpConfig.isSecure();
-    requireClientAuth = Boolean.valueOf(httpConfig.requireClientAuth());
+    requireClientAuth = new Boolean(httpConfig.requireClientAuth());
     port = httpConfig.getPort();
     host = httpConfig.getHost();
     maxConnections = httpConfig.getMaxConnections();
