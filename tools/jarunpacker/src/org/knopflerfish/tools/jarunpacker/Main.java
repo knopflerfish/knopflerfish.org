@@ -61,6 +61,7 @@ public class Main {
   String  iconPath     = null;
   String  licenseResName = null;
   String  licenseTitle   = null;
+  String  windowTitle    = null;
 
   String  optButtons   = "base source htdocs";
 
@@ -176,6 +177,10 @@ public class Main {
 
       try {
 	licenseTitle = mf.getMainAttributes().getValue("jarunpacker-licensetitle");
+      } catch (Exception ignored) {     }
+
+      try {
+	windowTitle = mf.getMainAttributes().getValue("jarunpacker-windowtitle");
       } catch (Exception ignored) {     }
 
 
