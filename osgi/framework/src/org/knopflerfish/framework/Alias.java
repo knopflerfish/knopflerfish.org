@@ -46,7 +46,7 @@ public class Alias {
    * List of processor aliases. The first entry is the true name.
    */
   final public static String[][] processorAliases = {
-    { "arm", "Ignite", "psc1k" },
+    { "Ignite", "psc1k" },
     { "PowerPC", "power", "ppc", "ppcbe" },
     { "x86", "pentium", "i386", "i486", "i586", "i686" },
   };
