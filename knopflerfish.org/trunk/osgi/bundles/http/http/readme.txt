@@ -1,5 +1,12 @@
 The HTTP bundle can be configured by both CM or System properties
 
+As soon as the http bundle gets a valid configuration it creates and
+registers an HttpService instance into the framework. 
+
+Note: If the server fails to bind to a port, an HttpService will still
+be registered, but the service property "port" will not be present!
+
+
 Using System properties
 =======================
 
