@@ -104,7 +104,7 @@ public class OCD implements ObjectClassDefinition {
 	     Dictionary props) {
     this(id, name, desc);
 
-    System.out.println("OCD " + id + ", props=" + props);
+    //    System.out.println("OCD " + id + ", props=" + props);
     for(Enumeration e = props.keys(); e.hasMoreElements();) {
       String key = (String)e.nextElement();
       if("service.pid".equals(key.toLowerCase())) {
@@ -124,13 +124,16 @@ public class OCD implements ObjectClassDefinition {
 	card = Integer.MAX_VALUE;
       }
 
-      AD ad = new AD(key, type, card, key, null);
-      //		     new String[] { AD.toString(val) });
+      AD ad = new AD(key, type, card, key, 
+		     card == 0
+		     ?  new String[] { AD.toString(val) }
+		     : null);
       
 
-      System.out.println(" add " + ad);
+      //      System.out.println(" add " + ad);
       add(ad, REQUIRED);
     }
+
   }
 
   /**
@@ -201,6 +204,13 @@ public class OCD implements ObjectClassDefinition {
 
   }
 
+  /**
+   * Get maximum number of instances. Services return 1, factories
+   * &gt; 1.
+   */
+  public int getMaxInstances() {
+    return maxInstances;
+  }
   /**
    * Set URL to icon
    */

@@ -53,6 +53,7 @@ public class Activator implements BundleActivator {
   static LogRef log;
 
   SystemMetatypeProvider sysMTP;
+  SysPropMetatypeProvider spMTP;
 
   public void start(BundleContext _bc) {
     this.bc = _bc;
@@ -126,6 +127,52 @@ public class Activator implements BundleActivator {
 
     bc.registerService(ManagedService.class.getName(), config,
 		       props);
+
+
+    setupSystemProps();
+
+  }
+
+  void setupSystemProps() {
+    ManagedService config = new ManagedService() {
+	public void updated(Dictionary props) {
+	  if(props != null) {
+	    for(Enumeration e = props.keys(); e.hasMoreElements();) {
+	      String key = (String)e.nextElement();
+	      Object val = props.get(key);
+
+	      if(val != null) {
+		try {
+		  System.setProperty(key, val.toString());
+		} catch (Exception ex) {
+		  log.error("Failed to set system property '" + key + "' to " + val, ex);
+		}
+	      }
+	    }
+	  }
+	}
+      };
+    
+    Hashtable props = new Hashtable();
+    props.put("service.pid", SysPropMetatypeProvider.PID);
+    
+    bc.registerService(ManagedService.class.getName(), config,
+		       props);
+
+    
+    spMTP = new SysPropMetatypeProvider();
+
+    bc.registerService(new String[] {
+      MetaTypeProvider.class.getName(),
+      PIDProvider.class.getName()
+    },
+		       spMTP,
+		       new Hashtable() {
+			 {
+			   put("service.pids", spMTP.getPids());
+			 }
+			 });
+    
   }
 
   public void stop(BundleContext bc) {
@@ -133,6 +180,40 @@ public class Activator implements BundleActivator {
     this.log.close();
     this.log = null;
     this.bc = null;
+  }
+}
+
+class SysPropMetatypeProvider extends MTP {
+  OCD spOCD;
+  static final String PID = "java.system.properties";
+
+  SysPropMetatypeProvider() {
+    super("System properties");
+
+    Hashtable defProps = new Hashtable();
+
+    Properties sysProps = System.getProperties();
+
+    for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
+      String key = (String)e.nextElement();
+      Object val = (String)sysProps.get(key);
+      if(key.startsWith("java.") ||
+	 key.startsWith("os.") ||
+	 key.startsWith("sun.") ||
+	 key.startsWith("awt.") ||
+	 key.startsWith("user.")) {
+	continue;
+      }
+      defProps.put(key, val);
+    }
+
+
+    spOCD = new OCD(PID,
+		    PID,
+		    "Java system properties",
+		    defProps);
+
+    addService(PID, spOCD);
   }
 }
 
