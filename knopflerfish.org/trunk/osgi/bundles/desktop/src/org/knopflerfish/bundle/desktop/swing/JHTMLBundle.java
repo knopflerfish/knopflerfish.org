@@ -228,6 +228,8 @@ public abstract class JHTMLBundle extends JPanel  {
 	  }
 	} catch (Exception e) {
 	  sb.append("Failed to format service object: " + e);
+	} finally {
+	  Activator.bc.ungetService(srl[0]);
 	}
 
 	startFont(sb);
