@@ -20,6 +20,8 @@
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="CM Service"/>
+  <property name="bundle.apivendor"      value="osgi"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
 
   <property name="import.service"        value="org.knopflerfish.service.log.LogService,org.osgi.service.cm.ManagedService,org.osgi.service.cm.ManagedServiceFactory,org.osgi.service.cm.ConfigurationPlugin"/>
 
