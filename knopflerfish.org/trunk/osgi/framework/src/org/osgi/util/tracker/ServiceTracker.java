@@ -698,9 +698,5 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
       }
     }
   }
-  boolean doLog() {
-    return (bc.getBundle().getBundleId() == 0)
-      && -1 != filter.toString().indexOf("osgitest2");
-  }
 }
 
