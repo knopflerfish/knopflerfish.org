@@ -41,7 +41,7 @@
   <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
 
   <property name="export.package"
-            value="org.knopflerfish.service.axis,org.apache.axis,org.apache.axis.wsdl,org.apache.axis.type,sorg.apache.axis.transport,org.apache.axis.soap,org.apache.axis.client,javax.xml.rpc,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.soap"/>
+            value="org.knopflerfish.service.axis,org.apache.axis,org.apache.axis.wsdl,org.apache.axis.type,sorg.apache.axis.transport,org.apache.axis.soap,org.apache.axis.client,javax.xml.rpc,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.soap,javax.xml.rpc.handler,javax.xml.rpc.handler.soap,javax.xml.rpc.holders,javax.xml.soap,org.apache.axis.description,org.apache.axis.encoding,org.apache.axis.enum"/>
 
   &bundlebuild_include;
 
