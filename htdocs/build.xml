@@ -123,7 +123,7 @@
 
     <antcall target="makehtml">
       <param name="fromfile" value="html_src/svn_main.html"/>
-      <param name="tofile"   value="svn.html"/>
+      <param name="tofile"   value="svn_info.html"/>
       <param name="title"    value="Knopflerfish Subversion repository"/>
       <param name="desc"     value="Using the Knopflerfish Subversion repository"/>
       <param name="CLASS_NAVIGATION_SVN" value="navigation_disabled"/>
