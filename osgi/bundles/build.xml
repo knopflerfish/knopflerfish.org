@@ -30,6 +30,7 @@
     <ant dir="desktop"           target="all"/>
 
     <ant dir="trayicon"          target="all"/>
+    <ant dir="upnp"              target="all"/>
   </target>
 
 </project>
