@@ -275,9 +275,11 @@ public class ConsoleAWT extends Panel {
   }
 
   static void log(String msg, Exception e) {
-    System.out.println(msg);
-    if(e != null) {
-      e.printStackTrace();
+    if(false) {
+      System.out.println(msg);
+      if(e != null) {
+        e.printStackTrace();
+      }
     }
   }
 
