@@ -95,6 +95,8 @@ public class Loader {
   static final String TAG_APPINFO          = "appinfo";
   static final String TAG_SEQUENCE         = "sequence";
 
+  static final String BUNDLE_PROTO = "bundle://";
+
   /**
    * Load a MetaTypeProvider from an XML file.
    */
@@ -190,12 +192,12 @@ public class Loader {
 	try {
 	  if(bundle != null) {
 	    if(iconURL.startsWith("/")) {
-	      iconURL = "bundle://$(BID)" + iconURL;
+	      iconURL = BUNDLE_PROTO + "$(BID)" + iconURL;
 	    }
 	    iconURL = Text.replace(iconURL, "$(BID)", 
 				   Long.toString(bundle.getBundleId()));
 	  }
-	  ocd.setIconURL(new URL(iconURL));
+	  ocd.setIconURL(iconURL);
 	} catch (Exception e) {
 	  System.err.println("Failed to set icon url: " +  e);
 	}
@@ -214,7 +216,7 @@ public class Loader {
 			factories[i].desc);
       if(factories[i].iconURL != null) {
 	try {
-	  ocd.setIconURL(new URL(factories[i].iconURL));
+	  ocd.setIconURL(factories[i].iconURL);
 	} catch (Exception e) {
 	  System.err.println("Failed to set icon url: "+ e);
 	}
@@ -901,9 +903,15 @@ public class Loader {
       out.print ("    <xsd:complexType " + ATTR_NAME + "=\"" + pid + "\"");
       if(ocd instanceof OCD) {
 	OCD o2 = (OCD)ocd;
-	URL url = o2.getIconURL();
-	if(url != null) {
-	  out.print(" " + ATTR_ICONURL + "=\"" + url + "\"");
+	String urlStr = o2.getIconURL();
+	if(urlStr != null) {
+	  if(urlStr.startsWith(BUNDLE_PROTO)) {
+	    int ix = urlStr.indexOf("/", BUNDLE_PROTO.length());
+	    if(ix != -1) {
+	      urlStr = urlStr.substring(ix);
+	    }
+	  }
+	  out.print(" " + ATTR_ICONURL + "=\"" + urlStr + "\"");
 	}
       }
       out.println(">");
