@@ -379,10 +379,13 @@ public class JUnitServiceImpl implements JUnitService {
     if(s == null) {
       return null;
     }
-    return 
-      s
-      .replace('<', '[').replace('>', ']')
+    s = s
+      .replace('<', '[')
+      .replace('>', ']')
       .replace('\"', '\'');
+    s = replace(s, "&", "&amp;");
+
+    return s;
   }
 
   protected void toXMLError(AssertionFailedError af, PrintWriter out) throws IOException {
@@ -412,6 +415,83 @@ public class JUnitServiceImpl implements JUnitService {
       return defVal;
     }
     return val;
+  }
+
+  /**
+   * Replace all occurances of a substring with another string.
+   *
+   * <p>
+   * The returned string will shrink or grow as necessary, depending on
+   * the lengths of <tt>v1</tt> and <tt>v2</tt>.
+   * </p>
+   *
+   * <p>
+   * Implementation note: This method avoids using the standard String
+   * manipulation methods to increase execution speed. 
+   * Using the <tt>replace</tt> method does however
+   * include two <tt>new</tt> operations in the case when matches are found.
+   * </p>
+   *
+   *
+   * @param s  Source string.
+   * @param v1 String to be replaced with <code>v2</code>.
+   * @param v2 String replacing <code>v1</code>. 
+   * @return Modified string. If any of the input strings are <tt>null</tt>,
+   *         the source string <tt>s</tt> will be returned unmodified. 
+   *         If <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or
+   *         no occurances of <tt>v1</tt> is found, also 
+   *         return <tt>s</tt> unmodified.
+   */
+  public static String replace(final String s, 
+			       final String v1, 
+			       final String v2) {
+    
+    // return quick when nothing to do
+    if(s == null 
+       || v1 == null 
+       || v2 == null 
+       || v1.length() == 0 
+       || v1.equals(v2)) {
+      return s;
+    }
+
+    int ix       = 0;
+    int v1Len    = v1.length(); 
+    int n        = 0;
+
+    // count number of occurances to be able to correctly size
+    // the resulting output char array
+    while(-1 != (ix = s.indexOf(v1, ix))) {
+      n++;
+      ix += v1Len;
+    }
+
+    // No occurances at all, just return source string
+    if(n == 0) {
+      return s;
+    }
+
+    // Set up an output char array of correct size
+    int     start  = 0;
+    int     v2Len  = v2.length();
+    char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
+    int     rPos   = 0;
+
+    // for each occurance, copy v2 where v1 used to be
+    while(-1 != (ix = s.indexOf(v1, start))) {
+      while(start < ix) r[rPos++] = s.charAt(start++);
+      for(int j = 0; j < v2Len; j++) {
+	r[rPos++] = v2.charAt(j);
+      }
+      start += v1Len;
+    }
+
+    // ...and add all remaining chars
+    ix = s.length(); 
+    while(start < ix) r[rPos++] = s.charAt(start++);
+    
+    // ..ouch. this hurts.
+    return new String(r);
   }
 
 }
