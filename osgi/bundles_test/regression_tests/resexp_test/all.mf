@@ -5,7 +5,7 @@ Bundle-Description: Test bundle for framework, resource export
 Bundle-Vendor: Knopflerfish/Gatespace Telematics
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Activator: org.knopflerfish.bundle.resexp_test.impl.Activator
+Bundle-Activator: org.knopflerfish.bundle.resexp_test.Activator
 Bundle-Category: test
 Export-Package: org.knopflerfish.bundle.resexp_test
 Import-Package: org.osgi.framework
