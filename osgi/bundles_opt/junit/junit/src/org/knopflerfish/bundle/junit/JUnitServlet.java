@@ -118,10 +118,15 @@ public class JUnitServlet extends HttpServlet {
 			 PrintWriter out) throws 
 			   ServletException,
 			   IOException {
+    String id    = request.getParameter(ID);
+    String subid = request.getParameter(SUBID);
     out.println("<html>");
     out.println("<head>");
-    out.println("<title>");
-    out.println("test result");
+    out.print("<title>");
+    out.print("JUnit test result from " + id);
+    if(subid != null && !"".equals(subid)) {
+      out.print("/" + subid);
+    }
     out.println("</title>");
     printCSS(out);
     out.println("</head>");
@@ -129,7 +134,7 @@ public class JUnitServlet extends HttpServlet {
 
     try {
       if("run".equals(cmd)) {
-	runTestHTML(request, request.getParameter(ID), out);
+	runTestHTML(request, id, out);
       } else if("list".equals(cmd)) {
 	showTestsHTML(request, response, out);
       } else {
@@ -285,7 +290,7 @@ public class JUnitServlet extends HttpServlet {
 
     out.println("<p><a href=\"" + HttpExporter.SERVLET_ALIAS + 
 		"?" + ID + "=" + id + "&" + FMT + "=xml\"" +
-		">Show as XML</a></p>");
+		">Run again and show as XML</a></p>");
     
     TestSuite suite = getSuite(request);
     
@@ -575,9 +580,13 @@ public class JUnitServlet extends HttpServlet {
   }
 
   String escape(String s) {
-    return s == null 
-      ? s 
-      : (s.replace('<', '[').replace('>', ']'));
+    if(s == null) {
+      return null;
+    }
+    return 
+      s
+      .replace('<', '[').replace('>', ']')
+      .replace('\"', '\'');
   }
 
   void dumpError(AssertionFailedError af, PrintWriter out) throws IOException {
