@@ -126,6 +126,7 @@ public class AD implements AttributeDefinition, Comparable {
 	s = "";
 	break;
       case INTEGER: 
+      case LONG: 
       case SHORT: 
       case BYTE:  
       case BIGINTEGER:
