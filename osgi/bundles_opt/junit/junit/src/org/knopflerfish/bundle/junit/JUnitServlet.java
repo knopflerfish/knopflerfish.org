@@ -70,18 +70,26 @@ public class JUnitServlet extends HttpServlet {
 
       PrintWriter out = response.getWriter();
 
-      String fmt = request.getParameter("fmt");
+      String fmt  = request.getParameter("fmt");
+      String cmd  = request.getParameter("cmd");
+      String id   = request.getParameter("id");
+
+      if(id == null && cmd == null) {
+	cmd = "list";
+	fmt = "html";
+      } else {
+	if(cmd == null) {
+	  cmd = "run";
+	}
+      }
+
+
       if("html".equals(fmt)) {
 	response.setContentType ("text/html");
       } else {
 	response.setContentType ("text/xml");
       }
 
-      String cmd = request.getParameter("cmd");
-
-      if(cmd == null) {
-	cmd = "run";
-      }
 
       if("html".equals(fmt)) {
 	handleCommandHTML(request, response, cmd, out);
@@ -117,6 +125,8 @@ public class JUnitServlet extends HttpServlet {
     try {
       if("run".equals(cmd)) {
 	runTestHTML(request.getParameter("id"), out);
+      } else if("list".equals(cmd)) {
+	showTestsHTML(request, response, out);
       } else {
 	throw new IllegalArgumentException("Unknown command='" + cmd + "'");
       }
@@ -126,9 +136,40 @@ public class JUnitServlet extends HttpServlet {
       e.printStackTrace(out);
       out.println("</pre>");
     }
-
+    
     out.println("</body>");
     out.println("</html>");
+  }
+  
+  void showTestsHTML(HttpServletRequest  request, 
+		     HttpServletResponse response,
+		     PrintWriter out) throws Exception
+  {
+
+    out.println("<h2>Available tests</h2>");
+
+    String filter =  
+      "(|" + 
+      "(objectclass=" + Test.class.getName() + ")" + 
+      "(objectclass=" + TestSuite.class.getName() + ")" + 
+      "(objectclass=" + TestCase.class.getName() + ")" + 
+      ")";
+    
+    ServiceReference[] srl = 
+      Activator.bc.getServiceReferences(null, filter);
+    
+    out.println("<ol>");
+    for(int i = 0; srl != null && i < srl.length; i++) {
+      String id   = (String)srl[i].getProperty("service.pid");
+      String desc = (String)srl[i].getProperty("service.description");
+      
+      String link = "/junit?cmd=run&fmt=html&id=" + id;
+      out.println("<li><a href=\"" + link + "\">" + id + "</a>");
+      if(desc != null && !"".equals(desc)) {
+	out.println("<br>" + desc);
+      }
+    }
+    out.println("</ol>");
   }
 
   void handleCommand(HttpServletRequest  request, 
