@@ -1,5 +1,5 @@
-1 You can drag and drop a bundle jar file into the desktop.
-When a bundle jar files is dropped into the deskstop, it will be installed
+1 You can drag and drop a bundle jar file into the Desktop.
+When a bundle jar files is dropped into the Deskstop, it will be installed
 and started.
 
 ----
@@ -12,12 +12,15 @@ displayed in the bundle detail area.
 By <b>unselecting all</b> bundles in the main bundle area, all log entries
 are displayed in the bundle detail area.
 <p>
-Unselecting bundles can be done from the <i>Edit</i> menu
+Unselecting bundles can be done from the Desktop Edit menu
+<p>
+ Edit - Unselect all
+</p>
 </p>
 
 ----
-4 The desktop can remotely control another framework
-If you install the optional SOAP remote connectivity kit, the desktop
+4 The Desktop can remotely control another framework
+If you install the optional SOAP remote connectivity kit, the Desktop
 can be used to remotely control another framework.
 <p>
 Read more about the SOAP kit at
@@ -34,12 +37,26 @@ remote acces to a framework using any telnet client.
 ----
 6 Bundle packages need to be refreshed after update
 To make sure all exported classes are refreshed after a bundle update,
-you should <i>refresh</i> the packages. The <i>Edit</i> menu or console
+you should <i>refresh</i> the packages. The Desktop bundle menu or console
 both have refresh commands.
 
+<p>
+Menu:
+<p>
+ Bundle - Refresh bundle packages
+</p>
+</p>
+
+<p>
+Console:
+<p>
+ &gt; /framework refresh
+</p>
+</p>
+
 ----
-7 The Knopferfish desktop can be run on other OSGi frameworks.
-Just install and start the desktop and util bundle jars on the target
+7 The Knopferfish Desktop can be run on other OSGi frameworks.
+Just install and start the Desktop and util bundle jars on the target
 framework.
 
 ----
@@ -49,7 +66,7 @@ the <i>Application-Icon</i> manifest attribute.
 
 ----
 9 New Desktop views can be installed
-A developer can write a bundle exporting a desktop plugin service.
+A developer can write a bundle exporting a Desktop plugin service.
 See <i>org.knopflerfish.service.desktop</i> javadoc for more info.
 
 ----
@@ -83,7 +100,7 @@ But it's hard to spell and sounds nice
 ----
 15 The System.out and System.err streams is logged in the OSGi log
 The System.out stream is logged on the system bundle as INFO events.
-The System.err strem is logged as ERROR events.
+The System.err stream is logged as ERROR events.
 
 ----
 16 The optional commons-logging bundle provides the Apache Commons Logging API
@@ -110,10 +127,10 @@ For example, this entire tip file is available at
 <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt</a>
 
 ----
-18 This desktop is just another OSGi bundle
+18 This Desktop is just another OSGi bundle
 The Desktop bundle is a normal bundle, using Swing to display it's interface.
 <p>
-As long as the JVM supports swing, nothing prevents you from writing your own 
+As long as the JVM supports swing, nothing pvents you from writing your own 
 swing bundles. Do close your windows yourself, though ;)
 </p>
 
@@ -121,5 +138,33 @@ swing bundles. Do close your windows yourself, though ;)
 19 This dialog doesn't block the main window
 
 You can have the tip dialog open at the same time you work with
-the main desktop window.
+the main Desktop window.
 
+----
+20 All system properties can be viewed from the Desktop
+
+Open the "Framework info" dialog using the Desktop Help menu.
+<p>
+ Help - Framework info
+</p>
+
+----
+21 All console commands have automatic shortcuts
+
+Each console command can be shortened to the shortest unique
+string.
+<p>
+For example "/framework update 15" can be shortened to
+<p>
+ &gt; /fr up 15
+</p>
+</p>
+
+----
+22 You can copy the log to the clipboard
+
+The log can be copied to the clipboard, by showing the log detail view
+and right-clicking on the log entries. Then select "Copy log to clipboard".
+<p>
+The log can then be pasted as text into your favorite editor.
+</p>
