@@ -78,7 +78,7 @@
  <property name = "console.loginok"     value = "'quit' to end session"/>
 
  <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
- <property name = "bundle.apivendor"  value = ""/>
+ <property name = "bundle.apivendor"  value = "${bundle.emptystring}"/>
 
 
  <property name = "bundle.uuid.impl"          value = "${bundle.uuid}:impl"/>
