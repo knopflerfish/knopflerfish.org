@@ -235,7 +235,7 @@ public class LogRef
   {
     if (bc!=null && log == null) {
       logSR = bc.getServiceReference(LOG_CLASS_KF);
-      if (logSR != null) {
+      if (logSR == null) {
         // No service implementing the Knopflerfish extended log, try to
         // look for a standard OSGi log service.
         logSR = bc.getServiceReference(LOG_CLASS_OSGI);
