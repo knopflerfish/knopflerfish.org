@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.desktop.cm;
 import java.net.URL;
 import java.io.*;
 import java.util.*;
+import org.osgi.framework.*;
 
 
 public class Util {
@@ -123,5 +124,79 @@ public class Util {
     
     return r;
   }
+
+  public static String getBundleName(Bundle b) {
+    String s = getHeader(b, "Bundle-Name", "");
+    if(s == null || "".equals(s) || s.startsWith("%")) {
+      s = shortLocation(b.getLocation());
+    }
+
+    return s;
+  }
+
+  static public void openExternalURL(URL url) throws IOException {
+    if(Util.isWindows()) {
+      // Yes, this only works on windows
+      String systemBrowser = "explorer.exe";
+      Runtime rt = Runtime.getRuntime();
+      Process proc = rt.exec(new String[] {
+	systemBrowser, 
+	"\"" + url.toString() + "\"",
+      });
+    } else {
+      throw new IOException("Only windows browsers are yet supported");
+    }
+  }
+  
+  public static boolean isWindows() {
+    String os = System.getProperty("os.name");
+    if(os != null) {
+      return -1 != os.toLowerCase().indexOf("win");
+    }
+    return false;
+  }
+
+
+ public static String shortLocation(String s) {
+    int ix = s.lastIndexOf("/");
+
+    // handle eclipse extended location directory syntax
+    if(s.endsWith("/")) {
+      ix = s.lastIndexOf("/", ix - 1);
+    }
+
+    if(ix == -1) {
+      ix = s.lastIndexOf("\\");
+    }
+    if(ix != -1) {
+      return s.substring(ix + 1);
+    }
+    return s;
+  }
+
+  public static String getHeader(Bundle b, String name) {
+    return getHeader(b, name, null);
+  }
+
+  public static String getHeader(Bundle b, String name, String def) {
+    String s = b != null
+      ? (String)b.getHeaders().get(name)
+      : def;
+
+    return s;
+  }
+
+  public static void startFont(StringBuffer sb) {
+    startFont(sb, "-2");
+  }
+  
+  public static void stopFont(StringBuffer sb) {
+    sb.append("</font>");
+  }
+  
+  public static void startFont(StringBuffer sb, String size) {
+    sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
+  }
+  
 }
 
