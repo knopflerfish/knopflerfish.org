@@ -141,6 +141,11 @@ public class Framework {
   ServiceContentHandlerFactory   contentHandlerFactory;
 
   /**
+   * Magic handler for bundle: URLs
+   */
+  URLStreamHandler bundleURLStreamhandler;
+
+  /**
    * Property constants for the framework.
    */
   final static String osArch    = System.getProperty("os.arch");
@@ -158,7 +163,14 @@ public class Framework {
   // but shouldn't really be used in production.
   final static boolean SETCONTEXTCLASSLOADER =
     "true".equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", "false"));
-  
+
+  final static boolean REGISTERBUNDLEURLHANDLER =
+    "true".equals(System.getProperty("org.knopflerfish.osgi.registerbundleurlhandler", "false"));
+
+  final static boolean REGISTERSERVICEURLHANDLER =
+    "true".equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", "true"));
+
+
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
@@ -251,20 +263,27 @@ public class Framework {
 
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
     contentHandlerFactory   = new ServiceContentHandlerFactory(this);
+    bundleURLStreamhandler  = new BundleURLStreamHandler(bundles);
 
-    urlStreamHandlerFactory
-      .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
-			   new BundleURLStreamHandler(bundles));
+    // Only register bundle: URLs publicly if explicitly told so
+    // Note: registering bundle: URLs exports way to much. 
+    if(REGISTERBUNDLEURLHANDLER) {
+      urlStreamHandlerFactory
+        .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
+                             bundleURLStreamhandler);
+    }
 
     urlStreamHandlerFactory
       .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
 			   new ReferenceURLStreamHandler());
     
-    // Install service based URL stream handler
-    URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
-				   
-    URLConnection.setContentHandlerFactory(contentHandlerFactory);
-
+    // Install service based URL stream handler. This can be turned
+    // off if there is need
+    if(REGISTERSERVICEURLHANDLER) {
+      URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+      
+      URLConnection.setContentHandlerFactory(contentHandlerFactory);
+    }
     bundles.load();
   }
 

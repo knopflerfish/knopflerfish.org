@@ -164,7 +164,14 @@ class BundleImpl implements Bundle {
     ProtectionDomain pd = null;
     if (fw.bPermissions) {
       try {
-	URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, Long.toString(id), "");
+        URLStreamHandler handler 
+          = bpkgs.bundle.framework.bundleURLStreamhandler;
+        
+	URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, 
+                                Long.toString(id), 
+                                -1,
+                                "",
+                                handler);
 	PermissionCollection pc = fw.permissions.getPermissionCollection(this);
 	pd = new ProtectionDomain(new CodeSource(bundleUrl, 
 						 (java.security.cert.Certificate[])null), 
