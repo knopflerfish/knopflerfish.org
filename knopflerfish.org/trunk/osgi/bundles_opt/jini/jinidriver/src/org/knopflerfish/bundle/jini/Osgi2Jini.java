@@ -71,7 +71,7 @@ public class Osgi2Jini {
             serviceTracker = null;
             Debug.printDebugInfo(10,
                 "Could not setup up the OSGi to Jini Bridge", ex);
-            throw new Exception(ex);
+            throw ex;
         }
     }
 
