@@ -124,7 +124,7 @@
      This affects some very special (due to bugs in the test) handling 
      of filters and conflict between the spec concerning CM and the actual
      tests. Bundles knowning abouth these conflicts should check the 
-     testcompliant flag and act appropiatley.
+     testcompliant flag and act appropiately.
     
      Default is "false". Default is a Good Thing since it means
      follow the spec, not the buggy tests.
