@@ -55,7 +55,7 @@ public class OCD implements ObjectClassDefinition {
   List optAttrs;
   List reqAttrs;
 
-  URL      iconURL = null;
+  String      iconURL = null;
 
   /**
    * Create a new, empty ObjectClassDefinition.
@@ -191,7 +191,8 @@ public class OCD implements ObjectClassDefinition {
    */
   public InputStream getIcon(int size) throws IOException {
     if(iconURL != null) {
-      return iconURL.openStream();
+      URL url = new URL(iconURL);
+      return url.openStream();
     } else {
       return null;
     }
@@ -201,14 +202,14 @@ public class OCD implements ObjectClassDefinition {
   /**
    * Set URL to icon
    */
-  public void setIconURL(URL url) {
+  public void setIconURL(String url) {
     iconURL = url;
   }
 
   /**
    * Get URL to icon data
    */
-  public URL getIconURL() {
+  public String getIconURL() {
     return iconURL;
   }
 
