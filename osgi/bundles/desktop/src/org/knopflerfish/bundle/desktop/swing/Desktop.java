@@ -207,9 +207,16 @@ public class Desktop
     toolBar       = makeToolBar();
     statusBar     = new StatusBar("");
 
+    String rName = Activator.remoteHost;
+    Map    props = Activator.getSystemProperties();
+    String spid  = (String)props.get("org.osgi.provisioning.spid");
 
-    frame       = new JFrame(Strings.fmt("frame_title", 
-					 Activator.remoteHost));
+    if(spid != null && !"".equals(spid)) {
+      rName = rName + " " + spid;
+    }
+    
+    
+    frame       = new JFrame(Strings.fmt("frame_title", rName));
     
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {

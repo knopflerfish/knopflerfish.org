@@ -490,33 +490,40 @@ public class Util {
   
   static public String getSystemInfo() {
     StringBuffer sb = new StringBuffer();
+    try {
 
-    sb.append("<table>\n");
-    
-    sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
-    sb.append(fontify("Framework properties", -1));
-    sb.append("</td>\n");
-    sb.append(" </tr>\n");
-
-    
-    for(int i = 0; i < FWPROPS.length; i++) {
-      sb.append(" <tr>\n");
-      sb.append("  <td valign=\"top\">");
-      sb.append(fontify(FWPROPS[i]));
-      sb.append("</td>\n");
-      sb.append("  <td valign=\"top\">");
-      sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+      Map props = Activator.getSystemProperties();
+      
+      sb.append("<table>\n");
+      
+      sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
+      sb.append(fontify("Framework properties", -1));
+      
+      String spid = (String)props.get("org.osgi.provisioning.spid");
+      if(spid != null && !"".equals(spid)) {
+	sb.append(fontify("(" + spid + ")", -1));
+      }
+      
       sb.append("</td>\n");
       sb.append(" </tr>\n");
-    }
-
-    sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
-    sb.append(fontify("System properties", -1));
-    sb.append("</td>\n");
-    sb.append("</tr>\n");
-
-    try {
-      Map props = Activator.getSystemProperties();
+      
+      
+      for(int i = 0; i < FWPROPS.length; i++) {
+	sb.append(" <tr>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(FWPROPS[i]));
+	sb.append("</td>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+	sb.append("</td>\n");
+	sb.append(" </tr>\n");
+      }
+      
+      sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
+      sb.append(fontify("System properties", -1));
+      sb.append("</td>\n");
+      sb.append("</tr>\n");
+      
       
       for(Iterator it = props.keySet().iterator(); it.hasNext();) {
 	String key = (String)it.next();
