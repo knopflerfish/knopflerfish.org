@@ -130,6 +130,9 @@ public class Desktop
   StatusBar          statusBar;
   JMenuBar           menuBar;
 
+  JMenuItem          menuRemote;
+  JButton            buttonRemote;
+
   public JCheckBoxMenuItem  logCheckBox = null;
 
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
@@ -300,6 +303,7 @@ public class Desktop
     frame.setJMenuBar(menuBar = makeMenuBar());
 
        
+    setRemote(Activator.remoteTracker.getService() != null);
 
     setIcon(frame, "/fish");
 
@@ -431,6 +435,11 @@ public class Desktop
   JButton toolUninstallBundles;
 
 
+  void setRemote(boolean b) {
+    menuRemote.setEnabled(b);
+    buttonRemote.setEnabled(b);
+  }
+
   JToolBar makeToolBar() {
     return new JToolBar() {
 	{
@@ -456,19 +465,17 @@ public class Desktop
 	      }
 	    });
 
-	  if(Activator.remoteTracker.getService() != null) {
-	    add(new JButton(connectIcon) { 
-		{ 
-		  addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent ev) {
-			doConnect();
-		      }
-		    });
-		  setToolTipText(Strings.get("menu_remotefw"));
-		}
-	      });
-	  }
-	  
+
+	  add(buttonRemote = new JButton(connectIcon) { 
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      doConnect();
+		    }
+		  });
+		setToolTipText(Strings.get("menu_remotefw"));
+	      }
+	    });
 	  //	  add(new JToolBar.Separator());
 	  
 	  add(toolStartBundles = new JButton(startIcon) { 
@@ -911,21 +918,19 @@ public class Desktop
 		  });
 	      }});
 	  
-	  if(Activator.remoteTracker.getService() != null) {
-	    add(new JMenuItem(Strings.get("menu_remotefw"), connectIcon) {
-		{ 
-		  setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-							ActionEvent.CTRL_MASK));
-		  setMnemonic(KeyEvent.VK_F);
-		  
-		  addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent ev) {
-			doConnect();
-		      }
-		    });
-		}});
-	  }
-	  
+	  add(menuRemote = new JMenuItem(Strings.get("menu_remotefw"), connectIcon) {
+	      { 
+		setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+						      ActionEvent.CTRL_MASK));
+		setMnemonic(KeyEvent.VK_F);
+		
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      doConnect();
+		    }
+		  });
+	      }
+	    });
 	  
 	  add(new JMenuItem("Quit framework...") {
 	      { 
@@ -1274,7 +1279,7 @@ public class Desktop
 			options[1]);
     if(n == 0) {
       try {
-	Bundle sysBundle = Activator.getTargetBC().getBundle((long)0);
+	Bundle sysBundle = Activator.getBC().getBundle((long)0);
 	sysBundle.stop();
       } catch (Exception e) {
 	e.printStackTrace();
@@ -1359,14 +1364,14 @@ public class Desktop
     String s = (String)combo.getSelectedItem();
 
     if (Strings.get("local").equals(value)) {
-      s = "local";
+      s = "";
     }
 
     if(!Activator.remoteHosts.contains(s)) {
       Activator.remoteHosts.addElement(s);
     }
     
-    if ((s != null) && (s.length() > 0)) {
+    if ((s != null)) {
       Activator.openRemote(s);
     }
   }

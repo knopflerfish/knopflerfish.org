@@ -95,10 +95,12 @@ public class Activator implements BundleActivator {
   static Vector remoteHosts = new Vector() {
       {
 	addElement("http://localhost:8080");
+	addElement("http://localhost:8081");
+	addElement("http://localhost:80");
       }
     };
 
-  static String remoteHost = "local";
+  static String remoteHost = "";
 
   public static BundleContext openRemote(String host) {
     if(host.equals(remoteHost)) {
@@ -133,7 +135,17 @@ public class Activator implements BundleActivator {
     this.log       = new LogRef(bc);
     this.myself    = this;
 
-    remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null);
+    remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null) {
+	public Object addingService(ServiceReference sr) {
+	  Object obj = super.addingService(sr);
+	  try {  desktop.setRemote(true); } catch (Exception e) { }
+	  return obj;
+	}
+	public void removedService(ServiceReference sr, Object service) {
+	  try {  desktop.setRemote(false); } catch (Exception e) { }
+	  super.removedService(sr, service);
+	}
+      };
     remoteTracker.open();
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
