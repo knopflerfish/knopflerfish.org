@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "1.3.2"/>
+            value = "1.3.3"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -300,6 +300,7 @@
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
            <include name = "osgi/template.xargs"/>
+           <include name = "osgi/props.xargs"/>
 
            <include name = "build.xml"/>
            <include name = "tools/**"/>
@@ -437,6 +438,7 @@
            <include name = "osgi/minimal.xargs"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
+           <include name = "osgi/props.xargs"/>
 
            <include name = "osgi/jars/desktop/desktop_all-1.1.0.jar"/>
            <include name = "osgi/jars/consoletelnet/consoletelnet-1.0.0.jar"/>
@@ -550,6 +552,7 @@
            <include name = "osgi/minimal.xargs"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
+           <include name = "osgi/props.xargs"/>
 
            <include name = "osgi/jars/**"/>
 
@@ -598,6 +601,7 @@
 
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
+           <include name = "osgi/props.xargs"/>
 
            <include name = "osgi/bundlemanager.props"/>
            <include name = "osgi/bm.props"/>
@@ -649,16 +653,8 @@
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
            <exclude name = "**/*.class"/>
-<!--
-           <include name = "osgi/jars/log/*.jar"/>
-           <include name = "osgi/jars/cm/*.jar"/>
-           <include name = "osgi/jars/http/*.jar"/>
-           <include name = "osgi/jars/util/*.jar"/>
-           <include name = "osgi/jars/jsdk/*.jar"/>
-           <include name = "osgi/jars/console/*.jar"/>
--->
 
-           <include name = "osgi/init-tests.xargs"/>
+
            <exclude name = "**/CVS"/>
         </zipfileset>
 
