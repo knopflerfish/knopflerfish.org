@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.5.4 
+Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
+Bundle-Name: bundleV_test
+Bundle-SymbolicName: bundleV_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleV_test
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleV_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleV_test
+Import-Package: org.knopflerfish.service.bundleV_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleV_test:1.0.0:all
+Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
+ n_tests\bundleV_test
+Build-Date: Wed August 25 2004, 19:57:04
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-APIVendor: 
+

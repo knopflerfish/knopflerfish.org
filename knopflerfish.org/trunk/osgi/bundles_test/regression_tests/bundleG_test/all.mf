@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.5.4 
+Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
+Bundle-Name: bundleG_test
+Bundle-SymbolicName: bundleG_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for bundle manager, bundleG_test. This
+  bundle hangs forever in its start method.
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleG_test.BundleActivator
+Bundle-Category: test
+Export-Package: 
+Import-Package: org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleG_test:1.0.0:all
+Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
+ n_tests\bundleG_test
+Build-Date: Wed August 25 2004, 19:56:33
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-APIVendor: 
+

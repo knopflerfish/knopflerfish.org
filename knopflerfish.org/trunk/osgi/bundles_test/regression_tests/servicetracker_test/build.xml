@@ -1,42 +1,26 @@
 <?xml version="1.0"?>
 
 <!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
 ]>
 
 <project name="servicetracker_test" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <property name="topdir"       location=".."/>
 
-  <property name  = "api.pattern"
-            value = "org/knopflerfish/service/**"/>
+  <property name="bundle.version" value="1.0.0"/>
 
-  <property name  = "impl.pattern"
-            value = "org/knopflerfish/bundle/**"/>
-
-  <property name = "bundle.build.api"    value = "false"/>
-  <property name = "bundle.build.lib"    value = "false"/>
-  <property name = "bundle.build.impl"   value = "false"/>
-  <property name = "bundle.build.all"    value = "true"/>
-
-  <path id="bundle.compile.path">
-   <pathelement location="${topdir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  <path id = "bundle.compile.path">
   </path>
 
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/bundleS_test/bundleS_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleS_test-1.0.0.jar"         
          todir = "resources"/>
-  </target>  
-  
-  <property name="bundle.description"    value="Test bundle for ServiceTracker class"/>
-  <property name="bundle.category"       value="test"/>
-  <property name="bundle.vendor"         value="Knopflerfish/Gatespace Telematics"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="export.package"        value="[bundle.emptystring]"/>
+  </target>
 
-  &bundlebuild_include;
+  &test_include;
 
 </project>
 

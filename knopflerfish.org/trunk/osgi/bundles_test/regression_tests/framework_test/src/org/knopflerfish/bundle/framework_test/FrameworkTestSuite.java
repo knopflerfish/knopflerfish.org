@@ -437,7 +437,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
 	try {
 	  URL url = new URL("bundle://" + bc.getBundle().getBundleId() + "/" + 
-			    "bundleA_test_all-1.0.0.jar");
+			    "bundleA_test-1.0.0.jar");
 	  
 	  // if the URL can be created, it should be possible to install
 	  // from the URL string representation
@@ -481,7 +481,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buA = null; 
       boolean teststatus = true;
       try {
-	buA = Util.installBundle(bc, "bundleA_test_all-1.0.0.jar");
+	buA = Util.installBundle(bc, "bundleA_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -698,7 +698,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean exception;
       buD = null;
       try {
-	buD = Util.installBundle(bc, "bundleD_test_all-1.0.0.jar");
+	buD = Util.installBundle(bc, "bundleD_test-1.0.0.jar");
 	exception = false;
       }
       catch (BundleException bexcA) {
@@ -748,7 +748,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean exception;
       buD1 = null;
       try {
-	buD1 = Util.installBundle(bc, "bundleD1_test_all-1.0.0.jar");
+	buD1 = Util.installBundle(bc, "bundleD1_test-1.0.0.jar");
 	exception = false;
       }
       catch (BundleException bexcA) {
@@ -839,7 +839,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       try {
-	buB = Util.installBundle(bc, "bundleB_test_all-1.0.0.jar");
+	buB = Util.installBundle(bc, "bundleB_test-1.0.0.jar");
 	buB.start();
 	teststatus = true;
       }
@@ -916,7 +916,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       try {
-	buC = Util.installBundle(bc, "bundleC_test_all-1.0.0.jar");
+	buC = Util.installBundle(bc, "bundleC_test-1.0.0.jar");
 	buC.start();
 	teststatus = true;
       }
@@ -1216,7 +1216,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean catchstatus = true;
       buE = null;
       try {
-	buE = Util.installBundle(bc, "bundleE_test_all-1.0.0.jar");
+	buE = Util.installBundle(bc, "bundleE_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -1283,8 +1283,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       boolean catchstatus = true;
-      String jarA = "bundleA_test_all-1.0.0.jar";
-      String jarA1 = "bundleA1_test_all-1.0.1.jar";
+      String jarA = "bundleA_test-1.0.0.jar";
+      String jarA1 = "bundleA1_test-1.0.1.jar";
       InputStream fis;
       String versionA; 
       String versionA1;
@@ -1477,7 +1477,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean catchstatus = true;
       buF = null;
       try {
-	buF = Util.installBundle(bc, "bundleF_test_all-1.0.0.jar");
+	buF = Util.installBundle(bc, "bundleF_test-1.0.0.jar");
       }
       catch (BundleException bexcA) {
 	fail("framework test bundle "+ bexcA +" :FRAME080A:FAIL");
@@ -1569,7 +1569,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buH = null;
       boolean teststatus = true;
       try {
-	buH = Util.installBundle(bc, "bundleH_test_all-1.0.0.jar");
+	buH = Util.installBundle(bc, "bundleH_test-1.0.0.jar");
 	buH.start();
 	teststatus = true;
       }
@@ -1637,7 +1637,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean teststatus = true;
       boolean bex = false;
       try {
-	buJ = Util.installBundle(bc, "bundleJ_test_all-1.0.0.jar");
+	buJ = Util.installBundle(bc, "bundleJ_test-1.0.0.jar");
 	buJ.start();
 	teststatus = false;
       }
@@ -2371,14 +2371,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       Bundle buR1 = null; 
       try {
 	try {
-	  buR = Util.installBundle(bc, "bundleR_test_all-1.0.0.jar");
+	  buR = Util.installBundle(bc, "bundleR_test-1.0.0.jar");
 	} catch (BundleException e) {
 	  out.println("Failed install R: " + e.getNestedException() + ", in FRAME160A");
 	  pass = false;
 	}
 
 	try {
-	  buR1 = Util.installBundle(bc, "bundleR1_test_all-1.0.0.jar");
+	  buR1 = Util.installBundle(bc, "bundleR1_test-1.0.0.jar");
 	} catch (BundleException e) {
 	  pass = false;
 	  fail("Failed install R1: " + e.getNestedException() + ", in FRAME160A:FAIL");
@@ -2479,7 +2479,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	callReturned = false;
 	errorFrame170 = null;
 	try {
-	  buQ = Util.installBundle(bc, "bundleQ_test_all-1.0.0.jar");
+	  buQ = Util.installBundle(bc, "bundleQ_test-1.0.0.jar");
 	  callReturned = true;
 	  try {
 	    Thread.sleep(1000);
@@ -2501,7 +2501,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	bc.removeBundleListener(bl2);
 	bc.removeBundleListener(bl3);
 	try {
-	  buQ1 = bc.installBundle("Q1", bc.getBundle().getResource("bundleQ_test_all-1.0.0.jar").openStream());
+	  buQ1 = bc.installBundle("Q1", bc.getBundle().getResource("bundleQ_test-1.0.0.jar").openStream());
 	} catch (BundleException e) {
 	  pass = false;
 	  fail("Failed install Q1: " + e.getNestedException() + ", in FRAME170A:FAIL");
@@ -2612,7 +2612,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buR2 = null;
       boolean teststatus = true;
       try {
-	buR2 = Util.installBundle(bc, "bundleR2_test_all-1.0.0.jar");
+	buR2 = Util.installBundle(bc, "bundleR2_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -2698,7 +2698,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buR3 = null;
       boolean teststatus = true;
       try {
-	buR3 = Util.installBundle(bc, "bundleR3_test_all-1.0.0.jar");
+	buR3 = Util.installBundle(bc, "bundleR3_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -2768,7 +2768,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buR3 = null;
       boolean teststatus = true;
       try {
-	buR3 = Util.installBundle(bc, "bundleR3_test_all-1.0.0.jar");
+	buR3 = Util.installBundle(bc, "bundleR3_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -2839,7 +2839,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buR4 = null;
       boolean teststatus = true;
       try {
-	buR4 = Util.installBundle(bc, "bundleR4_test_all-1.0.0.jar");
+	buR4 = Util.installBundle(bc, "bundleR4_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -2910,7 +2910,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buR4 = null;
       boolean teststatus = true;
       try {
-	buR4 = Util.installBundle(bc, "bundleR4_test_all-1.0.0.jar");
+	buR4 = Util.installBundle(bc, "bundleR4_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -2980,7 +2980,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buR5 = null;
       boolean teststatus = true;
       try {
-	buR5 = Util.installBundle(bc, "bundleR5_test_all-1.0.0.jar");
+	buR5 = Util.installBundle(bc, "bundleR5_test-1.0.0.jar");
 	teststatus = true;
       }
       catch (BundleException bexcA) {
@@ -2994,7 +2994,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       buR6 = null;
       try {
-	buR6 = Util.installBundle(bc, "bundleR6_test_all-1.0.0.jar");
+	buR6 = Util.installBundle(bc, "bundleR6_test-1.0.0.jar");
 	teststatus = teststatus && true;
       }
       catch (BundleException bexcA) {

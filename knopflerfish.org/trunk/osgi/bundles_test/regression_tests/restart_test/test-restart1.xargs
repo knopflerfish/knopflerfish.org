@@ -20,7 +20,7 @@
 
 # the test cases
 -initlevel 5
--istart restart_test/restart_test_all-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/restart_test-1.0.0.jar
 
 # the test case runner bundle.
 -initlevel 20

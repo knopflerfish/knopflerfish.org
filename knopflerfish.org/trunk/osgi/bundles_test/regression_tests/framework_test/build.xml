@@ -1,94 +1,75 @@
 <?xml version="1.0"?>
 
 <!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
 ]>
 
 <project name="framework_test" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <property name="topdir"       location=".."/>
 
-  <property name  = "api.pattern"
-            value = "org/knopflerfish/service/**"/>
-
-  <property name  = "impl.pattern"
-            value = "org/knopflerfish/bundle/**"/>
-
-  <property name = "bundle.build.api"    value = "false"/>
-  <property name = "bundle.build.lib"    value = "false"/>
-  <property name = "bundle.build.impl"   value = "false"/>
-  <property name = "bundle.build.all"    value = "true"/>
+  <property name="bundle.version" value="1.0.0"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/bundleA_test/bundleA_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleA_test-1.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleA1_test/bundleA1_test_all-1.0.1.jar"         
+   <copy file  = "${topdir}/jars/bundleA1_test-1.0.1.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleB_test/bundleB_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleB_test-1.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleC_test/bundleC_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleC_test-1.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleD_test/bundleD_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleD_test-1.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleD1_test/bundleD1_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleD1_test-1.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleE_test/bundleE_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleE_test-1.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleF_test/bundleF_test_all-1.0.0.jar"         
+   <copy file  = "${topdir}/jars/bundleF_test-1.0.0.jar"         
          todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleG_test/bundleG_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleG_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleJ_test/bundleJ_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleJ_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleU_test/bundleU_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleU_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleV_test/bundleV_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleV_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleW_test/bundleW_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleW_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleW1_test/bundleW1_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleW1_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleH_test/bundleH_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleH_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleR_test/bundleR_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR1_test/bundleR1_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR1_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleP1_test/bundleP1_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleP2_test/bundleP2_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleP3_test/bundleP3_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleP1_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleP2_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleP3_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleR_test/bundleR_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR1_test/bundleR1_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR2_test/bundleR2_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR3_test/bundleR3_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR4_test/bundleR4_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR5_test/bundleR5_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/bundleR6_test/bundleR6_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR1_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR2_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR3_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR4_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR5_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleR6_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/bundleQ_test/bundleQ_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleQ_test-1.0.0.jar" todir = "resources"/>
 
-   <copy file  = "${topdir}/jars/resexp_test/resexp_test_all-1.0.0.jar" todir = "resources"/>
-   <copy file  = "${topdir}/jars/resimp_test/resimp_test_all-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/resexp_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/resimp_test-1.0.0.jar" todir = "resources"/>
 
   </target>
 
-  <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
-   <pathelement location="${topdir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  <path id = "bundle.compile.path">
   </path>
-  
-  
-  <property name="bundle.description"    value="Test bundle for framework"/>
-  <property name="bundle.category"       value="test"/>
-  <property name="bundle.vendor"         value="Knopflerfish/Gatespace Telematics"/>
-  <property name="bundle.version"        value="1.0.0"/>
 
-  <property name="export.package"        value="org.knopflerfish.service.framework_test; specification-version=1.0.0"/>
-
-  &bundlebuild_include;
+  &test_include;
 
 </project>
 

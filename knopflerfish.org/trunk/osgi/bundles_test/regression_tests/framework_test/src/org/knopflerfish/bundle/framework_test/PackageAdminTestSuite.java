@@ -107,8 +107,8 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
-      buA = Util.installBundle(bc, "bundleA_test_all-1.0.0.jar");
-      buB = Util.installBundle(bc, "bundleB_test_all-1.0.0.jar");
+      buA = Util.installBundle(bc, "bundleA_test-1.0.0.jar");
+      buB = Util.installBundle(bc, "bundleB_test-1.0.0.jar");
       assertNotNull(buA);
       assertNotNull(buB);
     }
@@ -189,8 +189,8 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 
       // Register and start the two test bundles 
       try {
-	buRexp = Util.installBundle(bc, "resexp_test_all-1.0.0.jar");
-	buRimp = Util.installBundle(bc, "resimp_test_all-1.0.0.jar");
+	buRexp = Util.installBundle(bc, "resexp_test-1.0.0.jar");
+	buRimp = Util.installBundle(bc, "resimp_test-1.0.0.jar");
 	buRexp.start();
 	buRimp.start();
       }
@@ -226,7 +226,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       for (int i = 0; i < cnt ; i++) {
 	// Update the buRexp bundle
 	try {
-	  buRexp.update(bc.getBundle().getResource("resexp_test_all-1.0.0.jar").openStream());;
+	  buRexp.update(bc.getBundle().getResource("resexp_test-1.0.0.jar").openStream());;
 	}
 	catch (BundleException bex) {
 	  teststatus  = false;
@@ -422,12 +422,12 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	
 	// Install test bundles P1 and P2, start the later
 	// Check that it imports from P1
-	// out.println("bundleP1_test_all-1.0.0.jar");
+	// out.println("bundleP1_test-1.0.0.jar");
 	
 	try {
-	  buP1 = Util.installBundle(bc, "bundleP1_test_all-1.0.0.jar");
-	  buP2 = Util.installBundle(bc, "bundleP2_test_all-1.0.0.jar");
-	  // buP3 = Util.installBundle(bc, "bundleP3_test_all-1.0.0.jar");
+	  buP1 = Util.installBundle(bc, "bundleP1_test-1.0.0.jar");
+	  buP2 = Util.installBundle(bc, "bundleP2_test-1.0.0.jar");
+	  // buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
 	  buP2.start();
 	  
 	  bidP1 = buP1.getBundleId();
@@ -455,7 +455,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	// Now load bundle P3,that exports the same package as P1 but with version 3
 	
 	try {
-	buP3 = Util.installBundle(bc, "bundleP3_test_all-1.0.0.jar");
+	buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
 	bidP3 = buP3.getBundleId();
 	}
 	catch (BundleException bexcA) {
@@ -576,7 +576,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       // Install test bundle P1 and start it
       
       try {
-	buP1 = Util.installBundle(bc, "bundleP1_test_all-1.0.0.jar");
+	buP1 = Util.installBundle(bc, "bundleP1_test-1.0.0.jar");
 	buP1.start();
 	bidP1 = buP1.getBundleId();
 	teststatus = true;
@@ -596,7 +596,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       
       boolean P3 = false;
       try {
-	buP3 = Util.installBundle(bc, "bundleP3_test_all-1.0.0.jar");
+	buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
 	buP3.start();
 	bidP3 = buP3.getBundleId();
 	P3 = false;

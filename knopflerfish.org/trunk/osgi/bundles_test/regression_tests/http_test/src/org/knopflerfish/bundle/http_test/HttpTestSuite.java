@@ -43,7 +43,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
 import org.osgi.service.http.*;
-import org.knopflerfish.service.console.*;
 import org.osgi.service.http.HttpService;
 
 import javax.servlet.*;

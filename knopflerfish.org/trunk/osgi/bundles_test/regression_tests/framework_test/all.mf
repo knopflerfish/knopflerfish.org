@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.5.4 
+Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
+Bundle-Name: framework_test
+Bundle-SymbolicName: framework_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.framework_test.Activator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.framework_test; specification
+ -version=1.0.0
+Import-Package: junit.framework,org.knopflerfish.service.framework_tes
+ t,org.osgi.framework,org.osgi.service.packageadmin,org.osgi.service.p
+ ermissionadmin
+Bundle-UUID: org.knopflerfish:framework_test:1.0.0:all
+Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
+ n_tests\framework_test
+Build-Date: Wed August 25 2004, 19:57:15
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-APIVendor: 
+
