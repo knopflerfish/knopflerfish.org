@@ -31,7 +31,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
 import org.osgi.framework.BundleActivator;
@@ -92,7 +91,10 @@ public class Activator implements BundleActivator {
      * @throws BundleException DOCUMENT ME!
      */
     public void stop(BundleContext context) throws BundleException {
-        if (jiniServiceFactory != null) jiniServiceFactory.unregister();
+        if (jiniServiceFactory != null) {
+            jiniServiceFactory.unregister();
+        }
+
         jiniServiceFactory = null;
 
         try {

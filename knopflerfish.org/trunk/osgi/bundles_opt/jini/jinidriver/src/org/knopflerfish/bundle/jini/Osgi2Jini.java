@@ -31,72 +31,100 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
+
+import org.osgi.framework.Filter;
+import org.osgi.framework.ServiceReference;
 
 import org.osgi.service.jini.JiniDriver;
 
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.osgi.framework.Filter;
-import org.osgi.framework.ServiceReference;
 
+
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
 public class Osgi2Jini {
+    private static ServiceTracker serviceTracker = null;
+    private static String[] cmLusExportGroups = null;
 
-  private static ServiceTracker serviceTracker = null;
-  private static String[] cmLusExportGroups = null;
+    /**
+     * Creates a new Osgi2Jini object.
+     *
+     * @throws Exception DOCUMENT ME!
+     */
+    public Osgi2Jini() throws Exception {
+        try {
+            RMICodeBaseService.getRMICodeBaseService("/RMI");
 
-  public Osgi2Jini() throws Exception {
-
-    try {
-      RMICodeBaseService.getRMICodeBaseService("/RMI");
-      Filter filter = Activator.bc.createFilter(
-          "(&(" + org.osgi.service.device.Constants.DEVICE_CATEGORY + "=" +
-          JiniDriver.DEVICE_CATEGORY + ")(" + JiniDriver.EXPORT + "=*))"
-      );
-      ServiceTrackerCustomizer serviceTrackerCustomizer = new JiniExporter();
-      serviceTracker = new ServiceTracker(
-          Activator.bc, filter, serviceTrackerCustomizer);
-    }
-    catch (Exception ex) {
-      serviceTracker = null;
-      Debug.printDebugInfo(10,"Could not setup up the OSGi to Jini Bridge",ex);
-      throw new Exception(ex);
-    }
-  }
-
-
-  public void open(){
-    if (serviceTracker != null){
-      serviceTracker.open();
-    }
-  }
-
-  public void close() {
-    if(serviceTracker!= null) {
-      serviceTracker.close();
-    }
-    if(RMICodeBaseService.getRMICodeBaseService() != null) {
-      RMICodeBaseService.getRMICodeBaseService().destroyService();
-    }
-  }
-
-  public static synchronized void setCMLusExportGroups(String[] lusExportGroups) {
-    Osgi2Jini.cmLusExportGroups = lusExportGroups;
-    synchronized (serviceTracker) {
-      ServiceReference[] serviceReferences =
-          serviceTracker.getServiceReferences();
-      Object[] services = serviceTracker.getServices();
-      if (services != null) {
-        for (int i = 0; i < services.length; i++) {
-          serviceTracker.modifiedService(serviceReferences[i], services[i]);
+            Filter filter = Activator.bc.createFilter("(&(" +
+                    org.osgi.service.device.Constants.DEVICE_CATEGORY + "=" +
+                    JiniDriver.DEVICE_CATEGORY + ")(" + JiniDriver.EXPORT +
+                    "=*))");
+            ServiceTrackerCustomizer serviceTrackerCustomizer = new JiniExporter();
+            serviceTracker = new ServiceTracker(Activator.bc, filter,
+                    serviceTrackerCustomizer);
+        } catch (Exception ex) {
+            serviceTracker = null;
+            Debug.printDebugInfo(10,
+                "Could not setup up the OSGi to Jini Bridge", ex);
+            throw new Exception(ex);
         }
-      }
     }
-  }
 
-  public static String[] getCMLusExportGroups() {
-    return Osgi2Jini.cmLusExportGroups;
-  }
+    /**
+     * DOCUMENT ME!
+     */
+    public void open() {
+        if (serviceTracker != null) {
+            serviceTracker.open();
+        }
+    }
 
+    /**
+     * DOCUMENT ME!
+     */
+    public void close() {
+        if (serviceTracker != null) {
+            serviceTracker.close();
+        }
+
+        if (RMICodeBaseService.getRMICodeBaseService() != null) {
+            RMICodeBaseService.getRMICodeBaseService().destroyService();
+        }
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param lusExportGroups DOCUMENT ME!
+     */
+    public static synchronized void setCMLusExportGroups(
+        String[] lusExportGroups) {
+        Osgi2Jini.cmLusExportGroups = lusExportGroups;
+
+        synchronized (serviceTracker) {
+            ServiceReference[] serviceReferences = serviceTracker.getServiceReferences();
+            Object[] services = serviceTracker.getServices();
+
+            if (services != null) {
+                for (int i = 0; i < services.length; i++) {
+                    serviceTracker.modifiedService(serviceReferences[i],
+                        services[i]);
+                }
+            }
+        }
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public static String[] getCMLusExportGroups() {
+        return Osgi2Jini.cmLusExportGroups;
+    }
 }

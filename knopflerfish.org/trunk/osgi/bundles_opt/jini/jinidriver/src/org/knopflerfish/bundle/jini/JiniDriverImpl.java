@@ -31,7 +31,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
 import net.jini.core.lookup.ServiceItem;
@@ -104,7 +103,7 @@ public class JiniDriverImpl implements org.osgi.service.jini.JiniDriver {
                 getServices(toAddCaches);
             } else {
                 Debug.printDebugInfo(10,
-                        "Requested ServiceTemplates are void (null)");
+                    "Requested ServiceTemplates are void (null)");
             }
         }
     }
@@ -117,8 +116,8 @@ public class JiniDriverImpl implements org.osgi.service.jini.JiniDriver {
     public ServiceTemplate[] getServiceTemplates() {
         synchronized (this) {
             return (serviceCaches.isEmpty()) ? null
-                    : (ServiceTemplate[]) serviceCaches.keySet()
-                    .toArray(new ServiceTemplate[0]);
+                                             : (ServiceTemplate[]) serviceCaches.keySet()
+                                                                                .toArray(new ServiceTemplate[0]);
         }
     }
 
@@ -142,9 +141,7 @@ public class JiniDriverImpl implements org.osgi.service.jini.JiniDriver {
                     ClassLoader oldClassLoader = curThread.getContextClassLoader();
                     curThread.setContextClassLoader(Activator.class.getClassLoader());
 
-                    LookupCache lookupCache = JiniServiceFactory.
-                                              serviceDiscoveryManager.
-                                              createLookupCache(test,
+                    LookupCache lookupCache = JiniServiceFactory.serviceDiscoveryManager.createLookupCache(test,
                             null, new Listener(test.serviceTypes));
                     serviceCaches.put(test, lookupCache);
 
@@ -159,8 +156,7 @@ public class JiniDriverImpl implements org.osgi.service.jini.JiniDriver {
                     Debug.printDebugInfo(10, "Finished Creating LookupCache");
                 } catch (RemoteException ex) {
                     Debug.printDebugInfo(10,
-                            "Unable to create LookupCache for template " + test,
-                            ex);
+                        "Unable to create LookupCache for template " + test, ex);
                 } catch (InterruptedException ex1) {
                 }
             }
@@ -185,24 +181,21 @@ public class JiniDriverImpl implements org.osgi.service.jini.JiniDriver {
 
             while (it.hasNext()) {
                 ServiceTemplate test = (ServiceTemplate) it.next();
-                LookupCache lookupCache = (LookupCache) serviceCaches.remove(
-                        test);
+                LookupCache lookupCache = (LookupCache) serviceCaches.remove(test);
                 ServiceItem[] services = lookupCache.lookup(null,
                         Integer.MAX_VALUE);
                 Debug.printDebugInfo(10,
-                                     "Services to discard (array object) " +
-                                     services);
+                    "Services to discard (array object) " + services);
 
                 for (int i = 0; i < services.length; i++) {
                     Debug.printDebugInfo(10,
-                                         "Discarding Service : " +
-                                         services[i].service);
+                        "Discarding Service : " + services[i].service);
                     lookupCache.discard(services[i].service);
                 }
 
-                        /* Terminating the cache should wait until the internal discardTask Thread
-                         * gets the chance to send the events to the Listener. Wait a reasanble time.
-                 */
+                /* Terminating the cache should wait until the internal discardTask Thread
+                 * gets the chance to send the events to the Listener. Wait a reasanble time.
+                */
                 try {
                     Thread.sleep(JiniDriverImpl.WAIT_TIME_MS);
                 } catch (InterruptedException ex) {
@@ -211,8 +204,7 @@ public class JiniDriverImpl implements org.osgi.service.jini.JiniDriver {
                 lookupCache.terminate();
 
                 Debug.printDebugInfo(10,
-                                     "LookupCache " + lookupCache +
-                                     " terminated");
+                    "LookupCache " + lookupCache + " terminated");
             }
         }
     }

@@ -31,68 +31,109 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
-import org.osgi.service.http.HttpContext;
-import org.osgi.service.packageadmin.PackageAdmin;
-import java.util.ArrayList;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
+
+import org.osgi.service.http.HttpContext;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
+
+import java.net.URL;
+
+import java.util.ArrayList;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URL;
-import org.osgi.framework.Bundle;
-import org.osgi.service.packageadmin.ExportedPackage;
 
+
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
 class BundleHttpContext implements HttpContext {
+    private PackageAdmin packageAdmin = null;
+    private ArrayList exportedPackages = new ArrayList();
 
-  private PackageAdmin packageAdmin = null;
-  private ArrayList exportedPackages = new ArrayList();
-
-  public BundleHttpContext (){
-    ServiceReference ref =
-        Activator.bc.getServiceReference("org.osgi.service.packageadmin.PackageAdmin");
-    packageAdmin = (PackageAdmin)
-        Activator.bc.getService(ref);
-  }
-
-  public String getMimeType(String name) {
-    return null;
-  }
-
-  public boolean handleSecurity(HttpServletRequest req,
-                                HttpServletResponse resp) {
-    return true;
-  }
-
-  public URL getResource(String name) {
-    name = name.substring(1);
-    String temp = name.substring(0,name.lastIndexOf("/"));
-    String packageName = temp.replace('/','.');
-    for(int i = 0 ; i < exportedPackages.size(); i++){
-      Bundle b = ((Bundle) exportedPackages.get(i));
-      ExportedPackage [] exp = packageAdmin.getExportedPackages(b);
-
-      if ( exp != null){
-        for (int j = 0; j < exp.length; j++){
-         if (exp[j].getName().equals(packageName)){
-            return b.getResource(name);
-          }
-        }
-      }
+    /**
+     * Creates a new BundleHttpContext object.
+     */
+    public BundleHttpContext() {
+        ServiceReference ref = Activator.bc.getServiceReference(
+                "org.osgi.service.packageadmin.PackageAdmin");
+        packageAdmin = (PackageAdmin) Activator.bc.getService(ref);
     }
-    return null;
-  }
 
-  void ensureCodebaseFor(Bundle b){
-    exportedPackages.add(b);
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param name DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public String getMimeType(String name) {
+        return null;
+    }
 
-  void removeCodebaseFor(Bundle b){
-    exportedPackages.remove(b);
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param req DOCUMENT ME!
+     * @param resp DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public boolean handleSecurity(HttpServletRequest req,
+        HttpServletResponse resp) {
+        return true;
+    }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @param name DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public URL getResource(String name) {
+        name = name.substring(1);
 
+        String temp = name.substring(0, name.lastIndexOf("/"));
+        String packageName = temp.replace('/', '.');
+
+        for (int i = 0; i < exportedPackages.size(); i++) {
+            Bundle b = ((Bundle) exportedPackages.get(i));
+            ExportedPackage[] exp = packageAdmin.getExportedPackages(b);
+
+            if (exp != null) {
+                for (int j = 0; j < exp.length; j++) {
+                    if (exp[j].getName().equals(packageName)) {
+                        return b.getResource(name);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param b DOCUMENT ME!
+     */
+    void ensureCodebaseFor(Bundle b) {
+        exportedPackages.add(b);
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param b DOCUMENT ME!
+     */
+    void removeCodebaseFor(Bundle b) {
+        exportedPackages.remove(b);
+    }
 }
-
-

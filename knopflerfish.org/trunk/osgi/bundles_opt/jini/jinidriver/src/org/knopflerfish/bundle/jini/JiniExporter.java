@@ -31,41 +31,68 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
 import org.osgi.framework.ServiceReference;
+
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-public class JiniExporter implements ServiceTrackerCustomizer{
 
-  public Object addingService(ServiceReference serviceReference) {
-    RMICodeBaseService.getRMICodeBaseService().setCodebaseForBundle(
-        serviceReference.getBundle()
-    );
-    JiniExportedService jiniExportedService = null;
-    try {
-      jiniExportedService =
-          new JiniExportedService(serviceReference);
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
+public class JiniExporter implements ServiceTrackerCustomizer {
+    /**
+     * DOCUMENT ME!
+     *
+     * @param serviceReference DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public Object addingService(ServiceReference serviceReference) {
+        RMICodeBaseService.getRMICodeBaseService().setCodebaseForBundle(serviceReference.getBundle());
+
+        JiniExportedService jiniExportedService = null;
+
+        try {
+            jiniExportedService = new JiniExportedService(serviceReference);
+        } catch (Exception ex) {
+            Debug.printDebugInfo(10,
+                "Could not export service to jini : " + serviceReference, ex);
+        }
+
+        return jiniExportedService;
     }
-    catch (Exception ex) {
-      Debug.printDebugInfo(10,"Could not export service to jini : " +
-                         serviceReference, ex);
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param serviceReference DOCUMENT ME!
+     * @param object DOCUMENT ME!
+     */
+    public void modifiedService(ServiceReference serviceReference, Object object) {
+        JiniExportedService jiniExportedService = (JiniExportedService) object;
+
+        if (jiniExportedService != null) {
+            jiniExportedService.update(serviceReference);
+        }
     }
-    return jiniExportedService;
-  }
 
-  public void modifiedService(ServiceReference serviceReference, Object object) {
-    JiniExportedService jiniExportedService = (JiniExportedService) object;
-    if (jiniExportedService != null)
-      jiniExportedService.update(serviceReference);
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param serviceReference DOCUMENT ME!
+     * @param object DOCUMENT ME!
+     */
+    public void removedService(ServiceReference serviceReference, Object object) {
+        JiniExportedService jiniExportedService = (JiniExportedService) object;
 
-  public void removedService(ServiceReference serviceReference, Object object) {
-    JiniExportedService jiniExportedService = (JiniExportedService) object;
-    if (jiniExportedService != null) jiniExportedService.cancel();
-    RMICodeBaseService.getRMICodeBaseService().removeCodebaseForBundle(
-        serviceReference.getBundle()
-    );
-  }
+        if (jiniExportedService != null) {
+            jiniExportedService.cancel();
+        }
+
+        RMICodeBaseService.getRMICodeBaseService().removeCodebaseForBundle(serviceReference.getBundle());
+    }
 }
