@@ -42,6 +42,7 @@
   <property name="bundle.vendor"         value="Knopflerfish"/>
 
   <property name="export.package" value="[bundle.emptystring]"/>
+  <property name="import.package" value="org.knopflerfish.service.junit,org.osgi.framework,junit.framework"/>
 
   &bundlebuild_include;
 
