@@ -282,6 +282,7 @@
 
            <include name = "htdocs/**"/>
            <exclude name = "htdocs/releases/**"/>
+           <include name = "htdocs/images/*.psp"/>
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
@@ -468,6 +469,7 @@
            <include name = "changelog.html"/>
 
            <include name = "htdocs/images/direstraits.jpg"/>
+           <include name = "htdocs/images/*.psp"/>
            <include name = "test.html"/>
 
            <exclude name = "keystore"/>
