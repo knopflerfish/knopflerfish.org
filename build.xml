@@ -157,12 +157,15 @@
           depends       = "compile_ant">
 
     <property name="obr.baseurl" value="http://www.knopflerfish.org/repo/jars/"/>
+    <property name="obr.basedir" location="osgi/jars"/>
+    <property name="obr.name"    value="Knopflerfish bundle repository"/>
+
     <mkdir dir="repo"/>
 
-    <bundleobr  baseDir      = "osgi/jars"
+    <bundleobr  baseDir      = "${obr.basedir}"
                 repoXSLURL   = "../htdocs/css/repository.xsl"
                 outFile      = "repo/repository.xml"
-                repoName     = "Knopflerfish bundle repository"
+                repoName     = "${obr.name}"
 		baseURL      = "${obr.baseurl}"
     >
 
