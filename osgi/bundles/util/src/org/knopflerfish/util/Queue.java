@@ -38,15 +38,12 @@ import java.util.Vector;
 
 //  ********************     Queue     ********************
 /**
- ** The <code>Queue</code> class represents a first-in-first-out 
- ** (FIFO) queue of objects. 
- ** @author Per Lundgren
- ** @version $Revision: 1.1.1.1 $
+ * The <code>Queue</code> class represents a first-in-first-out 
+ * (FIFO) queue of objects. 
+ * @author Per Lundgren
  */
 public class Queue extends Vector {
-/** @serial */
   private int m_nMaxSize = -1;
-/** @serial */
   private boolean queueClosed = false;
   
   //  ====================    Queue      ====================
