@@ -24,6 +24,8 @@ Commons level    OSGi level
  error           error
  fatal           fatal (with extra prefix "/fatal")
 
+The is[Level]Enabled() calls are mapped to match.
+
 Each log entry is logged as
 
  {log name}/message
