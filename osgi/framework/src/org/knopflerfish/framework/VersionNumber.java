@@ -43,6 +43,8 @@ public class VersionNumber implements Comparable
   final private int y;
   final private int z;
 
+  static boolean bFuzzy = "true".equals(System.getProperty("org.knopflerfish.framework.version.fuzzy", "false"));
+
   /**
    * Construct a VersionNumber object
    *
@@ -79,7 +81,7 @@ public class VersionNumber implements Comparable
    * @exception ClassCastException if object is not a VersionNumber object.
    */
   public int compareTo(Object obj) throws ClassCastException {
-    return compareToStrict(obj);
+    return bFuzzy ? compareToFuzzy(obj) : compareToStrict(obj);
   }
 
   public int compareToFuzzy(Object obj) throws ClassCastException {
