@@ -65,8 +65,6 @@ class BundleArchiveImpl implements BundleArchive
 
   private boolean startOnLaunch;
 
-  private FileTree bundleDir;
-
   private BundleStorageImpl storage;
 
   private Archive [] archives;
@@ -105,7 +103,6 @@ class BundleArchiveImpl implements BundleArchive
   BundleArchiveImpl(BundleArchiveImpl old, InputStream is)
     throws Exception
   {
-    bundleDir = old.bundleDir;
     location = old.location;
     storage = old.storage;
     id = old.id;
@@ -302,6 +299,7 @@ class BundleArchiveImpl implements BundleArchive
    * the active revision also remove bundle status files.
    */
   public void purge() {
+    storage.removeArchive(this);
   }
 
 
