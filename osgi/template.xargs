@@ -46,6 +46,8 @@
 -install crimson/crimson-1.1.3.jar
 -install jsdk/jsdk-2.2.jar
 
+-istart  bundlerepository/bundlerepository_all-1.0.0.jar
+
 ## More basic KF bundles
 -initlevel 3
 -install device/device_all-1.0.0.jar
