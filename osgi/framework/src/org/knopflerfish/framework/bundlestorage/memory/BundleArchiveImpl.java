@@ -64,7 +64,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private boolean bFake;
 
-  private int startLevel = -1;
+  private int startLevel = 1;
   private boolean bPersistant = false;
 
   /**
