@@ -47,24 +47,24 @@ import org.knopflerfish.service.dirdeployer.*;
 /**
  * Implementatation of <tt>DirDeployerService</tt> which
  * scans a set of directories regularely on a thread.
+ *
  */
 class DirDeployerImpl implements DirDeployerService {
 
   // File -> DeployedFile
-  Hashtable deployedFiles = new Hashtable();
+  Hashtable      deployedFiles = new Hashtable();
 
-  Thread    runner = null;    // scan thread
-  boolean   bRun   = false;   // flag for stopping scan thread
+  Thread         runner = null;    // scan thread
+  boolean        bRun   = false;   // flag for stopping scan thread
 
   
   ServiceTracker logTracker;
-
-  Config config;
+  Config         config;
   
   public DirDeployerImpl() {
 
+    // create and register the configuration class
     config = new Config();
-    config.register();
 
     logTracker = new ServiceTracker(Activator.bc,
 				    LogService.class.getName(),
@@ -73,9 +73,12 @@ class DirDeployerImpl implements DirDeployerService {
   }
 
   /**
-   * Start the scanner thread if not already started
+   * Start the scanner thread if not already started. Also register
+   * the config object.
    */
   void start() {
+    config.register();
+
     if(runner != null) {
       return;
     }
@@ -115,12 +118,16 @@ class DirDeployerImpl implements DirDeployerService {
   
 
   /**
-   * Stop the scanner thread if not already stopped
+   * Stop the scanner thread if not already stopped. Also unregister the
+   * config object.
    */
   void stop() {
+    config.unregister();
+    
     if(runner == null) {
       return;
     }
+
     try {
       bRun = false;
       runner.join(config.interval * 2);
@@ -133,6 +140,7 @@ class DirDeployerImpl implements DirDeployerService {
    * Scan for new, updated and lost files.
    */
   void doScan() {
+
     synchronized(config) {
       for(int i = 0; i < config.dirs.length; i++) {
 	scanForNewFiles(config.dirs[i]);
@@ -153,7 +161,7 @@ class DirDeployerImpl implements DirDeployerService {
    * </p>
    *
    * <p>
-   * New files are installed (and marked for delayed start they have an
+   * New files are installed (and marked for delayed start if they have an
    * activator). Files newer than a previously deployed bundle are updated.
    * </p>
    *
@@ -312,7 +320,7 @@ class DirDeployerImpl implements DirDeployerService {
   /**
    * Check if a file seem to be a bundle jar file.
    */
-  boolean isBundleFile(File f) {
+  static boolean isBundleFile(File f) {
     return f.toString().toLowerCase().endsWith(".jar");
   }
 

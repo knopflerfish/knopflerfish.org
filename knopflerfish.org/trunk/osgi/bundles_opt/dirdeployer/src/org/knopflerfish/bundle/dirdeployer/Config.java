@@ -39,10 +39,21 @@ import java.io.File;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ManagedService;
 
+/**
+ * Configuration class for the directory deployer.
+ *
+ * This class first initalizes itself with values from
+ * system properties. If it is registered as a 
+ * <tt>ManagedService</tt>, it also handles calls
+ * to the <tt>update</tt> method. The <tt>register</tt> method
+ * does this registration.
+ */
 public class Config implements ManagedService {
 
+  // PID string used for service.pid
   static final String PID             = "org.knopflerfish.dirdeployer";
 
+  // Property names used both as system properties and as CM properties
   static final String PROP_DIRS       = "org.knopflerfish.dirdeployer.dirs";
   static final String PROP_INTERVAL   = "org.knopflerfish.dirdeployer.interval";
   static final String PROP_STARTLEVEL = "org.knopflerfish.dirdeployer.startlevel";
@@ -58,15 +69,21 @@ public class Config implements ManagedService {
 
   // start level for installed bundles
   int     startLevel = 1;
-  
-  Config() {
+
+  // framework registration
+  ServiceRegistration reg;
+
+  public Config() {
     // init with default values
     updated(getDefaults());
   }
   
-  ServiceRegistration reg;
   
   void register() {
+    if(reg != null) {
+      return;
+    }
+
     Hashtable props = new Hashtable();
     props.put("service.pid", PID);
     
@@ -77,7 +94,12 @@ public class Config implements ManagedService {
   }
 
   void unregister() {
+    if(reg == null) {
+      return;
+    }
+
     reg.unregister();
+    reg = null;
   }
 
 
@@ -87,11 +109,8 @@ public class Config implements ManagedService {
       props = getDefaults();
     }
 
-    System.out.println("updated: " + props);
-    
     String dirPaths = (String)props.get(PROP_DIRS);
     if(dirPaths != null) {
-      System.out.println("dirPaths: " + dirPaths);
       StringTokenizer st = new StringTokenizer(dirPaths, ",");
       dirs = new File[st.countTokens()];
       
