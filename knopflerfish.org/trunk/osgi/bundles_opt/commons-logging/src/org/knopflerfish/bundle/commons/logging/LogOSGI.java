@@ -48,79 +48,133 @@ public class LogOSGI implements  Log {
   }
 
   public boolean isDebugEnabled() {
+    if(Activator.log == null) {
+      return false;
+    }
     return Activator.log.doDebug();
   }
 
   public boolean isErrorEnabled() {
+    if(Activator.log == null) {
+      return false;
+    }
     return Activator.log.doError();
   }
 
   public boolean isFatalEnabled() {
+    if(Activator.log == null) {
+      return false;
+    }
     return Activator.log.doError();
   }
 
 
   public boolean isInfoEnabled() {
+    if(Activator.log == null) {
+      return false;
+    }
     return Activator.log.doInfo();
   }
 
   public boolean isTraceEnabled() {
+    if(Activator.log == null) {
+      return false;
+    }
     return Activator.log.doDebug();
   }
   
   public boolean isWarnEnabled() {
+    if(Activator.log == null) {
+      return false;
+    }
     return Activator.log.doWarn();
   }
   
   public void trace(Object message) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.debug(name + "/trace: " + message);
   }
   
 
   public void trace(Object message, Throwable t) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.debug(name + "/trace: " + message, t);
   }
 
 
   public void debug(Object message) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.debug(name + ": " + message);
   }
 
   public void debug(Object message, Throwable t) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.debug(name + ":" + message, t);
   }
 
   public void info(Object message) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.info(name + ": " + message);
   }
 
 
   public void info(Object message, Throwable t) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.info(name + ": "+ message, t);
   }
 
   public void warn(Object message) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.warn(name + ": " + message);
   }
 
 
   public void warn(Object message, Throwable t) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.warn(name + ": " + message, t);
   }
 
   public void error(Object message) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.error(name + ": " + message);
   }
 
   public void error(Object message, Throwable t) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.error(name + ": " + message, t);
   }
 
   public void fatal(Object message) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.error(name + "/fatal: " + message);
   }
 
   public void fatal(Object message, Throwable t) {
+    if(Activator.log == null) {
+      return;
+    }
     Activator.log.error(name + "/fatal: " + message, t);
   }
 }
