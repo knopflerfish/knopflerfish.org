@@ -197,8 +197,11 @@ public class AD implements AttributeDefinition, Comparable {
       return parseMany(value, type);
     } else if(card > 0) {
       Vector v = parseMany(value, type);
-      Object[] array = (Object[])Array.newInstance(getClass(type), v.size());
-      v.copyInto(array);
+      Object array = Array.newInstance(getPrimitiveClass(type), 
+				       v.size());
+      for(int i = 0; i < v.size(); i++) {
+	Array.set(array, i, v.elementAt(i));
+      }
       return array;
     } else {
       return parseSingle(value, type);
@@ -349,6 +352,33 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
+  /**
+   * Get the primitive java class from a specificed type.
+   */
+  public static Class getPrimitiveClass(int type) {
+    switch(type) {
+    case STRING: 
+      return String.class;
+    case INTEGER: 
+      return Integer.TYPE;
+    case LONG: 
+      return Long.TYPE;
+    case BYTE: 
+      return Byte.TYPE;
+    case SHORT: 
+      return Short.TYPE;
+    case CHARACTER: 
+      return Character.TYPE;
+    case DOUBLE: 
+      return Double.TYPE;
+    case FLOAT: 
+      return Float.TYPE;
+    case BOOLEAN:
+      return Boolean.TYPE;
+    default:
+      throw new IllegalArgumentException("Cannot derive primitive class from type=" + type);
+    }
+  }
 
   public String toString() {
     StringBuffer sb = new StringBuffer();
@@ -372,7 +402,7 @@ public class AD implements AttributeDefinition, Comparable {
 
   public static String toString(Object obj) {
     if(obj.getClass().isArray()) {
-      return toString((Object[])obj);
+      return toStringFromArray(obj);
     } else if(obj instanceof Vector) {
       StringBuffer sb = new StringBuffer();
       Vector v = (Vector)obj;
@@ -403,6 +433,25 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
+  public static String toStringFromArray(Object array) {
+    StringBuffer sb = new StringBuffer();
+
+    if(array == null) {
+      sb.append("null");
+    } else {
+      for(int i = 0; i < Array.getLength(array); i++) {
+	String s = escape(Array.get(array, i).toString());
+	
+	sb.append(s);
+
+	if(i < Array.getLength(array) - 1) {
+	  sb.append(", ");
+	}
+      }
+    }
+    return sb.toString();
+  }
+
   public static String toString(Object[] values) {
     StringBuffer sb = new StringBuffer();
 
@@ -411,9 +460,9 @@ public class AD implements AttributeDefinition, Comparable {
     } else {
       for(int i = 0; i < values.length; i++) {
 	String s = escape(values[i].toString());
-
+	
 	sb.append(s);
-
+	
 	if(i < values.length - 1) {
 	  sb.append(", ");
 	}

@@ -98,6 +98,9 @@ public class Activator implements BundleActivator {
     props.put("service.pid", "service1");
     bc.registerService(ManagedService.class.getName(), ms, props);
 
+    props.put("service.pid", "testconfig");
+    bc.registerService(ManagedService.class.getName(), ms, props);
+
     props = new Hashtable();
     props.put("service.pid", "factory1");
     bc.registerService(ManagedServiceFactory.class.getName(), mf, props);
