@@ -314,7 +314,7 @@ public class SystemMetatypeProvider
     return mtp;
   }
 
-  void addMTP(Bundle b, MTP mtp) {
+  public void addMTP(Bundle b, MTP mtp) {
     synchronized(providers) {
       providers.put(b, mtp);
     }
