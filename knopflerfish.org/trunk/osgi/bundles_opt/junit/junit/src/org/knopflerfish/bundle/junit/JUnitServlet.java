@@ -47,9 +47,10 @@ import junit.framework.*;
 
 public class JUnitServlet extends HttpServlet {
 
-  static final String ID  = "id";
-  static final String CMD = "cmd";
-  static final String FMT = "fmt";
+  static final String ID     = "id";
+  static final String SUBID  = "subid";
+  static final String CMD    = "cmd";
+  static final String FMT    = "fmt";
 
   JUnitServlet() {
   }
@@ -181,20 +182,62 @@ public class JUnitServlet extends HttpServlet {
     
     out.println("<ol>");
     for(int i = 0; srl != null && i < srl.length; i++) {
-      String id   = (String)srl[i].getProperty("service.pid");
-      String desc = (String)srl[i].getProperty("service.description");
-      
+      Object obj = Activator.bc.getService(srl[i]);
+      if(obj instanceof Test) {
+	String id   = (String)srl[i].getProperty("service.pid");
+	String desc = (String)srl[i].getProperty("service.description");
+	
+	String link = HttpExporter.SERVLET_ALIAS + 
+	  "?" + 
+	  CMD + "=run&" + 
+	  FMT + "=html&" +
+	  ID + "=" + id;
+	out.println("<li><a href=\"" + link + "\">" + id + "</a>");
+	if(desc != null && !"".equals(desc)) {
+	  out.println("<br>" + desc);
+	}
+	if(obj instanceof TestSuite) {
+	  showSubTestsHTML(id, (TestSuite)obj, request, response, out);
+	}
+      }
+      Activator.bc.ungetService(srl[i]);
+    }
+    out.println("</ol>");
+  }
+
+  void showSubTestsHTML(String id, 
+			TestSuite suite, 
+			HttpServletRequest  request, 
+			HttpServletResponse response,
+			PrintWriter out) throws Exception
+  {
+    out.println("<ul>");
+    for(int i = 0; i < suite.testCount(); i++) {
+      Test t = suite.testAt(i);
+      String subid = t.getClass().getName();
+      String name  = null;
+      if(t instanceof TestCase) {
+	name = ((TestCase)t).getName();
+      }
+      if(t instanceof TestSuite) {
+	name = ((TestSuite)t).getName();
+      }
+      if(name == null) {
+	name = subid;
+      }
+
       String link = HttpExporter.SERVLET_ALIAS + 
 	"?" + 
 	CMD + "=run&" + 
 	FMT + "=html&" +
-	ID + "=" + id;
-      out.println("<li><a href=\"" + link + "\">" + id + "</a>");
-      if(desc != null && !"".equals(desc)) {
-	out.println("<br>" + desc);
+	ID + "=" + id + "&" + 
+	SUBID + "=" + subid;
+      out.println("<li><a href=\"" + link + "\">" + name + "</a>");
+      if(t instanceof TestSuite) {
+	showSubTestsHTML(id, (TestSuite)t, request, response, out);
       }
     }
-    out.println("</ol>");
+    out.println("</ul>");
   }
 
   void handleCommand(HttpServletRequest  request, 
@@ -225,7 +268,13 @@ public class JUnitServlet extends HttpServlet {
   void runTestHTML(HttpServletRequest request, 
 		   String id, 
 		   PrintWriter out) throws Exception {
-    out.println("<h2>Test result of '" + id + "'</h2>");
+    String subid = request.getParameter(SUBID);
+    
+    out.println("<h2>Test result of " + id);
+    if(subid != null) {
+      out.println(" - " + subid);
+    }
+    out.println("</h2>");
 
     
     out.println("<p><a href=\"" + HttpExporter.SERVLET_ALIAS + "\">List all available tests</a></p>");
@@ -268,7 +317,8 @@ public class JUnitServlet extends HttpServlet {
   TestSuite getSuite(HttpServletRequest request) throws Exception {
     Object obj = null;
 
-    final String id = request.getParameter(ID);
+    final String id    = request.getParameter(ID);
+    final String subid = request.getParameter(SUBID);
     
     ServiceReference[] srl = 
       Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
@@ -307,14 +357,55 @@ public class JUnitServlet extends HttpServlet {
     Test test = (Test)obj;
     
     TestSuite suite;
+
+    if(subid != null && !"".equals(subid)) {
+      Test subtest = findTest(test, subid);      
+      if(subtest != null) {
+	test = subtest;
+      } else {
+	test = new TestCase("IllegalArumentException") {
+	    public void runTest() {
+	      throw new ClassCastException("subtest " + subid + " not found");
+	    }
+	  };
+      }
+    }
+
     if(test instanceof TestSuite) {
       suite = (TestSuite)test;
     } else {
       suite = new TestSuite();
       suite.addTest(test);
     }
+
     
     return suite;
+  }
+  
+  Test findTest(Test test, String id) {
+    if(test instanceof TestSuite) {
+      TestSuite ts = (TestSuite)test;
+      if(id.equals(ts.getName()) || id.equals(ts.getClass().getName())) {
+	return ts;
+      }
+      for(int i = 0; i < ts.testCount(); i++) {
+	Test child = ts.testAt(i);
+	Test r = findTest(child, id);
+	if(r != null) {
+	  return r;
+	}
+      }
+    }
+    if(test instanceof TestCase) {
+      TestCase tc = (TestCase)test;
+      if(id.equals(tc.getName())) {
+	return tc;
+      }
+    }
+    if(id.equals(test.getClass().getName())) {
+      return test;
+    }
+    return null;
   }
 
   static String indent(int n) {
@@ -364,9 +455,9 @@ public class JUnitServlet extends HttpServlet {
     }
 
     out.println("<pre>");
-    out.println("total # of tests: " + tr.runCount());
-    out.println("# of failures:    " + tr.failureCount());
-    out.println("# of errors:      " + tr.errorCount());
+    out.println("# of tests:    " + tr.runCount());
+    out.println("# of failures: " + tr.failureCount());
+    out.println("# of errors:   " + tr.errorCount());
     out.println("</pre>");
 
     if(tr.failureCount() > 0 ) {
@@ -439,14 +530,14 @@ public class JUnitServlet extends HttpServlet {
   void dumpFailureHTML(TestFailure tf, PrintWriter out,
 		       String prefix) throws IOException {
     out.println("<div class=\"schemaComp\">");
-    out.println("<div class=\"compHeader\">");
-    out.println("<span class=\"schemaComp\">" + 
+    out.println(" <div class=\"compHeader\">");
+    out.println("  <span class=\"schemaComp\">" + 
 		prefix);
     if(null != tf.exceptionMessage()) {
       out.println(" - " + tf.exceptionMessage());
     }
-    out.println("</span>");
-    out.println("</div>");
+    out.println("  </span>");
+    out.println(" </div>");
     out.println("<div class=\"compBody\">");
 
     Test failedTest = tf.failedTest();
@@ -471,6 +562,7 @@ public class JUnitServlet extends HttpServlet {
     out.print(tf.trace());
     out.println("</pre>");
 
+    out.println("</div>");
     out.println("</div>");
 
   }
