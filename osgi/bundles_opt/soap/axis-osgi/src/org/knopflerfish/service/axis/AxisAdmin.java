@@ -39,11 +39,33 @@ public interface AxisAdmin {
   /**
    * Service property for services wishing to be exported as
    * SOAP services.
-   * <br>Value is <tt>SOAP_SERVICE_NAME</tt>
+   * 
+   * <p>
+   * Value of the property is <tt>SOAP_SERVICE_NAME</tt>
+   * </p>
    */
   public static final String SOAP_SERVICE_NAME = "SOAP_SERVICE_NAME";
 
- public static final String SOAP_SERVICE_METHODS = "SOAP.service.methods";
+  /**
+   * Service property limiting which methods are exposed.
+   * <p>
+   * If <tt>null</tt>, expose all methods in the registered interfaces.
+   * </p>
+   * 
+   * <p>
+   * Set to <tt>"*"</tt> to expose <b>all</b> methods in the registered
+   * class.
+   * </p>
+   * <p>
+   * To restrict to a more specific set of method names, list the methods
+   * separated by space.
+   * </p>
+   *
+   * <p>
+   * Value of the property is <tt>SOAP.service.methods</tt>
+   * </p>
+   */
+  public static final String SOAP_SERVICE_METHODS = "SOAP.service.methods";
 
   /**
    * Get the currently published service names.
