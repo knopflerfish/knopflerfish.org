@@ -695,13 +695,14 @@ public class Main {
     {"org.osgi.framework.system.packages", "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
     {FWDIR_PROP,    FWDIR_DEFAULT},
     {CMDIR_PROP,    CMDIR_DEFAULT},
+    //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
   };
   
 
 
   /**
    * Check current system properties and set default values
-   * if importand ones are missing. The defualt values 
+   * if importand ones are missing. The default values 
    * are taken from the <tt>defaultSysProps</tt> variable.
    *
    * <p>
