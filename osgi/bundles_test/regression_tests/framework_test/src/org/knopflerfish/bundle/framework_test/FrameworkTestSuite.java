@@ -3018,21 +3018,30 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       InputStream is1 = null ;
 
-      URL u1 = null;;
-      try {
-	u1 = buR6.getResource("/org/knopflerfish/bundle/bundleR5_test/R5");
-      }
-      catch (Throwable tt) {
-	fail("Failed to read resource" + " ,FRAME190A:FAIL");
-	tt.printStackTrace();
-	teststatus  = false;
-      }
-      if (u1 != null) {
-	teststatus  = false;
-	fail("Unexpected access to resource in bundle R5 " + " ,FRAME190A:FAIL");
+      // this part removed since the spec is really vague about
+      // resolving inside of getResource()
+      if(false) {
+	// if buR6 not has been automatically resolved, verify that
+	// getResource doesn't do it. (yes there might be a timing p
+	// problem here)
+	if(buR6.getState() == Bundle.INSTALLED) {
+	  URL u1 = null;;
+	  try {
+	    u1 = buR6.getResource("/org/knopflerfish/bundle/bundleR5_test/R5");
+	  }
+	  catch (Throwable tt) {
+	    fail("Failed to read resource" + " ,FRAME190A:FAIL");
+	    tt.printStackTrace();
+	    teststatus  = false;
+	  }
+	  if (u1 != null) {
+	    teststatus  = false;
+	    fail("Unexpected access to resource in bundle R5 " + " ,FRAME190A:FAIL");
+	  }
+	}
       }
 
-      // Start R6, so that it gets state resolved
+      // Start R6, so that it defintely gets state resolved
       try {
 	buR6.start();
       }
