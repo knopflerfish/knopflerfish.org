@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<metatype:metatype
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
+        xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
+
+  <xsd:schema >
+   <xsd:complexType name="testconfig">
+    <xsd:annotation>
+     <xsd:documentation>(test) The log configuration sets properties for the 
+                        Knopflerfish log.
+     </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:simpleType name = "default.level">
+     <xsd:annotation>
+      <xsd:documentation>Set the default log level, when not set for specific
+                         bundles.
+      </xsd:documentation>
+     </xsd:annotation>
+
+
+     <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="debug">
+       <xsd:annotation>
+         <xsd:documentation>Debug</xsd:documentation>
+       </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="info"/>
+      <xsd:enumeration value="warning"/>
+      <xsd:enumeration value="error"/>
+     </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name = "bundle.log.level">
+     <xsd:sequence array="false">
+      <xsd:simpleType name = "item">
+        <restriction base="xsd:string"/>
+      </xsd:simpleType>
+     </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element  name = "memory.size" type="xsd:int"/>
+    <xsd:element  name = "log.out"     type="xsd:boolean"/>
+   </xsd:complexType> 
+
+
+   <xsd:complexType name="service1" iconURL="/knopflerfish-small.gif">
+
+    <xsd:annotation>
+     <xsd:documentation>A very simple service</xsd:documentation>
+    </xsd:annotation>
+    <xsd:element   name="string1" type="xsd:string"/>
+   </xsd:complexType> 
+
+   <xsd:complexType name="com.ubiserv.bundle.gubbe" 
+                    iconURL="/gubbe.gif">
+
+    <xsd:element   name="name"    type="xsd:string"/>
+    <xsd:element   name="message" type="xsd:string"/>
+    <xsd:element   name="age"  type="xsd:int"/>
+    <xsd:element   name="madness" type="xsd:string"/>
+   </xsd:complexType> 
+
+
+   <xsd:complexType name="factory1" maxOccurs="unbounded">
+    <xsd:annotation>
+     <xsd:documentation>A simple factory</xsd:documentation>
+    </xsd:annotation>
+    <xsd:element  name="boolean1"   type="xsd:boolean"/>
+    <xsd:element  name="string1"    type="xsd:string"/>
+    <xsd:complexType name = "intvector1">
+     <xsd:sequence array="true">
+      <xsd:element name = "item" type="xsd:int"/>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:complexType>
+ </xsd:schema>
+
+</metatype:metatype>
+
+
+
