@@ -96,6 +96,12 @@ public class Login {
 
     String     msg     = null;
     UserObject userObj = null;
+
+    // Catch ClassCastException since the bundle itself
+    // may have been updated since the last request. If this
+    // happens, the http server may very well still hold on
+    // to a class named "UserObject", but which actually isn't
+    // the same class as the new, update bundle expects.
     try {
       userObj = (UserObject)session.getAttribute(USER_OBJ);
     } catch (ClassCastException e) {
@@ -199,6 +205,12 @@ public class Login {
   }
 
 
+  /**
+   * Simple object for storing user info in an HttpSession. 
+   * The HttpSession.setMaxInactiveInterval() could have been
+   * used instead of the custom timer...but then it would be 
+   * hard to give a "session expired" message at timeouts.
+   */
   class UserObject {
     long touchTime;
     
