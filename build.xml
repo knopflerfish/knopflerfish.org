@@ -72,6 +72,8 @@
 
   <property name = "ant.dir"          location="ant"/>
   <property name = "antclasses"       location = "${ant.dir}/classes"/>
+
+
 	    
   <target name        = "all"
           description = "Builds entire platform, but not distribution file" >
@@ -562,11 +564,12 @@
             description = "Builds self-extraction optional distribution file">
 
     <available property="bundles.opt.present"  file="osgi/bundles_opt"/>
+    <echo message="present=${bundles.opt.present}"/>
     <antcall target="distrib_opt_maybe"/>
   </target>
 
   <target   name        = "distrib_opt_maybe"
-            if          = "${bundles.opt.present}"
+            if          = "bundles.opt.present"
             description = "Builds self-extraction optional distribution file">
 
     <ant dir="osgi/bundles_opt" target="all"/>
