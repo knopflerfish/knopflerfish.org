@@ -43,6 +43,7 @@ import java.io.*;
 import java.util.*;
 import java.lang.reflect.Array;
 
+import org.knopflerfish.util.Text;
 /**
  * Helper class which loads (and saves) KF  Metatype XML.
  *
@@ -63,7 +64,7 @@ public class Loader {
   static final String METATYPE      = "metatype";
   static final String SERVICES      = "services";
   static final String FACTORIES     = "factories";
-  static final String DEFAULTVALUES = "defaultvalues";
+  static final String VALUES        = "values";
 
   static final String ITEM          = "item";
 
@@ -96,7 +97,7 @@ public class Loader {
   /**
    * Load a MetaTypeProvider from an XML file.
    */
-  public static MTP loadMTPFromURL(URL url) throws IOException {
+  public static MTP loadMTPFromURL(Bundle bundle, URL url) throws IOException {
     InputStream in = null;
     
     try {
@@ -105,7 +106,7 @@ public class Loader {
       IXMLReader reader = new StdXMLReader(in);
       parser.setReader(reader);
       XMLElement el  = (XMLElement) parser.parse();
-      return loadMTP(url.toString(), el);
+      return loadMTP(bundle, url.toString(), el);
     } catch (Exception e) {
       e.printStackTrace();
       throw new IOException("Failed to load " + url + " " + e);
@@ -153,7 +154,7 @@ public class Loader {
    * </ol>
    *
    */
-  public static MTP loadMTP(String sourceName, XMLElement el) {
+  public static MTP loadMTP(Bundle bundle, String sourceName, XMLElement el) {
     
     assertTagName(el, METATYPE_NS, METATYPE);
 
@@ -164,11 +165,11 @@ public class Loader {
 
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
-      if(SERVICES.equals(childEl.getName())) {
+      if(isName(childEl, METATYPE_NS, SERVICES)) {
 	services = parseServices(childEl, false);
-      } else if(FACTORIES.equals(childEl.getName())) {
+      } else if(isName(childEl, METATYPE_NS, FACTORIES)) {
 	factories = parseServices(childEl, true);
-      } else if(DEFAULTVALUES.equals(childEl.getName())) {
+      } else if(isName(childEl, METATYPE_NS, VALUES)) {
 	bHasDefValues = true;
       } else {
 	throw new XMLException("Unexpected element", el);
@@ -183,9 +184,14 @@ public class Loader {
       OCD ocd = new OCD(services[i].pid, 
 			services[i].pid, 
 			services[i].desc);
-      if(services[i].iconURL != null) {
+      String iconURL = services[i].iconURL;
+      if(iconURL != null) {
 	try {
-	  ocd.setIconURL(new URL(services[i].iconURL));
+	  if(bundle != null) {
+	    iconURL = Text.replace(iconURL, "$(BID)", 
+				   Long.toString(bundle.getBundleId()));
+	  }
+	  ocd.setIconURL(new URL(iconURL));
 	} catch (Exception e) {
 	  System.err.println("Failed to set icon url: " +  e);
 	}
@@ -217,7 +223,7 @@ public class Loader {
     if(bHasDefValues) {
       for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
 	XMLElement childEl = (XMLElement)e.nextElement();
-	if(DEFAULTVALUES.equals(childEl.getName())) {
+	if(isName(childEl, METATYPE_NS, VALUES)) {
 	  Dictionary pids = loadValues(mtp, childEl);
 	  
 	  setDefaultValues(mtp, pids);
@@ -831,13 +837,19 @@ public class Loader {
   public static void printMetatypeXML(MetaTypeProvider mtp, 
 				      Set servicePIDs,
 				      Set factoryPIDs,
+				      boolean bXMLHeader,
+				      boolean bMetatypeTag,
+				      Dictionary pids,
 				      PrintWriter out) {
-    out.println("<?xml version=\"1.0\"?>");
+    if(bXMLHeader) {
+      out.println("<?xml version=\"1.0\"?>");
+    }
 
-    out.println("<metatype:metatype\n" + 
-		"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n" + 
-		"  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");    
-  
+    if(bMetatypeTag) {
+      out.println("<metatype:metatype\n" + 
+		  "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n" + 
+		  "  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");    
+    }
     out.println("");
 
     out.println(" <metatype:services>");
@@ -850,8 +862,14 @@ public class Loader {
     out.println(" </metatype:factories>");
     out.println("");
 
-    out.println("</metatype:metatype>");
-  }  
+    if(pids != null) {
+      printValuesXML(pids, false, out);
+    }
+
+    if(bMetatypeTag) {
+      out.println("</metatype:metatype>");
+    }  
+  }
 
   /**
    * Print a set of ObjectClassDefinitions as XML.
@@ -890,8 +908,8 @@ public class Loader {
 
 
   static void printXMLSequence(PrintWriter out, 
-				      AttributeDefinition ad,
-				      boolean bArray) {
+			       AttributeDefinition ad,
+			       boolean bArray) {
     out.println("     <xsd:complexType " + ATTR_NAME + " = \"" + ad.getID() + "\">");
     out.println("      <xsd:sequence " + ATTR_ARRAY + "=\"" + bArray + "\">");
     out.println("       <xsd:element " + ATTR_NAME + " = \"" + ITEM + 
@@ -917,7 +935,7 @@ public class Loader {
   }
 
   static void printXMLSingle(PrintWriter out,
-				    AttributeDefinition ad) {
+			     AttributeDefinition ad) {
     
     String tag = getXSDType(ad.getType());
     
@@ -950,11 +968,15 @@ public class Loader {
     }
   }
 
-  static void printValuesXML(Dictionary pids, PrintWriter out) {
-    out.println("<?xml version=\"1.0\"?>");
+  public static void printValuesXML(Dictionary pids, 
+				    boolean bXMLHeader,
+				    PrintWriter out) {
 
-    out.println("<metatype:values\n" + 	"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
-    
+    if(bXMLHeader) {
+      out.println("<?xml version=\"1.0\"?>");
+    }
+
+    out.println(" <metatype:values\n" + 	"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
     out.println("");
     
     for(Enumeration e = pids.keys(); e.hasMoreElements(); ) {
@@ -969,7 +991,7 @@ public class Loader {
       out.println("  </" + pid + ">");
     }
 
-    out.println("</metatype:values>");
+    out.println(" </metatype:values>");
   }
 
   static void printPropertiesXML(Dictionary props, PrintWriter out) {
