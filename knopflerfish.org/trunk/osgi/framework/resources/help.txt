@@ -3,8 +3,9 @@
 
  Options:
    -exit          Exit the JVM process
-   -help          Print this text
-   -readme        Print a longer startup readme
+   -help          Print this text and exit
+   -readme        Print a longer startup readme and exit
+   -version       Print version and exit
    -xargs file    Load more command line arguments from file
    -init          Start an empty platform
    -install URL   Install a bundle
