@@ -14,14 +14,13 @@
   <property name = "bundle.build.lib"   value = "false"/>
 
   <property name="api.pattern" value="org/osgi/service/wireadmin/**"/> 
-  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
 
   <path id="bundle.compile.path">
   </path>
 
   <property name="bundle.description"    value="WireAdmin"/>
   <property name="bundle.category"       value="service"/>
-  <property name="bundle.vendor"         value="OSGI/knopflerfish"/>
+  <property name="bundle.vendor"         value="OSGI"/>
   <property name="bundle.version"        value="1.0.0"/>
 
 
