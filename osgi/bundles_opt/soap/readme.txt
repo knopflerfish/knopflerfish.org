@@ -48,9 +48,9 @@ This is an example of a server side SOAP object.
 
 The soapobject bundle installs a service object into the service registry and
 sets its SOAP_SERVICE_NAME property to "remoteFW". This will make the axis-osgi
-bundle (must be run prior to start of the soapobject bundle) create an Axis SOAP
-service named "remoteFW". Use the following URLs from a Web browser to explore
-the service.
+bundle (must be run prior to start of the soapobject bundle) create an Axis 
+SOAP service named "remoteFW". Use the following URLs from a Web browser to 
+explore the service.
 
    http://localhost:8080/axis/services
 
@@ -60,24 +60,27 @@ the service.
 
    http://localhost:8080/axis/services/remoteFW?wsdl
 
-Beware of caching made by the browser, ensure that you are not viewing cached content
-by performing explicit refresh requests.
+Beware of caching made by the browser, ensure that you are not viewing 
+cached content by performing explicit refresh requests.
 
 
 
 soapclient
 ----------
 This is an example of a client side program. The client calls the "remoteFW" 
-service methods, so you need to have the soapobject bundle insatlled and started. The build.xml performs all required steps for the creation and and execution
-of the client program. The only handcoded module is the Test.java (main 
-class of the client program). The build file will automatically fetch the
-WSDL from the running OSGi framework, generate the client side stubs and 
-support classes, compile the generated classes as well as Test.java.
+service methods, so you need to have the soapobject bundle insatlled and 
+started. The build.xml performs all required steps for the creation and 
+and execution of the client program. The only handcoded module is the 
+Test.java (main class of the client program). The build file will 
+automatically fetch the WSDL from the running OSGi framework, generate 
+the client side stubs and support classes, compile the generated classes 
+as well as Test.java.
 
 When all have been built (compiled) the client program is executed and 
 the results are displayed.
 
-sopa_desktop
+
+soap_desktop
 ------------
 This is a SOAP service browser written as a plugin for the Swing Desktop.
 When started, it adds a view that displays all available services
@@ -91,3 +94,4 @@ The implementation has only been tested with services generated
 by exporting OSGi service via Axis, and is not complete in terms of
 all possible data types. The primitive types and arrays, are however 
 supported, both as input arguments and as results.
+
