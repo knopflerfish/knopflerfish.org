@@ -64,6 +64,7 @@ public class HttpConfig {
   public final static String SERVICE_RANKING_KEY = "service.ranking";
   public final static String HTTP_ENABLED_KEY = "http.enabled";
   public final static String HTTPS_ENABLED_KEY = "https.enabled";
+  public final static String REQ_CLIENT_AUTH_KEY = "req.client.auth";
   
   private static final int HTTP_PORT_DEFAULT        = 80;
   private static final int HTTPS_PORT_DEFAULT       = 443;
@@ -94,7 +95,8 @@ public class HttpConfig {
   private boolean  httpsEnabled = true;
   private boolean  httpEnabled = true;
   private String   defaultCharEncoding = "ISO-8859-1";
-
+  private boolean  requireClientAuth = false;
+  
   // constructors
 
   public HttpConfig() throws ConfigurationException {
@@ -169,6 +171,9 @@ public class HttpConfig {
     config.put(HttpConfig.DEFAULT_CHAR_ENCODING_KEY,
 	       System.getProperty(HttpConfig.DEFAULT_CHAR_ENCODING_KEY, 
                                   "ISO-8859-1"));
+   
+    config.put(HttpConfig.REQ_CLIENT_AUTH_KEY, 
+            Boolean.valueOf(System.getProperty("org.knopflerfish.http.req.client.auth", "false")));
 
     return config;
   }
@@ -231,8 +236,11 @@ public class HttpConfig {
           this.httpsEnabled = ((Boolean) value).booleanValue();
           this.configuration.put(key, value);
         } else if (key.equals(DEFAULT_CHAR_ENCODING_KEY)) {
-          this.defaultCharEncoding = (String)value;
-          this.configuration.put(key, value);
+            this.defaultCharEncoding = (String)value;
+            this.configuration.put(key, value);
+        } else if (key.equals(REQ_CLIENT_AUTH_KEY)) {
+            this.requireClientAuth = ((Boolean) value).booleanValue();
+            this.configuration.put(key, value);
         } else
           this.configuration.put(key, value);
       } catch (IndexOutOfBoundsException ioobe) {
@@ -311,11 +319,13 @@ public class HttpConfig {
     return dnsLookup;
   }
 
+  public boolean requireClientAuth() {
+      return requireClientAuth;
+  }
+
   public String getDefaultCharacterEncoding() {
     return defaultCharEncoding;
   }
-
-  // implements ManagedService
 
   public void updated(Dictionary configuration) throws ConfigurationException {
     mergeConfiguration(configuration); // NYI
