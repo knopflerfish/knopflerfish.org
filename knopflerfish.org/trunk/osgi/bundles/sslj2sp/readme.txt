@@ -2,9 +2,9 @@
 INTRODUCTION
 ============
 The sslj2sp bundle registers one or several SslServerSocketFactory objects as OSGi services.
-This services can be used by other bundles to establish secure TCP connections.
+These services can be used by other bundles to establish secure TCP connections.
 For example, to implement HTTPS, look at the documentation of your HTTP Service bundle to see 
-if it able to use such a service.
+if it will support the use of such services.
 
 
 JSSE
@@ -38,6 +38,11 @@ Default Configuration
 Using the Configuration Manager (CM)
 ====================================
 
+Items that are listed and in the section "Default Configuration" and 
+are not associated with a CM property are considered static in the 
+current release.
+
+
 The bundle accepts Factory configurations on the PID
 
   org.knopflerfish.bundle.ssl.j2sp
@@ -49,10 +54,12 @@ keystore:
   This property represents a keystore, which must be created as described in section "JSSE".
   The sslj2sp will interpret the value for this property as follows:
   - assume that the keystore has been stored to the CM as an array of bytes (byte[]).
-    NOTE: This would be very convenient if there was a tool that could read a file
+    //TODO: To accomplish this, it would be very convenient to have a tool that could read a file
     and then store it as the value of a property in the CM.
   - assume that the value is the name of the keystore file on the local file system.
-  If none of them work, the bundle will log a warning and use the default.
+  
+  If none of these assumptions lead to a valid key manager, the bundle will log a warning 
+  and use the default.
 
 keystorepass:
   This is a plain text string of the password for the store.
