@@ -426,21 +426,25 @@ class LogConfig implements ManagedService{
   }
   
   void updateGrabIO() {
-    if(getGrabIO()) {
-      if(!getOut()) {
-	if(!bGrabbed) {
-	  origOut = System.out;
-	  origErr = System.err;
-	  
-	  System.setOut(new WrapStream("[stdout] ", System.out, LogService.LOG_INFO));
-	  System.setErr(new WrapStream("[stderr] ", System.out, LogService.LOG_ERROR));
+    boolean bDebugClass = "true".equals(System.getProperty("org.knopflerfish.framework.debug.classloader", "false"));
+    
+    if(!bDebugClass) {
+      if(getGrabIO()) {
+	if(!getOut()) {
+	  if(!bGrabbed) {
+	    origOut = System.out;
+	    origErr = System.err;
+	    
+	    System.setOut(new WrapStream("[stdout] ", System.out, LogService.LOG_INFO));
+	    System.setErr(new WrapStream("[stderr] ", System.out, LogService.LOG_ERROR));
+	  }
 	}
-      }
-    } else {
-      if(bGrabbed) {
-	System.setOut(origOut);
-	System.setErr(origErr);
-	bGrabbed = false;
+      } else {
+	if(bGrabbed) {
+	  System.setOut(origOut);
+	  System.setErr(origErr);
+	  bGrabbed = false;
+	}
       }
     }
   }
