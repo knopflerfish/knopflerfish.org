@@ -101,6 +101,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame005a());
     addTest(new Frame007a());
     addTest(new Frame010a());
+    addTest(new Frame019a());
     addTest(new Frame020a());
     addTest(new Frame025a());
     addTest(new Frame030a());
@@ -396,6 +397,52 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  public final static String [] HELP_FRAME019A = {
+    "Try bundle:// syntax, if present in FW, by installing bundleA_test",
+    "This test is also valid if ",
+    "new URL(bundle://) throws MalformedURLException",
+  };
+
+  class Frame019a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      Bundle bA = null;
+      try {
+	try {
+	  URL url = new URL("bundle://" + bc.getBundle().getBundleId() + "/" + 
+			    "bundleA_test_all-1.0.0.jar");
+	  
+	  // if the URL can be created, it should be possible to install
+	  // from the URL string representation
+	  bA = bc.installBundle(url.toString());
+
+	  assertNotNull("Bundle should be possible to install from " + url, bA);
+	  try {
+	    bA.start();
+	  } catch (Exception e) {
+	    fail(url + " couldn't be started, FRAME019A:FAIL");
+	  }
+
+	  assertEquals("Bundle should be in ACTIVE state", 
+		       Bundle.ACTIVE, bA.getState());
+	  
+	  out.println("### FRAME019A: PASSED, bundle URL " + url);
+
+	  // finally block will uninstall bundle and clean up events
+	} catch (MalformedURLException e) {
+	  out.println("### FRAME019A: PASSED, bundle: URL not supported: " + e);
+	}
+      } finally {
+	try {
+	  if(bA != null) {
+	    bA.uninstall();
+	  }
+	} catch (Exception e) {
+	}
+	clearEvents();
+      }
+    }
+  }
 
   public final static String [] HELP_FRAME020A =  {
     "Load bunldleA_test and check that it exists and that its expected service does not exist",
