@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="axis-osgi" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/api/framework.jar"/>
+   <pathelement location="resources/axis.jar"/>
+   <pathelement location="imports/commons-logging.jar"/>
+   <!--pathelement location="resources/commons-discovery.jar"/-->
+   <pathelement location="resources/jaxrpc.jar"/>
+   <pathelement location="resources/saaj.jar"/>
+   <!--pathelement location="resources/axis-ant.jar"/-->
+   <!--pathelement location="resources/wsdl4j.jar"/-->
+   <!--pathelement location="resources/activation.jar"/-->
+  </path>
+
+  <property name="import.package" value ="org.osgi.framework,org.apache.commons.logging"/>
+
+
+  <property name="bundle.description"    value="Axis Server"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.category"       value="experiment"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <!--property name="bundle.classpath"      value = ".,axis.jar,commons-logging.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/-->
+ <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
+
+ <!-- set do.bundle.custom.post to anything to trigger post target --> 
+<!--property name="do.bundle.custom.post" value="do"/-->
+
+<target name="bundle.custom.post">
+  <jar jarfile  = "${impl.jar}"  update   = "true">
+    <manifest>
+      <attribute name = "DynamicImport-Package"        value = "*"/>
+    </manifest>
+   </jar>
+
+
+</target>
+
+ 
+
+  &bundlebuild_include;
+
+</project>
