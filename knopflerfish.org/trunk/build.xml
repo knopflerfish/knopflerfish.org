@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "1.3.1-pre1"/>
+            value = "1.3.1-pre3"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -396,6 +396,8 @@
            <include name = "osgi/jars/measurement/measurement-1.0.0.jar"/>
            <include name = "osgi/jars/position/position-1.0.0.jar"/>
            <include name = "osgi/jars/metatype/metatype-1.0.0.jar"/>
+           <include name = "osgi/jars/kf_metatype/kf_metatype_all-1.0.0.jar"/>
+           <include name = "osgi/jars/cm_desktop/cm_desktop-1.0.0.jar"/>
 
            <include name = "osgi/jars/upnp/upnp_api-1.0.0.jar"/>
            <include name = "osgi/jars/prefs/prefs_all-1.0.0.jar"/>
@@ -625,9 +627,6 @@
            <include name = "osgi/jars/soapobject/*.jar"/>
            <include name = "osgi/jars/soap_demoservice/*.jar"/>
 
-           <include name = "osgi/jars/kf_metatype/*.jar"/>
-           <include name = "osgi/jars/metatype_demo/*.jar"/>
-           <include name = "osgi/jars/cm_desktop/*.jar"/>
            <include name = "osgi/jars/junit/*.jar"/>
 	   <include name = "osgi/jars/jars/junit-example1/*.jar"/>
 	   
@@ -635,7 +634,6 @@
 
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
-           <include name = "osgi/bundles_opt/metatype/**"/>
            <include name = "osgi/bundles_opt/junit/**"/>
 
            <exclude name = "**/CVS"/>
