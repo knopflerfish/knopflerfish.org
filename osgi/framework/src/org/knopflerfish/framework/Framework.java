@@ -185,9 +185,9 @@ public class Framework {
     // guard this for profiles without System.setProperty 
     try {
       System.setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, defaultEE);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       if(Debug.packages) {
-	Debug.println("FGailed to set execution environment: " + e);
+	Debug.println("Failed to set execution environment: " + e);
       }
     }
 
@@ -210,7 +210,19 @@ public class Framework {
 
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
-    systemBundle      = new SystemBundle(this);
+
+    // guard this for profiles without Class.getProtectionDomain 
+    ProtectionDomain pd = null;
+    if(System.getSecurityManager() != null) {
+      try {
+        pd = getClass().getProtectionDomain();
+      } catch (Throwable t) {
+        if(Debug.classLoader) {
+          Debug.println("Failed to get protection domain: " + t);
+        }
+      }
+    }
+    systemBundle      = new SystemBundle(this, pd);
 
     systemBC          = new BundleContextImpl(systemBundle);
     bundles           = new Bundles(this);
