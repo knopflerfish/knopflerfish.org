@@ -122,7 +122,7 @@ public class  PrefsStorageFile implements PrefsStorage {
           for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
             String key        = (String)e.nextElement();
             String decodedKey = decode(key);
-            String val        = props.get(key);
+            String val        = (String)props.get(key);
             p2.put(decodedKey, val);
           }
           
