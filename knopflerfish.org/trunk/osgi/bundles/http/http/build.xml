@@ -29,7 +29,7 @@
   </path>
 
 
-  <property name="bundle.description"    value="HTTP Server"/>
+  <property name="bundle.description"    value="HTTP/HTTPS Server"/>
   <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.1.0"/>
