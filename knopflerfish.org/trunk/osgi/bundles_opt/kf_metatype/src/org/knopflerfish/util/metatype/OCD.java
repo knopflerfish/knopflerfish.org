@@ -60,10 +60,11 @@ public class OCD implements ObjectClassDefinition {
   /**
    * Create a new, empty ObjectClassDefinition.
    *
-   * @id unique ID of the definition.
-   * @name human-readable name of the definition. If set to <tt>null</tt>,
-   *       use <i>id</i> as name.
-   * @desc human-readable description of the definition
+   * @param id unique ID of the definition.
+   * @param name human-readable name of the definition. If set to 
+   *         <tt>null</tt>,
+   *        use <i>id</i> as name.
+   * @param desc human-readable description of the definition
    * @throws IllegalArgumentException if <i>id</i> is <null> or empty
    */
   public OCD(String id, 
@@ -85,11 +86,11 @@ public class OCD implements ObjectClassDefinition {
    * Creates an OCD with attribute definitions from an existing 
    * dictionary.
    *
-   * @id unique ID of the definition.
-   * @name human-readable name of the definition. If set to <tt>null</tt>,
+   * @param id unique ID of the definition.
+   * @param name human-readable name of the definition. If set to <tt>null</tt>,
    *       use <i>id</i> as name.
-   * @desc human-readable description of the definition
-   * @props set of key value pairs used for attribute definitions.
+   * @param desc human-readable description of the definition
+   * @param props set of key value pairs used for attribute definitions.
    *        all entries in <i>props</i> will be set as REQUIRED
    *        atttributes.
    * @throws IllegalArgumentException if <i>id</i> is <null> or empty
