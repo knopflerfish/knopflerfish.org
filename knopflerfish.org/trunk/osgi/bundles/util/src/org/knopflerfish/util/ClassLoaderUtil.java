@@ -48,10 +48,10 @@ public class ClassLoaderUtil {
    * Run the specified action in a specified ContextClassLoader.
    *
    * <p>
-   * This methods sets the current thread's context class loader to
-   * <tt>cl</tt>, calls the action's <tt>run</tt> method, resets
-   * the thread's context class loader and finally and returns
-   * the resulting value.
+   * The <tt>doContextClassLoader</tt> sets the current thread's context 
+   * class loader to the specified <tt>classloader</tt>, calls the 
+   * action's <tt>run</tt>  method, resets the thread's context class 
+   * loader and finally returns the resulting value.
    * </p>
    *
    * <p>
@@ -71,8 +71,8 @@ public class ClassLoaderUtil {
    * class loaded by the bundle class loader.
    * </p>
    *
-   * @param cl     Class loader to be used as the thread's context 
-   *               class loader.
+   * @param classloader Class loader to be used as the thread's context 
+   *                    class loader.
    * @param action Action code to run in the specified class loader.<br>
    *               The usage of the <tt>PrivilegedAction</tt> interface
    *               is to avoid creating a new interface with exactly the
@@ -80,12 +80,12 @@ public class ClassLoaderUtil {
    *               using <tt>AccessController.doPrivileged</tt>
    * @return       Value returned from the <tt>action.run</tt>
    */
-  public static Object doContextClassLoader(ClassLoader cl, 
+  public static Object doContextClassLoader(ClassLoader classloader, 
 					    PrivilegedAction action) {
     ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
     
     try {
-      Thread.currentThread().setContextClassLoader(cl);
+      Thread.currentThread().setContextClassLoader(classloader);
       Object obj = action.run();
       return obj;
     } finally {
@@ -100,8 +100,8 @@ public class ClassLoaderUtil {
    * As above, but accepts and rethrows exceptions from the action.
    * </p>
    *
-   * @param cl     Class loader to be used as the thread's context 
-   *               class loader.
+   * @param classloader  Class loader to be used as the thread's context 
+   *                     class loader.
    * @param action Action code to run in the specified class loader.<br>
    *               The usage of the <tt>PrivilegedAction</tt> interface
    *               is to avoid creating a new interface with exactly the
@@ -112,14 +112,14 @@ public class ClassLoaderUtil {
    * @throws Exception if <tt>action.run</tt> throws an exception, pass this 
    *                   upwards
    */
-  public static Object doContextClassLoader(ClassLoader cl, 
+  public static Object doContextClassLoader(ClassLoader classloader, 
 					    PrivilegedExceptionAction action) 
     throws Exception {
 
     ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
     
     try {
-      Thread.currentThread().setContextClassLoader(cl);
+      Thread.currentThread().setContextClassLoader(classloader);
       Object obj = action.run();
       return obj;
     } finally {
