@@ -222,23 +222,36 @@ class BundleArchiveImpl implements BundleArchive
     
 
   /**
-   * Get an InputStream to named entry inside a bundle.
+   * Same as getInputStream(component, -1)
+   */
+  public InputStream getInputStream(String component) {
+    return getInputStream(component, -1);
+  }
+
+  /**
+   * Get an specific InputStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
+   * @param ix index of jar. 0 means the top level. -1 means any
    * @return InputStream to entry or null if it doesn't exist.
    */
-  public InputStream getInputStream(String component) {
+  public InputStream getInputStream(String component, int ix) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    for (int i = 0; i < archives.length; i++) {
-      InputStream res = archives[i].getInputStream(component);
-      if (res != null) {
-	return res;
+
+    if(ix == -1) {
+      for (int i = 0; i < archives.length; i++) {
+        InputStream res = archives[i].getInputStream(component);
+        if (res != null) {
+          return res;
+        }
       }
+      return null;
+    } else {
+      return archives[ix].getInputStream(component);
     }
-    return null;
   }
 
 

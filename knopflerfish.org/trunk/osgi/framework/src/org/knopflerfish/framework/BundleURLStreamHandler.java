@@ -76,7 +76,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 	if (b != null) {
 	  BundleArchive a = b.getBundleArchive();
 	  if (a != null) {
-	    is = a.getInputStream(url.getFile());
+	    is = a.getInputStream(url.getFile(), url.getPort());
 	  }
 	}
 	if (is != null) {
