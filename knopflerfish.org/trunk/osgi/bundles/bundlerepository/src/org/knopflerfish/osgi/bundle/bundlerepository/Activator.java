@@ -35,21 +35,22 @@
 package org.knopflerfish.osgi.bundle.bundlerepository;
 
 import java.util.*;
+import java.lang.reflect.*;
 import org.osgi.framework.*;
 import org.ungoverned.osgi.bundle.bundlerepository.*;
 import org.ungoverned.osgi.service.bundlerepository.BundleRepositoryService;
-import org.knopflerfish.osgi.bundle.bundlerepository.*;
+
 
 public class Activator implements BundleActivator
 {
-  private transient BundleContext               m_context = null;
+  private transient BundleContext               bc = null;
   private transient BundleRepositoryServiceImpl m_brs = null;
   
   public void start(BundleContext context) {
-    m_context = context;
+    bc = context;
     
     
-    m_brs = new BundleRepositoryServiceImpl(m_context);
+    m_brs = new BundleRepositoryServiceImpl(bc);
 
     try {
       // when running on KF, default to KF repo if nothing else is specified
@@ -65,36 +66,63 @@ public class Activator implements BundleActivator
     }
 
 
-    m_context.
+    bc.
       registerService(BundleRepositoryService.class.getName(),
 		      m_brs, 
 		      null);
+
+    registerOscarShell();
+
+    // register Knopflerfish console service if possible
+    tryObject("org.knopflerfish.osgi.bundle.bundlerepository.ObrCommandGroup",
+	      "register");
     
-    // We dynamically import the necessary shell/command APIs, so
-    // they might not actually be available, so be ready to catch
-    // the exception
-    try
-      {
-	// Register "obr" shell command service as a
-	// wrapper for the bundle repository service.
-	context.registerService(
-				org.ungoverned.osgi.service.shell.Command.class.getName(),
-				new ObrCommandImpl(m_context, m_brs), null);
-      }
-    catch (Throwable th)  {
-      // Ignore.
-    }
-    
-    try {
-      ObrCommandGroup cg = new ObrCommandGroup(m_context, m_brs);
-      cg.register();
-    } catch (Throwable th) {
-      // Ignore.
-    }
+    // register Knopflerfish desktop plugin service if possible
+    tryObject("org.knopflerfish.osgi.bundle.bundlerepository.desktop.OBRDisplayer",
+	      "register");
   }
-  
+
   public void stop(BundleContext context) {
   }
 
+  void registerOscarShell() {
+    // Register Oscar shell service if possible
+    try {
+      Class clazz = Class.forName("org.ungoverned.osgi.bundle.bundlerepository.ObrCommandImpl");
+      Constructor cons = clazz.getConstructor(new Class[] {
+	BundleContext.class,
+	BundleRepositoryService.class,
+      });
+      Object obj = cons.newInstance(new Object[] { bc, m_brs });
+      
+      bc.registerService("org.ungoverned.osgi.service.shell.Command", obj, null);
+      //      System.out.println("Registered oscar shell service");
+    }  catch (Throwable th)  {
+      //      System.out.println("No oscar shell service: " + th);
+    }
+  }
 
+  /**
+   * Try to create an instance of a named class and call a method in it.
+   * <p>
+   * This is done using reflection, since DynamicImport-Package won't
+   * resolve external bundles at the same time a bundle itself is in
+   * progress if being resolved.
+   * </p>
+   */
+  void tryObject(String className, String methodName) {
+    try {
+      Class clazz = Class.forName(className);
+      Constructor cons = clazz.getConstructor(new Class[] {
+	BundleContext.class 
+      });
+      Object obj = cons.newInstance(new Object[] { bc });
+      Method m = clazz.getMethod(methodName, null);
+      m.invoke(obj, null);
+
+      //      System.out.println("invoked " + m);
+    }  catch (Throwable th) {
+      //      System.out.println("No " + className + " available: " + th);
+    }    
+  }
 }
