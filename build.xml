@@ -628,12 +628,15 @@
            <include name = "osgi/jars/kf_metatype/*.jar"/>
            <include name = "osgi/jars/metatype_demo/*.jar"/>
            <include name = "osgi/jars/cm_desktop/*.jar"/>
-
+           <include name = "osgi/jars/junit/*.jar"/>
+	   <include name = "osgi/jars/jars/junit-example1/*.jar"/>
+	   
            <exclude name = "keystore"/>
 
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
            <include name = "osgi/bundles_opt/metatype/**"/>
+           <include name = "osgi/bundles_opt/junit/**"/>
 
            <exclude name = "**/CVS"/>
         </zipfileset>
