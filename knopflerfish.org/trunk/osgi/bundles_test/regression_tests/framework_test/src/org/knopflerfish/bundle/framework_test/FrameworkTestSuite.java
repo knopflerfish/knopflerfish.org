@@ -146,78 +146,47 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   public final static String [] HELP_FRAME005A =  {
-    "Extract all information from the getHeaders() method",
+    "Verifi information from the getHeaders() method",
   };
 
   class Frame005a extends FWTestCase {
 
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      //    test_url_base = (String) opts.get("base_url") + "/";
       Dictionary ai = bu.getHeaders();
-      
-      // print out the expected header keys and values 
-      
+
+      // check expected headers
+
       String k =  "Bundle-ContactAddress";
       String info = (String) ai.get(k);
-      ai.remove(k);
-      out.println(k.toString() + ": " + info);
+      assertEquals("bad Bundle-ContactAddress", "http://www.knopflerfish.org", info);
       
       k =  "Bundle-Description";
       info = (String) ai.get(k);
-      ai.remove(k);
-      out.println(k.toString() + ": " + info);
+      assertEquals("bad Bundle-Description", "Test bundle for framework", info);
       
       k =  "Bundle-DocURL";
       info = (String) ai.get(k);
-      ai.remove(k);
-      out.println(k.toString() + ": " + info);
+      assertEquals("bad Bundle-DocURL", "http://www.knopflerfish.org", info);
       
       k =  "Bundle-Name";
       info = (String) ai.get(k);
-      ai.remove(k);
-      out.println(k.toString() + ": " + info);
+      assertEquals("bad Bundle-Name", "framework_test", info);
       
       k =  "Bundle-Vendor";
       info = (String) ai.get(k);
-      ai.remove(k);
-      out.println(k.toString() + ": " + info);
+      assertEquals("bad Bundle-Vendor", "Knopflerfish/Gatespace Telematics", info);
       
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      ai.remove(k);
-      out.println(k.toString() + ": " + info);
+      assertEquals("bad Bundle-Version", "1.0.0", info);
       
-      // print out the rest of the header keys and values 
-      
-      for (Enumeration e = ai.keys(); e.hasMoreElements();) {
-	Object key = e.nextElement();
-	Object value = ai.get(key);
-	String s =  key.toString();
-	String v =  value.toString();
-	out.println("Additional manifest info: " + s + ", " + v);
-      }
-      
-      Dictionary bi = bu.getHeaders();
-      if (bi == ai) {
-	teststatus = false;
-	fail("framework test bundle, cloning of headers failed :FRAME005A:FAIL");
-      } 
-      // Print out our jre etc
       
       String version = props.getProperty("java.version");
       String vendor = props.getProperty("java.vendor");
       out.println("framework test bundle, Java version " + version);
       out.println("framework test bundle, Java vendor " + vendor);
       
-      //
-      
-      if (teststatus == true ) {
-	out.println("### framework test bundle :FRAME005A:PASS");
-      }
-      else {
-	fail("### framework test bundle :FRAME005A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME005A:PASS");
     }
   }
 
