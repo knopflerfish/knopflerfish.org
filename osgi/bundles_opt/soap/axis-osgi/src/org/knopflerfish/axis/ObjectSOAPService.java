@@ -119,9 +119,9 @@ public class ObjectSOAPService {
       }
       return sb.toString();
     } catch (Exception e) {
-      log.error("Failed to analyze methods in service", e);
+      log.error("Failed to analyze methods in service object:"  + serviceObject.getClass().getName(), e);
     }
-    return "";
+    return "*";
   }
 
 

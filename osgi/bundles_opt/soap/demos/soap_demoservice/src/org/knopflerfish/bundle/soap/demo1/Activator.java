@@ -52,7 +52,7 @@ public class Activator implements BundleActivator {
     demo1 = new Demo1Impl();
 
     Hashtable props = new Hashtable();
-    props.put("SOAP_SERVICE_NAME", "soapdemo1");
+    props.put("SOAP.service.name", "soapdemo1");
 
     bc.registerService(Demo1.class.getName(), 
 		       demo1, 
