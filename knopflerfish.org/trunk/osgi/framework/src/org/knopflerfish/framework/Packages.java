@@ -43,7 +43,7 @@ import org.osgi.framework.*;
  * Here we handle all the java packages that are imported and exported
  * within framework.
  *
- * @author Jan Stein
+ * @author Jan Stein, Erik Wistrand
  */
 class Packages {
 
@@ -66,6 +66,15 @@ class Packages {
    * Map of temporary package providers.
    */
   private HashMap tempProvider = null;
+
+  /**
+   * Union of flags allowing bundle package access.
+   * <p>
+   * Value is <tt>Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING</tt>
+   * </p>
+   */
+  public static int RESOLVED_FLAGS = 
+    Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING;
 
 
   /**
@@ -111,8 +120,9 @@ class Packages {
   }
 
 
+
   /**
-   * Dynamicly check and register a dynamic package import.
+   * Dynamically check and register a dynamic package import.
    *
    * @param pe PkgEntry import to add.
    * @return PkgEntry for package provider.
@@ -122,13 +132,53 @@ class Packages {
       Debug.println("dynamicImportPackage: try " + pe);
     }
     Pkg p = (Pkg)packages.get(pe.name);
-    if (p != null && p.provider != null) {
-      p.addImporter(pe);
-      if (Debug.packages) {
-	Debug.println("dynamicImportPackage: added " + pe);
+    if (p != null) {
+      if(p.provider != null) {
+	if((pe.bundle.getState() & RESOLVED_FLAGS) != 0) {
+	  p.addImporter(pe);
+	  if (Debug.packages) {
+	    Debug.println("dynamicImportPackage: added " + pe);
+	  }
+	} else {
+	  if (Debug.packages) {
+	    Debug.println("dynamicImportPackage: skip add since bundle is not resolved " + pe);
+	  }
+	}
+	return p.provider;
+      } else {
+	// If the bundle trying to use dynamic import is resolved but 
+	// potential providers are yet not resolved check for providers 
+	// and resolve them as necessary
+
+	// List of bundles we try to resolve but fail
+	List /* BundleImpl */ failedBundles = new ArrayList();	
+
+	if((pe.bundle.getState() & RESOLVED_FLAGS) != 0) {
+	  for(Iterator it = p.exporters.iterator(); it.hasNext();) {
+	    PkgEntry pe2 = (PkgEntry)it.next();
+	    int state = pe2.bundle.getUpdatedState();
+	    if((state & RESOLVED_FLAGS) != 0) {
+	      p.addImporter(pe);
+	      return p.provider;
+	    } else {
+	      // add to set, to be able to give informative debug info in 
+	      // the case of all exporters fail to resolve
+	      failedBundles.add(pe2.bundle);
+	    }
+	  }
+	  // If we reach this, not potential exporter has been
+	  // possible to resolve.
+	  framework.listeners.frameworkError(pe.bundle,
+					     new Exception("dynamicResolve: failed to resolve " + pe +", unresolved exportes: " + failedBundles));
+	  return null;
+	} else {
+	  if (Debug.packages) {
+	    Debug.println("dynamicImportPackage: failed because importing bundle is not resolved: " + pe.bundle.toString(2));
+	  }
+	}
       }
-      return p.provider;
     }
+    
     return null;
   }
 
@@ -475,7 +525,7 @@ class Packages {
     PkgEntry provider = null;
     for (Iterator i = p.exporters.iterator(); i.hasNext(); ) {
       PkgEntry pe = (PkgEntry)i.next();
-      if ((pe.bundle.state & (Bundle.RESOLVED|Bundle.STARTING|Bundle.ACTIVE|Bundle.STOPPING)) != 0) {
+      if ((pe.bundle.state & RESOLVED_FLAGS) != 0) {
 	provider = pe;
 	break;
       }
