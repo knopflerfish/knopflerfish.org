@@ -7,7 +7,7 @@
  <metatype:services>
 
   <xsd:schema >
-   <xsd:complexType name="org.knopflerfish.log.config">
+   <xsd:complexType name="testconfig">
     <xsd:annotation>
      <xsd:documentation>The log configuration sets properties for the 
                         Knopflerfish log.
@@ -35,7 +35,7 @@
     </xsd:simpleType>
 
     <xsd:complexType name = "bundle.log.level">
-     <xsd:sequence array="true">
+     <xsd:sequence array="false">
       <xsd:simpleType name = "item">
         <restriction base="xsd:string"/>
       </xsd:simpleType>

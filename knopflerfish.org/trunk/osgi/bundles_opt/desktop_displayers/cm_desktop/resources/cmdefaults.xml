@@ -13,16 +13,14 @@
    </intvector1>
   </factory1>
    
-  <org.knopflerfish.log.config>
+  <testconfig>
 
    <default.level>
      info
    </default.level>
 
    <bundle.log.level>
-     <item>apa,info</item>
-     <item>bepa,info</item>
-     <item>cepa,warn</item>
+     <item>location;level</item>
    </bundle.log.level>
 
    <memory.size>
@@ -33,5 +31,5 @@
     true
    </log.out>
 
-  </org.knopflerfish.log.config>
+  </testconfig>
 </metatype:values>
