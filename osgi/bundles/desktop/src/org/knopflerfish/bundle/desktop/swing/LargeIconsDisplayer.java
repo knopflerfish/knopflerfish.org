@@ -157,8 +157,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 	  private void maybeShowPopup(MouseEvent e) {
 	    if(contextPopupMenu != null && 
 	       (e.isPopupTrigger() || 
-		e.getButton() == 2 ||
-		e.getButton() == 3)) {
+		((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0))) {
 	      Component comp = e.getComponent();
 	      contextPopupMenu.show(comp, e.getX(), e.getY());
 	    }
