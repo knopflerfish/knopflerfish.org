@@ -394,13 +394,30 @@ final public class BundleClassLoader extends ClassLoader {
           : ((Integer)items.elementAt(i)).intValue();
         
         try {
-          URLStreamHandler handler 
-            = bpkgs.bundle.framework.bundleURLStreamhandler;
-          URL url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                            Long.toString(bpkgs.bundle.id),
-                            jarId,
-                            name.startsWith("/") ? name : ("/" + name),
-                            handler);
+          /*
+           * Fix for Java profiles which does not support 
+           * URL(String, String,int,String,URLStreamHandler).
+           *  
+           * These profiles must set the 
+           * org.knopflerfish.osgi.registerbundleurlhandler property 
+           * to 'true' so the BundleURLStreamHandler is added
+           * to the Framework urlStreamHandlerFactory
+           */
+          URL url = null;
+          if(Framework.REGISTERBUNDLEURLHANDLER) {
+            url = new URL(BundleURLStreamHandler.PROTOCOL, 
+                    Long.toString(bpkgs.bundle.id),
+                    jarId,
+                    name.startsWith("/") ? name : ("/" + name));
+          } else {
+	        URLStreamHandler handler 
+	            = bpkgs.bundle.framework.bundleURLStreamhandler;
+	        url = new URL(BundleURLStreamHandler.PROTOCOL, 
+                    Long.toString(bpkgs.bundle.id),
+                    jarId,
+                    name.startsWith("/") ? name : ("/" + name),
+                    handler);
+          }
           if (debug) {
             Debug.println("classLoader(#" + bpkgs.bundle.id + ") - found: " + name + " -> " + url);
           }
