@@ -15,6 +15,7 @@ A nice windows client is available at
   http://tortoisesvn.tigris.org
 
 
+
 typically you can check out the main trunk by:
 
  > mkdir knopflerfish.org
