@@ -3,11 +3,11 @@
 <project name="bundles_test" default="all">
 
   <target name="all">
-   <ant dir="regression_test"            target="all"/>
+   <ant dir="regression_tests"            target="all"/>
   </target>
 
   <target name="clean">
-   <ant dir="regression_test"            target="clean"/>
+   <ant dir="regression_tests"            target="clean"/>
   </target>
 
 </project>
