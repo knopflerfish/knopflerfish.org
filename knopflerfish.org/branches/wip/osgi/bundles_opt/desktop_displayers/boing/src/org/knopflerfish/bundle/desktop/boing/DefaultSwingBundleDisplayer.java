@@ -186,4 +186,8 @@ public abstract class DefaultSwingBundleDisplayer
   public Icon       getSmallIcon() {
     return null;
   }
+
+  public void       setTargetBundleContext(BundleContext bc) {
+    // NYI
+  }
 }
