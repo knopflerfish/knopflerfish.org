@@ -86,9 +86,9 @@ public abstract class DefaultSwingBundleDisplayer
     return bundles;
   }
 
-  public void register() {
+  public ServiceRegistration register() {
     if(reg != null) {
-      return;
+      return reg;
     }
 
     open();
@@ -105,7 +105,11 @@ public abstract class DefaultSwingBundleDisplayer
       .registerService(SwingBundleDisplayer.class.getName(),
 		       this,
 		       props);
+
+    return reg;
   }
+
+
 
   public void unregister() {
     if(reg == null) {
