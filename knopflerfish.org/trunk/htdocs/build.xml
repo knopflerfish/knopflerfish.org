@@ -149,6 +149,15 @@
       <param name="CLASS_NAVIGATION_BUNDLES" value="navigation_disabled"/>
     </antcall>
 
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/services_main.html"/>
+      <param name="tofile"   value="services.html"/>
+      <param name="title"    value="OSGi Services tutorial"/>
+      <param name="desc"     value="Survival guide for handling OSGi services"/>
+      <param name="CLASS_NAVIGATION_SERVICES" value="navigation_disabled"/>
+    </antcall>
+
   </target>
 
   <target name="makehtml">
@@ -159,6 +168,9 @@
     <copy file      = "${template.html}" 
           tofile    = "${tofile}" 
           overwrite = "true"/>
+
+     <property name="JAVADOC"  
+               value="http://www.knopflerfish.org/releases/${version}/javadoc"/>
 
      <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
@@ -186,6 +198,7 @@
 	<replacefilter token="$(VERSION)"   value="${version}"/>
 	<replacefilter token="$(MESSAGE)"   value="${message}"/>
 	<replacefilter token="$(BUNDLE_LIST)"   value="${bundle_list}"/>
+	<replacefilter token="$(JAVADOC)"       value="${JAVADOC}"/>
 
         <replacefilter token="$(CLASS_NAVIGATION)" 
                        value="navigation_enabled"/>
