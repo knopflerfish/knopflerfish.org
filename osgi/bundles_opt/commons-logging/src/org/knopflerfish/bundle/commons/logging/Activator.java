@@ -56,6 +56,9 @@ public class Activator implements BundleActivator {
   public void stop(BundleContext bc) {
     cLog.info("OSGi commons logger stopping");
 
+    // This is good. It just might work, too
+    LogFactory.releaseAll();
+
     log.close();
     this.bc  = null;
   }
