@@ -99,6 +99,13 @@ public class JCMProp extends JPanel {
 	case AttributeDefinition.BOOLEAN:
 	  comp = new JCheckBox();
 	  break;
+	case AttributeDefinition.INTEGER:
+	case AttributeDefinition.SHORT:
+	case AttributeDefinition.LONG:
+	case AttributeDefinition.DOUBLE:
+	case AttributeDefinition.FLOAT:
+	  comp = new JNumber(ad);
+	  break;
 	default:
 	  comp = new JTextField();
 	}
@@ -130,6 +137,8 @@ public class JCMProp extends JPanel {
     if(comp instanceof JVector) {
       JVector jv = (JVector)comp;
       jv.setValue(obj);
+    } else if(comp instanceof JNumber) {
+      ((JNumber)comp).setValue(AD.parse(obj.toString(), 0, ad.getType()));
     } else {
       String s = AD.toString(obj);
       if(comp instanceof JTextField) {
@@ -161,6 +170,9 @@ public class JCMProp extends JPanel {
       } else {
 	s  = AD.toString(jv.getArray());
       }
+    } else if(comp instanceof JNumber) {
+      JNumber number = (JNumber)comp;
+      s = number.getValue().toString();
     } else if(comp instanceof JTextField) {
       JTextField text = (JTextField)comp;
       s = text.getText();
