@@ -1,0 +1,244 @@
+<a name="download"></a>
+<p>
+The Knopflerfish OSGi framework is available under a <a href="license.txt">BSD style license</a>.
+<br>
+All OSGi source files are copyright by OSGi, see separate <a href="osgi_copyright.txt">copyright file</a>. OSGi source files are individually marked as such.
+</p>
+
+<p>
+You can download either a complete installation, a binary installation or just the core framework.
+</p>
+<table>
+
+ <tr>
+  <td>
+  <a href="releases/$(VERSION)/knopflerfish_fullbin_osgi_$(VERSION).jar">knopflerfish_fullbin_osgi_$(VERSION).jar</a><br>
+  (approx 2.0 MB)
+  </td>
+  <td>
+  Full binary framework and bundles. No source or docs. Self-extracting.
+  </td>
+ </tr>
+
+ <tr>
+  <td>
+  <a href="releases/$(VERSION)/knopflerfish_osgi_$(VERSION).jar">knopflerfish_osgi_$(VERSION).jar</a><br> (approx 6.2 MB)
+  </td>
+  <td>
+  Complete framework, including source code, docs and this web site. Self-extracting.
+  </td>
+ </tr>
+
+
+ <tr>
+  <td>
+  <a href="releases/$(VERSION)/knopflerfish_bin_osgi_$(VERSION).jar">knopflerfish_bin_osgi_$(VERSION).jar</a><br>
+  (approx 1.3 MB)
+  </td>
+  <td>
+  Core binary framework and some bundles. No source or docs. Self-extracting. 
+  </td>
+ </tr>
+
+ <tr>
+  <td>
+  <a href="releases/$(VERSION)/knopflerfish_osgi_tiny_$(VERSION).zip">knopflerfish_osgi_tiny_$(VERSION).zip</a><br> (approx 198 kb)
+  </td>
+  <td>
+  Remotely loading framework, no source, no docs, just framework.jar 
+      and config files for loading all bundles from the web.
+  </td>
+ </tr>
+
+ <tr>
+  <td>
+  <a href="releases/$(VERSION)/knopflerfish_opt_$(VERSION).jar">knopflerfish_opt_$(VERSION).jar</a><br> (approx 4.5 MB, including Apache Axis SOAP libraries)
+  </td>
+  <td>
+A set of optional bundles, including SOAP support for any OSGi service. See
+<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt">SOAP readme</a> for details. This download should be installed on top of a previous installation. Self-extracting. 
+  </td>
+ </tr>
+
+</table>
+
+<h3>Installation instructions for the tiny, remotely loading framework</h3>
+
+<ol>
+ <li>Unzip the distribution zip file
+ <li>Execute <tt>framework.jar</tt>
+<pre>
+    &gt; cd knopflerfish.org/osgi
+    &gt; java -jar framework.jar
+</pre>
+
+</ol>
+All bundles defined in <tt>remote-init.xargs</tt> will be loaded over the 
+net. See below for details on <tt>.xargs</tt> files.
+
+<h3>Installation instructions for the complete framework</h3>
+
+<p>
+You need at at least <a href="http://java.sun.com">Java 1.2.2</a> to
+install the framework.
+</p>
+
+The Knopflerfish OSGi framework should be installed by simply
+running the distribution jar file, either by double-clicking on the
+distribution file, or by the command:
+<pre>
+    &gt; java -jar knopflerfish_osgi_<i>&lt;version&gt;</i>.jar
+</pre>
+
+This will open an installation wizard for selection installation directory. Follow the on-screen instructions.
+<p>
+If you don't need the wizard, installation can also be done in batch mode, by entering the command:
+
+<pre>
+    &gt; java -jar knopflerfish_osgi_<i>&lt;version&gt;</i>.jar -batch
+</pre>
+
+...or by simply unpacking the jar file manually.
+
+(WinZip is also capable of unpacking .jar files)
+<p>
+The framework can then be started either by double-clicking on the
+<tt>framework.jar</tt> executable jar file in the
+<tt>knopflerfish.org/osgi</tt> directory, or by entering the
+commands
+
+<pre>
+    &gt; cd knopflerfish.org/osgi
+    &gt; java -jar framework.jar
+</pre>
+
+<h3>Customizing startup</h3>
+The default installation starts the <a href="desktop.html">Knopflerfish OSGi Desktop</a> and a set of useful bundles, but if you don't want this - just
+remove lines as:
+<pre>
+    -istart  desktop/desktop.jar
+</pre>
+from the <tt>init.xargs</tt> file.
+<p>
+The <tt>init.xargs</tt> file in the
+current directory is read for options when no options are given on the
+command line and the framework is started for the first time. Restarting
+the framework reads the <tt>restart.xargs</tt> file as default. Restart 
+from <tt>xargs.init</tt> can be forced by removing the 
+<tt>fwdir</tt> directory.
+</p>
+
+<p>
+To get help on the framework options, start the framework with the help option.
+<pre>
+    java -jar framework.jar -help
+</pre>
+This typically prints this help screen (depending on version):
+<pre>
+
+Usage:  java [properties] org.knopflerfish.Main [-init] [options]
+
+ Options:
+   -exit          Exit the JVM process
+   -help          Print this text
+   -xargs file    Load more command line arguments from file
+   -init          Start an empty platform
+   -install URL   Install a bundle
+   -istart URL    Install and start bundle
+   -launch [id]   Launch framework (Default), id = bundle id BootManager
+   -sleep SEC     Sleep a while before next command
+   -shutdown      Shutdown framework
+   -start ID      Start bundle
+   -stop ID       Stop bundle
+   -uninstall ID  Uninstall a bundle
+   -update ID     Update a bundle
+   -initlevel N   Set initial start level for installed bundles
+   -startlevel N  Set start level of Start Level service
+ 
+ Properties:
+
+   org.osgi.framework.dir -
+     Where we store persistent data.
+     (Default: {defaultInstDir}/fwdir)
+
+   org.knopflerfish.gosg.jars -
+     Base URL for relative install commands
+     (Default: file:jars/*)
+
+   org.osgi.framework.system.packages -
+     List of packages exported from system classloader,
+     other than java.* and org.osgi.framework
+
+   org.osgi.framework.system.packages.file -
+     File containing kist of packages exported from system
+     classloader,
+     other than java.* and org.osgi.framework
+
+   org.knopflerfish.framework.debug.classloader -
+     Print debug information from classloader
+     (Default: false)
+
+   org.knopflerfish.framework.debug.errors -
+     Print all FrameworkEvents of type ERROR
+     (Default: false)
+
+   org.knopflerfish.framework.debug.packages -
+     Print debug information about packages
+     (Default: false)
+
+   org.knopflerfish.framework.debug.startlevel -
+     Print debug information about startlevel service
+     (Default: false)
+
+   org.knopflerfish.framework.debug.url -
+     Print debug information about URL services
+     (Default: false)
+
+   org.knopflerfish.framework.debug.ldap -
+     Print debug information about LDAP filters
+     (Default: false)
+
+   org.knopflerfish.framework.ldap.nocache -
+     Disable LDAP caching for simple filters
+     (Default: false)
+
+   org.knopflerfish.framework.bundlestorage
+     Storage implementation for bundles
+     [file, memory]
+     (Default: file)
+
+   org.knopflerfish.framework.system.export.all_13 -
+     Make system classloader export all standard JVM 1.3
+     packages as javax.swing.*
+     (Default: false)
+
+   org.knopflerfish.verbosity -
+     Framework verbosity level. 0 means few messages
+     (Default: 0)
+
+   org.knopflerfish.startlevel.use -
+     Use the Start Level service
+     (Default: true)
+
+   org.knopflerfish.startlevel.level -
+     level of start level service if used
+     (Default: 1)
+
+   org.knopflerfish.startlevel.initlevel -
+     Initial start level of bundles if start level
+     service if used
+     (Default: 1)
+
+   java.security.manager
+     Class name of security manager. If set to empty string, uses
+     "java.lang.SecurityManager". If unset, do not use any security
+     manager.
+
+     (Default: unset)
+
+   java.security.policy
+     Security policy file. Used by the security manager.
+     (Default: unset)
+
+</pre>
+</p>

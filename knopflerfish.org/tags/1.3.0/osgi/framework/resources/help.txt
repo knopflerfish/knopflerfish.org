@@ -1,0 +1,133 @@
+ Usage:  java [properties] org.knopflerfish.Main [-init] [options]
+      or java [properties] -jar framework.jar [-init] [options]
+
+ Options:
+   -exit          Exit the JVM process
+   -help          Print this text
+   -xargs file    Load more command line arguments from file
+   -init          Start an empty platform
+   -install URL   Install a bundle
+   -istart URL    Install and start bundle
+   -launch [id]   Launch framework (Default), id = bundle id BootManager
+   -sleep SEC     Sleep a while before next command
+   -shutdown      Shutdown framework
+   -start ID      Start bundle
+   -stop ID       Stop bundle
+   -uninstall ID  Uninstall a bundle
+   -update ID     Update a bundle
+   -initlevel N   Set initial start level for installed bundles
+   -startlevel N  Set start level of Start Level service
+
+ The directory used for storing bundle data is normally "fwdir".
+
+ If no args are supplied, a default .xargs file will be searched for
+ by the following algorithm:
+
+  1. If there exists a previous fwdir, use
+     restart.xargs
+
+  2. If no fwdir exist, try the first file matching:
+
+      a) init_[osname].xargs
+      b) init.xargs
+      c) remote-init.xargs
+
+ Combining .xargs and command line arguments is not a good 
+ idea, e.g, -init on the command line will remove
+ the fwdir, but _not_ use the default .xargs file, thus
+ causing an empty framework to start.
+
+ Manually removing fwdir is the recommended way of
+ forcing a complete reinit.
+ 
+ Properties:
+
+   org.osgi.framework.dir -
+     Where we store persistent data.
+     (Default: {defaultInstDir}/fwdir)
+
+   org.knopflerfish.gosg.jars -
+     Base URL for relative install commands
+     (Default: file:jars/*)
+
+   org.osgi.framework.system.packages -
+     List of packages exported from system classloader,
+     other than java.* and org.osgi.framework
+
+   org.osgi.framework.system.packages.file -
+     File containing list of packages exported from system
+     classloader,
+     other than java.* and org.osgi.framework
+
+   org.knopflerfish.framework.debug.classloader -
+     Print debug information from classloader
+     (Default: false)
+
+   org.knopflerfish.framework.debug.errors -
+     Print all FrameworkEvents of type ERROR
+     (Default: false)
+
+   org.knopflerfish.framework.debug.packages -
+     Print debug information about packages
+     (Default: false)
+
+   org.knopflerfish.framework.debug.startlevel -
+     Print debug information about startlevel service
+     (Default: false)
+
+   org.knopflerfish.framework.debug.url -
+     Print debug information about URL services
+     (Default: false)
+
+   org.knopflerfish.framework.debug.ldap -
+     Print debug information about LDAP filters
+     (Default: false)
+
+   org.knopflerfish.framework.ldap.nocache -
+     Disable LDAP caching for simple filters
+     (Default: false)
+
+   org.knopflerfish.framework.bundlestorage
+     Storage implementation for bundles
+     [file, memory]
+     (Default: file)
+
+   org.knopflerfish.framework.system.export.all_13 -
+     Make system classloader export all standard JVM 1.3
+     packages as javax.swing.*
+     (Default: false)
+
+   org.knopflerfish.verbosity -
+     Framework verbosity level. 0 means few messages
+     (Default: 0)
+
+   org.knopflerfish.startlevel.use -
+     Use the Start Level service
+     (Default: true)
+
+   org.knopflerfish.startlevel.level -
+     level of start level service if used
+     (Default: 1)
+
+   org.knopflerfish.startlevel.initlevel -
+     Initial start level of bundles if start level
+     service if used
+     (Default: 1)
+
+   java.security.manager
+     Class name of security manager. If set to empty string, uses
+     "java.lang.SecurityManager". If unset, do not use any security
+     manager.
+
+     (Default: unset)
+
+   java.security.policy
+     Security policy file. Used by the security manager.
+     (Default: unset)
+
+   org.knopflerfish.framework.version.fuzzy
+     If set to true, consider package version numbers
+      "x.y.0" = "x.y" 
+     otherwise consider
+      "x.y.0" > "x.y"
+     (Default: true) 
