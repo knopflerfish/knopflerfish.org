@@ -804,7 +804,9 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
 
  <tr>
   <td>jar.all</td>
-  <td>Location of jar file containing both API and implementation code</td>
+  <td>Location and name of jar file containing both API and implementation code<br/>
+Default is <tt>${jardir}/${ant.project.name}${all.suffix}.jar</tt>
+</td>
  </tr>
 
  <tr>
@@ -818,9 +820,18 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
  </tr>
 
  <tr>
+  <td>all.suffix</td>
+  <td>Suffix string for the ${all.jar} output file<br/>
+Default is <tt>_all-${bundle.version}</tt>
+</td>
+ </tr>
+
+ <tr>
   <td class="tableheader" colspan="2">Bundle manifest attributes</td>
  </tr>
 
+ 
+ <tr>
   <td>bundle.name</td>
   <td>Name of bundle. Will be stored in manifest as "Bundle-Name". 
       <br>Default value is ${ant.project.name}
@@ -838,6 +849,13 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   <td>bundle.vendor</td>
   <td>Vendor of bundle. Will be stored in manifest as "Bundle-Vendor".
   <br>Default value is "Knopflerfish"
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.apivendor</td>
+  <td>Vendor of a bundle's API. Will be stored in manifest as "Bundle-APIVendor".
+  <br>Default value is "[bundle.emptystring]"
   </td>
  </tr>
 
@@ -922,6 +940,28 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   <td>export.service</td>
   <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Package". 
   </td>
+ </tr>
+
+ <tr>
+  <td>bundle.uuid</td>
+  <td>Optional "Universally Unique ID" for a bundle. Will be stored in manifest as "Bundle-UUID".<br/>
+Default is <tt>org.knopflerfish:${bundle.name}:${bundle.version}</tt>
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.symbolicname</td>
+  <td>Optional ID used by the Eclipse OSGi framework. Will be stored in manifest as "Bundle-SymbolicName".<br/>
+Default is <tt>${bundle.uuid}</tt>
+  </td>
+
+ <tr>
+  <td colspan=2><b>Note</b>: If any of the manifest attributes above are set to the 
+   special value <tt>"[bundle.emptystring]"</tt>, that attribute will not 
+be present at all in the manifest, not even as a zero-length string.
+ </td>
+ </tr>
+
  </tr>
 
 
