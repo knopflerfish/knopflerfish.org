@@ -18,7 +18,7 @@ public class Activator implements BundleActivator {
     
     
     synchronized(TestFW.tester.notifier) {
-      TestFW.tester.log("bundle", "send notify");
+      //      TestFW.tester.log("bundle", "send notify");
       TestFW.tester.notifier.notifyAll();
 
 

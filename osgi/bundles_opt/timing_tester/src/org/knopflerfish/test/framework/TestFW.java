@@ -65,11 +65,11 @@ public class TestFW  {
 	public Object run() {
 	  Thread t = new Thread() {
 	      public void run() {
-		log("runStartup", "creating Main");
+		//		log("runStartup", "creating Main");
 		fwMain = new Main();
-		log("runStartup", "launching Main");
+		//		log("runStartup", "launching Main");
 		fwMain.main(argv);
-		log("runStartup", "launched Main");
+		//		log("runStartup", "launched Main");
 	      }
 	    };
 	  t.start();

@@ -20,13 +20,14 @@ function runtest() {
   
 }
 
+
 function runAll() {
 
-  for n in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
-   runtest "1.3_file, 1.3, file"     "framework.jar" "file"
-   runtest "1.3_mem, 1.3, memory"   "framework.jar" "memory"
-   runtest "1.0_file, 1.0, file"   "framework-1.0.2.jar" "file"
-   runtest "1.0_mem, 1.0, memory" "framework-1.0.2.jar" "memory"
+  for n in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10; do
+   runtest "1.3_file, 1.3,  file"    "framework.jar" "file"
+#   runtest "1.3_mem, 1.0, memory"    "framework.jar" "memory"
+   runtest "1.0_file, 1.0, file"     "framework-1.0.2.jar" "file"
+#   runtest "1.0_mem, 1.0, memory"    "framework-1.0.2.jar" "memory"
   done
 }
 
