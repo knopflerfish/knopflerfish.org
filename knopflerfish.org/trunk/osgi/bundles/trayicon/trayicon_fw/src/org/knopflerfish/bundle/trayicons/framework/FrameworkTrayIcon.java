@@ -55,11 +55,17 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
   JPopupMenu          popup;  
   JCheckBoxMenuItem[] slsItems = new JCheckBoxMenuItem[22];
 
-
+  String initMsg = System.getProperty("org.knopflerfish.service.trayicon.fw.initmsg",
+				      "The Knopflerfish OSGi framework is initialized");
+  
+  String restartMsg = System.getProperty("org.knopflerfish.service.trayicon.fw.restartmsg",
+					 "The Knopflerfish OSGi framework is restarted");
+  
   public FrameworkTrayIcon() {
     super(Activator.bc,
 	  FrameworkTrayIcon.class.getName(),
-	  "Knopflerfish OSGi",
+	  System.getProperty("org.knopflerfish.service.trayicon.fw.title",
+			     "Knopflerfish OSGi"),
 	  FrameworkTrayIcon.class.getResource("/fish16x16.gif"));
   }
   
@@ -95,14 +101,14 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
   public String getStartupMessage() {
     File f = Activator.bc.getDataFile("firststart");
     if(f.exists()) {
-      return "The Knopflerfish OSGi framework is restarted";
+      return restartMsg;
     } else {
       try {
 	f.createNewFile();
       } catch (Exception e) {
 	Activator.log.error("Failed to create file=" + f);
       }
-      return "The Knopflerfish OSGi framework is initialized";
+      return initMsg;
     }
   }
 
