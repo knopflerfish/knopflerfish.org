@@ -20,10 +20,10 @@
   <parameter name="className" value="org.apache.axis.utils.Admin"/>
  </service-->
 
- <service name="Version" provider="java:RPC">
+ <!--service name="Version" provider="java:RPC">
   <parameter name="allowedMethods" value="*"/>
   <parameter name="className" value="org.apache.axis.Version"/>
- </service>
+ </service-->
 
  <transport name="http">
   <requestFlow>
