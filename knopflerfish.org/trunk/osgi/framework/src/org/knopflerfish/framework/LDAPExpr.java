@@ -38,6 +38,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import java.util.Dictionary;
 import java.util.Vector;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Enumeration;
 import java.lang.reflect.Array;
@@ -75,7 +76,7 @@ public class LDAPExpr {
   static {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
-      consBigDecimal = classBigDecimal.getConstructor(new Class [] { String.class });
+      consBigDecimal = getConstructor(classBigDecimal);
       compBigDecimal = classBigDecimal.getMethod("compareTo", new Class [] { classBigDecimal });
     } catch (Exception ignore) {
       classBigDecimal = null;
@@ -334,10 +335,64 @@ public class LDAPExpr {
         for(int i=0; i<len; i++)
           if (compare(Array.get(obj, i), op, s)) 
             return true;
+      } else {
+	// Extended comparison
+	// Allow simple EQ comparison on all classes having
+	// a string constructor, and use compareTo if they
+	// implement Comparable
+	Class       clazz = obj.getClass();
+	Constructor cons  = getConstructor(clazz);
+
+	if(cons != null) {
+	  Object     other = cons.newInstance(new Object [] { s } );
+	  if(obj instanceof Comparable) {
+	    int c = ((Comparable)obj).compareTo(other);
+	    switch(op) {
+	    case LE:
+	      return c <= 0;
+	    case GE:
+	      return c >= 0;
+	    default: /*APPROX and EQ*/
+	      return c == 0;
+	    }
+	  } else {
+	    boolean b = op == EQ && (obj.equals(other));
+	    return b;
+	  }
+	}
       }
-    } catch (Exception e) { }
+    } catch (Exception e) { 
+      e.printStackTrace();
+    }
     return false;
   }
+  
+  // Clazz -> Constructor(String)
+  private static HashMap constructorMap = new HashMap();
+
+  /**
+   * Get cached String constructor for a class
+   */
+  private static Constructor getConstructor(Class clazz) {
+    synchronized(constructorMap) {
+
+      // This might be null
+      Constructor cons = (Constructor)constructorMap.get(clazz);
+      
+      // ...check if we have tried before. A failed try
+      // is stored as null
+      if(!constructorMap.containsKey(clazz)) {
+	try {
+	  cons = clazz.getConstructor(new Class [] { String.class });
+	} catch (Exception e) {
+	  // remember by storing null in map
+	}
+	constructorMap.put(clazz, cons);
+      }
+      return cons;
+    }
+  }
+
 
   private static boolean compareString(String s1, int op, String s2) {
     switch(op) {
@@ -440,7 +495,7 @@ public class LDAPExpr {
     else if(ps.prefix("~=")) 
       operator = APPROX;
     else {
-      System.out.println("undef op='" + ps.peek() + "'");
+      //      System.out.println("undef op='" + ps.peek() + "'");
       ps.error(OPERATOR); // Does not return
     }
     String attrValue = ps.getAttributeValue();
