@@ -62,35 +62,46 @@ class Alias extends Hashtable {
   }
 
 
-  void save(PrintWriter out) {
-    for (Enumeration e = keys(); e.hasMoreElements(); ) {
-      String k = (String) e.nextElement();
-      out.println(k);
-      String [] a = (String [])get(k);
-      out.println(a.length);
-      for (int i = 0; i < a.length; i++) {
-	out.println(a[i]);
+  void save(OutputStream out) {
+    try {
+      Properties props = new Properties();
+      for (Enumeration e = keys(); e.hasMoreElements(); ) {
+	String   k = (String) e.nextElement();
+	String[] a = (String[])get(k);
+	
+	StringBuffer sb = new StringBuffer();
+	
+	for (int i = 0; i < a.length; i++) {
+	  sb.append(a[i].trim());
+	  if(i < a.length - 1) {
+	    sb.append(" ");
+	  }
+	}
+	props.put(k.trim(), sb.toString());
       }
+      props.save(out, "aliases");
+    } finally {
+      try {out.close(); } catch (Exception ignored) { }
     }
-    out.close();
   }
 
-  void restore(Reader in) throws IOException {
-    BufferedReader bin = new BufferedReader(in);
+  void restore(InputStream in) throws IOException {
     try {
-      while (bin.ready()) {
-	String k = bin.readLine();
-	int size = Integer.parseInt(bin.readLine());
-	String [] a = new String [size];
-	for (int i = 0; i < size; i++) {
-	  a[i] = bin.readLine();
+      Properties props = new Properties();
+      props.load(in);
+      for (Enumeration e = props.keys(); e.hasMoreElements(); ) {
+	String   k    = (String)e.nextElement();
+	String   args = (String)props.get(k);
+	
+	StringTokenizer st = new StringTokenizer(args," ");
+	String[] a         = new String[st.countTokens()];
+	for (int i = 0; i < a.length; i++) {
+	  a[i] = st.nextToken();
 	}
 	put(k, a);
       }
-    } catch (NumberFormatException e) {
-      throw new IOException("Saved alias is corrupt");
     } finally {
-      bin.close();
+      try { in.close(); } catch (Exception ignored) { }
     }
   }
 
@@ -102,10 +113,28 @@ class Alias extends Hashtable {
 
   void setDefault() {
     clear();
+
     cgalias("/session", new String [] {
       "alias", "echo", "enter", "leave", "help",
-      "prompt", "quit", "source", "unalias"
+      "prompt", "quit", "source", "unalias", "save", "restore",
     });
+
+    String aliasFile = System.getProperty("org.knopflerfish.console.alias.file");
+    if(aliasFile != null && !"".equals(aliasFile)) {
+      File file = new File(aliasFile);
+      if(file.exists()) {
+	try {
+	  restore(new FileInputStream(aliasFile));
+	} catch (Exception e) {
+	  System.err.println("Failed to restore aliases from " + aliasFile);
+	}
+	return;
+      }  else {
+	System.out.println("default alias file " + file.getAbsolutePath() + 
+			   " does not exists, using internal defaults");
+      }
+    }
+    
     cgalias("/framework", new String [] {
       "bundles", 
       "install", 
@@ -118,16 +147,18 @@ class Alias extends Hashtable {
     });
     // shortcuts
     put("fw", new String [] { "/session", "enter", "framework" });
-
+    
     // backward compability
     put("log",     new String [] { "/log", "show" });
     put("lsb",     new String [] { "/framework", "bundles", "-i" });
     put("lss",     new String [] { "/framework", "services" });
-
+    
     // Oscar compatability
     put("exports", new String [] { "/framework", "package", "-b" });
     put("ps",      new String [] { "/framework", "bundles", "-i" });
     put("cd",      new String [] { "/framework", "cd" });
+    
+    // JES compatability
+    put("manifest", new String [] { "/framework", "headers" });
   }
-
 }
