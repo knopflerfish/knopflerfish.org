@@ -43,6 +43,22 @@ import java.io.*;
 import java.util.*;
 import java.lang.reflect.Array;
 
+/**
+ * Helper class which loads (and saves) KF  Metatype XML.
+ *
+ * <p>
+ * This implementaion uses the nanoxml package.
+ * </p>
+ * <p>
+ * NanoXML is distributed under the zlib/libpng license, which is OSS 
+ * See <a href="http://nanoxml.sourceforge.net/orig/copyright.html">http://nanoxml.sourceforge.net/orig/copyright.html</a>
+ * for details. (license text is also include in the kf_metatype bundle jar 
+ * file)
+ * </p>
+ * Nanoxml is Copyrighted ©2000-2002 Marc De Scheemaecker, All Rights 
+ * Reserved. 
+ * </p>
+ */
 public class Loader {
   static final String METATYPE      = "metatype";
   static final String SERVICES      = "services";
