@@ -160,5 +160,5 @@ public class VersionNumber implements Comparable
    */
   public int hashCode() {
     return x << 6 + y << 3 + z;
-  }  
+  }
 }
