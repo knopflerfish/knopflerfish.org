@@ -101,6 +101,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame005a());
     addTest(new Frame007a());
     addTest(new Frame010a());
+    addTest(new Frame018a());
     addTest(new Frame019a());
     addTest(new Frame020a());
     addTest(new Frame025a());
@@ -394,6 +395,27 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       catch (Exception ignored) { }
       bListen = null;
       
+    }
+  }
+
+  public final static String [] HELP_FRAME018A = {
+    "Test result of getService(null). Should throw NPE",
+  };
+
+  class Frame018a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      try {
+	Object obj = null;
+	obj = bc.getService(null);
+	fail("### FRAME019A:FAIL Got service object=" + obj + ", excpected NullPointerException");
+      } catch (NullPointerException e) {
+	out.println("### FRAME019A:PASS: got NPE=" + e);
+      } catch (RuntimeException e) {
+	fail("### FRAME019A:FAIL: got RTE=" + e);
+      } catch (Throwable e) {
+	fail("### FRAME019A:FAIL Got " + e + ", expected NullPointerException");
+      }
     }
   }
 
