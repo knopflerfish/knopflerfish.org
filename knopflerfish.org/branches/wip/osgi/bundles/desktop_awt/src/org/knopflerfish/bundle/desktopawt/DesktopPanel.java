@@ -55,7 +55,7 @@ class DesktopPanel extends Panel {
   public static final int SORT_NAME  = 1;
   public static final int SORT_STATE = 2;
 
-  int       sortMode = SORT_NAME;
+  int       sortMode = SORT_ID;
   Hashtable bundles  = new Hashtable();
 
   LF lf = LF.getLF();
@@ -132,6 +132,7 @@ class DesktopPanel extends Panel {
       listener.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
 
+    // This will sort all displayed bundles
     showBundles(sortMode);
   }
 
