@@ -129,8 +129,12 @@ public class ConsoleTty implements BundleActivator, ManagedService {
    */
   public synchronized void stop(BundleContext bc) {
     log(LogService.LOG_INFO, "Stopping");
-    if (consoleSession != null) {
-      consoleSession.close();
+    try {
+      if (consoleSession != null) {
+	consoleSession.close();
+      }
+    } catch (Exception e) {
+      log(LogService.LOG_ERROR, "Failed to close session", e);
     }
   }
 
@@ -168,11 +172,18 @@ public class ConsoleTty implements BundleActivator, ManagedService {
    ** @param msg   Log message
    */
   public void log(int level, String msg) {
+    log(level, msg, null);
+  }
+  public void log(int level, String msg, Exception e) {
     ServiceReference srLog = bc.getServiceReference(logServiceName);
     if (srLog != null) {  
       LogService sLog = (LogService)bc.getService(srLog);
       if (sLog != null) {
-        sLog.log(level, msg);
+	if(e == null) {
+	  sLog.log(level, msg);
+	} else {
+	  sLog.log(level, msg, e);
+	}
       }
      bc.ungetService(srLog);
     }
