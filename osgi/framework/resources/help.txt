@@ -28,11 +28,11 @@
 
    org.osgi.framework.dir -
      Where we store persistent data.
-     (Default: {defaultInstDir}/fwdir)
+     Default: {defaultInstDir}/fwdir
 
    org.knopflerfish.gosg.jars -
      Base URL for relative install commands
-     (Default: file:jars/*)
+     Default: file:jars/*
 
    org.osgi.framework.system.packages -
      List of packages exported from system classloader,
@@ -45,39 +45,39 @@
 
    org.knopflerfish.framework.debug.classloader -
      Print debug information from classloader
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.debug.errors -
      Print all FrameworkEvents of type ERROR
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.debug.packages -
      Print debug information about packages
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.debug.startlevel -
      Print debug information about startlevel service
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.debug.url -
      Print debug information about URL services
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.debug.ldap -
      Print debug information about LDAP filters
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.ldap.nocache -
      Disable LDAP caching for simple filters. LDAP caching
      speeds up framework filters considerably, but uses
      more memory.
 
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.bundlestorage
      Storage implementation for bundles
      [file, memory]
-     (Default: file)
+     Default: file
 
    org.knopflerfish.framework.bundlestorage.file.reference
      When using file bundle storage, file: URLs can optionally
@@ -85,7 +85,7 @@
 
      If set to true, file: URLs are referenced only.
 
-     (Default: false)
+     Default: false
 
    org.knopflerfish.framework.bundlestorage.file.unpack
      When using file bundle storage, bundle jars can be unpacked
@@ -94,47 +94,49 @@
 
      If set to true, unpack bundle jars.
 
-     (Default: true)
+     Default: true
       
    org.knopflerfish.framework.system.export.all_13 -
      Make system classloader export all standard JVM 1.3
      packages as javax.swing.*
-     (Default: false)
+     Default: false
 
    org.knopflerfish.verbosity -
      Framework verbosity level. 0 means few messages
-     (Default: 0)
+     Default: 0
 
    org.knopflerfish.startlevel.use -
      Use the Start Level service.
-     (Default: true)
+     Default: true
 
    org.knopflerfish.startlevel.level -
      level of start level service if used.
-     (Default: 1)
+     Default: 1
 
    org.knopflerfish.startlevel.initlevel -
      Initial start level of bundles if start level
      service if used.
-     (Default: 1)
+     Default: 1
 
    java.security.manager
      Class name of security manager. If set to empty string, uses
      "java.lang.SecurityManager". If unset, do not use any security
      manager.
 
-     (Default: unset)
+     Default: unset
 
    java.security.policy
      Security policy file. Used by the security manager.
-     (Default: unset)
+
+     Default: unset
 
    org.knopflerfish.framework.version.fuzzy
      If set to true, consider package version numbers
       "x.y.0" = "x.y" 
      otherwise consider
       "x.y.0" > "x.y"
-     (Default: true) 
+
+     Default: true
 
 
    org.knopflerfish.osgi.r3.testcompliant
@@ -146,8 +148,9 @@
      tests. Bundles knowning abouth these conflicts should check the 
      testcompliant flag and act appropiately.
     
-     Default is "false". Default is a Good Thing since it means
-     follow the spec, not the buggy tests.
+     Default: false. 
+     Default is a Good Thing since it means follow the spec, not the 
+     buggy tests.
 
    org.knopflerfish.framework.restart.allow
      If set to "true", allow restart of framework by calling 
@@ -157,13 +160,13 @@
      when a wrapper script is better at restarting cleanly than the JVM
      itself.
 
-     Default is (true ||  (org.knopflerfish.osgi.r3.testcompliant == true))
+     Default: true
   
   org.knopflerfish.osgi.setcontextclassloader
      If set to "true", set the bundle startup thread's context class
      loader to the bundle's class loader. This is useful for checking
      if an external lib will work better with a wrapped startup.
      
-     Default is false.
+     Default: false
 
   
