@@ -199,6 +199,8 @@ public class Activator
 		
 		soapService.undeploy();
 		log.info("removed service "+serviceName);
+
+		exportedServices.remove(sr);
 	      }
 	      
 	      //   (new ObjectSOAPService(axisServer,serviceName,null)).undeploy();
