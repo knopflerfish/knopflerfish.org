@@ -36,8 +36,9 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
 import org.osgi.service.url.*;
+import java.util.Map;
+import java.util.HashMap;
 import org.osgi.framework.*;
 
 /**

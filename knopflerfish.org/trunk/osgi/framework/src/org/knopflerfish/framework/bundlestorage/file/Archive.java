@@ -39,7 +39,8 @@ import org.osgi.framework.Constants;
 import java.io.*;
 import java.net.*;
 import java.security.*;
-import java.util.*;
+import java.util.StringTokenizer;
+import java.util.Iterator;
 import java.util.jar.*;
 import java.util.zip.*;
 

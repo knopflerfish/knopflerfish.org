@@ -35,7 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.*;
+import java.util.StringTokenizer;
 
 public class VersionNumber implements Comparable
 {

@@ -36,7 +36,18 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
+
+import java.util.Set;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Enumeration;
+import java.util.Vector;
+
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
 import org.osgi.util.tracker.*;

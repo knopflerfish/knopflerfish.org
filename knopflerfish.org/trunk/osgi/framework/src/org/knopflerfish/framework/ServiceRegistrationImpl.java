@@ -35,7 +35,10 @@
 package org.knopflerfish.framework;
 
 import java.security.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Dictionary;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.osgi.framework.*;
 

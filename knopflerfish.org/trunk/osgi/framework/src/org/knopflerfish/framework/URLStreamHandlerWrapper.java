@@ -36,7 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
+
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
 import org.osgi.util.tracker.*;

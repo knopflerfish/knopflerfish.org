@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
 import java.lang.reflect.*;
 
 import org.osgi.framework.*;

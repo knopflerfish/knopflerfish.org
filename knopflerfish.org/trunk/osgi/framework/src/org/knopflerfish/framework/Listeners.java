@@ -35,7 +35,20 @@
 package org.knopflerfish.framework;
 
 import java.security.*;
-import java.util.*;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.EventListener;
 
 import org.osgi.framework.*;
 
