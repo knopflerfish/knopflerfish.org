@@ -21,6 +21,7 @@
 
   <!-- targets -->
   <target name="all" depends="compile,jar">
+   <antcall target="list"/>
   </target>
 
   <target name        = "compile">
@@ -124,7 +125,8 @@
  </target>
 
  <target name="list" depends="compile_ant">
-  <bundleinfo checkFoundationEE = "true" >
+  <bundleinfo checkFoundationEE = "true" 
+              checkMinimumEE = "true" >
     <fileset dir      = "${classout}" 
              includes = "**/*.class">
     </fileset>
