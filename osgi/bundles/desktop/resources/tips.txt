@@ -19,8 +19,9 @@ Unselecting bundles can be done from the <i>Edit</i> menu
 4 The desktop can remotely control another framework
 If you install the optional SOAP remote connectivity kit, the desktop
 can be used to remotely control another framework.
-<br>
+<p>
 Read more about the SOAP kit at
+</p>
 <p>
 <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt</a>
 </p>
@@ -98,8 +99,7 @@ See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundle
 17 The entire Knopflerfish source is available in a Subversion repository
 
 Knopflerfish uses Subversion as version control system for all its
-components (including this tip file). The repository can be browsed
-at
+files. The repository can be browsed at
 <p>
  <a href="https://www.knopflerfish.org/svn">https://www.knopflerfish.org/svn</a></p>
 
@@ -107,7 +107,7 @@ at
 For example, this entire tip file is available at
 </p>
 <p>
-<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.html">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt</a>
+<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt</a>
 
 ----
 18 This desktop is just another OSGi bundle
