@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment name="defaultClientConfig"
+            xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+            xmlns:handler="http://xml.apache.org/axis/wsdd/providers/handler">
+
+ <globalConfiguration>
+ </globalConfiguration>
+
+ <!--handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/-->
+ <!--handler type="java:org.apache.axis.transport.local.LocalResponder" name="LocalResponder"/!-->
+ <!--handler type="java:org.apache.axis.handlers.SimpleAuthenticationHandler" name="Authenticate"/!-->
+ <handler type="java:org.apache.axis.handlers.OSGiServiceHandler" name="OSGiServiceHandler"/>
+
+ <!--service name="AdminService" provider="java:MSG">
+  <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+  <parameter name="allowedMethods" value="AdminService"/>
+  <parameter name="enableRemoteAdmin" value="false"/>
+  <parameter name="className" value="org.apache.axis.utils.Admin"/>
+ </service-->
+
+ <!--service name="Version" provider="java:RPC">
+  <parameter name="allowedMethods" value="*"/>
+  <parameter name="className" value="org.apache.axis.Version"/>
+ </service-->
+
+ <transport name="SimpleHTTP">
+  <requestFlow>
+   <!--handler type="URLMapper"/-->
+   <handler type="OSGiServiceHandler"/>
+   <!--handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/-->
+  </requestFlow>
+ </transport>
+
+ <!--transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport-->
+
+</deployment>
