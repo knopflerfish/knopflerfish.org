@@ -45,6 +45,10 @@ props.put("description", "This an long value");
 bc.<a href="$(JAVADOC)/org/osgi/framework/BundleContext.html#registerService(java.lang.String, java.lang.Object, java.util.Dictionary)">registerService</a>(Long.class.getName(), i, props);
 </pre>
 
+<p>
+<b>Note</b>: a service can also be registered as serveral interfaces. In this case, the object <i>must</i> implement all of the interfaces.
+</p>
+
 <a name="what_isfactory"></a>
 <h3>What is a service factory?</h3>
 
