@@ -116,7 +116,7 @@ public class JCMInfo extends JPanel {
       
       JPanel upperBox = new JPanel(new GridLayout(0, 1));
       
-      upperBox.setBorder(BorderFactory.createTitledBorder("Available PIDs"));
+      upperBox.setBorder(makeBorder(this, "Available PIDs"));
       
       if(servicePIDBox != null) {
 	upperBox.add(new JLabelled("Services", 
@@ -172,6 +172,15 @@ public class JCMInfo extends JPanel {
     invalidate();
     revalidate();
     repaint();
+  }
+
+  static Border makeBorder(JComponent comp, String title) {
+    Color borderCol = comp.getBackground().brighter();
+    return BorderFactory
+      .createTitledBorder(BorderFactory
+			  .createMatteBorder(comp.getFont().getSize() + 4,0,0,0, borderCol),
+			  title);
+    
   }
 
   String getBundleSelectedHeader(Bundle b) {
