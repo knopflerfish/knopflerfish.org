@@ -940,22 +940,38 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       startButton.setEnabled(brSelected != null && !bBusy);
 
       StringBuffer sb = new StringBuffer();
-    
+
+
+      
       sb.append("<html>\n");
 
       sb.append("<table border=\"0\" width=\"100%\">\n");
-      sb.append("<tr><td bgcolor=\"#eeeeee\">");
-      Util.startFont(sb, "-1");
+      sb.append("<tr>");
+      
+
 
       if(node != null  && (node instanceof HTMLable)) {
 	HTMLable htmlNode = (HTMLable)node;
+	sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
+
+	Util.startFont(sb, "-1");
+	
 	sb.append(htmlNode.getTitle());
+
+	sb.append("</font>\n");
+	sb.append("</td>\n");
+
+	String   iconURL  = htmlNode.getIconURL();
+	if(iconURL != null && !"".equals(iconURL.trim())) {
+	  sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
+	  sb.append("<img align=\"left\" src=\"" + iconURL + "\">");
+	  sb.append("</td>");
+	}
+       
       } else {
 	sb.append("");
       }
 
-      sb.append("</font>\n");
-      sb.append("</td>\n");
       sb.append("</tr>\n");
       sb.append("</table>\n");
 
@@ -1066,6 +1082,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
   interface HTMLable {
     public String getTitle();
     public String toHTML();
+    public String getIconURL();
   }
 
 
@@ -1109,6 +1126,9 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       this.name = name;
     }
 
+    public String getIconURL() {
+      return null;
+    }
     
     public String toString() {
       return name;
@@ -1166,6 +1186,10 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
     public CategoryNode(String category) {
       this.category = category;
+    }
+
+    public String getIconURL() {
+      return null;
     }
 
     public String toString() {
@@ -1235,11 +1259,34 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
     public String toString() {
       StringBuffer sb = new StringBuffer();
+      
       sb.append(name);
       if(bInstalled) {
 	sb.append(" (installed)");
       }
       return sb.toString();
+    }
+
+    public String getIconURL() {
+      String iconURL = (String)br.getAttribute("Application-Icon");
+      
+      if(iconURL != null && !"".equals(iconURL)) {
+	StringBuffer sb = new StringBuffer();
+	
+	if(iconURL.startsWith("!")) {
+	  if(!iconURL.startsWith("!/")) {
+	    iconURL = "!/" + iconURL.substring(1);
+	  }
+	  iconURL = "jar:" + 
+	    br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION) +  iconURL;
+	} else if(-1 == iconURL.indexOf(":")) {
+	  iconURL = "jar:" + 
+	    br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION) + "!/" + iconURL;
+	}
+	return iconURL;
+      }
+      
+      return null;
     }
 
     public String toHTML() {
@@ -1253,6 +1300,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	map.put(attrs[i], Util.toHTML(obj));
       }
 
+
       String desc = (String)br.getAttribute(BundleRecord.BUNDLE_DESCRIPTION);
       if(desc != null) {
 	Util.startFont(sb);
@@ -1262,8 +1310,11 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	sb.append("</font>");
 
 	map.remove(BundleRecord.BUNDLE_DESCRIPTION);
+	map.remove(BundleRecord.BUNDLE_DESCRIPTION.toLowerCase());
       }
-      
+
+
+
       sb.append("<table border=0>");
 
 
