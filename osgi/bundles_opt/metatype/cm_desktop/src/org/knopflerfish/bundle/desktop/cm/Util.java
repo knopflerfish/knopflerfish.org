@@ -228,6 +228,40 @@ public class Util {
   public static void startFont(StringBuffer sb, String size) {
     sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
+
+  public static final String URL_BUNDLE_PREFIX = "http://desktop/bid/";
+  public static final String URL_SERVICE_PREFIX = "http://desktop/sid/";
+
+  public static void bundleLink(StringBuffer sb, Bundle b) {
+    sb.append("<a href=\"" + URL_BUNDLE_PREFIX + b.getBundleId() + "\">");
+    sb.append(Util.getBundleName(b));
+    sb.append("</a>");
+  }
+
+  public static void serviceLink(StringBuffer sb, 
+				 ServiceReference sr,
+				 String txt) {
+    sb.append("<a href=\"" + URL_SERVICE_PREFIX + 
+	      sr.getProperty(Constants.SERVICE_ID) + "\">");
+    sb.append(txt);
+    sb.append("</a>");
+  }
+
+  public static boolean isBundleLink(URL url) {
+    return url.toString().startsWith(URL_BUNDLE_PREFIX);
+  }
+
+  public static boolean isServiceLink(URL url) {
+    return url.toString().startsWith(URL_SERVICE_PREFIX);
+  }
+
+  public static long bidFromURL(URL url) {
+    if(!isBundleLink(url)) {
+      throw new RuntimeException("URL '" + url + "' does not start with " + 
+				 URL_BUNDLE_PREFIX);
+    }
+    return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
+  }
   
 }
 

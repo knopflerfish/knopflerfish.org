@@ -138,6 +138,9 @@ public abstract class DefaultSwingBundleDisplayer
     repaintComponents();
   }
 
+  public BundleSelectionModel getBundleSelectionModel() {
+    return bundleSelModel;
+  }
 
   public void setBundleSelectionModel(BundleSelectionModel model) {
     if(bundleSelModel != null) {

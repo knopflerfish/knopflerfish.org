@@ -431,7 +431,7 @@ public class JCMService extends JPanel {
 	conf.update(props);
 	updateOCD();
       } catch (Exception e) {
-	Activator.log.error("new factory failed pid=" + pid, e);
+	showError("new factory failed pid=" + pid, e);
       }
     } catch (Exception e) {
       Activator.log.error("failed to get props pid=" + pid, e);
@@ -446,9 +446,18 @@ public class JCMService extends JPanel {
       conf.delete();
       updateOCD();
     } catch (Exception e) {
-      Activator.log.error("Delete failed pid=" + pid, e);
+      showError("Delete failed pid=" + pid, e);
 
     }
+  }
+
+  void showError(String msg, Throwable t) {
+    Activator.log.error(msg, t);
+    JOptionPane.showMessageDialog(this,
+				  msg + "\n" + 
+				  t.toString(),
+				  msg,
+				  JOptionPane.ERROR_MESSAGE);
   }
 
   void createConfig(String pid) {
