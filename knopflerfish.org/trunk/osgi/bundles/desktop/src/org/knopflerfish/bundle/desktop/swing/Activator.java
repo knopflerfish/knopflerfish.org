@@ -225,6 +225,10 @@ public class Activator implements BundleActivator {
     
     // We really want this one to be displayed.
     desktop.bundlePanel.showTab("Large Icons");
+    int ix = desktop.detailPanel.indexOfTab("Manifest");
+    if(ix != -1) {
+      desktop.detailPanel.setSelectedIndex(ix);
+    }
   }
 
   void closeDesktop() {
