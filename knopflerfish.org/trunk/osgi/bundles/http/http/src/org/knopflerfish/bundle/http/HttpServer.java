@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.http;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
@@ -64,12 +65,17 @@ public class HttpServer {
   private ServiceRegistration httpReg = null;
 
 
+  private BundleContext bc = null;
+
+
   // constructors
 
-  public HttpServer(final HttpConfig httpConfig, final LogRef log) {
+  public HttpServer(BundleContext bc,
+		    final HttpConfig httpConfig, final LogRef log) {
 
+    this.bc  = bc;
     this.httpConfig = httpConfig;
-    this.log = log;
+    this.log        = log;
 
     registrations = new Registrations();
 
@@ -98,30 +104,53 @@ public class HttpServer {
     return serviceFactory;
   }
 
-  public void setServiceRegistration(ServiceRegistration httpReg) {
-    this.httpReg = httpReg;
-  }
 
   public void updated() throws ConfigurationException {
 
-    transactionManager.updated();
-    socketListener.updated();
-    Dictionary conf = httpConfig.getConfiguration();
-    
-    Hashtable props = new Hashtable();
-    for(Enumeration e = conf.keys(); e.hasMoreElements(); ) {
-      Object key = e.nextElement();
-      Object val = conf.get(key);
-      props.put(key, val);
+    try {
+      transactionManager.updated();
+      socketListener.updated();
+      Dictionary conf = httpConfig.getConfiguration();
+      
+      Hashtable props = new Hashtable();
+      for(Enumeration e = conf.keys(); e.hasMoreElements(); ) {
+	Object key = e.nextElement();
+	Object val = conf.get(key);
+	props.put(key, val);
+      }
+      // UPnP Ref impl need this
+      props.put("openPort", props.get(HttpConfig.PORT_KEY));
+
+      // register and/or update service properties
+      if(httpReg == null) {
+	httpReg =
+	  bc.registerService(HttpServiceImpl.HTTP_INTERFACES,
+			     getHttpServiceFactory(),
+			     props);
+      } else {
+	httpReg.setProperties(props);
+      }
+    } catch (ConfigurationException e) {
+      // If configuration failed, make sure we don't have 
+      // any registered service
+      if(httpReg != null) {
+	httpReg.unregister();
+	httpReg = null;
+      }
+      // and rethrow the exception
+      throw e;
     }
-    props.put("openPort", props.get(HttpConfig.PORT_KEY));
-    httpReg.setProperties(props);
   }
 
   public void destroy() {
 
-    socketListener.destroy();
-    httpReg.unregister();
+    if(socketListener != null) {      
+      socketListener.destroy();
+    }
+    if(httpReg != null) {
+      httpReg.unregister();
+      httpReg = null;
+    }
   }
 
 } // HttpServer

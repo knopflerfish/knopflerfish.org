@@ -61,7 +61,7 @@ public class HttpServerFactory implements ManagedServiceFactory {
 
   HttpServerFactory(final BundleContext bc, final LogRef log) {
 
-    this.bc = bc;
+    this.bc  = bc;
     this.log = log;
   }
 
@@ -108,17 +108,15 @@ public class HttpServerFactory implements ManagedServiceFactory {
 	if(log.doDebug()) {
 	  log.debug("create pid=" + pid);
 	}
-	httpServer = new HttpServer(new HttpConfig(configuration), log);
+	httpServer = new HttpServer(bc, new HttpConfig(configuration), log);
 	servers.put(pid, httpServer);
-	ServiceRegistration httpReg =
-          bc.registerService(HttpServiceImpl.HTTP_INTERFACES,
-                             httpServer.getHttpServiceFactory(),
-                             null);
-	httpServer.setServiceRegistration(httpReg);
+
+	// registration is moved to HttpServer.update()
       } else {
 	httpServer.getHttpConfig().updated(configuration);
       }
       
+      // this will setup and possibly register the actual service
       httpServer.updated();
     }
   }
