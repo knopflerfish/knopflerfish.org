@@ -118,7 +118,7 @@ Example: run the swing Test runner from Ant
    > ant -Dtest.id=example1 junit_ext
 
    
-Example: run Ant's unit task
+Example: run Ant's junit task
 
    > ant -Dtest.id=example1 junit_ant
 
