@@ -492,7 +492,7 @@ public class Util {
     StringBuffer sb = new StringBuffer();
     try {
 
-      Map props = Activator.getSystemProperties();
+      Map props = new TreeMap(Activator.getSystemProperties());
       
       sb.append("<table>\n");
       
@@ -501,7 +501,7 @@ public class Util {
       
       String spid = (String)props.get("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
-	sb.append(fontify("(" + spid + ")", -1));
+	sb.append(fontify(" (" + spid + ")", -1));
       }
       
       sb.append("</td>\n");
