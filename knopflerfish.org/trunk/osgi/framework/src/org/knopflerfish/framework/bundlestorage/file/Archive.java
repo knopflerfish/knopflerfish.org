@@ -48,7 +48,6 @@ import java.util.zip.*;
  * JAR file handling.
  *
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
  */
 class Archive {
 
@@ -512,6 +511,20 @@ class Archive {
       }
     } else {
       lib = findFile(file, path);
+//XXX - start L-3 modification
+      if (!lib.exists() && (lib.getParent() != null)) {
+	final String libname = lib.getName();
+	File[] list = lib.getParentFile().listFiles(new FilenameFilter() {
+	  public boolean accept(File dir, String name) {
+	    int pos = name.lastIndexOf(libname);
+	    return ((pos > 1) && (name.charAt(pos - 1) == '_'));
+	  }
+	});
+	if (list.length > 0) {
+	  lib = list[0];
+	}
+      }
+//XXX - end L-3 modification
     }
     return lib.getAbsolutePath();
   }
