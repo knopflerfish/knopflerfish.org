@@ -162,6 +162,8 @@ public class Activator
 	{
 	  ServiceReference sr = event.getServiceReference();
 	  String serviceName = (String) sr.getProperty(AxisAdmin.SOAP_SERVICE_NAME);
+	  String[] classes   = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+	  String   allowedMethods   = (String) sr.getProperty(AxisAdmin.SOAP_SERVICE_METHODS);
 	  if (serviceName != null) {
 	    log.info("added service "+serviceName);
 	    
@@ -175,7 +177,9 @@ public class Activator
 			     serviceObj.getClass());
 	    
 	    ObjectSOAPService soapService = 
-	      new ObjectSOAPService(axisServer,serviceName,serviceObj);
+	      new ObjectSOAPService(axisServer,serviceName,serviceObj,
+				    classes,
+				    allowedMethods);
 	    
 	    soapService.deploy();
 	    

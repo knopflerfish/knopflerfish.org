@@ -48,23 +48,85 @@ import org.apache.commons.logging.Log;
 
 import org.knopflerfish.bundle.axis.Activator;
 
+import java.lang.reflect.*;
+
 
 /** An Axis SOAP service representation of an arbitrary object
  *
  * @author Lasse Helander (lars-erik.helander@home.se)
  */
 public class ObjectSOAPService {
-   protected static Log log = LogFactory.getLog(ObjectSOAPService.class.getName());
-   private AxisServer axisServer = null;
-   private String serviceName = null;
-   private Object serviceObject = null;
+  protected static Log log = LogFactory.getLog(ObjectSOAPService.class.getName());
+  private AxisServer axisServer = null;
+  private String serviceName = null;
+  private Object serviceObject = null;
+  
+  private String[] classNames;
 
-   public ObjectSOAPService(AxisServer server, String serviceName, 
-                            Object serviceObject) {
+  String  allowedMethods;
+
+   public ObjectSOAPService(AxisServer server, 
+			    String serviceName, 
+                            Object serviceObject,
+			    String[] classNames,
+			    String   allowedMethods) {
       this.serviceObject = serviceObject;
       this.serviceName = serviceName;
       this.axisServer = server;
+      this.classNames = classNames;
+
+      if(allowedMethods == null) {
+	this.allowedMethods = getMethodNames(classNames);
+      } else {
+	this.allowedMethods = allowedMethods;
+      }
+      
+      System.out.println("SOAP object: " + serviceObject.getClass().getName() +
+		     ", methods=" + this.allowedMethods);
    }
+
+  /**
+   * Get all method names from a set of classes, except for the
+   * methods names in java.lang.Object.
+   *
+   * @param classNames array of class names. Each class object will
+   *                   be created using Class.forName
+   */
+  String getMethodNames(String[] classNames) {
+    StringBuffer sb = new StringBuffer();
+    
+    try {
+      Class objectClass = Object.class;
+
+      for(int i = 0; i < classNames.length; i++) {
+	Class clazz = Class.forName(classNames[i]);
+	Method[] methods = clazz.getMethods();
+	
+	for(int j = 0; j < methods.length; j++) {
+	  boolean bInObject = false;
+	  try {
+	    objectClass.getMethod(methods[i].getName(),
+				  methods[i].getParameterTypes());
+	    bInObject = true;
+	  } catch (Exception ignored) {
+	    // If not in objectClass methods
+	  }
+
+	  if(!bInObject) {
+	    if(sb.length() > 0) {
+	      sb.append(" ");
+	    }
+	    sb.append(methods[j].getName());
+	  }
+	}
+      }
+      return sb.toString();
+    } catch (Exception e) {
+      log.error("Failed to analyze methods in service", e);
+    }
+    return "";
+  }
+
 
    public void deploy() {
       Object obj = axisServer.getApplicationSession().get(serviceName);
@@ -93,16 +155,18 @@ public class ObjectSOAPService {
    }
 
    private String deployDoc() {
-      return "<deployment" + " xmlns=\"http://xml.apache.org/axis/wsdd/\"" + 
-             " xmlns:java=\"http://xml.apache.org/axis/wsdd/providers/java\">" + 
-             "<service name=\"" + serviceName + "\" provider=\"java:RPC\">" + 
-             "<parameter name=\"allowedMethods\" value=\"*\"/>" + 
-             "<parameter name=\"className\" value=\"" + 
-             serviceObject.getClass().getName() + "\"/>" + 
-             "<parameter name=\"scope\" value=\"Application\"/>" + 
-             "</service>" + "</deployment>";
+      return 
+	"<deployment" + " xmlns=\"http://xml.apache.org/axis/wsdd/\"" + 
+	" xmlns:java=\"http://xml.apache.org/axis/wsdd/providers/java\">" + 
+	"<service name=\"" + serviceName + "\" provider=\"java:RPC\">" + 
+	"<parameter name=\"allowedMethods\" "+ 
+	"value=\"" + allowedMethods + "\"/>" + 
+	"<parameter name=\"className\" value=\"" + 
+	serviceObject.getClass().getName() + "\"/>" + 
+	"<parameter name=\"scope\" value=\"Application\"/>" + 
+	"</service>" + "</deployment>";
    }
-
+  
    private void deployWSDD(String sdoc) {
       try {
          WSDDEngineConfiguration config = (WSDDEngineConfiguration) axisServer.getConfig();
