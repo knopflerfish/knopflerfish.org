@@ -113,6 +113,12 @@ public abstract class JHTMLBundle extends JPanel  {
 	      } else if(Util.isServiceLink(url)) {
 		long sid = Util.sidFromURL(url);
 
+		if(getCurrentBID() != -1) {
+		  historyBack.add(new Long(getCurrentBID()));
+		  
+		  backButton.setEnabled(!historyBack.isEmpty());
+		}
+
 		setServiceHTML(sid);
 
 	      }
@@ -400,7 +406,7 @@ public abstract class JHTMLBundle extends JPanel  {
       if(bl.length == 1) {
 	if(bl[0].getBundleId() == getCurrentBID()) {
 	  //	  System.out.println("skip already set bid=" + getCurrentBID());
-	  return;
+	  //	  return;
 	}
       }
 
