@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "1.3.0a1"/>
+            value = "1.3.0a3"/>
 
 
   <property environment="sysprops"/>
@@ -343,6 +343,7 @@
 	  <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
+
 	</manifest>
 
         <zipfileset dir    = "."
@@ -387,6 +388,9 @@
            <include name = "osgi/jars/trayicon/**/*.jar"/>
 
            <include name = "changelog.html"/>
+
+           <include name = "htdocs/images/direstraits.jpg"/>
+           <include name = "test.html"/>
 
            <exclude name = "keystore"/>
 
