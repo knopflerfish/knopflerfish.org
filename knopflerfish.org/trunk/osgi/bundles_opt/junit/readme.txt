@@ -103,6 +103,16 @@ How it works
     Note that the class path must be set fo find both junit.jar and
     the junit_all-1.0.0.jar bundle.
 
+Note:
+
+  The servlet is also capable of exporting the test results as plain
+  HTML. In this case, the client proxy isn't needed. Just point your
+  browser at
+
+   http://<host>:<port>/junit
+
+  and you'll get a list of available tests.
+ 
     
 
 
