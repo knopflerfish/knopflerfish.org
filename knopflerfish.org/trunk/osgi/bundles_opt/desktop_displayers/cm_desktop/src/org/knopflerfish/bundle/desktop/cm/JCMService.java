@@ -452,6 +452,7 @@ public class JCMService extends JPanel {
 	errCount++;
 	jcmProp.setErr(e.getMessage());
 	//	System.out.println(name + ": " + e);
+	Activator.log.error("Failed to convert value in " + name, e); 
       }
     }
 

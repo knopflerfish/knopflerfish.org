@@ -233,11 +233,11 @@ public class JVector extends JPanel {
     return (Vector)v.clone();
   }
   
-  Object[] getArray() {
-    return Util.toArray(v, AD.getClass(ad.getType()));
+  Object getArray() {
+    return Util.toArray(v, AD.getPrimitiveClass(ad.getType()));
   }
 
-  void setArray(Object[] array) {
+  void setArray(Object array) {
     setVector(Util.toVector(array));
   }
 
@@ -260,14 +260,14 @@ public class JVector extends JPanel {
       if(ad.getCardinality() < 0) {
 	obj = def;
       } else {
-	obj = Util.toArray(def, AD.getClass(ad.getType()));
+	obj = Util.toArray(def, AD.getPrimitiveClass(ad.getType()));
       }
     }
 
     if(obj instanceof Vector) {
       setVector((Vector)obj);
     } else if(obj.getClass().isArray()) {
-      setArray((Object[])obj);
+      setArray(obj);
     } else {
       throw new IllegalArgumentException("Object must be vector or array, " + 
 					 "found " + obj.getClass().getName());

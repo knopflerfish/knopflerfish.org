@@ -160,25 +160,30 @@ public class Util {
   }
 
 
-  public static Object[] toArray(Vector v, Class clazz) {
+  public static Object toArray(Vector v, Class clazz) {
     if(v == null) {
       return null;
     }
-    Object[] array = (Object[])Array.newInstance(clazz, 
+    Object array = (Object)Array.newInstance(clazz, 
 						 v != null ? v.size() : 0);
-    if(v != null) {
-      v.copyInto(array);
+
+    for(int i = 0; i < v.size(); i++) {
+      Array.set(array, i, v.elementAt(i));
     }
     return array;
   }
 
-  public static Vector toVector(Object[] array) {
+  /**
+   * Convert an object for which obj.getClass().isArray() == true
+   * to a vector of boxed values.
+   */
+  public static Vector toVector(Object array) {
     if(array == null) {
       return null;
     }
     Vector v = new Vector();
-    for(int i = 0; array != null && i < array.length; i++) {
-      v.addElement(array[i]);
+    for(int i = 0; array != null && i < Array.getLength(array); i++) {
+      v.addElement(Array.get(array, i));
     }
     return v;
   }
