@@ -101,6 +101,7 @@ final class ConfigurationDictionary extends Dictionary {
 
   public ConfigurationDictionary() {
     this(new Hashtable());
+    put(ConfigurationAdminFactory.DUMMY_PROPERTY, ConfigurationAdminFactory.DUMMY_PROPERTY);
   }
 
   /**
@@ -182,11 +183,33 @@ final class ConfigurationDictionary extends Dictionary {
     return new ConfigurationDictionary(this);
   }
 
+  ConfigurationDictionary createCopyIfRealAndRemoveLocation() {
+    if(doesNotContainRealProperties()) {
+      return null;
+    } else {
+      return createCopyAndRemoveLocation();
+    }
+  }
+
   ConfigurationDictionary createCopyAndRemoveLocation() {
     ConfigurationDictionary cd = createCopy();
     cd.remove(ConfigurationAdminFactory.BUNDLE_LOCATION);
     cd.remove(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION);
     return cd;
+  }
+
+  boolean doesNotContainRealProperties() {
+    int numberOfProperties = size();
+    if(numberOfProperties > 5) {
+      return false;
+    } else {
+      if(get(ConfigurationAdminFactory.SERVICE_PID) != null) --numberOfProperties;
+      if(get(ConfigurationAdminFactory.FACTORY_PID) != null) --numberOfProperties;
+      if(get(ConfigurationAdminFactory.BUNDLE_LOCATION) != null) --numberOfProperties;
+      if(get(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION) != null) --numberOfProperties;
+      if(get(ConfigurationAdminFactory.DUMMY_PROPERTY) != null)  --numberOfProperties;
+      return numberOfProperties == 0;
+    }
   }
 
   private void updateLowercaseToOriginalCase() {

@@ -85,4 +85,9 @@ public class Activator implements BundleActivator {
       throw new NullPointerException("Null BundleContext in Activator");
     }
   }
+
+  static boolean r3TestCompliant() {
+    String r3testCompliant = System.getProperty("org.knopflerfish.osgi.r3.testcompliant", "false").toLowerCase();
+    return r3testCompliant.equals("true");
+  }
 }
