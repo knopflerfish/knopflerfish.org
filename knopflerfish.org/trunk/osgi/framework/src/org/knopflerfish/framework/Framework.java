@@ -152,6 +152,12 @@ public class Framework {
   public final static boolean R3_TESTCOMPLIANT =
     "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
 				     "false"));
+
+  // If set to true, set the bundle startup thread's context class
+  // loader to the bundle class loader. This is useful for tests
+  // but shouldn't really be used in production.
+  final static boolean SETCONTEXTCLASSLOADER =
+    "true".equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", "false"));
   
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";

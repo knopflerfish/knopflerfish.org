@@ -136,3 +136,12 @@
      If "false", exit framework with exit code = 2
 
      Default is (true ||  (org.knopflerfish.osgi.r3.testcompliant == true))
+  
+  org.knopflerfish.osgi.setcontextclassloader
+     If set to "true", set the bundle startup thread's context class
+     loader to the bundle's class loader. This is useful for checking
+     if an external lib will work better with a wrapped startup.
+     
+     Default is false.
+
+  
