@@ -17,11 +17,16 @@ The log levels are mapped as:
 
 Commons level    OSGi level
 
- trace           debug
+ trace           debug (with extra prefix "/trace")
  debug           debug
  info            info
  warn            warn
  error           error
- fatal           fatal
+ fatal           fatal (with extra prefix "/fatal")
+
+Each log entry is logged as
+
+ {log name}/message
+
 
 
