@@ -32,6 +32,7 @@ The following system properties will be read when no CM is available
  org.knopflerfish.http.connection.max
  org.knopflerfish.http.connection.timeout
  org.knopflerfish.http.session.timeout.default
+ org.knopflerfish.http.encoding.default
 
 See CM description below for descriptions
 
@@ -106,6 +107,13 @@ response.buffer.size.default (Integer)
   the server will send a connection close header. The buffer size can be
   set runtime by the servlet using the HttpResponse.setBufferSize()
   method. The default is 16384 bytes.
+
+org.knopflerfish.http.encoding.default (String)
+  This string will be used as default character encoding for
+  PrintWriter streams, if no encoding is set in using 
+  ServletResponse.setContentType().
+
+  The default encoding is ISO-8859-1
 
 
 RELEASE NOTES:

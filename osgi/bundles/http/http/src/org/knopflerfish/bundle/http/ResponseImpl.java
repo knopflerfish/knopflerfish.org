@@ -42,6 +42,7 @@ import java.util.Locale;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
 import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -72,6 +73,8 @@ public class ResponseImpl implements Response, PoolableObject {
   private BodyOutputStream bodyOut = null;
   private ServletOutputStream sos = null;
   private PrintWriter pw = null;
+
+  private String charEncoding = null;
 
   // private methods
 
@@ -248,6 +251,7 @@ public class ResponseImpl implements Response, PoolableObject {
     bodyOut = null;
     sos = null;
     pw = null;
+    charEncoding = null;
   }
 
 
@@ -389,7 +393,31 @@ public class ResponseImpl implements Response, PoolableObject {
 
   public void setContentType(String contentType) {
     setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY, contentType);
+
+    // default encoding is what HttpConfig says
+    charEncoding = null;
+
+    // Parse mime type for charset etc
+    // Only parse if there seems to be any params at all
+    if(-1 != contentType.indexOf(";")) {
+      StringTokenizer st = new StringTokenizer(contentType, ";");
+      int count = 0;
+      while(st.hasMoreTokens()) {
+        String param = st.nextToken().trim();
+        int ix = param.indexOf("=");
+        if(ix != -1 && count > 0) { // the first token is the mime type itself
+          String attrib = param.substring(0, ix).toLowerCase();
+          String token  = param.substring(ix+1);
+
+          if("charset".equals(attrib)) {
+            charEncoding = token;
+          }
+        }
+        count++;
+      }
+    }
   }
+
 
   public boolean isCommitted() {
     return bodyOut.isCommitted();
@@ -446,7 +474,16 @@ public class ResponseImpl implements Response, PoolableObject {
   }
 
   public String getCharacterEncoding() {
-    return "ISO-8859-1"; // NYI
+    // Use response specified encoding if present
+    // otherwise use default encoding
+    // Default encoding can be specified via CM
+    // or system properties. See HttpConfig for 
+    // details
+    if ((charEncoding == null) || (charEncoding.length() == 0)) {
+      return httpConfig.getDefaultCharacterEncoding();
+    } else {
+      return charEncoding;
+    }
   }
 
 } // ResponseImpl

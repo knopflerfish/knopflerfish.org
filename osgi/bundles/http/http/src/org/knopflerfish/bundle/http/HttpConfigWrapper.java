@@ -92,4 +92,10 @@ public class HttpConfigWrapper
 		return isSecure ? config.isHttpsEnabled() : config.isHttpEnabled();
 	}
 
+  public String getDefaultCharacterEncoding() 
+  {
+    return config.getDefaultCharacterEncoding();
+  }
+
+
 }
