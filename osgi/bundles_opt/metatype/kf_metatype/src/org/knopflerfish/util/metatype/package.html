@@ -321,11 +321,19 @@ for a given PID.
 <a name="6.2"></a><h3>6.2 Metatype XML declaration</h3>
 
 <p>
-Metatype declaration in an XML document uses the 
-<code>&lt;metatype&gt;</code> element. This element can <b>only</b> 
-contain the <code>&lt;services&gt;</code>, 
-<code>&lt;factories&gt;</code> and <code>&lt;values&gt;</code>
-elements. Each of these are optional.
+Metatype declaration in an XML document must use the 
+<code>&lt;metatype&gt;</code> element as top level element. 
+This element can <b>only</b> 
+contain the <code>&lt;xsd:schema&gt;</code>, 
+and <code>&lt;metatype:values&gt;</code>
+elements. Each of these is optional.
+</p>
+
+<p>
+Services and factories are specified as <code>complexType</code> inside the
+<code>schema</code> element. The only difference between a service and a
+factory definition is the <code>maxOccurs</code> value. A factory may occur
+more than one time in a value document, a service just once.
 </p>
 
 <p>
@@ -343,13 +351,14 @@ definition containing a set of attribute definitions.
         xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
         xmlns:xsd      = "http://www.w3.org/2001/XMLSchema"&gt;
  
-  &lt;metatype:services&gt;
-    ...
-  &lt;/metatype:services&gt;
+  &lt;xsd:schema&gt;
 
-  &lt;metatype:factories&gt;
-    ...
-  &lt;/metatype:factories&gt;
+   &lt;xsd:complexType name="ServiceOrFactoryID"&gt;
+     ...
+   &lt;/xsd:complexType&gt;
+   ...
+
+  &lt;/xsd:schema&gt;
 
   &lt;metatype:values&gt;
     ...
@@ -364,13 +373,19 @@ definition containing a set of attribute definitions.
 
 
 
-<a name="6.3"></a><h3>6.3 Service and factory definitions - instances of XML Schema</h3>
+<a name="6.3"></a><h3>6.3 Service and factory definitions - instances of XML complexType</h3>
 
 <p>
-All service and factory definitions are instances of an XML Schema with a 
-<b>single</b> <code>complexType</code> specification.<br>
+All service and factory definitions are instances of a
+ <code>complexType</code> specification.<br>
  This <code>complexType</code> fully defines the array of 
 <code>AttributeDefinitions</code> in the resulting metatype definition. 
+</p>
+<p>
+A service definition is a complexType with the <code>maxOccurs</code>
+attribute set to one.
+A factory definition is a complexType with the <code>maxOccurs</code> attribute
+larger than one. Default is a service definition.
 </p>
 <p>
 The <b>name</b> of the service/factory <code>complexType</code>
@@ -378,25 +393,26 @@ defines the object identifier. During run-time, the name <b>also</b> defines
 the persistant ID of configurations. 
 </p>
 
-<p>
-<i>Discussion: Services and factories would also be possible to specificy 
-by using the <code>maxOccurs</code> attribute on the top level element,  
-thus skipping the need for multiple &lt;xsd:schema&gt; and the 
-tags &lt;metatype:services&gt; and &lt;metatype:factories&gt;
-</i>
-</p>
-
 <div class="exampleOuter">
 <div class="exampleHeader">Example - a simple service Metatype 
-specification using a schema</div>
+specification</div>
 <div class="exampleInner">
 <pre>
-
- &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
    &lt;xsd:complexType name="service1"&gt;
     &lt;xsd:element   name="string1" type="xsd:string"/&gt;
    &lt;/xsd:complexType&gt; 
-  &lt;/xsd:schema&gt;
+</pre>
+</div>
+</div>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - a simple factory Metatype 
+specification</div>
+<div class="exampleInner">
+<pre>
+   &lt;xsd:complexType name="factory1" maxOccurs="unbounded"&gt;
+    &lt;xsd:element   name="int1" type="xsd:int"/&gt;
+   &lt;/xsd:complexType&gt; 
 </pre>
 </div>
 </div>
@@ -410,11 +426,10 @@ element. The default format is vector.
 
 <div class="exampleOuter">
 <div class="exampleHeader">Example - a service using a vector
-specification using a schema</div>
+specification</div>
 <div class="exampleInner">
 <pre>
 
- &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
    &lt;xsd:complexType name="service2"&gt;
     &lt;xsd:complexType name = "intvector1"&gt;
      &lt;xsd:sequence&gt;
@@ -422,7 +437,6 @@ specification using a schema</div>
      &lt;/xsd:sequence&gt;
     &lt;/xsd:complexType&gt;
    &lt;/xsd:complexType&gt; 
-  &lt;/xsd:schema&gt;
 </pre>
 </div>
 </div>
@@ -444,7 +458,6 @@ empty string will be used.
 <div class="exampleHeader">Example - service description</div>
 <div class="exampleInner">
 <pre>
- &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
    &lt;xsd:complexType name="service1"&gt;
     &lt;xsd:annotation&gt;
      &lt;xsd:documentation&gt;
@@ -453,7 +466,6 @@ empty string will be used.
     &lt;/xsd:annotation&gt;
     ...
    &lt;/xsd:complexType&gt; 
-  &lt;/xsd:schema&gt;
 </pre>
 </div>
 </div>
@@ -494,7 +506,6 @@ empty string will be used.
 <div class="exampleHeader">Example - attribute description</div>
 <div class="exampleInner">
 <pre>
- &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
    &lt;xsd:complexType name="service1"&gt;
     &lt;xsd:element   name="string1" type="xsd:string"&gt;
      &lt;xsd:annotation&gt;
@@ -504,7 +515,6 @@ empty string will be used.
      &lt;/xsd:annotation&gt;
     &lt;/xsd:element&gt;
    &lt;/xsd:complexType&gt; 
-  &lt;/xsd:schema&gt;
 </pre>
 </div>
 </div>
@@ -561,7 +571,6 @@ searched for default values.
 <div class="exampleHeader">Example - external, localized description</div>
 <div class="exampleInner">
 <pre>
- &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
    &lt;xsd:complexType name="service1"&gt;
     &lt;xsd:annotation&gt;
      &lt;xsd:appInfo&gt;/settings.props&lt;xsd:/appInfo&gt;
@@ -835,9 +844,9 @@ Resulting arrays will be represented as:
 
 <p>
 Attributes can be specified to be optional by setting the 
-<code>minOccurs</code> schema attribute to zero. By default, attributes
-are required - which also can be specified by setting <code>minOccurs</code>
-to one. 
+<code>minOccurs</code> attribute to zero on the attribute element. 
+By default, attributes are required -- which also can be specified by
+setting <code>minOccurs</code> to one. 
 </p>
 
 <p>

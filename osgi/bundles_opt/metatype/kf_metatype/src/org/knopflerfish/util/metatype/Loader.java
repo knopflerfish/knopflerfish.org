@@ -133,11 +133,24 @@ public class Loader {
       parser.setReader(reader);
       XMLElement el  = (XMLElement) parser.parse();
 
-      Dictionary pids = loadValues(mtp, el);
-      
-      setDefaultValues(mtp, pids);
-      
-      return pids;
+      if(isName(el, METATYPE_NS, VALUES)) {
+	Dictionary pids = loadValues(mtp, el);
+	setDefaultValues(mtp, pids);
+	return pids;
+      } else {
+	for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
+	  XMLElement childEl = (XMLElement)e.nextElement();
+	  if(isName(childEl, METATYPE_NS, VALUES)) {
+	    
+	    Dictionary pids = loadValues(mtp, childEl);
+	    
+	    setDefaultValues(mtp, pids);
+	    
+	    return pids;
+	  }
+	}
+      }
+      throw new XMLException("No values tag in " + url, el);
     } catch (Exception e) {
       e.printStackTrace();
       throw new IOException("Failed to load " + url + " " + e);
@@ -180,7 +193,7 @@ public class Loader {
 	List sa = new ArrayList();
 	List fa = new ArrayList();
 	for(int i = 0; i < any.length; i++) {
-	  if(any[i].bFactory) {
+	  if(any[i].maxInstances > 1) {
 	    fa.add(any[i]);
 	  } else {
 	    sa.add(any[i]);
@@ -203,6 +216,7 @@ public class Loader {
       OCD ocd = new OCD(services[i].pid, 
 			services[i].pid, 
 			services[i].desc);
+      ocd.maxInstances = 1;
       String iconURL = services[i].iconURL;
       if(iconURL != null) {
 	try {
@@ -230,6 +244,7 @@ public class Loader {
       OCD ocd = new OCD(factories[i].pid, 
 			factories[i].pid, 
 			factories[i].desc);
+      ocd.maxInstances = factories[i].maxInstances;
       if(factories[i].iconURL != null) {
 	try {
 	  ocd.setIconURL(factories[i].iconURL);
@@ -243,14 +258,16 @@ public class Loader {
       mtp.addFactory(factories[i].pid, ocd);
     }
 
+      
     // Overwrite MTP default values with values found in
     // DEFAULTVALUES section in source XML
     if(bHasDefValues) {
+
       for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
 	XMLElement childEl = (XMLElement)e.nextElement();
 	if(isName(childEl, METATYPE_NS, VALUES)) {
 	  Dictionary pids = loadValues(mtp, childEl);
-	  
+	
 	  setDefaultValues(mtp, pids);
 	}
       }
@@ -463,8 +480,8 @@ public class Loader {
       if(conf.length == 0) {
 	throw new XMLException("No lements in schema", childEl);
       }
-      conf[0].bFactory = bFactory;
-
+      conf[0].maxInstances = bFactory ? Integer.MAX_VALUE : 1;
+      
       list.add(conf[0]);
     }
 
@@ -503,8 +520,8 @@ public class Loader {
       if("".equals(iconURL)) {
 	iconURL = null;
       }
-      int maxOccurs = childEl.getAttribute(ATTR_MAXOCCURS, 1);
-
+      int maxOccurs = getInteger(childEl, ATTR_MAXOCCURS, 1);
+      
       String name = childEl.getAttribute(ATTR_NAME).toString();
       
       //      System.out.println("load " +  name + ", maxOccurs=" + maxOccurs);
@@ -513,13 +530,24 @@ public class Loader {
 			 ads,
 			 an != null ? an.doc : "",
 			 iconURL,
-			 maxOccurs > 1));
+			 maxOccurs));
     }
 
     CMConfig[] r = new CMConfig[v.size()];
     v.toArray(r);
     return r;
   }
+
+  static final String UNBOUNDED = "unbounded";
+
+  static int getInteger(XMLElement el, String attr, int def) {
+    String s = el.getAttribute(attr, Integer.toString(def));
+    if(UNBOUNDED.equals(s)) {
+      return Integer.MAX_VALUE;
+    }
+    return Integer.parseInt(s);
+  }
+
 
   /**
    * Parse an XSD complexType info an array of <tt>AttributeDefinition</tt>,
@@ -741,7 +769,7 @@ public class Loader {
       "true".equals(el.getAttribute(ATTR_ARRAY, "false").toLowerCase());
     
     
-    int maxOccurs = el.getAttribute(ATTR_MAXOCCURS, Integer.MAX_VALUE);
+    int maxOccurs = getInteger(el, ATTR_MAXOCCURS, Integer.MAX_VALUE);
 
     if(el.getChildrenCount() != 1) {
       throw new XMLException("sequence children count must be " +
@@ -909,15 +937,18 @@ public class Loader {
     }
     out.println("");
 
-    out.println(" <metatype:services>");
-    printOCDXML(mtp, servicePIDs, out);
-    out.println(" </metatype:services>");
+    out.println("   <xsd:schema>\n");
+    //    out.println(" <metatype:services>");
+    printOCDXML(mtp, servicePIDs, 1, out);
+    //    out.println(" </metatype:services>");
     out.println("");
 
-    out.println(" <metatype:factories>");
-    printOCDXML(mtp, factoryPIDs, out);
-    out.println(" </metatype:factories>");
+    //    out.println(" <metatype:factories>");
+    printOCDXML(mtp, factoryPIDs, Integer.MAX_VALUE, out);
+    //    out.println(" </metatype:factories>");
     out.println("");
+
+    out.println("   </xsd:schema>\n");
 
     if(pids != null) {
       printValuesXML(pids, false, out);
@@ -936,16 +967,29 @@ public class Loader {
    * @param out writer to print to.
    */
   public static void printOCDXML(MetaTypeProvider mtp, 
-				 String[] pids, 
-				 PrintWriter out) {
+				 String[]         pids, 
+				 int              maxOccurs,
+				 PrintWriter      out) {
     for(int i = 0; i < pids.length; i++) {
       String pid = pids[i];
       ObjectClassDefinition ocd = mtp.getObjectClassDefinition(pid, null);
+      if(ocd instanceof OCD) {
+	maxOccurs = ((OCD)ocd).maxInstances;
+      }
       AttributeDefinition[] ads = 
 	ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
-      out.println("   <!-- " + pid + " -->");
-      out.println("   <xsd:schema>");
+      out.println("");
+      out.println("    <!-- " + 
+		  (maxOccurs > 1 ? "Factory " : "Service ") + 
+		  pid + " -->");
+      //      out.println("   <xsd:schema>");
       out.print ("    <xsd:complexType " + ATTR_NAME + "=\"" + pid + "\"");
+      out.print (" " + ATTR_MAXOCCURS + "=\"" + 
+		 (maxOccurs == Integer.MAX_VALUE 
+		  ? UNBOUNDED 
+		  : Integer.toString(maxOccurs)) 
+		 + "\"");
+      
       if(ocd instanceof OCD) {
 	OCD o2 = (OCD)ocd;
 	String urlStr = o2.getIconURL();
@@ -965,7 +1009,7 @@ public class Loader {
 	printXML(out, ads[j]);
       }
       out.println("    </xsd:complexType>");
-      out.println("   </xsd:schema>\n");
+      //      out.println("   </xsd:schema>\n");
     }
   }
 
@@ -1175,7 +1219,7 @@ class XMLException extends IllegalArgumentException {
 
 class CMConfig {
   public String  pid;
-  public boolean bFactory;
+  public int     maxInstances = 1;
   public AD[]    ads;
   public String  desc;
   public String  iconURL;
@@ -1184,12 +1228,12 @@ class CMConfig {
 		  AD[] ads, 
 		  String desc,
 		  String iconURL,
-		  boolean bFactory) {
-    this.pid      = pid;
-    this.ads      = ads;
-    this.desc     = desc != null ? desc : "";
-    this.iconURL  = iconURL;
-    this.bFactory = bFactory;
+		  int maxInstances) {
+    this.pid          = pid;
+    this.ads          = ads;
+    this.desc         = desc != null ? desc : "";
+    this.iconURL      = iconURL;
+    this.maxInstances = maxInstances;
   }
 
   public String toString() {
@@ -1199,7 +1243,7 @@ class CMConfig {
     sb.append("pid=" + pid);
     sb.append(", desc=" + desc);
     sb.append(", iconURL=" + iconURL);
-    sb.append(", bFactory=" + bFactory);
+    sb.append(", maxInstances=" + maxInstances);
     sb.append(", attribs=");
     for(int i = 0; i < ads.length; i++) {
       sb.append(ads[i]);

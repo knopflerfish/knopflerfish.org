@@ -192,10 +192,14 @@ public class JCMInfo extends JPanel {
   }
 
   void setServiceOCD(String pid) {
-    ObjectClassDefinition ocd = 
-      (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
-    
-    jcmService.setServiceOCD(ocd);
+    try {
+      ObjectClassDefinition ocd = 
+	(ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
+      
+      jcmService.setServiceOCD(ocd);
+    } catch (Throwable t) {
+      Activator.log.error("Failed to set service pid=" + pid, t);
+    }
   }
 
   void setFactoryOCD(String pid) {
