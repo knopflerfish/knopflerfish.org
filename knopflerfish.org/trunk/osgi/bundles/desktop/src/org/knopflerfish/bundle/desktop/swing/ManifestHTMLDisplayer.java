@@ -98,6 +98,8 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 	String  key   = (String)e.nextElement();
 	String  value = (String)headers.get(key);
 	if(value != null && !"".equals(value)) {
+          value = Strings.replace(value, "<", "&lt;");
+          value = Strings.replace(value, ">", "&gt;");
 	  if("Import-Package".equals(key) ||
 	     "Export-Service".equals(key) ||
 	     "Bundle-Classpath".equals(key) ||
