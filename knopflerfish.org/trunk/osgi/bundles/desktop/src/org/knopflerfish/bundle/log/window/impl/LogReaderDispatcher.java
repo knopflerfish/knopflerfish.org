@@ -67,7 +67,7 @@ public class LogReaderDispatcher
 
     try {
       ServiceReference [] srl = bc.getServiceReferences(null, filter);
-      for(int i = 0; srl != null & i < srl.length; i++) {
+      for(int i = 0; srl != null && i < srl.length; i++) {
 
 	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
