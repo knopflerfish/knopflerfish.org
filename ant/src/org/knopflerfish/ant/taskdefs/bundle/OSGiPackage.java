@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ public class OSGiPackage {
 
   private String name = null;
   private String version = null;
+  private String prefix = null;
 
 
   // public methods
@@ -51,5 +52,8 @@ public class OSGiPackage {
 
   public String getVersion() { return version; }
   public void setVersion(String version) { this.version = version; }
+
+  public String getPrefix() { return prefix; }
+  public void setPrefix(String prefix) { this.prefix = prefix; }
 
 } // OSGiPackage

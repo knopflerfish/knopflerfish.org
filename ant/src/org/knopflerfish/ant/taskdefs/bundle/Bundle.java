@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,6 +155,14 @@ import org.apache.tools.ant.types.ZipFileSet;
  * header.
  * </p>
  *
+ * <h4>standardpackage</h4>
+ * <p>
+ * The nested <tt>standardpackage</tt> element specifies the name or prefix
+ * of a package that should be excluded from the package analysis. It can
+ * be used to avoid importing packages that are available in the underlying
+ * runtime environment.
+ * </p>
+ *
  * <h3>Implicit fileset</h3>
  * <p>
  * The implicit fileset is specified by the <tt>baseDir</tt> attribute of the
@@ -170,6 +178,8 @@ import org.apache.tools.ant.types.ZipFileSet;
  * &lt;bundle activator="auto"
  *         packageanalysis="auto"
  *         file="out/${ant.project.name}.jar">
+ *
+ *   &lt;standardpackage name="javax.imageio"/>
  *
  *   &lt;exportpackage name="se.weilenmann.bundle.test" version="1.0"/>
  *
@@ -541,19 +551,37 @@ public class Bundle extends Jar {
     }
   }
 
-  public void addConfiguredImportPackage(OSGiPackage osgiPackage) {
-    if (osgiPackage.getName() == null) {
-      throw new BuildException("ImportPackage must have a name");
+  public void addConfiguredStandardPackage(OSGiPackage osgiPackage) {
+    String name = osgiPackage.getName();
+    String prefix = osgiPackage.getPrefix();
+    if (name != null && prefix == null) {
+      availablePackages.add(name);
+    } else if (prefix != null && name == null) {
+      standardPackagePrefixes.add(prefix);
     } else {
-      importPackage.put(osgiPackage.getName(), osgiPackage.getVersion());
+      throw new BuildException("StandardPackage must have exactly one of the name and prefix attributes defined");
+    }
+  }
+
+  public void addConfiguredImportPackage(OSGiPackage osgiPackage) {
+    String name = osgiPackage.getName();
+    if (name == null) {
+      throw new BuildException("ImportPackage must have a name");
+    } else if (osgiPackage.getPrefix() != null) {
+      throw new BuildException("ImportPackage must not have a prefix attribute");
+    } else {
+      importPackage.put(name, osgiPackage.getVersion());
     }
   }
 
   public void addConfiguredExportPackage(OSGiPackage osgiPackage) {
-    if (osgiPackage.getName() == null) {
+    String name = osgiPackage.getName();
+    if (name == null) {
       throw new BuildException("ExportPackage must have a name");
+    } else if (osgiPackage.getPrefix() != null) {
+      throw new BuildException("ExportPackage must not have a prefix attribute");
     } else {
-      exportPackage.put(osgiPackage.getName(), osgiPackage.getVersion());
+      exportPackage.put(name, osgiPackage.getVersion());
     }
   }
 
