@@ -62,23 +62,37 @@ public class JCMProp extends JPanel {
     err  = new JLabel();
     err.setForeground(Color.red);
 
-    switch(ad.getType()) {
-    case AttributeDefinition.STRING:
-      comp = new JTextField();
-      break;
-    case AttributeDefinition.BOOLEAN:
-      comp = new JCheckBox();
-      break;
-    default:
-      comp = new JTextField();
+    if(ad.getCardinality() < 0) {
+      comp = new JVector(ad, (Vector)props.get(ad.getID()), "Vector items");
+    } else {
+      switch(ad.getType()) {
+      case AttributeDefinition.STRING:
+	comp = new JTextField();
+	break;
+      case AttributeDefinition.BOOLEAN:
+	comp = new JCheckBox();
+	break;
+      default:
+	comp = new JTextField();
+      }
     }
     
     add(comp, BorderLayout.CENTER);
     add(err,  BorderLayout.SOUTH);
     
     Object obj = props.get(ad.getID());
-    setValue(AD.toString(obj != null ? obj : ad.getDefaultValue()));
-  } 
+    if(obj == null) {
+      if(ad.getCardinality() < 0) {
+	obj = new Vector();
+      }
+    }
+    //    System.out.println(ad.getID() + "=" + obj + " " + (obj != null ? obj.getClass().getName() : "null"));
+    if(obj instanceof Vector) {
+      setValue(obj);
+    } else {
+      setValue(AD.toString(obj != null ? obj : ad.getDefaultValue()));
+    } 
+  }
   
   
   void setErr(String s) {
@@ -89,20 +103,27 @@ public class JCMProp extends JPanel {
   }
 
   public void setValue(Object obj) {
-    String s = AD.toString(obj);
-
-    if(comp instanceof JTextField) {
-      JTextField text = (JTextField)comp;
-      text.setText(s);
-    } else if(comp instanceof JCheckBox) {
-      JCheckBox cb = (JCheckBox)comp;
-      cb.setSelected("true".equals(s));
+    if(comp instanceof JVector) {
+      JVector jv = (JVector)comp;
+      jv.setVector((Vector)obj);
+    } else {
+      String s = AD.toString(obj);
+      if(comp instanceof JTextField) {
+	JTextField text = (JTextField)comp;
+	text.setText(s);
+      } else if(comp instanceof JCheckBox) {
+	JCheckBox cb = (JCheckBox)comp;
+	cb.setSelected("true".equals(s));
+      }
     }
   }
 
-  public Object getValue() {
+  public Object getValue() { 
     String s = null;
-    if(comp instanceof JTextField) {
+    if(comp instanceof JVector) {
+      JVector jv = (JVector)comp;
+      s  = AD.toString(jv.getVector());
+    } else if(comp instanceof JTextField) {
       JTextField text = (JTextField)comp;
       s = text.getText();
     } else if(comp instanceof JCheckBox) {
@@ -111,14 +132,14 @@ public class JCMProp extends JPanel {
     }
 
     //    System.out.println("getValue " + ad + ", s=" + s);
-
+    
     String msg = ad.validate(s);
     
     //    System.out.println("validate msg=" + msg);
-
+    
     if(msg != null && !"".equals(msg)) {
       throw new IllegalArgumentException(s + ": " + msg);
     }
-    return AD.parse(s, ad.getCardinality(), ad.getType());
+      return AD.parse(s, ad.getCardinality(), ad.getType());
   }
 }
