@@ -39,6 +39,7 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.net.URL;
 
 /**
  * Interface for managing bundle data.
@@ -106,8 +107,13 @@ class BundleArchiveImpl implements BundleArchive
 		    long              bundleId)
     throws Exception
   {
+    URL source = null;
+    try {
+      source = new URL(bundleLocation);
+    } catch (Exception e) {
+    }
     bundleDir       = dir;
-    archive         = new Archive(bundleDir, 0, is);
+    archive         = new Archive(bundleDir, 0, is, source);
     storage         = bundleStorage;
     id              = bundleId;
     location        = bundleLocation;
@@ -155,7 +161,7 @@ class BundleArchiveImpl implements BundleArchive
       bPersistant = "true".equals(pS);
     }
 
-    archive       = new Archive(bundleDir, rev);
+    archive       = new Archive(bundleDir, rev, location);
     id            = bundleId;
     storage       = bundleStorage;
     startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();

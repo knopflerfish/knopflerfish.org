@@ -379,7 +379,7 @@ class BundleImpl implements Bundle {
 	AccessController.doPrivileged(new PrivilegedAction() {
 	    public Object run() {
 	      startOnLaunch(false);
-	    return null;
+	      return null;
 	    }
 	  });
       }
@@ -959,11 +959,16 @@ class BundleImpl implements Bundle {
       framework.listeners.frameworkError(this, e);
     }
   }
-
-  void setPersistent(boolean value) { 
+  
+  void setPersistent(final boolean value) { 
     try {
-      archive.setPersistent(value);
-    } catch (IOException e) {
+      AccessController.doPrivileged(new PrivilegedExceptionAction() {
+	  public Object run() throws Exception {
+	    archive.setPersistent(value);
+	    return null;
+	  }
+	});
+    } catch (Exception e) {
       framework.listeners.frameworkError(this, e);
     }
   }

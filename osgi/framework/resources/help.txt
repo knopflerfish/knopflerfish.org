@@ -20,7 +20,7 @@
    -initlevel N   Set initial start level for installed bundles
    -startlevel N  Set start level of Start Level service
 
- The directory used for storing bundle data is normally "fwdir".
+ The default directory used for storing bundle data is  "fwdir".
 
  See -readme option for details on startup, fwdir and .xargs files.
  
@@ -68,7 +68,10 @@
      (Default: false)
 
    org.knopflerfish.framework.ldap.nocache -
-     Disable LDAP caching for simple filters
+     Disable LDAP caching for simple filters. LDAP caching
+     speeds up framework filters considerably, but uses
+     more memory.
+
      (Default: false)
 
    org.knopflerfish.framework.bundlestorage
@@ -76,6 +79,23 @@
      [file, memory]
      (Default: file)
 
+   org.knopflerfish.framework.bundlestorage.file.reference
+     When using file bundle storage, file: URLs can optionally
+     be referenced only, not copied to the persistant area.
+
+     If set to true, file: URLs are referenced only.
+
+     (Default: false)
+
+   org.knopflerfish.framework.bundlestorage.file.unpack
+     When using file bundle storage, bundle jars can be unpacked
+     or copied as-is. Unpacking leads to faster restart and class loading
+     but takes longer for initial startup.
+
+     If set to true, unpack bundle jars.
+
+     (Default: true)
+      
    org.knopflerfish.framework.system.export.all_13 -
      Make system classloader export all standard JVM 1.3
      packages as javax.swing.*
@@ -86,16 +106,16 @@
      (Default: 0)
 
    org.knopflerfish.startlevel.use -
-     Use the Start Level service
+     Use the Start Level service.
      (Default: true)
 
    org.knopflerfish.startlevel.level -
-     level of start level service if used
+     level of start level service if used.
      (Default: 1)
 
    org.knopflerfish.startlevel.initlevel -
      Initial start level of bundles if start level
-     service if used
+     service if used.
      (Default: 1)
 
    java.security.manager
@@ -133,7 +153,9 @@
      If set to "true", allow restart of framework by calling 
      getBundle(0).update()
 
-     If "false", exit framework with exit code = 2
+     If "false", exit framework with exit code = 2. This can be useful
+     when a wrapper script is better at restarting cleanly than the JVM
+     itself.
 
      Default is (true ||  (org.knopflerfish.osgi.r3.testcompliant == true))
   
