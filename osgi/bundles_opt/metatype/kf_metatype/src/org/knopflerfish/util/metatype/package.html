@@ -481,6 +481,57 @@ empty string will be used.
 </div>
 </div>
 
+<a name="6.3.3.1"></a><h4>6.3.3.1 Localized descriptions</h4>
+
+<p>
+Locale specific description strings can be set on annotations, using the 
+standard <code>xml:lang</code> attribute:
+</p>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - localized description</div>
+<div class="exampleInner">
+<pre>
+&lt;xsd:annotation&gt;
+  &lt;xsd:documentation xml:lang="en"&gt;
+      This is the English description.
+  &lt;/xsd:documentation&gt;
+  &lt;xsd:documentation xml:lang="se"&gt;
+      Detta är beskrivningen på svenska.
+  &lt;/xsd:documentation&gt;
+ &lt;/xsd:annotation&gt;
+</pre>
+
+</div>
+</div>
+
+<p>
+Optionally, the <code>&lt;xsd:appInfo&gt;</code> sub-element to <code>xsd:annotation</code> can be used to specify a key which maps to a localization property file.
+</p>
+<p>
+If the the key is not found, the <code>xsd:documentation</code> will be 
+searched for default values.
+</p>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - localized description using keys</div>
+<div class="exampleInner">
+<pre>
+&lt;xsd:annotation&gt;
+  &lt;xsd:appInfo&gt;PROP1_DESC&lt;xsd:/appInfo&gt;
+ &lt;/xsd:annotation&gt;
+</pre>
+
+</div>
+</div>
+
+<p>
+TBD: Define how localization property files should be found. Possibilities
+are:  predefined places in jar file, speced by URL list in metatype XML or
+speced by manifest antries in jar file.
+</p>
+
+</p>
 <a name="6.4"></a><h3>6.4 Supported data types</h3>
 
 <p>
@@ -625,10 +676,10 @@ are found, the values are used as labels.
   <td>Vector</td>
   <td><pre>
 &lt;xsd:complexType 
-     name="NAME"
+     name="NAME"&gt;
+ &lt;xsd:sequence
      [array="false"]
      [maxOccurance="MAX"]&gt;
- &lt;xsd:sequence&gt;
   PRIMITIVE_TYPE
  &lt;/xsd:sequence&gt;
 &lt;/xsd:complexType&gt;
