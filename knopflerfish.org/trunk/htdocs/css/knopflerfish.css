@@ -180,6 +180,11 @@ li.A:hover {
  font-size:17px;
 }
 
+.pageheader {
+  border: solid 1px #000000;
+  background-color: #ffffff;
+}
+
 .compactinput {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:11px;
