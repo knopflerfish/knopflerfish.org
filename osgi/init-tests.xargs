@@ -3,7 +3,7 @@
 #
 
 # List of test IDs
-#-Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite
+#-Dorg.knopflerfish.junit_runner.tests=PerformanceRegistryTestSuite
 -Dorg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
 #-Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
 
@@ -52,11 +52,11 @@
 -istart junit/junit_all-1.0.0.jar
 
 # the test cases
--istart framework_test/framework_test_all-1.0.0.jar
--istart filter_test/filter_test_all-1.0.0.jar
--istart servicetracker_test/servicetracker_test_all-1.0.0.jar
--istart constants_test/constants_test_all-1.0.0.jar
--istart registeryperformance_test/registeryperformance_test_all-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/framework_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/filter_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/servicetracker_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/constants_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
 
 # the test case runner bundle.
 -istart junit_runner/junit_runner_all-1.0.0.jar
