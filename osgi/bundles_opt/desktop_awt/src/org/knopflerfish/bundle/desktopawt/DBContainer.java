@@ -74,8 +74,13 @@ import java.awt.*;
      paintDB(g);
    }
 
+   long paintTime = 10000;
+
    public void paint(Graphics g) {
+     long t0 = System.currentTimeMillis();
      paintDB(g);
+     long t1 = System.currentTimeMillis();
+     paintTime = t1 - t0;
    }
 
    public void paintDB(Graphics g) {

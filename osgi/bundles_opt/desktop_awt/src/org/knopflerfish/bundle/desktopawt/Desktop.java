@@ -46,11 +46,17 @@ class Desktop {
   static int trackerId = 0;
 
   static Image activeIcon = null;
+  static Image bundleImage;
+  static Image libImage;
 
   Desktop() {
     frame       = new Frame("Knopflerfish Desktop");
     tracker     = new MediaTracker(frame);
     activeIcon  = loadImage("/player_play_14x14.gif");
+    bundleImage = loadImage("/bundle.gif");
+    libImage    = loadImage("/lib.gif");
+
+
     setIcon(frame, "/fish");
   }
 
