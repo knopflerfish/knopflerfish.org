@@ -98,7 +98,7 @@ public interface TrayIcon
    * as menu data model, rather than a menu view.
    * </p>
    * <p>
-   * <tt>ActionListeners</t> and <tt>getText/setText/getState/setState</tt>
+   * <tt>ActionListeners</tt> and <tt>getText/setText/getState/setState</tt>
    * on the original, returned instance are however guaranteed to work.
    * </p>
    *
