@@ -38,6 +38,15 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
+
+/**
+ * Interface for objects capable of prodcing HTML, based on a
+ * servlet request.
+ */
 public interface HTMLable {
+
+  /**
+   * Print any suitable HTML to the specified writer.
+   */
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException;
 }

@@ -38,11 +38,45 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
+/**
+ * A Command represents an item in teh ConsoleServlet that
+ * can be activated by a certain trigger. When triggered, the
+ * <tt>run</tt> method is called. For each request, the
+ * <tt>HTMLable.toHTML</tt> method is called to produce the
+ * output.
+ */
 public interface Command extends HTMLable {
+
+  /**
+   * Called when ConsoleServet har decided the command is triggered.
+   * Typically, this happens when <tt>isTrigger</tt> has returned
+   * true.
+   */
   public StringBuffer run(HttpServletRequest request);
+
+  /**
+   * Id of the command. Typically used to identify a submit button.
+   */
   public String       getId();
+
+  /**
+   * Should return true if command thinks the specified request
+   * should trigger the <tt>run</tt> method.
+   */
   public boolean      isTrigger(HttpServletRequest request);
+
+  /**
+   * Human-readable name of command.
+   */
   public String       getName();
+
+  /**
+   * Human-readable description of command.
+   */
   public String       getDescription();
+
+  /**
+   * URL string to command icon. Can be null.
+   */
   public String       getIcon();
 }
