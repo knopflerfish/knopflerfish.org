@@ -638,7 +638,7 @@ class DesktopPanel extends Panel {
       }
           public void setFocus(boolean b) {
             super.setFocus(b);
-            statusBar.setMessage(b ? "Install bundles (NYI)" : "");
+            statusBar.setMessage(b ? "Install bundles" : "");
           }
         });
       add(new ImageLabel("/player_play.gif", 2, getBackground()) {{

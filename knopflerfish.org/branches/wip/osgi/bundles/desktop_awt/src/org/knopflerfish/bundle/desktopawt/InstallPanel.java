@@ -46,6 +46,8 @@ public class InstallPanel extends Panel {
 
   String defText = "Enter bundle URL\nthen select \"Install\"";
 
+  FileDialog fd;
+
   public InstallPanel() {
     super();
     setLayout(new BorderLayout());
@@ -72,17 +74,38 @@ public class InstallPanel extends Panel {
     msg.setEditable(false);
     
     Button installB = new Button("Install");
+    installB.setBackground(lf.bgColor);
+    
+    ImageLabel open = new ImageLabel("/open.gif", 1, lf.bgColor);
+    open.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent ev) {
+          browseFile();
+        }
+      });
+
     installB.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent ev) {
           installBundle(tf.getText());
         }
       });
     row.add(new Label("URL"), BorderLayout.WEST);
-    row.add(tf);
+    row.add(tf, BorderLayout.CENTER);
+    row.add(open, BorderLayout.EAST);
+    row.add(installB, BorderLayout.SOUTH);
     
     add(row, BorderLayout.NORTH);
     add(msg, BorderLayout.CENTER);
-    add(installB, BorderLayout.SOUTH);
+
+  }
+
+  void browseFile() {
+    if( fd == null) {
+      fd = new FileDialog(Desktop.frame);
+    }
+    fd.show();
+    File f = new File(fd.getDirectory());
+    f = new File(f, fd.getFile());
+    tf.setText("file:" + f.getAbsolutePath());
   }
 
   void installBundle(String url) {
@@ -92,7 +115,7 @@ public class InstallPanel extends Panel {
         msg.setText(defText);
       } else {
         Bundle b = Activator.bc.installBundle(url.trim());
-        msg.setText("Install as #" + b.getBundleId());
+        msg.setText("Installed " + url + "\n as bundle #" + b.getBundleId());
       }
     } catch (Exception e) {
       StringWriter sw = new StringWriter();
