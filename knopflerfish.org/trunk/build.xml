@@ -153,6 +153,22 @@
    </bundlehtml>
   </target>
 
+  <target name          = "obr"
+          depends       = "compile_ant">
+
+    <bundleobr  baseDir      = "osgi/jars"
+                repoName     = "Knopflerfish bundle repository"
+		baseURL      = "http://www.knopflerfish.org/repo/jars/"
+    >
+
+      <fileset dir="osgi/jars">
+        <include name = "**/*.jar"/>
+        <exclude name = "**/*_api-*.jar"/>
+        <exclude name = "framework.jar"/>
+      </fileset>
+   </bundleobr>
+  </target>
+
   <target name        = "compile_ant" 
          description = "Compile and link the custom bundleinfo task">
 	 
@@ -167,6 +183,10 @@
             classpath = "${antclasses}" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
      
+   <taskdef name      = "bundleobr" 
+            classpath = "${antclasses}" 
+     classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
+
    </target>
  
 
