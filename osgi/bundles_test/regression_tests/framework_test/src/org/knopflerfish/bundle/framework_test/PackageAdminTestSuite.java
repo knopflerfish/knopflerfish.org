@@ -75,6 +75,8 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   Vector expevents = new Vector();		// comparision vector
 
 
+  String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
+
   PrintStream out = System.out;
 
   public PackageAdminTestSuite (BundleContext bc) {
@@ -107,6 +109,18 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
+      PackageAdmin pa = (PackageAdmin) bc.getService(bc.getServiceReference(packServiceName));
+      if (pa == null) {
+        fail("Failed to get PackageAdmin service");
+      }
+
+      try {
+        pa.refreshPackages(null);
+      } catch (Exception e) {
+        fail("Failed to refresh packages");
+      }
+             
+
       buA = Util.installBundle(bc, "bundleA_test-1.0.0.jar");
       buB = Util.installBundle(bc, "bundleB_test-1.0.0.jar");
       assertNotNull(buA);
@@ -205,7 +219,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 
       // Get packageadmin service
 
-      String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
+
       PackageAdmin packService = null;
 
       try {
