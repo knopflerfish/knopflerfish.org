@@ -189,19 +189,20 @@ public class Framework {
     bundles           = new Bundles(this);
 
 
-    permissions       = new PermissionAdminImpl(this);
-    String [] classes = new String [] { PermissionAdmin.class.getName() };
-    services.register(systemBundle,
-		      classes,
-		      permissions,
-		      null);
     
     if (System.getSecurityManager() != null) {
       bPermissions = true;
+      permissions       = new PermissionAdminImpl(this);
+      String [] classes = new String [] { PermissionAdmin.class.getName() };
+      services.register(systemBundle,
+			classes,
+			permissions,
+			null);
+
       Policy.setPolicy(new FrameworkPolicy(permissions));
     }
 
-    classes = new String [] { PackageAdmin.class.getName() };
+    String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
 		      classes,
 		      new PackageAdminImpl(this),
