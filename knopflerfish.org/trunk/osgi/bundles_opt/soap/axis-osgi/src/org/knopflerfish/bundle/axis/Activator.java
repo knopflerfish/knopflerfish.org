@@ -96,6 +96,13 @@ public class Activator
          webApp.start(bc);
          log.info("Web application started.");
 	 axisBundle.addServiceListener(this);   
+
+	 // Make sure we get services already registered
+	 ServiceReference[] srl = axisBundle.getServiceReferences(null, null);
+	 for(int i = 0; srl != null && i < srl.length; i++) {
+	   serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
+	 }
+
       } catch (Exception e) {
          log.error("Exception when starting bundle", e);
          throw new BundleException("Failed to start server");
