@@ -120,9 +120,25 @@ public class Util {
    *         the value is <tt>null</tt> or the empty string.
    */
   public static String getAttribute(BundleRecord br, String name, String def) {
-    String s = (String)br.getAttribute(name);
-    if(s == null || "".equals(s)) {
-      s = def;
+    Object obj = br.getAttribute(name);
+    String s = def;
+    if(obj instanceof String) {
+      s = (String)obj;
+      if(s == null || "".equals(s)) {
+        s = def;
+      }
+    } else if(obj instanceof java.util.List) {
+      java.util.List list = (java.util.List)obj;
+      if(list.size() == 1) {
+        return list.get(0).toString();
+      } else if(list.size() > 1) {
+        System.out.println(name + " has more than one entry " + list + ", using the first");
+        return list.get(0).toString();
+      } else {
+        return def;
+      }
+    } else {
+      System.out.println(name + ", type=" + obj.getClass().getName() + " " + obj);
     }
     return s;
   }

@@ -1142,7 +1142,7 @@ public class ObrCommandImpl implements Command
             out.println("obr " + URLS_CMD + " [<repository-file-url> ...]");
             out.println("");
             out.println(
-                "This command gets or sets the URLs to the repository files\n" +                "used by OBR. Specify no arugments to get the current repository\n" + 
+                "This command gets or sets the URLs to the repository files\n" +                "used by OBR. Specify no arguments to get the current repository\n" + 
                 "URLs or specify a space-delimited list of URLs to change the\n" +
                 "URLs. Each URL should point to a file containing meta-data about\n" +                "available bundles in XML format.");
             out.println("");
@@ -1247,7 +1247,7 @@ public class ObrCommandImpl implements Command
                 + "] <bundle-name>[;<version>] ... | <bundle-id> ...");
             out.println("");
             out.println(
-                "The first form of the command above checks for available updates\n" +                "and the second updates the specified locally installed bundles\n" +
+                "The first form of the command above checks for available updates\n" +                "and the second updates the specified locally installed bundles\n" +
                 "and all of their dependencies by default; use the \"" + NODEPS_SWITCH + "\" switch\n" +
                 "to ignore dependencies. You can specify either the bundle name or\n" +
                 "the bundle identifier. If a bundle's name contains spaces, then\n" +
