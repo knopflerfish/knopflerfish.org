@@ -31,6 +31,9 @@
   <property name="bundle.name"           value="Console"/>
   <property name="bundle.apivendor"      value="Knopflerfish"/>
 
+  <property name="export.package"  
+            value="org.knopflerfish.service.console;specification-version=1.0.0"/>
+
   <property name="import.service"        value="org.knopflerfish.service.console.CommandGroup,org.osgi.service.log.LogService"/>
 
   <property name="export.service"        value="org.knopflerfish.service.console.ConsoleService"/>
