@@ -19,7 +19,7 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/http/http_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
    <pathelement location="${topdir}/jars/cm/cm_api-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>
    <pathelement location="resources/lib/jini-core.jar"/>
