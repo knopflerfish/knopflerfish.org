@@ -1,0 +1,234 @@
+<pre>
+2004-03-22:  bundlebuild_include.xml now uses the bundle.name property
+
+             Included support for tray icons, when running on window
+             platforms. See docs for org.knopflerfish.service.trayicon
+
+
+2004-03-20:  Added target install, start, stop, update and uninstall
+             to bundlebuild_include.xml. These targets communicates
+             to a running framework using the telnet console.
+
+             Note: requires netcomponents.jar in $ANT_HOME/lib
+
+2004-03-17:  HTTP bug/oddity fix. 
+             HTTP 1.0 and POST and Connection="close" hanged
+             the input stream. This is now fixed
+
+             Desktop tested to work on Eclipse OSGi FW!
+
+             > eclipse -console 9191
+
+             > telnet localhost 9191
+
+              osgi > install file:util-1.0.0.jar
+              osgi > install file:desktop_all-1.1.0.jar
+              osgi > start <desktop bid>
+
+             ...and off you go!
+
+2004-03-17:  Startlevel now truly persistent
+
+             Changed ServiceTracker to comply with ref code
+             and catch IllegalStateException in close()
+
+             Changed specification-version on useradmin,
+             http and cm to 3-digit.
+
+2004-03-16:  Added grabbing of system out/err to the log service
+
+¨               -Dorg.knopflerfish.log.grabio=true
+
+             System.out.println is logged as INFO on the system bundle.
+             System.err.println is logged as ERROR on the system bundle.
+
+             IO grabbing is only active when the log is NOT printing
+             directly to stdout to avoid recursive effects. 
+     
+
+2004-03-10:  Default http port changed internally to 80.
+             Startup xargs still uses 8080
+
+
+2004-02-29:
+             Tested for R3 compliance on
+
+              dynamic package export
+              url
+
+ build:      Added test for OSGi foundation profile to 
+             bundlebuild task. Classes not present in a built-in
+             list is printed when creating the jar file
+
+2004-02-29
+
+ fw:          Added URL service into framework.              
+
+2004-02-25:
+             Tested for R3 compliance on
+
+              framework events
+              filter
+              startlevel
+              life cycle
+              device
+                    
+
+2004-02-19
+
+ desktop:    Added time line view of bundles. Really good concept 
+             actually.
+
+2004-02-16
+
+ desktop:    Integration of StartLevel service into desktop.
+             Replaced icons with nicer ones from the Noia kit.
+
+ fw:         Yet another bug fix in ServiceTracker. 
+
+2004-02-12
+
+ desktop:    Better integration of log viewer. 
+             Uses system look & feel as default.
+
+ 
+2004-02-10
+ 
+ fw:         added OSGi R3 APIs for
+
+               org.osgi.service.startlevel
+               org.osgi.util.measurement
+               org.osgi.util.position
+               org.osgi.util.xml
+
+
+ log:        Fixed buggy log entries for new R3 framework event types.
+             Should now survive all new unknown types.
+
+
+ console:    Added addAlias method to ConsoleService for setting default
+             aliases.
+
+
+2004-02-05  
+
+ fw:         Framework code fixed to compile with JSDK 1.5
+
+ docs:       _all and library bundles now includes source code
+             in OSGI-OPT/src bundle directory.
+             This code is used when generating bundle HTML docs.
+
+2004-02-01
+
+ fw:         ServiceTracker nullpointerexception bug fixed
+
+2004-01-29
+
+ distrib:    New minor release 1.0.2
+             Version numbers on all bundle files.
+             New "tiny" release file in zip format.
+             Auto-generates HTML docs for bundles.
+
+ javadoc:    Cleanup on javadoc source
+
+ cm:         Correction of directory structure
+
+ website:    Finally hosted on hinken. Thanks Urban!
+
+ desktop:    Added swing log window
+
+             (EW)
+
+2003-11-13
+
+ distrib:    First public release 1.0.0
+             Added OSGi license file. Several fixes to distrib build.
+
+             (EW)
+
+2003-09-12
+
+ distrib:    Installation verified to work on NetBSD 1.6.1, using
+             native Java 1.3.1.
+
+             The usual build problems on jsdk 1.3, though.
+             (see <a href="http://developer.java.sun.com/developer/bugParade/bugs/4353705.html">bug parade #4353705</a> for details)
+
+ distrib:    Version backed to 0.9.2 to get some realistic version
+             scheme. Also improved version string handling in framework
+             build.
+
+             (EW: knopflerfish_osgi_0.9.2.jar)
+
+ desktop:    StringBuffer version bug fix
+
+             (EW: bundles/desktop)
+
+2003-08-16
+
+ distrib:    Added component installation selection for
+             base, source and htdocs
+
+             (EW: knopflerfish_osgi_1.0.0prepre.jar, tools/jarunpacker)
+
+2003-08-14
+
+ distrib:    Added fancy check-if-overwrite dialog with icons.
+
+             (EW: knopflerfish_osgi_1.0.0pre.jar, tools/jarunpacker)
+
+2003-08-07
+
+ distrib:    Distribution format changed to self-extracting jar file
+
+             (EW: knopflerfish_osgi_1.0.0pre.jar, tools/jarunpacker)
+
+2003-07-28
+
+ framework:  Added system property for exporting all J2SE packages
+             as javax.swing.**
+
+              org.knopflerfish.framework.system.export.all_13=[true|false]
+
+             (EW. Packages.java)
+
+ framework:  Changed order of property default initialization so
+             defaults works even when non-zero-arg startup 
+
+             (EW. Main.java) 
+
+ htdocs:     Improved HTML doc build system. 
+             Improved HTML documentation.
+
+             (EW: htdocs/build.xml)
+
+ distrib:    Distribution verified to start on Mac OS X
+
+             (ST: knopflerfish_osgi_1.0.0pre.tgz)
+
+2003-07-26
+
+ website:    First golden version on www.knopflerfish.org 
+             (actually on www.wistrand.com, but framelinked)
+             TODO: move knopflerfish.[org|com] domains to hinken.
+
+             (EW. htdocs)
+
+ desktop:    Added new icons, detail info window and bug fixes
+
+             (EW. osgi/bundles/desktop)
+
+
+ build:      Added "distrib" target in top build.xml which creates
+             .tgz of entire source, htdocs and jar trees
+
+             (EW. build.xml)
+
+2003-07-25
+
+ framework:  Added simple support for start of executable jar files.
+             TODO: handle ClassPath: manifest entry
+
+             (EW: BundleImpl.java, MainClassBundleActivator.java)
+
+</pre>
