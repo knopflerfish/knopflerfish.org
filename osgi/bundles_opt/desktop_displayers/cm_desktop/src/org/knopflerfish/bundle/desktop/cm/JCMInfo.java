@@ -47,6 +47,7 @@ import javax.swing.event.*;
 import javax.swing.border.*;
 import org.knopflerfish.util.metatype.*;
 import org.osgi.service.metatype.*;
+import java.net.URL;
 
 public class JCMInfo extends JPanel {
   MetaTypeProvider mtp;
@@ -67,7 +68,8 @@ public class JCMInfo extends JPanel {
   JComboBox servicePIDBox = null;
   JComboBox factoryPIDBox = null;
 
-  void setProvider(MetaTypeProvider _mtp, PIDProvider _pp) {
+  void setProvider(MetaTypeProvider _mtp, PIDProvider _pp,
+		   Bundle bundle) {
     this.mtp = _mtp;
     this.pp  = _pp;
     main.removeAll();
@@ -150,12 +152,42 @@ public class JCMInfo extends JPanel {
 	  // Neither service nor factory found in provider
 	}
       }
+    } else {
+      JHTML jhtml = new JHTML();
+      StringBuffer sb = new StringBuffer();
+      sb.append("<html>");
+      sb.append("<table border=0 width=\"100%\">\n");
+      sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+      Util.startFont(sb, "-1");
+      sb.append(getBundleSelectedHeader(bundle));
+      sb.append("</font>\n");
+      sb.append("</td>\n");
+      sb.append("</tr>\n");
+      sb.append("</table>\n");
+
+      sb.append("<p>");
+      Util.startFont(sb, "-2");
+      sb.append("No CM metatype found in bundle.<br>");
+      sb.append("See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.");
+      sb.append("</font>");
+      sb.append("</p>");
+      
+      
+      sb.append("</html>\n");
+      
+      jhtml.setHTML(sb.toString());
+      
+      main.add(jhtml, BorderLayout.CENTER);
     }
     invalidate();
     revalidate();
     repaint();
   }
-  
+
+  String getBundleSelectedHeader(Bundle b) {
+    return "#" + b.getBundleId() + "  " +  Util.getBundleName(b);
+  }
+
   void setServiceOCD(String pid) {
     ObjectClassDefinition ocd = 
       (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
@@ -168,5 +200,56 @@ public class JCMInfo extends JPanel {
       (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
 
     jcmService.setFactoryOCD(ocd);
+  }
+}
+
+class JHTML extends JPanel {
+  JTextPane html;
+  JScrollPane scroll;
+
+  JHTML() {
+    super(new BorderLayout());
+
+    html = new JTextPane();
+    html.setText("");
+    html.setContentType("text/html");
+    
+    html.setEditable(false);
+    
+    html.addHyperlinkListener(new HyperlinkListener() 
+      {
+	public void hyperlinkUpdate(HyperlinkEvent ev) {
+	  if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+	    URL url = ev.getURL();
+	    try {
+	      Util.openExternalURL(url);
+	    } catch (Exception e) {
+	      Activator.log.error("Failed to show " + url, e);
+	    }
+	  }
+	}
+      });
+    scroll = 
+      new JScrollPane(html, 
+		      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+		      JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      
+    html.setPreferredSize(new Dimension(300, 300));
+    
+    add(scroll, BorderLayout.CENTER);
+  }
+
+  void setHTML(String s) {
+    html.setText(s);
+    
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  JViewport vp = scroll.getViewport();
+	  if(vp != null) {
+	    vp.setViewPosition(new Point(0,0));
+	    scroll.setViewport(vp);
+	  }  
+	}
+      });
   }
 }
