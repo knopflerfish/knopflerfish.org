@@ -31,24 +31,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
 package org.knopflerfish.bundle.axis;
-
-import java.net.URL;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 
 import org.apache.axis.AxisFault;
-import org.apache.axis.WSDDEngineConfiguration;
-import org.apache.axis.deployment.wsdd.WSDDDeployment;
-import org.apache.axis.deployment.wsdd.WSDDDocument;
 import org.apache.axis.server.AxisServer;
 import org.apache.axis.transport.http.AxisServlet;
-import org.apache.axis.utils.XMLUtils;
 
 import org.knopflerfish.util.servlet.WebApp;
 
-import org.osgi.framework.*;
 
 
 /** The <code>ServiceServlet</code> extends the AxisServlet to enable it to work
@@ -58,39 +52,13 @@ import org.osgi.framework.*;
  * @author Lasse Helander (lars-erik.helander@home.se)
  */
 public class ServicesServlet
-   extends AxisServlet
-   implements ServiceListener {
+   extends AxisServlet {
    public AxisServer getEngine()
                         throws AxisFault {
       return Activator.getAxisServer();
    }
+   
 
-   public void serviceChanged(ServiceEvent event) {
-      try {
-         if (event.getType() == ServiceEvent.REGISTERED) {
-            ServiceReference sr = event.getServiceReference();
-
-            Activator.log.info("ServicesServlet:: added service");
-            URL url = (URL) sr.getProperty("AXIS_DEPLOY");
-
-            if (url != null) {
-               deployWSDD(url.openStream());
-            }
-         }
-         if (event.getType() == ServiceEvent.UNREGISTERING) {
-            ServiceReference sr = event.getServiceReference();
-
-            Activator.log.info("ServicesServlet:: removed service");
-            URL url = (URL) sr.getProperty("AXIS_UNDEPLOY");
-
-            if (url != null) {
-               deployWSDD(url.openStream());
-            }
-         }
-      } catch (Exception e) {
-         Activator.log.error("ServicesServlet::serviceChanged() Exception", e);
-      }
-   }
 
    protected String getWebappBase(HttpServletRequest request) {
       StringBuffer baseURL = new StringBuffer(128);
@@ -107,15 +75,5 @@ public class ServicesServlet
       return baseURL.toString();
    }
 
-   private void deployWSDD(java.io.InputStream stream) {
-      try {
-         Activator.log.info("ServicesServlet:: deployWSDD");
-         WSDDDocument doc = new WSDDDocument(XMLUtils.newDocument(stream));
 
-         doc.deploy(((WSDDEngineConfiguration) getEngine().getConfig()).getDeployment());
-         getEngine().refreshGlobalOptions();
-      } catch (Exception e) {
-         Activator.log.error("ServicesServlet::deployWSDD() Exception", e);
-      }
-   }
 }
