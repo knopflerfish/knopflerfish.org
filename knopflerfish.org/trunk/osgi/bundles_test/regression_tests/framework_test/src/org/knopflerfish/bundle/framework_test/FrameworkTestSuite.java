@@ -142,7 +142,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   public String getDocURL() {
-    return  "https://www.knopflerfish.org/svn/trunk/osgi/bundles_test/regression_tests/framework_test/readme.txt";
+    return  "https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/readme.txt";
   }
 
   public final static String [] HELP_FRAME005A =  {
