@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="wireadmin" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+
+  <property name="api.pattern" value="org/osgi/service/wireadmin/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
+  </path>
+
+  <property name="bundle.description"    value="WireAdmin"/>
+  <property name="bundle.category"       value="bundle"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+
+  <property name="export.package"        value="org.osgi.service.wireadmin;specification-version=1.0"/>
+
+  &bundlebuild_include;
+
+</project>
