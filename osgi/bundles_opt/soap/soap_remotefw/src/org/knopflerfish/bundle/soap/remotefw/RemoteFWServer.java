@@ -339,6 +339,19 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
+
+  public Map    getSystemProperties() {
+    Map map = new HashMap();
+    Properties props = System.getProperties();
+    
+    for(Enumeration e = props.keys(); e.hasMoreElements();) {
+      String key = (String)e.nextElement();
+      String val = (String)props.get(key);
+      map.put(key, val);
+    }
+    return map;
+  }
+
   public void start() {
     if(reg == null) {
 

@@ -57,6 +57,7 @@ public class RemoteFWClient implements RemoteFW {
     caches.put("getServiceReferences",        fastCache);
     caches.put("getServiceReferences2",       fastCache);
     caches.put("getServiceProperties",        slowCache);
+    caches.put("getSystemProperties",         slowCache);
     caches.put("getStartLevel",               fastCache);
     caches.put("getBundleStartLevel",         fastCache);
 
@@ -246,6 +247,10 @@ public class RemoteFWClient implements RemoteFW {
     } else {
       doCall("refreshPackages", bids);
     }
+  }
+
+  public Map    getSystemProperties() {
+    return (Map)doCall("getSystemProperties");
   }
 
   Object doCall(String opName) {
