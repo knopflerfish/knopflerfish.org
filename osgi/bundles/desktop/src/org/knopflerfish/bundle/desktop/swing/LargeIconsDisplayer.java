@@ -59,7 +59,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Iterator;
+import java.util.Comparator;
 import java.io.*;
 import java.net.URL;
 
@@ -84,8 +86,10 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       case BundleEvent.UNINSTALLED:
 	comp.removeBundle(ev.getBundle());
 	break;
+      default:
+	comp.updateBundleComp(ev.getBundle());
+	break;
       }
-      comp.updateBundleComp(ev.getBundle());
     }
     
     repaintComponents();
@@ -103,18 +107,81 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     JPanel      panel;
     JScrollPane scroll;
 
+    MouseListener contextMenuListener = null;
+    JPopupMenu    contextPopupMenu;
+
     Color       selColor = new Color(200, 200, 255);
 
     public JLargeIcons() {
       setLayout(new BorderLayout());
       setBackground(Color.white);
       
-      grid  = new GridLayout(4, 0);
+      grid  = new GridLayout(0, 4);
       panel = new JPanel(grid);
 
       panel.setBackground(getBackground());
 
-      JScrollPane scroll = new JScrollPane(panel);
+      contextPopupMenu = new JPopupMenu();
+
+      ButtonGroup       group         = new ButtonGroup();
+      
+      JCheckBoxMenuItem item = new JCheckBoxMenuItem("Sort by name");
+      item.setState(iconComparator == nameComparator);
+      item.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent ev) {
+	    iconComparator = nameComparator;
+	    rebuildPanel();
+	  }
+	});
+      contextPopupMenu.add(item);
+      group.add(item);
+
+      item = new JCheckBoxMenuItem("Sort by bundle ID");
+      item.setState(iconComparator == null);
+      item.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent ev) {
+	    iconComparator = null;
+	    rebuildPanel();
+	  }
+	});
+      contextPopupMenu.add(item);
+      group.add(item);
+            
+      contextMenuListener = new MouseAdapter() {
+	  public void mousePressed(MouseEvent e) {
+	    maybeShowPopup(e);
+	  }
+	  public void mouseReleased(MouseEvent e) {
+	    maybeShowPopup(e);
+	  }
+	  private void maybeShowPopup(MouseEvent e) {
+	    if(contextPopupMenu != null && 
+	       (e.isPopupTrigger() || 
+		e.getButton() == MouseEvent.BUTTON2 ||
+		e.getButton() == MouseEvent.BUTTON3)) {
+	      Component comp = e.getComponent();
+	      contextPopupMenu.show(comp, e.getX(), e.getY());
+	    }
+	  }
+	};
+
+      panel.addMouseListener(contextMenuListener);
+
+      // handle scroll panel resizing to be able to set grid size
+      scroll = new JScrollPane(panel) {
+	  int oldW = -1;
+	  int oldH = -1;
+	  public void setBounds(int x, int y, int w, int h) {
+	    super.setBounds(x, y, w, h);
+
+	    // avoid looping when rebuilding panel
+	    if(w != oldW || h != oldH) {
+	      oldW = w;
+	      oldH = h;
+	      rebuildPanel();
+	    }
+	  }
+	};
       
       add(scroll, BorderLayout.CENTER);
     }
@@ -140,6 +207,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 		    setBackground(getBackground());
 		  }
 		});
+	      addMouseListener(contextMenuListener);
 	      setBorder(null);
 	      setOpaque(true);
 	      setBackground(Color.yellow);
@@ -172,35 +240,100 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 	c.setBorder(null);
 	c.setFont(getFont());
 	
-	bundleMap.put(new Long(b.getBundleId()), c);
-	updateBundleComp(b);
-	panel.add(c);
-	grid.setColumns(4);
-	grid.setRows(0);
+	synchronized(bundleMap) {
+	  bundleMap.put(new Long(b.getBundleId()), c);
+	}
 
-	revalidate();
-	repaint();
+	updateBundleComp(b);
+
+	rebuildPanel();
+
       }
       
     }
-    
-    public void removeBundle(Bundle b) {
 
-      JComponent c = getBundleComponent(b);
+    Comparator nameComparator = new Comparator() {
+	public int compare(Object o1, Object o2) {
+	  Bundle b1 = 
+	    Activator.getTargetBC().getBundle(((Long)o1).longValue());
+	  Bundle b2 = 
+	    Activator.getTargetBC().getBundle(((Long)o2).longValue());
 
-      if(c != null) {
-	panel.remove(c);
-	revalidate();
-	repaint();
-      }
-      icons.remove(b);
+	  if(b1 == b2) {
+	    return 0;
+	  }
+	  if(b1 == null) {
+	    return -1;
+	  }
+	  if(b2 == null) {
+	    return 1;
+	  }
+
+	  return 
+	    Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
+	}
+      };
+
+    Comparator iconComparator = null;
+
+    void rebuildPanel() {
+      SwingUtilities.invokeLater(new Runnable() {
+	  public void run() {
+	    synchronized(bundleMap) {
+	      panel.removeAll();
+	      
+	      //	    Comparator comp = nameComparator;
+	      
+	      Set set = new TreeSet(iconComparator);
+	      set.addAll(bundleMap.keySet());
+
+	      int w = 0;
+	      int h = 0;
+	      for(Iterator it = set.iterator(); it.hasNext(); ) {
+		Long      bid = (Long)it.next();
+		JComponent c   = (JComponent)bundleMap.get(bid);
+		Dimension size = c.getPreferredSize();
+		w = Math.max(w, size.width);
+		h = Math.max(h, size.height);
+	      }
+
+
+	      Dimension size = scroll.getViewport().getExtentSize();
+	      
+	      if(size.width != 0) {
+		grid.setColumns(size.width / w);
+		grid.setRows(0);
+	      }
+
+	      for(Iterator it = set.iterator(); it.hasNext(); ) {
+		Long      bid = (Long)it.next();
+		Component c   = (Component)bundleMap.get(bid);
+		panel.add(c);
+	      }
+	    }
+
+	    
+	    revalidate();
+	    repaint();
+	  }
+	});
     }
-   
+
+    public void removeBundle(Bundle b) {
+      synchronized(bundleMap) {
+	bundleMap.remove(new Long(b.getBundleId()));
+	icons.remove(b);
+      }
+      rebuildPanel();
+    }
+
     JComponent getBundleComponent(Bundle b) {
-      return (JComponent)bundleMap.get(new Long(b.getBundleId()));
+      synchronized(bundleMap) {
+	return (JComponent)bundleMap.get(new Long(b.getBundleId()));
+      }
     }
         
-    // Bundle -> BundleIMageIcon
+    // Bundle -> BundleImageIcon
     Map icons = new HashMap();
     
     public void updateBundleComp(Bundle b) {
