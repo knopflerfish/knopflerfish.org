@@ -37,12 +37,16 @@ package org.knopflerfish.bundle.trayicon;
 import org.osgi.framework.*;
 import com.jeans.trayicon.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.ImageObserver;
 import java.io.*;
 import java.net.URL;
 import javax.swing.JPopupMenu;
 import javax.swing.MenuElement;
 import javax.swing.JMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.event.*;
 
 import org.knopflerfish.service.trayicon.*;
 
@@ -60,6 +64,11 @@ public class TrayIconWrapper {
     }
   }
 
+  SwingTrayPopup swingPopup = null;
+  JPopupMenu     jPopup     = null;
+
+  Frame frame;
+
   public void open() {
     if(windowsTrayIcon != null) {
       Activator.log.info("id=" + trayIcon.getId() + " already open");
@@ -74,6 +83,12 @@ public class TrayIconWrapper {
       
       Activator.log.info("open trayicon id=" + trayIcon.getId() + 
 			 ", name=" + trayIcon.getName());
+
+      frame = new Frame("") {
+	  public Point getLocationOnScreen() {
+	    return new Point(0,0);
+	  }
+	};
       
       WindowsTrayIcon.initTrayIcon(trayIcon.getId());
       
@@ -99,30 +114,50 @@ public class TrayIconWrapper {
       manager.logErr();
       */
 
-      /*
-      TrayIconPopup popup = trayIcon.getTrayIconPopup();
-      if(popup != null) {
-	windowsTrayIcon.setPopup(popup);
-	manager.logErr();
-      }
-      */
 
-      JPopupMenu jPopup = trayIcon.getTrayJPopupMenu();
+      jPopup = trayIcon.getTrayJPopupMenu();
 
       if(jPopup != null) {
 
-	// Convert top level of menu to something the original
-	// code understands.
-	SwingTrayPopup swingPopup = new SwingTrayPopup();
-	MenuElement[] subMenus= jPopup.getSubElements();
-	
-	for(int i = 0; i < subMenus.length; i++) {
-	  if(subMenus[i] instanceof JMenuItem) {
-	    swingPopup.add((JMenuItem)subMenus[i]);
-	  }
-	}
+	try {
+	  String javaVersion = System.getProperty("java.version");
+	  if(javaVersion.startsWith("1.3")) {
+	    Activator.log.info("workaround for java 1.3 menues");
+	    if(true) {
+	      TrayIconPopup popup = makeTrayIconPopup(trayIcon.getTrayJPopupMenu(), null);
+	      
+	      windowsTrayIcon.setPopup(popup);
+	    } else {
+	      
+	      windowsTrayIcon.addMouseListener(new MouseAdapter() {
+		  public void mousePressed(MouseEvent ev) {
+		    Component comp = windowsTrayIcon.getDummyComponent();
+		    jPopup.show(comp,
+				ev.getX(), 
+				ev.getY() - jPopup.getSize().height);
+		  }
+		});
+	    }
+	    
+	  } else {
+	    swingPopup = new SwingTrayPopup();
+	    
+	    MenuElement[] subMenus= jPopup.getSubElements();
+	    
+	    // Convert top level of menu to something the original
+	    // code understands.
+	    
+	    for(int i = 0; i < subMenus.length; i++) {
+	      if(subMenus[i] instanceof JMenuItem) {
+		swingPopup.add((JMenuItem)subMenus[i]);
+	      }
+	    }
 
-	swingPopup.setTrayIcon(windowsTrayIcon); 
+	    swingPopup.setTrayIcon(windowsTrayIcon); 
+	  }
+	} catch (Exception e) {
+	  Activator.log.error("Failed to set menu");
+	}
       }
 
       windowsTrayIcon.setVisible(true);
@@ -201,6 +236,49 @@ public class TrayIconWrapper {
       }
       return img;
     }
+
+  }
+
+  TrayIconPopup makeTrayIconPopup(MenuElement el, 
+				  String name) {
+
+    if(el == null) {
+      return null;
+    }
+
+    TrayIconPopup popup = 
+      name != null 
+      ? new TrayIconPopup(name) 
+      : new TrayIconPopup();
+    
+    MenuElement[] subMenus= el.getSubElements();
+    
+    /*
+    System.out.println("wrapping " + el.getClass().getName() + ", name=" + name + 
+		       ", length=" + subMenus.length);
+    */
+
+    for(int i = 0; i < subMenus.length; i++) {
+      if(subMenus[i] instanceof JCheckBoxMenuItem) {
+	popup.addMenuItem(new TrayIconPopupCheckItemW((JCheckBoxMenuItem)subMenus[i]));
+      } else if(subMenus[i] instanceof JMenu) {
+	JMenu menu = (JMenu)subMenus[i];
+	MenuElement[] subMenus2 = menu.getSubElements();
+	if(subMenus2.length == 1) {
+	  popup.addMenuItem(makeTrayIconPopup(subMenus2[0], 
+					      menu.getText()));
+	}
+      } else if(subMenus[i] instanceof JPopupMenu) {
+	JPopupMenu menu = (JPopupMenu)subMenus[i];
+	popup.addMenuItem(makeTrayIconPopup(menu, name));
+      } else if(subMenus[i] instanceof JMenuItem) {
+	popup.addMenuItem(new TrayIconPopupSimpleItemW((JMenuItem)subMenus[i]));
+      } else {
+	//	System.out.println("skip class=" + subMenus[i].getClass().getName());
+      }
+    }
+
+    return popup;
   }
 
   /**
@@ -228,3 +306,69 @@ public class TrayIconWrapper {
   }
 }
 
+
+class TrayIconPopupSimpleItemW extends TrayIconPopupSimpleItem {
+  JMenuItem jItem;
+
+  TrayIconPopupSimpleItemW(JMenuItem jItem) {
+    super(jItem.getText());
+
+    this.jItem = jItem;
+
+    //    System.out.println("wrapped JMenuItem " + jItem.getText());
+    
+    try {
+      ActionListener[] la = (ActionListener[])jItem.getListeners(ActionListener.class);
+      for(int i = 0; la != null && i < la.length; i++) {
+	addActionListener(la[i]);
+      }
+    } catch (Exception e) {
+      Activator.log.error("Failed to get actionlisteners", e);
+    }
+    
+  }
+  
+  public String getName() {
+    return jItem.getText();
+  }
+}
+
+class TrayIconPopupCheckItemW extends TrayIconPopupCheckItem implements ChangeListener {
+  JCheckBoxMenuItem jItem;
+
+  TrayIconPopupCheckItemW(JCheckBoxMenuItem jItem) {
+    super(jItem.getText());
+
+    this.jItem = jItem;
+
+    try {
+      ActionListener[] la = (ActionListener[])jItem.getListeners(ActionListener.class);
+      for(int i = 0; la != null && i < la.length; i++) {
+	addActionListener(la[i]);
+      }
+    } catch (Exception e) {
+      Activator.log.error("Failed to get actionlisteners", e);
+    }
+    
+
+    jItem.addChangeListener(this);
+  }
+
+  public void stateChanged(ChangeEvent e) {
+    //    System.out.println(getName() + ": change " + e);
+    super.setCheck(getCheck());
+  }
+
+  public String getName() {
+    return jItem.getText();
+  }
+
+  public boolean getCheck() {
+    return jItem.getState();
+  }
+
+  public void setCheck(boolean b) {
+    super.setCheck(b);
+    jItem.setState(b);
+  }
+}
