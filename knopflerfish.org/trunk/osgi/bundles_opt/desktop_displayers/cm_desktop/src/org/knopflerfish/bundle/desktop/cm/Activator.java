@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.desktop.cm;
 
 import org.osgi.framework.*;
 import org.osgi.service.cm.*;
+import org.osgi.util.tracker.*;
 import org.knopflerfish.service.log.*;
 
 import java.util.*;
@@ -50,7 +51,9 @@ public class Activator implements BundleActivator {
   static public BundleContext bc;
 
 
-  static SystemMetatypeProvider sysMTP;
+  
+  static ServiceTracker mtpTracker;
+  //  static SystemMetatypeProvider sysMTP;
 
   CMDisplayer disp;
   
@@ -62,14 +65,27 @@ public class Activator implements BundleActivator {
     disp = new CMDisplayer(bc);
     disp.open();
     disp.register();
-    
+
+    mtpTracker = new ServiceTracker(bc, SystemMetatypeProvider.class.getName(), null);
+    mtpTracker.open();
 
     try {
-      sysMTP = new SystemMetatypeProvider(bc);
+
       
       test();
     } catch (Exception e) {
       e.printStackTrace();
+    }
+  }
+
+  static MTP getMTP(Bundle b) {
+    SystemMetatypeProvider sysMTP = 
+      (SystemMetatypeProvider)mtpTracker.getService();
+    if(sysMTP != null) {
+      return sysMTP.getMTP(b);
+    } else {
+      log.warn("No SystemMetatypeProvider found");
+      return null;
     }
   }
 
@@ -114,8 +130,9 @@ public class Activator implements BundleActivator {
 
       disp.close();
 
-      sysMTP = null;
-
+      mtpTracker.close();
+      mtpTracker = null;
+	
       this.bc = null;
     } catch (Exception e) {
       e.printStackTrace();
