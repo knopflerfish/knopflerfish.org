@@ -45,6 +45,10 @@ props.put("description", "This an long value");
 bc.<a href="$(JAVADOC)/org/osgi/framework/BundleContext.html#registerService(java.lang.String, java.lang.Object, java.util.Dictionary)">registerService</a>(Long.class.getName(), i, props);
 </pre>
 
+<p>
+<b>Note</b>: a service can also be registered as serveral interfaces. In this case, the object <i>must</i> implement all of the interfaces.
+</p>
+
 <a name="what_isfactory"></a>
 <h3>What is a service factory?</h3>
 
@@ -392,7 +396,7 @@ and the server needs to keep track of all available listeners.
 <p>
 
 <p>
-An alternative and better approach is to let the client <b>register its 
+Thus, an alternative and better approach is to let the client <b>register its 
 servlets into the framework</b>, and let the http server use this list
 instead.
 </p>
@@ -451,7 +455,7 @@ Below is a minimalistic wrapper for the existing http service: (a complete class
 	}
       };
     
-    String filter = "(objectclass=" + HttpService.class.getName() + ")";
+    String filter = "(objectclass=" + HttpServlet.class.getName() + ")";
     try {
       bc.addServiceListener(sl, filter);
       ServiceReference[] srl = bc.getServiceReferences(null, filter);
