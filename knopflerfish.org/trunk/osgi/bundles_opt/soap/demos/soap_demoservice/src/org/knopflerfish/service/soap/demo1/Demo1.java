@@ -34,6 +34,8 @@
 
 package org.knopflerfish.service.soap.demo1;
 
+import java.util.*;
+
 /**
  * Very simple demo service.
  */
@@ -51,4 +53,8 @@ public interface Demo1 {
 
   public String[] getNamesFromArray(int[] array);
 
+
+  public Dictionary getDictionary();
+
+  public Vector getVector();
 }
