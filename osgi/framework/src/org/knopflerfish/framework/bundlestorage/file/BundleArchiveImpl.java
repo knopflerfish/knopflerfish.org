@@ -208,6 +208,23 @@ class BundleArchiveImpl implements BundleArchive
 
   boolean isFake() {
     // What the f**k is this? Test case seem to require it!
+    // 
+    // OK. Some background story might me good here:
+    //
+    // The R3 tests are not compatible with the R3 spec (sic)
+    // 
+    // However to be R3, you have to pass the tests.
+    // Thus, KF uses a system property to determine if
+    // it should be compartible with the spec or the tests.
+    // Framework.R3_TESTCOMPLIANT reflects this state.
+    // 
+    // One such difference is the "fakeheader" manifest
+    // (another on is the buggy filter test, see LDAPEpr.java)
+    // attribute that the test suite at one stage uses
+    // to read a "bad" manifest, but still pass the
+    // installBundle stage. When this header is present
+    // AND we run in test compliant mode, we skip some
+    // sanity checks on manifests
     if(Framework.R3_TESTCOMPLIANT) {
       String fake = getAttribute("fakeheader");
       if(fake != null) {
