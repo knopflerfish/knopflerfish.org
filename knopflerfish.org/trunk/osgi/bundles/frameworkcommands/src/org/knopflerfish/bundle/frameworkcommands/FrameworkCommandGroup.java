@@ -330,41 +330,132 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       out.println("No such service: " + si);
       return 1;
     }
-
+    
     String method = (String)opts.get("method");
     Class[]  parameterTypes = null;
     Object[] methodArgs = null;
     String [] args = (String [])opts.get("args");
-    if (args != null) {
-      parameterTypes = new Class[args.length];
-      methodArgs = new Object[args.length];
-      for (int i = 0; i < args.length; i++) {
-	methodArgs[i] = args[i];
-	parameterTypes[i] = methodArgs[i].getClass();
-      }
+    if(args == null) {
+      args = new String[0];
     }
 
+
+    methodArgs = new Object[args.length];
+    
     try {
-      Method m = s.getClass().getMethod(method, parameterTypes);
-      try {
-	out.println("Result: " + Util.showObject(m.invoke(s,methodArgs)));
-	res = 0;
-      } catch(InvocationTargetException e) {
-	out.println("Exception thrown by call");
-	e.getTargetException().printStackTrace(out);
-      } catch(IllegalAccessException e) {
-	out.println("Call method not accessible (must be public)");
-      } catch(NullPointerException e) {
-	out.println("Internal error 1");
-      } catch(IllegalArgumentException e) {
-	out.println("Internal error 2");
+      Method m = findMethod(s.getClass(), method, args.length);
+      
+      if(m != null) {
+	parameterTypes = m.getParameterTypes();
+      } else {
+	parameterTypes = new Class[args.length];
       }
+      for (int i = 0; i < args.length; i++) {
+	String val = args[i];
+	String className = String.class.getName();
+	int ix = val.indexOf("::");
+	if(ix != -1) {
+	  className = val.substring(ix + 2);
+	  val       = val.substring(0, ix);
+	}
+	if(m == null) {
+	  methodArgs[i]     = makeObject(val, className);
+	  parameterTypes[i] = getClass(className);
+	} else {
+	  methodArgs[i]     = makeObject(val, parameterTypes[i].getName());
+	}
+      }
+      
+      if(m == null) {
+	m = s.getClass().getMethod(method, parameterTypes);
+      }
+      
+      out.println("Result: " + Util.showObject(m.invoke(s,methodArgs)));
+      res = 0;
+    } catch(InvocationTargetException e) {
+      out.println("Exception thrown by call");
+      e.getTargetException().printStackTrace(out);
+    } catch(IllegalAccessException e) {
+      out.println("Call method not accessible (must be public)");
+    } catch(NullPointerException e) {
+      out.println("Internal error: " + e);
+    } catch(IllegalArgumentException e) {
+      out.println("Internal error: " + e);
     } catch(NoSuchMethodException e) {
-      out.println("No method '" + method + "' with matching arguments");
+      out.println("No method '" + method + "' with matching arguments: " + e);
     }
+    
     bc.ungetService(sr);
     return res;
   }
+
+  Class getClass(String className) {
+    try {
+      if("int".equals(className)) {
+	return Integer.TYPE;
+      } else if("boolean".equals(className)) {
+	return Boolean.TYPE;
+      } else if("long".equals(className)) {
+	return Long.TYPE;
+      } else if("string".equals(className)) {
+	return String.class;
+      }
+      
+      if(-1 == className.indexOf(".")) {
+	className = "java.lang." + className;
+      }
+      return Class.forName(className);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Unknown class " + className);
+    }
+  }
+
+  Method findMethod(Class clazz, String name, int nArgs) {
+    Method[] methods = clazz.getDeclaredMethods();
+    Vector v = new Vector();
+    for(int i = 0; i < methods.length; i++) {
+      if(methods[i].getName().equals(name) && 
+	 methods[i].getParameterTypes().length == nArgs) {
+	v.addElement(methods[i]);
+      }
+    }
+    if(v.size() == 1) {
+      return (Method)v.elementAt(0);
+    } else {
+      return null;
+    }
+  }
+
+
+  Object makeObject(String val, String className) {
+    try {
+      Class clazz = getClass(className);
+
+      if(clazz == Integer.TYPE) {
+	return new Integer(val);
+      }
+
+      if(clazz == Long.TYPE) {
+	return new Long(val);
+      }
+
+      if(clazz == Boolean.TYPE) {
+	return "true".equals(val) ? Boolean.TRUE : Boolean.FALSE;
+      }
+      
+      if(clazz == String.class) {
+	return val;
+      }
+
+      Constructor cons = clazz.getConstructor(new Class[] { String.class });
+      Object r = cons.newInstance(new Object[] { val });
+      return r;
+    } catch (Exception e) {
+      throw new IllegalArgumentException("makeObject(" + val + ", " + 
+					 className + "): " + e);
+    }
+  }
+
 
   //
   // Deletepermission command
