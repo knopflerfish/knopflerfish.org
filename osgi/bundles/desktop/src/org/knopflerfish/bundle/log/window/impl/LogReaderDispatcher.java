@@ -41,6 +41,8 @@ import org.osgi.framework.*;
 import org.osgi.service.log.*;
 import org.knopflerfish.service.log.LogRef;
 
+import javax.swing.*;
+
 /**
  * Class that listens for all log entries and dispatches them to 
  * a LogTableModel.
@@ -139,8 +141,12 @@ public class LogReaderDispatcher
    * @see LogEntry
    */
   public void logged(LogEntry entry) {
-    ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
-    model.logged(extEntry);
+    final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  model.logged(extEntry);
+	}
+      });
   }
 }
 
