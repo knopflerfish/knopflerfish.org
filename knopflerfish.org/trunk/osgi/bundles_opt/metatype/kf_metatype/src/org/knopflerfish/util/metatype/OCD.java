@@ -57,6 +57,8 @@ public class OCD implements ObjectClassDefinition {
 
   String      iconURL = null;
 
+  int  maxInstances = 1;
+
   /**
    * Create a new, empty ObjectClassDefinition.
    *

@@ -4,8 +4,6 @@
         xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
         xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
 
- <metatype:services>
-
   <xsd:schema >
    <xsd:complexType name="testconfig">
     <xsd:annotation>
@@ -44,11 +42,8 @@
     <xsd:element  name = "memory.size" type="xsd:int"/>
     <xsd:element  name = "log.out"     type="xsd:boolean"/>
    </xsd:complexType> 
-  </xsd:schema>
 
 
-
-  <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
    <xsd:complexType name="service1" iconURL="/knopflerfish-small.gif">
 
     <xsd:annotation>
@@ -56,9 +51,7 @@
     </xsd:annotation>
     <xsd:element   name="string1" type="xsd:string"/>
    </xsd:complexType> 
-  </xsd:schema>
 
- <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
    <xsd:complexType name="com.ubiserv.bundle.gubbe" 
                     iconURL="/gubbe.gif">
 
@@ -67,15 +60,9 @@
     <xsd:element   name="age"  type="xsd:int"/>
     <xsd:element   name="madness" type="xsd:string"/>
    </xsd:complexType> 
-  </xsd:schema>
 
 
-</metatype:services>
-
-<metatype:factories>
-  <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
-             
-   <xsd:complexType name="factory1">
+   <xsd:complexType name="factory1" maxOccurs="unbounded">
     <xsd:annotation>
      <xsd:documentation>A simple factory</xsd:documentation>
     </xsd:annotation>
@@ -88,7 +75,6 @@
     </xsd:complexType>
    </xsd:complexType>
  </xsd:schema>
-</metatype:factories>
 
 </metatype:metatype>
 

@@ -31,6 +31,15 @@
    </xsd:complexType> 
   </xsd:schema>
 
+<metatype:values>
+ <org.knopflerfish.util.metatype.SystemMetatypeProvider>
+  <external.metatype.urls>
+   <item>file:</item>
+  </external.metatype.urls>
+ </org.knopflerfish.util.metatype.SystemMetatypeProvider>
+ 
+</metatype:values>
+
 </metatype:metatype>
 
 

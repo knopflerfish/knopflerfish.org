@@ -387,6 +387,9 @@ public class SystemMetatypeProvider extends MTP {
   public MTP getMTP(Bundle b) {
     ServiceReference cmSR = cmTracker.getServiceReference();
 
+    //    System.out.println("getMTP " + b);
+
+
     MTP mtp = null;
     if(cmSR != null && cmSR.getBundle() == b) {
       mtp = cmMTP;
