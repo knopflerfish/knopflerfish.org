@@ -330,6 +330,63 @@ public class Util
     }
   }
 
+  public interface Comparator {
+    public int compare(Object a, Object b);
+  }
+
+  /**
+   * Sort a vector with objects compareble using a comparison function.
+   *
+   * @param a Vector to sort
+   * @param cf comparison function
+   */
+  static public void sort(Vector a, Comparator cf, boolean bReverse) {
+    sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
+  }
+  
+  /**
+   * Vector QSort implementation.
+   */
+  static void sort(Vector a, int lo0, int hi0, Comparator cf, int k) {
+    int lo = lo0;
+    int hi = hi0;
+    Object mid;
+    
+    if ( hi0 > lo0) {
+      
+      mid = a.elementAt( ( lo0 + hi0 ) / 2 );
+      
+      while( lo <= hi ) {
+	while( ( lo < hi0 ) && ( k * cf.compare(a.elementAt(lo), mid) < 0 )) {
+	  ++lo;
+	}
+	
+	while( ( hi > lo0 ) && ( k * cf.compare(a.elementAt(hi), mid ) > 0 )) {
+	  --hi;
+	}
+	
+	if( lo <= hi ) {
+	  swap(a, lo, hi);
+	  ++lo;
+	  --hi;
+	}
+      }
+      
+      if( lo0 < hi ) {
+	sort( a, lo0, hi, cf, k );
+      }
+      
+      if( lo < hi0 ) {
+	sort( a, lo, hi0, cf, k );
+      }
+    }
+  }
+  
+  private static void swap(Vector a, int i, int j) {
+    Object tmp  = a.elementAt(i); 
+    a.setElementAt(a.elementAt(j), i);
+    a.setElementAt(tmp,            j);
+  }
 }
 
 
@@ -477,5 +534,4 @@ class AttributeTokenizer {
       }
     }
   }
-
 }
