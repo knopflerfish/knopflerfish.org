@@ -11,7 +11,7 @@ Knopflerfish OSGi.
 To check out, use a Subversion client
   http://subversion.tigris.org
 
-A nice windows client is avaiable at
+A nice windows client is available at
   http://tortoisesvn.tigris.org
 
 
