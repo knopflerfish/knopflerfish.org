@@ -112,14 +112,19 @@ public interface BundleArchive {
 
 
   /**
-   * Get an InputStream to named entry inside a bundle.
-   * Leading '/' is stripped.
-   *
-   * @param component Entry to get reference to.
-   * @return InputStream to entry or null if it doesn't exist.
+   * Same as getInputStream(component, -1)
    */
   InputStream getInputStream(String component);
 
+  /**
+   * Get an specific InputStream to named entry inside a bundle.
+   * Leading '/' is stripped.
+   *
+   * @param component Entry to get reference to.
+   * @param ix index of jar. 0 means the top level. -1 means any archive.
+   * @return InputStream to entry or null if it doesn't exist.
+   */
+  InputStream getInputStream(String component, int ix);
 
   /**
    * Extract native library from JAR.
