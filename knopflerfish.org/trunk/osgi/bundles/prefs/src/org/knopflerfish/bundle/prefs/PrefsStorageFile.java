@@ -125,7 +125,8 @@ public class  PrefsStorageFile implements PrefsStorage {
             String val        = (String)props.get(key);
             p2.put(decodedKey, val);
           }
-          
+
+          propsMap.put(path, p2);          
 	  return p2;
 	} else {
 	  throw new IllegalStateException("No keys for path=" + path + 
@@ -168,9 +169,10 @@ public class  PrefsStorageFile implements PrefsStorage {
     try {
       dirtySet.add(path);
       Dictionary p = loadProps(path);
+      
       p.put(encode(key), val);
 
-      System.out.println("dirty " + path);
+      // System.out.println("dirty " + path);
       //      saveProps(path, p);
     } catch (Exception e) {
       Activator.log.warn("Failed to put path=" + path + 
@@ -343,12 +345,12 @@ public class  PrefsStorageFile implements PrefsStorage {
 	// save all
       } else {
 	synchronized(dirtySet) {
-	  System.out.println("flushing " + dirtySet.size() + " items");
+	  // System.out.println("flushing " + dirtySet.size() + " items");
 	  for(Iterator it = dirtySet.iterator(); it.hasNext();) {
 	    String p = (String)it.next();
 	    Dictionary props = (Dictionary)propsMap.get(p);
 	    if(props != null) {
-	      System.out.println("flush '" + p + "'");
+              //	      System.out.println("flush '" + p + "'");
 	      try {
 		saveProps(p, props);
 	      } catch (Exception e) {
