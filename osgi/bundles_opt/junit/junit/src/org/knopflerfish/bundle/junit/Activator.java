@@ -37,25 +37,77 @@ package org.knopflerfish.bundle.junit;
 import junit.framework.*;
 import org.osgi.framework.*;
 import java.util.*;
-import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.service.junit.*;
+import java.lang.reflect.*;
 
 public class Activator implements BundleActivator {
   static BundleContext       bc;
   static LogRef              log;
 
-
   HttpExporter httpExporter;
+  JUnitService junitService;
+  
 
   public void start(BundleContext bc) {
     this.bc = bc;
-    this.log = new LogRef(bc);
+    this.log = new LogRef();
+
+    {
+      junitService = new JUnitServiceImpl();
+
+      Hashtable props = new Hashtable();
+      bc.registerService(JUnitService.class.getName(), junitService, props);
+    }
 
     httpExporter = new HttpExporter();
     httpExporter.open();
+
+    // register to Knopflerfish console service if possible
+    tryObject("org.knopflerfish.bundle.junit.JUnitCommandGroup",
+	      "register");
+    
 
   }
 
   public void stop(BundleContext bc) {
     this.bc = null;
   }
+
+  class LogRef {
+    public void info(String msg) {
+      System.out.println("INFO: " + msg);
+    }
+
+    public void error(String msg, Throwable t) {
+      System.out.println("ERROR: " + msg);
+      if(t != null) {
+	t.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Try to create an instance of a named class and call a method in it.
+   * <p>
+   * This is done using reflection, since DynamicImport-Package won't
+   * resolve external bundles at the same time a bundle itself is in
+   * progress of being resolved.
+   * </p>
+   */
+  void tryObject(String className, String methodName) {
+    try {
+      Class clazz = Class.forName(className);
+      Constructor cons = clazz.getConstructor(new Class[] {
+	BundleContext.class 
+      });
+      Object obj = cons.newInstance(new Object[] { bc });
+      Method m = clazz.getMethod(methodName, null);
+      m.invoke(obj, null);
+
+      //      System.out.println("invoked " + m);
+    }  catch (Throwable th) {
+      //      System.out.println("No " + className + " available: " + th);
+    }    
+  }
 }
+

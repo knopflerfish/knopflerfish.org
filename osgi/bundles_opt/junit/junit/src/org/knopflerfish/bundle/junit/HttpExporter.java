@@ -43,9 +43,8 @@ public class HttpExporter {
  static final String SERVLET_ALIAS = "/junit";
 
   ServiceListener httpListener = null;
-  
+
   HttpExporter() {
-    
   }
 
   void open() {

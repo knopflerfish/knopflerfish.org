@@ -21,16 +21,10 @@
   <property name="api.pattern"
             value="org/knopflerfish/service/junit/**"/>
 
-  <property name="do.bundle.custom.pre" value="true"/>
-
-  <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/log/log_api-1.0.0.jar"         
-         todir = "resources"/>
-  </target>
 
   <path id="bundle.compile.path">
-   <pathelement location="resources/log_api-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/http/http_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
    <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
    <pathelement location="resources/junit.jar"/>
@@ -42,6 +36,8 @@
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="JUnit"/>
   <property name="bundle.classpath"      value=".,junit.jar,log_api-1.0.0.jar"/>
+  <property name="dynamicimport.package" value="org.knopflerfish.service.console"/>
+
   <property name="bundle.docurl" 
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt"/>
 
@@ -52,7 +48,9 @@
   <property name="bundle.apivendor"      value="JUnit"/>
 
   <property name="export.package" 
-            value="org.knopflerfish.service.junit,junit.framework,org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.log;specification-version=1.1"/>
+            value="org.knopflerfish.service.junit;specification-version=1.0.0,junit.framework;specification-version=3.8.1"/>
+
+  <property name="import.package" value="javax.servlet,javax.servlet.http,org.osgi.framework,org.osgi.service.http,org.osgi.util.tracker"/>
 
   &bundlebuild_include;
 
