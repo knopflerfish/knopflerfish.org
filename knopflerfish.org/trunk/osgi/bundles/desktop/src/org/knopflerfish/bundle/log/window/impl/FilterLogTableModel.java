@@ -58,6 +58,8 @@ public class FilterLogTableModel
   implements TableModelListener  
 {
   
+  Object lock = new Object();
+
   LogTableModel model;
   Set           bundles         = new HashSet();
   ArrayList     filteredEntries = new ArrayList();
@@ -69,9 +71,11 @@ public class FilterLogTableModel
   }
 
   public void setBundles(Bundle[] bl) {
-    bundles.clear();
-    for(int i = 0; bl != null && i < bl.length; i++) {
-      bundles.add(bl[i]);
+    synchronized(lock) {
+      bundles.clear();
+      for(int i = 0; bl != null && i < bl.length; i++) {
+	bundles.add(bl[i]);
+      }
     }
     fireTableDataChanged();
   }
@@ -81,8 +85,11 @@ public class FilterLogTableModel
   }
 
   public boolean isCellEditable(int row, int col) {
-    return model.isCellEditable(row, col);
+    synchronized(lock) {
+      return model.isCellEditable(row, col);
+    }
   }
+
 
   public int getColumnCount() {
     return model.getColumnCount();
@@ -96,54 +103,68 @@ public class FilterLogTableModel
    * Return true if an entry matches any of the filter bundles.
    */
   boolean isValidEntry(ExtLogEntry e) {
-    if(bundles.size() == 0) {
-      return true;
-    }
-
-    for(Iterator it = bundles.iterator(); it.hasNext();) {
-      Bundle b = (Bundle)it.next();
-      if((e.getBundle() != null) &&
-	 (b.getBundleId() == e.getBundle().getBundleId())) {
+    synchronized(lock) {
+      if(bundles.size() == 0) {
 	return true;
       }
-    }
+      
+      for(Iterator it = bundles.iterator(); it.hasNext();) {
+	Bundle b = (Bundle)it.next();
+	if((e.getBundle() != null) &&
+	   (b.getBundleId() == e.getBundle().getBundleId())) {
+	  return true;
+	}
+      }
     
-    return false;
+      return false;
+    }
   }
   
   public Object getValueAt(int row, int col) {
-    return model.getValueAt(getEntry(row), col);
+    synchronized(lock) {
+      return model.getValueAt(getEntry(row), col);
+    }
   }
 
   public java.util.List getEntries() {
-    return filteredEntries;
+    synchronized(lock) {
+      return filteredEntries;
+    }
   }
 
   public int getRowCount() {
-    return filteredEntries.size();
+    synchronized(lock) {
+      return filteredEntries.size();
+    }
   }
 
 
   public void clear() {
-    model.getEntries().clear();
+    synchronized(lock) {
+      model.getEntries().clear();
+    }
     fireTableDataChanged();
   }
 
 
   public ExtLogEntry getEntry(int row) {
-    ExtLogEntry e = (ExtLogEntry)filteredEntries.get(row);
+    synchronized(lock) {
+      ExtLogEntry e = (ExtLogEntry)filteredEntries.get(row);
 
-    return e;
+      return e;
+    }
   }
 
 
   private void filterEntries() {
-    filteredEntries.clear();
-
-    for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
-      ExtLogEntry e = (ExtLogEntry)it.next();
-      if(isValidEntry(e)) {
-	filteredEntries.add(e);
+    synchronized(lock) {
+      filteredEntries.clear();
+      
+      for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
+	ExtLogEntry e = (ExtLogEntry)it.next();
+	if(isValidEntry(e)) {
+	  filteredEntries.add(e);
+	}
       }
     }
   }
