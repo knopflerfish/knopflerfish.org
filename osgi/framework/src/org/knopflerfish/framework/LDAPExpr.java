@@ -103,6 +103,13 @@ public class LDAPExpr {
 	filter = zz2;
 	bug = zz3;
       }
+
+      if(-1 != filter.indexOf("UPnP.device.") ||
+	 -1 != filter.indexOf("UPnP.service.")) {
+	System.out.println("UPnP: saving original filter case: " + filter);
+	bug = filter;
+      }
+
     }
 
     ParseState ps = new ParseState(filter);
