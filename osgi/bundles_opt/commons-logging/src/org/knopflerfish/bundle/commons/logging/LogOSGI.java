@@ -39,6 +39,9 @@ import org.knopflerfish.service.log.LogRef;
 
 import org.apache.commons.logging.*;
 
+import java.io.StringWriter;
+import java.io.PrintWriter;
+
 public class LogOSGI implements  Log {
 
   String name;
@@ -94,7 +97,33 @@ public class LogOSGI implements  Log {
     if(Activator.log == null) {
       return;
     }
-    Activator.log.debug(name + "/trace: " + message);
+    // Exception build is so expensive
+    // it's worth the extra check
+    if(!isTraceEnabled()) {
+      return;
+    }
+
+    // Build an exception, get the stack trace and
+    // grab the third line since we're that deep in
+    // the call stack
+    Exception e = new Exception("");
+    e.fillInStackTrace();
+    StringWriter sw = new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    String s = sw.toString();
+
+    int ix = s.indexOf("\n");
+    if(ix != -1) {
+      ix = s.indexOf("\n", ix + 1);
+      if(ix != -1) {
+	int ix2 = s.indexOf("\n", ix + 1);
+	if(ix2 != -1) {
+	  s = s.substring(ix, ix2).trim();
+	}
+      }
+    }
+
+    Activator.log.debug(name + "/trace [" + s + "] " + message);
   }
   
 

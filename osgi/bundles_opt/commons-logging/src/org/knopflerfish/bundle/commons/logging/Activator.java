@@ -50,11 +50,11 @@ public class Activator implements BundleActivator {
     this.log  = new LogRef(bc);
     
     cLog = LogFactory.getLog("OSGi logger");    
-    cLog.info("OSGi Log implementation of Apache Commons logging started");
+    cLog.trace("OSGi Log implementation of Apache Commons logging started");
   }
 
   public void stop(BundleContext bc) {
-    cLog.info("OSGi commons logger stopping");
+    cLog.trace("OSGi commons logger stopping");
 
     // This is good. It just might work, too
     LogFactory.releaseAll();
