@@ -375,89 +375,90 @@ public class OBRExtractorTask extends Task {
       out.println("  <" + tag + ">" +  val + "</" + tag + ">");
     }
   }
-}
 
-class ArrayInt extends Number implements Comparable {
-  int[] ia = new int[0];
-
-  public static String UNDEF = "";
-
-  public ArrayInt() {
-    this("0");
-  }
   
-  public ArrayInt(String s) {
-    parseDotString(s);
-  }
-
-  public void parseDotString(String s) {
-    if(UNDEF.equals(s)) {
-      ia = new int[0];
-      return;
+  class ArrayInt extends Number implements Comparable {
+    int[] ia = new int[0];
+    
+    public static String UNDEF = "";
+    
+    public ArrayInt() {
+      this("0");
     }
-
-    String[] sa = Util.splitwords(s, ".", '\"');
-
-    ia = new int[sa.length];
-
-    for(int i = 0; i < sa.length; i++) {
-      ia[i] = Integer.parseInt(sa[i]);
+    
+    public ArrayInt(String s) {
+      parseDotString(s);
     }
-  }
-
-  public int compareTo(Object o) {
-    ArrayInt other = (ArrayInt)o;
-
-    if(other.ia.length == 0) {
-      return 1;
-    }
-    int i = 0;
-    while(i < ia.length && i < other.ia.length) {
-      int diff = ia[i] - other.ia[i];
-      if(diff != 0) {
-	return diff;
+    
+    public void parseDotString(String s) {
+      if(UNDEF.equals(s)) {
+	ia = new int[0];
+	return;
       }
-      i++;
+      
+      String[] sa = Util.splitwords(s, ".", '\"');
+      
+      ia = new int[sa.length];
+      
+      for(int i = 0; i < sa.length; i++) {
+	ia[i] = Integer.parseInt(sa[i]);
+      }
     }
-
-    return 0;
-  }
-
-  public double doubleValue() {
-    return (int)doubleValue();
-  }
-
-  public float floatValue() {
-    return (float)longValue();
-  }
-
-  public int intValue() {
-    return (int)longValue();
-  }
-
-
-  public long longValue() {
-    long v = 0;
-    for(int i = 0; i < ia.length; i++) {
-      v = (v << 8) + ia[i];
+    
+    public int compareTo(Object o) {
+      ArrayInt other = (ArrayInt)o;
+      
+      if(other.ia.length == 0) {
+	return 1;
+      }
+      int i = 0;
+      while(i < ia.length && i < other.ia.length) {
+	int diff = ia[i] - other.ia[i];
+	if(diff != 0) {
+	  return diff;
+	}
+	i++;
+      }
+      
+      return 0;
     }
-
-    return v;
-  }
-
-  public String toString() {
-    StringBuffer sb = new StringBuffer();
-    if(ia.length == 0) {
-      sb.append(UNDEF);
-    } else {
+    
+    public double doubleValue() {
+      return (int)doubleValue();
+    }
+    
+    public float floatValue() {
+      return (float)longValue();
+    }
+    
+    public int intValue() {
+      return (int)longValue();
+    }
+    
+    
+    public long longValue() {
+      long v = 0;
       for(int i = 0; i < ia.length; i++) {
-	sb.append(Integer.toString(ia[i]));
-	if(i < ia.length - 1) {
-	  sb.append(".");
+	v = (v << 8) + ia[i];
+      }
+      
+      return v;
+    }
+    
+    public String toString() {
+      StringBuffer sb = new StringBuffer();
+      if(ia.length == 0) {
+	sb.append(UNDEF);
+      } else {
+	for(int i = 0; i < ia.length; i++) {
+	  sb.append(Integer.toString(ia[i]));
+	  if(i < ia.length - 1) {
+	    sb.append(".");
+	  }
 	}
       }
+      return sb.toString();
     }
-    return sb.toString();
   }
 }
 
