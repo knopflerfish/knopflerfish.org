@@ -136,7 +136,14 @@ public class Activator
             String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
             if (serviceName != null) {
               log.info("ServicesServlet:: added service "+serviceName);
-               (new ObjectSOAPService(axisServer,serviceName,axisBundle.getService(sr))).deploy();
+
+	      Object serviceObj = axisBundle.getService(sr);
+
+	      getAxisServer().getClassCache()
+		.registerClass(serviceObj.getClass().getName(),
+			       serviceObj.getClass());
+	      
+	      (new ObjectSOAPService(axisServer,serviceName,serviceObj)).deploy();
             }
          }
          if (event.getType() == ServiceEvent.UNREGISTERING) {
