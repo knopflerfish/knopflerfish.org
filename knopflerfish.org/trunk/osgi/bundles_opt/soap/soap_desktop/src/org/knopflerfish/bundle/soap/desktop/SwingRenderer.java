@@ -370,7 +370,7 @@ public class SwingRenderer {
 	    Object key = it.next();
 	    Object val = map.get(key);
 	    if(i == row) {
-	      return col == 0 ? key : val;
+	      return col == 0 ? key : Util.toDisplay(val);
 	    }
 	    i++;
 	  }
@@ -384,6 +384,8 @@ public class SwingRenderer {
     scroll.setPreferredSize(new Dimension(150, 100));
     return scroll;
   }
+
+
 
   void showObjectResult(Object result, JComponent comp) {
     Component[] children = comp.getComponents();
