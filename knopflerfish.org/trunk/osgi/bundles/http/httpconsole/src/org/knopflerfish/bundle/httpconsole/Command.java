@@ -48,6 +48,21 @@ import java.io.*;
 public interface Command extends HTMLable {
 
   /**
+   * Command wants full screen when run
+   */
+  public static int DISPLAY_FULLSCREEN  = 0x0001;
+
+  /**
+   * Command wants compact listing of bundles when run
+   */
+  public static int DISPLAY_COMPACTLIST = 0x0002;
+
+  /**
+   * Returns a bit-wise combination of the DISPLAY flags
+   */
+  public int getDisplayFlags();
+
+  /**
    * Called when ConsoleServet har decided the command is triggered.
    * Typically, this happens when <tt>isTrigger</tt> has returned
    * true.

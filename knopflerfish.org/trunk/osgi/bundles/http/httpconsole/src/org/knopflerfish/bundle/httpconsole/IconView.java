@@ -64,7 +64,9 @@ public class IconView implements BundleView {
   }
 
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException  {
+  public void toHTML(HttpServletRequest request, 
+		     PrintWriter out,
+		     int displayFlags) throws IOException  {
 
     Bundle[] bundles = Util.getSortedBundles(Activator.bc);
 
@@ -94,17 +96,20 @@ public class IconView implements BundleView {
     }
 
     boolean bCompact = 
-      (height < 400) && 
-      (request.getParameter("cmd_info.x") != null);
+      (0 != (displayFlags & Command.DISPLAY_COMPACTLIST));
+      //      (height < 400) && 
+      //      (request.getParameter("cmd_info.x") != null);
 
     out.print("<div class=\"shadow\">");
     out.print(nTotal + " bundles, " + nActive + " active");
     
+    /*
     if(console.login.bRequireLogin) {
       out.print(", <a class=\"std\" href=\"" + Activator.SERVLET_ALIAS + "?" + 
 		Login.LOGOUT_CMD + "=true" + "\">" + 
 		"logout</a>");
     }
+    */
     out.println("</div>");
 
     out.println("<table width=\"100%\" class=\"bundletable\">");

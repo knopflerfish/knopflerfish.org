@@ -50,6 +50,8 @@ public abstract class IconCommand implements Command {
   String description;
   String icon;
 
+  int displayFlags = 0;
+
   IconCommand(String id, 
 	      String name, 
 	      String description,
@@ -59,13 +61,18 @@ public abstract class IconCommand implements Command {
     this.description = description;
     this.icon        = icon;
   }
-  
+
+  public int getDisplayFlags() {
+    return displayFlags;
+  }
+
   public abstract StringBuffer run(HttpServletRequest request);
   
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
     out.print(" <input " + 
 	      " alt=\"" + getDescription() + "\"" + 
 	      " type=\"image\"" + 
+	      " class=\"iconcmd\"" + 
 	      " name=\"" + getId() + "\"" + 
 	      " src=\"" + getIcon() + "\">");
   }

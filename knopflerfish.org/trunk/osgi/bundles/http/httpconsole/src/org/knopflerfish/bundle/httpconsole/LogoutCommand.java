@@ -40,52 +40,27 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class InstallFileCommand extends IconCommand {
+public class LogoutCommand extends IconCommand {
+  ConsoleServlet console;
 
-  InstallFileCommand2 installFile2 = new InstallFileCommand2();
-
-  InstallFileCommand() {
-    super("cmd_installfile",
-	  "Install file",
-	  "Install bundle from file",
-	  Activator.RES_ALIAS + "/open.gif");
+  LogoutCommand(ConsoleServlet console) {
+    super("cmd_logout", 
+	  "Logout",
+	  "Logout from current session",
+	  null);
+    this.console = console;
   }
 
-  public int getDisplayFlags() {
-    return installFile2.getDisplayFlags();
-  }
-  
   public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
-
-    if(installFile2.isTrigger(request)) {
-      return installFile2.run(request);
-    } else {
-      StringWriter sw = new StringWriter();
-      try {
-	installFile2.toHTML(request, new PrintWriter(sw));
-	sb.append(sw.toString());
-      } catch (Exception e) {
-	sb.append(Util.toHTML(e));
-      }
-    }
-
-    return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.println(" <input alt=\"" + getDescription() + "\"" + 
-		" type=\"image\"" + 
-		" class=\"iconcmd\"" + 
-		" name=\"" + getId() + "\"" + 
-		" src=\"" + getIcon() + "\">");
+    return new StringBuffer();
+    // noop
   }
   
-
-  public boolean isTrigger(HttpServletRequest request) {
-    return 
-      null != request.getParameter(getId() + ".x")
-      || installFile2.isTrigger(request)
-      ;
+  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+    if(console.login.bRequireLogin) {
+      out.print(" <a class=\"std\" href=\"" + Activator.SERVLET_ALIAS + "?" + 
+		Login.LOGOUT_CMD + "=true" + "\">" + 
+		"logout</a>");
+    }
   }
 }

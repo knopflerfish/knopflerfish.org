@@ -94,9 +94,14 @@ public class Login {
       session.removeAttribute(USER_OBJ);
     }
 
-    UserObject userObj = (UserObject)session.getAttribute(USER_OBJ);
-
-    String msg  = null;
+    String     msg     = null;
+    UserObject userObj = null;
+    try {
+      userObj = (UserObject)session.getAttribute(USER_OBJ);
+    } catch (ClassCastException e) {
+      msg = "console updated/session expired";
+      session.removeAttribute(USER_OBJ);
+    }
     
     if(userObj != null) {
       if(userObj.hasExpired()) {

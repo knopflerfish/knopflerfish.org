@@ -71,6 +71,7 @@ public class ConsoleServlet extends HttpServlet {
       new InfoCommand(),
       new HelpCommand(this),
       new StatusCommand(),
+      new LogoutCommand(this),
       new ServiceInfoCommand(),
     };
 
@@ -137,8 +138,10 @@ public class ConsoleServlet extends HttpServlet {
 
     StringBuffer sb = new StringBuffer();
 
+    int displayFlags = 0;
+
     try {
-      handleCommands(request, sb);
+      displayFlags = handleCommands(request, sb);
     } catch (Exception e) {
       sb.append(Util.toHTML(e));
     }
@@ -196,7 +199,7 @@ public class ConsoleServlet extends HttpServlet {
 
       out.println("<tr>");
       out.println("<td class=\"mainview\">");
-      printMain(request, out);
+      printMain(request, out, displayFlags);
       out.println("</td>");
 
       out.println("<td class=\"maininfo\">");
@@ -235,19 +238,28 @@ public class ConsoleServlet extends HttpServlet {
 
   IconView iconView;
 
-  void handleCommands(HttpServletRequest request, 
+  int handleCommands(HttpServletRequest request, 
 		      StringBuffer       sb) throws Exception {
+    int displayFlags = 0;
     for(int i = 0; i < commands.length; i++) {
       if(commands[i].isTrigger(request)) {
 	StringBuffer s = commands[i].run(request);
 	sb.append(s.toString());
+	displayFlags |= commands[i].getDisplayFlags();
       }
     }
+    return displayFlags;
   }
 
-  void printMain(HttpServletRequest request, PrintWriter out) throws IOException {
+  void printMain(HttpServletRequest request, 
+		 PrintWriter out,
+		 int displayFlags) throws IOException {
     
-    iconView.toHTML(request,out);
+    if(0 != (displayFlags & Command.DISPLAY_FULLSCREEN)) {
+      out.println("full screen");
+    } else {
+      iconView.toHTML(request,out, displayFlags);
+    }
     
   }
 

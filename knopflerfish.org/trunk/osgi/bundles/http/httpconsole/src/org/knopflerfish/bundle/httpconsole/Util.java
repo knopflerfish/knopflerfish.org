@@ -127,9 +127,14 @@ public class Util {
   }
 
   public static String getHeader(Bundle b, String name, String def) {
-    String s = b != null
+    String s = 
+      b != null
       ? (String)b.getHeaders().get(name)
       : def;
+
+    if(s == null) {
+      s = def;
+    }
 
     return s;
   }

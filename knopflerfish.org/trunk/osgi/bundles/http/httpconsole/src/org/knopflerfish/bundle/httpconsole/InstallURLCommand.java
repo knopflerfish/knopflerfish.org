@@ -47,6 +47,7 @@ public class InstallURLCommand extends IconCommand {
 	  "Install from URL",
 	  "Install bundle from URL",
 	  Activator.RES_ALIAS + "/openurl.gif");
+    displayFlags = DISPLAY_COMPACTLIST;
   }
   
   public StringBuffer run(HttpServletRequest request) {

@@ -47,6 +47,10 @@ public class StatusCommand implements Command {
     return sb;
   }
 
+  public int getDisplayFlags() {
+    return 0;
+  }
+
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
     Bundle[] bl = new Bundle[0];
 
@@ -67,7 +71,7 @@ public class StatusCommand implements Command {
       }
     }
     
-    out.print("<nobr style=\"vertical-align:top;\">");
+    out.print(" <nobr style=\"vertical-align:top;\">");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_VENDOR));
     out.print(" on ");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_OS_NAME));

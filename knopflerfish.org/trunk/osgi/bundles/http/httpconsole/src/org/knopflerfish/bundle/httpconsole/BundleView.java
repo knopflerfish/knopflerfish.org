@@ -38,10 +38,13 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
-public interface BundleView extends HTMLable {
+public interface BundleView {
 
+  
+  public void toHTML(HttpServletRequest request, 
+		     PrintWriter out,
+		     int displayFlags) throws IOException;
 
-  public StringBuffer run(HttpServletRequest request);
   public String       getId();
   public String       getName();
 }

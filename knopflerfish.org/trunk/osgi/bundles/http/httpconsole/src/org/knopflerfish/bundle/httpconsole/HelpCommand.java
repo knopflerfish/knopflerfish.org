@@ -49,6 +49,8 @@ public class HelpCommand extends IconCommand {
 	  "Show help",
 	  Activator.RES_ALIAS + "/help.gif");
     this.console = console;
+
+    displayFlags = DISPLAY_COMPACTLIST;
   }
 
   public StringBuffer run(HttpServletRequest request) {

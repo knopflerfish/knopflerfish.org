@@ -47,6 +47,8 @@ public class InfoCommand extends IconCommand {
 	  "Info",
 	  "Show info for selected bundles",
 	  Activator.RES_ALIAS + "/info.gif");
+
+    displayFlags = DISPLAY_COMPACTLIST;
   }
 
   public StringBuffer run(HttpServletRequest request) {
