@@ -1628,6 +1628,7 @@ public class Desktop
       int levelMax = -1;
 
       int bid = 0;
+      int lastLevel = -1;
       for(Iterator it = all.iterator(); it.hasNext(); ) {
 	Bundle b   = (Bundle)it.next();
 	String loc = b.getLocation();
@@ -1640,14 +1641,17 @@ public class Desktop
 	
 	ZipEntry entry = new ZipEntry(base + "/" + name);
 	
-	int level = -1;
+	int level     = -1;
+
 	try {
 	  level = sl.getBundleStartLevel(b);
-	} catch (Exception ignored) {
-	}
-	if(level != -1) {
+	} catch (Exception ignored) {	}
+
+	levelMax = Math.max(level, levelMax);
+
+	if(level != -1 && level != lastLevel) {
 	  xargs.append("-initlevel " + level + "\n");
-	  levelMax = Math.max(level, levelMax);
+	  lastLevel = level;
 	}
 	
 	xargs.append("-install file:" + name + "\n"); 

@@ -442,6 +442,7 @@ public class Util {
     int levelMax = -1;
 
     int n = 0;
+    int lastLevel = -1;
     for(Iterator it = all.iterator(); it.hasNext(); ) {
       Bundle b = (Bundle)it.next();
       int level = -1;
@@ -449,9 +450,12 @@ public class Util {
 	level = sl.getBundleStartLevel(b);
       } catch (Exception ignored) {
       }
-      if(level != -1) {
+
+      levelMax = Math.max(level, levelMax);
+      if(level != -1 && level != lastLevel) {
 	sb.append("-initlevel " + level + "\n");
-	levelMax = Math.max(level, levelMax);
+
+	lastLevel = level;
       }
       sb.append("-install " + 
 		Text.replace(b.getLocation(), jarBase, "") + 
