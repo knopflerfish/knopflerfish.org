@@ -62,10 +62,10 @@ public class Strings {
   static {
     strings = new Hashtable() {
 	{
-	  put("frame_title",       "Knopflerfish OSGi desktop");
+	  put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
 	  put("menu_quit",         "Quit");
 	  put("menu_openbundles",  "Open bundle(s)...");
-	  put("menu_save",         "Save deploy archive");
+	  put("menu_save",         "Save deploy archive...");
 	  put("menu_file",         "File");
 	  put("menu_edit",         "Edit");
 	  put("menu_view",         "View");
@@ -91,6 +91,14 @@ public class Strings {
 	  put("item_updatebundles",     "Update");
 	  put("item_uninstallbundles",  "Uninstall");
 
+	  put("menu_remotefw",          "Remote framework...");
+	  put("remote_connect_msg",     "Enter address to remote framework");
+	  put("remote_connect_title",   "Connect to remote framework");
+
+	  put("menu_openbundleurl",        "Add bundle URL...");
+	  put("dialog_addbundleurl_msg",   "Enter bundle URL");
+	  put("dialog_addbundleurl_title", "Add bundle URL");
+
 	  put("bundleinfo_startup", 
 	      "<html>Select on or more bundles to " + 
 	      "view detail information</html>");
@@ -112,6 +120,8 @@ public class Strings {
 	  put("no",     "No");
 	  put("ok",     "OK");
 
+	  put("local",  "Local");
+
 	  put("fmt_q_stopdesktop",
 	      "Are you sure you want to stop $(1)?\n" + 
 	      "This will close the desktop window.");
@@ -125,6 +135,7 @@ public class Strings {
 
 	  put("menu_refreshbundles", "Refresh bundle packages");
 	  
+	  put("str_fwinfo", "Framework info");
 	  put("str_about", "About");
 	  put("str_abouttext", 
 	      "Knopflerfish OSGi desktop, version $(1)\n" + 
@@ -132,7 +143,11 @@ public class Strings {
 	      "See\n" + 
 	      "  http://www.knopflerfish.org\n" + 
 	      "for more information" + 
-	      "\n\n\n\n");
+	      "\n\n" + 
+	      "This release uses LGPL icons from the\n" +
+	      "Noia icon collection by Carlitus, see\n" +
+	      " http://www.carlitus.net"
+	      );
 
 	  put("item_selectall",       "Select all");
 	  put("item_unselectall",     "Unselect all");

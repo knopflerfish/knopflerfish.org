@@ -52,6 +52,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -118,14 +119,20 @@ public class Desktop
   ImageIcon          viewIcon;
 
   ImageIcon          openIcon;
+  ImageIcon          openURLIcon;
   ImageIcon          saveIcon;
 
   ImageIcon          prevIcon;
   ImageIcon          nextIcon;
+  ImageIcon          connectIcon;
+  ImageIcon          connectIconLarge;
 
   JToolBar           toolBar;
   StatusBar          statusBar;
   JMenuBar           menuBar;
+
+  JMenuItem          menuRemote;
+  JButton            buttonRemote;
 
   public JCheckBoxMenuItem  logCheckBox = null;
 
@@ -143,8 +150,13 @@ public class Desktop
   LookAndFeelMenu lfMenu;
 
   ServiceTracker dispTracker;
+  ServiceTracker slTracker;
+  ServiceTracker pkgTracker;
 
   JButton viewSelection;
+
+  static Point     frameLocation = null;
+  static Dimension frameSize     = null;
 
   public Desktop() {
   }
@@ -155,9 +167,13 @@ public class Desktop
   public void start() {
 
     slTracker = 
-      new ServiceTracker(Activator.bc, StartLevel.class.getName(), null);
-
+      new ServiceTracker(Activator.getTargetBC(), StartLevel.class.getName(), null);
     slTracker.open();
+
+    pkgTracker = 
+      new ServiceTracker(Activator.getTargetBC(), PackageAdmin.class.getName(), null);
+    pkgTracker.open();
+
     
     emptyIcon     = new ImageIcon(getClass().getResource("/empty.gif"));
     startIcon     = new ImageIcon(getClass().getResource("/player_play.png"));
@@ -180,8 +196,12 @@ public class Desktop
     arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
     arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
 
-    openIcon  = new ImageIcon(getClass().getResource("/open.png"));
-    saveIcon  = new ImageIcon(getClass().getResource("/save.png"));
+    openIcon     = new ImageIcon(getClass().getResource("/open.png"));
+    openURLIcon  = new ImageIcon(getClass().getResource("/bundle_small.png"));
+    saveIcon     = new ImageIcon(getClass().getResource("/save.png"));
+
+    connectIcon  = new ImageIcon(getClass().getResource("/connect.png"));
+    connectIconLarge  = new ImageIcon(getClass().getResource("/connect48x48.png"));
 
     prevIcon  = new ImageIcon(getClass().getResource("/player_prev.png"));
     nextIcon  = new ImageIcon(getClass().getResource("/player_next.png"));
@@ -189,15 +209,23 @@ public class Desktop
     lfManager = new LFManager();
     lfManager.init();
 
-    consoleSwing = new ConsoleSwing(Activator.bc);
+    consoleSwing = new ConsoleSwing(Activator.getBC());
     consoleSwing.start();
 
     toolBar       = makeToolBar();
     statusBar     = new StatusBar("");
 
+    String rName = Activator.remoteHost;
+    Map    props = Activator.getSystemProperties();
+    String spid  = (String)props.get("org.osgi.provisioning.spid");
 
-    frame       = new JFrame(Strings.get("frame_title"));
-
+    if(spid == null) {
+      spid = "";
+    }
+    
+    
+    frame       = new JFrame(Strings.fmt("frame_title", rName, spid));
+    
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {
 	public void windowClosing(WindowEvent e) {
@@ -263,18 +291,27 @@ public class Desktop
 
     alive = true;
 
-    Bundle[]  bl = Activator.bc.getBundles();
+    Bundle[]  bl = Activator.getTargetBC().getBundles();
     for(int i = 0; i  < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
 
-    
+    if(frameLocation != null) {
+      frame.setLocation(frameLocation);
+    }
+    if(frameSize != null) {
+      frame.setSize(frameSize);
+    }
     frame.setJMenuBar(menuBar = makeMenuBar());
+
+       
+    setRemote(Activator.remoteTracker.getService() != null);
 
     setIcon(frame, "/fish");
 
     frame.pack();
     frame.show();
+    frame.toFront();
 
     String dispFilter1 = 
       "(&" + 
@@ -291,8 +328,8 @@ public class Desktop
     
     try {
       dispTracker = 
-	new ServiceTracker(Activator.bc, 
-			   Activator.bc.createFilter(dispFilter),
+	new ServiceTracker(Activator.getBC(), 
+			   Activator.getBC().createFilter(dispFilter),
 			   null)
 	{
 	  public Object addingService(ServiceReference sr) {
@@ -383,8 +420,13 @@ public class Desktop
     
     
     bundleSelModel.addBundleSelectionListener(this);
-    Activator.bc.addBundleListener(this);
-    Activator.bc.addFrameworkListener(this);
+    Activator.getBC().addBundleListener(this);
+    Activator.getBC().addFrameworkListener(this);
+
+    if(Activator.getBC() != Activator.getTargetBC()) {
+      Activator.getTargetBC().addBundleListener(this);
+      Activator.getTargetBC().addFrameworkListener(this);
+    }
 
     consoleSwing.getJComponent().requestFocus();
   }
@@ -394,6 +436,11 @@ public class Desktop
   JButton toolUpdateBundles;
   JButton toolUninstallBundles;
 
+
+  void setRemote(boolean b) {
+    menuRemote.setEnabled(b);
+    buttonRemote.setEnabled(b);
+  }
 
   JToolBar makeToolBar() {
     return new JToolBar() {
@@ -409,6 +456,17 @@ public class Desktop
 	      }
 	    });
 
+	  add(new JButton(openURLIcon) { 
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      addBundleURL();
+		    }
+		  });
+		setToolTipText(Strings.get("menu_openbundleurl"));
+	      }
+	    });
+
 	  add(toolStartBundles = new JButton(saveIcon) { 
 	      { 
 		addActionListener(new ActionListener() {
@@ -419,7 +477,18 @@ public class Desktop
 		setToolTipText(Strings.get("menu_save"));
 	      }
 	    });
-	  
+
+
+	  add(buttonRemote = new JButton(connectIcon) { 
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      doConnect();
+		    }
+		  });
+		setToolTipText(Strings.get("menu_remotefw"));
+	      }
+	    });
 	  //	  add(new JToolBar.Separator());
 	  
 	  add(toolStartBundles = new JButton(startIcon) { 
@@ -559,7 +628,7 @@ public class Desktop
     
     int myLevel = level;
     try {
-      myLevel = sls.getBundleStartLevel(Activator.bc.getBundle());
+      myLevel = sls.getBundleStartLevel(Activator.getTargetBC().getBundle());
     } catch (IllegalArgumentException ignored) {
     }
     
@@ -653,7 +722,7 @@ public class Desktop
 
     levelItems = new String[levelMax - levelMin + 1]; 
     
-    Bundle[] bundles = Activator.bc.getBundles();
+    Bundle[] bundles = Activator.getTargetBC().getBundles();
     
     Object selObj = null;
 
@@ -734,7 +803,6 @@ public class Desktop
   // items handling start level stuff. Only used if a StartLevel
   // service is available at startup
   Object[]       levelItems;
-  ServiceTracker slTracker;
   JComboBox      levelBox = null;
   int            levelMin = 1;
   int            levelMax = 20;
@@ -850,6 +918,18 @@ public class Desktop
 		    }
 		  });
 	      }});
+	  add(new JMenuItem(Strings.get("menu_openbundleurl"), openURLIcon) {
+	      { 
+		setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U,
+						      ActionEvent.CTRL_MASK));
+		setMnemonic(KeyEvent.VK_U);
+		
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      addBundleURL();
+		    }
+		  });
+	      }});
 	  add(new JMenuItem(Strings.get("menu_save"), saveIcon) {
 	      { 
 		setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
@@ -863,6 +943,19 @@ public class Desktop
 		  });
 	      }});
 	  
+	  add(menuRemote = new JMenuItem(Strings.get("menu_remotefw"), connectIcon) {
+	      { 
+		setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+						      ActionEvent.CTRL_MASK));
+		setMnemonic(KeyEvent.VK_F);
+		
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      doConnect();
+		    }
+		  });
+	      }
+	    });
 	  
 	  add(new JMenuItem("Quit framework...") {
 	      { 
@@ -1107,6 +1200,19 @@ public class Desktop
 		  });
 	      }
 	    });
+
+	  add(new JSeparator());
+
+	  add(new JMenuItem(Strings.get("str_fwinfo")) {
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      showInfo();
+		    }
+		  });
+	      }
+	    });
+
 	}
       };
   }
@@ -1198,12 +1304,36 @@ public class Desktop
 			options[1]);
     if(n == 0) {
       try {
-	System.out.println("stopping framework");
-	Bundle sysBundle = Activator.bc.getBundle((long)0);
+	Bundle sysBundle = Activator.getBC().getBundle((long)0);
 	sysBundle.stop();
       } catch (Exception e) {
 	e.printStackTrace();
       }
+    }
+  }
+
+  String lastBundleLocation = "http://";
+
+  void addBundleURL() {
+    try {
+      lastBundleLocation = (String)
+	JOptionPane.showInputDialog(frame, 
+				    Strings.get("dialog_addbundleurl_msg"),
+				    Strings.get("dialog_addbundleurl_title"),
+				    JOptionPane.QUESTION_MESSAGE,
+				    null,
+				    null,
+				    lastBundleLocation);
+      
+      if(lastBundleLocation != null && !"".equals(lastBundleLocation)) {
+	Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
+	Dictionary headers = b.getHeaders();
+	if(Util.canBeStarted(b)) {
+	  startBundle(b);
+	}
+      }
+    } catch (Exception e) {
+      showErr(null, e);
     }
   }
 
@@ -1235,7 +1365,67 @@ public class Desktop
       }
     }
   }
-  
+
+  void doConnect() {
+    String[] options = new String[Activator.remoteHosts.size()];
+    Activator.remoteHosts.copyInto(options);
+    
+    // The selection comp I want in the dialog
+    JComboBox combo = new JComboBox(options);
+    combo.setEditable(true);
+
+
+    // Mindboggling complicate way of creating an option dialog
+    // without the auto-generated input field
+
+    JLabel msg    = new JLabel(Strings.get("remote_connect_msg"));
+    JPanel panel  = new JPanel(new BorderLayout());
+
+    panel.add(combo, BorderLayout.SOUTH);
+    panel.add(msg,   BorderLayout.NORTH);
+
+    JOptionPane optionPane = new JOptionPane(panel,
+					     JOptionPane.QUESTION_MESSAGE);
+    optionPane.setIcon(connectIconLarge);
+    optionPane.setRootFrame(frame);
+    optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+    optionPane.setWantsInput(false);
+    optionPane.setOptions(new String[] 
+      {
+	Strings.get("ok"), 
+	Strings.get("cancel"),
+	Strings.get("local"),
+      }); 
+    
+    optionPane.selectInitialValue();
+
+    JDialog dialog = 
+      optionPane.createDialog(frame,
+			      Strings.get("remote_connect_title"));
+    dialog.show();
+    dialog.dispose();
+
+    String value = (String)optionPane.getValue();
+
+    if (Strings.get("cancel").equals(value)) {
+      return;
+    }
+
+    String s = (String)combo.getSelectedItem();
+
+    if (Strings.get("local").equals(value)) {
+      s = "";
+    }
+
+    if(!Activator.remoteHosts.contains(s)) {
+      Activator.remoteHosts.addElement(s);
+    }
+    
+    if ((s != null)) {
+      Activator.openRemote(s);
+    }
+  }
+
   JFileChooser saveFC = null;
   
   void save() {
@@ -1310,14 +1500,14 @@ public class Desktop
       base = base.substring(0, ix);
     }
 
-    PackageAdmin pkgAdmin = (PackageAdmin)Activator.pkgTracker.getService();
+    PackageAdmin pkgAdmin = (PackageAdmin)pkgTracker.getService();
     
     if(pkgAdmin == null) {
       Activator.log.error("No pkg admin available for save");
       return;
     }
     
-    Bundle[] allBundles = Activator.bc.getBundles();
+    Bundle[] allBundles = Activator.getTargetBC().getBundles();
 
     
     Set pkgClosure = new TreeSet(Util.bundleIdComparator);
@@ -1344,7 +1534,7 @@ public class Desktop
     }
 
     // remove system bundle.
-    all.remove(Activator.bc.getBundle(0));
+    all.remove(Activator.getTargetBC().getBundle(0));
     
     ZipOutputStream out = null;
     
@@ -1599,7 +1789,7 @@ public class Desktop
 
   void stopBundle(Bundle b) {
     int n = 0;
-    if(b.getBundleId() == Activator.bc.getBundle().getBundleId() ||
+    if(b.getBundleId() == Activator.getTargetBC().getBundle().getBundleId() ||
        b.getBundleId() == 0) {
       Object[] options = { Strings.get("yes"),
 			   Strings.get("no")};
@@ -1628,13 +1818,13 @@ public class Desktop
   }
 
   void refreshBundle(Bundle[] b) {
-    ServiceReference sr = Activator.bc.getServiceReference(PackageAdmin.class.getName());
+    ServiceReference sr = Activator.getTargetBC().getServiceReference(PackageAdmin.class.getName());
     if(sr != null) {
-      PackageAdmin packageAdmin = (PackageAdmin)Activator.bc.getService(sr);
+      PackageAdmin packageAdmin = (PackageAdmin)Activator.getTargetBC().getService(sr);
       if(packageAdmin != null) {
 	packageAdmin.refreshPackages(b);
       }
-      Activator.bc.ungetService(sr);
+      Activator.getTargetBC().ungetService(sr);
     }
   }
 
@@ -1742,13 +1932,12 @@ public class Desktop
 
 
   void addFile(File file) {
-    System.out.println("add file " + file);
 
     try {
       if(file.getName().toUpperCase().endsWith(".JAR")) {
 	try {
 	  String location = "file:" + file.getAbsolutePath();
-	  Bundle b = Activator.bc.installBundle(location);
+	  Bundle b = Activator.getTargetBC().installBundle(location);
 	  Dictionary headers = b.getHeaders();
 	  if(Util.canBeStarted(b)) {
 	    startBundle(b);
@@ -1763,24 +1952,42 @@ public class Desktop
   }
   
   public void stop() {
+    frameLocation = frame.getLocationOnScreen();
+    frameSize     = frame.getSize();
+
+    alive = false;
+
+    slTracker.close();
+    dispTracker.close();
+    pkgTracker.close();
+
+    Activator.getTargetBC().removeBundleListener(this);
+
     if(consoleSwing != null) {
       consoleSwing.stop();
       consoleSwing = null;
     }
 
-    alive = false;
+
     if(frame != null) {
       frame.setVisible(false);
       frame = null;
     }
-    Activator.bc.removeBundleListener(this);
+
   }
 
   public void valueChanged(long bid) {
+    if(!alive) {
+      return;
+    }
+
     updateBundleViewSelections();
   }
 
   public void frameworkEvent(FrameworkEvent ev) {
+    if(!alive) {
+      return;
+    }
     switch(ev.getType()) {
     case FrameworkEvent.STARTLEVEL_CHANGED:
       updateStartLevel();
@@ -1791,17 +1998,19 @@ public class Desktop
   Bundle[] bundleCache;
 
   public void bundleChanged(BundleEvent ev) {
-    Bundle b = ev.getBundle();
-
     if(!alive) {
       return;
     }
 
-    bundleCache = Activator.bc.getBundles();
+    Bundle b = ev.getBundle();
 
-    boolean bMyself = 
-      b.getBundleId() == Activator.bc.getBundle().getBundleId();
+    bundleCache = Activator.getTargetBC().getBundles();
 
+    boolean bMyself = false;
+
+    if(Activator.getTargetBC() == Activator.getBC()) {
+      bMyself = b.getBundleId() == Activator.getBC().getBundle().getBundleId();
+    }
 
     updateStatusBar();
     toolBar.revalidate();
@@ -1811,6 +2020,34 @@ public class Desktop
   void updateStatusBar() {
   }
 
+
+  void showInfo() {
+    JTextPane html = new JTextPane();
+
+    html.setContentType("text/html");
+    
+    html.setEditable(false);
+
+    html.setText(Util.getSystemInfo());
+
+    final JScrollPane scroll = new JScrollPane(html);
+    scroll.setPreferredSize(new Dimension(420, 300));
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  JViewport vp = scroll.getViewport();
+	  if(vp != null) {
+	    vp.setViewPosition(new Point(0,0));
+	    scroll.setViewport(vp);
+	  }  
+	}
+      });
+
+    JOptionPane.showMessageDialog(frame, 
+				  scroll, 
+				  "Framework info",
+				  JOptionPane.INFORMATION_MESSAGE,
+				  null);
+  }
 
   void showVersion() {
     String version = "1.1.1";

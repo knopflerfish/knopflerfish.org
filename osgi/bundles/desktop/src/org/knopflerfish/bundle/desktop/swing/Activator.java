@@ -39,96 +39,244 @@ import org.osgi.util.tracker.*;
 import org.osgi.service.packageadmin.*;
 import org.knopflerfish.service.log.*;
 
-import java.util.Hashtable;
+import java.util.*;
 import org.knopflerfish.service.desktop.*;
+
+import org.knopflerfish.service.remotefw.RemoteFramework;
 
 public class Activator implements BundleActivator {
 
   static public LogRef        log;
-  static public BundleContext bc;
 
+  static private BundleContext bc;
+  static private BundleContext remoteBC;
   static public Desktop desktop;
 
   static ServiceTracker pkgTracker;
+  static Activator      myself;
 
-  
+  public static BundleContext getBC() {
+    return bc;
+  }
+
+  /**
+   * Get target BC for bundle control.
+   * 
+   * <p>
+   * This in preparation for the event of the desktop
+   * being able to control a remote framework.
+   * </p>
+   */
+  public static BundleContext getTargetBC() {
+    if(remoteBC == null) {
+      return getBC();
+    }
+
+    return remoteBC;
+  }
+
+  public static Map getSystemProperties() {
+    if(getTargetBC() != getBC()) {
+      RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
+      return rc.getSystemProperties(getTargetBC());
+    } else {
+      Properties props = System.getProperties();
+      Map map = new HashMap();
+
+      for(Enumeration e = props.keys(); e.hasMoreElements();) {
+	String key = (String)e.nextElement();
+	String val = (String)props.get(key);
+	map.put(key, val);
+      }
+      return map;
+    }
+  }
+
+  static Vector remoteHosts = new Vector() {
+      {
+	addElement("http://localhost:8080");
+	addElement("http://localhost:8081");
+	addElement("http://localhost:80");
+      }
+    };
+
+  static String remoteHost = "";
+
+  public static BundleContext openRemote(String host) {
+    if(host.equals(remoteHost)) {
+      return remoteBC;
+    }
+    RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
+    if(rc != null) {
+      try {
+	Activator.myself.closeDesktop();
+	if("".equals(host) || "local".equals(host)) {
+	  remoteBC = null;
+	} else {
+	  remoteBC = rc.connect(host);
+	}
+	remoteHost = host;
+      } catch (Exception e) {
+	log.error("Failed to connect to " + host);
+      } 
+
+      Activator.myself.openDesktop();
+    }
+    return remoteBC;
+  }
+
+
+  static ServiceTracker remoteTracker;
+
+  Map displayers = new HashMap();
+
   public void start(BundleContext _bc) {
-    this.bc  = _bc;
-    this.log = new LogRef(bc);
+    this.bc        = _bc;
+    this.log       = new LogRef(bc);
+    this.myself    = this;
+
+    remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null) {
+	public Object addingService(ServiceReference sr) {
+	  Object obj = super.addingService(sr);
+	  try {  desktop.setRemote(true); } catch (Exception e) { }
+	  return obj;
+	}
+	public void removedService(ServiceReference sr, Object service) {
+	  try {  desktop.setRemote(false); } catch (Exception e) { }
+	  super.removedService(sr, service);
+	}
+      };
+    remoteTracker.open();
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
     pkgTracker.open();
-    
-    // Spawn to avoid racing conditions in resource loading
-    Thread t = new Thread(new Runnable() {
+
+    // Spawn to avoid race conditions in resource loading
+    Thread t = new Thread() {
 	public void run() {
-	  desktop = new Desktop();
-	  desktop.start();
-
-	  DefaultSwingBundleDisplayer disp;
-
-	  // bundle displayers
-	  disp = new LargeIconsDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  disp = new TimeLineDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  disp = new TableDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  disp = new SpinDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  // detail displayers
-	  disp = new ManifestHTMLDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  disp = new ClosureHTMLDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  disp = new ServiceHTMLDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-	  disp = new PackageHTMLDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-
-	  disp = new LogDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
-
-	  // We really want this one to be display.
-	  desktop.bundlePanel.showTab("Large Icons");
-
+	  openDesktop();
 	}
-      }, "desktop startup");
-    
+      };
     t.start();
-
   }
 
-  public void stop(BundleContext bc) {
+  void openDesktop() {
+    if(desktop != null) {
+      System.out.println("openDesktop: desktop already open");
+      return;
+    }
+
+    desktop = new Desktop();
+    desktop.start();
+    
+    DefaultSwingBundleDisplayer disp;
+    
+    ServiceRegistration reg;
+    
+    // bundle displayers
+    disp = new LargeIconsDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new TimeLineDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new TableDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new SpinDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    // detail displayers
+    disp = new ManifestHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new ClosureHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new ServiceHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new PackageHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    
+    if(getBC() == getTargetBC()) {
+      disp = new LogDisplayer(getTargetBC());
+      disp.open();
+      reg = disp.register();
+      displayers.put(disp, reg);
+    }
+    
+    // We really want this one to be displayed.
+    desktop.bundlePanel.showTab("Large Icons");
+  }
+
+  void closeDesktop() {
     try {
+
       if(desktop != null) {
 	desktop.stop();
 	desktop = null;
       }
-      
+
+      for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
+	DefaultSwingBundleDisplayer disp 
+	  = (DefaultSwingBundleDisplayer)it.next();
+	ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
+	
+	disp.unregister();
+	disp.close();
+      }
+      displayers.clear();
+
+      if(remoteBC != null) {
+	RemoteFramework rc = (RemoteFramework)remoteTracker.getService();	
+	if(rc != null) {
+	  rc.disconnect(remoteBC);
+	}
+	remoteBC = null;
+      }
+    } catch (Exception e) {
+      log.error("Failed to close desktop", e);
+    }
+  }
+
+  public void stop(BundleContext bc) {
+    try {
+      closeDesktop();
+
       if(log != null) {
 	log = null;
       }
       
-      this.bc = null;
+      if(remoteTracker != null) {
+	remoteTracker.close();
+	remoteTracker = null;
+      }
+
+      if(pkgTracker != null) {
+	pkgTracker.close();
+	pkgTracker = null;
+      }
+
+      this.bc     = null;
+      this.myself = null;
     } catch (Exception e) {
       e.printStackTrace();
     }

@@ -81,7 +81,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
       StringBuffer sb = new StringBuffer();
      
       try {
-	ServiceReference[] srl = Activator.bc.getServiceReferences(null, null);
+	ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
 	
 	int nExport = 0;
 	int nImport = 0;

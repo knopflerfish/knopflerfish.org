@@ -56,7 +56,6 @@ public abstract class DefaultSwingBundleDisplayer
   String               desc;
   boolean              bDetail;
 
-  BundleContext        bc;
   boolean              bAlive = false;
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
   private Bundle[]     bundles;
@@ -64,6 +63,8 @@ public abstract class DefaultSwingBundleDisplayer
   ServiceRegistration  reg  = null;
 
   boolean bUseListeners = true;
+
+  BundleContext bc;
 
   public DefaultSwingBundleDisplayer(BundleContext bc,
 				     String        name,
@@ -85,9 +86,9 @@ public abstract class DefaultSwingBundleDisplayer
     return bundles;
   }
 
-  public void register() {
+  public ServiceRegistration register() {
     if(reg != null) {
-      return;
+      return reg;
     }
 
     open();
@@ -100,10 +101,15 @@ public abstract class DefaultSwingBundleDisplayer
 	      ? Boolean.TRUE 
 	      : Boolean.FALSE);
     
-    reg = bc.registerService(SwingBundleDisplayer.class.getName(),
-			     this,
-			     props);
+    reg = Activator.getBC()
+      .registerService(SwingBundleDisplayer.class.getName(),
+		       this,
+		       props);
+
+    return reg;
   }
+
+
 
   public void unregister() {
     if(reg == null) {
@@ -131,8 +137,8 @@ public abstract class DefaultSwingBundleDisplayer
     bAlive = true;
 
     if(bUseListeners) {
-      bc.addBundleListener(this);
-      bc.addServiceListener(this);
+      Activator.getTargetBC().addBundleListener(this);
+      Activator.getTargetBC().addServiceListener(this);
     }
 
     bundleSelModel.addBundleSelectionListener(this);
@@ -146,7 +152,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   void getAllServices() {
     try {      
-      ServiceReference[] srl = Activator.bc.getServiceReferences(null, null);
+      ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
       for(int i = 0; srl != null && i < srl.length; i++) {
 	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
@@ -159,7 +165,7 @@ public abstract class DefaultSwingBundleDisplayer
     try {
       int delay = 0;
       
-      Bundle[] bl = bc.getBundles();
+      Bundle[] bl = Activator.getTargetBC().getBundles();
       
       // do something reasonable with bundles already installed
       for(int i = 0; bl != null && i < bl.length; i++) {
@@ -188,8 +194,8 @@ public abstract class DefaultSwingBundleDisplayer
     if(bundleSelModel != null) {
       bundleSelModel.removeBundleSelectionListener(this); 
     }
-    bc.removeBundleListener(this);
-    bc.removeServiceListener(this);
+    Activator.getTargetBC().removeBundleListener(this);
+    Activator.getTargetBC().removeServiceListener(this);
 
   }
 
@@ -207,7 +213,7 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   protected Bundle[] getAndSortBundles() {
-    Bundle[] bl = bc.getBundles();
+    Bundle[] bl = Activator.getTargetBC().getBundles();
     SortedSet set = new TreeSet(Util.bundleIdComparator);
     for(int i = 0; i < bl.length; i++) {
       set.add(bl[i]);
@@ -273,5 +279,10 @@ public abstract class DefaultSwingBundleDisplayer
 
   public Icon       getSmallIcon() {
     return null;
+  }
+
+  
+  public void       setTargetBundleContext(BundleContext bc) {
+    this.bc = bc;
   }
 }
