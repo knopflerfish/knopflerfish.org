@@ -30,11 +30,15 @@ The machine used for testing was a Dell X300, 1200 Mhz, 640 Mb, running Windows 
 
 <p>
 A dot-graph of the test runs gives a the most accurate view of the different
-behaviors. The horizontal axis represents time and the vertical axis memory and time. It 
-can easily bee seen that file: references often is faster than non-reference, but not always.
+behaviors. The horizontal axis represents time and the vertical axis memory and time. 
+
+<p>
+<b>file storage with file: references</b> (yellow) often is faster than non-reference, but not always. 
+<b>Memory storage</b> (blue) is fast, but uses a lot of memory as expected. 
+Plain <b>non-reference file storage</b> (red) is most memory-efficient. This is because jar files are copied, unpacked and only resources actually used will be loaded into memory.
 </p>
 <p>
-The full images can be viewed by clicking on the images below
+The full images can be viewed by clicking on the graphs.
 </p>
 
 <table>
