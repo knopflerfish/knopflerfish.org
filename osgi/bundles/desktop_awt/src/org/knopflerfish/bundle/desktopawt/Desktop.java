@@ -39,7 +39,7 @@ import java.awt.*;
 import java.net.URL;
 
 class Desktop {
-  Frame        frame;
+  static Frame        frame;
   DesktopPanel dp;
 
   static MediaTracker tracker;
