@@ -670,8 +670,12 @@
 
    <java classname="${junit.runner.class}" 
          fork="yes"
-         classpathref="bundle.compile.path"
    >
+    <classpath>
+      <path location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+      <path refid="bundle.compile.path"/>
+    </classpath>
+
     <sysproperty key   = "suite.url" 
                  value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
     <arg value="org.knopflerfish.service.junit.client.JUnitClient"/>
@@ -692,7 +696,8 @@
                   value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
 
      <classpath>
-      <path refid="bundle.compile.path"/>
+       <path location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+       <path refid="bundle.compile.path"/>
      </classpath>
 
      <formatter type="${junit.formatter}"/>
