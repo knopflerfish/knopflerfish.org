@@ -167,28 +167,15 @@ TD.menu {
  text-align:left;
 }
 
-A.top {
-  float: right;
-  text-decoration:  none;
-  font-weight:      bold;
-}
-
 A, A:visited, A:selected, A:active {
  text-decoration:  none;
- font-weight:      bold;
+ font-weight:      none;
+ color:            #000000;
 }
 
 A:hover {
  text-decoration:  underline;
-}
-
-li.A:visited, li.A:selected, li.A:active {
- text-decoration:  none;
- font-weight:      bold;
-}
-
-li.A:hover {
- text-decoration:  underline;
+ color:            #000000;
 }
 
 .small  {
