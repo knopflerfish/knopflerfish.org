@@ -1871,17 +1871,17 @@ public class Desktop
 
   void updateBundle(Bundle b) {
     try {
-      if(b == Activator.getBC().getBundle()) {
+      boolean bUpdateIsUpdate = "true".equals(System.getProperty("org.knopflerfish.desktop.updateisupdate", "true"));
+      if(bUpdateIsUpdate || b == Activator.getBC().getBundle()) {
 	b.update();
       } else {
-	
 	String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
 	if(location == null || "".equals(location)) {
 	  location = b.getLocation();
 	}
 	
 	if(uninstallBundle(b, true)) {
-	  refreshBundle(null);
+	  refreshBundle(new Bundle[] { b });
 	  Bundle newBundle = Activator.getTargetBC().installBundle(location);
 	  if(Util.canBeStarted(newBundle)) {
 	    startBundle(newBundle);
