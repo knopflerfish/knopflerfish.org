@@ -67,11 +67,27 @@ by performing explicit refresh requests.
 
 soapclient
 ----------
-This is an example of a client side program. The client calls the "remoteFW" service
-methods, so you need to have the soapobject bundle insatlled and started. The build.xml
-performs all required steps for the creation and and execution of the client program.
-The only handcoded module is the Test.java (main class of the client program). The build
-file will automatically fetch the WSDL from the running OSGi framework, generate the
-client side stubs and support classes, compile the generated classes as well as Test.java.
-When all have been built (compiled) the client program is executed and the results are
-displayed.
+This is an example of a client side program. The client calls the "remoteFW" 
+service methods, so you need to have the soapobject bundle insatlled and started. The build.xml performs all required steps for the creation and and execution
+of the client program. The only handcoded module is the Test.java (main 
+class of the client program). The build file will automatically fetch the
+WSDL from the running OSGi framework, generate the client side stubs and 
+support classes, compile the generated classes as well as Test.java.
+
+When all have been built (compiled) the client program is executed and 
+the results are displayed.
+
+sopa_desktop
+------------
+This is a SOAP service browser written as a plugin for the Swing Desktop.
+When started, it adds a view that displays all available services
+on a named SOAP host. The services can be browsed for operations and
+the operations can be invoked. The SOAP host can be changed to view
+services on another host.
+
+The defualt SOAP host is "http://localhost:<web server port>"
+
+The implementation has only been tested with services generated
+by exporting OSGi service via Axis, and is not complete in terms of
+all possible data types. The primitive types and arrays, are however 
+supported, both as input arguments and as results.
