@@ -75,14 +75,21 @@ public class Activator implements BundleActivator {
     return remoteBC;
   }
 
-  static String remoteHost = "http://localhost:8080";
+  static String remoteHost = "local";
 
   public static BundleContext openRemote(String host) {
+    if(host.equals(remoteHost)) {
+      return remoteBC;
+    }
     RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
     if(rc != null) {
       try {
 	Activator.myself.closeDesktop();
-	remoteBC = rc.connect(host);
+	if("".equals(host) || "local".equals(host)) {
+	  remoteBC = null;
+	} else {
+	  remoteBC = rc.connect(host);
+	}
 	remoteHost = host;
       } catch (Exception e) {
 	log.error("Failed to connect to " + host);

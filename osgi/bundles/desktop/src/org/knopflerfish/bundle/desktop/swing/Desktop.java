@@ -207,8 +207,9 @@ public class Desktop
     statusBar     = new StatusBar("");
 
 
-    frame       = new JFrame(Strings.get("frame_title"));
-
+    frame       = new JFrame(Strings.fmt("frame_title", 
+					 Activator.remoteHost));
+    
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {
 	public void windowClosing(WindowEvent e) {
@@ -1266,14 +1267,52 @@ public class Desktop
   }
   
   void doConnect() {
-    String s = (String)JOptionPane
-      .showInputDialog(frame,
-		       Strings.get("remote_connect_msg"),
-		       Strings.get("remote_connect_title"),
-		       JOptionPane.QUESTION_MESSAGE, // optionType 
-		       connectIconLarge,
-		       null, // Object[] init
-		       Activator.remoteHost);
+    String[] options = new String[] {
+      "http://localhost:8080",
+      "local",
+    };
+
+    // The selection comp I want in the dialog
+    JComboBox combo = new JComboBox(options);
+    combo.setEditable(true);
+
+
+    // Mindboggling complicate way of creating an option dialog
+    // without the auto-generated input field
+
+    JLabel msg    = new JLabel(Strings.get("remote_connect_msg"));
+    JPanel panel  = new JPanel(new BorderLayout());
+
+    panel.add(combo, BorderLayout.SOUTH);
+    panel.add(msg,   BorderLayout.NORTH);
+
+    JOptionPane optionPane = new JOptionPane(panel,
+					     JOptionPane.QUESTION_MESSAGE);
+    optionPane.setIcon(connectIconLarge);
+    optionPane.setRootFrame(frame);
+    optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+    optionPane.setWantsInput(false);
+    optionPane.setOptions(new String[] 
+      {
+	Strings.get("ok"), 
+	Strings.get("cancel")
+      }); 
+    
+    optionPane.selectInitialValue();
+
+    JDialog dialog = 
+      optionPane.createDialog(frame,
+			      Strings.get("remote_connect_title"));
+    dialog.show();
+    dialog.dispose();
+
+    String value = (String)optionPane.getValue();
+
+    if (!Strings.get("ok").equals(value)) {
+      return;
+    }
+
+    String s = (String)combo.getSelectedItem();
     
     if ((s != null) && (s.length() > 0)) {
       Activator.openRemote(s);
