@@ -32,14 +32,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.bundle.resexp_test.impl;
+package org.knopflerfish.bundle.resexp_test;
 
-import org.osgi.framework.*;
-import java.util.*;
-import java.net.URL;
-import java.io.*;
-
-import org.knopflerfish.bundle.resexp_test.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 /**
  *
