@@ -96,7 +96,7 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 
 
 <p>
-<b>Important</b>: You need either the latest bundlerepository.jar from the Oscar distribution, or the <a href="http://www.knopflerfish.org/repo/jars/bundlerepository/bundlerepository_all-1.0.0.jar">KF bundlerepository</a> bundle. The KF bundlerepository bundle also integrates into the KF console.
+<b>Important</b>: You need either the latest bundlerepository.jar from the Oscar distribution, or the <a href="http://www.knopflerfish.org/repo/jars/bundlerepository/bundlerepository_all-1.1.0.jar">KF bundlerepository</a> bundle. The KF bundlerepository bundle also integrates into the KF desktop and console.
 </p>
 
 <h4>Available bundles, sorted by API specification</h4>
