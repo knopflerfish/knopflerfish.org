@@ -56,7 +56,7 @@ import org.knopflerfish.util.Text;
  * for details.<br>
  * The full license text is also include in the kf_metatype bundle jar 
  * </p>
- * Nanoxml is Copyrighted ©2000-2002 Marc De Scheemaecker, All Rights 
+ * Nanoxml is Copyrighted 2000-2002 Marc De Scheemaecker, All Rights 
  * Reserved. 
  * </p>
  */
