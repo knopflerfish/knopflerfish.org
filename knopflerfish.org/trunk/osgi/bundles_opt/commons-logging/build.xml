@@ -8,7 +8,15 @@
 
   <property name="topdir"       location="../.."/>
 
-  <property name = "xbundle.libonly"   value = "true"/>
+  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.impl"  value = "true"/>
+  <property name = "bundle.build.all"   value = "false"/>
+<!--
+
+
+
+  <property name = "bundle.build.lib"   value = "false"/>
+-->
 
   <property name="impl.pattern" value="org/knopflerfish/**"/> 
   <property name="api.pattern" value="org/apache/**"/> 
@@ -29,6 +37,7 @@
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="Commons Logging"/>
   <property name="bundle.classpath"      value=".,log_api-1.0.0.jar"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt"/>
   
   <property name="import.package" value="org.osgi.framework,org.osgi.service.log;specification-version=1.2"/>
 

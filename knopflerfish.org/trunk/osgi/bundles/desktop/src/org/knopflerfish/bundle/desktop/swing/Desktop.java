@@ -1704,18 +1704,22 @@ public class Desktop
 
   void addFile(File file) {
     System.out.println("add file " + file);
-    
-    if(file.getName().toUpperCase().endsWith(".JAR")) {
-      try {
-	String location = "file:" + file.getAbsolutePath();
-	Bundle b = Activator.bc.installBundle(location);
-	Dictionary headers = b.getHeaders();
-	if(Util.canBeStarted(b)) {
-	  startBundle(b);
+
+    try {
+      if(file.getName().toUpperCase().endsWith(".JAR")) {
+	try {
+	  String location = "file:" + file.getAbsolutePath();
+	  Bundle b = Activator.bc.installBundle(location);
+	  Dictionary headers = b.getHeaders();
+	  if(Util.canBeStarted(b)) {
+	    startBundle(b);
+	  }
+	} catch (Exception e) {
+	  showErr(null, e);
 	}
-      } catch (Exception e) {
-	showErr(null, e);
       }
+    } catch (Exception e) {
+      Activator.log.error("Failed to add file", e);
     }
   }
   
