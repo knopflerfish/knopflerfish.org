@@ -12,7 +12,8 @@ This directory contains support for JUnit testing on a running framework.
 Requirements:
 
  - http server
-
+ - KF LogRef log wrapper from log_api
+ - XML parser (for client)
 
 Background
 -----------
