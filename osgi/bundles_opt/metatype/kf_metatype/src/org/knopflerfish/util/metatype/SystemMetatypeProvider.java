@@ -423,16 +423,20 @@ public class SystemMetatypeProvider extends MTP {
 	  return ocd;
 	}
       }
+
+      System.out.println("getObjectClassDefinition " + pid);
       synchronized(mtMap) {
 	for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
 	  ServiceReference sr = (ServiceReference)it.next();
 	  MetaTypeProvider mt = (MetaTypeProvider)mtMap.get(sr);
 	  ObjectClassDefinition ocd = mt.getObjectClassDefinition(pid, locale);
 	  if(ocd != null) {
+	    System.out.println("found getObjectClassDefinition " + pid);
 	    return ocd;
 	  }
 	}
       }
+      System.out.println("no pid found getObjectClassDefinition " + pid);
       return null;
     }
   }
@@ -451,7 +455,7 @@ public class SystemMetatypeProvider extends MTP {
 	    case ServiceEvent.REGISTERED: 
 	      {
 		MetaTypeProvider mt = (MetaTypeProvider)bc.getService(sr);
-		if(mt != this) {
+		if(mt != SystemMetatypeProvider.this) {
 		  mtMap.put(sr, mt);
 		  String[] pids = (String[])sr.getProperty("service.pids");
 		  //		  System.out.println("got mtp " + sr + ", pids=" + (pids != null ? AD.toString(pids) : ""));
