@@ -26,7 +26,7 @@
   <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.apivendor"      value="Knopflerfish"/>
   <property name="bundle.category"       value="console"/>
-  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.version"        value="1.0.1"/>
   <property name="bundle.name"           value="TTY Console"/>
 
   <property name="import.service"        value="org.osgi.service.log.LogService,org.knopflerfish.service.console.ConsoleService"/>

@@ -34,13 +34,27 @@
 
 package org.knopflerfish.bundle.consoletty;
 
-import java.util.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.*;
-import org.knopflerfish.service.console.*;
-import org.osgi.service.cm.*;
+import org.knopflerfish.service.console.ConsoleService;
+import org.knopflerfish.service.console.Session;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
+import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 //  ********************     ConsoleTty     ********************
 /**
@@ -49,7 +63,7 @@ import org.osgi.service.cm.*;
  ** @author Jan Stein
  ** @version $Revision: 1.1.1.1 $
  */
-public class ConsoleTty implements BundleActivator, ManagedService {
+public class ConsoleTty implements BundleActivator, ManagedService, ServiceTrackerCustomizer {
 
   final static private String logServiceName = LogService.class.getName();
   final static private String consoleServiceName = ConsoleService.class.getName();
@@ -57,16 +71,17 @@ public class ConsoleTty implements BundleActivator, ManagedService {
   final static private String NONBLOCKING = "nonblocking";
   private boolean nonblocking = false;
 
-  private ServiceReference srefConsole;
-  private ConsoleService sConsole = null;
+  private ServiceTracker consoleTracker;
   private Session consoleSession = null;
-  private ServiceRegistration configSR;
   private BundleContext  bc;
+
+  private Reader reader;
+  private PrintWriter writer;
 
   /*---------------------------------------------------------------------------*
    *			  BundleActivator implementation
    *---------------------------------------------------------------------------*/
-  
+
   //  ====================    start      ====================
   /**
    ** Called by the framework when this bundle is started.
@@ -76,49 +91,34 @@ public class ConsoleTty implements BundleActivator, ManagedService {
    */
   public void start(BundleContext bc) throws Exception {
     this.bc = bc;
-    
+
     log(LogService.LOG_INFO, "Starting");
 
     // Get config
     Hashtable p = new Hashtable();
     p.put(Constants.SERVICE_PID,getClass().getName());
-    configSR = bc.registerService(ManagedService.class.getName(), this, p);
+    bc.registerService(ManagedService.class.getName(), this, p);
 
-    // Get console service
-    srefConsole = bc.getServiceReference(consoleServiceName);
-
-    if (srefConsole == null) {
-      log(LogService.LOG_ERROR, "Failed to get ConsoleService reference, can not continue");
-      return;
-    }
-
-    sConsole = (ConsoleService) bc.getService(srefConsole);
-    if (sConsole == null) {
-      log(LogService.LOG_ERROR, "Failed to get ConsoleService, can not continue");
-      return;
-    }
+    PrintStream out = null;
     try {
-      PrintStream out = null;
-      try {
-	ServiceReference[] srl = 
-	  bc.getServiceReferences(PrintStream.class.getName(),
-				 "(service.pid=java.lang.System.out)");
-	if(srl != null && srl.length == 1) {
-	  out = (PrintStream)bc.getService(srl[0]);
-	}
-      } catch (Exception e) { 
-	e.printStackTrace(System.out);
+      ServiceReference[] srl =
+        bc.getServiceReferences(PrintStream.class.getName(),
+                               "(service.pid=java.lang.System.out)");
+      if(srl != null && srl.length == 1) {
+        out = (PrintStream)bc.getService(srl[0]);
       }
-      if(out == null) {
-	out = System.out;
-      }
-
-      consoleSession = sConsole.runSession("console tty",
-					   new InputStreamReader(new SystemIn(bc)),
-					   new PrintWriter(out));
-    } catch (IOException ioe) {
-      log(LogService.LOG_ERROR, "Failed to start console session, can not continue");
+    } catch (Exception e) {
+      e.printStackTrace(System.out);
     }
+    if(out == null) {
+      out = System.out;
+    }
+
+    reader = new InputStreamReader(new SystemIn(bc));
+    writer = new PrintWriter(out);
+
+    consoleTracker = new ServiceTracker(bc, consoleServiceName, this);
+    consoleTracker.open();
   }
 
   //  ====================    stop      ====================
@@ -129,6 +129,7 @@ public class ConsoleTty implements BundleActivator, ManagedService {
    */
   public synchronized void stop(BundleContext bc) {
     log(LogService.LOG_INFO, "Stopping");
+    consoleTracker.close();
     try {
       if (consoleSession != null) {
 	consoleSession.close();
@@ -141,22 +142,45 @@ public class ConsoleTty implements BundleActivator, ManagedService {
   /*---------------------------------------------------------------------------*
    *			  ManagedService implementation
    *---------------------------------------------------------------------------*/
-  
+
   //  ====================    updated     ====================
   /**
    ** Called by CM when it got this bundles configuration.
    **
-   ** @param bc Bundle context.
+   ** @param cfg contains the new configuration properties.
    */
-  public synchronized void updated(Dictionary cfg) 
+  public synchronized void updated(Dictionary cfg)
     throws ConfigurationException, IllegalArgumentException {
     if (cfg != null) {
       Boolean b = (Boolean)cfg.get(NONBLOCKING);
       if (b != null) {
-	nonblocking = b.booleanValue();
+        nonblocking = b.booleanValue();
       }
     } else {
       nonblocking = false;
+    }
+  }
+
+  /*---------------------------------------------------------------------------*
+   *			  ServiceTrackerCustomizer implementation
+   *---------------------------------------------------------------------------*/
+
+  public Object addingService(ServiceReference reference) {
+    ConsoleService console = (ConsoleService) bc.getService(reference);
+    try {
+      consoleSession = console.runSession("console tty", reader, writer);
+    } catch (IOException ioe) {
+      log(LogService.LOG_ERROR, "Failed to start console session, can not continue");
+    }
+    return console;
+  }
+
+  public void modifiedService(ServiceReference reference, Object service) { }
+
+  public void removedService(ServiceReference reference, Object service) {
+    if (consoleSession != null) {
+      consoleSession.close();
+      consoleSession = null;
     }
   }
 
@@ -176,7 +200,7 @@ public class ConsoleTty implements BundleActivator, ManagedService {
   }
   public void log(int level, String msg, Exception e) {
     ServiceReference srLog = bc.getServiceReference(logServiceName);
-    if (srLog != null) {  
+    if (srLog != null) {
       LogService sLog = (LogService)bc.getService(srLog);
       if (sLog != null) {
 	if(e == null) {
@@ -191,21 +215,21 @@ public class ConsoleTty implements BundleActivator, ManagedService {
 
   /* ------------------------------------------------------------
      Help class for VMs that when blocking in read() om System.in
-     block other threads too. 
+     block other threads too.
      ------------------------------------------------------------*/
   class SystemIn extends InputStream {
 
-    InputStream in; 
+    InputStream in;
 
     SystemIn(BundleContext bc) {
       try {
-	ServiceReference[] srl = 
+	ServiceReference[] srl =
 	  bc.getServiceReferences(InputStream.class.getName(),
 				 "(service.pid=java.lang.System.in)");
 	if(srl != null && srl.length == 1) {
 	  in = (InputStream)bc.getService(srl[0]);
 	}
-      } catch (Exception e) { 
+      } catch (Exception e) {
 	e.printStackTrace(System.err);
       }
       if(in == null) {
@@ -246,7 +270,7 @@ public class ConsoleTty implements BundleActivator, ManagedService {
 	}
       }
       return in.read(buf, off, len);
-    } 
+    }
   }
 
 }
