@@ -32,7 +32,7 @@ org.knopflerfish.junit_runner.tests
 org.knopflerfish.junit_runner.outdir
 
  Output directory for XML result files.
- Default is "junit_out"
+ Default is "junit_grunt"
 
 org.knopflerfish.junit_runner.quit
 
