@@ -8,6 +8,7 @@
    <default.level>info</default.level>
 
    <bundle.log.level>
+    <item>location;level</item>
    </bundle.log.level>
 
    <memory.size>16384</memory.size>
