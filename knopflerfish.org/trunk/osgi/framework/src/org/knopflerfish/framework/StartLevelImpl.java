@@ -56,7 +56,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   final static String LEVEL_FILE = "currentlevel";
 
-  int currentLevel     = 1;
+  int currentLevel     = 0;
   int initStartLevel   = 1;
   int targetStartLevel = currentLevel;
 
