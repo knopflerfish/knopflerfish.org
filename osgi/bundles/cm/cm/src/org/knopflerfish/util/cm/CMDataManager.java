@@ -121,7 +121,7 @@ public class CMDataManager
                                     ConfigurationAdmin cfgAdmin )
     throws java.io.IOException
   {
-    InputStream is = MetaDataManager.getInputStream(new URL(url));
+    InputStream is = ZipFileInputStream.getInputStream(new URL(url));
     try {
       handleCMData( is, url, cfgAdmin );
     } finally {
@@ -350,3 +350,14 @@ public class CMDataManager
 
 
 }// of class CMDataManager
+
+
+class CmResolver extends Resolver {
+  
+  public CmResolver() {
+    String cm_data_loc = CMDataManager.class
+      .getResource( "/" + CMDataManager.CM_DATA_0_1_URI ).toString();
+    registerCatalogEntry( CMDataManager.CM_DATA_0_1_ID, cm_data_loc );
+    
+  }
+} // of class CmResolver

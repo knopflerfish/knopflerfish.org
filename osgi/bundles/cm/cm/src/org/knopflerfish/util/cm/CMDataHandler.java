@@ -773,7 +773,7 @@ class CMDataHandler extends HandlerBase
         InputStream is = null;
         try {
           URL incURL = new URL(new URL(baseURL),url);
-          is = MetaDataManager.getInputStream(incURL);
+          is = ZipFileInputStream.getInputStream(incURL);
           Collection c = CMDataManager.doParse( is, incURL.toString(),cfgAdm );
           parentHandler.add(c);
         } catch (Exception e) {
