@@ -5,6 +5,13 @@
    <target name="all">
     <ant dir="http"              target="all"/>
     <ant dir="httproot"          target="all"/>
-  </target>
+    <ant dir="httpconsole"       target="all"/>
+   </target>
+ 
+   <target name="clean">
+    <ant dir="http"              target="clean"/>
+    <ant dir="httproot"          target="clean"/>
+    <ant dir="httpconsole"       target="clean"/>
+   </target>
 
 </project>

@@ -467,6 +467,7 @@
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
            <include name = "osgi/jars/http/http_all-1.1.0.jar"/>
            <include name = "osgi/jars/httproot/httproot-1.0.0.jar"/>
+           <include name = "osgi/jars/httpconsole/httpconsole-1.0.0.jar"/>
 
            <include name = "osgi/jars/trayicon/**/*.jar"/>
            <include name = "osgi/jars/trayicon_fw/**/*.jar"/>
