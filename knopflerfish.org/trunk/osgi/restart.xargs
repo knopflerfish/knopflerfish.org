@@ -1,22 +1,4 @@
--Dorg.osgi.provisioning.spid=knopflerfish
-
--Dorg.knopflerfish.framework.debug.packages=false
--Dorg.knopflerfish.framework.debug.errors=true
--Dorg.knopflerfish.framework.debug.classloader=false
--Dorg.osgi.framework.system.packages=
--Dorg.knopflerfish.gosg.jars=file:jars/
-
--Dorg.knopflerfish.http.dnslookup=false
--Dorg.osgi.service.http.port=8080
-
--Dorg.knopflerfish.log.out=false
--Dorg.knopflerfish.log.level=info
--Dorg.knopflerfish.log.grabio=true
--Dorg.knopflerfish.log.file=false
-
-#consoletelnet properties
--Dorg.knopflerfish.consoletelnet.user=admin
--Dorg.knopflerfish.consoletelnet.pwd=admin
--Dorg.knopflerfish.consoletelnet.port=23
+# load common properties
+-xargs props.xargs
 
 -launch 0
