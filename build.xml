@@ -738,6 +738,7 @@
            <include name = "osgi/jars/soap_demoservice/*.jar"/>
 
            <include name = "osgi/jars/junit/*.jar"/>
+           <include name = "osgi/jars/junit_runner/*.jar"/>
 	   <include name = "osgi/jars/jars/junit-example1/*.jar"/>
 	   <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
 	   <include name = "osgi/jars/jars/jinidriver/*.jar"/>
