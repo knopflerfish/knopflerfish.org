@@ -63,11 +63,16 @@ public class SystemMetatypeProvider
 	public void bundleChanged(BundleEvent ev) {
 	  switch(ev.getType()) {
 	  case BundleEvent.INSTALLED:
-	    try {
-	      MTP mtp = loadMTP(ev.getBundle());
-	    } catch (Exception e) {
-	      log.error("Failed to handle bundle " + 
-			ev.getBundle().getBundleId(), e);
+
+	    if(ev.getBundle().getBundleId() == 0) {
+	      // We can't read properties from the system bundle
+	    } else {
+	      try {
+		MTP mtp = loadMTP(ev.getBundle());
+	      } catch (Exception e) {
+		log.error("Failed to handle bundle " + 
+			  ev.getBundle().getBundleId(), e);
+	      }
 	    }
 	    break;
 	  }
