@@ -164,4 +164,28 @@ class Pkg {
     return -(l + 1);  // key not found.
   }
 
+  public String toString() {
+    return toString(2);
+  }
+
+  public String toString(int level) {
+    StringBuffer sb = new StringBuffer();
+    sb.append("Pkg[");
+
+    if(level > 0) {
+      sb.append("pkg=" + pkg);
+    }
+    if(level > 1) {
+      sb.append(", provider=" + provider);
+    }
+    if(level > 2) {
+      sb.append(", zombie=" + zombie);
+    } 
+    if(level > 3) {
+      sb.append(", exporters=" + exporters);
+    }
+    sb.append("]");
+
+    return sb.toString();
+  }
 }

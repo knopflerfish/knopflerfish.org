@@ -324,10 +324,23 @@ public class Main {
 	  }
 	} else if ("-update".equals(args[i])) {
 	  if (i+1 < args.length) { 
-	    long id = getBundleID(base,args[i+1]);
-	    framework.updateBundle(id);
-	    println("Updated: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-
+	    long[] ids = null;
+	    if("ALL".equals(args[i+1])) {
+	      Bundle[] bl = framework.getSystemBundleContext().getBundles();
+	      ids = new long[bl.length];
+	      for(int n = 0; n < bl.length; n++) {
+		ids[n] = bl[n].getBundleId();
+	      }
+	    } else {
+	      ids = new long[] { getBundleID(base,args[i+1]) };
+	    }
+	    for(int n = 0; n < ids.length; n++) {
+	      long id = ids[n];
+	      if(id != 0) {
+		framework.updateBundle(id);
+		println("Updated: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+	      }
+	    }
 	    i++;
 	  } else {
 	    error("No id for update command");
