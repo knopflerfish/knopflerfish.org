@@ -36,6 +36,7 @@ public class JSOAPUI extends JPanel {
 
   ImageIcon soapIcon;
 
+  HashMap labels = new HashMap();
   public JSOAPUI(String urlBase) {
     super(new BorderLayout());
 
@@ -111,24 +112,23 @@ public class JSOAPUI extends JPanel {
     }
   }
 
-  Color       selColor = new Color(200, 200, 255);
+
 
   void update() {
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
 	  synchronized(services) {
 	    servicePanel.removeAll();
+	    labels.clear();
 	    for(Iterator it = services.iterator(); it.hasNext();) {
 	      final String name = (String)it.next();
-	      JLabel label = new JLabel(name, 
-					soapIcon, 
-					SwingConstants.CENTER);
+	      final JLabel label = new JLabel2(name, 
+					       soapIcon, 
+					       SwingConstants.CENTER);
 	      
-	      label.setVerticalTextPosition(AbstractButton.BOTTOM);
-	      label.setHorizontalTextPosition(AbstractButton.CENTER);
+	      label.setToolTipText("Show SOAP service '" + name + "'");
 
-
-	      label.setToolTipText("Show Web service '" + name + "'");
+	      labels.put(name, label);
 	      MouseListener l = new MouseAdapter() {
 		  public void mouseClicked(MouseEvent ev) {
 		    selectService(name);
@@ -215,6 +215,20 @@ public class JSOAPUI extends JPanel {
       comp     = renderer.createComponent(wsdl);
 
       selectedName = name;
+
+      for(Iterator it = labels.keySet().iterator(); it.hasNext();) {
+	String s = (String)it.next();
+	JLabel2 label = (JLabel2)labels.get(s);
+	label.setSelected(false);
+      }
+
+      JLabel2 label = (JLabel2)labels.get(name);
+
+      if(label != null) {
+	label.setSelected(true);
+
+      }
+
     } catch (Exception e) {
       comp = new JLabel("Failed to set service\n" + 
 			"URL: " + endPoint + 
@@ -245,5 +259,37 @@ public class JSOAPUI extends JPanel {
       services.remove(name);
     }
     update();
+  }
+}
+
+
+class JLabel2 extends JLabel {
+  
+  Color       selColor = new Color(200, 200, 255);
+
+  boolean bSelected = false;
+
+  JLabel2(String name, Icon icon, int pos) {
+    super(name, icon, SwingConstants.CENTER);
+    
+    setVerticalTextPosition(AbstractButton.BOTTOM);
+    setHorizontalTextPosition(AbstractButton.CENTER);
+    setOpaque(false);
+  }
+
+  public void paintComponent(Graphics g) {
+    Dimension size = getSize();
+    g.setColor(getBackground());
+    g.fillRect(0,0,size.width, size.height);
+    super.paintComponent(g);
+  }
+
+  public Color getBackground() {
+    return bSelected ? selColor : super.getBackground();
+  }
+
+  public void setSelected(boolean b) {
+    this.bSelected = b;
+    repaint();
   }
 }
