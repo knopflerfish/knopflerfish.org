@@ -45,11 +45,11 @@ BODY  {
 }
 
 .failed {
- background:#ff0000;
+ background:#ff7777;
 }
 
 .error {
- background:#ff0000;
+ background:#ff7777;
 }
 
 TD  {

@@ -77,19 +77,10 @@ class Grunt {
       throw new BundleException("Failed to create outdir=" + outdir + ": " + e);
     }
 
-    PrintWriter stylePW = null;
-    try {
-      stylePW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, "junit_style.xsl"))));
-      
-      printResource(stylePW, "/junit_style.xsl");
-    } catch (Exception e) {
-      e.printStackTrace();
-      log("Failed to copy style: " + e);
-    } finally {
-      try {
-	stylePW.close();
-      } catch (Exception ignored) { }
-    }
+    copyFile(new File(outDir, "junit_style.xsl"),  "/junit_style.xsl");
+    copyFile(new File(outDir, "junit_index_style.xsl"), "/junit_index_style.xsl");
+
+    PrintWriter indexPW = null;
 
     try {
       StringTokenizer st = new StringTokenizer(tests);
@@ -108,14 +99,31 @@ class Grunt {
       if(ju == null) {
 	throw new BundleException("JUnitService instance is not available");
       }
+
+      try {
+	indexPW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, "index.xml"))));
+      } catch (Exception e) {
+	e.printStackTrace();
+	throw new BundleException("Failed to create index.xml");
+      }
       
+      indexPW.println("<?xml version=\"1.0\"?>");
+      indexPW.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_index_style.xsl\"?>");
+      indexPW.println("<!DOCTYPE junit_index [\n");
+
       for(int i = 0; i < ids.length; i++) {
-	File outFile = new File(outDir, ids[i] + ".xml");
+	String fname = ids[i] + ".xml";
+	File outFile = new File(outDir, fname);
 	PrintWriter pw = null;
 	try {
 	  log("run test '" + ids[i] + "', out=" + outFile.getAbsolutePath());	pw = new PrintWriter(new FileOutputStream(outFile));
 	  TestSuite suite = ju.getTestSuite(ids[i], null);
 	  ju.runTest(pw, suite);
+
+	  indexPW.println(" <!ENTITY testid_" + i + 
+			  " SYSTEM " + 
+			  " \"" + fname + "\">");
+
 	} catch (Exception e) {
 	  log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
 	  e.printStackTrace();
@@ -123,6 +131,17 @@ class Grunt {
 	  try { pw.close(); } catch (Exception ignored) { }
 	}
       }
+
+      indexPW.println("]>"); // end of DOCTYPE
+
+      indexPW.println("<junit_index>");
+      for(int i = 0; i < ids.length; i++) {
+	String fname = ids[i] + ".xml";
+	indexPW.println("&testid_" + i + ";");
+      }
+      indexPW.println("</junit_index>");
+
+      
       
       if(bQuit) {
 	log("Quit framework after tests");
@@ -132,12 +151,32 @@ class Grunt {
       e.printStackTrace();
       throw new BundleException("Failed: " + e);
     } finally {
+      try {
+	indexPW.close();
+      } catch (Exception ignored) {
+      }
     }
   }
     
   void log(String msg) {
     System.out.println("junit_runner: " + msg);
   }
+
+  void copyFile(File toFile, String fromResource) {
+    PrintWriter stylePW = null;
+    try {
+      stylePW = new PrintWriter(new PrintWriter(new FileOutputStream(toFile)));
+      
+      printResource(stylePW, fromResource);
+    } catch (Exception e) {
+      e.printStackTrace();
+      log("Failed to copy style: " + e);
+    } finally {
+      try { stylePW.close();  } catch (Exception ignored) { }
+      stylePW = null;
+    }
+  }
+
 
   void printResource(PrintWriter out, String name)  {
     InputStream in = null;
