@@ -42,9 +42,6 @@ import java.lang.reflect.*;
 import java.io.*;
 
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
 /**
  * Implementation calss for AttributeDefinition.
  *
@@ -274,6 +271,13 @@ public class AD implements AttributeDefinition, Comparable {
     }
   }
 
+  static Class BIGDECIMAL_PRIMITIVE = Double.TYPE;
+  static Class BIGDECIMAL_OBJECT    = Double.class;
+
+  static Class BIGINTEGER_PRIMITIVE = Integer.TYPE;
+  static Class BIGINTEGER_OBJECT    = Integer.class;
+
+
   static final Class[] ARRAY_CLASSES     = new Class[BOOLEAN-STRING + 1];
   static final Class[] PRIMITIVE_CLASSES = new Class[] {
     String.class,  
@@ -284,8 +288,8 @@ public class AD implements AttributeDefinition, Comparable {
     Byte.TYPE,  
     Double.TYPE,      
     Float.TYPE,  
-    BigInteger.class,  
-    BigDecimal.class,  
+    BIGINTEGER_PRIMITIVE,  
+    BIGDECIMAL_PRIMITIVE,  
     Boolean.TYPE,  
   };
   static final Class[] OBJECT_CLASSES = new Class[] {
@@ -297,12 +301,32 @@ public class AD implements AttributeDefinition, Comparable {
     Byte.class,  
     Double.class,      
     Float.class,  
-    BigInteger.class,  
-    BigDecimal.class,  
+    BIGINTEGER_OBJECT,  
+    BIGDECIMAL_OBJECT,  
     Boolean.class,  
   };
 
   static {    
+    try {
+      BIGDECIMAL_PRIMITIVE = Class.forName("java.math.BigDecimal");
+      BIGDECIMAL_OBJECT    = BIGDECIMAL_PRIMITIVE;
+    } catch (Throwable t) {
+      //      System.out.println("no BigDecimal");
+    }
+    try {
+      BIGINTEGER_PRIMITIVE = Class.forName("java.math.BigInteger");
+      BIGINTEGER_OBJECT    = BIGINTEGER_PRIMITIVE;
+    } catch (Throwable t) {
+      //      System.out.println("no BigInteger");
+    }
+    
+    /*
+    System.out.println("BIGINTEGER_PRIMITIVE=" + BIGINTEGER_PRIMITIVE);
+    System.out.println("BIGINTEGER_OBJECT=" + BIGINTEGER_OBJECT);
+    System.out.println("BIGDECIMAL_PRIMITIVE=" + BIGDECIMAL_PRIMITIVE);
+    System.out.println("BIGDECIMAL_OBJECT=" + BIGDECIMAL_OBJECT);
+    */
+
     try {
       for(int i = STRING; i <= BOOLEAN; i++) {
 	ARRAY_CLASSES[i-STRING] = 
@@ -370,9 +394,9 @@ public class AD implements AttributeDefinition, Comparable {
       return SHORT;
     } else if(val instanceof Character) {
       return CHARACTER;
-    } else if(val instanceof BigInteger) {
+    } else if(BIGINTEGER_OBJECT.isAssignableFrom(val.getClass())) {
       return BIGINTEGER;
-    } else if(val instanceof BigDecimal) {
+    } else if(BIGDECIMAL_OBJECT.isAssignableFrom(val.getClass())) {
       return BIGDECIMAL;
     } else if(val instanceof String) {
       return STRING;
