@@ -63,12 +63,6 @@ public class TextAreaOutputStream extends OutputStream {
   }
 
   public void write(int b) {
-    if(ConsoleSwing.config.multiplexSystemOut && swingIO.origOut != null) {
-      swingIO.origOut.write(b);
-    }
-    if(ConsoleSwing.config.multiplexSystemErr && swingIO.origErr != null) {
-      swingIO.origErr.write(b);
-    }
     char c = (char)b;
     if(c == '\r') {
     } else if(c == '\n') {

@@ -44,7 +44,7 @@ public class Config {
   String  bgColor            = "E7E7DE";
   String  textColor          = "000000";
   boolean grabSystemIO       = true;
-  boolean multiplexSystemOut = false;
+  boolean multiplexSystemOut = true;
   boolean multiplexSystemErr = true;
 
 

@@ -90,8 +90,10 @@ public class SwingIO extends JPanel {
 	  origErr = System.err;
 	  
 	  //	  System.setIn(in);
-	  System.setOut(new PrefixPrintStream(out, "[stdout] "));
-	  System.setErr(new PrefixPrintStream(out, "[stderr] "));
+	  System.setOut(new PrefixPrintStream(out, "[stdout] ", 
+					      ConsoleSwing.config.multiplexSystemOut ? System.out : null));
+	  System.setErr(new PrefixPrintStream(out, "[stderr] ", 
+					      ConsoleSwing.config.multiplexSystemErr ? System.err : null));
 	  
 	  bGrabbed = true;
 	  ConsoleSwing.log(LogService.LOG_DEBUG, "...grabbed system I/O");
