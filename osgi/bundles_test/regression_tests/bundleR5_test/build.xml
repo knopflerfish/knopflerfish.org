@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="bundleR5_test" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/**"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/**"/>
+
+  <property name = "bundle.build.api"    value = "false"/>
+  <property name = "bundle.build.lib"    value = "false"/>
+  <property name = "bundle.build.impl"   value = "false"/>
+  <property name = "bundle.build.all"    value = "true"/>
+
+  <path id="bundle.compile.path">
+  </path>
+  
+  
+  <property name="bundle.description"    value="Test bundle for framework, bundleR5_test, exports a resource in its package name space"/>
+  <property name="bundle.category"       value="test"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Gatespace Telematics"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+  <property name="bundle.activator"      value="[bundle.emptystring]"/>
+  <property name="export.package"      value="org.knopflerfish.bundle.bundleR5_test"/>
+  <property name="import.package"      value="[bundle.emptystring]"/>
+
+  &bundlebuild_include;
+
+</project>
+
+
+
