@@ -169,11 +169,11 @@
 		baseURL      = "${obr.baseurl}"
     >
 
-      <fileset dir="osgi/jars">
+      <fileset dir="${obr.basedir}">
         <include name = "upnp/upnp_api-*.jar"/>
       </fileset>
 
-      <fileset dir="osgi/jars">
+      <fileset dir="${obr.basedir}">
         <include name = "**/*.jar"/>
         <exclude name = "**/*_api-*.jar"/>
         <exclude name = "framework.jar"/>
