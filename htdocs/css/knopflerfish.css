@@ -51,18 +51,14 @@ TH  {
  font-weight:bold
 }
 
-TD.navigation_enabled {
-
-}
-
-TD.navigation_disabled {
- background: #ffffff;
-}
-
 TD A  {
- color:000000;
+ color:#000077;
  text-decoration:none
  font-size:11px;
+}
+
+TD A:visited  {
+ color:#000033;
 }
 
 PRE {
@@ -123,18 +119,30 @@ A.top {
   font-weight:      bold;
 }
 
-A.navigation_enabled, A.navigation_enabled:visited, A.navigation_enabled:selected, A.navigation_enabled:active {
+A.navigation_enabled, A.navigation_enabled:selected, A.navigation_enabled:active {
  text-decoration:  none;
  font-weight:      normal;
+}
+
+A.navigation_enabled:visited {
+ text-decoration:  none;
+ font-weight:      normal;
+ color:            #000000;
 }
 
 A.navigation_enabled:hover {
  text-decoration:  underline;
 }
 
-A.navigation_disabled, A.navigation_disabled:visited, A.navigation_disabled:selected, A.navigation_disabled:active {
+A.navigation_disabled, A.navigation_disabled:selected, A.navigation_disabled:active {
  text-decoration:  none;
  font-weight:      bold;
+}
+
+A.navigation_disabled:visited {
+ text-decoration:  none;
+ font-weight:      bold;
+ color:            #000000;
 }
 
 A.navigation_disabled:hover {
