@@ -128,10 +128,18 @@ public class JCMService extends JPanel {
 
 	props.put(ad.getID(), jcmProp);
 	
+	String className = AD.getClass(ad.getType()).getName();
+	
+	if(ad.getCardinality() < 0) {
+	  className = "Vector of " + className;
+	} else if(ad.getCardinality() > 0) {
+	  className = className + "[]";
+	}
+
 	JLabelled item = 
 	  new JLabelled(ad.getName(), 
 			ad.getDescription() +  
-			" (" + AD.getClass(ad.getType()) + ")",
+			" (" + className + ")",
 			jcmProp,
 			100);
 	propPane.add(item);

@@ -53,7 +53,7 @@ public class JLabelled extends JPanel {
     label.setPreferredSize(new Dimension(labelWidth, 10));
 
     if(tooltip != null && !"".equals(tooltip)) {
-      label.setToolTipText(tooltip);
+      label.setToolTipText("<html>" + tooltip + "</html>");
     }
 
     add(label, BorderLayout.WEST);
