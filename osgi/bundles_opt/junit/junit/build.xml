@@ -34,6 +34,9 @@
   <property name="bundle.docurl" 
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt"/>
 
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/"/>
+
   <property name="export.package" 
             value="org.knopflerfish.service.junit,junit.framework"/>
 
