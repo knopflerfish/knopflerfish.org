@@ -49,7 +49,8 @@
 
 
   <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
-   <xsd:complexType name="service1">
+   <xsd:complexType name="service1" iconURL="http://www.knopflerfish.org/images/knopflerfish-small.gif">
+
     <xsd:annotation>
      <xsd:documentation>A very simple service</xsd:documentation>
     </xsd:annotation>

@@ -40,6 +40,7 @@ import org.osgi.service.metatype.*;
 import org.osgi.service.metatype.*;
 import java.io.*;
 import java.util.*;
+import java.net.URL;
 
 public class OCD implements ObjectClassDefinition {
 
@@ -49,6 +50,8 @@ public class OCD implements ObjectClassDefinition {
   String desc;
   List optAttrs;
   List reqAttrs;
+
+  URL      iconURL = null;
 
   /**
    * @param desc To able to differentiate between
@@ -149,8 +152,24 @@ public class OCD implements ObjectClassDefinition {
   }
   
   public InputStream getIcon(int size) {
-    return null;
+    if(iconURL != null) {
+      try {	
+	InputStream is =  iconURL.openStream();
+	return is;
+      } catch (Exception e) {
+	System.err.println("Failed to open URL " + iconURL + ", " + e);
+	return null;
+      }
+    } else {
+      return null;
+    }
+
   }
+
+  public void setIconURL(URL url) {
+    iconURL = url;
+  }
+
 
   public String getID() {
     return id;

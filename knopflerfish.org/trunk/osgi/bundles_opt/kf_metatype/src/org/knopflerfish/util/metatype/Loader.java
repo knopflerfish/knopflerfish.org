@@ -59,6 +59,7 @@ public class Loader {
   static final String ATTR_BASE      = "base";
   static final String ATTR_VALUE     = "value";
   static final String ATTR_MAXOCCURS = "maxOccurs";
+  static final String ATTR_ICONURL   = "iconURL";
 
   static final String ATTR_ARRAY     = "array";
 
@@ -166,6 +167,13 @@ public class Loader {
       OCD ocd = new OCD(services[i].pid, 
 			services[i].pid, 
 			services[i].desc);
+      if(services[i].iconURL != null) {
+	try {
+	  ocd.setIconURL(new URL(services[i].iconURL));
+	} catch (Exception e) {
+	  System.err.println("Failed to set icon url: " +  e);
+	}
+      }
       for(int j = 0; j < services[i].ads.length; j++) {
 	ocd.add(services[i].ads[j], ObjectClassDefinition.REQUIRED);
       }
@@ -175,6 +183,13 @@ public class Loader {
       OCD ocd = new OCD(factories[i].pid, 
 			factories[i].pid, 
 			factories[i].desc);
+      if(factories[i].iconURL != null) {
+	try {
+	  ocd.setIconURL(new URL(factories[i].iconURL));
+	} catch (Exception e) {
+	  System.err.println("Failed to set icon url: "+ e);
+	}
+      }
       for(int j = 0; j < factories[i].ads.length; j++) {
 	ocd.add(factories[i].ads[j], ObjectClassDefinition.REQUIRED);
       }
@@ -430,9 +445,14 @@ public class Loader {
       AttributeDefinition[] ads = parseComplexType(childEl);
       Annotation an = loadAnnotationFromAny(childEl);
       
+      String iconURL = childEl.getAttribute(ATTR_ICONURL);
+      if("".equals(iconURL)) {
+	iconURL = null;
+      }
       return new CMConfig(childEl.getAttribute(ATTR_NAME).toString(), 
 			  ads,
 			  an != null ? an.doc : "",
+			  iconURL,
 			  false);
     }
 
@@ -1026,14 +1046,17 @@ class CMConfig {
   public boolean bFactory;
   public AttributeDefinition[] ads;
   public String  desc;
+  public String  iconURL;
 
   public CMConfig(String pid,
 		  AttributeDefinition[] ads, 
 		  String desc,
+		  String iconURL,
 		  boolean bFactory) {
     this.pid      = pid;
     this.ads      = ads;
     this.desc     = desc != null ? desc : "";
+    this.iconURL  = iconURL;
     this.bFactory = bFactory;
   }
 
@@ -1043,6 +1066,7 @@ class CMConfig {
     sb.append("CMConfig[");
     sb.append("pid=" + pid);
     sb.append(", desc=" + desc);
+    sb.append(", iconURL=" + iconURL);
     sb.append(", bFactory=" + bFactory);
     sb.append(", attribs=");
     for(int i = 0; i < ads.length; i++) {
