@@ -67,6 +67,9 @@ public class Loader {
   static final String VALUES        = "values";
   static final String SCHEMA        = "schema";
 
+  static final String SERVICE_PID   = "service.pid";
+  static final String FACTORY_PID   = "factory.pid";
+
   static final String ITEM          = "item";
 
   static final String ATTR_PID  = "pid";
@@ -123,7 +126,7 @@ public class Loader {
   /**
    * load defaults from an XML file into an MTP
    */
-  public static Dictionary loadDefaultsFromURL(MTP mtp, URL url) throws IOException {
+  public static List loadDefaultsFromURL(MTP mtp, URL url) throws IOException {
     InputStream in = null;
     
     try {
@@ -134,19 +137,19 @@ public class Loader {
       XMLElement el  = (XMLElement) parser.parse();
 
       if(isName(el, METATYPE_NS, VALUES)) {
-	Dictionary pids = loadValues(mtp, el);
-	setDefaultValues(mtp, pids);
-	return pids;
+	List propList = loadValues(mtp, el);
+	setDefaultValues(mtp, propList);
+	return propList;
       } else {
 	for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
 	  XMLElement childEl = (XMLElement)e.nextElement();
 	  if(isName(childEl, METATYPE_NS, VALUES)) {
 	    
-	    Dictionary pids = loadValues(mtp, childEl);
+	    List propList = loadValues(mtp, childEl);
 	    
-	    setDefaultValues(mtp, pids);
+	    setDefaultValues(mtp, propList);
 	    
-	    return pids;
+	    return propList;
 	  }
 	}
       }
@@ -266,9 +269,9 @@ public class Loader {
       for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
 	XMLElement childEl = (XMLElement)e.nextElement();
 	if(isName(childEl, METATYPE_NS, VALUES)) {
-	  Dictionary pids = loadValues(mtp, childEl);
+	  List propList = loadValues(mtp, childEl);
 	
-	  setDefaultValues(mtp, pids);
+	  setDefaultValues(mtp, propList);
 	}
       }
     }
@@ -281,14 +284,18 @@ public class Loader {
    * Overwrite default values in MTP using a set of dictionaries.
    *
    * @param mtp MetaTypeProvider containing instances of <tt>AD</tt>
-   * @param pids Dictionary of String (pid) to Dictionary
+   * @param propList List of Dictionary
    */
   public static void setDefaultValues(MetaTypeProvider mtp, 
-				      Dictionary pids) {
+				      List propList) {
 
-    for(Enumeration e = pids.keys(); e.hasMoreElements(); ) {
-      String                pid     = (String)e.nextElement();
-      Dictionary            props   = (Dictionary)pids.get(pid);
+    for(Iterator it = propList.iterator(); it.hasNext();) {
+      Dictionary            props   = (Dictionary)it.next();
+      String                pid     = (String)props.get(SERVICE_PID);
+      if(pid == null) {
+	pid     = (String)props.get("factory.pid");
+      }
+
       ObjectClassDefinition ocd     = null;
       try {
 	ocd = mtp.getObjectClassDefinition(pid, null);
@@ -327,16 +334,21 @@ public class Loader {
   /**
    * @return String (pid) -> Dictionary
    */
-  public static Dictionary loadValues(MetaTypeProvider mtp, XMLElement el) {
+  public static List loadValues(MetaTypeProvider mtp, XMLElement el) {
 
     //    assertTagName(el, DEFAULTVALUES);
 
-    Hashtable pids = new Hashtable();
+    List propList = new ArrayList();
+
+    // String (pid) -> Integer (count)
+    Map  countMap = new HashMap();
 
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement            childEl = (XMLElement)e.nextElement();
       String                pid     = childEl.getName();
       ObjectClassDefinition ocd     = null;
+      
+
       
       try {
 	ocd = mtp.getObjectClassDefinition(pid, null);
@@ -348,10 +360,29 @@ public class Loader {
       Dictionary props = 
 	loadValues(ocd.getAttributeDefinitions(ObjectClassDefinition.ALL), 
 		   childEl);
-      pids.put(pid, props);
+      int maxInstances = 1;
+      if(ocd instanceof OCD) {
+	maxInstances = ((OCD)ocd).maxInstances;
+      }
+
+      Integer count = (Integer)countMap.get(pid);
+      if(count == null) {
+	count = new Integer(0);
+      }
+      count = new Integer(count.intValue() + 1);
+      if(count.intValue() > maxInstances) {
+	throw new XMLException("PID " + pid + " can only have " +
+			       maxInstances + " instance(s), found " + 
+			       count, el);
+      }
+
+      countMap.put(pid, count);
+      
+      props.put(maxInstances > 1 ? "factory.pid" : SERVICE_PID, pid);
+      propList.add(props);
     }
 
-    return pids;
+    return propList;
   }
 
   public static Dictionary loadValues(AttributeDefinition[] attrs, 
@@ -924,7 +955,7 @@ public class Loader {
 				      String[] factoryPIDs,
 				      boolean bXMLHeader,
 				      boolean bMetatypeTag,
-				      Dictionary pids,
+				      List propList,
 				      PrintWriter out) {
     if(bXMLHeader) {
       out.println("<?xml version=\"1.0\"?>");
@@ -938,20 +969,16 @@ public class Loader {
     out.println("");
 
     out.println("   <xsd:schema>\n");
-    //    out.println(" <metatype:services>");
     printOCDXML(mtp, servicePIDs, 1, out);
-    //    out.println(" </metatype:services>");
     out.println("");
 
-    //    out.println(" <metatype:factories>");
     printOCDXML(mtp, factoryPIDs, Integer.MAX_VALUE, out);
-    //    out.println(" </metatype:factories>");
     out.println("");
 
     out.println("   </xsd:schema>\n");
 
-    if(pids != null) {
-      printValuesXML(pids, false, out);
+    if(propList != null) {
+      printValuesXML(propList, false, out);
     }
 
     if(bMetatypeTag) {
@@ -1075,7 +1102,7 @@ public class Loader {
     }
   }
 
-  public static void printValuesXML(Dictionary pids, 
+  public static void printValuesXML(List propList,
 				    boolean bXMLHeader,
 				    PrintWriter out) {
 
@@ -1086,10 +1113,12 @@ public class Loader {
     out.println(" <metatype:values\n" + 	"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
     out.println("");
     
-    for(Enumeration e = pids.keys(); e.hasMoreElements(); ) {
-      String pid = (String)e.nextElement();
-
-      Dictionary props = (Dictionary)pids.get(pid);
+    for(Iterator it = propList.iterator(); it.hasNext();) {
+      Dictionary            props   = (Dictionary)it.next();
+      String                pid     = (String)props.get(SERVICE_PID);
+      if(pid == null) {
+	pid     = (String)props.get("factory.pid");
+      }
 
       out.println("");
       out.println("  <!-- pid " + pid + " -->");
