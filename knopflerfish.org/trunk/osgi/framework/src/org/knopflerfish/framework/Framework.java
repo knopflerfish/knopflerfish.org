@@ -76,7 +76,7 @@ public class Framework {
   /**
    * All bundle in this framework.
    */
-  Bundles bundles;
+  protected Bundles bundles;
 
   /**
    * All listeners in this framework.
@@ -191,8 +191,9 @@ public class Framework {
     systemBundle      = new SystemBundle(this);
 
     systemBC          = new BundleContextImpl(systemBundle);
-
     bundles           = new Bundles(this);
+
+    systemBundle.setBundleContext(systemBC);
 
 
     
@@ -554,5 +555,16 @@ public class Framework {
     } else {
       return System.getProperty(key);
     }
+  }
+
+  /**
+   * Get the bundle context used by the system bundle.
+   */
+  public BundleContext getSystemBundleContext() {
+    return (BundleContext)
+      AccessController.doPrivileged(new  PrivilegedAction() {
+	  public Object run() {
+	    return systemBC;
+	  }});
   }
 }
