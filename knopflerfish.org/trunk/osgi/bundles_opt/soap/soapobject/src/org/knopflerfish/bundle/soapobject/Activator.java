@@ -23,7 +23,7 @@ public class Activator implements BundleActivator {
    private ServiceReference registerObject(String name, Object obj) {
       Hashtable ht = new Hashtable();
       
-      ht.put("SOAP_SERVICE_NAME", name);
+      ht.put("SOAP.service.name", name);
       return (context.registerService(obj.getClass().getName(), obj, ht)).getReference();
    }
 }

@@ -41,10 +41,10 @@ public interface AxisAdmin {
    * SOAP services.
    * 
    * <p>
-   * Value of the property is <tt>SOAP_SERVICE_NAME</tt>
+   * Value of the property is <tt>SOAP.service.name</tt>
    * </p>
    */
-  public static final String SOAP_SERVICE_NAME = "SOAP_SERVICE_NAME";
+  public static final String SOAP_SERVICE_NAME = "SOAP.service.name";
 
   /**
    * Service property limiting which methods are exposed.

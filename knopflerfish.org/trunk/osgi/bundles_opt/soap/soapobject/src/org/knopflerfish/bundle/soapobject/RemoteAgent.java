@@ -52,12 +52,9 @@ public class RemoteAgent  {
   }
 
 
-  public void stopBundle(long bundleId) {
-    try {
-      Bundle b = context.getBundle(bundleId);
-      b.stop();
-    } catch (Exception e) {
-    }
+  public void stopBundle(long bundleId) throws BundleException {
+    Bundle b = context.getBundle(bundleId);
+    b.stop();
   }
 
   public void uninstallBundle(long bundleId) {
