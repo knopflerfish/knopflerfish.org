@@ -5,11 +5,13 @@
   <target name="all">
     <ant dir="commons-logging"   target="all"/>
     <ant dir="soap"              target="all"/>
+    <ant dir="metatype"          target="all"/>
   </target>
 
   <target name="clean">
     <ant dir="commons-logging"   target="clean"/>
     <ant dir="soap"              target="clean"/>
+    <ant dir="metatype"          target="clean"/>
   </target>
 
 </project>
