@@ -79,10 +79,7 @@ public class ObjectSOAPService {
 	this.allowedMethods = getMethodNames(classNames);
       } else {
 	this.allowedMethods = allowedMethods;
-      }
-      
-      System.out.println("SOAP object: " + serviceObject.getClass().getName() +
-		     ", methods=" + this.allowedMethods);
+      }      
    }
 
   /**
