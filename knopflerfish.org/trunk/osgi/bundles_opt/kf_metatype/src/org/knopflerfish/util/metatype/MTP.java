@@ -116,7 +116,7 @@ public class MTP implements MetaTypeProvider, PIDProvider {
   }
 
   public int compareTo(Object other) {
-    return id.compareTo(((AD)other).id);
+    return id.compareTo(((MTP)other).id);
   }
   
   public int hashCode() {
@@ -124,7 +124,7 @@ public class MTP implements MetaTypeProvider, PIDProvider {
   }
   
   public boolean equals(Object other) {
-    if(other == null || !(other instanceof AD)) {
+    if(other == null || !(other instanceof MTP)) {
       return false;
     }
 
