@@ -46,6 +46,7 @@ import java.net.MalformedURLException;
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.*;
 import org.osgi.service.permissionadmin.*;
+import org.osgi.service.startlevel.*;
 
 import org.knopflerfish.service.console.*;
 
@@ -63,6 +64,9 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   private BundleContext bc;
   private PackageAdmin packageAdmin = null;
   private PermissionAdmin permissionAdmin = null;
+
+  private StartLevel      startLevel = null;
+
   /**
    ** The default directories for bundle jar files.
    ** <p>
@@ -76,14 +80,26 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   FrameworkCommandGroup(BundleContext bc) {
     super("framework", "Framework commands");
     this.bc = bc;
+
+    // all of these services are framework singleton internal services
+    // thus, we take a shortcut and skip the service tracking
+
     ServiceReference sr = bc.getServiceReference(PackageAdmin.class.getName());
     if (sr != null ) {
       packageAdmin = (PackageAdmin) bc.getService(sr);
     }
+
     sr = bc.getServiceReference(PermissionAdmin.class.getName());
     if (sr != null ) {
       permissionAdmin = (PermissionAdmin) bc.getService(sr);
     }
+
+    sr = bc.getServiceReference(StartLevel.class.getName());
+    if (sr != null ) {
+      startLevel = (StartLevel) bc.getService(sr);
+    }
+
+    
     String jars = "file:./"; // System.getProperty("org.knopflerfish.gosg.jars", "file:./");
     StringTokenizer st = new StringTokenizer(jars,";");
     bundleDirs = new String[st.countTokens()];
@@ -218,26 +234,40 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   // Bundles command
   //
 
-  public final static String USAGE_BUNDLES = "[-1] [-i] [-l] [<bundle>] ...";
+  public final static String USAGE_BUNDLES = "[-1] [-i] [-l] [-s] [<bundle>] ...";
   public final static String [] HELP_BUNDLES = new String [] {
     "List bundles",
     "-1       One column output",
     "-i       Sort on bundle id",
+    "-s       Sort on bundle start level",
     "-l       Verbose output",
     "<bundle> Name or id of bundle" };
 
   public int cmdBundles(Dictionary opts, Reader in, PrintWriter out, Session session) {
-    Bundle [] b = getBundles((String [])opts.get("bundle"), opts.get("-i") != null);
+    Bundle [] b = getBundles((String [])opts.get("bundle"), 
+			     opts.get("-i") != null,
+			     opts.get("-s") != null
+			     );
     boolean needNl = false;
     for (int i = 0; i < b.length; i++) {
+      String level = null;
+      try {
+	level = "" + startLevel.getBundleStartLevel(b[i]);
+	if(level.length() < 2) {
+	  level = " " + level;
+	}
+      } catch (Exception e) {
+	// no start level set.
+      }
+
       if (b[i] == null) {
 	break;
       }
       if (opts.get("-l") != null) {
-	out.println(Util.showId(b[i]) + Util.showState(b[i]) + b[i].getLocation());
+	out.println(Util.showId(b[i]) + showState(b[i]) + b[i].getLocation());
       } else {
 	if ((i & 1) == 0 && opts.get("-1") == null) {
-	  String s = Util.showId(b[i]) + Util.showState(b[i]) + Util.shortName(b[i]);
+	  String s = Util.showId(b[i]) + showState(b[i]) + Util.shortName(b[i]);
 	  out.print(s);
 	  int l = 40 - s.length();
 	  if (l > 0) {
@@ -246,7 +276,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 	  }
 	  needNl = true;
 	} else {
-	  out.println(Util.showId(b[i]) + Util.showState(b[i]) + Util.shortName(b[i]));
+	  out.println(Util.showId(b[i]) + showState(b[i]) + Util.shortName(b[i]));
 	  needNl = false;
 	}
       }
@@ -946,7 +976,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     }
   }
 
-  private Bundle [] getBundles(String [] selection, boolean sortNumeric) {
+  private Bundle [] getBundles(String [] selection, 
+			       boolean sortNumeric) {
+    return getBundles(selection, sortNumeric, false);
+  }
+
+  private Bundle [] getBundles(String [] selection, 
+			       boolean sortNumeric,
+			       boolean sortStartLevel) {
     Bundle [] b = bc.getBundles();
     Util.selectBundles(b, selection);
     if (sortNumeric) {
@@ -954,9 +991,88 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     } else {
       Util.sortBundles(b, false);
     }
+    if(sortStartLevel) {
+      sortBundlesStartLevel(b);
+    }
+    
     return b;
   }
 
+  /**
+   * Sort an array of bundle objects based on their start level
+   * All entries with no start level is placed at the end of the array.
+   *
+   * @param b array of bundles to be sorted, modified with result
+   */
+  protected void sortBundlesStartLevel(Bundle [] b) {
+    int x = b.length;;
+    for (int l = x; x > 0;) {
+      x = 0;
+      int p = Integer.MAX_VALUE;
+      try { p = startLevel.getBundleStartLevel(b[0]);
+      } catch (Exception ignored) { }
+      for (int i = 1; i < l; i++) {
+	int n = Integer.MAX_VALUE;
+	try { n = startLevel.getBundleStartLevel(b[i]);	
+	} catch (Exception ignored) { }
+	if (p > n) {
+	  x = i-1;
+	  Bundle t = b[x];
+	  b[x] = b[i];
+	  b[i] = t;
+	} else {
+	  p = n;
+	}
+      }
+    }
+  }
+
+  public String showState(Bundle bundle) {
+    StringBuffer sb = new StringBuffer();
+
+    try { 
+      StringBuffer s= 
+	new StringBuffer(Integer.toString(startLevel.getBundleStartLevel(bundle)));
+      while(s.length() < 2) {
+	s.insert(0, " ");
+      }
+      sb.append(s);
+    } catch (Exception ignored) { 
+      sb.append("--");
+    }
+
+    sb.append("/");
+    
+    switch (bundle.getState()) {
+    case Bundle.INSTALLED:
+      sb.append("installed");
+      break;
+    case Bundle.RESOLVED:
+      sb.append("resolved");
+      break;
+    case Bundle.STARTING:
+      sb.append("starting");
+      break;
+    case Bundle.ACTIVE:
+      sb.append("active");
+      break;
+    case Bundle.STOPPING:
+      sb.append("stopping");
+      break;
+    case Bundle.UNINSTALLED:
+      sb.append("uninstalled");
+      break;
+    default:
+      sb.append("ILLEGAL <" + bundle.getState() +"> ");
+      break;
+    }
+    while(sb.length() < 12) {
+      sb.append(" ");
+    }
+ 
+
+    return sb.toString();
+  }
 
   private String showBundle(Bundle b) {
     return Util.shortName(b) + " (#" + b.getBundleId() + ")";
@@ -972,6 +1088,106 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       for (int i = 0; i < pi.length; i++) {
 	out.println(shift + pi[i]);
       }
+    }
+  }
+
+  //
+  // Set start level command
+  //
+  public final static String USAGE_SETSTARTLEVEL = "<level>";
+  public final static String [] HELP_SETSTARTLEVEL = new String [] {
+    "Set the global startlevel",
+    "<level> new start level",
+  };
+
+  public int cmdSetstartlevel(Dictionary opts, 
+			      Reader in, 
+			      PrintWriter out, Session session) {
+    int level = -1;
+    try {
+      level = Integer.parseInt((String)opts.get("level"));
+      startLevel.setStartLevel(level);
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to set startlevel=" + level);
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+
+  //
+  // Set initial bundle start level command
+  //
+  public final static String USAGE_SETINITSTARTLEVEL = "<level>";
+  public final static String [] HELP_SETINITSTARTLEVEL = new String [] {
+    "Set the initial startlevel for new bundles",
+    "<level> new init start level",
+  };
+
+  public int cmdSetinitstartlevel(Dictionary opts, 
+			       Reader in, 
+			       PrintWriter out, Session session) {
+    int level = -1;
+    try {
+      level = Integer.parseInt((String)opts.get("level"));
+      startLevel.setInitialBundleStartLevel(level);
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to set initial bundle startlevel=" + level);
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+
+  //
+  // Set bundle start level 
+  //
+  public final static String USAGE_SETBUNDLESTARTLEVEL = "<level> [<bundle>] ...";
+  public final static String [] HELP_SETBUNDLESTARTLEVEL = new String [] {
+    "Set the startlevel for a bundles",
+    "<level> new start level",
+    "<bundle> Name or id of bundles",
+  };
+
+  public int cmdSetbundlestartlevel(Dictionary opts, 
+				    Reader in, 
+				    PrintWriter out, Session session) {
+    int level = -1;
+    try {
+      level = Integer.parseInt((String)opts.get("level"));
+      Bundle [] b = getBundles((String [])opts.get("bundle"), false, false);
+      for(int i = 0; i < b.length; i++) {
+	if(b[i] != null) {
+	  startLevel.setBundleStartLevel(b[i], level);
+	}
+      }
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to set initial bundle startlevel=" + level);
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+
+  //
+  // Show initial bundle start level command
+  //
+  public final static String USAGE_SHOWINITSTARTLEVEL = "";
+  public final static String [] HELP_SHOWINITSTARTLEVEL = new String [] {
+    "Show the initial startlevel for new bundles",
+  };
+
+  public int cmdShowinitstartlevel(Dictionary opts, 
+				Reader in, 
+				PrintWriter out, Session session) {
+    int level = -1;
+    try {
+      out.println("" + startLevel.getInitialBundleStartLevel());
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to show initial startlevel");
+      e.printStackTrace(out);
+      return -1;
     }
   }
 
