@@ -41,7 +41,6 @@ import java.util.Dictionary;
  ** Util methods for dealing with dictionaries.
  **
  ** @author Gatespace AB 
- ** @version $Revision: 1.1.1.1 $
  **
  */
 public class Dict {

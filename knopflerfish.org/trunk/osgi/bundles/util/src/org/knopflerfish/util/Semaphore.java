@@ -37,7 +37,6 @@ package org.knopflerfish.util;
 /**
  ** The <code>Semaphore</code> class handles synchronization and waiting for values.
  ** @author Johan Agat and Anders Rimen
- ** @version $Revision: 1.1.1.1 $
  */
 public class Semaphore  
 {
