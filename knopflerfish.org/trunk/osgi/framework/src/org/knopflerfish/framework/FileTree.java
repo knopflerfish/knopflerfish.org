@@ -123,14 +123,17 @@ public class FileTree extends File
    */
   public boolean delete()
   {
+    boolean allDeleted = true;
     if (isDirectory()) {
       String [] dirs = list();
       if(dirs != null) {
 	for (int i = dirs.length - 1; i>= 0; i--) {
-	  (new FileTree(this, dirs[i])).delete();
+	  allDeleted &= (new FileTree(this, dirs[i])).delete();
 	}
       }
     }
-    return super.delete();
+    boolean thisDeleted = super.delete();
+
+    return allDeleted & thisDeleted;
   }
 }

@@ -398,6 +398,40 @@ class BundleArchiveImpl implements BundleArchive
     }
     return null;
   }
+
+  /**
+   * Statically check if a directory contains info that a bundle
+   * is uninstalled.
+   *
+   * <p>
+   * Uninstalled is marked via a startlevel of -2
+   * </p>
+   */
+  static boolean isUninstalled(File dir) {
+    String s = getContent(dir, STARTLEVEL_FILE);
+    int n = -1;
+    try {
+      n = Integer.parseInt(s);
+    } catch (Exception e) {
+    }
+    return n == -2;
+  }
+
+  static String getContent(File dir, String f) {
+    DataInputStream in = null;
+    try {
+      in = new DataInputStream(new FileInputStream(new File(dir, f)));
+      return in.readUTF();
+    } catch (IOException ignore) {
+    } finally {
+      if (in != null) {
+	try {
+	  in.close();
+	} catch (IOException ignore) { }
+      }
+    }
+    return null;
+  }
   
 
   /**

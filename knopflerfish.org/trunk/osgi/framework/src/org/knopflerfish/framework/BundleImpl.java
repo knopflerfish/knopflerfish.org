@@ -537,9 +537,8 @@ class BundleImpl implements Bundle {
     framework.checkAdminPermission();
 
     try {
-      archive.setStartLevel(-1);
-    } catch (Exception ignored) {
-    }
+      archive.setStartLevel(-2); // Mark as uninstalled
+    } catch (Exception ignored) {   }
 
     bDelayedStart = false;
     
@@ -574,7 +573,17 @@ class BundleImpl implements Bundle {
       if (bundleDir != null) {
 	AccessController.doPrivileged(new PrivilegedAction() {
 	  public Object run() {
-	    bundleDir.delete();
+	    if(!bundleDir.delete()) {
+	      // Bundle dir is not deleted completely, make sure we mark
+	      // it as uninstalled for next framework restart
+	      try {
+		archive.setStartLevel(-2); // Mark as uninstalled
+	      } catch (Exception e) {
+		Debug.println("Failed to mark bundle " + id + 
+			      " as uninstalled, " + bundleDir + 
+			      " must be deleted manually: " + e);
+	      }
+	    }
 	    bundleDir = null;
 	    return null;
 	  }
