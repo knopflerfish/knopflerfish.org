@@ -82,7 +82,9 @@ public class Util {
     }
 
     // Use UUID if present
-    if(bundleAttrEqual(b, br, "Bundle-UUID")) {
+    String uuid_br = (String)br.getAttribute("Bundle-UUID");
+    String uuid_b  = (String)b.getHeaders().get("Bundle-UUID");
+    if(uuid_b != null && uuid_b.equals(uuid_br)) {
       return true;
     }
     
