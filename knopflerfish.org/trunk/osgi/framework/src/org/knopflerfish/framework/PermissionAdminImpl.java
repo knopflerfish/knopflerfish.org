@@ -75,7 +75,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
   PermissionAdminImpl(Framework fw) {
     framework = fw;
     // Get system default permissions
-    PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource(null, null));
+    PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource(null, ( java.security.cert.Certificate[] )null));
     // Remove AllPermission
     if (pc != null && pc.implies(new AllPermission())) {
       runtimePermissions = new Permissions();
