@@ -168,7 +168,14 @@ public class Framework {
    */
   public Framework(Object m) throws Exception {
 
-    System.setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, defaultEE);
+    // guard this for profiles without System.setProperty 
+    try {
+      System.setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, defaultEE);
+    } catch (Exception e) {
+      if(Debug.packages) {
+	Debug.println("FGailed to set execution environment: " + e);
+      }
+    }
 
     String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." + 
       System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +

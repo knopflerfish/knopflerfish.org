@@ -623,8 +623,10 @@ public class Main {
     File fwDir      = new File(fwDirStr);
     File xargsFile  = null;
     
-    File defDir = (new File(fwDir.getAbsolutePath())).getParentFile();
-
+    // avoid getParentFile since some profiles don't have this
+    String defDirStr = (new File(fwDir.getAbsolutePath())).getParent();
+    File   defDir    = defDirStr != null ? new File(defDirStr) : null;
+    
     println("fwDir="+ fwDir, 2);
     println("defDir="+ defDir, 2);
     println("bInit=" + bInit, 2);
@@ -738,21 +740,27 @@ public class Main {
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+    String jars = System.getProperty(JARDIR_PROP, null);
     
     if(jars == null || "".equals(jars)) {
       String jarBaseDir = topDir + "jars";
-      
       println("jarBaseDir=" + jarBaseDir, 1);
-
+      
       File jarDir = new File(jarBaseDir);
       if(jarDir.exists() && jarDir.isDirectory()) {
-	String [] subdirs = jarDir.list(new FilenameFilter() {
-	    public boolean accept(File dir, String fname) {
-	      File f = new File(dir, fname);
-	      return f.isDirectory();
-	    }
-	  });
+
+	// avoid FileNameFilter since some profiles don't have it
+	String [] names = jarDir.list();
+	Vector v = new Vector();
+	for(int i = 0; i < names.length; i++) {
+	  File f = new File(jarDir, names[i]);
+	  if(f.isDirectory()) {
+	    v.addElement(names[i]);
+	  }
+	}
+	String [] subdirs = new String[v.size()];
+	v.copyInto(subdirs);
+	
 	StringBuffer sb = new StringBuffer();
 	sb.append("file:" + jarBaseDir + "/");
 	for(int i = 0; i < subdirs.length; i++) {
@@ -763,8 +771,8 @@ public class Main {
 	println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
-
-    // Write back system properties
+      
+      // Write back system properties
     System.setProperties(sysProps);
   }
 
