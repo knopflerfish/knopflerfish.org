@@ -238,18 +238,33 @@ class BundleImpl implements Bundle {
 		final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
 		boolean bStarted = false;
 
+		ClassLoader oldLoader = null;
+
+		if(Framework.SETCONTEXTCLASSLOADER) {
+		  oldLoader = Thread.currentThread().getContextClassLoader();
+		}
 
 		try {
+
+		  // If SETCONTEXTCLASSLOADER, set the thread's context
+		  // class loader to the bundle class loader. This
+		  // is useful for debugging external libs using
+		  // the context class loader.
+		  if(Framework.SETCONTEXTCLASSLOADER) {
+		    Thread.currentThread().setContextClassLoader(getClassLoader());
+		  }
+
 		  if (ba != null) {
 		    
 		    Class c = getClassLoader().loadClass(ba.trim());
 		    bactivator = (BundleActivator)c.newInstance();
+
 		    bactivator.start(bundleContext);
 		    bStarted = true;
 		  } else {
 		    // Check if we have a standard Main-class attribute as
-		    // in normal executable jar files. This is a slight extension
-		    // to the OSGi spec.
+		    // in normal executable jar files. This is a slight 
+		    // extension to the OSGi spec.
 		    final String mc = archive.getAttribute("Main-class");
 		    
 		    if (mc != null) {
@@ -277,6 +292,10 @@ class BundleImpl implements Bundle {
 
 		} catch (Throwable t) {
 		  throw new BundleException("Bundle.start: BundleActivator start failed", t);
+		} finally {
+		  if(Framework.SETCONTEXTCLASSLOADER) {
+		    Thread.currentThread().setContextClassLoader(oldLoader);
+		  }
 		}
 		return null;
 	      }
