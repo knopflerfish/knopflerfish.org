@@ -48,9 +48,21 @@ public class JLabelled extends JPanel {
 		   JComponent main, 
 		   int labelWidth) {
     super(new BorderLayout());
-    
+
+    // Shorten text to last part after a dot
+    // if it's too long
+    FontMetrics fm = main.getFontMetrics(main.getFont());
+    if(fm != null) {
+      int ix;
+      while(-1 != (ix = text.indexOf(".")) 
+	    && fm.stringWidth(text) > labelWidth) {
+	text = text.substring(ix + 1);
+      }
+    }
+
     JLabel label = new JLabel(text);
-    label.setPreferredSize(new Dimension(labelWidth, 10));
+    Dimension size = label.getPreferredSize();
+    label.setPreferredSize(new Dimension(labelWidth, size.height + 2));
 
     if(tooltip != null && !"".equals(tooltip)) {
       label.setToolTipText("<html>" + tooltip + "</html>");
