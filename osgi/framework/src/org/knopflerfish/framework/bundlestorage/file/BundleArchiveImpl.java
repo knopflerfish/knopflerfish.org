@@ -52,7 +52,8 @@ import java.net.URL;
  * Interface for managing bundle data.
  *
  * @author Jan Stein
- * @version $Revision: 1.3 $
+ * @author Erik Wistrand
+ * @author Robert Shelley
  */
 class BundleArchiveImpl implements BundleArchive
 {
@@ -87,6 +88,10 @@ class BundleArchiveImpl implements BundleArchive
   private Archive [] archives;
 
   private Map nativeLibs;
+
+  //XXX - start L-3 modification
+  private Map renameLibs;
+  //XXX - end L-3 modification
 
   private boolean bFake = false;
 
@@ -368,7 +373,35 @@ class BundleArchiveImpl implements BundleArchive
   public String getNativeLibrary(String component) {
     if (nativeLibs != null) {
       try {
-	return (String)nativeLibs.get(mapLibraryName.invoke(null, new Object[] {component}));
+//XXX - start L-3 modification
+	String key = (String)mapLibraryName.invoke(null, new Object[] {component});
+	String val = (String)nativeLibs.get(key);
+	File file1 = new File(val);
+	if (file1.exists() && file1.isFile()) {
+	  if (renameLibs.containsKey(key)) {
+	    File file2 = new File((String)renameLibs.get(key));
+	    if (file1.renameTo(file2)) {
+	      val = file2.getAbsolutePath();
+	      nativeLibs.put(key, val);
+	    }
+	  }
+	  StringBuffer rename = new StringBuffer(val);
+	  int index0 = val.lastIndexOf(File.separatorChar) + 1;
+	  int index1 = val.indexOf("_", index0);
+	  if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
+	    try {
+	      int prefix = Integer.parseInt(val.substring(index0, index1));
+	      rename.replace(index0, index1, Integer.toString(prefix + 1));
+	    } catch (Throwable t) {
+	      rename.insert(index0, "0_");
+	    }
+	  } else {
+	    rename.insert(index0, "0_");
+	  }
+	  renameLibs.put(key, rename.toString());
+	}
+	return val;
+//XXX - end L-3 modification
       } catch (Exception ignore) { }
     }
     return null;
@@ -618,12 +651,15 @@ class BundleArchiveImpl implements BundleArchive
       if (best == null) {
 	throw new Exception("Native-Code: No matching libraries found.");
       }
+//XXX - start L-3 modification
+      renameLibs  = new HashMap();
+//XXX - end L-3 modification
       HashMap res = new HashMap();
       for (Iterator p = ((List)best.get("keys")).iterator(); p.hasNext();) {
-  	String name = (String)p.next();
+	String name = (String)p.next();
 	int sp = name.lastIndexOf('/');
 	String key = (sp != -1) ? name.substring(sp+1) : name;
-  	res.put(key, archive.getNativeLibrary(name));
+	res.put(key, archive.getNativeLibrary(name));
       }
       return res;
     } else {
