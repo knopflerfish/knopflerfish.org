@@ -147,7 +147,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   public final static String [] HELP_FRAME005A =  {
     "Extract all information from the getHeaders() method",
-    "<base_url> is where to fetch other test bundles from."
   };
 
   class Frame005a extends FWTestCase {
@@ -473,8 +472,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   public final static String [] HELP_FRAME020A =  {
-    "Load bunldleA_test and check that it exists and that its expected service does not exist",
-    "Also check that the expected events in the framwork occurres"
+    "Load bundleA_test and check that it exists and that its expected service does not exist",
+    "Also check that the expected events in the framework occurs"
   };
 
   class Frame020a extends FWTestCase {
@@ -739,7 +738,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   
   public final static String [] HELP_FRAME041A =  {
     "Install bundleD1_test, which has a broken manifest file,",
-    "an empty import statement, and check",
+    "an empty import statement and check",
     "that the expected exceptions are thrown"
   };
   
@@ -1277,7 +1276,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   public final static String [] HELP_FRAME070A =  {
     "Reinstalls and the updates testbundle_A.",
-    "The Version is checked to see if an update has been made."
+    "The version is checked to see if an update has been made."
   };
 
   class Frame070a extends FWTestCase {
@@ -1469,7 +1468,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   public final static String [] HELP_FRAME080A =  {
     "Installs and starts bundleF_test and then try to and stop it.",
-    "A bundleException is expected."
+    "A BundleException is expected."
   };
 
   class Frame080a extends FWTestCase {
