@@ -1933,7 +1933,12 @@ public class Desktop
     if(msg != null && !"".equals(msg)) {
       System.out.println(msg);
     }
-    e.printStackTrace();
+    Throwable t = e;
+    while(t instanceof BundleException &&
+          ((BundleException) t).getNestedException() != null) {
+      t = ((BundleException) t).getNestedException();
+    }
+    t.printStackTrace();
   }
 
 
