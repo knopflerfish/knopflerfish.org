@@ -8,12 +8,13 @@
  <li><a href="#release">Releasing services</a>
  <li><a href="#best">Best practices for accessing services</a>
  <li><a href="#white">The white-board model</a>
+ <li><a href="#stale">Services, classloaders and bundle updates</a>
 </ol>
 
 <a name="what_is"></a>
 <h3>What is a service?</h3>
 
-<div class="intro">
+<div class="intro" style="width: 300px;">
 An OSGi service is a java object instance, <i>registered</i> into
 an OSGi framework with a set of <i>properties</i>. Any java object can be registered as a service, but typically it implements a well-known interface.
 </div>
@@ -511,3 +512,80 @@ Below is a minimalistic wrapper for the existing http service: (a complete class
   }
 
 </pre>
+
+<a name="stale"></a>
+<h3>Services, classloaders and bundle updates</h3>
+
+<div class="intro" style="width: 300px;">
+Bundle updates can introduce new definitions of already existing interfaces.
+This can lead to odd-looking ClassCastExceptions if the framework is not <i>refreshed</i>
+</div>
+
+<p>
+The OSGi environment allows updates of any bundle at any time, leading to
+possible dynamic changes in java interface definitions. Code using 
+such an updated interface, for example when using a service, may enter a
+state where two instances of a same-named interface does not equal class-wise.
+</p>
+
+<pre class="codeexample">
+<div class="head">bundle A exporting a package and a service definition</div>
+package com.acme.service;
+ public class A {
+   ...
+ }
+
+ ...
+ bc.registerService(A.getClass().getName(), new AImpl(), new Hashtable()); 
+
+<div class="head">...and a bundle B imports the package and gets an A service</div>
+import com.acme.service.A;
+ ...
+ A a = (A)bc.getService(sr);
+</pre>
+
+<p>
+Now, if A is updated to new code, but with the exact same name as the old A interface, and B is not very careful (by listening to bundle update events on bundles exporting imported packages), B will happily keep the "stale" reference to A's definitions. Forcing B to be this careful is next to impossible.
+</p>
+
+<p>
+Next step is if B hands out the stale reference to code from a third bundle C, that actually has the new definition of A. There will be a prompt 
+<tt>ClassCastException</tt>:
+</p>
+
+<pre class="codeexample">
+<div class="head">Odd, but correct ClassCastException</div>
+ClassCastException: "com.acme.service.A" does not match "com.acme.service.A"
+</pre>
+
+
+<p>
+This is a correct exception, since bundle B did not detect the update and C has
+a newer and different class definition of A's package.
+</p>
+
+<p>
+This can obviously happen in non-service-related cases too. Bundle B might just use some public utility classes/interfaces from A.
+</p>
+
+<p>
+The solution is really outside of B's control, but quite simple: Use the
+"refresh" functionality in the <a href="$(JAVADOC)/org/osgi/service/packageadmin/PackageAdmin.html">PackageAdmin</a> service.
+</p>
+
+<pre class="codeexample">
+<div class="head">Call refresh from the KF text conole</div>
+ &gt; /framework refresh
+
+<div class="head">Call refresh from java code</div>
+ ServiceTracker paTracker 
+   = new ServiceTracker(PackageAdmin.class.getName(), null);
+ paTracker.open();
+
+ ((PackageAdmin)paTracker.getService()).refreshPackages(null);
+
+</pre>
+
+<p>
+Refresh will restart all affected bundles, and make sure that old class definitions are purged.
+</p>
