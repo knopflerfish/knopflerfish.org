@@ -19,6 +19,13 @@ The KF repository URL is
 
   http://www.knopflerfish.org/repo/repository.xml 
 
+This URL is used as default repository URL *when the KF framework* is 
+used, otherwise it uses default built-in to the Oscar code.
+
+The repo URL can be set explicitly with the system property
+
+ oscar.repository.url=<url>
+
 In addition to the BundleRepositoryService, this bundle also registers
  
  - a KF console command group "obr" 
@@ -26,7 +33,7 @@ In addition to the BundleRepositoryService, this bundle also registers
  - when having access to the Oscar console, it also registers 
    an Oscar shell plugin.
 
-Additionally, this version has support for http proxy authetication, by
+Additionally, this version has support for http proxy authentication, by
 using the system property
 
  http.proxyAuth=<user>:<pwd>
