@@ -49,4 +49,8 @@ public interface ConstsIf
     //Keystore Types
 	public final String KS_TYPE_JKS = "JKS";
     public final String KS_TYPE_PKC12 = "PKC12";
+    
+    
+    //Keymanager Types
+    public final String KM_TYPE_SUN = "SunX509";
 }
