@@ -291,6 +291,14 @@ Framework System Properties
      itself.
 
      Default: true
+
+   org.knopflerfish.framework.exitonshutdown
+     If set to "true", call System.exit() when framework shutdown 
+     is complete.
+
+     If "false", don't do anything after shutdown.
+
+     Default: true
   
   org.knopflerfish.osgi.setcontextclassloader
      If set to "true", set the bundle startup thread's context class

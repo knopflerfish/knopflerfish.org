@@ -100,7 +100,8 @@ public class Main {
 
   static final String XARGS_DEFAULT     = "default";
 
-  static final String PRODVERSION_PROP  = "org.knopflerfish.prodver";
+  static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
+  static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
   /**
    * Help class for starting the OSGi framework.
@@ -108,7 +109,7 @@ public class Main {
   public static void main(String[] args) {
     try { 
       verbosity = 
-	Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     version = readVersion();
@@ -132,9 +133,9 @@ public class Main {
     if(xargsPath != null) {
       
       if(bZeroArgs) {
-	args = new String[] {"-xargs", xargsPath};
+        args = new String[] {"-xargs", xargsPath};
       } else if(args.length == 1 && "-init".equals(args[0])) {
-	args = new String[] {"-init", "-xargs", xargsPath};
+        args = new String[] {"-init", "-xargs", xargsPath};
       }
     }
     
@@ -144,14 +145,14 @@ public class Main {
 
     if(verbosity > 5) {
       for(int i = 0; i < args.length; i++) {
-	println("argv[" + i + "]=" + args[i], 5);
+        println("argv[" + i + "]=" + args[i], 5);
       }
     }
 
     // redo this since it might have changed
     try { 
       verbosity = 
-	Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     if(bZeroArgs) {
@@ -169,7 +170,7 @@ public class Main {
     // we might shoot ourself in the foot. Hard.
     for(int i = 0; i < args.length; i++) {
       if("-init".equals(args[i])) {
-	doInit();
+        doInit();
       }
     }
 
@@ -199,12 +200,12 @@ public class Main {
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
       if(dir.exists()) {
-	boolean bOK = dir.delete();
-	if(bOK) {
-	  println("Removed existing fwdir " + dir.getAbsolutePath(), 0);
-	} else {
-	  println("Failed to remove existing fwdir " + dir.getAbsolutePath(), 0);
-	}
+        boolean bOK = dir.delete();
+        if(bOK) {
+          println("Removed existing fwdir " + dir.getAbsolutePath(), 0);
+        } else {
+          println("Failed to remove existing fwdir " + dir.getAbsolutePath(), 0);
+        }
       }
     }
   }
@@ -215,7 +216,7 @@ public class Main {
     String[] base = Util.splitwords(jars, ";", '\"');
     for (int i=0; i<base.length; i++) {
       try {
-	base[i] = new URL(base[i]).toString();
+        base[i] = new URL(base[i]).toString();
       } catch (Exception ignored) {
       }
       println("jar base[" + i + "]=" + base[i], 3); 
@@ -231,178 +232,178 @@ public class Main {
    * @param startOffset index to start from in argv
    */
   private static void handleArgs(String[] args, 
-				 int startOffset,
-				 String[] base) {
+                                 int startOffset,
+                                 String[] base) {
     for (int i = startOffset; i < args.length; i++) {
       try {
-	if ("-exit".equals(args[i])) {
-	  println("Exit.", 0);
-	  System.exit(0);
-	} else if ("-init".equals(args[i])) {
-	  // This is done in an earlier pass, otherwise we
-	  // shoot the FW in the foot
-	} else if ("-version".equals(args[i])) {
-	  printResource("/tstamp");
-	  printResource("/revision");
-	  System.exit(0);
-	} else if ("-help".equals(args[i])) {
-	  printResource("/help.txt");
-	  System.exit(0);
-	} else if ("-readme".equals(args[i])) {
-	  printResource("/readme.txt");
-	  System.exit(0);
-	} else if ("-jvminfo".equals(args[i])) {
-	  printJVMInfo();
-	  System.exit(0);
-	} else if ("-install".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    String bundle = args[i+1];
-	    long id = framework.installBundle(completeLocation(base,bundle), null);
-	    println("Installed: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-	    i++;
-	  } else {
-	    error("No URL for install command");
-	  }
-	} else if ("-istart".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    String bundle = args[i+1];
-	    long id = framework.installBundle(completeLocation(base,bundle), null);
-	    framework.startBundle(id);
-	    println("Installed and started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-	    i++;
-	  } else {
-	    error("No URL for install command");
-	  }
-	} else if ("-launch".equals(args[i])) {
-	  if (i+1 < args.length && !args[i+1].startsWith("-")) { 
-	    bootMgr = Long.parseLong(args[i+1]);
-	    framework.launch(bootMgr);
-	    i++;
-	  } else {
-	    framework.launch(0);
-	  }
-	  println("Framework launched", 0);
-	} else if ("-shutdown".equals(args[i])) {
-	  framework.shutdown();
-	  println("Framework shutdown", 0);
-	} else if ("-sleep".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    long t = Long.parseLong(args[i+1]);
-	    try {
-	      println("Sleeping...", 0);
-	      Thread.sleep(t * 1000);
-	    } catch (InterruptedException e) {
-	      error("Sleep interrupted.");
-	    }
-	    i++;
-	  } else {
-	    error("No time for sleep command");
-	  }
-	} else if ("-start".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    long id = getBundleID(base,args[i+1]);
-	    framework.startBundle(id);
-	    println("Started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-	    i++;
-	  } else {
-	    error("No ID for start command");
-	  }
-	} else if ("-stop".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    long id = getBundleID(base,args[i+1]);
-	    framework.stopBundle(id);
-	    println("Stopped: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-	    i++;
-	  } else {
-	    error("No ID for stop command");
-	  }
-	} else if ("-uninstall".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    long id = getBundleID(base,args[i+1]);
-	    String loc = framework.getBundleLocation(id);
-	    framework.uninstallBundle(id);
-	    println("Uninstalled: " + loc + " (id#" + id + ")", 0);
-	    i++;
-	  } else {
-	    error("No id for uninstall command");
-	  }
-	} else if ("-update".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    long[] ids = null;
-	    if("ALL".equals(args[i+1])) {
-	      Bundle[] bl = framework.getSystemBundleContext().getBundles();
-	      ids = new long[bl.length];
-	      for(int n = 0; n < bl.length; n++) {
-		ids[n] = bl[n].getBundleId();
-	      }
-	    } else {
-	      ids = new long[] { getBundleID(base,args[i+1]) };
-	    }
-	    for(int n = 0; n < ids.length; n++) {
-	      long id = ids[n];
-	      if(id != 0) {
-		framework.updateBundle(id);
-		println("Updated: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-	      }
-	    }
-	    i++;
-	  } else {
-	    error("No id for update command");
-	  }
-	} else if ("-initlevel".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    int n = Integer.parseInt(args[i+1]);
-	    if(framework.startLevelService != null) {
-	      framework.startLevelService.setInitialBundleStartLevel(n);
-	    } else {
-	      println("No start level service - ignoring init bundle level " + n, 0);
-	    }
-	    i++;
-	  } else {
-	    error("No integer level for initlevel command");
-	  }
-	} else if ("-startlevel".equals(args[i])) {
-	  if (i+1 < args.length) { 
-	    int n = Integer.parseInt(args[i+1]);
-	    if(framework.startLevelService != null) {
-	      if(n == 1) {
-		if(Debug.startlevel) {
-		  Debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
-		}
-		framework.startLevelService.bCompat = true;
-	      }
+        if ("-exit".equals(args[i])) {
+          println("Exit.", 0);
+          System.exit(0);
+        } else if ("-init".equals(args[i])) {
+          // This is done in an earlier pass, otherwise we
+          // shoot the FW in the foot
+        } else if ("-version".equals(args[i])) {
+          printResource("/tstamp");
+          printResource("/revision");
+          System.exit(0);
+        } else if ("-help".equals(args[i])) {
+          printResource("/help.txt");
+          System.exit(0);
+        } else if ("-readme".equals(args[i])) {
+          printResource("/readme.txt");
+          System.exit(0);
+        } else if ("-jvminfo".equals(args[i])) {
+          printJVMInfo();
+          System.exit(0);
+        } else if ("-install".equals(args[i])) {
+          if (i+1 < args.length) { 
+            String bundle = args[i+1];
+            long id = framework.installBundle(completeLocation(base,bundle), null);
+            println("Installed: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            i++;
+          } else {
+            error("No URL for install command");
+          }
+        } else if ("-istart".equals(args[i])) {
+          if (i+1 < args.length) { 
+            String bundle = args[i+1];
+            long id = framework.installBundle(completeLocation(base,bundle), null);
+            framework.startBundle(id);
+            println("Installed and started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            i++;
+          } else {
+            error("No URL for install command");
+          }
+        } else if ("-launch".equals(args[i])) {
+          if (i+1 < args.length && !args[i+1].startsWith("-")) { 
+            bootMgr = Long.parseLong(args[i+1]);
+            framework.launch(bootMgr);
+            i++;
+          } else {
+            framework.launch(0);
+          }
+          println("Framework launched", 0);
+        } else if ("-shutdown".equals(args[i])) {
+          framework.shutdown();
+          println("Framework shutdown", 0);
+        } else if ("-sleep".equals(args[i])) {
+          if (i+1 < args.length) { 
+            long t = Long.parseLong(args[i+1]);
+            try {
+              println("Sleeping...", 0);
+              Thread.sleep(t * 1000);
+            } catch (InterruptedException e) {
+              error("Sleep interrupted.");
+            }
+            i++;
+          } else {
+            error("No time for sleep command");
+          }
+        } else if ("-start".equals(args[i])) {
+          if (i+1 < args.length) { 
+            long id = getBundleID(base,args[i+1]);
+            framework.startBundle(id);
+            println("Started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            i++;
+          } else {
+            error("No ID for start command");
+          }
+        } else if ("-stop".equals(args[i])) {
+          if (i+1 < args.length) { 
+            long id = getBundleID(base,args[i+1]);
+            framework.stopBundle(id);
+            println("Stopped: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            i++;
+          } else {
+            error("No ID for stop command");
+          }
+        } else if ("-uninstall".equals(args[i])) {
+          if (i+1 < args.length) { 
+            long id = getBundleID(base,args[i+1]);
+            String loc = framework.getBundleLocation(id);
+            framework.uninstallBundle(id);
+            println("Uninstalled: " + loc + " (id#" + id + ")", 0);
+            i++;
+          } else {
+            error("No id for uninstall command");
+          }
+        } else if ("-update".equals(args[i])) {
+          if (i+1 < args.length) { 
+            long[] ids = null;
+            if("ALL".equals(args[i+1])) {
+              Bundle[] bl = framework.getSystemBundleContext().getBundles();
+              ids = new long[bl.length];
+              for(int n = 0; n < bl.length; n++) {
+                ids[n] = bl[n].getBundleId();
+              }
+            } else {
+              ids = new long[] { getBundleID(base,args[i+1]) };
+            }
+            for(int n = 0; n < ids.length; n++) {
+              long id = ids[n];
+              if(id != 0) {
+                framework.updateBundle(id);
+                println("Updated: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+              }
+            }
+            i++;
+          } else {
+            error("No id for update command");
+          }
+        } else if ("-initlevel".equals(args[i])) {
+          if (i+1 < args.length) { 
+            int n = Integer.parseInt(args[i+1]);
+            if(framework.startLevelService != null) {
+              framework.startLevelService.setInitialBundleStartLevel(n);
+            } else {
+              println("No start level service - ignoring init bundle level " + n, 0);
+            }
+            i++;
+          } else {
+            error("No integer level for initlevel command");
+          }
+        } else if ("-startlevel".equals(args[i])) {
+          if (i+1 < args.length) { 
+            int n = Integer.parseInt(args[i+1]);
+            if(framework.startLevelService != null) {
+              if(n == 1) {
+                if(Debug.startlevel) {
+                  Debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
+                }
+                framework.startLevelService.bCompat = true;
+              }
 	      
-	      framework.startLevelService.setStartLevel(n);
-	    } else {
-	      println("No start level service - ignoring start level " + n, 0);
-	    }
-	    i++;
-	  } else {
-	    error("No integer level for startlevel command");
-	  }
-	} else {
-	  error("Unknown option: " + args[i] + 
-		"\nUse option -help to see all options");
-	}
+              framework.startLevelService.setStartLevel(n);
+            } else {
+              println("No start level service - ignoring start level " + n, 0);
+            }
+            i++;
+          } else {
+            error("No integer level for startlevel command");
+          }
+        } else {
+          error("Unknown option: " + args[i] + 
+                "\nUse option -help to see all options");
+        }
       } catch (BundleException e) {
-	Throwable ne = e.getNestedException();
-	if (ne != null) {
-	  e.getNestedException().printStackTrace(System.err);
-	} else {
-	  e.printStackTrace(System.err);
-	}
-	error("Command \"" + args[i] + 
-	      ((i+1 < args.length && !args[i+1].startsWith("-")) ?
-	       " " + args[i+1] :
-	       "") +
-	      "\" failed, " + e.getMessage());
+        Throwable ne = e.getNestedException();
+        if (ne != null) {
+          e.getNestedException().printStackTrace(System.err);
+        } else {
+          e.printStackTrace(System.err);
+        }
+        error("Command \"" + args[i] + 
+              ((i+1 < args.length && !args[i+1].startsWith("-")) ?
+               " " + args[i+1] :
+               "") +
+              "\" failed, " + e.getMessage());
       } catch (Exception e) {
-	e.printStackTrace(System.err);
-	error("Command \"" + args[i] + 
-	      ((i+1 < args.length && !args[i+1].startsWith("-")) ?
-	       " " + args[i+1] :
-	       "") +
-	      "\" failed, " + e.getMessage());
+        e.printStackTrace(System.err);
+        error("Command \"" + args[i] + 
+              ((i+1 < args.length && !args[i+1].startsWith("-")) ?
+               " " + args[i+1] :
+               "") +
+              "\" failed, " + e.getMessage());
       }
     }
   }
@@ -421,10 +422,10 @@ public class Main {
     } catch (NumberFormatException nfe) {
       long id = framework.getBundleId( completeLocation( base, idLocation ) );
       if (id!=-1) {
-	return id;
+        return id;
       } 
       throw new IllegalArgumentException
-	("Invalid bundle id/location: " +idLocation);
+        ("Invalid bundle id/location: " +idLocation);
     }
   }
 
@@ -445,11 +446,11 @@ public class Main {
       println("location=" + location, 2);
       // URL without protocol complete it.
       for (int i=0; i<base.length; i++) {
-	println("base[" + i + "]=" + base[i], 2);
+        println("base[" + i + "]=" + base[i], 2);
         try {
           URL url = new URL( new URL(base[i]), location );
 
-	  println("check " + url, 2);
+          println("check " + url, 2);
           if ("file".equals(url.getProtocol())) {
             File f = new File(url.getFile());
             if (!f.exists() || !f.canRead()) {
@@ -461,7 +462,7 @@ public class Main {
             int rc = uc.getResponseCode();
             uc.disconnect();
             if (rc!=HttpURLConnection.HTTP_OK) {
-	      println("Can't access HTTP bundle: " + url + ", response code=" + rc, 0);
+              println("Can't access HTTP bundle: " + url + ", response code=" + rc, 0);
               continue; // Noope; try next.
             }
           } else {
@@ -474,7 +475,7 @@ public class Main {
             }
           }
           location = url.toString();
-	  println("found location=" + location, 5);
+          println("found location=" + location, 5);
           break; // Found.
         } catch (Exception _e) {
         }
@@ -487,13 +488,13 @@ public class Main {
     framework.checkAdminPermission();
 
     final FrameworkEvent e2 = new FrameworkEvent(evt.getType(),
-						 evt.getBundle(),
-						 evt.getThrowable());
+                                                 evt.getBundle(),
+                                                 evt.getThrowable());
     AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  framework.listeners.frameworkEvent(e2);
-	  return null;
-	}
+        public Object run() {
+          framework.listeners.frameworkEvent(e2);
+          return null;
+        }
       });
   }
   
@@ -508,25 +509,29 @@ public class Main {
   static public void shutdown(final int exitcode) {
     framework.checkAdminPermission();
     AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  Thread t = new Thread() {
-	      public void run() {
-		if (bootMgr != 0) {
-		  try {
-		    framework.stopBundle(bootMgr);
-		  } catch (BundleException e) {
-		    System.err.println("Stop of BootManager failed, " +
-				       e.getNestedException());
-		  }
-		}
-		framework.shutdown();
-		System.exit(exitcode);
-	      }
-	    };
-	  t.setDaemon(false);
-	  t.start();
-	  return null;
-	}
+        public Object run() {
+          Thread t = new Thread() {
+              public void run() {
+                if (bootMgr != 0) {
+                  try {
+                    framework.stopBundle(bootMgr);
+                  } catch (BundleException e) {
+                    System.err.println("Stop of BootManager failed, " +
+                                       e.getNestedException());
+                  }
+                }
+                framework.shutdown();
+                if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+                  System.exit(exitcode);
+                } else {
+                  println("Framework shutdown, skipped System.exit()", 0);
+                }
+              }
+            };
+          t.setDaemon(false);
+          t.start();
+          return null;
+        }
       });
   }
 
@@ -540,34 +545,34 @@ public class Main {
     framework.checkAdminPermission();
 
     AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  Thread t = new Thread() {
-	      public void run() {
-		if (bootMgr != 0) {
-		  try {
-		    framework.stopBundle(bootMgr);
-		  } catch (BundleException e) {
-		    System.err.println("Stop of BootManager failed, " +
-				       e.getNestedException());
-		  }
-		}
-		framework.shutdown();
+        public Object run() {
+          Thread t = new Thread() {
+              public void run() {
+                if (bootMgr != 0) {
+                  try {
+                    framework.stopBundle(bootMgr);
+                  } catch (BundleException e) {
+                    System.err.println("Stop of BootManager failed, " +
+                                       e.getNestedException());
+                  }
+                }
+                framework.shutdown();
 
-		try {
-		  if (bootMgr != 0) {
-		    framework.launch(bootMgr);
-		  } else {
-		    framework.launch(0);
-		  }
-		} catch (Exception e) {
-		  println("Failed to restart framework", 0);
-		}
-	      }
-	    };
-	  t.setDaemon(false);
-	  t.start();
-	  return null;
-	}
+                try {
+                  if (bootMgr != 0) {
+                    framework.launch(bootMgr);
+                  } else {
+                    framework.launch(0);
+                  }
+                } catch (Exception e) {
+                  println("Failed to restart framework", 0);
+                }
+              }
+            };
+          t.setDaemon(false);
+          t.start();
+          return null;
+        }
       });
   }
 
@@ -580,19 +585,19 @@ public class Main {
     int i = 0;
     while(i < argv.length) {
       if ("-xargs".equals(argv[i])) {
-	if (i+1 < argv.length) { 
-	  String   xargsPath = argv[i+1];
-	  String[] moreArgs = loadArgs(xargsPath, argv);
-	  i++;
-	  String[] r = expandArgs(moreArgs);
-	  for(int j = 0; j < r.length; j++) {
-	    v.addElement(r[j]);
-	  }
-	} else {
-	  throw new IllegalArgumentException("-xargs without argument");
-	}
+        if (i+1 < argv.length) { 
+          String   xargsPath = argv[i+1];
+          String[] moreArgs = loadArgs(xargsPath, argv);
+          i++;
+          String[] r = expandArgs(moreArgs);
+          for(int j = 0; j < r.length; j++) {
+            v.addElement(r[j]);
+          }
+        } else {
+          throw new IllegalArgumentException("-xargs without argument");
+        }
       } else {
-	v.addElement(argv[i]);
+        v.addElement(argv[i]);
       }
       i++;
     }
@@ -632,12 +637,12 @@ public class Main {
       Properties props = System.getProperties();
       System.out.println("--- System properties ---");
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-	String key = (String)e.nextElement();
-	System.out.println(key + ": " + props.get(key));
+        String key = (String)e.nextElement();
+        System.out.println(key + ": " + props.get(key));
       }
       System.out.println("\n--- Framework properties ---");
       for(int i = 0; i < FWPROPS.length; i++) {
-	System.out.println(FWPROPS[i] + ": " + framework.getProperty(FWPROPS[i]));
+        System.out.println(FWPROPS[i] + ": " + framework.getProperty(FWPROPS[i]));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -663,7 +668,7 @@ public class Main {
     // we don't use the restart default xargs
     for(int i = 0; i < oldArgs.length; i++) {
       if("-init".equals(oldArgs[i])) {
-	bInit = true;
+        bInit = true;
       }
     }
 
@@ -685,50 +690,50 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-	String osName = Alias.unifyOsName(System.getProperty("os.name"));
-	File f = new File(defDir, "init_" + osName + ".xargs");
-	if(f.exists()) {
-	  defaultXArgsInit = f.getName();
-	  println("found OS specific xargs=" + defaultXArgsInit, 1);
-	}
+        String osName = Alias.unifyOsName(System.getProperty("os.name"));
+        File f = new File(defDir, "init_" + osName + ".xargs");
+        if(f.exists()) {
+          defaultXArgsInit = f.getName();
+          println("found OS specific xargs=" + defaultXArgsInit, 1);
+        }
       } catch (Exception ignored) {
-	// No OS specific xargs found
+        // No OS specific xargs found
       }
 
 
       if(!bInit && (fwDir.exists() && fwDir.isDirectory())) {
-	println("found fwdir at " + fwDir.getAbsolutePath(), 1);
-	xargsFile = new File(defDir, defaultXArgsStart);
-	if(xargsFile.exists()) {
-	  println("\n" + 
-		  "Default restart xargs file: " + xargsFile + 
-		  "\n" + 
-		  "To reinitialize, remove the " + fwDir.toString() + 
-		  " directory\n", 
-		  5);
-	} else {
-	  File xargsFile2 = new File(defDir, defaultXArgsInit);
-	  println("No restart xargs file " + xargsFile + 
-		  ", trying " + xargsFile2 + " instead.", 0);
-	  xargsFile = xargsFile2;
-	}
+        println("found fwdir at " + fwDir.getAbsolutePath(), 1);
+        xargsFile = new File(defDir, defaultXArgsStart);
+        if(xargsFile.exists()) {
+          println("\n" + 
+                  "Default restart xargs file: " + xargsFile + 
+                  "\n" + 
+                  "To reinitialize, remove the " + fwDir.toString() + 
+                  " directory\n", 
+                  5);
+        } else {
+          File xargsFile2 = new File(defDir, defaultXArgsInit);
+          println("No restart xargs file " + xargsFile + 
+                  ", trying " + xargsFile2 + " instead.", 0);
+          xargsFile = xargsFile2;
+        }
       } else {
-	println("no fwdir at " + fwDir.getAbsolutePath(), 1);
-	xargsFile = new File(defDir, defaultXArgsInit);
-	if(xargsFile.exists()) {
-	  println("\n" + 
-		  "Default init xargs file: " + xargsFile + 
-		  "\n", 
-		  5);
-	} else {
-	  xargsFile = new File(defDir, defaultXArgsInit2);
-	  if(xargsFile.exists()) {
-	    println("\n" + 
-		    "Deafult secondary init xargs file: " + xargsFile + 
-		    "\n", 
-		    5);
-	  }
-	}
+        println("no fwdir at " + fwDir.getAbsolutePath(), 1);
+        xargsFile = new File(defDir, defaultXArgsInit);
+        if(xargsFile.exists()) {
+          println("\n" + 
+                  "Default init xargs file: " + xargsFile + 
+                  "\n", 
+                  5);
+        } else {
+          xargsFile = new File(defDir, defaultXArgsInit2);
+          if(xargsFile.exists()) {
+            println("\n" + 
+                    "Deafult secondary init xargs file: " + xargsFile + 
+                    "\n", 
+                    5);
+          }
+        }
       }
     } else {
       // No parent dir to fwdir
@@ -772,11 +777,11 @@ public class Main {
 
     for(int i = 0; i < defaultSysProps.length; i++) {
       if(null == System.getProperty(defaultSysProps[i][0])) {
-	println("Using default " + defaultSysProps[i][0] + "=" + 
-		defaultSysProps[i][1], 1);
-	sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
+        println("Using default " + defaultSysProps[i][0] + "=" + 
+                defaultSysProps[i][1], 1);
+        sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
       } else {
-	println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1); 
+        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1); 
       }
     }
 
@@ -797,30 +802,30 @@ public class Main {
       File jarDir = new File(jarBaseDir);
       if(jarDir.exists() && jarDir.isDirectory()) {
 
-	// avoid FileNameFilter since some profiles don't have it
-	String [] names = jarDir.list();
-	Vector v = new Vector();
-	for(int i = 0; i < names.length; i++) {
-	  File f = new File(jarDir, names[i]);
-	  if(f.isDirectory()) {
-	    v.addElement(names[i]);
-	  }
-	}
-	String [] subdirs = new String[v.size()];
-	v.copyInto(subdirs);
+        // avoid FileNameFilter since some profiles don't have it
+        String [] names = jarDir.list();
+        Vector v = new Vector();
+        for(int i = 0; i < names.length; i++) {
+          File f = new File(jarDir, names[i]);
+          if(f.isDirectory()) {
+            v.addElement(names[i]);
+          }
+        }
+        String [] subdirs = new String[v.size()];
+        v.copyInto(subdirs);
 	
-	StringBuffer sb = new StringBuffer();
-	sb.append("file:" + jarBaseDir + "/");
-	for(int i = 0; i < subdirs.length; i++) {
-	  sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
-	}
-	jars = sb.toString().replace('\\', '/');
-	sysProps.put("org.knopflerfish.gosg.jars", jars);
-	println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
+        StringBuffer sb = new StringBuffer();
+        sb.append("file:" + jarBaseDir + "/");
+        for(int i = 0; i < subdirs.length; i++) {
+          sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
+        }
+        jars = sb.toString().replace('\\', '/');
+        sysProps.put("org.knopflerfish.gosg.jars", jars);
+        println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
       
-      // Write back system properties
+    // Write back system properties
     System.setProperties(sysProps);
   }
 
@@ -908,20 +913,20 @@ public class Main {
 
       File f = new File(xargsPath);
       if(f.exists()) {
-	println("Loading xargs file " + f.getAbsolutePath(), 0);
-	in = new BufferedReader(new FileReader(f));
+        println("Loading xargs file " + f.getAbsolutePath(), 0);
+        in = new BufferedReader(new FileReader(f));
       }
 
 
       if(in == null) {
-	try {
-	  URL url = new URL(xargsPath);
-	  println("Loading xargs url " + url, 0);
-	  in = new BufferedReader(new InputStreamReader(url.openStream()));
-	} catch (MalformedURLException e)  {
-	  throw new IllegalArgumentException("Bad xargs URL " + xargsPath + 
-					     ": " + e);
-	}
+        try {
+          URL url = new URL(xargsPath);
+          println("Loading xargs url " + url, 0);
+          in = new BufferedReader(new InputStreamReader(url.openStream()));
+        } catch (MalformedURLException e)  {
+          throw new IllegalArgumentException("Bad xargs URL " + xargsPath + 
+                                             ": " + e);
+        }
       }
 
 
@@ -931,72 +936,72 @@ public class Main {
       String       tmpline  = null;
       int          lineno   = 0;
       for(tmpline = in.readLine(); tmpline != null; 
-	  tmpline = in.readLine()) {
-	lineno++;
-	tmpline = tmpline.trim();
+          tmpline = in.readLine()) {
+        lineno++;
+        tmpline = tmpline.trim();
 
-	// check for line continuation char and
-	// build up line until aline without such a mark is found.
-	if(tmpline.endsWith("\\")) {
-	  // found continuation mark, store actual line to 
-	  // buffered continuation line
-	  tmpline = tmpline.substring(0, tmpline.length() - 1);
-	  if(contLine == null) {
-	    contLine = new StringBuffer(tmpline);
-	  } else {
-	    contLine.append(tmpline);
-	  }
-	  // read next line
-	  continue;
-	} else {
-	  // No continuation mark, gather stored line + newly read line
-	  if(contLine != null) {
-	    contLine.append(tmpline);
-	    line     = contLine.toString();
-	    contLine = null;
-	  } else {
-	    // this is the normal case if no continuation char is found
-	    // or any buffered line is found
-	    line = tmpline;   
-	  }
-	}
+        // check for line continuation char and
+        // build up line until aline without such a mark is found.
+        if(tmpline.endsWith("\\")) {
+          // found continuation mark, store actual line to 
+          // buffered continuation line
+          tmpline = tmpline.substring(0, tmpline.length() - 1);
+          if(contLine == null) {
+            contLine = new StringBuffer(tmpline);
+          } else {
+            contLine.append(tmpline);
+          }
+          // read next line
+          continue;
+        } else {
+          // No continuation mark, gather stored line + newly read line
+          if(contLine != null) {
+            contLine.append(tmpline);
+            line     = contLine.toString();
+            contLine = null;
+          } else {
+            // this is the normal case if no continuation char is found
+            // or any buffered line is found
+            line = tmpline;   
+          }
+        }
 
-	if(line.startsWith("-D")) {
-	  // Set system property
-	  int ix = line.indexOf("=");
-	  if(ix != -1) {
-	    String name = line.substring(2, ix);
-	    String val  = line.substring(ix + 1);
+        if(line.startsWith("-D")) {
+          // Set system property
+          int ix = line.indexOf("=");
+          if(ix != -1) {
+            String name = line.substring(2, ix);
+            String val  = line.substring(ix + 1);
 	    
-	    // replace "${syspropname}" with system prop value if found
-	    if(-1 != val.indexOf("${")) {
-	      for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
-		String k = (String)e.nextElement();
-		if(-1 != val.indexOf(k)) {
-		  String sv = (String)sysProps.get(k);
-		  val = Util.replace(val, "${" + k + "}", sv);
-		}
-	      }
-	    }
-	    sysProps.put(name, val);
-	  }
-	} else if(line.startsWith("#")) {
-	  // Ignore comments
-	} else if(line.startsWith("-")) {
-	  int i = line.indexOf(' ');
-	  if (i != -1) {
-	    v.addElement(line.substring(0,i));
-	    line = line.substring(i).trim();
-	    if(line.length() > 0) {
-	      v.addElement(line);
-	    }
-	  } else {
-	    v.addElement(line);
-	  }
-	} else if(line.length() > 0) {
-	  // Add argument
-	  v.addElement(line);
-	}
+            // replace "${syspropname}" with system prop value if found
+            if(-1 != val.indexOf("${")) {
+              for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
+                String k = (String)e.nextElement();
+                if(-1 != val.indexOf(k)) {
+                  String sv = (String)sysProps.get(k);
+                  val = Util.replace(val, "${" + k + "}", sv);
+                }
+              }
+            }
+            sysProps.put(name, val);
+          }
+        } else if(line.startsWith("#")) {
+          // Ignore comments
+        } else if(line.startsWith("-")) {
+          int i = line.indexOf(' ');
+          if (i != -1) {
+            v.addElement(line.substring(0,i));
+            line = line.substring(i).trim();
+            if(line.length() > 0) {
+              v.addElement(line);
+            }
+          } else {
+            v.addElement(line);
+          }
+        } else if(line.length() > 0) {
+          // Add argument
+          v.addElement(line);
+        }
       }
       setSecurityManager(sysProps);
       System.setProperties(sysProps);
@@ -1029,24 +1034,24 @@ public class Main {
       
 
       if(manager != null) {
-	if(System.getSecurityManager() == null) {
-	  println("Setting security manager=" + manager + 
-		  ", policy=" + policy, 1);
-	  System.setProperty("java.security.manager", manager);
-	  if(policy != null) {
-	    System.setProperty("java.security.policy",  policy);
-	  }
-	  SecurityManager sm = null;
-	  if("".equals(manager)) {
-	    sm = new SecurityManager();
-	  } else {
-	    Class       clazz = Class.forName(manager);
-	    Constructor cons  = clazz.getConstructor(new Class[0]);
+        if(System.getSecurityManager() == null) {
+          println("Setting security manager=" + manager + 
+                  ", policy=" + policy, 1);
+          System.setProperty("java.security.manager", manager);
+          if(policy != null) {
+            System.setProperty("java.security.policy",  policy);
+          }
+          SecurityManager sm = null;
+          if("".equals(manager)) {
+            sm = new SecurityManager();
+          } else {
+            Class       clazz = Class.forName(manager);
+            Constructor cons  = clazz.getConstructor(new Class[0]);
 
-	    sm = (SecurityManager)cons.newInstance(new Object[0]);
-	  }
-	  System.setSecurityManager(sm);
-	}
+            sm = (SecurityManager)cons.newInstance(new Object[0]);
+          }
+          System.setSecurityManager(sm);
+        }
       }
     } catch (Exception e) {
       error("Failed to set security manager", e);
