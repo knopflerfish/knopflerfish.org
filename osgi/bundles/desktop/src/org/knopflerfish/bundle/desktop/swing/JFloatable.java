@@ -116,7 +116,6 @@ public class JFloatable extends JPanel {
 	public void ancestorMoved(AncestorEvent event) {
 	}
 	public void ancestorRemoved(AncestorEvent event) {
-	  System.out.println("ancestorRemoved");
 	  if(frame != null) {
 	    frame.setVisible(false);
 	    frame = null;
