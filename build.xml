@@ -287,7 +287,10 @@
 
            <include name = "osgi/bundles/demos/**"/>
 
-           <include name = "osgi/bundles/trayicon/**"/>
+           <include name = "osgi/bundles/trayicon/build.xml"/>
+           <include name = "osgi/bundles/trayicon/readme.txt"/>
+           <include name = "osgi/bundles/trayicon/trayicon/**"/>
+           <include name = "osgi/bundles/trayicon/trayicon_fw/**"/>
 
            <exclude name = "**/CVS"/>
         </zipfileset>
