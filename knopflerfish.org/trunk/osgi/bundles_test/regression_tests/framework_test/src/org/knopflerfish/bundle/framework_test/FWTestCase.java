@@ -35,8 +35,10 @@
 package org.knopflerfish.bundle.framework_test;
 
 import junit.framework.*;
+import java.lang.reflect.*;
 
 public class FWTestCase extends TestCase {
+
   public String getName() {
     String name = getClass().getName();
     int ix = name.lastIndexOf("$");
@@ -47,6 +49,36 @@ public class FWTestCase extends TestCase {
       name = name.substring(ix + 1);
     }
     return name;
+  }
+
+  /**
+   * Magic to extract HELP_<ID> string from parent class. This is just 
+   * a convenience to avoid changing the old syntax
+   * in the test suite.
+   */
+  public String getDescription() {
+    String name = getClass().getName();
+    int ix = name.lastIndexOf("$");
+    if(ix != -1) {
+      try {
+	Class        clazz = Class.forName(name.substring(0, ix));
+	Field        f     = clazz.getField("HELP_" + 
+					    getName().toUpperCase());
+	String[]     lines = (String[])f.get(null);
+	StringBuffer sb    = new StringBuffer();
+
+	for(int i = 0; i < lines.length; i++) {
+	  sb.append(lines[i]);
+	  if(i < lines.length - 1) {
+	    sb.append("\n");
+	  }
+	}
+	return sb.toString();
+      } catch (Exception e) {
+	return "";
+      }
+    }
+    return "";
   }
 }
 
