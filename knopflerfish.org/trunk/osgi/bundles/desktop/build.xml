@@ -40,6 +40,7 @@
   <property name="bundle.vendor"         value="knopflerfish"/>
   <property name="bundle.version"        value="1.1.0"/>
   <property name="bundle.name"           value="Desktop"/>
+  <property name="bundle.docurl"         value="http://www.knopflerfish.org/desktop.html"/>
   <property name="bundle.classpath"      value=".,log_api-1.0.0.jar,console_api-1.0.0.jar,remotefw_api-1.0.0.jar"/>
   <property name="export.package"        value="org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.desktop;specification-version=1.0,org.knopflerfish.service.log;specification-version=1.1,org.knopflerfish.service.console,org.knopflerfish.service.remotefw"/>
 
