@@ -374,6 +374,7 @@ class DesktopPanel extends Panel {
     }
   }
 
+
   class BundleC extends DBContainer {
     BundleImageC bic;
     boolean      bSelected = false;
@@ -426,13 +427,33 @@ class DesktopPanel extends Panel {
 
 
 
+    public void xupdate(Graphics g) {
+      count++;
+      //      System.out.println(count + ": update " + b + ", sel=" + bSelected + ", focus=" + bFocus + ", mem=" + (g == memG));
+    }
+    
+    public void paint(Graphics g) {
+      count++;
+      //      System.out.println(count + ": paint " + b + ", sel=" + bSelected + ", focus=" + bFocus + ", mem=" + (g == memG));
+      super.paint(g);
+    }
+
+
     public void paintComponent(Graphics g) {
 
+      try {
+        count++;
+        //        System.out.println(count + ": paintComponent " + b + ", sel=" + bSelected + ", focus=" + bFocus + ", mem=" + (g == memG));
+        //        Thread.sleep(200);
+      } catch (Exception e) {
+      }
       Dimension size = getSize();
 
       g.setColor(getBackground());
       g.fillRect(0,0, size.width, size.height);
-      
+      //      g.setColor(Color.black);
+      //      g.drawLine(0,0, size.width, size.height);
+        
       int left = 2 + bic.img.getWidth(null);
       int ypos = 2;
       
@@ -522,6 +543,7 @@ class DesktopPanel extends Panel {
       repaint();
       statusBar.showBundles();
     }
+
   }
 
 

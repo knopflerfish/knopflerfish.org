@@ -42,10 +42,11 @@ import java.awt.*;
    Dimension memSize = new Dimension(0,0);
    Graphics  memG;
    Image     memImage;
+   boolean   bNeedRedraw = true;
    
-   boolean bNeedRedraw = true;
+   static int count = 0;
    
-   void makeOff(Graphics g) {
+   protected Graphics makeOff(Graphics g) {
      Dimension size = getSize();
      if(memSize.width != size.width ||
         memSize.height != size.height) {
@@ -58,24 +59,64 @@ import java.awt.*;
          System.out.println(getClass().getName() + ": failed to create memory buffer, size=" + size);
        }        
      }
+     return memG != null ? memG : g;
    }
    
    public void paintComponent(Graphics g) {
      super.paint(g);
    }
 
-   public void paint(Graphics _g) {
-     makeOff(_g);
-     
-     Graphics g = memG != null ? memG : _g;
-     if(bNeedRedraw || memG == null) {
-       paintComponent(g);
+   public boolean isOpaque() {
+     return true;
+   }
+
+   public void update(Graphics g) {
+     paintDB(g);
+   }
+
+   public void paint(Graphics g) {
+     paintDB(g);
+   }
+
+   public void paintDB(Graphics g) {
+     count++;
+
+     makeOff(g);
+     if(bNeedRedraw) {
+       if(memG != null) {
+         paintComponent(memG);
+         bNeedRedraw = false;
+       } else {
+         paintComponent(g);
+       }
      }
-     
-     bNeedRedraw = false;
+
      
      if(memG != null) {
-       _g.drawImage(memImage, 0, 0, null);
+       g.drawImage(memImage, 0, 0, null);
      }
    }
+
+   Color bgColor = null;
+   
+   public Color getBackground() {
+     if(bgColor == null) {
+       return getParent().getBackground();
+     } else {
+       return bgColor;
+     }
+   }
+   
+   /**
+    * Override this without firing any propchangeevent as the
+    * Component class does.
+    * <p>
+    * This is to avoid peer to clear background area. I do this better
+    * myself.
+    * </p>
+    */
+   public void setBackground(Color bg) {
+     this.bgColor = bg;
+   }
+
  }
