@@ -54,7 +54,7 @@
  <property name = "xinclude.source"       value = "true"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
  <property name = "bundle.symbolicname"   value = "${bundle.name}"/>
- <property name = "bundle.uuid"           value = "${bundle.name}-${bundle.version}"/>
+ <property name = "bundle.uuid"           value = "org.knopflerfish:${bundle.name}:${bundle.version}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
  <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
@@ -81,9 +81,9 @@
  <property name = "bundle.apivendor"  value = ""/>
 
 
- <property name = "bundle.uuid.impl"          value = "${bundle.uuid}.impl"/>
- <property name = "bundle.uuid.api"           value = "${bundle.uuid}.api"/>
- <property name = "bundle.uuid.all"           value = "${bundle.uuid}.all"/>
+ <property name = "bundle.uuid.impl"          value = "${bundle.uuid}:impl"/>
+ <property name = "bundle.uuid.api"           value = "${bundle.uuid}:api"/>
+ <property name = "bundle.uuid.all"           value = "${bundle.uuid}:all"/>
 
  <property name="http.host"          value="localhost"/>
  <property name="http.port"          value="8080"/>
