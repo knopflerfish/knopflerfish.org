@@ -31,100 +31,137 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.Bundle;
-
-import org.osgi.service.jini.JiniDriver;
-
-import net.jini.discovery.LookupDiscovery;
 import net.jini.core.lookup.ServiceRegistrar;
 import net.jini.core.lookup.ServiceTemplate;
 
-import org.osgi.service.cm.ManagedService;
-import java.util.Dictionary;
-import net.jini.lookup.LookupCache;
-import java.io.IOException;
+import net.jini.discovery.LookupDiscovery;
 
+import net.jini.lookup.LookupCache;
 import net.jini.lookup.ServiceDiscoveryManager;
 
-public class JiniServiceFactory
-    implements
-    org.osgi.framework.ServiceFactory, org.osgi.service.cm.ManagedService {
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
-  LookupDiscovery lookupDiscovery = null;
-  String[] lusImportGroups = LookupDiscovery.ALL_GROUPS;
+import org.osgi.service.cm.ManagedService;
+import org.osgi.service.jini.JiniDriver;
 
-  static ServiceDiscoveryManager serviceDiscoveryManager = null;
+import java.io.IOException;
 
-  public JiniServiceFactory() throws Exception {
-      // Needed to spawn in order to find the right classes.
-      Thread curThread = Thread.currentThread();
-      ClassLoader oldClassLoader = curThread.getContextClassLoader();
-      curThread.setContextClassLoader(Activator.class.getClassLoader());
+import java.util.Dictionary;
 
-      lookupDiscovery = new LookupDiscovery(getLusImportGroups());
 
-      serviceDiscoveryManager =
-          new ServiceDiscoveryManager(lookupDiscovery, null);
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
+public class JiniServiceFactory implements org.osgi.framework.ServiceFactory,
+    org.osgi.service.cm.ManagedService {
+    static ServiceDiscoveryManager serviceDiscoveryManager = null;
+    LookupDiscovery lookupDiscovery = null;
+    String[] lusImportGroups = LookupDiscovery.ALL_GROUPS;
 
-      ServiceTemplate registrarTemplate = new ServiceTemplate(null,
-          new Class[] {ServiceRegistrar.class}, null);
+    /**
+     * Creates a new JiniServiceFactory object.
+     *
+     * @throws Exception DOCUMENT ME!
+     */
+    public JiniServiceFactory() throws Exception {
+        // Needed to spawn in order to find the right classes.
+        Thread curThread = Thread.currentThread();
+        ClassLoader oldClassLoader = curThread.getContextClassLoader();
+        curThread.setContextClassLoader(Activator.class.getClassLoader());
 
-      LookupCache registrarCache = serviceDiscoveryManager.createLookupCache(
-          registrarTemplate, null, new Listener(ServiceRegistrar.class));
+        lookupDiscovery = new LookupDiscovery(getLusImportGroups());
 
-      curThread.setContextClassLoader(oldClassLoader);
-      oldClassLoader = null;
-      curThread = null;
+        serviceDiscoveryManager = new ServiceDiscoveryManager(lookupDiscovery,
+                null);
 
-  }
+        ServiceTemplate registrarTemplate = new ServiceTemplate(null,
+                new Class[] { ServiceRegistrar.class }, null);
 
-  public Object getService(Bundle bundle, ServiceRegistration registration) {
-    JiniDriverImpl jiniDriverImpl = new JiniDriverImpl();
-    Debug.printDebugInfo(10, "JiniDriver Requested by " + bundle.getBundleId());
-    return jiniDriverImpl;
-  }
+        LookupCache registrarCache = serviceDiscoveryManager.createLookupCache(registrarTemplate,
+                null, new Listener(ServiceRegistrar.class));
 
-  public void ungetService(Bundle bundle, ServiceRegistration registration,
-                           Object service) {
-    Debug.printDebugInfo(10, "JiniDriver Released by " + bundle.getBundleId());
-    JiniDriverImpl jiniDriverImpl = (JiniDriverImpl) service;
-    jiniDriverImpl.ungetServices();
-  }
-
-  public void terminate() {
-    serviceDiscoveryManager.terminate();
-    lookupDiscovery.terminate();
-  }
-
-  // When CM config changes
-  public void updated(Dictionary props) {
-    String[] exportGroups =
-        (String[]) props.get(JiniDriver.CM_LUS_EXPORT_GROUPS);
-    Osgi2Jini.setCMLusExportGroups(exportGroups);
-
-    String[] importGroups =
-        (String[]) props.get(JiniDriver.CM_LUS_IMPORT_GROUPS);
-    importGroups = (importGroups != null) ?
-        importGroups : LookupDiscovery.ALL_GROUPS;
-    setLusImportGroups(importGroups);
-  }
-
-  public String[] getLusImportGroups() {
-    return lusImportGroups;
-  }
-
-  public void setLusImportGroups(String[] lusImportGroups) {
-    this.lusImportGroups = lusImportGroups;
-    try {
-      lookupDiscovery.setGroups(lusImportGroups);
+        curThread.setContextClassLoader(oldClassLoader);
+        oldClassLoader = null;
+        curThread = null;
     }
-    catch (IOException ex) {
-    }
-  }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @param bundle DOCUMENT ME!
+     * @param registration DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public Object getService(Bundle bundle, ServiceRegistration registration) {
+        JiniDriverImpl jiniDriverImpl = new JiniDriverImpl();
+        Debug.printDebugInfo(10,
+            "JiniDriver Requested by " + bundle.getBundleId());
+
+        return jiniDriverImpl;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param bundle DOCUMENT ME!
+     * @param registration DOCUMENT ME!
+     * @param service DOCUMENT ME!
+     */
+    public void ungetService(Bundle bundle, ServiceRegistration registration,
+        Object service) {
+        Debug.printDebugInfo(10,
+            "JiniDriver Released by " + bundle.getBundleId());
+
+        JiniDriverImpl jiniDriverImpl = (JiniDriverImpl) service;
+        jiniDriverImpl.ungetServices();
+    }
+
+    /**
+     * DOCUMENT ME!
+     */
+    public void terminate() {
+        serviceDiscoveryManager.terminate();
+        lookupDiscovery.terminate();
+    }
+
+    // When CM config changes
+    public void updated(Dictionary props) {
+        String[] exportGroups = (String[]) props.get(JiniDriver.CM_LUS_EXPORT_GROUPS);
+        Osgi2Jini.setCMLusExportGroups(exportGroups);
+
+        String[] importGroups = (String[]) props.get(JiniDriver.CM_LUS_IMPORT_GROUPS);
+        importGroups = (importGroups != null) ? importGroups
+                                              : LookupDiscovery.ALL_GROUPS;
+        setLusImportGroups(importGroups);
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public String[] getLusImportGroups() {
+        return lusImportGroups;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param lusImportGroups DOCUMENT ME!
+     */
+    public void setLusImportGroups(String[] lusImportGroups) {
+        this.lusImportGroups = lusImportGroups;
+
+        try {
+            lookupDiscovery.setGroups(lusImportGroups);
+        } catch (IOException ex) {
+        }
+    }
 }

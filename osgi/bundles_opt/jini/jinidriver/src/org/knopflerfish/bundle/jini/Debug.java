@@ -31,35 +31,65 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
 public class Debug {
+    private static int debuglevel = 0;
 
-  private static int debuglevel = 0;
-
-  public static void setDebugLevel (int level) {
-    debuglevel = level;
-  }
-
-  public static int getDebugLevel(){
-    return debuglevel;
-  }
-
-  public static void printDebugInfo(int level, String message){
-    printDebugInfo(level, message, null);
-  }
-
-  public static void printDebugInfo(int level, String message, Exception e) {
-    if (level >= debuglevel) {
-      System.err.print("##DEBUG## ");
-      if (message != null ) System.err.println(message);
-      else System.err.println();
-      if (e != null) {
-        System.err.println("##Stacktrace##");
-        e.printStackTrace(System.err);
-      }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param level DOCUMENT ME!
+     */
+    public static void setDebugLevel(int level) {
+        debuglevel = level;
     }
-  }
 
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public static int getDebugLevel() {
+        return debuglevel;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param level DOCUMENT ME!
+     * @param message DOCUMENT ME!
+     */
+    public static void printDebugInfo(int level, String message) {
+        printDebugInfo(level, message, null);
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param level DOCUMENT ME!
+     * @param message DOCUMENT ME!
+     * @param e DOCUMENT ME!
+     */
+    public static void printDebugInfo(int level, String message, Exception e) {
+        if (level >= debuglevel) {
+            System.err.print("##DEBUG## ");
+
+            if (message != null) {
+                System.err.println(message);
+            } else {
+                System.err.println();
+            }
+
+            if (e != null) {
+                System.err.println("##Stacktrace##");
+                e.printStackTrace(System.err);
+            }
+        }
+    }
 }

@@ -31,77 +31,136 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
-import net.jini.lookup.ServiceDiscoveryListener;
-import net.jini.lookup.ServiceDiscoveryEvent;
 import net.jini.core.lookup.ServiceItem;
-import org.osgi.service.jini.JiniDriver;
+
+import net.jini.lookup.ServiceDiscoveryEvent;
+import net.jini.lookup.ServiceDiscoveryListener;
+
 import org.osgi.framework.ServiceRegistration;
+
+import org.osgi.service.jini.JiniDriver;
+
 import java.util.Hashtable;
 
+
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
 class Listener implements ServiceDiscoveryListener {
+    Hashtable services = new Hashtable();
+    Class[] clazzes = null;
 
-  Hashtable services = new Hashtable();
-  Class [] clazzes = null;
-
-  public Listener(Class clazz){
-    this(new Class[]{clazz});
-  }
-
-  public Listener(Class [] clazzes){
-    this.clazzes = clazzes;
-  }
-
-  public void serviceAdded(ServiceDiscoveryEvent event){
-    ServiceItem item = event.getPostEventServiceItem();
-    Object service = item.service;
-    Hashtable prop = new Hashtable();
-    prop.put(JiniDriver.ENTRIES, item.attributeSets);
-    prop.put(JiniDriver.SERVICE_ID, item.serviceID.toString());
-    Debug.printDebugInfo(10,"Registering Jini Service in OSGi Framework "
-                         +  item.serviceID.toString());
-    ServiceRegistration reg = Activator.bc.registerService(
-        toStrings(), service, prop);
-    services.put(service, reg);
-    Debug.printDebugInfo(10,"Registering Jini Service in OSGi Framework Completed "
-                         + item.serviceID.toString());
-  }
-
-  public void serviceChanged(ServiceDiscoveryEvent event){
-    ServiceItem item = event.getPostEventServiceItem();
-    Object service = item.service;
-    Hashtable prop = new Hashtable();
-    prop.put(JiniDriver.ENTRIES, item.attributeSets);
-    prop.put(JiniDriver.SERVICE_ID, item.serviceID.toString());
-    Debug.printDebugInfo(10,"Changing Jini Service properties in OSGi Framework "
-                         +  item.serviceID.toString());
-    ServiceRegistration reg = (ServiceRegistration) services.get(service);
-    if (reg != null)  reg.setProperties(prop);
-    else Debug.printDebugInfo(10,"Service is no longer in OSGi Framework");
-    Debug.printDebugInfo(10,"Changing Jini Service properties in OSGi Framework Completed"
-                     +  item.serviceID.toString());
-  }
-
-  public void serviceRemoved(ServiceDiscoveryEvent event){
-    ServiceItem item = event.getPreEventServiceItem();
-    Object service = item.service;
-    Debug.printDebugInfo(10,"Unregistering Jini Service in OSGi Framework "
-                         +  item.serviceID.toString());
-    ServiceRegistration reg = (ServiceRegistration) services.remove(service);
-    if (reg != null) reg.unregister();
-    else Debug.printDebugInfo(10, "Service Already Unregistered out OSGi Framework");
-    Debug.printDebugInfo(10,"Unregistering Jini Service in OSGi Framework Completed "
-                     + item.serviceID.toString());
-  }
-
-  private String [] toStrings() {
-    String [] cl = new String [clazzes.length];
-    for(int i = 0; i < cl.length; i++){
-      cl[i] = clazzes[i].getName();
+    /**
+     * Creates a new Listener object.
+     *
+     * @param clazz DOCUMENT ME!
+     */
+    public Listener(Class clazz) {
+        this(new Class[] { clazz });
     }
-    return cl;
-  }
-}
 
+    /**
+     * Creates a new Listener object.
+     *
+     * @param clazzes DOCUMENT ME!
+     */
+    public Listener(Class[] clazzes) {
+        this.clazzes = clazzes;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param event DOCUMENT ME!
+     */
+    public void serviceAdded(ServiceDiscoveryEvent event) {
+        ServiceItem item = event.getPostEventServiceItem();
+        Object service = item.service;
+        Hashtable prop = new Hashtable();
+        prop.put(JiniDriver.ENTRIES, item.attributeSets);
+        prop.put(JiniDriver.SERVICE_ID, item.serviceID.toString());
+        Debug.printDebugInfo(10,
+            "Registering Jini Service in OSGi Framework " +
+            item.serviceID.toString());
+
+        ServiceRegistration reg = Activator.bc.registerService(toStrings(),
+                service, prop);
+        services.put(service, reg);
+        Debug.printDebugInfo(10,
+            "Registering Jini Service in OSGi Framework Completed " +
+            item.serviceID.toString());
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param event DOCUMENT ME!
+     */
+    public void serviceChanged(ServiceDiscoveryEvent event) {
+        ServiceItem item = event.getPostEventServiceItem();
+        Object service = item.service;
+        Hashtable prop = new Hashtable();
+        prop.put(JiniDriver.ENTRIES, item.attributeSets);
+        prop.put(JiniDriver.SERVICE_ID, item.serviceID.toString());
+        Debug.printDebugInfo(10,
+            "Changing Jini Service properties in OSGi Framework " +
+            item.serviceID.toString());
+
+        ServiceRegistration reg = (ServiceRegistration) services.get(service);
+
+        if (reg != null) {
+            reg.setProperties(prop);
+        } else {
+            Debug.printDebugInfo(10, "Service is no longer in OSGi Framework");
+        }
+
+        Debug.printDebugInfo(10,
+            "Changing Jini Service properties in OSGi Framework Completed" +
+            item.serviceID.toString());
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param event DOCUMENT ME!
+     */
+    public void serviceRemoved(ServiceDiscoveryEvent event) {
+        ServiceItem item = event.getPreEventServiceItem();
+        Object service = item.service;
+        Debug.printDebugInfo(10,
+            "Unregistering Jini Service in OSGi Framework " +
+            item.serviceID.toString());
+
+        ServiceRegistration reg = (ServiceRegistration) services.remove(service);
+
+        if (reg != null) {
+            reg.unregister();
+        } else {
+            Debug.printDebugInfo(10,
+                "Service Already Unregistered out OSGi Framework");
+        }
+
+        Debug.printDebugInfo(10,
+            "Unregistering Jini Service in OSGi Framework Completed " +
+            item.serviceID.toString());
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    private String[] toStrings() {
+        String[] cl = new String[clazzes.length];
+
+        for (int i = 0; i < cl.length; i++) {
+            cl[i] = clazzes[i].getName();
+        }
+
+        return cl;
+    }
+}

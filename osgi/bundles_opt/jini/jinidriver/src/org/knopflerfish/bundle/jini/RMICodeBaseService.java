@@ -31,127 +31,192 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
+
 import org.osgi.service.http.HttpService;
 
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.net.MalformedURLException;
 
 import java.util.Properties;
 
+
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
 public class RMICodeBaseService {
+    public static final String RMI_SERVER_CODEBASE = "java.rmi.server.codebase";
+    private static RMICodeBaseService rmiCodeBaseService = null;
+    private static BundleHttpContext bundleHttpContext = null;
+    private static HttpService httpService = null;
+    private static String mountpoint = null;
+    private static URL codebase = null;
 
-  public static final String RMI_SERVER_CODEBASE = "java.rmi.server.codebase";
+    /**
+     * Creates a new RMICodeBaseService object.
+     *
+     * @param mountpoint DOCUMENT ME!
+     *
+     * @throws Exception DOCUMENT ME!
+     */
+    private RMICodeBaseService(String mountpoint) throws Exception {
+        this.mountpoint = mountpoint;
 
-  private static RMICodeBaseService rmiCodeBaseService = null;
+        ServiceReference ref = Activator.bc.getServiceReference(
+                "org.osgi.service.http.HttpService");
+        httpService = (HttpService) Activator.bc.getService(ref);
 
-  private static BundleHttpContext bundleHttpContext = null;
-  private static HttpService httpService = null;
+        if (setCodeBase(prepareCodeBase(ref, httpService, mountpoint))) {
+            bundleHttpContext = new BundleHttpContext();
 
-  private static String mountpoint = null;
-  private static URL codebase = null;
-
-  private RMICodeBaseService(String mountpoint) throws Exception {
-    this.mountpoint = mountpoint;
-
-    ServiceReference ref = Activator.bc.getServiceReference(
-        "org.osgi.service.http.HttpService");
-    httpService = (HttpService) Activator.bc.getService(ref);
-
-    if (setCodeBase(prepareCodeBase(ref, httpService, mountpoint))) {
-      bundleHttpContext = new BundleHttpContext();
-      try {
-        httpService.registerResources(mountpoint, "", bundleHttpContext);
-      }
-      catch (Exception ex) {
-        Debug.printDebugInfo(10, "Could not register mointpount " +
-                             mountpoint);
-        throw new Exception("Mountpoint already in use");
-      }
+            try {
+                httpService.registerResources(mountpoint, "", bundleHttpContext);
+            } catch (Exception ex) {
+                Debug.printDebugInfo(10,
+                    "Could not register mointpount " + mountpoint);
+                throw new Exception("Mountpoint already in use");
+            }
+        } else {
+            Debug.printDebugInfo(10,
+                "Could not set " + RMI_SERVER_CODEBASE + " property");
+            throw new Exception("Unable to set " + RMI_SERVER_CODEBASE +
+                " property");
+        }
     }
-    else {
-      Debug.printDebugInfo(10, "Could not set " +
-                           RMI_SERVER_CODEBASE + " property");
-      throw new Exception("Unable to set " + RMI_SERVER_CODEBASE + " property");
-    }
-  }
 
-  public static RMICodeBaseService getRMICodeBaseService(String mountpoint) throws
-      Exception {
-    if (rmiCodeBaseService == null) {
-      rmiCodeBaseService = new RMICodeBaseService(mountpoint);
-    }
-    return rmiCodeBaseService;
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param mountpoint DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     *
+     * @throws Exception DOCUMENT ME!
+     */
+    public static RMICodeBaseService getRMICodeBaseService(String mountpoint)
+        throws Exception {
+        if (rmiCodeBaseService == null) {
+            rmiCodeBaseService = new RMICodeBaseService(mountpoint);
+        }
 
-  public static RMICodeBaseService getRMICodeBaseService() {
-    return rmiCodeBaseService;
-  }
+        return rmiCodeBaseService;
+    }
 
-  public String getCodebase() {
-    return codebase.toString();
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public static RMICodeBaseService getRMICodeBaseService() {
+        return rmiCodeBaseService;
+    }
 
-  public void destroyService() {
-    httpService.unregister(mountpoint);
-    rmiCodeBaseService = null;
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public String getCodebase() {
+        return codebase.toString();
+    }
 
-  public void setCodebaseForBundle(Bundle b) {
-    bundleHttpContext.ensureCodebaseFor(b);
-  }
+    /**
+     * DOCUMENT ME!
+     */
+    public void destroyService() {
+        httpService.unregister(mountpoint);
+        rmiCodeBaseService = null;
+    }
 
-  public void removeCodebaseForBundle(Bundle b) {
-    bundleHttpContext.removeCodebaseFor(b);
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param b DOCUMENT ME!
+     */
+    public void setCodebaseForBundle(Bundle b) {
+        bundleHttpContext.ensureCodebaseFor(b);
+    }
 
-  private boolean setCodeBase(URL codebase) {
-    if (codebase == null) {
-      return false;
+    /**
+     * DOCUMENT ME!
+     *
+     * @param b DOCUMENT ME!
+     */
+    public void removeCodebaseForBundle(Bundle b) {
+        bundleHttpContext.removeCodebaseFor(b);
     }
-    Properties props = System.getProperties();
-    if (props.getProperty(RMICodeBaseService.RMI_SERVER_CODEBASE) != null) {
-      if (!props.getProperty(RMICodeBaseService.RMI_SERVER_CODEBASE).
-          equals(codebase.toString())) {
-        return false;
-      }
-    }
-    this.codebase = codebase;
-    props.setProperty(RMICodeBaseService.RMI_SERVER_CODEBASE,
-                      codebase.toString());
-    return true;
-  }
 
-  private URL prepareCodeBase(ServiceReference ref,
-                              HttpService httpService, String mountpoint) {
-    String host = null;
-    try {
-      host = InetAddress.getLocalHost().getHostName();
-    }
-    catch (UnknownHostException ex) {
-      return null;
-    }
-    if (httpService == null) {
-      return null;
-    }
-    if (ref == null) {
-      return null;
-    }
-    int port = ( (Integer) (ref.getProperty("port"))).intValue();
-    URL url = null;
-    try {
-      url = new URL("http://" + host + ":" + port + mountpoint + "/");
-    }
-    catch (MalformedURLException ex1) {
-      return null;
-    }
-    return url;
-  }
+    /**
+     * DOCUMENT ME!
+     *
+     * @param codebase DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    private boolean setCodeBase(URL codebase) {
+        if (codebase == null) {
+            return false;
+        }
 
+        Properties props = System.getProperties();
+
+        if (props.getProperty(RMICodeBaseService.RMI_SERVER_CODEBASE) != null) {
+            if (!props.getProperty(RMICodeBaseService.RMI_SERVER_CODEBASE)
+                          .equals(codebase.toString())) {
+                return false;
+            }
+        }
+
+        this.codebase = codebase;
+        props.setProperty(RMICodeBaseService.RMI_SERVER_CODEBASE,
+            codebase.toString());
+
+        return true;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param ref DOCUMENT ME!
+     * @param httpService DOCUMENT ME!
+     * @param mountpoint DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    private URL prepareCodeBase(ServiceReference ref, HttpService httpService,
+        String mountpoint) {
+        String host = null;
+
+        try {
+            host = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException ex) {
+            return null;
+        }
+
+        if (httpService == null) {
+            return null;
+        }
+
+        if (ref == null) {
+            return null;
+        }
+
+        int port = ((Integer) (ref.getProperty("port"))).intValue();
+        URL url = null;
+
+        try {
+            url = new URL("http://" + host + ":" + port + mountpoint + "/");
+        } catch (MalformedURLException ex1) {
+            return null;
+        }
+
+        return url;
+    }
 }

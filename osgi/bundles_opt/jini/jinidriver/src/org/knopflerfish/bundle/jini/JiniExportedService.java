@@ -31,121 +31,163 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.jini;
 
-import org.osgi.service.jini.JiniDriver;
-import java.io.IOException;
+import net.jini.core.entry.Entry;
+import net.jini.core.lookup.ServiceID;
+
+import net.jini.discovery.LookupDiscovery;
+
+import net.jini.lease.LeaseRenewalManager;
+
+import net.jini.lookup.JoinManager;
 
 import org.osgi.framework.ServiceReference;
 
-import net.jini.core.lookup.ServiceID;
-import net.jini.core.entry.Entry;
+import org.osgi.service.jini.JiniDriver;
 
-import net.jini.discovery.LookupDiscovery;
-import net.jini.lookup.JoinManager;
-import net.jini.lease.LeaseRenewalManager;
+import java.io.IOException;
 
 
-public class JiniExportedService
-    implements net.jini.lookup.ServiceIDListener {
-//Class LeaseRenewalManger for all leases for this exportedService
-  static LeaseRenewalManager leaseRenewalManager = new LeaseRenewalManager();
-// Data related to the service
-  // OSGi
-  ServiceReference serviceReference = null;
-  Object service = null;
-  // Jini
-  ServiceID serviceID = null;
-  Entry[] entries = null;
+/**
+ * DOCUMENT ME!
+ *
+ * @author Nico Goeminne
+ */
+public class JiniExportedService implements net.jini.lookup.ServiceIDListener {
+    //Class LeaseRenewalManger for all leases for this exportedService
+    static LeaseRenewalManager leaseRenewalManager = new LeaseRenewalManager();
 
-  //needed for the Jini JoinProtocl
-  LookupDiscovery lookupDiscovery = null;
-  JoinManager joinManager = null;
-
-  //Changing state needs to be synchroniced, canceling or updating are distinct
-  boolean isTerminating = false;
-
-  public JiniExportedService(ServiceReference serviceReference) throws
-      IOException {
-    // get All serviceProperties and store them
-    init(serviceReference);
-    // Needed to spawn in order to find the right classes.
-    Thread curThread = Thread.currentThread();
-    ClassLoader oldClassLoader = curThread.getContextClassLoader();
-    curThread.setContextClassLoader(Activator.class.getClassLoader());
-
-    // creating a lookupDiscovery
-    lookupDiscovery = new LookupDiscovery(getLusExportGroups());
-    joinManager = new JoinManager(
-        this.service, this.entries, this, lookupDiscovery,
-        leaseRenewalManager);
-
-    curThread.setContextClassLoader(oldClassLoader);
-    oldClassLoader = null;
-    curThread = null;
-
-  }
-
-  public void cancel() {
-    synchronized (this) {
-      if (isTerminating) {
-        return;
-      }
-      isTerminating = true;
-      joinManager.terminate();
-      lookupDiscovery.terminate();
-    }
-  }
-
-  public void update(ServiceReference serviceReference) {
-    synchronized (this) {
-      if (isTerminating) {
-        return;
-      }
-      init(serviceReference);
-      try {
-        lookupDiscovery.setGroups(getLusExportGroups());
-        joinManager.setAttributes(entries);
-      }
-      catch (IOException ex) {
-        Debug.printDebugInfo(10,"Could not update " + serviceReference, ex );
-      }
-    }
-  }
-
-  private void init(ServiceReference serviceReference) {
+    // Data related to the service
     // OSGi
-    this.serviceReference = serviceReference;
-    this.service = Activator.bc.getService(serviceReference);
+    ServiceReference serviceReference = null;
+    Object service = null;
+
     // Jini
-    this.serviceID = Util.getServiceID(
-        (String) serviceReference.getProperty(JiniDriver.SERVICE_ID));
-    this.entries =
-        (Entry[]) serviceReference.getProperty(JiniDriver.ENTRIES);
-  }
+    ServiceID serviceID = null;
+    Entry[] entries = null;
 
-  private String[] getLusExportGroups() {
+    //needed for the Jini JoinProtocl
+    LookupDiscovery lookupDiscovery = null;
+    JoinManager joinManager = null;
 
-    String[] service_lusExportGroups =
-        (String[]) serviceReference.getProperty(JiniDriver.LUS_EXPORT_GROUPS);
-    if (service_lusExportGroups != null)
-      return service_lusExportGroups;
+    //Changing state needs to be synchroniced, canceling or updating are distinct
+    boolean isTerminating = false;
 
-    String system_String_lusExportGroups =
-        System.getProperty(JiniDriver.CM_LUS_EXPORT_GROUPS);
-    if (system_String_lusExportGroups != null )
-      return Util.splitwords(system_String_lusExportGroups);
+    /**
+     * Creates a new JiniExportedService object.
+     *
+     * @param serviceReference DOCUMENT ME!
+     *
+     * @throws IOException DOCUMENT ME!
+     */
+    public JiniExportedService(ServiceReference serviceReference)
+        throws IOException {
+        // get All serviceProperties and store them
+        init(serviceReference);
 
-    String[] cm_lusExportGroups = Osgi2Jini.getCMLusExportGroups();
-    if (cm_lusExportGroups !=  null)
-      return cm_lusExportGroups;
+        // Needed to spawn in order to find the right classes.
+        Thread curThread = Thread.currentThread();
+        ClassLoader oldClassLoader = curThread.getContextClassLoader();
+        curThread.setContextClassLoader(Activator.class.getClassLoader());
 
-    return null;
-  }
+        // creating a lookupDiscovery
+        lookupDiscovery = new LookupDiscovery(getLusExportGroups());
+        joinManager = new JoinManager(this.service, this.entries, this,
+                lookupDiscovery, leaseRenewalManager);
 
-  public void serviceIDNotify(ServiceID serviceID) {
-    this.serviceID = serviceID;
-  }
+        curThread.setContextClassLoader(oldClassLoader);
+        oldClassLoader = null;
+        curThread = null;
+    }
+
+    /**
+     * DOCUMENT ME!
+     */
+    public void cancel() {
+        synchronized (this) {
+            if (isTerminating) {
+                return;
+            }
+
+            isTerminating = true;
+            joinManager.terminate();
+            lookupDiscovery.terminate();
+        }
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param serviceReference DOCUMENT ME!
+     */
+    public void update(ServiceReference serviceReference) {
+        synchronized (this) {
+            if (isTerminating) {
+                return;
+            }
+
+            init(serviceReference);
+
+            try {
+                lookupDiscovery.setGroups(getLusExportGroups());
+                joinManager.setAttributes(entries);
+            } catch (IOException ex) {
+                Debug.printDebugInfo(10,
+                    "Could not update " + serviceReference, ex);
+            }
+        }
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param serviceReference DOCUMENT ME!
+     */
+    private void init(ServiceReference serviceReference) {
+        // OSGi
+        this.serviceReference = serviceReference;
+        this.service = Activator.bc.getService(serviceReference);
+
+        // Jini
+        this.serviceID = Util.getServiceID((String) serviceReference.getProperty(
+                    JiniDriver.SERVICE_ID));
+        this.entries = (Entry[]) serviceReference.getProperty(JiniDriver.ENTRIES);
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    private String[] getLusExportGroups() {
+        String[] service_lusExportGroups = (String[]) serviceReference.getProperty(JiniDriver.LUS_EXPORT_GROUPS);
+
+        if (service_lusExportGroups != null) {
+            return service_lusExportGroups;
+        }
+
+        String system_String_lusExportGroups = System.getProperty(JiniDriver.CM_LUS_EXPORT_GROUPS);
+
+        if (system_String_lusExportGroups != null) {
+            return Util.splitwords(system_String_lusExportGroups);
+        }
+
+        String[] cm_lusExportGroups = Osgi2Jini.getCMLusExportGroups();
+
+        if (cm_lusExportGroups != null) {
+            return cm_lusExportGroups;
+        }
+
+        return null;
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param serviceID DOCUMENT ME!
+     */
+    public void serviceIDNotify(ServiceID serviceID) {
+        this.serviceID = serviceID;
+    }
 }
-
