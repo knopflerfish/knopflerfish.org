@@ -11,9 +11,10 @@ This directory contains support for JUnit testing on a running framework.
 
 Requirements:
 
- - http server
- - KF LogRef log wrapper from log_api
- - XML parser (for client)
+
+ - http server (used by the server part)
+ - KF LogRef log wrapper from log_api (used by the server part)
+ - XML parser (used by the client part)
 
 Background
 -----------
@@ -119,7 +120,7 @@ Note:
 JUnit support in bundlebuild_include.xml
 ----------------------------------------
 
-As a convenience, the bundlebuild_include.xmlant script
+As a convenience, the ant/bundlebuild_include.xml script
 contains support for using the JUnit client.
 
 
@@ -133,6 +134,12 @@ Example: run Ant's junit task
    > ant -Dtest.id=example1 junit_ant
 
 
+Tip: Bundles can be installed using the telnet console. The telnet
+console is installed by the default init.xargs. In this case a bundle
+can be installed and started by
+
+   > ant install start
+     
 
 The following Ant properties are set as default in bundlebuild_include.xml:
 
@@ -147,7 +154,8 @@ Known issues
 ------------
 
  * TestSuites are "flattened" by the client proxy, so the
-   tree structure in the Swing runner might look a bit different.
+   tree structure in the Swing runner might look a bit different
+   compared from tests run locally.
 
  * Proxied tests cannot (yet) be individually re-run. The entire client 
    proxy must be re-run
