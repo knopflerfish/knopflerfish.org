@@ -88,7 +88,7 @@ on a named SOAP host. The services can be browsed for operations and
 the operations can be invoked. The SOAP host can be changed to view
 services on another host.
 
-The defualt SOAP host is "http://localhost:<web server port>"
+The default SOAP host is "http://localhost:<web server port>"
 
 The implementation has only been tested with services generated
 by exporting OSGi service via Axis, and is not complete in terms of
