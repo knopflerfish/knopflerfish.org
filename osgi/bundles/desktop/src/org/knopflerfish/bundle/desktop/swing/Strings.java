@@ -91,6 +91,10 @@ public class Strings {
 	  put("item_updatebundles",     "Update");
 	  put("item_uninstallbundles",  "Uninstall");
 
+	  put("menu_remotefw",          "Remote framework...");
+	  put("remote_connect_msg",     "Enter address to remote framework");
+	  put("remote_connect_title",   "Connect to remote framework");
+
 	  put("bundleinfo_startup", 
 	      "<html>Select on or more bundles to " + 
 	      "view detail information</html>");
@@ -132,7 +136,11 @@ public class Strings {
 	      "See\n" + 
 	      "  http://www.knopflerfish.org\n" + 
 	      "for more information" + 
-	      "\n\n\n\n");
+	      "\n\n" + 
+	      "This release uses LGPL icons from the\n" +
+	      "Noia icon collection by Carlitus, see\n" +
+	      " http://www.carlitus.net"
+	      );
 
 	  put("item_selectall",       "Select all");
 	  put("item_unselectall",     "Unselect all");

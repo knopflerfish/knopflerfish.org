@@ -122,6 +122,8 @@ public class Desktop
 
   ImageIcon          prevIcon;
   ImageIcon          nextIcon;
+  ImageIcon          connectIcon;
+  ImageIcon          connectIconLarge;
 
   JToolBar           toolBar;
   StatusBar          statusBar;
@@ -143,6 +145,8 @@ public class Desktop
   LookAndFeelMenu lfMenu;
 
   ServiceTracker dispTracker;
+  ServiceTracker slTracker;
+  ServiceTracker pkgTracker;
 
   JButton viewSelection;
 
@@ -156,8 +160,12 @@ public class Desktop
 
     slTracker = 
       new ServiceTracker(Activator.getTargetBC(), StartLevel.class.getName(), null);
-
     slTracker.open();
+
+    pkgTracker = 
+      new ServiceTracker(Activator.getTargetBC(), PackageAdmin.class.getName(), null);
+    pkgTracker.open();
+
     
     emptyIcon     = new ImageIcon(getClass().getResource("/empty.gif"));
     startIcon     = new ImageIcon(getClass().getResource("/player_play.png"));
@@ -182,6 +190,9 @@ public class Desktop
 
     openIcon  = new ImageIcon(getClass().getResource("/open.png"));
     saveIcon  = new ImageIcon(getClass().getResource("/save.png"));
+
+    connectIcon  = new ImageIcon(getClass().getResource("/connect.png"));
+    connectIconLarge  = new ImageIcon(getClass().getResource("/connect48x48.png"));
 
     prevIcon  = new ImageIcon(getClass().getResource("/player_prev.png"));
     nextIcon  = new ImageIcon(getClass().getResource("/player_next.png"));
@@ -739,7 +750,6 @@ public class Desktop
   // items handling start level stuff. Only used if a StartLevel
   // service is available at startup
   Object[]       levelItems;
-  ServiceTracker slTracker;
   JComboBox      levelBox = null;
   int            levelMin = 1;
   int            levelMax = 20;
@@ -867,6 +877,21 @@ public class Desktop
 		    }
 		  });
 	      }});
+	  
+	  if(Activator.remoteTracker.getService() != null) {
+	    add(new JMenuItem(Strings.get("menu_remotefw"), connectIcon) {
+		{ 
+		  setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+							ActionEvent.CTRL_MASK));
+		  setMnemonic(KeyEvent.VK_F);
+		  
+		  addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent ev) {
+			doConnect();
+		      }
+		    });
+		}});
+	  }
 	  
 	  
 	  add(new JMenuItem("Quit framework...") {
@@ -1203,7 +1228,6 @@ public class Desktop
 			options[1]);
     if(n == 0) {
       try {
-	System.out.println("stopping framework");
 	Bundle sysBundle = Activator.getTargetBC().getBundle((long)0);
 	sysBundle.stop();
       } catch (Exception e) {
@@ -1241,6 +1265,21 @@ public class Desktop
     }
   }
   
+  void doConnect() {
+    String s = (String)JOptionPane
+      .showInputDialog(frame,
+		       Strings.get("remote_connect_msg"),
+		       Strings.get("remote_connect_title"),
+		       JOptionPane.QUESTION_MESSAGE, // optionType 
+		       connectIconLarge,
+		       null, // Object[] init
+		       Activator.remoteHost);
+    
+    if ((s != null) && (s.length() > 0)) {
+      Activator.openRemote(s);
+    }
+  }
+
   JFileChooser saveFC = null;
   
   void save() {
@@ -1315,7 +1354,7 @@ public class Desktop
       base = base.substring(0, ix);
     }
 
-    PackageAdmin pkgAdmin = (PackageAdmin)Activator.pkgTracker.getService();
+    PackageAdmin pkgAdmin = (PackageAdmin)pkgTracker.getService();
     
     if(pkgAdmin == null) {
       Activator.log.error("No pkg admin available for save");
@@ -1747,7 +1786,6 @@ public class Desktop
 
 
   void addFile(File file) {
-    System.out.println("add file " + file);
 
     try {
       if(file.getName().toUpperCase().endsWith(".JAR")) {
@@ -1768,24 +1806,39 @@ public class Desktop
   }
   
   public void stop() {
+    alive = false;
+
+    slTracker.close();
+    dispTracker.close();
+    pkgTracker.close();
+
+    Activator.getTargetBC().removeBundleListener(this);
+
     if(consoleSwing != null) {
       consoleSwing.stop();
       consoleSwing = null;
     }
 
-    alive = false;
+
     if(frame != null) {
       frame.setVisible(false);
       frame = null;
     }
-    Activator.getTargetBC().removeBundleListener(this);
+
   }
 
   public void valueChanged(long bid) {
+    if(!alive) {
+      return;
+    }
+
     updateBundleViewSelections();
   }
 
   public void frameworkEvent(FrameworkEvent ev) {
+    if(!alive) {
+      return;
+    }
     switch(ev.getType()) {
     case FrameworkEvent.STARTLEVEL_CHANGED:
       updateStartLevel();
@@ -1796,11 +1849,11 @@ public class Desktop
   Bundle[] bundleCache;
 
   public void bundleChanged(BundleEvent ev) {
-    Bundle b = ev.getBundle();
-
     if(!alive) {
       return;
     }
+
+    Bundle b = ev.getBundle();
 
     bundleCache = Activator.getTargetBC().getBundles();
 

@@ -126,6 +126,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     } catch (Exception e) {
       e.printStackTrace();
     }
+
     initFonts();
 
     addMouseMotionListener(new MouseMotionAdapter() {
@@ -1033,6 +1034,9 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   }
 
   public void stop() {
+    Activator.getTargetBC().removeBundleListener(this);
+    Activator.getTargetBC().removeServiceListener(this);
+
     if(runner != null) {
       bRun = false;
       try {

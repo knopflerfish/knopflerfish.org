@@ -53,6 +53,7 @@ public class Activator implements BundleActivator {
   static public Desktop desktop;
 
   static ServiceTracker pkgTracker;
+  static Activator      myself;
 
   public static BundleContext getBC() {
     return bc;
@@ -68,19 +69,26 @@ public class Activator implements BundleActivator {
    */
   public static BundleContext getTargetBC() {
     if(remoteBC == null) {
-      remoteBC = openRemote(remoteHost);
+      return getBC();
     }
 
     return remoteBC;
   }
 
-  static private String remoteHost = "http://localhost:8080";
+  static String remoteHost = "http://localhost:8080";
 
   public static BundleContext openRemote(String host) {
     RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
     if(rc != null) {
-      remoteBC = rc.connect(host);
-      remoteHost = host;
+      try {
+	Activator.myself.closeDesktop();
+	remoteBC = rc.connect(host);
+	remoteHost = host;
+      } catch (Exception e) {
+	log.error("Failed to connect to " + host);
+      } 
+
+      Activator.myself.openDesktop();
     }
     return remoteBC;
   }
@@ -93,7 +101,7 @@ public class Activator implements BundleActivator {
   public void start(BundleContext _bc) {
     this.bc        = _bc;
     this.log       = new LogRef(bc);
-
+    this.myself    = this;
 
     remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null);
     remoteTracker.open();
@@ -101,82 +109,90 @@ public class Activator implements BundleActivator {
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
     pkgTracker.open();
 
-    openDesktop();
+    // Spawn to avoid race conditions in resource loading
+    Thread t = new Thread() {
+	public void run() {
+	  openDesktop();
+	}
+      };
+    t.start();
   }
 
   void openDesktop() {
-    // Spawn to avoid racing conditions in resource loading
-    Thread t = new Thread(new Runnable() {
-	public void run() {
-	  desktop = new Desktop();
-	  desktop.start();
+    if(desktop != null) {
+      System.out.println("openDesktop: desktop already open");
+      return;
+    }
 
-	  DefaultSwingBundleDisplayer disp;
-
-	  ServiceRegistration reg;
-
-	  // bundle displayers
-	  disp = new LargeIconsDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  disp = new TimeLineDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  disp = new TableDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  disp = new SpinDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  // detail displayers
-	  disp = new ManifestHTMLDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  disp = new ClosureHTMLDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  disp = new ServiceHTMLDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-	  disp = new PackageHTMLDisplayer(getTargetBC());
-	  disp.open();
-	  reg = disp.register();
-	  displayers.put(disp, reg);
-
-
-	  if(getBC() == getTargetBC()) {
-	    disp = new LogDisplayer(getTargetBC());
-	    disp.open();
-	    reg = disp.register();
-	    displayers.put(disp, reg);
-	  }
-
-	  // We really want this one to be display.
-	  desktop.bundlePanel.showTab("Large Icons");
-
-	}
-      }, "desktop startup");
+    desktop = new Desktop();
+    desktop.start();
     
-    t.start();
-
+    DefaultSwingBundleDisplayer disp;
+    
+    ServiceRegistration reg;
+    
+    // bundle displayers
+    disp = new LargeIconsDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new TimeLineDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new TableDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new SpinDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    // detail displayers
+    disp = new ManifestHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new ClosureHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new ServiceHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    disp = new PackageHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+    
+    
+    if(getBC() == getTargetBC()) {
+      disp = new LogDisplayer(getTargetBC());
+      disp.open();
+      reg = disp.register();
+      displayers.put(disp, reg);
+    }
+    
+    // We really want this one to be displayed.
+    desktop.bundlePanel.showTab("Large Icons");
   }
 
   void closeDesktop() {
     try {
+
+      if(desktop != null) {
+	desktop.stop();
+	desktop = null;
+      }
+
       for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
 	DefaultSwingBundleDisplayer disp 
 	  = (DefaultSwingBundleDisplayer)it.next();
@@ -186,9 +202,13 @@ public class Activator implements BundleActivator {
 	disp.close();
       }
       displayers.clear();
-      if(desktop != null) {
-	desktop.stop();
-	desktop = null;
+
+      if(remoteBC != null) {
+	RemoteFramework rc = (RemoteFramework)remoteTracker.getService();	
+	if(rc != null) {
+	  rc.disconnect(remoteBC);
+	}
+	remoteBC = null;
       }
     } catch (Exception e) {
       log.error("Failed to close desktop", e);
@@ -203,7 +223,18 @@ public class Activator implements BundleActivator {
 	log = null;
       }
       
-      this.bc = null;
+      if(remoteTracker != null) {
+	remoteTracker.close();
+	remoteTracker = null;
+      }
+
+      if(pkgTracker != null) {
+	pkgTracker.close();
+	pkgTracker = null;
+      }
+
+      this.bc     = null;
+      this.myself = null;
     } catch (Exception e) {
       e.printStackTrace();
     }
