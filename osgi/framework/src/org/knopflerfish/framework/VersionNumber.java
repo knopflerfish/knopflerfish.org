@@ -43,7 +43,7 @@ public class VersionNumber implements Comparable
   final private int y;
   final private int z;
 
-  static boolean bFuzzy = "true".equals(System.getProperty("org.knopflerfish.framework.version.fuzzy", "false"));
+  static boolean bFuzzy = "true".equals(System.getProperty("org.knopflerfish.framework.version.fuzzy", "true"));
 
   /**
    * Construct a VersionNumber object
@@ -94,18 +94,12 @@ public class VersionNumber implements Comparable
     int res = x - v2.x;
 
     if (res == 0) {
-      res = b - (v2.y != -1 ? v2.y : b);
+      res = b - (v2.y != -1 ? v2.y : 0);
       if (res == 0) {
-	res = c - (v2.z != -1 ? v2.z : c);
+	res = c - (v2.z != -1 ? v2.z : 0);
       }
     }
-    /*
-    if(Debug.packages) {
-      if(res != 0) {
-	Debug.println(this + " compareTo " + v2 + " = " + res);
-      }
-    }
-    */
+
     return res;
   }
 
