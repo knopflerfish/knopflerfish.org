@@ -39,7 +39,7 @@ Both publishing/registering and usage of services can be restricted by using jav
 
 <pre class="codeexample">
 <div class="head">Registering a very simple object as a service</div>
-Integer   i     = new Long(20);
+Long      i     = new Long(20);
 Hashtable props = new Hashtable();
 props.put("description", "This an long value");
 bc.<a href="$(JAVADOC)/org/osgi/framework/BundleContext.html#registerService(java.lang.String, java.lang.Object, java.util.Dictionary)">registerService</a>(Long.class.getName(), i, props);
