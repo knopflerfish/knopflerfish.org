@@ -59,7 +59,6 @@ public class PreferencesServiceFactory implements ServiceFactory {
 	prefs = new PreferencesServiceImpl(bundle);
 	prefsMap.put(bundle, prefs);
       }
-      System.out.println("return " + prefs + " to " + bundle.getBundleId());
       return prefs;
     }
   }
