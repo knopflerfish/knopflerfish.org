@@ -37,9 +37,16 @@
 </path>
 
 <target name="all">
+ <available file="${osgi.jar}" property="osgi.jar.present"/>
+ <antcall target = "check_osgi"/>
+
  <antcall target = "try_bundle.custom.pre"/>
- <antcall target="compile"/>
- <antcall target="jar"/>
+ <antcall target = "compile"/>
+ <antcall target = "jar"/>
+</target>
+
+<target name="check_osgi" unless="osgi.jar.present">
+  <fail message="Cannot find OSGi API jar. The 'osgi.jar' property is currently set to '${osgi.jar}"/>
 </target>
 
  <target name        = "try_bundle.custom.pre"
