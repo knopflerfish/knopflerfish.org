@@ -37,6 +37,8 @@
   <property name="bundle.description"    value="Axis Server"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
   <property name="bundle.category"       value="support"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.html"/>
+  <property name="bundle.subversionurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/"/>
   <property name="bundle.version"        value="0.1.0"/>
   <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
 
