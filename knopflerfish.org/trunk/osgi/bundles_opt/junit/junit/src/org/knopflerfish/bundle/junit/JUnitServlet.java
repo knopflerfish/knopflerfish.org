@@ -180,6 +180,10 @@ public class JUnitServlet extends HttpServlet {
     ServiceReference[] srl = 
       Activator.bc.getServiceReferences(null, filter);
     
+    if(srl == null || srl.length == 0) {
+      out.println("No Test services found");
+    }
+
     out.println("<ol>");
     for(int i = 0; srl != null && i < srl.length; i++) {
       Object obj = Activator.bc.getService(srl[i]);
@@ -461,16 +465,19 @@ public class JUnitServlet extends HttpServlet {
     out.println("</pre>");
 
     if(tr.failureCount() > 0 ) {
+      int i = 0;
       for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
+	i++;
 	TestFailure tf = (TestFailure)e.nextElement();
-	dumpFailureHTML(tf, out, "Failure");
+	dumpFailureHTML(tf, out, "Failure #" + i);
       }
     }
     if(tr.errorCount() > 0 ) {
+      int i = 0;
       for(Enumeration e = tr.errors(); e.hasMoreElements(); ) {
-	
+	i++;
 	TestFailure tf = (TestFailure)e.nextElement();
-	dumpFailureHTML(tf, out, "Error");
+	dumpFailureHTML(tf, out, "Error #" + i);
       }
     }
   }
@@ -542,7 +549,7 @@ public class JUnitServlet extends HttpServlet {
 
     Test failedTest = tf.failedTest();
 
-    out.println("<pre>");
+    out.println("<p>");
     if(failedTest instanceof TestCase) {
       TestCase tc = (TestCase)failedTest;
       String name = tc.getName();
@@ -550,12 +557,12 @@ public class JUnitServlet extends HttpServlet {
 	name = tc.getClass().getName();
       }
 
-      out.println("test name:  " + escape(name));
-      out.println("test class: " + tc.getClass().getName());
+      out.println("Name:  <code>" + escape(name) + "</code><br>");
+      out.println("Class: <code>" + tc.getClass().getName() + "</code>");
     } else {
-      out.println("test:       " + tf.failedTest());
+      out.println("<code>" + tf.failedTest() + "</code>");
     }
-    out.println("</pre>");
+    out.println("</p>");
 
     out.println("<pre>");
     out.println("");
