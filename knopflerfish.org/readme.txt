@@ -10,12 +10,16 @@
    releases  -   releases
    issues    -   reserved for possible subissue usage
 
+You can also browse the latest version at
+  https://www.knopflerfish.org/svn/
+
 To check out, use a Subversion client
   http://subversion.tigris.org
 
 A nice windows client is available at
   http://tortoisesvn.tigris.org
 
+  
 *** Checking out the source ***
 
 Anyone can check out the main trunk by:
