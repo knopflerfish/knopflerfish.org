@@ -33,12 +33,19 @@ public class ServiceReferenceImpl implements ServiceReference {
       props.clear();
       keys = new String[map.size()];
       
+      //      System.out.println("SR sid= " + sid);
+      
       int i = 0;
       for(Iterator it = map.keySet().iterator(); it.hasNext();) {
 	String key = (String)it.next();
+	
 	Object val = map.get(key);
+	key = key.toLowerCase();
+
 	props.put(key, val);
 	keys[i] = key;
+
+	//	System.out.println(key + "=" + val);
 	i++;
       }
     }
@@ -49,7 +56,7 @@ public class ServiceReferenceImpl implements ServiceReference {
   }
 
   public Object getProperty(String key) {
-    return props.get(key);
+    return props.get(key.toLowerCase());
   }
 
   public String[] getPropertyKeys() {
@@ -58,5 +65,13 @@ public class ServiceReferenceImpl implements ServiceReference {
 
   public Bundle[] getUsingBundles() {
     return new Bundle[0];
+  }
+
+  public String toString() {
+    return "ServiceReferenceImpl[" + 
+      "service.id=" + sid + 
+      ", objectclass=" + RemoteFWClient.toDisplay(getProperty("objectclass")) + 
+      "]";
+    
   }
 }

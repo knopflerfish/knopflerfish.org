@@ -44,4 +44,25 @@ public class Util {
 
     return "[@" + val.getClass().getName() + "::" + val + "@]";
   }
+  
+  
+  public static Object toDisplay(Object val) {
+    if(val != null) {
+      if(val.getClass().isArray()) {
+	StringBuffer sb = new StringBuffer();
+	sb.append("[");
+	for(int i = 0; i < Array.getLength(val); i++) {
+	  sb.append(toDisplay(Array.get(val, i)));
+	  if(i < Array.getLength(val) - 1) {
+	    sb.append(",");
+	  }
+	}
+	sb.append("]");
+	return sb.toString();
+      }
+    }
+
+    return val;
+  }
+
 }

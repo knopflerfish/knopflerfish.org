@@ -15,25 +15,32 @@ import java.net.*;
 import org.knopflerfish.bundle.soap.remotefw.*;
 
 public class BundleContextImpl implements BundleContext {
-  RemoteFW fw;
+  RemoteFWClient fw;
+
+  boolean  bDebug   = "true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.debug", "false"));
 
   Thread  runner = null;
   boolean bRun   = false;
   long    delay  = 10 * 1000;
 
-  BundleContextImpl(RemoteFW fw) {
+  StartLevelImpl startLevel;
+
+  BundleContextImpl(RemoteFWClient fw) {
     this.fw  = fw;
+    startLevel = new StartLevelImpl(fw);
   }
 
   void start() {
     if(runner == null) {
       runner = new Thread() {
 	  public void run() {
-	    try {
-	      doEvents();
-	      Thread.sleep(delay);
-	    } catch (Exception e) {
-	      //
+	    while(bRun) {
+	      try {
+		doEvents();
+		Thread.sleep(delay);
+	      } catch (Exception e) {
+		//
+	      }
 	    }
 	  }
 	};
@@ -56,21 +63,32 @@ public class BundleContextImpl implements BundleContext {
   void doEvents() {
     doBundleEvents();
     doServiceEvents();
-    doFrameworkEvents();
+    //    doFrameworkEvents();
   }
 
   void doBundleEvents() {
     long[] evs = fw.getBundleEvents();
+    if(bDebug) {
+      System.out.println("doBundleEvents " + evs.length);
+    }
     for(int i = 0; i < evs.length / 2; i++) {
-      Bundle      b  = getBundle(evs[i * 2]);
-      BundleEvent ev = new BundleEvent((int)evs[i * 2 +1], b);
-
-      sendBundleEvent(ev);
+      long bid = evs[i * 2];
+      Bundle      b  = getBundle(bid);
+      if(b == null) {
+	System.out.println("*** No bundle bid=" + bid);
+      } else {
+	BundleEvent ev = new BundleEvent((int)evs[i * 2 +1], b);
+	
+	sendBundleEvent(ev);
+      }
     }
   }
 
   void doFrameworkEvents() {
     long[] evs = fw.getFrameworkEvents();
+    if(bDebug) {
+      System.out.println("doFrameworkEvents " + evs.length);
+    }
     for(int i = 0; i < evs.length; i++) {
       FrameworkEvent ev = new FrameworkEvent((int)evs[i * 2],
 					     getBundle(evs[i*2 + 1]),
@@ -82,14 +100,21 @@ public class BundleContextImpl implements BundleContext {
 
   void doServiceEvents() {
     long[] evs = fw.getServiceEvents();
+    if(bDebug) {
+      System.out.println("doServiceEvents " + evs.length);
+    }
     for(int i = 0; i < evs.length; i++) {
       long             sid  = evs[i * 2];
       int              type = (int)evs[i * 2 + 1];
       ServiceReference sr   = getServiceReference(sid);
 
-      ServiceEvent     ev   = new ServiceEvent(type, sr);
+      if(sr == null) {
+	System.err.println("*** no sid=" + sid);
+      } else {
+	ServiceEvent     ev   = new ServiceEvent(type, sr);
 
-      sendServiceEvent(ev);
+	sendServiceEvent(ev);
+      }
     }
   }
 
@@ -121,11 +146,15 @@ public class BundleContextImpl implements BundleContext {
 
   void sendServiceEvent(ServiceEvent ev) {
     synchronized(serviceListeners) {
+      //      Hashtable props = new Hashtable();
+      ServiceReferenceImpl sr = (ServiceReferenceImpl)ev.getServiceReference();
+      Hashtable props = sr.props;
+
       for(Iterator it = serviceListeners.keySet().iterator(); it.hasNext();) {
 	ServiceListener l = (ServiceListener)it.next();
 	Filter filter     = (Filter)serviceListeners.get(l);
 
-	if(filter.match(ev.getServiceReference())) {
+	if(filter.match(props)) {
 	  try {
 	    l.serviceChanged(ev);
 	  } catch (Exception e) {
@@ -154,7 +183,7 @@ public class BundleContextImpl implements BundleContext {
 
   public void addServiceListener(ServiceListener listener) { 
     try {
-      addServiceListener(listener, null);
+      addServiceListener(listener, "(objectclass=*)");
     } catch (Exception e) {
     }
   }
@@ -162,6 +191,9 @@ public class BundleContextImpl implements BundleContext {
   public void addServiceListener(ServiceListener listener, String filter) 
   throws InvalidSyntaxException { 
     synchronized(serviceListeners) {
+      if(filter == null || "".equals(filter)) {
+	filter = "(objectclass=*)";
+      }
       Filter f = createFilter(filter);
       serviceListeners.put(listener, f);
     }
@@ -175,7 +207,7 @@ public class BundleContextImpl implements BundleContext {
   Map bundleMap = new HashMap();
 
   public Bundle getBundle() { 
-    throw new RuntimeException("Not implemented");
+    return getBundle(fw.getBundle());
   }
 
   public Bundle getBundle(long id) { 
@@ -225,24 +257,49 @@ public class BundleContextImpl implements BundleContext {
 
     long[] srl = fw.getServiceReferences("(service.id=" + sid + ")");
     if(srl.length == 2) {
-      sr = new ServiceReferenceImpl((BundleImpl)getBundle(srl[0]), srl[1]);
+      sr = new ServiceReferenceImpl((BundleImpl)getBundle(srl[1]), srl[0]);
       serviceMap.put(SID, sr);
       return sr;
+    }
+    throw new IllegalArgumentException("No service id=" + sid + ", length=" + srl.length);
+  }
+
+  public Object getService(ServiceReference sr) { 
+    String[] clazzes = (String[])sr.getProperty("objectclass");
+
+    if(sr instanceof ServiceReferenceImpl) {
+      if(inArray(clazzes, StartLevel.class.getName())) {
+	return startLevel;
+      }
+      return null;
+    } else {
+      throw new IllegalArgumentException("Bad ServiceReference passed: " + sr);
+    }
+  }
+
+  public ServiceReference getServiceReference(String clazz) { 
+    ServiceReference[] srl = getServiceReferences(clazz, null);
+    if(srl != null && srl.length > 0) {
+      return srl[0];
     }
     return null;
   }
 
-  public Object getService(ServiceReference reference) { 
-    throw new RuntimeException("NYI");
-  }
-
-  public ServiceReference getServiceReference(String clazz) { 
-    throw new RuntimeException("NYI");
-  }
-
   public ServiceReference[] getServiceReferences(String clazz, String filter)
   { 
-    throw new RuntimeException("NYI");
+    long[] sids = fw.getServiceReferences2(clazz, filter);
+
+    if(sids == null || sids.length == 0) {
+      return null;
+    }
+
+    ServiceReference[] srl = new ServiceReference[sids.length / 2];
+
+
+    for(int i = 0; i < srl.length; i++) {
+      srl[i] = getServiceReference(sids[i * 2]);
+    }
+    return srl;
   }
 
   public Bundle installBundle(String location) { 
@@ -257,30 +314,49 @@ public class BundleContextImpl implements BundleContext {
   public ServiceRegistration registerService(String[] clazzes, 
 					     Object service, 
 					     Dictionary properties) { 
-    throw new RuntimeException("Not implemented");
-  }
+    throw new RuntimeException("registerService not implemented: service=" + service + ", classes=" + RemoteFWClient.toDisplay(clazzes));
+   }
 
   
   public ServiceRegistration registerService(String clazz, 
 					     Object service, 
 					     Dictionary properties) { 
-    throw new RuntimeException("Not implemented");
+    return registerService(new String[] { clazz }, service, properties);
   }
 
 
   public void removeBundleListener(BundleListener listener) { 
-    throw new RuntimeException("NYI");
+    synchronized(bundleListeners) {
+      bundleListeners.remove(listener);
+    }
   }
 
   public void removeFrameworkListener(FrameworkListener listener) { 
-    throw new RuntimeException("NYI");
+    synchronized(frameworkListeners) {
+      frameworkListeners.remove(listener);
+    }
   }
+     
 
   public void removeServiceListener(ServiceListener listener) { 
-    throw new RuntimeException("NYI");
+    synchronized(serviceListeners) {
+      serviceListeners.remove(listener);
+    }
   }
 
-  public boolean ungetService(ServiceReference reference) { 
-    throw new RuntimeException("NYI");
+  public boolean ungetService(ServiceReference sr) { 
+    if(bDebug) {
+      System.out.println("ungetService: noop: " + sr);
+    }
+    return true;
+  }
+
+  static boolean inArray(Object[] sa, Object s) {
+    for(int i = 0; sa != null && i < sa.length; i++) {
+      if(sa[i] != null && sa[i].equals(s)) {
+	return true;
+      }
+    }
+    return false;
   }
 }

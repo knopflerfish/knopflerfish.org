@@ -22,6 +22,7 @@
             value="org/knopflerfish/service/soap/**"/>
 
   <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
    <pathelement location="${topdir}/bundles/xml/jaxp/resources/jaxp.jar"/>
    <pathelement location="${topdir}/bundles/xml/jaxp/resources/parser.jar"/>
@@ -41,7 +42,7 @@
             value="org.knopflerfish.service.soap.remotefw"/>
 
   <property name="import.package"
-            value="javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client,org.osgi.framework,org.w3c.dom,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel"/>
+            value="javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client,org.osgi.framework,org.w3c.dom,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel,org.knopflerfish.util"/>
 
   &bundlebuild_include;
 
