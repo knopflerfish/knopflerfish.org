@@ -4,7 +4,20 @@
 
   <!-- build properties -->
 
+   <!-- some bundles only build on 1.4 -->
+
+   <target name="build14" if="is14">
+    <echo message="** Building 1.4 specific bundles **"/>
+    <ant dir="sslj2sp"           target="all"/>
+   </target>
+
    <target name="all">
+
+    <condition property="is14">
+     <equals arg1="${ant.java.version}" arg2="1.4"/>
+    </condition>
+
+
     <ant dir="log"               target="jar_api"/>
     <ant dir="cm/cm"             target="all"/>
     <ant dir="console/console"   target="all"/>
@@ -12,6 +25,9 @@
     <ant dir="frameworkcommands" target="all"/>
     <ant dir="logcommands"       target="all"/>
     <ant dir="jsdk"              target="all"/>
+
+    <antcall target="build14"/>
+
     <ant dir="http"              target="all"/>
     <ant dir="util"              target="all"/>
     <ant dir="xml"               target="all"/>
