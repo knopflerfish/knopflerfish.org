@@ -207,7 +207,7 @@ public class ConsoleAWT extends Panel {
       cmdPanel.add(cmdLabel,        BorderLayout.WEST);
       cmdPanel.add(tfCmd,           BorderLayout.CENTER);
 
-      panel.add(cmdPanel,        BorderLayout.SOUTH);
+      panel.add(cmdPanel,        BorderLayout.NORTH);
 
       final PopupMenu cmdPopupMenu = new PopupMenu();
       cmdPopupMenu.add(new CommandItem("ps -1", true));
