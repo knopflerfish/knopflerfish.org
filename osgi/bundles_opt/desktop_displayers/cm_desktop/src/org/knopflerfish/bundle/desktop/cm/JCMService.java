@@ -96,7 +96,8 @@ public class JCMService extends JPanel {
     factoryPid  = null;
 
     if(ocd != null) {
-      main.setBorder(BorderFactory.createTitledBorder(ocd.getID()));
+      main.setBorder(BorderFactory
+		     .createTitledBorder(ocd.getID()));
       
       mainPanel = new JPanel(new BorderLayout());
       
@@ -277,7 +278,11 @@ public class JCMService extends JPanel {
       mainPanel.add(scroll, BorderLayout.CENTER);
       
       topPanel.add(ctrlPanel, BorderLayout.WEST);
-      
+
+      JLabel infoLabel = new JLabel(CMDisplayer.infoIcon);
+      infoLabel.setToolTipText("<html>" + ocd.getDescription() + "</html>");
+      topPanel.add(infoLabel, BorderLayout.EAST);
+
       main.add(topPanel, BorderLayout.NORTH);
       main.add(mainPanel, BorderLayout.CENTER);
     }

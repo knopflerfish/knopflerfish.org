@@ -53,11 +53,15 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
 
 
   static ServiceTracker cmTracker;
-  
+
+  static Icon infoIcon = null;
   public CMDisplayer(BundleContext bc) {
     super(bc, "CM", "Config Admin", true);
     bUseListeners = true;
 
+    if(infoIcon == null) {
+      infoIcon     = new ImageIcon(getClass().getResource("/info16x16.png"));
+    }
     cmTracker = new ServiceTracker(bc, 
 				   ConfigurationAdmin.class.getName(), 
 				   null);
