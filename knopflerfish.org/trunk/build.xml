@@ -173,6 +173,7 @@
 
   <target   name        = "distrib" 
             description = "Builds alls distribution files">
+    <antcall target     = "xargs"/>
     <antcall target     = "distrib_complete"/>
     <antcall target     = "distrib_fullbin"/>
     <antcall target     = "distrib_bin"/>
@@ -382,7 +383,7 @@
            <include name = "osgi/restart.xargs"/>
 
            <include name = "osgi/jars/desktop/desktop_all-1.1.0.jar"/>
-           <include name = "osgi/jars/consoletelnet/consoletelnet-0.9.jar"/>
+           <include name = "osgi/jars/consoletelnet/consoletelnet-1.0.0.jar"/>
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
            <include name = "osgi/jars/logcommands/logcommands-1.0.0.jar"/>
            <include name = "osgi/jars/jsdk/jsdk-2.2.jar"/>
@@ -408,6 +409,7 @@
            <include name = "osgi/jars/httproot/httproot-1.0.0.jar"/>
 
            <include name = "osgi/jars/trayicon/**/*.jar"/>
+           <include name = "osgi/jars/trayicon_fw/**/*.jar"/>
            <include name = "osgi/jars/remotefw/*.jar"/>
 
            <include name = "changelog.html"/>
