@@ -4,6 +4,11 @@ OSGI frameworks, using SOAP.
 This allows a client bundle, as the Swing desktop, to remotely 
 control another framework.
 
+The bundle is part of the The Knopflerfish Axis port, see
+ 
+ ../readme.html
+
+for details
 
 Server - Exporting a framework
 ==============================
