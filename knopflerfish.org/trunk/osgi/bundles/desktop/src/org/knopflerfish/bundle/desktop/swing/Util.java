@@ -648,5 +648,26 @@ public class Util {
   }
 
 
+  static public void openExternalURL(URL url) throws IOException {
+    if(Util.isWindows()) {
+      // Yes, this only works on windows
+      String systemBrowser = "explorer.exe";
+      Runtime rt = Runtime.getRuntime();
+      Process proc = rt.exec(new String[] {
+	systemBrowser, 
+	"\"" + url.toString() + "\"",
+      });
+    } else {
+      throw new IOException("Only windows browsers are yet supported");
+    }
+  }
+  
+  public static boolean isWindows() {
+    String os = System.getProperty("os.name");
+    if(os != null) {
+      return -1 != os.toLowerCase().indexOf("win");
+    }
+    return false;
+  }
 }
 

@@ -103,6 +103,23 @@ at
 <p>
  <a href="https://www.knopflerfish.org/svn">https://www.knopflerfish.org/svn</a></p>
 
+<p>
 For example, this entire tip file is available at
+</p>
 <p>
 <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.html">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt</a>
+
+----
+18 This desktop is just another OSGi bundle
+The Desktop bundle is a normal bundle, using Swing to display it's interface.
+<p>
+As long as the JVM supports swing, nothing prevents you from writing your own 
+swing bundles. Do close your windows yourself, though ;)
+</p>
+
+----
+19 This dialog doesn't block the main window
+
+You can have the tip dialog open at the same time you work with
+the main desktop window.
+

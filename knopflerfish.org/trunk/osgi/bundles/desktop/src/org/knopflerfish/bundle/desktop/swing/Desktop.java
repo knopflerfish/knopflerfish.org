@@ -1209,6 +1209,17 @@ public class Desktop
 	      }
 	    });
 
+	  add(new JMenuItem(Strings.get("menu_tips")) {
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      showTips();
+		    }
+		  });
+	      }
+	    });
+
+
 	  add(new JSeparator());
 
 	  add(new JMenuItem(Strings.get("str_fwinfo")) {
@@ -1221,15 +1232,6 @@ public class Desktop
 	      }
 	    });
 
-	  add(new JMenuItem(Strings.get("menu_tips")) {
-	      { 
-		addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent ev) {
-		      showTips();
-		    }
-		  });
-	      }
-	    });
 
 	}
       };
@@ -2046,7 +2048,7 @@ public class Desktop
   JTips tips = null;
   void showTips() {
     if(tips == null) {
-      tips = new JTips("/tips.html");
+      tips = new JTips("/tips.txt");
     }
     tips.setVisible(true);
   }
@@ -2085,7 +2087,7 @@ public class Desktop
     String txt = Strings.fmt("str_abouttext", version);
     
     ImageIcon icon = 
-      new ImageIcon(getClass().getResource("/knopflerfish-gold3.jpg"));
+      new ImageIcon(getClass().getResource("/fish150x225.gif"));
     
     JOptionPane.showMessageDialog(frame, 
 				  txt, 
