@@ -664,6 +664,9 @@ public class Loader {
     } catch (Exception e) {
       throw new XMLException("minOccurs must be a valid integer: " + e, el);
     }
+    if(minOccurs > 1) {
+      throw new XMLException("minOccurs cannot be > 1, is " + minOccurs, el);
+    }
     attr.bOptional = minOccurs == 0;
 
     return attr;
