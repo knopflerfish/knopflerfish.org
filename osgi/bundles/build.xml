@@ -36,6 +36,7 @@
     <ant dir="upnp"              target="all"/>
     <ant dir="provisioning"      target="all"/>
     <ant dir="prefs"             target="all"/>
+    <ant dir="bundlerepository"  target="all"/>
   </target>
 
 </project>
