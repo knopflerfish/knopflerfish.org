@@ -1,6 +1,6 @@
 This a OSGi log wrapper for the Apache Commons Logging API.
 
-A bundle can simple use
+Any bundle importing from the wrapper bundle can simply use
 
  import org.apache.commons.logging.*;
 
