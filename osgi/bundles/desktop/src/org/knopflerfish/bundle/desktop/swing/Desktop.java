@@ -1047,7 +1047,7 @@ public class Desktop
 		
 		addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent ev) {
-		      refreshBundle(getSelectedBundles());
+		      refreshBundle(null);
 		    }
 		  });
 	      }});
@@ -1860,13 +1860,24 @@ public class Desktop
 
   void updateBundle(Bundle b) {
     try {
-      b.update();
+      String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
+      if(location == null || "".equals(location)) {
+	location = b.getLocation();
+      }
+      
+      if(uninstallBundle(b, true)) {
+	refreshBundle(null);
+	Bundle newBundle = Activator.getTargetBC().installBundle(location);
+	if(Util.canBeStarted(newBundle)) {
+	  startBundle(newBundle);
+	}
+      }
     } catch (Exception e) {
       showErr("failed to update bundle " + Util.getBundleName(b), e);
     }
   }
 
-  void uninstallBundle(Bundle b, boolean bAsk) {
+  boolean uninstallBundle(Bundle b, boolean bAsk) {
     Object[] options = {Strings.get("yes"),
 			Strings.get("no")};
     
@@ -1887,10 +1898,12 @@ public class Desktop
     if(n == 0) {
       try {
 	b.uninstall();
+	return true;
       } catch (Exception e) {
 	showErr("failed to uninstall bundle " + Util.getBundleName(b), e);
       }
     }
+    return false;
   }
 
 
