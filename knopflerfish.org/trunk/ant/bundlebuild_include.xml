@@ -76,6 +76,14 @@
  <property name = "console.welcome"     value = "Knopflerfish OSGi console"/>
  <property name = "console.loginok"     value = "'quit' to end session"/>
 
+
+ <property name="http.host"          value="localhost"/>
+ <property name="http.port"          value="8080"/>
+ <property name="junit.runner.class" value="junit.swingui.TestRunner"/>
+ <property name="junit.formatter"    value="plain"/>
+ <property name="junit.outfile"      value="junit"/>
+
+
  <property name = "src.dir"        location = "src"/>
  <property name = "resources.dir"  location = "resources"/>
 
@@ -652,6 +660,47 @@
    <read/>
  </telnet>
 </target>
+
+
+  <target name="junit_ext" 
+          description="Runs remote JUnit test using external runner">
+
+   <fail unless="test.id" message="test.id must be set to test suite id"/>
+
+
+   <java classname="${junit.runner.class}" 
+         fork="yes"
+         classpathref="bundle.compile.path"
+   >
+    <sysproperty key   = "suite.url" 
+                 value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
+    <arg value="org.knopflerfish.service.junit.client.JUnitClient"/>
+   </java>
+  </target>
+
+  <target name="junit_ant"
+          description="Runs remote JUnit test using Ant junit task">
+
+   <fail unless="test.id" message="test.id must be set to test suite id"/>
+
+   <echo message = "JUnit output file is '${junit.outfile}'"/> 
+   <junit fork         = "yes" 
+          showoutput   = "true" 
+          printsummary = "true">
+
+     <sysproperty key   = "suite.url" 
+                  value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
+
+     <classpath>
+      <path refid="bundle.compile.path"/>
+     </classpath>
+
+     <formatter type="${junit.formatter}"/>
+
+     <test name    = "org.knopflerfish.service.junit.client.JUnitClient" 
+           outfile = "${junit.outfile}"/>
+   </junit>
+  </target>
 
  <target name = "clean" description = "Removes all files in utput directory">
   <delete dir = "${outdir}"/>
