@@ -44,7 +44,9 @@ import junit.framework.*;
 import java.io.*;
 
 class Grunt {
+  static final String FILTER_PREFIX  = "filter:";
   static final String DEFAULT_OUTDIR = "junit_grunt";
+  static final String DEFAULT_TESTS  = "";
 
   BundleContext bc;
 
@@ -52,15 +54,13 @@ class Grunt {
     this.bc = bc;
   }
 
-  static final String FILTER_PREFIX = "filter:";
-
   void doGrunt() throws BundleException {
     String tests = System.getProperty("org.knopflerfish.junit_runner.tests");
     String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
     boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
 
     if(tests == null) {
-      tests = "";
+      tests = DEFAULT_TESTS;
     }
 
     if(outdir == null) {
@@ -135,7 +135,6 @@ class Grunt {
       
       indexPW.println("<?xml version=\"1.0\"?>");
       indexPW.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_index_style.xsl\"?>");
-      //      indexPW.println("<!DOCTYPE junit_index [\n");
 
       for(int i = 0; i < ids.length; i++) {
 	String fname = ids[i] + ".xml";
@@ -146,11 +145,6 @@ class Grunt {
 	  TestSuite suite = ju.getTestSuite(ids[i], null);
 	  ju.runTest(pw, suite);
 
-	  /*
-	  indexPW.println(" <!ENTITY testid_" + i + 
-			  " SYSTEM " + 
-			  " \"" + fname + "\">");
-	  */
 	} catch (Exception e) {
 	  log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
 	  e.printStackTrace();
@@ -159,14 +153,11 @@ class Grunt {
 	}
       }
 
-      //      indexPW.println("]>"); // end of DOCTYPE
-
       indexPW.println("<junit_index>");
       for(int i = 0; i < ids.length; i++) {
 	String fname = ids[i] + ".xml";
 	File outFile = new File(outDir, fname);
-	printFileContents(indexPW, outFile); 
-	// indexPW.println("&testid_" + i + ";");
+	includeXMLContents(indexPW, outFile); 
       }
       indexPW.println("</junit_index>");
 
@@ -194,7 +185,7 @@ class Grunt {
     System.out.println("junit_runner: " + msg);
   }
 
-  void printFileContents(PrintWriter out, File srcFile) throws IOException {
+  void includeXMLContents(PrintWriter out, File srcFile) throws IOException {
     BufferedReader in = null;
     try {
       in = new BufferedReader(new FileReader(srcFile));
