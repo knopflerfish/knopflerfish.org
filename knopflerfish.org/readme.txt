@@ -10,7 +10,7 @@
    releases  -   releases
    issues    -   reserved for possible subissue usage
 
-You can also browse the latest version at
+You can browse the latest version at
   https://www.knopflerfish.org/svn/
 
 To check out, use a Subversion client
