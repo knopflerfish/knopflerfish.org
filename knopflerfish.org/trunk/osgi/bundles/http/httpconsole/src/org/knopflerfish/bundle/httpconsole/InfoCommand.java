@@ -54,7 +54,7 @@ public class InfoCommand extends IconCommand {
 
     long[] bids = Util.getBundleIds(request);
 
-    sb.append("<div class=\"shadow\">Info</div>");
+    //    sb.append("<div class=\"shadow\">Info</div>");
     if(bids.length == 0) {
       sb.append("<div class=\"shadow\">Framework properties</div>");
       Hashtable props = new Hashtable();
@@ -83,12 +83,87 @@ public class InfoCommand extends IconCommand {
 	Dictionary headers = b.getHeaders();
 	
 	sb.append("Location: " + b.getLocation());
+
+	sb.append("<div class=\"shadow\">Manifest</div>");
 	printDictionary(headers, sb);
+
+	printServices(sb, 
+		      "Registered services", 
+		      b.getRegisteredServices());
+
+	printServices(sb, 
+		      "Used services", 
+		      b.getServicesInUse());
 	
       }
     }
 
     return sb;
+  }
+
+  void printServices(StringBuffer sb,
+		     String header,
+		     ServiceReference[] srl) {
+
+    if(srl == null || srl.length == 0) {
+      return;
+    }
+    sb.append("<div class=\"shadow\">" + header + "</div>");
+
+    sb.append("<table>\n");
+    sb.append(" <tr>\n");
+    sb.append("  <th>Class</th>");
+    sb.append("  <th>Used by</th>");
+    sb.append(" </tr>\n");
+
+    for(int i = 0; srl != null && i < srl.length; i++) {
+      sb.append(" <tr>\n");
+
+      sb.append("  <td>");
+      try {
+	StringWriter sw = new StringWriter();
+	Util.printObject(new PrintWriter(sw), srl[i].getProperty("objectclass"));
+	
+	sb.append(sw.toString());
+      } catch (Exception e) {
+	sb.append(Util.toHTML(e));
+      }
+      sb.append("</td>");
+
+      sb.append("  <td>");
+      Bundle[] using = findUsingBundles(srl[i]);
+
+      for(int j = 0; j < using.length; j++) {
+	sb.append(Util.infoLink(using[j]));
+	sb.append(Util.getName(using[j]));
+	sb.append("</a><br/>");
+      }
+      sb.append("  </td>");
+
+      sb.append(" </tr>\n");
+    }
+    sb.append("</table>\n");
+  }
+
+  Bundle[] findUsingBundles(ServiceReference sr) {
+    Bundle[] bundles = Activator.bc.getBundles();
+    Hashtable set = new Hashtable();
+    for(int i = 0; i < bundles.length; i++) {
+      Bundle[] using = sr.getUsingBundles();
+      for(int j = 0; using != null && j < using.length; j++) {
+	if(bundles[i] == using[j]) {
+	  set.put(bundles[i], "");
+	}
+      }
+    }
+
+    Bundle[] r = new Bundle[set.size()];
+    int n = 0;
+    for(Enumeration e = set.keys(); e.hasMoreElements(); ) {
+      r[n++] = (Bundle)e.nextElement();
+    }
+    
+    return r;
   }
 
   void addProp(Hashtable props, String key) {

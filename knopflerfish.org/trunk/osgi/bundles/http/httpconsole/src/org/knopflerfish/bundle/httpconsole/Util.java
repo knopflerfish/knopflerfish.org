@@ -438,6 +438,27 @@ public class Util {
     return value;
   }
 
+  public static String infoLink(Bundle b) {
+    return ("<a href=\"" + 
+	    Activator.SERVLET_ALIAS + 
+	    "?" + Util.BUNDLE_ID_PREFIX + b.getBundleId() +
+	    "=on" + 
+	    "&cmd_info.x=1&cmd_info.y=1\">");
+  };
+  
+  static public Bundle[] getSortedBundles(BundleContext bc) {
+    Bundle[] bundles = bc.getBundles();
+
+    Vector v = new Vector();
+    for(int i = 0; i < bundles.length; i++) {
+      v.addElement(bundles[i]);
+    }
+
+    Util.sort(v, Util.bundleNameComparator, false);
+    v.copyInto(bundles);
+
+    return bundles;
+  }
 
   static void printObject(PrintWriter out, Object val) throws IOException {
     if(val == null) {

@@ -59,16 +59,8 @@ public class IconView implements BundleView {
 
 
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException  {
-    
-    Bundle[] bundles = Activator.bc.getBundles();
 
-    Vector v = new Vector();
-    for(int i = 0; i < bundles.length; i++) {
-      v.addElement(bundles[i]);
-    }
-
-    Util.sort(v, Util.bundleNameComparator, false);
-    v.copyInto(bundles);
+    Bundle[] bundles = Util.getSortedBundles(Activator.bc);
 
     int nActive = 0;
     int nTotal  = bundles.length;
@@ -101,11 +93,7 @@ public class IconView implements BundleView {
       out.print  ("/>");
       out.println("  </td>");
       out.print  ("  <td class=\"row_" + oddeven + "\">");
-      out.print("<a href=\"" + 
-		Activator.SERVLET_ALIAS + 
-		"?" + Util.BUNDLE_ID_PREFIX + bundles[i].getBundleId() +
-		"=on" + 
-		"&cmd_info.x=1&cmd_info.y=1\">");
+      out.print(Util.infoLink(bundles[i]));
       out.print  ("<img border=\"0\" src=\"" + img + "\"/>");
       out.print  ("</a>");
       out.println("  </td>");
