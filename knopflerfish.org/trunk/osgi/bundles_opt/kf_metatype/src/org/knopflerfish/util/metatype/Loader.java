@@ -57,6 +57,7 @@ public class Loader {
   static final String ATTR_TYPE      = "type";
   static final String ATTR_NAME      = "name";
   static final String ATTR_BASE      = "base";
+  static final String ATTR_VALUE     = "value";
   static final String ATTR_MAXOCCURS = "maxOccurs";
 
   static final String ATTR_ARRAY     = "array";
@@ -69,6 +70,7 @@ public class Loader {
   static final String TAG_COMPLEXTYPE   = "complexType";
   static final String TAG_ELEMENT       = "element";
   static final String TAG_RESTRICTION   = "restriction";
+  static final String TAG_ENUMERATION   = "enumeration";
 
   static final String TAG_DOCUMENTATION    = "documentation";
   static final String TAG_APPINFO          = "appinfo";
@@ -553,6 +555,7 @@ public class Loader {
 	String[] defValue = null;
 	
 	attr = new AD(id, type, card, name, defValue);
+	addEnumeration(childEl, attr);
       } else if(isName(childEl, XSD_NS, TAG_ANNOTATION)) {
 	// accept and parse later;
       }
@@ -561,6 +564,40 @@ public class Loader {
     return addAnnotation(attr, el);
   }
 
+  static void addEnumeration(XMLElement el, AD ad) {
+    assertTagName(el, XSD_NS, TAG_RESTRICTION);
+
+    Vector v = new Vector();
+    for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
+      XMLElement childEl   = (XMLElement)e.nextElement();
+      //      System.out.println(" addEnum " + childEl.getName());
+      if(isName(childEl, XSD_NS, TAG_ENUMERATION)) {
+	String val = childEl.getAttribute(ATTR_VALUE);
+	if(val == null) {
+	  throw new XMLException("No value specified in enum", childEl);
+	}
+	String label = val;
+	Annotation annotation = loadAnnotationFromAny(childEl);
+	if(annotation != null && annotation.doc != null) {
+	  label = annotation.doc;
+	}
+	v.addElement(new String[] { val, label });
+      }
+    }
+    
+    //    System.out.println("optvalues=" + v);
+
+    if(v.size() > 0) {
+      String[] optValues = new String[v.size()];
+      String[] optLabels = new String[v.size()];
+      for(int i = 0; i < v.size(); i++) {
+	String[] row = (String[])v.elementAt(i);
+	optValues[i] = row[0];
+	optLabels[i] = row[1];
+      }
+      ad.setOptions(optValues, optLabels);
+    }
+  }
   static AD addAnnotation(AD attr, 
 			  XMLElement el) {
     Annotation a = loadAnnotationFromAny(el);

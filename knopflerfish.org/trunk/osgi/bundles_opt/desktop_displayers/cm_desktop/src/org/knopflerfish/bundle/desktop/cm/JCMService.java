@@ -279,10 +279,12 @@ public class JCMService extends JPanel {
       
       topPanel.add(ctrlPanel, BorderLayout.WEST);
 
-      JLabel infoLabel = new JLabel(CMDisplayer.infoIcon);
-      infoLabel.setToolTipText("<html>" + ocd.getDescription() + "</html>");
-      topPanel.add(infoLabel, BorderLayout.EAST);
-
+      String desc = ocd.getDescription();
+      if(desc != null && !"".equals(desc)) {
+	JLabel infoLabel = new JLabel(CMDisplayer.infoIcon);
+	infoLabel.setToolTipText("<html>" + ocd.getDescription() + "</html>");
+	topPanel.add(infoLabel, BorderLayout.EAST);
+      }
       main.add(topPanel, BorderLayout.NORTH);
       main.add(mainPanel, BorderLayout.CENTER);
     }

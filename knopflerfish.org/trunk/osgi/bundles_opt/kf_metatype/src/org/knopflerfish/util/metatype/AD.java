@@ -188,12 +188,23 @@ public class AD implements AttributeDefinition, Comparable {
     return name;
   }
 
+  public void setOptions(String[] optValues, 
+			 String[] optLabels) {
+    if(optValues != null) {
+      if(optLabels == null || optValues.length != optLabels.length) {
+	throw new IllegalArgumentException("Values must be same length as labels");
+      }
+    }
+    this.optValues = optValues;
+    this.optLabels = optLabels;
+  }
+
   public String[] getOptionLabels() {
-    return null;
+    return optLabels;
   }
 
   public String[] getOptionValues() {
-    return null;
+    return optValues;
   }
 
   public int getType() {
