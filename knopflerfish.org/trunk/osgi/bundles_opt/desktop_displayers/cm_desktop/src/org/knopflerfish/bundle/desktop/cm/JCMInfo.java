@@ -133,10 +133,14 @@ public class JCMInfo extends JPanel {
       upperBox.setBorder(BorderFactory.createTitledBorder("Available PIDs"));
       
       if(servicePIDBox != null) {
-	upperBox.add(new JLabelled("Services", "", servicePIDBox, 100));
+	upperBox.add(new JLabelled("Services", 
+				   "PIDs representing ManagedServices",
+				   servicePIDBox, 100));
       }
       if(factoryPIDBox != null) {
-	upperBox.add(new JLabelled("Factories", "", factoryPIDBox, 100));
+	upperBox.add(new JLabelled("Factories", 
+				   "PIDs representing ManagedServiceFactories",
+				   factoryPIDBox, 100));
       }
       
       main.add(upperBox,   BorderLayout.NORTH);

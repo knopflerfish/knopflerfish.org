@@ -54,21 +54,26 @@ public class JVector extends JPanel {
   Vector              v;
   AttributeDefinition ad;
   String              header;
+  int                 maxItems;
 
   static final int COL_ID   = 0;
   static final int COL_ITEM = 1;
 
+
+  JButton addRowButton;
+  JButton delRowButton;
+
   JVector(AttributeDefinition _ad, 
-	  Vector _v,
-	  String _header) {
+	  Vector inValues,
+	  String _header,
+	  int maxItems) {
     super(new BorderLayout());
-    this.ad     = _ad;
-    this.v      = _v;
-    this.header = _header;
-    
-    if(v == null) {
-      v = new Vector();
-    }
+    this.ad       = _ad;
+    this.header   = _header;
+    this.maxItems = maxItems;
+
+    // Set to empty vector initially
+    v = new Vector();
 
     model = new  AbstractTableModel() {
 	public int getRowCount() {
@@ -78,7 +83,7 @@ public class JVector extends JPanel {
 	public String getColumnName(int col) {
 	  switch(col) {
 	  case COL_ITEM: return header;
-	  case COL_ID: return "Row";
+	  case COL_ID:   return "#";
 	  default:
 	    throw new IllegalArgumentException("Col to large");
 	  }
@@ -152,26 +157,35 @@ public class JVector extends JPanel {
 
     JPanel cmds = new JPanel(new FlowLayout());
     
-    JButton addRowButton = new JButton("Add");
+    addRowButton = new JButton("Add");
     addRowButton.addActionListener(new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  addRow();
 	}
       });
+    addRowButton.setToolTipText("Add a new row to sequence");
 
-    JButton delRowButton = new JButton("Delete");
+    delRowButton = new JButton("Delete");
     delRowButton.addActionListener(new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  deleteRow();
 	}
       });
-
+    delRowButton.setToolTipText("Delete the selected (or first) row from sequence");
+    
     cmds.add(addRowButton);
     cmds.add(delRowButton);
 
 
     add(scroll, BorderLayout.CENTER);    
     add(cmds, BorderLayout.SOUTH);
+
+    setValue(inValues);
+    syncUI();
+  }
+
+  void syncUI() {
+    addRowButton.setEnabled(v.size() < maxItems);
   }
 
   void setColWidth(int col, int w) {
@@ -200,17 +214,64 @@ public class JVector extends JPanel {
   }
 
   void setVector(Vector _v) {
-    this.v = _v;
+    this.v = _v != null ? (Vector)_v.clone() : new Vector();
+
+    if(v.size() > maxItems) {
+      throw new IllegalArgumentException("Size too large (got " + v.size() + 
+					 ", max=" + maxItems);
+    }
+
     model.fireTableDataChanged();
+    
+    syncUI();
     invalidate();
     revalidate();
     repaint();
-
-    System.out.println("setVector " + v);
   }
 
   Vector getVector() {
-    return v;
+    return (Vector)v.clone();
+  }
+  
+  Object[] getArray() {
+    return Util.toArray(v, AD.getClass(ad.getType()));
+  }
+
+  void setArray(Object[] array) {
+    setVector(Util.toVector(array));
+  }
+
+  /**
+   * Set item values from vector or array object.
+   *
+   * <p>
+   * If object is null, use default values from AD
+   * </p>
+   */
+  void setValue(Object obj) {
+
+    System.out.println("setValue " + ad.getID() + " " + obj);
+    if(obj == null) {
+      Vector def = new Vector();
+      String[] defValues = ad.getDefaultValue();
+      for(int i = 0; i < defValues.length; i++) {
+	def.addElement(AD.parse(defValues[i], 0, ad.getType()));
+      }
+      if(ad.getCardinality() < 0) {
+	obj = def;
+      } else {
+	obj = Util.toArray(def, AD.getClass(ad.getType()));
+      }
+    }
+
+    if(obj instanceof Vector) {
+      setVector((Vector)obj);
+    } else if(obj.getClass().isArray()) {
+      setArray((Object[])obj);
+    } else {
+      throw new IllegalArgumentException("Object must be vector or array, " + 
+					 "found " + obj.getClass().getName());
+    }
   }
 
   void addRow() {
@@ -226,10 +287,16 @@ public class JVector extends JPanel {
       return;
     }
 
+    /*
     for(int i = 0; def != null && i < def.length; i++) {
       System.out.println("def[" + i + "]=" + def[i]);
     }
-    Object obj = AD.parse(def[0], 0, ad.getType());
+    */
+    addRow(def[0]);
+  }
+  
+  public void addRow(String newVal) {
+    Object obj = AD.parse(newVal, 0, ad.getType());
     v.addElement(obj);
     setVector(v);
   }
