@@ -144,7 +144,11 @@ public class LogReaderDispatcher
     final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
-	  model.logged(extEntry);
+	  try {
+	    model.logged(extEntry);
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
 	}
       });
   }

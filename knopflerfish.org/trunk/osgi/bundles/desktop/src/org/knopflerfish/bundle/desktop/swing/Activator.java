@@ -199,7 +199,7 @@ public class Activator implements BundleActivator {
     disp.open();
     reg = disp.register();
     displayers.put(disp, reg);
-    
+
     disp = new ClosureHTMLDisplayer(getTargetBC());
     disp.open();
     reg = disp.register();
@@ -215,13 +215,13 @@ public class Activator implements BundleActivator {
     reg = disp.register();
     displayers.put(disp, reg);
     
-    
     if(getBC() == getTargetBC()) {
       disp = new LogDisplayer(getTargetBC());
       disp.open();
       reg = disp.register();
       displayers.put(disp, reg);
     }
+
     
     // We really want this one to be displayed.
     desktop.bundlePanel.showTab("Large Icons");

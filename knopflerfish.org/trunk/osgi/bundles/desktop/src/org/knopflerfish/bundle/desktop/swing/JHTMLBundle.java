@@ -449,17 +449,21 @@ public abstract class JHTMLBundle extends JPanel  {
     return currentBid;
   }
 
-
+  
   void setHTML(String s) {
     html.setText(s);
     
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
-	  JViewport vp = scroll.getViewport();
-	  if(vp != null) {
-	    vp.setViewPosition(new Point(0,0));
-	    scroll.setViewport(vp);
-	  }  
+	  try {
+	    JViewport vp = scroll.getViewport();
+	    if(vp != null) {
+	      vp.setViewPosition(new Point(0,0));
+	      scroll.setViewport(vp);
+	    }  
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
 	}
       });
   }
