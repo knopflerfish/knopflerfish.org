@@ -212,7 +212,7 @@ public class Loader {
       mtp.addFactory(factories[i].pid, ocd);
     }
 
-    // Overwrite MTP defautl values woith values found in
+    // Overwrite MTP default values with values found in
     // DEFAULTVALUES section in source XML
     if(bHasDefValues) {
       for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {

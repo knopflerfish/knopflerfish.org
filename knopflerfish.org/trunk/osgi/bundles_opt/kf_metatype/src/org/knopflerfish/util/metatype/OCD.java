@@ -102,8 +102,15 @@ public class OCD implements ObjectClassDefinition {
 	     Dictionary props) {
     this(id, name, desc);
 
+    System.out.println("OCD " + id + ", props=" + props);
     for(Enumeration e = props.keys(); e.hasMoreElements();) {
       String key = (String)e.nextElement();
+      if("service.pid".equals(key.toLowerCase())) {
+	continue;
+      }
+      if("service.factorypid".equals(key.toLowerCase())) {
+	continue;
+      }
       Object val = props.get(key);
 
       int card = 0;
@@ -115,9 +122,11 @@ public class OCD implements ObjectClassDefinition {
 	card = Integer.MAX_VALUE;
       }
 
-      AD ad = new AD(key, type, card, key, 
-		     new String[] { AD.toString(val) });
+      AD ad = new AD(key, type, card, key, null);
+      //		     new String[] { AD.toString(val) });
       
+
+      System.out.println(" add " + ad);
       add(ad, REQUIRED);
     }
   }

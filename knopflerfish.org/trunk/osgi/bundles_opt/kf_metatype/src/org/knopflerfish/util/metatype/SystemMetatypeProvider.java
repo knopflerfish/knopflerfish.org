@@ -36,6 +36,8 @@ package org.knopflerfish.util.metatype;
 
 import org.osgi.framework.*;
 import org.osgi.service.metatype.*;
+import org.osgi.service.cm.*;
+import org.osgi.util.tracker.*;
 import org.knopflerfish.service.log.LogRef;
 
 import java.util.*;
@@ -60,6 +62,12 @@ public class SystemMetatypeProvider
   LogRef        log;
 
   Map providers = new HashMap();
+
+  ServiceTracker cmTracker;
+
+  boolean bTrackCM = true;
+
+  MTP     cmMTP;
 
   /**
    * Default URL to metatype XML.
@@ -97,15 +105,29 @@ public class SystemMetatypeProvider
    */
   public static final String ATTRIB_CMDEFAULTSURL = "Bundle-CMDefaultsURL";
 
+  // String (pid) -> OCD
+  Map cmOCDMap = new HashMap();
+
   /**
-   * Create a SystemMetatypeProvider, using the spaecified bundle context
+   * Create a SystemMetatypeProvider, using the specified bundle context
    * for listeners.
    */
   public SystemMetatypeProvider(BundleContext bc) {
     this.bc = bc;
     log = new LogRef(bc);
+  }
 
-    BundleListener bl = new BundleListener() {
+  BundleListener bl = null;
+
+  /**
+   * Start listening for bundles.
+   */
+  public void open() {
+    if(bl != null) {
+      return;
+    }
+
+    bl = new BundleListener() {
 	public void bundleChanged(BundleEvent ev) {
 	  switch(ev.getType()) {
 	  case BundleEvent.INSTALLED:
@@ -130,7 +152,84 @@ public class SystemMetatypeProvider
       bl.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bs[i]));
     }
     bc.addBundleListener(bl);
+
+    if(bTrackCM) {
+      cmTracker = new ServiceTracker(bc, 
+				     ConfigurationAdmin.class.getName(), 
+				     null);
+      cmTracker.open();
+
+      cmMTP = new MTP("[CM]") {
+	  public Set getServicePIDs() {
+	    return getCMServicePIDs();
+	  }
+
+	  public Set getFactoryPIDs() {
+	    return getCMFactoryPIDs();
+	  }
+	  
+	  public String[] getLocales() {
+	    return null;
+	  }
+	  
+	  public ObjectClassDefinition getObjectClassDefinition(String pid, 
+								String locale) {
+	    System.out.println("sysMTP.getOCD " + pid);
+
+	    OCD ocd = (OCD)cmOCDMap.get(pid);
+	    if(ocd != null) {
+	      System.out.println(" cached");
+	      return ocd;
+	    }
+	    
+	    ConfigurationAdmin ca = getCA();
+	    if(ca != null) {
+	      try {
+		Configuration[] configs = 
+		  ca.listConfigurations(null);
+		Configuration conf = null;
+		for(int i = 0; configs != null && i < configs.length; i++) {
+		  if(pid.equals(configs[i].getPid()) ||
+		     pid.equals(configs[i].getFactoryPid())) {
+		    conf = configs[i];
+		  }
+		}
+		if(conf != null) {
+		  Dictionary props = conf.getProperties();
+		  System.out.println(" props=" + props);
+		  ocd = new OCD(pid, pid, pid + " from CM", props);
+		  cmOCDMap.put(pid, ocd);
+		  return ocd;
+		} else {
+		  throw new RuntimeException("No config for pid " + pid);
+		}
+	      } catch (Exception e) {
+		log.error("Failed to get service pid " + pid, e);
+		return null;
+	      }
+	    } else {
+	      log.warn("Failed to get CA when getting pid " + pid);
+	      return null;
+	    }
+	  }
+	};
+    }
     
+  }
+
+
+  /**
+   * Stop listening for bundles.
+   */
+  public void close() {
+    if(cmTracker != null) {
+      cmTracker.close();
+      cmTracker = null;
+    }
+    if(bl != null) {
+      bc.removeBundleListener(bl);
+    }
+    bl = null;
   }
 
   /**
@@ -197,7 +296,7 @@ public class SystemMetatypeProvider
 	  log.debug("Bundle " + b.getBundleId() + ": loaded default values");
 	}
       } catch (Exception e) {
-	log.error("Faiiled to load cm defaults XML from bundle " + b.getBundleId(), e);
+	log.error("Failed to load cm defaults XML from bundle " + b.getBundleId(), e);
 	throw e;
       }
     }
@@ -246,7 +345,17 @@ public class SystemMetatypeProvider
    * @return Provider if such provider is found, otherwise <tt>null</tt>.
    */
   public MTP getMTP(Bundle b) {
-    return (MTP)providers.get(b);
+    if(b == null) {
+      return cmMTP;
+    }
+    MTP mtp = (MTP)providers.get(b);
+    if(mtp != null) {
+      return mtp;
+    }
+    if(b.getBundleId() == 0) {
+      return cmMTP;
+    }
+    return null;
   }
 
   /**
@@ -271,5 +380,45 @@ public class SystemMetatypeProvider
       }
       return null;
     }
+  }
+
+  Set getCMServicePIDs() {
+    Set pids = new HashSet();
+    ConfigurationAdmin ca = getCA();
+    if(ca != null) {
+      try {
+	Configuration[] configs = ca.listConfigurations("(service.pid=*)");
+	for(int i = 0; configs != null && i < configs.length; i++) {
+	  if(configs[i].getFactoryPid() == null) {
+	    pids.add(configs[i].getPid());
+	  }
+	}
+      } catch (Exception e) {
+	log.error("Failed to get service pids", e);
+      }
+    }
+    return pids;
+  }
+
+  Set getCMFactoryPIDs() {
+    Set pids = new HashSet();
+    ConfigurationAdmin ca = getCA();
+    if(ca != null) {
+      try {
+	Configuration[] configs = ca.listConfigurations("(service.pid=*)");
+	for(int i = 0; configs != null && i < configs.length; i++) {
+	  if(configs[i].getFactoryPid() != null) {
+	    pids.add(configs[i].getFactoryPid());
+	  }
+	}
+      } catch (Exception e) {
+	log.error("Failed to get service pids", e);
+      }
+    }
+    return pids;
+  }
+
+  ConfigurationAdmin getCA() {
+    return (ConfigurationAdmin)cmTracker.getService();
   }
 }
