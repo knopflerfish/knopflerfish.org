@@ -54,6 +54,8 @@ public class Main {
     theMain.unpack(argv);
   }
 
+
+  boolean bSilent      = false;
   int     verbosity    = 0;
   String  destdirname   = "";
   String  postHookName = null;
@@ -89,6 +91,7 @@ public class Main {
     System.out.println("Usage: jarunpacker [options]\n\n" + 
 		       " -help         print this page\n" +
 		       " -batch        do not use swing or ask for options\n" +
+		       " -silent       be silent\n" +
 		       " -destdir dir  set destination dir to destdir\n" +
 		       ""
 		       );
@@ -102,6 +105,8 @@ public class Main {
       } else if("-help".equals(argv[i])) {
 	printHelp();
 	exit("", null);
+      } else if("-silent".equals(argv[i])) {
+	bSilent = true;
       } else if("-destdir".equals(argv[i]) && i+1 < argv.length) {
 	i++;
 	destdirname = argv[i];
