@@ -57,6 +57,7 @@
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "http://www.knopflerfish.org/releases/${version}/jars/"/>
      <replacefilter token="$(VERSION)"     value="${version}"/>
+     <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
    </replace>	  
  </target>
 
