@@ -65,7 +65,7 @@ public class Strings {
 	  put("frame_title",       "Knopflerfish OSGi desktop ($(1))");
 	  put("menu_quit",         "Quit");
 	  put("menu_openbundles",  "Open bundle(s)...");
-	  put("menu_save",         "Save deploy archive");
+	  put("menu_save",         "Save deploy archive...");
 	  put("menu_file",         "File");
 	  put("menu_edit",         "Edit");
 	  put("menu_view",         "View");

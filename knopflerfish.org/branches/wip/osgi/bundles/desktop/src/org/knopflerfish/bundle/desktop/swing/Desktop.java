@@ -436,6 +436,19 @@ public class Desktop
 		setToolTipText(Strings.get("menu_save"));
 	      }
 	    });
+
+	  if(Activator.remoteTracker.getService() != null) {
+	    add(new JButton(connectIcon) { 
+		{ 
+		  addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent ev) {
+			doConnect();
+		      }
+		    });
+		  setToolTipText(Strings.get("menu_remotefw"));
+		}
+	      });
+	  }
 	  
 	  //	  add(new JToolBar.Separator());
 	  
