@@ -46,7 +46,8 @@ import java.io.*;
 class Grunt {
   static final String FILTER_PREFIX  = "filter:";
   static final String DEFAULT_OUTDIR = "junit_grunt";
-  static final String DEFAULT_TESTS  = "";
+  static final String DEFAULT_TESTS  = "filter:(objectclass=junit.framework.TestSuite)";
+  static final String INDEX_FILE     = "index.xml";
 
   BundleContext bc;
 
@@ -127,7 +128,7 @@ class Grunt {
       }
 
       try {
-	indexPW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, "index.xml"))));
+	indexPW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, INDEX_FILE))));
       } catch (Exception e) {
 	e.printStackTrace();
 	throw new BundleException("Failed to create index.xml");
@@ -135,6 +136,7 @@ class Grunt {
       
       indexPW.println("<?xml version=\"1.0\"?>");
       indexPW.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_index_style.xsl\"?>");
+
 
       for(int i = 0; i < ids.length; i++) {
 	String fname = ids[i] + ".xml";
@@ -144,7 +146,7 @@ class Grunt {
 	  log("run test '" + ids[i] + "', out=" + outFile.getAbsolutePath());	pw = new PrintWriter(new FileOutputStream(outFile));
 	  TestSuite suite = ju.getTestSuite(ids[i], null);
 	  ju.runTest(pw, suite);
-
+	  
 	} catch (Exception e) {
 	  log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
 	  e.printStackTrace();
@@ -152,12 +154,15 @@ class Grunt {
 	  try { pw.close(); } catch (Exception ignored) { }
 	}
       }
-
+      
       indexPW.println("<junit_index>");
-      for(int i = 0; i < ids.length; i++) {
-	String fname = ids[i] + ".xml";
-	File outFile = new File(outDir, fname);
-	includeXMLContents(indexPW, outFile); 
+      String[] xmlFiles = outDir.list();
+      for(int i = 0; i < xmlFiles.length; i++) {
+	String fname = xmlFiles[i];
+	if(fname.endsWith(".xml") && !fname.equals(INDEX_FILE)) {
+	  File outFile = new File(outDir, fname);
+	  includeXMLContents(indexPW, outFile); 
+	}
       }
       indexPW.println("</junit_index>");
 

@@ -9,6 +9,16 @@ BODY  {
  margin-top: 10px;
 }
 
+.shadow {
+ background:          #eeeeee;
+ border-color:        #ffffee #999999 #999999 #ffffee;
+ border-style:        solid;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
+}
+
 .success_true {
 }
 

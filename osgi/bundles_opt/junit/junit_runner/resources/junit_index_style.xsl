@@ -33,7 +33,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 </head>
 
 <body>
-<h3>Test results</h3>
+<h3 class="shadow">Test results</h3>
  <table>
   <tr>
    <th>Test id</th>
@@ -42,6 +42,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
    <th># of errors</th>
    <th># of failures</th>
    <th>Time (ms)</th>
+   <th>Date</th>
   </tr>
   <xsl:for-each select="/junit_index/junit">
    <tr>
@@ -74,6 +75,11 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <td style="text-align: right;">
      <xsl:value-of select="testcase/suite/@time"/>
     </td>
+
+    <td>
+     <xsl:value-of select="@date"/>
+    </td>
+
    </tr>
  </xsl:for-each>
 </table>
