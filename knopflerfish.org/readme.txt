@@ -20,6 +20,9 @@ typically you can check out the main trunk by:
  > mkdir knopflerfish.org
  > svn co https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
+If you're unsure on Subversion -- do read the Subversion book at
+  http://svnbook.red-bean.com/
+
 
 If you want to commit to knopflerfish.org, please contact
 
