@@ -76,29 +76,33 @@ these are <b>approximate values</b>, and variations are to be expected.
 
 <table>
  <tr>
+  <th><br></th>
   <th>Startup time (ms)</th>
   <th>Heap memory (kb)</th>
   <th>Flags</th>
  </tr>
  <tr>
+  <td style="background-color: #ff0000; width: 20px;"><br></td>
   <td>1000 ms</td>
-  <td>480 kb</td>
-  <td><pre>
--Dorg.knopflerfish.framework.bundlestorage=file
--Dorg.knopflerfish.framework.bundlestorage.file.reference=true
-</pre>
-</td>
-</tr>
- <tr>
-  <td>900 ms</td>
   <td>400 kb</td>
   <td><pre>
 -Dorg.knopflerfish.framework.bundlestorage=file
 -Dorg.knopflerfish.framework.bundlestorage.file.reference=false
 </pre>
 </td>
+</tr>
+ <tr>
+  <td style="background-color: #ffff00; width: 20px;"><br></td>
+  <td>900 ms</td>
+  <td>480 kb</td>
+  <td><pre>
+-Dorg.knopflerfish.framework.bundlestorage=file
+-Dorg.knopflerfish.framework.bundlestorage.file.reference=true
+</pre>
+</td>
  </tr>
  <tr>
+  <td style="background-color: #0000ff; width: 20px;"><br></td>
   <td>550 ms</td>
   <td>1000 kb</td>
   <td><pre>
