@@ -65,6 +65,9 @@ public class Activator
   private static final String LOCATOR_FILTER=
     "(objectClass="+DriverLocator.class.getName()+")";
 
+  private static final String GLOBAL_FILTER = 
+    "(|" + LOG_FILTER + DEVICE_FILTER + DRIVER_FILTER + SELECTOR_FILTER + LOCATOR_FILTER + ")";
+  
   BundleContext bc;
   private boolean active;
   private boolean quit;
@@ -131,10 +134,9 @@ public class Activator
 
     bc.addBundleListener(this);
 
-    startService(SELECTOR_FILTER);
-    startService(LOCATOR_FILTER);
-    startService(DRIVER_FILTER);
-    startService(DEVICE_FILTER);
+    // Thanks to TID for combining the (buggy)
+    // separate listeners into one
+    startService(GLOBAL_FILTER);
   }
 
   public void frameworkEvent(FrameworkEvent e) {
