@@ -74,6 +74,7 @@ public class SwingRenderer {
       QName name  = (QName)it.next();
       PortType pt = (PortType)ports.get(name);
       
+      int ix = 0;
       for(Iterator it2 = pt.getOperations().iterator(); it2.hasNext();) {
 	Operation op = (Operation)it2.next();
 	
@@ -86,10 +87,15 @@ public class SwingRenderer {
 	scroll.setPreferredSize(new Dimension(400, 300));
 
 	tabPane.add(op.getName(), scroll);
+	tabPane.setToolTipTextAt(ix, "SOAP operation " + op.getName());
+
+	ix++;
       }
     }
 
     JLabel label = new JLabel(wsdl.endPoint);
+    label.setToolTipText("SOAP endpoint");
+
     label.setHorizontalAlignment(SwingConstants.LEFT);
     label.setBackground(panel.getBackground().brighter().brighter());
     panel.add(tabPane, BorderLayout.CENTER);
@@ -192,10 +198,14 @@ public class SwingRenderer {
 	  System.out.println("got result=" + result);
 	}
 	names   = Util.getPartNames(msg_out);
+      } catch (IllegalArgumentException e) {
+	result = e.getMessage();
+	names  = new ArrayList();
+	names.add("Exception");
       } catch (Exception e) {
 	result = e;
 	names  = new ArrayList();
-	names.add("Failed");
+	names.add("Exception");
       }
 
       final Object         result2 = result;
@@ -667,6 +677,7 @@ public class SwingRenderer {
       panel.bArray = true;
       
       JButton newButton = new JButton("Add item");
+      newButton.setToolTipText("Add item to array");
       newButton.addActionListener(new ActionListener() {
 	  public void actionPerformed(ActionEvent ev) {
 	    JComponent comp = makeBox(wsdl, el, bReadonly, true, bSingle);
@@ -717,6 +728,7 @@ public class SwingRenderer {
       JPanel panelB = new JPanel(new BorderLayout());
 
       delButton = new JButton("Delete");
+      delButton.setToolTipText("Delete this item from array");
       delButton.addActionListener(new ActionListener() {
 	  public void actionPerformed(ActionEvent ev) {
 	    JComponent parent = (JComponent)panel.getParent();

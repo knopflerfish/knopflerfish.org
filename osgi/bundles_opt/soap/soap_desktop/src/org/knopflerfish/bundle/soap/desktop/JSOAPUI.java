@@ -23,38 +23,48 @@ import org.apache.axis.client.Service;
 import java.net.URL;
 
 
+/**
+ * Complete wrapper component which allows a user to
+ * select a SOAP host, browse the services and
+ * invoke operations.
+ *
+ * <p>
+ * Used the <tt>WSDLLoader</tt> to load WSDL info and
+ * <tt>SwingRenderer</tt> for displaying data
+ * </p>
+ */
 public class JSOAPUI extends JPanel {
 
   // String
   Set services = new TreeSet();
 
-  String urlBase;
+  String     urlBase;
 
   JSplitPane splitPane;
   JPanel     servicePanel;
   JComponent callPanel;
 
-  ImageIcon soapIcon;
+  ImageIcon  soapIcon;
 
-  HashMap labels = new HashMap();
+  // String (service name) -> JLabel2
+  HashMap    labels = new HashMap();
+
+  /**
+   * Create the UI and call the AxisAdmin endpoint
+   * to get iinitial set of services.
+   */
   public JSOAPUI(String urlBase) {
     super(new BorderLayout());
 
-    this.urlBase = urlBase;
-
+    this.urlBase  = urlBase;
     soapIcon      = new ImageIcon(getClass().getResource("/soap.png"));
-
     callPanel     = new JPanel(new BorderLayout());
 
-    JPanel leftPanel = new JPanel(new BorderLayout());
-
-    servicePanel  = new JPanel();
-
+    JPanel leftPanel          = new JPanel(new BorderLayout());
+    servicePanel              = new JPanel();
     JScrollPane serviceScroll = new JScrollPane(servicePanel);
 
-    //    BoxLayout box = new BoxLayout(servicePanel, BoxLayout.Y_AXIS);
-
-    LayoutManager box = new GridLayout(0, 1);
+    LayoutManager box         = new GridLayout(0, 1);
 
     servicePanel.setLayout(box);
 
@@ -66,6 +76,7 @@ public class JSOAPUI extends JPanel {
     buttonPanel.setLayout(new GridLayout(0, 1));
 
     JButton openHostButton = new JButton("Connect to...");
+    openHostButton.setToolTipText("Connects to a new SOAP host");
     openHostButton.addActionListener(new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  openHost();
@@ -73,6 +84,7 @@ public class JSOAPUI extends JPanel {
       });
 
     JButton reloadHostButton = new JButton("Reload");
+    reloadHostButton.setToolTipText("Reloads service list from SOAP host");
     reloadHostButton.addActionListener(new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  getServices();
@@ -96,6 +108,9 @@ public class JSOAPUI extends JPanel {
     
   }
 
+  /**
+   * Ask the user for a noew SOAP host
+   */
   void openHost() {
     String s = (String)JOptionPane
       .showInputDialog(servicePanel,
@@ -113,7 +128,9 @@ public class JSOAPUI extends JPanel {
   }
 
 
-
+  /**
+   * Update the UI with all loaded services.
+   */
   void update() {
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
@@ -155,6 +172,9 @@ public class JSOAPUI extends JPanel {
       });
   }
 
+  /**
+   * Get the services from the endpoint's AxisAdmin
+   */
   void getServices() {
     String endpoint = urlBase + "axisadmin";
     try {
@@ -169,7 +189,6 @@ public class JSOAPUI extends JPanel {
       
       String[] result  = (String[])call.invoke(params);
       
-      //      System.out.println("found " + result.length + " services at " + endpoint);
       synchronized(services) {
 	services.clear();
 	for(int i = 0; i < result.length; i++) {
@@ -191,8 +210,10 @@ public class JSOAPUI extends JPanel {
 
   }
 
-  String selectedName = null;
-
+  /**
+   * Get service information from the endpoint
+   * and create and set a suitable UI.
+   */
   public void selectService(String name) {
     JComponent    comp;
 
@@ -213,8 +234,6 @@ public class JSOAPUI extends JPanel {
       
       SwingRenderer renderer = new SwingRenderer();
       comp     = renderer.createComponent(wsdl);
-
-      selectedName = name;
 
       for(Iterator it = labels.keySet().iterator(); it.hasNext();) {
 	String s = (String)it.next();
@@ -260,9 +279,15 @@ public class JSOAPUI extends JPanel {
     }
     update();
   }
+
+  void close() {
+  }
 }
 
 
+/**
+ * A button look-alike label without borders
+ */
 class JLabel2 extends JLabel {
   
   Color       selColor = new Color(200, 200, 255);

@@ -40,12 +40,21 @@ import org.knopflerfish.service.desktop.*;
 import javax.swing.*;
 import org.osgi.framework.*;
 
+/**
+ * Very simple wrapper class which converts the JSOAPUI class into
+ * a Desktop plugin.
+ *
+ * <p>
+ * Bundle selection events are completely ignored.
+ * </p>
+ */
 public class SOAPDisplayer implements SwingBundleDisplayer {
   
   public JComponent createJComponent() {
     int port = 80;
 
-    // figure out the port the web servier is running on
+    // figure out the port the web server is running on
+    // for initial SOAP host URL
     try {
       ServiceReference sr = Activator.bc.getServiceReference("org.osgi.service.http.HttpService");
       
@@ -72,11 +81,11 @@ public class SOAPDisplayer implements SwingBundleDisplayer {
   public void       disposeJComponent(JComponent comp) {
     JSOAPUI ui = (JSOAPUI)comp;
 
-    // noop
+    ui.close();
   }
 
   public void       setBundleSelectionModel(BundleSelectionModel model) {
-    // noop
+    // ignore
   }
 
   public Icon       getLargeIcon() {
