@@ -246,6 +246,23 @@ public class PackageAdminImpl implements PackageAdmin {
 		      ib.purge();
 		    }
 		  }
+
+		  /*
+		  if(Framework.R3_TESTCOMPLIANT) {
+		    BundleImpl[] sorted = new BundleImpl[startList.size()];
+		    for(int i = 0; i < startList.size(); i++) {
+		      sorted[i] = (BundleImpl)startList.get(i);
+		      System.out.println(i + ": restart " + sorted[i]);
+		    }
+		    QSort.sort(sorted, BSComparator);
+		    startList = new ArrayList();
+		    for(int i = 0; i < sorted.length; i++) {
+		      startList.add(sorted[i]);
+		      System.out.println(i + ": sorted " + sorted[i]);
+		    }
+		  }
+		  */
+
 		  framework.bundles.startBundles(startList);
 		  return null;
 		}
@@ -257,4 +274,12 @@ public class PackageAdminImpl implements PackageAdmin {
     t.start();
   }
 
+  QSort.Comparator BSComparator = new QSort.Comparator() {
+      public int compare(Object o1, Object o2) {
+	BundleImpl b1 = (BundleImpl)o1;
+	BundleImpl b2 = (BundleImpl)o2;
+	
+	return (int)(b1.getBundleId() - b2.getBundleId());
+      }
+    };
 }

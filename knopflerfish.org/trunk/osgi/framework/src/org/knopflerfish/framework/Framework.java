@@ -47,15 +47,14 @@ import org.osgi.service.startlevel.StartLevel;
 
 /**
  * This class contains references to all common data structures
- * inside framework.
+ * inside the framework.
  *
- * @author Jan Stein
+ * @author Jan Stein, Erik Wistrand
  */
 public class Framework {
 
   /**
    * Specification version for this framework.
-   * Note! Don't change format since the Makefile depends on it.
    */
   static final String SPEC_VERSION = "1.2";
 
@@ -126,11 +125,19 @@ public class Framework {
    */
   Object mainHandle;
 
+  /**
+   * The start level service.
+   */
+  StartLevelImpl                 startLevelService;
 
-  StartLevelImpl startLevelService;
-
+  /**
+   * Factory for handling service-based URLs
+   */
   ServiceURLStreamHandlerFactory urlStreamHandlerFactory;
 
+  /**
+   * Factory for handling service-based URL contents
+   */
   ServiceContentHandlerFactory   contentHandlerFactory;
 
   /**
@@ -140,6 +147,8 @@ public class Framework {
   final static String osName    = System.getProperty("os.name");
   final static String osVersion = System.getProperty("os.version");
 
+  // Some tests conflicts with the R3 spec. If testcompliant=true
+  // prefer the tests, not the spec
   public final static boolean R3_TESTCOMPLIANT =
     "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
 				     "false"));
@@ -150,7 +159,6 @@ public class Framework {
   /**
    * Contruct a framework.
    *
-   * @param dir Directory where framework should store persistent data
    */
   public Framework(Object m) throws Exception {
 
@@ -159,18 +167,29 @@ public class Framework {
     String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." + 
       System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
+
+    // We just happens to know that the memory storage impl isn't R3
+    // compatible. And it never will be since it isn't persistent
+    // by design.
+    if(R3_TESTCOMPLIANT && 
+       whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl")) {
+      throw new RuntimeException("Memory bundle storage is not compatible " + 
+				 "with R3 complicance");
+    }
+
     Class storageImpl = Class.forName(whichStorageImpl);
-    storage = (BundleStorage)storageImpl.newInstance();
-    dataStorage = Util.getFileStorage("data");
-    packages = new Packages(this);
-    systemBundle = new SystemBundle(this);
+    storage           = (BundleStorage)storageImpl.newInstance();
 
-    systemBC     = new BundleContextImpl(systemBundle);
+    dataStorage       = Util.getFileStorage("data");
+    packages          = new Packages(this);
+    systemBundle      = new SystemBundle(this);
 
-    bundles = new Bundles(this);
+    systemBC          = new BundleContextImpl(systemBundle);
+
+    bundles           = new Bundles(this);
 
 
-    permissions = new PermissionAdminImpl(this);
+    permissions       = new PermissionAdminImpl(this);
     String [] classes = new String [] { PermissionAdmin.class.getName() };
     services.register(systemBundle,
 		      classes,
@@ -180,7 +199,6 @@ public class Framework {
     if (System.getSecurityManager() != null) {
       bPermissions = true;
       Policy.setPolicy(new FrameworkPolicy(permissions));
-
     }
 
     classes = new String [] { PackageAdmin.class.getName() };
@@ -190,22 +208,10 @@ public class Framework {
 		      null);
 
 
-    /*
-    URLStreamHandlerFactory bundleFactory = 
-      new URLStreamHandlerFactory()
-      {
-	public URLStreamHandler createURLStreamHandler(String proto) {
-	  if (BundleURLStreamHandler.PROTOCOL.equals(proto)) {
-	    return new BundleURLStreamHandler(bundles);
-	  }
-	  return null;
-	}
-      };
-    */
+    String useStartLevel = 
+      System.getProperty("org.knopflerfish.startlevel.use", "true");
 
-
-    String useStartLevel = System.getProperty("org.knopflerfish.startlevel.use");
-    if(!"false".equals(useStartLevel)) {
+    if("true".equals(useStartLevel)) {
       if(Debug.startlevel) {
 	Debug.println("[using startlevel service]");
       }
@@ -499,7 +505,9 @@ public class Framework {
   }
 
 
-  // Cached value of System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+  // Cached value of 
+  // System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+  // Used and updated by isValidEE()
   Set    eeCacheSet = new HashSet();
   String eeCache = null;
 
