@@ -603,7 +603,7 @@
 	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
-           <include name = "osgi/jars/axis-soap/*.jar"/>
+           <include name = "osgi/jars/axis-osgi/*.jar"/>
            <include name = "osgi/jars/commons-logging/*.jar"/>
            <include name = "osgi/jars/soap_desktop/*.jar"/>
            <include name = "osgi/jars/soap_remotefw/*.jar"/>
