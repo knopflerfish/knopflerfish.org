@@ -62,7 +62,7 @@
 
 -install consoletty/consoletty-1.0.0.jar
 
--install consoletelnet/consoletelnet-1.0.jar
+-install consoletelnet/consoletelnet-1.0.0.jar
 
 -initlevel 6
 -install desktop/desktop_all-1.1.0.jar
