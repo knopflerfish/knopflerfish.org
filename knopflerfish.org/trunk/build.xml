@@ -90,6 +90,7 @@
            description = "Removes all generated files" >
     <ant    dir = "ant"    target = "clean" />
     <ant    dir = "osgi"   target = "clean" />
+    <ant    dir = "htdocs" target = "clean" />
     <delete dir = "${javadoc.out.dir}"      />
   </target>
 
@@ -225,6 +226,12 @@
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
+           <include name = "htdocs/releases/${version}/**/*.html"/>
+           <include name = "htdocs/releases/${version}/**/*.css"/>
+        </zipfileset>
+
+        <zipfileset dir    = "."
+                    prefix = "knopflerfish.org">
 
 	   <exclude name = "**/*.jbf"/>
 	   <exclude name = "**/out/**"/>
@@ -233,7 +240,6 @@
 
 
            <include name = "htdocs/**"/>
-
            <exclude name = "htdocs/releases/**"/>
 
            <include name = "osgi/framework.jar"/>

@@ -259,6 +259,10 @@
 
 <!-- /bundle doc generation -->
 
+  <target name="clean">
+   <delete dir="releases"    />
+   <delete dir="bundles" />
+  </target>
 </project>
 
 
