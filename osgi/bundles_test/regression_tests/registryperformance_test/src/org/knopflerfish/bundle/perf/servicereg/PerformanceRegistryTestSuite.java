@@ -27,16 +27,39 @@ public class PerformanceRegistryTestSuite extends TestSuite {
     } catch (Exception ignored) {
     }
 
+    addTest(new Setup());
     addTest(new AddListeners());
     addTest(new RegisterServices());
     addTest(new ModifyServices());
     addTest(new UnregisterServices());
+    addTest(new Cleanup());
   }
 
   int nRegistered    = 0;
   int nUnregistering = 0;
   int nModified      = 0;
 
+
+  class Setup extends TestCase {
+    public void runTest() throws Throwable {
+      nRegistered    = 0;
+      nUnregistering = 0;
+      nModified      = 0;
+    }
+  }
+  
+  class Cleanup extends TestCase {
+    public void runTest() throws Throwable {
+      for(int i = 0; i < listeners.size(); i++) {
+	try {
+	  ServiceListener l = (ServiceListener)listeners.elementAt(i);
+	  bc.removeServiceListener(l);
+	} catch (Exception e) {
+	  e.printStackTrace();
+	}
+      }
+    }
+  }
 
   class AddListeners extends TestCase {
     public void runTest() throws Throwable {
@@ -51,7 +74,7 @@ public class PerformanceRegistryTestSuite extends TestSuite {
       long stop  = System.currentTimeMillis();
       log("register took "  + (stop - start) + "ms");
       assertEquals("# REGISTERED events must be same as # of registered services  * # of listeners",
-		   nServices * nListeners, nRegistered);
+		   nServices * listeners.size(), nRegistered);
     }
   }
 
@@ -61,8 +84,8 @@ public class PerformanceRegistryTestSuite extends TestSuite {
       modifyServices();
       long stop  = System.currentTimeMillis();
       log("modify took "  + (stop - start) + "ms");
-      assertEquals("# MODIFIED events must be same as # of registered services  * # of listeners",
-		   nServices * nListeners, nRegistered);
+      assertEquals("# MODIFIED events must be same as # of modified services  * # of listeners",
+		   nServices * listeners.size(), nModified);
     }
   }
 
@@ -72,8 +95,8 @@ public class PerformanceRegistryTestSuite extends TestSuite {
       unregisterServices();
       long stop  = System.currentTimeMillis();
       log("unregister took "  + (stop - start) + "ms");
-      assertEquals("# UNREGISTERING events must be same as # of registered services * # of listeners",
-		   nServices * nListeners, nRegistered);
+      assertEquals("# UNREGISTERING events must be same as # of (un)registered services * # of listeners",
+		   nServices * listeners.size(), nUnregistering);
 
     }
   }
