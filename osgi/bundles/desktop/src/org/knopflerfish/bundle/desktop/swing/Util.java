@@ -516,10 +516,10 @@ public class Util {
     sb.append("</tr>\n");
 
     try {
-      Properties props = System.getProperties();
-
-      for(Enumeration e = props.keys(); e.hasMoreElements();) {
-	String key = (String)e.nextElement();
+      Map props = Activator.getSystemProperties();
+      
+      for(Iterator it = props.keySet().iterator(); it.hasNext();) {
+	String key = (String)it.next();
 	String val = (String)props.get(key);
 	sb.append(" <tr>\n");
 	sb.append("  <td valign=\"top\">");
