@@ -79,7 +79,12 @@ public class NativeCodeTestSuite extends TestSuite {
  
 
   // Also install all possible listeners
-  class Setup extends FWTestCase {
+  public class Setup extends FWTestCase {
+
+    public String getDescription() {
+      return "This test suite doesn't do anything yet";
+    }
+
     public void runTest() throws Throwable {
       fListen = new FrameworkListener();
       try {

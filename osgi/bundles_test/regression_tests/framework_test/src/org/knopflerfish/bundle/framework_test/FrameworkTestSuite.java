@@ -765,37 +765,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame045a extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      boolean exception;
       ServiceListener sListen1 = new ServiceListener();
       String brokenFilter = "A broken LDAP filter";
       
       try {
 	bc.addServiceListener(sListen1, brokenFilter);
-	// out.println("Added LDAP filter");
-	exception = false;
+	out.println("Frame045a: Added LDAP filter");
       }
       catch (InvalidSyntaxException ise) {
-	// out.println("LDAP filter broken " + ise);
-	if (ise.getFilter().equals(brokenFilter)) {
-	  exception = true;
-	}
-	else {
-	  exception = false;
-	  fail("framework test bundle, LDAP filter exception with mangled filter string :FRAME045A:FAIL");
-	}
+	assertEquals("InvalidSyntaxException.getFilter should be same as input string", brokenFilter, ise.getFilter());
+      } catch (Exception e) {
+	fail("framework test bundle, wroing exception on broken LDAP filter, FREME045A:FAIL " + e);
       }
       
-      if (exception == false) {
-	teststatus = false;
-      }
-      
-      if (teststatus == true) {
-	out.println("### framework test bundle :FRAME045A:PASS");
-      }
-      else {
-	fail("### framework test bundle :FRAME045A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME045A:PASS");
     }
   }
 
@@ -1275,15 +1258,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       Dictionary ai = buA.getHeaders();
       
-      /*
-      for (Enumeration e = ai.keys(); e.hasMoreElements();) {
-	Object key = e.nextElement();
-	Object value = ai.get(key);
-	String s =  key.toString();
-	String v =  value.toString();
-	out.println("A: Manifest info: " + s + ", " + v);
+      if(false) {
+	// debugging
+	for (Enumeration e = ai.keys(); e.hasMoreElements();) {
+	  Object key = e.nextElement();
+	  Object value = ai.get(key);
+	  String s =  key.toString();
+	  String v =  value.toString();
+	  out.println("A: Manifest info: " + s + ", " + v);
+	}
       }
-      */
+
       versionA = (String) ai.get("Bundle-Version");
       
       clearEvents();
@@ -1319,15 +1304,18 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
       
       Dictionary a1i = buA.getHeaders();
-      /*
-      for (Enumeration e = a1i.keys(); e.hasMoreElements();) {
-	Object key = e.nextElement();
-	Object value = a1i.get(key);
-	String s =  key.toString();
-	String v =  value.toString();
-	out.println("A1: Manifest info: " + s + ", " + v);
+
+      if(false) {
+	// debugging
+	for (Enumeration e = a1i.keys(); e.hasMoreElements();) {
+	  Object key = e.nextElement();
+	  Object value = a1i.get(key);
+	  String s =  key.toString();
+	  String v =  value.toString();
+	  out.println("A1: Manifest info: " + s + ", " + v);
+	}
       }
-      */
+
       a1i = buA.getHeaders();
       versionA1 = (String) a1i.get("Bundle-Version");
       
