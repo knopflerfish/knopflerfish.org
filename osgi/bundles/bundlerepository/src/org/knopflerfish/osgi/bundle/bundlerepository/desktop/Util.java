@@ -80,6 +80,11 @@ public class Util {
     if(loc.equals(b.getLocation())) {
       return true;
     }
+
+    // Use UUID if present
+    if(bundleAttrEqual(b, br, "Bundle-UUID")) {
+      return true;
+    }
     
     if(bundleAttrEqual(b, br, "Bundle-Name") &&
        bundleAttrEqual(b, br, "Bundle-Version")) {
