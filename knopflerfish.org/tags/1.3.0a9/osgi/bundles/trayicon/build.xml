@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<project name="trayicon" default="all">
+
+   <target name="all">
+    <ant dir="trayicon"       target="all"/>
+    <ant dir="trayicon_fw"    target="all"/>
+  </target>
+
+</project>
