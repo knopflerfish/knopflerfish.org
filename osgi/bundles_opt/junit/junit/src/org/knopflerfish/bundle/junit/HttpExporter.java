@@ -53,7 +53,6 @@ public class HttpExporter {
   }
 
   public void openHTTP() {
-    Activator.log.info("openHTTP");
     httpListener = new ServiceListener() {
 	public void serviceChanged(ServiceEvent ev) {
 	  ServiceReference sr = ev.getServiceReference();
@@ -87,11 +86,13 @@ public class HttpExporter {
   Hashtable registrations = new Hashtable();
 
   void unsetServlet(ServiceReference sr) {
+    registrations.remove(sr);
     HttpService http = (HttpService)Activator.bc.getService(sr);
     try {
       http.unregister(SERVLET_ALIAS);
+
     } catch (Exception e) {
-      Activator.log.error("Failed to unregister xmlrpc servlet", e);
+      Activator.log.error("Failed to unregister junit servlet", e);
     }
   }
 
@@ -100,7 +101,6 @@ public class HttpExporter {
       return; // already done
     }
 
-    Activator.log.info("set junit servlet on " + sr);
 
     HttpService http = (HttpService)Activator.bc.getService(sr);
 
@@ -111,6 +111,9 @@ public class HttpExporter {
 			   new Hashtable(), 
 			   null);
       registrations.put(sr, servlet);
+
+      Activator.log.info("registered junit servlet at " + 
+			 SERVLET_ALIAS + ", port=" + sr.getProperty("port"));
     } catch (Exception e) {
       Activator.log.error("Failed to register junit servlet", e);
     }
