@@ -7,6 +7,10 @@
 -Dorg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
 #-Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
 
+
+-Dorg.knopflerfish.bundle.perf.servicereg.nlisteners=100
+-Dorg.knopflerfish.bundle.perf.servicereg.nservices=1000
+
 # true means "quit framework when all tests are run"
 -Dorg.knopflerfish.junit_runner.quit=true
 
