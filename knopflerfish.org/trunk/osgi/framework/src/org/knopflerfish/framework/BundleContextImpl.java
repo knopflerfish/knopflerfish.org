@@ -311,6 +311,16 @@ public class BundleContextImpl
    */
   public Object getService(ServiceReference reference) {
     isBCvalid();
+
+    if(reference == null) {
+      // Throw an NPE with a message to be really clear we do it 
+      // intentionally.
+      // A better solution would be to throw IllegalArgumentException,
+      // but the OSGi ref impl throws NPE, and we want to keep as
+      // close as possible
+      throw new NullPointerException("null ServiceReference is not valid input to getService()");
+    }
+
     return ((ServiceReferenceImpl)reference).getService(bundle);
   }
 
@@ -322,6 +332,16 @@ public class BundleContextImpl
    */
   public boolean ungetService(ServiceReference reference) {
     isBCvalid();
+
+    if(reference == null) {
+      // Throw an NPE with a message to be really clear we do it 
+      // intentionally.
+      // A better solution would be to throw IllegalArgumentException,
+      // but the OSGi ref impl throws NPE, and we want to keep as
+      // close as possible
+      throw new NullPointerException("null ServiceReference is not valid input to ungetService()");
+    }
+
     return ((ServiceReferenceImpl)reference).ungetService(bundle, true);
   }
 
