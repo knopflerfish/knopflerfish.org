@@ -242,7 +242,7 @@ public class BundleContextImpl implements BundleContext {
   }
 
   public String getProperty(String key) { 
-    throw new RuntimeException("NYI");
+    return fw.getBundleContextProperty(key);
   }
 
   // Long -> ServerReferenceImpl

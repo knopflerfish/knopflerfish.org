@@ -105,6 +105,12 @@ public class RemoteFWClient implements RemoteFW {
     return toLongArray(doCall("getBundles"));
   }
 
+  public String      getBundleContextProperty(String key) {
+    String v = (String)doCall("getBundleContextProperty", 
+			      new Object[] { key });
+    return NULL_STR.equals(v) ? null : v;
+  }
+
   public String  getBundleLocation(long bid) {
     return (String)doCall("getBundleLocation", bid);
   }

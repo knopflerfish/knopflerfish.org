@@ -14,6 +14,8 @@ public interface RemoteFW {
 
   public long        getBundle(); 
 
+  public String      getBundleContextProperty(String key); 
+
   // (bid)
   public long[]     getBundles();
 
