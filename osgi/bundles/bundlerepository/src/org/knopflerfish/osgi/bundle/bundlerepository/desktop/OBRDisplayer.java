@@ -133,6 +133,8 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
   
   String obrErr = "";
 
+  static String STR_LOADING = "Loading...";
+
   class OBRAdmin extends JPanel {
 
     DefaultTreeModel treeModel;
@@ -191,7 +193,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       sortIcon    = new ImageIcon(getClass().getResource("/sort_select.png"));
       bundleIcon  = new ImageIcon(getClass().getResource("/lib16x16.png"));
 
-      recordTree = new JTree();
+      recordTree = new JTree(new TopNode("[not loaded]"));
       recordTree.setRootVisible(true);
 
       // Load leaf icon for the tree cell renderer.
@@ -224,6 +226,11 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 		obrNode.setInstalled(bInstalled);
 		if(bInstalled) {
 		  setForeground(Color.gray);
+		}
+	      } else if(node instanceof TopNode) {
+		TopNode topNode = (TopNode)node;
+		if(STR_LOADING.equals(topNode.name)) {
+		  setIcon(updateIcon);
 		}
 	      } else {
 		//		setIcon(null);
@@ -485,6 +492,15 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	  public void run() {
 	    locationMap.clear();
 	    BundleRecord brOld = brSelected != null ? brSelected.getBundleRecord() : null;
+
+	    try {
+	      SwingUtilities.invokeAndWait(new Runnable() {
+		  public void run() {
+		    recordTree.setModel(new DefaultTreeModel(new TopNode(STR_LOADING)));
+		  }
+		});
+	    } catch (Exception e) {
+	    }
 	    
 	    rootNode = new TopNode(topName);
 	    treeModel = new DefaultTreeModel(rootNode);
