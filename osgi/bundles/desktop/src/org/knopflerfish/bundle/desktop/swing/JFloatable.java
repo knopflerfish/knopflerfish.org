@@ -72,12 +72,13 @@ import org.knopflerfish.bundle.log.window.impl.*;
 import org.knopflerfish.util.*;
 
 import javax.swing.plaf.ComponentUI;
+import javax.swing.border.Border;
 
 
 public class JFloatable extends JPanel {
 
   JComponent main;
-  JButton    buttonFloat;
+  JComponent buttonFloat;
   String     title;
 
   JFrame     frame = null;
@@ -87,11 +88,11 @@ public class JFloatable extends JPanel {
     super(new BorderLayout());
     this.main   = main;
     this.title  = title;
-    buttonFloat = new JButton(Activator.desktop.floatIcon);
+    buttonFloat = new JLabel(Activator.desktop.floatIcon);
     buttonFloat.setToolTipText("Float window");
-    buttonFloat.setBorder(null);
-    buttonFloat.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
+    //    buttonFloat.setBorder(null);
+    buttonFloat.addMouseListener(new MouseAdapter() {
+	public void mouseClicked(MouseEvent ev) {
 	  if(frame == null) {
 	    doFloat();
 	  } else {
