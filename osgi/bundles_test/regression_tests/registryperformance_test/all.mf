@@ -18,5 +18,3 @@ Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
  n_tests\registryperformance_test
 Build-Date: Wed August 25 2004, 19:59:57
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Bundle-APIVendor: 
-
