@@ -92,6 +92,12 @@ public class Activator implements BundleActivator {
     }
   }
 
+  static Vector remoteHosts = new Vector() {
+      {
+	addElement("http://localhost:8080");
+      }
+    };
+
   static String remoteHost = "local";
 
   public static BundleContext openRemote(String host) {

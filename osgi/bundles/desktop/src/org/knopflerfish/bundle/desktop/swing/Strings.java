@@ -116,6 +116,8 @@ public class Strings {
 	  put("no",     "No");
 	  put("ok",     "OK");
 
+	  put("local",  "Local");
+
 	  put("fmt_q_stopdesktop",
 	      "Are you sure you want to stop $(1)?\n" + 
 	      "This will close the desktop window.");

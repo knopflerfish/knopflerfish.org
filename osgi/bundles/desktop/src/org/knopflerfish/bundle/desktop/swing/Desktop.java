@@ -1299,13 +1299,11 @@ public class Desktop
       }
     }
   }
-  
-  void doConnect() {
-    String[] options = new String[] {
-      "http://localhost:8080",
-      "local",
-    };
 
+  void doConnect() {
+    String[] options = new String[Activator.remoteHosts.size()];
+    Activator.remoteHosts.copyInto(options);
+    
     // The selection comp I want in the dialog
     JComboBox combo = new JComboBox(options);
     combo.setEditable(true);
@@ -1329,7 +1327,8 @@ public class Desktop
     optionPane.setOptions(new String[] 
       {
 	Strings.get("ok"), 
-	Strings.get("cancel")
+	Strings.get("cancel"),
+	Strings.get("local"),
       }); 
     
     optionPane.selectInitialValue();
@@ -1342,11 +1341,19 @@ public class Desktop
 
     String value = (String)optionPane.getValue();
 
-    if (!Strings.get("ok").equals(value)) {
+    if (Strings.get("cancel").equals(value)) {
       return;
     }
 
     String s = (String)combo.getSelectedItem();
+
+    if (Strings.get("local").equals(value)) {
+      s = "local";
+    }
+
+    if(!Activator.remoteHosts.contains(s)) {
+      Activator.remoteHosts.addElement(s);
+    }
     
     if ((s != null) && (s.length() > 0)) {
       Activator.openRemote(s);
