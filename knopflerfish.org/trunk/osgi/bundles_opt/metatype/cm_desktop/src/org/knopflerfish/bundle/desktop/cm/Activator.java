@@ -55,7 +55,7 @@ public class Activator implements BundleActivator {
   static ServiceTracker mtpTracker;
   //  static SystemMetatypeProvider sysMTP;
 
-  CMDisplayer disp;
+  static CMDisplayer disp;
   
   public void start(BundleContext _bc) {
     this.bc  = _bc;
@@ -129,6 +129,7 @@ public class Activator implements BundleActivator {
       }
 
       disp.close();
+      disp = null;
 
       mtpTracker.close();
       mtpTracker = null;

@@ -162,7 +162,10 @@ public class JCMInfo extends JPanel {
       sb.append("<p>");
       Util.startFont(sb, "-2");
       sb.append("No CM metatype found in bundle.<br>");
-      sb.append("See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.");
+      sb.append("<p>See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.</p>");
+      sb.append("<p>The ");
+      Util.bundleLink(sb, Activator.bc.getBundle(0));
+      sb.append(" shows all available configurations</p>");
       sb.append("</font>");
       sb.append("</p>");
       
@@ -229,7 +232,13 @@ class JHTML extends JPanel {
 	  if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 	    URL url = ev.getURL();
 	    try {
-	      Util.openExternalURL(url);
+	      if(Util.isBundleLink(url)) {
+		long bid = Util.bidFromURL(url);
+		Activator.disp.getBundleSelectionModel().clearSelection();
+		Activator.disp.getBundleSelectionModel().setSelected(bid, true);
+	      } else {
+		Util.openExternalURL(url);
+	      }
 	    } catch (Exception e) {
 	      Activator.log.error("Failed to show " + url, e);
 	    }
