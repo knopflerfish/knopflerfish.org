@@ -70,11 +70,11 @@ public class FilterTestSuite extends TestSuite {
     }
   }
 
-  public final static String [] HELP_FRAME140A =  {
-    "Test the LDAP filter when getting service refences"
-  };
+  public class Frame0140a extends FWTestCase {
+    public String getDescription() {
+      return "Test the LDAP filter when getting service refences";
+    }
 
-  class Frame0140a extends FWTestCase {
     public void runTest() throws Throwable {
       ServiceRegistration tsr = null;
 
@@ -343,11 +343,11 @@ public class FilterTestSuite extends TestSuite {
   }
 
 
-  public final static String [] HELP_FRAME150A =  {
-    "Test new Framework Filter class"
-  };
+  public class Frame0150a extends FWTestCase {
+    public String getDescription() {
+      return "Test the Framework Filter class";
+    }
 
-  class Frame0150a extends FWTestCase {
     public void runTest() throws Throwable {
       ServiceRegistration tsr = null;
 
