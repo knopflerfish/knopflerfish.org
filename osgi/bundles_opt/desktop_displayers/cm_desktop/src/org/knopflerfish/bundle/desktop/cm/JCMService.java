@@ -75,6 +75,7 @@ public class JCMService extends JPanel {
     this.ocd = ocd;
     isService  = ocd != null;
     isFactory  =false;
+    lastPID = null;
     updateOCD();
 
   }
@@ -83,6 +84,7 @@ public class JCMService extends JPanel {
     this.ocd = ocd;
     isService = false;
     isFactory = ocd != null;
+    lastPID = null;
     updateOCD();
   }
 
@@ -115,10 +117,6 @@ public class JCMService extends JPanel {
       }
 
       JButton facdelButton = null;
-
-      if(isFactory) {
-
-      }
 
       AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
       for(int i = 0; i < ads.length; i++) {
@@ -229,8 +227,9 @@ public class JCMService extends JPanel {
 	  ctrlPanel.add(fbox);
 
 
-	  if(fpids.length > 0) {
-	    showFactoryConfig(fpids[0]);
+	  if(lastPID != null) {
+	    fbox.setSelectedItem(lastPID);
+	    showFactoryConfig(lastPID);
 	  }
 	}
       } else {
@@ -275,13 +274,13 @@ public class JCMService extends JPanel {
   
   void showFactoryConfig(String pid) {
     //    System.out.println("showFactoryConfig " + pid);
-    factoryPid = pid;
     
     try {
       Configuration conf = 
 	CMDisplayer.getCA().getConfiguration(pid, null);
 
       setProps(conf.getProperties());
+      factoryPid = pid;
     } catch (Exception e) {
       Activator.log.error("show factory failed pid=" + pid, e);
     }
@@ -293,6 +292,7 @@ public class JCMService extends JPanel {
       Configuration conf = CMDisplayer.getCA()
 	.getConfiguration(pid, null);
       conf.delete();
+      lastPID = null;
       updateOCD();
     } catch (Exception e) {
       Activator.log.error("delete factory failed pid=" + pid, e);
@@ -310,6 +310,7 @@ public class JCMService extends JPanel {
 	Configuration conf = CMDisplayer.getCA()
 	  .getConfiguration(pid, null);
 	conf.update(props);
+	lastPID = conf.getPid();
 	updateOCD();
       } catch (Exception e) {
 	Activator.log.error("apply factory failed pid=" + pid, e);
@@ -330,6 +331,7 @@ public class JCMService extends JPanel {
       try {
 	Configuration conf = 
 	  CMDisplayer.getCA().createFactoryConfiguration(pid, null);
+	lastPID = conf.getPid();
 	conf.update(props);
 	updateOCD();
       } catch (Exception e) {
@@ -342,6 +344,7 @@ public class JCMService extends JPanel {
   
   void deleteConfig(String pid) {
     //    System.out.println("deleteConfig " + pid);
+    lastPID = null;
     try {
       Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
       conf.delete();
@@ -354,6 +357,7 @@ public class JCMService extends JPanel {
 
   void createConfig(String pid) {
     //    System.out.println("createConfig " + pid);
+
     try {
       Dictionary props = getProps();
       
@@ -361,6 +365,7 @@ public class JCMService extends JPanel {
       try {
 	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
 	conf.update(props);
+	lastPID = pid;
 	updateOCD();
       } catch (Exception e) {
 	Activator.log.error("Failed to create/update pid=" + pid, e);
@@ -370,15 +375,18 @@ public class JCMService extends JPanel {
     }
   }
 
+  String lastPID = null;
+
   void applyConfig(String pid) {
     //System.out.println("applyConfig " + pid);
     try {
       Dictionary props = getProps();
       
-      System.out.println("props=" + props);
+      //      System.out.println("props=" + props);
       try {
 	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
 	conf.update(props);
+	lastPID = pid;
 	updateOCD();
       } catch (Exception e) {
 	Activator.log.error("Failed to apply/update pid=" + pid, e);
