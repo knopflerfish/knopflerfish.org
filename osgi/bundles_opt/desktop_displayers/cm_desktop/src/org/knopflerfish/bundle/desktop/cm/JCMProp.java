@@ -85,15 +85,23 @@ public class JCMProp extends JPanel {
 			 "Array items",
 			 maxItems);
     } else {
-      switch(ad.getType()) {
-      case AttributeDefinition.STRING:
-	comp = new JTextField();
-	break;
-      case AttributeDefinition.BOOLEAN:
-	comp = new JCheckBox();
-	break;
-      default:
-	comp = new JTextField();
+      if(ad.getOptionValues() != null) {
+	if(ad.getOptionLabels() != null) {
+	  comp = new JComboBox(ad.getOptionLabels());
+	} else {
+	  comp = new JComboBox(ad.getOptionValues());
+	}
+      } else {
+	switch(ad.getType()) {
+	case AttributeDefinition.STRING:
+	  comp = new JTextField();
+	  break;
+	case AttributeDefinition.BOOLEAN:
+	  comp = new JCheckBox();
+	  break;
+	default:
+	  comp = new JTextField();
+	}
       }
     }
     
@@ -130,6 +138,16 @@ public class JCMProp extends JPanel {
       } else if(comp instanceof JCheckBox) {
 	JCheckBox cb = (JCheckBox)comp;
 	cb.setSelected("true".equals(s));
+      } else if(comp instanceof JComboBox) {
+	JComboBox cb = (JComboBox)comp;
+	String[] opts = ad.getOptionValues();
+	for(int i = 0; i < opts.length; i++) {
+	  if(opts[i].equals(obj)) {
+	    cb.setSelectedIndex(i);
+	    return;
+	  }
+	}
+	throw new IllegalArgumentException("Unknown option value " + obj);
       }
     }
   }
@@ -149,6 +167,9 @@ public class JCMProp extends JPanel {
     } else if(comp instanceof JCheckBox) {
       JCheckBox cb = (JCheckBox)comp;
       s = "" + cb.isSelected();
+    } else if(comp instanceof JComboBox) {
+      JComboBox cb = (JComboBox)comp;
+      s = ad.getOptionValues()[cb.getSelectedIndex()];
     }
 
     //    System.out.println("getValue " + ad + ", s=" + s);
