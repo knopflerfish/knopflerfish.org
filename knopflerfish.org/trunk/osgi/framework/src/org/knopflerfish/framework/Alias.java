@@ -47,7 +47,7 @@ public class Alias {
    */
   final public static String[][] processorAliases = {
     { "Ignite", "psc1k" },
-    { "PowerPC", "power", "ppc" },
+    { "PowerPC", "power", "ppc", "ppcbe" },
     { "x86", "pentium", "i386", "i486", "i586", "i686" },
   };
 
