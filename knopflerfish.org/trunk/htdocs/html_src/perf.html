@@ -14,8 +14,9 @@ The test was performed by
   <li>Launching the framework from a wrapper script. See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/">timing_tester</a> bundle for source.
   <li>Installing and starting a set of "typical bundles". See <a href="#bundles">bundle list</a> for exact bundles.
   <li>Installing a special notification bundle.
-  <li>Measuring the time until the notification bundle was started
-  <li>Repeat from 1-4 multiple times.
+  <li>Measuring the time from the JVM is completely started until the
+      notification bundle is started.
+  <li>Repeating 1-4 multiple times.
 </ol>
 
 The test was performed on
@@ -65,6 +66,11 @@ using Spotfire DecisionSite</i>
 
 <p>
 <b>Note 1</b>: Memory is <b>heap memory</b>, not disk usage. The intention with the file: reference method is to avoid copying a bundle file to another place in the file system. Disk usage is not measured by these tests.<br>
+</p>
+
+<p>
+<b>Note 2</b>: The JVM native startup time is not included in 
+the measurements. All timing is done inside of the JVM itself.
 </p>
 
 
