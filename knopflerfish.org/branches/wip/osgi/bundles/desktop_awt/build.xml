@@ -32,9 +32,9 @@
   <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.apivendor"      value="Knopflerfish"/>
   <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="Desktop AWT"/>
+  <property name="bundle.name"           value="KF AWT Desktop"/>
 
-  <property name="import.package"        value="org.osgi.framework;specification-version=1.2,org.knopflerfish.service.console"/>
+  <property name="import.package"        value="org.osgi.framework;specification-version=1.2,org.osgi.service.packageadmin,org.knopflerfish.service.console"/>
 
   <property name="export.package"  
             value="org.knopflerfish.service.console;specification-version=1.0.0"/>

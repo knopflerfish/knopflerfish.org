@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.desktopawt;
 
 import org.osgi.framework.*;
+import org.osgi.service.packageadmin.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -43,28 +44,35 @@ import java.util.*;
 class DesktopPanel extends Panel {
   ScrollPane scroll;
   Toolbar    toolbar;
-  Panel      bundlePanel;
-  Panel      cardPanel;
+  Container  bundlePanel;
+  Panel  cardPanel;
   CardLayout cardLayout;
   Console    console;
   StatusBar  statusBar;
 
-  public static final int SORT_ID   = 0;
-  public static final int SORT_NAME = 1;
+  public static final int SORT_ID    = 0;
+  public static final int SORT_NAME  = 1;
+  public static final int SORT_STATE = 2;
+
+  int       sortMode = SORT_NAME;
+  Hashtable bundles  = new Hashtable();
 
   LF lf = LF.getLF();
 
   DesktopPanel() {
-    super(new BorderLayout());
+    super();
+    setLayout(new BorderLayout());
 
     scroll = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
 
     scroll.setSize(new Dimension(250, 300));
     cardLayout   = new CardLayout();
-    cardPanel    = new Panel(cardLayout);
+    cardPanel    = new Panel();
+    cardPanel.setLayout(cardLayout);
 
-    bundlePanel  = new Panel(new GridLayout(0,1));
-    console = new Console();
+    bundlePanel  = new DBContainer();
+    bundlePanel.setLayout(new GridLayout(0,1));
+    console      = new Console();
 
     console.panel.text.addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent ev) {
@@ -100,13 +108,11 @@ class DesktopPanel extends Panel {
           switch(ev.getType()) {
           case BundleEvent.INSTALLED:
             addBundle(ev.getBundle());
-            bundlePanel.invalidate();
-            bundlePanel.repaint();
+            rebuildBundles();
             break;
           case BundleEvent.UNINSTALLED:
             removeBundle(ev.getBundle());
-            bundlePanel.invalidate();
-            bundlePanel.repaint();
+            rebuildBundles();
             break;
           }
           //          System.out.println(ev.getBundle() + ", " + ev.getType());
@@ -121,36 +127,113 @@ class DesktopPanel extends Panel {
       listener.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
 
+    showBundles(sortMode);
   }
 
-  Hashtable bundles = new Hashtable();
+
 
   public void removeBundle(Bundle b) {
-    BundleC bc = (BundleC)bundles.get(b);
-    if(bc != null) {
-      bundles.remove(b);
-      bundlePanel.remove(bc);
-      bundlePanel.invalidate();
-      bundlePanel.repaint();
+    synchronized(bundles) {
+      BundleC bc = (BundleC)bundles.get(b);
+      if(bc != null) {
+        bundles.remove(b);
+        rebuildBundles();
+      }
     }
   }
 
   public void addBundle(Bundle b) {
-    if(!bundles.containsKey(b)) {
-      BundleC bc = new BundleC(b);
-      bundles.put(b, bc);
-      bundlePanel.add(bc);
-      bundlePanel.invalidate();
-      bundlePanel.repaint();
-
+    synchronized(bundles) {
+      if(!bundles.containsKey(b)) {
+        BundleC bc = new BundleC(b);
+        bundles.put(b, bc);
+        rebuildBundles();
+      }
     }
   }
+
+
+  interface Comp {
+    public int compare(Bundle b0, Bundle b1);
+  }
+
+  Comp compName = new Comp() {
+      public int compare(Bundle b0, Bundle b1) {
+        String s0 = Util.getBundleName(b0).toLowerCase();
+        String s1 = Util.getBundleName(b1).toLowerCase();
+
+        return s0.compareTo(s1);
+      }
+    };
+
+  Comp compId = new Comp() {
+      public int compare(Bundle b0, Bundle b1) {
+        return (int)(b0.getBundleId() - b1.getBundleId());
+      }
+    };
+
+  Comp compState = new Comp() {
+      public int compare(Bundle b0, Bundle b1) {
+        return (int)(b0.getState() - b1.getState());
+      }
+    };
   
+  void insertBundle(Vector v, Bundle b, Comp comp) {
+    for(int i = 0; i < v.size(); i++) {
+      Bundle b0 = (Bundle)v.elementAt(i);
+      if(comp.compare(b, b0) <= 0) {
+        v.insertElementAt(b, i);
+        return;
+      }
+    }
+    v.addElement(b);
+  }
+
+  void rebuildBundles() {
+    synchronized(bundles) {
+      int sort = sortMode;
+      try {
+        Comp comp = compId;
+        if(sort == SORT_ID) {
+          comp = compId;
+        } else if(sort == SORT_NAME) {
+          comp = compName;
+        } else if(sort == SORT_STATE) {
+          comp = compState;
+        }
+        
+        bundlePanel.removeAll();
+        Vector sorted = new Vector();
+        for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
+          Bundle  b  = (Bundle)e.nextElement();
+          BundleC bc = (BundleC)bundles.get(b);
+          
+          insertBundle(sorted, b, comp);
+        }
+        
+        for(int i = 0; i < sorted.size(); i++) {
+          Bundle  b  = (Bundle)sorted.elementAt(i);
+          BundleC bc = (BundleC)bundles.get(b);
+          if(bc == null) {
+            bc = new BundleC(b);
+            bundles.put(b, bc);
+          }
+          bundlePanel.add(bc);
+        }
+        invalidate();
+        bundlePanel.doLayout();
+        repaint();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
   void bundleUpdated(Bundle b) {
     BundleC bc = (BundleC)bundles.get(b);
     if(bc != null) {
       //      System.out.println("update " + bc);
-      bc.update();
+      bc.bundleUpdated();
     }
   }
 
@@ -159,12 +242,17 @@ class DesktopPanel extends Panel {
       Bundle  b  = (Bundle)e.nextElement();
       BundleC bc = (BundleC)bundles.get(b);
       if(bc.isSelected()) {
+        bc.bFocus = false;
         bc.setSelected(false);
       }
     }
   }
 
   public void startBundles() {
+    if(bundles.size() == 0) {
+      statusBar.setMessage("No bundles selected");
+      return;
+    }
     for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
       Bundle b = (Bundle)e.nextElement();
       BundleC bc = (BundleC)bundles.get(b);
@@ -182,6 +270,10 @@ class DesktopPanel extends Panel {
   }
 
   public void stopBundles() {
+    if(bundles.size() == 0) {
+      statusBar.setMessage("No bundles selected");
+      return;
+    }
     for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
       Bundle b = (Bundle)e.nextElement();
       BundleC bc = (BundleC)bundles.get(b);
@@ -196,6 +288,10 @@ class DesktopPanel extends Panel {
   }
 
   public void uninstallBundles() {
+    if(bundles.size() == 0) {
+      statusBar.setMessage("No bundles selected");
+      return;
+    }
     for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
       Bundle b = (Bundle)e.nextElement();
       BundleC bc = (BundleC)bundles.get(b);
@@ -210,6 +306,10 @@ class DesktopPanel extends Panel {
   }
 
   public void updateBundles() {
+    if(bundles.size() == 0) {
+      statusBar.setMessage("No bundles selected");
+      return;
+    }
     for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
       Bundle b = (Bundle)e.nextElement();
       BundleC bc = (BundleC)bundles.get(b);
@@ -244,6 +344,8 @@ class DesktopPanel extends Panel {
   }
 
   void showBundles(int sort) {
+    sortMode = sort;
+    rebuildBundles();
     cardLayout.show(cardPanel, "bundles");
   }
 
@@ -265,47 +367,25 @@ class DesktopPanel extends Panel {
     }
   }
 
-  class BundleC extends Panel {
+  class BundleC extends DBContainer {
     BundleImageC bic;
     boolean      bSelected = false;
     boolean      bFocus = false;
     BundleImageC bc;
-    Label        lab;
-    Label        lab2;
+    String       lab;
+    String       lab2;
     Bundle       b;
 
-    public void repaint() {
-      //      System.out.println("BC.repaint() " + this.b.getBundleId());
-      bic.repaint();
-      lab.repaint();
-      lab2.repaint();
-    }
-
-    public void paint(Graphics g) {
-      super.paint(g);
-      //      System.out.println("BC.repaint() " + this.b.getBundleId());
-    }
-
     BundleC(Bundle _b) {
-      super(new BorderLayout());
+      super();
+
       this.b = _b;
 
       bic = new BundleImageC(b, 
                              Util.hasActivator(b) 
-                             ? "/bundle.png"
-                             : "/lib.png");
+                             ? "/bundle.gif"
+                             : "/lib.gif");
                              
-      
-      ActionListener actionListener = new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            if(0 != (ev.getModifiers() & ActionEvent.CTRL_MASK)) {
-              setSelected(!isSelected());
-            } else {
-              unselectAll();
-              setSelected(true);
-            }
-          }
-        };
       
       MouseListener mouseListener = new MouseAdapter() {
           public void mouseClicked(MouseEvent ev) {
@@ -329,31 +409,61 @@ class DesktopPanel extends Panel {
         };
       
 
-      Panel mainP = new Panel(new BorderLayout());
+      lab  = Util.getBundleName(b);
+      lab2 = "";
 
-      lab  = new Label(Util.getBundleName(b));
-      lab.setFont(lf.defaultFont);
-      lab.setForeground(Color.black);
+      addMouseListener(mouseListener);
 
-      lab2 = new Label();
+      bundleUpdated();
+    }
 
-      lab2.setFont(lf.smallFont);
-      lab2.setForeground(Color.gray);
 
-      bic.addMouseListener(mouseListener);
-      bic.addActionListener(actionListener);
-      lab.addMouseListener(mouseListener);
-      lab2.addMouseListener(mouseListener);
+
+    public void paintComponent(Graphics g) {
+
+      Dimension size = getSize();
+
+      g.setColor(getBackground());
+      g.fillRect(0,0, size.width, size.height);
       
-      add(bic, BorderLayout.WEST);
-      mainP.add(lab, BorderLayout.CENTER);
-      mainP.add(lab2, BorderLayout.SOUTH);
-      add(mainP, BorderLayout.CENTER);
-
-      update();
+      int left = 2 + bic.img.getWidth(null);
+      int ypos = 2;
+      
+      bic.setSize(bic.img.getWidth(null),
+                  bic.img.getHeight(null));
+      bic.setLocation(0, 0);
+      bic.setBackground(getBackground());
+      bic.paint(g);
+      
+      g.setColor(Color.black);
+      g.setFont(lf.defaultFont);
+      ypos += g.getFont().getSize();
+      g.drawString(lab,
+                   left, 
+                   ypos);
+      
+      ypos += g.getFont().getSize() + 2;
+      
+      g.setColor(Color.gray);
+      g.setFont(lf.smallFont);
+      g.drawString(lab2,
+                   left,
+                   ypos);
+      
+      ypos += g.getFont().getSize() + 2;
+      
     }
     
-    void update() {
+    public Dimension preferredSize() {
+      return getPreferredSize();
+    }
+
+    public Dimension getPreferredSize() {
+      Dimension d = bic.getPreferredSize();
+      return d;
+    }
+
+    void bundleUpdated() {
       int maxLen = 25;
       String desc = Util.getHeader(b, "Bundle-Description", "");
       if(desc == null) {
@@ -364,9 +474,11 @@ class DesktopPanel extends Panel {
         desc = desc.substring(0, maxLen) + "...";
       }
 
-      lab2.setText(desc + 
-                   " (#" + b.getBundleId() + ", " + 
-                   Util.stateName(b.getState()) + ")");
+      lab2 = desc + 
+        " (#" + b.getBundleId() + ", " + 
+        Util.stateName(b.getState()) + ")";
+
+      bNeedRedraw = true;
       repaint();
     }
 
@@ -379,9 +491,8 @@ class DesktopPanel extends Panel {
         return;
       }
       bFocus = b;
+      bNeedRedraw = true;
       setSelected(isSelected());
-      bic.setFocus(b);
-      repaint();
     }
 
     public boolean isFocus() {
@@ -390,8 +501,8 @@ class DesktopPanel extends Panel {
 
 
     public void setSelected(boolean b) {
-      if(bSelected == b) {
-        repaint();
+      if(bSelected != b) {
+        bNeedRedraw = true;
       }
       bSelected = b;
       
@@ -399,9 +510,7 @@ class DesktopPanel extends Panel {
       if(isFocus()) {
         c = Util.rgbInterpolate(c, Color.gray, .1);
       }
-      bic.setBackground(c);
-      lab.setBackground(c);
-      lab2.setBackground(c);
+      setBackground(c);
       
       repaint();
       statusBar.showBundles();
@@ -417,69 +526,9 @@ class DesktopPanel extends Panel {
       
       setBackground(lf.bgColor);
       
-      add(new ImageLabel("/open.png", 2, getBackground()) {{
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              openBundle();
-            }
-          });
-      }
-          public void setFocus(boolean b) {
-            super.setFocus(b);
-            statusBar.setMessage(b ? "Install bundles (NYI)" : "");
-          }
-        });
-      add(new ImageLabel("/player_play.png", 2, getBackground()) {{
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              startBundles();
-            }
-          });
-      }
-          public void setFocus(boolean b) {
-            super.setFocus(b);
-            statusBar.setMessage(b ? "Start bundles" : "");
-          }
-        });
-      add(new ImageLabel("/player_stop.png", 2, getBackground()) {{
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              stopBundles();
-            }
-          });
-      }
-          public void setFocus(boolean b) {
-            super.setFocus(b);
-            statusBar.setMessage(b ? "Stop bundles" : "");
-          }
-        });
-      add(new ImageLabel("/update.png", 2, getBackground())  {{
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              updateBundles();
-            }
-          });
-      }
-          public void setFocus(boolean b) {
-            super.setFocus(b);
-            statusBar.setMessage(b ? "Update bundles" : "");
-          }
-        });
-      add(new ImageLabel("/player_eject.png", 2, getBackground()) {{
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              uninstallBundles();
-            }
-          });
-      }
-          public void setFocus(boolean b) {
-            super.setFocus(b);
-            statusBar.setMessage(b ? "Uninstall bundles" : "");
-          }
-        });
       
       
-      ImageLabel viewButton = new ImageLabel("/view_select.png", 2, getBackground()) {
+      ImageLabel viewButton = new ImageLabel("/view_select.gif", 2, getBackground()) {
           public void setFocus(boolean b) {
             super.setFocus(b);
             statusBar.setMessage(b ? "Select view" : "");
@@ -489,10 +538,26 @@ class DesktopPanel extends Panel {
       viewPopupMenu = new PopupMenu();
       add(viewPopupMenu);
 
-      MenuItem item = new MenuItem("Bundles");
+      MenuItem item;
+      item = new MenuItem("Bundles (id)");
+      item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            showBundles(SORT_ID);
+          }
+        });
+      viewPopupMenu.add(item);
+
+      item = new MenuItem("Bundles (name)");
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             showBundles(SORT_NAME);
+          }
+        });
+      viewPopupMenu.add(item);
+      item = new MenuItem("Bundles (state)");
+      item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            showBundles(SORT_STATE);
           }
         });
       viewPopupMenu.add(item);
@@ -514,8 +579,32 @@ class DesktopPanel extends Panel {
           }
         });
       viewPopupMenu.add(item);
+
+      item = new MenuItem("Shutdown");
+      item.setEnabled(true);
+      item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            try {
+              Activator.bc.getBundle(0).stop();
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        });
+      viewPopupMenu.add(item);
+
+      item = new MenuItem("Refresh");
+      item.setEnabled(true);
+      item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            refreshBundles(null);
+          }
+        });
+      viewPopupMenu.add(item);
  
       add(viewButton);
+
+
       viewButton.addMouseListener(new MouseAdapter() 
         {
           public void mousePressed(MouseEvent e) {
@@ -533,12 +622,94 @@ class DesktopPanel extends Panel {
             }
           }
         });
+
+            add(new ImageLabel("/open.gif", 2, getBackground()) {{
+        addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              openBundle();
+            }
+          });
+      }
+          public void setFocus(boolean b) {
+            super.setFocus(b);
+            statusBar.setMessage(b ? "Install bundles (NYI)" : "");
+          }
+        });
+      add(new ImageLabel("/player_play.gif", 2, getBackground()) {{
+        addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              startBundles();
+            }
+          });
+      }
+          public void setFocus(boolean b) {
+            super.setFocus(b);
+            statusBar.setMessage(b ? "Start bundles" : "");
+          }
+        });
+      add(new ImageLabel("/player_stop.gif", 2, getBackground()) {{
+        addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              stopBundles();
+            }
+          });
+      }
+          public void setFocus(boolean b) {
+            super.setFocus(b);
+            statusBar.setMessage(b ? "Stop bundles" : "");
+          }
+        });
+      add(new ImageLabel("/update.gif", 2, getBackground())  {{
+        addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              updateBundles();
+            }
+          });
+      }
+          public void setFocus(boolean b) {
+            super.setFocus(b);
+            statusBar.setMessage(b ? "Update bundles" : "");
+          }
+        });
+      add(new ImageLabel("/player_eject.gif", 2, getBackground()) {{
+        addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              uninstallBundles();
+            }
+          });
+      }
+          public void setFocus(boolean b) {
+            super.setFocus(b);
+            statusBar.setMessage(b ? "Uninstall bundles" : "");
+          }
+        });
+
     }
   }  
 
+  void refreshBundles(Bundle[] bl) {
+    ServiceReference sr = Activator.bc.getServiceReference(PackageAdmin.class.getName());
+    if(sr != null) {
+      PackageAdmin packageAdmin = null;
+      try {
+        packageAdmin = (PackageAdmin)Activator.bc.getService(sr);
+        if(packageAdmin != null) {
+          if(bl != null && bl.length == 0) {
+            bl = null;
+          }
+          packageAdmin.refreshPackages(bl);
+        }
+      } finally {
+        if(packageAdmin != null) {
+          Activator.bc.ungetService(sr);
+        }
+      }
+    }
+  }
+
   PopupMenu viewPopupMenu;
 
-  class StatusBar extends Panel {
+  class StatusBar extends Container {
     Dimension pSize = new Dimension(100, lf.defaultFont.getSize() + 4);
     
     String msg = "";
@@ -555,14 +726,24 @@ class DesktopPanel extends Panel {
       int nTotal    = bundles.size();
       int nSelected = 0;
 
+      StringBuffer sb = new StringBuffer();
       for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
         Bundle b = (Bundle)e.nextElement();
         BundleC bc = (BundleC)bundles.get(b);
         if(bc.isSelected()) {
           nSelected++;
+          if(sb.length() > 0) {
+            sb.append(", ");
+          }
+          sb.append("#" + b.getBundleId() + "/" + Util.getBundleName(b));
         }
       }
-      String msg = "Total " + nTotal + ", selected " + nSelected;
+      if(sb.length() > 20) {
+        sb.setLength(20);
+        sb.append("...");
+      }
+      String msg = "Total " + nTotal + ", " + nSelected + " selected" + 
+        " " + sb;
       setMessage(msg);
     }
     

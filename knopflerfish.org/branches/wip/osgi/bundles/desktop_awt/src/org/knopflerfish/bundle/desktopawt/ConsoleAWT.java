@@ -62,7 +62,7 @@ public class ConsoleAWT extends Panel {
   TextReader       in;
   PrintStream      out;
 
-  Panel panel;
+  Container panel;
   ScrollPane scroll;
   Label  cmdLabel;
 
@@ -81,7 +81,8 @@ public class ConsoleAWT extends Panel {
   
   public ConsoleAWT() {
 
-    super(new BorderLayout());
+    super();
+    setLayout(new BorderLayout());
   
     panel = this;
 

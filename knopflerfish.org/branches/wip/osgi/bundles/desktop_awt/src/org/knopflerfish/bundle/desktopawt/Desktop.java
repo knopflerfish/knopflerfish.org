@@ -45,9 +45,12 @@ class Desktop {
   static MediaTracker tracker;
   static int trackerId = 0;
 
+  static Image activeIcon = null;
+
   Desktop() {
-    frame = new Frame("Knopflerfish AWT Desktop");
-    tracker = new MediaTracker(frame);
+    frame       = new Frame("Knopflerfish Desktop");
+    tracker     = new MediaTracker(frame);
+    activeIcon  = loadImage("/player_play_14x14.gif");
     setIcon(frame, "/fish");
   }
 
