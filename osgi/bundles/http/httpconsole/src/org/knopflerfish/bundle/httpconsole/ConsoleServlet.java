@@ -149,7 +149,7 @@ public class ConsoleServlet extends HttpServlet {
       printMain(request, out);
       out.println("</td>");
 
-      out.println("<td width=\"30%\" class=\"maininfo\">");
+      out.println("<td class=\"maininfo\">");
       if(sb.length() > 0) {
 	out.println("<div class=\"cmdresult\">");
 	out.println(sb.toString());
