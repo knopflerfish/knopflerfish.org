@@ -197,7 +197,7 @@ class Archive {
 	    System.arraycopy(oldb, 0, b, 0, oldb.length);
 	  }
 	  int n;
-	  while ((n = ji.read(b, pos, len - pos)) > 0) {
+	  while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
 	    pos += n;
 	  }
 	} while (ji.available() > 0);
