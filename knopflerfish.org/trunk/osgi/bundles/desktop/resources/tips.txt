@@ -61,8 +61,17 @@ framework.
 
 ----
 8 Bundles can have custom icons in the Desktop view
-A bundle develpoer can specify a custom icon resource using 
-the <i>Application-Icon</i> manifest attribute.
+A bundle developer can specify a custom icon resource using 
+the <i>Application-Icon</i> manifest attribute. Icon can use
+any image format as AWT/Swing can read, as JPEG, PNG or GIF.
+<p>
+This is how the desktop bundle sets its own icon in the "Large Icon"
+display.
+</p>
+<p>
+If no icon is specified, <img src="bundle://$(BID)/bundle.png"> is used for bundles with
+an activator, <img src="bundle://$(BID)/lib.png"> is used for bundles without an activator.
+</p>
 
 ----
 9 New Desktop views can be installed
@@ -130,7 +139,7 @@ For example, this entire tip file is available at
 18 This Desktop is just another OSGi bundle
 The Desktop bundle is a normal bundle, using Swing to display it's interface.
 <p>
-As long as the JVM supports swing, nothing pvents you from writing your own 
+As long as the JVM supports swing, nothing prevents you from writing your own 
 swing bundles. Do close your windows yourself, though ;)
 </p>
 
@@ -180,7 +189,7 @@ bar.
 24 Detail information panes can be shown as separate windows
 
 Each of the Detail information panes can be displayed as a floating,
-resizable window by clicking on the small <img src=" bundle://$(BID)/float.png">  &nbsp;&nbsp;float icon in the upper right corner.
+resizable window by clicking on the small <img src="bundle://$(BID)/float.png">  &nbsp;&nbsp;float icon in the upper right corner.
 <p>
 The window can be restored by closing it, or by clicking on the float icon
 again.
