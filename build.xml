@@ -623,10 +623,16 @@
            <include name = "osgi/jars/soapobject/*.jar"/>
            <include name = "osgi/jars/soap_demoservice/*.jar"/>
 
+           <include name = "osgi/jars/kf_metatype/*.jar"/>
+           <include name = "osgi/jars/metatype_demo/*.jar"/>
+           <include name = "osgi/jars/cm_desktop/*.jar"/>
+
            <exclude name = "keystore"/>
 
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
+           <include name = "osgi/bundles_opt/metatype/**"/>
+
            <exclude name = "**/CVS"/>
         </zipfileset>
 
