@@ -111,10 +111,10 @@ Note:
 
    http://<host>:<port>/junit
 
-  and you'll get a list of available tests.
+  and you'll get a list of available tests. From this list you can
+  select suites and individual tests to run. The result will be
+  presented as HTML.
  
-    
-
 
 JUnit support in bundlebuild_include.xml
 ----------------------------------------
