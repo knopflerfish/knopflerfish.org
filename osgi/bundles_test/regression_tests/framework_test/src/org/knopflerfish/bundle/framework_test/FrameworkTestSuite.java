@@ -119,25 +119,32 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame075a());
     addTest(new Frame080a());
     addTest(new Frame085a());
-    addTest(new Frame0110a());
-    addTest(new Frame0115a());
-    addTest(new Frame0120a());
-    addTest(new Frame0125a());
-    addTest(new Frame0130a());
-    addTest(new Frame0160a());
-    addTest(new Frame0170a());
-    addTest(new Frame0175a());
-    addTest(new Frame0180a());
-    addTest(new Frame0181a());
-    addTest(new Frame0185a());
-    addTest(new Frame0186a());
-    addTest(new Frame0190a());
+    addTest(new Frame110a());
+    addTest(new Frame115a());
+    addTest(new Frame120a());
+    addTest(new Frame125a());
+    addTest(new Frame130a());
+    addTest(new Frame160a());
+    addTest(new Frame170a());
+    addTest(new Frame175a());
+    addTest(new Frame180a());
+    addTest(new Frame181a());
+    addTest(new Frame185a());
+    addTest(new Frame186a());
+    addTest(new Frame190a());
     addTest(new Frame210a());
     addTest(new Cleanup());
   }
  
 
-  public final static String USAGE_FRAME005A = "<base_url>";
+  public String getDescription() {
+    return "Tests core functionality in the framework";
+  }
+
+  public String getDocURL() {
+    return  "https://www.knopflerfish.org/svn/trunk/osgi/bundles_test/regression_tests/framework_test/readme.txt";
+  }
+
   public final static String [] HELP_FRAME005A =  {
     "Extract all information from the getHeaders() method",
     "<base_url> is where to fetch other test bundles from."
@@ -215,7 +222,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String USAGE_FRAME007A = "";
   public final static String [] HELP_FRAME007A =  {
     "Extract all information from the getProperty in the BundleContext interface "
   };
@@ -731,7 +737,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
   
-  public final static String USAGE_FRAME041A = "";
   public final static String [] HELP_FRAME041A =  {
     "Install bundleD1_test, which has a broken manifest file,",
     "an empty import statement, and check",
@@ -786,7 +791,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-  public final static String USAGE_FRAME045A = "";
   public final static String [] HELP_FRAME045A =  {
     "Add a service listener with a broken LDAP filter to get an exception"
   };
@@ -827,7 +831,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String USAGE_FRAME050A = "";
   public final static String [] HELP_FRAME050A =  {
     "Loads and starts bundleB_test, checks that it gets the state ACTIVE.",
     "Checks that it implements the Configurable interface."
@@ -903,7 +906,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String USAGE_FRAME055A = "";
   public final static String [] HELP_FRAME055A =  {
     "Load and start bundleC_test, checks that it gets the state ACTIVE.",
     "Checks that it is available under more than one name.",
@@ -1203,7 +1205,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String USAGE_FRAME065A = "";
   public final static String [] HELP_FRAME065A =  {
     "Load and try to start bundleE_test, ",
     "It should be possible to load , but should not be possible to start",
@@ -1274,7 +1275,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String USAGE_FRAME070A = "";
   public final static String [] HELP_FRAME070A =  {
     "Reinstalls and the updates testbundle_A.",
     "The Version is checked to see if an update has been made."
@@ -1386,7 +1386,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 15. Uninstall a the testbundle B and then try to start and stop it
   // In both cases exceptions should be thrown.
 
-  public final static String USAGE_FRAME075A = "";
   public final static String [] HELP_FRAME075A =  {
     "Uninstall bundleB_test and the try to start and stop it.",
     "In both cases exceptions should be thrown."
@@ -1468,7 +1467,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 16. Install and start testbundle F and then try to and stop it
   // In this case a bundeException is expected 
 
-  public final static String USAGE_FRAME080A = "";
   public final static String [] HELP_FRAME080A =  {
     "Installs and starts bundleF_test and then try to and stop it.",
     "A bundleException is expected."
@@ -1562,7 +1560,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 17. Install and start testbundle H, a service factory and test that the methods 
   //     in that interface works.
 
-  public final static String USAGE_FRAME085A = "";
   public final static String [] HELP_FRAME085A =  {
     "Installs and starts bundleH_test, a service factory",
     "and tests that the methods in that API works."
@@ -1627,14 +1624,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //     then check if the framework removes all traces of the bundle
   //     as it registers one service itself before the bundle exception is thrown
 
-  public final static String USAGE_FRAME110A = "";
   public final static String [] HELP_FRAME110A =  {
     "Install and start bundleJ_test, which should thow an exception at start.",
     "then check if the framework removes all traces of the bundle",
     "as it registers one service (itself) before the bundle exception is thrown"
   };
 
-  class Frame0110a extends FWTestCase {
+  class Frame110a extends FWTestCase {
     public void runTest() throws Throwable {
       clearEvents();
       buJ = null;
@@ -1683,12 +1679,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String USAGE_FRAME115A = "";
   public final static String [] HELP_FRAME115A =  {
     "Test getDataFile() method."
   };
 
-  class Frame0115a extends FWTestCase {
+  class Frame115a extends FWTestCase {
     public void runTest() throws Throwable {
 
       boolean teststatus = true;
@@ -1753,12 +1748,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // 24. Test of the AdminPermission class
 
-  public final static String USAGE_FRAME120A = "";
   public final static String [] HELP_FRAME120A =  {
     "Test of the AdminPermission class"
   };
 
-  class Frame0120a extends FWTestCase {
+  class Frame120a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       String s1 = null;
@@ -1897,12 +1891,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
   // 25. Test of the PackagePermission class
 
-  public final static String USAGE_FRAME125A = "";
   public final static String [] HELP_FRAME125A =  {
     "Test of the PackagePermission class"
   };
 
-  class Frame0125a extends FWTestCase {
+  class Frame125a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       String validName = "valid.name.test";
@@ -2118,12 +2111,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // 26. Test of the ServicePermission class
 
-  public final static String USAGE_FRAME130A = "";
   public final static String [] HELP_FRAME130A =  {
     "Test of the ServicePermission class"
   };
 
-  class Frame0130a extends FWTestCase {
+  class Frame130a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       String validClass = "valid.class.name";
@@ -2368,12 +2360,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
 
 
-  public final static String USAGE_FRAME160A = "";
   public final static String [] HELP_FRAME160A =  {
     "Test bundle resource retrieval."
   };
 
-  class Frame0160a extends FWTestCase {
+  class Frame160a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean pass = true;
 
@@ -2432,7 +2423,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     "Test of ServiceReference.getUsingBundles() and SynchronousBundleListener."
   };
 
-  class Frame0170a extends FWTestCase {
+  class Frame170a extends FWTestCase {
     public void runTest() throws Throwable {
       ServiceRegistration tsr = null;
       Bundle buQ = null;
@@ -2613,12 +2604,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // 175A. Resource integrity when reading different resources of a bundle
 
-  public final static String USAGE_FRAME175A = "";
   public final static String [] HELP_FRAME175A =  {
     "Check of resource integrity when using intermixed reading of differenent resources from bundleR2_test."
   };
 
-  class Frame0175a extends FWTestCase {
+  class Frame175a extends FWTestCase {
     public void runTest() throws Throwable {
       buR2 = null;
       boolean teststatus = true;
@@ -2700,12 +2690,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 180. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle.
 
-  public final static String USAGE_FRAME180A = "";
   public final static String [] HELP_FRAME180A =  {
     "Check of resource on top of bundle name space from bundleR3_test."
   };
 
-  class Frame0180a extends FWTestCase {
+  class Frame180a extends FWTestCase {
     public void runTest() throws Throwable {
       buR3 = null;
       boolean teststatus = true;
@@ -2771,12 +2760,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 181. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle. (180 without leading / in resource name)
 
-  public final static String USAGE_FRAME181A = "";
   public final static String [] HELP_FRAME181A =  {
     "Check of resource on top of bundle name space from bundleR3_test."
   };
 
-  class Frame0181a extends FWTestCase {
+  class Frame181a extends FWTestCase {
     public void runTest() throws Throwable {
       buR3 = null;
       boolean teststatus = true;
@@ -2842,13 +2830,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 185. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle.
 
-  public final static String USAGE_FRAME185A = "";
   public final static String [] HELP_FRAME185A =  {
     "Check of resource on top of bundle name space from bundleR4_test,", 
     "that has an unresolvable package imported"
   };
 
-  class Frame0185a extends FWTestCase {
+  class Frame185a extends FWTestCase {
     public void runTest() throws Throwable {
       buR4 = null;
       boolean teststatus = true;
@@ -2914,13 +2901,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 186. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle. (185 without leading / in resource name)
   
-  public final static String USAGE_FRAME186A = "";
   public final static String [] HELP_FRAME186A =  {
     "Check of resource on top of bundle name space from bundleR4_test,",
     "that has an unresolvable package imported"
   };
   
-  class Frame0186a extends FWTestCase {
+  class Frame186a extends FWTestCase {
     public void runTest() throws Throwable {
       buR4 = null;
       boolean teststatus = true;
@@ -2990,7 +2976,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     "the bundle context of bundleR6_test"
   };
 
-  class Frame0190a extends FWTestCase {
+  class Frame190a extends FWTestCase {
     public void runTest() throws Throwable {
       buR5 = null;
       boolean teststatus = true;
@@ -3107,7 +3093,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //      creating threads that register and unregister
   //      services in a syncronous way
   
-  public final static String USAGE_FRAME210A = "";
   public final static String [] HELP_FRAME210A =  {
     "Deadlock test when using synchronous serviceChange listener and updating different threads."
   };
