@@ -74,6 +74,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
     this.framework = framework;
 
     storage = Util.getFileStorage("startlevel");
+
+    setStartLevel(1);
   }
   
 

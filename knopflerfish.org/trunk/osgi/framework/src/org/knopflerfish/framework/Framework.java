@@ -366,9 +366,6 @@ public class Framework {
       // start level open is delayed to this point to 
       // correctly work at restart
       if(startLevelService != null) {
-        if (startLevelService.getStartLevel() == 0) {
-          startLevelService.setStartLevel(1);
-        }
         startLevelService.open();
       }
 
