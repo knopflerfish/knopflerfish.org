@@ -50,7 +50,7 @@ public class Activator implements BundleActivator {
   static BundleContext bc;
 
   static final String  RES_DIR       = "/www";   
-  static final String  SERVLET_ALIAS = "/servlet/console";
+  static String  SERVLET_ALIAS       = "/servlet/console";
   static final String  RES_ALIAS     = "/console/resources";  
 
   Hashtable registrations = new Hashtable();
@@ -58,9 +58,14 @@ public class Activator implements BundleActivator {
 
   static LogRef log;
   public void start(BundleContext bc) throws BundleException {
-
     this.bc  = bc;
     this.log = new LogRef();
+
+    String alias = 
+      System.getProperty("org.knopflerfish.httpconsole.alias");
+    if(alias != null && !"".equals(alias)) {
+      SERVLET_ALIAS = alias.trim();
+    }
 
     ServiceListener listener = new ServiceListener() {
 	public void serviceChanged(ServiceEvent ev) {
@@ -103,7 +108,8 @@ public class Activator implements BundleActivator {
       return; // already done
     }
 
-    log.info("set httconsole servlet for " + sr + " at " + SERVLET_ALIAS);
+    log.info("set httconsole servlet for HttpService #" + 
+	     sr.getProperty("service.id") + " at " + SERVLET_ALIAS);
 
     HttpService http = (HttpService)bc.getService(sr);
 

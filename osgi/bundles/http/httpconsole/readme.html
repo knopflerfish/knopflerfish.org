@@ -151,6 +151,13 @@ Each bundle is displayed using an icon, the bundle's name and the bundle descrip
 The HTTP console can be configured using system properties:
 
 <dl>
+
+ <dt>org.knopflerfish.httpconsole.alias</dt>
+ <dd>Alias for servlet registration. If set to '/', the
+     http root will used for the http console<br/>
+     Default is <tt>/servlet/console</tt>. 
+ </dd>
+
  <dt>org.knopflerfish.httpconsole.requirelogin</dt>
  <dd>If <tt>true</tt>, require login, using name and password.<br/>
      Default is <tt>false</tt>

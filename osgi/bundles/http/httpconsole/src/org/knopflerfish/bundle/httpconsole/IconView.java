@@ -100,9 +100,9 @@ public class IconView implements BundleView {
     out.print("<div class=\"shadow\">");
     out.print(nTotal + " bundles, " + nActive + " active");
     
-    if(console.bRequireLogin) {
+    if(console.login.bRequireLogin) {
       out.print(", <a class=\"std\" href=\"" + Activator.SERVLET_ALIAS + "?" + 
-		ConsoleServlet.LOGOUT_CMD + "=true" + "\">" + 
+		Login.LOGOUT_CMD + "=true" + "\">" + 
 		"logout</a>");
     }
     out.println("</div>");
