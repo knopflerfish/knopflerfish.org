@@ -5,7 +5,6 @@
    <target name="all">
     <ant dir="http"              target="all"/>
     <ant dir="httproot"          target="all"/>
-    <ant dir="httptest"          target="all"/>
   </target>
 
 </project>
