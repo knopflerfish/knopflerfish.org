@@ -291,6 +291,7 @@
            <include name = "osgi/bundles/xml/build.xml"/>
            <include name = "osgi/bundles/xml/xml/**"/>
            <include name = "osgi/bundles/xml/jaxp/**"/>
+           <include name = "osgi/bundles/xml/crimson/**"/>
            <include name = "osgi/bundles/desktop/**"/>
            <include name = "osgi/bundles/wireadmin/**"/>
            <include name = "osgi/bundles/position/**"/>
@@ -405,6 +406,7 @@
            <include name = "osgi/jars/frameworkcommands/frameworkcommands-1.0.0.jar"/>
            <include name = "osgi/jars/console/console_all-1.0.0.jar"/>
            <include name = "osgi/jars/jaxp/jaxp-1.0.jar"/>
+           <include name = "osgi/jars/crimson/crimson-1.1.3.jar"/>
            <include name = "osgi/jars/cm/cm_all-1.0.0.jar"/>
            <include name = "osgi/jars/cm_cmd/cm_cmd-1.0.0.jar"/>
            <include name = "osgi/jars/consoletty/consoletty-1.0.0.jar"/>
