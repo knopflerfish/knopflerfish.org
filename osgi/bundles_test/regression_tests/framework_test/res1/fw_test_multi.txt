@@ -1,1 +1,0 @@
-This is a resource in the bundle's res1.jar internal jar file

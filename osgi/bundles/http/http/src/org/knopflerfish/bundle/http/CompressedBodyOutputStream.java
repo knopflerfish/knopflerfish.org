@@ -37,63 +37,52 @@ package org.knopflerfish.bundle.http;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.GZIPInputStream;
 
+/**
+ * Body output strema which compresses using GZIP.
+ * All data written to the stream is buffered and written
+ * at the first flushBuffer() call.
+ */
+public class CompressedBodyOutputStream extends BodyOutputStream {
 
-public class BodyOutputStream extends BufferedOutputStream {
+  protected ByteArrayOutputStream buf;
+  protected GZIPOutputStream gzip;
 
-  // private fields
-
-  protected int totalCount = 0;
-  protected int maxCount = Integer.MAX_VALUE;
-  protected boolean committed = false;
-  protected ResponseImpl response = null;
-
-
-
-  // constructors
-
-  BodyOutputStream(OutputStream out, ResponseImpl response, int size) {
-
-    super(out);
-
-    this.response = response;
-
-    setBufferSize(size);
+  public CompressedBodyOutputStream(OutputStream out, 
+                                    ResponseImpl response, 
+                                    int size) {
+    super(out, response, size);
+    try {
+      this.buf       = new ByteArrayOutputStream(size);
+      this.gzip      = new GZIPOutputStream(buf);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create compressed body output stream");
+    }
   }
 
 
-  // package methods
-
   void setContentLength(int contentLength) {
-
-    if (!committed)
-      maxCount = contentLength;
+    // noop
   }
 
   int getBufferByteCount() {
-    return count;
+    return buf.size();
   }
 
-  public synchronized void setBufferSize(int size) {
-
-    if (totalCount != 0)
-      throw new IllegalStateException("Buffer size cannot be changed when data has been written");
-
-    if (size < 0)
-      throw new IllegalArgumentException("Buffer size must not be negative: " + size);
-
-    if (size > buf.length)
-      buf = new byte[size];
+  public void setBufferSize(int size) {
+    // noop
   }
 
   public int getBufferSize() {
-    return buf.length;
+    return buf.size();
   }
 
   public synchronized void reset() {
-
-    totalCount = 0;
-    count = 0;
+    // noop
   }
 
   public synchronized boolean isCommitted() {
@@ -101,57 +90,44 @@ public class BodyOutputStream extends BufferedOutputStream {
   }
 
   synchronized void flush(boolean commit) throws IOException {
-
-    if (commit)
+    if (commit) {
       flushBuffer();
-
-    out.flush();
+    }
   }
 
 
-  // protected methods
-
   protected void flushBuffer() throws IOException {
-
     if (!committed && response != null) {
-      out.write(response.getHeaders());
-      committed = true;
-    }
+      gzip.finish();
+      gzip.close();
+      //      byte[] bytes = buf.toByteArray();
+      
+      response.setHeader(HeaderBase.CONTENT_ENCODING_HEADER_KEY, 
+                         "gzip");
+      response.setHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY, 
+                         Integer.toString(buf.size()));
 
-    out.write(buf, 0, count);
-    count = 0;
+      out.write(response.getHeaders());
+
+      committed = true;
+      buf.writeTo(out);
+    }
   }
 
 
   // extends BufferedOutputStream
 
   public synchronized void write(int b) throws IOException {
-
-    if (count >= buf.length)
-      flushBuffer();
-
-    if (totalCount++ < maxCount)
-      buf[count++] = (byte) b;
-    else
-      flushBuffer();
+    gzip.write(b);
   }
 
   public synchronized void write(byte b[], int off, int len) throws IOException {
-
-    if (len >= buf.length) {
-      flushBuffer();
-      out.write(b, off, len);
-    } else {
-      if (len > buf.length - count)
-        flushBuffer();
-      System.arraycopy(b, off, buf, count, len);
-      totalCount += len;
-      count += len;
-    }
+    gzip.write(b, off, len);
   }
 
-  public void flush() throws IOException { }
+  public void flush() throws IOException { 
+  }
 
-  public void close() throws IOException { }
-
-} // BodyOutputStream
+  public void close() throws IOException { 
+  }
+} 
