@@ -73,15 +73,6 @@ public class LDAPExpr {
   private static Constructor consBigDecimal;
   private static Method compBigDecimal;
 
-  static {
-    try {
-      classBigDecimal = Class.forName("java.math.BigDecimal");
-      consBigDecimal = getConstructor(classBigDecimal);
-      compBigDecimal = classBigDecimal.getMethod("compareTo", new Class [] { classBigDecimal });
-    } catch (Exception ignore) {
-      classBigDecimal = null;
-    }
-  }
 
   public int operator;
   public LDAPExpr[] args;
@@ -317,6 +308,7 @@ public class LDAPExpr {
         } else if (classBigDecimal != null && classBigDecimal.isInstance(obj)) {
           Object n = consBigDecimal.newInstance(new Object [] { s });
           int c = ((Integer)compBigDecimal.invoke(obj, new Object [] { n })).intValue();
+
           switch(op) {
           case LE:
             return c <= 0;
@@ -390,6 +382,16 @@ public class LDAPExpr {
 	constructorMap.put(clazz, cons);
       }
       return cons;
+    }
+  }
+
+  static {
+    try {
+      classBigDecimal = Class.forName("java.math.BigDecimal");
+      consBigDecimal = getConstructor(classBigDecimal);
+      compBigDecimal = classBigDecimal.getMethod("compareTo", new Class [] { classBigDecimal });
+    } catch (Exception ignore) {
+      classBigDecimal = null;
     }
   }
 
