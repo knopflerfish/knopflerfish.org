@@ -712,6 +712,26 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   </td>
  </tr>
 
+<tr>
+  <td>bundle.build.api</td>
+  <td>If "true", build ${jar.api} bundle jar.<br>Default is "true"</td>
+ </tr>
+
+ <tr>
+  <td>bundle.build.lib</td>
+  <td>If "true", build ${jar.lib} bundle jar.<br>Default is "false"</td>
+ </tr>
+
+ <tr>
+  <td>bundle.build.impl</td>
+  <td>If "true", build ${jar.impl} bundle jar.<br>Default is "true"</td>
+ </tr>
+
+ <tr>
+  <td>bundle.build.all</td>
+  <td>If "true", build ${jar.all} bundle jar.<br>Default is "true"</td>
+ </tr>
+
  <tr>
   <td>jar.all</td>
   <td>Location of jar file containing both API and implementation code</td>
@@ -721,6 +741,7 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   <td>api.all</td>
   <td>Location of jar file containing API code</td>
  </tr>
+
  <tr>
   <td>impl.all</td>
   <td>Location of jar file containing implementation code</td>
@@ -730,20 +751,12 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   <td class="tableheader" colspan="2">Bundle manifest attributes</td>
  </tr>
 
- <tr>
-  <td>bundle.name</td>
-  <td>Name of bundle. Will be stored in manifest as "Bundle-Name"</td>
- </tr>
- <tr>
-  <td>bundle.name</td>
-  <td>Name of bundle. Will be stored in manifest as "Bundle-Name"</td>
- </tr>
- <tr>
   <td>bundle.name</td>
   <td>Name of bundle. Will be stored in manifest as "Bundle-Name". 
       <br>Default value is ${ant.project.name}
   </td>
  </tr>
+
  <tr>
   <td>bundle.version</td>
   <td>Version of bundle. Will be stored in manifest as "Bundle-Version".
@@ -788,27 +801,28 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
  <tr>
   <td>bundle.contactaddress</td>
   <td>Bundle contact address. Will be stored in manifest as "Bundle-ContactAddress". 
-      <br>Default value is "http://www.knopflerfish.org"</td>
+  <br>Default value is "http://www.knopflerfish.org"
+  </td>
  </tr>
 
  <tr>
   <td>bundle.activator</td>
   <td>Class name of bundle activator. Will be stored in manifest as "Bundle-Activator". 
-      <br>Default value is automatically derived from bundle classes in impl code.
+  <br>Default value is automatically derived from bundle classes in impl code.
   </td>
  </tr>
 
  <tr>
   <td>import.package</td>
   <td>Comma-separated list of packages. Will be stored in manifest as "Import-Package". 
-      <br>Default value is automatically derived from bundle classes in impl code
+  <br>Default value is automatically derived from bundle classes in impl code
   </td>
  </tr>
 
  <tr>
   <td>export.package</td>
   <td>Comma-separated list of packages. Will be stored in manifest as "Export-Package". 
-      <br>Default value is automatically derived from bundle classes in API code
+  <br>Default value is automatically derived from bundle classes in API code
   </td>
  </tr>
 
@@ -867,9 +881,11 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   <td>Path element <tt>bundle.compile.path</tt></td>
   <td>Path elements defining the compile-time path for the bundle.
       <br>Example - include log API when compiling
+<pre>
  &lt;path id = "bundle.compile.path"&gt;
    &lt;pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/&gt;
  &lt;/path&gt;
+</pre>
 </td>
  </tr>
 
@@ -892,6 +908,7 @@ add the special targets <tt>bundle.custom.pre</tt> or
 <tt>bundle.custom.post</tt>. These will be run just before and just after
 the standard bundle build.
 
+<br>
 <b>Example of pre target - copying a file</b>
 
 <pre>
@@ -903,9 +920,9 @@ the standard bundle build.
 
 </pre>
 
-<pre>
-
 <b>Example of post target - a custom manifest attribute</b>
+
+<pre>
 &lt;!-- set do.bundle.custom.post to anything to trigger post target --&gt;
 &lt;property name="do.bundle.custom.post" value=""/&gt;
 
