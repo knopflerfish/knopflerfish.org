@@ -53,9 +53,18 @@ public class PermissionAdminImpl implements PermissionAdmin {
 
   final static String SPEC_VERSION = "1.1";
 
-  final private PermissionInfo[] initialDefault = new PermissionInfo[] {
-    new PermissionInfo("java.security.AllPermission", "", "")
-  };
+  // Property name for initial defaults
+  // Format is the same used as encoding format by PermissionInfo.
+  // More than one permission can be used by separating by ";"
+  final static String PROP_DEFAULTPERMS = 
+    "org.knopflerfish.permissions.initialdefault";
+
+  // value for initial defaults if PROP_DEFAULTPERMS is not set
+  final static String DEFAULTPERMS = 
+    "(java.security.AllPermission)";
+
+  // set by constructor from PROP_DEFAULTPERMS
+  private PermissionInfo[] initialDefault = null;
 
   PermissionCollection runtimePermissions;
 
@@ -69,11 +78,24 @@ public class PermissionAdminImpl implements PermissionAdmin {
 
   private Hashtable /* String -> PermissionCollection */ cache = new Hashtable();
 
-  private PermissionInfo[] defaultPermissions = initialDefault;
+  // set by constructor
+  private PermissionInfo[] defaultPermissions;
 
 
   PermissionAdminImpl(Framework fw) {
     framework = fw;
+
+    // configure initial permissions
+    String initPerms = System.getProperty(PROP_DEFAULTPERMS, DEFAULTPERMS);
+    String[] rows = Util.splitwords(initPerms, ";", '\0');
+
+    initialDefault = new PermissionInfo[rows.length];
+    for(int i = 0; i < rows.length; i++) {
+      PermissionInfo pi = new PermissionInfo(rows[i]);
+      initialDefault[i] = pi;
+    }
+    defaultPermissions = initialDefault;
+
     // Get system default permissions
     PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource(null, ( java.security.cert.Certificate[] )null));
     // Remove AllPermission
