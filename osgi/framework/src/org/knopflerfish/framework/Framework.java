@@ -305,9 +305,14 @@ public class Framework {
     // Install service based URL stream handler. This can be turned
     // off if there is need
     if(REGISTERSERVICEURLHANDLER) {
-      URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
-      
-      URLConnection.setContentHandlerFactory(contentHandlerFactory);
+      try {
+        URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+        
+        URLConnection.setContentHandlerFactory(contentHandlerFactory);
+      } catch (Throwable e) {
+        Debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
+        e.printStackTrace();
+      }
     }
     bundles.load();
   }
