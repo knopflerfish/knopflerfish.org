@@ -47,6 +47,8 @@ public class WSDLLoader {
 	  System.out.println(v.getClass().getName() + ": " + v);
 	}
       }
+    } else {
+      return new XSDSchema();
     }
 
     return xsd;
