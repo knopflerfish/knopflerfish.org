@@ -93,37 +93,48 @@ public class Activator
       try {
          log = new LogRef(bc, true);
          axisBundle = bc;
-         URL url = this.getClass().getResource("/axis/server-config.wsdd");
-         InputStream is = url.openStream();
-         EngineConfiguration fromBundleResource = new FileProvider(is);
-
-         log.info("Configuration file read.");
-         axisServer = new AxisServer(fromBundleResource);
-         log.info("Axis server started.");
-         webApp = new WebApp(getWebAppDescriptor());
-         webApp.start(bc);
-         log.info("Web application started.");
-	 axisBundle.addServiceListener(this);   
-
-	 // Make sure we get services already registered
-	 ServiceReference[] srl = axisBundle.getServiceReferences(null, null);
-	 for(int i = 0; srl != null && i < srl.length; i++) {
-	   serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
-	 }
-
-	 axisAdmin = new AxisAdminImpl(this);
-	 
-	 Hashtable props = new Hashtable();
-	 props.put(AxisAdmin.SOAP_SERVICE_NAME, "axisadmin");
-
-	 bc.registerService(AxisAdmin.class.getName(),
-			    axisAdmin,
-			    props);
-	 
+	 setupAxis();
       } catch (Exception e) {
-         log.error("Exception when starting bundle", e);
-         throw new BundleException("Failed to start server");
+	log.error("Exception when starting bundle", e);
+	throw new BundleException("Failed to start server");
       }
+   }
+  
+  void setupAxis() throws Exception {
+    ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
+    
+    try {
+      Thread.currentThread().setContextClassLoader(Activator.class.getClassLoader());
+      URL url = this.getClass().getResource("/axis/server-config.wsdd");
+      InputStream is = url.openStream();
+      
+      EngineConfiguration fromBundleResource = new FileProvider(is);
+      
+      log.info("Configuration file read.");
+      axisServer = new AxisServer(fromBundleResource);
+      log.info("Axis server started.");
+      webApp = new WebApp(getWebAppDescriptor());
+      webApp.start(axisBundle);
+      log.info("Web application started.");
+      axisBundle.addServiceListener(this);   
+    
+      // Make sure we get services already registered
+      ServiceReference[] srl = axisBundle.getServiceReferences(null, null);
+      for(int i = 0; srl != null && i < srl.length; i++) {
+	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
+      }
+      
+      axisAdmin = new AxisAdminImpl(this);
+      
+      Hashtable props = new Hashtable();
+      props.put(AxisAdmin.SOAP_SERVICE_NAME, "axisadmin");
+      
+      axisBundle.registerService(AxisAdmin.class.getName(),
+				 axisAdmin,
+				 props);
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldLoader);
+    }
    }
 
    public void stop(BundleContext bc)
