@@ -88,7 +88,21 @@ class Bundles {
 	    public Object run() throws Exception {
 	      InputStream bin;
 	      if (in == null) {
-		bin = (new URL(location)).openStream();
+		// Do it the manual way to have a chance to 
+		// set request properties
+		URL           url  = new URL(location);
+		URLConnection conn = url.openConnection(); 
+
+		// Support for http proxy authentication
+		String auth = System.getProperty("http.proxyAuth");
+		if(auth != null && !"".equals(auth)) {
+		  if("http".equals(url.getProtocol()) ||
+		     "https".equals(url.getProtocol())) {
+		    String base64 = Util.base64Encode(auth);
+		    conn.setRequestProperty("Proxy-Authorization", base64);
+		  }
+		}
+		bin = conn.getInputStream();
 	      } else {
 		bin = in;
 	      }
