@@ -31,6 +31,7 @@
 
   <property name="import.package" value ="org.knopflerfish.service.log,org.osgi.framework,org.apache.commons.logging,org.osgi.service.http,javax.servlet,javax.servlet.http"/>
 
+  <property name="dynamicimport.package" value ="*"/>
 
   <property name="bundle.description"    value="Axis Server"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
@@ -40,23 +41,6 @@
 
   <property name="export.package"
             value="org.knopflerfish.service.axis,org.apache.axis,org.apache.axis.wsdl,org.apache.axis.type,sorg.apache.axis.transport,org.apache.axis.soap,org.apache.axis.client,javax.xml.rpc,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.soap"/>
-
- <!-- set do.bundle.custom.post to anything to trigger post target --> 
-<property name="do.bundle.custom.post" value="do"/>
-
-<target name="bundle.custom.post">
-  <copy file="${all.jar}" tofile="${impl.jar}"/>
-
-  <jar jarfile  = "${impl.jar}"  update   = "true">
-    <manifest>
-      <attribute name = "DynamicImport-Package"        value = "*"/>
-    </manifest>
-   </jar>
-
-
-</target>
-
- 
 
   &bundlebuild_include;
 
