@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- There's a bug in dtd handling so DOCTYPE is commented out below-->
+<!--DOCTYPE cfg PUBLIC "-//Gatespace//DTD cfg 1.0//EN" "http://www.gatespace.com/gsd/gsd1_0.dtd"-->
+<cfg version="0.1">
+  <managedServiceFactory
+     pid="com.gatespace.osg.serialport.factory"
+     descr="Serial driver port factory">
+
+    <property name="port">
+      <description>
+        Serial port name
+      </description>
+      <value type="String" default=""/>
+      <helptext>
+        The name of the device file associated with the serial port
+      </helptext>
+    </property>
+
+    <property name="product">
+      <description>
+        Product name
+      </description>
+      <value type="String" default=""/>
+      <helptext>
+        The name of the device connected to the serial port 
+      </helptext>
+    </property>
+
+    <property name="revision">
+      <description>
+        Revision
+      </description>
+      <value type="String" default=""/>
+      <helptext>
+        The revision number of the device connected to the serial port 
+      </helptext>
+    </property>
+
+  </managedServiceFactory>
+</cfg>
