@@ -139,7 +139,8 @@ public class JCMService extends JPanel {
 	  }
 	  item = 
 	    new JLabelled(ad.getName(), 
-			  ad.getDescription() +  
+			  "<b>" + ad.getName() + "</b><br>" + 
+			  ad.getDescription() +  "<br>" + 
 			  " (" + className + ")",
 			  jcmProp,
 			  100);

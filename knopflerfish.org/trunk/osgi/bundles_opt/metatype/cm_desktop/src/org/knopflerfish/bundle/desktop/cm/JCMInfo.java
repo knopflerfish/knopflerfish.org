@@ -116,7 +116,11 @@ public class JCMInfo extends JPanel {
       
       JPanel upperBox = new JPanel(new GridLayout(0, 1));
       
-      upperBox.setBorder(makeBorder(this, "Available PIDs"));
+      String title = "Available PIDs";
+      if(mtp instanceof MTP) {
+	title = title + " in " + ((MTP)mtp).getId();
+      }
+      upperBox.setBorder(makeBorder(this, title));
       
       if(servicePIDBox != null) {
 	upperBox.add(new JLabelled("Services", 
