@@ -7,4 +7,9 @@
     <ant dir="demo1client"          target="all"/>
   </target>
 
+   <target name="clean">
+    <ant dir="demo1"                target="clean"/>
+    <ant dir="demo1client"          target="clean"/>
+  </target>
+
 </project>
