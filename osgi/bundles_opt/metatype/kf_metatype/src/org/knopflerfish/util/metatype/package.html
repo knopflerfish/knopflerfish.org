@@ -92,59 +92,45 @@ H6  {
  font-weight:bold;
 }
 
-dt {
- font-weight:bold;
+dt { font-weight:bold; }
+
+dd { font-weight:normal; }
+
+div.toc1 {  margin-left: 1em; }
+
+div.toc2 {  margin-left: 2em; }
+
+div.toc3 {  margin-left: 3em; }
+
+div.exampleInner pre { margin-left: 1em; margin-top: 0em; margin-bottom: 0em; }
+div.exampleOuter {border: 4px double gray; margin: 0em; padding: 0em; }
+
+div.exampleInner { 
+ background-color: #d5dee3;
+ border-top-width: 4px;
+ border-top-style: double;
+ border-top-color: #d3d3d3;
+ border-bottom-width: 4px;
+ border-bottom-style: double;
+ border-bottom-color: #d3d3d3;
+ padding: 4px; margin: 0em;
 }
 
-dd {
- font-weight:normal;
-}
+div.exampleWrapper { margin: 4px;}
 
-div.toc1 {
-  margin-left: 1em;
-}
+div.exampleHeader { font-weight: bold;  margin: 4px; }
 
-div.toc2 {
-  margin-left: 2em;
-}
+div.schemaComp { border: 4px double gray; margin: 0em 1em; padding: 0em; }
 
-div.exampleInner pre { margin-left: 1em; 
-                       margin-top: 0em; margin-bottom: 0em}
-div.exampleOuter {border: 4px double gray; 
-                  margin: 0em; padding: 0em}                 
+div.compHeader { margin: 4px; font-weight: bold; }
 
-div.exampleInner { background-color: #d5dee3;
-                                      border-top-width: 4px;
-                                      border-top-style: double;
-                                      border-top-color: #d3d3d3;
-                                      border-bottom-width: 4px;
-                                      border-bottom-style: double;
-                                      border-bottom-color: #d3d3d3;
-                                      padding: 4px; margin: 0em;
-}
-
-div.exampleWrapper { margin: 4px;
-}
-
-div.exampleHeader { font-weight: bold;
-                                       margin: 4px;
-}
-
-div.schemaComp { border: 4px double gray; 
-                                     margin: 0em 1em; padding: 0em;
-}
-
-div.compHeader { margin: 4px;
-                                    font-weight: bold }
-
-span.schemaComp { color: #A52A2A;
- }                  
+span.schemaComp { color: #A52A2A; }                  
 
 div.compBody { 
-                                  border-top-width: 4px;
-                                  border-top-style: double;
-                                  border-top-color: #d3d3d3;
-                                  padding: 4px ; margin: 0em;
+  border-top-width: 4px;
+  border-top-style: double;
+  border-top-color: #d3d3d3;
+  padding: 4px ; margin: 0em;
 }
 
                    
@@ -199,6 +185,7 @@ Draft.
 <div class="toc2"><a href="#6.2">6.2 Metatype XML declaration</a></div>
 <div class="toc2"><a href="#6.3">6.3 Service and factory definitions - instances of XML Schema</a></div>
 <div class="toc2"><a href="#6.4">6.4 Supported data types</a></div>
+<div class="toc3"><a href="#6.4.1">6.4.1 Optional attributes</div>
 <div class="toc1"><a href="#7">7. Configuration value specification</a></div>
 <div class="toc1"><a href="#8">8. Storing Metatype and values in bundle jar files</a></div>
 
@@ -555,8 +542,8 @@ URLs starting with "/" should be considered relative to the defining bundle's ja
 
 <p>
 The key for lookup in the external localization file
-will be the attribute's ID, plus either ".desc" for attribute description 
-and, optionally, ".name" for attribute names.
+will be the attribute's ID, plus either <code>".desc"</code> for attribute
+description and, optionally, <code>".name"</code> for attribute names.
 </p>
 <p>
 If the the key is not found, the <code>xsd:documentation</code> will be 
@@ -597,8 +584,9 @@ string1.name=Chef #1
 
 </div>
 </div>
-
 </p>
+
+
 <a name="6.4"></a><h3>6.4 Supported data types</h3>
 
 <p>
@@ -639,7 +627,12 @@ an attribute or enumeration description.
   <td>string</td>
   <td><code>&lt;xsd:element name="<b>NAME</b>" type="xsd:string"/&gt;</code>
   <td>java.lang.String</td>
-  <td>NAME is the ID of the Metatype <code>AttibuteDefinition</code></td>
+  <td rowspan=10>NAME is the ID and default name of the Metatype 
+      <code>AttibuteDefinition</code>.
+      <p>
+      NAME must be possible to use as a valid XML tag name.
+      </p>
+   </td>
  </tr>
 
  <tr>
@@ -728,7 +721,30 @@ an attribute or enumeration description.
   </td>
   <td>As defined by TYPE. See primitive types above.
   </td>
-  <td>Enumeration values will be stored as attribute definition <i>option values</i>. If <code>&lt;xsd:annotation&gt;</code> elements are added to an
+  <td>Enumeration values will be stored as attribute definition <i>option values</i>.
+  </td>
+ </tr>
+
+ <tr>
+  <td>Enumerated types with labels</td>
+  <td>
+<pre>
+&lt;xsd:simpleType name = "NAME"&gt;
+ &lt;xsd:restriction base="TYPE"&gt;
+  &lt;xsd:enumeration value="VALUE1"/&gt;
+   &lt;xsd:annotation&gt;
+    &lt;xsd:documentation&gt;
+     Label for VALUE1
+    &lt;/xsd:documentation&gt;
+   &lt;/xsd:annotation&gt;  
+  ...
+ &lt;/xsd:restriction&gt;
+&lt;/xsd:simpleType&gt;
+</pre>
+  </td>
+  <td>As defined by TYPE. See primitive types above.
+  </td>
+  <td>If <code>&lt;xsd:annotation&gt;</code> elements are added to an
 <code>enumeration</code>, the annotation documentation will be used as
 the attribute definition's <i>option label</i>. If no annotation documentations
 are found, the values are used as labels.
@@ -747,7 +763,7 @@ are found, the values are used as labels.
      name="NAME"&gt;
  &lt;xsd:sequence
      [array="false"]
-     [maxOccurance="MAX"]&gt;
+     [maxOccurs="MAX"]&gt;
   PRIMITIVE_TYPE
  &lt;/xsd:sequence&gt;
 &lt;/xsd:complexType&gt;
@@ -761,7 +777,7 @@ Note: The specifed PRIMITIVE_TYPE <b>must</b> have a name of "item"
   </td>
   <td>
    The default value for the <code>array</code> property is "false". <br>
-   The default value for the <code>maxOccurance</code> property is 
+   The default value for the <code>maxOccurs</code> property is 
 <code>java.lang.Integer.MAX_VALUE</code>. <br>
   </td>
  </tr>
@@ -770,7 +786,8 @@ Note: The specifed PRIMITIVE_TYPE <b>must</b> have a name of "item"
   <td>Array</td>
   <td><pre>
 &lt;xsd:complexType
-     name="<b>NAME</b>"&gt;
+     name="<b>NAME</b>"
+     [maxOccurs="MAX"]&gt;
  &lt;xsd:sequence array="true"&gt;
   PRIMITIVE_TYPE
  &lt;/xsd:sequence&gt;
@@ -786,14 +803,53 @@ Note: The specifed PRIMITIVE_TYPE <b>must</b> have a name of "item"
 
   </td>
 <td>
-An Integer array is an <code>int[]</code>, a Boolean 
-array a <code>boolean[]</code>, etc.
+Resulting arrays will be represented as:
+<table>
+ <tr><th>Primitive type</th> <th>Arrat type</th></tr>
+ <tr><td>Integer</td>        <td>int[]</td></tr>
+ <tr><td>Boolean</td>        <td>boolean[]</td></tr>
+ <tr><td>Byte</td>           <td>byte[]</td></tr>
+ <tr><td>Byte</td>           <td>double[]</td></tr>
+ <tr><td>Float</td>          <td>float[]</td></tr>
+ <tr><td>Long</td>           <td>long[]</td></tr>
+ <tr><td>Short</td>          <td>short[]</td></tr>
+ <tr><td>Character</td>      <td>char[]</td></tr>
+ <tr><td>String</td>         <td>String[]</td></tr>
+ <tr><td>BigInteger</td>     <td>BigInteger[]</td></tr>
+ <tr><td>BigDecimal</td>     <td>BigDecimal[]</td></tr>
+</table>
 </td>
  </tr>
 
 </table>
 </div>
 </div>
+
+<a name="6.4.1"></a><h4>6.4.1 Optional attributes</h4>
+
+<p>
+Attributes can be specified to be optional by setting the 
+<code>minOccurs</code> schema attribute to zero. By default, attributes
+are required - which also can be specified by setting <code>minOccurs</code>
+to one. 
+</p>
+
+<p>
+Setting <code>minOccurs &gt; 1</code> is not allowed.
+</p>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - specifying an optional attribute</div>
+<div class="exampleInner">
+<pre>
+&lt;xsd:element   name      = "string1" 
+               type      = "xsd:string"
+               minOccurs = "0"/&gt;
+</pre>
+
+</div>
+</div>
+
 
 <a name="7"></a><h2>7. Configuration value specification</h2>
 
