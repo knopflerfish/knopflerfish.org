@@ -38,25 +38,11 @@ import org.osgi.framework.*;
 import org.osgi.service.metatype.*;
 
 import org.osgi.service.metatype.*;
-
 import java.io.*;
 import java.util.*;
 
 public class OCD implements ObjectClassDefinition {
 
-  /**
-   * Value for <tt>getDescription</tt> representing services.
-   * <br>
-   * Value is "service"
-   */
-  public static final String SERVICE = "service";
-
-  /**
-   * Value for <tt>getDescription</tt> representing factories
-   * <br>
-   * Value is "factory"
-   */
-  public static final String FACTORY = "factory";
 
   String id;
   String name;
@@ -77,17 +63,41 @@ public class OCD implements ObjectClassDefinition {
       throw new IllegalArgumentException("Id must not be null or empty");
     }
 
-    if(!(SERVICE.equals(desc) || FACTORY.equals(desc))) {
-      throw new IllegalArgumentException("Description must be either '" + 
-					 SERVICE + "' or '"  +
-					 FACTORY);
-    }
-
     this.id    = id;
     this.name  = name;
     this.desc  = desc;
     this.optAttrs = new ArrayList();
     this.reqAttrs = new ArrayList();
+  }
+
+  /**
+   * Creates an OCD with attribute definitions from an existing 
+   * dictionary.
+   */
+  public OCD(String id, 
+	     String name, 
+	     String desc,
+	     Dictionary props) {
+    this(id, name, desc);
+
+    for(Enumeration e = props.keys(); e.hasMoreElements();) {
+      String key = (String)e.nextElement();
+      Object val = props.get(key);
+
+      int card = 0;
+      int type = AD.getType(val);
+
+      if(val instanceof Vector) {
+	card = Integer.MIN_VALUE;
+      } else if(val.getClass().isArray()) {
+	card = Integer.MAX_VALUE;
+      }
+
+      AD ad = new AD(key, type, card, key, 
+		     new String[] { AD.toString(val) });
+      
+      add(ad, REQUIRED);
+    }
   }
 
   public void add(AttributeDefinition attr, int filter) {

@@ -163,7 +163,7 @@ public class Loader {
     for(int i = 0; services != null && i < services.length; i++) {
       OCD ocd = new OCD(services[i].pid, 
 			services[i].pid, 
-			OCD.SERVICE);
+			services[i].desc);
       for(int j = 0; j < services[i].ads.length; j++) {
 	ocd.add(services[i].ads[j], ObjectClassDefinition.REQUIRED);
       }
@@ -172,7 +172,7 @@ public class Loader {
     for(int i = 0; factories != null && i < factories.length; i++) {
       OCD ocd = new OCD(factories[i].pid, 
 			factories[i].pid, 
-			OCD.FACTORY);
+			factories[i].desc);
       for(int j = 0; j < factories[i].ads.length; j++) {
 	ocd.add(factories[i].ads[j], ObjectClassDefinition.REQUIRED);
       }
@@ -426,8 +426,11 @@ public class Loader {
       XMLElement childEl = (XMLElement)e.nextElement();
       
       AttributeDefinition[] ads = parseComplexType(childEl);
+      Annotation an = loadAnnotationFromAny(childEl);
+      
       return new CMConfig(childEl.getAttribute(ATTR_NAME).toString(), 
-			  ads, 
+			  ads,
+			  an != null ? an.doc : "",
 			  false);
     }
 
@@ -824,6 +827,7 @@ public class Loader {
       out.println("   <!-- " + pid + " -->");
       out.println("   <xsd:schema>");
       out.println("    <xsd:complexType name=\"" + pid + "\">");
+      printAnnotation(ocd.getDescription(), "     ", out);
       for(int i = 0; i < ads.length; i++) {
 	printXML(out, ads[i]);
       }
@@ -984,10 +988,15 @@ class CMConfig {
   public String  pid;
   public boolean bFactory;
   public AttributeDefinition[] ads;
+  public String  desc;
 
-  public CMConfig(String pid, AttributeDefinition[] ads, boolean bFactory) {
+  public CMConfig(String pid,
+		  AttributeDefinition[] ads, 
+		  String desc,
+		  boolean bFactory) {
     this.pid      = pid;
     this.ads      = ads;
+    this.desc     = desc != null ? desc : "";
     this.bFactory = bFactory;
   }
 
@@ -996,6 +1005,7 @@ class CMConfig {
 
     sb.append("CMConfig[");
     sb.append("pid=" + pid);
+    sb.append(", desc=" + desc);
     sb.append(", bFactory=" + bFactory);
     sb.append(", attribs=");
     for(int i = 0; i < ads.length; i++) {
