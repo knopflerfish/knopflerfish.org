@@ -286,7 +286,7 @@ public class Framework {
 	}
       }
       systemBundle.systemActive();
-      listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, new Object()));
+      listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, systemBundle, null));
     }
   }
 
