@@ -590,20 +590,4 @@ public class LDAPExpr {
       throw new InvalidSyntaxException(m, (str == null) ? "" : str.substring(pos));
     }
   }
-
-  public static void main(String[] argv) {
-    try {
-      for(int i = 0; i < argv.length; i++) {
-	String s = argv[i];
-	if(argv[i].equals("x")) {
-	  s =  " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
-	}
-	LDAPExpr expr = new LDAPExpr(s);
-	System.out.println(i + ": " + s + "\n" + 
-			   "   " +    expr.toString());
-      }
-    } catch (InvalidSyntaxException e) {
-      e.printStackTrace();
-    }
-  }
 }
