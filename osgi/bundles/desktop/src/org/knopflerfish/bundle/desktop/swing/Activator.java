@@ -42,12 +42,14 @@ import org.knopflerfish.service.log.*;
 import java.util.Hashtable;
 import org.knopflerfish.service.desktop.*;
 
+import org.knopflerfish.service.soap.remotefw.RemoteConnection;
+
 public class Activator implements BundleActivator {
 
   static public LogRef        log;
-  static private BundleContext bc;
-  static private BundleContext targetBC;
 
+  static private BundleContext bc;
+  static private BundleContext remoteBC;
   static public Desktop desktop;
 
   static ServiceTracker pkgTracker;
@@ -65,15 +67,34 @@ public class Activator implements BundleActivator {
    * </p>
    */
   public static BundleContext getTargetBC() {
-    return targetBC;
+    if(remoteBC == null) {
+      remoteBC = openRemote(remoteHost);
+    }
+
+    return remoteBC;
   }
 
-  
+  static private String remoteHost = "http://localhost:8080";
+
+  public static BundleContext openRemote(String host) {
+    RemoteConnection rc = (RemoteConnection)remoteTracker.getService();
+    if(rc != null) {
+      remoteBC = rc.connect(host);
+      remoteHost = host;
+    }
+    return remoteBC;
+  }
+
+
+  static ServiceTracker remoteTracker;
+
   public void start(BundleContext _bc) {
     this.bc        = _bc;
-    this.targetBC  = _bc;
-
     this.log       = new LogRef(bc);
+
+
+    remoteTracker = new ServiceTracker(bc, RemoteConnection.class.getName(), null);
+    remoteTracker.open();
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
     pkgTracker.open();
@@ -87,44 +108,45 @@ public class Activator implements BundleActivator {
 	  DefaultSwingBundleDisplayer disp;
 
 	  // bundle displayers
-	  disp = new LargeIconsDisplayer(bc);
+	  disp = new LargeIconsDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
-	  disp = new TimeLineDisplayer(bc);
+	  disp = new TimeLineDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
-	  disp = new TableDisplayer(bc);
+	  disp = new TableDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
-	  disp = new SpinDisplayer(bc);
+	  disp = new SpinDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
 	  // detail displayers
-	  disp = new ManifestHTMLDisplayer(bc);
+	  disp = new ManifestHTMLDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
-	  disp = new ClosureHTMLDisplayer(bc);
+	  disp = new ClosureHTMLDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
-	  disp = new ServiceHTMLDisplayer(bc);
+	  disp = new ServiceHTMLDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
-	  disp = new PackageHTMLDisplayer(bc);
+	  disp = new PackageHTMLDisplayer(getTargetBC());
 	  disp.open();
 	  disp.register();
 
 
-	  disp = new LogDisplayer(bc);
-	  disp.open();
-	  disp.register();
-
+	  if(getBC() == getTargetBC()) {
+	    disp = new LogDisplayer(getTargetBC());
+	    disp.open();
+	    disp.register();
+	  }
 
 	  // We really want this one to be display.
 	  desktop.bundlePanel.showTab("Large Icons");
