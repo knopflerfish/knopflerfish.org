@@ -117,41 +117,61 @@ public class ObrCommandGroup extends CommandGroupAdapter
     return 0;
   }
 
-  public final static String USAGE_LIST = "[<name>]";
+  public final static String USAGE_LIST = "[-l] [<name>]";
   public final static String [] HELP_LIST = new String [] {
     "List contents of repository",
-    "name - name (or substring) for bundles to list",
-    "       if no name is given, list all bundles"
+    "-l   -  long format",
+    "name -  name (or substring) for bundles to list",
+    "        if no name is given, list all bundles"
   };
 
   public int cmdList(Dictionary opts, Reader in, PrintWriter out, Session session) {
     String substr = (String)opts.get("name");
+    boolean bLong = null != opts.get("-l");
 
     int nCount = 0;
-
-    for (int i = 0; i < brs.getBundleRecordCount(); i++) {
-      BundleRecord record = brs.getBundleRecord(i);
-      String name = (String) record.getAttribute(BundleRecord.BUNDLE_NAME);
-      if (name != null) {
-	if ((substr == null) ||
-	    (name.toLowerCase().indexOf(substr) >= 0))  {
-	  nCount++;
-	  String version =
-	    (String) record.getAttribute(BundleRecord.BUNDLE_VERSION);
-	  boolean bCit = true; // name.indexOf(" ") != -1;
-	  out.print(" ");
-	  if(bCit) {
-	    out.print("\"");
-	  }
-	  if (version != null) {
-	    out.print(name + ";" + version);
-	  } else {
-	    out.print(name);
-	  }
-	  if(bCit) {
-	    out.println("\"");
-	  } else {
-	    out.println("");
+    int count = brs.getBundleRecordCount();
+    if(count == 0) {
+      out.println("No bundles in repositories");
+    } else {
+      if(bLong) {
+	out.println("No   Name                Update-location");
+      } else {
+	out.println("No   Name");
+      }
+      for (int i = 0; i < brs.getBundleRecordCount(); i++) {
+	BundleRecord record = brs.getBundleRecord(i);
+	String name = (String) record.getAttribute(BundleRecord.BUNDLE_NAME);
+	if (name != null) {
+	  if ((substr == null) ||
+	      (name.toLowerCase().indexOf(substr) >= 0))  {
+	    nCount++;
+	    String version =
+	      (String) record.getAttribute(BundleRecord.BUNDLE_VERSION);
+	    boolean bCit = true; // name.indexOf(" ") != -1;
+	    
+	    
+	    StringBuffer sb = new StringBuffer();
+	    sb.append(" ");
+	    sb.append(Integer.toString(i));
+	    pad(sb, 5);
+	    if(bCit) {
+	      sb.append("\"");
+	    }
+	    if (version != null) {
+	      sb.append(name + ";" + version);
+	    } else {
+	      sb.append(name);
+	    }
+	    if(bCit) {
+	      sb.append("\"");
+	    }
+	    if(bLong) {
+	      sb.append(" ");
+	      pad(sb, 25);
+	      sb.append(record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION));
+	    }
+	    out.println(sb.toString());
 	  }
 	}
       }
@@ -162,11 +182,20 @@ public class ObrCommandGroup extends CommandGroupAdapter
     }
     return 0;
   }
+
+  static StringBuffer pad(StringBuffer sb, int len) {
+    while(sb.length() < len) {
+      sb.append(" ");
+    }
+    return sb;
+  }
   
   public final static String USAGE_INFO = "<name;version> ...";
   public final static String [] HELP_INFO = new String [] {
     "Show bundle info",
-    "name - name (or substring) for bundles to list" };
+    "name - name (or substring) for bundles to list",
+    "       if name is an integer, use bundle with",
+    "       this index (from obr list)"};
 
   public int cmdInfo(Dictionary opts, Reader in, PrintWriter outPW, Session session) {
     String[] infos = (String[])opts.get("name;version");
@@ -275,7 +304,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
     "name;version - name and optional version" };
   
   public int cmdInstall(Dictionary opts, Reader in, PrintWriter out, Session session) {
-    return doInstallorStart(opts, in, out, session, false);
+    return doInstallOrStart(opts, in, out, session, false);
   }
   
   public final static String USAGE_START = "[-nodeps] <name;version> ...";
@@ -284,10 +313,10 @@ public class ObrCommandGroup extends CommandGroupAdapter
     "name;version - name and optional version" };
   
   public int cmdStart(Dictionary opts, Reader in, PrintWriter out, Session session) {
-    return doInstallorStart(opts, in, out, session, true);
+    return doInstallOrStart(opts, in, out, session, true);
   }
   
-  public int doInstallorStart(Dictionary opts, Reader in, PrintWriter outPW, Session session, boolean bStart) {
+  public int doInstallOrStart(Dictionary opts, Reader in, PrintWriter outPW, Session session, boolean bStart) {
     String[] infos = (String[])opts.get("name;version");
 
     ParsedCommand pc = parseInfo(infos);
@@ -442,6 +471,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
       }
   }
   
+  /*
   public final static String USAGE_SOURCE = "[-x] <localDir> <name;version> ...";
   public final static String [] HELP_SOURCE = new String [] {
     "Get source for a bundle",
@@ -485,11 +515,22 @@ public class ObrCommandGroup extends CommandGroupAdapter
       }
     return 0;
   }
-  
+  */
   
   private BundleRecord findBundleRecord(String name, String versionString)
   {
     BundleRecord record = null;
+
+    int id = -1;
+    try {
+      id = Integer.parseInt(name);
+      record = brs.getBundleRecord(id);
+      if(record != null) {
+	System.out.println(id + " " + record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION));
+	return record;
+      }
+    } catch (Exception ignored) {
+    }
 
     // If there is no version, then try to retrieve by
     // name, but error if there are multiple versions.
