@@ -92,8 +92,14 @@ public class BundleStorageImpl implements BundleStorage {
       FileTree dir = new FileTree(bundlesDir, list[i]);
       if (dir.isDirectory()) {
 	try {
- 	  BundleArchive ba = new BundleArchiveImpl(this, dir, id);
-	  archives.add(pos, ba);
+	  boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
+	  if(bUninstalled) {
+	    // silently remove any bundle marked as uninstalled
+	    dir.delete();
+	  } else {
+	    BundleArchive ba = new BundleArchiveImpl(this, dir, id);
+	    archives.add(pos, ba);
+	  }
 	  if (id >= nextFreeId) {
 	    nextFreeId = id + 1;
 	  }
