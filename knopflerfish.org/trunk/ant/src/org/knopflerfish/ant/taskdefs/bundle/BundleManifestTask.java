@@ -38,17 +38,26 @@ import org.apache.tools.ant.taskdefs.ManifestTask;
 import org.apache.tools.ant.taskdefs.ManifestException;
 
 
+/**
+ * Adaption of std Manifest task which ignores attributes
+ * with special empty values.
+ *
+ * <p>
+ * Any attrubute with the value
+ * <pre>
+ * [bundle.emptystring]
+ * </pre>
+ * will <b>not</b> be stored in the manifest at all.
+ * </p>
+ */
 public class BundleManifestTask extends ManifestTask {
   public BundleManifestTask() {
     super();
    }
 
   /**
-   * Add an attribute to the manifest - it is added to the main section.
-   *
-   * @param attribute the attribute to be added.
-   *
-   * @exception ManifestException if the attribute is not valid.
+   * Override <tt>ManifestTask.addConfiguredAttribute</tt> with
+   * version which checks if the attribute should be stored.
    */
   public void addConfiguredAttribute(Manifest.Attribute attribute)
     throws ManifestException {
