@@ -311,7 +311,8 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       
       installButton = new JButton(installIcon);
       installButton.setToolTipText("Install from OBR");
-      installButton.addActionListener(new ActionListener() {
+      ActionListener installAction;
+      installButton.addActionListener(installAction = new ActionListener() {
 	  public void actionPerformed(ActionEvent ev) {
 	    installOrStart(brSelected, false);
 	  }
@@ -320,7 +321,8 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
       startButton = new JButton(startIcon);
       startButton.setToolTipText("Install and start from OBR");
-      startButton.addActionListener(new ActionListener() {
+      ActionListener startAction;
+      startButton.addActionListener(startAction = new ActionListener() {
 	  public void actionPerformed(ActionEvent ev) {
 	    installOrStart(brSelected, true);
 	  }
@@ -365,12 +367,12 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
       item = new JMenuItem(startButton.getToolTipText(),
 			   startButton.getIcon());
-      item.addActionListener(startButton.getActionListeners()[0]);
+      item.addActionListener(startAction);
       contextPopupMenu.add(item);
-
+      
       item = new JMenuItem(installButton.getToolTipText(),
 			   installButton.getIcon());
-      item.addActionListener(installButton.getActionListeners()[0]);
+      item.addActionListener(installAction);
       contextPopupMenu.add(item);
       
 
