@@ -840,6 +840,12 @@ public class Loader {
       type = AttributeDefinition.BOOLEAN;
     } else if("xsd:float".equals(strType)) {
       type = AttributeDefinition.FLOAT;
+    } else if("xsd:long".equals(strType)) {
+      type = AttributeDefinition.LONG;
+    } else if("xsd:short".equals(strType)) {
+      type = AttributeDefinition.SHORT;
+    } else if("xsd:char".equals(strType)) {
+      type = AttributeDefinition.CHARACTER;
     } else if("xsd:double".equals(strType)) {
       type = AttributeDefinition.DOUBLE;
     } else {
@@ -1049,13 +1055,16 @@ public class Loader {
   static String getXSDType(int type) {
     String tag = "";
     switch(type) {
-    case AttributeDefinition.STRING:  return "xsd:string";
-    case AttributeDefinition.INTEGER: return "xsd:int";   
-    case AttributeDefinition.LONG:    return "xsd:long";  
-    case AttributeDefinition.SHORT:   return "xsd:short"; 
-    case AttributeDefinition.DOUBLE:  return "xsd:double";
-    case AttributeDefinition.FLOAT:   return "xsd:float"; 
-    case AttributeDefinition.BOOLEAN: return "xsd:boolean"; 
+    case AttributeDefinition.STRING:     return "xsd:string";
+    case AttributeDefinition.INTEGER:    return "xsd:int";   
+    case AttributeDefinition.LONG:       return "xsd:long";  
+    case AttributeDefinition.SHORT:      return "xsd:short"; 
+    case AttributeDefinition.DOUBLE:     return "xsd:double";
+    case AttributeDefinition.CHARACTER:  return "xsd:char";
+    case AttributeDefinition.FLOAT:      return "xsd:float"; 
+    case AttributeDefinition.BOOLEAN:    return "xsd:boolean"; 
+    case AttributeDefinition.BIGINTEGER: return "xsd:integer"; 
+    case AttributeDefinition.BIGDECIMAL: return "xsd:decimal"; 
     default: throw new IllegalArgumentException("Cannot print " + type);
     }
   }
