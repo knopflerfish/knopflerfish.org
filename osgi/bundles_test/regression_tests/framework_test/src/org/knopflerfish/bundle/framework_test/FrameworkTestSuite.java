@@ -382,13 +382,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
 	Object obj = null;
 	obj = bc.getService(null);
-	fail("### FRAME019A:FAIL Got service object=" + obj + ", excpected NullPointerException");
+	fail("### FRAME018A:FAIL Got service object=" + obj + ", excpected NullPointerException");
       } catch (NullPointerException e) {
-	out.println("### FRAME019A:PASS: got NPE=" + e);
+	out.println("### FRAME018A:PASS: got NPE=" + e);
       } catch (RuntimeException e) {
-	fail("### FRAME019A:FAIL: got RTE=" + e);
+	fail("### FRAME018A:FAIL: got RTE=" + e);
       } catch (Throwable e) {
-	fail("### FRAME019A:FAIL Got " + e + ", expected NullPointerException");
+	fail("### FRAME018A:FAIL Got " + e + ", expected NullPointerException");
       }
     }
   }
