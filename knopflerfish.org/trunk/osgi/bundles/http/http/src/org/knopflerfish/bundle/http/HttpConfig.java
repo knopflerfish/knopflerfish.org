@@ -68,6 +68,9 @@ public class HttpConfig implements ManagedService {
   private static final int HTTP_PORT_DEFAULT        = 80;
   private static final int HTTPS_PORT_DEFAULT       = 443;
 
+  public final static String DEFAULT_CHAR_ENCODING_KEY = 
+    "org.knopflerfish.http.encoding.default";
+
   //
   public HttpConfigWrapper HTTP = new HttpConfigWrapper(false, this);
   public HttpConfigWrapper HTTPS = new HttpConfigWrapper(true, this);
@@ -90,7 +93,7 @@ public class HttpConfig implements ManagedService {
   private int      serviceRanking = 1000; // NYI
   private boolean  httpsEnabled = true;
   private boolean  httpEnabled = true;
-
+  private String   defaultCharEncoding = "ISO-8859-1";
 
   // constructors
 
@@ -124,6 +127,7 @@ public class HttpConfig implements ManagedService {
 
     config.put(HttpConfig.HOST_KEY, 
 	       System.getProperty("org.osgi.service.http.hostname", ""));
+
 
     Properties mimeProps = new Properties();
     try {
@@ -162,26 +166,30 @@ public class HttpConfig implements ManagedService {
     config.put(HttpConfig.RESPONSE_BUFFER_SIZE_DEFAULT_KEY, 
 	       Integer.getInteger("org.knopflerfish.http.response.buffer.size.default", 16384));
 
+    config.put(HttpConfig.DEFAULT_CHAR_ENCODING_KEY,
+	       System.getProperty(HttpConfig.DEFAULT_CHAR_ENCODING_KEY, 
+                                  "ISO-8859-1"));
+
     return config;
   }
 
   public void mergeConfiguration(Dictionary configuration)
-      throws ConfigurationException {
-
+    throws ConfigurationException {
+    
     if (configuration == null)
       return;
-
+    
     Enumeration e = configuration.keys();
     while (e.hasMoreElements()) {
       String key = (String) e.nextElement();
       Object value = configuration.get(key);
       try {
         if (key.equals(HTTP_PORT_KEY)) {
-            httpPort = ((Integer) value).intValue();
-            this.configuration.put(key, value);
+          httpPort = ((Integer) value).intValue();
+          this.configuration.put(key, value);
         } else if (key.equals(HTTPS_PORT_KEY)) {
-            httpsPort = ((Integer) value).intValue();
-            this.configuration.put(key, value);
+          httpsPort = ((Integer) value).intValue();
+          this.configuration.put(key, value);
         } else if (key.equals(HOST_KEY)) {
           host = (String) value;
           this.configuration.put(key, value);
@@ -217,11 +225,14 @@ public class HttpConfig implements ManagedService {
           serviceRanking = ((Integer) value).intValue();
           this.configuration.put(key, value);
         } else if (key.equals(HTTP_ENABLED_KEY)) {
-            this.httpEnabled = ((Boolean) value).booleanValue();
-            this.configuration.put(key, value);
+          this.httpEnabled = ((Boolean) value).booleanValue();
+          this.configuration.put(key, value);
         } else if (key.equals(HTTPS_ENABLED_KEY)) {
-            this.httpsEnabled = ((Boolean) value).booleanValue();
-            this.configuration.put(key, value);
+          this.httpsEnabled = ((Boolean) value).booleanValue();
+          this.configuration.put(key, value);
+        } else if (key.equals(DEFAULT_CHAR_ENCODING_KEY)) {
+          this.defaultCharEncoding = (String)value;
+          this.configuration.put(key, value);
         } else
           this.configuration.put(key, value);
       } catch (IndexOutOfBoundsException ioobe) {
@@ -300,6 +311,9 @@ public class HttpConfig implements ManagedService {
     return dnsLookup;
   }
 
+  public String getDefaultCharacterEncoding() {
+    return defaultCharEncoding;
+  }
 
   // implements ManagedService
 
