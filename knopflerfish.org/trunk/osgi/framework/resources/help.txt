@@ -1,4 +1,5 @@
  Usage:  java [properties] org.knopflerfish.Main [-init] [options]
+      or java [properties] -jar framework.jar [-init] [options]
 
  Options:
    -exit          Exit the JVM process
@@ -16,6 +17,28 @@
    -update ID     Update a bundle
    -initlevel N   Set initial start level for installed bundles
    -startlevel N  Set start level of Start Level service
+
+ The directory used for storing bundle data is normally "fwdir".
+
+ If no args are supplied, a default .xargs file will be searched for
+ by the following algorithm:
+
+  1. If there exists a previous fwdir, use
+     restart.xargs
+
+  2. If no fwdir exist, try the first file matching:
+
+      a) init_[osname].xargs
+      b) init.xargs
+      c) remote-init.xargs
+
+ Combining .xargs and command line arguments is not a good 
+ idea, e.g, -init on the command line will remove
+ the fwdir, but _not_ use the default .xargs file, thus
+ causing an empty framework to start.
+
+ Manually removing fwdir is the recommended way of
+ forcing a complete reinit.
  
  Properties:
 
