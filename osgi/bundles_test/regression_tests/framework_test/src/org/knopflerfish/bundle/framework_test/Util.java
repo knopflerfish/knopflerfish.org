@@ -69,4 +69,23 @@ public class Util {
       throw new BundleException("Failed to get input stream for " + resource + ": " + e);
     }
   }
+
+  /**
+   * Load URL contents int a byte array
+   */
+  public static byte[] loadURL(URL url) throws Exception {
+    byte[]       buf = new byte[1024];
+    InputStream  is  = null;
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    try {
+      is = url.openStream();
+      int n;
+      while(-1 != (n = is.read(buf))) {
+        bout.write(buf, 0, n);
+      }
+      return bout.toByteArray();
+    } finally {
+      try { is.close(); } catch (Exception e) {}
+    }
+  }
 }

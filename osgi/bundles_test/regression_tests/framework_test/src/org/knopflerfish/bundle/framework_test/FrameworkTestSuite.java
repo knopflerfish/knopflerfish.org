@@ -124,6 +124,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame060a());
     addTest(new Frame065a());
     addTest(new Frame068a());
+    addTest(new Frame069a());
     addTest(new Frame070a());
     addTest(new Frame075a());
     addTest(new Frame080a());
@@ -1240,10 +1241,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     "using ClassLoader.getResource"
   };
 
+  
   class Frame068a extends FWTestCase {
     public void runTest() throws Throwable {
       int n;
 
+      // first check that correct number of files exists
+      
       // the fw_test_multi.txt resources are present in
       // res1.jar, res2.jar and in the top bundle
       n = countResources("/fw_test_multi.txt");
@@ -1259,6 +1263,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       n = countResources("/fw_test_nonexistent.txt");
       assertEquals("Multiple nonexistent resources should be reflected by CL.getResources() == 0", 0, n); 
 
+      out.println("### framework test bundle :FRAME068A:PASS");
     }
 
     int countResources(String name) throws Exception {
@@ -1304,6 +1309,54 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         try { is.close(); } catch (Exception ignored) {  }
       }
     }
+  }
+
+  public final static String [] HELP_FRAME069A =  {
+    "Tests contents of multiple resources inside the test bundle itself",
+    "using ClassLoader.getResource"
+  };
+  
+  class Frame069a extends FWTestCase {
+    public void runTest() throws Throwable {
+      Hashtable texts = new Hashtable();
+      texts.put("This is a resource in the bundle's res2.jar internal jar file",
+                Boolean.FALSE);
+      texts.put("This is a resource in the bundle's res1.jar internal jar file",
+                Boolean.FALSE);
+      texts.put("This is a resource in the bundle's main package",
+                Boolean.FALSE);
+
+      verifyContent("/fw_test_multi.txt", texts);
+
+      texts = new Hashtable();
+      texts.put("This is a single resource in the bundle's res2.jar internal jar file.",
+                Boolean.FALSE);
+      
+      verifyContent("/fw_test_single.txt", texts);
+
+      out.println("### framework test bundle :FRAME069A:PASS");
+    }
+
+    void verifyContent(String name, Hashtable texts) throws Exception {
+      ClassLoader cl = getClass().getClassLoader();
+      for(Enumeration e = cl.getResources(name);
+          e.hasMoreElements();) {
+        URL url = (URL)e.nextElement();
+        String s = new String(Util.loadURL(url));
+        if(!texts.containsKey(s)) {
+          fail("Checking resource name '" + name + "', found unexpected content '" + s + "' in " + url);
+        }
+        texts.put(s, Boolean.TRUE);
+      }
+      for(Enumeration e = texts.keys(); e.hasMoreElements();) {
+        String  s = (String)e.nextElement();
+        Boolean b = (Boolean)texts.get(s);
+        if(!b.booleanValue()) {
+          fail("Checking resource name '" + name + "', did not find content '" + s + "'");
+        }
+      }
+    }
+
  }
     
   public final static String [] HELP_FRAME070A =  {
