@@ -107,7 +107,7 @@ public class Activator implements BundleActivator
    * <p>
    * This is done using reflection, since DynamicImport-Package won't
    * resolve external bundles at the same time a bundle itself is in
-   * progress if being resolved.
+   * progress of being resolved.
    * </p>
    */
   void tryObject(String className, String methodName) {

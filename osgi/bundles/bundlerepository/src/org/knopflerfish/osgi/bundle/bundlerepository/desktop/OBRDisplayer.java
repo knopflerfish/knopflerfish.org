@@ -50,63 +50,23 @@ import java.io.*;
 
 import java.lang.reflect.Array;
 
-public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
+/**
+ * Desktop plugin for the BundleRepositoryService
+ * with functionality for install/start and detail information.
+ */
+public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
   static ServiceTracker obrTracker;
   
 
-  static Icon infoIcon = null;
-  public OBRDisplayer(BundleContext bc) {
-    super(bc, "Bundle Repository", "Bundle Repository", true);
-    
-    bUseListeners = true;
-
-    try {
-      if(infoIcon == null) {
-	infoIcon     = new ImageIcon(getClass().getResource("/info16x16.png"));
-      }
-    } catch (Exception e) {
-      //
-    }
-    obrTracker = new ServiceTracker(bc, 
-				    BundleRepositoryService.class.getName(), 
-				    null);
-    obrTracker.open();
-  }
-
-  static BundleRepositoryService getOBR() {
-    return (BundleRepositoryService)OBRDisplayer.obrTracker.getService();
-  }
-
-  public JComponent newJComponent() {
-    return new OBRAdmin();
-  }
-
-  public void  disposeJComponent(JComponent comp) {
-    OBRAdmin obrAdmin = (OBRAdmin)comp;
-    obrAdmin.stop();
-
-    super.disposeJComponent(comp);
-  }
-
-  void closeComponent(JComponent comp) {
-    OBRAdmin obrAdmin = (OBRAdmin)comp;
-    obrAdmin.stop();    
-  }
-
-  public void valueChanged(final long bid) {
-    super.valueChanged(bid);
-
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      OBRAdmin obrAdmin = (OBRAdmin)(JComponent)it.next();
-      obrAdmin.valueChanged(bid);
-    }
-  }
-  
-  public Icon getSmallIcon() {
-    return null;
-  }
+  // Shared by all instances of JOBRAdmin
+  static ImageIcon startIcon;
+  static ImageIcon sortIcon;
+  static ImageIcon installIcon;
+  static ImageIcon updateIcon;
+  static ImageIcon bundleIcon;
+  static ImageIcon reloadIcon;
 
   static final int SORT_NONE        = 0;
   static final int SORT_HOST        = 1;
@@ -131,70 +91,118 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
     "Install status",
   };
   
+
+  // Error message for all instances.
+  // since the OBR service is shared, the err message
+  // can be shared too
   String obrErr = "";
 
-  static String STR_LOADING = "Loading...";
+  // Message while loading repo URLs
+  static String STR_LOADING   = "Loading...";
 
-  class OBRAdmin extends JPanel {
+  // Name of top node
+  static String  STR_TOPNAME  = "Bundle Repository";
 
-    DefaultTreeModel treeModel;
-    JTree     recordTree;
-    JPanel    recordPanel;
-    JToolBar  recordCmds;
-    JButton   installButton;
-    JButton   refreshButton;
-    JButton   startButton;
-    JButton   updateButton;
-    JTextPane html;
-    JScrollPane htmlScroll;
-
-    TopNode rootNode;
-
-    class BRComparator implements Comparator {
-      public int compare(Object o1, Object o2) {
-	BundleRecord br1 = (BundleRecord)o1;
-	BundleRecord br2 = (BundleRecord)o2;
-	String s1 = getBRName(br1).toLowerCase();
-	String s2 = getBRName(br2).toLowerCase();
-	int n = 0;
-
-	try {
-	  n = s1.compareTo(s2);
-	  if(n == 0) {
-	    s1 = (String)br1.getAttribute(BundleRecord.BUNDLE_VERSION);
-	    s2 = (String)br2.getAttribute(BundleRecord.BUNDLE_VERSION);
-	  }
-	  
-	  n = s1.compareTo(s2);
-	} catch (Exception e) {
-	}
-	return n;
+  public OBRDisplayer(BundleContext bc) {
+    super(bc, "Bundle Repository", "View and install bundles from Bundle Repository", true);
+    
+    try {
+      // share icon instances between instances
+      if(startIcon == null) {
+	startIcon   = new ImageIcon(getClass().getResource("/player_play.png"));
+	installIcon = new ImageIcon(getClass().getResource("/player_install.png"));
+	updateIcon  = new ImageIcon(getClass().getResource("/update.png"));
+	sortIcon    = new ImageIcon(getClass().getResource("/sort_select.png"));
+	bundleIcon  = new ImageIcon(getClass().getResource("/lib16x16.png"));
+	reloadIcon     = new ImageIcon(getClass().getResource("/reload_green.png"));
+	
       }
+    } catch (Exception e) {
+      
+      System.err.println("icon load failed: " + e);
     }
 
-    ImageIcon startIcon;
-    ImageIcon sortIcon;
-    ImageIcon installIcon;
-    ImageIcon updateIcon;
-    ImageIcon bundleIcon;
-
-    OBRNode brSelected = null;
-
-    String topName = "Bundle Repository";
+    obrTracker = new ServiceTracker(bc, 
+				    BundleRepositoryService.class.getName(), 
+				    null);
+    obrTracker.open();
+  }
 
 
+  BundleRepositoryService getOBR() {
+    return (BundleRepositoryService)OBRDisplayer.obrTracker.getService();
+  }
 
-    public OBRAdmin() {
+  public JComponent newJComponent() {
+    return new JOBRAdmin();
+  }
+
+  public void  disposeJComponent(JComponent comp) {
+    JOBRAdmin obrAdmin = (JOBRAdmin)comp;
+    obrAdmin.stop();
+
+    super.disposeJComponent(comp);
+  }
+
+  void closeComponent(JComponent comp) {
+    JOBRAdmin obrAdmin = (JOBRAdmin)comp;
+    obrAdmin.stop();    
+  }
+
+  public void valueChanged(final long bid) {
+    super.valueChanged(bid);
+
+    for(Iterator it = components.iterator(); it.hasNext(); ) {
+      JOBRAdmin obrAdmin = (JOBRAdmin)(JComponent)it.next();
+      obrAdmin.valueChanged(bid);
+    }
+  }
+  
+  public Icon getSmallIcon() {
+    return null;
+  }
+
+
+  /**
+   * The actual component returned by newJComponent
+   */
+  class JOBRAdmin extends JPanel {
+
+    DefaultTreeModel treeModel;
+    JTree       recordTree;
+    JPanel      recordPanel;
+    JButton     installButton;
+    JButton     refreshButton;
+    JButton     startButton;
+    JButton     updateButton;
+    JTextPane   html;
+    JScrollPane htmlScroll;
+
+
+    TopNode    rootNode;
+
+    // currently selected node
+    OBRNode    brSelected = null;
+
+    JMenuItem  contextItem;
+    JPopupMenu contextPopupMenu;    
+
+    // Category used for grouping bubdle records
+    int sortCategory = SORT_CATEGORY;
+
+    // Map of all bundles in OBR tree
+    // String (location) -> OBRNode
+    Map locationMap = new HashMap();
+
+    public JOBRAdmin() {
       setLayout(new BorderLayout());
 
-      startIcon   = new ImageIcon(getClass().getResource("/player_play.png"));
-      installIcon = new ImageIcon(getClass().getResource("/player_install.png"));
-      updateIcon  = new ImageIcon(getClass().getResource("/update.png"));
-      sortIcon    = new ImageIcon(getClass().getResource("/sort_select.png"));
-      bundleIcon  = new ImageIcon(getClass().getResource("/lib16x16.png"));
 
       recordTree = new JTree(new TopNode("[not loaded]"));
       recordTree.setRootVisible(true);
+
+      // Must be registered for renderer tooltips to work
+      ToolTipManager.sharedInstance().registerComponent(recordTree);
 
       // Load leaf icon for the tree cell renderer.
       TreeCellRenderer renderer = new DefaultTreeCellRenderer() {
@@ -218,9 +226,9 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	      String tt = null;
 	      if(node instanceof OBRNode) {
 		OBRNode obrNode = (OBRNode)node;
-		setIcon(bundleIcon);
+		setIcon(obrNode.bBusy ? reloadIcon : bundleIcon);
 		String loc = (String)obrNode.getBundleRecord().getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
-		tt = loc;
+		tt = obrNode.bBusy ? "busy..." : loc;
 
 		boolean bInstalled = isInstalled(obrNode.getBundleRecord());
 		obrNode.setInstalled(bInstalled);
@@ -230,7 +238,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	      } else if(node instanceof TopNode) {
 		TopNode topNode = (TopNode)node;
 		if(STR_LOADING.equals(topNode.name)) {
-		  setIcon(updateIcon);
+		  setIcon(reloadIcon);
 		}
 	      } else {
 		//		setIcon(null);
@@ -244,6 +252,8 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
       recordTree.setCellRenderer(renderer);
 
+      
+      // call setSelected() when user selects nodes/leafs in the tree
       recordTree.addTreeSelectionListener(new TreeSelectionListener() {
 	  public void valueChanged(TreeSelectionEvent e) {
 	    TreePath[] sel = recordTree.getSelectionPaths();
@@ -255,19 +265,21 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	  }
 	});
       
+      // Create the HTML text pane for detail view.
+      // The node's getTitle()/toHTML() methods
+      // will be called whenever a node is HTMLAble
       html = new JTextPane();
       html.setText("");
       html.setContentType("text/html");
       
       html.setEditable(false);
       
-      html.addHyperlinkListener(new HyperlinkListener() 
-	{
+      html.addHyperlinkListener(new HyperlinkListener() {
 	  public void hyperlinkUpdate(HyperlinkEvent ev) {
 	    if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 	      URL url = ev.getURL();
 	      try {
-		openExternalURL(url);
+		Util.openExternalURL(url);
 	      } catch (Exception e) {
 		// Activator.log.warn("Failed to open external url=" + url, e);
 	      }
@@ -282,8 +294,6 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       
       htmlScroll.setPreferredSize(new Dimension(300, 300));
       
-      //      recordTree.setPreferredSize(new Dimension(200, 300));
-
       JScrollPane treeScroll = 
 	new JScrollPane(recordTree, 
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -291,17 +301,13 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
       treeScroll.setPreferredSize(new Dimension(200, 300));
 
-      JButton repoButton = new JButton("URLs") {{
-	
-	setToolTipText("Set repository URLs");
-	addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent ev) {
-	      askRepoURls();
-	    }
-	  });
-      }
-	};
-      
+      JButton repoButton = new JButton("URLs");
+      repoButton.setToolTipText("Show/set repository URLs");
+      repoButton.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent ev) {
+	    askRepoURls();
+	  }
+	});
       
       installButton = new JButton(installIcon);
       installButton.setToolTipText("Install from OBR");
@@ -321,7 +327,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	});
       startButton.setEnabled(false);
 
-      refreshButton = new JButton(updateIcon);
+      refreshButton = new JButton(reloadIcon);
       refreshButton.setToolTipText("Refresh OBR list");
       refreshButton.addActionListener(new ActionListener() {
 	  public void actionPerformed(ActionEvent ev) {
@@ -346,6 +352,57 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
       left.add(leftTools, BorderLayout.SOUTH);
 
+      // create a context menu which copies the names
+      // and actions from the start and stop buttons.
+      contextPopupMenu = new JPopupMenu();
+      contextItem = new JMenuItem("------------");
+      contextItem.setEnabled(false);
+
+      contextPopupMenu.add(contextItem);
+      contextPopupMenu.add(new JPopupMenu.Separator());
+
+      JMenuItem item;
+
+      item = new JMenuItem(startButton.getToolTipText(),
+			   startButton.getIcon());
+      item.addActionListener(startButton.getActionListeners()[0]);
+      contextPopupMenu.add(item);
+
+      item = new JMenuItem(installButton.getToolTipText(),
+			   installButton.getIcon());
+      item.addActionListener(installButton.getActionListeners()[0]);
+      contextPopupMenu.add(item);
+      
+
+      // add listener for tree context menu, which selects the
+      // item belo the mouse and pops up the context menu.
+      recordTree.addMouseListener(new MouseAdapter() {
+	  public void mousePressed(MouseEvent e) {
+	    maybeShowPopup(e);
+	  }
+	  public void mouseReleased(MouseEvent e) {
+	    maybeShowPopup(e);
+	  }
+	  private void maybeShowPopup(MouseEvent e) {
+	    if(contextPopupMenu != null && 
+	       (e.isPopupTrigger() || 
+		e.getButton() == MouseEvent.BUTTON2 ||
+		e.getButton() == MouseEvent.BUTTON3)) {
+	      TreePath tp = recordTree.getPathForLocation(e.getX(), e.getY());
+	      if(tp != null) {
+		TreeNode node = (TreeNode)tp.getLastPathComponent();
+		if(node instanceof OBRNode) {
+		  contextItem.setText(((OBRNode)node).name);
+		  recordTree.setSelectionPath(tp);
+		  setSelected(node);
+		  Component comp = e.getComponent();
+		  contextPopupMenu.show(comp, e.getX(), e.getY());
+		}
+	      }
+	    }
+	  }
+	});
+
 
       JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 					left,
@@ -353,15 +410,20 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       
       panel.setDividerLocation(200);
       
-      recordCmds = new JToolBar();
-      
-      //      recordPanel.add(recordCmds, BorderLayout.SOUTH);
       
       add(panel, BorderLayout.CENTER);
 
       refreshList(true);
     }
 
+    /**
+     * Called when BundleSelectionListener distributes events.
+     *
+     * <p>
+     * If possible, select and show the bundle with id <tt>bid</tt>
+     * in the tree.
+     * </p>
+     */
     void valueChanged(long bid) {
       try {
 	if(bid >= 0) {
@@ -370,14 +432,20 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	    OBRNode obrNode = getOBRNode(b);
 	    if(obrNode != null && obrNode != brSelected) {
 	      TreePath tp = new TreePath(obrNode.getPath());
-	      showPath(tp, false);
+	      showPath(tp, null);
 	    }
 	  }
 	}
       } catch (Exception e) {
       }
     }
-
+    
+    /**
+     * Get the OBRNode tree node which matches a bundle.
+     *
+     * @return OBRNode for the specified bundle if it exists,
+     *         <tt>null</tt> otherwise.
+     */
     OBRNode getOBRNode(Bundle b) {
       OBRNode node = (OBRNode)locationMap.get(b.getLocation());
       
@@ -388,49 +456,24 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       for(Iterator it = locationMap.keySet().iterator(); it.hasNext(); ) {
 	String  loc  = (String)it.next();
 	node = (OBRNode)locationMap.get(loc);
-	if(bundleEqual(b, node.getBundleRecord())) {
+	if(Util.bundleEqual(b, node.getBundleRecord())) {
 	  return node;
 	}
       }
       return null;
     }
 
+
+    /**
+     * Create the sort selection button, with items
+     * defined in SORT_ARRAY/SORT_NAMES
+     */
     JButton makeSortSelectionButton() {
       JButton sortButton = new JButton(sortIcon);
       sortButton.setToolTipText("Select sorting");
 
-      makeSortPopupMenu();
-      
-      sortButton.addMouseListener(new MouseAdapter() 
-	{
-	  public void mousePressed(MouseEvent e) {
-	    showPopup(e);
-	  }
-	  
-	  public void mouseReleased(MouseEvent e) {
-	    showPopup(e);
-	  }
-	  
-	  private void showPopup(MouseEvent e) {
-	    if (sortPopupMenu != null) {
-	      Component comp = e.getComponent();
-	      sortPopupMenu.show(comp, 0, comp.getSize().height);
-	    }
-	  }
-	});
-      
-      
-      return sortButton;
-    }
-    
-    
-    JPopupMenu sortPopupMenu;
-    
-    void makeSortPopupMenu() {
-      
-      sortPopupMenu = new JPopupMenu();
-
-      final ButtonGroup group = new ButtonGroup();
+      final JPopupMenu  sortPopupMenu = new JPopupMenu();
+      ButtonGroup       group         = new ButtonGroup();
 
       for(int i = 0; i < SORT_ARRAY.length; i++) {
 	JCheckBoxMenuItem item = new JCheckBoxMenuItem(SORT_NAMES[i]);
@@ -445,26 +488,145 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	sortPopupMenu.add(item);
 	group.add(item);
       }
+      
+      sortButton.addMouseListener(new MouseAdapter() {
+	  public void mousePressed(MouseEvent e) {
+	    showPopup(e);
+	  }	  
+	  public void mouseReleased(MouseEvent e) {
+	    showPopup(e);
+	  }
+	  private void showPopup(MouseEvent e) {
+	    Component comp = e.getComponent();
+	    sortPopupMenu.show(comp, 0, comp.getSize().height);
+	  }
+	});
+      
+      return sortButton;
     }
+
     
-    void installOrStart(OBRNode obrNode, boolean bStart) {
+    boolean bBusy = false;
+
+    /**
+     * Install or install+start a bundle specified by an OBRNode
+     * using the BundleRepositoryService. Run an a new thread to 
+     * avoid blocking the swing thread for potentially long operations.
+     *
+     * @param obrNode Bundle to install/start
+     * @param bStart if <tt>true</t>, start, otherewise just install
+     */
+    void installOrStart(final OBRNode obrNode, final boolean bStart) {
+      if(bBusy) {
+	return;
+      }
+      new Thread() {
+	{ start(); }
+	public void run() {
+	  try {
+	    bBusy = obrNode.bBusy = true;
+	    setSelected(obrNode);
+	    installOrStartSync(obrNode, bStart);
+	  } catch (Exception e) {
+	    obrNode.appendLog("" + e + "\n");
+	  } finally {
+	    bBusy = obrNode.bBusy = false;
+	    setSelected(obrNode);
+	  }
+	}
+      };
+    }
+
+    void installOrStartSync(OBRNode obrNode, boolean bStart) {
       BundleRecord br = obrNode.getBundleRecord();
       if(br == null) {
 	return;
       }
-
+      
+      String updateURL = 
+	(String)br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
+      
+      // Check if bundle already is installed. If so, 
+      // ask user if it should be updated, installed again or
+      // if the operation should be cancelled.
+      Bundle b = getBundle(br);
+      if(b != null) {
+	
+	boolean bIsRepoBundle = Util.isInRepo(b, updateURL);
+	
+	String[] options = bIsRepoBundle
+	  ? (new String[] { "Update", "Cancel",	  })
+	  : (new String[] { "Update", "Install again", "Cancel",  });
+	
+	String msg = bIsRepoBundle
+	  ?  
+	  "The selected bundle is already installed\n" + 
+	  "from the repository.\n" + 
+	  "\n" + 
+	  "It can be updated from the repository."
+	  : 
+	  "The selected bundle is already installed.\n" + 
+	  "\n" + 
+	  "It can be updated from the repository, or\n" + 
+	  "a new instance can be installed from the\n" + 
+	  "repository";
+	
+	int n = JOptionPane
+	  .showOptionDialog(recordTree, 
+			    msg,
+			    "Bundle is installed", // title
+			    JOptionPane.YES_NO_CANCEL_OPTION,
+			    JOptionPane.QUESTION_MESSAGE,
+			    null, // icon
+			    options, 
+			    options[0]); 
+	
+	if(bIsRepoBundle) {
+	  if(n == 0) {        // update
+	    obrNode.appendLog("update.\n");
+	  } else if(n == 1) { // Cancel
+	    return; 
+	  }
+	} else {
+	  if(n == 0) { // Update
+	    InputStream in = null;
+	    try {
+	      URL url = new URL(updateURL);
+	      in = new BufferedInputStream(url.openStream());
+	      b.update(in);
+	      obrNode.appendLog("Updated from " + url + "\n"); 
+	    } catch (Exception e) {
+	      obrNode.appendLog("Update failed: " + e + "\n");
+	    } finally {
+	      try { in.close(); } catch (Exception ignored) { }
+	    }
+	    return;
+	  } else if(n == 1) { // install new
+	    obrNode.appendLog("Install new instance.\n");
+	  } else if(n == 2) { // cancel
+	    return;
+	  }
+	}
+      }
+      
+      // Install the budle from repo
+      
       BundleRepositoryService obr = getOBR();
-
+      
+      // deployBundle writes all info to streams, so we have to 
+      // catch that info. The text will be displayed by
+      // the node's toHTML method
       ByteArrayOutputStream bout = new ByteArrayOutputStream();
       PrintStream outStream = new PrintStream(bout, true);
       
+      // We always resolve.
       boolean bResolve = true;
-
+      
       try {
 	boolean bOK = obr.deployBundle(outStream, // Output stream.
 				       outStream, // Error stream.
-				       (String) br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION), // Update location.
-				       bResolve, // Resolve dependencies.
+				       updateURL,
+				       bResolve, 
 				       bStart);
 	if(bOK) {
 	  if(sortCategory == SORT_STATUS) {
@@ -478,31 +640,26 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	String s = new String(bout.toByteArray());
 	obrNode.appendLog(s);
       }
-
+      
       setSelected(obrNode);
     }
 
-    int sortCategory = SORT_CATEGORY;
-
-    // String (location) -> OBRNode
-    Map locationMap = new HashMap();
-
+    /**
+     * Refresh the OBR tree and try to reshow/reselect
+     * any previously selected bundle node.
+     *
+     * @param bReload if <tt>true</tt>, reload the bundle repository
+     *                XML files, otherewise, just rebuild the tree.
+     */
     synchronized void refreshList(final boolean bReload) { 
       Thread t = new Thread() {
 	  public void run() {
 	    locationMap.clear();
 	    BundleRecord brOld = brSelected != null ? brSelected.getBundleRecord() : null;
 
-	    try {
-	      SwingUtilities.invokeAndWait(new Runnable() {
-		  public void run() {
-		    recordTree.setModel(new DefaultTreeModel(new TopNode(STR_LOADING)));
-		  }
-		});
-	    } catch (Exception e) {
-	    }
+	    setRootText(STR_LOADING);
 	    
-	    rootNode = new TopNode(topName);
+	    rootNode = new TopNode(STR_TOPNAME);
 	    treeModel = new DefaultTreeModel(rootNode);
 
 	    BundleRepositoryService obr = getOBR();
@@ -511,14 +668,27 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	      if(bReload) {
 		obrErr = "";
 		try {
+		  assertRepoURLs(obr.getRepositoryURLs());
 		  obr.setRepositoryURLs(obr.getRepositoryURLs());
 		} catch (Exception e) {
-		  obrErr = "" + e;
+		  obrErr = 
+		    "<b>" + e.getClass().getName() + "</b>"+ 
+		    "<pre>\n" + 
+		    e.getMessage() + 
+		    "</pre>";
 		}
 	      }
 	      int count = obr.getBundleRecordCount();
-	      Map categories = new TreeMap();
 
+	      // String (category) -> Set (BundleRecord)
+	      Map categories = new TreeMap(new Comparator() {
+		  public int compare(Object o1, Object o2) {
+		    return o1.toString().compareToIgnoreCase(o2.toString());
+		  }
+		});
+	      
+	      // move all bundle records into a sorted
+	      // category map of sets
 	      for(int i = 0; i < count; i++) {
 		BundleRecord br = obr.getBundleRecord(i);
 
@@ -526,9 +696,13 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
 		String category = "other";
 		if(sortCategory == SORT_CATEGORY) {
-		  category = (String)br.getAttribute(BundleRecord.BUNDLE_CATEGORY);
+		  category = Util.getAttribute(br, 
+					  BundleRecord.BUNDLE_CATEGORY,
+					  "[no category]");
 		} else if(sortCategory == SORT_VENDOR) {
-		  category = (String)br.getAttribute(BundleRecord.BUNDLE_VENDOR);
+		  category = Util.getAttribute(br,
+					  BundleRecord.BUNDLE_VENDOR,
+					  "[no vendor]");
 		} else if(sortCategory == SORT_STATUS) {
 		  if(isInstalled(br)) {
 		    category = "Installed";
@@ -538,7 +712,6 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 		} else if(sortCategory == SORT_NONE) {
 		  category = SORT_NAMES[SORT_NONE];
 		} else {
-
 		  int ix = loc.indexOf(":");
 		  if(ix != -1) {
 		    category = loc.substring(0, ix);
@@ -566,7 +739,6 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 		  categories.put(category, set);
 		}
 		set.add(br);
-		//		System.out.println(i + ": " + host + " " + getBRName(br));
 	      }
 	      
 
@@ -605,7 +777,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 			     ? selNode.getPath()
 			     : rootNode.getPath());
 
-	      showPath(selPath, true);
+	      showPath(selPath, treeModel);
 	    }
 	  }
 	  
@@ -613,11 +785,19 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       t.start();
     }
 
-    void showPath(final TreePath selPath, final boolean bSetModel) {
+
+    /**
+     * Show the specified path and possible model (on the Swing thread)
+     *
+     * @param selPath path to show
+     * @param model   if not <tt>null</tt>, set as tree's model before setting
+     *                selected path.
+     */
+    void showPath(final TreePath selPath, final TreeModel model) {
       SwingUtilities.invokeLater(new Runnable() {
 	  public void run() {
-	    if(bSetModel) {
-	      recordTree.setModel(treeModel);
+	    if(model != null) {
+	      recordTree.setModel(model);
 	    }
 
 	    recordTree.expandPath(selPath);
@@ -627,6 +807,66 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	});
     }
 
+
+
+    
+    /**
+     * Assert that the URLs seem to be valid ULRs.
+     *
+     * @throws RuntimeException if any of the strings in <tt>urls</tt>
+     *                          fails to resolve to valid URL.
+     */
+    void assertRepoURLs(String[] urls) {
+      if(urls == null) {
+	throw new RuntimeException("No URLs set");
+      }
+      
+      StringBuffer sb = new StringBuffer();
+      int nConnectionErrs = 0;
+      
+      // for each of the strings, try to create an URL and
+      // do an initial connect()
+      for(int i = 0; i < urls.length; i++) {
+	URLConnection conn = null;
+	try {
+	  URL url = new URL(urls[i]);
+	  conn = url.openConnection();
+	  conn.connect();
+	} catch (Exception e) {
+	  sb.append(" " + urls[i] + ": " + e);
+	  sb.append("\n");
+	  nConnectionErrs++;
+	} finally {
+	  // close?
+	}
+      }
+      if(nConnectionErrs > 0) {
+	String msg = 
+	  "URL connection errors:\n" + 
+	  sb.toString();
+	throw new RuntimeException(msg);
+      }
+    }
+	
+    
+    /**
+     * Clear the tree and set the text of the tree's root node.
+     */
+    void setRootText(final String s) {
+      try {
+	SwingUtilities.invokeAndWait(new Runnable() {
+	    public void run() {
+	      recordTree.setModel(new DefaultTreeModel(new TopNode(s)));
+	    }
+	  });
+      } catch (Exception e) {
+      }
+    }
+    
+    
+    /**
+     * Query the user to a list of repo URLs
+     */
     void askRepoURls() {
       try {
 	StringBuffer sb = new StringBuffer();
@@ -637,9 +877,9 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	    sb.append("\n");
 	  }
 	}
-
+	
 	JPanel panel = new JPanel(new BorderLayout());
-
+	
 	JTextArea text = new JTextArea(Math.min(3, urls.length), 40);
 	text.setText(sb.toString());
 	//	text.setPreferredSize(new Dimension(300, 100));
@@ -649,7 +889,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 			  JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 	
 	scroll.setPreferredSize(new Dimension(300, 100));
-
+	
 	panel.add(scroll, BorderLayout.CENTER);
 	panel.add(new JLabel("Repository URLs."), BorderLayout.NORTH);
 	int option = JOptionPane.showConfirmDialog(this,
@@ -675,11 +915,13 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       } catch (Exception e) {
 	e.printStackTrace();
       }
-  }
+    }
     
     
+    /**
+     * Set the selected bundle by settingt the HTML detail string.
+     */
     void setSelected(TreeNode node) {
-
       if(node != null && (node instanceof OBRNode)) {
 	brSelected = (OBRNode)node;
 	Bundle b = getBundle(brSelected.getBundleRecord());
@@ -692,8 +934,8 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	brSelected = null;
       }
 
-      installButton.setEnabled(brSelected != null);
-      startButton.setEnabled(brSelected != null);
+      installButton.setEnabled(brSelected != null && !bBusy);
+      startButton.setEnabled(brSelected != null && !bBusy);
 
       StringBuffer sb = new StringBuffer();
     
@@ -701,7 +943,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
       sb.append("<table border=\"0\" width=\"100%\">\n");
       sb.append("<tr><td bgcolor=\"#eeeeee\">");
-      startFont(sb, "-1");
+      Util.startFont(sb, "-1");
 
       if(node != null  && (node instanceof HTMLable)) {
 	HTMLable htmlNode = (HTMLable)node;
@@ -732,6 +974,9 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
     }
     
     public void stop() {
+      if(recordTree != null) {
+	ToolTipManager.sharedInstance().registerComponent(recordTree);
+      }
     }
   
     
@@ -759,40 +1004,28 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
     getBundleSelectionModel().setSelected(bid, true);
   }
   
+  /**
+   * If possible, get the bundle matchin a bundle record.
+   *
+   * @param br record to search for
+   * @return an installed bundle, if the bbudle record seem to be installed
+   */
   Bundle getBundle(BundleRecord br) {
-
     
     Bundle[] bl = bc.getBundles();
     
     for(int i = 0; bl != null && i < bl.length; i++) {
-      if(bundleEqual(bl[i], br)) {
+      if(Util.bundleEqual(bl[i], br)) {
 	return bl[i];
       }
     }
     return null;
   }
 
-  boolean bundleEqual(Bundle b, BundleRecord br) {
-    String loc = (String)br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
-    if(loc.equals(b.getLocation())) {
-      return true;
-    }
-    
-    if(bundleAttrEqual(b, br, "Bundle-Name") &&
-       bundleAttrEqual(b, br, "Bundle-Version")) {
-      return true;
-    }
-    return false;
-  }
-
-  boolean bundleAttrEqual(Bundle b, BundleRecord br, String attr) {
-    String val  = (String)br.getAttribute(attr);
-    String val2 = (String)b.getHeaders().get(attr);
-    return 
-      (val2 == val) ||
-      (val2 != null && val2.equals(val));
-  }
   
+  /**
+   * Check if a bundle record seem to be installed.
+   */
   boolean isInstalled(BundleRecord br) {
     return getBundle(br) != null;
   }
@@ -825,12 +1058,47 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
     */
   }
   
+  /**
+   * Simple interface for things that can produce HTML
+   */
   interface HTMLable {
     public String getTitle();
     public String toHTML();
   }
 
 
+  /**
+   * Comparator class for comparing two BundleRecords
+   *
+   * <p>
+   * Sort first by case-insensite name, tehn by version
+   * </p>
+   */
+  class BRComparator implements Comparator {
+    public int compare(Object o1, Object o2) {
+      BundleRecord br1 = (BundleRecord)o1;
+      BundleRecord br2 = (BundleRecord)o2;
+      String s1 = Util.getBRName(br1).toLowerCase();
+      String s2 = Util.getBRName(br2).toLowerCase();
+      int n = 0;
+      
+      try {
+	n = s1.compareTo(s2);
+	if(n == 0) {
+	  s1 = (String)br1.getAttribute(BundleRecord.BUNDLE_VERSION);
+	  s2 = (String)br2.getAttribute(BundleRecord.BUNDLE_VERSION);
+	}
+	
+	n = s1.compareTo(s2);
+      } catch (Exception e) {
+      }
+      return n;
+    }
+  }
+
+  /**
+   * TreeNode to top of OBR tree.
+   */
   class TopNode extends DefaultMutableTreeNode implements HTMLable {
     
     String name;
@@ -852,44 +1120,45 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       StringBuffer sb = new StringBuffer();
       
       if(!"".equals(obrErr)) {
-	startFont(sb);
-	sb.append("<p><b>");
+	Util.startFont(sb);
+	sb.append("<pre>");
 	sb.append(obrErr);
-	sb.append("</b></p>");
+	sb.append("</pre>");
+	sb.append("</font>");
+      } else {
+	Util.startFont(sb);
+	
+	BundleRepositoryService obr = getOBR();
+	
+	if(obr != null) {
+	  sb.append("<p>");
+	  sb.append("<b>Repository URLs</b><br>");
+	  String[] urls = obr.getRepositoryURLs();
+	  for(int i = 0; i < urls.length; i++) {
+	    sb.append(urls[i]);
+	    if(i < urls.length - 1) {
+	      sb.append("<br>");
+	    }
+	  }
+	  sb.append("</p>");
+	  sb.append("<p>");
+	  sb.append("Total number of bundles: " + obr.getBundleRecordCount());
+	  sb.append("</p>");
+	}
+	
+	appendHelp(sb);
+	
 	sb.append("</font>");
       }
-
-      startFont(sb);
-
-
-      BundleRepositoryService obr = getOBR();
-
-      if(obr != null) {
-	sb.append("<p>");
-	sb.append("<b>Repository URLs</b><br>");
-	String[] urls = obr.getRepositoryURLs();
-	for(int i = 0; i < urls.length; i++) {
-	  sb.append(urls[i]);
-	  if(i < urls.length - 1) {
-	    sb.append("<br>");
-	  }
-	}
-	sb.append("</p>");
-	sb.append("<p>");
-	sb.append("Total number of bundles: " + obr.getBundleRecordCount());
-	sb.append("</p>");
-      }
-      
-      appendHelp(sb);
-
-      sb.append("</font>");
-      
       return sb.toString();
     }
 
 
   }
   
+  /**
+   * Tree node for grouping BundleRecords into categories in OBR tree
+   */
   class CategoryNode extends DefaultMutableTreeNode implements HTMLable {
     String category;
 
@@ -911,7 +1180,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 
 
 
-      startFont(sb);
+      Util.startFont(sb);
 
       BundleRepositoryService obr = getOBR();
       if(obr != null) {
@@ -928,17 +1197,21 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
 
+  /**
+   * Tree Node for wrapping a BundleRecord in the OBR tree.
+   */
   class OBRNode extends DefaultMutableTreeNode implements HTMLable {
     String       name;
     StringBuffer log = new StringBuffer();
     BundleRecord br;
     boolean bInstalled = false;
-    
+    boolean     bBusy;
+
     public OBRNode(BundleRecord br) {
       super(null);
       this.br = br;
 
-      name = getBRName(br);
+      name = Util.getBRName(br);
       //      setIcon(bundleIcon);
     }
 
@@ -975,12 +1248,12 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       Map map = new TreeMap();
       for(int i = 0; i < attrs.length; i++) {
 	Object obj = br.getAttribute(attrs[i]);
-	map.put(attrs[i], OBRDisplayer.toHTML(obj));
+	map.put(attrs[i], Util.toHTML(obj));
       }
 
       String desc = (String)br.getAttribute(BundleRecord.BUNDLE_DESCRIPTION);
       if(desc != null) {
-	startFont(sb);
+	Util.startFont(sb);
 	sb.append("<p>");
 	sb.append(desc);
 	sb.append("</p>");
@@ -997,7 +1270,7 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	sb.append("<tr>");
 	sb.append("<td bgcolor=\"#eeeeee\" colspan=\"2\" valign=\"top\">");
 	sb.append("<pre>");
-	OBRDisplayer.startFont(sb, "-2");
+	Util.startFont(sb, "-2");
 	sb.append(log);
 	sb.append("</font>");
 	sb.append("<pre>");
@@ -1011,13 +1284,13 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	
 	sb.append("<tr>");
 	sb.append("<td valign=\"top\"><b>");
-	OBRDisplayer.startFont(sb);
+	Util.startFont(sb);
 	sb.append(key);
 	sb.append("</b></font>");
 	sb.append("</td>");
 	
 	sb.append("<td valign=\"top\">");
-	OBRDisplayer.startFont(sb);
+	Util.startFont(sb);
 	sb.append(val);
 	sb.append("</font>");
 	sb.append("</td>");
@@ -1034,81 +1307,5 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
       return toString();
     }
 
-  }
-
-
-  static String toHTML(Object obj) {
-    if(obj == null) {
-      return "null";
-    }
-    if(obj instanceof String) {
-      String s = (String)obj;
-      try {
-	URL url = new URL(s);
-	return "<a href=\"" + s + "\">" + s + "</a>";
-      } catch (Exception e) {
-	
-      }
-      return s;
-    } else if(obj.getClass().isArray()) {
-      StringBuffer sb = new StringBuffer();
-      int len = Array.getLength(obj);
-
-      for(int i = 0; i < len; i++) {
-	sb.append(toHTML(Array.get(obj, i)));
-	if(i < len - 1) {
-	  sb.append("<br>\n");
-	}
-      }
-      return sb.toString();
-    } else {
-      return obj.toString();
-    }
-  }
-  
-  static String getBRName(BundleRecord br) {
-    String s = (String)br.getAttribute(BundleRecord.BUNDLE_NAME);
-    if(s == null) {
-      s = (String)br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
-      int ix = s.lastIndexOf('/');
-      if(ix != -1) {
-	s = s.substring(ix + 1);
-      }
-    }
-    return s;
-  }
-
-  static void startFont(StringBuffer sb) {
-    startFont(sb, "-2");
-  }
-  
-  static void stopFont(StringBuffer sb) {
-    sb.append("</font>");
-  }
-  
-  static void startFont(StringBuffer sb, String size) {
-    sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
-  }
-
-  static public void openExternalURL(URL url) throws IOException {
-    if(isWindows()) {
-      // Yes, this only works on windows
-      String systemBrowser = "explorer.exe";
-      Runtime rt = Runtime.getRuntime();
-      Process proc = rt.exec(new String[] {
-	systemBrowser, 
-	"\"" + url.toString() + "\"",
-      });
-    } else {
-      throw new IOException("Only windows browsers are yet supported");
-    }
-  }
-  
-  public static boolean isWindows() {
-    String os = System.getProperty("os.name");
-    if(os != null) {
-      return -1 != os.toLowerCase().indexOf("win");
-    }
-    return false;
   }
 }
