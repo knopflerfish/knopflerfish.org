@@ -2,7 +2,7 @@
 <ul>
  <li><a href="#how">How the test was performed</a>
  <li><a href="#graph">Time and memory usage</a>
- <li><a href="#table">Mean time and memory usage</a>
+ <li><a href="#table">Mean time and memory usage difference between methods</a>
  <li><a href="#bundles">Bundle list in test setup</a>
 </ul>
 
@@ -16,7 +16,9 @@ The test was performed by
   <li>Installing a special notification bundle.
   <li>Measuring the time from the JVM is completely started until the
       notification bundle is started.
-  <li>Repeating 1-4 multiple times.
+  <li>Measuring memory difference from the JVM is completely started until the
+      notification bundle is started.
+  <li>Repeating 1-5 multiple times.
 </ol>
 
 The test was performed on
@@ -24,7 +26,8 @@ The test was performed on
 Java(TM) 2 Runtime Environment, Standard Edition (build 1.4.2_03-b02)
 Java HotSpot(TM) Client VM (build 1.4.2_03-b02, mixed mode)
 </pre>
-The machine used for testing was a Dell X300, 1200 Mhz, 640 Mb, running Windows XP SP1.
+The machine used for testing was a Dell X300, 1200 Mhz, 640 Mb, running Windows XP SP1. When started, the total amount of memory used by the JVM was 
+approximately 11 Mb, according to XP.
 
 <a name="graph"></a>
 <h2>Time and memory usage</h2>
@@ -65,7 +68,7 @@ using Spotfire DecisionSite</i>
 </table>
 
 <p>
-<b>Note 1</b>: Memory is <b>heap memory</b>, not disk usage. The intention with the file: reference method is to avoid copying a bundle file to another place in the file system. Disk usage is not measured by these tests.<br>
+<b>Note 1</b>: Memory is <b>differences in heap memory</b>, not disk usage. The intention with the file: reference method is to avoid copying a bundle file to another place in the file system. Disk usage is not measured by these tests.<br>
 </p>
 
 <p>
@@ -73,18 +76,34 @@ using Spotfire DecisionSite</i>
 the measurements. All timing is done inside of the JVM itself.
 </p>
 
+<p>
+<b>Note</b>: Since the memory usage values are <b>differences</b> in 
+heap space from JVM startup, until the FW has completed, not total heap 
+space used, the values are mostly useful for comparing bundle storage
+ methods. The total memory usage is not measured in these tests.
+</p>
+
 
 <a name="table"></a>
 <h2>Mean time and memory usage</h2>
 
+<p>
 The table below lists the mean values of a test series of 27 runs. Note that
 these are <b>approximate values</b>, and variations are to be expected.
+</p>
+
+<p>
+<b>Note</b>: Memory usage is <b>differences</b> in heap space from 
+JVM startup, until the FW has completed, not total heap space used.
+Thus, the values are mostly useful for comparing bundle storage methods, 
+not for determining total memory costs.
+</p>
 
 <table>
  <tr>
   <th><br></th>
   <th>Startup time (ms)</th>
-  <th>Heap memory (kb)</th>
+  <th>Memory usage (kb)</th>
   <th>Flags</th>
  </tr>
  <tr>
