@@ -31,7 +31,7 @@
 
   <path id="bundle.compile.path">
     <pathelement location="resources/console_api-1.0.0.jar"/>
-    <pathelement location="${topdir}/jars/oscar-shell/oscar-shell_all-1.0.0.jar"/>
+    <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
     <pathelement location="resources/bundlerepository.jar"/>
   </path>
 
