@@ -70,6 +70,9 @@ public class ConsoleServlet extends HttpServlet {
   String adminPwd   = 
     System.getProperty("org.knopflerfish.httpconsole.pwd",  "admin");
 
+  long expirationTime = 1000 * 60 * 10;
+
+
   boolean isValidUser(String user, String pwd) {
     return 
       adminUser.equals(user) &&
@@ -79,6 +82,14 @@ public class ConsoleServlet extends HttpServlet {
   
   public ConsoleServlet(ServiceReference httpSR) {
     this.httpSR = httpSR;
+
+    try {
+      expirationTime =  
+	Long.getLong("org.knopflerfish.httpconsole.expirationtime",  
+		     expirationTime).longValue();
+    } catch (Exception e) {
+      Activator.log.warn("Bad expiration time", e);
+    }
 
     commands = new Command[] {
       new ReloadCommand(),
@@ -324,20 +335,28 @@ public class ConsoleServlet extends HttpServlet {
       session.removeAttribute(USER_OBJ);
     }
 
-    Object userObj = session.getAttribute(USER_OBJ);
+    UserObject userObj = (UserObject)session.getAttribute(USER_OBJ);
+
+    String msg  = null;
     
     if(userObj != null) {
-      return true;
+      if(userObj.hasExpired()) {
+	session.removeAttribute(USER_OBJ);
+	msg = "Session has expired";
+      } else {
+	userObj.touch();
+	return true;
+      }
     }
     
-    String msg  = null;
+
     String user = "";
     if(null != request.getParameter(LOGIN_CMD)) {
       user        = request.getParameter(LOGIN_USER);
       String pwd  = request.getParameter(LOGIN_PWD);
 
       if(isValidUser(user, pwd)) {
-	userObj = new Object();
+	userObj = new UserObject();
 	session.setAttribute(USER_OBJ, userObj);
 	return true;
       }
@@ -399,4 +418,20 @@ public class ConsoleServlet extends HttpServlet {
     return false;
   }
 
+  class UserObject {
+    long touchTime;
+    
+    public UserObject() {
+      touch();
+    }
+    
+    public void touch() {
+      touchTime = System.currentTimeMillis();
+    }
+
+    public boolean hasExpired() {
+      return 
+	(System.currentTimeMillis() - touchTime) > expirationTime;
+    }
+  }
 }
