@@ -4,11 +4,11 @@
 **  http://www.knopflerfish.org
 *******************************************
 
-
    trunk     -   main development trunk
    branches  -   misc development branches
    tags      -   tagged versions
    releases  -   releases
+   issues    -   reserved for possible subissue usage
 
 To check out, use a Subversion client
   http://subversion.tigris.org
