@@ -100,6 +100,7 @@ final class ConfigurationDispatcher {
       return;
     }
     Update u = new Update(sr, pid, factoryPid, cd);
+    
     uq.enqueue(u);
   }
 }

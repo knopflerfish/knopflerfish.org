@@ -126,7 +126,9 @@ final class ConfigurationDictionary extends Dictionary {
   }
 
   public Object get(Object key) {
+
     Object val = originalCase.get(key);
+
     if(val != null) {
       return val;
     }
@@ -136,7 +138,10 @@ final class ConfigurationDictionary extends Dictionary {
     if(originalCaseKey != null) {
       key = originalCaseKey;
     }
-    return originalCase.get(key);    
+
+    val = originalCase.get(key);
+
+    return val;
   }
 
 
@@ -146,6 +151,22 @@ final class ConfigurationDictionary extends Dictionary {
 
   public Enumeration keys() {
     return originalCase.keys();
+  }
+
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("ConfigurationDictionary{");
+    for(Enumeration e = keys(); e.hasMoreElements(); ) {
+      Object key = e.nextElement();
+      Object val = get(key);
+      
+      sb.append(key + "=" + val);
+      if(e.hasMoreElements()) {
+	sb.append(", ");
+      }
+    }
+    sb.append("}");
+    return sb.toString();
   }
 
   public Object put(Object key, Object value) {
@@ -243,7 +264,19 @@ final class ConfigurationDictionary extends Dictionary {
     Enumeration keys = in.keys();
     while(keys.hasMoreElements()) {
       Object key = keys.nextElement();
-      out.put(key, copyValue(in.get(key)));
+
+      Object val = copyValue(in.get(key));
+
+      if(Activator.r3TestCompliant()) {
+	String s     = (String)key;
+	String lower = s.toLowerCase();
+	if(!s.equals(lower)) {
+	  if(null != in.get(lower)) {
+	    key = lower;
+	  }
+	}
+      }
+      out.put(key, val);
     }
     return out;
   }
@@ -301,7 +334,24 @@ final class ConfigurationDictionary extends Dictionary {
       } catch(IllegalArgumentException e) {
         throw new IllegalArgumentException("The value for key " + key + " is not of correct type: " + e.getMessage());
       }
+
+      
+      /*
+      if(Activator.r3TestCompliant()) {
+	String s     = (String)key;
+	String lower = s.toLowerCase();
+	if(!s.equals(lower)) {
+	  if(null != dictionary.get(lower)) {
+	    throw new IllegalArgumentException("key '" + s + "'" + 
+					       " also appears with different " + 
+					       "case '" + lower + "'");
+	  }
+	}
+      }
+      */
+
     }
+
   }
 
   static private void validateValue(Object value) throws IllegalArgumentException {
