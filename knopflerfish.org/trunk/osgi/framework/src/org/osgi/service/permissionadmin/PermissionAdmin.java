@@ -1,6 +1,4 @@
 /*
- * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/framework/src/org/osgi/service/permissionadmin/PermissionAdmin.java,v 1.1.1.1 2004/03/05 20:35:29 wistrand Exp $
- *
  * Copyright (c) The Open Services Gateway Initiative (2001, 2002).
  * All Rights Reserved.
  *

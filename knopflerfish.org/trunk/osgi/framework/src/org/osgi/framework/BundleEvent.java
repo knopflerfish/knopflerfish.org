@@ -1,6 +1,4 @@
 /*
- * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/framework/src/org/osgi/framework/BundleEvent.java,v 1.1.1.1 2004/03/05 20:35:27 wistrand Exp $
- *
  * Copyright (c) The Open Services Gateway Initiative (2000-2001).
  * All Rights Reserved.
  *

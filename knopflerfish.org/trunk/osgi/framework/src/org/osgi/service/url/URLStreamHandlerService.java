@@ -1,6 +1,4 @@
 /*
- * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/framework/src/org/osgi/service/url/URLStreamHandlerService.java,v 1.1.1.1 2004/03/05 20:35:30 wistrand Exp $
- *
  * Copyright (c) 2002 - IBM Corporation
  * All Rights Reserved.
  * 	
