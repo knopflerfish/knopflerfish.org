@@ -1,0 +1,9 @@
+-Dorg.osgi.provisioning.spid=knopflerfish
+
+-Dorg.knopflerfish.framework.debug.packages=false
+-Dorg.knopflerfish.framework.debug.errors=true
+-Dorg.knopflerfish.framework.debug.classloader=false
+-Dorg.osgi.framework.system.packages=
+-Dorg.knopflerfish.gosg.jars=file:jars/
+
+-launch 0

@@ -1,0 +1,178 @@
+1 You can drag and drop a bundle jar file into the Desktop.
+When a bundle jar files is dropped into the Deskstop, it will be installed
+and started.
+
+----
+2 Individual bundle logs can be viewed.
+By selecting any bundle from the main bundle area, that bundle's log is 
+displayed in the bundle detail area.
+
+----
+3 All bundle logs can be viewed in a single display.
+By <b>unselecting all</b> bundles in the main bundle area, all log entries
+are displayed in the bundle detail area.
+<p>
+Unselecting bundles can be done from the Desktop Edit menu
+<p>
+ Edit - Unselect all
+</p>
+</p>
+
+----
+4 The Desktop can remotely control another framework
+If you install the optional SOAP remote connectivity kit, the Desktop
+can be used to remotely control another framework.
+<p>
+Read more about the SOAP kit at
+</p>
+<p>
+<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt</a>
+</p>
+
+----
+5 The console can be accessed remotely using telnet
+The <i>consoletelnet</i> bundle, which is installed by default allows
+remote acces to a framework using any telnet client.
+
+----
+6 Bundle packages need to be refreshed after update
+To make sure all exported classes are refreshed after a bundle update,
+you should <i>refresh</i> the packages. The Desktop bundle menu or console
+both have refresh commands.
+
+<p>
+Menu:
+<p>
+ Bundle - Refresh bundle packages
+</p>
+</p>
+
+<p>
+Console:
+<p>
+ &gt; /framework refresh
+</p>
+</p>
+
+----
+7 The Knopflerfish Desktop can be run on other OSGi frameworks.
+Just install and start the Desktop and util bundle jars on the target
+framework.
+
+----
+8 Bundles can have custom icons in the Desktop view
+A bundle develpoer can specify a custom icon resource using 
+the <i>Application-Icon</i> manifest attribute.
+
+----
+9 New Desktop views can be installed
+A developer can write a bundle exporting a Desktop plugin service.
+See <i>org.knopflerfish.service.desktop</i> javadoc for more info.
+
+----
+10 A bundle's start level can be changed
+Select the bundle, the the menu <i>Bundle - Start level - [new level]
+
+----
+11 New console commands can be installed
+
+A developer can write a bundle defining new console commands. See
+<p>
+<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/readme.txt</a>
+</p>
+
+----
+12  <i>Masiakasaurus knopfleri</i> probably ate fish
+The fossilized teeth of <i>Masiakasaurus knopfleri</i> indicates that the 
+Madagascarian dinosaur could have eaten fish. And enjoyed it.
+
+----
+13 An online Knopflerfish discussion forum is available
+Sourceforge hosts a Knopflerfish discussion forum. See 
+<p>
+<a href="https://sourceforge.net/forum/forum.php?forum_id=328005">https://sourceforge.net/forum/forum.php?forum_id=328005</a>
+</p>
+
+----
+14 Knopflerfish doesn't really mean anything
+But it's hard to spell and sounds nice
+
+----
+15 The System.out and System.err streams is logged in the OSGi log
+The System.out stream is logged on the system bundle as INFO events.
+The System.err stream is logged as ERROR events.
+
+----
+16 The optional commons-logging bundle provides the Apache Commons Logging API
+
+If you install the commons-logging bundle (from the optional package)
+a bundle (or lib) can use the Apache commons logging API with all
+logs sent to the OSGi log. The log entries are found on the log bundle.
+<p>
+See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt</a>
+</p>
+
+----
+17 The entire Knopflerfish source is available in a Subversion repository
+
+Knopflerfish uses Subversion as version control system for all its
+files. The repository can be browsed at
+<p>
+ <a href="https://www.knopflerfish.org/svn">https://www.knopflerfish.org/svn</a></p>
+
+<p>
+For example, this entire tip file is available at
+</p>
+<p>
+<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/resources/tips.txt</a>
+
+----
+18 This Desktop is just another OSGi bundle
+The Desktop bundle is a normal bundle, using Swing to display it's interface.
+<p>
+As long as the JVM supports swing, nothing pvents you from writing your own 
+swing bundles. Do close your windows yourself, though ;)
+</p>
+
+----
+19 This dialog doesn't block the main window
+
+You can have the tip dialog open at the same time you work with
+the main Desktop window.
+
+----
+20 All system properties can be viewed from the Desktop
+
+Open the "Framework info" dialog using the Desktop Help menu.
+<p>
+ Help - Framework info
+</p>
+
+----
+21 All console commands have automatic shortcuts
+
+Each console command can be shortened to the shortest unique
+string.
+<p>
+For example "/framework update 15" can be shortened to
+<p>
+ &gt; /fr up 15
+</p>
+</p>
+
+----
+22 You can copy the log to the clipboard
+
+The log can be copied to the clipboard, by showing the log detail view
+and right-clicking on the log entries. Then select "Copy log to clipboard".
+<p>
+The log can then be pasted as text into your favorite editor.
+</p>
+
+----
+23 The platform name is defined using a system property
+
+The system property <i>org.osgi.provisioning.spid</i> is used to define
+the platform name. This name is displayed in the Desktop window's title
+bar.
+
