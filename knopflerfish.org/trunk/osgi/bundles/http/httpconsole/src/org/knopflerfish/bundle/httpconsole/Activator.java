@@ -99,7 +99,7 @@ public class Activator implements BundleActivator {
       return; // already done
     }
 
-    log.info("set root for " + sr);
+    log.info("set httconsole servlet for " + sr + " at " + SERVLET_ALIAS);
 
     HttpService http = (HttpService)bc.getService(sr);
 
@@ -140,7 +140,7 @@ public class Activator implements BundleActivator {
       return; // nothing to do
     }
 
-    log.info("unset root for " + sr);
+    log.info("unset httpconsole servlet for " + sr);
     
     HttpService http = (HttpService)bc.getService(sr);
     
