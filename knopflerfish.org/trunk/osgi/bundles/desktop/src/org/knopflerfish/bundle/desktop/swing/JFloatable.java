@@ -84,6 +84,12 @@ public class JFloatable extends JPanel {
   JFrame     frame = null;
   JButton    buttonInfo;
 
+  boolean    bAutoClose = true;
+
+  Point      frameLocation = null;
+  Dimension  frameSize     = null;
+
+
   JFloatable(JComponent main, String title) {
     super(new BorderLayout());
     this.main   = main;
@@ -117,9 +123,11 @@ public class JFloatable extends JPanel {
 	public void ancestorMoved(AncestorEvent event) {
 	}
 	public void ancestorRemoved(AncestorEvent event) {
-	  if(frame != null) {
-	    frame.setVisible(false);
-	    frame = null;
+	  if(bAutoClose) {
+	    if(frame != null) {
+	      frame.setVisible(false);
+	      frame = null;
+	    }
 	  }
 	}
       });
@@ -130,10 +138,15 @@ public class JFloatable extends JPanel {
     top.add(buttonFloat, BorderLayout.EAST);
     add(top, BorderLayout.NORTH);
   }
-  
-  synchronized void doFloat() {
+
+  void setAutoClose(boolean b) {
+    bAutoClose = b;
+  }
+
+  synchronized public void doFloat() {
     if(frame == null) {
       frame = new JFrame(title);
+
       frame.getContentPane().setLayout(new BorderLayout());
       frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       frame.addWindowListener(new WindowAdapter() {
@@ -156,13 +169,27 @@ public class JFloatable extends JPanel {
     Dimension size = main.getPreferredSize();
     size = new Dimension(Math.min(200, size.width),
 			 Math.min(200, size.height));
-    frame.setSize(size);
+    
+    if(frameLocation != null) {
+      frame.setLocation(frameLocation);
+    }
+    if(frameSize != null) {
+      main.setPreferredSize(frameSize);
+    } else {
+      frame.setSize(size);
+    }
+
+
+    //    frame.setSize(size);
     frame.pack();
     frame.setVisible(true);
   }
   
-  synchronized void doUnfloat() {
+  synchronized public void doUnfloat() {
     if(frame != null) {
+      frameLocation = frame.getLocationOnScreen();
+      frameSize     = main.getSize();
+
       frame.getContentPane().remove(main);
       frame.setVisible(false);
       frame = null;
@@ -175,6 +202,14 @@ public class JFloatable extends JPanel {
     invalidate();
     doLayout();
     repaint();
+  }
+
+  public String toString() {
+    return "JFloatable[" + 
+      "title=" + title + 
+      ", main=" + main + 
+      ", frame=" + frame + 
+      "]";
   }
 }
 
