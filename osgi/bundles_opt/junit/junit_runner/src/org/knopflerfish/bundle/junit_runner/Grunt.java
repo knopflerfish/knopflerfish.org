@@ -52,6 +52,8 @@ class Grunt {
     this.bc = bc;
   }
 
+  static final String FILTER_PREFIX = "filter:";
+
   void doGrunt() throws BundleException {
     String tests = System.getProperty("org.knopflerfish.junit_runner.tests");
     String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
@@ -65,8 +67,28 @@ class Grunt {
       outdir = DEFAULT_OUTDIR;
     }
 
+    if(tests.startsWith(FILTER_PREFIX)) {
+      String       filter = tests.substring(FILTER_PREFIX.length());
+      StringBuffer sb     = new StringBuffer();
+      try {
+	ServiceReference[] srl = bc.getServiceReferences(null, filter);
+	for(int i = 0; srl != null && i < srl.length; i++) {
+	  String id = (String)srl[i].getProperty("service.pid");
+	  if(id != null) {
+	    if(sb.length() > 0) {
+	      sb.append(" ");
+	    }
+	    sb.append(id);
+	  }
+	}
+	tests = sb.toString();
+      } catch (Exception e) {
+	throw new BundleException("Filter failed, filter='" + filter + "', err=" + e);
+      }
+    }
+    
     log("tests=" + tests + ", outdir=" + outdir + ", quit=" + bQuit);
-
+    
     File outDir = null;
     try {
       outDir = new File(outdir);

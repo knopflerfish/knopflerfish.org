@@ -21,11 +21,21 @@ org.knopflerfish.junit_runner.tests
  are used as service.pid, when registering JUnit tests into
  the framework.
 
+ A framework filter string can be used instead of a list of service 
+ IDs. To do this, prefix the test list with "filter", for example
+
+   filter:(objectclass=junit.framework.TestSuite)
+
+ To run all tests registered as TestSuites
+
  For each ID, the test is retrecived from the framework using
  the JUnitService (exported from the junit bundle), and the test
  is run. The output is written to
 
   <outdir>/<ID>.xml
+
+ Note that test IDs not present in the framework will still generate
+ test results, but marked as failed.
 
  Default is empty string (no tests are run)
 
