@@ -112,7 +112,7 @@ import java.util.zip.*;
  * <code>[prefix]_all-[suffix].jar</code> and 
  * <code>[prefix]-[suffix].jar</code>, 
  * <b>only</b> 
- * <code>[prefix]-[suffix].jar</code> will be included.
+ * <code>[prefix]-_all-[suffix].jar</code> will be included.
  * </p>
  *
  */
@@ -347,9 +347,6 @@ public class OBRExtractorTask extends Task {
       out.print(Long.toString(file.length()));
       out.println("</bundle-filesize>");
       
-      out.print("  <bundle-updatelocation>");
-      out.print(baseURL + path);
-      out.println("</bundle-updatelocation>");
 
       out.println(" </bundle>");
 
