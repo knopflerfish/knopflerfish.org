@@ -89,15 +89,11 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
     this.log = log;
     this.transactionManager = transactionManager;
     this.bc = bc;  
-
-    System.out.print("created socket Listener");    
   }
 
   public void updated() throws ConfigurationException 
   {
 
- System.out.print("update called");
-      
     final Boolean requireClientAuth = Boolean.FALSE; //TODO new Boolean(httpConfig.getClientAuthentication());
     
     //the following if statements prevents unnecessary calls to init (nothing changed)
@@ -189,7 +185,8 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
      
      if (this.socket != null)
      {
-        log.warn("SEVERAL  SSLServerSocketFactories are available, selection random");
+        if (log.doWarn())
+        	log.warn("SEVERAL  SSLServerSocketFactories are available, selection random");
         return null; //do not track
      }
      
@@ -222,6 +219,7 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
 		
         } catch (Exception ex) 
         {
+            ex.printStackTrace();
 			log.error("creating ssl socket on server:", ex);
         }
          
@@ -283,7 +281,8 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
     	ServiceReference sRef,
     	Object arg1)
     {
-        log.debug("SSLFactory Security service was removed.");
+        if (log.doDebug())
+            log.debug("SSLFactory Security service was removed.");
 
         uninit();
         
@@ -301,9 +300,11 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
     //TE not sure what this setting the port is for
     //httpConfig.setPort(port);
 
-    if (log.doInfo()) log.info("Http server started on port " + port);
+    String sch = httpConfig.getScheme().toUpperCase();
+    
+    if (log.doInfo()) log.info(sch + " server started on port " + port);
 
-    thread = new Thread(this, "HttpServer:" + port);
+    thread = new Thread(this, sch + " server:" + port);
     thread.start();
 
 
