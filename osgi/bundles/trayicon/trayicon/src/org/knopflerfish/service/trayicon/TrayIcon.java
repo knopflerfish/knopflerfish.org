@@ -50,6 +50,9 @@ import javax.swing.JPopupMenu;
  * </p>
  *
  * <p>
+ * This interface extends <tt>MouseListener</tt> and <tt>ActionListener</tt>.
+ * The methods in thise interfaces will be called appropiately at mouse or
+ * action events on the actual tray icon.
  * </p>
  */
 public interface TrayIcon 
@@ -85,7 +88,19 @@ public interface TrayIcon
   public String getStartupMessage();
 
   /**
-   * Get menu for this item. Can be null.
+   * Get menu for this item. <tt>null</tt> if no menu should be displayed.
+   *
+   * <p>
+   * <b>Note</b>: The menu instance returned by this method may, or may not
+   * be used directly for display. Depending on the implementation
+   * of tray icons, the returned menu may be wrapped or copied into
+   * another structure. The returned swing menu should in this case be viewed
+   * as menu data model, rather than a menu view.
+   * </p>
+   * <p>
+   * <tt>ActionListeners</t> and <tt>getText/setText/getState/setState</tt>
+   * on the original, returned instance are however guaranteed to work.
+   * </p>
    *
    */
   public JPopupMenu getTrayJPopupMenu();
