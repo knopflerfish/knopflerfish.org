@@ -27,6 +27,7 @@
   <property name="bundle.name"          value="Tray Icon Manager"/>
   <property name="bundle.category"      value="service"/>
   <property name="bundle.version"       value="1.0.0"/>
+  <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/readme.txt"/>
   <property name="bundle.classpath"     value=".,trayicon.jar"/>
   <property name="export.package"       value="com.jeans.trayicon,org.knopflerfish.service.trayicon"/>
   <property name="import.package"       value="org.osgi.framework,org.knopflerfish.service.log"/>
