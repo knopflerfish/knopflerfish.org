@@ -31,8 +31,9 @@ Each log entry is logged as
  {log name}/message
 
 Note that this bundle converts calls using the commons logging API into
-logs stored by the OSGi log service, not the other way around! This means you still need a log implementation to get persistent logs. This bundle does, 
-however, reverert gracefully to stdout of no such service is found.
+logs stored by the OSGi log service, not the other way around! This means 
+you still need a log implementation to get persistent logs. This bundle
+does, however, revert gracefully to stdout of no such service is found.
 
 Having a log implementation using, for example Log4J, is yet to be done.
 
