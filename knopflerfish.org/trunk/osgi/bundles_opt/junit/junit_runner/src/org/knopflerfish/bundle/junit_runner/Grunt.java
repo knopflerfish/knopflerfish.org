@@ -43,7 +43,7 @@ import org.knopflerfish.service.junit.*;
 import junit.framework.*;
 import java.io.*;
 
-class Grunt {
+class Grunt  {
   static final String FILTER_PREFIX  = "filter:";
   static final String DEFAULT_OUTDIR = "junit_grunt";
   static final String DEFAULT_TESTS  = "filter:(objectclass=junit.framework.TestSuite)";
@@ -56,10 +56,37 @@ class Grunt {
   }
 
   void doGrunt() throws BundleException {
+    Thread t = new Thread() {
+	public void run() {
+	  try {
+	    doRun();
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
+	}
+      };
+    t.start();
+  }
+
+  public void doRun() throws Exception {
     String tests = System.getProperty("org.knopflerfish.junit_runner.tests");
     String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
     boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
-
+    boolean bWait = "true".equals(System.getProperty("org.knopflerfish.junit_runner.wait"));
+    
+    if(bWait) {
+      Bundle system = bc.getBundle(0);
+      log("Wait for framework start");
+      int n = 100;
+      while(system.getState() != Bundle.ACTIVE) {
+	Thread.sleep(500);
+	n--;
+	if(n <= 0) {
+	  throw new InterruptedException("Framework failed to start in a reasonable time");
+	}
+      }
+      log("Framework start complete");
+    }
     if(tests == null) {
       tests = DEFAULT_TESTS;
     }
@@ -185,7 +212,7 @@ class Grunt {
       }
     }
   }
-    
+  
   void log(String msg) {
     System.out.println("junit_runner: " + msg);
   }
