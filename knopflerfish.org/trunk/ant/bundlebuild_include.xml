@@ -372,6 +372,7 @@
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
     
   </bundlemanifest>
 
@@ -454,6 +455,7 @@
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
