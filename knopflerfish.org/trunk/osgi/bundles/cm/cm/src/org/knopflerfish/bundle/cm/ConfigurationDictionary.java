@@ -267,12 +267,15 @@ final class ConfigurationDictionary extends Dictionary {
 
       Object val = copyValue(in.get(key));
 
-      if(Activator.r3TestCompliant()) {
-	String s     = (String)key;
-	String lower = s.toLowerCase();
-	if(!s.equals(lower)) {
-	  if(null != in.get(lower)) {
+
+      String s     = (String)key;
+      String lower = s.toLowerCase();
+      if(!s.equals(lower)) {
+	if(null != in.get(lower)) {
+	  if(Activator.r3TestCompliant()) {
 	    key = lower;
+	  } else {
+	    throw new IllegalArgumentException("same key exists with different case: " + key + "/" + lower);
 	  }
 	}
       }
