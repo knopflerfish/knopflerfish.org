@@ -133,6 +133,12 @@ div.compBody {
   padding: 4px ; margin: 0em;
 }
 
+.discussion {
+  padding: 4px; 
+  margin: 0em;
+  font-style: italic;
+  background-color: #eeeeee;
+}
                    
 
 </style>
@@ -330,10 +336,10 @@ elements. Each of these is optional.
 </p>
 
 <p>
-Services and factories are specified as <code>complexType</code> inside the
-<code>schema</code> element. The only difference between a service and a
+Services and factories are specified as <code>complexType</code> elements 
+inside the <code>schema</code> element. The only difference between a service and a
 factory definition is the <code>maxOccurs</code> value. A factory may occur
-more than one time in a value document, a service just once.
+more than once in a value document, a service just once.
 </p>
 
 <p>
@@ -353,13 +359,21 @@ definition containing a set of attribute definitions.
  
   &lt;xsd:schema&gt;
 
-   &lt;xsd:complexType name="ServiceOrFactoryID"&gt;
+   &lt;xsd:complexType name      = "ServiceID"
+                    maxOccurs = "1"&gt;
+     ...
+   &lt;/xsd:complexType&gt;
+   ...
+
+   &lt;xsd:complexType name      = "FactoryID"
+                    maxOccurs = "unbounded"&gt;
      ...
    &lt;/xsd:complexType&gt;
    ...
 
   &lt;/xsd:schema&gt;
 
+  &lt;!-- optional default values --&gt;
   &lt;metatype:values&gt;
     ...
   &lt;/metatype:values&gt;
@@ -422,6 +436,16 @@ specification</div>
 <p>
 Vector and arrays are specified using the <code>&lt;xsd:sequence&gt;</code>
 element. The default format is vector.
+</p>
+
+<p>
+<div class="discussion">Discussion: Is it better to use arrays as default format? <p>
+The nice thing
+with arrays is that they have a well-defined item class even if empty. Arrays
+are also easier to use for a ManagedService since the can avoid verbose
+<code>to&lt;Type&gt;()</code> calls.
+</p>
+</div>
 </p>
 
 <div class="exampleOuter">
