@@ -141,7 +141,7 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
 
     public void setBundle(Bundle b) {
       try {
-	MTP mtp = Activator.sysMTP.getMTP(b);
+	MTP mtp = Activator.getMTP(b);
 	jcmInfo.setProvider(mtp, mtp, b);
       } catch (Exception e) {
 	Activator.log.error("Failed to get MTP from bundle " + 
