@@ -55,7 +55,7 @@ Console:
 </p>
 
 ----
-7 The Knopferfish Desktop can be run on other OSGi frameworks.
+7 The Knopflerfish Desktop can be run on other OSGi frameworks.
 Just install and start the Desktop and util bundle jars on the target
 framework.
 
@@ -168,3 +168,4 @@ and right-clicking on the log entries. Then select "Copy log to clipboard".
 <p>
 The log can then be pasted as text into your favorite editor.
 </p>
+
