@@ -64,10 +64,12 @@ public class JUnpackWizard extends JWizard {
 		       final File destDir, 
 		       final long nBytes, 
 		       final int nFiles) {
-    super(Strings.fmt("frame_title", Main.theMain.version));
+    super(Main.theMain.windowTitle != null 
+	  ? Main.theMain.windowTitle
+	  : Strings.fmt("frame_title", Main.theMain.version));
     
     this.nBytes = nBytes;
-
+    
     info = new JTextPane();
     info.setContentType("text/html");
     info.setFont(getFont());
