@@ -7,6 +7,7 @@
   <li><a href="#services">Using services</a>
   <li><a href="#dataaccess">Bundle data access</a>
   <li><a href="#win32">Win32 tips</a>
+  <li><a href="#optimizing">Optimizing startup time, memory or disk usage</a>
   <li><a href="#custom">Details on the included ant build system</a>
   <li><a href="svn.html">Using the Subversion repository</a>
 </ol>
@@ -229,7 +230,7 @@ public class <b>Activator</b> implements BundleActivator {
   <tr>
     <td valign=top>
 <p>
-<b>Do</b> use normal package name conventions. A good convention is to suffix
+<b>Do</b> use normal package name conventions. One convention is to suffix
 the implementation parts of bundle with <tt>.impl</tt>
 </p>
 
@@ -263,9 +264,10 @@ public class <b>Activator</b> implements BundleActivator {
 
   <tr>
     <td valign=top>
-      You can use a <b>static</b> <code>BundleContext</code> in the <code>Activator</code> class.<br>
-      There is really no need for passing around <code>bc</code> by parameter to 
-      all internal classes. The same trick should be used for
+      You can use a <b>static</b> <code>BundleContext</code> in the 
+      <code>Activator</code> class.<br>
+      There is really no need for passing around <code>bc</code> by 
+      parameter to all internal classes. The same trick should be used for
       other <b>singular</b> common objects as the log service tracker.
     </td>
     <td valign=top>
@@ -315,8 +317,8 @@ public void stop(BundleContext bc) {
   <tr>
     <td valign=top>
       <b>Do</b> deallocate
-      any other resources as threads or (gah!) Swing windows. They are <b>not</b> stopped
-      or closed automatically.
+      any other resources as threads or (gah!) Swing windows. 
+      They are <b>not</b> stopped or closed automatically.
     </td>
     <td valign=top>
       <pre>
@@ -407,7 +409,8 @@ public class Activator implements BundleActivator {
       }
     };
 
-    // BundleActivator methods now hidden from outside access.
+    // BundleActivator methods now hidden 
+    // from outside access.
     bc.registerService(ManagedService.class.getName(),
                        mg, props);
                        
@@ -469,7 +472,7 @@ from that thread.
 <p>
 It is <b>not</b> recommended to set the context class loader on the startup
 thread, since that might not be unique for your bundle. Effects might
-be implementation specific depending on OSGi vendor.
+vary depending on OSGi vendor.
 </p>
 </td>
 <td>
@@ -477,13 +480,16 @@ be implementation specific depending on OSGi vendor.
 public class Activator implements BundleActivator {
    public void start(BundleContext bc) {
 
-     final ClassLoader classLoader = getClass().getClassLoader();         
+     final ClassLoader classLoader = 
+        getClass().getClassLoader();         
 
      Thread thread = new Thread() {
        public void run() {
-         Thread.currentThread().setContextClassLoader(classLoader);
+         Thread.currentThread()
+           .setContextClassLoader(classLoader);
          ...
-         // do any work that uses the context class loader, like :
+         // do any work that uses the context 
+         // class loader, like :
          context.lookup("QueueConnectionFactory");
        }
      };
@@ -517,13 +523,16 @@ Thanks to Rob Evans for this example.
     <td valign=top>
       <pre>
   ServiceTracker logTracker =
-    new ServiceTracker(bc, LogService.class.getName(), null);
+    new ServiceTracker(bc, 
+                       LogService.class.getName(), 
+                       null);
   logTracker.open();
 
   // this might throw a NullPointerException
   // if the log is not available
   (LogService)logTracker
-    .getService().log(LogService.LOG_INFO, "Hello log");
+    .getService().log(LogService.LOG_INFO, 
+                      "Hello log");
 
 </pre>
     </td>
@@ -536,7 +545,7 @@ Thanks to Rob Evans for this example.
   <tr>
     <td valign=top>
       If you really need to act on multiple service appearing and
-      disappearing, a <tt>ServiceListener<tt> is preferred.
+      disappearing, a <tt>ServiceListener</tt> is preferred.
       <p>
     </td>
     <td valign=top>
@@ -558,19 +567,24 @@ Thanks to Rob Evans for this example.
     }
   };
     
-  String filter = "(objectclass=" + HttpService.class.getName() + ")";
+  String filter = 
+   "(objectclass=" + HttpService.class.getName() + ")";
 
   try {
     bc.addServiceListener(listener, filter);
 
     // get all already registered services.
-    ServiceReference[] srl = bc.getServiceReferences(null, filter);
+    ServiceReference[] srl = 
+      bc.getServiceReferences(null, filter);
+
     for(int i = 0; srl != null && i < srl.length; i++) {
-      listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
-                              srl[i]));
+      listener.serviceChanged(
+          new ServiceEvent(ServiceEvent.REGISTERED,
+          srl[i]));
     }
   } catch (Exception e) {
-     log.error("Failed to set up listener for http service", e);
+     log.error("Failed to set up listener for http", 
+               e);
   }
 </pre>
     </td>
@@ -594,9 +608,11 @@ Thanks to Rob Evans for this example.
     </td>
     <td valign=top>
       <pre>
-// Get the bundle's manifest file using the bundle class loader 
+// Get the bundle's manifest file using the 
+// bundle class loader 
 InputStream in = 
-  getClass().getResourceAsStream("/META-INF/MANIFEST.MF");
+  getClass()
+   .getResourceAsStream("/META-INF/MANIFEST.MF");
 ..
 </pre>
     </td>
@@ -614,8 +630,8 @@ InputStream in =
     <td valign=top>
       <pre>
  // Get the bundle's raw manifest file using an URL 
- // Syntax: (jar number represents internal jars, where 0 is
- //          the top level jar)
+ // Syntax: (jar number represents internal jars, 
+ // where 0 is the top level jar)
  //  "bundle://&lt;bundle id&gt;:&lt;jar number&gt;&lt;path&gt;"
  String s = 
    "bundle://" + bc.getBundle().getBundleId() + ":0" + 
@@ -951,3 +967,44 @@ the standard bundle build.
   &lt;/jar&gt;
 &lt;/target&gt;
 </pre>
+
+<a name="optimizing"></a>
+<h3>Optimizing startup time, memory or disk usage</h3>
+
+The Knopflerfish framework can be started in either disk-optimizing or
+memory-optimizing modes. This is useful for systems with lowe memory or 
+small or slow disks. It also affects the startup time for the farmework.
+
+The following apply:
+
+<ol>
+ <li>If you need quick startup, rememeber that initial startup is always
+     much slower than a restart, so
+     a avoid deleting the <tt>fwdir</tt> bundle storage directory, if 
+     possible. 
+
+ <li> Jar unpacking to disk costs time and disk space. When you
+    have a slow write-disk (as flash mem) this is really
+    notable. 
+ 
+<p>
+    As a solution, memory can be used as bundle storage
+    instead of disk. Just start with
+</p>
+<pre>
+     -Dorg.knopflerfish.framework.bundlestorage=memory
+</pre>
+<p>
+    This has the side-effect of not making the bundles persistent,
+    so the 1) case does no longer apply. Also, this means that
+    the one part of OSGi compliance is lost.
+</p>
+
+ <li> Jar-files inside of bundles tend to take longer time than
+    unpacked class files. This is related to 2) since they must
+    be extracted from the bundle to be accessed.
+<p>
+    A work-around is to manually unpack a lib jar file and add it
+    to a bundle (instead of referencing the .jar from <tt>Bundle-Classpath</tt>) 
+</p>
+</ol>
