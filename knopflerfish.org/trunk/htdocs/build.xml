@@ -45,7 +45,7 @@
       <param name="fromfile" value="html_src/index_main.html"/>
       <param name="tofile"   value="index.html"/>
       <param name="title"    value="Knopflerfish OSGi"/>
-      <param name="desc"     value="The Knopflerfish OSGi framework is complete, open source, OSGi R3 framework"/>
+      <param name="desc"     value="The Knopflerfish OSGi framework is a complete, open source, OSGi R3 framework"/>
       <param name="CLASS_NAVIGATION_INDEX" value="navigation_disabled"/>
     </antcall>
 
