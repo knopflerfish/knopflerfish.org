@@ -39,7 +39,7 @@ import org.osgi.util.tracker.*;
 import org.osgi.service.packageadmin.*;
 import org.knopflerfish.service.log.*;
 
-import java.util.Hashtable;
+import java.util.*;
 import org.knopflerfish.service.desktop.*;
 
 import org.knopflerfish.service.remotefw.RemoteFramework;
@@ -88,6 +88,8 @@ public class Activator implements BundleActivator {
 
   static ServiceTracker remoteTracker;
 
+  Map displayers = new HashMap();
+
   public void start(BundleContext _bc) {
     this.bc        = _bc;
     this.log       = new LogRef(bc);
@@ -98,7 +100,11 @@ public class Activator implements BundleActivator {
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
     pkgTracker.open();
-    
+
+    openDesktop();
+  }
+
+  void openDesktop() {
     // Spawn to avoid racing conditions in resource loading
     Thread t = new Thread(new Runnable() {
 	public void run() {
@@ -107,45 +113,56 @@ public class Activator implements BundleActivator {
 
 	  DefaultSwingBundleDisplayer disp;
 
+	  ServiceRegistration reg;
+
 	  // bundle displayers
 	  disp = new LargeIconsDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  disp = new TimeLineDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  disp = new TableDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  disp = new SpinDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  // detail displayers
 	  disp = new ManifestHTMLDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  disp = new ClosureHTMLDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  disp = new ServiceHTMLDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 	  disp = new PackageHTMLDisplayer(getTargetBC());
 	  disp.open();
-	  disp.register();
+	  reg = disp.register();
+	  displayers.put(disp, reg);
 
 
 	  if(getBC() == getTargetBC()) {
 	    disp = new LogDisplayer(getTargetBC());
 	    disp.open();
-	    disp.register();
+	    reg = disp.register();
+	    displayers.put(disp, reg);
 	  }
 
 	  // We really want this one to be display.
@@ -158,13 +175,30 @@ public class Activator implements BundleActivator {
 
   }
 
-  public void stop(BundleContext bc) {
+  void closeDesktop() {
     try {
+      for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
+	DefaultSwingBundleDisplayer disp 
+	  = (DefaultSwingBundleDisplayer)it.next();
+	ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
+	
+	disp.unregister();
+	disp.close();
+      }
+      displayers.clear();
       if(desktop != null) {
 	desktop.stop();
 	desktop = null;
       }
-      
+    } catch (Exception e) {
+      log.error("Failed to close desktop", e);
+    }
+  }
+
+  public void stop(BundleContext bc) {
+    try {
+      closeDesktop();
+
       if(log != null) {
 	log = null;
       }
