@@ -69,17 +69,42 @@ public:
 clean:
 	rm -rf ${TAG}
 
-
 run_tests:
+	${MAKE} run_tests_pre
+	${MAKE} run_tests1
+	${MAKE} run_tests2
+	${MAKE} run_tests_post
+
+
+run_tests_pre:
 	mkdir -p ${TAG}/osgi/junit_grunt
+
+run_tests_post:
+	cp -r \
+		${TAG}/osgi/junit_grunt \
+		${OUT_DIR}
+
+run_tests1:
 	(\
 	cd ${TAG}/osgi && \
 	${JAVA} -jar framework.jar -xargs init-tests.xargs \
 		> junit_grunt/out.txt 2>&1 \
 	)
-	cp -r \
-		${TAG}/osgi/junit_grunt \
-		${OUT_DIR}
+
+
+run_tests2:
+	(\
+	cd ${TAG}/osgi && \
+	${JAVA} -jar framework.jar -init \
+	-xargs bundles_test/regression_tests/restart_test/test-restart1.xargs \
+		>> junit_grunt/out.txt 2>&1 \
+	)
+	(\
+	cd ${TAG}/osgi && \
+	${JAVA} -jar framework.jar  \
+	-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs \
+		>> junit_grunt/out.txt 2>&1 \
+	)
 
 
 
