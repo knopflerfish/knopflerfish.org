@@ -19,6 +19,7 @@
     <ant dir="bundleP2_test"            target="all"/>
     <ant dir="bundleP3_test"            target="all"/>
     <ant dir="bundleR_test"             target="all"/>
+    <ant dir="bundleQ_test"             target="all"/>
     <ant dir="bundleR1_test"            target="all"/>
     <ant dir="bundleR2_test"            target="all"/>
     <ant dir="bundleR3_test"            target="all"/>
@@ -55,6 +56,7 @@
     <ant dir="bundleP1_test"           target="clean"/>
     <ant dir="bundleP2_test"           target="clean"/>
     <ant dir="bundleP3_test"           target="clean"/>
+    <ant dir="bundleQ_test"           target="clean"/>
     <ant dir="bundleR_test"            target="clean"/>
     <ant dir="bundleR1_test"           target="clean"/>
     <ant dir="bundleR2_test"           target="clean"/>
