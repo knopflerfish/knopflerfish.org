@@ -75,6 +75,23 @@ public class Activator implements BundleActivator {
     return remoteBC;
   }
 
+  public static Map getSystemProperties() {
+    if(getTargetBC() != getBC()) {
+      RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
+      return rc.getSystemProperties(getTargetBC());
+    } else {
+      Properties props = System.getProperties();
+      Map map = new HashMap();
+
+      for(Enumeration e = props.keys(); e.hasMoreElements();) {
+	String key = (String)e.nextElement();
+	String val = (String)props.get(key);
+	map.put(key, val);
+      }
+      return map;
+    }
+  }
+
   static String remoteHost = "local";
 
   public static BundleContext openRemote(String host) {
