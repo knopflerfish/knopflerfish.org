@@ -95,7 +95,7 @@ class DesktopPanel extends Panel implements BundleListener {
     cardPanel.add(console.panel, "console");
     cardLayout.addLayoutComponent("console", console.panel);
 
-    cardPanel.add(openPanel, "opem");
+    cardPanel.add(openPanel, "open");
     cardLayout.addLayoutComponent("open", openPanel);
 
     statusBar = new StatusBar();
@@ -543,6 +543,19 @@ class DesktopPanel extends Panel implements BundleListener {
 
   }
 
+  Container shutdownPanel = null;
+
+  void shutdown() {
+    if(shutdownPanel == null) {
+      shutdownPanel = new ShutdownPanel();
+      cardPanel.add(shutdownPanel, "shutdown");
+      shutdownPanel.doLayout();
+      shutdownPanel.invalidate();
+      cardLayout.addLayoutComponent("shutdown", shutdownPanel);
+    }
+    cardLayout.show(cardPanel, "shutdown");
+  }
+
   static final int ACTION_ID_BUNDLES_ID = 0;
   static final int ACTION_ID_BUNDLES_NAME = 1;
   static final int ACTION_ID_BUNDLES_STATE = 2;
@@ -580,11 +593,7 @@ class DesktopPanel extends Panel implements BundleListener {
       refreshBundles(null);
       break;
     case ACTION_ID_SHUTDOWN:
-      try {
-        Activator.bc.getBundle(0).stop();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      shutdown();
       break;      
     case ACTION_ID_BUNDLE_START:
       startBundles();

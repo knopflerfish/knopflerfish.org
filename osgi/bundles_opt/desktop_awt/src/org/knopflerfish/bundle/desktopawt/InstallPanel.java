@@ -151,6 +151,19 @@ public class InstallPanel extends Panel {
         msg.setText("Installed " + url + "\n as bundle #" + b.getBundleId());
       }
     } catch (Exception e) {
+      if(e instanceof BundleException) {
+        Throwable nested = ((BundleException)e).getNestedException();
+        if(nested instanceof java.util.zip.ZipException) {
+          msg.setText(nested.getClass().getName() + "\n" + 
+                      nested.getMessage() + "\n\n" + 
+                      "Not a jar file?");
+          return;
+        } else if(nested instanceof IOException) {
+          msg.setText(nested.getClass().getName() + "\n" + 
+                      nested.getMessage());
+          return;
+        }
+      }
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
       msg.setText(sw.toString());

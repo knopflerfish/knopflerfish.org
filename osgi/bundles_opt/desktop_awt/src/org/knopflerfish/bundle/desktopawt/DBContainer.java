@@ -53,6 +53,7 @@ import java.awt.*;
        memSize = size;
        memImage = createImage(size.width, size.height);
        memG     = null;
+       bNeedRedraw = true;
        if(memImage != null) {
          memG  = memImage.getGraphics();
        } else {
