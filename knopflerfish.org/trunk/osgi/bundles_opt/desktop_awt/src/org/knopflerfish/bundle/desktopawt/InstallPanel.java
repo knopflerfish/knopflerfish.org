@@ -47,6 +47,12 @@ public class InstallPanel extends Panel {
   String defText = "Enter bundle URL\nthen select \"Install\"";
 
   FileDialog fd;
+  FilenameFilter filter = new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        String s = name.toLowerCase();
+        return s.endsWith(".jar") || s.endsWith(".zip");
+      }
+    };
 
   public InstallPanel() {
     super();
@@ -101,11 +107,38 @@ public class InstallPanel extends Panel {
   void browseFile() {
     if( fd == null) {
       fd = new FileDialog(Desktop.frame);
+      fd.setTitle("Select JAR file");
+      fd.setFilenameFilter(filter);
+      try {
+        String dir = System.getProperty("org.knopflerfish.gosg.jars");
+        System.out.println("dir0=" + dir);
+        if(dir != null) {
+          int ix = dir.indexOf("file:");
+          if(ix != -1) {
+            dir = dir.substring(ix + 5);
+          }
+          if(dir.endsWith("/")) {
+            dir = dir.substring(0, dir.length() - 1);
+          }
+          System.out.println("dir=" + dir);
+        } else {
+          dir = ".";
+        }
+        File f = new File(dir);
+        if(f.exists()) {
+          fd.setDirectory(dir);
+        }
+      } catch (Exception e) {
+        System.err.println("Failed to set dir: " + e);
+      }
     }
     fd.show();
-    File f = new File(fd.getDirectory());
-    f = new File(f, fd.getFile());
-    tf.setText("file:" + f.getAbsolutePath());
+    File dir = new File(fd.getDirectory());
+    String name = fd.getFile();
+    if(dir != null && name != null) {
+      File f = new File(dir, name);
+      tf.setText("file:" + f.getAbsolutePath());
+    }
   }
 
   void installBundle(String url) {
