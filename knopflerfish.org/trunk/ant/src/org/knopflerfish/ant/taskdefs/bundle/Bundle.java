@@ -70,6 +70,12 @@ import org.apache.tools.ant.types.ZipFileSet;
  * specified in the task.
  * </p>
  *
+ * <p>
+ * <b>Note:</b> This task depends on the
+ * <a href="http://jakarta.apache.org/bcel/">Apache Jakarta BCEL</a> library,
+ * not included in the Ant distribution.
+ * </p>
+ *
  * <h3>Parameters</h3>
  * <table border="1px">
  *   <tr>
