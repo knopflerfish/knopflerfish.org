@@ -95,3 +95,6 @@ by exporting OSGi service via Axis, and is not complete in terms of
 all possible data types. The primitive types and arrays, are however 
 supported, both as input arguments and as results.
 
+demos
+-----
+Misc demos using the soap service.
