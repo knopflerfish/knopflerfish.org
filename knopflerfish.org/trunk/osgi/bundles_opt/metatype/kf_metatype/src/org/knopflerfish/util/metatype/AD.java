@@ -64,6 +64,7 @@ public class AD implements AttributeDefinition, Comparable {
   String[] optValues;
 
 
+  boolean  bOptional = false;
 
   /**
    * String used for separating array and vector string 
@@ -239,6 +240,13 @@ public class AD implements AttributeDefinition, Comparable {
 
   public int getType() {
     return type;
+  }
+
+  /**
+   * Return true if this attribute is optional.
+   */
+  public boolean isOptional() {
+    return bOptional;
   }
 
   /**
