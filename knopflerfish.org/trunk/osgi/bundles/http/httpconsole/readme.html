@@ -154,9 +154,18 @@ The HTTP console can be configured using system properties:
 
  <dt>org.knopflerfish.httpconsole.alias</dt>
  <dd>Alias for servlet registration. If set to '/', the
-     http root will used for the http console<br/>
+     http root will used for the console<br/>
      Default is <tt>/servlet/console</tt>. 
  </dd>
+
+ <dt>org.knopflerfish.httpconsole.filter</dt>
+ <dd>Filter string for matching HttpServices. This can be used to 
+     only set the console at some registered HttpServices.
+     Default is <tt>(objectclass=org.osgi.service.http.HttpService)</tt>,
+     which will match any http service.
+ </dd>
+
+org.knopflerfish.httpconsole.filter
 
  <dt>org.knopflerfish.httpconsole.requirelogin</dt>
  <dd>If <tt>true</tt>, require login, using name and password.<br/>
@@ -174,7 +183,8 @@ The HTTP console can be configured using system properties:
  </dd>
 
  <dt>org.knopflerfish.httpconsole.expirationtime</dt>
- <dd>Expiration time for login in seconds. <br/>
+ <dd>Expiration time for login sessions, in seconds. After this time,
+     the user will be logged out.<br/>
      Default is 600 (10 minutes)
  </dd>
 

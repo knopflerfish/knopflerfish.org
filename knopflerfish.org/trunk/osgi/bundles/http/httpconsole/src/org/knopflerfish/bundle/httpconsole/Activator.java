@@ -53,6 +53,8 @@ public class Activator implements BundleActivator {
   static String  SERVLET_ALIAS       = "/servlet/console";
   static final String  RES_ALIAS     = "/console/resources";  
 
+  String filter = "(objectclass=" + HttpService.class.getName() + ")";
+
   Hashtable registrations = new Hashtable();
 
 
@@ -65,6 +67,18 @@ public class Activator implements BundleActivator {
       System.getProperty("org.knopflerfish.httpconsole.alias");
     if(alias != null && !"".equals(alias)) {
       SERVLET_ALIAS = alias.trim();
+    }
+
+    String fs = 
+      System.getProperty("org.knopflerfish.httpconsole.filter");
+    if(fs != null && !"".equals(fs)) {
+      // Just do a quick syntax check
+      try {
+	bc.createFilter(fs);
+	filter = fs;
+      } catch (Exception e) {
+	log.warn("Failed to use custom filter", e);
+      }
     }
 
     ServiceListener listener = new ServiceListener() {
@@ -82,8 +96,6 @@ public class Activator implements BundleActivator {
 	}
       };
     
-    String filter = "(objectclass=" + HttpService.class.getName() + ")";
-
     try {
       bc.addServiceListener(listener, filter);
 
