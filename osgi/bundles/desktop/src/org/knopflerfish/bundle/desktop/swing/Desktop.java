@@ -127,6 +127,8 @@ public class Desktop
   ImageIcon          connectIcon;
   ImageIcon          connectIconLarge;
 
+  ImageIcon          tipIcon;
+
   JToolBar           toolBar;
   StatusBar          statusBar;
   JMenuBar           menuBar;
@@ -205,6 +207,9 @@ public class Desktop
 
     prevIcon  = new ImageIcon(getClass().getResource("/player_prev.png"));
     nextIcon  = new ImageIcon(getClass().getResource("/player_next.png"));
+
+
+    tipIcon     = new ImageIcon(getClass().getResource("/idea.png"));
 
     lfManager = new LFManager();
     lfManager.init();
@@ -1216,6 +1221,16 @@ public class Desktop
 	      }
 	    });
 
+	  add(new JMenuItem(Strings.get("menu_tips")) {
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      showTips();
+		    }
+		  });
+	      }
+	    });
+
 	}
       };
   }
@@ -1955,6 +1970,10 @@ public class Desktop
   }
   
   public void stop() {
+    if(tips != null) {
+      tips.setVisible(false);
+      tips = null;
+    }
     frameLocation = frame.getLocationOnScreen();
     frameSize     = frame.getSize();
 
@@ -2021,6 +2040,15 @@ public class Desktop
   }
 
   void updateStatusBar() {
+  }
+
+
+  JTips tips = null;
+  void showTips() {
+    if(tips == null) {
+      tips = new JTips("/tips.html");
+    }
+    tips.setVisible(true);
   }
 
 
