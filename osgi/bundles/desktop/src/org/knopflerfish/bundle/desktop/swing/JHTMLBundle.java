@@ -121,6 +121,12 @@ public abstract class JHTMLBundle extends JPanel  {
 
 		setServiceHTML(sid);
 
+	      } else {
+		try {
+		  Util.openExternalURL(url);
+		} catch (Exception e2) {
+		  Activator.log.error("Failed to open url " + url, e2);
+		}
 	      }
 	    }
 	  }
