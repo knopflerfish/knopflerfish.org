@@ -97,5 +97,10 @@ public class HttpConfigWrapper
     return config.getDefaultCharacterEncoding();
   }
 
+  public boolean requireClientAuth()
+  {
+      return config.requireClientAuth();
+  }
+
 
 }

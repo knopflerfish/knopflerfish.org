@@ -123,4 +123,16 @@ RELEASE NOTES:
     SslServerSocketFactory service to listen on the HTTPS (secure) port.
   - removed non-standard dependencies to the KF's log, user admin 
     and others. 
-
+[te 20050228] 
+  - in HttpConfig fixed minor property bug and removed unnecessary 
+    ManagedService interface
+  - added support for ClientAuthentication.
+    To do that it is required for the SSLServerSocketFactory service 
+    was created with a TrustManagers which contain valid client certs
+    and the HttpService has to have the use client authentication prop
+    enabled and it must end up using this SSLServerSocketFactory 
+    service to create the SSL part.
+    (NOTE: currently the Browser will notice that the socket 
+    establishment failed in the SSL Handshaking due to a bad certificate.
+    An alternative would be to allow the socket first to be established
+    and then return HttpServletResponse.SC_FORBIDDEN.) 

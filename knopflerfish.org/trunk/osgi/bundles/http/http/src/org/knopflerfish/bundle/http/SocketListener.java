@@ -41,7 +41,6 @@ import java.net.UnknownHostException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -68,6 +67,7 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
   private int port = -1;
   private String host = null;
   private int maxConnections = -1;
+  private boolean isSecure = false;
   private boolean isEnabled = false; //initial state of this object is disabled
   private Boolean requireClientAuth = null;
   private String keystoreUrl = null;
@@ -94,10 +94,12 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
   public void updated() throws ConfigurationException 
   {
 
-    final Boolean requireClientAuth = Boolean.FALSE; //TODO new Boolean(httpConfig.getClientAuthentication());
     
     //the following if statements prevents unnecessary calls to init (nothing changed)
-    if (       port == httpConfig.getPort()
+    if (	isSecure = httpConfig.isSecure()
+            && (requireClientAuth != null) 
+            && (requireClientAuth.booleanValue() == httpConfig.requireClientAuth())
+            && port == httpConfig.getPort()
             && httpConfig.getHost().equals(host) 
             && httpConfig.getMaxConnections() == maxConnections 
             && isEnabled == httpConfig.isEnabled()
@@ -106,6 +108,8 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
     	return;
     }
 
+    isSecure = httpConfig.isSecure();
+    requireClientAuth = Boolean.valueOf(httpConfig.requireClientAuth());
     port = httpConfig.getPort();
     host = httpConfig.getHost();
     maxConnections = httpConfig.getMaxConnections();
@@ -139,7 +143,7 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
             
     }
 
-    if (!httpConfig.isSecure())
+    if (!isSecure)
     {  
         //for HTTP create the socket right away AND start 
         try 
@@ -246,6 +250,22 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
   
      }                    
     
+     if (socket != null)
+     {
+         try
+         { 
+	         Class sslSockClass = Class.forName("javax.net.ssl.SSLServerSocket");
+	         Method auth = sslSockClass.getMethod("setNeedClientAuth", new Class[]
+	                        {boolean.class});
+	         auth.invoke(socket, new Object[] {requireClientAuth});
+         
+         } catch (Exception exc)
+         {
+             log.error(exc.toString());
+         }
+     }
+     
+     
      if (socket != null)
      {
         try
