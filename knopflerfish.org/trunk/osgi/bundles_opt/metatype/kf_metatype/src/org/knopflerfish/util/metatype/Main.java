@@ -168,9 +168,9 @@ public class Main {
       }
       MTP mtp = Loader.loadMTPFromURL(null, new URL(urlDef));
       //      System.out.println("loaded metatype XML from " + urlDef);
-      Dictionary pids = new Hashtable();
+      List propList = new ArrayList();
       if(!"".equals(urlVal)) {
-	pids = Loader.loadDefaultsFromURL(mtp, new URL(urlVal));
+	propList = Loader.loadDefaultsFromURL(mtp, new URL(urlVal));
 	//	System.out.println("loaded defaults XML from " + urlVal);
       }
       if(bDumpXML || bDumpValues) {
@@ -180,11 +180,11 @@ public class Main {
 				  mtp.getFactoryPids(),
 				  true, 
 				  true,
-				  bIncludeValues  ? pids : null,
+				  bIncludeValues  ? propList : null,
 				  new PrintWriter(System.out, true));
 	}
 	if(bDumpValues) {
-	  Loader.printValuesXML(pids, 
+	  Loader.printValuesXML(propList, 
 				true,
 				new PrintWriter(System.out, true));
 	}
