@@ -164,58 +164,5 @@ public class VersionNumber implements Comparable
    */
   public int hashCode() {
     return x << 6 + y << 3 + z;
-  }
-  
-  public static void main(String[] argv) {
-    int max = Integer.parseInt(argv[0]);
-    int min = -1;
-
-    VersionNumber target = new VersionNumber(argv[1]);
-
-    Vector vv = new Vector();
-
-    for(int a = 0; a < max; a++) {
-      for(int b = min; b < max; b++) {
-	for(int c = min; c < max; c++) {
-	  VersionNumber v;
-	  if(b >= 0) {
-	    if(c >= 0) {
-	      v = new VersionNumber(a + "." + b + "." + c);
-	    } else {
-	      v = new VersionNumber(a + "." + b);
-	    }
-	  } else {
-	    v = new VersionNumber("" + a);
-	  }
-
-	  System.out.println("created " + v);
-	  vv.add(v);
-	}
-      }
-    }
-
-    QSort.Comparator comp = new QSort.Comparator() {
-	public int compare(Object a, Object b) {
-	  VersionNumber v1 = (VersionNumber)a;
-	  VersionNumber v2 = (VersionNumber)b;
-	  
-	  return -v1.compareToStrict(v2);
-	}
-      };
-
-    QSort.sort(vv, comp);
-
-    for(int i = 0; i < vv.size(); i++) {
-      System.out.println(vv.elementAt(i));
-    }
-
-    for(int i = 0; i < vv.size(); i++) {
-      VersionNumber v = (VersionNumber)vv.elementAt(i);
-      if(v.compareToFuzzy(target) == 0) {
-	System.out.println(target + " == " + v);
-      }
-    }
-    
-  }
-
+  }  
 }
