@@ -47,6 +47,7 @@ import java.awt.*;
 import java.util.*;
 import java.net.URL;
 import java.io.*;
+import java.lang.reflect.*;
 
 /**
  * Utiliy swing component which display bundle info as
@@ -213,6 +214,19 @@ public abstract class JHTMLBundle extends JPanel  {
 	sb.append("</tr>\n");
 	sb.append("</table>");
 
+	try {
+	  Object serviceObj = Activator.bc.getService(srl[0]);
+	  if(serviceObj != null) {
+	    sb.append(formatServiceObject(serviceObj,
+					  (String[])srl[0].getProperty("objectClass")));
+	  }
+	} catch (Exception e) {
+	  sb.append("Failed to format service object: " + e);
+	}
+
+	startFont(sb);
+	sb.append("<b>Properties</b>");
+	sb.append("</font>");
 	sb.append("<table cellpadding=0 cellspacing=1 border=0>");
 	String[] keys = srl[0].getPropertyKeys();
 	for(int i = 0; keys != null && i < keys.length; i++) {
@@ -247,7 +261,88 @@ public abstract class JHTMLBundle extends JPanel  {
 
     setHTML(sb.toString());
   }
-  
+
+  StringBuffer formatServiceObject(Object obj, String[] names) {
+    StringBuffer sb = new StringBuffer();
+    startFont(sb);
+    sb.append("<b>Implemented interfaces</b>");
+    sb.append("<br>");
+    for(int i = 0; i < names.length; i++) {
+      sb.append(names[i]);
+      if(i < names.length -1) {
+	sb.append(", ");
+      }
+    }
+    sb.append("</font>");
+    sb.append("<br>");
+
+    startFont(sb);
+    sb.append("<b>Methods</b>");
+    sb.append("<br>");
+
+    sb.append("<table>");
+    Class clazz = obj.getClass();
+
+    sb.append(formatClass(clazz).toString());
+    sb.append("</table>");
+
+    return sb;
+  }
+
+  StringBuffer formatClass(Class clazz) {
+    Method[] methods = clazz.getDeclaredMethods();
+    StringBuffer sb = new StringBuffer();
+
+    sb.append("<tr>");
+    sb.append("<td colspan=3 valign=top bgcolor=\"#eeeeee\">");
+    startFont(sb);
+    sb.append(clazz.getName());
+    sb.append("</font>");
+    sb.append("</td>");
+    sb.append("</tr>");
+
+    for(int i = 0; i < methods.length; i++) {
+      if(!Modifier.isPublic(methods[i].getModifiers())) {
+	continue;
+      }
+      Class[] params = methods[i].getParameterTypes();
+      sb.append("<tr>");
+
+      sb.append("<td valign=top colspan=3>");
+      startFont(sb);
+      sb.append(className(methods[i].getReturnType().getName()));
+
+      sb.append("&nbsp;");
+      sb.append(methods[i].getName());
+
+      sb.append("(");
+      for(int j = 0; j < params.length; j++) {
+	sb.append(className(params[j].getName()));
+	if(j < params.length - 1) {
+	  sb.append(",&nbsp;");
+	}
+      }
+      sb.append(");");
+      sb.append("</font>");
+      sb.append("</td>");
+
+      sb.append("</tr>");
+    }
+    return sb;
+  }
+
+  String className(String name) {
+    if(name.startsWith("[L") && name.endsWith(";")) {
+      name = name.substring(2, name.length() - 1) + "[]";
+    }
+
+    if(name.startsWith("java.lang.")) {
+      name = name.substring(10);
+    }
+
+    return name;
+  }
+
   /**
    * Override this to provide special bundle info in HTML
    * format.
@@ -442,11 +537,11 @@ public abstract class JHTMLBundle extends JPanel  {
       
       out.println("<tr>");
       
-      out.println("<td>");
+      out.println("<td valign=top>");
       printObject(out, key);
       out.println("</td>");
       
-      out.println("<td>");
+      out.println("<td valign=top>");
       printObject(out, val);
       out.println("</td>");
       
