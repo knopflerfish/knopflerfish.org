@@ -64,7 +64,7 @@ public class JSOAPUI extends JPanel {
     BoxLayout buttonBox = new BoxLayout(buttonPanel, BoxLayout.Y_AXIS);
     buttonPanel.setLayout(new GridLayout(0, 1));
 
-    JButton openHostButton = new JButton("Open to...");
+    JButton openHostButton = new JButton("Connect to...");
     openHostButton.addActionListener(new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  openHost();
