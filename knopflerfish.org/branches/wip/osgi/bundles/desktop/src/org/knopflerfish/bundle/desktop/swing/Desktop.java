@@ -155,7 +155,7 @@ public class Desktop
   public void start() {
 
     slTracker = 
-      new ServiceTracker(Activator.bc, StartLevel.class.getName(), null);
+      new ServiceTracker(Activator.getTargetBC(), StartLevel.class.getName(), null);
 
     slTracker.open();
     
@@ -189,7 +189,7 @@ public class Desktop
     lfManager = new LFManager();
     lfManager.init();
 
-    consoleSwing = new ConsoleSwing(Activator.bc);
+    consoleSwing = new ConsoleSwing(Activator.getTargetBC());
     consoleSwing.start();
 
     toolBar       = makeToolBar();
@@ -263,7 +263,7 @@ public class Desktop
 
     alive = true;
 
-    Bundle[]  bl = Activator.bc.getBundles();
+    Bundle[]  bl = Activator.getTargetBC().getBundles();
     for(int i = 0; i  < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
@@ -291,8 +291,8 @@ public class Desktop
     
     try {
       dispTracker = 
-	new ServiceTracker(Activator.bc, 
-			   Activator.bc.createFilter(dispFilter),
+	new ServiceTracker(Activator.getBC(), 
+			   Activator.getBC().createFilter(dispFilter),
 			   null)
 	{
 	  public Object addingService(ServiceReference sr) {
@@ -383,8 +383,13 @@ public class Desktop
     
     
     bundleSelModel.addBundleSelectionListener(this);
-    Activator.bc.addBundleListener(this);
-    Activator.bc.addFrameworkListener(this);
+    Activator.getBC().addBundleListener(this);
+    Activator.getBC().addFrameworkListener(this);
+
+    if(Activator.getBC() != Activator.getTargetBC()) {
+      Activator.getTargetBC().addBundleListener(this);
+      Activator.getTargetBC().addFrameworkListener(this);
+    }
 
     consoleSwing.getJComponent().requestFocus();
   }
@@ -559,7 +564,7 @@ public class Desktop
     
     int myLevel = level;
     try {
-      myLevel = sls.getBundleStartLevel(Activator.bc.getBundle());
+      myLevel = sls.getBundleStartLevel(Activator.getTargetBC().getBundle());
     } catch (IllegalArgumentException ignored) {
     }
     
@@ -653,7 +658,7 @@ public class Desktop
 
     levelItems = new String[levelMax - levelMin + 1]; 
     
-    Bundle[] bundles = Activator.bc.getBundles();
+    Bundle[] bundles = Activator.getTargetBC().getBundles();
     
     Object selObj = null;
 
@@ -1199,7 +1204,7 @@ public class Desktop
     if(n == 0) {
       try {
 	System.out.println("stopping framework");
-	Bundle sysBundle = Activator.bc.getBundle((long)0);
+	Bundle sysBundle = Activator.getTargetBC().getBundle((long)0);
 	sysBundle.stop();
       } catch (Exception e) {
 	e.printStackTrace();
@@ -1317,7 +1322,7 @@ public class Desktop
       return;
     }
     
-    Bundle[] allBundles = Activator.bc.getBundles();
+    Bundle[] allBundles = Activator.getTargetBC().getBundles();
 
     
     Set pkgClosure = new TreeSet(Util.bundleIdComparator);
@@ -1344,7 +1349,7 @@ public class Desktop
     }
 
     // remove system bundle.
-    all.remove(Activator.bc.getBundle(0));
+    all.remove(Activator.getTargetBC().getBundle(0));
     
     ZipOutputStream out = null;
     
@@ -1599,7 +1604,7 @@ public class Desktop
 
   void stopBundle(Bundle b) {
     int n = 0;
-    if(b.getBundleId() == Activator.bc.getBundle().getBundleId() ||
+    if(b.getBundleId() == Activator.getTargetBC().getBundle().getBundleId() ||
        b.getBundleId() == 0) {
       Object[] options = { Strings.get("yes"),
 			   Strings.get("no")};
@@ -1628,13 +1633,13 @@ public class Desktop
   }
 
   void refreshBundle(Bundle[] b) {
-    ServiceReference sr = Activator.bc.getServiceReference(PackageAdmin.class.getName());
+    ServiceReference sr = Activator.getTargetBC().getServiceReference(PackageAdmin.class.getName());
     if(sr != null) {
-      PackageAdmin packageAdmin = (PackageAdmin)Activator.bc.getService(sr);
+      PackageAdmin packageAdmin = (PackageAdmin)Activator.getTargetBC().getService(sr);
       if(packageAdmin != null) {
 	packageAdmin.refreshPackages(b);
       }
-      Activator.bc.ungetService(sr);
+      Activator.getTargetBC().ungetService(sr);
     }
   }
 
@@ -1748,7 +1753,7 @@ public class Desktop
       if(file.getName().toUpperCase().endsWith(".JAR")) {
 	try {
 	  String location = "file:" + file.getAbsolutePath();
-	  Bundle b = Activator.bc.installBundle(location);
+	  Bundle b = Activator.getTargetBC().installBundle(location);
 	  Dictionary headers = b.getHeaders();
 	  if(Util.canBeStarted(b)) {
 	    startBundle(b);
@@ -1773,7 +1778,7 @@ public class Desktop
       frame.setVisible(false);
       frame = null;
     }
-    Activator.bc.removeBundleListener(this);
+    Activator.getTargetBC().removeBundleListener(this);
   }
 
   public void valueChanged(long bid) {
@@ -1797,10 +1802,10 @@ public class Desktop
       return;
     }
 
-    bundleCache = Activator.bc.getBundles();
+    bundleCache = Activator.getTargetBC().getBundles();
 
     boolean bMyself = 
-      b.getBundleId() == Activator.bc.getBundle().getBundleId();
+      b.getBundleId() == Activator.getTargetBC().getBundle().getBundleId();
 
 
     updateStatusBar();

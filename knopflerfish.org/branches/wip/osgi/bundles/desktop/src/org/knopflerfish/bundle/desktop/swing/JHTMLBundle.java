@@ -204,7 +204,7 @@ public abstract class JHTMLBundle extends JPanel  {
 
     try {
       ServiceReference[] srl = 
-	Activator.bc.getServiceReferences(null,
+	Activator.getTargetBC().getServiceReferences(null,
 					  "(" + Constants.SERVICE_ID + "=" + sid + ")");
       if(srl != null && srl.length == 1) {
 	sb.append("<html>");
@@ -221,7 +221,7 @@ public abstract class JHTMLBundle extends JPanel  {
 	sb.append("</table>");
 
 	try {
-	  Object serviceObj = Activator.bc.getService(srl[0]);
+	  Object serviceObj = Activator.getTargetBC().getService(srl[0]);
 	  if(serviceObj != null) {
 	    sb.append(formatServiceObject(serviceObj,
 					  (String[])srl[0].getProperty("objectClass")));
@@ -229,7 +229,7 @@ public abstract class JHTMLBundle extends JPanel  {
 	} catch (Exception e) {
 	  sb.append("Failed to format service object: " + e);
 	} finally {
-	  Activator.bc.ungetService(srl[0]);
+	  Activator.getTargetBC().ungetService(srl[0]);
 	}
 
 	startFont(sb);
