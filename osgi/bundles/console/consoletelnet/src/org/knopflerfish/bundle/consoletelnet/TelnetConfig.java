@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.consoletelnet;
 
+
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Enumeration;
@@ -69,13 +70,21 @@ public class TelnetConfig {
   private static String  requiredGroup  ="";
   private static String  forbiddenGroup ="";
 
+  private static String  defaultUser     = "admin";
+  private static String  defaultPassword = "admin";
+
   // constructors
 
   public TelnetConfig() throws ConfigurationException {
     this(null);
+
   }
 
   public TelnetConfig(Dictionary configuration) throws ConfigurationException {
+    defaultUser     = System.getProperty("org.knopflerfish.consoletelnet.user", defaultUser);
+    defaultPassword = System.getProperty("org.knopflerfish.consoletelnet.pwd",  defaultPassword);
+    port = Integer.getInteger("org.knopflerfish.consoletelnet.port", port).intValue();
+  
     this.configuration = TelnetConfig.getDefaultConfig();
     updated(configuration);
   }
@@ -86,6 +95,7 @@ public class TelnetConfig {
   public static Dictionary getDefaultConfig() {
 
     final Dictionary config = new Hashtable();
+
 
     config.put(TelnetConfig.PORT_KEY, new Integer(port));
     config.put(TelnetConfig.HOST_KEY, host);
@@ -207,11 +217,11 @@ public class TelnetConfig {
   }
 
   String getDefaultUser() {
-    return "admin";
+    return defaultUser;
   }
 
   String getDefaultPassword() {
-    return "admin";
+    return defaultPassword;
   }
 
   String getInputPath() {
