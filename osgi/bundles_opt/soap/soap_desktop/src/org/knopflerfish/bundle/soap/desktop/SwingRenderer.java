@@ -22,6 +22,7 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.border.*;
+import javax.swing.table.*;
 
 import org.xml.sax.helpers.*;
 import java.lang.reflect.*;
@@ -268,6 +269,8 @@ public class SwingRenderer {
       name.setPreferredSize(new Dimension(120, 15));
       name.setVerticalAlignment(SwingConstants.TOP);
 
+      name.setToolTipText(result.getClass().getName());
+
       JComponent rComp = makeResultComp(result);
 
       panel.add(name, BorderLayout.WEST);
@@ -291,6 +294,10 @@ public class SwingRenderer {
       }
 
       return panel;
+    } else if(val instanceof Map) {
+      return makeResultMap((Map)val);
+    } else if(val instanceof Collection) {
+      return makeResultCollection((Collection)val);
     } else if(val instanceof Exception) {
       Exception e = (Exception)val;
       StringWriter sw = new StringWriter();
@@ -303,6 +310,76 @@ public class SwingRenderer {
     } else {
       return new MyLabel("" + val);
     }
+  }
+
+  JComponent makeResultCollection(final Collection c) {    
+    
+    TableModel model = new AbstractTableModel() {
+	public int getColumnCount() { 
+	  return 1; 
+	}
+
+	public int getRowCount() { 
+	  return c.size();
+	}
+
+	public String getColumnName(int col) {
+	  return "Values";
+	}
+
+	public Object getValueAt(int row, int col) { 
+	  int i = 0;
+	  for(Iterator it = c.iterator(); it.hasNext();) {
+	    Object key = it.next();
+	    if(i == row) {
+	      return key;
+	    }
+	    i++;
+	  }
+	  return null;
+	}
+      };
+    
+    JTable table = new JTable(model);
+
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setPreferredSize(new Dimension(150, 100));
+    return scroll;
+  }
+
+  JComponent makeResultMap(final Map map) {    
+    TableModel model = new AbstractTableModel() {
+	public int getColumnCount() { 
+	  return 2; 
+	}
+
+	public int getRowCount() { 
+	  return map.size();
+	}
+
+	public String getColumnName(int col) {
+	  return (col == 0 ? "Key" : "Value");
+	}
+
+	public Object getValueAt(int row, int col) { 
+	  int i = 0;
+	  for(Iterator it = map.keySet().iterator(); it.hasNext();) {
+	    Object key = it.next();
+	    Object val = map.get(key);
+	    if(i == row) {
+	      return col == 0 ? key : val;
+	    }
+	    i++;
+	  }
+	  return null;
+	}
+      };
+	
+    JTable table = new JTable(model);
+	
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setPreferredSize(new Dimension(150, 100));
+    return scroll;
   }
 
   void showObjectResult(Object result, JComponent comp) {
