@@ -2,7 +2,7 @@ Bundlerepository
 =================
 
 This bundle implements a BundleRepositoryService, allowing 
-easy access to bundles store remotely. The main code in this 
+easy access to bundles stored remotely. The main code in this 
 bundle is taken directly from the Oscar project
 
   http://oscar-osgi.sourceforge.net/
@@ -41,4 +41,13 @@ using the system property
 (as of August 25, this property is also read by framework.jar, since
 framework support is needed for actual bundle installation)
 
+
+Note: 
+
+If you want to create your own OBR XML files, check out the
+ant task OBRExtractorTask, available in the KF ant/src directory.
+
+This task is used by the main KF build.xml ("obr" target)
+to scan a directory for bundle jars and build a repository 
+from these jars.
 
