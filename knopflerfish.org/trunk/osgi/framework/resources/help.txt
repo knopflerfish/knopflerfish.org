@@ -32,7 +32,7 @@
      other than java.* and org.osgi.framework
 
    org.osgi.framework.system.packages.file -
-     File containing kist of packages exported from system
+     File containing list of packages exported from system
      classloader,
      other than java.* and org.osgi.framework
 
