@@ -207,7 +207,7 @@ public class ConsoleServlet extends HttpServlet {
 
   }
 
-  BundleView iconView = new IconView();
+  IconView iconView = new IconView();
 
   void handleCommands(HttpServletRequest request, 
 		      StringBuffer       sb) throws Exception {

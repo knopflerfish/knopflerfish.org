@@ -71,6 +71,26 @@ public class IconView implements BundleView {
       }
     }
 
+    String uapixels = request.getHeader("ua-pixels");
+
+    int width  = Integer.MAX_VALUE;
+    int height = Integer.MAX_VALUE;
+    if(uapixels != null) {
+      int ix = uapixels.indexOf("x");
+      if(ix != -1) {
+	try {
+	  width  = Integer.parseInt(uapixels.substring(0, ix));
+	  height = Integer.parseInt(uapixels.substring(ix + 1));
+	} catch (Exception ignored) {
+	  ignored.printStackTrace();
+	}
+      }
+    }
+
+    boolean bCompact = 
+      (height < 400) && 
+      (request.getParameter("cmd_info.x") != null);
+
     out.println("<div class=\"shadow\">");
     out.println(nTotal + " bundles, " + nActive + " active");
     out.println("</div>");
@@ -101,13 +121,15 @@ public class IconView implements BundleView {
       out.print  (     "<div class=\"bundlename\">" + 
 		       Util.getName(bundles[i]) + 
 		       "</div>");
-      out.print  (     "<div class=\"bundledescription\">" + 
-		       Util.getDescription(bundles[i]) + 
-		       " (" + 
-		       "#" + bundles[i].getBundleId() + 
-		       ", " + Util.getStateString(bundles[i].getState()) +
-		       ")" +
-		       "</div>");
+      if(!bCompact) {
+	out.print  (     "<div class=\"bundledescription\">" + 
+			 Util.getDescription(bundles[i]) + 
+			 " (" + 
+			 "#" + bundles[i].getBundleId() + 
+			 ", " + Util.getStateString(bundles[i].getState()) +
+			 ")" +
+			 "</div>");
+      }
       out.println("  </td>");
       out.println(" </tr>");
     }
