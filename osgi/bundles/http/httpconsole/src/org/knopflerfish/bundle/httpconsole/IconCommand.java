@@ -40,6 +40,10 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
+/**
+ * Abstract command implementation that prints a image submit button
+ * as output HTML.
+ */
 public abstract class IconCommand implements Command {
   String id;
   String name;
