@@ -189,7 +189,7 @@ public class Desktop
     lfManager = new LFManager();
     lfManager.init();
 
-    consoleSwing = new ConsoleSwing(Activator.getTargetBC());
+    consoleSwing = new ConsoleSwing(Activator.getBC());
     consoleSwing.start();
 
     toolBar       = makeToolBar();
@@ -1804,9 +1804,11 @@ public class Desktop
 
     bundleCache = Activator.getTargetBC().getBundles();
 
-    boolean bMyself = 
-      b.getBundleId() == Activator.getTargetBC().getBundle().getBundleId();
+    boolean bMyself = false;
 
+    if(Activator.getTargetBC() == Activator.getBC()) {
+      bMyself = b.getBundleId() == Activator.getBC().getBundle().getBundleId();
+    }
 
     updateStatusBar();
     toolBar.revalidate();
