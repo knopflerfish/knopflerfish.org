@@ -75,7 +75,7 @@ public class ConsoleAWT extends Panel {
 
   static boolean multiplexSystemOut = true;
   static boolean multiplexSystemErr = true;
-  static boolean grabSystemIO       = false;
+  static boolean grabSystemIO       = true;
 
   Dimension pSize = new Dimension(100, 200);
   
