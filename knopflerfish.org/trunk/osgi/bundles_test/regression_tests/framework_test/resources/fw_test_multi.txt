@@ -1,1 +1,1 @@
-This is a resource in the bundle's /org package
+This is a resource in the bundle's main package
