@@ -150,7 +150,7 @@ public class Activator implements BundleActivator {
   } 
 
   void unsetRoot(ServiceReference sr) {
-    if(registrations.containsKey(sr)) {
+    if(!registrations.containsKey(sr)) {
       return; // nothing to do
     }
 
