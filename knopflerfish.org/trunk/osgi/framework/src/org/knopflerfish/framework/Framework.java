@@ -542,7 +542,7 @@ public class Framework {
       // The name of the fw execution environment
       return System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
     } else {
-      return null;
+      return System.getProperty(key);
     }
   }
 }
