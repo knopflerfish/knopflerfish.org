@@ -169,7 +169,9 @@ class BundleImpl implements Bundle {
 	pd = new ProtectionDomain(new CodeSource(bundleUrl, 
 						 (java.security.cert.Certificate[])null), 
 				  pc);
-      } catch (MalformedURLException never) { }
+      } catch (MalformedURLException e) { 
+	e.printStackTrace();
+      }
     }
     protectionDomain = pd;
 

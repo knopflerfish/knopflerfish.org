@@ -246,7 +246,7 @@ public class Framework {
 			null);
     }
 
-    bundles.load();
+
     mainHandle = m;
 
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
@@ -265,6 +265,7 @@ public class Framework {
 				   
     URLConnection.setContentHandlerFactory(contentHandlerFactory);
 
+    bundles.load();
   }
 
 
