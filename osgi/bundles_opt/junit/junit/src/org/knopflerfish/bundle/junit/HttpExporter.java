@@ -87,11 +87,13 @@ public class HttpExporter {
   void unsetServlet(ServiceReference sr) {
     registrations.remove(sr);
     HttpService http = (HttpService)Activator.bc.getService(sr);
-    try {
-      http.unregister(SERVLET_ALIAS);
-
-    } catch (Exception e) {
-      Activator.log.error("Failed to unregister junit servlet", e);
+    if(http != null) {
+      try {
+	http.unregister(SERVLET_ALIAS);
+	
+      } catch (Exception e) {
+	Activator.log.error("Failed to unregister junit servlet", e);
+      }
     }
   }
 
