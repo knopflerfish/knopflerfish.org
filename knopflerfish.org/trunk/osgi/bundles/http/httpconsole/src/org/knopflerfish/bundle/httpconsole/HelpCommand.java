@@ -75,7 +75,7 @@ public class HelpCommand extends IconCommand {
 	}
 	sb.append(" </span>\n");
 	sb.append(" <span style=\"vertical-align:top;\">\n");
-	sb.append(console.commands[i].getName());
+	sb.append(console.commands[i].getDescription());
 	sb.append(" </span>\n");
 	sb.append("</div>\n");
       }

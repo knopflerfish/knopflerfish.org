@@ -119,18 +119,22 @@ public class InfoCommand extends IconCommand {
     for(int i = 0; srl != null && i < srl.length; i++) {
       sb.append(" <tr>\n");
 
-      sb.append("  <td>");
+      sb.append("  <td style=\"background: #efefef;\">");
       try {
 	StringWriter sw = new StringWriter();
 	Util.printObject(new PrintWriter(sw), srl[i].getProperty("objectclass"));
 	
+	sb.append("<a href=\"" + Activator.SERVLET_ALIAS + 
+		  "?service.id=" + srl[i].getProperty("service.id") + 
+		  "\">");
 	sb.append(sw.toString());
+	sb.append("</a>");
       } catch (Exception e) {
 	sb.append(Util.toHTML(e));
       }
       sb.append("</td>");
 
-      sb.append("  <td>");
+      sb.append("  <td style=\"background: #efefef;\">");
       Bundle[] using = findUsingBundles(srl[i]);
 
       for(int j = 0; j < using.length; j++) {

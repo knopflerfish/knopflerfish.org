@@ -403,27 +403,6 @@ public class Util {
     return null;
   }
 
-  /*
-    baos = null;
-    
-    Activator.log.info("done");
-    // Success, redirect to suitable URI
-
-    String base  = "http://" + request.getServerName();
-    int    port = request.getServerPort();
-    
-    if(port != 80) base = base + ":" + port;
-    
-    String url = base + redirURI;
-    Activator.log.info("redirect to " + url);
-    response.sendRedirect(url);
-    
-    } catch (Exception e) {
-    Activator.log.error("FUpload err", e);
-    e.printStackTrace();
-    }
-  */
-  
   private static String extractParam(String line, String param) {
     if (line == null || param == null) return null;
     StringTokenizer st = new StringTokenizer(line, ";");
@@ -467,10 +446,6 @@ public class Util {
       printArray(out, (Object[])val);
     } else if(val instanceof Vector) {
       printVector(out, (Vector)val);
-    } else if(val instanceof Map) {
-      printMap(out, (Map)val);
-    } else if(val instanceof Set) {
-      printSet(out, (Set)val);
     } else if(val instanceof Dictionary) {
       printDictionary(out, (Dictionary)val);
     } else {
@@ -500,41 +475,10 @@ public class Util {
     out.println("</table>");
   }
 
-  static void printMap(PrintWriter out, Map m) throws IOException {
-
-    out.println("<table>");
-    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
-      Object key = it.next();
-      Object val = m.get(key);
-
-      out.println("<tr>");
-
-      out.println("<td>");
-      printObject(out, key);
-      out.println("</td>");
-
-      out.println("<td>");
-      printObject(out, val);
-      out.println("</td>");
-
-      out.println("</tr>");
-    }
-    out.println("</table>");
-  }
-
   static void printArray(PrintWriter out, Object[] a) throws IOException {
     for(int i = 0; i < a.length; i++) {
       printObject(out, a[i]);
       if(i < a.length - 1) {
-	out.println("<br>");
-      }
-    }
-  }
-
-  static void printSet(PrintWriter out, Set a) throws IOException {
-    for(Iterator it = a.iterator(); it.hasNext();) {
-      printObject(out, it.next());
-      if(it.hasNext()) {
 	out.println("<br>");
       }
     }
