@@ -118,17 +118,14 @@ public class  PrefsStorageFile implements PrefsStorage {
 	  props.load(in);
 
           // We might need to decode some keys
+          Properties p2 = new Properties();
           for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
             String key        = (String)e.nextElement();
             String decodedKey = decode(key);
-            if(!key.equals(decodedKey)) {
-              Object val = props.get(key);
-              props.remove(key);
-              props.put(decodedKey, val);
-            }
+            p2.put(key, decodedKey);
           }
           
-	  return props;
+	  return p2;
 	} else {
 	  throw new IllegalStateException("No keys for path=" + path + 
 					  ", file=" + f.getAbsolutePath());
