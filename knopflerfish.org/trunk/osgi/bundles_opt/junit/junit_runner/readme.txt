@@ -39,3 +39,9 @@ org.knopflerfish.junit_runner.quit
  If set to "true", quit framework when all tests are run.
  Default is "false"
 
+
+Note:
+  The resource directory contains som XSLT style
+  sheets which may be useful for formatting XML test results to
+  HTML. These files are automatically copied to the output directory.
+
