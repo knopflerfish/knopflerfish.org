@@ -3,8 +3,9 @@
 #
 
 # List of test IDs
-#-Dorg.knopflerfish.junit_runner.tests=PerformanceRegistryTestSuite
--Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
+#-Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite
+-Dorg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
+#-Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
 
 # true means "quit framework when all tests are run"
 -Dorg.knopflerfish.junit_runner.quit=true
