@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "1.3.0a5"/>
+            value = "1.3.0a6"/>
 
 
   <property environment="sysprops"/>
@@ -64,6 +64,9 @@
 
   <property name     = "distribfile_tiny" 
             location = "knopflerfish_osgi_tiny_${version}.zip"/>
+
+  <property name     = "distribfile_opt" 
+            location = "knopflerfish_opt_${version}.jar"/>
 
   <property name = "ant.dir"          location="ant"/>
   <property name = "antclasses"       location = "${ant.dir}/classes"/>
@@ -172,7 +175,6 @@
     <antcall target     = "distrib_fullbin"/>
     <antcall target     = "distrib_bin"/>
     <antcall target     = "distrib_tiny"/>
-
   </target>
 
 
@@ -534,6 +536,81 @@
     <copy file="${distribfile_tiny}"   todir="${release.dir}"/>
 
   </target>
+
+  <target   name        = "distrib_opt" 
+            description = "Builds self-extraction optional distribution file">
+
+    <ant dir="osgi/bundles_opt" target="all"/>
+
+    <!-- the tool which unpacks the generated jar -->
+    <ant    dir         = "tools/jarunpacker"
+            target      = "compile"/>
+
+
+    <delete file        ="${distribfile_opt}"/>
+
+    <!-- the biggie -->
+    <jar    destfile    = "${distribfile_opt}"
+            compress    = "true">
+
+        <manifest>
+	  <attribute name  = "Main-class"   
+                     value = "org.knopflerfish.tools.jarunpacker.Main"/>
+
+	  <attribute name  = "jarunpacker-destdir"
+                     value = "knopflerfish_osgi_${version}"/>
+
+	  <attribute name  = "jarunpacker-optbutton"
+                     value = "base"/>
+
+	  <attribute name  = "jarunpacker-opendir"
+                     value = "$${destdir}/knopflerfish.org/osgi"/>
+
+
+	  <attribute name  = "jarunpacker-windowtitle"
+                     value = "Knopflerfish ${version} optional bundles"/>
+
+	  <attribute name  = "knopflerfish-version"
+                     value = "${version}"/>
+
+	</manifest>
+
+        <zipfileset dir    = "."
+                    prefix = "knopflerfish.org">
+
+	   <exclude name = "**/*.jbf"/>
+	   <exclude name = "**/out/**"/>
+	   <exclude name = "**/*.class"/>
+	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+
+
+           <include name = "osgi/jars/axis-soap/*.jar"/>
+           <include name = "osgi/jars/commons-logging/*.jar"/>
+           <include name = "osgi/jars/soap_desktop/*.jar"/>
+           <include name = "osgi/jars/soap_remotefw/*.jar"/>
+           <include name = "osgi/jars/soap_soapclient/*.jar"/>
+
+           <exclude name = "keystore"/>
+
+           <include name = "osgi/bundles_opt/soap/**"/>
+           <include name = "osgi/bundles_opt/commons-logging/**"/>
+           <exclude name = "**/CVS"/>
+        </zipfileset>
+
+        <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
+	   <include name = "**"/>
+        </zipfileset>
+
+        <zipfileset dir = "tools/jarunpacker/resources">
+           <include name = "**"/>
+        </zipfileset>
+
+    </jar>
+
+    <copy file="${distribfile_opt}"        todir="${release.dir}"/>
+
+  </target>
+
 
  <target name="install_bcel">
    <antcall target="download_bcel" />
