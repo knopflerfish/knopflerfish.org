@@ -63,6 +63,8 @@ import org.osgi.service.packageadmin.*;
  *
  * @see org.osgi.service.packageadmin.PackageAdmin
  * @author Jan Stein
+ * @author Erik Wistrand
+ * @author Robert Shelley
  */
 public class PackageAdminImpl implements PackageAdmin {
 
@@ -203,19 +205,20 @@ public class PackageAdminImpl implements PackageAdmin {
    */
   public void refreshPackages(final Bundle[] bundles) {
     framework.checkAdminPermission();
+//XXX - begin L-3 modification
     Thread t = new Thread() {
 	public void run() {
-	  final Collection affected = framework.packages.getZombieAffected(bundles);
+	  final BundleImpl bi[] = (BundleImpl[])framework.packages
+	    .getZombieAffected(bundles).toArray(new BundleImpl[0]);
 	  AccessController.doPrivileged(new PrivilegedAction() {
 	      public Object run() {
 		ArrayList startList = new ArrayList();
 		synchronized (framework.packages) {
-		  // NYI! Order bundles so that they are stopped in a smart order
-		  // Stop affected bundles and remove classloaders.
-		  for (Iterator i = affected.iterator(); i.hasNext();) {
-		    BundleImpl ib = (BundleImpl)i.next();
-		    synchronized (ib) {
-		      if ((ib.state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
+
+		  // Stop affected bundles and remove their classloaders		  // in reverse start order
+		  for (int bx = bi.length; bx-- > 0; ) {
+		    synchronized (bi[bx]) {
+		      if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
 			try {
 			  int ix = 0;
 			  if(Framework.R3_TESTCOMPLIANT) {
@@ -224,51 +227,52 @@ public class PackageAdminImpl implements PackageAdmin {
 			    Iterator it = startList.iterator();
 			    while(it.hasNext()) {
 			      BundleImpl bi = (BundleImpl)it.next();
-			      if(ib.getBundleId() < bi.getBundleId()) {
+			      if(bi.getBundleId() < bi.getBundleId()) {
 				break;
 			      }
 			      ix++;
 			    }
 			  }
-			  startList.add(ix,ib);
-			  ib.stop();
+			  startList.add(ix,bi[bx]);
+			  bi[bx].stop();
 			} catch(BundleException be) {
-			  framework.listeners.frameworkError(ib, be);
+			  framework.listeners.frameworkError(bi[bx], be);
 			}
 		      }
 		    }
 		  }
-		  for (Iterator i = affected.iterator(); i.hasNext();) {
-		    BundleImpl ib = (BundleImpl)i.next();
-		    synchronized (ib) {
-		      switch (ib.state) {
+
+		  // Update the affected bundle states in normal start order
+		  for (int bx = 0; bx < bi.length; bx++) {
+		    synchronized (bi[bx]) {
+		      switch (bi[bx].state) {
 		      case Bundle.STARTING:
 		      case Bundle.ACTIVE:
 			try {
-			  ib.stop();
+			  bi[bx].stop();
 			} catch(BundleException be) {
-			  framework.listeners.frameworkError(ib, be);
+			  framework.listeners.frameworkError(bi[bx], be);
 			}
 		      case Bundle.STOPPING:
 		      case Bundle.RESOLVED:
-			ib.setStateInstalled();
+			bi[bx].setStateInstalled();
 		      case Bundle.INSTALLED:
 		      case Bundle.UNINSTALLED:
 			break;
 		      }
-		      ib.purge();
+		      bi[bx].purge();
 		    }
 		  }
 
+		  // Restart previously active bundles in normal start order
 		  framework.bundles.startBundles(startList);
-                  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
-
+		  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
 		  return null;
-		}
-	      }
+		}	      }
 	    });
 	}
       };
+//XXX - end L-3 modification
     t.setDaemon(false);
     t.start();
   }
