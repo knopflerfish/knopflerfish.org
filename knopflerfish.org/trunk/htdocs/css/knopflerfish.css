@@ -7,6 +7,8 @@ BODY  {
  text-align:left;
  font-weight:normal;
  background:#ffffaa;
+
+ margin-top: 10px;
 }
 
 .story {
@@ -181,9 +183,26 @@ li.A:hover {
 }
 
 .pageheader {
-  border: solid 1px #000000;
-  background-color: #ffffff;
+ background-color: #ffffff;
+ border-left:    solid 10px #dddddd;
 }
+
+table.bodytable {
+}
+
+.mainblock {
+ background-color: #ffffff;
+ border-left:   solid 10px #dddddd;
+}
+
+.kfbox {
+ background-color: #ffffff;
+ border-left:   solid 1px #cccccc;
+ border-top:    solid 1px #cccccc;
+ border-bottom: solid 1px #8888aa;
+ border-right:  solid 1px #8888aa;
+}
+
 
 .compactinput {
  font-family: Verdana, Arial, Helvetica, sans-serif;
