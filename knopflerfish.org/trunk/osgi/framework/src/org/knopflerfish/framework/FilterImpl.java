@@ -52,8 +52,11 @@ public class FilterImpl implements Filter {
 
   public boolean match(ServiceReference reference) {
     if(reference instanceof ServiceReferenceImpl) {
+      // This is the normal case
       return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties());
     } else {
+      // This might happen if we live in a remote framework world
+      // Copy the properties the hard way
       Hashtable props = new Hashtable();
       String[] keys = reference.getPropertyKeys();
       for(int i = 0; i < keys.length; i++) {
