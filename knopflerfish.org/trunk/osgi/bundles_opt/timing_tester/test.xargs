@@ -57,7 +57,7 @@
 
 -install consoletty/consoletty-1.0.0.jar
 
--install consoletelnet/consoletelnet-0.9.jar
+-install consoletelnet/consoletelnet-1.0.jar
 
 -install  httproot/httproot-1.0.0.jar
 
