@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.httpconsole;
 import java.util.*;
 import java.net.URL;
 import java.io.InputStream;
+import java.io.IOException;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -53,6 +54,7 @@ public class Activator implements BundleActivator {
   static final String  RES_ALIAS     = "/console/resources";  
 
   Hashtable registrations = new Hashtable();
+
 
   static LogRef log;
   public void start(BundleContext bc) throws BundleException {
@@ -93,6 +95,8 @@ public class Activator implements BundleActivator {
   public void stop(BundleContext bc) throws BundleException {
   }
 
+
+
   void setServlet(ServiceReference sr) {
 
     if(registrations.containsKey(sr)) {
@@ -104,12 +108,6 @@ public class Activator implements BundleActivator {
     HttpService http = (HttpService)bc.getService(sr);
 
     HttpContext context = new HttpContext() {
-	public boolean handleSecurity(HttpServletRequest  request,
-				      HttpServletResponse response) 
-	  throws java.io.IOException {
-	  return true;
-	}
-	
 	public URL getResource(String name) {
 
 	  // and send the plain file
@@ -120,6 +118,14 @@ public class Activator implements BundleActivator {
 	
 	public String getMimeType(String reqEntry) {
 	  return null; // server decides type
+	}
+
+	public boolean handleSecurity( HttpServletRequest request,
+				       HttpServletResponse response )
+	  throws IOException 
+	{
+	  // Security is handled by server
+	  return true;
 	}
       };
     
@@ -174,4 +180,5 @@ public class Activator implements BundleActivator {
       }
     }
   }
+
 }

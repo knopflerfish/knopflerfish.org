@@ -123,6 +123,14 @@ PRE {
  border-width: 1px;
 }
 
+.loginerror {
+ font-size:    11px;
+ color:        #ff0000;
+ text-align:   left;
+ font-weight:  bold;
+ border-width: 5px;
+}
+
 
 H1  {
  font-family: Verdana, Arial, Helvetica, sans-serif;

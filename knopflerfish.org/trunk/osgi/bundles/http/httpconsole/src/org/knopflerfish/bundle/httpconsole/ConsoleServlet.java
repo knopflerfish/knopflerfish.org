@@ -54,6 +54,29 @@ public class ConsoleServlet extends HttpServlet {
   // form encoding. 
   InstallFileCommand installFileCommand;
 
+  static final String LOGIN_USER  = "loginname";
+  static final String LOGIN_PWD   = "loginpwd";
+  static final String LOGIN_CMD   = "login_cmd";
+  static final String LOGOUT_CMD  = "logout_cmd";
+
+  static final String USER_OBJ = ConsoleServlet.class.getName() + ".user";
+
+  boolean bRequireLogin = 
+    "true".equals(System.getProperty("org.knopflerfish.httpconsole.requirelogin", "false"));
+  
+  String adminUser  = 
+    System.getProperty("org.knopflerfish.httpconsole.user", "admin");
+    
+  String adminPwd   = 
+    System.getProperty("org.knopflerfish.httpconsole.pwd",  "admin");
+
+  boolean isValidUser(String user, String pwd) {
+    return 
+      adminUser.equals(user) &&
+      adminPwd.equals(pwd);
+  }
+
+  
   public ConsoleServlet(ServiceReference httpSR) {
     this.httpSR = httpSR;
 
@@ -73,6 +96,7 @@ public class ConsoleServlet extends HttpServlet {
 
   }
 
+
   public void doPost(HttpServletRequest  request, 
 		     HttpServletResponse response) 
     throws ServletException,
@@ -82,8 +106,25 @@ public class ConsoleServlet extends HttpServlet {
     doGet(request, response);
   }
 
-
+  
   public void doGet(HttpServletRequest  request, 
+		     HttpServletResponse response) 
+    throws ServletException, IOException {
+    if(iconView == null) {
+      iconView = new IconView(this);
+    }
+
+    if(checkLogin(request, response)) {
+      doGet2(request, response);
+    }
+  }
+
+
+  
+
+  
+
+  public void doGet2(HttpServletRequest  request, 
 		    HttpServletResponse response) 
     throws ServletException, IOException {
 
@@ -112,6 +153,7 @@ public class ConsoleServlet extends HttpServlet {
     */
 
     PrintWriter out = response.getWriter();
+
 
     StringBuffer sb = new StringBuffer();
 
@@ -211,7 +253,7 @@ public class ConsoleServlet extends HttpServlet {
 
   }
 
-  IconView iconView = new IconView();
+  IconView iconView;
 
   void handleCommands(HttpServletRequest request, 
 		      StringBuffer       sb) throws Exception {
@@ -264,6 +306,93 @@ public class ConsoleServlet extends HttpServlet {
   void printFooter(PrintWriter out) throws IOException {
     out.println("</body>");
     out.println("</html>");  
+  }
+
+  /**
+   * Check if the use has been logged in. If not, print a login page
+   */
+  boolean checkLogin(HttpServletRequest  request, 
+		     HttpServletResponse response) throws IOException {
+
+    HttpSession session = request.getSession();
+
+    if(null != request.getParameter(LOGOUT_CMD)) {
+      session.removeAttribute(USER_OBJ);
+    }
+
+    Object userObj = session.getAttribute(USER_OBJ);
+    
+    if(userObj != null) {
+      return true;
+    }
+    
+    String msg  = null;
+    String user = "";
+    if(null != request.getParameter(LOGIN_CMD)) {
+      user        = request.getParameter(LOGIN_USER);
+      String pwd  = request.getParameter(LOGIN_PWD);
+
+      if(isValidUser(user, pwd)) {
+	userObj = new Object();
+	session.setAttribute(USER_OBJ, userObj);
+	return true;
+      }
+      msg = "Login failed";
+    }
+
+    if(user == null) {
+      user = "";
+    }
+    PrintWriter out = response.getWriter();
+
+    printHeader(out);  
+    
+    Util.formStart(out, false);
+    
+    out.println("<h4 style=\"margin: 3px;\" class=\"shadow\">Log in to HTTP console</h4>");
+
+    out.println("<div style=\"margin: 5px;\">");
+
+    if(msg != null) {
+      out.println("<div class=\"loginerror\">");
+      out.println(msg);
+      out.println("</div>");
+    }
+
+    out.println("<table>");
+
+    out.println(" <tr>");
+    out.println("  <td>Login name</td>");
+    out.println("  <td>");
+    out.println("  <input type=\"text\" name=\"" + LOGIN_USER + "\"" +
+		" value=\"" + user + "\">");
+    out.println("  </td>");
+    out.println(" </tr>");
+
+    out.println("  <td>Password</td>");
+    out.println("  <td>");
+    out.println("  <input type=\"password\" name=\"" + LOGIN_PWD + "\">");
+    out.println("  </td>");
+    out.println(" </tr>");
+
+    out.println(" <tr>");
+    out.println("  <td><input name=\"" + LOGIN_CMD + "\" type=\"submit\" value=\"Login\"></td>");
+    out.println("  <td>");
+    out.println("  ");
+    out.println("  </td>");
+    out.println(" </tr>");
+
+    out.println("</table>");
+
+    out.println("</form>");
+
+
+    out.println("</div>");
+    out.println("<div class=\"shadow\">&nbsp;</div>");
+
+    printFooter(out);  
+
+    return false;
   }
 
 }
