@@ -247,21 +247,19 @@ public class PackageAdminImpl implements PackageAdmin {
 		    }
 		  }
 
-		  /*
 		  if(Framework.R3_TESTCOMPLIANT) {
 		    BundleImpl[] sorted = new BundleImpl[startList.size()];
 		    for(int i = 0; i < startList.size(); i++) {
 		      sorted[i] = (BundleImpl)startList.get(i);
-		      System.out.println(i + ": restart " + sorted[i]);
+		      //		      System.out.println(i + ": restart " + sorted[i]);
 		    }
 		    QSort.sort(sorted, BSComparator);
 		    startList = new ArrayList();
 		    for(int i = 0; i < sorted.length; i++) {
 		      startList.add(sorted[i]);
-		      System.out.println(i + ": sorted " + sorted[i]);
+		      //		      System.out.println(i + ": sorted " + sorted[i]);
 		    }
 		  }
-		  */
 
 		  framework.bundles.startBundles(startList);
 		  return null;
