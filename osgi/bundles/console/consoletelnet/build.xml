@@ -23,7 +23,7 @@
   <property name="bundle.description"    value="Telnet console "/>
   <property name="bundle.category"       value="console"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
-  <property name="bundle.version"        value="1.0"/>
+  <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="Telnet Console"/>
   &bundlebuild_include;
 
