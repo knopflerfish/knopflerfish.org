@@ -29,11 +29,13 @@
 
 
   <property name="bundle.description"    value="Monitors a file system directory for bundles to deploy"/>
-  <property name="bundle.category"       value="service"/>
+  <property name="bundle.category"       value="example"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.vendor"         value="Knopflerfish"/>
 
   <property name="bundle.apivendor"      value="Knopflerfish"/>
+
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/readme.html"/>
 
   &bundlebuild_include;
 
