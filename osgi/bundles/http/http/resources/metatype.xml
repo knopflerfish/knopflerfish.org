@@ -4,10 +4,9 @@
         xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
         xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
 
- <metatype:factories>
-
   <xsd:schema>
-   <xsd:complexType name="org.knopflerfish.bundle.http.factory.HttpServer">
+   <xsd:complexType name="org.knopflerfish.bundle.http.factory.HttpServer"
+                    maxOccurs="unbounded">
     <xsd:element  name = "port"                    type="xsd:int"/>
     <xsd:element  name = "host"                    type="xsd:string"/>
     <xsd:element  name = "session.timeout.default" type="xsd:int"/>
@@ -17,8 +16,7 @@
     <xsd:element  name = "service.ranking"         type="xsd:int"/>
     <xsd:element  name = "dns.lookup"              type="xsd:boolean"/>
    </xsd:complexType> 
-  </xsd:schema>
 
- </metatype:factories>
+  </xsd:schema>
 
 </metatype:metatype>
