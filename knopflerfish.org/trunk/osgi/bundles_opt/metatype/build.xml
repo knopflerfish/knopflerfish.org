@@ -5,11 +5,13 @@
    <target name="all">
     <ant dir="kf_metatype"   target="all"/>
     <ant dir="cm_desktop"    target="all"/>
+    <ant dir="metatype_demo" target="all"/>
   </target>
 
    <target name="clean">
     <ant dir="kf_metatype"   target="clean"/>
     <ant dir="cm_desktop"    target="clean"/>
+    <ant dir="metatype_demo" target="clean"/>
   </target>
 
 </project>
