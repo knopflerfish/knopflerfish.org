@@ -176,8 +176,8 @@ public class Main {
       if(bDumpXML || bDumpValues) {
 	if(bDumpXML) {
 	  Loader.printMetatypeXML(mtp, 
-				  mtp.getServicePIDs(),
-				  mtp.getFactoryPIDs(),
+				  mtp.getPids(),
+				  mtp.getFactoryPids(),
 				  true, 
 				  true,
 				  bIncludeValues  ? pids : null,
@@ -199,18 +199,18 @@ public class Main {
   static String printMTP(MTP mtp) {
     StringBuffer sb = new StringBuffer();
 
-    sb.append(printPIDs(mtp, mtp.getServicePIDs(), " (service)"));
+    sb.append(printPIDs(mtp, mtp.getPids(), " (service)"));
 
-    sb.append(printPIDs(mtp, mtp.getFactoryPIDs(), " (factory)"));
+    sb.append(printPIDs(mtp, mtp.getFactoryPids(), " (factory)"));
 
     return sb.toString();
   }
   
-  static String printPIDs(MTP mtp, Set pids, String suffix) {
+  static String printPIDs(MTP mtp, String[] pids, String suffix) {
     StringBuffer sb = new StringBuffer();
 
-    for(Iterator it = pids.iterator(); it.hasNext();) {
-      String pid = (String)it.next();
+    for(int i = 0; i < pids.length; i++) {
+      String pid = pids[i];
       AttributeDefinition[] ads = 
 	mtp.getObjectClassDefinition(pid, null)
 	.getAttributeDefinitions(ObjectClassDefinition.ALL);

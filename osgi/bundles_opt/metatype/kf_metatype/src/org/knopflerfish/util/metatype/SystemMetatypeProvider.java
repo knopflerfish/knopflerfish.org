@@ -165,12 +165,12 @@ public class SystemMetatypeProvider
       cmTracker.open();
 
       cmMTP = new MTP("[CM]") {
-	  public Set getServicePIDs() {
-	    return getCMServicePIDs();
+	  public String[] getPids() {
+	    return (String[])getCMServicePIDs().toArray();
 	  }
 
-	  public Set getFactoryPIDs() {
-	    return getCMFactoryPIDs();
+	  public String[] getFactoryPids() {
+	    return (String[])getCMFactoryPIDs().toArray();
 	  }
 	  
 	  public String[] getLocales() {
@@ -315,27 +315,33 @@ public class SystemMetatypeProvider
     }
   }
 
-  public Set getServicePIDs() {
+  public String[] getPids() {
     synchronized(providers) {
       Set set = new HashSet();
       for(Iterator it = providers.keySet().iterator(); it.hasNext();) {
 	Bundle b   = (Bundle)it.next();
 	MTP    mtp = (MTP)providers.get(b);
-	set.addAll(mtp.getServicePIDs());
+	String[] pids = mtp.getPids();
+	for(int i = 0; i < pids.length; i++) {
+	  set.add(pids[i]);
+	}
       }
-      return set;
+      return (String[])set.toArray();
     }
   }
   
-  public Set getFactoryPIDs() {
+  public String[] getFactoryPids() {
     synchronized(providers) {
       Set set = new HashSet();
       for(Iterator it = providers.keySet().iterator(); it.hasNext();) {
 	Bundle b   = (Bundle)it.next();
 	MTP    mtp = (MTP)providers.get(b);
-	set.addAll(mtp.getFactoryPIDs());
+	String[] pids = mtp.getFactoryPids();
+	for(int i = 0; i < pids.length; i++) {
+	  set.add(pids[i]);
+	}
       }
-      return set;
+      return (String[])set.toArray();
     }
   }
 

@@ -48,12 +48,12 @@ public interface PIDProvider {
    *
    * @return Set of String, wher each string is a possible service PID.
    */
-  public Set getServicePIDs();
+  public String[] getPids();
 
   /**
    * Get set of factory PIDs.
    *
    * @return Set of String, wher each string is a possible factory PID.
    */
-  public Set getFactoryPIDs();
+  public String[] getFactoryPids();
 }

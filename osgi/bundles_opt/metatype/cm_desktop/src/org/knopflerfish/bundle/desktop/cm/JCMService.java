@@ -269,7 +269,10 @@ public class JCMService extends JPanel {
 		createConfig(ocd.getID());
 	      }
 	    });
+
+	  JLabel createInfo = new JLabel("Create from values below");
 	  ctrlPanel.add(createButton);
+	  ctrlPanel.add(createInfo);
 	}
       }
       

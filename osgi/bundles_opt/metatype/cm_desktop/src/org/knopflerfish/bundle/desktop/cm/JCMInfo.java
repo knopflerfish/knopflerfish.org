@@ -79,19 +79,10 @@ public class JCMInfo extends JPanel {
       servicePIDBox = null;
       factoryPIDBox = null;
       
-      Set services  = pp.getServicePIDs();
-      Set factories = pp.getFactoryPIDs();
+      String[] servicePIDs = pp.getPids();
 
-      String[] servicePIDs = null;
-      if(services.size() > 0) {
-	servicePIDs = new String[services.size()];
-	
-	
-	int i = 0;
-	for(Iterator it = services.iterator(); it.hasNext();) {
-	  servicePIDs[i++] = (String)it.next();
-	}
-	
+
+      if(servicePIDs != null && servicePIDs.length > 0) {
 	servicePIDBox = new JComboBox(servicePIDs);
 	servicePIDBox.addActionListener(new ActionListener() {	  
 	    public void actionPerformed(ActionEvent ev) {	    
@@ -106,14 +97,9 @@ public class JCMInfo extends JPanel {
 	  });
       }
       
-      String[] factoryPIDs = null;
-      if(factories.size() > 0) {
-	factoryPIDs = new String[factories.size()];
-	int i = 0;
-	for(Iterator it = factories.iterator(); it.hasNext();) {
-	  factoryPIDs[i++] = (String)it.next();
-	}
-	
+      String[] factoryPIDs = pp.getFactoryPids();
+
+      if(factoryPIDs != null && factoryPIDs.length > 0) {
 	factoryPIDBox = new JComboBox(factoryPIDs);
 	factoryPIDBox.addActionListener(new ActionListener() {	  
 	    public void actionPerformed(ActionEvent ev) {	    
@@ -147,10 +133,10 @@ public class JCMInfo extends JPanel {
       main.add(jcmService, BorderLayout.CENTER);
 
       // Set either the first service or the first factory as displayed
-      if(servicePIDs != null) {
+      if(servicePIDs != null && servicePIDs.length > 0) {
 	setServiceOCD(servicePIDs[0]);
       } else {
-	if(factoryPIDs != null) {
+	if(factoryPIDs != null && factoryPIDs.length > 0) {
 	  setFactoryOCD(factoryPIDs[0]);
 	} else {
 	  // Neither service nor factory found in provider

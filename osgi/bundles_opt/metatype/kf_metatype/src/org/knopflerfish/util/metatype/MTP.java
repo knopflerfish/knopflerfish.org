@@ -65,13 +65,22 @@ public class MTP implements MetaTypeProvider, PIDProvider {
     factories.add(pid);
   }
 
-  
-  public Set getServicePIDs() {
-    return services;
+
+  static String[] toStringArray(Set set) {
+    String[] sa = new String[set.size()];
+    int i = 0;
+    for(Iterator it = set.iterator(); it.hasNext();) {
+      sa[i++] = it.next().toString();
+    }
+    return sa;
   }
 
-  public Set getFactoryPIDs() {
-    return factories;
+  public String[] getPids() {
+    return toStringArray(services);
+  }
+
+  public String[] getFactoryPids() {
+    return toStringArray(factories);
   }
 
   public String[] getLocales() {

@@ -835,8 +835,8 @@ public class Loader {
    * Print sets of definitions to an XML file.
    */
   public static void printMetatypeXML(MetaTypeProvider mtp, 
-				      Set servicePIDs,
-				      Set factoryPIDs,
+				      String[] servicePIDs,
+				      String[] factoryPIDs,
 				      boolean bXMLHeader,
 				      boolean bMetatypeTag,
 				      Dictionary pids,
@@ -879,10 +879,10 @@ public class Loader {
    * @param out writer to print to.
    */
   public static void printOCDXML(MetaTypeProvider mtp, 
-				 Set pids, 
+				 String[] pids, 
 				 PrintWriter out) {
-    for(Iterator it = pids.iterator(); it.hasNext(); ) {
-      String pid = (String)it.next();
+    for(int i = 0; i < pids.length; i++) {
+      String pid = pids[i];
       ObjectClassDefinition ocd = mtp.getObjectClassDefinition(pid, null);
       AttributeDefinition[] ads = 
 	ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
@@ -898,8 +898,8 @@ public class Loader {
       }
       out.println(">");
       printAnnotation(ocd.getDescription(), "     ", out);
-      for(int i = 0; i < ads.length; i++) {
-	printXML(out, ads[i]);
+      for(int j = 0; j < ads.length; j++) {
+	printXML(out, ads[j]);
       }
       out.println("    </xsd:complexType>");
       out.println("   </xsd:schema>\n");
