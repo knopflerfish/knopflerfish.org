@@ -133,7 +133,7 @@ public class ServiceContentHandlerFactory
     for(int i = 0; i < jvmPkgs.length; i++) {
       String converted = convertMimetype(mimetype);
 
-      String className = jvmPkgs[i] + "." + mimetype + ".Handler";
+      String className = jvmPkgs[i] + "." + converted + ".Handler";
       try { 
 	if(Debug.url) {
 	  Debug.println("JVMClassPathCH - trying ContentHandler class=" + className);
