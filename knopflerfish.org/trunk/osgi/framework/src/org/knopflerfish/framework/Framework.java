@@ -251,6 +251,10 @@ public class Framework {
     urlStreamHandlerFactory
       .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
 			   new BundleURLStreamHandler(bundles));
+
+    urlStreamHandlerFactory
+      .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
+			   new ReferenceURLStreamHandler());
     
     // Install service based URL stream handler
     URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);

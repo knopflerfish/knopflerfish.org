@@ -114,6 +114,14 @@ class Archive {
     BufferedInputStream bis = new BufferedInputStream(is, 8192);
     JarInputStream ji = null;
     boolean doUnpack = false;
+
+
+
+    // Handle reference: URLs by overriding global flag
+    if(source != null && "reference".equals(source.getProtocol())) {
+      bReference = true;
+    }
+
     if (unpack) {
       bis.mark(8192);
       ji = new JarInputStream(bis);

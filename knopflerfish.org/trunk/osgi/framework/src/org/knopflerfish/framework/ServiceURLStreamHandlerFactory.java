@@ -194,7 +194,16 @@ public class ServiceURLStreamHandlerFactory
   }
 
 
-  // Utility method used by framework
+  /**
+   * Sets the handler for a named protocol. 
+   *
+   * <p>
+   * Any old handler for the specified protocol will be lost.
+   * </p>
+   *
+   * @param protocol Protocol name.
+   * @param handler Handler for the specified protocl name.
+   */
   void setURLStreamHandler(String protocol, URLStreamHandler handler) {
     handlers.put(protocol, handler);
   }
