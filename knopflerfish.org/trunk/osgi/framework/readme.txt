@@ -319,6 +319,30 @@ Framework System Properties
 
      Default: "(java.security.AllPermission)"
 
+
+  org.knopflerfish.osgi.registerserviceurlhandler
+    Flag for installing OSGi service based URL handlers. 
+    Since the URL handler can only be installed once, there
+    might be cased where some external entity (not OSGi)
+    sets this. In this case, the OSGi handler can be disabled
+    by setting 
+
+     org.knopflerfish.osgi.registerserviceurlhandler=false
+
+    Default: true (use OSGi service handlers)
+
+
+  org.knopflerfish.osgi.registerbundleurlhandler
+    Flag for publicly exporting the bundle: special URL
+    handler. If this is enabled, all bundles can create
+    bundle: URLs for access it's own or other bundle's resources.
+
+    The OSGi service based URL handlers (see above) _must_ 
+    be active for publicly exporting bundle: URLs
+
+    Default: false (don't export bundle: URLs publicly)
+
+
 Using a HTTP proxy
 ==================
 
