@@ -60,7 +60,7 @@
   <property name="import.package"  
             value="org.osgi.framework"/>
 
-   <property name = "bundle.docurl"      value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/bundlerepository/readme.txt"/>
+   <property name = "bundle.docurl"      value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/bundlerepository/readme.txt"/>
 
   &bundlebuild_include;
 
