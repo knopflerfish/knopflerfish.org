@@ -34,6 +34,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <body>
 <h3 class="shadow">Test results</h3>
+
+
  <table>
   <tr>
    <th>Test id</th>
@@ -83,6 +85,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
    </tr>
  </xsl:for-each>
 </table>
+
+<p>
+ <a href="out.txt">System.out/err</a>
+</p>
 
 </body>
 </html>
