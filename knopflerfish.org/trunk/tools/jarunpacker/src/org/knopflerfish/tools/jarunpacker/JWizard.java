@@ -87,10 +87,23 @@ public class JWizard extends JFrame implements InstallUI {
     init();
   }
 
+  String defIconPath = "/fish200x300.gif";
+
   public void init() {
 
-    //    Boing boing = new Boing(128, 128);
-    Icon  leftIcon = new ImageIcon(getClass().getResource("/fish200x300.gif"));
+    String iconPath = Main.theMain.iconPath;
+    if(iconPath == null) {
+      iconPath = defIconPath;
+    }
+    URL url = getClass().getResource(iconPath);
+    Icon  leftIcon = null;
+    if(url != null) {
+      leftIcon = new ImageIcon(url);
+    } else {
+      System.err.println("non-existing image resource: " + iconPath);
+      leftIcon = new ImageIcon(getClass().getResource(defIconPath));
+    }
+				   
 
     defaultIcon = leftIcon;
     /*
