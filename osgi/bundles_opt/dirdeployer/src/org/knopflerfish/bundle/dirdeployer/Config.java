@@ -141,7 +141,7 @@ public class Config implements ManagedService {
     Hashtable props = new Hashtable();
 
     props.put(PROP_DIRS, 
-	      System.getProperty(PROP_DIRS, DEFUALT_DIR));
+	      System.getProperty(PROP_DIRS, DEFAULT_DIR));
     
     props.put(PROP_STARTLEVEL, 
 	      Integer.getInteger(PROP_STARTLEVEL, new Integer(startLevel)));
