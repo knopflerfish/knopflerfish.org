@@ -55,8 +55,10 @@ public class TextUI implements InstallUI {
       this.msg  = msg;
       this.perc = perc;
     }
-    
-    System.out.println(perc + "% " + msg);
+
+    if(!Main.theMain.bSilent) {
+      System.out.println(perc + "% " + msg);
+    }
   }
 
   public void startProgress(String msg) {
