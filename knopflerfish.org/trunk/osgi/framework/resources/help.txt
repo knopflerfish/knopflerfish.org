@@ -116,10 +116,23 @@
       "x.y.0" > "x.y"
      (Default: true) 
 
+
+   org.knopflerfish.osgi.r3.testcompliant
+     If set to "true", make sure that all test in the OSGi R3 test 
+     suite pass, even if the tests are buggy and break the spec itself.
+
+     This affects some very special (due to bugs in the test) handling 
+     of filters and conflict between the spec concerning CM and the actual
+     tests. Bundles knowning abouth these conflicts should check the 
+     testcompliant flag and act appropiatley.
+    
+     Default is "false". Default is a Good Thing since it means
+     follow the spec, not the buggy tests.
+
    org.knopflerfish.framework.restart.allow
      If set to "true", allow restart of framework by calling 
      getBundle(0).update()
 
      If "false", exit framework with exit code = 2
 
-     Default is "true"
+     Default is (true ||  (org.knopflerfish.osgi.r3.testcompliant == true))
