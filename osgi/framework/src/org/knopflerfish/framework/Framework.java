@@ -162,6 +162,8 @@ public class Framework {
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
+  static boolean bIsMemoryStorage = false;
+
   /**
    * Contruct a framework.
    *
@@ -181,11 +183,12 @@ public class Framework {
       System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
 
+    bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
+    
     // We just happens to know that the memory storage impl isn't R3
     // compatible. And it never will be since it isn't persistent
     // by design.
-    if(R3_TESTCOMPLIANT && 
-       whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl")) {
+    if(R3_TESTCOMPLIANT && bIsMemoryStorage) {
       throw new RuntimeException("Memory bundle storage is not compatible " + 
 				 "with R3 complicance");
     }
