@@ -43,6 +43,10 @@ import org.osgi.framework.*;
 public class InstallFileCommand2 implements Command {
   String redir = null;
   String msg   = null;
+  
+  public int getDisplayFlags() {
+    return DISPLAY_COMPACTLIST;
+  }
 
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();

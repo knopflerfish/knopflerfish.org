@@ -52,6 +52,10 @@ public class IconDialogCommand extends IconCommand {
     this.cmd = cmd;
   }
 
+  public int getDisplayFlags() {
+    return cmd.getDisplayFlags();
+  }
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
