@@ -166,7 +166,9 @@ class BundleImpl implements Bundle {
       try {
 	URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, Long.toString(id), "");
 	PermissionCollection pc = fw.permissions.getPermissionCollection(this);
-	pd = new ProtectionDomain(new CodeSource(bundleUrl, null), pc);
+	pd = new ProtectionDomain(new CodeSource(bundleUrl, 
+						 (java.security.cert.Certificate[])null), 
+				  pc);
       } catch (MalformedURLException never) { }
     }
     protectionDomain = pd;
