@@ -175,6 +175,19 @@
         <exclude name = "framework.jar"/>
       </fileset>
    </bundleobr>
+
+  </target>
+
+  <target name="obr_index">
+   <java classname="org.apache.xalan.xslt.Process">
+    <arg value="-IN"/> 
+    <arg value="repo/repository.xml"/> 
+    <arg value="-XSL"/> 
+    <arg value="htdocs/css/repository.xsl"/> 
+    <arg value="-OUT"/> 
+    <arg value="repo/index.html"/> 
+   </java>
+
   </target>
 
   <target name        = "compile_ant" 
