@@ -6,6 +6,7 @@ import org.osgi.util.tracker.*;
 import java.util.*;
 import org.knopflerfish.service.log.LogRef;
 import org.osgi.service.startlevel.*;
+import org.osgi.service.packageadmin.*;
 
 import org.knopflerfish.service.soap.remotefw.*;
 
@@ -24,10 +25,12 @@ public class BundleContextImpl implements BundleContext {
   long    delay  = 10 * 1000;
 
   StartLevelImpl startLevel;
+  PackageAdminImpl pkgAdmin;
 
   BundleContextImpl(RemoteFWClient fw) {
     this.fw  = fw;
     startLevel = new StartLevelImpl(fw);
+    pkgAdmin   = new PackageAdminImpl(fw);
   }
 
   void start() {
@@ -270,6 +273,9 @@ public class BundleContextImpl implements BundleContext {
     if(sr instanceof ServiceReferenceImpl) {
       if(inArray(clazzes, StartLevel.class.getName())) {
 	return startLevel;
+      }
+      if(inArray(clazzes, PackageAdmin.class.getName())) {
+	return pkgAdmin;
       }
       return null;
     } else {
