@@ -59,8 +59,6 @@ public abstract class DefaultSwingBundleDisplayer
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
   ServiceRegistration  reg  = null;
 
-  boolean bUseListeners = true;
-
   public DefaultSwingBundleDisplayer(BundleContext bc,
 				     String        name,
 				     String        desc,
@@ -134,8 +132,6 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   public void valueChanged(long bid) {
-    //    System.out.println(getClass().getName() + ".valueChanged " + (b != null ? ("#" + b.getBundleId()) : "null"));
-    //    repaintComponents();
   }
 
   public BundleSelectionModel getBundleSelectionModel() {
