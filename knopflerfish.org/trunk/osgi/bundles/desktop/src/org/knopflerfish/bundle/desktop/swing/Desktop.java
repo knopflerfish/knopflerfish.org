@@ -720,6 +720,9 @@ public class Desktop
     StartLevel sls = 
       (StartLevel)slTracker.getService();
 
+    if(sls != null) {
+      levelMax = Math.max(levelMax, sls.getStartLevel());
+    }
     levelItems = new String[levelMax - levelMin + 1]; 
     
     Bundle[] bundles = Activator.getTargetBC().getBundles();
