@@ -42,7 +42,7 @@ import org.knopflerfish.service.log.*;
 import java.util.Hashtable;
 import org.knopflerfish.service.desktop.*;
 
-import org.knopflerfish.service.soap.remotefw.RemoteConnection;
+import org.knopflerfish.service.remotefw.RemoteFramework;
 
 public class Activator implements BundleActivator {
 
@@ -77,7 +77,7 @@ public class Activator implements BundleActivator {
   static private String remoteHost = "http://localhost:8080";
 
   public static BundleContext openRemote(String host) {
-    RemoteConnection rc = (RemoteConnection)remoteTracker.getService();
+    RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
     if(rc != null) {
       remoteBC = rc.connect(host);
       remoteHost = host;
@@ -93,7 +93,7 @@ public class Activator implements BundleActivator {
     this.log       = new LogRef(bc);
 
 
-    remoteTracker = new ServiceTracker(bc, RemoteConnection.class.getName(), null);
+    remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null);
     remoteTracker.open();
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
