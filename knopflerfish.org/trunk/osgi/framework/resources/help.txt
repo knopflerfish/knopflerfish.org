@@ -18,6 +18,7 @@
    -startlevel N  Set start level of Start Level service
  
  Properties:
+
    org.osgi.framework.dir -
      Where we store persistent data.
      (Default: {defaultInstDir}/fwdir)
@@ -89,3 +90,14 @@
      Initial start level of bundles if start level
      service if used
      (Default: 1)
+
+   java.security.manager
+     Class name of security manager. If set to empty string, uses
+     "java.lang.SecurityManager". If unset, do not use any security
+     manager.
+
+     (Default: unset)
+
+   java.security.policy
+     Security policy file. Used by the security manager.
+     (Default: unset)

@@ -45,6 +45,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import org.osgi.framework.*;
 
+import java.lang.reflect.Constructor;
 
 /**
  * This is the main startup code for the framework and enables
@@ -862,14 +863,23 @@ public class Main {
       String policy   = (String)props.get("java.security.policy");
       
 
-      if(manager != null && policy != null) {
+      if(manager != null) {
 	if(System.getSecurityManager() == null) {
 	  println("Setting security manager=" + manager + 
 		  ", policy=" + policy, 1);
 	  System.setProperty("java.security.manager", manager);
-	  System.setProperty("java.security.policy",  policy);
-	  
-	  SecurityManager sm = new SecurityManager();
+	  if(policy != null) {
+	    System.setProperty("java.security.policy",  policy);
+	  }
+	  SecurityManager sm = null;
+	  if("".equals(manager)) {
+	    sm = new SecurityManager();
+	  } else {
+	    Class       clazz = Class.forName(manager);
+	    Constructor cons  = clazz.getConstructor(new Class[0]);
+
+	    sm = (SecurityManager)cons.newInstance(new Object[0]);
+	  }
 	  System.setSecurityManager(sm);
 	}
       }
