@@ -217,7 +217,20 @@ public class PackageAdminImpl implements PackageAdmin {
 		    synchronized (ib) {
 		      if ((ib.state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
 			try {
-			  startList.add(0,ib);
+			  int ix = 0;
+			  if(Framework.R3_TESTCOMPLIANT) {
+			    // Make sure start list is in original bundle
+			    // start order by using insertion sort
+			    Iterator it = startList.iterator();
+			    while(it.hasNext()) {
+			      BundleImpl bi = (BundleImpl)it.next();
+			      if(ib.getBundleId() < bi.getBundleId()) {
+				break;
+			      }
+			      ix++;
+			    }
+			  }
+			  startList.add(ix,ib);
 			  ib.stop();
 			} catch(BundleException be) {
 			  framework.listeners.frameworkError(ib, be);
@@ -244,20 +257,6 @@ public class PackageAdminImpl implements PackageAdmin {
 			break;
 		      }
 		      ib.purge();
-		    }
-		  }
-
-		  if(Framework.R3_TESTCOMPLIANT) {
-		    BundleImpl[] sorted = new BundleImpl[startList.size()];
-		    for(int i = 0; i < startList.size(); i++) {
-		      sorted[i] = (BundleImpl)startList.get(i);
-		      //		      System.out.println(i + ": restart " + sorted[i]);
-		    }
-		    QSort.sort(sorted, BSComparator);
-		    startList = new ArrayList();
-		    for(int i = 0; i < sorted.length; i++) {
-		      startList.add(sorted[i]);
-		      //		      System.out.println(i + ": sorted " + sorted[i]);
 		    }
 		  }
 
