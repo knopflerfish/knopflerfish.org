@@ -39,6 +39,8 @@
     <property name     = "template.html" 
               location = "html_templates/template.html"/>
 
+    <antcall target="bundle_docs"/>
+
     <antcall target="makehtml">
       <param name="fromfile" value="html_src/index_main.html"/>
       <param name="tofile"   value="index.html"/>
@@ -127,6 +129,17 @@
       <param name="CLASS_NAVIGATION_SVN" value="navigation_disabled"/>
     </antcall>
 
+   <loadfile property = "bundle_list"     
+             srcfile  = "bundles/bl.html"/>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/bundles_main.html"/>
+      <param name="tofile"   value="bundles.html"/>
+      <param name="title"    value="Knopflerfish Bundles"/>
+      <param name="desc"     value="Documentation from Knopflerfish bundles"/>
+      <param name="bundle_list"  value="${bundle_list}"/>
+      <param name="CLASS_NAVIGATION_BUNDLES" value="navigation_disabled"/>
+    </antcall>
 
   </target>
 
@@ -139,19 +152,18 @@
           tofile    = "${tofile}" 
           overwrite = "true"/>
 
-   <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_COMP"      value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_DOWNLOAD"  value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_LINKS"     value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_DESKTOP"   value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_CHANGELOG" value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
-   <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
-
-
+     <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_COMP"      value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_DOWNLOAD"  value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_LINKS"     value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_DESKTOP"   value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_CHANGELOG" value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_BUNDLES"   value="navigation_enabled"/>
 
     <replace file="${tofile}">
       <replacefilter token="$(TITLE)"
@@ -164,6 +176,7 @@
 	<replacefilter token="$(USER)"      value="${env.USER}"/>
 	<replacefilter token="$(VERSION)"   value="${version}"/>
 	<replacefilter token="$(MESSAGE)"   value="${message}"/>
+	<replacefilter token="$(BUNDLE_LIST)"   value="${bundle_list}"/>
 
         <replacefilter token="$(CLASS_NAVIGATION)" 
                        value="navigation_enabled"/>
@@ -198,8 +211,53 @@
 	<replacefilter token="$(CLASS_NAVIGATION_SVN)" 
                        value="${CLASS_NAVIGATION_SVN}"/>
 
+	<replacefilter token="$(CLASS_NAVIGATION_BUNDLES)" 
+                       value="${CLASS_NAVIGATION_BUNDLES}"/>
+
     </replace>	       
   </target>
+
+  <!-- bundle doc generation  -->
+  <target name="bundle_docs">
+
+   <property name  = "topdir"           location=".."/>
+   <property name  = "bundledoc.dir"    location="bundles"/>
+   <property name  = "bundle.base"      location="${topdir}/osgi/bundles"/>
+   <property name  = "bundle.htmltop"   location="../.."/>
+
+   <delete dir  = "${bundledoc.dir}"/>
+   <mkdir  dir  = "${bundledoc.dir}"/>
+
+   <antcall target="bundlehtml">
+     <param name="bundle" value="desktop"/>
+   </antcall>
+
+   <antcall target="bundlehtml">
+     <param name="bundle.base"   location="${topdir}/osgi/bundles/http"/>
+     <param name="bundle" value="http"/>
+   </antcall>
+
+  </target>
+
+  <target name="bundlehtml">
+    <echo file="bundles/bl.html" append="true"><![CDATA[
+<tr>
+ <td>
+  <a href="bundles/${bundle}/index.html">${bundle}</a>
+ </td>
+</tr>
+]]></echo>
+   
+   <copy todir = "${bundledoc.dir}/${bundle}">
+
+    <fileset dir = "${bundle.base}/${bundle}/docs"/>
+    <filterset>
+     <filter token="VERSION"       value="${version}"/>
+    </filterset>
+   </copy>
+  </target>
+
+<!-- /bundle doc generation -->
 
 </project>
 
