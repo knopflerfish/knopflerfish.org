@@ -1,4 +1,4 @@
-package org.knopflerfish.bundle.wiredmin;
+package org.knopflerfish.bundle.wireadmin;
 
 import org.osgi.framework.*;
 
