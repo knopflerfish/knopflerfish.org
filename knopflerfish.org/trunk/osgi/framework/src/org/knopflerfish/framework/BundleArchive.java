@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.Vector;
 
 /**
  * Interface for managing bundle data.
@@ -105,9 +106,9 @@ public interface BundleArchive {
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @return InputStream to entry or null if it doesn't exist.
+   * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  boolean componentExists(String component);
+  Vector componentExists(String component);
 
 
   /**
