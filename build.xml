@@ -67,6 +67,9 @@
   <property name     = "distribfile_tiny" 
             location = "knopflerfish_osgi_tiny_${version}.zip"/>
 
+  <property name     = "distribfile_tests" 
+            location = "knopflerfish_osgi_tests_${version}.zip"/>
+
   <property name     = "distribfile_opt" 
             location = "knopflerfish_opt_${version}.jar"/>
 
@@ -598,6 +601,64 @@
 
            <include name = "osgi/bundlemanager.props"/>
            <include name = "osgi/bm.props"/>
+           <exclude name = "**/CVS"/>
+        </zipfileset>
+
+        <zipfileset dir    = "tools/jarunpacker/resources"
+                    prefix = "knopflerfish_osgi_${version}">
+           <include name = "license.txt"/>
+           <include name = "osgi_copyright.txt"/>
+        </zipfileset>
+
+    </zip>
+
+    <copy file="${distribfile_tiny}"   todir="${release.dir}"/>
+
+  </target>
+
+  <target   name        = "distrib_tests" 
+            description = "Builds test distribution file">
+
+    <ant    dir         = "osgi/framework"
+            target      = "all"/>
+
+    <ant    dir         = "osgi/bundles_opt/junit"
+            target      = "all"/>
+
+    <ant    dir         = "osgi/bundles_test/regression_tests"
+            target      = "all"/>
+
+    <delete file        ="${distribfile_tests}"/>
+
+    <!-- the biggie -->
+    <zip    destfile    = "${distribfile_tests}"
+            compress    = "true">
+
+        <zipfileset dir    = "."
+                    prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
+
+
+           <include name = "osgi/framework.jar"/>
+           <include name = "osgi/init-tests.xargs"/>
+
+           <include name = "osgi/bundles_test/regression_tests/**"/>
+           <exclude name = "osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
+           <include name = "osgi/bundles_opt/junit/**"/>
+           <include name = "ant/**"/>
+           <include name = "osgi/jars/*_test/*_test*.jar"/>
+           <include name = "osgi/jars/junit/*.jar"/>
+           <include name = "osgi/jars/junit_runner/*.jar"/>
+           <exclude name = "**/*.class"/>
+<!--
+           <include name = "osgi/jars/log/*.jar"/>
+           <include name = "osgi/jars/cm/*.jar"/>
+           <include name = "osgi/jars/http/*.jar"/>
+           <include name = "osgi/jars/util/*.jar"/>
+           <include name = "osgi/jars/jsdk/*.jar"/>
+           <include name = "osgi/jars/console/*.jar"/>
+-->
+
+           <include name = "osgi/init-tests.xargs"/>
            <exclude name = "**/CVS"/>
         </zipfileset>
 
