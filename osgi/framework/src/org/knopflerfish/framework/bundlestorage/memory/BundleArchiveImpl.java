@@ -37,7 +37,16 @@ package org.knopflerfish.framework.bundlestorage.memory;
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
-import java.util.*;
+import java.util.Vector;
+import java.util.Dictionary;
+import java.util.StringTokenizer;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
+import java.net.URL;
+
 
 /**
  * Interface for managing bundle data.

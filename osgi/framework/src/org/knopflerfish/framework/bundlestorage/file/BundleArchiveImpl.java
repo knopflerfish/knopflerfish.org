@@ -38,7 +38,14 @@ import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Vector;
+import java.util.Dictionary;
+import java.util.StringTokenizer;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 import java.net.URL;
 
 /**

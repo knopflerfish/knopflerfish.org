@@ -35,7 +35,11 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
+import java.util.Iterator;
 
 public class Util {
   /**
