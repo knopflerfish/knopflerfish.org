@@ -303,7 +303,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 
   public final static String USAGE_CALL = "<interface> <method> [<args>] ...";
   public final static String [] HELP_CALL = new String [] {
-    "Call a method in a registered service",
+    "Call a method with zero or more java.lang.String",
+    "arguments in a registered service.",
     "<interface> Service interface",
     "<method>    Method in service to call",
     "<args>      Arguments to method" };
@@ -359,7 +360,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 	out.println("Internal error 2");
       }
     } catch(NoSuchMethodException e) {
-      out.println("Console: No such method");
+      out.println("No method '" + method + "' with matching arguments");
     }
     bc.ungetService(sr);
     return res;
