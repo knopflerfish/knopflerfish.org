@@ -1,6 +1,30 @@
 <pre>
 
-All changes apply to "trunk", if not otherwise stated.
+All changes apply to "trunk", if not otherwise stated. Builds from
+trunk are available each night at
+
+   http://www.knopflerfish.org/snapshots/trunk/
+
+
+2004-10-29:
+ fw:         Fixed BundleClassLoader.getResources() bug that
+             didn't returned all available resources when multiple
+             identical names existed. Added test (Frame064a) for this.
+
+             Disabled the publicly available bundle: URL syntax.
+             This can be enabled/disabled using the
+               org.knopflerfish.osgi.registerbundleurlhandler
+             system property.
+
+             Made OSGi URL service handler possible to disable
+             using system properrty 
+               org.knopflerfish.osgi.registerserviceurlhandler
+
+             Bumped fw version to 3.3.5
+
+2004-09-03:
+ fw:         Added -jvminfo option to framework Main class: Prints
+             System + fw properties and exist.
 
 2004-08-24
  fw:         Startlevel service after-reboot-fix. 
