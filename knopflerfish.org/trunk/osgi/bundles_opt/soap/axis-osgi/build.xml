@@ -35,13 +35,16 @@
   <property name="dynamicimport.package" value ="*"/>
 
   <property name="bundle.description"    value="Axis Server"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
-  <property name="bundle.category"       value="support"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Apache"/>
+  <property name="bundle.category"       value="service"/>
   <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.html"/>
   <property name="bundle.subversionurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/"/>
   <property name="bundle.version"        value="0.1.0"/>
-  <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
+  <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"
+/>
 
+  <property name="bundle.apivendor"      value="Knopflerfish/Apache"/>
+ 
   <property name="export.package"
             value="org.knopflerfish.service.axis,org.apache.axis,org.apache.axis.wsdl,org.apache.axis.type,sorg.apache.axis.transport,org.apache.axis.soap,org.apache.axis.client,javax.xml.rpc,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.soap,javax.xml.rpc.handler,javax.xml.rpc.handler.soap,javax.xml.rpc.holders,javax.xml.soap,org.apache.axis.description,org.apache.axis.encoding,org.apache.axis.enum"/>
 

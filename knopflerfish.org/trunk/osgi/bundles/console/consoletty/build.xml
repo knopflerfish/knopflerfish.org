@@ -23,7 +23,8 @@
   </path>
 
   <property name="bundle.description"    value="Command line system console"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
   <property name="bundle.category"       value="console"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="TTY Console"/>

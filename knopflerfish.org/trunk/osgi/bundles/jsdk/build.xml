@@ -16,7 +16,8 @@
   <property name="bundle.version"        value="2.2"/>
   <property name="bundle.category"       value="lib"/>
   <property name="bundle.description"    value="The servlet.jar from SUN jsdk lib"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Sun"/>
+  <property name="bundle.apivendor"      value="Sun"/>
   <property name="bundle.name"           value="JSDK lib"/>
   <property name="bundle.classpath"      value="servlet.jar"/>
 

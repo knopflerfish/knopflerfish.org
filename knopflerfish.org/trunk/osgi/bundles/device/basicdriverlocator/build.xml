@@ -22,6 +22,8 @@
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.subversionurl"  value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/device/basicdriverlocator/"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
 
 
   &bundlebuild_include;

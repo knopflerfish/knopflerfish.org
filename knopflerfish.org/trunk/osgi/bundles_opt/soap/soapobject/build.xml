@@ -19,7 +19,7 @@
 
 
   <property name="bundle.description"    value="SOAP objects"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.category"       value="experiment"/>
   <property name="bundle.version"        value="0.0.2"/>
   <!--property name="bundle.classpath"      value = ".,spheon-jsoap.jar"/-->

@@ -33,6 +33,12 @@
   <property name="bundle.name"           value="Commons Logging"/>
   <property name="bundle.classpath"      value=".,log_api-1.0.0.jar"/>
   <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt"/>
+  <property name="bundle.apivendor"      value="Knopflerfish/Apache"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/"/>
+
   
   <property name="import.package" value="org.osgi.framework,org.osgi.service.log;specification-version=1.2"/>
 

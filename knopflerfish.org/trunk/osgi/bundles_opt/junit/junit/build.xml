@@ -37,6 +37,9 @@
   <property name="bundle.subversionurl" 
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/"/>
 
+  <property name="bundle.vendor"         value="JUnit/Knopflerfish"/>
+  <property name="bundle.apivendor"      value="JUnit"/>
+
   <property name="export.package" 
             value="org.knopflerfish.service.junit,junit.framework"/>
 

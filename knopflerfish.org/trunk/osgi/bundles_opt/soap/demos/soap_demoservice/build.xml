@@ -25,8 +25,8 @@
   </path>
 
 
-  <property name="bundle.description"    value="Soap demo bundle"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.description"    value="SOAP demo bundle"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.category"       value="example"/>
   <property name="bundle.version"        value="1.0.0"/>
 

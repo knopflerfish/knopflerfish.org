@@ -32,6 +32,16 @@
   <property name="bundle.description"    value="Native driver for win32 javax.comm using Sun's COMM library"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Sun"/>
+  <property name="bundle.apivendor"      value="Knopflerfish/Sun"/>
+
+  <property name="bundle.docurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/serial/readme.txt"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-win32/"/>
+
+
   <property name="bundle.classpath"      value=".,comm.jar"/>
   <property name="bundle.nativecode" 
             value="win32com.dll ; processor = x86 ; osname = Windows NT, win32com.dll ; processor = x86 ; osname = Windows 98 ,win32com.dll ; processor = x86 ; osname = Windows 95, win32com.dll ; processor = x86 ; osname = Windows 2000; processor = x86 ; osname = Windows XP"/>

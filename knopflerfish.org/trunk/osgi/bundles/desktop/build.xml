@@ -38,8 +38,9 @@
   </path>
 
   <property name="bundle.description"    value="Swing framework desktop"/>
-  <property name="bundle.category"       value="control"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.category"       value="console"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
   <property name="bundle.version"        value="1.1.0"/>
   <property name="bundle.name"           value="Desktop"/>
   <property name="bundle.docurl"         value="http://www.knopflerfish.org/desktop.html"/>
