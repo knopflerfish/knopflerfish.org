@@ -304,6 +304,20 @@ Framework System Properties
      
      Default: false
 
+  org.knopflerfish.permissions.initialdefault
+     Initial default set of permission for PermissionAdmin service.
+     Format for permission is same as used by 
+     org.osgi.service.permissionadmin.PermissionInfo, i.e, 
+
+       (type)                     or
+       (type "name")              or
+       (type "name" "actions")
+
+     More than on permission can be set by separating items by ";"
+
+     An empty set can be specified by using the empty string as value.
+
+     Default: "(java.security.AllPermission)"
 
 Using a HTTP proxy
 ==================
