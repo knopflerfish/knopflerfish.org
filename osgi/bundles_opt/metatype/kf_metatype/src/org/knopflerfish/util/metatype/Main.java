@@ -58,8 +58,9 @@ import java.util.jar.*;
  */
 public class Main {
 
-  static boolean bDumpXML    = false;
-  static boolean bDumpValues = false;
+  static boolean bDumpXML       = false;
+  static boolean bDumpValues    = false;
+  static boolean bIncludeValues = false;
 
   public static void main(String[] argv) {
 
@@ -79,6 +80,8 @@ public class Main {
 	  bDumpXML = true;
 	} else if("-values".equals(argv[i])) {
 	  bDumpValues = true;
+	} else if("-ivalues".equals(argv[i])) {
+	  bIncludeValues = true;
 	} else if("-help".equals(argv[i])) {
 	  printHelp();
 	  System.exit(0);
@@ -163,7 +166,7 @@ public class Main {
       if(!"".equals(urlVal) && urlVal.indexOf(":") == -1) {
 	urlVal = "file:" + urlVal;
       }
-      MTP mtp = Loader.loadMTPFromURL(new URL(urlDef));
+      MTP mtp = Loader.loadMTPFromURL(null, new URL(urlDef));
       //      System.out.println("loaded metatype XML from " + urlDef);
       Dictionary pids = new Hashtable();
       if(!"".equals(urlVal)) {
@@ -175,10 +178,15 @@ public class Main {
 	  Loader.printMetatypeXML(mtp, 
 				  mtp.getServicePIDs(),
 				  mtp.getFactoryPIDs(),
+				  true, 
+				  true,
+				  bIncludeValues  ? pids : null,
 				  new PrintWriter(System.out, true));
 	}
 	if(bDumpValues) {
-	  Loader.printValuesXML(pids, new PrintWriter(System.out, true));
+	  Loader.printValuesXML(pids, 
+				true,
+				new PrintWriter(System.out, true));
 	}
       } else {
 	if(bDump) {

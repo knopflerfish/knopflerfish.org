@@ -58,17 +58,6 @@ import java.net.*;
 public class SystemMetatypeProvider 
   implements MetaTypeProvider, PIDProvider {
 
-  BundleContext bc;
-  LogRef        log;
-
-  Map providers = new HashMap();
-
-  ServiceTracker cmTracker;
-
-  boolean bTrackCM = true;
-
-  MTP     cmMTP;
-
   /**
    * Default URL to metatype XML.
    * 
@@ -104,6 +93,22 @@ public class SystemMetatypeProvider
    * </p>
    */
   public static final String ATTRIB_CMDEFAULTSURL = "Bundle-CMDefaultsURL";
+
+  BundleContext  bc;
+  LogRef         log;
+
+  // Bundle -> MTP
+  Map            providers = new HashMap();
+
+  ServiceTracker cmTracker;
+
+  // If set to true, track CM configuration instances
+  // as MTPs on the system bundle.
+  boolean        bTrackCM = true;
+
+  // Special MTP which tracks CM configuration instances
+  MTP            cmMTP;
+
 
   // String (pid) -> OCD
   Map cmOCDMap = new HashMap();
@@ -267,7 +272,7 @@ public class SystemMetatypeProvider
     } else {
       
       try {
-	mtp = Loader.loadMTPFromURL(url);
+	mtp = Loader.loadMTPFromURL(b, url);
       
 	addMTP(b, mtp);
 	if(log.doDebug()) {
