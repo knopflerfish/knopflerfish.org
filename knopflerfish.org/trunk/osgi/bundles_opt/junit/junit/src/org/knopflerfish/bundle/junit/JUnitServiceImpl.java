@@ -40,6 +40,7 @@ import java.io.*;
 import org.knopflerfish.service.junit.*;
 import org.osgi.framework.*;
 import junit.framework.*;
+import java.lang.reflect.*;
 
 public class JUnitServiceImpl implements JUnitService {
 
@@ -59,6 +60,8 @@ public class JUnitServiceImpl implements JUnitService {
   }
 
   public void runTestXML(PrintWriter out, TestSuite suite) throws IOException {
+
+
     out.println("<?xml version=\"1.0\"?>");
     out.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_style.xsl\"?>");
     out.print("<junit");
@@ -103,6 +106,16 @@ public class JUnitServiceImpl implements JUnitService {
 			     TestSuite suite)  throws Exception {
 
     out.println(" <testcase id=\"" + suite.getName() + "\">");
+
+    String desc   = getBeanString(suite, "getDescription", "");
+    out.print("  <description>");
+    out.print("<![CDATA[" + desc + "]]>");
+    out.println("</description>");
+
+    String docurl = getBeanString(suite, "getDocURL", "");
+    out.print("  <docurl>");
+    out.print("<![CDATA[" + docurl + "]]>");
+    out.println("</docurl>");
     
     try {
 
@@ -255,7 +268,14 @@ public class JUnitServiceImpl implements JUnitService {
 	out.print(indent(n) + "   <case class = \"" + clazz + "\"");
 	out.print(" name  = \"" + name + "\"");
 	out.print(" status = \"" + getTestCaseStatus(tr, test) + "\"");
-	out.println("/>");
+	out.println(">");
+
+	String desc   = getBeanString(test, "getDescription", "");
+	out.print("  <description>");
+	out.print("<![CDATA[" + desc + "]]>");
+	out.println("</description>");
+	
+	out.println("</case>");
       }
     }
     out.println(indent(n) + "  </suite>");
@@ -354,4 +374,19 @@ public class JUnitServiceImpl implements JUnitService {
     t.printStackTrace(out);
     out.println("]]></exception>");
   }
+
+  static String getBeanString(Object target, 
+			      String methodName, 
+			      String defVal) {
+    String val = defVal;
+    try {
+      Method m = target.getClass().getMethod(methodName, 
+					     new Class[] { });
+      val = (String)m.invoke(target, null);
+    } catch (Exception e) {
+      return defVal;
+    }
+    return val;
+  }
+
 }

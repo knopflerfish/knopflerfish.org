@@ -55,20 +55,27 @@ class Grunt  {
     this.bc = bc;
   }
 
+  boolean bWait = false;
+
   void doGrunt() throws BundleException {
-    Thread t = new Thread() {
-	public void run() {
-	  try {
-	    doRun();
-	  } catch (Exception e) {
-	    e.printStackTrace();
+    bWait = "true".equals(System.getProperty("org.knopflerfish.junit_runner.wait"));
+    if(bWait) {
+      Thread t = new Thread() {
+	  public void run() {
+	    try {
+	      doRun();
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
 	  }
-	}
-      };
-    t.start();
+	};
+      t.start();
+    } else {
+      doRun();
+    }
   }
 
-  public void doRun() throws Exception {
+  public void doRun() throws BundleException {
     String tests = System.getProperty("org.knopflerfish.junit_runner.tests");
     String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
     boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
@@ -79,10 +86,14 @@ class Grunt  {
       log("Wait for framework start");
       int n = 100;
       while(system.getState() != Bundle.ACTIVE) {
-	Thread.sleep(500);
+	try {
+	  Thread.sleep(500);
+	} catch (InterruptedException e) {
+	  throw new BundleException("wait interrupted: " + e);
+	}
 	n--;
 	if(n <= 0) {
-	  throw new InterruptedException("Framework failed to start in a reasonable time");
+	  throw new BundleException("Framework failed to start in a reasonable time");
 	}
       }
       log("Framework start complete");

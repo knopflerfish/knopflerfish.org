@@ -33,14 +33,26 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 </head>
 
 <body>
-
   <xsl:for-each select="/junit/testcase">
   <h3 class="shadow">JUnit test results for id '<xsl:value-of select="@id"/>'
   - 
 <xsl:value-of select="/junit/@date"/>
   </h3>
+
+
+
 <a href="index.xml">Test index</a><br/>
 <a href="#properties">Properties</a>
+<p>
+<xsl:value-of select="description"/>
+<xsl:choose>
+ <xsl:when test="docurl = ''">
+ </xsl:when>
+ <xsl:otherwise>
+  (see also <a href="{docurl}">docs</a>) <br/>
+ </xsl:otherwise>
+</xsl:choose>
+</p>
 <p>
   <xsl:for-each select="testresult">
    <xsl:choose>
@@ -93,6 +105,7 @@ Time:  <xsl:value-of select="@time"/>ms
 </xsl:choose>
 </td>	
       <td class="{@status}"><xsl:value-of select="@status"/></td>
+      <td><xsl:value-of select="description"/></td>
      </tr>
     </xsl:for-each>
    </table> 
