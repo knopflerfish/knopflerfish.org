@@ -137,7 +137,7 @@ public class AD implements AttributeDefinition, Comparable {
   }
 
   public void setDescription(String s) {
-    this.desc = desc;
+    this.desc = s;
   }
 
   public void setDefaultValue(String[] value) {
