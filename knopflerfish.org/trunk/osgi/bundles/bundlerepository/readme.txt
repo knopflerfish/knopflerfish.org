@@ -38,7 +38,7 @@ using the system property
 
  http.proxyAuth=<user>:<pwd>
 
-(as of august 25, this property is also read by framework.jar, since
+(as of August 25, this property is also read by framework.jar, since
 framework support is needed for actual bundle installation)
 
 
