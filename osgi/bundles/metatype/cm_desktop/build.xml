@@ -28,7 +28,7 @@
   
   <property name="bundle.description"    value="CM desktop plugin"/>
   <property name="bundle.name"           value="CM desktop"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
 

@@ -22,6 +22,7 @@
   <property name="bundle.description"    value="Metatype API"/>
   <property name="bundle.category"       value="API"/>
   <property name="bundle.vendor"         value="OSGi"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
   <property name="bundle.version"        value="1.0.0"/>
 
 

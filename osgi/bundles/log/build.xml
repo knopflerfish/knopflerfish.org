@@ -31,6 +31,7 @@
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="Log Service"/>
 
+  <property name="bundle.apivendor"      value="OSGi/Knopflerfish"/>
 
   <property name="export.package"        value="org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.log;specification-version=1.1"/>
 

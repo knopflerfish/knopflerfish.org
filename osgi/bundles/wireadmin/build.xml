@@ -20,7 +20,8 @@
 
   <property name="bundle.description"    value="WireAdmin"/>
   <property name="bundle.category"       value="service"/>
-  <property name="bundle.vendor"         value="OSGI"/>
+  <property name="bundle.vendor"         value="OSGi"/>
+  <property name="bundle.apivendor"      value="osgi"/>
   <property name="bundle.version"        value="1.0.0"/>
 
 

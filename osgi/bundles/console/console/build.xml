@@ -24,11 +24,12 @@
   </path>
 
   <property name="bundle.description"    value="Service system console"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/readme.txt"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="Console"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
 
   <property name="import.service"        value="org.knopflerfish.service.console.CommandGroup,org.osgi.service.log.LogService"/>
 

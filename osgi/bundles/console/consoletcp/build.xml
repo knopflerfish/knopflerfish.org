@@ -20,7 +20,8 @@
 
   <property name="bundle.description"    value="TCP console "/>
   <property name="bundle.category"       value="console"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="TCP Console"/>
 

@@ -30,7 +30,8 @@
 
   <property name="bundle.description"    value="OSGi Service tracker"/>
   <property name="bundle.category"       value="util"/>
-  <property name="bundle.vendor"         value="OSGi"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
   <property name="bundle.version"        value="1.1.0"/>
   <property name="bundle.docurl"         value="http://www.osgi.org"/>
 
