@@ -52,7 +52,7 @@ public class Transaction implements Runnable, PoolableObject {
 
   // private fields
 
-  private final HttpConfig httpConfig;
+  private HttpConfigWrapper httpConfig;
   private final Registrations registrations;
   private final ObjectPool requestPool;
   private final ObjectPool responsePool;
@@ -70,13 +70,11 @@ public class Transaction implements Runnable, PoolableObject {
 
   // constructors
 
-  public Transaction(final HttpConfig httpConfig,
-                     final LogRef log,
+  public Transaction(final LogRef log,
                      final Registrations registrations,
                      final ObjectPool requestPool,
                      final ObjectPool responsePool) {
 
-    this.httpConfig = httpConfig;
     this.log = log;
     this.registrations = registrations;
     this.requestPool = requestPool;
@@ -86,12 +84,15 @@ public class Transaction implements Runnable, PoolableObject {
 
   // public methods
 
-  public void init(final Socket client) {
+  public void init(final Socket client, final HttpConfigWrapper httpConfig) 
+  {
+    this.httpConfig = httpConfig;
     this.client = client;
   }
 
-  public void init(final InputStream is, final OutputStream os) {
-
+  public void init(final InputStream is, final OutputStream os, final HttpConfigWrapper httpConfig) 
+  {
+    this.httpConfig = httpConfig;
     this.is = is;
     this.os = os;
   }
@@ -119,8 +120,8 @@ public class Transaction implements Runnable, PoolableObject {
 
         try {
 
-          request.init(is, remoteAddress);
-          response.init(os, request);
+          request.init(is, remoteAddress, httpConfig);
+          response.init(os, request, httpConfig);
 
           String uri = request.getRequestURI();
           RequestDispatcherImpl dispatcher = registrations.getRequestDispatcher(uri);
@@ -137,7 +138,7 @@ public class Transaction implements Runnable, PoolableObject {
 
         } catch (HttpException he) {
 
-          response.init(os);
+          response.init(os, httpConfig);
           response.sendError(he.getCode(), he.getMessage());
         }
 
@@ -168,7 +169,7 @@ public class Transaction implements Runnable, PoolableObject {
     } catch (Throwable t) {
       if (log.doError()) log.error("Internal error", t);
       try {
-        response.init(os, request);
+        response.init(os, request, httpConfig);
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                            "Internal error: " + t);
       } catch (IOException ignore) { }

@@ -60,7 +60,7 @@ public class ResponseImpl implements Response, PoolableObject {
 
   // private fields
 
-  private final HttpConfig httpConfig;
+  private HttpConfigWrapper httpConfig;
 
   private int statusCode = SC_OK;
   private String statusMsg = null;
@@ -72,13 +72,6 @@ public class ResponseImpl implements Response, PoolableObject {
   private BodyOutputStream bodyOut = null;
   private ServletOutputStream sos = null;
   private PrintWriter pw = null;
-
-  // constructors
-
-  public ResponseImpl(final HttpConfig httpConfig) {
-    this.httpConfig = httpConfig;
-  }
-
 
   // private methods
 
@@ -104,12 +97,14 @@ public class ResponseImpl implements Response, PoolableObject {
 
   // public methods
 
-  public void init(OutputStream os) {
-    this.init(os, null);
+  public void init(OutputStream os, final HttpConfigWrapper httpConfig)
+  {
+    this.init(os, null, httpConfig);
   }
 
-  public void init(OutputStream os, RequestImpl request) {
-
+  public void init(OutputStream os, RequestImpl request, final HttpConfigWrapper httpConfig) 
+  {
+    this.httpConfig = httpConfig;
     this.request = request;
 
     if (request != null)
