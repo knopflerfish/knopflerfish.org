@@ -378,6 +378,7 @@ public class Bundle extends Jar {
     for (int i = 0; i < interfaces.length; i++) {
       if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
         activatorClasses.add(javaClass.getClassName());
+        break;
       }
     }
 
@@ -393,9 +394,9 @@ public class Bundle extends Jar {
         } else {
           referencedClass = Utility.compactClassName(referencedClass, false);
         }
-        int lastSlashIndex = referencedClass.lastIndexOf('.');
-        if (lastSlashIndex > 0) {
-          String packageName = referencedClass.substring(0, lastSlashIndex);
+        int lastDotIndex = referencedClass.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+          String packageName = referencedClass.substring(0, lastDotIndex);
           referencedPackages.add(packageName);
         }
       }

@@ -32,22 +32,29 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import org.apache.tools.ant.Task;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantPool;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Utility;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
-import org.apache.tools.ant.util.JavaEnvUtils;
-
-import org.apache.bcel.Constants;
-import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.Type;
-import org.apache.bcel.generic.BasicType;
-
-import java.io.*;
-import java.util.*;
 
 /**
  * Task that analyzes a set of java sources or class files, and lists all
@@ -594,109 +601,37 @@ public class BundleInfoTask extends Task {
 
     try {
       ClassParser        parser   = new ClassParser(file.getAbsolutePath());
-      final JavaClass    clazz    = parser.parse();
-      final ConstantPool constant_pool = clazz.getConstantPool();
+      JavaClass          clazz    = parser.parse();
+      ConstantPool  constant_pool = clazz.getConstantPool();
 
       ownClasses.add(clazz.getClassName());
-      
-      DescendingVisitor v = new DescendingVisitor(clazz, new EmptyVisitor() {
-	  
+      addExportedPackageString(clazz.getPackageName());
 
-	  // Delegate all ConstantCP calls to visitConstantCP()
-	  public void visitConstantFieldRef(ConstantFieldref obj) {
-	    visitConstantCP(obj);
-	  }
-	  public void visitConstantMethodref(ConstantMethodref obj) {
-	    visitConstantCP(obj);
-	  }
-	  public void visitConstantInterfaceMethodref(ConstantInterfaceMethodref obj) {
-	    visitConstantCP(obj);
-	  }
+      // Scan all implemented interfaces to find
+      // candidates for the activator AND to find
+      // all referenced packages.
+      String[] interfaces = clazz.getInterfaceNames();
+      for(int i = 0; i < interfaces.length; i++) {
+        if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
+          addActivatorString(clazz.getClassName());
+          break;
+        }
+      }
 
-	  // Extract information from method calls found
-	  // in constant table
-	  // This information is used to get all imported packages
-	  private void visitConstantCP(ConstantCP obj) {
-
-	    // This is amazingly complex - isn't there any 
-	    // easier way to get the referenced class names???
-
-	    int signature_ix = obj.getNameAndTypeIndex();
-	    int class_ix     = obj.getClassIndex();
-	    
-	    ConstantNameAndType c = (ConstantNameAndType)
-	      constant_pool.getConstant(signature_ix, 
-					Constants.CONSTANT_NameAndType);
-	    
-	    ConstantClass cc = 	(ConstantClass)
-	      constant_pool.getConstant(class_ix, 
-					Constants.CONSTANT_Class);
-	    
-	    // Whoa!! This is the name of the called object's class
-	    String objType = Utility.compactClassName(((ConstantUtf8)constant_pool.getConstant(cc.getNameIndex(), Constants.CONSTANT_Utf8)).getBytes(), false);
-	    
-
-	    String sig  = c.getSignature(constant_pool);
-	    String name = c.getName(constant_pool);
-
-	    String   retType   = Utility.methodSignatureReturnType(sig);
-	    String[] argTypes  = Utility.methodSignatureArgumentTypes(sig);
-
-	    for(int i = 0; i < argTypes.length; i++) {
-	      addImportedString(argTypes[i]);
-	    }
-
-	    addImportedString(retType);
-	    addImportedString(objType);
-	  }
-
-
-	  // This information is used to get all imported packages, 
-	  // as well as extracting the class package name for exported
-	  // packages.
-	  public void visitJavaClass(JavaClass obj) { 
-	    
-	    addExportedPackageString(obj.getPackageName());
-
-	    addImportedString(obj.getSuperclassName());
-	    
-	    // Scan all implemented interfaces to find
-	    // candidates for the activator AND to find
-	    // all referenced packages.
-	    String[] interfaces = obj.getInterfaceNames();
-	    for(int i = 0; i < interfaces.length; i++) {
-	      addImportedString(interfaces[i]);
-	      if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
-		addActivatorString(obj.getClassName());
-	      }
-	    }
-	  } 
-	  
-	  // hmmm...this should already be found in constant pool
-	  public void visitLocalVariable(LocalVariable obj) { 
-	    Type type = Type.getType(obj.getSignature());
-
-	    addImportedType(type);
-	  } 
-	  
-
-	  // this too should be found in constant pool. 
-	  // But I'm really unsure.
-	  public void visitMethod(Method obj) { 
-	    addImportedType(obj.getReturnType());
-
-	    Type[] argv = obj.getArgumentTypes();
-
-	    for(int i = 0; i < argv.length; i++) {
-	      addImportedType(argv[i]);
-	    }	    
-	  } 
-
-	});
-
-      // Run the scanner on the loaded class
-      v.visit();
-
+      Constant[] constants = constant_pool.getConstantPool();
+      for (int i = 0; i < constants.length; i++) {
+        Constant constant = constants[i];
+        if (constant instanceof ConstantClass) {
+          ConstantClass constantClass = (ConstantClass) constant;
+          String referencedClass = constantClass.getBytes(constant_pool);
+          if (referencedClass.charAt(0) == '[') {
+            referencedClass = Utility.signatureToString(referencedClass, false);
+          } else {
+            referencedClass = Utility.compactClassName(referencedClass, false);
+          }
+          addImportedString(referencedClass);
+        }
+      }
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to parse .class file " + 
