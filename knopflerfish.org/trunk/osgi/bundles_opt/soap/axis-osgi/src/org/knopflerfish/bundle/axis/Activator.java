@@ -66,8 +66,10 @@ import org.osgi.framework.*;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 
+import org.knopflerfish.service.axis.AxisAdmin;
 
 /** The <code>Activator</code> is the activator for the Axis OSGi bundle.
  *  Further it handles service registration events for SOAP services.
@@ -79,6 +81,8 @@ public class Activator
    public static LogRef log = null;
    private static AxisServer axisServer = null;
    private WebApp webApp = null;
+
+  private AxisAdminImpl axisAdmin;
 
    public static AxisServer getAxisServer() {
       return axisServer;
@@ -107,6 +111,15 @@ public class Activator
 	   serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
 	 }
 
+	 axisAdmin = new AxisAdminImpl(this);
+	 
+	 Hashtable props = new Hashtable();
+	 props.put(AxisAdmin.SOAP_SERVICE_NAME, "axisadmin");
+
+	 bc.registerService(AxisAdmin.class.getName(),
+			    axisAdmin,
+			    props);
+	 
       } catch (Exception e) {
          log.error("Exception when starting bundle", e);
          throw new BundleException("Failed to start server");
@@ -148,9 +161,12 @@ public class Activator
       case ServiceEvent.REGISTERED:
 	{
 	  ServiceReference sr = event.getServiceReference();
-	  String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
+	  String serviceName = (String) sr.getProperty(AxisAdmin.SOAP_SERVICE_NAME);
 	  if (serviceName != null) {
-	    log.info("ServicesServlet:: added service "+serviceName);
+	    log.info("added service "+serviceName);
+	    
+	    // throws excpetion if name is invalid
+	    assertServiceName(serviceName);
 	    
 	    Object serviceObj = axisBundle.getService(sr);
 	    
@@ -170,7 +186,7 @@ public class Activator
 	case ServiceEvent.UNREGISTERING:
 	  {
 	    ServiceReference sr = event.getServiceReference();
-	    String serviceName  = (String) sr.getProperty("SOAP_SERVICE_NAME");
+	    String serviceName  = (String) sr.getProperty(AxisAdmin.SOAP_SERVICE_NAME);
 	    if (serviceName != null) {
 	      
 	      ObjectSOAPService soapService 
@@ -182,7 +198,7 @@ public class Activator
 		  .deregisterClass(soapService.getClass().getName());
 		
 		soapService.undeploy();
-		log.info("ServicesServlet:: removed service "+serviceName);
+		log.info("removed service "+serviceName);
 	      }
 	      
 	      //   (new ObjectSOAPService(axisServer,serviceName,null)).undeploy();
@@ -191,7 +207,42 @@ public class Activator
 	  break;
       }
     } catch (Exception e) {
-      log.error("ServicesServlet::serviceChanged() Exception", e);
+      log.error("serviceChanged() failed", e);
+    }
+  }
+
+  /**
+   * Check if service name is OK for publishing as SOAP service.
+   *
+   * This incluced checking for previous registrations at the same name.
+   *
+   * @throws IllegalArgumentException if name is not valid
+   */
+  void assertServiceName(String serviceName) {
+    if(serviceName == null) {
+      throw new IllegalArgumentException("Service name cannot be null");
+    }
+    if("".equals(serviceName)) {
+      throw new IllegalArgumentException("Service name cannot be empty string");
+    }
+
+    for(int i = 0; i < serviceName.length(); i++) {
+      if(Character.isWhitespace(serviceName.charAt(i))) {
+	throw new IllegalArgumentException("Service name '" + serviceName +
+					   "' cannot contain whitespace");
+      }
+    }
+
+    synchronized(exportedServices) {
+      for(Iterator it = exportedServices.keySet().iterator(); it.hasNext();) {
+	ServiceReference sr         = (ServiceReference)it.next();
+	String           name       = (String)sr.getProperty(AxisAdmin.SOAP_SERVICE_NAME);
+	//	Object           serviceObj = (String)exportedServices.get(sr);
+	if(name.equals(serviceName)) {
+	  throw new IllegalArgumentException("Service '" + name + 
+					     "' is already exported");
+	}
+      }
     }
   }
 }
