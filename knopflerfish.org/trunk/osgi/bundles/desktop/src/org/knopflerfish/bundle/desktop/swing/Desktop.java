@@ -223,7 +223,7 @@ public class Desktop
     detailPanel.setPreferredSize(new Dimension(350, 300));
 
     detailPanel.setTabPlacement(JTabbedPane.BOTTOM);
-    detailPanel.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
+    
     detailPanel.setBorder(null);
 
 
@@ -661,9 +661,7 @@ public class Desktop
 
   void setStartLevel(final int level) {
 
-    
     Thread t = new Thread() { 
-	{ start(); }
 	public void run() {
 	  StartLevel sls = (StartLevel)slTracker.getService();
 	  
@@ -672,6 +670,7 @@ public class Desktop
 	  }
 	}
       };
+    t.start();
   }
     
   void updateStartLevel() {
