@@ -229,7 +229,7 @@ class LogConfig implements ManagedService{
               v.removeElementAt(i);
             }
             else{
-              bundF[FILTER_POS]=LogUtil.fromLevel(filter);
+              v.setElementAt(bundleLocation + ";" + LogUtil.fromLevel(filter), i);
             }
             notFound=false;
             break;
