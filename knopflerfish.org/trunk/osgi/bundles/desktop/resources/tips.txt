@@ -169,3 +169,10 @@ and right-clicking on the log entries. Then select "Copy log to clipboard".
 The log can then be pasted as text into your favorite editor.
 </p>
 
+----
+23 The platform name is defined using a system property
+
+The system property <i>org.osgi.provisioning.spid</i> is used to define
+the platform name. This name is displayed in the Desktop window's title
+bar.
+

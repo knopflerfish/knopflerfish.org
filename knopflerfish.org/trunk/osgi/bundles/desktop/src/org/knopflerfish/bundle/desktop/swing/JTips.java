@@ -143,6 +143,15 @@ public class JTips extends JPanel {
 	}
       };
     
+    JButton closeButton = new JButton(Strings.get("close"));
+    closeButton.addActionListener(new ActionListener() {
+	public void actionPerformed(ActionEvent ev) {
+	  if(frame != null) {
+	    frame.setVisible(false);
+	  }
+	}
+      });
+
     nextButton = new JButton(Strings.get("next_tip"));
     nextButton.addActionListener(nextAction);
 
@@ -157,8 +166,8 @@ public class JTips extends JPanel {
     JPanel topPanel    = new JPanel(new BorderLayout());
 
     ctrlPanel = new JPanel(new FlowLayout());
-    //    ((JToolBar)ctrlPanel).setFloatable(false);
 
+    ctrlPanel.add(closeButton);
     ctrlPanel.add(prevButton);
     ctrlPanel.add(nextButton);
 

@@ -123,6 +123,7 @@ public class Strings {
 	  put("yes",    "Yes");
 	  put("no",     "No");
 	  put("ok",     "OK");
+	  put("close",  "Close");
 
 	  put("local",  "Local");
 
