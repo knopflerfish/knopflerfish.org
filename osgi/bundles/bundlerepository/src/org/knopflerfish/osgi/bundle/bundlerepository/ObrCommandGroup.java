@@ -70,14 +70,20 @@ public class ObrCommandGroup extends CommandGroupAdapter
   private   BundleRepositoryService brs   = null;
   protected ServiceRegistration     reg   = null;
 
-  public ObrCommandGroup(BundleContext context, BundleRepositoryService brs)
-  {
+  public ObrCommandGroup(BundleContext bc) {
     super("obr", "OBR commands");
-    this.bc  = context;
-    this.brs = brs;
-  }
+    this.bc  = bc;
 
-  void register() {
+    ServiceReference sr = bc.getServiceReference(BundleRepositoryService.class.getName());
+    
+    this.brs = (BundleRepositoryService)bc.getService(sr);
+
+    if(this.brs == null) {
+      throw new RuntimeException("BundleRepositoryService must be available");
+    }
+  }
+  
+  public void register() {
     if(reg == null) {
       Hashtable props = new Hashtable();
       props.put("groupName", getGroupName());
