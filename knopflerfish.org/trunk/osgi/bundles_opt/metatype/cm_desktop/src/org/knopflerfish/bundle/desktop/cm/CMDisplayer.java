@@ -109,21 +109,29 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
     cmAdmin.stop();    
   }
 
-  public void valueChanged(long bid) {
+  public void valueChanged(final long bid) {
     super.valueChanged(bid);
 
-    for(Iterator it = components.iterator(); it.hasNext();) {
-      JCMAdmin cmAdmin = (JCMAdmin)it.next();
-      Bundle[] bl = bc.getBundles();
-
-      for(int i = 0; i < bl.length; i++) {
-	if(bundleSelModel.isSelected(bl[i].getBundleId())) {
-	  cmAdmin.setBundle(bl[i]);
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  try {
+	    for(Iterator it = components.iterator(); it.hasNext();) {
+	      JCMAdmin cmAdmin = (JCMAdmin)it.next();
+	      Bundle[] bl = bc.getBundles();
+	      
+	      for(int i = 0; i < bl.length; i++) {
+		if(bundleSelModel.isSelected(bl[i].getBundleId())) {
+		  cmAdmin.setBundle(bl[i]);
+		}
+	      }
+	    }
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
 	}
-      }
-    }
+      });
   }
-
+  
   public Icon getSmallIcon() {
     return null;
   }
@@ -144,6 +152,7 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
 	MTP mtp = Activator.getMTP(b);
 	jcmInfo.setProvider(mtp, mtp, b);
       } catch (Exception e) {
+	e.printStackTrace();
 	Activator.log.error("Failed to get MTP from bundle " + 
 			    b.getBundleId(), e);
       }

@@ -229,8 +229,8 @@ public class Util {
     sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  public static final String URL_BUNDLE_PREFIX = "http://desktop/bid/";
-  public static final String URL_SERVICE_PREFIX = "http://desktop/sid/";
+  public static final String URL_BUNDLE_PREFIX = "http://127.0.0.1/desktop/bid/";
+  public static final String URL_SERVICE_PREFIX = "http://127.0.0.1/desktop/sid/";
 
   public static void bundleLink(StringBuffer sb, Bundle b) {
     sb.append("<a href=\"" + URL_BUNDLE_PREFIX + b.getBundleId() + "\">");

@@ -253,7 +253,7 @@ public class JVector extends JPanel {
    */
   void setValue(Object obj) {
 
-    System.out.println("setValue " + ad.getID() + " " + obj);
+    //    System.out.println("setValue " + ad.getID() + " " + obj);
     if(obj == null) {
       Vector def = new Vector();
       String[] defValues = ad.getDefaultValue();
