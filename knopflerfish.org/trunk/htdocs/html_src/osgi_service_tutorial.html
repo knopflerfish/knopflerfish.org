@@ -162,6 +162,7 @@ using a cast:
 After this, the service object can be accessed as any other java object. Actually, it <b>is</b> a fully normal java object, more exact, it is the same object as the bundle registering the service created.
 </p>
 
+
 <a name="release"></a>
 <h3>Releasing services</h3>
 <p>
@@ -198,6 +199,12 @@ While in this UNREGISTERING listener, the <tt>getService()</tt> call should
 <b>not</b> be expected to return a valid service object. In fact, the expected value
 is <tt>null</tt>, even if the spec is a bit vague on this. The OSGi reference
 implementation does however return <tt>null</tt> in this case.
+</p>
+
+<p>
+<b>Note</b>: It's fully possible for a client to hold on to a service object
+via a variable, even after the exporting bundle has been stopped. The client shouldn't expect the service to work in this case and this also blocks any garbage collection. Thus, don't forget to null variables holding services when the
+service is released. 
 </p>
 
 <a name="best"></a>
@@ -379,7 +386,7 @@ usage a bit:
 Consider the HttpService case. All clients must constantly monitor the
 framework in some way to add its servlet(s) to the web server. 
 This requires at least the amount of code examplified above, and even this
-doesn't completely guard againts timing problems.
+doesn't completely guard against timing problems.
 </p>
 <p>
 Additionally, the Http service must provide special methods for 
