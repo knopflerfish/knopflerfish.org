@@ -561,6 +561,14 @@
   <target   name        = "distrib_opt" 
             description = "Builds self-extraction optional distribution file">
 
+    <available property="bundles.opt.present"  file="osgi/bundles_opt"/>
+    <antcall target="distrib_opt_maybe"/>
+  </target>
+
+  <target   name        = "distrib_opt_maybe"
+            if          = "${bundles.opt.present}"
+            description = "Builds self-extraction optional distribution file">
+
     <ant dir="osgi/bundles_opt" target="all"/>
 
     <!-- the tool which unpacks the generated jar -->
