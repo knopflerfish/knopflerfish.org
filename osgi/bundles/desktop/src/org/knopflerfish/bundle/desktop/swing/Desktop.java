@@ -1849,6 +1849,9 @@ public class Desktop
     if(sr != null) {
       PackageAdmin packageAdmin = (PackageAdmin)Activator.getTargetBC().getService(sr);
       if(packageAdmin != null) {
+	if(b != null && b.length == 0) {
+	  b = null;
+	}
 	packageAdmin.refreshPackages(b);
       }
       Activator.getTargetBC().ungetService(sr);
