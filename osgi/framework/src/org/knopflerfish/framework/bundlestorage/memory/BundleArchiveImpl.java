@@ -198,24 +198,28 @@ class BundleArchiveImpl implements BundleArchive
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @return InputStream to entry or null if it doesn't exist.
+   * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  public boolean componentExists(String component) {
+  public Vector componentExists(String component) {
+    Vector v = null;
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
     for (int i = 0; i < archives.length; i++) {
       InputStream is = archives[i].getInputStream(component);
       if (is != null) {
+	if(v == null) {
+	  v = new Vector();
+	}
+	v.addElement(new Integer(i));
 	try {
-	  is.close();
-	  return true;
+	    is.close();
 	} catch (IOException ignore) { }
       }
     }
-    return false;
+    return v;
   }
-
+    
 
   /**
    * Get an InputStream to named entry inside a bundle.

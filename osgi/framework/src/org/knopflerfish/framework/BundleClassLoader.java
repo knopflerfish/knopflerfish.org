@@ -375,18 +375,26 @@ final public class BundleClassLoader extends ClassLoader {
    */
   private Enumeration findBundleResources(String name) {
     Vector answer = new Vector(1);
-    if (archive.componentExists(name)) {
-      try {
-	URL url = new URL(BundleURLStreamHandler.PROTOCOL, Long.toString(bpkgs.bundle.id),
-			  -1, "/" + name);
-	if (debug) {
-	  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - found: " + name + " -> " + url);
+    Vector items = archive.componentExists(name);
+    if (items != null) {
+	for(int i = 0; i < items.size(); i++) {
+	    int jarId = items.size() == 1 
+		? -1
+		: ((Integer)items.elementAt(i)).intValue();
+
+	    try {
+		URL url = new URL(BundleURLStreamHandler.PROTOCOL, Long.toString(bpkgs.bundle.id),
+				  jarId,
+				  "/" + name);
+		if (debug) {
+		    Debug.println("classLoader(#" + bpkgs.bundle.id + ") - found: " + name + " -> " + url);
+		}
+		answer.addElement(url);
+	    } catch (MalformedURLException ignore) {
+		// Return null since we couldn't construct a valid url.
+		// TODO: Rewrite URL if we have special characters.
+	    }
 	}
-	answer.addElement(url);
-      } catch (MalformedURLException ignore) {
-	// Return null since we couldn't construct a valid url.
-	// TODO: Rewrite URL if we have special characters.
-      }
     }
     return answer.elements();
   }
