@@ -45,8 +45,11 @@ import java.io.File;
  * StartLevel service implemenetation.
  *
  */
-public class StartLevelImpl implements StartLevel {
-  WorkerThread  wc;
+public class StartLevelImpl implements StartLevel, Runnable {
+  Thread        wc;
+  long          wcDelay  = 2000;
+  boolean       bRun     = false;
+  Queue         jobQueue = new Queue(100);
 
   final static int START_MIN = 0;
   final static int START_MAX = Integer.MAX_VALUE;
@@ -77,7 +80,9 @@ public class StartLevelImpl implements StartLevel {
       Debug.println("[opening startlevel service]");
     }
 
-    wc = new WorkerThread("startlevel service");
+    System.out.println("starting startlevel");
+    wc   = new Thread(this, "startlevel job thread");
+    bRun = true;
     wc.start();
 
     try {
@@ -97,7 +102,27 @@ public class StartLevelImpl implements StartLevel {
       Debug.println("*** closing startlevel service");
     }
 
-    wc.shutdown();
+    bRun = false;
+    if(wc != null) {
+      try {
+	wc.join(wcDelay * 2);
+      } catch (Exception ignored) { 
+      }
+      wc = null;
+    }
+  }
+
+  public void run() {
+    while(bRun) {
+      try {
+	Runnable job = (Runnable)jobQueue.removeWait((float)(wcDelay / 1000.0));	
+	if(job != null) {
+	  job.run();
+	}
+      } catch (Exception ignored) { 
+	ignored.printStackTrace();
+      }
+    }
   }
 
   public int getStartLevel() {
@@ -110,7 +135,7 @@ public class StartLevelImpl implements StartLevel {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
 
-    wc.addJob(new Job() {
+    jobQueue.insert(new Runnable() {
 	public void run() {
 	  targetStartLevel = startLevel;
 
@@ -258,7 +283,7 @@ public class StartLevelImpl implements StartLevel {
       throw new IllegalArgumentException("uninstalled bundle start level cannot be changed");
     }
 
-    wc.addJob(new Job() {
+    jobQueue.insert(new Runnable() {
 	public void run() {
 
 	  bs.setStartLevel(startLevel);
