@@ -69,7 +69,13 @@ public class JUnitServlet extends HttpServlet {
       Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
       PrintWriter out = response.getWriter();
-      response.setContentType ("text/xml");
+
+      String fmt = request.getParameter("fmt");
+      if("html".equals(fmt)) {
+	response.setContentType ("text/html");
+      } else {
+	response.setContentType ("text/xml");
+      }
 
       String cmd = request.getParameter("cmd");
 
@@ -77,8 +83,11 @@ public class JUnitServlet extends HttpServlet {
 	cmd = "run";
       }
 
-      handleCommand(request, response, cmd, out);
-
+      if("html".equals(fmt)) {
+	handleCommandHTML(request, response, cmd, out);
+      } else {
+	handleCommand(request, response, cmd, out);
+      }
       out.flush ();
     } catch (RuntimeException e) {
       Activator.log.error("servlet failed", e);
@@ -89,6 +98,37 @@ public class JUnitServlet extends HttpServlet {
     } finally {
       Thread.currentThread().setContextClassLoader(oldLoader);
     }
+  }
+
+  void handleCommandHTML(HttpServletRequest  request, 
+			 HttpServletResponse response,
+			 String cmd,
+			 PrintWriter out) throws 
+			   ServletException,
+			   IOException {
+    out.println("<html>");
+    out.println("<head>");
+    out.println("<title>");
+    out.println("test result");
+    out.println("</title>");
+    out.println("</head>");
+    out.println("<body>");
+
+    try {
+      if("run".equals(cmd)) {
+	runTestHTML(request.getParameter("id"), out);
+      } else {
+	throw new IllegalArgumentException("Unknown command='" + cmd + "'");
+      }
+    } catch (Exception e) {
+      out.println("<h3>Failed</h3>");
+      out.println("<pre>");
+      e.printStackTrace(out);
+      out.println("</pre>");
+    }
+
+    out.println("</body>");
+    out.println("</html>");
   }
 
   void handleCommand(HttpServletRequest  request, 
@@ -116,56 +156,26 @@ public class JUnitServlet extends HttpServlet {
     out.println("</junit>");
   }
 
-  void runTest(final String id, PrintWriter out) throws Exception {
+  void runTestHTML(final String id, 
+	       PrintWriter out) throws Exception {
+    out.println("test id = " + id);
+    
+    TestSuite suite = getSuite(id);
+    
+    TestResult tr = new TestResult();
+      
+    suite.run(tr);
+    
+    dumpResultHTML(tr, out);
+  }
+  
+  void runTest(final String id, 
+	       PrintWriter out) throws Exception {
     out.println(" <testcase id=\"" + id + "\">");
 
     try {
-      Object obj = null;
 
-      ServiceReference[] srl = 
-	Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
-
-      if(srl == null || srl.length == 0) {
-	obj = new TestCase("No id=" + id) {
-	    public void runTest() {
-	      throw new IllegalArgumentException("No test with id=" + id);
-	    }
-	  };
-      }
-      if(srl != null && srl.length != 1) {
-	obj = new TestCase("Multiple id=" + id) {
-	    public void runTest() {
-	      throw new IllegalArgumentException("More than one test with id=" + id);
-	    }
-	  };
-      }
-      
-      if(obj == null) {
-	obj = Activator.bc.getService(srl[0]);
-      }
-
-      if(!(obj instanceof Test)) {
-	final Object oldObj = obj;
-	obj = new TestCase("ClassCastException") {
-	    public void runTest() {
-	      throw new ClassCastException("Service implements " + 
-					   oldObj.getClass().getName() + 
-					   " instead of " + 
-					   Test.class.getName());
-	    }
-	  };
-      }
-	
-      Test test = (Test)obj;
-      
-      TestSuite suite;
-      if(test instanceof TestSuite) {
-	suite = (TestSuite)test;
-      } else {
-	suite = new TestSuite();
-	suite.addTest(test);
-      }
-      
+      TestSuite suite = getSuite(id);
       
       dumpSuite(suite, out, 2);
       
@@ -178,6 +188,56 @@ public class JUnitServlet extends HttpServlet {
     } finally {
       out.println(" </testcase>");
     }
+  }
+
+  TestSuite getSuite(final String id) throws Exception {
+    Object obj = null;
+    
+    ServiceReference[] srl = 
+      Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
+    
+    if(srl == null || srl.length == 0) {
+      obj = new TestCase("No id=" + id) {
+	  public void runTest() {
+	    throw new IllegalArgumentException("No test with id=" + id);
+	  }
+	};
+    }
+    if(srl != null && srl.length != 1) {
+      obj = new TestCase("Multiple id=" + id) {
+	  public void runTest() {
+	    throw new IllegalArgumentException("More than one test with id=" + id);
+	  }
+	};
+    }
+    
+    if(obj == null) {
+      obj = Activator.bc.getService(srl[0]);
+    }
+    
+    if(!(obj instanceof Test)) {
+      final Object oldObj = obj;
+      obj = new TestCase("ClassCastException") {
+	  public void runTest() {
+	    throw new ClassCastException("Service implements " + 
+					 oldObj.getClass().getName() + 
+					 " instead of " + 
+					 Test.class.getName());
+	  }
+	};
+    }
+    
+    Test test = (Test)obj;
+    
+    TestSuite suite;
+    if(test instanceof TestSuite) {
+      suite = (TestSuite)test;
+    } else {
+      suite = new TestSuite();
+      suite.addTest(test);
+    }
+    
+    return suite;
   }
 
   static String indent(int n) {
@@ -214,6 +274,30 @@ public class JUnitServlet extends HttpServlet {
     }
     out.println(indent(n) + "  </suite>");
   }
+
+  void dumpResultHTML(TestResult tr, PrintWriter out) throws IOException {
+    out.println("<pre>");
+    out.println("wasSuccessful = " + tr.wasSuccessful());
+    out.println("runCount      = " + tr.runCount());
+    out.println("failureCount  = " + tr.failureCount());
+    out.println("errorCount    = " + tr.errorCount());
+
+    if(tr.failureCount() > 0 ) {
+      for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
+	TestFailure tf = (TestFailure)e.nextElement();
+	dumpFailureHTML(tf, out, "Failure");
+      }
+    }
+    if(tr.errorCount() > 0 ) {
+      for(Enumeration e = tr.errors(); e.hasMoreElements(); ) {
+	
+	TestFailure tf = (TestFailure)e.nextElement();
+	dumpFailureHTML(tf, out, "Error");
+      }
+    }
+    out.println("</pre>");
+  }
+
 
   void dumpResult(TestResult tr, PrintWriter out) throws IOException {
     out.println("  <testresult wasSuccessful = \"" + tr.wasSuccessful() + "\"");
@@ -264,6 +348,29 @@ public class JUnitServlet extends HttpServlet {
     out.println("]]></trace>");
     
     out.println("    </failure>");
+  }
+
+  void dumpFailureHTML(TestFailure tf, PrintWriter out,
+		       String prefix) throws IOException {
+    out.println(prefix);
+
+    out.println(" exceptionMessage    = " + escape(tf.exceptionMessage()));
+    Test failedTest = tf.failedTest();
+    if(failedTest instanceof TestCase) {
+      TestCase tc = (TestCase)failedTest;
+      String name = tc.getName();
+      if(name == null) {
+	name = tc.getClass().getName();
+      }
+
+      out.println(" failedTestCaseName  = " + escape(name));
+      out.println(" failedTestCaseClass = " + tc.getClass().getName());
+    } else {
+      out.println(" failedTest          = " + tf.failedTest());
+    }
+    out.println("<pre>");
+    out.print(tf.trace());
+    out.println("</pre>");
   }
 
   String escape(String s) {
