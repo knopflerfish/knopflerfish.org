@@ -53,6 +53,7 @@
 
  <property name = "xinclude.source"       value = "true"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
+ <property name = "bundle.symbolicname"   value = "${bundle.name}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
  <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
@@ -63,7 +64,7 @@
  <property name = "export.service"        value = "${bundle.emptystring}"/>
  <property name = "import.service"        value = "${bundle.emptystring}"/>
  <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
- <property name = "dynamicimport.packaget"  value = "${bundle.emptystring}"/>
+ <property name = "dynamicimport.package"  value = "${bundle.emptystring}"/>
  <property name = "bundle.nativecode"     value = "${bundle.emptystring}"/>
 
  <property name = "bundle.icon"           value = "${bundle.emptystring}"/>
@@ -336,6 +337,7 @@
 
   <bundlemanifest file="${outdir}/impl.mf">
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
@@ -426,6 +428,7 @@
 
   <bundlemanifest file = "${outdir}/api.mf">
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
@@ -472,6 +475,7 @@
 
   <bundlemanifest file="${outdir}/impl.mf">
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
@@ -537,6 +541,7 @@
 
   <bundlemanifest file="${outdir}/all.mf">
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description} (API and implementation)"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
