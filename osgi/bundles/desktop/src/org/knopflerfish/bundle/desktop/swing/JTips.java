@@ -61,7 +61,7 @@ public class JTips extends JPanel {
 
   java.util.List tips = new ArrayList(); // String
 
-  static final String sep = "----";
+  static final String sep = "<p>----</p>";
 
   JButton nextButton;
   JButton prevButton;
@@ -204,8 +204,9 @@ public class JTips extends JPanel {
     tipIx = ix;
 
     Tip    tip = (Tip)tips.get(tipIx % tips.size());
-    String s   = Text.replace(tip.toHTML(), "$(BID)", Long.toString(Activator.getBC().getBundle().getBundleId()));
-    
+    String s = tip.toHTML();
+    s   = Text.replace(s, "<img src=\"", "<img src=\"bundle://$(BID)/");
+    s   = Text.replace(s, "$(BID)", Long.toString(Activator.getBC().getBundle().getBundleId()));
     
     setHTML(Util.fontify(s));
   }
