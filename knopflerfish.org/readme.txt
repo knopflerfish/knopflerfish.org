@@ -1,7 +1,9 @@
-This is the subversion repository for
-Knopflerfish OSGi.
+********************************************
+**  This is the subversion repository for  
+**  Knopflerfish OSGi.
+**  http://www.knopflerfish.org
+*******************************************
 
-  http://www.knopflerfish.org
 
    trunk     -   main development trunk
    branches  -   misc development branches
@@ -14,19 +16,21 @@ To check out, use a Subversion client
 A nice windows client is available at
   http://tortoisesvn.tigris.org
 
+*** Checking out the source ***
 
-
-typically you can check out the main trunk by:
+Anyone can check out the main trunk by:
 
  > svn co \ 
     https://www.knopflerfish.org/svn/knopflerfish.org/trunk \
     knopflerfish.org
 
- This will check out "trunk" into a new directory "knopflerfish.org"
+ This will check out "trunk" into a new directory 
+ "knopflerfish.org"
 
-If you're unsure on Subversion -- do read the Subversion book at
-  http://svnbook.red-bean.com/
+If you're unsure on Subversion -- do read the Subversion 
+book at http://svnbook.red-bean.com/
 
+*** Commiting to knopflerfish ***
 
 If you want to commit to knopflerfish.org, please contact
 
