@@ -44,6 +44,7 @@
       <param name="tofile"   value="index.html"/>
       <param name="title"    value="Knopflerfish OSGi"/>
       <param name="desc"     value="The Knopflerfish OSGi framework is complete, open-sourced, OSGi R3 certified framework."/>
+      <param name="CLASS_NAVIGATION_INDEX" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -51,6 +52,7 @@
       <param name="tofile"   value="programming.html"/>
       <param name="title"    value="Knopflerfish: Develop OSGi bundles"/>
       <param name="desc"     value="Information, tips and recommendations for developing OSGi bundles"/>
+      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -58,6 +60,7 @@
       <param name="tofile"   value="desktop.html"/>
       <param name="title"    value="The Knopflerfish OSGi Desktop"/>
       <param name="desc"     value="The Knopflerfish Desktop displays a graphic view of a running OSGi framework where bundles can be installed/started/stopped etc."/>
+      <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -65,6 +68,7 @@
       <param name="tofile"   value="download.html"/>
       <param name="title"    value="Download Knopflerfish OSGi"/>
       <param name="desc"     value=""/>
+      <param name="CLASS_NAVIGATION_DOWNLOAD" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -72,6 +76,7 @@
       <param name="tofile"   value="changelog.html"/>
       <param name="title"    value="Knopflerfish Changelog"/>
       <param name="desc"     value="List of changes in the Knopflerfish OSGi"/>
+      <param name="CLASS_NAVIGATION_CHANGELOG" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -79,6 +84,7 @@
       <param name="tofile"   value="links.html"/>
       <param name="title"    value="Knopflerfish links"/>
       <param name="desc"     value="Links to OSGi related pages"/>
+      <param name="CLASS_NAVIGATION_LINKS" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -86,6 +92,7 @@
       <param name="tofile"   value="charter_se.html"/>
       <param name="title"    value="Stadgar Knopflerfish"/>
       <param name="desc"     value="Stadgar Knopflerfish"/>
+      <param name="CLASS_NAVIGATION_CHAPTER" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -93,6 +100,7 @@
       <param name="tofile"   value="history.html"/>
       <param name="title"    value="Knopflerfish history"/>
       <param name="desc"     value="Take your pick of reasons behind the Knopflerfish project"/>
+      <param name="CLASS_NAVIGATION_HISTORY" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -100,6 +108,7 @@
       <param name="tofile"   value="components.html"/>
       <param name="title"    value="Knopflerfish contents"/>
       <param name="desc"     value="The contents of the Knopflerfish distribution"/>
+      <param name="CLASS_NAVIGATION_COMP" value="navigation_disabled"/>
     </antcall>
 
 
@@ -114,6 +123,16 @@
           tofile    = "${tofile}" 
           overwrite = "true"/>
 
+   <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_LINKS"     value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_DESKTOP"   value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_CHANGELOG" value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
+
+
+
     <replace file="${tofile}">
       <replacefilter token="$(TITLE)"
 	             value="${title}"/>
@@ -121,10 +140,38 @@
 	               value="${desc}"/>
 	<replacefilter token="$(MAIN)"
 		       value="${main}"/>		       
-	<replacefilter token="$(TSTAMP)" value="${timestamp}"/>
-	<replacefilter token="$(USER)"   value="${env.USER}"/>
-	<replacefilter token="$(VERSION)" value="${version}"/>
-	<replacefilter token="$(MESSAGE)" value="${message}"/>
+	<replacefilter token="$(TSTAMP)"    value="${timestamp}"/>
+	<replacefilter token="$(USER)"      value="${env.USER}"/>
+	<replacefilter token="$(VERSION)"   value="${version}"/>
+	<replacefilter token="$(MESSAGE)"   value="${message}"/>
+
+        <replacefilter token="$(CLASS_NAVIGATION)" 
+                       value="navigation_enabled"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_INDEX)" 
+                       value="${CLASS_NAVIGATION_INDEX}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_COMP)" 
+                       value="${CLASS_NAVIGATION_COMP}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_CHANGELOG)" 
+                       value="${CLASS_NAVIGATION_CHANGELOG}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_CONTACTS)" 
+                       value="${CLASS_NAVIGATION_CONTACTS}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_DOWNLOAD)" 
+                       value="${CLASS_NAVIGATION_DOWNLOAD}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_PROG)" 
+                       value="${CLASS_NAVIGATION_PROG}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_DESKTOP)"
+                       value="${CLASS_NAVIGATION_DESKTOP}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_LINKS)" 
+                       value="${CLASS_NAVIGATION_LINKS}"/>
+
     </replace>	       
   </target>
 
