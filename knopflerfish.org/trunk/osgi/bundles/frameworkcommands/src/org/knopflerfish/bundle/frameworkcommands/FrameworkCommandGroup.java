@@ -1177,6 +1177,28 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   }
 
   //
+  // Show start level command
+  //
+  public final static String USAGE_SHOWSTARTLEVEL = "";
+  public final static String [] HELP_SHOWSTARTLEVEL = new String [] {
+    "Show the global startlevel",
+  };
+
+  public int cmdShowstartlevel(Dictionary opts, 
+			       Reader in, 
+			       PrintWriter out, Session session) {
+    int level = -1;
+    try {
+      out.println("" + startLevel.getStartLevel());
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to show startlevel");
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+
+  //
   // Show initial bundle start level command
   //
   public final static String USAGE_SHOWINITSTARTLEVEL = "";
