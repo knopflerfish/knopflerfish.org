@@ -45,7 +45,7 @@
 -->
 
   <property name="import.package"
-            value="javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client,org.osgi.framework,org.w3c.dom,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel,org.knopflerfish.util,org.knopflerfish.service.remotefw"/>
+            value="javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client,org.osgi.framework,org.w3c.dom,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel,org.osgi.service.packageadmin,org.knopflerfish.util,org.knopflerfish.service.remotefw"/>
 
   &bundlebuild_include;
 
