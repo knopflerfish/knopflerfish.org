@@ -12,7 +12,16 @@
 
   <property name="do.bundle.custom.pre" value="true"/>
 
+  <target name="buildres">
+   <jar destfile = "resources/res1.jar" 
+        basedir  = "res1"/>
+   <jar destfile = "resources/res2.jar" 
+        basedir  = "res2"/>
+  </target>
+
   <target name="bundle.custom.pre">
+   <antcall target="buildres"/>
+
    <copy file  = "${topdir}/jars/bundleA_test-1.0.0.jar"         
          todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleA1_test-1.0.1.jar"         
