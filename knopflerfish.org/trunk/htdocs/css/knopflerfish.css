@@ -16,7 +16,7 @@ BODY  {
  font-size:11px;
  color:000000;
  padding-left: 10px;
- background-color: #eeeeee;
+ background-color: #ffffff;
 }
 
 .anfang:first-letter {
@@ -75,37 +75,58 @@ PRE {
 H1  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:19px;
- font-weight:bold
+ font-weight:bold;
 }
 
 H2  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:15px;
- font-weight:bold
+ font-weight:bold;
 }
 
 H3  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:13px;
- font-weight:bold
+ font-weight:bold;
+ background:          #eeeeee;
+ border-color:        #ffffee #999999 #999999 #ffffee;
+ border-style:        solid;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
 }
 
 H4  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:11px;
- font-weight:bold
+ font-weight:bold;
+ background:          #eeeeee;
+ border-color:        #ffffee #999999 #999999 #ffffee;
+ border-style:        solid;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
 }
 
 H5  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:9px;
- font-weight:bold
+ font-weight:bold;
+ background:          #eeeeee;
+ border-color:        #ffffee #999999 #999999 #ffffee;
+ border-style:        solid;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
 }
 
 H6  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:7px;
- font-weight:bold
+ font-weight:bold;
 }
 
 TD.menu {
@@ -184,15 +205,30 @@ li.A:hover {
 
 .pageheader {
  background-color: #ffffff;
- border-left:    solid 10px #dddddd;
+# border-left:    solid 10px #dddddd;
+ background:          #ffffee;
+ border-color:        #ffffee #999999 #999999 #eeeeee;
+ border-style:        solid;
+ border-left-width:   10px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
+
 }
 
 table.bodytable {
 }
 
 .mainblock {
- background-color: #ffffff;
+# background-color: #ffffff;
  border-left:   solid 10px #dddddd;
+ background:          #ffffee;
+ border-color:        #ffffee #999999 #999999 #eeeeee;
+ border-style:        solid;
+ border-left-width:   10px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
 }
 
 .kfbox {
