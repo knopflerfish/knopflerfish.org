@@ -344,6 +344,7 @@
            <include name = "osgi/bundles/trayicon/trayicon/**"/>
            <include name = "osgi/bundles/trayicon/trayicon_fw/**"/>
            <include name = "osgi/bundles/remotefw/**"/>
+           <include name = "osgi/bundles/bundlerepository/**"/>
 
            <exclude name = "**/CVS"/>
         </zipfileset>
@@ -449,6 +450,7 @@
            <include name = "osgi/jars/trayicon/**/*.jar"/>
            <include name = "osgi/jars/trayicon_fw/**/*.jar"/>
            <include name = "osgi/jars/remotefw/*.jar"/>
+           <include name = "osgi/jars/bundlerepository/*.jar"/>
 
            <include name = "changelog.html"/>
 
