@@ -120,7 +120,10 @@ public class JUnpackWizard extends JWizard {
 	  StringBuffer lic = new StringBuffer();
 	  
 	  BufferedReader in = null;
-	  String licName = Strings.get("license_res_name");
+	  String licName = Main.theMain.licenseResName;
+	  if(licName == null || "".equals(licName)) {
+	    licName = Strings.get("license_res_name");
+	  }
 	  try {
 	    in = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(licName)));
 	    
@@ -130,6 +133,7 @@ public class JUnpackWizard extends JWizard {
 	      lic.append("\n");
 	    }
 	  } catch (Exception e) {
+	    System.err.println("no license resource file=" + licName);
 	    e.printStackTrace();
 	  } finally {
 	    try {  in.close(); } catch (Exception ignored) {  }
@@ -154,7 +158,10 @@ public class JUnpackWizard extends JWizard {
 	  return false;
 	}
 	public String getDescription() {
-	  return Strings.get("page_license_title");
+	  return 
+	    Main.theMain.licenseTitle != null
+	    ? Main.theMain.licenseTitle
+	    : Strings.get("page_license_title");
 	}
 
       });
