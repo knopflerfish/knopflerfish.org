@@ -35,7 +35,7 @@
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="JUnit"/>
-  <property name="bundle.classpath"      value=".,junit.jar,log_api-1.0.0.jar"/>
+  <property name="bundle.classpath"      value=".,junit.jar"/>
   <property name="dynamicimport.package" value="org.knopflerfish.service.console,javax.servlet,javax.servlet.http,org.osgi.service.http"/>
 
   <property name="bundle.docurl" 
