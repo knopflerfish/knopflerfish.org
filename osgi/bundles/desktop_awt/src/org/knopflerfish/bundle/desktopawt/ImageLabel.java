@@ -39,7 +39,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
-public class ImageLabel extends Panel {
+public class ImageLabel extends Component {
   Image     img;
   boolean   bFocus = false;
   boolean   bEnabled   = true;
@@ -129,18 +129,10 @@ public class ImageLabel extends Panel {
     return getPreferredSize();
   }
 
-  public void paint(Graphics g) {
-    super.paint(g);
-    Dimension size = getSize();
-    
-    /*
-    if(bFocus) {
-      g.setColor(lf.stdHiliteCol2);
-    } else {
-      g.setColor(lf.bgColor);
-    }
-    */
+  Color alphaCol = new Color(0,0,0,255);
 
+  public void paint(Graphics g) {
+    Dimension size = getSize();
     
     if(bFocus && bDoHighlight) {
       Color hiliteCol1 = lf.stdHiliteCol1.brighter();
@@ -157,6 +149,7 @@ public class ImageLabel extends Panel {
     }
     int w = img.getWidth(null);
     int h = img.getHeight(null);
+
 
     g.drawImage(img,
                 size.width / 2 - w / 2,

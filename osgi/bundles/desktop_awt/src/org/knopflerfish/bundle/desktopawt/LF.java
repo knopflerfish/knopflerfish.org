@@ -39,10 +39,10 @@ import java.awt.*;
 public class LF {
   
   public Font defaultFont = new Font("Dialog", Font.PLAIN, 11);
-  public Font smallFont   = new Font("Dialog", Font.PLAIN, 8);
+  public Font smallFont   = new Font("Dialog", Font.PLAIN, 9);
 
   public Font defaultFixedFont = new Font("Monospaced", Font.PLAIN, 11);
-  public Font smallFixedFont   = new Font("Monospaced", Font.PLAIN, 8);
+  public Font smallFixedFont   = new Font("Monospaced", Font.PLAIN, 9);
 
   Color bgColor     = new Color(240, 240, 240);
   Color textColor   = new Color(0,0,0);

@@ -44,13 +44,7 @@ import java.awt.*;
 
 public class BundleImageC extends ImageLabel {
 
-  static Image activeIcon       = null;
-  static Image installedIcon    = null;
-  static Image resolvedIcon     = null;
-  static Image startingIcon     = null;
-  static Image stoppingIcon     = null;
-  static Image uninstalledIcon  = null;
-
+  Image activeIcon       = null;
   Bundle bundle;
 
   public BundleImageC(Bundle bundle, 
@@ -60,40 +54,32 @@ public class BundleImageC extends ImageLabel {
     this.bundle = bundle;
     bDoHighlight = false;
 
-    if(activeIcon == null) {
-      activeIcon      = Desktop.loadImage("/player_play_14x14.png");
-      
-      installedIcon   = null;
-      resolvedIcon    = null;
-      startingIcon    = null; 
-      stoppingIcon    = null;
-      uninstalledIcon = null;
-    }
   }
-  
+
   public void paint(Graphics g) { 
     super.paint(g);
+    paint2(g);
+  }
+
+
+
+  public void paint2(Graphics g) { 
     //    System.out.println("paint " + bundle.getBundleId() + ", state=" + bundle.getState());
     Image overlay = null;
 
     switch(bundle.getState()) {
     case Bundle.ACTIVE:
-      overlay = activeIcon;
+      overlay = Desktop.activeIcon;
       break;
     case Bundle.INSTALLED:
-      overlay = installedIcon;
       break;
     case Bundle.RESOLVED:
-      overlay = resolvedIcon;
       break;
     case Bundle.STARTING:
-      overlay = startingIcon;
       break;
     case Bundle.STOPPING:
-      overlay = stoppingIcon;
       break;
     case Bundle.UNINSTALLED:
-      overlay = uninstalledIcon;
       break;
     default:
     }
@@ -111,11 +97,7 @@ public class BundleImageC extends ImageLabel {
       int y1 = y + (size.height -  h - 2);
 
 
-      g.setColor(Color.white);
-      g.fillRect(x1-1, y1-1, w, h);
-      g.setColor(Color.gray);
-      g.draw3DRect(x1-1, y1-1, w, h, true);
-      g.drawImage(overlay, x1, y1, null);
+      g.drawImage(overlay, x1, y1, alphaCol, null);
     }
 
   }
