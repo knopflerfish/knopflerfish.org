@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<metatype:values
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype">
+
+  <factory1>
+   <string1>apa</string1>
+   <boolean1>true</boolean1>
+   <intvector1>
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+   </intvector1>
+  </factory1>
+   
+  <org.knopflerfish.log.config>
+
+   <default.level>
+     info
+   </default.level>
+
+   <bundle.log.level>
+     <item>apa,info</item>
+     <item>bepa,info</item>
+     <item>cepa,warn</item>
+   </bundle.log.level>
+
+   <memory.size>
+     16384
+   </memory.size>
+
+   <log.out>
+    true
+   </log.out>
+
+  </org.knopflerfish.log.config>
+</metatype:values>
