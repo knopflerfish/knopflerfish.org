@@ -233,6 +233,7 @@ public class BundleInfoTask extends Task {
 
   private boolean bCheckFoundationEE = false;
   private boolean bCheckMinimumEE    = false;
+  private boolean bCheckSMFEE        = false;
 
   private Set importSet            = new TreeSet();
   private Set exportSet            = new TreeSet();
@@ -264,6 +265,10 @@ public class BundleInfoTask extends Task {
 
   public void setCheckMinimumEE(String s) {
     this.bCheckMinimumEE = "true".equals(s);
+  }
+
+  public void setCheckSMFEE(String s) {
+    this.bCheckSMFEE = "true".equals(s);
   }
 
   /**
@@ -399,6 +404,7 @@ public class BundleInfoTask extends Task {
 
     Set foundationMissing = new TreeSet();
     Set minimumMissing    = new TreeSet();
+    Set smfMissing        = new TreeSet();
 
 
     for(Iterator it = classSet.iterator(); it.hasNext();) {
@@ -417,6 +423,11 @@ public class BundleInfoTask extends Task {
 	  if(!EE.isMinimum(s)) {
 	    if(!isImported(s)) {
 	      minimumMissing.add(s);
+	    }
+	  }
+	  if(!EE.isSMF(s)) {
+	    if(!isImported(s)) {
+	      smfMissing.add(s);
 	    }
 	  }
 	}
@@ -446,6 +457,19 @@ public class BundleInfoTask extends Task {
       for(Iterator it = minimumMissing.iterator(); it.hasNext();) {
 	String s = (String)it.next();
 	System.out.println("Not in minimum: " + s);
+      }
+    }
+
+    if(bCheckSMFEE) {
+      if(smfMissing.size() > 0) {
+	System.out.println("Missing " + smfMissing.size() + 
+			   " classes from SMF profile");
+      } else {
+	System.out.println("Passes SMF EE");
+      }
+      for(Iterator it = smfMissing.iterator(); it.hasNext();) {
+	String s = (String)it.next();
+	System.out.println("Not in SMF: " + s);
       }
     }
   }
