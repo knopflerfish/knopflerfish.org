@@ -57,8 +57,6 @@ class Grunt {
     String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
     boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
 
-
-
     if(tests == null) {
       tests = "";
     }
@@ -73,12 +71,18 @@ class Grunt {
     try {
       outDir = new File(outdir);
       outDir.mkdirs();
+
     } catch (Exception e) {
       throw new BundleException("Failed to create outdir=" + outdir + ": " + e);
     }
 
+    if(!(outDir != null && outDir.exists() && outDir.isDirectory())) {
+      throw new BundleException("Failed to create outdir " + outdir);
+    }
+
     copyFile(new File(outDir, "junit_style.xsl"),  "/junit_style.xsl");
     copyFile(new File(outDir, "junit_index_style.xsl"), "/junit_index_style.xsl");
+    copyFile(new File(outDir, "junit.css"), "/junit.css");
 
     PrintWriter indexPW = null;
 
@@ -142,7 +146,10 @@ class Grunt {
       indexPW.println("</junit_index>");
 
       
-      
+      log("\n" + 
+	  "All tests (" + tests + ") done.\n" + 
+	  "Output XML in " + outDir.getAbsolutePath());
+
       if(bQuit) {
 	log("Quit framework after tests");
 	bc.getBundle(0).stop();
