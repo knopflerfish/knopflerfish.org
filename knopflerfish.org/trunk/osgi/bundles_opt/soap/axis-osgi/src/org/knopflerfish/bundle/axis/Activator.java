@@ -64,6 +64,10 @@ import org.knopflerfish.util.servlet.WebAppDescriptor;
 
 import org.osgi.framework.*;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+
 
 /** The <code>Activator</code> is the activator for the Axis OSGi bundle.
  *  Further it handles service registration events for SOAP services.
@@ -135,35 +139,59 @@ public class Activator
       return wad;
    }
    
+  
+  Map exportedServices = new HashMap();
    
-      public void serviceChanged(ServiceEvent event) {
-      try {
-         if (event.getType() == ServiceEvent.REGISTERED) {
-            ServiceReference sr = event.getServiceReference();
-            String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
-            if (serviceName != null) {
-              log.info("ServicesServlet:: added service "+serviceName);
-
-	      Object serviceObj = axisBundle.getService(sr);
-
-	      getAxisServer().getClassCache()
-		.registerClass(serviceObj.getClass().getName(),
-			       serviceObj.getClass());
+  public void serviceChanged(ServiceEvent event) {
+    try {
+      switch(event.getType()) {
+      case ServiceEvent.REGISTERED:
+	{
+	  ServiceReference sr = event.getServiceReference();
+	  String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
+	  if (serviceName != null) {
+	    log.info("ServicesServlet:: added service "+serviceName);
+	    
+	    Object serviceObj = axisBundle.getService(sr);
+	    
+	    getAxisServer().getClassCache()
+	      .registerClass(serviceObj.getClass().getName(),
+			     serviceObj.getClass());
+	    
+	    ObjectSOAPService soapService = 
+	      new ObjectSOAPService(axisServer,serviceName,serviceObj);
+	    
+	    soapService.deploy();
+	    
+	    exportedServices.put(sr, soapService);
+	  }
+	} 
+	break;
+	case ServiceEvent.UNREGISTERING:
+	  {
+	    ServiceReference sr = event.getServiceReference();
+	    String serviceName  = (String) sr.getProperty("SOAP_SERVICE_NAME");
+	    if (serviceName != null) {
 	      
-	      (new ObjectSOAPService(axisServer,serviceName,serviceObj)).deploy();
-            }
-         }
-         if (event.getType() == ServiceEvent.UNREGISTERING) {
-            ServiceReference sr = event.getServiceReference();
-            String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
-            if (serviceName != null) {
-              log.info("ServicesServlet:: removed service "+serviceName);
-               (new ObjectSOAPService(axisServer,serviceName,null)).undeploy();
-            }
-         }
-      } catch (Exception e) {
-         log.error("ServicesServlet::serviceChanged() Exception", e);
+	      ObjectSOAPService soapService 
+		= (ObjectSOAPService)exportedServices.get(sr);
+	      if(soapService != null) {
+		Object serviceObj = soapService.getServiceObject();
+		
+		getAxisServer().getClassCache()
+		  .deregisterClass(soapService.getClass().getName());
+		
+		soapService.undeploy();
+		log.info("ServicesServlet:: removed service "+serviceName);
+	      }
+	      
+	      //   (new ObjectSOAPService(axisServer,serviceName,null)).undeploy();
+	    }
+	  }
+	  break;
       }
-   }
-
+    } catch (Exception e) {
+      log.error("ServicesServlet::serviceChanged() Exception", e);
+    }
+  }
 }

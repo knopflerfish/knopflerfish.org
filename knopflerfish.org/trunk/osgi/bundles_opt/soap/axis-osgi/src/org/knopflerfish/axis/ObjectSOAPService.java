@@ -121,4 +121,8 @@ public class ObjectSOAPService {
              " xmlns=\"http://xml.apache.org/axis/wsdd/\">" + 
              "<service name=\"" + serviceName + "\"/>" + "</undeployment>";
    }
+
+  public Object getServiceObject() {
+    return serviceObject;
+  }
 }
