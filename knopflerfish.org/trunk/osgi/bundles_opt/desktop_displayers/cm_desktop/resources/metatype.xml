@@ -50,6 +50,9 @@
 
   <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
    <xsd:complexType name="service1">
+    <xsd:annotation>
+     <xsd:documentation>A very simple service</xsd:documentation>
+    </xsd:annotation>
     <xsd:element   name="string1" type="xsd:string"/>
    </xsd:complexType> 
   </xsd:schema>
@@ -60,6 +63,9 @@
   <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" >
              
    <xsd:complexType name="factory1">
+    <xsd:annotation>
+     <xsd:documentation>A simple factory</xsd:documentation>
+    </xsd:annotation>
     <xsd:element  name="boolean1"   type="xsd:boolean"/>
     <xsd:element  name="string1"    type="xsd:string"/>
     <xsd:complexType name = "intvector1">
