@@ -825,6 +825,7 @@ public class Main {
 	  v.addElement(line);
 	}
       }
+      setSecurityManager(sysProps);
       System.setProperties(sysProps);
     } catch (Exception e) {
       error("-xargs loading failed: " + e);
@@ -855,11 +856,40 @@ public class Main {
     }
   }
 
+  static void setSecurityManager(Properties props) {
+    try {
+      String manager  = (String)props.get("java.security.manager");      
+      String policy   = (String)props.get("java.security.policy");
+      
+
+      if(manager != null && policy != null) {
+	if(System.getSecurityManager() == null) {
+	  println("Setting security manager=" + manager + 
+		  ", policy=" + policy, 1);
+	  System.setProperty("java.security.manager", manager);
+	  System.setProperty("java.security.policy",  policy);
+	  
+	  SecurityManager sm = new SecurityManager();
+	  System.setSecurityManager(sm);
+	}
+      }
+    } catch (Exception e) {
+      error("Failed to set security manager", e);
+    }
+  }
+
   /**
    * Report error and exit.
    */
   static void error(String s) {
+    error(s, null);
+  }
+
+  static void error(String s, Exception e) {
     System.err.println("Error: " + s);
+    if(e != null) {
+      e.printStackTrace();
+    }
     System.exit(1);
   }
 }
