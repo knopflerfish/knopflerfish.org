@@ -1108,6 +1108,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   public final static String [] HELP_STARTLEVEL = new String [] {
     "Shows or sets the global startlevel",
     "[<level>] new start level",
+    "          if no <level> is provided, show current level",
   };
 
   public int cmdStartlevel(Dictionary opts, 
@@ -1120,8 +1121,10 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       if(levelStr != null) {
 	int level = Integer.parseInt(levelStr);
 	startLevel.setStartLevel(level);
+      } else {
+	out.println("current start level:        " + startLevel.getStartLevel());
+	out.println("initial bundle start level: " + startLevel.getInitialBundleStartLevel());
       }
-      out.println("" + startLevel.getStartLevel());
       return 0;
     } catch (Exception e) {
       out.println("Failed to show/set startlevel=" + levelStr);
@@ -1166,77 +1169,40 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   }
 
   //
-  // Set initial bundle start level command
-  //
-  public final static String USAGE_SETINITSTARTLEVEL = "<level>";
-  public final static String [] HELP_SETINITSTARTLEVEL = new String [] {
-    "Set the initial startlevel for new bundles",
-    "<level> new init start level",
-  };
-
-  public int cmdSetinitstartlevel(Dictionary opts, 
-			       Reader in, 
-			       PrintWriter out, Session session) {
-    int level = -1;
-    try {
-      level = Integer.parseInt((String)opts.get("level"));
-      startLevel.setInitialBundleStartLevel(level);
-      return 0;
-    } catch (Exception e) {
-      out.println("Failed to set initial bundle startlevel=" + level);
-      e.printStackTrace(out);
-      return -1;
-    }
-  }
-
-  //
   // Set bundle start level 
   //
-  public final static String USAGE_SETBUNDLESTARTLEVEL = "<level> [<bundle>] ...";
-  public final static String [] HELP_SETBUNDLESTARTLEVEL = new String [] {
-    "Set the startlevel for a bundles",
-    "<level> new start level",
-    "<bundle> Name or id of bundles",
+  public final static String USAGE_BUNDLELEVEL = "<level> [<bundle>] ...";
+  public final static String [] HELP_BUNDLELEVEL = new String [] {
+    "Set startlevel(s) for bundles",
+    "<level>   new start level",
+    "<bundle>  Name or id of bundles",
+    "          If bundle list is empty, set initial",
+    "          start level for new bundles",
   };
 
-  public int cmdSetbundlestartlevel(Dictionary opts, 
-				    Reader in, 
-				    PrintWriter out, Session session) {
+  public int cmdBundlelevel(Dictionary opts, 
+			    Reader in, 
+			    PrintWriter out, Session session) {
     int level = -1;
     try {
-      level = Integer.parseInt((String)opts.get("level"));
-      Bundle [] b = getBundles((String [])opts.get("bundle"), false, false);
-      for(int i = 0; i < b.length; i++) {
-	if(b[i] != null) {
-	  startLevel.setBundleStartLevel(b[i], level);
+      level        = Integer.parseInt((String)opts.get("level"));
+      String[] bls = (String [])opts.get("bundle");
+      Bundle [] bl = getBundles(bls, false, false);
+      
+      if(bls == null || bls.length == 0) {
+	startLevel.setInitialBundleStartLevel(level);
+	out.println("initial bundle start level set to " + level);
+      } else {
+	for(int i = 0; i < bl.length; i++) {
+	  if(bl[i] != null) {
+	    System.out.println("set " + i + " " + bl[i] + " " + level);
+	    startLevel.setBundleStartLevel(bl[i], level);
+	  }
 	}
       }
       return 0;
     } catch (Exception e) {
-      out.println("Failed to set initial bundle startlevel=" + level);
-      e.printStackTrace(out);
-      return -1;
-    }
-  }
-
-
-  //
-  // Show initial bundle start level command
-  //
-  public final static String USAGE_SHOWINITSTARTLEVEL = "";
-  public final static String [] HELP_SHOWINITSTARTLEVEL = new String [] {
-    "Show the initial startlevel for new bundles",
-  };
-
-  public int cmdShowinitstartlevel(Dictionary opts, 
-				Reader in, 
-				PrintWriter out, Session session) {
-    int level = -1;
-    try {
-      out.println("" + startLevel.getInitialBundleStartLevel());
-      return 0;
-    } catch (Exception e) {
-      out.println("Failed to show initial startlevel");
+      out.println("Failed to set bundle startlevel=" + level);
       e.printStackTrace(out);
       return -1;
     }
