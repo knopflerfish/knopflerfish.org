@@ -124,3 +124,10 @@
    java.security.policy
      Security policy file. Used by the security manager.
      (Default: unset)
+
+   org.knopflerfish.framework.version.fuzzy
+     If set to true, consider package version numbers
+      "x.y.0" = "x.y" 
+     otherwise consider
+      "x.y.0" > "x.y"
+     (Default: false) 
