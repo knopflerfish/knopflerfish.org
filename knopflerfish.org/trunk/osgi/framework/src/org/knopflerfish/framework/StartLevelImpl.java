@@ -88,16 +88,21 @@ public class StartLevelImpl implements StartLevel, Runnable {
     bRun = true;
     wc.start();
 
-    try {
-      String s = Util.getContent(new File(storage, LEVEL_FILE));
-      if(s != null) {
-	int oldStartLevel = Integer.parseInt(s);
-	if(oldStartLevel != -1) {
-	  setStartLevel(oldStartLevel);
+    // Skip level load in mem storage since bundle levels
+    // isn't saved anyway
+    if(!Framework.bIsMemoryStorage) 
+      {
+	try {
+	  String s = Util.getContent(new File(storage, LEVEL_FILE));
+	  if(s != null) {
+	    int oldStartLevel = Integer.parseInt(s);
+	    if(oldStartLevel != -1) {
+	      setStartLevel(oldStartLevel);
+	    }
+	  }
+	} catch (Exception ignored) {
 	}
       }
-    } catch (Exception ignored) {
-    }
   }
   
   void close() {
@@ -153,12 +158,18 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	    decreaseStartLevel();
 	  }
 
-	  try {
-	    Util.putContent(new File(storage, LEVEL_FILE), 
-			    Integer.toString(currentLevel));
-	  } catch (Exception e) {
-	    e.printStackTrace();
-	  }
+
+	  // Skip level save in mem storage since bundle levels
+	  // won't be saved anyway
+	  if(!Framework.bIsMemoryStorage) 
+	    {
+	      try {
+		Util.putContent(new File(storage, LEVEL_FILE), 
+				Integer.toString(currentLevel));
+	      } catch (Exception e) {
+		e.printStackTrace();
+	      }
+	    }
 	  notifyFramework();
 	}
       });
