@@ -62,7 +62,8 @@ public class SessionCommandGroup implements CommandGroup {
   final static String help_leave   = "leave                        - Leave command group mode";
   final static String help_prompt  = "prompt <command prompt>      - Set command prompt";
   final static String help_quit    = "quit                         - Exit this session";
-  final static String help_save    = "save                         - Save current aliases";
+  final static String help_save    = "save [<file>]                - Save current aliases as a property file";
+  final static String help_restore = "restore [<file>]             - Restore aliases from a property file or from default aliases";
   final static String help_source  = "source <URL>                 - Source commands at URL";
   final static String help_unalias = "unalias <alias name>         - Remove an alias";
 
@@ -125,6 +126,7 @@ public class SessionCommandGroup implements CommandGroup {
       "  " + help_prompt + "\n" +
       "  " + help_quit + "\n" +
       "  " + help_save + "\n" +
+      "  " + help_restore + "\n" +
       "  " + help_source + "\n" +
       "  " + help_unalias + "\n";
   }
@@ -256,17 +258,42 @@ public class SessionCommandGroup implements CommandGroup {
       // Save
       //
       } else if ("save".startsWith(args[0])) {
+	File file = null;
 	if (args.length == 1) {
+	  file = bc.getDataFile(SessionImpl.ALIAS_SAVE);
+	} else if(args.length == 2) {
+	  file = new File(args[1]);
+	}
+	if(file != null) {
 	  try {
-	    PrintWriter p = new PrintWriter(new FileWriter(bc.getDataFile(SessionImpl.ALIAS_SAVE)));
+	    OutputStream p = new FileOutputStream(file);
 	    si.aliases.save(p);
 	  } catch (IOException e) {
-	    out.println("Failed to save aliases!");
+	    out.println("Failed to save aliases: " + e);
 	    return 1;
 	  }
 	  return 0;
 	}
 	usage = help_save;
+      //
+      // Restore
+      //
+      } else if ("restore".startsWith(args[0])) {
+	if (args.length == 1) {
+	  si.aliases.setDefault();
+	  return 0;
+	} else if (args.length == 2) {
+	  try {
+	    InputStream r = new FileInputStream(new File(args[1]));
+	    si.aliases.clear();
+	    si.aliases.restore(r);
+	  } catch (IOException e) {
+	    out.println("Failed to restore aliases from " + args[1] + ": " + e);
+	    return 1;
+	  }
+	  return 0;
+	}
+	usage = help_restore;
       //
       // Source
       //
