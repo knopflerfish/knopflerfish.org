@@ -1,0 +1,429 @@
+/*
+ * Copyright (c) 2003, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.knopflerfish.bundle.desktop.cm;
+
+import org.osgi.framework.*;
+import org.osgi.service.cm.*;
+import org.osgi.util.tracker.*;
+import java.util.*;
+import org.knopflerfish.service.desktop.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.border.*;
+
+import org.knopflerfish.util.metatype.*;
+import org.osgi.service.metatype.*;
+
+public class JCMService extends JPanel {
+  ObjectClassDefinition ocd;
+  JPanel    main;
+
+  boolean   isService = true;
+  boolean   isFactory = false;
+
+  JPanel    propPane;
+  JPanel    mainPanel;
+
+  // String -> AttributeDefinition
+  Map props = new HashMap();
+  String    factoryPid;
+
+  public JCMService() {
+    super(new BorderLayout());
+
+    main = new JPanel(new BorderLayout());
+    add(main, BorderLayout.CENTER);
+  }
+
+
+  void setServiceOCD(ObjectClassDefinition ocd) {
+    this.ocd = ocd;
+    isService  = ocd != null;
+    isFactory  =false;
+    updateOCD();
+
+  }
+
+  void setFactoryOCD(ObjectClassDefinition ocd) {
+    this.ocd = ocd;
+    isService = false;
+    isFactory = ocd != null;
+    updateOCD();
+  }
+
+  void updateOCD() {
+
+    main.removeAll();
+
+    props.clear();
+    factoryPid  = null;
+
+    if(ocd != null) {
+      main.setBorder(BorderFactory.createTitledBorder(ocd.getID()));
+      
+      mainPanel = new JPanel(new BorderLayout());
+      
+      propPane = new JPanel();
+      BoxLayout box = new BoxLayout(propPane, BoxLayout.Y_AXIS);
+      propPane.setLayout(box);
+      
+      Dictionary configProps = null;
+      
+      try {
+	Configuration conf = CMDisplayer.getConfig(ocd.getID());
+	configProps = conf.getProperties();
+	System.out.println("using conf values");
+	
+      } catch (Exception e) {
+	configProps = new Hashtable();
+	System.out.println("using default values");
+      }
+
+      JButton facdelButton = null;
+
+      if(isFactory) {
+
+      }
+
+      AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
+      for(int i = 0; i < ads.length; i++) {
+	AttributeDefinition ad = ads[i];
+
+	JCMProp jcmProp = new JCMProp(ad, configProps);
+
+	props.put(ad.getID(), jcmProp);
+	
+	JLabelled item = 
+	  new JLabelled(ad.getName(), 
+			ad.getDescription() +  
+			" (" + AD.getClass(ad.getType()) + ")",
+			jcmProp,
+			100);
+	propPane.add(item);
+      }
+      
+      JScrollPane scroll = new JScrollPane(propPane);
+
+      scroll.setPreferredSize(propPane.getPreferredSize());
+
+      JPanel topPanel = new JPanel(new BorderLayout());
+
+
+      JPanel ctrlPanel = new JPanel(new FlowLayout());
+
+      JButton applyButton = new JButton("Apply");
+      applyButton.addActionListener(new ActionListener() {
+	  public void actionPerformed(ActionEvent ev) {
+	    applyConfig(ocd.getID());
+	  }
+	});
+      
+
+      
+      if(isFactory) {
+	Configuration[] configs = null;
+	try {
+	  configs = 
+	    CMDisplayer.getCA().listConfigurations("(service.factoryPid=" + 
+						   ocd.getID() + ")");
+	} catch (Exception e) {
+	}
+	
+	JButton newButton   = new JButton("New");
+	newButton.setToolTipText("Create a new factory configuration");
+	
+	newButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent ev) {
+	      newFactoryConfig(ocd.getID());
+	    }
+	  });
+	ctrlPanel.add(newButton);
+	
+	if(configs != null) { 
+	  
+	  JButton facapplyButton   = new JButton("Apply");
+	  facapplyButton.setToolTipText("Applies the currect changes to the factory config");
+	  facapplyButton.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent ev) {
+		applyFactoryConfig(factoryPid);
+	      }
+	    });
+	  
+	  
+
+	  String[] fpids = new String[configs.length];
+	  for(int i = 0; i < configs.length; i++) {
+	    fpids[i] = configs[i].getPid();
+	  }
+	  final JComboBox fbox = new JComboBox(fpids);
+	  fbox.addActionListener(new ActionListener() {	  
+	      public void actionPerformed(ActionEvent ev) {	    
+		int ix = fbox.getSelectedIndex();
+		if(ix == -1) {
+		  return;
+		} else {
+		  String pid = (String)fbox.getSelectedItem();
+		  showFactoryConfig(pid);
+		}
+	      }
+	    });
+
+	  facdelButton = new JButton("Delete");
+	  facdelButton.setToolTipText("Delete the selected factory configuration");
+	  facdelButton.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent ev) {
+		deleteFactoryPid(factoryPid);
+	      }
+	    });
+	  
+	  ctrlPanel.add(facdelButton);
+	
+	  ctrlPanel.add(facapplyButton);
+	  ctrlPanel.add(fbox);
+
+
+	  if(fpids.length > 0) {
+	    showFactoryConfig(fpids[0]);
+	  }
+	}
+      } else {
+	if(CMDisplayer.configExists(ocd.getID())) {
+	  JButton delButton   = new JButton("Delete");
+	  delButton.setToolTipText("Delete configuration");
+	  delButton.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent ev) {
+		deleteConfig(ocd.getID());
+	      }
+	    });
+	  ctrlPanel.add(applyButton);
+	  ctrlPanel.add(delButton);
+	  
+	} else {
+	  JButton createButton   = new JButton("Create");
+	  createButton.setToolTipText("Create configuration from values below");
+	  createButton.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent ev) {
+		createConfig(ocd.getID());
+	      }
+	    });
+	  ctrlPanel.add(createButton);
+	}
+      }
+      
+      //      ctrlPanel.add(new JLabel(ocd.getID()), BorderLayout.CENTER);
+      
+      scroll.setBorder(null);
+      mainPanel.add(scroll, BorderLayout.CENTER);
+      
+      topPanel.add(ctrlPanel, BorderLayout.WEST);
+      
+      main.add(topPanel, BorderLayout.NORTH);
+      main.add(mainPanel, BorderLayout.CENTER);
+    }
+    
+    invalidate();
+    revalidate();
+    repaint();
+  }
+  
+  void showFactoryConfig(String pid) {
+    System.out.println("showFactoryConfig " + pid);
+    factoryPid = pid;
+    
+    try {
+      Configuration conf = 
+	CMDisplayer.getCA().getConfiguration(pid, null);
+
+      setProps(conf.getProperties());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+  void deleteFactoryPid(String pid) {
+    System.out.println("deleteFactoryConfig " + pid);
+    try {
+      Configuration conf = CMDisplayer.getCA()
+	.getConfiguration(pid, null);
+      conf.delete();
+      updateOCD();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  void applyFactoryConfig(String pid) {
+    System.out.println("applyFactoryConfig " + pid);
+    try {
+      Dictionary props = getProps();
+      
+      System.out.println("props=" + props);
+      try {
+	Configuration conf = CMDisplayer.getCA()
+	  .getConfiguration(pid, null);
+	conf.update(props);
+	updateOCD();
+      } catch (Exception e) {
+	e.printStackTrace();
+      }
+    } catch (Exception e) {
+    }
+  }
+
+
+  void newFactoryConfig(String pid) {
+    System.out.println("newFactoryConfig " + pid);
+
+    try {
+      Dictionary props = getProps();
+      
+      System.out.println("props=" + props);
+      try {
+	Configuration conf = 
+	  CMDisplayer.getCA().createFactoryConfiguration(pid, null);
+	conf.update(props);
+	updateOCD();
+      } catch (Exception e) {
+	e.printStackTrace();
+      }
+    } catch (Exception e) {
+      return;
+    }
+  }
+  
+  void deleteConfig(String pid) {
+    System.out.println("deleteConfig " + pid);
+    try {
+      Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
+      conf.delete();
+      updateOCD();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  void createConfig(String pid) {
+    System.out.println("createConfig " + pid);
+    try {
+      Dictionary props = getProps();
+      
+      System.out.println("props=" + props);
+      try {
+	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
+	conf.update(props);
+	updateOCD();
+      } catch (Exception e) {
+	e.printStackTrace();
+      }
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  void applyConfig(String pid) {
+    System.out.println("applyConfig " + pid);
+    try {
+      Dictionary props = getProps();
+      
+      System.out.println("props=" + props);
+      try {
+	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
+	conf.update(props);
+	updateOCD();
+      } catch (Exception e) {
+	e.printStackTrace();
+      }
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  void setProps(Dictionary in) {
+
+    System.out.println("setProps " + in);
+
+    int errCount = 0;
+    for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
+      String  name    = (String)it.next();
+      JCMProp jcmProp = (JCMProp)props.get(name);
+      try {
+	Object val      = in.get(name);
+
+	jcmProp.setValue(val);
+	jcmProp.setErr(null);
+      } catch (Exception e) {
+	errCount++;
+	jcmProp.setErr(e.getMessage());
+      }
+    }
+
+    mainPanel.invalidate();
+    mainPanel.revalidate();
+    mainPanel.repaint();
+
+  }
+
+  Dictionary getProps() {
+    Hashtable out = new Hashtable();
+
+    int errCount = 0;
+    for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
+      String  name    = (String)it.next();
+      JCMProp jcmProp = (JCMProp)props.get(name);
+      try {
+	Object val      = jcmProp.getValue();
+	
+	out.put(name, val);
+	jcmProp.setErr(null);
+      } catch (Exception e) {
+	errCount++;
+	jcmProp.setErr(e.getMessage());
+	System.out.println(name + ": " + e);
+      }
+    }
+
+    mainPanel.invalidate();
+    mainPanel.revalidate();
+    mainPanel.repaint();
+
+    if(errCount > 0) {
+      throw new IllegalArgumentException("Failed to convert " + errCount + " values");
+    }
+    return out;
+  }
+}
