@@ -54,6 +54,7 @@
  <property name = "xinclude.source"       value = "true"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
  <property name = "bundle.symbolicname"   value = "${bundle.name}"/>
+ <property name = "bundle.uuid"           value = "${bundle.name}-${bundle.version}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
  <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
@@ -79,6 +80,10 @@
  <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
  <property name = "bundle.apivendor"  value = ""/>
 
+
+ <property name = "bundle.uuid.impl"          value = "${bundle.uuid}.impl"/>
+ <property name = "bundle.uuid.api"           value = "${bundle.uuid}.api"/>
+ <property name = "bundle.uuid.all"           value = "${bundle.uuid}.all"/>
 
  <property name="http.host"          value="localhost"/>
  <property name="http.port"          value="8080"/>
@@ -368,6 +373,7 @@
 <!--
     <attribute name = "Export-Package"        value = "${export.package}"/>
 -->
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
@@ -444,8 +450,8 @@
   <mkdir dir = "${jardir}"/>
 
   <bundlemanifest file = "${outdir}/api.mf">
-    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
+    <attribute name = "Bundle-Name"           value = "${bundle.name}-API"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}-API"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
@@ -454,6 +460,7 @@
     <attribute name = "Bundle-Category"       value = "API"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.api}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
@@ -504,6 +511,7 @@
     <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
@@ -575,6 +583,7 @@
     <attribute name = "Import-Service"        value = "${import.service}"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
