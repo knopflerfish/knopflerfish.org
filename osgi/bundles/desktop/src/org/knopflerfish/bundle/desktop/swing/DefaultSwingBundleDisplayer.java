@@ -146,7 +146,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   void getAllServices() {
     try {      
-      ServiceReference[] srl = Activator.bc.getServiceReferences(null, null);
+      ServiceReference[] srl = Activator.getBC().getServiceReferences(null, null);
       for(int i = 0; srl != null && i < srl.length; i++) {
 	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }

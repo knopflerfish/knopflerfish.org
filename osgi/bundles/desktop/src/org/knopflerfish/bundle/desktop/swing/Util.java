@@ -418,7 +418,7 @@ public class Util {
     all.addAll(pkgClosure);
     all.addAll(serviceClosure);
 
-    all.remove(Activator.bc.getBundle(0));
+    all.remove(Activator.getTargetBC().getBundle(0));
     if(target != null) {
       all.add(target);
     }

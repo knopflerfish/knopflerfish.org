@@ -45,16 +45,35 @@ import org.knopflerfish.service.desktop.*;
 public class Activator implements BundleActivator {
 
   static public LogRef        log;
-  static public BundleContext bc;
+  static private BundleContext bc;
+  static private BundleContext targetBC;
 
   static public Desktop desktop;
 
   static ServiceTracker pkgTracker;
 
+  public static BundleContext getBC() {
+    return bc;
+  }
+
+  /**
+   * Get target BC for bundle control.
+   * 
+   * <p>
+   * This in preparation for the event of the desktop
+   * being able to control a remote framework.
+   * </p>
+   */
+  public static BundleContext getTargetBC() {
+    return targetBC;
+  }
+
   
   public void start(BundleContext _bc) {
-    this.bc  = _bc;
-    this.log = new LogRef(bc);
+    this.bc        = _bc;
+    this.targetBC  = _bc;
+
+    this.log       = new LogRef(bc);
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
     pkgTracker.open();

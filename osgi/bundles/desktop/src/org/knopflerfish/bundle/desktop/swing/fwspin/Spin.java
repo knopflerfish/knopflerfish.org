@@ -111,18 +111,18 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       });
     */
 
-    Bundle[] bl = Activator.bc.getBundles();
+    Bundle[] bl = Activator.getTargetBC().getBundles();
     for(int i = 0; bl != null && i < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
-    Activator.bc.addBundleListener(this);
+    Activator.getTargetBC().addBundleListener(this);
 
     try {
-      ServiceReference [] srl = Activator.bc.getServiceReferences(null, null);
+      ServiceReference [] srl = Activator.getTargetBC().getServiceReferences(null, null);
       for(int i = 0; srl != null && i < srl.length; i++) {
 	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
-      Activator.bc.addServiceListener(this, null);
+      Activator.getTargetBC().addServiceListener(this, null);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -495,7 +495,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   public void serviceChanged(ServiceEvent ev) {
     synchronized(services) {
       ServiceReference sr       = ev.getServiceReference();
-      Object           obj      = Activator.bc.getService(sr);
+      Object           obj      = Activator.getTargetBC().getService(sr);
       boolean          bRelease = true;
       SX               sx       = (SX)services.get(sr);
       
@@ -529,7 +529,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 	break;
       }
       if(bRelease) {
-	Activator.bc.ungetService(sr);
+	Activator.getTargetBC().ungetService(sr);
       }
     }
     repaint();
@@ -1131,7 +1131,7 @@ class SX extends SpinItem {
 
     bid = new Long(sr.getBundle().getBundleId());
 
-    Object obj = Activator.bc.getService(sr);
+    Object obj = Activator.getTargetBC().getService(sr);
 
     if(obj == null) {
       className = "null";
@@ -1149,7 +1149,7 @@ class SX extends SpinItem {
     name = className + "/" + sr.getProperty("service.id");
 
     if(obj != null) {
-      Activator.bc.ungetService(sr);
+      Activator.getTargetBC().ungetService(sr);
     }
   }
 
