@@ -122,7 +122,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
     "List contents of repository",
     "-l   -  long format",
     "name -  name (or substring) for bundles to list",
-    "        if no name is given, list all bundles"
+    "        If no name is given, list all bundles.",
   };
 
   public int cmdList(Dictionary opts, Reader in, PrintWriter out, Session session) {
@@ -153,7 +153,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	    
 	    StringBuffer sb = new StringBuffer();
 	    sb.append(" ");
-	    sb.append(Integer.toString(i));
+	    sb.append(Integer.toString(i + 1));
 	    pad(sb, 5);
 	    if(bCit) {
 	      sb.append("\"");
@@ -301,7 +301,9 @@ public class ObrCommandGroup extends CommandGroupAdapter
   public final static String USAGE_INSTALL = "[-nodeps] <name;version> ...";
   public final static String [] HELP_INSTALL = new String [] {
     "Install bundle",
-    "name;version - name and optional version" };
+    "name;version - name and optional version.",
+    "               If name starts with '=', use number from obr list",
+};
   
   public int cmdInstall(Dictionary opts, Reader in, PrintWriter out, Session session) {
     return doInstallOrStart(opts, in, out, session, false);
@@ -310,7 +312,9 @@ public class ObrCommandGroup extends CommandGroupAdapter
   public final static String USAGE_START = "[-nodeps] <name;version> ...";
   public final static String [] HELP_START = new String [] {
     "Install and start bundle",
-    "name;version - name and optional version" };
+    "name;version - name and optional version.",
+    "               If name starts with =, use number from obr list",
+};
   
   public int cmdStart(Dictionary opts, Reader in, PrintWriter out, Session session) {
     return doInstallOrStart(opts, in, out, session, true);
@@ -521,15 +525,17 @@ public class ObrCommandGroup extends CommandGroupAdapter
   {
     BundleRecord record = null;
 
-    int id = -1;
-    try {
-      id = Integer.parseInt(name);
-      record = brs.getBundleRecord(id);
-      if(record != null) {
-	System.out.println(id + " " + record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION));
-	return record;
+    if(name.startsWith("=")) {
+      int id = -1;
+      try {
+	id = Integer.parseInt(name.substring(1));
+	record = brs.getBundleRecord(id - 1);
+	if(record != null) {
+	  System.out.println(id + " " + record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION));
+	  return record;
+	}
+      } catch (Exception ignored) {
       }
-    } catch (Exception ignored) {
     }
 
     // If there is no version, then try to retrieve by
