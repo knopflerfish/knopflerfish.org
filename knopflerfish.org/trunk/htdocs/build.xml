@@ -83,7 +83,7 @@
 
     <antcall target="makehtml">
       <param name="fromfile" value="html_src/links_main.html"/>
-      <param name="tofile"   value="links.html"/>
+      <param name="tofile"   value="osgi-links.html"/>
       <param name="title"    value="Knopflerfish links"/>
       <param name="desc"     value="Links to OSGi related pages"/>
       <param name="CLASS_NAVIGATION_LINKS" value="navigation_disabled"/>
