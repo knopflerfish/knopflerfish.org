@@ -10,10 +10,11 @@ import org.osgi.framework.*;
 import java.util.*;
 
 final class Update {
-  ServiceReference sr;
-  String pid;
-  String factoryPid;
-  ConfigurationDictionary configuration;
+  final ServiceReference sr;
+  final String pid;
+  final String factoryPid;
+  final ConfigurationDictionary configuration;
+  ConfigurationDictionary processedConfiguration = null;
 
   public Update(ServiceReference sr, String pid, String factoryPid, ConfigurationDictionary configuration) {
     this.sr = sr;
@@ -30,7 +31,7 @@ final class Update {
     if(targetService == null) {
       return;
     }
-    configuration = pm.callPluginsAndCreateACopy(sr, configuration);
+    processedConfiguration = pm.callPluginsAndCreateACopy(sr, configuration);
     if(factoryPid == null) {
       update((ManagedService)targetService);
     } else {
@@ -42,7 +43,7 @@ final class Update {
     if(targetService == null) {
       return;
     }
-    targetService.updated(configuration);
+    targetService.updated(processedConfiguration);
   }
 
   private void update(ManagedServiceFactory targetService) throws ConfigurationException {
@@ -51,6 +52,12 @@ final class Update {
     }
     if(configuration == null) {
       targetService.deleted(pid);
+    } else if(processedConfiguration == null) {
+      if(Activator.r3TestCompliant()) {
+        targetService.updated(pid, null);
+      } else {
+        targetService.deleted(pid);
+      }
     } else {
       targetService.updated(pid, configuration);
     }

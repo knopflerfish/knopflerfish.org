@@ -35,6 +35,7 @@ class ConfigurationAdminFactory
   static String FACTORY_PID = "service.factoryPid";
   static String BUNDLE_LOCATION = "service.bundleLocation";
   static String DYNAMIC_BUNDLE_LOCATION = "dynamic.service.bundleLocation";
+  static String DUMMY_PROPERTY = "org.knopflerfish.dummy.property";
   static String CM_RANKING = "service.cmRanking";
   static String ANY_LOCATION = "*";
 
@@ -212,7 +213,7 @@ class ConfigurationAdminFactory
       }
     }
   }
-
+/*
   private ConfigurationDictionary callPluginsAndCreateACopy(ServiceReference sr, ConfigurationDictionary d) {
     if(d == null) {
       return d;
@@ -220,7 +221,7 @@ class ConfigurationAdminFactory
       return pluginManager.callPluginsAndCreateACopy(sr, d);
     }
   }
-  
+*/  
   private void updateTargetServicesMatching(ConfigurationDictionary cd) throws IOException {
     String servicePid = (String)cd.get(SERVICE_PID);
     String factoryPid = (String)cd.get(FACTORY_PID);
@@ -443,9 +444,7 @@ class ConfigurationAdminFactory
     ConfigurationImpl(String bundleLocation,
                       String factoryPid,
                       String servicePid) {
-      this.bundleLocation = bundleLocation;
-      this.factoryPid = factoryPid;
-      this.servicePid = servicePid;
+      this(bundleLocation, factoryPid, servicePid, null);
     }
 
     ConfigurationImpl(String bundleLocation,
@@ -456,6 +455,7 @@ class ConfigurationAdminFactory
       this.factoryPid = factoryPid;
       this.servicePid = servicePid;
       this.properties = properties;
+      if(this.properties == null) this.properties = new ConfigurationDictionary();
     }
 
     ConfigurationImpl(ConfigurationDictionary properties) {
@@ -494,7 +494,7 @@ class ConfigurationAdminFactory
       if(properties == null) {
         return null;
       } else {
-        return properties.createCopyAndRemoveLocation();
+        return properties.createCopyIfRealAndRemoveLocation();
       }
     }
 
@@ -507,6 +507,7 @@ class ConfigurationAdminFactory
       } else {
         properties = properties.createCopy();
       }
+
       properties.remove(DYNAMIC_BUNDLE_LOCATION);
       if(bundleLocation == null) {
         properties.remove(BUNDLE_LOCATION);
@@ -522,6 +523,7 @@ class ConfigurationAdminFactory
 
     public void update() throws IOException {
       throwIfDeleted();
+      ensureAutoPropertiesAreWritten();
       ConfigurationAdminFactory.this.update(this);
     }
 
@@ -531,20 +533,12 @@ class ConfigurationAdminFactory
 
       ConfigurationDictionary old = this.properties;
 
-      if(properties != null) {
-        this.properties = ConfigurationDictionary.createDeepCopy(properties);
+      if(properties == null) {
+        this.properties = new ConfigurationDictionary();        
       } else {
-        this.properties = null;
+        this.properties = ConfigurationDictionary.createDeepCopy(properties);
       }
-
-      this.properties.put(SERVICE_PID, getPid());
-      if(getFactoryPid() != null) {
-         this.properties.put(FACTORY_PID, getFactoryPid());
-      }
-      if(getBundleLocation() != null) {
-        this.properties.put(BUNDLE_LOCATION, getBundleLocation());
-      }
-            
+      
       try {
         update();
       } catch(IOException e) {
@@ -553,6 +547,17 @@ class ConfigurationAdminFactory
       } catch(Exception e) {
         Activator.log.error("Error while updating properties.", e);
         this.properties = old;
+      }
+    }
+
+    void ensureAutoPropertiesAreWritten() {
+      if(this.properties == null) return;
+      this.properties.put(SERVICE_PID, getPid());
+      if(getFactoryPid() != null) {
+        this.properties.put(FACTORY_PID, getFactoryPid());
+      }
+      if(getBundleLocation() != null) {
+        this.properties.put(BUNDLE_LOCATION, getBundleLocation());
       }
     }
 
@@ -577,12 +582,14 @@ class ConfigurationAdminFactory
 
     public Configuration createFactoryConfiguration(String factoryPid) 
         throws IOException {
-      return new ConfigurationImpl(callingBundleLocation, factoryPid, ConfigurationAdminFactory.this.generatePid(factoryPid));
+      return createFactoryConfiguration(factoryPid, callingBundleLocation);
     }
 
     public Configuration createFactoryConfiguration(String factoryPid, String location)
         throws IOException {
-      return new ConfigurationImpl(location, factoryPid, ConfigurationAdminFactory.this.generatePid(factoryPid));
+      ConfigurationImpl c = new ConfigurationImpl(location, factoryPid, ConfigurationAdminFactory.this.generatePid(factoryPid));
+      if(Activator.r3TestCompliant()) c.update();
+      return c;
     }
   
     public Configuration getConfiguration(String pid)
@@ -595,10 +602,12 @@ class ConfigurationAdminFactory
         return new ConfigurationImpl(callingBundleLocation, null, pid);
       } else {
         String bundleLocation = (String)d.get(BUNDLE_LOCATION);
-        if(bundleLocation != null && !bundleLocation.equals(callingBundleLocation)) {
-          throw new SecurityException
-	    ("Not owner of the requested configuration, owned by "
-	     +bundleLocation +" caller is " +callingBundleLocation );
+        if(bundleLocation != null &&
+          !bundleLocation.equals(callingBundleLocation) &&
+          !callingBundle.hasPermission(ADMIN_PERMISSION)) {
+          throw new SecurityException(
+            "Not owner of the requested configuration, owned by " +
+            bundleLocation + " caller is " + callingBundleLocation );
         }
         String factoryPid = (String)d.get(FACTORY_PID);
         return new ConfigurationImpl(bundleLocation, factoryPid, pid, d);

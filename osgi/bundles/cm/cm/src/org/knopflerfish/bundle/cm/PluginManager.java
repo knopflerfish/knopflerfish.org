@@ -201,7 +201,7 @@ final class PluginManager {
     callPlugins(targetServiceReference, dictionary, postModificationPlugins, false);
 
     if(dictionary != null) {
-      dictionary = dictionary.createCopyAndRemoveLocation();
+      dictionary = dictionary.createCopyIfRealAndRemoveLocation();
     }
     return dictionary;
   }
