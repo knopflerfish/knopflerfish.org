@@ -146,7 +146,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   public final static String [] HELP_FRAME005A =  {
-    "Verifi information from the getHeaders() method",
+    "Verify information from the getHeaders() method",
   };
 
   class Frame005a extends FWTestCase {
