@@ -324,6 +324,9 @@ public class Framework {
       active = false;
       List slist = storage.getStartOnLaunchBundles();
       shuttingdown = true;
+      if(startLevelService != null) {
+	startLevelService.close();
+      }
       systemBundle.systemShuttingdown();
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
