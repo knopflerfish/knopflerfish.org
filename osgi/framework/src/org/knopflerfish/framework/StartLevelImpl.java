@@ -80,7 +80,6 @@ public class StartLevelImpl implements StartLevel, Runnable {
       Debug.println("[opening startlevel service]");
     }
 
-    System.out.println("starting startlevel");
     wc   = new Thread(this, "startlevel job thread");
     bRun = true;
     wc.start();
