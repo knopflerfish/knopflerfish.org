@@ -206,12 +206,12 @@ public class JTips extends JPanel {
     Tip    tip = (Tip)tips.get(tipIx % tips.size());
     String s   = Text.replace(tip.toHTML(), "$(BID)", Long.toString(Activator.getBC().getBundle().getBundleId()));
     
+    
     setHTML(Util.fontify(s));
   }
 
   void setHTML(final String s) {
     html.setText(s);
-    
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
 	  JViewport vp = scroll.getViewport();
@@ -287,7 +287,8 @@ class Tip {
   public String toHTML() {
     return 
       "<b>" + name + "</b>" + 
-      "<p>" + main + "</p>";
+      "<p>" + main + "</p>" + 
+      "<p align=right><font size=-2>#" + id + "</font></p>";
   }
 
   public String toString() {

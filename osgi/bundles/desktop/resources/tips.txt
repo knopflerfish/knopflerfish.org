@@ -176,3 +176,12 @@ The system property <i>org.osgi.provisioning.spid</i> is used to define
 the platform name. This name is displayed in the Desktop window's title
 bar.
 
+----
+24 Detail information panes can be shown as separate windows
+
+Each of the Detail information panes can be displayed as a floating,
+resizable window by clicking on the small <img src=" bundle://$(BID)/float.png">  &nbsp;&nbsp;float icon in the upper right corner.
+<p>
+The window can be restored by closing it, or by clicking on the float icon
+again.
+</p>
