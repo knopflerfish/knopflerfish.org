@@ -15,7 +15,8 @@ import org.knopflerfish.service.log.LogRef;
 
 class Config implements ManagedServiceFactory {
   private final static String msfPid=
-    "org.knopflerfish.bundle.serial.factory";
+    "org.knopflerfish.serialport.factory";
+
   private final static String clazz=
     ManagedServiceFactory.class.getName();
 
