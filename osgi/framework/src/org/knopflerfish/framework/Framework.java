@@ -234,7 +234,11 @@ public class Framework {
 	Debug.println("[using startlevel service]");
       }
       startLevelService = new StartLevelImpl(this);
-      startLevelService.open();
+
+      // restoreState just reads from persistant storage
+      // open() needs to be called to actually do the work
+      // This is done after framework has been launched.
+      startLevelService.restoreState();
       
       services.register(systemBundle,
 			new String [] { StartLevel.class.getName() },
@@ -308,6 +312,13 @@ public class Framework {
 	}
       }
       systemBundle.systemActive();
+
+      // start level open is delayed to this point to 
+      // correctly work at restart
+      if(startLevelService != null) {
+	startLevelService.open();
+      }
+
       listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, systemBundle, null));
     }
   }

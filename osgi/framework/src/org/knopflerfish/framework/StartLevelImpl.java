@@ -81,13 +81,31 @@ public class StartLevelImpl implements StartLevel, Runnable {
   void open() {
     
     if(Debug.startlevel) {
-      Debug.println("[opening startlevel service]");
+      Debug.println("startlevel: open");
     }
 
     wc   = new Thread(this, "startlevel job thread");
     bRun = true;
     wc.start();
 
+  }
+
+  /**
+   * Load persistent state from storage and
+   * set up all actions necessary to bump bundle
+   * states. 
+   * 
+   * After this call, getStartLevel will have the correct value.
+   *
+   * <p>
+   * Note that open() needs to be called for any work to 
+   * be done.
+   * </p>
+   */
+  void restoreState() {
+    if(Debug.startlevel) {
+      Debug.println("startlevel: restoreState");
+    }
     // Skip level load in mem storage since bundle levels
     // isn't saved anyway
     if(!Framework.bIsMemoryStorage) 
@@ -144,6 +162,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
     }
 
 
+    if(Debug.startlevel) {
+      Debug.println("startlevel: setStartLevel " + startLevel);
+    }
 
     jobQueue.insert(new Runnable() {
 	public void run() {
@@ -184,6 +205,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       currentLevel++;
 
+      if(Debug.startlevel) {
+	Debug.println("startlevel: increaseStartLevel currentLevel=" + currentLevel);
+      }
       Vector set = new Vector();
 
       BundleImpl[] bundles = framework.bundles.getBundles();
@@ -208,6 +232,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
 	try {
 	  if(bs.archive.isPersistent()) {
+	    if(Debug.startlevel) {
+	      Debug.println("startlevel: start " + bs);
+	    }
 	    bs.start();
 	  }
 	} catch (Exception e) {
