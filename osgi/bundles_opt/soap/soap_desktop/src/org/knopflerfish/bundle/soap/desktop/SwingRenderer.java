@@ -323,8 +323,9 @@ public class SwingRenderer {
     if(comp instanceof JElement) {
       JElement je = (JElement)comp;
       if(je.bArray) {
-	System.out.println("array " + comp.getClass().getName());
-
+	if(Activator.bVerbose) {
+	  System.out.println("array " + comp.getClass().getName());
+	}
 	java.util.List subValues = new ArrayList();
 
 	for(int i = 0; i < children.length; i++) {
@@ -333,7 +334,9 @@ public class SwingRenderer {
 	  }
 	}
 
-	System.out.println("adding subValues=" + subValues);
+	if(Activator.bVerbose) {
+	  System.out.println("adding subValues=" + subValues);
+	}
 
 	Object[] subParams = subValues.toArray();
 
