@@ -13,14 +13,14 @@ import java.io.*;
 import java.net.*;
 
 import org.knopflerfish.bundle.soap.remotefw.*;
-import org.knopflerfish.service.soap.remotefw.*;
+import org.knopflerfish.service.remotefw.*;
 
 
-public class RemoteConnectionImpl implements RemoteConnection {
+public class RemoteFrameworkImpl implements RemoteFramework {
 
   Map clients = new HashMap();
 
-  public RemoteConnectionImpl() {
+  public RemoteFrameworkImpl() {
   }
 
   public BundleContext connect(String host) {

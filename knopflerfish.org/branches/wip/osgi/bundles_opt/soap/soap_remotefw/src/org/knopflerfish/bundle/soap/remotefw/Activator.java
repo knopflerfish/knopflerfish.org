@@ -6,7 +6,7 @@ import java.util.*;
 import org.knopflerfish.service.log.LogRef;
 
 import org.knopflerfish.bundle.soap.remotefw.client.*;
-import org.knopflerfish.service.soap.remotefw.*;
+import org.knopflerfish.service.remotefw.*;
 
 public class Activator implements BundleActivator {
   
@@ -22,9 +22,9 @@ public class Activator implements BundleActivator {
     remoteFW = new RemoteFWServer();
     remoteFW.start();
 
-    RemoteConnectionImpl rc = new RemoteConnectionImpl();
+    RemoteFrameworkImpl rc = new RemoteFrameworkImpl();
 
-    bc.registerService(RemoteConnection.class.getName(),
+    bc.registerService(RemoteFramework.class.getName(),
 		       rc,
 		       new Hashtable());
   }
