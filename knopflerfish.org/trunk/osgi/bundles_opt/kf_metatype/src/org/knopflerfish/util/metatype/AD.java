@@ -1,0 +1,495 @@
+/*
+ * Copyright (c) 2003, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.knopflerfish.util.metatype;
+
+import org.osgi.framework.*;
+import org.osgi.service.metatype.*;
+import org.knopflerfish.util.Text;
+import java.util.*;
+import java.lang.reflect.*;
+
+public class AD implements AttributeDefinition, Comparable {
+  int      type;
+  int      card;
+  String[] defValue;
+  String   desc;
+  String   id;
+  String   name;
+  String[] optLabels;
+  String[] optValues;
+
+  public AD( String id, 
+	     int type,
+	     int card,
+	     String name,
+	     String[] defValue) {
+    this(id, 
+	 type, 
+	 card, 
+	 name, 
+	 "",       // desc
+	 defValue, // defValue
+	 null, // optLabels
+	 null  // optValues
+	 );
+  }
+
+  public AD(  String   id,
+	      int      type,
+	      int      card,
+	      String   name,
+	      String   desc,
+	      String[] defValue,
+	      String[] optLabels,
+	      String[] optValues) {
+    if(type < STRING || type > BOOLEAN) {
+      throw new IllegalArgumentException("Unsupported type " + type);
+    }
+
+    if(id == null || "".equals(id)) {
+      throw new IllegalArgumentException("Bad id '" + id + "'");
+    }
+
+    if(desc == null) {
+      throw new IllegalArgumentException("Description cannot be null");
+    }
+    
+    if(defValue == null) {
+      String s = "";
+      switch(type) {
+      case STRING:
+	s = "";
+	break;
+      case INTEGER: 
+      case SHORT: 
+      case BYTE:  
+      case BIGINTEGER:
+	s = "0";
+	break;
+      case BIGDECIMAL:
+      case DOUBLE:
+      case FLOAT: 
+	s = "0.0"; 
+	break;
+      case CHARACTER: 
+	s = "-"; 
+	break;
+      case BOOLEAN:
+	s = "false"; 
+	break;
+      }
+      defValue = new String[] { s };
+    }
+    
+    this.type      = type;
+    this.card      = card;
+    this.desc      = desc;
+    this.id        = id;
+    this.name      = name;
+    this.optLabels = optLabels;
+    this.optValues = optValues;
+
+    setDefaultValue(defValue);
+  }
+
+  private AD() {
+    throw new RuntimeException("Not supported");
+  }
+
+  public int getCardinality() {
+    return card;
+  }
+
+  public String[] getDefaultValue() {
+    return defValue;
+  }
+
+  public void setDescription(String s) {
+    this.desc = desc;
+  }
+
+  public void setDefaultValue(String[] value) {
+    String s = validate(toString(value));
+    
+    if(s != null && !"".equals(s)) {
+      throw new IllegalArgumentException("Bad default value '" + 
+					 toString(value) + "' " + 
+					 ", id=" + id + 
+					 ", class=" + getClass(type) + 
+					 ", err=" + s);
+    }
+
+    defValue = value;
+  }
+  
+  public String getDescription() {
+    return desc;
+  }
+
+  public String getID() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String[] getOptionLabels() {
+    return null;
+  }
+
+  public String[] getOptionValues() {
+    return null;
+  }
+
+  public int getType() {
+    return type;
+  }
+
+  public String validate(String value) {
+    if(card == Integer.MIN_VALUE) {
+      return validateMany(value, type, Integer.MAX_VALUE);
+    } else if(card == Integer.MAX_VALUE) {
+      return validateMany(value, type, Integer.MAX_VALUE);
+    } else if(card < 0) {
+      return validateMany(value, type, -card);
+    } else if(card > 0) {
+      return validateMany(value, type, card);
+    } else {
+      return validateSingle(value, type);
+    }
+  }
+
+  public static Object parse(String value, int card, int type) {
+    if(card < 0) {
+      return parseMany(value, type);
+    } else if(card > 0) {
+      Vector v = parseMany(value, type);
+      Object[] array = (Object[])Array.newInstance(getClass(type), v.size());
+      v.copyInto(array);
+      return array;
+    } else {
+      return parseSingle(value, type);
+    }
+  }
+
+
+  static Vector parseMany(String value, 
+			  int type) {
+    String[] items = Text.splitwords(value, ", \n\r", '\"');
+
+    //    System.out.println("AD.parseMany '" + value + "', item count=" + items.length);
+    Vector v = new Vector();
+    for(int i = 0; i < items.length; i++) {
+      v.addElement(parseSingle(items[i], type));
+    }
+    return v;
+  }
+
+
+  static String validateMany(String value, 
+			     int type,
+			     int maxItems) {
+
+    int n = 0;
+
+    String[] items = Text.splitwords(value, ", \n\r", '\"');
+
+    if(maxItems == 0) {
+      if(items.length != 1) {
+	return "Expected one item, found " + items.length;
+      }
+    }
+    
+    if(items.length > maxItems) {
+      return "Max # of items are " + maxItems + ", found " + items.length;
+    }
+
+    StringBuffer sb = new StringBuffer();
+    for(int i = 0; i < items.length; i++) {
+      String s = validateSingle(items[i], type);
+      if(s != null && !"".equals(s)) {
+	if(sb.length() != 0) {
+	  sb.append(", ");
+	}
+	sb.append(s);
+      }
+    }
+
+    return sb.toString();
+  }
+
+  static String validateSingle(String value, int type) {
+    try {
+      switch(type) {
+      case STRING: 
+	if(value == null) {
+	  throw new IllegalArgumentException("Strings cannot be null");
+	}
+	break;
+      case INTEGER: 
+	Integer.parseInt(value.trim());
+	break;
+      case LONG: 
+	Long.parseLong(value.trim());
+	break;
+      case BYTE: 
+	Byte.parseByte(value.trim());
+	break;
+      case SHORT: 
+	Short.parseShort(value.trim());
+	break;
+      case CHARACTER: 
+	if(value.length() != 1) {
+	  throw new IllegalArgumentException("Character strings must be of length 1");
+	}
+	break;
+      case DOUBLE: 
+	Double.parseDouble(value.trim());
+	break;
+      case FLOAT: 
+	Float.parseFloat(value.trim());
+	break;
+      case BOOLEAN:
+	if(!("true".equals(value.trim()) || "false".equals(value.trim()))) {
+	  throw new IllegalArgumentException("Booleans must be 'true' or 'false'");
+	}
+	break;
+      default:
+	break;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      return e.getMessage();
+    }
+    return "";
+  }
+
+  public static Object parseSingle(String value, int type) {
+    //    System.out.println("AD.parseSingle '" + value + "', type= "+ type);
+
+    switch(type) {
+    case STRING: 
+      return value;
+    case INTEGER: 
+      return new Integer(value.trim());
+    case LONG: 
+      return new Long(value.trim());
+    case BYTE: 
+      return new Byte(value.trim());
+    case SHORT: 
+      return new Short(value.trim());
+    case CHARACTER: 
+      return new Character(value.charAt(0));
+    case DOUBLE: 
+      return new Double(value.trim());
+    case FLOAT: 
+      return new Float(value.trim());
+    case BOOLEAN:
+      return "true".equals(value.trim()) ? Boolean.TRUE : Boolean.FALSE;
+    default:
+      throw new IllegalArgumentException("Cannot parse '" + value + "' to type=" + type);
+    }
+  }
+
+  public static Class getClass(int type) {
+    switch(type) {
+    case STRING: 
+      return String.class;
+    case INTEGER: 
+      return Integer.class;
+    case LONG: 
+      return Long.class;
+    case BYTE: 
+      return Byte.class;
+    case SHORT: 
+      return Short.class;
+    case CHARACTER: 
+      return Character.class;
+    case DOUBLE: 
+      return Double.class;
+    case FLOAT: 
+      return Float.class;
+    case BOOLEAN:
+      return Boolean.class;
+    default:
+      throw new IllegalArgumentException("Cannot derive class from type=" + type);
+    }
+  }
+
+
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+
+    sb.append("AD[");
+
+    sb.append("id=" + id);
+    sb.append(", type=" + type);
+    sb.append(", name=" + name);
+    sb.append(", desc=" + desc);
+    sb.append(", cardinality=" + card);
+
+    sb.append(", defValue=" + toString(defValue));
+    sb.append(", optLabels=" + toString(optLabels));
+    sb.append(", optValues=" + toString(optValues));
+
+    sb.append("]");
+
+    return sb.toString();
+  }
+
+  public static String toString(Object obj) {
+    if(obj.getClass().isArray()) {
+      return toString((Object[])obj);
+    } else if(obj instanceof Vector) {
+      StringBuffer sb = new StringBuffer();
+      Vector v = (Vector)obj;
+      for(int i = 0; i < v.size(); i++) {
+	String s = (String)v.elementAt(i);
+	sb.append(escape(s));
+	if(i < v.size() - 1) {
+	  sb.append(", ");
+	}
+      }
+      return sb.toString();
+    } else {
+      return obj.toString();
+    }
+  }
+
+  static String escape(String s) {
+    boolean bComma = s.indexOf(',') != -1;
+    if(bComma) {
+      if(s.length() > 1 && s.startsWith("\"") && s.endsWith("\"")) {
+	bComma = false;
+      }
+    }
+    if(bComma) {
+      return "\"" + s + "\"";
+    } else {
+      return s;
+    }
+  }
+
+  public static String toString(Object[] values) {
+    StringBuffer sb = new StringBuffer();
+
+    if(values == null) {
+      sb.append("null");
+    } else {
+      for(int i = 0; i < values.length; i++) {
+	String s = escape(values[i].toString());
+
+	sb.append(s);
+
+	if(i < values.length - 1) {
+	  sb.append(", ");
+	}
+      }
+    }
+    return sb.toString();
+  }
+
+  public static String toString(Vector values) {
+    StringBuffer sb = new StringBuffer();
+
+    if(values == null) {
+      sb.append("null");
+    } else {
+      for(int i = 0; i < values.size(); i++) {
+	sb.append(values.elementAt(i));
+	if(i < values.size() - 1) {
+	  sb.append(", ");
+	}
+      }
+    }
+    return sb.toString();
+  }
+
+
+  static public String toXMLSequenceVector(int type, Vector val) {
+    return "";
+  }
+
+  static public String toXMLSequenceArray(int type, Object[] val) {
+    StringBuffer sb = new StringBuffer();
+
+    sb.append("<xsd:sequence>\n");
+    for(int i = 0; i < val.length; i++) {
+      sb.append(" " + toXML(type, 0, val[i]));
+      sb.append("\n");
+    }
+    sb.append("</xsd:sequence>\n");
+
+
+    return sb.toString();
+  }
+  
+  static public String toXML(int type, int card, Object val) {
+    if(card > 0) {
+      return toXMLSequenceVector(type, (Vector)val);
+    } else if(card < 0) {
+      return toXMLSequenceArray(type, (Object[]) val);
+    } else {
+      String tag = "";
+      switch(type) {
+      case STRING:  tag = "xsd:string";  break;
+      case INTEGER: tag = "xsd:int";     break;
+      case DOUBLE:  tag = "xsd:double";  break;
+      case FLOAT:   tag = "xsd:float";   break;
+      case BOOLEAN: tag = "xsd:boolean"; break;
+      default: throw new IllegalArgumentException("Cannot print " + type);
+      }
+      
+      return "<" + tag + ">" + val.toString() + "</" + tag + ">";
+    }
+  }
+
+  public int compareTo(Object other) {
+    return id.compareTo(((AD)other).id);
+  }
+
+  public int hashCode() {
+    return id.hashCode();
+  }
+
+  public boolean equals(Object other) {
+    if(other == null || !(other instanceof AD)) {
+      return false;
+    }
+
+    return id.equals(((AD)other).id);
+  }
+}
