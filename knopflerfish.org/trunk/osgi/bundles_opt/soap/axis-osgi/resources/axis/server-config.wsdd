@@ -28,7 +28,7 @@
  <transport name="http">
   <requestFlow>
    <handler type="URLMapper"/>
-   <handler type="OSGiServiceHandler"/>
+   <!--handler type="OSGiServiceHandler"/-->
    <!--handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/-->
   </requestFlow>
  </transport>

@@ -112,7 +112,7 @@ public class OSGiServiceHandler
             deployment = config.getDeployment();
             ws = findService(deployment, serviceName);
             service = deployment.getService(ws.getQName());
-            service.setOption("scope", Scope.APPLICATION_STR);
+//            service.setOption("scope", Scope.APPLICATION_STR);
             msgContext.getAxisEngine().getApplicationSession().set(serviceName, 
                                                                    serviceObject);
          }
@@ -147,6 +147,7 @@ public class OSGiServiceHandler
       return "<service name=\"" + serviceName + "\" provider=\"java:RPC\">" + 
              "<parameter name=\"allowedMethods\" value=\"*\"/>" + 
              "<parameter name=\"className\" value=\"" + className + "\"/>" + 
+             "<parameter name=\"scope\" value=\"Application\"/>" + 
              "</service>";
    }
 }

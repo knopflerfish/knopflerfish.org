@@ -51,8 +51,12 @@ import java.net.URL;
 import org.apache.axis.EngineConfiguration;
 import org.apache.axis.configuration.FileProvider;
 import org.apache.axis.server.AxisServer;
+import org.apache.axis.utils.XMLUtils;
+//import org.apache.axis.WSDDEngineConfiguration;
+
 
 import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.axis.ObjectSOAPService;
 
 import org.knopflerfish.util.servlet.ServletDescriptor;
 import org.knopflerfish.util.servlet.WebApp;
@@ -62,11 +66,11 @@ import org.osgi.framework.*;
 
 
 /** The <code>Activator</code> is the activator for the Axis OSGi bundle.
- *
+ *  Further it handles service registration events for SOAP services.
  * @author Lasse Helander (lars-erik.helander@home.se)
  */
 public class Activator
-   implements BundleActivator {
+   implements BundleActivator, ServiceListener {
    public static BundleContext axisBundle = null;
    public static LogRef log = null;
    private static AxisServer axisServer = null;
@@ -91,6 +95,7 @@ public class Activator
          webApp = new WebApp(getWebAppDescriptor());
          webApp.start(bc);
          log.info("Web application started.");
+	 axisBundle.addServiceListener(this);   
       } catch (Exception e) {
          log.error("Exception when starting bundle", e);
          throw new BundleException("Failed to start server");
@@ -100,6 +105,7 @@ public class Activator
    public void stop(BundleContext bc)
              throws BundleException {
       try {
+	 axisBundle.removeServiceListener(this);   
          webApp.stop(bc);
          webApp = null;
          axisBundle = null;
@@ -121,4 +127,29 @@ public class Activator
                                              new ServicesServlet());
       return wad;
    }
+   
+   
+      public void serviceChanged(ServiceEvent event) {
+      try {
+         if (event.getType() == ServiceEvent.REGISTERED) {
+            ServiceReference sr = event.getServiceReference();
+            String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
+            if (serviceName != null) {
+              log.info("ServicesServlet:: added service "+serviceName);
+               (new ObjectSOAPService(axisServer,serviceName,axisBundle.getService(sr))).deploy();
+            }
+         }
+         if (event.getType() == ServiceEvent.UNREGISTERING) {
+            ServiceReference sr = event.getServiceReference();
+            String serviceName = (String) sr.getProperty("SOAP_SERVICE_NAME");
+            if (serviceName != null) {
+              log.info("ServicesServlet:: removed service "+serviceName);
+               (new ObjectSOAPService(axisServer,serviceName,null)).undeploy();
+            }
+         }
+      } catch (Exception e) {
+         log.error("ServicesServlet::serviceChanged() Exception", e);
+      }
+   }
+
 }
