@@ -318,7 +318,7 @@ class DirDeployerImpl implements DirDeployerService {
   }
 
   /**
-   * Check if a file seem to be a bundle jar file.
+   * Check if a file seems to be a bundle jar file.
    */
   static boolean isBundleFile(File f) {
     return f.toString().toLowerCase().endsWith(".jar");

@@ -51,12 +51,14 @@ import org.osgi.service.cm.ManagedService;
 public class Config implements ManagedService {
 
   // PID string used for service.pid
-  static final String PID             = "org.knopflerfish.dirdeployer";
+  static final String PID             = "org.osgi.fileinstall";
 
   // Property names used both as system properties and as CM properties
-  static final String PROP_DIRS       = "org.knopflerfish.dirdeployer.dirs";
-  static final String PROP_INTERVAL   = "org.knopflerfish.dirdeployer.interval";
-  static final String PROP_STARTLEVEL = "org.knopflerfish.dirdeployer.startlevel";
+  static final String PROP_DIRS       = "org.osgi.fileinstall.dir";
+  static final String PROP_INTERVAL   = "org.osgi.fileinstall.poll";
+  static final String PROP_STARTLEVEL = "org.osgi.fileinstall.startlevel";
+
+  static final String DEFAULT_DIR = "./load";
 
   // directories to scan
   File[] dirs = new File[0];
@@ -139,7 +141,7 @@ public class Config implements ManagedService {
     Hashtable props = new Hashtable();
 
     props.put(PROP_DIRS, 
-	      System.getProperty(PROP_DIRS, "deploy"));
+	      System.getProperty(PROP_DIRS, DEFUALT_DIR));
     
     props.put(PROP_STARTLEVEL, 
 	      Integer.getInteger(PROP_STARTLEVEL, new Integer(startLevel)));
