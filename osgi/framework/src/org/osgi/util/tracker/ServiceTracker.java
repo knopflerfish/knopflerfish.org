@@ -172,7 +172,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
       
       init(context, filter, customizer);
     } catch (InvalidSyntaxException e) {
-      throw new IllegalArgumentException("Filter syntax error: " + e.getMessage() + " - possibly junk in the class name '" + clazz);
+      throw new IllegalArgumentException("Filter syntax error: " + e.getMessage() + " - possibly junk in the class name=\"" + clazz + "\"");
     }
   }
 
