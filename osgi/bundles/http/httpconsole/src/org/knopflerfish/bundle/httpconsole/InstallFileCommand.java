@@ -40,10 +40,17 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class InstallFileCommand implements Command {
+public class InstallFileCommand extends IconCommand {
 
   InstallFileCommand2 installFile2 = new InstallFileCommand2();
 
+  InstallFileCommand() {
+    super("cmd_installfile",
+	  "Install file",
+	  "Install bundle from file",
+	  Activator.RES_ALIAS + "/open.gif");
+  }
+  
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
@@ -69,22 +76,6 @@ public class InstallFileCommand implements Command {
 		" src=\"" + getIcon() + "\">");
   }
   
-  public String       getId() {
-    return "cmd_installfile";
-  }
-
-  public String getName() {
-    return "Install file";
-  }
-
-  public String getIcon() {
-    return Activator.RES_ALIAS + "/open.gif";
-  }
-
-  public String getDescription() {
-    return "Install bundle from file";
-  }
-
 
   public boolean isTrigger(HttpServletRequest request) {
     return 
