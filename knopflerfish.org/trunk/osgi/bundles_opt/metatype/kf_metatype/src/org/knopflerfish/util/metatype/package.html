@@ -517,7 +517,8 @@ the URL.
 
 <p>
 The key for lookup in the external localization file
-will be the attribute's ID.
+will be the attribute's ID, plus either ".desc" for attribute description 
+and, optionally, ".name" for attribute names.
 </p>
 <p>
 If the the key is not found, the <code>xsd:documentation</code> will be 
@@ -537,14 +538,23 @@ searched for default values.
     &lt;xsd:element   name="string1" type="xsd:string"/&gt;
 
    ...
-
 </pre>
 <p>
-The file <code>/settings.txt</code> in the bundle jar should then
-contain at least:
+The file <code>/settings.props</code> in the bundle jar should 
+contain lines as:
 </p>
 <pre>
-string1=This is the description for string1
+string1.desc=This is the description for string1
+string1.name=First string
+</pre>
+
+<p>
+A Swedish translation <code>/settings_se.props</code> in the bundle jar could 
+contain lines as:
+</p>
+<pre>
+string1.desc=Humdihumdididum
+string1.name=Chef #1
 </pre>
 
 </div>
