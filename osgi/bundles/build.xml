@@ -22,12 +22,15 @@
     <ant dir="wireadmin"         target="all"/>
     <ant dir="demos"             target="all"/>
 
-    <ant dir="measurement"       target="all"/>
-    <ant dir="position"          target="all"/>
-    <ant dir="metatype"          target="all"/>
+    <ant dir="measurement"           target="all"/>
+    <ant dir="position"              target="all"/>
+    <ant dir="metatype/metatype_api" target="all"/>
 
-    <ant dir="remotefw"          target="all"/>
-    <ant dir="desktop"           target="all"/>
+    <ant dir="remotefw"              target="all"/>
+    <ant dir="desktop"               target="all"/>
+
+    <ant dir="metatype/kf_metatype"  target="all"/>
+    <ant dir="metatype/cm_desktop"   target="all"/>
 
     <ant dir="trayicon"          target="all"/>
     <ant dir="upnp"              target="all"/>

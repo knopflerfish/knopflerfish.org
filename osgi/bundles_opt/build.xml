@@ -5,7 +5,6 @@
   <target name="all">
     <ant dir="commons-logging"    target="all"/>
     <ant dir="soap"               target="all"/>
-    <ant dir="metatype"           target="all"/>
     <ant dir="junit"              target="all"/>
     <ant dir="serial"             target="all"/>
     <ant dir="desktop_displayers" target="all"/>
@@ -14,7 +13,6 @@
   <target name="clean">
     <ant dir="commons-logging"    target="clean"/>
     <ant dir="soap"               target="clean"/>
-    <ant dir="metatype"           target="clean"/>
     <ant dir="junit"              target="clean"/>
     <ant dir="serial"             target="clean"/>
     <ant dir="desktop_displayers" target="clean"/>
