@@ -232,11 +232,13 @@
  <target name        = "compile_ant" 
          description = "Compile and link the custom bundleinfo task">
 
-    <mkdir dir = "${antclasses}"/>
+   <mkdir dir = "${antclasses}"/>
 
-    <javac destdir = "${antclasses}" 
-          srcdir  = "${ant.dir}/src" 
+   <javac destdir = "${antclasses}"
+          srcdir  = "${ant.dir}/src"
           debug = "on">
+     <!-- Bundle.java requires Ant 1.6+ -->
+     <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
    </javac>
 
    <taskdef name      = "bundleinfo" 
