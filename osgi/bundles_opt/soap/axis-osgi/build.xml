@@ -13,7 +13,6 @@
 
 
   <path id="bundle.compile.path">
-   <!--pathelement location="${topdir}/api/framework.jar"/-->
    <pathelement location="${topdir}/jars/http/http_api-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
    <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
@@ -29,7 +28,7 @@
   <property name="bundle.description"    value="Axis Server"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
   <property name="bundle.category"       value="support"/>
-  <property name="bundle.version"        value="0.0.3"/>
+  <property name="bundle.version"        value="0.1.0"/>
   <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
 
  <!-- set do.bundle.custom.post to anything to trigger post target --> 
