@@ -47,6 +47,9 @@ import junit.framework.*;
 
 public class JUnitServlet extends HttpServlet {
 
+  static final String ID  = "id";
+  static final String CMD = "cmd";
+  static final String FMT = "fmt";
 
   JUnitServlet() {
   }
@@ -70,9 +73,9 @@ public class JUnitServlet extends HttpServlet {
 
       PrintWriter out = response.getWriter();
 
-      String fmt  = request.getParameter("fmt");
-      String cmd  = request.getParameter("cmd");
-      String id   = request.getParameter("id");
+      String fmt  = request.getParameter(FMT);
+      String cmd  = request.getParameter(CMD);
+      String id   = request.getParameter(ID);
 
       if(id == null && cmd == null) {
 	cmd = "list";
@@ -119,12 +122,13 @@ public class JUnitServlet extends HttpServlet {
     out.println("<title>");
     out.println("test result");
     out.println("</title>");
+    printCSS(out);
     out.println("</head>");
     out.println("<body>");
 
     try {
       if("run".equals(cmd)) {
-	runTestHTML(request.getParameter("id"), out);
+	runTestHTML(request, request.getParameter(ID), out);
       } else if("list".equals(cmd)) {
 	showTestsHTML(request, response, out);
       } else {
@@ -141,6 +145,23 @@ public class JUnitServlet extends HttpServlet {
     out.println("</html>");
   }
   
+  void printCSS(PrintWriter out) throws IOException {
+    InputStream in = null;
+    try {
+      URL url = getClass().getResource("/style.css");
+      in = url.openStream();
+      BufferedInputStream bin = new BufferedInputStream(in);
+      byte[] buf = new byte[1024];
+      int n = 0;
+      while(-1 != (n = bin.read(buf, 0, buf.length))) {
+	out.print(new String(buf, 0, n));
+      }
+    } catch (Exception e) {
+    } finally {
+      try { in.close(); } catch (Exception ignored) { }
+    }
+  }
+
   void showTestsHTML(HttpServletRequest  request, 
 		     HttpServletResponse response,
 		     PrintWriter out) throws Exception
@@ -163,7 +184,11 @@ public class JUnitServlet extends HttpServlet {
       String id   = (String)srl[i].getProperty("service.pid");
       String desc = (String)srl[i].getProperty("service.description");
       
-      String link = "/junit?cmd=run&fmt=html&id=" + id;
+      String link = HttpExporter.SERVLET_ALIAS + 
+	"?" + 
+	CMD + "=run&" + 
+	FMT + "=html&" +
+	ID + "=" + id;
       out.println("<li><a href=\"" + link + "\">" + id + "</a>");
       if(desc != null && !"".equals(desc)) {
 	out.println("<br>" + desc);
@@ -182,7 +207,7 @@ public class JUnitServlet extends HttpServlet {
     out.println("<junit>");
     try {
       if("run".equals(cmd)) {
-	runTest(request.getParameter("id"), out);
+	runTest(request, request.getParameter(ID), out);
       } else {
 	throw new IllegalArgumentException("Unknown command='" + cmd + "'");
       }
@@ -197,11 +222,15 @@ public class JUnitServlet extends HttpServlet {
     out.println("</junit>");
   }
 
-  void runTestHTML(final String id, 
-	       PrintWriter out) throws Exception {
-    out.println("test id = " + id);
+  void runTestHTML(HttpServletRequest request, 
+		   String id, 
+		   PrintWriter out) throws Exception {
+    out.println("<h2>Test result of '" + id + "'</h2>");
+
     
-    TestSuite suite = getSuite(id);
+    out.println("<p><a href=\"" + HttpExporter.SERVLET_ALIAS + "\">List all available tests</a></p>");
+    
+    TestSuite suite = getSuite(request);
     
     TestResult tr = new TestResult();
       
@@ -210,13 +239,14 @@ public class JUnitServlet extends HttpServlet {
     dumpResultHTML(tr, out);
   }
   
-  void runTest(final String id, 
+  void runTest(HttpServletRequest request, 
+	       String id, 
 	       PrintWriter out) throws Exception {
     out.println(" <testcase id=\"" + id + "\">");
 
     try {
 
-      TestSuite suite = getSuite(id);
+      TestSuite suite = getSuite(request);
       
       dumpSuite(suite, out, 2);
       
@@ -231,8 +261,10 @@ public class JUnitServlet extends HttpServlet {
     }
   }
 
-  TestSuite getSuite(final String id) throws Exception {
+  TestSuite getSuite(HttpServletRequest request) throws Exception {
     Object obj = null;
+
+    final String id = request.getParameter(ID);
     
     ServiceReference[] srl = 
       Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
@@ -317,11 +349,21 @@ public class JUnitServlet extends HttpServlet {
   }
 
   void dumpResultHTML(TestResult tr, PrintWriter out) throws IOException {
+    if(tr.wasSuccessful()) {
+      out.println("<div class=\"testok\">");
+      out.println("All tests in suite OK");
+      out.println("</div>");
+    } else {
+      out.println("<div class=\"testfailed\">");
+      out.println("Some tests in suite failed");
+      out.println("</div>");
+    }
+
     out.println("<pre>");
-    out.println("wasSuccessful = " + tr.wasSuccessful());
-    out.println("runCount      = " + tr.runCount());
-    out.println("failureCount  = " + tr.failureCount());
-    out.println("errorCount    = " + tr.errorCount());
+    out.println("total # of tests: " + tr.runCount());
+    out.println("# of failures:    " + tr.failureCount());
+    out.println("# of errors:      " + tr.errorCount());
+    out.println("</pre>");
 
     if(tr.failureCount() > 0 ) {
       for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
@@ -336,7 +378,6 @@ public class JUnitServlet extends HttpServlet {
 	dumpFailureHTML(tf, out, "Error");
       }
     }
-    out.println("</pre>");
   }
 
 
@@ -393,10 +434,20 @@ public class JUnitServlet extends HttpServlet {
 
   void dumpFailureHTML(TestFailure tf, PrintWriter out,
 		       String prefix) throws IOException {
-    out.println(prefix);
+    out.println("<div class=\"schemaComp\">");
+    out.println("<div class=\"compHeader\">");
+    out.println("<span class=\"schemaComp\">" + 
+		prefix);
+    if(null != tf.exceptionMessage()) {
+      out.println(" - " + tf.exceptionMessage());
+    }
+    out.println("</span>");
+    out.println("</div>");
+    out.println("<div class=\"compBody\">");
 
-    out.println(" exceptionMessage    = " + escape(tf.exceptionMessage()));
     Test failedTest = tf.failedTest();
+
+    out.println("<pre>");
     if(failedTest instanceof TestCase) {
       TestCase tc = (TestCase)failedTest;
       String name = tc.getName();
@@ -404,14 +455,20 @@ public class JUnitServlet extends HttpServlet {
 	name = tc.getClass().getName();
       }
 
-      out.println(" failedTestCaseName  = " + escape(name));
-      out.println(" failedTestCaseClass = " + tc.getClass().getName());
+      out.println("test name:  " + escape(name));
+      out.println("test class: " + tc.getClass().getName());
     } else {
-      out.println(" failedTest          = " + tf.failedTest());
+      out.println("test:       " + tf.failedTest());
     }
+    out.println("</pre>");
+
     out.println("<pre>");
+    out.println("");
     out.print(tf.trace());
     out.println("</pre>");
+
+    out.println("</div>");
+
   }
 
   String escape(String s) {
