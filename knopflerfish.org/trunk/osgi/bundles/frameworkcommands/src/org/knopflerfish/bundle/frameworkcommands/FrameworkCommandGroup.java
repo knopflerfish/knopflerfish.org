@@ -1066,6 +1066,80 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     return 0;
   }
 
+  public final static String USAGE_FROMUPDATE = "<bundle> <url>";
+  public final static String [] HELP_FROMUPDATE = new String [] {
+    "Update a bundle from a specific URL",
+    "<bundle> - Name or id of bundle",
+    "<url>    - URL to update from",
+    "Note: Use refresh command to force the framework to do a package update",
+    "of exported packages used by running bundles."};
+
+  public int cmdFromupdate(Dictionary opts, Reader in, PrintWriter out, Session session) {
+    String bname = (String)opts.get("bundle");
+    Bundle [] bl    = getBundles(new String[] { bname }, true);
+    String fromURL = (String)opts.get("url");
+
+    Bundle b = bl[0];
+    if(b == null) {
+      out.println("ERROR! No matching bundle for '" + bname + "'");
+      return 1;
+    }
+
+    try {
+      URL url = new URL(fromURL);
+      URLConnection conn      = url.openConnection();
+      InputStream   inStream  = conn.getInputStream();
+      b.update(inStream);
+      out.println("Updated: " + showBundle(b));
+    } catch(BundleException e) {
+      Throwable t = e;
+      while(t instanceof BundleException &&
+	    ((BundleException) t).getNestedException() != null)
+	t = ((BundleException) t).getNestedException();
+      out.println("Couldn't update: " + showBundle(b) + " (due to: "+t+")");
+    } catch (Exception e) {
+      out.println("Couldn't update: " + showBundle(b) + " (due to: "+e+")");
+    }
+
+    out.println("Note: Use refresh command to update exported packages in running bundles");
+    return 0;
+  }
+
+  public final static String USAGE_FROMINSTALL = "<url> [<location>]";
+  public final static String [] HELP_FROMINSTALL = new String [] {
+    "Install a bundle with a specific location from an URL",
+    "<url>      - URL to bundle jar file",
+    "<location> - Optional location string to use for installation",
+  };
+  
+  public int cmdFrominstall(Dictionary opts, Reader in, PrintWriter out, Session session) {
+    String fromURL = (String)opts.get("url");
+    String loc     = (String)opts.get("location");
+    
+    if(loc == null) {
+      loc = fromURL;
+    }
+
+    try {
+      URL url = new URL(fromURL);
+      URLConnection conn      = url.openConnection();
+      InputStream   inStream  = conn.getInputStream();
+      Bundle b = bc.installBundle(loc, inStream);
+      out.println("Installed: " + showBundle(b));
+    } catch(BundleException e) {
+      Throwable t = e;
+      while(t instanceof BundleException &&
+	    ((BundleException) t).getNestedException() != null)
+	t = ((BundleException) t).getNestedException();
+      out.println("Couldn't install: url=" + fromURL + ", location=" + loc + " (due to: "+t+")");
+    } catch (Exception e) {
+      out.println("Couldn't install: url=" + fromURL + ", location=" + loc + " (due to: "+e+")");
+    }
+
+    return 0;
+  }
+
+
   //
   // Private methods
   //
