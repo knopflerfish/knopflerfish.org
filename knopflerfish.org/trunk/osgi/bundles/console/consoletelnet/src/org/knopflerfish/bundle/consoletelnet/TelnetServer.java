@@ -145,8 +145,10 @@ public class TelnetServer implements org.osgi.framework.BundleActivator, Runnabl
     ServerSocket serverSocket = null;
     // int socketTimeout = 10000;
     // int  backlog = 100;
+    
+    boolean bFailed = false;
 
-    while (accept) {
+    while (accept && !bFailed) {
       if (updated) {
         log.info("updating in server main loop");
         if (serverSocket != null) {
@@ -154,19 +156,23 @@ public class TelnetServer implements org.osgi.framework.BundleActivator, Runnabl
             serverSocket.close();
           }
           catch (IOException e) {
-            log.error("Server socket exception " + e);
+            log.error("Server socket exception ", e);
             log.error("Port: " + telnetConfig.getPort()); 
+	    bFailed = true;
           }
         }
         try {
           // serverSocket = new ServerSocket(telnetConfig.getPort()); 
           serverSocket = new ServerSocket(telnetConfig.getPort(), telnetConfig.getBacklog(), telnetConfig.getAddress()); 
+	  
+	  log.info("listening on port " + telnetConfig.getPort());
 
           updated = false;
         }
         catch (IOException iox) { 
-          log.error("Server socket exception " + iox);
+          log.error("Server socket exception", iox);
           updated = true;
+	  bFailed = true;
         }
       } else {
         // System.out.print(":"); 
@@ -186,7 +192,7 @@ public class TelnetServer implements org.osgi.framework.BundleActivator, Runnabl
         }
         catch (IOException iox) { 
 	  //	  iox.printStackTrace();
-          log.error("Server exception " + iox);
+          log.error("Server exception", iox);
         }
       }
     } // end while (accept)
