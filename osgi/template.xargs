@@ -3,6 +3,8 @@
 # Knopflerfish release $(VERSION)
 #
 
+-Dorg.osgi.provisioning.spid=knopflerfish
+
 -Dorg.knopflerfish.verbosity=0
 
 -Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
