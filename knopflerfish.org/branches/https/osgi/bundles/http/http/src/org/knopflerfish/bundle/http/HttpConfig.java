@@ -67,7 +67,7 @@ public class HttpConfig implements ManagedService {
   public final static String KEYSTORE_PASS_KEY = "keystore.pass";
 
   private static final int PORT_DEFAULT        = 80;
-  private static final int PORT_DEFAULT_SECURE = 443;
+  private static final int PORT_DEFAULT_SECURE = 8282;
 
 
   // private fields
@@ -83,7 +83,7 @@ public class HttpConfig implements ManagedService {
   private boolean  dnsLookup = true;
   private int      defaultResponseBufferSize = 16384;
   private int      serviceRanking = 1000; // NYI
-  private boolean  isSecure = false;
+  private boolean  isSecure = true;
   private boolean  clientAuth = false; // NYI
   private String   keystoreUrl = "";
   private String   keystorePass = "";

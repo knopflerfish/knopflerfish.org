@@ -43,11 +43,14 @@ import java.io.InterruptedIOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.knopflerfish.service.log.LogRef;
 
 
-public class SocketListener implements Runnable {
+public class SocketListener implements Runnable, ServiceTrackerCustomizer {
 
   // private constants
 
@@ -59,7 +62,9 @@ public class SocketListener implements Runnable {
   private final HttpConfig httpConfig;
   private final LogRef log;
   private final TransactionManager transactionManager;
+  private final BundleContext bc;
 
+  private ServiceTracker securityTracker = null;
   private int port = -1;
   private String host = null;
   private int maxConnections = -1;
@@ -77,15 +82,21 @@ public class SocketListener implements Runnable {
 
   public SocketListener(final HttpConfig httpConfig,
                         final LogRef log,
-                        final TransactionManager transactionManager) {
+                        final TransactionManager transactionManager,
+                        final BundleContext bc) {
 
     this.httpConfig = httpConfig;
     this.log = log;
     this.transactionManager = transactionManager;
+    this.bc = bc;  
+
+    System.out.print("created socket Listener");    
   }
 
   public void updated() throws ConfigurationException {
 
+ System.out.print("update called");
+      
     final Boolean isSecure = new Boolean(httpConfig.isSecure());
     final Boolean requireClientAuth =
         new Boolean(httpConfig.getClientAuthentication());
@@ -118,14 +129,192 @@ public class SocketListener implements Runnable {
 
     if (thread != null)
       destroy();
-    init();
+      
+    if (!this.httpConfig.isSecure())
+    {  
+        try 
+        {
+            if (log.doDebug()) log.debug("Creating socket");
+            if (host == null || host.length() == 0) 
+            {
+              socket = new ServerSocket(port, maxConnections);
+            } else 
+            {
+              try 
+              {
+                socket = new ServerSocket(port,
+                                          maxConnections,
+                                          InetAddress.getByName(host));
+              } catch (UnknownHostException uhe) 
+              {
+                socket = new ServerSocket(port, maxConnections);
+              }
+            }
+     
+    /*    } catch (ConfigurationException ce) {
+          done = true;
+          throw ce;*/
+        } catch (IOException ioe) {
+          done = true;
+          if (log.doDebug()) log.debug("IOException in createSocket", ioe);
+          throw new ConfigurationException(HttpConfig.PORT_KEY, ioe.toString());
+        } catch (Exception e) {
+          done = true;
+          if (log.doDebug()) log.debug("Exception in createSocket", e);
+          throw new ConfigurationException(HttpConfig.PORT_KEY, e.toString());
+        }
+            
+    } else //secure case, can not create socket by myself, need to get service
+    {
+        
+ System.out.print("IS SECURE -- starting tracker");
+        
+        if (securityTracker != null)
+        {
+            securityTracker.close();
+            securityTracker = null;
+        }
+        
+        
+        /**
+         * right now, we assume there is at most one SSLServerSocketFactory registered,
+         * and we do not use service properties to be able to assiciate SSLServerFactories
+         * with different clients yet.
+         */
+        securityTracker = new ServiceTracker (this.bc, 
+                                              "javax.net.ssl.SSLServerSocketFactory",
+                                              this);
+        securityTracker.open();
+    }
   }
+    
+  public Object addingService(ServiceReference sRef)
+  {
+     //TE this class must not explicitly reference SSLServerFactory.
+     Object factory = null;
+     
+     if (this.socket != null)
+     {
+        log.warn("SEVERAL  SSLServerSocketFactories are available, selection random");
+        return null; //do not track
+     }
+     
+     factory = this.bc.getService(sRef);
+         
+     //find the two methods using reflection
+     Method create2 = null;
+     Method create3 = null;
+     
+     try
+     {
+     	create2= factory.getClass().getMethod("createServerSocket",
+        		new Class[] {int.class, int.class});
+        create3 = factory.getClass().getMethod("createServerSocket",
+                new Class[] {int.class, int.class, InetAddress.class});
+      
+     
+     } catch (Exception cmethE)
+     {
+        log.error("not an SSL factory, or no access : " + factory, cmethE);
+        
+     }
+     
+     if (host == null || host.length() == 0) 
+     {
+        try 
+        {
+			socket = (ServerSocket) create2.invoke(factory, 
+			            new Object[]{new Integer(port), new Integer(maxConnections)});
+		
+        } catch (Exception ex) 
+        {
+			log.error("creating ssocket ", ex);
+        }
+         
+     } else 
+     {
+        try
+        {
+            try 
+            {
+                socket = (ServerSocket) create3.invoke(factory, 
+                        new Object[]{new Integer(port), new Integer(maxConnections),
+                                     InetAddress.getByName(host)});
+            
+            } catch (UnknownHostException uhe) 
+            {
+                socket = (ServerSocket) create2.invoke(factory, 
+                        new Object[]{new Integer(port), new Integer(maxConnections)});
+            }
+ 
+        } catch (Exception ex) 
+        {
+            log.error("creating socket ", ex);
+        }
+  
+     }                    
+    
+     if (socket != null)
+     {
+        try
+        {
+            init();   
+            
+        
+        } catch (Exception e) 
+        {
+        	log.error("Can not initialize", e);
+            socket = null;
+        }
+     }
+     
+     if (socket == null)
+     {
+        this.bc.ungetService(sRef);
+        factory = null;  
+     
+     }
+     
+    /*
+    } catch (ConfigurationException ce)
+    {
+        this.bc.ungetService(sRef);
+        factory = null;
+        log.error("ConfigurationException when creating SSL Socket", ce);
+    
+    } catch (Exception exc)
+    {
+        this.bc.ungetService(sRef);
+        factory = null;
+        log.error("Exception when creating SSL Socket", exc);
+    }*/
+    return factory;
+  }
+    
+    public void modifiedService(
+    	ServiceReference arg0,
+    	Object arg1)
+    {
+    
+    }
+    
+    public void removedService(
+    	ServiceReference sRef,
+    	Object arg1)
+    {
+        log.debug("SSLFactory Security service was removed.");
 
+        destroy();
+        
+        this.bc.ungetService(sRef);
+        
+    }
+    
   public void init() throws ConfigurationException {
 
     done = false;
 
-    createSocket();
+    //socket has been created    
 
     port = socket.getLocalPort();
     httpConfig.setPort(port);
@@ -136,60 +325,23 @@ public class SocketListener implements Runnable {
     thread.start();
   }
 
-  public void createSocket() throws ConfigurationException {
-
-    try {
-
-      if (isSecure.booleanValue()) {
-        if (log.doDebug()) log.debug("Creating secure socket");
-        try {
-          Class clazz = getClass().getClassLoader().loadClass("org.knopflerfish.bundle.http.SecureSocketListener");
-          Method method = clazz.getMethod("createSecureSocket", new Class[] { HttpConfig.class, LogRef.class });
-          socket = (ServerSocket) method.invoke(null, new Object[] { httpConfig, log });
-        } catch (ClassNotFoundException cnfe) {
-          if (log.doDebug()) log.debug("ClassNotFoundException in createSocket", cnfe);
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, cnfe.toString());
-        } catch (NoSuchMethodException nsme) {
-          if (log.doDebug()) log.debug("NoSuchMethodException in createSocket", nsme);
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, nsme.toString());
-        } catch (IllegalAccessException iae) {
-          if (log.doDebug()) log.debug("IllegalAccessException in createSocket", iae);
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, iae.toString());
-        } catch (InvocationTargetException ite) {
-          if (log.doDebug()) log.debug("InvocationTargetException in createSocket", ite);
-          throw new ConfigurationException(HttpConfig.SECURE_KEY, ite.getTargetException().toString());
-        }
-      } else {
-        if (log.doDebug()) log.debug("Creating socket");
-        if (host == null || host.length() == 0) {
-          socket = new ServerSocket(port, maxConnections);
-        } else {
-          try {
-            socket = new ServerSocket(port,
-                                      maxConnections,
-                                      InetAddress.getByName(host));
-          } catch (UnknownHostException uhe) {
-            socket = new ServerSocket(port, maxConnections);
-          }
-        }
-      }
-    } catch (ConfigurationException ce) {
-      done = true;
-      throw ce;
-    } catch (IOException ioe) {
-      done = true;
-      if (log.doDebug()) log.debug("IOException in createSocket", ioe);
-      throw new ConfigurationException(HttpConfig.PORT_KEY, ioe.toString());
-    } catch (Exception e) {
-      done = true;
-      if (log.doDebug()) log.debug("Exception in createSocket", e);
-      throw new ConfigurationException(HttpConfig.PORT_KEY, e.toString());
-    }
-  }
-
   public void destroy() {
 
     done = true;
+
+    if (this.httpConfig.isSecure())
+    {
+        ServiceTracker tempTr = this.securityTracker;
+        this.securityTracker = null;
+        if (tempTr != null)
+        {
+            try
+            {
+                tempTr.close();
+    
+            } catch (Exception excpt) {}
+        }
+    }
 
     Thread[] threads = new Thread[transactionManager.activeCount()];
     transactionManager.enumerate(threads);
@@ -216,11 +368,15 @@ public class SocketListener implements Runnable {
 
     try {
       if (socket != null) {
+        
+        //?? why is close not always called if socket != NULL
+        
         int port = socket.getLocalPort();
         InetAddress address = socket.getInetAddress();
         if (address.getHostAddress().equals(zeroAddress))
           address = InetAddress.getLocalHost();
         (new Socket(address, port)).close();
+        
       }
     } catch (IOException ignore) { }
 

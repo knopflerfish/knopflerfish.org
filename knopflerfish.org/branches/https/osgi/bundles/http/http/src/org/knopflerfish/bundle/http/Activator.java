@@ -76,7 +76,7 @@ public class Activator implements BundleActivator {
   public void start(BundleContext bc) throws BundleException {
 
     this.bc = bc;
-
+    
     log = new LogRef(bc, true);
 
     serverFactory = new HttpServerFactory(bc, log);
