@@ -112,6 +112,8 @@ public class ConsoleServlet extends HttpServlet {
 	out.println("<div class=\"cmdresult\">");
 	out.println(sb.toString());
 	out.println("</div>");
+      } else {
+	out.println("<div class=\"shadow\">&nbsp;</div>");
       }
       out.println("</td>");      
       out.println("</tr>");

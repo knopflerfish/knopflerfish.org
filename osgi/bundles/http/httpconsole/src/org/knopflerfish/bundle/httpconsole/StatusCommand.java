@@ -48,7 +48,15 @@ public class StatusCommand implements Command {
   }
 
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    Bundle[] bl = Activator.bc.getBundles();
+    Bundle[] bl = new Bundle[0];
+
+    try {
+      Activator.bc.getBundles();
+    } catch (IllegalStateException e) {
+      out.println("HTTP console updated itself, please " + 
+		  "<a href=\"" + Activator.SERVLET_ALIAS + "\">reload</a>");
+      return;
+    }
     int nActive = 0;
     int nTotal  = bl.length;
     
