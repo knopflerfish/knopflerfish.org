@@ -5,6 +5,15 @@ trunk are available each night at
 
    http://www.knopflerfish.org/snapshots/trunk/
 
+2004-12-21:
+ fw:         Fixed FW service listener incorrect behavoir
+             that caused same service listeners instance with
+             different filters to be called for each filter. Only 
+             the last filter should be used according to spec.
+
+ device:     Changed device manager listener setup to match above.
+
+             
 2004-11-23:
  fw:         Added system property
 
