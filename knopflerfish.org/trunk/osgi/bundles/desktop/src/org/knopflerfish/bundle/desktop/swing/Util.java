@@ -45,6 +45,8 @@ import java.util.*;
 import java.awt.Color;
 import java.net.URL;
 
+import java.io.*;
+
 import org.knopflerfish.util.Text;
 
 public class Util {
@@ -418,7 +420,7 @@ public class Util {
     all.addAll(pkgClosure);
     all.addAll(serviceClosure);
 
-    all.remove(Activator.bc.getBundle(0));
+    all.remove(Activator.getTargetBC().getBundle(0));
     if(target != null) {
       all.add(target);
     }
@@ -474,6 +476,175 @@ public class Util {
     }
 
     return sb;
+  }
+
+  public static final String[] FWPROPS = new String[] {
+    Constants.FRAMEWORK_VENDOR,
+    Constants.FRAMEWORK_VERSION,
+    Constants.FRAMEWORK_LANGUAGE,
+    Constants.FRAMEWORK_OS_NAME ,
+    Constants.FRAMEWORK_OS_VERSION,
+    Constants.FRAMEWORK_PROCESSOR,
+    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,      
+  };
+  
+  static public String getSystemInfo() {
+    StringBuffer sb = new StringBuffer();
+    try {
+
+      Map props = new TreeMap(Activator.getSystemProperties());
+      
+      sb.append("<table>\n");
+      
+      sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
+      sb.append(fontify("Framework properties", -1));
+      
+      String spid = (String)props.get("org.osgi.provisioning.spid");
+      if(spid != null && !"".equals(spid)) {
+	sb.append(fontify(" (" + spid + ")", -1));
+      }
+      
+      sb.append("</td>\n");
+      sb.append(" </tr>\n");
+      
+      
+      for(int i = 0; i < FWPROPS.length; i++) {
+	sb.append(" <tr>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(FWPROPS[i]));
+	sb.append("</td>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+	sb.append("</td>\n");
+	sb.append(" </tr>\n");
+      }
+      
+      sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
+      sb.append(fontify("System properties", -1));
+      sb.append("</td>\n");
+      sb.append("</tr>\n");
+      
+      
+      for(Iterator it = props.keySet().iterator(); it.hasNext();) {
+	String key = (String)it.next();
+	String val = (String)props.get(key);
+	sb.append(" <tr>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(key));
+	sb.append("</td>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(val));
+	sb.append("</td>\n");
+	sb.append("</tr>\n");
+      }
+
+    } catch (Exception e) {
+      sb.append("<tr><td colspan=2>" + 
+		fontify("Failed to get system props: " + e) + 
+		"</td></tr>");
+      
+    }
+    sb.append("</table>");
+
+    return sb.toString();
+  }
+  
+  static public String fontify(Object o) {
+    return fontify(o, -2);
+  }
+
+  public static String fontify(Object o, int size) {
+    return "<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">" + o + "</font>";
+  }
+
+
+  static public void printObject(PrintWriter out, Object val) throws IOException {
+    if(val == null) {
+      out.println("null");
+    } else if(val.getClass().isArray()) {
+      printArray(out, (Object[])val);
+    } else if(val instanceof Vector) {
+      printVector(out, (Vector)val);
+    } else if(val instanceof Map) {
+      printMap(out, (Map)val);
+    } else if(val instanceof Set) {
+      printSet(out, (Set)val);
+    } else if(val instanceof Dictionary) {
+      printDictionary(out, (Dictionary)val);
+    } else {
+      out.print(Util.fontify(val));
+      //      out.print(" (" + val.getClass().getName() + ")");
+    }
+  }
+  
+  static public void printDictionary(PrintWriter out, Dictionary d) throws IOException {
+    
+    out.println("<table border=0>");
+    for(Enumeration e = d.keys(); e.hasMoreElements();) {
+      Object key = e.nextElement();
+      Object val = d.get(key);
+      out.println("<tr>");
+      
+      out.println("<td valign=top>");
+      printObject(out, key);
+      out.println("</td>");
+      
+      out.println("<td valign=top>");
+      printObject(out, val);
+      out.println("</td>");
+      
+      out.println("</tr>");
+    }
+    out.println("</table>");
+  }
+  
+  static public void printMap(PrintWriter out, Map m) throws IOException {
+    
+    out.println("<table border=0>");
+    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
+      Object key = it.next();
+      Object val = m.get(key);
+      
+      out.println("<tr>");
+      
+      out.println("<td valign=top>");
+      printObject(out, key);
+      out.println("</td>");
+      
+      out.println("<td valign=top>");
+      printObject(out, val);
+      out.println("</td>");
+      
+      out.println("</tr>");
+    }
+    out.println("</table>");
+  }
+  
+  static public void printArray(PrintWriter out, Object[] a) throws IOException {
+    for(int i = 0; i < a.length; i++) {
+      printObject(out, a[i]);
+      if(i < a.length - 1) {
+	out.println("<br>");
+      }
+    }
+  }
+  
+  static public void printSet(PrintWriter out, Set a) throws IOException {
+    for(Iterator it = a.iterator(); it.hasNext();) {
+      printObject(out, it.next());
+      if(it.hasNext()) {
+	out.println("<br>");
+      }
+    }
+  }
+  
+  static public void printVector(PrintWriter out, Vector a) throws IOException {
+    for(int i = 0; i < a.size(); i++) {
+      printObject(out, a.elementAt(i));
+      if(i < a.size() - 1) {
+	out.println("<br>");
+      }
+    }
   }
 
 

@@ -6,6 +6,7 @@
     <ant dir="../commons-logging"   target="all"/>
     <ant dir="axis-osgi"            target="all"/>
     <ant dir="soap_desktop"         target="all"/>
+    <ant dir="soap_remotefw"        target="all"/>
     <ant dir="soapobject"           target="all"/>
     <ant dir="demos"                target="all"/>
   </target>
@@ -14,6 +15,7 @@
     <ant dir="../commons-logging"   target="clean"/>
     <ant dir="axis-osgi"            target="clean"/>
     <ant dir="soap_desktop"         target="clean"/>
+    <ant dir="soap_remotefw"        target="clean"/>
     <ant dir="soapobject"           target="clean"/>
     <ant dir="demos"                target="clean"/>
   </target>

@@ -38,6 +38,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import org.apache.axis.AxisFault;
+import org.apache.axis.AxisProperties;
 import org.apache.axis.server.AxisServer;
 import org.apache.axis.transport.http.AxisServlet;
 
@@ -75,5 +76,12 @@ public class ServicesServlet
       return baseURL.toString();
    }
 
+    protected String getOption(ServletContext context,
+                             String param,
+                             String dephault)
+    {
+       String value = AxisProperties.getProperty(param);
+       return (value != null) ? value : dephault;
+    }
 
 }

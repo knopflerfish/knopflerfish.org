@@ -34,6 +34,8 @@
 
 package org.knopflerfish.service.desktop;
 
+import org.osgi.framework.BundleContext;
+
 import javax.swing.JComponent;
 import javax.swing.Icon;
 
@@ -181,6 +183,23 @@ public interface SwingBundleDisplayer {
    */
   public Icon       getSmallIcon();
 
+  /**
+   * Allow access to another bundle context than the displayer's
+   * own. This might be used to set a remote bundle context.
+   * 
+   * <p>
+   * This method might never be called - the displayer should
+   * in that case use its own context. The normal case is to start
+   * with the displayer's own context and later switch to another
+   * context.
+   * </p>
+   * 
+   * <p>
+   * If <t>setTargetBundleContext</tt> is called, the displayer
+   * must update all components with this context.
+   * </p>
+   */
+  public void       setTargetBundleContext(BundleContext bc);
 }
 
 
