@@ -107,11 +107,11 @@ public class JCMService extends JPanel {
       try {
 	Configuration conf = CMDisplayer.getConfig(ocd.getID());
 	configProps = conf.getProperties();
-	System.out.println("using conf values");
+	//	System.out.println("using conf values");
 	
       } catch (Exception e) {
 	configProps = new Hashtable();
-	System.out.println("using default values");
+	//	System.out.println("using default values");
       }
 
       JButton facdelButton = null;
@@ -136,8 +136,12 @@ public class JCMService extends JPanel {
 			100);
 	propPane.add(item);
       }
-      
-      JScrollPane scroll = new JScrollPane(propPane);
+
+      JPanel propOuter = new JPanel(new BorderLayout());
+      propOuter.add(propPane, BorderLayout.NORTH);
+      propOuter.add(new JPanel(), BorderLayout.CENTER);
+
+      JScrollPane scroll = new JScrollPane(propOuter);
 
       scroll.setPreferredSize(propPane.getPreferredSize());
 
@@ -262,7 +266,7 @@ public class JCMService extends JPanel {
   }
   
   void showFactoryConfig(String pid) {
-    System.out.println("showFactoryConfig " + pid);
+    //    System.out.println("showFactoryConfig " + pid);
     factoryPid = pid;
     
     try {
@@ -271,92 +275,95 @@ public class JCMService extends JPanel {
 
       setProps(conf.getProperties());
     } catch (Exception e) {
-      e.printStackTrace();
+      Activator.log.error("show factory failed pid=" + pid, e);
     }
   }
   
   void deleteFactoryPid(String pid) {
-    System.out.println("deleteFactoryConfig " + pid);
+    //    System.out.println("deleteFactoryConfig " + pid);
     try {
       Configuration conf = CMDisplayer.getCA()
 	.getConfiguration(pid, null);
       conf.delete();
       updateOCD();
     } catch (Exception e) {
-      e.printStackTrace();
+      Activator.log.error("delete factory failed pid=" + pid, e);
+
     }
   }
 
   void applyFactoryConfig(String pid) {
-    System.out.println("applyFactoryConfig " + pid);
+    //    System.out.println("applyFactoryConfig " + pid);
     try {
       Dictionary props = getProps();
       
-      System.out.println("props=" + props);
+      //      System.out.println("props=" + props);
       try {
 	Configuration conf = CMDisplayer.getCA()
 	  .getConfiguration(pid, null);
 	conf.update(props);
 	updateOCD();
       } catch (Exception e) {
-	e.printStackTrace();
+	Activator.log.error("apply factory failed pid=" + pid, e);
       }
     } catch (Exception e) {
+      Activator.log.error("failed to get props pid=" + pid, e);
     }
   }
 
 
   void newFactoryConfig(String pid) {
-    System.out.println("newFactoryConfig " + pid);
+    //    System.out.println("newFactoryConfig " + pid);
 
     try {
       Dictionary props = getProps();
       
-      System.out.println("props=" + props);
+      //      System.out.println("props=" + props);
       try {
 	Configuration conf = 
 	  CMDisplayer.getCA().createFactoryConfiguration(pid, null);
 	conf.update(props);
 	updateOCD();
       } catch (Exception e) {
-	e.printStackTrace();
+	Activator.log.error("new factory failed pid=" + pid, e);
       }
     } catch (Exception e) {
-      return;
+      Activator.log.error("failed to get props pid=" + pid, e);
     }
   }
   
   void deleteConfig(String pid) {
-    System.out.println("deleteConfig " + pid);
+    //    System.out.println("deleteConfig " + pid);
     try {
       Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
       conf.delete();
       updateOCD();
     } catch (Exception e) {
-      e.printStackTrace();
+      Activator.log.error("Delete failed pid=" + pid, e);
+
     }
   }
 
   void createConfig(String pid) {
-    System.out.println("createConfig " + pid);
+    //    System.out.println("createConfig " + pid);
     try {
       Dictionary props = getProps();
       
-      System.out.println("props=" + props);
+      //      System.out.println("props=" + props);
       try {
 	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
 	conf.update(props);
 	updateOCD();
       } catch (Exception e) {
-	e.printStackTrace();
+	Activator.log.error("Failed to create/update pid=" + pid, e);
       }
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      Activator.log.error("Failed to get props for pid=" + pid, e);
     }
   }
 
   void applyConfig(String pid) {
-    System.out.println("applyConfig " + pid);
+    //System.out.println("applyConfig " + pid);
     try {
       Dictionary props = getProps();
       
@@ -366,16 +373,16 @@ public class JCMService extends JPanel {
 	conf.update(props);
 	updateOCD();
       } catch (Exception e) {
-	e.printStackTrace();
+	Activator.log.error("Failed to apply/update pid=" + pid, e);
       }
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      Activator.log.error("Failed to get props for pid=" + pid, e);
     }
   }
 
   void setProps(Dictionary in) {
 
-    System.out.println("setProps " + in);
+    //    System.out.println("setProps " + in);
 
     int errCount = 0;
     for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
@@ -413,7 +420,7 @@ public class JCMService extends JPanel {
       } catch (Exception e) {
 	errCount++;
 	jcmProp.setErr(e.getMessage());
-	System.out.println(name + ": " + e);
+	//	System.out.println(name + ": " + e);
       }
     }
 
