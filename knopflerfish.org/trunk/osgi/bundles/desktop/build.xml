@@ -14,6 +14,8 @@
   <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
 
+  <property name="include.source" value="true"/>
+
   <property name="bundle.subversionurl" value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/"/> 
 
   <property name="do.bundle.custom.pre" value="true"/>

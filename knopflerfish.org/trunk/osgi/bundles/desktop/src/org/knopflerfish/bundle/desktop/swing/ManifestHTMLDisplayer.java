@@ -105,6 +105,13 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 	     "Import-Service".equals(key) ||
 	     "Export-Package".equals(key)) {
 	    value = Strings.replace(value, ",", "<br>");
+	  } else {
+	    if(value.startsWith("http:") ||
+	       value.startsWith("https:") ||
+	       value.startsWith("ftp:") ||
+	       value.startsWith("file:")) {
+	      value = "<a href=\"" + value + "\">" + value + "</a>";
+	    }
 	  }
 	  appendRow(sb, key, value);
 	}
