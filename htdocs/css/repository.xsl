@@ -8,6 +8,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   of using hard-coded HTML.
   -->
 
+<xsl:key name="category"  match="bundle" use="bundle-category"/>
+<xsl:key name="apivendor" match="bundle" use="bundle-apivendor"/>
+<xsl:key name="vendor"    match="bundle" use="bundle-vendor"/>
+
 <xsl:template match="/">
 
 <html>
@@ -91,16 +95,37 @@ Note: If you're reading this text, you're looking at the XML file via an
 XML stylesheet capable browser. The source for this page is however, the same
 XML file as the OBR bundle reads.
 </p>
+
+<h4>Available bundles, sorted by API specification</h4>
+
 <table>
 
  <tr>
   <th>Bundle</th>
   <th>Description</th>
-  <th></th>
+  <th>Links<br/></th>
+  <th>Vendor</th>
  </tr>
 
- <xsl:for-each select="bundles/bundle">
- <xsl:sort select="bundle-name"/>
+ <xsl:for-each select="/bundles/bundle/bundle-apivendor[not(. = preceding::bundle-apivendor)]">
+ <xsl:sort select="." order="descending"/>
+
+ <tr>
+
+  <td style="background-color: #eeeeee;" colspan="4">
+   <xsl:choose>
+    <xsl:when test=". = ''">
+     Other
+    </xsl:when>
+    <xsl:otherwise>
+     <xsl:value-of select="."/>
+    </xsl:otherwise>
+   </xsl:choose>
+  </td>
+ </tr>
+ 
+  <xsl:for-each select="key('apivendor',.)">
+  <xsl:sort select="."/>
 
  <tr>
 
@@ -117,14 +142,13 @@ XML file as the OBR bundle reads.
     <a href="{bundle-docurl}">docs</a>
    </xsl:if>
 
-   <xsl:if test="bundle-subversionurl != ''">
-    -
-    <a href="{bundle-subversionurl}">subversion</a>
-   </xsl:if>
-
+  </td>
+  <td>
+   <xsl:value-of select="bundle-vendor"/>
   </td>
 
  </tr>
+ </xsl:for-each>
  </xsl:for-each>
 
 </table>
