@@ -1,11 +1,7 @@
-
- 
 package org.knopflerfish.bundle.axis;
 
 import java.net.URL;
-import org.knopflerfish.util.WebApp;
-
-
+import org.knopflerfish.util.servlet.WebApp;
 
 import org.osgi.framework.*;
 import org.apache.axis.transport.http.AxisServlet;
@@ -17,30 +13,26 @@ import javax.servlet.http.*;
 
 public class ServicesServlet extends AxisServlet implements ServiceListener
 {
+    private void addWSDD(java.io.InputStream stream) {
+	System.err.println("ServiceServlet.addWSDD()  not yet implemented");    
+    }
+
 
       public void serviceChanged(ServiceEvent event) {
 System.err.println("ServiceServlet.serviceChanged()");
         try {
           if (event.getType() == ServiceEvent.REGISTERED) {
             ServiceReference sr = event.getServiceReference();
-            URL url = (URL) sr.getProperty("AXIS_CONFIG");
+            URL url = (URL) sr.getProperty("AXIS_DEPLOY");
             if (url != null) {
- 	      ConfigurationProvider config = (ConfigurationProvider) Activator.getAxisServer().getConfig();
-              config.addWSDD(url.openStream());
+              addWSDD(url.openStream());
 	    }
           }
         } catch (Exception e) {e.printStackTrace();}
       }
       
      public AxisServer getEngine() throws AxisFault {
-System.err.println("ServiceServlet.getEngine()");
         return Activator.getAxisServer();
-    }
-
-
-    public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException,java.io.IOException {
-System.err.println("ServiceServlet.doGet()");
-      super.doGet(req,res);
     }
     
     
@@ -61,7 +53,6 @@ System.err.println("ServiceServlet.doGet()");
         }
         baseURL.append(request.getContextPath());
         baseURL.append(WebApp.webAppDescriptor.context);
-System.err.println("ServiceServlet.getWebappBase() "+baseURL);
         return baseURL.toString();
     }
 

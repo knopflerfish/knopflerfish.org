@@ -12,11 +12,10 @@ import java.io.InputStream;
 import java.net.URL;
 
 
-public class Activator extends org.knopflerfish.util.WebApp {
+public class Activator extends org.knopflerfish.util.servlet.WebApp {
   public static BundleContext axisBundle = null;
   private static AxisServer axisServer = null;
 
-//  private Server server = null;
   
   public static AxisServer getAxisServer() {return axisServer;}
  
@@ -35,18 +34,15 @@ public class Activator extends org.knopflerfish.util.WebApp {
       URL url = this.getClass().getResource("/axis/server-config.wsdd");
       InputStream is = url.openStream();
       EngineConfiguration fromBundleResource = new FileProvider(is);
-      ConfigurationProvider axisConfiguration = null;
-      axisServer = new AxisServer(new ConfigurationProvider(fromBundleResource));
+      axisServer = new AxisServer(fromBundleResource);
       super.start(bc);
     } catch (Exception e) {
-      e.printStackTrace();
       throw new BundleException("Failed to start server");
     }
   }
   
   public void stop(BundleContext bc) throws BundleException {
     try {
-//        server.stop();
         super.stop(bc);
         axisBundle = null;
         axisServer = null;
