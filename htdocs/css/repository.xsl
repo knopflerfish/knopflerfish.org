@@ -79,6 +79,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <!-- start -->
 
+<a href="http://www.knopflerfish.org/images/repo_desktop_host.gif"><img src="http://www.knopflerfish.org/images/repo_desktop_host_320.gif" border="0" align="right" alt="Screenshot of the KF bundlerepository, running as a plugin to the desktop"/></a>
 <p>
 OBR is a bundle repository format introduced by the <a href="http://oscar-osgi.sourceforge.net/repo/repository.xml">Oscar</a> OSGi project. The format consists
 of an XML file describing all available bundles and an OSGi OBR bundle which
@@ -98,6 +99,8 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 <p>
 <b>Important</b>: You need either the latest bundlerepository.jar from the Oscar distribution, or the <a href="http://www.knopflerfish.org/repo/jars/bundlerepository/bundlerepository_all-1.1.0.jar">KF bundlerepository</a> bundle. The KF bundlerepository bundle also integrates into the KF desktop and console.
 </p>
+
+<br clear="all"/>
 
 <h4>Available bundles, sorted by API specification</h4>
 
