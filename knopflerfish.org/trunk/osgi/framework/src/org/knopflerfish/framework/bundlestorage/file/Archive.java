@@ -61,6 +61,10 @@ class Archive {
    */
   final private static String SUBDIR = "sub";
 
+  // Directory where optional bundle files are stored
+  // these need not be unpacked locally
+  final private static String OSGI_OPT_DIR = "OSGI-OPT/";
+
   /**
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
@@ -157,18 +161,19 @@ class Archive {
 	o.close();
       }
       ZipEntry ze;
-      // NYI! Filter out unused files
-      // All files in OSGI-OPT/ are specified
-      // to be unused at run-time
       while ((ze = ji.getNextJarEntry()) != null) {
 	if (!ze.isDirectory()) {
-	  StringTokenizer st = new StringTokenizer(ze.getName(), "/");
-	  f = new File(file, st.nextToken());
-	  while (st.hasMoreTokens()) {
-	    f.mkdir();
-	    f = new File(f, st.nextToken());
+	  if(isSkipped(ze.getName())) {
+	    // Optional files are not copied to disk
+	  } else {
+	    StringTokenizer st = new StringTokenizer(ze.getName(), "/");
+	    f = new File(file, st.nextToken());
+	    while (st.hasMoreTokens()) {
+	      f.mkdir();
+	      f = new File(f, st.nextToken());
+	    }
+	    loadFile(f, ji, true);
 	  }
-	  loadFile(f, ji, true);
 	}
       }
       jar = null;
@@ -187,6 +192,15 @@ class Archive {
 	checkManifest();
       }
     }
+  }
+
+
+  /**
+   * Return true if the specified path name should be
+   * skipped when unpacking.
+   */
+  boolean isSkipped(String pathName) {
+    return pathName.startsWith(OSGI_OPT_DIR);
   }
 
 
