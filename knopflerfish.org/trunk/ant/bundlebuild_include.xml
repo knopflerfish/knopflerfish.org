@@ -36,6 +36,8 @@
 
  <property name = "proj.dir" location = "."/>
 
+ <property name  = "bundle.emptystring" 
+           value = "[bundle.emptystring]"/>
 
  <property environment="sysprops"/>
 
@@ -49,20 +51,22 @@
 
  <property name = "ee.check.foundation"   value = "false"/>
 
- <property name = "xinclude.source"        value = "true"/>
+ <property name = "xinclude.source"       value = "true"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
- <property name = "bundle.version"        value = "current"/>
- <property name = "bundle.config"         value = "!/config.xml"/>
+ <property name = "bundle.version"        value = "${bundle.emptystring}"/>
+ <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
- <property name = "bundle.description"    value = " "/>
+ <property name = "bundle.description"    value = "${bundle.emptystring}"/>
  <property name = "bundle.docurl"         value = "http://www.knopflerfish.org"/>
  <property name = "bundle.contactaddress" value = "http://www.knopflerfish.org"/>
- <property name = "bundle.category"       value = " "/>
- <property name = "export.service"        value = " "/>
- <property name = "import.service"        value = " "/>
- <property name = "bundle.classpath"      value = "."/>
+ <property name = "bundle.category"       value = "${bundle.emptystring}"/>
+ <property name = "export.service"        value = "${bundle.emptystring}"/>
+ <property name = "import.service"        value = "${bundle.emptystring}"/>
+ <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
+ <property name = "bundle.dynamicimport"  value = "${bundle.emptystring}"/>
+ <property name = "bundle.nativecode"     value = "${bundle.emptystring}"/>
 
- <property name = "bundle.icon"           value = " "/>
+ <property name = "bundle.icon"           value = "${bundle.emptystring}"/>
 
  <property name = "console.host"        value = "localhost"/>
  <property name = "console.port"        value = "23"/>
@@ -219,6 +223,10 @@
             classpath = "${antclasses}" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
 
+   <taskdef name      = "bundlemanifest" 
+            classpath = "${antclasses}" 
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
+
    <taskdef name      = "bundlehtml" 
             classpath = "${antclasses}" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
@@ -326,35 +334,40 @@
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
+  <bundlemanifest file="${outdir}/impl.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Export-Service"        value = "${export.service}"/>
+    <attribute name = "Import-Service"        value = "${import.service}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+<!--
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+-->
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${bundle.dynamicimport}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    
+  </bundlemanifest>
+
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${impl.jar}"
        includes = "${impl.pattern}"
        excludes = "**/pspbrwse.jbf"
+       manifest = "${outdir}/impl.mf"
     >
 
      <fileset dir = "${resources.dir}"/>
 
-     <manifest>
-      <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-      <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-      <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
-      <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-      <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-      <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-      <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
-      <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-      <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
-      <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-      <attribute name = "Export-Service"        value = "${export.service}"/>
-      <attribute name = "Import-Service"        value = "${import.service}"/>
-      <attribute name = "Import-Package"        value = "${import.package}"/>
-<!--
-      <attribute name = "Export-Package"        value = "${export.package}"/>
--->
-      <attribute name = "Built-From"            value = "${proj.dir}"/>
-      <attribute name = "Build-Date"            value = "${bundle.date}"/>
-      <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-     </manifest>
     </jar>  
 
 
@@ -411,29 +424,27 @@
 
   <mkdir dir = "${jardir}"/>
 
+  <bundlemanifest file = "${outdir}/api.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Category"       value = "interface"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+  </bundlemanifest>
+
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${api.jar}"
        includes = "${api.pattern}"
+       manifest = "${outdir}/api.mf"
     >
-     <manifest>
-      <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-      <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-      <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
-      <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-      <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-      <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-      <attribute name = "Bundle-Category"       value = "interface"/>
-      <attribute name = "Export-Package"        value = "${export.package}"/>
-      <attribute name = "Import-Package"        value = "${import.package}"/>
-      <attribute name = "Built-From"            value = "${proj.dir}"/>
-      <attribute name = "Build-Date"            value = "${bundle.date}"/>
-      <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-     </manifest>
     </jar>  
-
-<!--
-    <copy file="${api.jar}" tofile="${api_noversion.jar}"/>
--->
 
  </target>
 
@@ -459,29 +470,33 @@
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
+  <bundlemanifest file="${outdir}/impl.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${bundle.dynamicimport}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+  </bundlemanifest>
+
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${impl.jar}"
        includes = "${api.pattern}"
+       manifest = "${outdir}/impl.mf"
     >
      <fileset dir = "${resources.dir}"/>
-     <manifest>
-      <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-      <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-      <attribute name = "Bundle-Description"    value = "${bundle.description} (implementation)"/>
-      <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-      <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-      <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-      <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-      <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-      <attribute name = "Export-Package"        value = "${export.package}"/>
-      <attribute name = "Import-Package"        value = "${import.package}"/>
-      <attribute name = "Built-From"            value = "${proj.dir}"/>
-      <attribute name = "Build-Date"            value = "${bundle.date}"/>
-      <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-     </manifest>
-    </jar>  
+  </jar>  
 
-   <antcall target="add_src_lib"/>
+  <antcall target="add_src_lib"/>
 
  </target>
 
@@ -520,32 +535,36 @@
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
+  <bundlemanifest file="${outdir}/all.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description} (API and implementation)"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Export-Service"        value = "${export.service}"/>
+    <attribute name = "Import-Service"        value = "${import.service}"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${bundle.dynamicimport}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+  </bundlemanifest>
+
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${all.jar}"
        compress = "true"
        includes = "${api.pattern},${impl.pattern}"
        excludes = "**/pspbrwse.jbf"
+       manifest = "${outdir}/all.mf"
     >
      <fileset dir = "${resources.dir}"/>
-     <manifest>
-      <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-      <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-      <attribute name = "Bundle-Description"    value = "${bundle.description} (API and implementation)"/>
-      <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-      <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-      <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-      <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
-      <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-      <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
-      <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-      <attribute name = "Export-Service"        value = "${export.service}"/>
-      <attribute name = "Import-Service"        value = "${import.service}"/>
-      <attribute name = "Export-Package"        value = "${export.package}"/>
-      <attribute name = "Import-Package"        value = "${import.package}"/>
-      <attribute name = "Built-From"            value = "${proj.dir}"/>
-      <attribute name = "Build-Date"            value = "${bundle.date}"/>
-      <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-     </manifest>
     </jar>
     
    <antcall target = "add_src_all"/>
