@@ -77,6 +77,7 @@ public class Loader {
   static final String ATTR_VALUE     = "value";
   static final String ATTR_MAXOCCURS = "maxOccurs";
   static final String ATTR_ICONURL   = "iconURL";
+  static final String ATTR_OPTIONAL  = "optional";
 
   static final String ATTR_ARRAY     = "array";
 
@@ -200,7 +201,10 @@ public class Loader {
 	}
       }
       for(int j = 0; j < services[i].ads.length; j++) {
-	ocd.add(services[i].ads[j], ObjectClassDefinition.REQUIRED);
+	ocd.add(services[i].ads[j], 
+		services[i].ads[j].isOptional() 
+		? ObjectClassDefinition.OPTIONAL
+		: ObjectClassDefinition.REQUIRED);
       }
       mtp.addService(services[i].pid, ocd);
     }
@@ -467,7 +471,7 @@ public class Loader {
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
       
-      AttributeDefinition[] ads = parseComplexType(childEl);
+      AD[]      ads = parseComplexType(childEl);
       Annotation an = loadAnnotationFromAny(childEl);
       
       String iconURL = childEl.getAttribute(ATTR_ICONURL);
@@ -506,7 +510,7 @@ public class Loader {
    *
    * @throws XMLException if the <tt>el</tt> tag is not an "xsd:complexType"
    */
-  static AttributeDefinition[] parseComplexType(XMLElement el) {
+  static AD[] parseComplexType(XMLElement el) {
     assertTagName(el, XSD_NS, TAG_COMPLEXTYPE);
 
     Set list = new HashSet();
@@ -519,7 +523,7 @@ public class Loader {
 	annotation = loadAnnotation(childEl);
       } else {
 	try {
-	  AttributeDefinition ad = parseAttributeDefinition(childEl);
+	  AD ad = parseAttributeDefinition(childEl);
 	  if(list.contains(ad)) {
 	    throw new XMLException("Multiple definitions of id '" + ad.getID() + 
 				   "'", childEl);
@@ -537,7 +541,7 @@ public class Loader {
       }
     }
     
-    AttributeDefinition[] ads = new AttributeDefinition[list.size()];
+    AD[] ads = new AD[list.size()];
     
     list.toArray(ads);
     return ads;
@@ -651,6 +655,8 @@ public class Loader {
 	attr.setDescription(a.doc);
       }
     }
+
+    attr.bOptional = "true".equals(el.getAttribute(ATTR_OPTIONAL, "false"));
 
     return attr;
   }
@@ -787,6 +793,7 @@ public class Loader {
 			     ", ns=" + el.getNamespace() + 
 			     ", name=" + el.getAttribute(ATTR_NAME), el);
     }
+
 
     return addAnnotation(ad, el);
   }
@@ -1113,12 +1120,12 @@ class XMLException extends IllegalArgumentException {
 class CMConfig {
   public String  pid;
   public boolean bFactory;
-  public AttributeDefinition[] ads;
+  public AD[]    ads;
   public String  desc;
   public String  iconURL;
 
   public CMConfig(String pid,
-		  AttributeDefinition[] ads, 
+		  AD[] ads, 
 		  String desc,
 		  String iconURL,
 		  boolean bFactory) {
