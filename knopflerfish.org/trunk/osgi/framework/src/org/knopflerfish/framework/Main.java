@@ -275,7 +275,7 @@ public class Main {
             error("No URL for install command");
           }
         } else if ("-launch".equals(args[i])) {
-          if (i+1 < args.length && !args[i+1].startsWith("-")) { 
+          if (i+1 < args.length && !args[i+1].startsWith("-")) {
             bootMgr = Long.parseLong(args[i+1]);
             framework.launch(bootMgr);
             i++;
@@ -404,6 +404,21 @@ public class Main {
                " " + args[i+1] :
                "") +
               "\" failed, " + e.getMessage());
+      }
+    }
+
+    if (!framework.active) {
+      try {
+        framework.launch(0);
+        println("Framework launched", 0);
+      } catch (Throwable t) {
+        if (t instanceof BundleException) {
+          BundleException be = (BundleException) t;
+          Throwable ne = be.getNestedException();
+          if (ne != null) t = ne;
+        }
+        t.printStackTrace(System.err);
+        error("Framework launch failed, " + t.getMessage());
       }
     }
   }
