@@ -470,8 +470,8 @@ public final static int UNICODE_CONV_SUPPORT = 1;
 			if (button == 0) evt = new ActionEvent(this,0,"Left");
 			else if (button == 1) evt = new ActionEvent(this,0,"Right");
 			else evt = new ActionEvent(this,0,"Middle");
-			for (Enumeration enum = m_ActList.elements(); enum.hasMoreElements(); ) {
-				ActionListener listener = (ActionListener)enum.nextElement();
+			for (Enumeration enu = m_ActList.elements(); enu.hasMoreElements(); ) {
+				ActionListener listener = (ActionListener)enu.nextElement();
 				listener.actionPerformed(evt);
 			}
 		}
@@ -482,8 +482,8 @@ public final static int UNICODE_CONV_SUPPORT = 1;
 			else modifiers |= MouseEvent.BUTTON3_MASK;
 			// (Component source, int id, long when, int modifiers, int x, int y, int clickCount, boolean popupTrigger)
 			MouseEvent evt = new MouseEvent(getDummyComponent(), 0, 0, modifiers, xp, yp, clicks, button == 1);
-			for (Enumeration enum = m_MouseList.elements(); enum.hasMoreElements(); ) {
-				MouseListener listener = (MouseListener)enum.nextElement();
+			for (Enumeration enu = m_MouseList.elements(); enu.hasMoreElements(); ) {
+				MouseListener listener = (MouseListener)enu.nextElement();
 				if (up) listener.mouseReleased(evt);
 				else listener.mousePressed(evt);
 			}
@@ -497,8 +497,8 @@ public final static int UNICODE_CONV_SUPPORT = 1;
 	private void notifyBalloonListeners(int mask) {
 		if (m_BalloonList != null) {
 			TrayBalloonEvent evt = new TrayBalloonEvent(mask);
-			for (Enumeration enum = m_BalloonList.elements(); enum.hasMoreElements(); ) {
-				TrayBalloonListener listener = (TrayBalloonListener)enum.nextElement();
+			for (Enumeration enu = m_BalloonList.elements(); enu.hasMoreElements(); ) {
+				TrayBalloonListener listener = (TrayBalloonListener)enu.nextElement();
 				listener.balloonChanged(evt);
 			}
 		}
