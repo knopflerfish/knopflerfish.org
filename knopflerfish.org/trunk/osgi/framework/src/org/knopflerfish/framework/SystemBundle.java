@@ -44,6 +44,7 @@ import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
 
+import java.security.ProtectionDomain;
 
 /**
  * Implementation of the System Bundle object.
@@ -82,8 +83,8 @@ public class SystemBundle extends BundleImpl {
    * @exception SecurityException If we don't have permission to import and export
    *            bundle packages.
    */
-  SystemBundle(Framework fw) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, fw.getClass().getProtectionDomain());
+  SystemBundle(Framework fw, ProtectionDomain pd) {
+    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd);
     state = STARTING;
 
     StringBuffer sp = new StringBuffer(System.getProperty(SYSPKG, ""));
