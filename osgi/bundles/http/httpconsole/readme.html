@@ -23,9 +23,16 @@ When started, the servlet registers at <tt>/servlet/console</tt> and
 allows access to the standard framework functions as bundle installation (both from URLs and using browser file upload), start, stop, update and uninstall. Additionally, detail info on a bundle such as state,
 manifest and service info can be displayed.
 </p>
+
+<p>
+Optionally, the HTTP console can request a login/pwd before enabling
+access. See <a class="std" href="#conf">configuration</a> for details.
+</p>
+
 <p>
 The HTTP console has been tested on Knopflerfish and Oscar. It also runs well on Pocket PC (tested using KF on the IBM J9 VM).
 </p>
+
 <p>
 The main screen lists all installed bundles where one or more bundles 
 can be selected by marking its checkbox on the left. 
@@ -129,6 +136,31 @@ Each bundle is displayed using an icon, the bundle's name and the bundle descrip
 <table>
 <tr><td><img src="resources/www/bundle.gif"></td><td>Bundle with activator</td></tr><tr><td><img src="resources/www/bundle_started.gif"></td><td>Started bundle with activator</td></tr><tr><td><img src="resources/www/lib.gif"></td><td>Bundle without activator</td></tr><tr><td><img src="resources/www/lib_started.gif"></td><td>Started bundle without activator</td></tr>
 </table>
+
+<p>
+</p>
+<a name="conf"></a>
+<div class="shadow">Configuration</div>
+<p>
+The HTTP console can be configured using system properties:
+
+<dl>
+ <dt>org.knopflerfish.httpconsole.requirelogin</dt>
+ <dd>If <tt>true</tt>, require login, using name and password.<br/>
+     Default is <tt>false</tt>
+ </dd>
+
+ <dt>org.knopflerfish.httpconsole.user</dt>
+ <dd>User name required for login. <br/>
+     Default is <tt>admin</tt>
+ </dd>
+
+ <dt>org.knopflerfish.httpconsole.pwd</dt>
+ <dd>User password required for login. <br/>
+     Default is <tt>admin</tt>
+ </dd>
+</dl>
+</p>
 
 <p>
 </p>

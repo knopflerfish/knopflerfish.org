@@ -43,6 +43,12 @@ import org.osgi.framework.*;
 
 public class IconView implements BundleView {
 
+  ConsoleServlet console;
+
+  public IconView(ConsoleServlet console) {
+    this.console = console;
+  }
+
   public StringBuffer run(HttpServletRequest  request) {
     StringBuffer sb = new StringBuffer();
 
@@ -91,8 +97,14 @@ public class IconView implements BundleView {
       (height < 400) && 
       (request.getParameter("cmd_info.x") != null);
 
-    out.println("<div class=\"shadow\">");
-    out.println(nTotal + " bundles, " + nActive + " active");
+    out.print("<div class=\"shadow\">");
+    out.print(nTotal + " bundles, " + nActive + " active");
+    
+    if(console.bRequireLogin) {
+      out.print(", <a class=\"std\" href=\"" + Activator.SERVLET_ALIAS + "?" + 
+		ConsoleServlet.LOGOUT_CMD + "=true" + "\">" + 
+		"logout</a>");
+    }
     out.println("</div>");
 
     out.println("<table width=\"100%\" class=\"bundletable\">");
