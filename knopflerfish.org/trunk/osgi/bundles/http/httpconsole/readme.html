@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>Knopflerfish HTTP/HTML graphical console</title>
+<LINK href="resources/www/console.css" rel="stylesheet" type="text/css">
+</head>
+<body style=" margin: 4px;">
+
+<div class="shadow"><h3 style="margin: 5px;">Knopflerfish HTTP/HTML graphical console</h3></div>
+
+<div style="float: right; margin: 5px;">
+<img alt="HTTP console on pocketPC 2003" src="httpconsole_ppc2003_1.png"/><br/>
+<i>HTTP console on pocketPC 2003</i>
+</div>
+
+<p>
+
+The Knopflerfish HTTP/HTML OSGi console is a small servlet that can be run 
+on any OSGi platform with an installed HTTP server. 
+</p>
+<p>
+When started, the servlet registers at <tt>/servlet/console</tt> and 
+allows access to the common framework functions as bundle installation, start, stop, update and uninstall. Additionally, detail info on a bundle such as state and
+manifest info can be displayed.
+</p>
+<p>
+The HTTP console has been tested on Knopflerfish and Oscar. It also runs well on Pocket PC (tested using KF an IBM J9 VM).
+</p>
+<p>
+The main screen lists all installed bundles where one or more bundles 
+can be selected by marking its checkbox on the left. 
+After selecting bundles, the operations available as toolbar icons 
+can ber performed.
+</p>
+
+<p>
+A pre-compiled bundle jar can be found at <a href="http://www.knopflerfish.org/repo/jars/httpconsole/httpconsole-1.0.0.jar">http://www.knopflerfish.org/repo/jars/httpconsole/httpconsole-1.0.0.jar</a>, as well in the <a href="http://www.knopflerfish.org/repo/repository.xml">KF bundle repository</a>
+</p>
+
+<br clear=all>
+
+<div class="shadow">Toolbar</div>
+<p>
+The toolbar display a set of command icons. When an icon is selected, the 
+command will be performed. Any command result or errors will be displayed to 
+the right of the bundle list.
+</p>
+
+ <div>
+ <span>
+ <img  alt="Reload view" type="image" name="cmd_reload" src="resources/www/reload_green.gif"> </span>
+ <span style="vertical-align:top;">
+Reload page</span>
+</div>
+ <div>
+ <span>
+ <img alt="Install bundle from file" type="image" name="cmd_installfile" src="resources/www/open.gif">
+ </span>
+ <span style="vertical-align:top;">
+Ask for a local bundle file, upload the file and install the bundle</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Install bundle from URL" type="image" name="dialog_cmd_installurl" src="resources/www/openurl.gif"> </span>
+ <span style="vertical-align:top;">
+Ask for a bundle URL and install this bundle</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Start selected bundles" type="image" name="cmd_start" src="resources/www/player_play.gif"> </span>
+ <span style="vertical-align:top;">
+Start selected bundles</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Stop selected bundles" type="image" name="cmd_stop" src="resources/www/player_stop.gif"> </span>
+ <span style="vertical-align:top;">
+Stop selected bundles</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Update selected bundles" type="image" name="cmd_update" src="resources/www/update.gif"> </span>
+ <span style="vertical-align:top;">
+Update selected bundles</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Uninstall selected bundles" type="image" name="cmd_uninstall" src="resources/www/player_eject.gif"> </span>
+ <span style="vertical-align:top;">
+Uninstall selected bundles</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Show info for selected bundles" type="image" name="cmd_info" src="resources/www/info.gif"> </span>
+ <span style="vertical-align:top;">
+Info about selected bundles</span>
+</div>
+ <div>
+ <span>
+ <img  alt="Show help" type="image" name="cmd_help" src="resources/www/help.gif"> </span>
+ <span style="vertical-align:top;">
+Show help page </span>
+</div>
+
+
+<div class="shadow">Bundle icons</div>
+<p>
+Each bundle is displayed using an icon, the bundle's name and the bundle description. If a bundle's icon is clicked, the bundle is selected, and the bundle info page is displayed. 
+</p>
+
+<table>
+<tr><td><img src="resources/www/bundle.gif"></td><td>Bundle with activator</td></tr><tr><td><img src="resources/www/bundle_started.gif"></td><td>Started bundle with activator</td></tr><tr><td><img src="resources/www/lib.gif"></td><td>Bundle without activator</td></tr><tr><td><img src="resources/www/lib_started.gif"></td><td>Started bundle without activator</td></tr>
+</table>
+
+</body>
+</html>
