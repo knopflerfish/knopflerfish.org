@@ -1,7 +1,8 @@
 The Knopflerfish release contains:
 <ul>
- <li><a href="#osgi">Standard OSGi R3 components</a>
+ <li><a href="#osgi">Components defined by OSGi R3</a>
  <li><a href="#knopflerfish">Knopflerfish components</a>
+ <li><a href="#knopflerfish_opt">Knopflerfish optional components</a>	
 </ul>
 
 <p>
@@ -16,14 +17,15 @@ bundles.
 </p>
 
 <a name="osgi"></a>
-<h3>Standard OSGi R3 components</h3>
+<h3>Components defined by OSGi R3</h3>
 <p>      
-The OSGi framework defines several standard components, which could be expected to exist in all OSGi implementations. Knopflerfish includes the following
-standard components
+The OSGi R3 specification defines several components, which could be 
+expected to exist in OSGi implementations. However, it should be noted that no
+service is required to be present.
 </p>
-
 <p>
-The current OSGi specification supported is R3.
+The OSGi specification currently supported by Knopflerfish is R3 and includes
+the the R3 components listed below.
 </p>
 
 <ul>
@@ -89,6 +91,12 @@ The current OSGi specification supported is R3.
   The XML utility class privides a template class for publishing
   XML parsers.
 </ul>
+
+<p>
+<b>Note</b>: All components following the OSGi R3 specification has been 
+known to pass the OSGi R3 tests (in external tests performed by Gatespace Teletics).
+The Knopflerfish distributions cannot formally call itself "OSGi R3 certified", since only OSGi members are allowed to use this term. Instead, we use the term "designed to be compliant with OSGi R3", which is an allowed term.
+</p>
 
 <a name="knopflerfish"></a>
 <h3>Knopflerfish components</h3>
@@ -157,6 +165,8 @@ See <a href="http://www.knopflerfish.org/XMLMetatype">http://www.knopflerfish.or
 Also see <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/metatype">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/metatype</a> for implementation details.
 </p>
 
+     
+
  <li><b>Serial port support</b>
      Serial ports are supported via the OSGi device model and the 
      <code>javax.comm</code> API. Implementations from Sun (win32) and
@@ -169,3 +179,27 @@ Also see <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/b
 
 </ul>
 
+<a name="knopflerfish_svn"></a>
+<h3>Knopflerfish components available from SVN</h3>
+
+<p>
+Some components in Knopflerfish are currently only available as source code
+in the Subversion repository. These components can be checked out by anyone
+and installed into a previously installed KF distribution.
+</p>
+
+<ul>
+ <li><b>OSGi Jini support</b>
+     The Jini support follows the R3 Jini API. It uses Sun's reference
+     implementation for the Jini core and Nico Goeminne's driver
+     code.
+<p>
+     See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/jini/">Jini</a>
+</p>
+ <li><b>X10 support</b>
+     The X10 support uses code from the Java X10 Project, <a href="http://x10.homelinux.org">http://x10.homelinux.org</a>.
+<p>
+see <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/x10/">x10<a/>
+</p>
+
+</ul>
