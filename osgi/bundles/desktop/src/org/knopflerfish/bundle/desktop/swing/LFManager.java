@@ -59,6 +59,13 @@ public class LFManager {
       Activator.log.debug("Created Knopflerfish L&F");
     }
 
+    // check if swing handles this all by itself...
+    try {
+      if(!"".equals(System.getProperty("swing.defaultlaf", ""))) {
+        return;
+      }
+    } catch (Exception ignored) { }
+
     LookAndFeel origLF = UIManager.getLookAndFeel();
     if(origLF != null && !customLF.containsKey(origLF.getClass().getName())) {
       customLF.put(origLF.getClass().getName(), origLF);
