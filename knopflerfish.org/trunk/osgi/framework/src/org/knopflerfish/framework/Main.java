@@ -251,6 +251,9 @@ public class Main {
 	} else if ("-readme".equals(args[i])) {
 	  printResource("/readme.txt");
 	  System.exit(0);
+	} else if ("-jvminfo".equals(args[i])) {
+	  printJVMInfo();
+	  System.exit(0);
 	} else if ("-install".equals(args[i])) {
 	  if (i+1 < args.length) { 
 	    String bundle = args[i+1];
@@ -607,6 +610,37 @@ public class Main {
       System.out.println(new String(Util.readResource(name)));
     } catch (Exception e) {
       System.out.println("No resource '" + name + "' available");
+    }
+  }
+
+  public static final String[] FWPROPS = new String[] {
+    Constants.FRAMEWORK_VENDOR,
+    Constants.FRAMEWORK_VERSION,
+    Constants.FRAMEWORK_LANGUAGE,
+    Constants.FRAMEWORK_OS_NAME ,
+    Constants.FRAMEWORK_OS_VERSION,
+    Constants.FRAMEWORK_PROCESSOR,
+    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,      
+  };
+
+  /**
+   * Print help for starting the platform.
+   */
+  static void printJVMInfo() {
+    
+    try {
+      Properties props = System.getProperties();
+      System.out.println("--- System properties ---");
+      for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
+	String key = (String)e.nextElement();
+	System.out.println(key + ": " + props.get(key));
+      }
+      System.out.println("\n--- Framework properties ---");
+      for(int i = 0; i < FWPROPS.length; i++) {
+	System.out.println(FWPROPS[i] + ": " + framework.getProperty(FWPROPS[i]));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
