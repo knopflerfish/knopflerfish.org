@@ -232,6 +232,15 @@ public class Util {
       }
     };
 
+  public static Comparator stringComparator = new Comparator() {
+      public int compare(Object a, Object b) {
+	String s1 = ((String)a).toLowerCase();
+	String s2 = ((String)b).toLowerCase();
+	
+	return s1.compareTo(s2);
+      }
+    };
+
 
   /**
    * Sort a vector with objects compareble using a comparison function.
@@ -288,4 +297,246 @@ public class Util {
   }
 
 
+  static void formStart(PrintWriter out, boolean bMultipart) throws IOException {
+    out.println("<form " + 
+		" action=\"" + Activator.SERVLET_ALIAS + "\"");
+    if(bMultipart) {
+      out.print(" enctype=\"multipart/form-data\"");
+    }
+    out.print(" method=\"POST\"" + 
+	      ">");
+  }
+
+  static void formStop(PrintWriter out) throws IOException {
+    out.println("</form>");
+  }
+
+
+  private static int BUF_SIZE = 1024 * 10;
+
+  public static byte[] loadFormData(HttpServletRequest request,
+				    String target,
+				    StringBuffer fileName)
+    throws ServletException,IOException
+  {
+    String      contentType = request.getHeader("content-type");
+    
+    // Only accept valid types
+    if(!contentType.startsWith("multipart/form-data")) {
+      throw new IOException("Bad content type for form data: " + contentType);
+    }
+    
+    String boundary = "--" + extractParam(contentType,"boundary");
+    if (boundary == null) {
+      throw new IOException("No boundary string - can't parse uploaded data");
+    }
+    
+    // Parse the data
+    
+    int       numRead;
+    String    filename         = "";
+    byte[]    buf              = new byte[BUF_SIZE];
+    boolean   bHeader          = false;
+    String    param            = null;
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ServletInputStream    sis  = request.getInputStream();
+    
+    boolean bDone = false;
+    
+    while(!bDone && (numRead = sis.readLine(buf, 0, BUF_SIZE)) != -1) {
+      //	Activator.log.info("read " + numRead + " bytes");
+      if (bHeader) {
+	// Read header
+	String line = new String(buf, 0, numRead);
+	if (line.equals("\r\n")) {
+	  bHeader = false;
+	} else if (line.startsWith("Content-Disposition:")) {
+	  // Get parameters
+	  //	  System.out.println("disp:" + line);
+	  param = extractParam(line, "name");
+	  if ("file".equals(param)) {
+	    // Remove path from file name
+	    filename = extractParam(line, "filename");
+	    if (filename != null) {
+	      StringTokenizer st = new StringTokenizer(filename, "\\/");
+	      while (st.hasMoreTokens()) {
+		Activator.log.info("got filename");
+		filename = st.nextToken();
+	      }
+	    }
+	  }
+	} else if (line.startsWith("Content-Type:")) {
+	  // Get parameters
+	  //	  Activator.log.info("Got Content-Type: "+extractParam(line, "Content-Type"));
+	}
+      } else {
+	// Check for boundary or read data
+	if ((numRead == boundary.length()+2 ||
+	     numRead == boundary.length()+4) &&
+	    (new String(buf, 0, numRead)).startsWith(boundary))
+	  {
+	    //	    System.out.println("boundary, param=" + param + ", filename=" + filename);
+	    if ((target + "_file").equals(param) && filename != null
+		&& baos != null && baos.size() > 2)
+	      {
+		// Remove all the last "\r\n" characters
+		byte [] outBytes = new byte[baos.size()-2];
+		System.arraycopy(baos.toByteArray(),0,outBytes, 0,baos.size()-2);
+		//		System.out.println("done, bytes=" + outBytes.length);
+		//		System.out.println("result='" + new String(outBytes) + "'");
+		fileName.append(filename);
+		return outBytes;
+		
+	      } else if ("mime".equals(param) &&
+			 baos != null && baos.size() > 2)
+		{
+		  String mime = new String(baos.toByteArray(),0,baos.size()-2);
+		  Activator.log.info("got mime: " + mime);
+		}
+	    bHeader = true;
+	  } else {
+	    //	    Activator.log.info("write data, numRead=" + numRead);
+	    baos.write(buf, 0, numRead);
+	  }
+      }
+    }
+    return null;
+  }
+
+  /*
+    baos = null;
+    
+    Activator.log.info("done");
+    // Success, redirect to suitable URI
+
+    String base  = "http://" + request.getServerName();
+    int    port = request.getServerPort();
+    
+    if(port != 80) base = base + ":" + port;
+    
+    String url = base + redirURI;
+    Activator.log.info("redirect to " + url);
+    response.sendRedirect(url);
+    
+    } catch (Exception e) {
+    Activator.log.error("FUpload err", e);
+    e.printStackTrace();
+    }
+  */
+  
+  private static String extractParam(String line, String param) {
+    if (line == null || param == null) return null;
+    StringTokenizer st = new StringTokenizer(line, ";");
+    String value = null;
+    while (st.hasMoreTokens()) {
+      String token = st.nextToken().trim();
+      if (token.startsWith(param+"=") || token.startsWith(param+":")) {
+	value = token.substring(param.length()+1).replace('\"', ' ').trim();
+	break;
+      }
+    }
+    return value;
+  }
+
+
+  static void printObject(PrintWriter out, Object val) throws IOException {
+    if(val == null) {
+      out.println("null");
+    } else if(val.getClass().isArray()) {
+      printArray(out, (Object[])val);
+    } else if(val instanceof Vector) {
+      printVector(out, (Vector)val);
+    } else if(val instanceof Map) {
+      printMap(out, (Map)val);
+    } else if(val instanceof Set) {
+      printSet(out, (Set)val);
+    } else if(val instanceof Dictionary) {
+      printDictionary(out, (Dictionary)val);
+    } else {
+      out.print(val);
+      //      out.print(" (" + val.getClass().getName() + ")");
+    }
+  }
+
+  static void printDictionary(PrintWriter out, Dictionary d) throws IOException {
+
+    out.println("<table>");
+    for(Enumeration e = d.keys(); e.hasMoreElements();) {
+      Object key = e.nextElement();
+      Object val = d.get(key);
+      out.println("<tr>");
+
+      out.println("<td>");
+      printObject(out, key);
+      out.println("</td>");
+
+      out.println("<td>");
+      printObject(out, val);
+      out.println("</td>");
+
+      out.println("</tr>");
+    }
+    out.println("</table>");
+  }
+
+  static void printMap(PrintWriter out, Map m) throws IOException {
+
+    out.println("<table>");
+    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
+      Object key = it.next();
+      Object val = m.get(key);
+
+      out.println("<tr>");
+
+      out.println("<td>");
+      printObject(out, key);
+      out.println("</td>");
+
+      out.println("<td>");
+      printObject(out, val);
+      out.println("</td>");
+
+      out.println("</tr>");
+    }
+    out.println("</table>");
+  }
+
+  static void printArray(PrintWriter out, Object[] a) throws IOException {
+    for(int i = 0; i < a.length; i++) {
+      printObject(out, a[i]);
+      if(i < a.length - 1) {
+	out.println("<br>");
+      }
+    }
+  }
+
+  static void printSet(PrintWriter out, Set a) throws IOException {
+    for(Iterator it = a.iterator(); it.hasNext();) {
+      printObject(out, it.next());
+      if(it.hasNext()) {
+	out.println("<br>");
+      }
+    }
+  }
+
+  static void printVector(PrintWriter out, Vector a) throws IOException {
+    for(int i = 0; i < a.size(); i++) {
+      printObject(out, a.elementAt(i));
+      if(i < a.size() - 1) {
+	out.println("<br>");
+      }
+    }
+  }
+
+  static public String getStateString(int bundleState) {
+    switch(bundleState) {
+    case Bundle.ACTIVE:      return "active";
+    case Bundle.INSTALLED:   return "installed";
+    case Bundle.UNINSTALLED: return "uninstalled";
+    case Bundle.RESOLVED:    return "resolved";
+    case Bundle.STOPPING:    return "stopping";
+    case Bundle.STARTING:    return "starting";
+    default: return ("unknown state " + bundleState);
+    }
+  }
 }

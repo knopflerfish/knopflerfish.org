@@ -115,6 +115,10 @@ public class IconView implements BundleView {
 		       "</div>");
       out.print  (     "<div class=\"bundledescription\">" + 
 		       Util.getDescription(bundles[i]) + 
+		       " (" + 
+		       "#" + bundles[i].getBundleId() + 
+		       ", " + Util.getStateString(bundles[i].getState()) +
+		       ")" +
 		       "</div>");
       out.println("  </td>");
       out.println(" </tr>");

@@ -40,7 +40,14 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class UpdateCommand implements Command {
+public class UpdateCommand extends IconCommand {
+  public UpdateCommand() {
+    super("cmd_update", 
+	  "Update",
+	  "Update selected bundles",
+	  Activator.RES_ALIAS + "/update.gif");
+  }
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
     
@@ -64,25 +71,5 @@ public class UpdateCommand implements Command {
     }
 
     return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input alt=\"Stop selected bundles\"" + 
-	      " type=\"image\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + Activator.RES_ALIAS + "/update.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_update";
-  }
-
-  public String       getName() {
-    return "Update";
-  }
-
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
   }
 }

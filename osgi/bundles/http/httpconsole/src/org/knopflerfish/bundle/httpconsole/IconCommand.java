@@ -40,52 +40,49 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class InstallURLCommand extends IconCommand {
+public abstract class IconCommand implements Command {
+  String id;
+  String name;
+  String description;
+  String icon;
 
-  InstallURLCommand() {
-    super("cmd_installurl",
-	  "Install from URL",
-	  "Install bundle from URL",
-	  Activator.RES_ALIAS + "/openurl.gif");
+  IconCommand(String id, 
+	      String name, 
+	      String description,
+	      String icon) {
+    this.id          = id;
+    this.name        = name;
+    this.description = description;
+    this.icon        = icon;
   }
   
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
-   
-    String url = request.getParameter(getId() + "_url");
-
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
-    
-    if(!(url == null || "".equals(url))) {
-      try {
-	Bundle b = Activator.bc.installBundle(url);
-	sb.append("installed " + url + "<br/>");
-	
-      } catch (Exception e) {
-	sb.append(Util.toHTML(e));
-      }
-    } else {
-      sb.append("No URL entered");
-    }
-
-    return sb;
-  }
-
+  public abstract StringBuffer run(HttpServletRequest request);
+  
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.println("<div class=\"shadow\">" + getName() + "</div>");
-    out.print("<input alt=\"URL\"" + 
-		" type=\"text\"" + 
-		" name=\"" + getId() + "_url\">");
-    out.print(" URL<br/>");
     out.print(" <input " + 
-		" type=\"submit\"" + 
-		" name=\"" + getId() + "\"" + 
-		" value=\"" +"Install" + "\"" + 
-		"\">");
-
+	      " alt=\"" + getDescription() + "\"" + 
+	      " type=\"image\"" + 
+	      " name=\"" + getId() + "\"" + 
+	      " src=\"" + getIcon() + "\">");
   }
   
+  public String getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getIcon() {
+    return icon;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
   public boolean isTrigger(HttpServletRequest request) {
-    return null != request.getParameter(getId());
+    return null != request.getParameter(getId() + ".x");
   }
 }

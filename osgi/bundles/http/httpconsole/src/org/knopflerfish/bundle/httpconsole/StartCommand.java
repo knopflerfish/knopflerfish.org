@@ -40,7 +40,14 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class StartCommand implements Command {
+public class StartCommand extends IconCommand {
+  public StartCommand() {
+    super("cmd_start", 
+	  "Start",
+	  "Start selected bundles",
+	  Activator.RES_ALIAS + "/player_play.gif");
+  }
+	       
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
@@ -65,25 +72,5 @@ public class StartCommand implements Command {
     }
     
     return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input alt=\"Start selected bundles\"" + 
-	      " type=\"image\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + Activator.RES_ALIAS + "/player_play.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_start";
-  }
-
-  public String       getName() {
-    return "Start";
-  }
-
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
   }
 }

@@ -40,29 +40,16 @@ import java.io.*;
 
 import org.osgi.framework.*;
 
-public class ReloadCommand implements Command {
+public class ReloadCommand extends IconCommand {
+  public ReloadCommand() {
+    super("cmd_reload", 
+	  "Reload",
+	  "Reload view",
+	  Activator.RES_ALIAS + "/reload_green.gif");
+  }
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
     return sb;
-  }
-
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.println(" <input alt=\"Reload view\"" + 
-		" type=\"image\"" + 
-		" name=\"" + getId() + "\"" + 
-		" src=\"" + Activator.RES_ALIAS + "/reload_green.gif\">");
-  }
-  
-  public String       getId() {
-    return "cmd_reload";
-  }
-
-  public String       getName() {
-    return "Reload view";
-  }
-
-  public boolean isTrigger(HttpServletRequest request) {
-    String x = request.getParameter(getId() + ".x");
-    return x != null;
   }
 }
