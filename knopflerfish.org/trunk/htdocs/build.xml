@@ -129,6 +129,14 @@
       <param name="CLASS_NAVIGATION_SVN" value="navigation_disabled"/>
     </antcall>
 
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/perf.html"/>
+      <param name="tofile"   value="perf.html"/>
+      <param name="title"    value="Knopflerfish performance test"/>
+      <param name="desc"     value="Approximate time/memory usage for Knopflerfish startup"/>
+      <param name="CLASS_NAVIGATION_PERF" value="navigation_disabled"/>
+    </antcall>
+
    <loadfile property = "bundle_list"     
              srcfile  = "bundles/bl.html"/>
 
@@ -164,6 +172,7 @@
      <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_BUNDLES"   value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_PERF"      value="navigation_enabled"/>
 
     <replace file="${tofile}">
       <replacefilter token="$(TITLE)"
@@ -213,6 +222,9 @@
 
 	<replacefilter token="$(CLASS_NAVIGATION_BUNDLES)" 
                        value="${CLASS_NAVIGATION_BUNDLES}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_PERF)" 
+                       value="${CLASS_NAVIGATION_PERF}"/>
 
     </replace>	       
   </target>

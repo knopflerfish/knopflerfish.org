@@ -10,6 +10,7 @@
   <li><a href="#optimizing">Optimizing startup time, memory or disk usage</a>
   <li><a href="#custom">Details on the included ant build system</a>
   <li><a href="svn.html">Using the Subversion repository</a>
+  <li><a href="perf.html">Performance test</a>
 </ol>
 
 <a name="ant_create"></a>
@@ -460,7 +461,9 @@ public class Activator implements BundleActivator {
 <td>
 <p>
 Many external libraries, like most JNDI lookup services requires a correctly
-set <b>thread context classloader</b>. If this is not set, ClassNotFoundException, or similar might be thrown even if you have included all necessary libs.
+set <b>thread context classloader</b>. If this is not set, 
+ClassNotFoundException, or similar might be thrown even if you have 
+included all necessary libs.
 </p>
 
 <p>
@@ -471,10 +474,10 @@ do a similar trick inside of these listeners.
 </p>
 
 <p>
-It is <b>not</b> recommended to set the context class loader on the startup
-thread, since that might not be unique for your bundle. Effects might
-vary depending on OSGi vendor. If you don't spawn a new thread, you <b>must</b>
-reset the context class loader before returning.
+It is <b>not</b> recommended to set the context class loader persistenly on
+the startup thread, since that might not be unique for your bundle. 
+Effects might vary depending on OSGi vendor. If you don't spawn a new
+thread, you <b>must</b> reset the context class loader before returning.
 </p>
 </td>
 <td>
@@ -518,7 +521,7 @@ Thanks to Rob Evans for this example.
 </tr>
 
   <tr>
-    <td valign=top>Be prepared that services might exists, or suddenly
+    <td valign=top>Be prepared that services might not exists, or suddenly
       disappear.<p>
       Use the <tt>ServiceTracker</tt> if you are interested in using a single
       service.
@@ -664,9 +667,9 @@ to the framework itself, needs to be explicitly <b>refreshed</b> before
 classes in those packages are releases.
 </p>
 <p>
-If you happen to have exported the package that your BundleActivor resides in, 
-this could mean that the "old" class will be used and not the newly installed
-one.
+If you happen to have exported the package that your BundleActivator 
+resides in, this could mean that the "old" class will be used and not
+the newly installed one.
 </p>
     </td>
     <td valign=top>
@@ -1021,9 +1024,16 @@ the standard bundle build.
 <a name="optimizing"></a>
 <h3>Optimizing startup time, memory or disk usage</h3>
 
+<p>
 The Knopflerfish framework can be started in either disk-optimizing or
 memory-optimizing modes. This is useful for systems with lowe memory or 
 small or slow disks. It also affects the startup time for the farmework.
+</p>
+
+<p>
+See <a href="perf.html">Knopflerfish performance test</a> for actual performance data 
+with different methods.
+</p>
 
 The following apply:
 
