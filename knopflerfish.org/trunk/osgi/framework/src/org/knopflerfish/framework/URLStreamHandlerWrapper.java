@@ -148,8 +148,43 @@ public class URLStreamHandlerWrapper
   }
 
   
+  /**
+   * This method is deprecated, but wrap it in the same
+   * way as JSDK1.4 wraps it.
+   */
   public  void setURL(URL u, String protocol, String host, int port, String file, String ref) {
-    super.setURL(u, protocol, host, port, file, ref);
+    
+    // parse host as "user:passwd@host"
+
+    String authority = null;
+    String userInfo = null;
+
+    if (host != null && host.length() != 0) {
+
+      authority = (port == -1) ? host : host + ":" + port;
+
+      int ix = host.lastIndexOf('@');
+      if (ix != -1) {
+	userInfo = host.substring(0, ix);
+	host     = host.substring(ix+1);
+      }
+    }
+        
+
+    // Parse query part from file ending with '?'
+    String path  = null;
+    String query = null;
+
+    if (file != null) {
+      int ix = file.lastIndexOf('?');
+      if (ix != -1) {
+	query = file.substring(ix + 1);
+	path  = file.substring(0, ix);
+      } else {
+	path = file;
+      }
+    }
+    setURL(u, protocol, host, port, authority, userInfo, path, query, ref);
   }    
 
   public  void setURL(URL    u, 
@@ -161,8 +196,10 @@ public class URLStreamHandlerWrapper
 		      String path, 
 		      String query, 
 		      String ref) {
-    super.setURL(u, protocol, host, port, authority, 
-		 userInfo, path, query, ref);
+    super.setURL(u, protocol, host, port, 
+		 authority, userInfo, 
+		 path, query, 
+		 ref);
   }
 
   protected  String toExternalForm(URL u) {
