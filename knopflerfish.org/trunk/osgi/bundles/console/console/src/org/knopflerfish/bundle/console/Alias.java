@@ -107,14 +107,27 @@ class Alias extends Hashtable {
       "prompt", "quit", "source", "unalias"
     });
     cgalias("/framework", new String [] {
-      "bundles", "install", "start", "stop", "update"
+      "bundles", 
+      "install", 
+      "start", 
+      "stop", 
+      "update", 
+      "refresh",
+      "services",
+      "startlevel",
     });
     // shortcuts
     put("fw", new String [] { "/session", "enter", "framework" });
+
     // backward compability
-    put("log", new String [] { "/log", "show" });
-    put("lsb", new String [] { "/framework", "bundles" });
-    put("lss", new String [] { "/framework", "services" });
+    put("log",     new String [] { "/log", "show" });
+    put("lsb",     new String [] { "/framework", "bundles" });
+    put("lss",     new String [] { "/framework", "services" });
+
+    // Oscar compatability
+    put("exports", new String [] { "/framework", "package", "-b" });
+    put("ps",      new String [] { "/framework", "bundles" });
+    put("cd",      new String [] { "/framework", "cd" });
   }
 
 }

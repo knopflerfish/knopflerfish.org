@@ -361,6 +361,14 @@ public class SessionCommandGroup implements CommandGroup {
 	bc.ungetService(refs[i]);
       }
     }
+
+    out.println("");
+    out.println("Available aliases:");
+    for (Enumeration e = si.aliases.keys(); e.hasMoreElements();) {
+      String a = (String) e.nextElement();
+      out.println(a + " = " + si.aliases.getString(a));
+    }
+    
     return 0;
   }
 
