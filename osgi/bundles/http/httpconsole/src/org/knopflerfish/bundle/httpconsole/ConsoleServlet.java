@@ -86,6 +86,30 @@ public class ConsoleServlet extends HttpServlet {
 		    HttpServletResponse response) 
     throws ServletException, IOException {
 
+    String uapixels = request.getHeader("ua-pixels");
+
+    int width  = Integer.MAX_VALUE;
+    int height = Integer.MAX_VALUE;
+    if(uapixels != null) {
+      int ix = uapixels.indexOf("x");
+      if(ix != -1) {
+	try {
+	  width  = Integer.parseInt(uapixels.substring(0, ix));
+	  height = Integer.parseInt(uapixels.substring(ix + 1));
+	} catch (Exception ignored) {
+	  ignored.printStackTrace();
+	}
+      }
+    }
+
+    /*
+    for(Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
+      String key = (String)e.nextElement();
+      String val = request.getHeader(key);
+      System.out.println(key + ": " + val);
+    }
+    */
+
     PrintWriter out = response.getWriter();
 
     StringBuffer sb = new StringBuffer();
@@ -140,7 +164,7 @@ public class ConsoleServlet extends HttpServlet {
 
       out.println("<tr class=\"toolview\">");
       out.println("<td colspan=\"2\" class=\"toolview\">");
-      printToolbar(request, out);
+      printToolbar(request, out, width);
       out.println("</td>");
       out.println("</tr>");
 
@@ -162,7 +186,7 @@ public class ConsoleServlet extends HttpServlet {
 
       out.println("<tr class=\"toolview\">");
       out.println("<td colspan=\"2\" class=\"toolview\">");
-      printToolbar(request, out);
+      printToolbar(request, out, width);
       out.println("</td>");
       out.println("</tr>");
 
@@ -202,11 +226,19 @@ public class ConsoleServlet extends HttpServlet {
   }
 
 
-  void printToolbar(HttpServletRequest request, PrintWriter out) throws IOException {
+  void printToolbar(HttpServletRequest request, PrintWriter out, 
+		    int width) throws IOException {
     
     out.println("<div class=\"toolbar\">");
     
     for(int i = 0; i < commands.length; i++) {
+
+      // break before status info on small screens
+      if(commands[i] instanceof StatusCommand) {
+	if(width < 300) {
+	  out.print("<br/>");
+	}
+      }
       commands[i].toHTML(request, out);
     }
     
