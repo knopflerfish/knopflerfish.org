@@ -41,9 +41,11 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import org.osgi.framework.*;
+import org.osgi.util.tracker.*;
 import org.osgi.service.http.*;
-import org.knopflerfish.service.log.LogRef;
 import junit.framework.*;
+
+import org.knopflerfish.service.junit.*;
 
 public class JUnitServlet extends HttpServlet {
 
@@ -52,7 +54,21 @@ public class JUnitServlet extends HttpServlet {
   static final String CMD    = "cmd";
   static final String FMT    = "fmt";
 
+  ServiceTracker junitTracker;
+
   JUnitServlet() {
+    junitTracker = new ServiceTracker(Activator.bc, 
+				      JUnitService.class.getName(),
+				      null);
+    junitTracker.open();
+  }
+
+  JUnitService getJUnitService() {
+    JUnitService ju = (JUnitService)junitTracker.getService();
+    if(ju == null) {
+      throw new RuntimeException("No JUnitService available");
+    }
+    return ju;
   }
 
   public void doGet(HttpServletRequest  request, 
@@ -87,7 +103,6 @@ public class JUnitServlet extends HttpServlet {
 	}
       }
 
-
       if("html".equals(fmt)) {
 	response.setContentType ("text/html");
       } else {
@@ -98,14 +113,11 @@ public class JUnitServlet extends HttpServlet {
       if("html".equals(fmt)) {
 	handleCommandHTML(request, response, cmd, out);
       } else {
-	handleCommand(request, response, cmd, out);
+	handleCommandXML(request, response, cmd, out);
       }
       out.flush ();
     } catch (RuntimeException e) {
-      Activator.log.error("servlet failed", e);
-      throw e;
-    } catch (IOException e) {
-      Activator.log.error("servlet failed", e);
+      Activator.log.error("servlet failed ", e);
       throw e;
     } finally {
       Thread.currentThread().setContextClassLoader(oldLoader);
@@ -128,13 +140,13 @@ public class JUnitServlet extends HttpServlet {
       out.print("/" + subid);
     }
     out.println("</title>");
-    printCSS(out);
+    printResource(out, "/style.css");
     out.println("</head>");
     out.println("<body>");
 
     try {
       if("run".equals(cmd)) {
-	runTestHTML(request, id, out);
+	runTestHTML(request, out);
       } else if("list".equals(cmd)) {
 	showTestsHTML(request, response, out);
       } else {
@@ -151,22 +163,6 @@ public class JUnitServlet extends HttpServlet {
     out.println("</html>");
   }
   
-  void printCSS(PrintWriter out) throws IOException {
-    InputStream in = null;
-    try {
-      URL url = getClass().getResource("/style.css");
-      in = url.openStream();
-      BufferedInputStream bin = new BufferedInputStream(in);
-      byte[] buf = new byte[1024];
-      int n = 0;
-      while(-1 != (n = bin.read(buf, 0, buf.length))) {
-	out.print(new String(buf, 0, n));
-      }
-    } catch (Exception e) {
-    } finally {
-      try { in.close(); } catch (Exception ignored) { }
-    }
-  }
 
   void showTestsHTML(HttpServletRequest  request, 
 		     HttpServletResponse response,
@@ -249,34 +245,26 @@ public class JUnitServlet extends HttpServlet {
     out.println("</ul>");
   }
 
-  void handleCommand(HttpServletRequest  request, 
-		     HttpServletResponse response,
-		     String cmd,
-		     PrintWriter out) throws 
-		       ServletException,
-		       IOException {
-    out.println("<?xml version=\"1.0\"?>");
-    out.println("<junit>");
-    try {
-      if("run".equals(cmd)) {
-	runTest(request, request.getParameter(ID), out);
-      } else {
-	throw new IllegalArgumentException("Unknown command='" + cmd + "'");
-      }
-    } catch (Exception e) {
-      out.println(" <fail " + 
-		  "  message=\"" + e.getMessage() + "\"" + 
-		  "  exception=\"" + e.getClass().getName() + "\">");
-      dumpException(e, out);
-      out.println(" </fail>");
+  void handleCommandXML(HttpServletRequest  request, 
+			HttpServletResponse response,
+			String cmd,
+			PrintWriter out) throws 
+			  ServletException,
+			  IOException {
+    String id    = request.getParameter(ID);
+    String subid = request.getParameter(SUBID);
+    
+    if("run".equals(cmd)) {
+      TestSuite suite = getJUnitService().getTestSuite(id, subid); 
+      getJUnitService().runTest(out, suite);
+    } else {
+      throw new IllegalArgumentException("Unknown command='" + cmd + "'");
     }
-
-    out.println("</junit>");
   }
 
   void runTestHTML(HttpServletRequest request, 
-		   String id, 
 		   PrintWriter out) throws Exception {
+    String id    = request.getParameter(ID);
     String subid = request.getParameter(SUBID);
     
     out.println("<h2>Test result of " + id);
@@ -292,7 +280,7 @@ public class JUnitServlet extends HttpServlet {
 		"?" + ID + "=" + id + "&" + FMT + "=xml\"" +
 		">Run again and show as XML</a></p>");
     
-    TestSuite suite = getSuite(request);
+    TestSuite suite = getJUnitService().getTestSuite(id, subid);
     
     TestResult tr = new TestResult();
       
@@ -301,122 +289,6 @@ public class JUnitServlet extends HttpServlet {
     dumpResultHTML(tr, out);
   }
   
-  void runTest(HttpServletRequest request, 
-	       String id, 
-	       PrintWriter out) throws Exception {
-    out.println(" <testcase id=\"" + id + "\">");
-
-    try {
-
-      TestSuite suite = getSuite(request);
-      
-      dumpSuite(suite, out, 2);
-      
-      TestResult tr = new TestResult();
-      
-      System.out.println("run test on " + suite);
-      suite.run(tr);
-    
-      dumpResult(tr, out);
-    } finally {
-      out.println(" </testcase>");
-    }
-  }
-
-  TestSuite getSuite(HttpServletRequest request) throws Exception {
-    Object obj = null;
-
-    final String id    = request.getParameter(ID);
-    final String subid = request.getParameter(SUBID);
-    
-    ServiceReference[] srl = 
-      Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
-    
-    if(srl == null || srl.length == 0) {
-      obj = new TestCase("No id=" + id) {
-	  public void runTest() {
-	    throw new IllegalArgumentException("No test with id=" + id);
-	  }
-	};
-    }
-    if(srl != null && srl.length != 1) {
-      obj = new TestCase("Multiple id=" + id) {
-	  public void runTest() {
-	    throw new IllegalArgumentException("More than one test with id=" + id);
-	  }
-	};
-    }
-    
-    if(obj == null) {
-      obj = Activator.bc.getService(srl[0]);
-    }
-    
-    if(!(obj instanceof Test)) {
-      final Object oldObj = obj;
-      obj = new TestCase("ClassCastException") {
-	  public void runTest() {
-	    throw new ClassCastException("Service implements " + 
-					 oldObj.getClass().getName() + 
-					 " instead of " + 
-					 Test.class.getName());
-	  }
-	};
-    }
-    
-    Test test = (Test)obj;
-    
-    TestSuite suite;
-
-    if(subid != null && !"".equals(subid)) {
-      Test subtest = findTest(test, subid);      
-      if(subtest != null) {
-	test = subtest;
-      } else {
-	test = new TestCase("IllegalArumentException") {
-	    public void runTest() {
-	      throw new ClassCastException("subtest " + subid + " not found");
-	    }
-	  };
-      }
-    }
-
-    if(test instanceof TestSuite) {
-      suite = (TestSuite)test;
-    } else {
-      suite = new TestSuite();
-      suite.addTest(test);
-    }
-
-    
-    return suite;
-  }
-  
-  Test findTest(Test test, String id) {
-    if(test instanceof TestSuite) {
-      TestSuite ts = (TestSuite)test;
-      if(id.equals(ts.getName()) || id.equals(ts.getClass().getName())) {
-	return ts;
-      }
-      for(int i = 0; i < ts.testCount(); i++) {
-	Test child = ts.testAt(i);
-	Test r = findTest(child, id);
-	if(r != null) {
-	  return r;
-	}
-      }
-    }
-    if(test instanceof TestCase) {
-      TestCase tc = (TestCase)test;
-      if(id.equals(tc.getName())) {
-	return tc;
-      }
-    }
-    if(id.equals(test.getClass().getName())) {
-      return test;
-    }
-    return null;
-  }
-
   static String indent(int n) {
     StringBuffer sb = new StringBuffer();
     while(n --> 0) {
@@ -425,32 +297,6 @@ public class JUnitServlet extends HttpServlet {
     return sb.toString();
   }
 
-  void dumpSuite(TestSuite suite, 
-		 PrintWriter out, 
-		 int n) throws IOException {
-    out.print(indent(n) + "  <suite class = \"" + 
-		suite.getClass().getName() + "\"");
-    out.println(" name  = \"" + suite.getName() + "\">");
-
-    for(int i = 0; i < suite.testCount(); i++) {
-      Test test = suite.testAt(i);
-      String clazz = test.getClass().getName();
-      String name  = null;
-      if(test instanceof TestCase) {
-	name = ((TestCase)test).getName();
-      }
-      if(name == null) {
-	name = clazz;
-      }
-      if(test instanceof TestSuite) {
-	dumpSuite((TestSuite)test, out, n + 1);
-      } else {
-	out.print(indent(n) + "   <case class = \"" + clazz + "\"");
-	out.println(" name  = \"" + name  + "\"/>");
-      }
-    }
-    out.println(indent(n) + "  </suite>");
-  }
 
   void dumpResultHTML(TestResult tr, PrintWriter out) throws IOException {
     if(tr.wasSuccessful()) {
@@ -487,57 +333,6 @@ public class JUnitServlet extends HttpServlet {
     }
   }
 
-
-  void dumpResult(TestResult tr, PrintWriter out) throws IOException {
-    out.println("  <testresult wasSuccessful = \"" + tr.wasSuccessful() + "\"");
-    out.println("              runCount      = \"" + tr.runCount() + "\"");
-    out.println("              failureCount  = \"" + tr.failureCount() + "\"");
-    out.println("              errorCount    = \"" + tr.errorCount() + "\"");
-    out.println("  >");
-    if(tr.failureCount() > 0 ) {
-      out.println("   <failures>");
-      for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
-	TestFailure tf = (TestFailure)e.nextElement();
-	dumpFailure(tf, out);
-      }
-      out.println("   </failures>");
-    }
-    if(tr.errorCount() > 0 ) {
-      out.println("   <errors>");
-      for(Enumeration e = tr.errors(); e.hasMoreElements(); ) {
-	
-	TestFailure tf = (TestFailure)e.nextElement();
-	dumpFailure(tf, out);
-      }
-      out.println("   </errors>");
-    }
-    out.println("  </testresult>");
-  }
-
-  void dumpFailure(TestFailure tf, PrintWriter out) throws IOException {
-    out.println("    <failure");
-
-    out.println("      exceptionMessage=\"" + escape(tf.exceptionMessage()) + "\"");
-    Test failedTest = tf.failedTest();
-    if(failedTest instanceof TestCase) {
-      TestCase tc = (TestCase)failedTest;
-      String name = tc.getName();
-      if(name == null) {
-	name = tc.getClass().getName();
-      }
-
-      out.println("      failedTestCaseName=\"" + escape(name) + "\"");
-      out.println("      failedTestCaseClass=\"" + tc.getClass().getName() + "\"");
-    } else {
-      out.println("      failedTest=\"" + tf.failedTest() + "\"");
-    }
-    out.println("    >");
-    out.print("     <trace><![CDATA[");
-    out.print(tf.trace());
-    out.println("]]></trace>");
-    
-    out.println("    </failure>");
-  }
 
   void dumpFailureHTML(TestFailure tf, PrintWriter out,
 		       String prefix) throws IOException {
@@ -579,7 +374,7 @@ public class JUnitServlet extends HttpServlet {
 
   }
 
-  String escape(String s) {
+  static String escape(String s) {
     if(s == null) {
       return null;
     }
@@ -589,18 +384,22 @@ public class JUnitServlet extends HttpServlet {
       .replace('\"', '\'');
   }
 
-  void dumpError(AssertionFailedError af, PrintWriter out) throws IOException {
-    out.println("    <error ");
-    out.println("      exceptionMessage=\"" + af.getMessage() + "\"");
-    out.println("    >");
-    dumpException(af, out);
-    out.println("    </failure>");
+  static void printResource(PrintWriter out, String name)  {
+    InputStream in = null;
+    try {
+      URL url = JUnitServlet.class.getResource(name);
+      in = url.openStream();
+      BufferedInputStream bin = new BufferedInputStream(in);
+      byte[] buf = new byte[1024];
+      int n = 0;
+      while(-1 != (n = bin.read(buf, 0, buf.length))) {
+	out.print(new String(buf, 0, n));
+      }
+    } catch (Exception e) {
+      Activator.log.error("printResource(" + name + ") failed", e);
+    } finally {
+      try { in.close(); } catch (Exception ignored) { }
+    }
   }
 
-  void dumpException(Throwable t, PrintWriter out) throws IOException {
-    out.print("     <exception class=\"" + t.getClass().getName() + "\">");
-    out.print("<![CDATA[");
-    t.printStackTrace(out);
-    out.println("]]></exception>");
-  }
 }
