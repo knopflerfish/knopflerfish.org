@@ -16,7 +16,7 @@
   <property name = "bundle.build.all"      value = "true"/>
 
   <property name="impl.pattern"
-            value="org/knopflerfish/**/*"/>
+            value="org/knopflerfish/**/*,org/**,fr/**,kxml/**"/>
 
   <property name="api.pattern"
             value=""/>
@@ -33,7 +33,10 @@
     <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>  
     <pathelement location="resources/console_api-1.0.0.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
+    <pathelement location="resources/kxml-min.zip"/>
+<!--
     <pathelement location="resources/oscar-bundlerepository.jar"/>
+-->
   </path>
 
 
@@ -45,10 +48,10 @@
   <property name="bundle.apivendor"      value="Oscar/Knopflerfish"/>
 
   <property name="bundle.activator"      value="org.knopflerfish.osgi.bundle.bundlerepository.Activator"/>
-  <property name="bundle.classpath"      value=".,console_api-1.0.0.jar,oscar-bundlerepository.jar,kxml.jar"/>
+  <property name="bundle.classpath"      value=".,console_api-1.0.0.jar,kxml-min.zip"/>
 
   <property name="export.package"  
-            value="org.knopflerfish.service.console;specification-version=1.0.0,org.ungoverned.osgi.service.bundlerepository; specification-version=1.0.0"/>
+            value="org.knopflerfish.service.console;specification-version=1.0.0,org.ungoverned.osgi.service.bundlerepository; specification-version=1.1.0"/>
 
   <!-- dynamic import to optionally register command/shell/desktop services -->
   <property name="dynamicimport.package" value="*"/>
