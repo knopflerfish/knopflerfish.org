@@ -68,6 +68,7 @@ public class ConsoleServlet extends HttpServlet {
       new InfoCommand(),
       new HelpCommand(this),
       new StatusCommand(),
+      new ServiceInfoCommand(),
     };
 
   }
@@ -121,11 +122,14 @@ public class ConsoleServlet extends HttpServlet {
     }
 
     if(installFileCommand.installFile2.redir != null) {
-      String base  = "http://" + request.getServerName();
+      String base  = request.getScheme() + "://" + request.getServerName();
       int    port = request.getServerPort();
       
-      if(port != 80) base = base + ":" + port;
-      
+      if("https".equals(request.getScheme())) {
+	if(port != 443) base = base + ":" + port;
+      } else {
+	if(port != 80) base = base + ":" + port;
+      }
       String url = base + installFileCommand.installFile2.redir;
       installFileCommand.installFile2.redir = null;
       response.sendRedirect(url);
