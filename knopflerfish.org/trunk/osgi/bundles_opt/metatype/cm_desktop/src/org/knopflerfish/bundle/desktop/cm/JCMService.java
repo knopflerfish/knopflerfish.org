@@ -119,43 +119,22 @@ public class JCMService extends JPanel {
 
       JButton facdelButton = null;
 
-      AttributeDefinition[] ads = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
-      for(int i = 0; i < ads.length; i++) {
-	AttributeDefinition ad = ads[i];
 
-	JLabelled item = null;
+      AttributeDefinition[] reqAttrs 
+	= ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
 
-	try {
-	  JCMProp jcmProp = new JCMProp(ad, configProps);
-	  
-	  props.put(ad.getID(), jcmProp);
-	  
-	  String className = AD.getClass(ad.getType()).getName();
-	  
-	  if(ad.getCardinality() < 0) {
-	    className = "Vector of " + className;
-	  } else if(ad.getCardinality() > 0) {
-	    className = className + "[]";
-	  }
-	  item = 
-	    new JLabelled(ad.getName(), 
-			  "<b>" + ad.getName() + "</b><br>" + 
-			  ad.getDescription() +  "<br>" + 
-			  " (" + className + ")",
-			  jcmProp,
-			  100);
-	  
-	} catch (Exception e) {
-	  Activator.log.error("Failed to create ui for " + ad, e);
-	  item = 
-	    new JLabelled(ad.getName(), 
-			  ad.getDescription(),
-			  new JLabel(e.getMessage()),
-			  100);
-
+      AttributeDefinition[] optAttrs
+	= ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
+      
+      addAttribs(propPane, reqAttrs, configProps, "");
+      
+      if(reqAttrs != null && reqAttrs.length > 0) {
+	if(optAttrs != null && optAttrs.length > 0) {
+	  //
 	}
-	propPane.add(item);
       }
+      
+      addAttribs(propPane, optAttrs, configProps, " (optional)");
 
       JPanel propOuter = new JPanel(new BorderLayout());
       propOuter.add(propPane, BorderLayout.NORTH);
@@ -325,7 +304,48 @@ public class JCMService extends JPanel {
     revalidate();
     repaint();
   }
-  
+
+  void addAttribs(JComponent propPane, 
+		  AttributeDefinition[] ads,
+		  Dictionary configProps,
+		  String info) {
+    for(int i = 0; ads != null && i < ads.length; i++) {
+      AttributeDefinition ad = ads[i];
+      
+      JLabelled item = null;
+      
+      try {
+	JCMProp jcmProp = new JCMProp(ad, configProps);
+	
+	props.put(ad.getID(), jcmProp);
+	
+	String className = AD.getClass(ad.getType()).getName();
+	
+	if(ad.getCardinality() < 0) {
+	  className = "Vector of " + className;
+	} else if(ad.getCardinality() > 0) {
+	  className = className + "[]";
+	}
+	item = 
+	  new JLabelled(ad.getName(), 
+			"<b>" + ad.getName() + "</b>" + info + "<br>" + 
+			ad.getDescription() +  "<br>" + 
+			" (" + className + ")",
+			jcmProp,
+			100);
+	
+      } catch (Exception e) {
+	Activator.log.error("Failed to create ui for " + ad, e);
+	item = 
+	  new JLabelled(ad.getName(), 
+			ad.getDescription(),
+			new JLabel(e.getMessage()),
+			100);
+	
+      }
+      propPane.add(item);
+    }
+  }
 
   /**
    * Load a stream into a byte array.

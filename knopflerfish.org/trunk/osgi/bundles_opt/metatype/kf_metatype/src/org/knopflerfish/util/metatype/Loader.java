@@ -75,9 +75,9 @@ public class Loader {
   static final String ATTR_NAME      = "name";
   static final String ATTR_BASE      = "base";
   static final String ATTR_VALUE     = "value";
-  static final String ATTR_MAXOCCURS = "maxOccurs";
   static final String ATTR_ICONURL   = "iconURL";
-  static final String ATTR_OPTIONAL  = "optional";
+  static final String ATTR_MINOCCURS = "minOccurs";
+  static final String ATTR_MAXOCCURS = "maxOccurs";
 
   static final String ATTR_ARRAY     = "array";
 
@@ -658,7 +658,13 @@ public class Loader {
       }
     }
 
-    attr.bOptional = "true".equals(el.getAttribute(ATTR_OPTIONAL, "false"));
+    int minOccurs = 1;
+    try {
+      minOccurs = Integer.parseInt(el.getAttribute(ATTR_MINOCCURS, "1"));
+    } catch (Exception e) {
+      throw new XMLException("minOccurs must be a valid integer: " + e, el);
+    }
+    attr.bOptional = minOccurs == 0;
 
     return attr;
   }
