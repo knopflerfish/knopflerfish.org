@@ -27,6 +27,11 @@
 -Dorg.knopflerfish.log.grabio=true
 -Dorg.knopflerfish.log.file=true
 
+#consoletelnet properties
+-Dorg.knopflerfish.consoletelnet.user=admin
+-Dorg.knopflerfish.consoletelnet.pwd=admin
+-Dorg.knopflerfish.consoletelnet.port=23
+
 -init
 
 ## Basic KF bundles
