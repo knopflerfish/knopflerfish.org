@@ -26,7 +26,7 @@ JUnit allows developers to write unit tests by writing classes
 implementing junit.framework.Test, e.g TestCase, TestSuite etc.
 
 As long as these test do not depend on a running framework, they
-are easy to test using normal tools, but when they depend on the
+are easy to run using normal tools, but when they depend on the
 framework, the standard test running tools become insufficient.
 
 Thus, the junit bundle allows remote access to test cases running
