@@ -221,7 +221,7 @@ public class SystemBundle extends BundleImpl {
    */
   synchronized public void update(InputStream in) throws BundleException {
     framework.checkAdminPermission();
-    Main.shutdown(2);
+    Main.restart();
   }
 
 
