@@ -63,7 +63,7 @@
  <property name = "export.service"        value = "${bundle.emptystring}"/>
  <property name = "import.service"        value = "${bundle.emptystring}"/>
  <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
- <property name = "bundle.dynamicimport"  value = "${bundle.emptystring}"/>
+ <property name = "dynamicimport.packaget"  value = "${bundle.emptystring}"/>
  <property name = "bundle.nativecode"     value = "${bundle.emptystring}"/>
 
  <property name = "bundle.icon"           value = "${bundle.emptystring}"/>
@@ -354,7 +354,7 @@
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${bundle.dynamicimport}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
     
   </bundlemanifest>
@@ -484,7 +484,7 @@
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${bundle.dynamicimport}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
   </bundlemanifest>
 
@@ -553,7 +553,7 @@
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${bundle.dynamicimport}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
   </bundlemanifest>
 
