@@ -743,6 +743,7 @@ an attribute or enumeration description.
   <td><code>&lt;xsd:element name="<b>NAME</b>" type="xsd:integer"/&gt;
   <td>java.math.BigInteger</td>
   <td>
+If running on a JVM without the <tt>BigInteger</tt> class, <tt>long</tt> is used instead.
   </td>
  </tr>
 
@@ -751,6 +752,7 @@ an attribute or enumeration description.
   <td><code>&lt;xsd:element name="<b>NAME</b>" type="xsd:decimal"/&gt;</code>
   <td>java.math.BigDecimal</td>
   <td>
+If running on a JVM without the <tt>BigDecimal</tt> class, <tt>double</tt> is used instead.
   </td>
  </tr>
 
