@@ -6,5 +6,5 @@ See  http://www.knopflerfish.org
 
 Current branches:
 
- wip  - Work in progress. Might not even compile.
+ wip  - Work in progress. Might not even compile. (r132)
 
