@@ -4,10 +4,11 @@
         xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
         xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
 
- <metatype:services>
-
   <xsd:schema >
-   <xsd:complexType name="org.knopflerfish.util.metatype.SystemMetatypeProvider">
+   <xsd:complexType 
+     name      = "org.knopflerfish.util.metatype.SystemMetatypeProvider"
+     maxOccurs = "1">
+
     <xsd:annotation>
      <xsd:documentation>Settings for the system metatype provider
      </xsd:documentation>
@@ -29,8 +30,6 @@
     </xsd:complexType>
    </xsd:complexType> 
   </xsd:schema>
-
- </metatype:services>
 
 </metatype:metatype>
 

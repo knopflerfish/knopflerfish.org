@@ -65,6 +65,7 @@ public class Loader {
   static final String SERVICES      = "services";
   static final String FACTORIES     = "factories";
   static final String VALUES        = "values";
+  static final String SCHEMA        = "schema";
 
   static final String ITEM          = "item";
 
@@ -174,6 +175,21 @@ public class Loader {
 	factories = parseServices(childEl, true);
       } else if(isName(childEl, METATYPE_NS, VALUES)) {
 	bHasDefValues = true;
+      } else if(isName(childEl, XSD_NS, SCHEMA)) {
+	CMConfig[] any = parseSchema(childEl);
+	List sa = new ArrayList();
+	List fa = new ArrayList();
+	for(int i = 0; i < any.length; i++) {
+	  if(any[i].bFactory) {
+	    fa.add(any[i]);
+	  } else {
+	    sa.add(any[i]);
+	  }
+	}
+	services = new CMConfig[sa.size()];
+	sa.toArray(services);
+	factories = new CMConfig[fa.size()];
+	fa.toArray(factories);
       } else {
 	throw new XMLException("Unexpected element", el);
       }
@@ -443,10 +459,13 @@ public class Loader {
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
 
-      CMConfig conf = parseSchema(childEl);
-      conf.bFactory = bFactory;
+      CMConfig[] conf = parseSchema(childEl);
+      if(conf.length == 0) {
+	throw new XMLException("No lements in schema", childEl);
+      }
+      conf[0].bFactory = bFactory;
 
-      list.add(conf);
+      list.add(conf[0]);
     }
 
     CMConfig[] ads = new CMConfig[list.size()];
@@ -462,13 +481,17 @@ public class Loader {
    * Each schema element must contain exacly one child "xsd:complexType"
    * </p>
    */
-  private static CMConfig parseSchema(XMLElement el) {
+  private static CMConfig[] parseSchema(XMLElement el) {
 
     assertTagName(el, XSD_NS, "schema"); 
 
+    /*
     if(el.getChildrenCount() != 1) {
       throw new XMLException("service/factory schema must contain exacly one xsd.complexType", el);
     }
+    */
+
+    List v = new ArrayList();
 
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
@@ -480,15 +503,22 @@ public class Loader {
       if("".equals(iconURL)) {
 	iconURL = null;
       }
-      return new CMConfig(childEl.getAttribute(ATTR_NAME).toString(), 
-			  ads,
-			  an != null ? an.doc : "",
-			  iconURL,
-			  false);
+      int maxOccurs = childEl.getAttribute(ATTR_MAXOCCURS, 1);
+
+      String name = childEl.getAttribute(ATTR_NAME).toString();
+      
+      //      System.out.println("load " +  name + ", maxOccurs=" + maxOccurs);
+
+      v.add(new CMConfig(name,
+			 ads,
+			 an != null ? an.doc : "",
+			 iconURL,
+			 maxOccurs > 1));
     }
 
-    throw new XMLException("parseSchema", el);
-
+    CMConfig[] r = new CMConfig[v.size()];
+    v.toArray(r);
+    return r;
   }
 
   /**
