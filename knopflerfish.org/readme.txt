@@ -2,7 +2,7 @@
 **  This is the subversion repository for  
 **  Knopflerfish OSGi.
 **  http://www.knopflerfish.org
-*******************************************
+********************************************
 
    trunk     -   main development trunk
    branches  -   misc development branches
