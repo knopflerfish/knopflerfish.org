@@ -531,6 +531,7 @@ class ConfigurationAdminFactory
       throwIfDeleted();
       ConfigurationDictionary.validateDictionary(properties);
 
+
       ConfigurationDictionary old = this.properties;
 
       if(properties == null) {

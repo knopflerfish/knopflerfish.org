@@ -27,8 +27,13 @@ public class Activator implements BundleActivator {
   
   private ServiceRegistration serviceRegistration;
 
+  static boolean R3_TESTCOMPLIANT = false;
+
   public void start(BundleContext bc) throws BundleException {
     this.bc = bc;
+    
+    R3_TESTCOMPLIANT = "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant", "false").toLowerCase());
+    
     throwIfBundleContextIsNull();
     createLogRef();
     createAndRegisterConfigurationAdminFactory();
@@ -87,7 +92,6 @@ public class Activator implements BundleActivator {
   }
 
   static boolean r3TestCompliant() {
-    String r3testCompliant = System.getProperty("org.knopflerfish.osgi.r3.testcompliant", "false").toLowerCase();
-    return r3testCompliant.equals("true");
+    return R3_TESTCOMPLIANT;
   }
 }
