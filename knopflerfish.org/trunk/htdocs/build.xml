@@ -111,6 +111,14 @@
       <param name="CLASS_NAVIGATION_COMP" value="navigation_disabled"/>
     </antcall>
 
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/contacts_main.html"/>
+      <param name="tofile"   value="contacts.html"/>
+      <param name="title"    value="Knopflerfish contacts"/>
+      <param name="desc"     value="Caontact information for the Knopflerfish project"/>
+      <param name="CLASS_NAVIGATION_CONTACTS" value="navigation_disabled"/>
+    </antcall>
+
 
   </target>
 
