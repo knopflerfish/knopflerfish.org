@@ -43,7 +43,7 @@ import javax.swing.border.*;
 
 public class JGraph extends JPanel {
   Color bgColor   = new Color(255, 255, 255);
-  Color gridColor = new Color(200, 200, 200);
+  Color gridColor = new Color(220, 220, 220);
   Color lineColor = new Color(0,   0,   0);
   Color textColor = new Color(100, 100, 100);
 
