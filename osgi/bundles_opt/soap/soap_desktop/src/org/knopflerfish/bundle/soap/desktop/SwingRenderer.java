@@ -131,7 +131,7 @@ public class SwingRenderer {
 
 
     if(msg_in.getParts().size() > 0) {
-      inComp.setBorder(BorderFactory.createTitledBorder("Web service arguments"));
+      inComp.setBorder(BorderFactory.createTitledBorder("Arguments"));
     }
 
     msgPanel.add(inComp);
@@ -235,7 +235,10 @@ public class SwingRenderer {
 				 Object result) {
     
     if(names == null || names.size() == 0) {
-      throw new RuntimeException("no names found");
+      if(result == null) {
+	return new MyLabel("empty result");
+      }
+      throw new RuntimeException("no names found, object=" + result);
     }
 
     if(result == null) {
