@@ -151,6 +151,9 @@ public class Desktop
 
   JButton viewSelection;
 
+  static Point     frameLocation = null;
+  static Dimension frameSize     = null;
+
   public Desktop() {
   }
 
@@ -211,12 +214,12 @@ public class Desktop
     Map    props = Activator.getSystemProperties();
     String spid  = (String)props.get("org.osgi.provisioning.spid");
 
-    if(spid != null && !"".equals(spid)) {
-      rName = rName + " " + spid;
+    if(spid == null) {
+      spid = "";
     }
     
     
-    frame       = new JFrame(Strings.fmt("frame_title", rName));
+    frame       = new JFrame(Strings.fmt("frame_title", rName, spid));
     
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {
@@ -288,13 +291,21 @@ public class Desktop
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
 
-    
+    if(frameLocation != null) {
+      frame.setLocation(frameLocation);
+    }
+    if(frameSize != null) {
+      frame.setSize(frameSize);
+    }
     frame.setJMenuBar(menuBar = makeMenuBar());
+
+       
 
     setIcon(frame, "/fish");
 
     frame.pack();
     frame.show();
+    frame.toFront();
 
     String dispFilter1 = 
       "(&" + 
@@ -1886,6 +1897,9 @@ public class Desktop
   }
   
   public void stop() {
+    frameLocation = frame.getLocationOnScreen();
+    frameSize     = frame.getSize();
+
     alive = false;
 
     slTracker.close();
