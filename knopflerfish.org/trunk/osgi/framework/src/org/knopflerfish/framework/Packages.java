@@ -208,6 +208,9 @@ class Packages {
 	  if (force) {
 	    p.provider = null;
 	    p.removeExporter(pe);
+//XXX - begin L-3 modification
+	    p.zombie = false;
+//XXX - end L-3 modification
 	    if (Debug.packages) {
 	      Debug.println("unregisterPackages: forced unregister - " + pe);
 	    }
@@ -420,7 +423,23 @@ class Packages {
    * @return List of bundles affected.
    */
   synchronized Collection getZombieAffected(Bundle [] bundles) {
-    HashSet affected = new HashSet();
+//XXX - begin L-3 modification
+    // set of affected bundles will be in start-level/bundle-id order  
+    TreeSet affected = new TreeSet(new Comparator() {
+      public int compare(Object o1, Object o2) {
+	BundleImpl b1 = (BundleImpl)o1; 
+	BundleImpl b2 = (BundleImpl)o2;
+	int dif  = b1.getStartLevel() - b2.getStartLevel();
+	if (dif == 0) {
+	    dif  = (int)(b1.getBundleId() - b2.getBundleId());
+	}
+	return dif;
+      }
+      public boolean equals(Object o) {
+	return ((o != null) && getClass().equals(o.getClass()));
+      }
+    });
+//XXX - end L-3 modification
     if (bundles == null) {
       if (Debug.packages) {
 	Debug.println("getZombieAffected: check - null");
