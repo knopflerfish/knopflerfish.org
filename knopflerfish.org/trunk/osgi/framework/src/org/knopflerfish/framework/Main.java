@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.security.*;
 import java.net.URL;
@@ -889,17 +890,60 @@ public class Main {
 	}
       }
 
-      String line = null;
-      Properties sysProps = System.getProperties();
-      for(line = in.readLine(); line != null; 
-	  line = in.readLine()) {
-	line = line.trim();
+
+      Properties   sysProps = System.getProperties();
+      StringBuffer contLine = new StringBuffer();
+      String       line     = null;
+      String       tmpline  = null;
+      int          lineno   = 0;
+      for(tmpline = in.readLine(); tmpline != null; 
+	  tmpline = in.readLine()) {
+	lineno++;
+	tmpline = tmpline.trim();
+
+	// check for line continuation char and
+	// build up line until aline without such a mark is found.
+	if(tmpline.endsWith("\\")) {
+	  // found continuation mark, store actual line to 
+	  // buffered continuation line
+	  tmpline = tmpline.substring(0, tmpline.length() - 1);
+	  if(contLine == null) {
+	    contLine = new StringBuffer(tmpline);
+	  } else {
+	    contLine.append(tmpline);
+	  }
+	  // read next line
+	  continue;
+	} else {
+	  // No continuation mark, gather stored line + newly read line
+	  if(contLine != null) {
+	    contLine.append(tmpline);
+	    line     = contLine.toString();
+	    contLine = null;
+	  } else {
+	    // this is the normal case if no continuation char is found
+	    // or any buffered line is found
+	    line = tmpline;   
+	  }
+	}
+
 	if(line.startsWith("-D")) {
 	  // Set system property
 	  int ix = line.indexOf("=");
 	  if(ix != -1) {
 	    String name = line.substring(2, ix);
 	    String val  = line.substring(ix + 1);
+	    
+	    // replace "${syspropname}" with system prop value if found
+	    if(-1 != val.indexOf("${")) {
+	      for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
+		String k = (String)e.nextElement();
+		if(-1 != val.indexOf(k)) {
+		  String sv = (String)sysProps.get(k);
+		  val = Util.replace(val, "${" + k + "}", sv);
+		}
+	      }
+	    }
 	    sysProps.put(name, val);
 	  }
 	} else if(line.startsWith("#")) {
