@@ -8,6 +8,7 @@
     <ant dir="junit"              target="all"/>
     <ant dir="serial"             target="all"/>
     <ant dir="desktop_displayers" target="all"/>
+    <ant dir="oscar-shell"        target="all"/>
   </target>
 
   <target name="clean">
@@ -16,6 +17,7 @@
     <ant dir="junit"              target="clean"/>
     <ant dir="serial"             target="clean"/>
     <ant dir="desktop_displayers" target="clean"/>
+    <ant dir="oscar-shell"        target="clean"/>
   </target>
 
 </project>
