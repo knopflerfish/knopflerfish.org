@@ -10,6 +10,7 @@
     <ant dir="desktop_displayers" target="all"/>
     <ant dir="oscar-shell"        target="all"/>
     <ant dir="jini"               target="all"/>
+    <ant dir="dirdeployer"        target="all"/>
   </target>
 
   <target name="clean">
@@ -20,6 +21,7 @@
     <ant dir="desktop_displayers" target="clean"/>
     <ant dir="oscar-shell"        target="clean"/>
     <ant dir="jini"               target="clean"/>
+    <ant dir="dirdeployer"        target="clean"/>
   </target>
 
 </project>
