@@ -261,7 +261,6 @@ public class Desktop
     
     detailPanel.setBorder(null);
 
-
     //    displayHTML = new BundleInfoDisplayerHTML(this);
 
     
@@ -366,10 +365,17 @@ public class Desktop
 
 	    JFloatable wrapper = new JFloatable(comp, name);
 
+	    // floating windows shouldn't be closed when
+	    // the tabbed pane swaps components
+	    wrapper.setAutoClose(false);
+
 	    disp.setBundleSelectionModel(bundleSelModel);
 
 	    if(bDetail) {
 	      detailMap.put(sr, disp);
+
+	      //	      JPanel wrapper2 = new JPanel(new BorderLayout());
+	      //	      wrapper2.add(wrapper, BorderLayout.CENTER);
 
 	      detailPanel.addTab(name, icon, wrapper, desc);
 	    } else {
@@ -407,6 +413,11 @@ public class Desktop
 	      }
 	      
 	      if(comp != null) {
+		// Make sure floating windows are closed
+		if(comp instanceof JFloatable) {
+		  ((JFloatable)comp).setAutoClose(true);
+		  ((JFloatable)comp).doUnfloat();
+		}
 		detailPanel.remove(comp);
 	      }
 	      detailMap.remove(sr);
@@ -1860,16 +1871,21 @@ public class Desktop
 
   void updateBundle(Bundle b) {
     try {
-      String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
-      if(location == null || "".equals(location)) {
-	location = b.getLocation();
-      }
-      
-      if(uninstallBundle(b, true)) {
-	refreshBundle(null);
-	Bundle newBundle = Activator.getTargetBC().installBundle(location);
-	if(Util.canBeStarted(newBundle)) {
-	  startBundle(newBundle);
+      if(b == Activator.getBC().getBundle()) {
+	b.update();
+      } else {
+	
+	String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
+	if(location == null || "".equals(location)) {
+	  location = b.getLocation();
+	}
+	
+	if(uninstallBundle(b, true)) {
+	  refreshBundle(null);
+	  Bundle newBundle = Activator.getTargetBC().installBundle(location);
+	  if(Util.canBeStarted(newBundle)) {
+	    startBundle(newBundle);
+	  }
 	}
       }
     } catch (Exception e) {
@@ -2007,6 +2023,14 @@ public class Desktop
     slTracker.close();
     dispTracker.close();
     pkgTracker.close();
+
+    // Make sure floating windows are closed
+    for(int i = 0; i < detailPanel.getTabCount(); i++) {
+      Component comp = detailPanel.getComponentAt(i);
+      if(comp instanceof JFloatable) {
+	((JFloatable)comp).setAutoClose(true);
+      }
+    }
 
     Activator.getTargetBC().removeBundleListener(this);
 
