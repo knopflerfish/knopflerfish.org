@@ -95,4 +95,8 @@ public class SOAPDisplayer implements SwingBundleDisplayer {
   public Icon       getSmallIcon() {
     return null;
   }
+
+  public void       setTargetBundleContext(BundleContext bc) {
+    // noop
+  }
 }
