@@ -1,6 +1,3 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.5.4 
-Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
 Bundle-Name: http_test
 Bundle-SymbolicName: http_test
 Bundle-Version: 1.0.0
@@ -15,9 +12,3 @@ Import-Package: javax.servlet,javax.servlet.http,junit.framework,org.k
  nopflerfish.service.console,org.knopflerfish.service.http_test,org.os
  gi.framework,org.osgi.service.http
 Bundle-UUID: org.knopflerfish:http_test:1.0.0:all
-Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
- n_tests\http_test
-Build-Date: Wed August 25 2004, 19:57:28
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Bundle-APIVendor: 
-

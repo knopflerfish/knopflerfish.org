@@ -1,6 +1,3 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.5.4 
-Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
 Bundle-Name: bundleR3_test
 Bundle-SymbolicName: bundleR3_test
 Bundle-Version: 1.0.0
@@ -10,9 +7,4 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: test
 Bundle-UUID: org.knopflerfish:bundleR3_test:1.0.0:all
-Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
- n_tests\bundleR3_test
-Build-Date: Wed August 25 2004, 19:56:54
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Bundle-APIVendor: 
 
