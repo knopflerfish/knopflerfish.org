@@ -1,6 +1,5 @@
 package org.knopflerfish.bundle.perf.servicereg;
 
-import org.knopflerfish.framework.Main;
 import org.osgi.framework.*;
 import java.io.*;
 import java.util.*;
