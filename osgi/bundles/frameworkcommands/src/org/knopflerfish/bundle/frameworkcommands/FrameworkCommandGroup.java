@@ -307,7 +307,11 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     "arguments in a registered service.",
     "<interface> Service interface",
     "<method>    Method in service to call",
-    "<args>      Arguments to method" };
+    "<args>      Arguments to method. If arguments",
+    "            are on the form \"value::type\", the value",
+    "            will be attempted to created as the",
+    "            specified type",
+  };
 
   public int cmdCall(Dictionary opts, Reader in, PrintWriter out, Session session) {
     int res = 1;
