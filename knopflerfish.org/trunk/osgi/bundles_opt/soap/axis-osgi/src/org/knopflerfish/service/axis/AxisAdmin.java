@@ -43,6 +43,8 @@ public interface AxisAdmin {
    */
   public static final String SOAP_SERVICE_NAME = "SOAP_SERVICE_NAME";
 
+ public static final String SOAP_SERVICE_METHODS = "SOAP.service.methods";
+
   /**
    * Get the currently published service names.
    */
