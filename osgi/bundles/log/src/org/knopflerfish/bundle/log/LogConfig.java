@@ -577,12 +577,20 @@ class LogConfig implements ManagedService{
       String[] bundle=null;
       for(int i= 0 ; i < v.size() ; i++) {
 	try {
-	  bundle= (String[])v.elementAt(i);
+	  String bundleStr= (String)v.elementAt(i);
+	  bundle = new String[] { null, null};
+	  int ix = bundleStr.indexOf(";");
+	  try {
+	    bundle[0] = bundleStr.substring(0, ix).trim();
+	    bundle[1] = bundleStr.substring(ix + 1).trim();
+	  } catch (Exception e) {
+	    throw new IllegalArgumentException("Bundle entries must be in the format location;level");
+	  }
 	}catch(ClassCastException cce){
 	  throw new IllegalArgumentException
 	    ("Wrong type supplied when attempting to set log level for " +
 	     "specific bundle." + 
-	     " Correct type to use is String[].");
+	     " Correct type to use is String.");
 	}
 	if(bundle==null){
 	  throw new IllegalArgumentException
