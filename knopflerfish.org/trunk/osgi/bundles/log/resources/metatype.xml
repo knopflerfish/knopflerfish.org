@@ -4,8 +4,6 @@
         xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
         xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
 
- <metatype:services>
-
   <xsd:schema >
    <xsd:complexType name="org.knopflerfish.bundle.log.LogConfig">
     <xsd:annotation>
@@ -53,7 +51,5 @@
 
    </xsd:complexType> 
   </xsd:schema>
-
- </metatype:services>
 
 </metatype:metatype>
