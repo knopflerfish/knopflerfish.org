@@ -36,8 +36,11 @@ package org.knopflerfish.bundle.desktop.cm;
 
 import java.net.URL;
 import java.io.*;
-import java.util.*;
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
 import org.osgi.framework.*;
+import java.lang.reflect.Array;
 
 
 public class Util {
@@ -156,6 +159,29 @@ public class Util {
     return false;
   }
 
+
+  public static Object[] toArray(Vector v, Class clazz) {
+    if(v == null) {
+      return null;
+    }
+    Object[] array = (Object[])Array.newInstance(clazz, 
+						 v != null ? v.size() : 0);
+    if(v != null) {
+      v.copyInto(array);
+    }
+    return array;
+  }
+
+  public static Vector toVector(Object[] array) {
+    if(array == null) {
+      return null;
+    }
+    Vector v = new Vector();
+    for(int i = 0; array != null && i < array.length; i++) {
+      v.addElement(array[i]);
+    }
+    return v;
+  }
 
  public static String shortLocation(String s) {
     int ix = s.lastIndexOf("/");

@@ -62,8 +62,28 @@ public class JCMProp extends JPanel {
     err  = new JLabel();
     err.setForeground(Color.red);
 
-    if(ad.getCardinality() < 0) {
-      comp = new JVector(ad, (Vector)props.get(ad.getID()), "Vector items");
+    int card     = ad.getCardinality();
+    int maxItems = Integer.MAX_VALUE;
+
+    if(card == Integer.MAX_VALUE ||
+       card == Integer.MIN_VALUE) {
+      maxItems = Integer.MAX_VALUE;
+    } else if(card < 0) {
+      maxItems = -card;
+    } else {
+      maxItems = card;
+    }
+    
+    if(card < 0) {
+      comp = new JVector(ad, 
+			 (Vector)props.get(ad.getID()), 
+			 "Vector items",
+			 maxItems);
+    } else if(card > 0) {
+      comp = new JVector(ad, 
+			 Util.toVector((Object[])props.get(ad.getID())), 
+			 "Array items",
+			 maxItems);
     } else {
       switch(ad.getType()) {
       case AttributeDefinition.STRING:
@@ -81,16 +101,12 @@ public class JCMProp extends JPanel {
     add(err,  BorderLayout.SOUTH);
     
     Object obj = props.get(ad.getID());
-    if(obj == null) {
-      if(ad.getCardinality() < 0) {
-	obj = new Vector();
-      }
-    }
+
     //    System.out.println(ad.getID() + "=" + obj + " " + (obj != null ? obj.getClass().getName() : "null"));
-    if(obj instanceof Vector) {
-      setValue(obj);
-    } else {
+    if(ad.getCardinality() == 0) {
       setValue(AD.toString(obj != null ? obj : ad.getDefaultValue()));
+    } else {
+      // done in constructor for JVector
     } 
   }
   
@@ -105,7 +121,7 @@ public class JCMProp extends JPanel {
   public void setValue(Object obj) {
     if(comp instanceof JVector) {
       JVector jv = (JVector)comp;
-      jv.setVector((Vector)obj);
+      jv.setValue(obj);
     } else {
       String s = AD.toString(obj);
       if(comp instanceof JTextField) {
@@ -122,7 +138,11 @@ public class JCMProp extends JPanel {
     String s = null;
     if(comp instanceof JVector) {
       JVector jv = (JVector)comp;
-      s  = AD.toString(jv.getVector());
+      if(ad.getCardinality() < 0) {
+	s  = AD.toString(jv.getVector());
+      } else {
+	s  = AD.toString(jv.getArray());
+      }
     } else if(comp instanceof JTextField) {
       JTextField text = (JTextField)comp;
       s = text.getText();

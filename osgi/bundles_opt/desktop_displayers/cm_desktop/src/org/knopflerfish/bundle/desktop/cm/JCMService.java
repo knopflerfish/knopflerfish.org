@@ -122,24 +122,36 @@ public class JCMService extends JPanel {
       for(int i = 0; i < ads.length; i++) {
 	AttributeDefinition ad = ads[i];
 
-	JCMProp jcmProp = new JCMProp(ad, configProps);
+	JLabelled item = null;
 
-	props.put(ad.getID(), jcmProp);
-	
-	String className = AD.getClass(ad.getType()).getName();
-	
-	if(ad.getCardinality() < 0) {
-	  className = "Vector of " + className;
-	} else if(ad.getCardinality() > 0) {
-	  className = className + "[]";
+	try {
+	  JCMProp jcmProp = new JCMProp(ad, configProps);
+	  
+	  props.put(ad.getID(), jcmProp);
+	  
+	  String className = AD.getClass(ad.getType()).getName();
+	  
+	  if(ad.getCardinality() < 0) {
+	    className = "Vector of " + className;
+	  } else if(ad.getCardinality() > 0) {
+	    className = className + "[]";
+	  }
+	  item = 
+	    new JLabelled(ad.getName(), 
+			  ad.getDescription() +  
+			  " (" + className + ")",
+			  jcmProp,
+			  100);
+	  
+	} catch (Exception e) {
+	  Activator.log.error("Failed to create ui for " + ad, e);
+	  item = 
+	    new JLabelled(ad.getName(), 
+			  ad.getDescription(),
+			  new JLabel(e.getMessage()),
+			  100);
+
 	}
-
-	JLabelled item = 
-	  new JLabelled(ad.getName(), 
-			ad.getDescription() +  
-			" (" + className + ")",
-			jcmProp,
-			100);
 	propPane.add(item);
       }
 
@@ -162,7 +174,7 @@ public class JCMService extends JPanel {
 	    applyConfig(ocd.getID());
 	  }
 	});
-      
+      applyButton.setToolTipText("Applies and stores the configuration changes");
 
       
       if(isFactory) {
@@ -217,6 +229,9 @@ public class JCMService extends JPanel {
 	  facdelButton.setToolTipText("Delete the selected factory configuration");
 	  facdelButton.addActionListener(new ActionListener() {
 	      public void actionPerformed(ActionEvent ev) {
+		if(factoryPid == null) {
+		  factoryPid = (String)fbox.getSelectedItem();
+		}
 		deleteFactoryPid(factoryPid);
 	      }
 	    });
