@@ -53,11 +53,12 @@ public class JNumber extends JPanel {
   AttributeDefinition ad;
 
   JTextField text;
-  JSlider    slider;
+  JSlider    slider = null;
 
   double max;
   double min;
   
+  boolean bUseSlider = false;
 
   static final int RANGE = 1000;
 
@@ -66,7 +67,9 @@ public class JNumber extends JPanel {
     this.ad       = _ad;
     
     text = new JTextField();
-    slider = new JSlider();
+    if(bUseSlider) {
+      slider = new JSlider();
+    }
 
     switch(ad.getType()) {
     case AttributeDefinition.INTEGER:
@@ -94,12 +97,15 @@ public class JNumber extends JPanel {
     }
 
     text   = new JTextField("");
-    slider = new JSlider(0, RANGE);
+    if(bUseSlider) {
+      slider = new JSlider(0, RANGE);
+    }
 
     text.setPreferredSize(new Dimension(50, 10));
     add(text,   BorderLayout.WEST);
-    add(slider, BorderLayout.CENTER);
-
+    if(slider != null) {
+      add(slider, BorderLayout.CENTER);
+    }
     text.addActionListener(new ActionListener() {
 	public void actionPerformed(ActionEvent ev) {
 	  Number n = (Number)AD.parse(text.getText(), 0, ad.getType());
@@ -107,28 +113,30 @@ public class JNumber extends JPanel {
 	}
       });
 
-    slider.addChangeListener(new ChangeListener() {
-	public void stateChanged(ChangeEvent e) {
-	  int v = slider.getValue();
-	  switch(ad.getType()) {
-	  case AttributeDefinition.INTEGER:
-	  case AttributeDefinition.SHORT:
-	  case AttributeDefinition.LONG: 
-	    {
-	      long val = (long)(min + (max-min) * (double)v / RANGE);
-	      text.setText(Long.toString(val));
+    if(slider != null) {
+      slider.addChangeListener(new ChangeListener() {
+	  public void stateChanged(ChangeEvent e) {
+	    int v = slider.getValue();
+	    switch(ad.getType()) {
+	    case AttributeDefinition.INTEGER:
+	    case AttributeDefinition.SHORT:
+	    case AttributeDefinition.LONG: 
+	      {
+		long val = (long)(min + (max-min) * (double)v / RANGE);
+		text.setText(Long.toString(val));
+	      }
+	      break;
+	    case AttributeDefinition.DOUBLE:
+	    case AttributeDefinition.FLOAT:
+	      {
+		double val = min + (max - min) * (double)v / RANGE;
+		text.setText(Double.toString(val));
+	      }
+	      break;
 	    }
-	    break;
-	  case AttributeDefinition.DOUBLE:
-	  case AttributeDefinition.FLOAT:
-	    {
-	      double val = min + (max - min) * (double)v / RANGE;
-	      text.setText(Double.toString(val));
-	    }
-	    break;
 	  }
-	}
-      });
+	});
+    }
   }
   
   void syncUI() {
@@ -164,7 +172,9 @@ public class JNumber extends JPanel {
       double val = n.doubleValue();
       // double val = min + (max - min) * (double)v / RANGE;
       int v = (int)(RANGE * (val - min) / (max - min));
-      slider.setValue(v);
+      if(slider != null) {
+	slider.setValue(v);
+      }
       text.setText(n.toString());
     } else {
       throw new IllegalArgumentException("Value is not a Number, is "  + 
