@@ -135,7 +135,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   public void valueChanged(long bid) {
     //    System.out.println(getClass().getName() + ".valueChanged " + (b != null ? ("#" + b.getBundleId()) : "null"));
-    repaintComponents();
+    //    repaintComponents();
   }
 
   public BundleSelectionModel getBundleSelectionModel() {

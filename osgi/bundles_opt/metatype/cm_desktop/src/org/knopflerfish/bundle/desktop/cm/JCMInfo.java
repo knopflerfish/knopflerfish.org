@@ -75,7 +75,6 @@ public class JCMInfo extends JPanel {
     main.removeAll();
 
     if(mtp != null) {
-      
       servicePIDBox = null;
       factoryPIDBox = null;
       
@@ -147,34 +146,40 @@ public class JCMInfo extends JPanel {
 	}
       }
     } else {
-      JHTML jhtml = new JHTML();
-      StringBuffer sb = new StringBuffer();
-      sb.append("<html>");
-      sb.append("<table border=0 width=\"100%\">\n");
-      sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-      Util.startFont(sb, "-1");
-      sb.append(getBundleSelectedHeader(bundle));
-      sb.append("</font>\n");
-      sb.append("</td>\n");
-      sb.append("</tr>\n");
-      sb.append("</table>\n");
+      try {
+	StringBuffer sb = new StringBuffer();
+	sb.append("<html>\n");
+	sb.append("<body>\n");
+	sb.append("<table border=0 width=\"100%\">\n");
+	sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+	Util.startFont(sb, "-1");
+	sb.append(getBundleSelectedHeader(bundle));
+	sb.append("</font>\n");
+	sb.append("</td>\n");
+	sb.append("</tr>\n");
+	sb.append("</table>\n");
+	
+	sb.append("<p>");
+	Util.startFont(sb, "-2");
+	sb.append("No CM metatype found in bundle.<br>");
+	sb.append("<p>See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.</p>");
+	sb.append("<p>The ");
+	Util.bundleLink(sb, Activator.bc.getBundle(0));
+	sb.append(" shows all available configurations</p>");
+	sb.append("</font>");
+	sb.append("</p>");
+	
+	
+	sb.append("</body>\n");
+	sb.append("</html>\n");
 
-      sb.append("<p>");
-      Util.startFont(sb, "-2");
-      sb.append("No CM metatype found in bundle.<br>");
-      sb.append("<p>See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.</p>");
-      sb.append("<p>The ");
-      Util.bundleLink(sb, Activator.bc.getBundle(0));
-      sb.append(" shows all available configurations</p>");
-      sb.append("</font>");
-      sb.append("</p>");
-      
-      
-      sb.append("</html>\n");
-      
-      jhtml.setHTML(sb.toString());
-      
-      main.add(jhtml, BorderLayout.CENTER);
+	JHTML jhtml = new JHTML(sb.toString());
+
+	main.add(jhtml, BorderLayout.CENTER);
+	
+      } catch (Exception e) {
+	e.printStackTrace();
+      }
     }
     invalidate();
     revalidate();
@@ -218,14 +223,19 @@ class JHTML extends JPanel {
   JScrollPane scroll;
 
   JHTML() {
+    this("");
+  }
+
+  JHTML(String s) {
     super(new BorderLayout());
 
     html = new JTextPane();
-    html.setText("");
+    html.setEditable(false); // need o set this explicitly to fix swing 1.3 bug
+    html.setCaretPosition(0);
     html.setContentType("text/html");
-    
-    html.setEditable(false);
-    
+    html.setText(s);
+    html.setCaretPosition(0);
+
     html.addHyperlinkListener(new HyperlinkListener() 
       {
 	public void hyperlinkUpdate(HyperlinkEvent ev) {
@@ -245,6 +255,7 @@ class JHTML extends JPanel {
 	  }
 	}
       });
+
     scroll = 
       new JScrollPane(html, 
 		      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -254,17 +265,24 @@ class JHTML extends JPanel {
     
     add(scroll, BorderLayout.CENTER);
   }
-
+  
   void setHTML(String s) {
-    html.setText(s);
-    
+    try {
+      html.setText(s);
+    } catch (Exception e) {
+      Activator.log.error("Failed to set html", e);
+    }
     SwingUtilities.invokeLater(new Runnable() {
 	public void run() {
-	  JViewport vp = scroll.getViewport();
-	  if(vp != null) {
-	    vp.setViewPosition(new Point(0,0));
-	    scroll.setViewport(vp);
-	  }  
+	  try {
+	    JViewport vp = scroll.getViewport();
+	    if(vp != null) {
+	      vp.setViewPosition(new Point(0,0));
+	      scroll.setViewport(vp);
+	    }  
+	  } catch (Exception e) {
+	    Activator.log.error("Failed to set html", e);
+	  }
 	}
       });
   }

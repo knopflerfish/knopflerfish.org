@@ -69,13 +69,15 @@ public class Activator implements BundleActivator {
     mtpTracker = new ServiceTracker(bc, SystemMetatypeProvider.class.getName(), null);
     mtpTracker.open();
 
-    try {
+    /*
+      try {
 
       
       test();
     } catch (Exception e) {
       e.printStackTrace();
     }
+    */
   }
 
   static MTP getMTP(Bundle b) {
