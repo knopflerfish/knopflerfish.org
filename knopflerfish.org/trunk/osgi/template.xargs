@@ -67,7 +67,7 @@
 -install useradmin/useradmin_all-1.0.0.jar
 
 -initlevel 4
--install http/http_all-1.0.0.jar
+-install http/http_all-1.1.0.jar
 
 ## console command bundles
 -initlevel 5
@@ -108,7 +108,7 @@ $(WINDOWS_BUNDLES)
 -start logcommands/logcommands-1.0.0.jar
 -start cm_cmd/cm_cmd-1.0.0.jar
 -start desktop/desktop_all-1.1.0.jar
--start http/http_all-1.0.0.jar
+-start http/http_all-1.1.0.jar
 -start httproot/httproot-1.0.0.jar
 
 
