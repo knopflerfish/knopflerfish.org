@@ -108,6 +108,8 @@ response.buffer.size.default (Integer)
 RELEASE NOTES:
 ==============
 [te 20040822] - added HTTPS support to existing bundle. 
-  Whenever applicable this bundle will now use an external 
-  SslServerSocketFactory service to listen on the HTTPS (secure) port.
+    Whenever applicable this bundle will now use an external 
+    SslServerSocketFactory service to listen on the HTTPS (secure) port.
+  - removed non-standard dependencies to the KF's log, user admin 
+    and others. 
 
