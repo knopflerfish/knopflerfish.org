@@ -774,7 +774,7 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
  <tr>
   <td>bundle.description</td>
   <td>Description of bundle. Will be stored in manifest as "Bundle-Description"
-      <br>Default value is " "
+      <br>Default value is empty
  </td>
  </tr>
 
@@ -782,7 +782,7 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
  <tr>
   <td>bundle.icon</td>
   <td>Optional URL to bundle icon, used by the desktop. Will be stored
-      in manifest as "Application-Icon". <br>Default value is " "</td>
+      in manifest as "Application-Icon". <br>Default value is empty</td>
  </tr>
 
  <tr>
@@ -823,6 +823,22 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
   <td>export.package</td>
   <td>Comma-separated list of packages. Will be stored in manifest as "Export-Package". 
   <br>Default value is automatically derived from bundle classes in API code
+  </td>
+ </tr>
+
+ <tr>
+  <td>dynamicimport.package</td>
+  <td>Comma-separated list of dynamic import packages. Will be stored in 
+  manifest as "DynamicImport-Package". 
+  <br>Default value is empty
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.nativecode</td>
+  <td>Comma-separated list of native code specifications. Will be stored in 
+  manifest as "Bundle-NativeCode". 
+  <br>Default value is empty
   </td>
  </tr>
 
