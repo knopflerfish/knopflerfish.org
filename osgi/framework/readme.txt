@@ -305,6 +305,30 @@ Framework System Properties
      Default: false
 
 
+Using a HTTP proxy
+==================
+
+The standard JVM system properties
+
+ http.proxyHost
+ http.proxyPort
+ http.nonProxyHosts 
+
+should be used to set proxy information. This will be global to 
+all HTTP request from all bundles and the framework.
+
+Additionally, the KF-specific system property
+
+ http.proxyAuth
+
+can be set to a value on the form user:password
+
+If set to non-empty, this will add the 
+Proxy-Authorization header to bundle install http/https requests 
+made from the framework, However, bundles using the URL class internally
+must explictly set this header themselves.
+
+
 System properties fot the KF Http service
 =========================================
 
