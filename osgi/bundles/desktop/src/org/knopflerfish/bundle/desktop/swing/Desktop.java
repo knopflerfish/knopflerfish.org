@@ -128,6 +128,7 @@ public class Desktop
   ImageIcon          connectIconLarge;
 
   ImageIcon          tipIcon;
+  ImageIcon          floatIcon;
 
   JToolBar           toolBar;
   StatusBar          statusBar;
@@ -210,6 +211,7 @@ public class Desktop
 
 
     tipIcon     = new ImageIcon(getClass().getResource("/idea.png"));
+    floatIcon   = new ImageIcon(getClass().getResource("/float.png"));
 
     lfManager = new LFManager();
     lfManager.init();
@@ -275,9 +277,12 @@ public class Desktop
     splitPaneHoriz.setOneTouchExpandable(false);
 
 
+    JFloatable consoleWrapper = 
+      new JFloatable(consoleSwing.getJComponent(), "Console");
+
     splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 			       splitPaneHoriz,
-			       consoleSwing.getJComponent());
+			       consoleWrapper);
 
     splitPane.setDividerLocation(300);
     splitPane.setOneTouchExpandable(false);
@@ -358,13 +363,15 @@ public class Desktop
 				  false);
 	    
 	    JComponent comp = disp.createJComponent();
-	    
+
+	    JFloatable wrapper = new JFloatable(comp, name);
+
 	    disp.setBundleSelectionModel(bundleSelModel);
 
 	    if(bDetail) {
 	      detailMap.put(sr, disp);
 
-	      detailPanel.addTab(name, icon, comp, desc);
+	      detailPanel.addTab(name, icon, wrapper, desc);
 	    } else {
 	      displayMap.put(sr, disp);
 	      
