@@ -129,6 +129,7 @@ public class Strings {
 
 	  put("menu_refreshbundles", "Refresh bundle packages");
 	  
+	  put("str_fwinfo", "Framework info");
 	  put("str_about", "About");
 	  put("str_abouttext", 
 	      "Knopflerfish OSGi desktop, version $(1)\n" + 

@@ -52,6 +52,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -1151,6 +1152,19 @@ public class Desktop
 		  });
 	      }
 	    });
+
+	  add(new JSeparator());
+
+	  add(new JMenuItem(Strings.get("str_fwinfo")) {
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      showInfo();
+		    }
+		  });
+	      }
+	    });
+
 	}
       };
   }
@@ -1923,6 +1937,34 @@ public class Desktop
   void updateStatusBar() {
   }
 
+
+  void showInfo() {
+    JTextPane html = new JTextPane();
+
+    html.setContentType("text/html");
+    
+    html.setEditable(false);
+
+    html.setText(Util.getSystemInfo());
+
+    final JScrollPane scroll = new JScrollPane(html);
+    scroll.setPreferredSize(new Dimension(420, 300));
+    SwingUtilities.invokeLater(new Runnable() {
+	public void run() {
+	  JViewport vp = scroll.getViewport();
+	  if(vp != null) {
+	    vp.setViewPosition(new Point(0,0));
+	    scroll.setViewport(vp);
+	  }  
+	}
+      });
+
+    JOptionPane.showMessageDialog(frame, 
+				  scroll, 
+				  "Framework info",
+				  JOptionPane.INFORMATION_MESSAGE,
+				  null);
+  }
 
   void showVersion() {
     String version = "1.1.1";
