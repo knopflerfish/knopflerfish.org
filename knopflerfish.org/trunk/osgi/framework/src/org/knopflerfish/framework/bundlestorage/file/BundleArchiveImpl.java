@@ -250,7 +250,7 @@ class BundleArchiveImpl implements BundleArchive
   public void setPersistent(boolean b) throws IOException {
     if (bPersistant != b) {
       bPersistant = b;
-      putContent(PERSISTENT_FILE, Boolean.toString(b));
+      putContent(PERSISTENT_FILE, b ? "true" : "false");
     }
   }
 
