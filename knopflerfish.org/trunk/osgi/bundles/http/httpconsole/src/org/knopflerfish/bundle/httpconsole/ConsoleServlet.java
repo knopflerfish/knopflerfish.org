@@ -314,6 +314,10 @@ public class ConsoleServlet extends HttpServlet {
   boolean checkLogin(HttpServletRequest  request, 
 		     HttpServletResponse response) throws IOException {
 
+    if(!bRequireLogin) {
+      return true;
+    }
+
     HttpSession session = request.getSession();
 
     if(null != request.getParameter(LOGOUT_CMD)) {
