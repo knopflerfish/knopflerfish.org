@@ -22,7 +22,7 @@ This directory contains support for JUnit testing on a running framework.
 
 Requirements:
 
-The junit bundle does not require any other bundles (as or revision 737)
+The junit bundle does not require any other bundles (as of revision 737)
 but can use the HTTP server and the KF console to make test access easier.
 
  - optionally http server (used dynically by the server part)
