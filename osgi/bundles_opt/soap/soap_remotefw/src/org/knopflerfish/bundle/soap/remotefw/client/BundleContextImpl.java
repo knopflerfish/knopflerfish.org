@@ -92,7 +92,7 @@ public class BundleContextImpl implements BundleContext {
     if(bDebug) {
       System.out.println("doFrameworkEvents " + evs.length);
     }
-    for(int i = 0; i < evs.length; i++) {
+    for(int i = 0; i < evs.length / 2; i++) {
       FrameworkEvent ev = new FrameworkEvent((int)evs[i * 2],
 					     getBundle(evs[i*2 + 1]),
 					     null);
@@ -106,7 +106,7 @@ public class BundleContextImpl implements BundleContext {
     if(bDebug) {
       System.out.println("doServiceEvents " + evs.length);
     }
-    for(int i = 0; i < evs.length; i++) {
+    for(int i = 0; i < evs.length / 2; i++) {
       long             sid  = evs[i * 2];
       int              type = (int)evs[i * 2 + 1];
       ServiceReference sr   = getServiceReference(sid);
