@@ -41,7 +41,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 // Gatespace packages
 
 // XML packages (provided by the jaxp bundle)
-import com.sun.xml.parser.*; // Must have this to get import-package right
+//import com.sun.xml.parser.*; // Must have this to get import-package right
 import org.xml.sax.InputSource;
 import org.xml.sax.Parser;
 import org.xml.sax.SAXException;
@@ -221,15 +221,17 @@ public class CMDataManager
     try {
       parser = ParserFactory.makeParser();
     } catch (NullPointerException e) {
+      /*
       try {
         parser = new com.sun.xml.parser.Parser();
       } catch (Exception e1) {
         throw new RuntimeException( "Failed to create XML parser." +e1);
       }
+      */
     } catch (Exception e2) {
       throw new RuntimeException( "Failed to create XML parser." +e2);
     }
-    parser.setEntityResolver( new CmResolver() );
+    //    parser.setEntityResolver( new CmResolver() );
 
 
     InputSource in = new InputSource(is);
@@ -352,6 +354,7 @@ public class CMDataManager
 }// of class CMDataManager
 
 
+/*
 class CmResolver extends Resolver {
   
   public CmResolver() {
@@ -361,3 +364,4 @@ class CmResolver extends Resolver {
     
   }
 } // of class CmResolver
+*/
