@@ -26,9 +26,11 @@
   </path>
   
   
-  <property name="bundle.description"    value="KF Metatype"/>
+  <property name="bundle.name"           value="KF XML Metatype"/>
+  <property name="bundle.description"    value="XML format support for CM and Metatype"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
   <property name="bundle.category"       value="util"/>
+  <property name="bundle.docurl"         value="http://www.knopflerfish.org/XMLMetatype/"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.classpath"      value=".,/nanoxml-2.2.1.jar"/>
 
