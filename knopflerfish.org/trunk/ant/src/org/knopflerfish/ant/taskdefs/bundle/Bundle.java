@@ -50,6 +50,7 @@ import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Utility;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.FileScanner;
@@ -375,10 +376,16 @@ public class Bundle extends Jar {
     for (int i = 0; i < constants.length; i++) {
       Constant constant = constants[i];
       if (constant instanceof ConstantClass) {
-        String referencedClass = ((ConstantClass) constant).getBytes(constantPool);
-        int lastSlashIndex = referencedClass.lastIndexOf('/');
-        if (lastSlashIndex > -1) {
-          String packageName = referencedClass.substring(0, lastSlashIndex).replace('/', '.');
+        ConstantClass constantClass = (ConstantClass) constant;
+        String referencedClass = constantClass.getBytes(constantPool);
+        if (referencedClass.charAt(0) == '[') {
+          referencedClass = Utility.signatureToString(referencedClass, false);
+        } else {
+          referencedClass = Utility.compactClassName(referencedClass, false);
+        }
+        int lastSlashIndex = referencedClass.lastIndexOf('.');
+        if (lastSlashIndex > 0) {
+          String packageName = referencedClass.substring(0, lastSlashIndex);
           referencedPackages.add(packageName);
         }
       }
@@ -419,7 +426,7 @@ public class Bundle extends Jar {
       }
     }
     if (activator != ACTIVATOR_NONE && activator != ACTIVATOR_AUTO) {
-      log("Bundle-Activator set to " + activator, Project.MSG_INFO);
+      log("Bundle-Activator: " + activator, Project.MSG_INFO);
       generatedManifest.addConfiguredAttribute(createAttribute(BUNDLE_ACTIVATOR_KEY, activator));
     }
   }
@@ -482,20 +489,22 @@ public class Bundle extends Jar {
   private void addPackageHeader(String headerName, Map packageMap) throws ManifestException {
     Iterator i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
-      StringBuffer value = new StringBuffer();
+      StringBuffer valueBuffer = new StringBuffer();
       while (i.hasNext()) {
         Map.Entry entry = (Map.Entry) i.next();
         String name = (String) entry.getKey();
         String version = (String) entry.getValue();
-        value.append(name);
+        valueBuffer.append(name);
         if (version != null) {
-          value.append(";specification-version=");
-          value.append(version);
+          valueBuffer.append(";specification-version=");
+          valueBuffer.append(version);
         }
-        value.append(',');
+        valueBuffer.append(',');
       }
-      value.setLength(value.length() - 1);
-      generatedManifest.addConfiguredAttribute(createAttribute(headerName, value.toString()));
+      valueBuffer.setLength(valueBuffer.length() - 1);
+      String value = valueBuffer.toString();
+      generatedManifest.addConfiguredAttribute(createAttribute(headerName, value));
+      log(headerName + ": " + value, Project.MSG_INFO);
     }
   }
 
