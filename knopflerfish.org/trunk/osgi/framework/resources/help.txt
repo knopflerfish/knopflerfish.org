@@ -115,3 +115,11 @@
      otherwise consider
       "x.y.0" > "x.y"
      (Default: true) 
+
+   org.knopflerfish.framework.restart.allow
+     If set to "true", allow restart of framework by calling 
+     getBundle(0).update()
+
+     If "false", exit framework with exit code = 2
+
+     Default is "true"
