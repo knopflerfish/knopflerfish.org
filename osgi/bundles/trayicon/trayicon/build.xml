@@ -40,17 +40,8 @@
   <property name="export.package"       value="org.knopflerfish.service.trayicon"/>
   <property name="import.package"       value="org.osgi.framework,org.knopflerfish.service.log"/>
 
-
-  <property name="do.bundle.custom.post" value=""/>
-
-  <target name="bundle.custom.post">
-    <jar jarfile  = "${all.jar}"  update   = "true">
-     <manifest>
-      <attribute name  = "Bundle-NativeCode"
-                 value = "TrayIcon12.dll;osname=WindowsXP;processor=x86,TrayIcon12.dll;osname=Windows2000;processor=x86,TrayIcon12.dll;osname=Windows98;processor=x86,TrayIcon12.dll;osname=Windows95;processor=x86"/>
-     </manifest>
-    </jar>
-  </target>
+  <property name="bundle.nativecode" 
+            value="TrayIcon12.dll;osname=WindowsXP;processor=x86,TrayIcon12.dll;osname=Windows2000;processor=x86,TrayIcon12.dll;osname=Windows98;processor=x86,TrayIcon12.dll;osname=Windows95;processor=x86"/>
 
 
   &bundlebuild_include;
