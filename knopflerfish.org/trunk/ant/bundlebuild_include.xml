@@ -53,8 +53,8 @@
 
  <property name = "xinclude.source"       value = "true"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
- <property name = "bundle.symbolicname"   value = "${bundle.name}"/>
  <property name = "bundle.uuid"           value = "org.knopflerfish:${bundle.name}:${bundle.version}"/>
+ <property name = "bundle.symbolicname"   value = "${bundle.uuid}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
  <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
