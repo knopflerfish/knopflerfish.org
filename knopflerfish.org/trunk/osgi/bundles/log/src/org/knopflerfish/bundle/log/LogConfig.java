@@ -528,7 +528,11 @@ class LogConfig implements ManagedService{
       valid = true;
     } finally{
       if(!valid){ 
-        updateConfig(); 
+        // Removed call to updateConfig() because all it accomplishes
+        // is to cause an endless loop of ConfigurationAdmin
+        // calling ManagedService.update(Dictionary) on this class
+        // over and over and over with the same invalid Dictionary
+        // updateConfig();
       } else {
         valid=false;
         try {
@@ -542,7 +546,11 @@ class LogConfig implements ManagedService{
         } finally {
           if (!valid) {
             configCollection= rollBack;
-            updateConfig(); 
+            // Removed call to updateConfig() because all it accomplishes
+            // is to cause an endless loop of ConfigurationAdmin
+            // calling ManagedService.update(Dictionary) on this class
+            // over and over and over with the same invalid Dictionary 
+            // updateConfig();
           }
         }
       } 
