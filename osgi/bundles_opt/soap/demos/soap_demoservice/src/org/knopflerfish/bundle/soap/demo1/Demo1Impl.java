@@ -36,6 +36,8 @@ package org.knopflerfish.bundle.soap.demo1;
 
 import org.knopflerfish.service.soap.demo1.*;
 
+import java.util.*;
+
 /**
  * Implementation of the Demo1 service.
  */
@@ -69,4 +71,26 @@ public class Demo1Impl implements Demo1 {
     return sa;
   }
 
+  Hashtable props = new Hashtable() {
+      {
+	put("key1", "value 1");
+	put("key2", "value 2");
+      }
+    };
+
+
+  public Dictionary getDictionary() {
+    return (Hashtable)props.clone();
+  }
+
+  Vector vector = new Vector() {
+      {
+	addElement("item1");
+	addElement("item2");
+	addElement("item3");
+      }
+    };
+  public Vector getVector() {
+    return (Vector)vector.clone();
+  }
 }
