@@ -242,7 +242,7 @@ public abstract class JHTMLBundle extends JPanel  {
 	  StringWriter sw = new StringWriter();
 	  PrintWriter  pr = new PrintWriter(sw);
 	  
-	  printObject(pr, srl[0].getProperty(keys[i]));
+	  Util.printObject(pr, srl[0].getProperty(keys[i]));
 	  
 	  sb.append("<tr>");
 	  sb.append("<td valign=top>");
@@ -488,100 +488,5 @@ public abstract class JHTMLBundle extends JPanel  {
     sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  String fontify(Object o) {
-    return fontify(o, -2);
-  }
-
-  String fontify(Object o, int size) {
-    return "<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">" + o + "</font>";
-  }
   
-  void printObject(PrintWriter out, Object val) throws IOException {
-    if(val == null) {
-      out.println("null");
-    } else if(val.getClass().isArray()) {
-      printArray(out, (Object[])val);
-    } else if(val instanceof Vector) {
-      printVector(out, (Vector)val);
-    } else if(val instanceof Map) {
-      printMap(out, (Map)val);
-    } else if(val instanceof Set) {
-      printSet(out, (Set)val);
-    } else if(val instanceof Dictionary) {
-      printDictionary(out, (Dictionary)val);
-    } else {
-      out.print(fontify(val));
-      //      out.print(" (" + val.getClass().getName() + ")");
-    }
-  }
-  
-  void printDictionary(PrintWriter out, Dictionary d) throws IOException {
-    
-    out.println("<table border=0>");
-    for(Enumeration e = d.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
-      Object val = d.get(key);
-      out.println("<tr>");
-      
-      out.println("<td valign=top>");
-      printObject(out, key);
-      out.println("</td>");
-      
-      out.println("<td valign=top>");
-      printObject(out, val);
-      out.println("</td>");
-      
-      out.println("</tr>");
-    }
-    out.println("</table>");
-  }
-  
-  void printMap(PrintWriter out, Map m) throws IOException {
-    
-    out.println("<table border=0>");
-    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
-      Object key = it.next();
-      Object val = m.get(key);
-      
-      out.println("<tr>");
-      
-      out.println("<td valign=top>");
-      printObject(out, key);
-      out.println("</td>");
-      
-      out.println("<td valign=top>");
-      printObject(out, val);
-      out.println("</td>");
-      
-      out.println("</tr>");
-    }
-    out.println("</table>");
-  }
-  
-  void printArray(PrintWriter out, Object[] a) throws IOException {
-    for(int i = 0; i < a.length; i++) {
-      printObject(out, a[i]);
-      if(i < a.length - 1) {
-	out.println("<br>");
-      }
-    }
-  }
-  
-  void printSet(PrintWriter out, Set a) throws IOException {
-    for(Iterator it = a.iterator(); it.hasNext();) {
-      printObject(out, it.next());
-      if(it.hasNext()) {
-	out.println("<br>");
-      }
-    }
-  }
-  
-  void printVector(PrintWriter out, Vector a) throws IOException {
-    for(int i = 0; i < a.size(); i++) {
-      printObject(out, a.elementAt(i));
-      if(i < a.size() - 1) {
-	out.println("<br>");
-      }
-    }
-  }
 } 
