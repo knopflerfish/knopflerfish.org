@@ -489,10 +489,11 @@ standard <code>xml:lang</code> attribute:
 </p>
 
 <div class="exampleOuter">
-<div class="exampleHeader">Example - localized description</div>
+<div class="exampleHeader">Example - inline, localized description in two languages</div>
 <div class="exampleInner">
 <pre>
-&lt;xsd:annotation&gt;
+&lt;xsd:element   name="string1" type="xsd:string"&gt;
+ &lt;xsd:annotation&gt;
   &lt;xsd:documentation xml:lang="en"&gt;
       This is the English description.
   &lt;/xsd:documentation&gt;
@@ -500,13 +501,23 @@ standard <code>xml:lang</code> attribute:
       Detta är beskrivningen på svenska.
   &lt;/xsd:documentation&gt;
  &lt;/xsd:annotation&gt;
+&lt;/xsd:element&gt;
 </pre>
 
 </div>
 </div>
 
 <p>
-Optionally, the <code>&lt;xsd:appInfo&gt;</code> sub-element to <code>xsd:annotation</code> can be used to specify a key which maps to a localization property file.
+Optionally, the <code>&lt;xsd:appInfo&gt;</code> element can be used to specify a an 
+URL or resource file to localization property file. The <code>appInfo</code>
+should then be set on the object class definition element. 
+Standard file name expansion for locales may be done on
+the URL.
+</p>
+
+<p>
+The key for lookup in the external localization file
+will be the attribute's ID.
 </p>
 <p>
 If the the key is not found, the <code>xsd:documentation</code> will be 
@@ -514,29 +525,38 @@ searched for default values.
 </p>
 
 <div class="exampleOuter">
-<div class="exampleHeader">Example - localized description using keys</div>
+<div class="exampleHeader">Example - external, localized description</div>
 <div class="exampleInner">
 <pre>
-&lt;xsd:annotation&gt;
-  &lt;xsd:appInfo&gt;PROP1_DESC&lt;xsd:/appInfo&gt;
- &lt;/xsd:annotation&gt;
+ &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
+   &lt;xsd:complexType name="service1"&gt;
+    &lt;xsd:annotation&gt;
+     &lt;xsd:appInfo&gt;/settings.props&lt;xsd:/appInfo&gt;
+    &lt;/xsd:annotation&gt;
+
+    &lt;xsd:element   name="string1" type="xsd:string"/&gt;
+
+   ...
+
+</pre>
+<p>
+The file <code>/settings.txt</code> in the bundle jar should then
+contain at least:
+</p>
+<pre>
+string1=This is the description for string1
 </pre>
 
 </div>
 </div>
 
-<p>
-TBD: Define how localization property files should be found. Possibilities
-are:  predefined places in jar file, speced by URL list in metatype XML or
-speced by manifest antries in jar file.
-</p>
-
 </p>
 <a name="6.4"></a><h3>6.4 Supported data types</h3>
 
 <p>
-The <b>name</b> of each service/factory data element represent the name of an
-attribute definition.
+The <b>name</b> of each service/factory data element represent the
+ID of an attribute definition. If nothing else is specified in the element
+annotation, the name of the attribute equals its ID.
 </p>
 
 <p>
