@@ -77,25 +77,29 @@ public class SwingIO extends JPanel {
 
   void setSystemIO() {
 
-    if(!bGrabbed) {
-      try {
+    boolean bDebugClass = "true".equals(System.getProperty("org.knopflerfish.framework.debug.classloader", "false"));
 
-	ConsoleSwing.log(LogService.LOG_DEBUG, "grabbing system I/O...");
-
-	origIn  = System.in;
-	origOut = System.out;
-	origErr = System.err;
-	
-	//	  System.setIn(in);
-	System.setOut(new PrefixPrintStream(out, "[stdout] "));
-	System.setErr(new PrefixPrintStream(out, "[stderr] "));
-
-	bGrabbed = true;
-	ConsoleSwing.log(LogService.LOG_DEBUG, "...grabbed system I/O");
-
-      } catch (Exception e) {
-	ConsoleSwing.log(LogService.LOG_ERROR, "Failed to set IO", e);
-	bGrabbed = false;
+    if(!bDebugClass) {
+      if(!bGrabbed) {
+	try {
+	  
+	  ConsoleSwing.log(LogService.LOG_DEBUG, "grabbing system I/O...");
+	  
+	  origIn  = System.in;
+	  origOut = System.out;
+	  origErr = System.err;
+	  
+	  //	  System.setIn(in);
+	  System.setOut(new PrefixPrintStream(out, "[stdout] "));
+	  System.setErr(new PrefixPrintStream(out, "[stderr] "));
+	  
+	  bGrabbed = true;
+	  ConsoleSwing.log(LogService.LOG_DEBUG, "...grabbed system I/O");
+	  
+	} catch (Exception e) {
+	  ConsoleSwing.log(LogService.LOG_ERROR, "Failed to set IO", e);
+	  bGrabbed = false;
+	}
       }
     }
   }
