@@ -1,4 +1,4 @@
-This a OSGi log wrapper for the Apache Commons Logging API.
+This an OSGi log wrapper for the Apache Commons Logging API.
 
 Any bundle importing from the wrapper bundle can simply use
 
@@ -10,7 +10,7 @@ Any bundle importing from the wrapper bundle can simply use
   log.info("log message");
 
 
-All logging using the commons logging API will be logged on the 
+All log calls using the commons logging API will be logged on the 
 commons-logging bundle log -- not on the calling bundles log!
 
 The log levels are mapped as:
