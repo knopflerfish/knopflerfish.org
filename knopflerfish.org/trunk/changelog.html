@@ -5,11 +5,17 @@ trunk are available each night at
 
    http://www.knopflerfish.org/snapshots/trunk/
 
+2004-12-29: 
+             1.3.3 Release
+
+
 2004-12-21:
  fw:         Fixed FW service listener incorrect behavoir
-             that caused same service listeners instance with
-             different filters to be called for each filter. Only 
-             the last filter should be used according to spec.
+             that could cause same service listeners instance with
+             different filters to be called for each filter. This
+             only happened when the filter cache had been triggered
+             before the listener was added a secondary time.
+
 
  device:     Changed device manager listener setup to match above.
 
