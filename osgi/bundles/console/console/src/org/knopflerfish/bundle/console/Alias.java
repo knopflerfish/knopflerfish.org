@@ -144,6 +144,7 @@ class Alias extends Hashtable {
       "refresh",
       "services",
       "startlevel",
+      "shutdown",
     });
     // shortcuts
     put("fw", new String [] { "/session", "enter", "framework" });
