@@ -8,6 +8,7 @@ public class Activator implements BundleActivator {
 
   public void start(BundleContext bc) {
 
+    System.out.println("WireAdmin implementation not yet done");
     this.bc = bc;
   }
 
