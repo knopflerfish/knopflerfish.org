@@ -50,10 +50,10 @@ import java.lang.reflect.Array;
  * This implementaion uses the nanoxml package.
  * </p>
  * <p>
- * NanoXML is distributed under the zlib/libpng license, which is OSS 
+ * NanoXML is distributed under the zlib/libpng license.<br>
  * See <a href="http://nanoxml.sourceforge.net/orig/copyright.html">http://nanoxml.sourceforge.net/orig/copyright.html</a>
- * for details. (license text is also include in the kf_metatype bundle jar 
- * file)
+ * for details.<br>
+ * The full license text is also include in the kf_metatype bundle jar 
  * </p>
  * Nanoxml is Copyrighted ©2000-2002 Marc De Scheemaecker, All Rights 
  * Reserved. 
