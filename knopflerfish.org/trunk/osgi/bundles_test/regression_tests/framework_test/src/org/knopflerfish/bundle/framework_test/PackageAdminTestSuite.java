@@ -226,11 +226,16 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       for (int i = 0; i < cnt ; i++) {
 	// Update the buRexp bundle
 	try {
-	  buRexp.update();
+	  buRexp.update(bc.getBundle().getResource("resexp_test_all-1.0.0.jar").openStream());;
 	}
 	catch (BundleException bex) {
 	  teststatus  = false;
 	  fail("Got exception: " + bex.getNestedException() + " in FRAME187A:FAIL");
+	}
+	catch (Exception e) {
+	  teststatus  = false;
+	  e.printStackTrace();
+	  fail("Got exception " + e + " + in FRAME187A:FAIL");
 	}
 
 	// Refresh packages 
