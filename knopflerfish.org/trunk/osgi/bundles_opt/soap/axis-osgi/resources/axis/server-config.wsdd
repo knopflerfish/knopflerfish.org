@@ -4,13 +4,14 @@
             xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
             xmlns:handler="http://xml.apache.org/axis/wsdd/providers/handler">
 
+ <handler type="java:org.knopflerfish.axis.OSGiServiceHandler" name="OSGiServiceHandler"/>
+
  <globalConfiguration>
  </globalConfiguration>
 
- <!--handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/-->
+ <handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/>
  <!--handler type="java:org.apache.axis.transport.local.LocalResponder" name="LocalResponder"/!-->
  <!--handler type="java:org.apache.axis.handlers.SimpleAuthenticationHandler" name="Authenticate"/!-->
- <handler type="java:org.apache.axis.handlers.OSGiServiceHandler" name="OSGiServiceHandler"/>
 
  <!--service name="AdminService" provider="java:MSG">
   <namespace>http://xml.apache.org/axis/wsdd/</namespace>
@@ -19,14 +20,14 @@
   <parameter name="className" value="org.apache.axis.utils.Admin"/>
  </service-->
 
- <!--service name="Version" provider="java:RPC">
+ <service name="Version" provider="java:RPC">
   <parameter name="allowedMethods" value="*"/>
   <parameter name="className" value="org.apache.axis.Version"/>
- </service-->
+ </service>
 
- <transport name="SimpleHTTP">
+ <transport name="http">
   <requestFlow>
-   <!--handler type="URLMapper"/-->
+   <handler type="URLMapper"/>
    <handler type="OSGiServiceHandler"/>
    <!--handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/-->
   </requestFlow>

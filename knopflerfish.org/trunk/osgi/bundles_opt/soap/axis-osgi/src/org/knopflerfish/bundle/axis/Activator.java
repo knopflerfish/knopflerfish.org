@@ -12,27 +12,32 @@ import java.io.InputStream;
 import java.net.URL;
 
 
-public class Activator implements BundleActivator {
+public class Activator extends org.knopflerfish.util.WebApp {
   public static BundleContext axisBundle = null;
-      // Axis server (shared between instances)
   private static AxisServer axisServer = null;
-  private ConfigurationProvider axisConfiguration = null;
 
-  private Server server = null;
+//  private Server server = null;
   
   public static AxisServer getAxisServer() {return axisServer;}
+ 
+  public WebAppDescriptor getWebAppDescriptor() {
+    WebAppDescriptor webApp = new WebAppDescriptor();
+    webApp.servlet = new ServletDescriptor[1];    
+    webApp.context = "/axis";
+    webApp.servlet[0] = new ServletDescriptor("/services",new ServicesServlet());
 
-
+    return webApp;
+  }
+  
   public void start(BundleContext bc) throws BundleException {
     try {
       axisBundle = bc;
       URL url = this.getClass().getResource("/axis/server-config.wsdd");
       InputStream is = url.openStream();
       EngineConfiguration fromBundleResource = new FileProvider(is);
-      axisConfiguration = new ConfigurationProvider(fromBundleResource);
-      axisServer = new AxisServer(axisConfiguration);
-      server = new Server();
-      server.start();
+      ConfigurationProvider axisConfiguration = null;
+      axisServer = new AxisServer(new ConfigurationProvider(fromBundleResource));
+      super.start(bc);
     } catch (Exception e) {
       e.printStackTrace();
       throw new BundleException("Failed to start server");
@@ -41,8 +46,10 @@ public class Activator implements BundleActivator {
   
   public void stop(BundleContext bc) throws BundleException {
     try {
-        server.stop();
+//        server.stop();
+        super.stop(bc);
         axisBundle = null;
+        axisServer = null;
     } catch (Exception e) {
       e.printStackTrace();
       throw new BundleException("Failed to stop server", e);
