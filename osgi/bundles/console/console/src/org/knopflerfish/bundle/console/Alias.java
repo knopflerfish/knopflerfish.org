@@ -116,7 +116,7 @@ class Alias extends Hashtable {
 
     cgalias("/session", new String [] {
       "alias", "echo", "enter", "leave", "help",
-      "prompt", "quit", "source", "unalias", "save", "restore",
+      "prompt", "source", "unalias", "save", "restore",
     });
 
     String aliasFile = System.getProperty("org.knopflerfish.console.alias.file");
