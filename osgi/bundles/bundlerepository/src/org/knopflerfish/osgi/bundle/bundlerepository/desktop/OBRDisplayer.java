@@ -386,8 +386,8 @@ public class OBRDisplayer extends DefaultSwingBundleDisplayer {
 	  private void maybeShowPopup(MouseEvent e) {
 	    if(contextPopupMenu != null && 
 	       (e.isPopupTrigger() || 
-		e.getButton() == MouseEvent.BUTTON2 ||
-		e.getButton() == MouseEvent.BUTTON3)) {
+		e.getButton() == 2 ||
+		e.getButton() == 3)) {
 	      TreePath tp = recordTree.getPathForLocation(e.getX(), e.getY());
 	      if(tp != null) {
 		TreeNode node = (TreeNode)tp.getLastPathComponent();
