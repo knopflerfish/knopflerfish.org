@@ -104,7 +104,7 @@ class LogConfig implements ManagedService{
     initDir();
     configCollection = getDefault();
     configReg = bc.registerService(ManagedService.class.getName(), 
-				   this, configCollection);
+                                   this, configCollection);
   }
   
   private void initDir(){
@@ -134,7 +134,7 @@ class LogConfig implements ManagedService{
       Integer newSize=new Integer(size);
       set(MEM, newSize);
       if(logReaderCallback!=null)
-	logReaderCallback.configChange(MEM, new Integer(oldSize), newSize);
+        logReaderCallback.configChange(MEM, new Integer(oldSize), newSize);
       updateConfig();
     }
   }
@@ -171,13 +171,13 @@ class LogConfig implements ManagedService{
     synchronized (blFilters) {
       Integer f= (Integer)blFilters.get(getCommonLocation(bundleLocation));
       if (filter == 0 && f != null) {
-	blFilters.remove(getCommonLocation(bundleLocation));
-	setCollection(true, bundleLocation, filter);
+        blFilters.remove(getCommonLocation(bundleLocation));
+        setCollection(true, bundleLocation, filter);
       }
       else if ((f != null && filter != f.intValue()) 
-	       || f == null) {
-	blFilters.put(getCommonLocation(bundleLocation), new Integer(filter));
-	setCollection(false, bundleLocation, filter);
+               || f == null) {
+        blFilters.put(getCommonLocation(bundleLocation), new Integer(filter));
+        setCollection(false, bundleLocation, filter);
       }
     }
   } 
@@ -194,37 +194,50 @@ class LogConfig implements ManagedService{
     synchronized (blFilters) {
       level = (Integer)blFilters.get(bundle.getLocation());
       if(level == null){
-	level = (Integer)blFilters.
-	  get(((String)(bundle.getHeaders()).get("Bundle-Name")) +".jar");
+        level = (Integer)blFilters.
+          get(((String)(bundle.getHeaders()).get("Bundle-Name")) +".jar");
       }
     }
     return (level != null) ? level.intValue() : getFilter();
   }
   
+  static String[] getBL(Object obj) {
+    String bundleStr= (String)obj;
+    String[] bundle = new String[] { null, null};
+    int ix = bundleStr.indexOf(";");
+    try {
+      bundle[0] = bundleStr.substring(0, ix).trim();
+      bundle[1] = bundleStr.substring(ix + 1).trim();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Bundle entries must be in the format location;level");
+    }
+    return bundle;
+  }
+
   private void setCollection(boolean remove, String bundleLocation, 
-			     int filter){
+                             int filter){
     synchronized (configCollection) {
       Vector v= (Vector)configCollection.get(BL_FILTERS);
       String[] bundF;
       boolean notFound=true;
       if(v!=null && v.size()>0){
-	for(int i=(v.size()-1); i >= 0 ; i--){
-	  bundF= (String[])v.elementAt(i);
-	  if(getCommonLocation(bundF[LOCATION_POS]).equals
-	     (getCommonLocation(bundleLocation))){
-	    if(remove){
-	      v.removeElementAt(i);
-	    }
-	    else{
-	      bundF[FILTER_POS]=LogUtil.fromLevel(filter);
-	    }
-	    notFound=false;
-	    break;
-	  }
-	}
+        for(int i=(v.size()-1); i >= 0 ; i--){
+          bundF= getBL(v.elementAt(i));
+          if(getCommonLocation(bundF[LOCATION_POS]).equals
+             (getCommonLocation(bundleLocation))){
+            if(remove){
+              v.removeElementAt(i);
+            }
+            else{
+              bundF[FILTER_POS]=LogUtil.fromLevel(filter);
+            }
+            notFound=false;
+            break;
+          }
+        }
       }
       if(notFound && !remove){
-	v.addElement(new String[]{ bundleLocation, LogUtil.fromLevel(filter)});
+        v.addElement(bundleLocation + ";" + LogUtil.fromLevel(filter));
       }
     }
   }
@@ -239,8 +252,8 @@ class LogConfig implements ManagedService{
     if(!DEFAULT_CONFIG){
       boolean oldOut = getOut();
       if (b != oldOut) {
-	set(OUT, new Boolean(b));
-	updateConfig();
+        set(OUT, new Boolean(b));
+        updateConfig();
       }
     }
   }
@@ -258,13 +271,13 @@ class LogConfig implements ManagedService{
   synchronized void setFile(boolean f){
     if (!DEFAULT_CONFIG) {
       if((dir != null)) {
-	boolean oldFile = getFile();
-	if(f != oldFile){
-	  Boolean newFile = new Boolean(f);
-	  set(FILE, newFile);
-	  if(logReaderCallback!=null)
-	    logReaderCallback.configChange(FILE, new Boolean(oldFile), newFile);
-	}
+        boolean oldFile = getFile();
+        if(f != oldFile){
+          Boolean newFile = new Boolean(f);
+          set(FILE, newFile);
+          if(logReaderCallback!=null)
+            logReaderCallback.configChange(FILE, new Boolean(oldFile), newFile);
+        }
       }
     }
   }
@@ -296,8 +309,8 @@ class LogConfig implements ManagedService{
     if(oldGen != maxGen){
       set(GEN, new Integer(maxGen));
       if(logReaderCallback!=null)
-	logReaderCallback.configChange(GEN, new Integer(oldGen), 
-				       new Integer(maxGen));
+        logReaderCallback.configChange(GEN, new Integer(oldGen), 
+                                       new Integer(maxGen));
     }
   }
   
@@ -338,16 +351,16 @@ class LogConfig implements ManagedService{
   private void updateConfig(){
     try{
       ServiceReference sr = 
-	bc.getServiceReference(ConfigurationAdmin.class.getName());
+        bc.getServiceReference(ConfigurationAdmin.class.getName());
       if(sr!=null){
-	ConfigurationAdmin ca= (ConfigurationAdmin)bc.getService(sr);
-	if(ca!=null){
-	  Configuration conf= ca.getConfiguration(pid);
-	  if(conf!=null){
-	    conf.update(configCollection);
-	  }
-	}
-	bc.ungetService(sr);
+        ConfigurationAdmin ca= (ConfigurationAdmin)bc.getService(sr);
+        if(ca!=null){
+          Configuration conf= ca.getConfiguration(pid);
+          if(conf!=null){
+            conf.update(configCollection);
+          }
+        }
+        bc.ungetService(sr);
       }
     } 
     catch(IOException io){}
@@ -366,7 +379,7 @@ class LogConfig implements ManagedService{
     
     
     String levelStr = getProperty(PROP_LOG_LEVEL,
-				  LogUtil.fromLevel(LogService.LOG_WARNING));
+                                  LogUtil.fromLevel(LogService.LOG_WARNING));
     
     ht.put(L_FILTER,   levelStr);
     ht.put(MEM,        new Integer(250));
@@ -388,7 +401,7 @@ class LogConfig implements ManagedService{
     try {
       result = System.getProperty(key);
       if(result == null) {
-	result = def;
+        result = def;
       }
     } catch (Exception e) {
       System.err.println("Failed to get property " + key + " : " + e);
@@ -430,21 +443,21 @@ class LogConfig implements ManagedService{
     
     if(!bDebugClass) {
       if(getGrabIO()) {
-	if(!getOut()) {
-	  if(!bGrabbed) {
-	    origOut = System.out;
-	    origErr = System.err;
+        if(!getOut()) {
+          if(!bGrabbed) {
+            origOut = System.out;
+            origErr = System.err;
 	    
-	    System.setOut(new WrapStream("[stdout] ", System.out, LogService.LOG_INFO));
-	    System.setErr(new WrapStream("[stderr] ", System.out, LogService.LOG_ERROR));
-	  }
-	}
+            System.setOut(new WrapStream("[stdout] ", System.out, LogService.LOG_INFO));
+            System.setErr(new WrapStream("[stderr] ", System.out, LogService.LOG_ERROR));
+          }
+        }
       } else {
-	if(bGrabbed) {
-	  System.setOut(origOut);
-	  System.setErr(origErr);
-	  bGrabbed = false;
-	}
+        if(bGrabbed) {
+          System.setOut(origOut);
+          System.setErr(origErr);
+          bGrabbed = false;
+        }
       }
     }
   }
@@ -483,15 +496,15 @@ class LogConfig implements ManagedService{
 
     void log(String s) {
       if(-1 != s.indexOf(prefix)) {
-	return;
+        return;
       }
 
       if(lsrf != null) {
-	lsrf.log( new LogEntryImpl
-		  (bc.getBundle(0),
-		   level,
-		   prefix + s,
-		   null));
+        lsrf.log( new LogEntryImpl
+                  (bc.getBundle(0),
+                   level,
+                   prefix + s,
+                   null));
       }
     }
   }
@@ -515,23 +528,23 @@ class LogConfig implements ManagedService{
       valid = true;
     } finally{
       if(!valid){ 
-	updateConfig(); 
+        updateConfig(); 
       } else {
-	valid=false;
-	try {
-	  acceptConfig(cfg);
-	  valid=true;		    
-	} catch(Exception all) { 
-	  throw new ConfigurationException(null, "Fault occurred when "+
-					   "setting configuration. "+
-					   "Check that all properties "+
-					   "are valid.");
-	} finally {
-	  if (!valid) {
-	    configCollection= rollBack;
-	    updateConfig(); 
-	  }
-	}
+        valid=false;
+        try {
+          acceptConfig(cfg);
+          valid=true;		    
+        } catch(Exception all) { 
+          throw new ConfigurationException(null, "Fault occurred when "+
+                                           "setting configuration. "+
+                                           "Check that all properties "+
+                                           "are valid.");
+        } finally {
+          if (!valid) {
+            configCollection= rollBack;
+            updateConfig(); 
+          }
+        }
       } 
     }
   }
@@ -540,21 +553,22 @@ class LogConfig implements ManagedService{
   private void checkLogLevel(Dictionary cfg) 
     throws ConfigurationException, IllegalArgumentException{	
     String filter=null;
+    Object obj = cfg.get(L_FILTER);
     try{
-      filter = ((String)cfg.get(L_FILTER)).trim();
+      filter = ((String)obj).trim();
     }catch(ClassCastException cce){
       throw new IllegalArgumentException
-	("Wrong type supplied when attempting to set log level."+
-	 " Correct type to use is String.");
+        ("Wrong type supplied when attempting to set log level."+
+         " Correct type to use is String. " + obj + " " + obj.getClass().getName());
     }
     if(filter==null){
       throw new IllegalArgumentException
-	("No log level given. Please supply a valid log level.");
+        ("No log level given. Please supply a valid log level.");
     }
     int filterVal=LogUtil.toLevel(filter, -1) ;
     if(filterVal == -1){
       throw new ConfigurationException
-	(L_FILTER, "Undefined log level <" + filter + ">." );
+        (L_FILTER, "Undefined log level <" + filter + ">." );
     }
     if(filterVal == 0){ 
       cfg.put(L_FILTER, LogUtil.fromLevel(LogService.LOG_WARNING)); 
@@ -569,61 +583,53 @@ class LogConfig implements ManagedService{
       v = (Vector)cfg.get(BL_FILTERS);
     } catch(ClassCastException cce) {
       throw new IllegalArgumentException
-	("Wrong type supplied when attempting to set log level for " +
-	 "specific bundle." +
-	 " Correct type to use is Vector of String[].");
+        ("Wrong type supplied when attempting to set log level for " +
+         "specific bundle." +
+         " Correct type to use is Vector of String[].");
     }
     if (v != null) {
       String[] bundle=null;
       for(int i= 0 ; i < v.size() ; i++) {
-	try {
-	  String bundleStr= (String)v.elementAt(i);
-	  bundle = new String[] { null, null};
-	  int ix = bundleStr.indexOf(";");
-	  try {
-	    bundle[0] = bundleStr.substring(0, ix).trim();
-	    bundle[1] = bundleStr.substring(ix + 1).trim();
-	  } catch (Exception e) {
-	    throw new IllegalArgumentException("Bundle entries must be in the format location;level");
-	  }
-	}catch(ClassCastException cce){
-	  throw new IllegalArgumentException
-	    ("Wrong type supplied when attempting to set log level for " +
-	     "specific bundle." + 
-	     " Correct type to use is String.");
-	}
-	if(bundle==null){
-	  throw new IllegalArgumentException
-	    ("Empty configuration supplied when attempting to set log level "+
-	     " for specific bundle.");
-	}
-	bundle[LOCATION_POS]= bundle[LOCATION_POS].trim();
-	if(bundle[LOCATION_POS] == null || bundle[LOCATION_POS].length() <= 0){
-	  throw new IllegalArgumentException
-	    ("No bundle location given when setting log level for specific " +
-	     "bundle.");
-	}
-	if(bundle[FILTER_POS] == null){
-	  throw new IllegalArgumentException("No log level given for bundle: " 
-					     + bundle[LOCATION_POS] + ". " +
-					     "Please supply a valid log level.");
-	}	
-	int testFilter=0;
-	testFilter=LogUtil.toLevel((((String)bundle[FILTER_POS]).trim()), -1);
-	if(testFilter == -1){
-	  throw new ConfigurationException(BL_FILTERS, 
-					   "Undefined log level <" 
-					   + bundle[FILTER_POS] + 
-					   "> specified for bundle <"  
-					   + bundle[LOCATION_POS] + ">.");
-	} 
-	if(testFilter==0){ 
-	  v.removeElementAt(i); i--;
-	}
-	else{
-	  bundle[FILTER_POS]= LogUtil.fromLevel(testFilter);  
-	  checkLocation(bundle[LOCATION_POS]);
-	}
+        try {
+          bundle = getBL(v.elementAt(i));
+        }catch(ClassCastException cce){
+          throw new IllegalArgumentException
+            ("Wrong type supplied when attempting to set log level for " +
+             "specific bundle." + 
+             " Correct type to use is String.");
+        }
+        if(bundle==null){
+          throw new IllegalArgumentException
+            ("Empty configuration supplied when attempting to set log level "+
+             " for specific bundle.");
+        }
+        bundle[LOCATION_POS]= bundle[LOCATION_POS].trim();
+        if(bundle[LOCATION_POS] == null || bundle[LOCATION_POS].length() <= 0){
+          throw new IllegalArgumentException
+            ("No bundle location given when setting log level for specific " +
+             "bundle.");
+        }
+        if(bundle[FILTER_POS] == null){
+          throw new IllegalArgumentException("No log level given for bundle: " 
+                                             + bundle[LOCATION_POS] + ". " +
+                                             "Please supply a valid log level.");
+        }	
+        int testFilter=0;
+        testFilter=LogUtil.toLevel((((String)bundle[FILTER_POS]).trim()), -1);
+        if(testFilter == -1){
+          throw new ConfigurationException(BL_FILTERS, 
+                                           "Undefined log level <" 
+                                           + bundle[FILTER_POS] + 
+                                           "> specified for bundle <"  
+                                           + bundle[LOCATION_POS] + ">.");
+        } 
+        if(testFilter==0){ 
+          v.removeElementAt(i); i--;
+        }
+        else{
+          bundle[FILTER_POS]= LogUtil.fromLevel(testFilter);  
+          checkLocation(bundle[LOCATION_POS]);
+        }
       }
     }
   }
@@ -632,14 +638,14 @@ class LogConfig implements ManagedService{
   private void checkLocation(String location){
     try{
       if(location.indexOf("/") != -1 || 
-	 location.indexOf("\\") != -1){
-	URL u=new URL(getCommonLocation(location));
-	InputStream is=u.openStream();
-	is.close();
+         location.indexOf("\\") != -1){
+        URL u=new URL(getCommonLocation(location));
+        InputStream is=u.openStream();
+        is.close();
       }
     }catch (IOException ignore){ 
       log("File <"+ location + "> set at configuration of logcomponent " +
-	  "does not exist at the given location. ");
+          "does not exist at the given location. ");
     }
   }
   
@@ -667,25 +673,25 @@ class LogConfig implements ManagedService{
     } 
     if ( (newV = diff(OUT, cfg)) != null) {
       if (DEFAULT_CONFIG) {
-	set(OUT, "true".equalsIgnoreCase(getProperty(PROP_LOG_OUT,  "false"))
-	    ? Boolean.TRUE
-	    : Boolean.FALSE);
+        set(OUT, "true".equalsIgnoreCase(getProperty(PROP_LOG_OUT,  "false"))
+            ? Boolean.TRUE
+            : Boolean.FALSE);
       } else {
-	set(OUT, newV);
+        set(OUT, newV);
       }
     }
     if ((newV = diff(DIR, cfg)) != null) { 
       File currentDir = bc.getDataFile("/");
       newV = ((String)newV).trim();
       if (currentDir != null && !(newV.equals(""))) {
-	currentDir = new File((String)newV);
+        currentDir = new File((String)newV);
       } 
       if (dir != null) {
-	synchronized (dir) {
-	  dir = currentDir;
-	}
+        synchronized (dir) {
+          dir = currentDir;
+        }
       } else {
-	dir = currentDir;
+        dir = currentDir;
       }
       set(DIR, newV);
     } 
@@ -697,13 +703,13 @@ class LogConfig implements ManagedService{
     } 
     if ( (newV = diff(FILE, cfg)) != null) {
       if ( dir != null ) {
-	if (firstValid) {
-	  synchronized (configCollection) {
-	    configCollection.remove(FILE);
-	  }
-	  firstValid= false;
-	}
-	notify(FILE, newV);
+        if (firstValid) {
+          synchronized (configCollection) {
+            configCollection.remove(FILE);
+          }
+          firstValid= false;
+        }
+        notify(FILE, newV);
       } 
       set(FILE, (DEFAULT_CONFIG) ? new Boolean(false) : newV);
     } 
@@ -722,14 +728,14 @@ class LogConfig implements ManagedService{
       int      newFilter = -1;
       HashMap  tmpFilters = new HashMap();
       for(int i=0; (i < newV.size()) ; i++){
-	bundle= (String[])newV.elementAt(i);
-	common= getCommonLocation(bundle[LOCATION_POS]);
-	newFilter= LogUtil.toLevel((bundle[FILTER_POS].trim()), 
-				   LogService.LOG_WARNING);
-	tmpFilters.put(common, new Integer(newFilter));
+        bundle = getBL(newV.elementAt(i));
+        common= getCommonLocation(bundle[LOCATION_POS]);
+        newFilter= LogUtil.toLevel((bundle[FILTER_POS].trim()), 
+                                   LogService.LOG_WARNING);
+        tmpFilters.put(common, new Integer(newFilter));
       } 
       synchronized (blFilters) {
-	blFilters = tmpFilters;
+        blFilters = tmpFilters;
       }
       set(BL_FILTERS, newV);
     }
@@ -746,7 +752,7 @@ class LogConfig implements ManagedService{
   private Object diff(String key, Dictionary cfg) {
     Object newV = null;
     return ((newV = cfg.get(key)) != null && 
-	    !newV.equals(configCollection.get(key))) ? newV : null ; 
+            !newV.equals(configCollection.get(key))) ? newV : null ; 
   }
   
   private void notify(String key, Object newV) {
@@ -758,7 +764,7 @@ class LogConfig implements ManagedService{
   private void log(String msg){
     if (logReaderCallback != null) {
       logReaderCallback.log( new LogEntryImpl(bc.getBundle(),
-					      LogService.LOG_INFO, msg) );
+                                              LogService.LOG_INFO, msg) );
     }
   }
 }
