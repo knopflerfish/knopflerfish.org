@@ -24,6 +24,7 @@
    <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>
    <pathelement location="resources/lib/jini-core.jar"/>
    <pathelement location="resources/lib/jini-ext.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
   </path>
 
 
