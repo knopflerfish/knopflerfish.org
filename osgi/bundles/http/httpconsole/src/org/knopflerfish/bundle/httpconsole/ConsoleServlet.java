@@ -70,7 +70,7 @@ public class ConsoleServlet extends HttpServlet {
   String adminPwd   = 
     System.getProperty("org.knopflerfish.httpconsole.pwd",  "admin");
 
-  long expirationTime = 1000 * 60 * 10;
+  long expirationTime = 60 * 10; // time in seconds
 
 
   boolean isValidUser(String user, String pwd) {
@@ -431,7 +431,7 @@ public class ConsoleServlet extends HttpServlet {
 
     public boolean hasExpired() {
       return 
-	(System.currentTimeMillis() - touchTime) > expirationTime;
+	(System.currentTimeMillis() - touchTime) > ( 1000 * expirationTime);
     }
   }
 }
