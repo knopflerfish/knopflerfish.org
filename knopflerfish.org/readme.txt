@@ -24,7 +24,7 @@ A nice windows client is available at
 
 Anyone can check out the main trunk by:
 
- > svn co \ 
+ > svn checkout \ 
     https://www.knopflerfish.org/svn/knopflerfish.org/trunk \
     knopflerfish.org
 
