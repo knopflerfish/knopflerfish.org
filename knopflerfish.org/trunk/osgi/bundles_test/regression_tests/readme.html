@@ -15,6 +15,19 @@ source, via the <a href="http://www.knopflerfish.org">Knopflerfish</a> project.
 </p>
 
 <p>
+The tests can be compiled standaline from the main KF distrib, by just checking out the regression_tests/ dir and compile using ant:
+
+<pre>
+ &gt; svn co \
+https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests
+ &gt; cd regression_tests
+ &gt; ant -Dosgi.jar=&lt;path to osgi lib&gt;
+</pre>
+...and you'll get a new dir jars/, full of test bundles. 
+
+</p>
+
+<p>
 The KF nightly build runs these test, and saves the results at <br/>
 <a href="http://www.knopflerfish.org/snapshots/trunk/junit_grunt/index.xml">http://www.knopflerfish.org/snapshots/trunk/junit_grunt/index.xml</a>
 </p>
@@ -26,7 +39,7 @@ A precompiled zip file of the necessary test bundles can be found at <br/>
 
 
 <p>
-The tests can also be accessed using subversion, from <br/>
+The tests can also be accessed/browsed using subversion, from <br/>
 <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/</a>
 </p>
 
@@ -39,39 +52,44 @@ The tests can also be accessed using subversion, from <br/>
   <th>Passes on</th>
  </tr>
  <tr>
-  <td>framework_test_all-1.0.0</td>
+  <td>framework_test-1.0.0</td>
   <td>FrameworkTestSuite</td>
   <td>KF</td>
  </tr>
  <tr>
-  <td>filter_test_all-1.0.0.jar</td>
+  <td>filter_test-1.0.0.jar</td>
   <td>FilterTestSuite</td>
   <td>KF</td>
  </tr>
  <tr>
-  <td>servicetracker_test_all-1.0.0.jar</td>
+  <td>servicetracker_test-1.0.0.jar</td>
   <td>ServiceTrackerTestSuite</td>
   <td>KF</td>
  </tr>
  <tr>
-  <td>constants_test_all-1.0.0.jar</td>
+  <td>constants_test-1.0.0.jar</td>
   <td>ConstantsTestSuite</td>
   <td>KF, Oscar</td>
  </tr>
  <tr>
-  <td>permissionadmin_test_all-1.0.0.jar</td>
+  <td>permissionadmin_test-1.0.0.jar</td>
   <td>PermissionAdminTestSuite</td>
   <td>KF</td>
  </tr>
  <tr>
-  <td>registeryperformance_test_all-1.0.0.jar</td>
+  <td>registeryperformance_test-1.0.0.jar</td>
   <td>PerformanceRegistryTestSuite</td>
   <td>KF</td>
  </tr>
  <tr>
-  <td>http_test_all-1.0.0.jar</td>
+  <td>http_test-1.0.0.jar</td>
   <td>HttpTestSuite</td>
   <td>Only half-complete</td>
+ </tr>
+ <tr>
+  <td>restart_test-1.0.0.jar</td>
+  <td>RestartSetupTestSuite + RestartTestSuite</td>
+  <td>KF</td>
  </tr>
 </table>
 
@@ -88,7 +106,7 @@ Reviews are encouraged! Please report any possible test errors, new test, sugges
 
 </p>
 
-<h4 class="shadow">Ruuning the tests</h4>
+<h4 class="shadow">Running the tests</h4>
 
 <p>
 The test cases above can be run using the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">junit bundle</a>. It can also be run without the http server, using the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">junit_runner bundle</a>.
@@ -104,10 +122,10 @@ To run a standalone tests you should only need to install
 then the one or more of the actual test cases
 
 <pre>
- framework_test_all-1.0.0.jar       (test id: FrameworkTestSuite)
- filter_test_all-1.0.0.jar          (test id: FilterTestSuite)
- servicetracker_test_all-1.0.0.jar  (test id: ServiceTrackerTestSuite)
- constants_test_all-1.0.0.jar       (test id: ConstantsTestSuite)
+ framework_test-1.0.0.jar       (test id: FrameworkTestSuite)
+ filter_test-1.0.0.jar          (test id: FilterTestSuite)
+ servicetracker_test-1.0.0.jar  (test id: ServiceTrackerTestSuite)
+ constants_test-1.0.0.jar       (test id: ConstantsTestSuite)
 </pre>
 
 the last started bundle should be 
@@ -126,6 +144,35 @@ which reads system properties
 <p>
 When the framework is started, the junit_runner bundle will run all installed
 test and write the XML results to a directory (including XSLT styles for HTML presentation). The default output directory is <tt>junit_grunt<sup><a href="#grunt">1</a></sup></tt>
+</p>
+
+<p>
+An KF .xargs file doing exactly this can be found at <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/init-tests.xargs">init-tests.xargs</a>. This is the same file used for the nightly test runs.
+</p>
+
+<h4 class="shadow">Running the restart tests</h4>
+
+<p>
+The <tt>restart_test</tt> bundle is intended to test framework behavoir after a restart. This requires the system triggering the test to start the framework twice, first in a completely clean state, then in a restarted state.
+</p>
+
+<p>
+The first run will install a set of bundles (at different start levels) and then quit.
+</p>
+
+<p>
+The next run should start the framework in a restarted mode. 
+The restart bundle will notice this by using the bundle file storage,
+and compare the state between the two runs.
+</p>
+
+<p>
+These .xargs startup files can be used as example for running the
+restart tests:<br/>
+<div style="margin: 5px;">
+ <a href="restart_test/test-restart1.xargs">restart_test/test-restart1.xargs</a><br/>
+ <a href="restart_test/test-restart2.xargs">restart_test/test-restart2.xargs</a>
+</div>
 </p>
 
 <p>
