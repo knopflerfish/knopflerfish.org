@@ -13,8 +13,13 @@ Requirements:
 
 
  - http server (used by the server part)
+
  - KF LogRef log wrapper from log_api (used by the server part)
+   http://www.knopflerfish.org/releases/1.3.2/jars/log/log_api-1.0.0.jar
+
  - XML parser (used by the client part)
+   for example:
+   http://www.knopflerfish.org/releases/1.3.2/jars/crimson/crimson-1.1.3.jar
 
 Background
 -----------
