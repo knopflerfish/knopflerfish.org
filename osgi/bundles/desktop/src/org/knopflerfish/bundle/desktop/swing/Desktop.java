@@ -119,6 +119,7 @@ public class Desktop
   ImageIcon          viewIcon;
 
   ImageIcon          openIcon;
+  ImageIcon          openURLIcon;
   ImageIcon          saveIcon;
 
   ImageIcon          prevIcon;
@@ -195,8 +196,9 @@ public class Desktop
     arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
     arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
 
-    openIcon  = new ImageIcon(getClass().getResource("/open.png"));
-    saveIcon  = new ImageIcon(getClass().getResource("/save.png"));
+    openIcon     = new ImageIcon(getClass().getResource("/open.png"));
+    openURLIcon  = new ImageIcon(getClass().getResource("/bundle_small.png"));
+    saveIcon     = new ImageIcon(getClass().getResource("/save.png"));
 
     connectIcon  = new ImageIcon(getClass().getResource("/connect.png"));
     connectIconLarge  = new ImageIcon(getClass().getResource("/connect48x48.png"));
@@ -451,6 +453,17 @@ public class Desktop
 		    }
 		  });
 		setToolTipText(Strings.get("menu_openbundles"));
+	      }
+	    });
+
+	  add(new JButton(openURLIcon) { 
+	      { 
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      addBundleURL();
+		    }
+		  });
+		setToolTipText(Strings.get("menu_openbundleurl"));
 	      }
 	    });
 
@@ -905,6 +918,18 @@ public class Desktop
 		    }
 		  });
 	      }});
+	  add(new JMenuItem(Strings.get("menu_openbundleurl"), openURLIcon) {
+	      { 
+		setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U,
+						      ActionEvent.CTRL_MASK));
+		setMnemonic(KeyEvent.VK_U);
+		
+		addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent ev) {
+		      addBundleURL();
+		    }
+		  });
+	      }});
 	  add(new JMenuItem(Strings.get("menu_save"), saveIcon) {
 	      { 
 		setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
@@ -1284,6 +1309,31 @@ public class Desktop
       } catch (Exception e) {
 	e.printStackTrace();
       }
+    }
+  }
+
+  String lastBundleLocation = "http://";
+
+  void addBundleURL() {
+    try {
+      lastBundleLocation = (String)
+	JOptionPane.showInputDialog(frame, 
+				    Strings.get("dialog_addbundleurl_msg"),
+				    Strings.get("dialog_addbundleurl_title"),
+				    JOptionPane.QUESTION_MESSAGE,
+				    null,
+				    null,
+				    lastBundleLocation);
+      
+      if(lastBundleLocation != null && !"".equals(lastBundleLocation)) {
+	Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
+	Dictionary headers = b.getHeaders();
+	if(Util.canBeStarted(b)) {
+	  startBundle(b);
+	}
+      }
+    } catch (Exception e) {
+      showErr(null, e);
     }
   }
 

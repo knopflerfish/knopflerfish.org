@@ -95,6 +95,10 @@ public class Strings {
 	  put("remote_connect_msg",     "Enter address to remote framework");
 	  put("remote_connect_title",   "Connect to remote framework");
 
+	  put("menu_openbundleurl",        "Add bundle URL...");
+	  put("dialog_addbundleurl_msg",   "Enter bundle URL");
+	  put("dialog_addbundleurl_title", "Add bundle URL");
+
 	  put("bundleinfo_startup", 
 	      "<html>Select on or more bundles to " + 
 	      "view detail information</html>");
