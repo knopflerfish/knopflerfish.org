@@ -13,8 +13,11 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
+<!--
    <pathelement location="${topdir}/bundles/xml/jaxp/resources/parser.jar"/>
    <pathelement location="${topdir}/bundles/xml/jaxp/resources/jaxp.jar"/>
+-->
+   <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
   </path>
 
   <property name="bundle.description"    value="Configuration management service"/>
