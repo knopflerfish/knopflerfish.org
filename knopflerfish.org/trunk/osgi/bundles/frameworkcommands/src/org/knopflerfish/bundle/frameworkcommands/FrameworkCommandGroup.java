@@ -99,8 +99,11 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       startLevel = (StartLevel) bc.getService(sr);
     }
 
-    
-    String jars = "file:./"; // System.getProperty("org.knopflerfish.gosg.jars", "file:./");
+    setupJars();
+  }
+
+  void setupJars() {
+    String jars = System.getProperty("org.knopflerfish.gosg.jars", "file:./");
     StringTokenizer st = new StringTokenizer(jars,";");
     bundleDirs = new String[st.countTokens()];
     for (int i=0; i<bundleDirs.length; i++) {
@@ -1101,22 +1104,62 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
   // Set start level command
   //
-  public final static String USAGE_SETSTARTLEVEL = "<level>";
-  public final static String [] HELP_SETSTARTLEVEL = new String [] {
-    "Set the global startlevel",
-    "<level> new start level",
+  public final static String USAGE_STARTLEVEL = "[<level>]";
+  public final static String [] HELP_STARTLEVEL = new String [] {
+    "Shows or sets the global startlevel",
+    "[<level>] new start level",
   };
 
-  public int cmdSetstartlevel(Dictionary opts, 
-			      Reader in, 
-			      PrintWriter out, Session session) {
-    int level = -1;
+  public int cmdStartlevel(Dictionary opts, 
+			   Reader in, 
+			   PrintWriter out, Session session) {
+
+    String levelStr = (String)opts.get("level");
+
     try {
-      level = Integer.parseInt((String)opts.get("level"));
-      startLevel.setStartLevel(level);
+      if(levelStr != null) {
+	int level = Integer.parseInt(levelStr);
+	startLevel.setStartLevel(level);
+      }
+      out.println("" + startLevel.getStartLevel());
       return 0;
     } catch (Exception e) {
-      out.println("Failed to set startlevel=" + level);
+      out.println("Failed to show/set startlevel=" + levelStr);
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+
+  //
+  // CD command
+  //
+  public final static String USAGE_CD = "[-reset] [<prefix>] ...";
+  public final static String [] HELP_CD = new String [] {
+    "Shows or sets URL prefix",
+    "[-reset]       reset prefix list to value startup value",
+    "[<prefix>] ... list of URL prefixes for install command",
+  };
+
+  public int cmdCd(Dictionary opts, 
+		   Reader in, 
+		   PrintWriter out, Session session) {
+    
+    String[] prefixes = (String[])opts.get("prefix");
+
+    try {
+      if(opts.get("-reset") != null) {
+	setupJars();
+      }
+      if(prefixes == null) {
+	for(int i = 0; i < bundleDirs.length; i++) {
+	  out.println(" " + bundleDirs[i]);
+	}
+      } else {
+	bundleDirs = prefixes; 
+      }
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to cd");
       e.printStackTrace(out);
       return -1;
     }
@@ -1176,27 +1219,6 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     }
   }
 
-  //
-  // Show start level command
-  //
-  public final static String USAGE_SHOWSTARTLEVEL = "";
-  public final static String [] HELP_SHOWSTARTLEVEL = new String [] {
-    "Show the global startlevel",
-  };
-
-  public int cmdShowstartlevel(Dictionary opts, 
-			       Reader in, 
-			       PrintWriter out, Session session) {
-    int level = -1;
-    try {
-      out.println("" + startLevel.getStartLevel());
-      return 0;
-    } catch (Exception e) {
-      out.println("Failed to show startlevel");
-      e.printStackTrace(out);
-      return -1;
-    }
-  }
 
   //
   // Show initial bundle start level command
