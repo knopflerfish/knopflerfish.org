@@ -115,8 +115,16 @@
       <param name="fromfile" value="html_src/contacts_main.html"/>
       <param name="tofile"   value="contacts.html"/>
       <param name="title"    value="Knopflerfish contacts"/>
-      <param name="desc"     value="Caontact information for the Knopflerfish project"/>
+      <param name="desc"     value="Contact information for the Knopflerfish project"/>
       <param name="CLASS_NAVIGATION_CONTACTS" value="navigation_disabled"/>
+    </antcall>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/svn_main.html"/>
+      <param name="tofile"   value="svn.html"/>
+      <param name="title"    value="Knopflerfish Subversion repository"/>
+      <param name="desc"     value="Using the Knopflerfish Subversion repository"/>
+      <param name="CLASS_NAVIGATION_SVN" value="navigation_disabled"/>
     </antcall>
 
 
@@ -141,6 +149,7 @@
    <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
    <property name="CLASS_NAVIGATION_CHANGELOG" value="navigation_enabled"/>
    <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
+   <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
 
 
 
@@ -185,6 +194,9 @@
 
 	<replacefilter token="$(CLASS_NAVIGATION_HISTORY)" 
                        value="${CLASS_NAVIGATION_HISTORY}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_SVN)" 
+                       value="${CLASS_NAVIGATION_SVN}"/>
 
     </replace>	       
   </target>
