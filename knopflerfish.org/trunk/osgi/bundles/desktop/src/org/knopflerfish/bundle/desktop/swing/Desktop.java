@@ -262,6 +262,7 @@ public class Desktop
 
 
     alive = true;
+
     Bundle[]  bl = Activator.bc.getBundles();
     for(int i = 0; i  < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
@@ -510,62 +511,88 @@ public class Desktop
     levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
     
     levelBox.addActionListener(new ActionListener() {
+	
 	public void actionPerformed(ActionEvent ev) {
-	  int level = levelBox.getSelectedIndex() + levelMin;
 	  
-	  StartLevel sls = 
-	    (StartLevel)slTracker.getService();
-	  
-
-	  if(sls != null) {
-	    if(sls.getStartLevel() == level) {
-	      //	      System.out.println("skip same level");
-	      return;
-	    }
+	  if(levelBox.getSelectedIndex() == -1) {
+	    return;
 	  }
 
-	  int myLevel = level;
-	  try {
-	    myLevel = sls.getBundleStartLevel(Activator.bc.getBundle());
-	  } catch (IllegalArgumentException ignored) {
-	  }
-	  
-	  boolean bOK = true;
-	  if(level < myLevel) {
-	    bOK = false;
-	    Object[] options = {Strings.get("yes"), 
-				Strings.get("cancel")};
-	    
-	    
-	    int n =JOptionPane
-	      .showOptionDialog(frame,
-				Strings.get("q_stopdesktop"),
-				Strings.get("msg_stopdesktop"),
-				JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE,
-				null,
-				options,
-				options[1]);
-	    if(n == 0) {
-	      bOK = true;
-	    }
-	  }
-	  if(bOK) {
-	    setStartLevel(level);
-	  } else {
-	    if(sls != null) {
-	      levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
-	    }
-	  }
+	  // Delay actual setting to avoid flipping thru
+	  // levels quickly.
+	  SwingUtilities.invokeLater(new Runnable() {
+	      public void run() {
+		Thread t = new Thread() {
+		  public void run() {
+		    try {
+		      Thread.sleep(500);
+		      setFWStartLevel();
+		    } catch (Exception e) {
+		      Activator.log.error("Failed to set start level");
+		    }
+		  }
+		};
+		t.start();
+	      }
+	    });
 	}
       });
-   
+
     panel.add(levelBox);
 
     return panel;
     
   }
 
+  void setFWStartLevel() {
+    int level = levelBox.getSelectedIndex() + levelMin;
+    
+    StartLevel sls = 
+      (StartLevel)slTracker.getService();
+    
+    
+    if(sls != null) {
+      if(sls.getStartLevel() == level) {
+	return;
+      }
+    }
+    
+    int myLevel = level;
+    try {
+      myLevel = sls.getBundleStartLevel(Activator.bc.getBundle());
+    } catch (IllegalArgumentException ignored) {
+    }
+    
+    boolean bOK = true;
+    
+    if(level < myLevel) {
+      bOK = false;
+      Object[] options = {Strings.get("yes"), 
+			  Strings.get("cancel")};
+      
+      
+      int n =JOptionPane
+	.showOptionDialog(frame,
+			  Strings.get("q_stopdesktop"),
+			  Strings.get("msg_stopdesktop"),
+			  JOptionPane.YES_NO_OPTION,
+			  JOptionPane.QUESTION_MESSAGE,
+			  null,
+				options,
+			  options[1]);
+      if(n == 0) {
+	bOK = true;
+      }
+    }
+    if(bOK) {
+      setStartLevel(level);
+    } else {
+      if(sls != null) {
+	levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+      }
+    }
+  }
+  
   JButton makeViewSelectionButton() {
     // view selection button
     JButton viewButton = new JButton(viewIcon);
@@ -628,6 +655,8 @@ public class Desktop
     
     Bundle[] bundles = Activator.bc.getBundles();
     
+    Object selObj = null;
+
     for(int i = levelMin; i <= levelMax; i++) {
       StringBuffer sb = new StringBuffer();
       int level = i;
@@ -651,10 +680,21 @@ public class Desktop
 	txt = txt.substring(0, maxLen) + "...";
       }
       levelItems[i - levelMin] = i + " " + txt;
+
+      if(i == sls.getStartLevel()) {
+	selObj = levelItems[i - levelMin];
+      }
     }
 
     if(levelBox != null) {
-      levelBox.setModel(new DefaultComboBoxModel(levelItems));
+      DefaultComboBoxModel model = new DefaultComboBoxModel(levelItems);
+      /*
+      if(selObj != null) {
+	System.out.println("model with selected " + selObj);
+	model.setSelectedItem(selObj);
+      }
+      */
+      levelBox.setModel(model);
     }
   }
 
