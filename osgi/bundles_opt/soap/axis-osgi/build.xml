@@ -33,7 +33,7 @@
   <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"/>
 
  <!-- set do.bundle.custom.post to anything to trigger post target --> 
-<!--property name="do.bundle.custom.post" value="do"/-->
+<property name="do.bundle.custom.post" value="do"/>
 
 <target name="bundle.custom.post">
   <jar jarfile  = "${impl.jar}"  update   = "true">
