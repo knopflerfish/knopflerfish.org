@@ -229,6 +229,10 @@ public class JUnitServlet extends HttpServlet {
 
     
     out.println("<p><a href=\"" + HttpExporter.SERVLET_ALIAS + "\">List all available tests</a></p>");
+
+    out.println("<p><a href=\"" + HttpExporter.SERVLET_ALIAS + 
+		"?" + ID + "=" + id + "&" + FMT + "=xml\"" +
+		">Show as XML</a></p>");
     
     TestSuite suite = getSuite(request);
     
