@@ -564,7 +564,6 @@
             description = "Builds self-extraction optional distribution file">
 
     <available property="bundles.opt.present"  file="osgi/bundles_opt"/>
-    <echo message="present=${bundles.opt.present}"/>
     <antcall target="distrib_opt_maybe"/>
   </target>
 
