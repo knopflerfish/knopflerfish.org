@@ -290,23 +290,31 @@ final class ConfigurationDictionary extends Dictionary {
     if(in == null) {
       return null;
     }
+
     Hashtable out = new Hashtable();
     Enumeration keys = in.keys();
     while(keys.hasMoreElements()) {
-      Object key = keys.nextElement();
-
-      Object val = copyValue(in.get(key));
+      Object key     = keys.nextElement();
+      Object origVal = in.get(key);
+      Object val     = copyValue(origVal);
 
       // The R3 tests prefers keys with different case to be
       // silently unified. We really prefer IllegalArgumentException
       String s     = (String)key;
       String lower = s.toLowerCase();
       if(!s.equals(lower)) {
-	if(null != in.get(lower)) {
+	Object lowerVal = in.get(lower);	
+	if(null != lowerVal) {
 	  if(Activator.r3TestCompliant()) {
 	    key = lower;
 	  } else {
-	    throw new IllegalArgumentException("same key exists with different case: " + key + "/" + lower);
+	    // Accept different case when actual value id reference-equal
+	    // This solves problem when incoming dictionary has
+	    // case-insensitive get/lookup
+	    // If not reference-equal, throw IllegalArgumentException
+	    if(lowerVal != origVal) {
+	      throw new IllegalArgumentException("same key exists with different case: " + key + "/" + lower);
+	    }
 	  }
 	}
       }
