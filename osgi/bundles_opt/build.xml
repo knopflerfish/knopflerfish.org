@@ -9,6 +9,7 @@
     <ant dir="serial"             target="all"/>
     <ant dir="desktop_displayers" target="all"/>
     <ant dir="oscar-shell"        target="all"/>
+    <ant dir="jini"               target="all"/>
   </target>
 
   <target name="clean">
@@ -18,6 +19,7 @@
     <ant dir="serial"             target="clean"/>
     <ant dir="desktop_displayers" target="clean"/>
     <ant dir="oscar-shell"        target="clean"/>
+    <ant dir="jini"               target="clean"/>
   </target>
 
 </project>
