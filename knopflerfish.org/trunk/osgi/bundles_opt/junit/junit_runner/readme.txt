@@ -37,7 +37,11 @@ org.knopflerfish.junit_runner.tests
  Note that test IDs not present in the framework will still generate
  test results, but marked as failed.
 
- Default is empty string (no tests are run)
+ Default is 
+
+  "filter:(objectclass=junit.framework.TestSuite)"
+
+ (all installed tests are run)
 
 org.knopflerfish.junit_runner.outdir
 

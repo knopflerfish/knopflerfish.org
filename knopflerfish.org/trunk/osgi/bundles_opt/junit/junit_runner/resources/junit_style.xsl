@@ -34,12 +34,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <body>
 
- 
-
- <xsl:for-each select="/junit/testcase">
-  <h3>JUnit test results for id '<xsl:value-of select="@id"/>'</h3>
-  <xsl:value-of select="/junit/@date"/>
-<br/>
+  <xsl:for-each select="/junit/testcase">
+  <h3 class="shadow">JUnit test results for id '<xsl:value-of select="@id"/>'
+  - 
+<xsl:value-of select="/junit/@date"/>
+  </h3>
+<a href="index.xml">Test index</a><br/>
 <a href="#properties">Properties</a>
 <p>
   <xsl:for-each select="testresult">
@@ -74,7 +74,7 @@ Class: <xsl:value-of select="@class"/>
 Time:  <xsl:value-of select="@time"/>ms
    </pre>
 
-   <h4>Test cases</h4>
+   <h4 class="shadow">Test cases</h4>
    <table>
     <tr>
      <th>Name</th>
@@ -102,7 +102,7 @@ Time:  <xsl:value-of select="@time"/>ms
   <xsl:for-each select="testresult">
 
    <xsl:for-each select="errors">
-    <h3>Errors</h3>
+    <h3 class="shadow">Errors</h3>
     <xsl:for-each select="failure">
      <a name="{@failedTestCaseName}"></a>
      <div class="schemaComp">
@@ -122,7 +122,7 @@ Time:  <xsl:value-of select="@time"/>ms
    </xsl:for-each>
 
    <xsl:for-each select="failures">
-    <h3>Failures</h3>
+    <h3 class="shadow">Failures</h3>
     <xsl:for-each select="failure">
      <a name="{@failedTestCaseName}"></a>
      <div class="schemaComp">
@@ -147,7 +147,7 @@ Time:  <xsl:value-of select="@time"/>ms
 
  <a name="properties"></a>
  <xsl:for-each select="/junit/properties">
-  <h3><xsl:value-of select="@name"/></h3>
+  <h3 class="shadow"><xsl:value-of select="@name"/></h3>
   <a name="{@name}"></a>
   <table>
    <xsl:for-each select="value">
