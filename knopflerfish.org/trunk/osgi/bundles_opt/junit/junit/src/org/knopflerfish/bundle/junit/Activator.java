@@ -105,9 +105,9 @@ public class Activator implements BundleActivator {
       Method m = clazz.getMethod(methodName, null);
       m.invoke(obj, null);
 
-      System.out.println("invoked " + m);
+      //      System.out.println("invoked " + m);
     }  catch (Throwable th) {
-      System.out.println("No " + className + " available: " + th);
+      //      System.out.println("No " + className + " available: " + th);
     }    
   }
 }
