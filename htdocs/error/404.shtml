@@ -1,0 +1,21 @@
+<html>
+<head>
+<title>404 Not Found</title>
+
+<LINK href="/error/style.css" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+
+<h2>404 Document Not Found</h2>
+
+<div class="message">
+The requested URL 
+<b><!--#echo var="REDIRECT_URL" --></b>
+was not found on this server.
+</div>
+
+<!--#include file="error_bottom.html" -->
+
+</body>
+</html>
