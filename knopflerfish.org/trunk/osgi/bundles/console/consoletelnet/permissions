@@ -1,2 +1,0 @@
-(java.util.PropertyPermission "com.gatespace.bundle.consoletelnet.*" "read")
-(java.net.SocketPermission "*:1024-" "connect,listen,accept")
