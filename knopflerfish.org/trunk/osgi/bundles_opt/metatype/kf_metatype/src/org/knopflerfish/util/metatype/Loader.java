@@ -188,6 +188,9 @@ public class Loader {
       if(iconURL != null) {
 	try {
 	  if(bundle != null) {
+	    if(iconURL.startsWith("/")) {
+	      iconURL = "bundle://$(BID)" + iconURL;
+	    }
 	    iconURL = Text.replace(iconURL, "$(BID)", 
 				   Long.toString(bundle.getBundleId()));
 	  }

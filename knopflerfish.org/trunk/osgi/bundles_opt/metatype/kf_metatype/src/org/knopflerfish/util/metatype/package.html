@@ -454,6 +454,30 @@ empty string will be used.
 </div>
 </div>
 
+<a name="6.3.2.1"></a><h3>6.3.2.1 Service/factory icon</h3>
+
+<p>
+A service/factory icon URL can be set by adding an option <code>iconURL</code>
+attribute to the service's defining element.
+</p>
+<p>
+URLs starting with "/" should be considered relative to the defining
+bundle's jar file, i.e, bundle resource names.
+</p>
+
+<div class="exampleOuter">
+<div class="exampleHeader">Example - service icon</div>
+<div class="exampleInner">
+<pre>
+ &lt;xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" &gt;
+   &lt;xsd:complexType name    = "service1"
+                    iconURL = "/image.gif"&gt;
+   ...
+</pre>
+</div>
+</div>
+
+</p>
 
 <a name="6.3.3"></a><h3>6.3.3 Attribute descriptions</h3>
 <p>
@@ -513,6 +537,10 @@ URL or resource file to localization property file. The <code>appInfo</code>
 should then be set on the object class definition element. 
 Standard file name expansion for locales may be done on
 the URL.
+</p>
+
+<p>
+URLs starting with "/" should be considered relative to the defining bundle's jar file, i.e, bundle resource names. 
 </p>
 
 <p>
@@ -760,9 +788,14 @@ array a <code>boolean[]</code>, etc.
 <a name="7"></a><h2>7. Configuration value specification</h2>
 
 <p>
-Configuration values are specified using the <code>&lt;values&gt;</code> 
+Configuration values are specified using the 
+<code>&lt;metatype:values&gt;</code> 
 element. This contains a set of XML elements as defined by the Metatype 
 schema.
+</p>
+<p>
+A <code>&lt;metatype:values&gt;</code> element can be embedded in 
+<code>&lt;metatype:metatype&gt;</code>. The values should then be considered default values for the specified metatypes.
 </p>
 
 <div class="schemaComp">
@@ -841,19 +874,19 @@ suitable run-time format (Metatype API and/or CM dictionaries).
  <tr>
   <td>Bundle-MetatypeURL</td>
   <td>URL to XML document describing metatype<br>
-If the URL starts with "!" it references to a bundle's resource in
+If the URL starts with "/" it references to a bundle's resource in
 its own jar file.
   </td>
-  <td>!/metatype.xml</td>
+  <td>/metatype.xml</td>
  </tr>
 
  <tr>
   <td>Bundle-CMDefaultsURL</td>
   <td>URL to XML document with CM default values<br>
-If the URL starts with "!" it references to a bundle's resource in
+If the URL starts with "/" it references to a bundle's resource in
 its own jar file.
   </td>
-  <td>!/cmdefaults.xml</td>
+  <td>/cmdefaults.xml</td>
  </tr>
 
 </table>
