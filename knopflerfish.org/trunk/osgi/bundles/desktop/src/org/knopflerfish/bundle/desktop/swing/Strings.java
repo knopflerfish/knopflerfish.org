@@ -86,6 +86,10 @@ public class Strings {
 	  put("tt_updatebundle",     "Update Bundle");
 	  put("tt_uninstallbundle",  "Uninstall Bundle");
 
+	  put("menu_tips",      "Show tips");
+	  put("prev_tip",       "Previous tip");
+	  put("next_tip",       "Next tip");
+
 	  put("item_stopbundles",       "Stop");
 	  put("item_startbundles",      "Start");
 	  put("item_updatebundles",     "Update");

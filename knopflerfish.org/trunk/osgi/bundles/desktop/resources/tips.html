@@ -1,0 +1,60 @@
+1 You can drag and drop a bundle jar file into the desktop.
+When a bundle jar files is dropped into the deskstop, it will be installed
+and started.
+
+----
+2 Individual bundle logs can be viewed.
+By selecting any bundle from the main bundle area, that bundle's log is 
+displayed in the bundle detail area.
+
+----
+3 All bundle logs can be viewed in a single display.
+By <b>unselecting all</b> bundles in the main bundle area, all log entries
+are displayed in the bundle detail area.
+<p>
+Unselecting bundles can be done from the <i>Edit</i> menu
+</p>
+
+----
+4 The desktop can remotely control another framework
+If you install the optional SOAP remote connectivity kit, the desktop
+can be used to remotely control another framework.
+<p>
+Read more about the SOAP kit at
+https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt
+
+----
+5 The console can be accessed remotely using telnet
+The <i>consoletelnet</i> bundle, which is installed by default allows
+remote acces to a framework using any telnet client.
+
+----
+6 Bundle packages need to be refreshed after update
+To make sure all exported classes are refreshed after a bundle update,
+you should <i>refresh</i> the packages. The <i>Edit</i> menu or console
+both have refresh commands.
+
+----
+7 The Knopferfish desktop can be run on other OSGi frameworks.
+Just install and start the desktop and util bundle jars on the target
+framework.
+
+----
+8 Bundles can have custom icons in the Desktop view
+A bundle develpoer can specify a custom icon resource using 
+the <i>Application-Icon</i> manifest attribute.
+
+----
+9 New Desktop views can be installed
+A developer can write a bundle exporting a desktop plugin service.
+See <i>org.knopflerfish.service.desktop</i> javadoc for more info.
+
+----
+10 A bundle's start level can be changed
+Select the bundle, the the menu <i>Bundle - Start level - [new level]
+
+----
+11 New console commands can be installed
+
+A developer can write a bundle defining new console commands. See
+https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/readme.txt for more info
