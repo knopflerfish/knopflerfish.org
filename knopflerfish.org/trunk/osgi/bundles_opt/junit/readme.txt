@@ -130,3 +130,14 @@ The following Ant properties are set as default in bundlebuild_include.xml:
   junit.runner.class     junit.swingui.TestRunner
   junit.formatter        plain
   junit.outfile          junit
+
+
+Known issues
+------------
+
+ * TestSuites are "flattened" by the client proxy, so the
+   tree structure in the Swing runner might look a bit different.
+
+ * Tests cannot be individually re-run. The entire client proxy
+   must be re-run
+
