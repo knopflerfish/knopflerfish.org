@@ -42,3 +42,7 @@ After building, the framework kan be run using
 
  htdocs           - www.knopflerfish.org web site
 
+                    The htdocs files *must* be built using
+                    > ant htdocs
+
+                    "htdocs" is also part of the "distrib" target
