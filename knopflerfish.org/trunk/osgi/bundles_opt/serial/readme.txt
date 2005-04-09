@@ -21,4 +21,9 @@ javax.comm API
   
    comm-linux/resources/COMM2.0_license.txt
    comm-linux/resources/rxtx-license.txt
+
+  The RXTX source is available at
+
+   http://users.frii.com/jarvi/rxtx/
+
  

@@ -1,3 +1,13 @@
+This bundle contains binaries from the RXTX library, distributed
+under LGPL, see
+
+ http://users.frii.com/jarvi/rxtx/
+
+and the included license file
+
+ rxtx-license.txt
+ 
+
 Troubleshooting:
 
 1) NoSuchPortException:
