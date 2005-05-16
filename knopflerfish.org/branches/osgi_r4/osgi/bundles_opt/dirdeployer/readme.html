@@ -1,0 +1,76 @@
+<html>
+<head>
+<title>Directory deployer</title>
+<LINK type="text/css" rel="stylesheet" href="http://www.knopflerfish.org/css/knopflerfish.css">
+</head>
+
+<body>
+
+<h2>Directory deployer</h2>
+
+<p>
+Simple bundle which scans file system directories and installs/uninstalls bundles
+found or removed from these directories.
+</p>
+
+<p>
+This is a quite useful tool for handle bundle deployment without using any 
+console. Just copy the bundles that should be started to the deploy 
+directory, and the directory deployer will find and start them. When the 
+files are removed, they are uninstalled.
+</p>
+
+<h3>Deploy method</h3>
+
+<p>The procedure for scanning and deploying is as follows:
+
+<ol>
+<li>
+Check if any new files have appeared or
+if any already deployed files has been replaced with newer
+files.
+</li>
+
+<li>
+New files are installed into the framework.<br>
+If they have a bundle activator, they are marked for delayed start.<br>
+Files newer than a previously deployed bundle are updated.
+</li>
+
+<li>
+Files that have the same location as an already installed
+bundle is not installed again, instead, the installed bundle is
+re-used in the created DeployedFile instance.
+</li>
+
+<li>Files marked for delayed start is started.
+</li>
+
+<li>Sleep a while</li>
+<li>Repeat from 1.</li>
+
+</ol>
+
+<h3>Configuration</h3>
+
+<p>
+See <a href="resources/metatype.xml">metatype.xml</a> for specification using
+CM. The same properties as defined by CM are also read as default values from the system properties. Thus, the 
+bundle can be both configured by CM and using system properties.
+</p>
+<p>
+Quick guide to the metatype.xml format:
+<ul>
+ <li>Top level <tt>xsd:complexType</tt> is service PIDs</li>
+ <li><tt>xsd:element</tt> is a property</li>
+ <li><tt>metatype:values</tt> defines default values</li>
+</ul>
+For details on the metatype format, see <a href="http://www.knopflerfish.org/XMLMetatype">http://www.knopflerfish.org/XMLMetatype/</a>
+
+
+<p>
+The default directory used for scanning is <tt>deploy</tt>
+</p>
+</body>
+
+</html>

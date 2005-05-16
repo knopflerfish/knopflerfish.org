@@ -1,0 +1,171 @@
+
+<ul>
+ <li><a href="#how">How the test was performed</a>
+ <li><a href="#graph">Time and memory usage</a>
+ <li><a href="#table">Mean time and memory usage difference between methods</a>
+ <li><a href="#bundles">Bundle list in test setup</a>
+</ul>
+
+<a name="how"></a>
+<h2>How the test was performed</h2>
+
+The test was performed by 
+ <ol>
+  <li>Launching the framework from a wrapper script. See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/">timing_tester</a> bundle for source.
+  <li>Installing and starting a set of "typical bundles". See <a href="#bundles">bundle list</a> for exact bundles.
+  <li>Installing a special notification bundle.
+  <li>Measuring the time from the JVM is completely started until the
+      notification bundle is started.
+  <li>Measuring memory difference from the JVM is completely started until the
+      notification bundle is started.
+  <li>Repeating 1-5 multiple times.
+</ol>
+
+The test was performed on
+<pre>
+Java(TM) 2 Runtime Environment, Standard Edition (build 1.4.2_03-b02)
+Java HotSpot(TM) Client VM (build 1.4.2_03-b02, mixed mode)
+</pre>
+The machine used for testing was a Dell X300, 1200 Mhz, 640 Mb, running Windows XP SP1. When started, the total amount of memory used by the JVM was 
+approximately 11 Mb, according to XP.
+
+<a name="graph"></a>
+<h2>Time and memory usage</h2>
+
+<p>
+A dot-graph of the test runs gives a the most accurate view of the different
+behaviors. The horizontal axis represents time and the vertical axis memory and time. 
+
+<p>
+<b>file storage with file: references</b> (yellow) often is faster than non-reference, but not always. 
+<b>Memory storage</b> (blue) is fast, but uses a lot of memory as expected. 
+Plain <b>non-reference file storage</b> (red) is most memory-efficient. This is because jar files are copied, unpacked and only resources actually used will be loaded into memory.
+</p>
+<p>
+The full images can be viewed by clicking on the graphs.
+</p>
+
+<table>
+ <tr>
+  <td>
+   Startup time
+<br>
+   <a href="images/time.png"><img src="images/time_256.gif" alt="Time graph"></a>
+  </td>
+  <td>
+   Memory usage<br>
+   <a href="images/mem.png"><img src="images/mem_256.gif" alt="Memory graph"></a>
+  </td>
+  <td>
+&nbsp;
+<br>
+  <img src="images/legend.gif" alt="color legend">
+  <p><i>These images were generated from the text file <a href="perf_log.csv">perf_log.csv</a>, 
+using Spotfire DecisionSite</i>
+</p>
+  </td>
+ </tr>
+</table>
+
+<p>
+<b>Note 1</b>: Memory is <b>differences in heap memory</b>, not disk usage. The intention with the file: reference method is to avoid copying a bundle file to another place in the file system. Disk usage is not measured by these tests.<br>
+</p>
+
+<p>
+<b>Note 2</b>: The JVM native startup time is not included in 
+the measurements. All timing is done inside of the JVM itself.
+</p>
+
+<p>
+<b>Note</b>: Since the memory usage values are <b>differences</b> in 
+heap space from JVM startup, until the FW has completed, not total heap 
+space used, the values are mostly useful for comparing bundle storage
+ methods. The total memory usage is not measured in these tests.
+</p>
+
+
+<a name="table"></a>
+<h2>Mean time and memory usage</h2>
+
+<p>
+The table below lists the mean values of a test series of 27 runs. Note that
+these are <b>approximate values</b>, and variations are to be expected.
+</p>
+
+<p>
+<b>Note</b>: Memory usage is <b>differences</b> in heap space from 
+JVM startup, until the FW has completed, not total heap space used.
+Thus, the values are mostly useful for comparing bundle storage methods, 
+not for determining total memory costs.
+</p>
+
+<table>
+ <tr>
+  <th><br></th>
+  <th>Startup time (ms)</th>
+  <th>Memory usage (kb)</th>
+  <th>Flags</th>
+ </tr>
+ <tr>
+  <td style="background-color: #ff0000; width: 20px;"><br></td>
+  <td>1000 ms</td>
+  <td>400 kb</td>
+  <td><pre>
+-Dorg.knopflerfish.framework.bundlestorage=file
+-Dorg.knopflerfish.framework.bundlestorage.file.reference=false
+</pre>
+</td>
+</tr>
+ <tr>
+  <td style="background-color: #ffff00; width: 20px;"><br></td>
+  <td>900 ms</td>
+  <td>480 kb</td>
+  <td><pre>
+-Dorg.knopflerfish.framework.bundlestorage=file
+-Dorg.knopflerfish.framework.bundlestorage.file.reference=true
+</pre>
+</td>
+ </tr>
+ <tr>
+  <td style="background-color: #0000ff; width: 20px;"><br></td>
+  <td>550 ms</td>
+  <td>1000 kb</td>
+  <td><pre>
+-Dorg.knopflerfish.framework.bundlestorage=memory
+</pre>
+</td>
+ </tr>
+</table>
+
+
+
+ 
+
+<a name="bundles"></a>
+<h2>Bundle list in test setup</h2>
+
+The following bundles were installed and started in all of the test runs. 
+Each test run was started with <code>-init</code>.
+
+<pre>
+log/log_all-1.0.0.jar
+cm/cm_all-1.0.0.jar
+console/console_all-1.0.0.jar
+util/util-1.0.0.jar
+jaxp/jaxp-1.0.jar
+jsdk/jsdk-2.2.jar
+device/device_all-1.0.0.jar
+useradmin/useradmin_all-1.0.0.jar
+http/http_all-1.0.0.jar
+logcommands/logcommands-1.0.0.jar
+cm_cmd/cm_cmd-1.0.0.jar
+consoletty/consoletty-1.0.1.jar
+consoletelnet/consoletelnet-1.0.jar
+httproot/httproot-1.0.0.jar
+</pre>
+
+Additionally, the test bundle itself was started
+<pre>
+tester/tester-1.0.0.jar
+</pre>
+
