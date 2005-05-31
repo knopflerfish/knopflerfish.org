@@ -1,0 +1,107 @@
+<p>
+The Knopflerfish Eclipse Plugin is available under a <a href="license.txt">BSD style license</a>. 
+<p>
+
+<p>
+You can download the latest release from the link below.
+</p>
+<table>
+
+ <tr>
+  <td>
+  <a href="releases/eclipse-plugin/0.5.0/knopflerfish_eclipse_plugin_0.5.0.zip">knopflerfish_eclipse_plugin_0.5.0.zip</a><br>
+  (approx 167 kB)
+  </td>
+ </tr>
+</table>
+
+
+<h3>Installation instructions</h3>
+
+<ol>
+ <li>Unzip the distribution zip file in your eclipse directory. The following plug-ins are extracted
+ to the plugins directory.
+ <ul>
+ <li>org.knopflerfish.eclipse.core
+ <li>org.knopflerfish.eclipse.core.ui
+ </ul>
+</ol>
+
+
+
+<h3>Getting started</h3>
+
+
+
+<h4>Specify location of Knopflerfish distribution</h4>
+Before developing bundles the location of a Knopflerfish installation must be specified. The information is saved 
+in the Eclipse Preferences.
+
+<ol>
+ <li>Select Window/Preferences
+ <li>In Preferences dialog select OSGi/Knopflerfish
+ <li>Select to 'Add' a new Knopflerfish definition and enter 
+ location of your Knopflerfish installation in the shown
+ dialog page.
+</ol>
+
+
+
+<h4>Defining bundle sets</h4>
+Bundle sets are used to group bundles into logical units, which later can be referred to when selecting bundles to 
+deploy on a framework. Bundle set information is saved in the Eclipse Preferences.
+<p>
+<b>TODO:</b> Work in progress.
+</p>
+
+
+<h4>Creating a new bundle project</h4>
+
+<ol>
+ <li>Select File/New/Project...
+ <li>Select Bundle Project and enter project info.
+ <li>A new project is created. 
+</ol>
+
+
+<h4>Editing Bundle Manifest</h4>
+Double click on the bundle.manifest file in your project. The file will be opened in a special editor, which has one tab 
+for a graphical view of the manifest and one tab for a text view. Not all attributes can yet be set through the
+graphical view, e.g. Import-Package, Export-Package etc. For now you will have to set these attributes in the text
+view.
+
+<p>
+<b>TODO:</b> Add attributes to the graphical view and help setting them.
+</p>
+
+<h4>Using Services</h4>
+This is not yet supported in the plugin. For now you will have to manually add the JAR file containing the service API 
+to your classpath and also edit the bundle manifest Import-Package attribute, see above.
+
+<p>
+<b>TODO:</b> Support usage of services, by given the service package, automatically find bundle JARs exporting this 
+package, add it to the build classpath and also update the manifest attribute Import-Package.
+</p>
+
+
+<h4>Debugging</h4>
+
+<ol>
+ <li>Select Run/Debug...
+ <li>Create a new OSGi launch configuration
+ <li>Select location where instance data for this launch
+   shall be stored.
+ <li>Select to 'Start empty platform'
+ <li>Select the Bundle Tab
+ <li>Set 'Manual Selection of bundles'
+ <li>Add the bundles which shall be launched in this debug configuration.
+</ol>
+
+
+<h4>Packaging Bundle</h4>
+
+<p>
+<b>TODO:</b> Create help for packaging bundle. For now use the built in JAR file utility under 'File/Export.../JAR file'.
+</p>
+
+
