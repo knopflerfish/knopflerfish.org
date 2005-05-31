@@ -160,7 +160,7 @@
 
     <antcall target="makehtml">
       <param name="fromfile" value="html_src/eclipse_plugin_main.html"/>
-      <param name="tofile"   value="eclcipse_plugin.html"/>
+      <param name="tofile"   value="eclipse_plugin.html"/>
       <param name="title"    value="Knopflerfish Eclipse Plugin"/>
       <param name="desc"     value=""/>
       <param name="CLASS_NAVIGATION_ECLIPSE" value="navigation_disabled"/>
