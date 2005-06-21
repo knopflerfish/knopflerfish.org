@@ -65,7 +65,24 @@
 	<tr>
 	  <td class="pageheader">
 	    <div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px;">$(MESSAGE)
-	    <h2>$(TITLE)</h2>
+         <table width="100%">
+          <tr>
+           <td><span id="title">$(TITLE)</span></td>
+            <td style="text-align: right;">
+<!-- SiteSearch Google -->
+<FORM style="margin-top: 0px; margin-bottom: 0px;" method=GET action="http://www.google.com/search">
+<input type=hidden name="ie"       value="UTF-8">
+<input type=hidden name="oe"       value="UTF-8">
+<input type=hidden name="domains"  value="www.knopflerfish.org">
+<input type=hidden name=sitesearch value="www.knopflerfish.org">
+<INPUT TYPE="text" name="q" size="20" maxlength=255 value="" style="font-size: 11px;">
+<INPUT type="submit" name="btnG" VALUE="Search KF" style="font-size: 11px;">
+
+</FORM>
+<!-- SiteSearch Google -->
+           </td>
+          </tr>
+         </table>
 	    <div style="font-style: italic; margin-left: 20px; margin-right: 20px; margin-top: 5px; margin-bottom: 5px;">
 	    $(DESC)
 	    </div>
