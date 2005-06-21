@@ -165,6 +165,14 @@
       <param name="desc"     value=""/>
       <param name="CLASS_NAVIGATION_ECLIPSE" value="navigation_disabled"/>
     </antcall>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/eclipse_changelog.html"/>
+      <param name="tofile"   value="eclipse_changelog.html"/>
+      <param name="title"    value="Knopflerfish Eclipse Plugin Changelog"/>
+      <param name="desc"     value=""/>
+      <param name="CLASS_NAVIGATION_ECLIPSE" value="navigation_disabled"/>
+    </antcall>
   </target>
 
   <target name="makehtml">
