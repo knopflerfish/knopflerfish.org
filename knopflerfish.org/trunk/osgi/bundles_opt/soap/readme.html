@@ -59,9 +59,10 @@ export services, registered on the OSGi framework service registry, as SOAP
 services. It should be noted that for this to work the exported objects must
 not expose any data types not supported by SOAP. In order to export a service 
 object as a SOAP service, the only thing needed is to set a property named
-"SOAP_SERVICE_NAME" on the registered service. The property value should be
-of type java.lang.String and its value will be used as the name of the
-exposed SOAP service.
+"SOAP.service.name" on the registered service. As a convenience
+org.knopflerfish.service.axis.AxisAdmin.SOAP_SERVICE_NAME is a String constant
+that holds this name. The property value should be of type java.lang.String
+and its value will be used as the name of the exposed SOAP service.
 </p>
 
 <p>
