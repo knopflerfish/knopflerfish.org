@@ -1,0 +1,73 @@
+grant {
+	permission java.io.FilePermission "/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/-", "read, write,delete"; 	
+        //permission java.io.FilePermission "/home/magnus/bundlar/-", "read, write,delete"; 
+	
+};
+
+// runtime permissions
+grant {
+	permission java.io.FilePermission "/home/magnus/Projects/Java/OSGi/runtime-knopflerfish/-", "read, write,delete"; 
+	
+};
+
+//framework 
+grant codeBase "file:/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/jars/-" {
+	permission java.security.SecurityPermission "*";
+	permission java.lang.RuntimePermission "*";
+	permission java.util.PropertyPermission "*", "read, write"; 
+	permission org.osgi.framework.ServicePermission "org.osgi.service.permissionadmin.*" ,"register,get";
+	permission org.osgi.framework.ServicePermission "org.osgi.service.packageadmin.*" ,"register,get";  
+	permission org.osgi.framework.ServicePermission "org.osgi.service.startlevel.*" ,"register,get";
+	permission org.osgi.framework.ServicePermission "org.osgi.service.cm.*","register,get";
+	permission org.osgi.framework.ServicePermission "org.knopflerfish.service.log.*","register,get";
+	permission org.osgi.framework.ServicePermission	"org.osgi.service.log.*" ,"register,get";
+	permission org.osgi.framework.ServicePermission "org.knopflerfish.service.console.*","register,get";
+	permission org.osgi.framework.ServicePermission "javax.xml.parsers.*", "register,get";
+	permission java.net.NetPermission "specifyStreamHandler";
+	permission org.osgi.framework.AdminPermission;
+
+	
+};
+grant codeBase "file:/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/framework.jar" {
+	permission java.security.SecurityPermission "*";
+	permission java.lang.RuntimePermission "*";
+	permission java.util.PropertyPermission "*", "read, write"; 
+	permission org.osgi.framework.ServicePermission "org.osgi.service.permissionadmin.*" ,"register,get";
+	permission org.osgi.framework.ServicePermission "org.osgi.service.packageadmin.*" ,"register,get";  
+	permission org.osgi.framework.ServicePermission "org.osgi.service.startlevel.*" ,"register,get";
+	permission org.osgi.framework.ServicePermission "org.osgi.service.cm.*","register,get";
+	permission org.osgi.framework.ServicePermission "org.knopflerfish.service.log.*","register,get";
+	permission org.osgi.framework.ServicePermission	"org.osgi.service.log.*" ,"register,get";
+	permission org.osgi.framework.ServicePermission "org.knopflerfish.service.console.*","register,get";
+	permission org.osgi.framework.ServicePermission "javax.xml.parsers.*", "register,get";
+	permission java.net.NetPermission "specifyStreamHandler";
+	permission org.osgi.framework.AdminPermission;
+		
+};
+
+// bundle permissions
+grant {
+	permission org.osgi.framework.ServicePermission "org.osgi.service.event.EventHandler" , "register,get";
+	permission org.osgi.framework.ServicePermission "org.osgi.service.event.EventAdmin" , "register,get";
+	
+	// this means that everyone can publish events of this topic
+	permission org.osgi.service.event.TopicPermission "com/acme/timer", "publish";
+	// this means that everyone can listen to this topic
+	permission org.osgi.service.event.TopicPermission "com/acme/timer", "subscribe";
+};
+ 
+//grant codeBase "file:/home/magnus/bundlar/-" {
+//	permission org.osgi.service.event.TopicPermission "com/acme/timer", "publish,subscribe";
+//	//permission java.security.AllPermission;  
+//};
+//grant codeBase "file:/home/magnus/Projects/Java/OSGi/runtime-knopflerfish/jars/EvantPublisher.jar" {
+//	//permission org.osgi.service.event.TopicPermission "com/acme/timer", "publish"; 
+//};
+//grant codeBase "file:/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/EventAdmin.jar" {
+//	permission org.osgi.service.event.TopicPermission "com/acme/timer", "publish";
+//	//permission java.security.AllPermission;  
+//
+//};
+
+
+
