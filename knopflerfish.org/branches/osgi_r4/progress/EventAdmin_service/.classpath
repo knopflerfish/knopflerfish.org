@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" sourcepath="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/framework/src" kind="lib" path="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/framework.jar"/>
-	<classpathentry kind="lib" path="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/jars/log/log_api-1.0.0.jar"/>
-	<classpathentry kind="output" path="out"/>
-</classpath>
