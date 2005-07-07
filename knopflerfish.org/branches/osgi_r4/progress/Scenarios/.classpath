@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry sourcepath="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/framework/src" kind="lib" path="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/framework.jar"/>
+	<classpathentry kind="lib" path="/home/magnus/Projects/Java/OSGi/event_api.jar"/>
+	<classpathentry sourcepath="ECLIPSE_HOME/plugins/org.eclipse.jdt.source_3.0.0/src/org.junit_3.8.1/junitsrc.zip" kind="var" path="JUNIT_HOME/junit.jar"/>
+	<classpathentry kind="lib" path="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/jars/jsdk/servlet.jar"/>
+	<classpathentry kind="lib" path="/home/magnus/Projects/Java/OSGi/knopflerfish.org/osgi/jars/http/http_all-1.1.0.jar"/>
+	<classpathentry kind="output" path="out"/>
+</classpath>
