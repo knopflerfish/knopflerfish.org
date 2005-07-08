@@ -33,6 +33,9 @@ public class DeliverSession extends Thread {
     /** local event variable */
     private Event event;
 
+    /** internal admin event */
+    private InternalAdminEvent internalEvent;
+
     /** local array of service references */
     private ServiceReference[] serviceReferences;
 
@@ -51,25 +54,32 @@ public class DeliverSession extends Thread {
     /** the log reference */
     private LogRef log;
 
+    /** variable indicating thread owner **/
+    private Thread ownerThread;
+
     /**
      * Constructor for the DeliverSession. Use this to deliver events
-     * asyncronous.
+     * 
      * 
      * @param evt
      *            the event to be delivered
      * @param refs
      *            an array of service references
      */
-    public DeliverSession(Event evt, BundleContext context,
-            ServiceReference[] refs, LogRef logRef) {
+    public DeliverSession(InternalAdminEvent evt, BundleContext context,
+            ServiceReference[] refs, LogRef logRef, Thread owner) {
+        internalEvent = evt;
         /* assign the 'evt' argument */
-        event = evt;
+        event = (Event) internalEvent.getElement();
         /* assign the context */
         bundleContext = context;
         /* assign the serviceReferences variable */
         serviceReferences = refs;
         /* assign the log */
         log = logRef;
+        /* assign the owner */
+        ownerThread = owner;
+
     }
 
     /**
@@ -77,10 +87,14 @@ public class DeliverSession extends Thread {
      */
     public void run() {
         /* start the deliverance in asynchronus mode */
-        startDeliver();
+        if (serviceReferences != null) {
+            startDeliver();
+        } else {
+            internalEvent.setAsDelivered();
+        }
     }
 
-    public synchronized void startDeliver() {
+    public void startDeliver() {
         /* method variable indicating that the topic mathces */
         boolean isSubscribed = false;
         /* method variable indicating that the filter matches */
@@ -145,6 +159,7 @@ public class DeliverSession extends Thread {
                         isSubscribed = true;
                     }
                 } catch (ClassCastException e) {
+                    
                     if (log != null) {
                         /* log the error */
                         log.error("invalid format of topic the EventHandler:"
@@ -164,12 +179,31 @@ public class DeliverSession extends Thread {
 
                 /* check that all indicating variables fulfills the condition */
                 if (isSubscribed && filterMatch && !isBlacklisted) {
+
                     /* check that the service is still registered */
                     if (bundleContext.getService(serviceReferences[i]) != null) {
                         /* start a thread to notify the EventHandler */
-                        Thread notifier = new Notifier(currentHandler);
+                        Thread notifier = new Notifier(currentHandler, this);
                         /* start the thread */
                         notifier.start();
+                        try {
+                            /* lock this session */
+                            synchronized (this) {
+                                /* wait for notification */
+                                wait();
+                            }
+
+                        } catch (InterruptedException e) {
+                            System.out.println("Deliver Session interrupted"
+                                    + e.getMessage());
+                        }
+
+                        /* lock the owner */
+                        synchronized (ownerThread) {
+                            /* notify the owner */
+                            ownerThread.notify();
+                        }
+
                     } else {
                         /* this will happen if service is no longer available */
                         if (log != null) {
@@ -187,8 +221,8 @@ public class DeliverSession extends Thread {
                         if (log != null) {
                             /* log the error */
                             log
-                                    .error("Deliverance failed due to a recently blacklisted handler" +
-                                    		" ,i.e, mallformatted topic");
+                                    .error("Deliverance failed due to a recently blacklisted handler"
+                                            + " ,i.e, mallformatted topic");
                         }
                     }
 
@@ -208,7 +242,7 @@ public class DeliverSession extends Thread {
                         if (log != null) {
                             /* log the error */
                             log
-                            	.error("Deliverance failed due to no match on filter");
+                                    .error("Deliverance failed due to no match on filter");
                         }
                     }
 
@@ -216,11 +250,17 @@ public class DeliverSession extends Thread {
 
             } else {
                 /* this will happen if the handler is already blacklisted */
-                log
-                .error("Deliverance failed due to a blacklisted handler");
+                log.error("Deliverance failed due to a blacklisted handler");
             }//end if(!isBlacklisted.....
         }
-        //end for(....
+
+        /* set the event to delivered  */
+        internalEvent.setAsDelivered();
+    }
+
+    private boolean isInTime(InternalAdminEvent event) {
+
+        return true;
 
     }
 
@@ -239,6 +279,7 @@ public class DeliverSession extends Thread {
         if (filter == null) {
             return true;
         } else {
+            /* return the match value */
             return event.matches(filter);
         }
     }
@@ -266,6 +307,7 @@ public class DeliverSession extends Thread {
                     /* have a match */
                     haveMatch = true;
                 }
+
             } else {
                 /* leave the iteration */
                 i = topics.length;
@@ -325,14 +367,18 @@ public class DeliverSession extends Thread {
         /** local representation of the eventhandler */
         private EventHandler currentHandler;
 
+        /** local variable represents the owner of the process */
+        private DeliverSession deliverSession;
+
         /**
          * Constructor of the Notifier class
          * 
          * @param handler
          *            the EventHandler class to be notified
          */
-        public Notifier(EventHandler handler) {
+        public Notifier(EventHandler handler, DeliverSession owner) {
             currentHandler = handler;
+            deliverSession = owner;
         }
 
         public void run() {
@@ -357,8 +403,7 @@ public class DeliverSession extends Thread {
                                     + " was blacklisted due to timeout");
                         }
                     }
-                    /* lower the priority of the thread */
-                    timeoutDeliver.setPriority(Thread.MIN_PRIORITY);
+                   
 
                 }
 
@@ -368,6 +413,11 @@ public class DeliverSession extends Thread {
                     log.info("Deliverance of event with topic "
                             + event.getTopic() + "was done");
                 }
+
+            }
+
+            synchronized (deliverSession) {
+                deliverSession.notify();
             }
 
         }
@@ -403,8 +453,10 @@ public class DeliverSession extends Thread {
 
         public void run() {
             try {
+
                 /* call the handlers 'update' function */
                 currentHandler.handleEvent(event);
+
                 /* tell the owner that notification is done */
                 ((Thread) owner).interrupt();
             } catch (Exception e) {
