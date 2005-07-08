@@ -66,7 +66,7 @@ BundleListener, LogListener, ServiceListener, FrameworkListener{
     private QueueHandler queueHandlerAsynch;
     
     /** A hasbtable of eventhandlers and timestamps */
-    private static Hashtable eventHandlers = new Hashtable();
+    public static Hashtable eventHandlers = new Hashtable();
 
     /**
      * the constructor use this to create a new Event admin service.

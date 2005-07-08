@@ -103,6 +103,8 @@ public class DeliverSession extends Thread {
         boolean isBlacklisted = false;
         /* method variable indicating that the topic is right formatted */
         boolean topicIsRight = false;
+        /* method variable indicating that the event is in time */
+        boolean isInTime = false;
 
         /* iterate through all service references */
         for (int i = 0; i < serviceReferences.length; i++) {
@@ -113,7 +115,7 @@ public class DeliverSession extends Thread {
             /* assign the blacklist value */
             isBlacklisted = blacklisted.contains(currentHandler);
 
-            if (!isBlacklisted) {
+            if (!isBlacklisted /*&& isInTime */) {
                 try {
                     /* get the filter String */
                     String filterString = (String) serviceReferences[i]
@@ -257,11 +259,22 @@ public class DeliverSession extends Thread {
         /* set the event to delivered  */
         internalEvent.setAsDelivered();
     }
-
-    private boolean isInTime(InternalAdminEvent event) {
-
-        return true;
-
+    /**
+     * isInTime determines whether a handler is eligable for a certain message or not.
+     * The handler has to be registered before the event was registered.
+     * @param handler - the handler to receive the message
+     * @param event - the event to be sent
+     * @return true if the handler should receive the message, false otherwise
+     * @author Johnny Bäverås
+     */
+    private boolean isInTime(ServiceReference handler,  InternalAdminEvent event) {
+    	
+    	/* Gets the registration time of the handler. */ 
+    	long handlerTime = Long.parseLong((String)EventAdminService.eventHandlers.get(handler));
+    	/* Gets the timestamp stored in the internal event and converts it to the standard used by the handler */
+    	long eventTime = event.getTimeStamp().getTimeInMillis();
+    	/* Determines the value of the boolean to be returned */
+        return eventTime<=handlerTime?false:true;
     }
 
     /**
