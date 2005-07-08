@@ -20,6 +20,10 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import com.gstm.test.eventadmin.scenarios.scenario1.impl.Scenario1TestSuite;
+import com.gstm.test.eventadmin.scenarios.scenario2.impl.Scenario2TestSuite;
+import com.gstm.test.eventadmin.scenarios.scenario3.impl.Scenario3TestSuite;
+import com.gstm.test.eventadmin.scenarios.scenario4.impl.Scenario4TestSuite;
+import com.gstm.test.eventadmin.scenarios.scenario5.impl.Scenario5TestSuite;
 
 import junit.framework.*;
 
@@ -48,6 +52,22 @@ public class Activator implements BundleActivator {
         TestSuite testSuiteScenario1 = new Scenario1TestSuite(context);
         /* add scenario 1 to the all tests suite */
         testSuiteAllTests.addTest(testSuiteScenario1);
+        /* create the test suite for scenario 2 */
+        TestSuite testSuiteScenario2 = new Scenario2TestSuite(context);
+        /* add scenario 2 to the all tests suite */
+        testSuiteAllTests.addTest(testSuiteScenario2);
+        /* create the test suite for scenario 3 */
+        TestSuite testSuiteScenario3 = new Scenario3TestSuite(context);
+        /* add scenario 2 to the all tests suite */
+        testSuiteAllTests.addTest(testSuiteScenario3);
+        /* create the test suite for scenario 4 */
+        TestSuite testSuiteScenario4 = new Scenario4TestSuite(context);
+        /* add scenario 4 to the all tests suite */
+        testSuiteAllTests.addTest(testSuiteScenario4);
+        /* create the test suite for scenario 5 */
+        TestSuite testSuiteScenario5 = new Scenario5TestSuite(context);
+        /* add scenario 5 to the all tests suite */
+        testSuiteAllTests.addTest(testSuiteScenario5);
         
         
         
