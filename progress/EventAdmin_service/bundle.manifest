@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: EventAdmin_service
-Bundle-SymbolicName: com.osgi.service.event.impl
+Bundle-SymbolicName: org.osgi.service.event.impl
 Bundle-Activator: org.osgi.service.event.impl.Activator
 Bundle-Version: 1.0
 Export-Package: org.osgi.service.event
