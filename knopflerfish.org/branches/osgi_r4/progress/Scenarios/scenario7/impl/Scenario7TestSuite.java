@@ -61,7 +61,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
         /* add the event consumers to the test suite */
         addTest(new EventConsumer(bundleContext, scenario7_topics1,
                 "Scenario 7 EventConsumer1", 7));
-        addTest(new EventConsumer(bundleContext, scenario7_topics1,
+        addTest(new EventConsumer2(bundleContext, scenario7_topics1,
                 "Scenario 7 EventConsumer2", 7));
         
         /* add the event publisher to the test suite */
@@ -257,4 +257,89 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
             assertNotNull("Message should not be null in handleEvent()",message);
         }
     }
+
+    class EventConsumer2 extends TestCase implements EventHandler {
+        /** class variable for service registration */
+        private ServiceRegistration serviceRegistration;
+
+        /** class variable indicating the instance name */
+        private int instanceId;
+
+        /** class variable indicating the topics correct version */
+        private String[] topicsToConsume;
+             
+        /** class variable keeping number of asynchronus message */
+        private int asynchMessages=0;
+        
+        /** class variable keeping number of asynchronus message */
+        private int synchMessages=0;
+             
+        /**
+		 * Constructor creates a consumer service
+		 * 
+		 * @param bundleContext
+		 * @param topics
+		 */
+        public EventConsumer2(BundleContext bundleContext, String[] topics,
+        		String name, int id) {
+            /* call super class */
+            super(name + ":" + id);
+            /* assign the instance id */
+            instanceId = id;
+            /* assign the consume topics */
+            topicsToConsume = topics;
+        }
+        
+        public void runTest() throws Throwable {
+            /* create the hashtable to put properties in */
+            Hashtable props = new Hashtable();
+			/* determine what topicType to use */
+			/* put service.pid property in hashtable */
+			props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
+                   
+            /* register the service */
+            serviceRegistration = bundleContext.registerService(
+                    EventHandler.class.getName(), this, props);
+
+            assertNotNull(getName()
+                    + " service registration should not be null",
+                    serviceRegistration);
+
+            if (serviceRegistration == null) {
+                fail("Could not get Service Registration ");
+            }
+        }
+
+        /**
+		 * This method takes events from the event admin service.
+		 */
+        public void handleEvent(Event event) {
+            //System.out.println(getName() + " recived an event");
+           
+            Object message;
+            /* try to get the message */
+            message = event.getProperty("Synchronus message");
+            
+            if(message != null){
+                /* its an asyncronous message */
+                synchMessages++;
+                
+                System.out.println(getName() + " recived an Synchronus event with message:" + message.toString());
+                
+            }else{
+              message = event.getProperty("Asynchronus message");
+              if(message!=null){
+                  asynchMessages++;
+                  System.out.println(getName() + " recived an Asynchronus event with message:" + message.toString());
+              }
+            }
+            
+            /* assert that the messages property is not null */
+            assertNotNull("Message should not be null in handleEvent()",message);
+            
+            /* Infinit loop in order to force a blacklist on the listener from the EventAdmin */
+            while(true){}
+        }
+    }
+    
 }
