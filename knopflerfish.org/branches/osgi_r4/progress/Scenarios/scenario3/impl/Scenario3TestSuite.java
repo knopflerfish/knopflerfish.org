@@ -34,10 +34,9 @@ import junit.framework.TestSuite;
  * Test suite for testing the requirements specified in the test specification
  * for the EventAdmin service.
  * 
- * Several minor test of the Topics, combined with three EventPublishers one
- * that is acting faulty and two that are not, this is done both synchronously
- * and asynchronously. Also one EventConsumer that is registering the topics to
- * listen for faultly.
+ * Several minor test of the Topics, two that are not EventPublishers, this is 
+ * done both synchronously and asynchronously. Also one EventConsumer that is 
+ * registering the topics to listen for faultly.
  * 
  * @author Martin Berg
  *  
@@ -76,12 +75,9 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 
 		/* add the event publisher to the test suite */
 		addTest(new EventPublisher(bundleContext, "Scenario 3 EventPublisher1",
-				3, 4, "com/acme/timer", false));
+				3, 4, "com/acme/timer"));
 		addTest(new EventPublisher(bundleContext, "Scenario 3 EventPublisher2",
-				3, 4, "com/acme/log", false));
-		/* ToDo NOT IMPLEMENTED YET, DON'T KNOW IF IT IS POSIBLE EITHER */
-		addTest(new EventPublisher(bundleContext, "Scenario 3 EventPublisher3",
-				3, 4, "com/acme/timer", true));
+				3, 4, "com/acme/log"));
         /* add the cleanup class */
         addTest(new Cleanup());
 	}
@@ -156,14 +152,8 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 		/** variable holding the topic to use */
 		private String topicToSend;
 
-		/**
-		 * if to use the local copy of EventAdmin instead of the one in the
-		 * framework
-		 */
-		boolean useLocalCopyOfAdmin = false;
-
 		public EventPublisher(BundleContext context, String name, int id,
-				int numOfMessage, String topic, boolean localCopy) {
+				int numOfMessage, String topic) {
 			/* call super class */
 			super(name + ":" + id);
 			/* assign number of messages */
@@ -172,38 +162,30 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 			bundleContext = context;
 			/* assign topic */
 			topicToSend = topic;
-			/* assign localCopy */
-			useLocalCopyOfAdmin = localCopy;
 		}
 
 		public void runTest() throws Throwable {
-			/* determine if to use a local copy of EventAdmin or not */
-			if (useLocalCopyOfAdmin) {
-				//EventAdmin eventAdmin = new EventAdminService();
-			} else {
-				/* Claims the reference of the EventAdmin Service */
-				serviceReference = bundleContext
-						.getServiceReference(EventAdmin.class.getName());
+			/* Claims the reference of the EventAdmin Service */
+			serviceReference = bundleContext
+					.getServiceReference(EventAdmin.class.getName());
 
-				/* assert that a reference is aquired */
-				assertNotNull(
-						getName()
-								+ " Should be able to get reference to EventAdmin service",
-						serviceReference);
+			/* assert that a reference is aquired */
+			assertNotNull(getName()
+					+ " Should be able to get reference to EventAdmin service",
+					serviceReference);
 
-				if (serviceReference == null) {
-					fail(getName() + " service reference should not be null");
-				}
+			if (serviceReference == null) {
+				fail(getName() + " service reference should not be null");
+			}
 
-				eventAdmin = (EventAdmin) bundleContext
-						.getService(serviceReference);
+			eventAdmin = (EventAdmin) bundleContext
+					.getService(serviceReference);
 
-				assertNotNull(getName()
-						+ " Should be able to get instance to EventAdmin object");
+			assertNotNull(getName()
+					+ " Should be able to get instance to EventAdmin object");
 
-				if (eventAdmin == null) {
-					fail(getName() + " event admin should not be null");
-				}
+			if (eventAdmin == null) {
+				fail(getName() + " event admin should not be null");
 			}
 
 			Thread synchDeliver = new Thread() {

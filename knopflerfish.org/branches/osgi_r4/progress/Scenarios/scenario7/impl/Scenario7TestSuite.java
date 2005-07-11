@@ -204,7 +204,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
                 			/* a Hash table to store message in */
                             Hashtable message = new Hashtable();
                             /* put some properties into the messages */
-                            message.put("Synchronus message",new Integer(i));
+                            message.put("Asynchronus message",new Integer(i));
                             /* send the message */
                             System.out.println(getName() + " sending a synchronus event with message:" + message.toString() + "and the topic:" + topicToSend);
                             eventAdmin.sendEvent(new Event(topicToSend, message));
