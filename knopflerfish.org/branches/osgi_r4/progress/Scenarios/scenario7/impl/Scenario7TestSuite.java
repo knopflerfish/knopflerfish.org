@@ -30,8 +30,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
- * Test suite for testing the requirements specified in the test specification
- * for the EventAdmin service.
+ * Check the blacklist functionality in the EventAdmin.
  * 
  * @author Martin Berg
  *  
@@ -50,13 +49,11 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
         super("Scenario 7");
         /* assign the bundelContext variable */
         bundleContext = context;
-        /* call the setup to init the right state */
-        setUp();
-    }
-
-    public void setUp() {
         /* create a topic string */
         String[] scenario7_topics1 = { "com/acme/timer" };
+        
+        /* add the setup */
+        addTest(new Setup());
         
         /* add the event consumers to the test suite */
         addTest(new EventConsumer(bundleContext, scenario7_topics1,
@@ -67,8 +64,57 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
         /* add the event publisher to the test suite */
         addTest(new EventPublisher(bundleContext, "Scenario 7 EventPublisher",
                 7, "com/acme/timer"));
-        }
+        /* add the cleanup class */
+        addTest(new Cleanup());
+    }
 
+    /**
+     * Sets up neccessary environment
+     *
+     *@author Magnus Klack
+     */
+    class Setup extends TestCase {
+        public Setup(){
+          
+        }
+        public void runTest() throws Throwable {
+           
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
+    /**
+     * Clean up the test suite
+     * 
+     * @author Magnus Klack
+     */
+    class Cleanup extends TestCase {
+        public void runTest() throws Throwable {
+            
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
     class EventPublisher extends TestCase {
      
         /** A reference to a service */

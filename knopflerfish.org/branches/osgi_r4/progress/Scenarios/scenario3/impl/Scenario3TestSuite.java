@@ -56,11 +56,7 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 		super("Scenario 3");
 		/* assign the bundelContext variable */
 		bundleContext = context;
-		/* call the setup to init the right state */
-		setUp();
-	}
-
-	public void setUp() {
+		
 		/* create a topic string */
 		String[] scenario3_topics1 = { "com/acme/timer", "com/acme/log" };
 
@@ -69,6 +65,8 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 		scenario3_topics2.add("com/acme/timer");
 		scenario3_topics2.add("com/acme/log");
 
+        /* add the setup */
+        addTest(new Setup());
 		/* add the event consumer with the correct topics to the test suite */
 		addTest(new EventConsumer(bundleContext, scenario3_topics1, 8, 8,
 				"Scenario 3 EventConsumer1", 3));
@@ -84,8 +82,57 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 		/* ToDo NOT IMPLEMENTED YET, DON'T KNOW IF IT IS POSIBLE EITHER */
 		addTest(new EventPublisher(bundleContext, "Scenario 3 EventPublisher3",
 				3, 4, "com/acme/timer", true));
+        /* add the cleanup class */
+        addTest(new Cleanup());
 	}
 
+    /**
+     * Sets up neccessary environment
+     *
+     *@author Magnus Klack
+     */
+    class Setup extends TestCase {
+        public Setup(){
+          
+        }
+        public void runTest() throws Throwable {
+           
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
+    /**
+     * Clean up the test suite
+     * 
+     * @author Magnus Klack
+     */
+    class Cleanup extends TestCase {
+        public void runTest() throws Throwable {
+            
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
 	class EventPublisher extends TestCase {
 
 		/** A reference to a service */
