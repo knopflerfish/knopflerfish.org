@@ -54,11 +54,6 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         super("Scenario 4");
         /* assign the bundelContext variable */
         bundleContext = context;
-        /* call the setup to init the right state */
-        setUp();
-    }
-
-    public void setUp() {
         /* a Hash table to store the properties to be used in the test */
         Hashtable keysAndProps1 = new Hashtable();
         Hashtable keysAndProps2 = new Hashtable();
@@ -81,7 +76,9 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         String scenario4_filter2 = "(year=2005)";
         String scenario4_filter3 = "(year:2004)";
         String scenario4_filter5 = "(month=12)";
-
+        
+        /* add the setup */
+        addTest(new Setup());
         /* add the event consumers to the test suite */
         addTest(new EventConsumer(bundleContext, scenario4_topics1, 
         		1, 1, scenario4_filter1, "Scenario 4 EventConsumer1", 4));
@@ -99,8 +96,58 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         		"com/acme/timer", message1, 4, 2));
         addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher2",
         		"com/acme/timer", message2, 4, 1));
+        /* add the cleanup class */
+        addTest(new Cleanup());
     }
 
+    /**
+     * Sets up neccessary environment
+     *
+     *@author Magnus Klack
+     */
+    class Setup extends TestCase {
+        public Setup(){
+          
+        }
+        public void runTest() throws Throwable {
+           
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
+    /**
+     * Clean up the test suite
+     * 
+     * @author Magnus Klack
+     */
+    class Cleanup extends TestCase {
+        public void runTest() throws Throwable {
+            
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
+    
     class EventPublisher extends TestCase {
      
         /** A reference to a service */

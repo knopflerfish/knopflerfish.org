@@ -53,11 +53,6 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
         super("Scenario 2");
         /* assign the bundelContext variable */
         bundleContext = context;
-        /* call the setup to init the right state */
-        setUp();
-    }
-
-    public void setUp() {
         /* create a topic string */
         String[] scenario2_topics1 = { "com/acme/timer" };
         String[] scenario2_topics2 = { "*" };
@@ -69,6 +64,8 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
 													"com/acme/timer"
 												};
        
+        /* add the setup */
+        addTest(new Setup());
         /* add the event consumers to the test suite */
         addTest(new EventConsumer(bundleContext, scenario2_topics1,
                 1,1, "Scenario 2 EventConsumer1", 2));
@@ -77,8 +74,57 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
         /* add the event publisher to the test suite */
         addTest(new EventPublisher(bundleContext, "Scenario 2 EventPublisher",
         		scenario2_topicsToPublish, 2, 4));
+        /* add the cleanup class */
+        addTest(new Cleanup());
+        }
+  
+    /**
+     * Sets up neccessary environment
+     *
+     *@author Magnus Klack
+     */
+    class Setup extends TestCase {
+        public Setup(){
+          
+        }
+        public void runTest() throws Throwable {
+           
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
     }
-
+    
+    /**
+     * Clean up the test suite
+     * 
+     * @author Magnus Klack
+     */
+    class Cleanup extends TestCase {
+        public void runTest() throws Throwable {
+            
+        }
+        public String getName() {
+            String name = getClass().getName();
+            int ix = name.lastIndexOf("$");
+            if(ix == -1) {
+              ix = name.lastIndexOf(".");
+            }
+            if(ix != -1) {
+              name = name.substring(ix + 1);
+            }
+            return name;
+          }
+    }
+    
     class EventPublisher extends TestCase {
      
         /** A reference to a service */
