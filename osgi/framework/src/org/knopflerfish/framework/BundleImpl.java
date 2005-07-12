@@ -120,8 +120,10 @@ class BundleImpl implements Bundle {
 
   /**
    * List of all nativeLibs that can be used in this bundle.
+   * 
+   * pl: unused
    */
-  protected List nativeLibs = null;
+  //protected List nativeLibs = null;
 
 
   /**
