@@ -23,6 +23,9 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
+ * Test suite for testing the requirements specified in the test specification
+ * for the EventAdmin service.
+ * 
  * This test check the ServicePermission and the TopicPermission 
  * functionality
  * 

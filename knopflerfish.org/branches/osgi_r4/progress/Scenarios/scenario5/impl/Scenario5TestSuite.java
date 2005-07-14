@@ -33,6 +33,12 @@ import junit.framework.TestSuite;
  * Test suite for testing the requirements specified in the test specification
  * for the EventAdmin service.
  * 
+ * This test tests if it is possible to have several EventAdmins running. 
+ * And check if the events are published and received anyway.
+ * 
+ * In order to run the test an additonal EventAdmin needs to be started on the
+ * framework.
+ * 
  * @author Martin Berg
  *  
  */
