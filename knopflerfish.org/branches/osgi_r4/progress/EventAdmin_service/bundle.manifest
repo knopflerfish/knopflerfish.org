@@ -4,13 +4,11 @@ Bundle-SymbolicName: org.osgi.service.event.impl
 Bundle-Activator: org.osgi.service.event.impl.Activator
 Bundle-Version: 1.0
 Export-Package: org.osgi.service.event
-Import-Package: org.osgi.service.permissionadmin,
- org.knopflerfish.service.log
+Import-Package: org.knopflerfish.service.log,
+ org.osgi.service.event,
+ org.osgi.service.log
  
-
-
-
-
-
-
+ 
+ 
+ 
 

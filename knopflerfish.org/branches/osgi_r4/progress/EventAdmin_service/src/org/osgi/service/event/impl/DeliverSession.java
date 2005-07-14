@@ -91,6 +91,11 @@ public class DeliverSession extends Thread {
             startDeliver();
         } else {
             internalEvent.setAsDelivered();
+            /* lock the owner */
+            synchronized (ownerThread) {
+                /* notify the owner */
+                ownerThread.notify();
+            }
         }
     }
 
@@ -101,9 +106,7 @@ public class DeliverSession extends Thread {
         boolean filterMatch = false;
         /* method variable indicating if the handler is blacklisted */
         boolean isBlacklisted = false;
-        /* method variable indicating that the topic is right formatted */
-        boolean topicIsRight = false;
-        /* method variable indicating that the event is in time */
+        /* method variable indicating that the eventhandler should have this event */
         boolean isInTime = false;
 
         /* iterate through all service references */
@@ -115,7 +118,7 @@ public class DeliverSession extends Thread {
             /* assign the blacklist value */
             isBlacklisted = blacklisted.contains(currentHandler);
 
-            if (!isBlacklisted /*&& isInTime */) {
+            if (!isBlacklisted) {
                 try {
                     /* get the filter String */
                     String filterString = (String) serviceReferences[i]
@@ -127,7 +130,7 @@ public class DeliverSession extends Thread {
                         Filter filter = bundleContext
                                 .createFilter(filterString);
                         /* assign the filterMatch variable */
-                        filterMatch = event.matches(filter);
+                        filterMatch = filterMatched(event,filter);
                     } else {
                         /* this means no filter */
                         filterMatch = true;
@@ -139,6 +142,8 @@ public class DeliverSession extends Thread {
                         /* log the error */
                         log.error("Invalid Syntax when matching filter");
                     }
+                    /* this means no filter match */
+                    filterMatch = false;
                 }
 
                 try {
@@ -178,9 +183,11 @@ public class DeliverSession extends Thread {
                  * blacklisted on the way
                  */
                 isBlacklisted = blacklisted.contains(currentHandler);
-
+                
+                isInTime=this.isInTime(serviceReferences[i],internalEvent);
+                
                 /* check that all indicating variables fulfills the condition */
-                if (isSubscribed && filterMatch && !isBlacklisted) {
+                if (isSubscribed && filterMatch && !isBlacklisted && isInTime) {
 
                     /* check that the service is still registered */
                     if (bundleContext.getService(serviceReferences[i]) != null) {
@@ -200,11 +207,7 @@ public class DeliverSession extends Thread {
                                     + e.getMessage());
                         }
 
-                        /* lock the owner */
-                        synchronized (ownerThread) {
-                            /* notify the owner */
-                            ownerThread.notify();
-                        }
+                     
 
                     } else {
                         /* this will happen if service is no longer available */
@@ -256,9 +259,19 @@ public class DeliverSession extends Thread {
             }//end if(!isBlacklisted.....
         }
 
-        /* set the event to delivered  */
+        
+        /* set the event as delivered  */
+        synchronized(internalEvent){
         internalEvent.setAsDelivered();
+        }
+        
+        /* lock the owner */
+        synchronized (ownerThread) {
+            /* notify the owner */
+            ownerThread.notify();
+        }
     }
+
     /**
      * isInTime determines whether a handler is eligable for a certain message or not.
      * The handler has to be registered before the event was registered.
@@ -268,13 +281,13 @@ public class DeliverSession extends Thread {
      * @author Johnny Bäverås
      */
     private boolean isInTime(ServiceReference handler,  InternalAdminEvent event) {
-    	
-    	/* Gets the registration time of the handler. */ 
-    	long handlerTime = Long.parseLong((String)EventAdminService.eventHandlers.get(handler));
-    	/* Gets the timestamp stored in the internal event and converts it to the standard used by the handler */
-    	long eventTime = event.getTimeStamp().getTimeInMillis();
-    	/* Determines the value of the boolean to be returned */
-        return eventTime<=handlerTime?false:true;
+         /* Gets the registration time of the handler. */
+         Long handlerTime = (Long)EventAdminService.eventHandlers.get(handler);
+         /* Gets the timestamp stored in the internal event and converts it to the standard used by the handler */
+         long eventTime = event.getTimeStamp().getTimeInMillis();
+         /* Determines the value of the boolean to be returned */
+         return eventTime<=handlerTime.longValue()?false:true;
+         
     }
 
     /**
@@ -292,8 +305,8 @@ public class DeliverSession extends Thread {
         if (filter == null) {
             return true;
         } else {
-            /* return the match value */
             return event.matches(filter);
+	        
         }
     }
 
