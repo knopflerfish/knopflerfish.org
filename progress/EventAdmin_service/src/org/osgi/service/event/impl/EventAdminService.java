@@ -84,11 +84,11 @@ public class EventAdminService implements EventAdmin, LogListener,
 		log = new LogRef(context);
 
 		/* create the synchronus sender process */
-		queueHandlerSynch = new QueueHandler();
+		queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
 		/* start the asynchronus sender */
 		queueHandlerSynch.start();
 		/* create the asynchronus queue handler */
-		queueHandlerAsynch = new QueueHandler();
+		queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
 		/* start the handler */
 		queueHandlerAsynch.start();
 
@@ -137,8 +137,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			
 		}catch(Exception e){
 			System.out.println("Unknown exception in postEvent():" +e);
-			e.printStackTrace();
-			
+			e.printStackTrace();			
 		}
 		
 	}
@@ -159,24 +158,27 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/* create an internal admin event */
 		InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
 				this);
-		/* add the admin event to the queueHandlers send queue */
-		if(queueHandlerSynch!=null){
-			queueHandlerSynch.addEvent(adminEvent);
-			
-		}
-		/* wait untill the object have been finished */
-
 		try {
+			if(queueHandlerSynch!=null && getReferences()!=null){
+				/* add the admin event to the queueHandlers send queue */
+				queueHandlerSynch.addEvent(adminEvent);
+			}
 			/* lock this object to make it 
 			 * possible to be notified */
 			synchronized (this) {
+				/* check not null */
+				if(this.getReferences()!=null){
 				/* wait until notified*/
 				wait();
+				}
 			}
 
 		} catch (InterruptedException e) {
 			/* write the exception */
-			System.out.println(e);
+			System.out.println("sendEvent() was interrupted by external process:" + e);
+		}catch(InvalidSyntaxException e){
+			/* write the exception */
+			System.out.println("invalid syntax in getReferences()" + e);
 		}
 
 		/* console text for debugging purpose */
@@ -548,6 +550,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * @author Magnus Klack
 	 */
 	private class QueueHandler extends Thread {
+		public final static int SYNCHRONUS_HANDLER=0;
+		
+		public final static int ASYNCHRONUS_HANDLER=1;
 		/** the queue */
 		private LinkedList syncQueue = new LinkedList();
 
@@ -556,12 +561,15 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		/** thread worker **/
 		private Thread workerThread;
-
+		
+		private int queueType;
 		/**
 		 * Constructor for the QueueHandler
 		 */
-		public QueueHandler() {
+		public QueueHandler(int type) {
+			
 			running = true;
+			queueType=type;
 		}
 
 		/**
@@ -570,7 +578,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		 * @param event
 		 *            the new InternalAdminEvent
 		 */
-		public synchronized void addEvent(Object event) {
+		public  void addEvent(Object event) {
 				/* lock the synchQueue */
 				synchronized(syncQueue){
 					System.out.println("Adding new event");
@@ -586,7 +594,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 						System.out.println("worker thread is not started ignoring event");
 					}
 				}
-
 		}
 
 		public void run() {
@@ -621,131 +628,133 @@ public class EventAdminService implements EventAdmin, LogListener,
 										/* get the references */
 										serviceReferences = getReferences();
 										if(serviceReferences!=null){
-										/* get the 'Event' not the InternalAdminEvent */
-										InternalAdminEvent event = (InternalAdminEvent) syncQueue
-												.getFirst();
-
-										if (event == null) {
-											System.out
-													.println("********** NULL EVENT ***********");
-										}
-
-										/* remove it from the list */
-										syncQueue.removeFirst();
-
-										/* get the securityManager */
-										SecurityManager securityManager = getSecurityManager();
-										/*
-										 * variable indicates if the handler is allowed to
-										 * publish
-										 */
-										boolean canPublish;
-
-										/*
-										 * variable indicates if handlers are granted access
-										 * to topic
-										 */
-										boolean canSubscribe;
-
-										/* check if security is applied */
-										if (securityManager != null) {
-											/* check if there are any security limitation */
-											canPublish = checkPermissionToPublish(
-													(Event) event.getElement(),
-													securityManager);
-										} else {
-											/* no security here */
-											canPublish = true;
-										}
-
-										if (securityManager != null) {
-											/* check if there are any security limitation */
-											canSubscribe = checkPermissionToSubscribe(
-													(Event) event.getElement(),
-													securityManager);
-										} else {
-											/* no security here */
-											canSubscribe = true;
-										}
-
-										if (canPublish && canSubscribe) {
-
-											/*
-											 * create an instance of the deliver session to
-											 * deliver events
-											 */
-											DeliverSession deliverSession = new DeliverSession(
-													event, bundleContext,
-													serviceReferences, log,
-													this);
-
-											/* start deliver events */
-											deliverSession.start();
-
-											try {
-												/* wait for notification */
-												wait();
-											} catch (InterruptedException e) {
-												/* print the error message */
+											/* get the 'Event' not the InternalAdminEvent */
+											InternalAdminEvent event = (InternalAdminEvent) syncQueue
+													.getFirst();
+	
+											if (event == null) {
 												System.out
-														.println("Exception in SynchDeliverThread:"
-																+ e);
+														.println("********** NULL EVENT ***********");
 											}
-
-										} else {
-											/* no permissions at all are given */
-											if (!canPublish && !canSubscribe) {
+	
+											/* remove it from the list */
+											syncQueue.removeFirst();
+	
+											/* get the securityManager */
+											SecurityManager securityManager = getSecurityManager();
+											/*
+											 * variable indicates if the handler is allowed to
+											 * publish
+											 */
+											boolean canPublish;
+	
+											/*
+											 * variable indicates if handlers are granted access
+											 * to topic
+											 */
+											boolean canSubscribe;
+	
+											/* check if security is applied */
+											if (securityManager != null) {
+												/* check if there are any security limitation */
+												canPublish = checkPermissionToPublish(
+														(Event) event.getElement(),
+														securityManager);
+											} else {
+												/* no security here */
+												canPublish = true;
+											}
+	
+											if (securityManager != null) {
+												/* check if there are any security limitation */
+												canSubscribe = checkPermissionToSubscribe(
+														(Event) event.getElement(),
+														securityManager);
+											} else {
+												/* no security here */
+												canSubscribe = true;
+											}
+	
+											if (canPublish && canSubscribe) {
+	
 												/*
-												 * this will happen if an error occurres in
-												 * getReferences()
+												 * create an instance of the deliver session to
+												 * deliver events
 												 */
-												if (log != null) {
-													/* log the error */
-													log
-															.error("No permission to publish and subscribe top topic:"
-																	+ ((Event) event
-																			.getElement())
-																			.getTopic());
+												DeliverSession deliverSession = new DeliverSession(
+														event, bundleContext,
+														serviceReferences, log,
+														this);
+	
+												/* start deliver events */
+												deliverSession.start();
+	
+												try {
+													/* wait for notification */
+													wait();
+												} catch (InterruptedException e) {
+													/* print the error message */
+													System.out
+															.println("Exception in SynchDeliverThread:"
+																	+ e);
+												}
+	
+											} else {
+												/* no permissions at all are given */
+												if (!canPublish && !canSubscribe) {
+													/*
+													 * this will happen if an error occurres in
+													 * getReferences()
+													 */
+													if (log != null) {
+														/* log the error */
+														log
+																.error("No permission to publish and subscribe top topic:"
+																		+ ((Event) event
+																				.getElement())
+																				.getTopic());
+													}
+												}
+	
+												/* no publish permission */
+												if (!canPublish && canSubscribe) {
+													/*
+													 * this will happen if an error occures in
+													 * getReferences()
+													 */
+													if (log != null) {
+														/* log the error */
+														log
+																.error("No permission to publishto topic:"
+																		+ ((Event) event
+																				.getElement())
+																				.getTopic());
+													}
+												}
+	
+												/* no subscribe permission */
+												if (canPublish && !canSubscribe) {
+													/*
+													 * this will happen if an error occures in
+													 * getReferences()
+													 */
+													if (log != null) {
+														/* log the error */
+														log
+																.error("No permission to granted for subscription to topic:"
+																		+ ((Event) event
+																				.getElement())
+																				.getTopic());
+													}
 												}
 											}
-
-											/* no publish permission */
-											if (!canPublish && canSubscribe) {
-												/*
-												 * this will happen if an error occures in
-												 * getReferences()
-												 */
-												if (log != null) {
-													/* log the error */
-													log
-															.error("No permission to publishto topic:"
-																	+ ((Event) event
-																			.getElement())
-																			.getTopic());
-												}
-											}
-
-											/* no subscribe permission */
-											if (canPublish && !canSubscribe) {
-												/*
-												 * this will happen if an error occures in
-												 * getReferences()
-												 */
-												if (log != null) {
-													/* log the error */
-													log
-															.error("No permission to granted for subscription to topic:"
-																	+ ((Event) event
-																			.getElement())
-																			.getTopic());
-												}
-											}
-										}
 										}else{
+										
 											for(int i=0;i<syncQueue.size();i++){
-												syncQueue.remove(i);
+												synchronized(syncQueue){
+													syncQueue.remove(i);
+												}
 											}
-											
 										}
 									} catch (InvalidSyntaxException e) {
 										/*
@@ -757,7 +766,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 											log
 													.error("Can't get any service references");
 										}
-
 									}
 
 								}// end synchronized
