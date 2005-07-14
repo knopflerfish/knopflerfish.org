@@ -30,7 +30,14 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
+ * Test suite for testing the requirements specified in the test specification
+ * for the EventAdmin service.
+ * 
  * Check the blacklist functionality in the EventAdmin.
+ * This is done with one publisher that produces an event with the topic
+ * "com/acme/timer/" every 10 second and two consumers that listens for this
+ * topic. One consumer that stalls the handling of the event and therefor 
+ * should be blacklisted and one consumer that works correctly.
  * 
  * @author Martin Berg
  *  

@@ -34,9 +34,9 @@ import junit.framework.TestSuite;
  * Test suite for testing the requirements specified in the test specification
  * for the EventAdmin service.
  * 
- * Several minor test of the Topics, two that are not EventPublishers, this is 
- * done both synchronously and asynchronously. Also one EventConsumer that is 
- * registering the topics to listen for faultly.
+ * Several minor test of the Topics, this is done both synchronously and 
+ * asynchronously. Also one EventConsumer that is registering the topics to 
+ * listen for faulty.
  * 
  * @author Martin Berg
  *  
