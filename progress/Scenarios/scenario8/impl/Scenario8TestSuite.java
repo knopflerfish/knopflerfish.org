@@ -26,6 +26,7 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
 import com.gstm.test.eventadmin.scenarios.scenario8.Scenario8;
+import com.gstm.test.eventadmin.scenarios.util.Util;
 
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -70,32 +71,16 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
         
         /* add the external Event consumers */
         
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer1", 8, 
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventConsumer1.jar"));
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer2", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventConsumer2.jar"));
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer3", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventConsumer3.jar"));
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer4", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventConsumer4.jar"));
-        
-        /* ADD ONE INTERNAL EVENT PUBLISHER FOR TESTING*/
-        /* create a topic string */
-//        String[] scenario8_topics1 = { "com/acme/timer" };
-//        addTest(new EventConsumer(bundleContext, scenario8_topics1,
-//                "Scenario 7 EventConsumer1", 7));
-//        addTest(new EventPublisher(bundleContext, "Scenario 8 EventPublisherT",
-//                8, "com/acme/timer"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer1", 8, "testlibs/EventConsumer1.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer2", 8, "testlibs/EventConsumer2.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer3", 8, "testlibs/EventConsumer3.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventConsumer4", 8, "testlibs/EventConsumer4.jar"));
         
         /* add the external Event Publishers */
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventProducer1", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventProducer1.jar"));
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventProducer2", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventProducer2.jar"));
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventProducer3", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventProducer3.jar"));
-        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventProducer4", 8,
-        		"file:///C:/Program Files/eclipse-SDK-3.0.2-win32/workspace/Scenarios/src/com/gstm/test/eventadmin/scenarios/lib/EventProducer4.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventPublisher1", 8, "testlibs/EventProducer1.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventPublisher2", 8, "testlibs/EventProducer2.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventPublisher3", 8, "testlibs/EventProducer3.jar"));
+        addTest(new ExternalJAR(bundleContext, "Scenario 8 EventPublisher4", 8, "testlibs/EventProducer4.jar"));
         /* add the clean up */
         addTest(new Cleanup());
     }
@@ -152,31 +137,56 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
     	BundleContext bundleContext;
     	/* The path to the jar file to be installed*/
     	String pathToJAR;
-        public ExternalJAR(BundleContext bc, String name, int id, 
-        		String path) {
+        public ExternalJAR(BundleContext bc, String name, int id, String path) {
             /* call super class */
             super(name + ":" + id);
             /*assign the instance name */
             
             /* assign the instance bc */
             bundleContext = bc;
+            
             /* assign the instance path */
             pathToJAR = path;
         }
         
         public void runTest() throws Throwable {
         	/* install the bundle */
-        	buU = bundleContext.installBundle(pathToJAR);
-        	System.out.print("Starting:" + getName() + "\n");
-        	System.out.print("The BundleID:" + buU.getBundleId() + " State:" + buU.getState() + "\n");
-        	System.out.print("The BundleID:" + buU.getLocation()+ "\n");
-        	System.out.print("Services in use:" + buU.getServicesInUse().toString() + "\n");
+        	
+        	buU = Util.installBundle(bundleContext, pathToJAR);
         	buU.start();
-        	System.out.print("The BundleID:" + buU.getBundleId() + " State:" + buU.getState() + "\n");
-        	System.out.print("Services in use:" + buU.getServicesInUse().toString() + "\n");
         }
     }    
     
+//    class ExternalJAR extends TestCase{
+//    	/* The bundle xontext */
+//    	BundleContext bundleContext;
+//    	/* The path to the jar file to be installed*/
+//    	String pathToJAR;
+//        public ExternalJAR(BundleContext bc, String name, int id, 
+//        		String path) {
+//            /* call super class */
+//            super(name + ":" + id);
+//            /*assign the instance name */
+//            
+//            /* assign the instance bc */
+//            bundleContext = bc;
+//            /* assign the instance path */
+//            pathToJAR = path;
+//        }
+//        
+//        public void runTest() throws Throwable {
+//        	/* install the bundle */
+//        	buU = bundleContext.installBundle(pathToJAR);
+//        	System.out.print("Starting:" + getName() + "\n");
+//        	System.out.print("The BundleID:" + buU.getBundleId() + " State:" + buU.getState() + "\n");
+//        	System.out.print("The BundleID:" + buU.getLocation()+ "\n");
+//        	System.out.print("Services in use:" + buU.getServicesInUse().toString() + "\n");
+//        	buU.start();
+//        	System.out.print("The BundleID:" + buU.getBundleId() + " State:" + buU.getState() + "\n");
+//        	System.out.print("Services in use:" + buU.getServicesInUse().toString() + "\n");
+//        }
+//    }    
+//    
     class EventPublisher extends TestCase {
         
            /** A reference to a service */
