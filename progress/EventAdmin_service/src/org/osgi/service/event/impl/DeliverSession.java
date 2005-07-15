@@ -108,7 +108,7 @@ public class DeliverSession extends Thread {
         boolean isBlacklisted = false;
         /* method variable indicating that the eventhandler should have this event */
         boolean isInTime = false;
-
+        System.out.println("Servicereference list length:" + serviceReferences.length);
         /* iterate through all service references */
         for (int i = 0; i < serviceReferences.length; i++) {
             /* get the EventHandler by using its references */
@@ -194,12 +194,14 @@ public class DeliverSession extends Thread {
                         /* start a thread to notify the EventHandler */
                         Thread notifier = new Notifier(currentHandler, this);
                         /* start the thread */
+                        System.out.println("Staring notifier");
                         notifier.start();
                         try {
                             /* lock this session */
                             synchronized (this) {
                                 /* wait for notification */
                                 wait();
+                                System.out.println("Returning to Worker Thread");
                             }
 
                         } catch (InterruptedException e) {
@@ -209,15 +211,8 @@ public class DeliverSession extends Thread {
 
                      
 
-                    } else {
-                        /* this will happen if service is no longer available */
-                        if (log != null) {
-                            /* log the error */
-                            log.error("Deliverance failed due to"
-                                    + " Service is no longer in registry");
-                        }
+                    } 
 
-                    }
 
                 } else {
                     /* check if blacklisted */
@@ -225,9 +220,9 @@ public class DeliverSession extends Thread {
                         /* check the log */
                         if (log != null) {
                             /* log the error */
-                            log
-                                    .error("Deliverance failed due to a recently blacklisted handler"
-                                            + " ,i.e, mallformatted topic");
+//                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" +currentHandler + " due to a recently blacklisted handler"
+//                                    + " ,i.e, mallformatted topic");
+//                        	logger.start();
                         }
                     }
 
@@ -236,8 +231,9 @@ public class DeliverSession extends Thread {
                         /* check the log */
                         if (log != null) {
                             /* log the error */
-                            log
-                                    .error("Deliverance failed due to no match on topic");
+                        	
+//                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler + " due to no match on topic");
+//                        	logger.start();
                         }
                     }
 
@@ -245,9 +241,9 @@ public class DeliverSession extends Thread {
                     if (!filterMatch) {
                         /* check the log */
                         if (log != null) {
-                            /* log the error */
-                            log
-                                    .error("Deliverance failed due to no match on filter");
+                            /* log the info */
+//                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler +" due to no match on filter");
+//                        	logger.start();
                         }
                     }
 
@@ -255,7 +251,8 @@ public class DeliverSession extends Thread {
 
             } else {
                 /* this will happen if the handler is already blacklisted */
-                log.error("Deliverance failed due to a blacklisted handler");
+//            	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:"+currentHandler +"due to a blacklisted handler");
+//            	logger.start();
             }//end if(!isBlacklisted.....
         }
 
@@ -264,13 +261,14 @@ public class DeliverSession extends Thread {
         synchronized(internalEvent){
         internalEvent.setAsDelivered();
         }
-        
+        System.out.println("LOCKING OWNER PROCESS");
         /* lock the owner */
         synchronized (ownerThread) {
             /* notify the owner */
             ownerThread.notify();
         }
-    }
+        
+    }// end startDeliver...
 
     /**
      * isInTime determines whether a handler is eligable for a certain message or not.
@@ -323,15 +321,17 @@ public class DeliverSession extends Thread {
     private boolean anyTopicMatch(String[] topics, Event event) {
         /* variable if we have a match */
         boolean haveMatch = false;
-
+      
         /* iterate through the topics array */
         for (int i = 0; i < topics.length; i++) {
-            if (!haveMatch) {
+        	  System.out.println("Matching:" + event.getTopic() +" with " + topics[i] +"\n");
+        	if (!haveMatch) {
 
                 /* check if this topic matches */
                 if (topicMatch(event, topics[i])) {
                     /* have a match */
-                    haveMatch = true;
+                	//System.out.println("It's a Match");
+                	return true;
                 }
 
             } else {
@@ -339,8 +339,8 @@ public class DeliverSession extends Thread {
                 i = topics.length;
             }
         }
-
-        return haveMatch;
+        //System.out.println("It's No match");
+        return false;
 
     }
 
@@ -355,6 +355,7 @@ public class DeliverSession extends Thread {
      *            the topic the listener is interested in
      */
     private boolean topicMatch(Event event, String topic) {
+    	
         /* Split the event topic into an string array */
         String[] eventTopic = event.getTopic().split("/");
         /* Split the desired topic into a string array */
@@ -424,9 +425,11 @@ public class DeliverSession extends Thread {
                         blacklisted.addElement(currentHandler);
 
                         if (log != null) {
-                            log.error("The handler "
+                        	
+                        	CustomDebugLogger logger = new CustomDebugLogger("The handler "
                                     + currentHandler.toString()
                                     + " was blacklisted due to timeout");
+                        	logger.start();
                         }
                     }
                    
@@ -435,15 +438,12 @@ public class DeliverSession extends Thread {
 
             } catch (InterruptedException e) {
                 /* this will happen if a deliverance succeeded */
-                if (log != null) {
-                    log.info("Deliverance of event with topic "
-                            + event.getTopic() + "was done");
-                }
 
             }
 
             synchronized (deliverSession) {
                 deliverSession.notify();
+
             }
 
         }
@@ -498,5 +498,19 @@ public class DeliverSession extends Thread {
         }
 
     }
-
+    
+    
+    private class CustomDebugLogger extends Thread{
+    	/** the log message */
+    	private String message;
+    	public CustomDebugLogger(String msg){
+    		/* assign message */
+    		message=msg;
+    		
+    	}
+    	
+    	public void run(){
+    		log.debug(message);
+    	}
+    }
 }
