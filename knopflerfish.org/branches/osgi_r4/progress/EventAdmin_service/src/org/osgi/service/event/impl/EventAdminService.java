@@ -128,7 +128,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
 					this);
 			
-			if (queueHandlerAsynch != null) {
+			if (queueHandlerAsynch != null && getReferences()!=null) {
 				/* add the admin event to the queueHandlers send queue */
 				queueHandlerAsynch.addEvent(adminEvent);
 				/* console text for debugging purpose */
@@ -339,7 +339,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * A listener for entries in the log
 	 * @author Johnny Bäverås
 	 */
-	public void logged(LogEntry logEntry) {
+	public synchronized void logged(LogEntry logEntry) {
 
 		/* A dictionary to store properties in */
 		Dictionary props = new Hashtable();
@@ -394,17 +394,18 @@ public class EventAdminService implements EventAdmin, LogListener,
 			if (Constants.SERVICE_PID != null) {
 				props.put("service.pid", Constants.SERVICE_PID);
 			}
+		}
 
 			/* Tries posting the event once the properties are set */
 			try {
 
 				postEvent(new Event(topic, props));
-
+				
 			} catch (Exception e) {
 				System.out.println("EXCEPTION in logged(LogEntry logEntry):"
 						+ e.getMessage());
 			}
-		}
+
 
 	}
 
@@ -691,12 +692,19 @@ public class EventAdminService implements EventAdmin, LogListener,
 	
 												try {
 													/* wait for notification */
+													
 													wait();
+													
+													System.out.println("SENT");
 												} catch (InterruptedException e) {
 													/* print the error message */
 													System.out
 															.println("Exception in SynchDeliverThread:"
 																	+ e);
+												}catch(Exception e){
+													System.out
+													.println("Exception in SynchDeliverThread:"
+															+ e);
 												}
 	
 											} else {
@@ -776,7 +784,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 								synchronized (this) {
 									/* wait */
 									System.out
-											.println("Worker enters idle mode");
+											.println("Worker enters idle mode queue size:" + syncQueue.size());
 									wait();
 								}
 							} catch (InterruptedException e) {
