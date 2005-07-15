@@ -43,118 +43,121 @@ import junit.framework.TestSuite;
  *  
  */
 public class Scenario7TestSuite extends TestSuite implements Scenario7 {
-    /** bundle context variable */
-    BundleContext bundleContext;
+	/** bundle context variable */
+	BundleContext bundleContext;
 
-    /**
+	/**
 	 * Constructor for the TestSuite class.
 	 * 
 	 * @param context
 	 *            the handle to the frame work
 	 */
-    public Scenario7TestSuite(BundleContext context) {
-        super("Scenario 7");
-        /* assign the bundelContext variable */
-        bundleContext = context;
-        /* create a topic string */
-        String[] scenario7_topics1 = { "com/acme/timer" };
-        
-        /* add the setup */
-        addTest(new Setup());
-        
-        /* add the event consumers to the test suite */
-        addTest(new EventConsumer(bundleContext, scenario7_topics1,
-                "Scenario 7 EventConsumer1", 7));
-        addTest(new EventConsumer2(bundleContext, scenario7_topics1,
-                "Scenario 7 EventConsumer2", 7));
-        
-        /* add the event publisher to the test suite */
-        addTest(new EventPublisher(bundleContext, "Scenario 7 EventPublisher",
-                7, "com/acme/timer"));
-        /* add the cleanup class */
-        addTest(new Cleanup());
-    }
+	public Scenario7TestSuite(BundleContext context) {
+		super("Scenario 7");
+		/* assign the bundelContext variable */
+		bundleContext = context;
+		/* create a topic string */
+		String[] scenario7_topics1 = { "com/acme/timer" };
 
-    /**
-     * Sets up neccessary environment
-     *
-     *@author Magnus Klack
-     */
-    class Setup extends TestCase {
-        public Setup(){
-          
-        }
-        public void runTest() throws Throwable {
-           
-        }
-        public String getName() {
-            String name = getClass().getName();
-            int ix = name.lastIndexOf("$");
-            if(ix == -1) {
-              ix = name.lastIndexOf(".");
-            }
-            if(ix != -1) {
-              name = name.substring(ix + 1);
-            }
-            return name;
-          }
-    }
-    
-    /**
-     * Clean up the test suite
-     * 
-     * @author Magnus Klack
-     */
-    class Cleanup extends TestCase {
-        public void runTest() throws Throwable {
-            
-        }
-        public String getName() {
-            String name = getClass().getName();
-            int ix = name.lastIndexOf("$");
-            if(ix == -1) {
-              ix = name.lastIndexOf(".");
-            }
-            if(ix != -1) {
-              name = name.substring(ix + 1);
-            }
-            return name;
-          }
-    }
-    
-    class EventPublisher extends TestCase {
-     
-        /** A reference to a service */
-        private ServiceReference serviceReference;
+		/* add the setup */
+		addTest(new Setup());
 
-        /** The admin which delivers the events */
-        private EventAdmin eventAdmin;
+		/* add the event consumers to the test suite */
+		addTest(new EventConsumer(bundleContext, scenario7_topics1,
+				"Scenario 7 EventConsumer1", 7));
+		addTest(new EventConsumer2(bundleContext, scenario7_topics1,
+				"Scenario 7 EventConsumer2", 7));
 
-        /** A calendar used to get the system time */
-        private Calendar calendar;
+		/* add the event publisher to the test suite */
+		addTest(new EventPublisher(bundleContext, "Scenario 7 EventPublisher",
+				7, "com/acme/timer"));
+		/* add the cleanup class */
+		addTest(new Cleanup());
+	}
 
-        /** a variable indicating if the publisher is running */
-        private boolean running;
+	/**
+	 * Sets up neccessary environment
+	 *
+	 *@author Magnus Klack
+	 */
+	class Setup extends TestCase {
+		public Setup() {
 
-        /** class variable holding bundle context */
-        private BundleContext bundleContext;
+		}
 
-        /** variable holding the topic to use */
-        private String topicToSend;
-        
-        public EventPublisher(BundleContext context, String name, int id,
-                String topic) {
-            /* call super class */
-            super(name + ":" + id);
-            /* assign bundleContext */
-            bundleContext = context;
-            /* assign topic */
-            topicToSend = topic;
-            /* assign localCopy */
-        }
+		public void runTest() throws Throwable {
 
-        public void runTest() throws Throwable {
-        	/* determine if to use a local copy of EventAdmin or not */
+		}
+
+		public String getName() {
+			String name = getClass().getName();
+			int ix = name.lastIndexOf("$");
+			if (ix == -1) {
+				ix = name.lastIndexOf(".");
+			}
+			if (ix != -1) {
+				name = name.substring(ix + 1);
+			}
+			return name;
+		}
+	}
+
+	/**
+	 * Clean up the test suite
+	 * 
+	 * @author Magnus Klack
+	 */
+	class Cleanup extends TestCase {
+		public void runTest() throws Throwable {
+
+		}
+
+		public String getName() {
+			String name = getClass().getName();
+			int ix = name.lastIndexOf("$");
+			if (ix == -1) {
+				ix = name.lastIndexOf(".");
+			}
+			if (ix != -1) {
+				name = name.substring(ix + 1);
+			}
+			return name;
+		}
+	}
+
+	class EventPublisher extends TestCase {
+
+		/** A reference to a service */
+		private ServiceReference serviceReference;
+
+		/** The admin which delivers the events */
+		private EventAdmin eventAdmin;
+
+		/** A calendar used to get the system time */
+		private Calendar calendar;
+
+		/** a variable indicating if the publisher is running */
+		private boolean running;
+
+		/** class variable holding bundle context */
+		private BundleContext bundleContext;
+
+		/** variable holding the topic to use */
+		private String topicToSend;
+
+		public EventPublisher(BundleContext context, String name, int id,
+				String topic) {
+			/* call super class */
+			super(name + ":" + id);
+			/* assign bundleContext */
+			bundleContext = context;
+			/* assign topic */
+			topicToSend = topic;
+			/* assign localCopy */
+		}
+
+		public void runTest() throws Throwable {
+			/* determine if to use a local copy of EventAdmin or not */
 			/* Claims the reference of the EventAdmin Service */
 			serviceReference = bundleContext
 					.getServiceReference(EventAdmin.class.getName());
@@ -176,223 +179,244 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 
 			if (eventAdmin == null) {
 				fail(getName() + " event admin should not be null");
-			}	
- 
-            Thread synchDeliver = new Thread() {
-            	public void run() {
-            		int i = 0;
-                	while ( ! Thread.interrupted()){ 
-                		try {
-                			/* a Hash table to store message in */
-                            Hashtable message = new Hashtable();
-                            /* put some properties into the messages */
-                            message.put("Synchronus message",new Integer(i));
-                            /* send the message */
-                            System.out.println(getName() + " sending a synchronus event with message:" + message.toString() + "and the topic:" + topicToSend);
-                            eventAdmin.sendEvent(new Event(topicToSend, message));
-                			/* Puts the thread to sleep for 10 seconds */
-                            i++;
-                			Thread.sleep(10000);
-                		} 
-                		catch( InterruptedException e ) {
-                			//ignored, treated by while loop
-                		}
-                	}
-                }
-            };
+			}
 
-            synchDeliver.start();
+			Thread synchDeliver = new Thread() {
+				public void run() {
+					int i = 0;
+					while (!Thread.interrupted()) {
+						try {
+							/* a Hash table to store message in */
+							Hashtable message = new Hashtable();
+							/* put some properties into the messages */
+							message.put("Synchronus message", new Integer(i));
+							/* send the message */
+							System.out
+									.println(getName()
+											+ " sending a synchronus event with message:"
+											+ message.toString()
+											+ "and the topic:" + topicToSend);
+							eventAdmin
+									.sendEvent(new Event(topicToSend, message));
+							/* Puts the thread to sleep for 10 seconds */
+							i++;
+							Thread.sleep(10000);
+						} catch (InterruptedException e) {
+							//ignored, treated by while loop
+						}
+					}
+				}
+			};
 
-            Thread asynchDeliver = new Thread() {
-                public void run() {
-                	int i = 0;
-                	while ( ! Thread.interrupted()){ 
-                		try {
-                			/* a Hash table to store message in */
-                            Hashtable message = new Hashtable();
-                            /* put some properties into the messages */
-                            message.put("Asynchronus message",new Integer(i));
-                            /* send the message */
-                            System.out.println(getName() + " sending a synchronus event with message:" + message.toString() + "and the topic:" + topicToSend);
-                            eventAdmin.sendEvent(new Event(topicToSend, message));
-                			/* Puts the thread to sleep for 10 seconds */
-                            i++;
-                			Thread.sleep(10000);
-                		} 
-                		catch( InterruptedException e ) {
-                			//ignored, treated by while loop
-                		}
-                	}
-                }
-            };
-            //asynchDeliver.start();
+			synchDeliver.start();
 
-        }
-    }
+			Thread asynchDeliver = new Thread() {
+				public void run() {
+					int i = 0;
+					while (!Thread.interrupted()) {
+						try {
+							/* a Hash table to store message in */
+							Hashtable message = new Hashtable();
+							/* put some properties into the messages */
+							message.put("Asynchronus message", new Integer(i));
+							/* send the message */
+							System.out
+									.println(getName()
+											+ " sending a synchronus event with message:"
+											+ message.toString()
+											+ "and the topic:" + topicToSend);
+							eventAdmin
+									.sendEvent(new Event(topicToSend, message));
+							/* Puts the thread to sleep for 10 seconds */
+							i++;
+							Thread.sleep(10000);
+						} catch (InterruptedException e) {
+							//ignored, treated by while loop
+						}
+					}
+				}
+			};
+			//asynchDeliver.start();
 
-    class EventConsumer extends TestCase implements EventHandler {
-        /** class variable for service registration */
-        private ServiceRegistration serviceRegistration;
+		}
+	}
 
-        /** class variable indicating the instance name */
-        private int instanceId;
+	class EventConsumer extends TestCase implements EventHandler {
+		/** class variable for service registration */
+		private ServiceRegistration serviceRegistration;
 
-        /** class variable indicating the topics correct version */
-        private String[] topicsToConsume;
-             
-        /** class variable keeping number of asynchronus message */
-        private int asynchMessages=0;
-        
-        /** class variable keeping number of asynchronus message */
-        private int synchMessages=0;
-             
-        /**
+		/** class variable indicating the instance name */
+		private int instanceId;
+
+		/** class variable indicating the topics correct version */
+		private String[] topicsToConsume;
+
+		/** class variable keeping number of asynchronus message */
+		private int asynchMessages = 0;
+
+		/** class variable keeping number of asynchronus message */
+		private int synchMessages = 0;
+
+		/**
 		 * Constructor creates a consumer service
 		 * 
 		 * @param bundleContext
 		 * @param topics
 		 */
-        public EventConsumer(BundleContext bundleContext, String[] topics,
-        		String name, int id) {
-            /* call super class */
-            super(name + ":" + id);
-            /* assign the instance id */
-            instanceId = id;
-            /* assign the consume topics */
-            topicsToConsume = topics;
-        }
-        
-        public void runTest() throws Throwable {
-            /* create the hashtable to put properties in */
-            Hashtable props = new Hashtable();
+		public EventConsumer(BundleContext bundleContext, String[] topics,
+				String name, int id) {
+			/* call super class */
+			super(name + ":" + id);
+			/* assign the instance id */
+			instanceId = id;
+			/* assign the consume topics */
+			topicsToConsume = topics;
+		}
+
+		public void runTest() throws Throwable {
+			/* create the hashtable to put properties in */
+			Hashtable props = new Hashtable();
 			/* determine what topicType to use */
 			/* put service.pid property in hashtable */
 			props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
-                   
-            /* register the service */
-            serviceRegistration = bundleContext.registerService(
-                    EventHandler.class.getName(), this, props);
 
-            assertNotNull(getName()
-                    + " service registration should not be null",
-                    serviceRegistration);
+			/* register the service */
+			serviceRegistration = bundleContext.registerService(
+					EventHandler.class.getName(), this, props);
 
-            if (serviceRegistration == null) {
-                fail("Could not get Service Registration ");
-            }
-        }
+			assertNotNull(getName()
+					+ " service registration should not be null",
+					serviceRegistration);
 
-        /**
+			if (serviceRegistration == null) {
+				fail("Could not get Service Registration ");
+			}
+		}
+
+		/**
 		 * This method takes events from the event admin service.
 		 */
-        public void handleEvent(Event event) {
-            //System.out.println(getName() + " recived an event");
-           
-            Object message;
-            /* try to get the message */
-            message = event.getProperty("Synchronus message");
-            
-            if(message != null){
-                /* its an asyncronous message */
-                synchMessages++;
-                
-                System.out.println(getName() + " recived an Synchronus event with message:" + message.toString());
-                
-            }else{
-              message = event.getProperty("Asynchronus message");
-              if(message!=null){
-                  asynchMessages++;
-                  System.out.println(getName() + " recived an Asynchronus event with message:" + message.toString());
-              }
-            }
-            
-            /* assert that the messages property is not null */
-            assertNotNull("Message should not be null in handleEvent()",message);
-        }
-    }
+		public void handleEvent(Event event) {
+			//System.out.println(getName() + " recived an event");
 
-    class EventConsumer2 extends TestCase implements EventHandler {
-        /** class variable for service registration */
-        private ServiceRegistration serviceRegistration;
+			Object message;
+			/* try to get the message */
+			message = event.getProperty("Synchronus message");
 
-        /** class variable indicating the instance name */
-        private int instanceId;
+			if (message != null) {
+				/* its an asyncronous message */
+				synchMessages++;
 
-        /** class variable indicating the topics correct version */
-        private String[] topicsToConsume;
-             
-        /** class variable keeping number of asynchronus message */
-        private int asynchMessages=0;
-        
-        /** class variable keeping number of asynchronus message */
-        private int synchMessages=0;
-             
-        /**
+				System.out.println(getName()
+						+ " recived an Synchronus event with message:"
+						+ message.toString());
+
+			} else {
+				message = event.getProperty("Asynchronus message");
+				if (message != null) {
+					asynchMessages++;
+					System.out.println(getName()
+							+ " recived an Asynchronus event with message:"
+							+ message.toString());
+				}
+			}
+
+			/* assert that the messages property is not null */
+			assertNotNull("Message should not be null in handleEvent()",
+					message);
+		}
+	}
+
+	class EventConsumer2 extends TestCase implements EventHandler {
+		/** class variable for service registration */
+		private ServiceRegistration serviceRegistration;
+
+		/** class variable indicating the instance name */
+		private int instanceId;
+
+		/** class variable indicating the topics correct version */
+		private String[] topicsToConsume;
+
+		/** class variable keeping number of asynchronus message */
+		private int asynchMessages = 0;
+
+		/** class variable keeping number of asynchronus message */
+		private int synchMessages = 0;
+
+		/**
 		 * Constructor creates a consumer service
 		 * 
 		 * @param bundleContext
 		 * @param topics
 		 */
-        public EventConsumer2(BundleContext bundleContext, String[] topics,
-        		String name, int id) {
-            /* call super class */
-            super(name + ":" + id);
-            /* assign the instance id */
-            instanceId = id;
-            /* assign the consume topics */
-            topicsToConsume = topics;
-        }
-        
-        public void runTest() throws Throwable {
-            /* create the hashtable to put properties in */
-            Hashtable props = new Hashtable();
+		public EventConsumer2(BundleContext bundleContext, String[] topics,
+				String name, int id) {
+			/* call super class */
+			super(name + ":" + id);
+			/* assign the instance id */
+			instanceId = id;
+			/* assign the consume topics */
+			topicsToConsume = topics;
+		}
+
+		public void runTest() throws Throwable {
+			/* create the hashtable to put properties in */
+			Hashtable props = new Hashtable();
 			/* determine what topicType to use */
 			/* put service.pid property in hashtable */
 			props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
-                   
-            /* register the service */
-            serviceRegistration = bundleContext.registerService(
-                    EventHandler.class.getName(), this, props);
 
-            assertNotNull(getName()
-                    + " service registration should not be null",
-                    serviceRegistration);
+			/* register the service */
+			serviceRegistration = bundleContext.registerService(
+					EventHandler.class.getName(), this, props);
 
-            if (serviceRegistration == null) {
-                fail("Could not get Service Registration ");
-            }
-        }
+			assertNotNull(getName()
+					+ " service registration should not be null",
+					serviceRegistration);
 
-        /**
+			if (serviceRegistration == null) {
+				fail("Could not get Service Registration ");
+			}
+		}
+
+		/**
 		 * This method takes events from the event admin service.
 		 */
-        public void handleEvent(Event event) {
-            //System.out.println(getName() + " recived an event");
-           
-            Object message;
-            /* try to get the message */
-            message = event.getProperty("Synchronus message");
-            
-            if(message != null){
-                /* its an asyncronous message */
-                synchMessages++;
-                
-                System.out.println(getName() + " recived an Synchronus event with message:" + message.toString());
-                
-            }else{
-              message = event.getProperty("Asynchronus message");
-              if(message!=null){
-                  asynchMessages++;
-                  System.out.println(getName() + " recived an Asynchronus event with message:" + message.toString());
-              }
-            }
-            
-            /* assert that the messages property is not null */
-            assertNotNull("Message should not be null in handleEvent()",message);
-            
-            /* Infinit loop in order to force a blacklist on the listener from the EventAdmin */
-            while(true){}
-        }
-    }
-    
+		public void handleEvent(Event event) {
+			//System.out.println(getName() + " recived an event");
+
+			Object message;
+			/* try to get the message */
+			message = event.getProperty("Synchronus message");
+			if (message != null) {
+				/* its an syncronous message */
+				synchMessages++;
+				System.out.println(getName()
+						+ " recived an Synchronus event with message:"
+						+ message.toString());
+			} else {
+				message = event.getProperty("Asynchronus message");
+				if (message != null) {
+					asynchMessages++;
+					System.out.println(getName()
+							+ " recived an Asynchronus event with message:"
+							+ message.toString());
+				}
+			}
+
+			/* assert that the messages property is not null */
+			assertNotNull("Message should not be null in handleEvent()",
+					message);
+
+			/* assert that the messsage of the asyncronous type are not to many */
+			assertTrue("to many synchronous messages", synchMessages < 2);
+			/* assert that the messsage of the asyncronous type are not to many */
+			assertTrue("to many asynchronous messages", asynchMessages < 2);
+
+			/* Infinit loop in order to force a blacklist on the listener from the EventAdmin */
+			while (true) {
+			}
+		}
+	}
+
 }
