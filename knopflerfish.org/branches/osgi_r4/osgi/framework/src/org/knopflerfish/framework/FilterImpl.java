@@ -36,56 +36,97 @@ package org.knopflerfish.framework;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Enumeration;
+import java.util.Vector;
 
 import org.osgi.framework.*;
 
 public class FilterImpl implements Filter {
 
-  private String filter = null;
-  private LDAPExpr ldap;
+	private String filter = null;
+	private LDAPExpr ldap;
 
 
-  protected FilterImpl(String filter) throws InvalidSyntaxException {
-    ldap = new LDAPExpr(filter);
-  }
+	protected FilterImpl(String filter) throws InvalidSyntaxException {
+		ldap = new LDAPExpr(filter);
+	}
 
 
-  public boolean match(ServiceReference reference) {
-    if(reference instanceof ServiceReferenceImpl) {
-      // This is the normal case
-      return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties());
-    } else {
-      // This might happen if we live in a remote framework world
-      // Copy the properties the hard way
-      Hashtable props = new Hashtable();
-      String[] keys = reference.getPropertyKeys();
-      for(int i = 0; i < keys.length; i++) {
-	props.put(keys[i], reference.getProperty(keys[i]));
-      }
-      return ldap.evaluate(props);
-    }
-  }
+	public boolean match(ServiceReference reference) {
+		if(reference instanceof ServiceReferenceImpl) {
+			// This is the normal case
+			return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties());
+		} else {
+			// This might happen if we live in a remote framework world
+			// Copy the properties the hard way
+			Hashtable props = new Hashtable();
+			String[] keys = reference.getPropertyKeys();
+			for(int i = 0; i < keys.length; i++) {
+				props.put(keys[i], reference.getProperty(keys[i]));
+			}
+			return ldap.evaluate(props);
+		}
+	}
 
 
-  public boolean match(Dictionary dictionary) {
-    return ldap.evaluate(new PropertiesDictionary(dictionary));
-  }
+	public boolean match(Dictionary dictionary) {
+		return ldap.evaluate(new PropertiesDictionary(dictionary));
+	}
 
 
-  public String toString() {
-    if (filter == null) {
-      filter = ldap.toString();
-    }
-    return filter;
-  }
+	public String toString() {
+		if (filter == null) {
+			filter = ldap.toString();
+		}
+		return filter;
+	}
 
 
-  public boolean equals(Object obj) {
-    return toString().equals(obj.toString());
-  }
+	public boolean equals(Object obj) {
+		return toString().equals(obj.toString());
+	}
 
 
-  public int hashCode() {
-    return toString().hashCode();
-  }
+	public int hashCode() {
+		return toString().hashCode();
+	}
+
+	public boolean matchCase(Dictionary dictionary){
+		Enumeration propertyKeys = dictionary.keys();
+		boolean matchingCase = true;
+
+		/*
+		To extract the keynames located in the filter a two step split is perfomed using regexp.
+		First off all occurrence of any parenthesis or logical operand.. Remaining strings will
+		be stored in a String[], using the layout "key=value"
+		*/
+		String[] temp = filter.split("[(|)|&|!||]");
+
+		/*
+		This boolean is initially set as true, only to be changed if a keyname is found
+		using a different casing than the actual property
+		*/
+		Vector filterKeys = new Vector();
+		/* This loop cleans up the String[] keys, and stores the keynames in a vector*/
+		for(int i = 0;i<temp.length;i++)
+			if(!temp[i].equals(""))
+				filterKeys.add((temp[i].split("="))[0]);
+
+		filterKeys.trimToSize();
+
+		/*
+		These loops matches the keynames of the filter with the keynames in the dictionary.
+		If a match is found using the equalsIgnoreCase is found, a comparision using equals is performed.
+		Should this return false, matchingCase will be set to false and the loop breaks
+		*/
+		String currentPropertyKey;
+		while(propertyKeys.hasMoreElements() && matchingCase){
+			currentPropertyKey = (String)propertyKeys.nextElement();
+			for(int i = 0; (i < filterKeys.size()&&matchingCase); i++)
+				if(currentPropertyKey.equalsIgnoreCase((String)filterKeys.get(i)) && !currentPropertyKey.equals((String)filterKeys.get(i)))
+					matchingCase = false;
+		}
+		/* If the case differs, false will be returned, otherwise, the value returned from match will be returned */
+		return matchingCase?match(dictionary):false;
+	}
 }
