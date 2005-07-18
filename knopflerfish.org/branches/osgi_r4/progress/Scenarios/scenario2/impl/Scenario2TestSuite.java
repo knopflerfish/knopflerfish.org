@@ -1,5 +1,5 @@
 /*
- * @(#)Scenario1TestSuite.java        1.0 2005/06/28
+ * @(#)Scenario2TestSuite.java        1.0 2005/06/28
  *
  * Copyright (c) 2003-2005 Gatespace telematics AB
  * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
@@ -58,7 +58,7 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
         String[] scenario2_topics2 = { "*" };
         
         String[] scenario2_topicsToPublish = 	{	
-													"",
+													"Arne",
 													"cOM/AcMe/TiMeR",
 													"com.acme.timer",
 													"com/acme/timer"
@@ -199,6 +199,8 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
                 }
             };
             synchDeliver.start();
+            /* wait until thread is dead */
+            synchDeliver.join();
 
             Thread asynchDeliver = new Thread() {
                 public void run() {
@@ -214,8 +216,9 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
                     }
                 }
             };
-            //asynchDeliver.start();
-
+            asynchDeliver.start();
+            /* wait until thread is dead */
+            asynchDeliver.join();
         }
     }
 
@@ -311,8 +314,6 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
               }
             }
             
-            /* assert that the messages property is not null */
-            assertNotNull("Message should not be null in handleEvent()",message);
             /* assert that the messages of syncronous type are not to many */
             System.out.println("Max number of Sync messages is:"+numSyncMessages+"and number of received Sync messages is:"+ synchMessages);
             assertTrue("to many synchronous messages", synchMessages<numSyncMessages+1);
