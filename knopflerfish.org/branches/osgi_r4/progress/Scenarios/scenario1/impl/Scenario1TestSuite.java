@@ -224,6 +224,8 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
             
             /* wait until thread is dead */
             asynchDeliver.join();
+            
+            bundleContext.ungetService(serviceReference);
         }
     }
     
@@ -276,8 +278,9 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
             props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
             /* register the service */
             serviceRegistration = bundleContext.registerService(
-                    EventHandler.class.getName(), this, props);
-
+                    EventHandler.class.getName(), this, props);   
+            
+            
             assertNotNull(getName()
                     + " service registration should not be null",
                     serviceRegistration);
