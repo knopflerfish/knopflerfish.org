@@ -587,7 +587,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		 */
 		public  void addEvent(Object event) {
 				/* lock the synchQueue */
-				synchronized(syncQueue){
+				//synchronized(syncQueue){
 					System.out.println("Adding new event");
 					syncQueue.add(event);
 					if(workerThread!=null){
@@ -601,7 +601,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 					}else{
 						System.out.println("worker thread is not started ignoring event");
 					}
-				}
+				//}
 		}
 
 		public void run() {
