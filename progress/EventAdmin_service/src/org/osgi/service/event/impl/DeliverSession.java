@@ -358,7 +358,7 @@ public class DeliverSession extends Thread {
      *            the event
      * @return true if any element matche else false
      */
-    private boolean anyTopicMatch(String[] topics, Event event) {
+    private synchronized boolean anyTopicMatch(String[] topics, Event event) {
         /* variable if we have a match */
         boolean haveMatch = false;
       
@@ -374,10 +374,7 @@ public class DeliverSession extends Thread {
                 	return true;
                 }
 
-            } else {
-                /* leave the iteration */
-                i = topics.length;
-            }
+            } 
         }
         //System.out.println("It's No match");
         return false;
@@ -394,7 +391,7 @@ public class DeliverSession extends Thread {
      * @param topic
      *            the topic the listener is interested in
      */
-    private boolean topicMatch(Event event, String topic) {
+    private synchronized boolean topicMatch(Event event, String topic) {
     	
         /* Split the event topic into an string array */
         String[] eventTopic = event.getTopic().split("/");
