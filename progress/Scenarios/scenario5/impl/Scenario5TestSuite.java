@@ -206,6 +206,7 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
 			};
 
 			synchDeliver.start();
+			synchDeliver.join();
 
 			Thread asynchDeliver = new Thread() {
 				public void run() {
@@ -224,7 +225,8 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
 					}
 				}
 			};
-			//asynchDeliver.start();
+			asynchDeliver.start();
+			asynchDeliver.join();
 
 		}
 	}

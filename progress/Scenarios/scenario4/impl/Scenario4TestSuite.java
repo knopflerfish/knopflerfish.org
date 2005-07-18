@@ -230,6 +230,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             };
 
             synchDeliver.start();
+            synchDeliver.join();
 
             Thread asynchDeliver = new Thread() {
                 public void run() {
@@ -247,7 +248,8 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
                     }
                 }
             };
-            //asynchDeliver.start();
+            asynchDeliver.start();
+            asynchDeliver.join();
 
         }
     }
