@@ -77,35 +77,36 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 *            the BundleContext
 	 */
 	public EventAdminService(BundleContext context) {
-		
-		/* assign the context to the local variable */
-		bundleContext = context;
-		/* create the log */
-		log = new LogRef(context);
-
-		/* create the synchronus sender process */
-		queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
-		/* start the asynchronus sender */
-		queueHandlerSynch.start();
-		/* create the asynchronus queue handler */
-		queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
-		/* start the handler */
-		queueHandlerAsynch.start();
-
-		/* add this as a bundle listener */
-		bundleContext.addBundleListener(this);
-		/* Gets the service reference of the log reader service*/
-		ServiceReference sr = bundleContext
-				.getServiceReference(LogReaderService.class.getName());
-		/* Claims the log reader service */
-		LogReaderService logReader = (LogReaderService) bundleContext
-				.getService(sr);
-		/* Adds this class as a listener of log events */
-		logReader.addLogListener(this);
-		/* Adds this class as a listener of service events */
-		bundleContext.addServiceListener(this);
-		/* Adds this class as a listener of framework events */
-		bundleContext.addFrameworkListener(this);
+		synchronized(this){
+			/* assign the context to the local variable */
+			bundleContext = context;
+			/* create the log */
+			log = new LogRef(context);
+	
+			/* create the synchronus sender process */
+			queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
+			/* start the asynchronus sender */
+			queueHandlerSynch.start();
+			/* create the asynchronus queue handler */
+			queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
+			/* start the handler */
+			queueHandlerAsynch.start();
+	
+			/* add this as a bundle listener */
+			bundleContext.addBundleListener(this);
+			/* Gets the service reference of the log reader service*/
+			ServiceReference sr = bundleContext
+					.getServiceReference(LogReaderService.class.getName());
+			/* Claims the log reader service */
+			LogReaderService logReader = (LogReaderService) bundleContext
+					.getService(sr);
+			/* Adds this class as a listener of log events */
+			logReader.addLogListener(this);
+			/* Adds this class as a listener of service events */
+			bundleContext.addServiceListener(this);
+			/* Adds this class as a listener of framework events */
+			bundleContext.addFrameworkListener(this);
+		}
 		
 	}
 
@@ -563,7 +564,12 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/** thread worker **/
 		private Thread workerThread;
 		
+		/** private variable holding the queue type */
 		private int queueType;
+		
+		/** the session counter */
+		private long sessionCounter=0;
+		
 		/**
 		 * Constructor for the QueueHandler
 		 */
@@ -590,6 +596,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 						System.out.println("notifiying worker thread");
 						/* wake him up */
 						workerThread.notify();
+						
 					}
 					}else{
 						System.out.println("worker thread is not started ignoring event");
@@ -682,10 +689,23 @@ public class EventAdminService implements EventAdmin, LogListener,
 												 * create an instance of the deliver session to
 												 * deliver events
 												 */
-												DeliverSession deliverSession = new DeliverSession(
-														event, bundleContext,
-														serviceReferences, log,
-														this);
+												DeliverSession deliverSession;
+												String sessionName;
+												if(queueType==ASYNCHRONUS_HANDLER){
+													 sessionName="ASYNCRONOUS_SESSION:" + sessionCounter;
+													 deliverSession = new DeliverSession(
+															event, bundleContext,
+															serviceReferences, log,
+															this,sessionName);
+												}else{
+													sessionName="SYNCRONOUS_SESSION:" + sessionCounter;
+													deliverSession = new DeliverSession(
+															event, bundleContext,
+															serviceReferences, log,
+															this,sessionName);
+												}
+												
+												sessionCounter++;
 	
 												/* start deliver events */
 												deliverSession.start();
@@ -694,13 +714,17 @@ public class EventAdminService implements EventAdmin, LogListener,
 													/* wait for notification */
 													
 													wait();
+													System.out.println("\n***********************************************"
+													                  +"\n** DELIVER SESSION DONE :"+sessionName+"**"
+													                  +"\n***********************************************\n");
 													
-													System.out.println("SENT");
+													
+													
 												} catch (InterruptedException e) {
 													/* print the error message */
-													System.out
-															.println("Exception in SynchDeliverThread:"
-																	+ e);
+//													System.out
+//															.println("Exception in SynchDeliverThread:"
+//																	+ e);
 												}catch(Exception e){
 													System.out
 													.println("Exception in SynchDeliverThread:"
