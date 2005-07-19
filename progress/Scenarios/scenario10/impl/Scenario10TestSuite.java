@@ -26,6 +26,8 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
+import com.gstm.test.eventadmin.scenarios.util.Util;
+
 /**
  * This class will assert that the event admin delivers bundle events 
  * it will create an event generator which installs a bundle and performs
@@ -115,7 +117,9 @@ public class Scenario10TestSuite extends TestSuite {
             return name;
         }
     }
-
+    
+    
+    
     private class EventGenerator extends TestCase {
         /** local variable holding the bundleContext */
         private BundleContext bundleContext;
@@ -136,11 +140,10 @@ public class Scenario10TestSuite extends TestSuite {
         public void runTest() throws Throwable {
 
             try {
-                /* install the bundle **/
-                bundle = bundleContext
-                        .installBundle("file:///opt/OSGi/knopflerfish_osgi_1.4.0/osgi/jars/device/device_all-1.0.0.jar");
+            	bundle=Util.installBundle(bundleContext,"testlibs/ThreadTest.jar");
             } catch (Exception e) {
-                fail("Can't install bundle:" + e.getMessage());
+                fail("Can't install bundle make sure testlibs folder is"
+                		+ "added to the framework.jar file:" + e.getMessage());
             }
 
             /* must be conumers */
