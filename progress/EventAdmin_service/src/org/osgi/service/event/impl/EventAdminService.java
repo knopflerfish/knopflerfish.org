@@ -1,8 +1,3 @@
-	/**
-	 * TODO Hur får man ut SERVICE_OBJECTCLASS?
-	 * TODO Hur får man ut SERVICE_PID?
-	 */
-
 /*
  * @(#)EventAdminService.java        1.0 2005/06/28
  *
@@ -10,7 +5,7 @@
  * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
  * All rights reserved.
  *
- * This software is the confidential and proprietary information of 
+ * This software is the confidential and proprietary information of
  * Gatespace telematics AB. ("Confidential Information").  You shall not
  * disclose such Confidential Information and shall use it only in
  * accordance with the terms of the license agreement you entered into
@@ -38,7 +33,6 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
-import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.TopicPermission;
 import org.osgi.service.log.LogEntry;
@@ -51,8 +45,8 @@ import org.osgi.service.log.LogReaderService;
  * eventhandlers and check their permissions. It will also
  * host two threads sending diffrent types of data. If an eventhandler is subscribed to the
  * published event the EventAdmin service will put the event on one of the two internal sendstacks
- * depending on what type of deliverance the event requires.  
- * 
+ * depending on what type of deliverance the event requires.
+ *
  * @author Magnus Klack
  */
 public class EventAdminService implements EventAdmin, LogListener,
@@ -68,57 +62,58 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 	/** variable holding the asynchronus send procedure */
 	private QueueHandler queueHandlerAsynch;
-	
+
 	private Object semaphore = new Object();
-	
+
 	/**  hashtable of eventhandlers and timestamps */
 	static Hashtable eventHandlers = new Hashtable();
-	
-	
+
+
 
 	/**
 	 * the constructor use this to create a new Event admin service.
-	 * 
+	 *
 	 * @param context
 	 *            the BundleContext
 	 */
 	public EventAdminService(BundleContext context) {
-		
-		/* assign the context to the local variable */
-		bundleContext = context;
-		/* create the log */
-		log = new LogRef(context);
+		synchronized(this){
+			/* assign the context to the local variable */
+			bundleContext = context;
+			/* create the log */
+			log = new LogRef(context);
 
-		/* create the synchronus sender process */
-		queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
-		/* start the asynchronus sender */
-		queueHandlerSynch.start();
-		/* create the asynchronus queue handler */
-		queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
-		/* start the handler */
-		queueHandlerAsynch.start();
+			/* create the synchronus sender process */
+			queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
+			/* start the asynchronus sender */
+			queueHandlerSynch.start();
+			/* create the asynchronus queue handler */
+			queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
+			/* start the handler */
+			queueHandlerAsynch.start();
 
-		/* add this as a bundle listener */
-		bundleContext.addBundleListener(this);
-		/* Gets the service reference of the log reader service*/
-		ServiceReference sr = bundleContext
-				.getServiceReference(LogReaderService.class.getName());
-		/* Claims the log reader service */
-		LogReaderService logReader = (LogReaderService) bundleContext
-				.getService(sr);
-		/* Adds this class as a listener of log events */
-		logReader.addLogListener(this);
-		/* Adds this class as a listener of service events */
-		bundleContext.addServiceListener(this);
-		/* Adds this class as a listener of framework events */
-		bundleContext.addFrameworkListener(this);
-		
+			/* add this as a bundle listener */
+			bundleContext.addBundleListener(this);
+			/* Gets the service reference of the log reader service*/
+			ServiceReference sr = bundleContext
+					.getServiceReference(LogReaderService.class.getName());
+			/* Claims the log reader service */
+			LogReaderService logReader = (LogReaderService) bundleContext
+					.getService(sr);
+			/* Adds this class as a listener of log events */
+			logReader.addLogListener(this);
+			/* Adds this class as a listener of service events */
+			bundleContext.addServiceListener(this);
+			/* Adds this class as a listener of framework events */
+			bundleContext.addFrameworkListener(this);
+		}
+
 	}
 
 	/**
 	 * This method should be used when an asynchronus events are to be
 	 * published.
-	 * 
+	 *
 	 * @param event
 	 *            the event to publish
 	 */
@@ -127,30 +122,30 @@ public class EventAdminService implements EventAdmin, LogListener,
 		//System.out.println("INCOMMING ASYNCHRONOUS EVENT");
 		/* create a calendar */
 		Calendar time = Calendar.getInstance();
-		
+
 		try{
-			
+
 			/* create an internal admin event */
 			InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
 					this);
-			
-			if (queueHandlerAsynch != null) {
+
+			if (queueHandlerAsynch != null && getReferences()!=null) {
 				/* add the admin event to the queueHandlers send queue */
 				queueHandlerAsynch.addEvent(adminEvent);
 				/* console text for debugging purpose */
 				// System.out.println("Event has been sent to the send queue");
 			}
-			
+
 		}catch(Exception e){
 			System.out.println("Unknown exception in postEvent():" +e);
-			e.printStackTrace();			
+			e.printStackTrace();
 		}
-		
+
 	}
 
 	/**
 	 * This method should be used when synchronous events are to be published
-	 * 
+	 *
 	 * @author Magnus Klack
 	 * @param event
 	 *            the event to publish
@@ -159,7 +154,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/* console text for debugging purpose */
 		//System.out.println("INCOMMING SYNCHRONOUS EVENT");
 		/* create a calendar */
-		
+
 		Calendar time = Calendar.getInstance();
 		/* create an internal admin event */
 		InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
@@ -169,7 +164,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 				/* add the admin event to the queueHandlers send queue */
 				queueHandlerSynch.addEvent(adminEvent);
 			}
-			/* lock this object to make it 
+			/* lock this object to make it
 			 * possible to be notified */
 			synchronized (this) {
 				/* check not null */
@@ -195,7 +190,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * checks the permission to subscribe to this subject. OBS! this one will
 	 * only se if there are any permissions granted for all objects to
 	 * subscribe.
-	 * 
+	 *
 	 * @param event
 	 *            the subscription event
 	 * @param securityManager
@@ -222,7 +217,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 	/**
 	 * This function checks if the publisher is permitted to publish the event.
-	 * 
+	 *
 	 * @param event
 	 *            the event to be published
 	 * @param securityManager
@@ -250,7 +245,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 	/**
 	 * returns the security manager
-	 * 
+	 *
 	 * @return the security manager if any else null
 	 */
 	private SecurityManager getSecurityManager() {
@@ -260,7 +255,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 	/**
 	 * returns the servicereferences
-	 * 
+	 *
 	 * @return ServiceReferences[] array if any else null
 	 * @throws InvalidSyntaxException
 	 *             if syntax error
@@ -275,7 +270,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 		}
 
 	}
-
 	/**
 	 * A listener for events sent by bundles
 	 * @author Johnny Bäverås
@@ -542,17 +536,18 @@ public class EventAdminService implements EventAdmin, LogListener,
 		}
 	}
 
+
 	/**
 	 * this class will send the events synchronus and asynchronus to the event handlers it contains
-	 * one internal class doing a producer consumer algorithm between itself and the mainclass. 
+	 * one internal class doing a producer consumer algorithm between itself and the mainclass.
 	 * the internal worker class will pick the first element in the queue and create a deliver session.
-	 * 
-	 * 
+	 *
+	 *
 	 * @author Magnus Klack
 	 */
 	private class QueueHandler extends Thread {
 		public final static int SYNCHRONUS_HANDLER=0;
-		
+
 		public final static int ASYNCHRONUS_HANDLER=1;
 		/** the queue */
 		private LinkedList syncQueue = new LinkedList();
@@ -562,26 +557,31 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		/** thread worker **/
 		private Thread workerThread;
-		
+
+		/** private variable holding the queue type */
 		private int queueType;
+
+		/** the session counter */
+		private long sessionCounter=0;
+
 		/**
 		 * Constructor for the QueueHandler
 		 */
 		public QueueHandler(int type) {
-			
+
 			running = true;
 			queueType=type;
 		}
 
 		/**
 		 * This adds a new InternalAdminEvent to the que
-		 * 
+		 *
 		 * @param event
 		 *            the new InternalAdminEvent
 		 */
 		public  void addEvent(Object event) {
 				/* lock the synchQueue */
-				synchronized(syncQueue){
+				//synchronized(syncQueue){
 					System.out.println("Adding new event");
 					syncQueue.add(event);
 					if(workerThread!=null){
@@ -590,26 +590,27 @@ public class EventAdminService implements EventAdmin, LogListener,
 						System.out.println("notifiying worker thread");
 						/* wake him up */
 						workerThread.notify();
+
 					}
 					}else{
 						System.out.println("worker thread is not started ignoring event");
 					}
-				}
+				//}
 		}
 
 		public void run() {
-		
+
 			/*
-			 * This is the worker thread 
-			 * starting delivering sessions and check 
-			 * things such as permissions. 
+			 * This is the worker thread
+			 * starting delivering sessions and check
+			 * things such as permissions.
 			 */
 			workerThread = new Thread() {
 				public void run() {
 
 					/* as long as the thread is running */
 					while (running) {
-						
+
 						if (!syncQueue.isEmpty()) {
 							synchronized(syncQueue){
 								System.out
@@ -632,15 +633,15 @@ public class EventAdminService implements EventAdmin, LogListener,
 											/* get the 'Event' not the InternalAdminEvent */
 											InternalAdminEvent event = (InternalAdminEvent) syncQueue
 													.getFirst();
-	
+
 											if (event == null) {
 												System.out
 														.println("********** NULL EVENT ***********");
 											}
-	
+
 											/* remove it from the list */
 											syncQueue.removeFirst();
-	
+
 											/* get the securityManager */
 											SecurityManager securityManager = getSecurityManager();
 											/*
@@ -648,13 +649,13 @@ public class EventAdminService implements EventAdmin, LogListener,
 											 * publish
 											 */
 											boolean canPublish;
-	
+
 											/*
 											 * variable indicates if handlers are granted access
 											 * to topic
 											 */
 											boolean canSubscribe;
-	
+
 											/* check if security is applied */
 											if (securityManager != null) {
 												/* check if there are any security limitation */
@@ -665,7 +666,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 												/* no security here */
 												canPublish = true;
 											}
-	
+
 											if (securityManager != null) {
 												/* check if there are any security limitation */
 												canSubscribe = checkPermissionToSubscribe(
@@ -675,31 +676,55 @@ public class EventAdminService implements EventAdmin, LogListener,
 												/* no security here */
 												canSubscribe = true;
 											}
-	
+
 											if (canPublish && canSubscribe) {
-	
+
 												/*
 												 * create an instance of the deliver session to
 												 * deliver events
 												 */
-												DeliverSession deliverSession = new DeliverSession(
-														event, bundleContext,
-														serviceReferences, log,
-														this);
-	
+												DeliverSession deliverSession;
+												String sessionName;
+												if(queueType==ASYNCHRONUS_HANDLER){
+													 sessionName="ASYNCRONOUS_SESSION:" + sessionCounter;
+													 deliverSession = new DeliverSession(
+															event, bundleContext,
+															serviceReferences, log,
+															this,sessionName);
+												}else{
+													sessionName="SYNCRONOUS_SESSION:" + sessionCounter;
+													deliverSession = new DeliverSession(
+															event, bundleContext,
+															serviceReferences, log,
+															this,sessionName);
+												}
+
+												sessionCounter++;
+
 												/* start deliver events */
 												deliverSession.start();
-	
+
 												try {
 													/* wait for notification */
+
 													wait();
+													System.out.println("\n***********************************************"
+													                  +"\n** DELIVER SESSION DONE :"+sessionName+"**"
+													                  +"\n***********************************************\n");
+
+
+
 												} catch (InterruptedException e) {
 													/* print the error message */
+//													System.out
+//															.println("Exception in SynchDeliverThread:"
+//																	+ e);
+												}catch(Exception e){
 													System.out
-															.println("Exception in SynchDeliverThread:"
-																	+ e);
+													.println("Exception in SynchDeliverThread:"
+															+ e);
 												}
-	
+
 											} else {
 												/* no permissions at all are given */
 												if (!canPublish && !canSubscribe) {
@@ -716,7 +741,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 																				.getTopic());
 													}
 												}
-	
+
 												/* no publish permission */
 												if (!canPublish && canSubscribe) {
 													/*
@@ -732,7 +757,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 																				.getTopic());
 													}
 												}
-	
+
 												/* no subscribe permission */
 												if (canPublish && !canSubscribe) {
 													/*
@@ -750,7 +775,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 												}
 											}
 										}else{
-										
+
 											for(int i=0;i<syncQueue.size();i++){
 												synchronized(syncQueue){
 													syncQueue.remove(i);
@@ -777,7 +802,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 								synchronized (this) {
 									/* wait */
 									System.out
-											.println("Worker enters idle mode");
+											.println("Worker enters idle mode queue size:" + syncQueue.size());
 									wait();
 								}
 							} catch (InterruptedException e) {
@@ -785,18 +810,18 @@ public class EventAdminService implements EventAdmin, LogListener,
 								System.out.println("Worker was interrupted");
 							}
 						}
-						
+
 					}//end while...
-					
+
 				}// end run
-				
+
 			};//end worker thread
-			
+
 			/* start the worker */
 			System.out.println("starting worker thread");
 			workerThread.start();
-			
-			
+
+
 		}// end run()
 
 	}// end class QueueHandler
