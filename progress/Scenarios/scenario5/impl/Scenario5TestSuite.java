@@ -62,9 +62,9 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
 		/* add the setup */
 		addTest(new Setup());
 		/* add the event consumers to the test suite */
-		addTest(new EventConsumer(bundleContext, scenario5_topics1, 4, 4,
+		addTest(new EventConsumer(bundleContext, scenario5_topics1, 8, 8,
 				"Scenario 5 EventConsumer1", 5));
-		addTest(new EventConsumer(bundleContext, scenario5_topics1, 4, 4,
+		addTest(new EventConsumer(bundleContext, scenario5_topics1, 8, 8,
 				"Scenario 5 EventConsumer2", 5));
 
 		/* add the event publisher to the test suite */
@@ -311,7 +311,7 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
 
 				System.out.println(getName()
 						+ " recived an Synchronus event with message:"
-						+ message.toString());
+						+ message.toString() + " the nr of syncmsgs:" + synchMessages);
 
 			} else {
 				message = event.getProperty("Asynchronus message");
@@ -319,7 +319,7 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
 					asynchMessages++;
 					System.out.println(getName()
 							+ " recived an Asynchronus event with message:"
-							+ message.toString());
+							+ message.toString() + " the nr of asyncmsgs:" + asynchMessages);
 				}
 			}
 
