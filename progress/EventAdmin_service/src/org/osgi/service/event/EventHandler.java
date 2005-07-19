@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventHandler.java,v 1.3 2005/05/13 20:33:29 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventHandler.java,v 1.5 2005/07/08 02:27:42 hargrave Exp $
  * 
  * Copyright (c) OSGi Alliance (2005). All Rights Reserved.
  * 
@@ -22,22 +22,18 @@ package org.osgi.service.event;
  * <code>Event</code> object to determine its topic and properties.
  * 
  * <p>
- * <code>EventHandler</code> objects should be registered with a service
+ * <code>EventHandler</code> objects must be registered with a service
  * property {@link EventConstants#EVENT_TOPIC} whose value is the list of
  * topics in which the event handler is interesed.
  * <p>
  * For example:
  * 
  * <pre>
- * String[] topics = new String[] {&quot;org/osgi/topic&quot;, &quot;com/isv/*&quot;};
+ * String[] topics = new String[] {EventConstants.EVENT_TOPIC, &quot;com/isv/*&quot;};
  * Hashtable ht = new Hashtable();
  * ht.put(EVENT_TOPIC, topics);
  * context.registerService(EventHandler.class.getName(), this, ht);
  * </pre>
- * 
- * If an <code>EventHandler</code> object is registered without a service
- * property {@link EventConstants#EVENT_TOPIC}, then the
- * <code>EventHandler</code> will receive events of all topics.
  * 
  * <p>
  * Security Considerations. Bundles wishing to monitor <code>Event</code>
@@ -48,7 +44,7 @@ package org.osgi.service.event;
  * 
  * @see Event
  * 
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.5 $
  */
 public interface EventHandler {
 	/**
