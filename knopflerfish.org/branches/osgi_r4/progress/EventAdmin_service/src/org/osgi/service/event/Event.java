@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/Event.java,v 1.4 2005/05/13 20:33:29 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/Event.java,v 1.5 2005/07/07 16:21:04 pkriens Exp $
  * 
  * Copyright (c) OSGi Alliance (2005). All Rights Reserved.
  * 
@@ -17,15 +17,10 @@ import org.osgi.framework.Filter;
 /**
  * An event.
  * 
- * <p>
  * <code>Event</code> objects are delivered to <code>EventHandler</code>
  * services which subsrcibe to the topic of the event.
  * 
- * <p>
- * <i>NOTE: Although it is permitted to subclass <code>Event</code>, the
- * operations defined by this class MUST NOT be overridden. </i>
- * 
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class Event {
 	/**
@@ -103,8 +98,7 @@ public class Event {
 	 *         otherwise.
 	 */
 	public final boolean matches(Filter filter) {
-		//return filter.matchCase(properties);
-		return filter.match(properties);
+		return filter.matchCase(properties);
 	}
 
 	/**
