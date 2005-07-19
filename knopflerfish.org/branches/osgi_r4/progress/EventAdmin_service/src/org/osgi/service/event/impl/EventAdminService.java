@@ -1,3 +1,8 @@
+	/**
+	 * TODO Hur får man ut SERVICE_OBJECTCLASS?
+	 * TODO Hur får man ut SERVICE_PID?
+	 */
+
 /*
  * @(#)EventAdminService.java        1.0 2005/06/28
  *
@@ -33,6 +38,7 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.TopicPermission;
 import org.osgi.service.log.LogEntry;
@@ -77,36 +83,35 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 *            the BundleContext
 	 */
 	public EventAdminService(BundleContext context) {
-		synchronized(this){
-			/* assign the context to the local variable */
-			bundleContext = context;
-			/* create the log */
-			log = new LogRef(context);
-	
-			/* create the synchronus sender process */
-			queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
-			/* start the asynchronus sender */
-			queueHandlerSynch.start();
-			/* create the asynchronus queue handler */
-			queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
-			/* start the handler */
-			queueHandlerAsynch.start();
-	
-			/* add this as a bundle listener */
-			bundleContext.addBundleListener(this);
-			/* Gets the service reference of the log reader service*/
-			ServiceReference sr = bundleContext
-					.getServiceReference(LogReaderService.class.getName());
-			/* Claims the log reader service */
-			LogReaderService logReader = (LogReaderService) bundleContext
-					.getService(sr);
-			/* Adds this class as a listener of log events */
-			logReader.addLogListener(this);
-			/* Adds this class as a listener of service events */
-			bundleContext.addServiceListener(this);
-			/* Adds this class as a listener of framework events */
-			bundleContext.addFrameworkListener(this);
-		}
+		
+		/* assign the context to the local variable */
+		bundleContext = context;
+		/* create the log */
+		log = new LogRef(context);
+
+		/* create the synchronus sender process */
+		queueHandlerSynch = new QueueHandler(QueueHandler.SYNCHRONUS_HANDLER);
+		/* start the asynchronus sender */
+		queueHandlerSynch.start();
+		/* create the asynchronus queue handler */
+		queueHandlerAsynch = new QueueHandler(QueueHandler.ASYNCHRONUS_HANDLER);
+		/* start the handler */
+		queueHandlerAsynch.start();
+
+		/* add this as a bundle listener */
+		bundleContext.addBundleListener(this);
+		/* Gets the service reference of the log reader service*/
+		ServiceReference sr = bundleContext
+				.getServiceReference(LogReaderService.class.getName());
+		/* Claims the log reader service */
+		LogReaderService logReader = (LogReaderService) bundleContext
+				.getService(sr);
+		/* Adds this class as a listener of log events */
+		logReader.addLogListener(this);
+		/* Adds this class as a listener of service events */
+		bundleContext.addServiceListener(this);
+		/* Adds this class as a listener of framework events */
+		bundleContext.addFrameworkListener(this);
 		
 	}
 
@@ -129,7 +134,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
 					this);
 			
-			if (queueHandlerAsynch != null && getReferences()!=null) {
+			if (queueHandlerAsynch != null) {
 				/* add the admin event to the queueHandlers send queue */
 				queueHandlerAsynch.addEvent(adminEvent);
 				/* console text for debugging purpose */
@@ -318,9 +323,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		/* Stores the properties of the event in the dictionary, if the event is known */
 		if (knownMessageType) {
-			props.put("event", bundleEvent);
+			props.put(EventConstants.EVENT, bundleEvent);
 			props.put("bundle.id", new Long(bundle.getBundleId()));
-			props.put("bundle.symbolicName", bundle.getLocation());//osäker på denna
+			props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//osäker på denna
 			props.put("bundle", bundle);
 			/* Tries posting the event once the properties are set */
 			try {
@@ -340,7 +345,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * A listener for entries in the log
 	 * @author Johnny Bäverås
 	 */
-	public synchronized void logged(LogEntry logEntry) {
+	public void logged(LogEntry logEntry) {
 
 		/* A dictionary to store properties in */
 		Dictionary props = new Hashtable();
@@ -370,56 +375,49 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		/* Stores the properties of the event in the dictionary */
 		props.put("bundle.id", new Long(bundle.getBundleId()));
-		props.put("bundle.symbolicName", bundle.getLocation());//osäker på denna, ska bara sättas om den inte är null
+		props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//osäker på denna, ska bara sättas om den inte är null
 		props.put("bundle", bundle);
 		props.put("log.level", new Integer(logEntry.getLevel()));
-		props.put("message", logEntry.getMessage());
-		props.put("timestamp", new Long(logEntry.getTime()));
+		props.put(EventConstants.MESSAGE, logEntry.getMessage());
+		props.put(EventConstants.TIMESTAMP, new Long(logEntry.getTime()));
 		props.put("log.entry", logEntry);
 
 		/* If the event contains an exception, further properties shall be set */
 		if (logEntry.getException() != null) {
 			Throwable e = logEntry.getException();
-			props.put("exception.class", Throwable.class.getName());
-			props.put("exception.message", e.getMessage());
-			props.put("exception", e);
+			props.put(EventConstants.EXECPTION_CLASS, Throwable.class.getName());
+			props.put(EventConstants.EXCEPTION_MESSAGE, e.getMessage());
+			props.put(EventConstants.EXCEPTION, e);
 		}
 
 		/* If the event contains a service reference, further properties shall be set */
 		if (logEntry.getServiceReference() != null) {
-			props.put("service", logEntry.getServiceReference());
-			props.put("service.id", Constants.SERVICE_ID);
-			props.put("service.objectClass", Constants.OBJECTCLASS);
+			props.put(EventConstants.SERVICE, logEntry.getServiceReference());
+			props.put(EventConstants.SERVICE_ID, logEntry.getServiceReference().getProperty(Constants.SERVICE_ID));
+			props.put(EventConstants.SERVICE_OBJECTCLASS, Constants.OBJECTCLASS);//not yet implemented
 
 			/* If service_pid returns a non-null value, further properties shall be set*/
-			if (Constants.SERVICE_PID != null) {
-				props.put("service.pid", Constants.SERVICE_PID);
+			if (EventConstants.SERVICE_PID != null) {// not yet implemented
+				props.put(EventConstants.SERVICE_PID, Constants.SERVICE_PID); // not yet implemented
 			}
-		}
 
 			/* Tries posting the event once the properties are set */
 			try {
 
 				postEvent(new Event(topic, props));
-				
+
 			} catch (Exception e) {
 				System.out.println("EXCEPTION in logged(LogEntry logEntry):"
 						+ e.getMessage());
 			}
-
+		}
 
 	}
-
-	/**
-	 * TODO Fråga Pelle om objectClass, fel typ.. string vs string[]
-	 * TODO Fråga pelle om konstanterna i bundleevent
-	 */
 
 	/**
 	 * A listener for service events
 	 * @author Johnny Bäverås
 	 */
-
 	public void serviceChanged(ServiceEvent serviceEvent) {
 		System.out.println("SERVICE CHANGED");
 		/* A dictionary to store properties in */
@@ -458,15 +456,16 @@ public class EventAdminService implements EventAdmin, LogListener,
 			knownMessageType = false;
 			break;
 		}
+
 		System.out.println("EventADMIN: current listneners: "
 				+ eventHandlers.size());
 		/* Stores the properties of the event in the dictionary, if the event is known */
 		if (knownMessageType) {
-			props.put("event", serviceEvent);
-			props.put("service", serviceEvent.getServiceReference());
-			props.put("service.pid", Constants.SERVICE_PID);
-			props.put("service.id", Constants.SERVICE_ID);
-			props.put("service.objectClass", Constants.OBJECTCLASS);
+			props.put(EventConstants.EVENT, serviceEvent);
+			props.put(EventConstants.SERVICE, serviceEvent.getServiceReference());
+			props.put(EventConstants.SERVICE_PID, Constants.SERVICE_PID); //not yet implemented
+			props.put(EventConstants.SERVICE_ID, serviceEvent.getServiceReference().getProperty(Constants.SERVICE_ID));
+			props.put(EventConstants.SERVICE_OBJECTCLASS, Constants.OBJECTCLASS); // not yet implemented
 
 			/* Tries posting the event once the properties are set */
 			try {
@@ -519,16 +518,16 @@ public class EventAdminService implements EventAdmin, LogListener,
 			/* If the event contains a bundle, further properties shall be set */
 			if (frameworkEvent.getBundle() != null) {
 				props.put("bundle.id", new Long(bundle.getBundleId()));
-				props.put("bundle.symbolicName", bundle.getLocation());
+				props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());
 				props.put("bundle", bundle);
 			}
 
 			/* If the event contains an exception, further properties shall be set */
 			if (frameworkEvent.getThrowable() != null) {
 				Throwable e = frameworkEvent.getThrowable();
-				props.put("exception.class", Throwable.class.getName());
-				props.put("exception.message", e.getMessage());
-				props.put("exception", e);
+				props.put(EventConstants.EXECPTION_CLASS, Throwable.class.getName());
+				props.put(EventConstants.EXCEPTION_MESSAGE, e.getMessage());
+				props.put(EventConstants.EXCEPTION, e);
 			}
 
 			/* Tries posting the event once the properties are set */
@@ -564,12 +563,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/** thread worker **/
 		private Thread workerThread;
 		
-		/** private variable holding the queue type */
 		private int queueType;
-		
-		/** the session counter */
-		private long sessionCounter=0;
-		
 		/**
 		 * Constructor for the QueueHandler
 		 */
@@ -587,7 +581,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		 */
 		public  void addEvent(Object event) {
 				/* lock the synchQueue */
-				//synchronized(syncQueue){
+				synchronized(syncQueue){
 					System.out.println("Adding new event");
 					syncQueue.add(event);
 					if(workerThread!=null){
@@ -596,12 +590,11 @@ public class EventAdminService implements EventAdmin, LogListener,
 						System.out.println("notifiying worker thread");
 						/* wake him up */
 						workerThread.notify();
-						
 					}
 					}else{
 						System.out.println("worker thread is not started ignoring event");
 					}
-				//}
+				}
 		}
 
 		public void run() {
@@ -689,46 +682,22 @@ public class EventAdminService implements EventAdmin, LogListener,
 												 * create an instance of the deliver session to
 												 * deliver events
 												 */
-												DeliverSession deliverSession;
-												String sessionName;
-												if(queueType==ASYNCHRONUS_HANDLER){
-													 sessionName="ASYNCRONOUS_SESSION:" + sessionCounter;
-													 deliverSession = new DeliverSession(
-															event, bundleContext,
-															serviceReferences, log,
-															this,sessionName);
-												}else{
-													sessionName="SYNCRONOUS_SESSION:" + sessionCounter;
-													deliverSession = new DeliverSession(
-															event, bundleContext,
-															serviceReferences, log,
-															this,sessionName);
-												}
-												
-												sessionCounter++;
+												DeliverSession deliverSession = new DeliverSession(
+														event, bundleContext,
+														serviceReferences, log,
+														this);
 	
 												/* start deliver events */
 												deliverSession.start();
 	
 												try {
 													/* wait for notification */
-													
 													wait();
-													System.out.println("\n***********************************************"
-													                  +"\n** DELIVER SESSION DONE :"+sessionName+"**"
-													                  +"\n***********************************************\n");
-													
-													
-													
 												} catch (InterruptedException e) {
 													/* print the error message */
-//													System.out
-//															.println("Exception in SynchDeliverThread:"
-//																	+ e);
-												}catch(Exception e){
 													System.out
-													.println("Exception in SynchDeliverThread:"
-															+ e);
+															.println("Exception in SynchDeliverThread:"
+																	+ e);
 												}
 	
 											} else {
@@ -808,7 +777,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 								synchronized (this) {
 									/* wait */
 									System.out
-											.println("Worker enters idle mode queue size:" + syncQueue.size());
+											.println("Worker enters idle mode");
 									wait();
 								}
 							} catch (InterruptedException e) {
