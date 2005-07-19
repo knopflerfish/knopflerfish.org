@@ -58,7 +58,7 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
         String[] scenario2_topics2 = { "*" };
         
         String[] scenario2_topicsToPublish = 	{	
-													"Arne",
+													"",
 													"cOM/AcMe/TiMeR",
 													"com.acme.timer",
 													"com/acme/timer"
