@@ -209,7 +209,6 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 			};
 
 			synchDeliver.start();
-			synchDeliver.join();
 
 			Thread asynchDeliver = new Thread() {
 				public void run() {
@@ -223,7 +222,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 							/* send the message */
 							System.out
 									.println(getName()
-											+ " sending a synchronus event with message:"
+											+ " sending a asynchronus event with message:"
 											+ message.toString()
 											+ "and the topic:" + topicToSend);
 							eventAdmin
@@ -238,7 +237,6 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 				}
 			};
 			asynchDeliver.start();
-			asynchDeliver.join();
 
 		}
 	}
