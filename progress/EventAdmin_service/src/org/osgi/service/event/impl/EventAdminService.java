@@ -33,6 +33,7 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.TopicPermission;
 import org.osgi.service.log.LogEntry;
@@ -272,7 +273,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 	}
 	/**
 	 * A listener for events sent by bundles
-	 * @author Johnny Bäverås
+	 * @author Johnny Bï¿½verï¿½s
 	 */
 
 	public void bundleChanged(BundleEvent bundleEvent) {
@@ -319,7 +320,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		if (knownMessageType) {
 			props.put(EventConstants.EVENT, bundleEvent);
 			props.put("bundle.id", new Long(bundle.getBundleId()));
-			props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//osäker på denna
+			props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//osï¿½ker pï¿½ denna
 			props.put("bundle", bundle);
 			/* Tries posting the event once the properties are set */
 			try {
@@ -337,7 +338,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 	/**
 	 * A listener for entries in the log
-	 * @author Johnny Bäverås
+	 * @author Johnny Bï¿½verï¿½s
 	 */
 	public void logged(LogEntry logEntry) {
 
@@ -369,7 +370,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		/* Stores the properties of the event in the dictionary */
 		props.put("bundle.id", new Long(bundle.getBundleId()));
-		props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//osäker på denna, ska bara sättas om den inte är null
+		props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//osï¿½ker pï¿½ denna, ska bara sï¿½ttas om den inte ï¿½r null
 		props.put("bundle", bundle);
 		props.put("log.level", new Integer(logEntry.getLevel()));
 		props.put(EventConstants.MESSAGE, logEntry.getMessage());
@@ -389,7 +390,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			props.put(EventConstants.SERVICE, logEntry.getServiceReference());
 			props.put(EventConstants.SERVICE_ID, logEntry.getServiceReference().getProperty(Constants.SERVICE_ID));
 			props.put(EventConstants.SERVICE_OBJECTCLASS, Constants.OBJECTCLASS);//not yet implemented
-
+		}
 			/* If service_pid returns a non-null value, further properties shall be set*/
 			if (EventConstants.SERVICE_PID != null) {// not yet implemented
 				props.put(EventConstants.SERVICE_PID, Constants.SERVICE_PID); // not yet implemented
@@ -404,13 +405,13 @@ public class EventAdminService implements EventAdmin, LogListener,
 				System.out.println("EXCEPTION in logged(LogEntry logEntry):"
 						+ e.getMessage());
 			}
-		}
+		
 
 	}
 
 	/**
 	 * A listener for service events
-	 * @author Johnny Bäverås
+	 * @author Johnny Bï¿½verï¿½s
 	 */
 	public void serviceChanged(ServiceEvent serviceEvent) {
 		System.out.println("SERVICE CHANGED");
