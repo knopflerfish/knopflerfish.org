@@ -103,8 +103,8 @@ public class Event {
 	 *         otherwise.
 	 */
 	public final boolean matches(Filter filter) {
-	//	return filter.matchCase(properties);
-		return filter.match(properties);
+		return filter.matchCase(properties);
+		
 	}
 
 	/**
