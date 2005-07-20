@@ -17,6 +17,7 @@ import java.util.Calendar;
 import java.util.Hashtable;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
@@ -346,23 +347,24 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
                 
                 System.out.println(getName() + " recived an Synchronus event with message:" + 
                 		message.toString() + ", topic:"+ eventTopic + ", property_year:" + 
-						filter1 + ", property_month:" + filter2);
+						filter1 + ", property_month:" + filter2 + "number of sync messages received:" + synchMessages);
                 
             }else{
               message = event.getProperty("Asynchronus message");
               if(message!=null){
                   asynchMessages++;
                   System.out.println(getName() + " recived an Asynchronus event with message:" + 
-                  		message.toString() + " and topic:"+ eventTopic);
+                		message.toString() + ", topic:"+ eventTopic + ", property_year:" + 
+						filter1 + ", property_month:" + filter2 + "number of async messages received:" + asynchMessages);
               }
             }
             
             /* assert that the messages property is not null */
             assertNotNull("Message should not be null in handleEvent()",message);
             /* assert that the messages of syncronous type are not to many */
-            assertTrue("to many synchronous messages", synchMessages<numSyncMessages+1);
+            assertTrue("to many synchronous messages in:" + getName(), synchMessages<numSyncMessages+1);
             /* assert that the messsage of the asyncronous type are not to many */
-            assertTrue("to many asynchronous messages", asynchMessages<numAsyncMessages+1);
+            assertTrue("to many asynchronous messages in:" + getName(), asynchMessages<numAsyncMessages+1);
 
         }
     }
