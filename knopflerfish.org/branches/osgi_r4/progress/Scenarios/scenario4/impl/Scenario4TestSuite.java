@@ -55,24 +55,15 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         super("Scenario 4");
         /* assign the bundelContext variable */
         bundleContext = context;
-        /* a Hash table to store the properties to be used in the test */
-        Hashtable keysAndProps1 = new Hashtable();
-        Hashtable keysAndProps2 = new Hashtable();
-        Hashtable keysAndProps3 = new Hashtable();
-        /* put some properties into the hashtable for EventPublisher1*/
-        keysAndProps1.put("year", "2004");
-        keysAndProps1.put("month", "12");
-        keysAndProps2.put("year", "2005");
-        keysAndProps2.put("month", "12");
-        /* put some properties into the hashtable for EventPublisher2*/
-        keysAndProps3.put("YEAR", "2005");
-        keysAndProps3.put("month", "11");
-    	
-        /* Add the Hashtable in to an array to make it possible to select different properties*/
-        Hashtable[] message1 = {keysAndProps1, keysAndProps2};
-        Hashtable[] message2 = {keysAndProps3};
-    	/* create a topic string */
+        
+        /* keys and properties to be used in the EventProducers*/
+        String [] keysAndProps1 = {"year", "2004", "month", "12"};
+        String [] keysAndProps2 = {"year", "2005", "month", "12"};
+        String [] keysAndProps3 = {"YEAR", "2005", "month", "11"};
+
+        /*Topics to be used in the EventConsumers*/
         String[] scenario4_topics1 = { "com/acme/timer" };
+        /*Filters to be used in the EventConsumers*/
         String scenario4_filter1 = "(year=2004)";
         String scenario4_filter2 = "(year=2005)";
         String scenario4_filter3 = "(year:2004)";
@@ -94,9 +85,11 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         
         /* add the event publisher to the test suite */
         addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher1", 
-        		"com/acme/timer", message1, 4, 2));
+        		"com/acme/timer", keysAndProps1, 4, 1));
         addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher2",
-        		"com/acme/timer", message2, 4, 1));
+        		"com/acme/timer", keysAndProps2, 4, 1));
+        addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher3",
+        		"com/acme/timer", keysAndProps3, 4, 1));
         /* add the cleanup class */
         addTest(new Cleanup());
     }
@@ -173,10 +166,10 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         private String topicToSend;
         
         /** variable holding the parameters to use */
-        private Hashtable[] propertiesToSend;
+        private String[] propertiesToSend;
 
         public EventPublisher(BundleContext context, String name, 
-        		String topic, Hashtable[] properties, int id, int numOfMessage) {
+        		String topic, String[] properties, int id, int numOfMessage) {
             /* call super class */
             super(name + ":" + id);
             /* assign number of messages */
@@ -215,11 +208,17 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
             Thread synchDeliver = new Thread() {
                 public void run() {
+                    /* a Hash table to store message in */
+                	Hashtable message = new Hashtable();
+                	for(int j = 0; j < propertiesToSend.length; )
+                	{
+                		/*fill the propstable*/
+                		System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
+                		message.put(propertiesToSend[j], propertiesToSend[j+1]);
+                		j = j+2;	
+                	}
                 	
                     for (int i = 0; i < messageTosend; i++) {
-                        /* a Hash table to store message in */
-                        Hashtable message = propertiesToSend[i];
-                        /* put some more properties into the messages */
                         message.put("Synchronus message",new Integer(i));
                         /* test print out */
                         System.out.println(getName() + " sending a Synchronus event with message:" + 
@@ -235,17 +234,23 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
             Thread asynchDeliver = new Thread() {
                 public void run() {
-
+                    /* a Hash table to store message in */
+                	Hashtable message = new Hashtable();
+                	for(int j = 0; j < propertiesToSend.length; )
+                	{
+                		/*fill the propstable*/
+                		System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
+                		message.put(propertiesToSend[j], propertiesToSend[j+1]);
+                		j = j+2;	
+                	}
+                	
                     for (int i = 0; i < messageTosend; i++) {
-                    	/* a Hash table to store message in */
-                        Hashtable message = propertiesToSend[i];
-                        /* put some more properties into the messages */
                         message.put("Asynchronus message",new Integer(i));
                         /* test print out */
                         System.out.println(getName() + " sending an Asynchronus event with message:" + 
                         		message.toString() + "and the topic:" + topicToSend);
                         /* send the message */
-                        eventAdmin.postEvent(new Event(topicToSend, message));
+                        eventAdmin.sendEvent(new Event(topicToSend, message));
                     }
                 }
             };
@@ -274,6 +279,9 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         /** class variable keeping number of asynchronus message */
         private int synchMessages=0;
         
+        /** class variable keeping number of unidentified message */
+        private int unidentMessages=0;
+        
         /** class variable indication the number of synchronous messages to be received */
         private int numSyncMessages;
         
@@ -301,6 +309,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             numSyncMessages = numSyncMsg;
             /*assign the number of asynchronous messages to consume*/
             numAsyncMessages = numAsyncMsg;
+            
         }
 
         public void runTest() throws Throwable {
@@ -331,13 +340,10 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
          * This method takes events from the event admin service.
          */
         public void handleEvent(Event event) {
-            //System.out.println(getName() + " recived an event");
-           
-            
-           
             Object message;
             /* try to get the message */
             message = event.getProperty("Synchronus message");
+            
             Object filter1 = event.getProperty("year");
             Object filter2 = event.getProperty("month");
             String eventTopic = event.getTopic();
@@ -347,15 +353,21 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
                 
                 System.out.println(getName() + " recived an Synchronus event with message:" + 
                 		message.toString() + ", topic:"+ eventTopic + ", property_year:" + 
-						filter1 + ", property_month:" + filter2 + "number of sync messages received:" + synchMessages);
+						filter1 + ", property_month:" + filter2 + " number of sync messages received:" + synchMessages);
                 
-            }else{
+            }else {
               message = event.getProperty("Asynchronus message");
               if(message!=null){
                   asynchMessages++;
                   System.out.println(getName() + " recived an Asynchronus event with message:" + 
                 		message.toString() + ", topic:"+ eventTopic + ", property_year:" + 
-						filter1 + ", property_month:" + filter2 + "number of async messages received:" + asynchMessages);
+						filter1 + ", property_month:" + filter2 + " number of async messages received:" + asynchMessages);
+              }
+              else{
+              	unidentMessages++;
+              	System.out.println(getName() + " recived an Unidentified event with message:" + 
+                		message.toString() + ", topic:"+ eventTopic + ", property_year:" + 
+						filter1 + ", property_month:" + filter2 + " number of unidentified messages received:" + unidentMessages);
               }
             }
             
@@ -365,7 +377,6 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             assertTrue("to many synchronous messages in:" + getName(), synchMessages<numSyncMessages+1);
             /* assert that the messsage of the asyncronous type are not to many */
             assertTrue("to many asynchronous messages in:" + getName(), asynchMessages<numAsyncMessages+1);
-
         }
     }
 }
