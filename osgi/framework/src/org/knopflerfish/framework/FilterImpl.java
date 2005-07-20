@@ -92,6 +92,7 @@ public class FilterImpl implements Filter {
 	}
 
 	public boolean matchCase(Dictionary dictionary){
+		System.out.println("**************** COMPARE IN FILTER ****************");
 		Enumeration propertyKeys = dictionary.keys();
 		boolean matchingCase = true;
 
@@ -110,7 +111,7 @@ public class FilterImpl implements Filter {
 		/* This loop cleans up the String[] keys, and stores the keynames in a vector*/
 		for(int i = 0;i<temp.length;i++)
 			if(!temp[i].equals(""))
-				filterKeys.add((temp[i].split("="))[0]);
+				filterKeys.add((temp[i].split("=|<|>"))[0]);
 
 		filterKeys.trimToSize();
 
