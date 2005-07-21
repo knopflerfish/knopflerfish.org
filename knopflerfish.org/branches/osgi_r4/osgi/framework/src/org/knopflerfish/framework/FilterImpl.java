@@ -92,7 +92,9 @@ public class FilterImpl implements Filter {
 	}
 
 	public boolean matchCase(Dictionary dictionary){
-		System.out.println("**************** COMPARE IN FILTER ****************");
+	
+	try{
+		//System.out.println("**************** COMPARE IN FILTER ****************");
 		Enumeration propertyKeys = dictionary.keys();
 		boolean matchingCase = true;
 
@@ -101,7 +103,10 @@ public class FilterImpl implements Filter {
 		First off all occurrence of any parenthesis or logical operand.. Remaining strings will
 		be stored in a String[], using the layout "key=value"
 		*/
-		String[] temp = filter.split("[(|)|&|!||]");
+		
+		//System.out.println("************FILTER IS:" + filter +"********************");
+		String localFilter=  ldap.toString();
+		String[] temp = localFilter.split("[(|)|&|!||]");
 
 		/*
 		This boolean is initially set as true, only to be changed if a keyname is found
@@ -129,5 +134,13 @@ public class FilterImpl implements Filter {
 		}
 		/* If the case differs, false will be returned, otherwise, the value returned from match will be returned */
 		return matchingCase?match(dictionary):false;
+
+	}catch(NullPointerException e){
+		System.err.println("Error in matchCase():" + e);
+		e.printStackTrace();
+		
+		return false;
+	}
+
 	}
 }
