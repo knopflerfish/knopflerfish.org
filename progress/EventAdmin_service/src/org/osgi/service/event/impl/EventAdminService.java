@@ -143,7 +143,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		}
 
 	}
-
+	
 	/**
 	 * This method should be used when synchronous events are to be published
 	 *
@@ -186,7 +186,37 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/* console text for debugging purpose */
 		//System.out.println("FINISHED");
 	}
-
+	
+	/**
+	 * this function checks for invalid topics
+	 * like null topics and "" topics.
+	 * 
+	 * @param topic the topic string
+	 * @return true if well formatted else false if null or "" formatted
+	 */
+	private boolean topicIsWellFormatted(String topic){
+	
+		if(topic!=null){
+			/* this is the "*" topic  */
+			if(topic.length()==1 && topic.equals("*")){
+				return true;
+			}
+			
+			/* this is the "" topic */
+			if(topic.length()==0){
+				return false;
+			}
+			
+			/* this is a topic with length >1 */
+			if(topic.length()> 1){
+				return true;
+			}
+		}	
+		/* this is the null topic */
+		return false;
+		
+	}
+	
 	/**
 	 * checks the permission to subscribe to this subject. OBS! this one will
 	 * only se if there are any permissions granted for all objects to
@@ -266,7 +296,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			return bundleContext.getServiceReferences(
 					"org.osgi.service.event.EventHandler", null);
 		} catch (InvalidSyntaxException e) {
-			/* print the error */
+			/* throw the error */
 			throw e;
 		}
 
@@ -326,7 +356,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			try {
 				postEvent(new Event(topic, props));
 			} catch (Exception e) {
-				System.out.println("EXCEPTION in bundleChanged()"
+				System.err.println("EXCEPTION in bundleChanged()"
 						+ e.getMessage());
 			}
 		} else {
@@ -402,7 +432,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 				postEvent(new Event(topic, props));
 
 			} catch (Exception e) {
-				System.out.println("EXCEPTION in logged(LogEntry logEntry):"
+				System.err.println("EXCEPTION in logged(LogEntry logEntry):"
 						+ e.getMessage());
 			}
 		
@@ -414,7 +444,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * @author Johnny B�ver�s
 	 */
 	public void serviceChanged(ServiceEvent serviceEvent) {
-		System.out.println("SERVICE CHANGED");
 		/* A dictionary to store properties in */
 		Dictionary props = new Hashtable();
 		/* The prefix of the topic of the event to be posted*/
@@ -452,8 +481,8 @@ public class EventAdminService implements EventAdmin, LogListener,
 			break;
 		}
 
-		System.out.println("EventADMIN: current listneners: "
-				+ eventHandlers.size());
+//		System.out.println("EventADMIN: current listneners: "
+//				+ eventHandlers.size());
 		/* Stores the properties of the event in the dictionary, if the event is known */
 		if (knownMessageType) {
 			props.put(EventConstants.EVENT, serviceEvent);
@@ -466,7 +495,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			try {
 				postEvent(new Event(topic, props));
 			} catch (Exception e) {
-				System.out.println("EXCEPTION in serviceChanged() :"
+				System.err.println("EXCEPTION in serviceChanged() :"
 						+ e.getMessage());
 			}
 		} else {
@@ -529,7 +558,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			try {
 				postEvent(new Event(topic, props));
 			} catch (Exception e) {
-				System.out.println("Exception in frameworkEvent() :"
+				System.err.println("Exception in frameworkEvent() :"
 						+ e.getMessage());
 			}
 		} else {
@@ -580,23 +609,24 @@ public class EventAdminService implements EventAdmin, LogListener,
 		 * @param event
 		 *            the new InternalAdminEvent
 		 */
-		public  void addEvent(Object event) {
-				/* lock the synchQueue */
-				//synchronized(syncQueue){
-					System.out.println("Adding new event");
-					syncQueue.add(event);
-					if(workerThread!=null){
-					/* lock the worker object */
-					synchronized (workerThread) {
-						System.out.println("notifiying worker thread");
-						/* wake him up */
-						workerThread.notify();
+		public void addEvent(Object event) {
+			/* lock the synchQueue */
+//			System.out.println("Adding new event");
+			syncQueue.add(event);
+			if (workerThread != null) {
+				/* lock the worker object */
+				synchronized (workerThread) {
+//					System.out.println("notifiying worker thread");
+					/* wake him up */
+					workerThread.notify();
 
-					}
-					}else{
-						System.out.println("worker thread is not started ignoring event");
-					}
-				//}
+				}
+			}
+			// else{
+			// System.out.println("worker thread is not started ignoring
+			// event");
+			// }
+
 		}
 
 		public void run() {
@@ -614,8 +644,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 						if (!syncQueue.isEmpty()) {
 							synchronized(syncQueue){
-								System.out
-										.println("Worker thread enters workmode");
 								/* lock the object */
 								synchronized (this) {
 									try {
@@ -634,12 +662,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 											/* get the 'Event' not the InternalAdminEvent */
 											InternalAdminEvent event = (InternalAdminEvent) syncQueue
 													.getFirst();
-
-											if (event == null) {
-												System.out
-														.println("********** NULL EVENT ***********");
-											}
-
+									
 											/* remove it from the list */
 											syncQueue.removeFirst();
 
@@ -656,6 +679,12 @@ public class EventAdminService implements EventAdmin, LogListener,
 											 * to topic
 											 */
 											boolean canSubscribe;
+											
+											
+											/* variable indicates if the topic is well formatted 
+											 * 
+											 */
+											boolean isWellFormatted;
 
 											/* check if security is applied */
 											if (securityManager != null) {
@@ -677,8 +706,13 @@ public class EventAdminService implements EventAdmin, LogListener,
 												/* no security here */
 												canSubscribe = true;
 											}
-
-											if (canPublish && canSubscribe) {
+											
+											/* get if the topic is wellformatted */
+											isWellFormatted = topicIsWellFormatted( ((Event)event.getElement()).getTopic());
+											
+											
+											
+											if (canPublish && canSubscribe && isWellFormatted) {
 
 												/*
 												 * create an instance of the deliver session to
@@ -709,9 +743,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 													/* wait for notification */
 
 													wait();
-													System.out.println("\n***********************************************"
-													                  +"\n** DELIVER SESSION DONE :"+sessionName+"**"
-													                  +"\n***********************************************\n");
+//													System.out.println("\n***********************************************"
+//													                  +"\n** DELIVER SESSION DONE :"+sessionName+"**"
+//													                  +"\n***********************************************\n");
 
 
 
@@ -801,14 +835,12 @@ public class EventAdminService implements EventAdmin, LogListener,
 							try {
 								/* lock this object */
 								synchronized (this) {
-									/* wait */
-									System.out
-											.println("Worker enters idle mode queue size:" + syncQueue.size());
+									/* wait until notified */
 									wait();
 								}
 							} catch (InterruptedException e) {
 								/* this shouldn't happen */
-								System.out.println("Worker was interrupted");
+								System.err.println("Worker was interrupted unexpected");
 							}
 						}
 
@@ -819,7 +851,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			};//end worker thread
 
 			/* start the worker */
-			System.out.println("starting worker thread");
+//			System.out.println("starting worker thread");
 			workerThread.start();
 
 

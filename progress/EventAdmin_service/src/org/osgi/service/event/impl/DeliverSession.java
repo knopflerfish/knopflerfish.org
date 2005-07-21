@@ -112,7 +112,7 @@ public class DeliverSession extends Thread {
         boolean isBlacklisted = false;
         /* method variable indicating that the eventhandler should have this event */
         boolean isInTime = false;
-        System.out.println("Servicereference list length:" + serviceReferences.length);
+      
         /* iterate through all service references */
         for (int i = 0; i < serviceReferences.length; i++) {
             /* get the EventHandler by using its references */
@@ -130,26 +130,38 @@ public class DeliverSession extends Thread {
 
                     /* check that filterString is not null */
                     if (filterString != null) {
-                        /* get the filter */
-                        Filter filter = bundleContext
+                    	
+                        /* get the filter */                    
+                    	Filter filter = bundleContext
                                 .createFilter(filterString);
-                        /* assign the filterMatch variable */
-                        filterMatch = filterMatched(event,filter);
+                    	                	
+                    	/* assign the filterMatch variable */
+                        if(filter!=null){
+                        	filterMatch = filterMatched(event,filter);
+                        }else{
+                        	filterMatch=true;
+                        }
                     } else {
                         /* this means no filter */
                         filterMatch = true;
                     }
 
-                } catch (InvalidSyntaxException err) {
-//                    /* print the message */
-//                    if (log != null) {
-//                        /* log the error */
-//                        log.error("Invalid Syntax when matching filter");
-//                    }
-                    System.err.println("\n*******************************************"
-									  +"\n**       BLACKLISTED   INVALID SYNTAX    **"
-									  +"\n**"+  	   this.getName()+"   ****" 
-                    				  +"\n*******************************************"); 
+                }catch(NullPointerException e){
+                	  /* this means no filter */
+                    filterMatch = true;
+                	
+                }
+                catch (InvalidSyntaxException err) {
+                    /* print the message */
+                    if (log != null) {
+                        /* log the error */
+                    	CustomDebugLogger logger = new CustomDebugLogger("Invalid Syntax when matching filter of " + currentHandler);
+                      
+                    }
+//                    System.err.println("\n*******************************************"
+//									  +"\n**       BLACKLISTED   INVALID SYNTAX    **"
+//									  +"\n**"+  	   this.getName()+"   ****" 
+//                    				  +"\n*******************************************"); 
 					
 					
 					/* add it to the blacklist */
@@ -168,7 +180,7 @@ public class DeliverSession extends Thread {
                     if (topics != null) {
 
                         /* check the lenght of the topic */
-                        if (topics.length > 0) {
+                        if (topics.length > 0 ) {
                             /* assign the isSubscribed variable */
                             isSubscribed = anyTopicMatch(topics, event);
                         } else {
@@ -183,10 +195,12 @@ public class DeliverSession extends Thread {
                     
                     if (log != null) {
                         /* log the error */
-                        System.err.println("\n*******************************************"
-    									  +"\n**       BLACKLISTED   INVALID TOPIC     **"
-    									  +"\n**      "+this.getName()+"   ****" 
-    									  +"\n********************************************\n");
+                    	CustomDebugLogger logger = new CustomDebugLogger("Invalid topic in handler:" + currentHandler);
+                    	
+//                        System.err.println("\n*******************************************"
+//    									  +"\n**       BLACKLISTED   INVALID TOPIC     **"
+//    									  +"\n**      "+this.getName()+"   ****" 
+//    									  +"\n********************************************\n");
                         
                     }
                     /* blacklist the handler */
@@ -219,87 +233,89 @@ public class DeliverSession extends Thread {
                             }
 
                         } catch (InterruptedException e) {
-                            System.out.println("Deliver Session interrupted"
+                            System.err.println("DeliverSession object was interrupted this is not expected"
                                     + e.getMessage());
+                            
                         }
 
                      
 
                     } 
 
-
-                } else {
-                    /* check if blacklisted */
-                    if (isBlacklisted) {
-                    	System.out.println("\n\n****************************** BLACKLISTED:"+ this.getName() + "***************************");
-                        /* check the log */
-                        if (log != null) {
-                            /* log the error */
-//                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" +currentHandler + " due to a recently blacklisted handler"
-//                                    + " ,i.e, mallformatted topic");
-//                        	logger.start();
-                        }
-                    }
-
-                    /* check if no topic match */
-                    if (!isSubscribed) {
-                    	if(isBlacklisted){
-                    		System.out.println("****************************** NOT SUBSCRIBED:"+ this.getName() + "****************************");
-                    	}else{
-                    		System.out.println("\n\n************************** NOT SUBSCRIBED:"+ this.getName() + "****************************");
-                    	}
-                        /* check the log */
-                        if (log != null) {
-                            /* log the error */
-                        	
-//                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler + " due to no match on topic");
-//                        	logger.start();
-                        }
-                    }
-
-                    /* check if match no match on filter */
-                    if (!filterMatch) {
-                    	if(isBlacklisted || isSubscribed){
-                    		System.out.println("****************************** NO FILTER MATCH :"+ this.getName() + "****************************");
-                    	}else{
-                    		System.out.println("\n\n****************************** NO FILTER MATCH:"+ this.getName()+"****************************");
-                    	}
-                        /* check the log */
-                        if (log != null) {
-                            /* log the info */
-//                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler +" due to no match on filter");
-//                        	logger.start();
-                        }
-                    }
-                    
-                    if(!isInTime){
-                    	if(isBlacklisted || isSubscribed || filterMatch){
-                    		System.out.println("****************************** NOT IN TIME:"+ this.getName() + "****************************");
-                    	}else{
-                    		System.out.println("\n\n****************************** NOT IN TIME:"+ this.getName() + "****************************");
-                    	}
-                    	
-                    }
-                    
-                    System.out.println("************************* MESSAGE NOT DELIVERED DUE TO ABOVE REASON(S):"+ this.getName() + "****************************");
-
-                }
-
-            } else {
-            	System.out.println("\n\n****************************** ALREADY BLACKLISTED:"+ this.getName() + "****************************");
-            	System.out.println("************************* MESSAGE NOT DELIVERED DUE TO ABOVE REASON:"+ this.getName() + "* ***************************");
-                /* this will happen if the handler is already blacklisted */
+                } 
+//else {	*** DEBUGGING CONTEXT **
+//                    /* check if blacklisted */
+//                    if (isBlacklisted) {
+//                    	//System.out.println("\n\n****************************** BLACKLISTED:"+ this.getName() + "***************************");
+//                        /* check the log */
+//                        if (log != null) {
+//                            /* log the error */
+//	                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" +currentHandler + " due to a recently blacklisted handler"
+//	                                    + " ,i.e, mallformatted topic");
+//	                        	logger.start();
+//                        }
+//                    }
+//
+//                    /* check if no topic match */
+//                    if (!isSubscribed) {
+//	                    	if(isBlacklisted){
+//	                    		System.out.println("****************************** NOT SUBSCRIBED:"+ this.getName() + "****************************");
+//	                    	}else{
+//	                    		System.out.println("\n\n************************** NOT SUBSCRIBED:"+ this.getName() + "****************************");
+//	                    	}
+//                        /* check the log */
+//	                        if (log != null) {
+//	                            /* log the error */
+//	                        	
+//	                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler + " due to no match on topic");
+//	                        	logger.start();
+//                        }
+//                    }
+//
+//                    /* check if match no match on filter */
+//                    if (!filterMatch) {
+//                    	if(isBlacklisted || isSubscribed){
+//                    		System.out.println("****************************** NO FILTER MATCH :"+ this.getName() + "****************************");
+//                    	}else{
+//                    		System.out.println("\n\n****************************** NO FILTER MATCH:"+ this.getName()+"****************************");
+//                    	}
+//                        /* check the log */
+//                        if (log != null) {
+//                            /* log the info */
+//	                        	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler +" due to no match on filter");
+//	                        	logger.start();
+//                        }
+//                    }
+//                    
+//                    if(!isInTime){
+//                    	if(isBlacklisted || isSubscribed || filterMatch){
+//                    		System.out.println("****************************** NOT IN TIME:"+ this.getName() + "****************************");
+//                    	}else{
+//                    		System.out.println("\n\n****************************** NOT IN TIME:"+ this.getName() + "****************************");
+//                    	}
+//                    	
+//                    }
+//                    
+//                    System.out.println("************************* MESSAGE NOT DELIVERED DUE TO ABOVE REASON(S):"+ this.getName() + "****************************");
+//
+//                }
+//
+//            } else {
+//            	System.out.println("\n\n****************************** ALREADY BLACKLISTED:"+ this.getName() + "****************************");
+//            	System.out.println("************************* MESSAGE NOT DELIVERED DUE TO ABOVE REASON:"+ this.getName() + "* ***************************");
+//                /* this will happen if the handler is already blacklisted */
 //            	CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:"+currentHandler +"due to a blacklisted handler");
-//            	logger.start();
-            }//end if(!isBlacklisted.....
-        }
+//		            	logger.start();
+//            }//end if(!isBlacklisted.....
+                
+        }//end  if(!isBlacklisted.....
 
         
         /* set the event as delivered  */
         synchronized(internalEvent){
         	internalEvent.setAsDelivered();
         }
-        System.out.println("************************* SESSION FINISHED NOTIFIES OWNER THREAD:"+ this.getName() + "* ***************************");
+//        System.out.println("************************* SESSION FINISHED NOTIFIES OWNER THREAD:"+ this.getName() + "* ***************************");
         
         /* lock the owner */
         synchronized (ownerThread) {
@@ -307,6 +323,7 @@ public class DeliverSession extends Thread {
         	ownerThread.notify();
             
         }
+     }   
         
     }// end startDeliver...
 
@@ -316,7 +333,7 @@ public class DeliverSession extends Thread {
      * @param handler - the handler to receive the message
      * @param event - the event to be sent
      * @return true if the handler should receive the message, false otherwise
-     * @author Johnny Bäverås
+     * @author Johnny Bï¿½verï¿½s
      */
     private boolean isInTime(ServiceReference handler,  InternalAdminEvent event) {
          /* Gets the registration time of the handler. */
@@ -364,7 +381,7 @@ public class DeliverSession extends Thread {
       
         /* iterate through the topics array */
         for (int i = 0; i < topics.length; i++) {
-        	  System.out.println(this.getName()+" Matching:" + event.getTopic() +" with " + topics[i] +"\n");
+        	  //System.out.println(this.getName()+" Matching:" + event.getTopic() +" with " + topics[i] +"\n");
         	if (!haveMatch) {
 
                 /* check if this topic matches */

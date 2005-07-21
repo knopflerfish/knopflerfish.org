@@ -55,7 +55,11 @@ public class Activator implements BundleActivator {
                 propsTable);
 
         /* print that the service is up */
-        System.out.println("EventAdmin Service is up\n");
+        //System.out.println("EventAdmin Service is up\n");
+        
+        
+
+        
     }
 
     /**
