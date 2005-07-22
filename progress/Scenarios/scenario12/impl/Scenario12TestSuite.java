@@ -221,88 +221,10 @@ public class Scenario12TestSuite extends TestSuite {
         }
 
         public void handleEvent(Event event) {
-        	
+        	  System.out.println(displayName + " receviced topic:"
+	                    + event.getTopic());
         	 
-        if(!event.getTopic().equals("org/osgi/service/log/LogEntry/LOG_INFO")){
-        	
-	        /*
-	         * use the case statement to determine that the right event has arrived 
-	         * if not an assertment error will occurr.
-	         */
-	        switch (eventCounter) {
-	        case 0:
-	            System.out.println(displayName + " receviced topic:"
-	                    + event.getTopic());
-	            
-	            /* Assert */
-	            assertEquals("Should have an event with topic "
-	                    + " org/osgi/service/log/LogEntry/LOG_ERROR got " +(String) event.getTopic() ,
-	                    (String) event.getTopic(),
-	                    "org/osgi/service/log/LogEntry/LOG_ERROR");
-	           
-	            /* increase event counter */
-	            eventCounter++;
-	
-	            break;
-	        case 1:
-	            System.out.println(displayName + " receviced topic:"
-	                    + event.getTopic());
-	            
-	            /* Assert */
-	            assertEquals("Should have an event with topic "
-	                    + " org/osgi/service/log/LogEntry/LOG_WARNING got "+(String) event.getTopic()
-	                    , (String) event.getTopic(), "org/osgi/service/log/LogEntry/LOG_WARNING");
-	            
-	            /* increase event counter */
-	            eventCounter++;
-	            break;
-	        case 2:
-	            System.out.println(displayName + " receviced topic:"
-	                    + event.getTopic());
-	            
-	            /* Assert */
-	            assertEquals("Should have an event with topic "
-	                    + " org/osgi/service/log/LogEntry/LOG_DEBUG got "+(String) event.getTopic(),
-	                    (String) event.getTopic(),
-	                    "org/osgi/service/log/LogEntry/LOG_DEBUG");
-	           
-	            /* increase event counter */
-	            eventCounter++;
-	            break;
-	            
-	        case 3:
-	            System.out.println(displayName + " receviced topic:"
-	                    + event.getTopic());
-	            
-	            /* Assert */
-	            assertEquals("Should have an event with topic "
-	                    + " org/osgi/service/log/LogEntry/LOG_OTHER got " +(String) event.getTopic(),
-	                    (String) event.getTopic(),
-	                    "org/osgi/service/log/LogEntry/LOG_OTHER");
-	           
-	            /* increase event counter */
-	            eventCounter++;
-	            break;
-	            
-	            
-	        default:
-	            /* this should not happen */
-	            System.out.println(displayName + " receviced topic:"
-	                    + event.getTopic());
-	           
-	            /* register a fail */
-	            fail("Order not granted in event admin service");
-	
-	        }
-	
-	    }else if(event.getTopic().equals("org/osgi/service/log/LogEntry/LOG_INFO")){
-	    	System.out.println("Got LOG_INFO as expected ");
-        	
-        }else{
-        	fail(getName()+" got unexpected event");
-        	
-        }
-        
+     
         }// end handleEvent(....
 
     }
