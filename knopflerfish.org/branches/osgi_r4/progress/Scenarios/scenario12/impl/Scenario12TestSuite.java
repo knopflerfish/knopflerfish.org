@@ -146,11 +146,14 @@ public class Scenario12TestSuite extends TestSuite {
         	
         	
         	try{//0
+        		synchronized(this){
+        			wait(3000);
+        		}
         		
         		log.error("Testing LOG_ERROR");
 	        	//log.log(LogRef.LOG_ERROR,"Testing LOG_ERROR");
 	        	synchronized(this){
-	        		//wait(200);
+	        		wait(200);
 	        	}//1
 	        	
 	        	log.warn("Testing LOG_WARNING");
@@ -159,11 +162,11 @@ public class Scenario12TestSuite extends TestSuite {
 	        	}//2
 	        	//log.log(LogRef.LOG_INFO,"Testing LOG_INFO");
 	        	synchronized(this){
-	        		//wait(200);
+	        		wait(200);
 	        	}//3
 	        	log.debug("Testing LOG_DEBUG");
 	        	synchronized(this){
-	        		//wait(200);
+	        		wait(200);
 	        	}
 	          	
         	}catch(InterruptedException e){
@@ -219,8 +222,9 @@ public class Scenario12TestSuite extends TestSuite {
 
         public void handleEvent(Event event) {
         	
+        	 
         if(!event.getTopic().equals("org/osgi/service/log/LogEntry/LOG_INFO")){
-      
+        	
 	        /*
 	         * use the case statement to determine that the right event has arrived 
 	         * if not an assertment error will occurr.
