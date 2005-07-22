@@ -547,7 +547,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                      /* if not expected */
                      if(!expected){
                          /* this can happen sometimes beacause of rendevouz */
-                         expected = (aquiredNumber.intValue() ==lastPublished-5);
+                         expected = (aquiredNumber.intValue() ==lastPublished-1);
                          
                      }
                      
@@ -586,7 +586,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                          /* check if expected */
                          if(!expected){
                              /* this can happen sometimes because of rendevouz issues */
-                             expected = (aquiredNumber.intValue() ==lastPublished-5);
+                             expected = (aquiredNumber.intValue() ==lastPublished-1);
                              
                          }
              
