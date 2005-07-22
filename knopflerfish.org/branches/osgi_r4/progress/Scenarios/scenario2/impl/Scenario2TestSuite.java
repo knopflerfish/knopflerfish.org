@@ -187,14 +187,18 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
             Thread synchDeliver = new Thread() {
                 public void run() {            
                     for (int i = 0; i < messageTosend; i++) {
-                        /* a Hash table to store message in */
-                        Hashtable message = new Hashtable();
-                        /* put some properties into the messages */
-                        message.put("Synchronus message",new Integer(i));
-                        /* send the message */
-                        System.out.println(getName() + " sending a synchronus event with message:" + 
-                        		message.toString() + "and the topic:" + topicsToSend[i]);
-                        eventAdmin.sendEvent(new Event(topicsToSend[i], message));
+                        try{
+	                    	/* a Hash table to store message in */
+	                        Hashtable message = new Hashtable();
+	                        /* put some properties into the messages */
+	                        message.put("Synchronus message",new Integer(i));
+	                        /* send the message */
+	                        System.out.println(getName() + " sending a synchronus event with message:" + 
+	                        		message.toString() + "and the topic:" + topicsToSend[i]);
+	                        eventAdmin.sendEvent(new Event(topicsToSend[i], message));
+                        }catch(Exception e){
+                        	System.out.println("Error when publishing synhronous" + e);
+                        }
                     }
                 }
             };
@@ -205,14 +209,18 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
             Thread asynchDeliver = new Thread() {
                 public void run() {
                     for (int i = 0; i < messageTosend; i++) {
-                        /* create the hasht table */
-                        Hashtable message = new Hashtable();
-                        /* create the message */
-                        message.put("Asynchronus message",new Integer(i));
-                        /* Sends a synchronous event to the admin */
-                        System.out.println(getName() + " sending an Asynchronus event with message:" + 
-                        		message.toString() + "and the topic:" + topicsToSend[i]);
-                        eventAdmin.postEvent(new Event(topicsToSend[i], message));
+                    	try{
+	                        /* create the hasht table */
+	                        Hashtable message = new Hashtable();
+	                        /* create the message */
+	                        message.put("Asynchronus message",new Integer(i));
+	                        /* Sends a synchronous event to the admin */
+	                        System.out.println(getName() + " sending an Asynchronus event with message:" + 
+	                        		message.toString() + "and the topic:" + topicsToSend[i]);
+	                        eventAdmin.postEvent(new Event(topicsToSend[i], message));
+                    	}catch(Exception e){
+                    		System.out.println("Error when publishing asynhronous:" +e );
+                    	}
                     }
                 }
             };
