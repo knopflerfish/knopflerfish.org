@@ -178,7 +178,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
      * diffrent threads into a correct behavior
      * 
      * @author Magnus Klack
-     */
+     */ 
     private class Monitor extends TestCase {
 
         /**
