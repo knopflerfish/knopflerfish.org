@@ -542,7 +542,11 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                      * assert the value use last published variable sometimes +1
                      * because of rendevouz fact
                      */
-                     boolean expected = (aquiredNumber.intValue() >=lastPublished-10);
+                     boolean expected = (aquiredNumber.intValue() >=lastPublished-20);
+                     
+                     if(! (lastPublished-20>aquiredNumber.intValue())){
+                     	expected = (aquiredNumber.intValue() >=lastPublished-15);
+                     }
                     
                      /* if not expected */
                      if(!expected){
@@ -581,7 +585,11 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                          assertNotNull("Aquired property should not be null",aquiredNumber);
                          
                         /* assert the value use last published variable */
-                         boolean expected = (aquiredNumber.intValue()>=lastPublished-10);
+                         boolean expected = (aquiredNumber.intValue()>=lastPublished-20);
+                         
+                         if(! (lastPublished-20>aquiredNumber.intValue())){
+                         	expected = (aquiredNumber.intValue() >=lastPublished-15);
+                         }
                          
                          /* check if expected */
                          if(!expected){
