@@ -519,7 +519,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         /**
          * This method takes events from the event admin service.
          */
-        public void handleEvent(Event event) {
+        public void handleEvent(Event event)  {
             /* try to get the message */
             Object message = event.getProperty("Synchronus message");
             
@@ -542,12 +542,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                      * assert the value use last published variable sometimes +1
                      * because of rendevouz fact
                      */
-                     boolean expected = (aquiredNumber.intValue() >=lastPublished+1);
+                     boolean expected = (aquiredNumber.intValue() >=lastPublished-10);
                     
                      /* if not expected */
                      if(!expected){
                          /* this can happen sometimes beacause of rendevouz */
-                         expected = (aquiredNumber.intValue() ==lastPublished-1);
+                         expected = (aquiredNumber.intValue() ==lastPublished-5);
                          
                      }
                      
@@ -581,12 +581,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                          assertNotNull("Aquired property should not be null",aquiredNumber);
                          
                         /* assert the value use last published variable */
-                         boolean expected = (aquiredNumber.intValue()>=lastPublished+1);
+                         boolean expected = (aquiredNumber.intValue()>=lastPublished-10);
                          
                          /* check if expected */
                          if(!expected){
                              /* this can happen sometimes because of rendevouz issues */
-                             expected = (aquiredNumber.intValue() ==lastPublished-1);
+                             expected = (aquiredNumber.intValue() ==lastPublished-5);
                              
                          }
              
