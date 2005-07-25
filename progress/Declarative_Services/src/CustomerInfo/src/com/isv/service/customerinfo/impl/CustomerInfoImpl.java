@@ -1,3 +1,8 @@
+package com.isv.service.customerinfo.impl;
+
+import com.isv.service.customerinfo.Customer;
+import com.isv.service.customerinfo.CustomerInfo;
+
 public class CustomerInfoImpl implements CustomerInfo { 
    public Customer getCustomer(String customerID) { 
        // here is where the interaction with business logic would go 
