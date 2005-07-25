@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry sourcepath="C:/java/Knopflerfish/Installation/knopflerfish.org/osgi/framework/src" kind="lib" path="C:/java/Knopflerfish/Installation/knopflerfish.org/osgi/framework.jar"/>
+	<classpathentry kind="output" path="out"/>
+</classpath>
