@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: MyValueClient
-Bundle-SymbolicName: com.gstm.scr.MyValueClientImpl
+Bundle-SymbolicName: com.gstm.scr.MyValueClient
 Bundle-Version: 1.0
 Bundle-Activator: com.gstm.scr.MyValueClient
 
