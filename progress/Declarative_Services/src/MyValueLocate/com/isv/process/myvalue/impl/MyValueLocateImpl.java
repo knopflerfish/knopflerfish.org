@@ -1,11 +1,27 @@
+/*
+ * @(#)MyValueLocateImpl.java        1.0 2005/06/28
+ *
+ * Copyright (c) 2003-2005 Gatespace telematics AB
+ * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information of 
+ * Gatespace telematics AB. ("Confidential Information").  You shall not
+ * disclose such Confidential Information and shall use it only in
+ * accordance with the terms of the license agreement you entered into
+ * with Gatespace telematics AB.
+ */
+
 package com.isv.process.myvalue.impl; 
+
 import org.osgi.service.component.ComponentContext; 
 import com.isv.process.myvalue.*; 
 import com.isv.service.stockquote.*; 
 import com.isv.service.customerinfo.*; 
+
 public class MyValueLocateImpl implements MyValueLocate { 
     private ComponentContext context; 
-    
+    private StockQuote sQuote;
     // component activator 
     protected void activate(ComponentContext context) { 
 	// prepare to be useable as a service 
@@ -14,7 +30,7 @@ public class MyValueLocateImpl implements MyValueLocate {
 
     public float getMyValue(String customerID) throws MyValueException {
 	// variables Customer 
-	customer = null; 	
+	Customer customer = null; 	
 	float quote = 0; 	
 	float value = 0; 
 
