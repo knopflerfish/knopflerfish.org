@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<scr:component name="com.isv.service.stockquote.StockQuote" 
+  xmlns:scr=“http://www.osgi.org/xmlns/scr/v1.0.0”> 
+<implementation class="com.isv.service.stockquote.impl.StockQuoteImpl"/> 
+<service> 
+<provide interface="com.isv.service.stockquote.StockQuote"/> 
+</service> 
+</scr:component>
