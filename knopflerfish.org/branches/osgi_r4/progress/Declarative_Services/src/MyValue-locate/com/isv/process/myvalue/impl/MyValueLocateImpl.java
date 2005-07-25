@@ -3,7 +3,7 @@ import org.osgi.service.component.ComponentContext;
 import com.isv.process.myvalue.*; 
 import com.isv.service.stockquote.*; 
 import com.isv.service.customerinfo.*; 
-public class MyValueImpl implements MyValue { 
+public class MyValueLocateImpl implements MyValueLocate { 
     private ComponentContext context; 
     
     // component activator 
