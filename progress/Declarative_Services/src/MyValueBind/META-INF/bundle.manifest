@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-Name: MyValueBind
+Bundle-SymbolicName: com.isv.process.myvalue.impl.MyValueBindImpl
+Bundle-Version: 1.0
+Service-Component: OSG-INF/myvaluebind.xml
+
+
+

@@ -1,11 +1,5 @@
 Manifest-Version: 1.0
 Bundle-Name: CustomerInfo
-Bundle-SymbolicName: com.isv.service.customerinfo.CustomerInfoImpl
+Bundle-SymbolicName: com.isv.service.impl.CustomerInfoImpl
 Bundle-Version: 1.0
-Service-Component: com/isv/service/customerinfo/impl/customerinfo.xml
-
-
-
-
-
 
