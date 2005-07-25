@@ -3,7 +3,7 @@ import com.isv.process.myvalue.*;
 import com.isv.service.stockquote.*; 
 import com.isv.service.customerinfo.*; 
 
-public class MyValueImpl implements MyValue { 
+public class MyValueBindImpl implements MyValueBind { 
     private CustomerInfo cInfo; 
     private StockQuote sQuote; 
 

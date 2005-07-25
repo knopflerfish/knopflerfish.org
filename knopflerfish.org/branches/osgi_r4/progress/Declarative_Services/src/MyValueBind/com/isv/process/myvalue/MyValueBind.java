@@ -1,5 +1,5 @@
 package com.isv.process.myvalue; 
 
-public interface MyValue { 
+public interface MyValueBind { 
     public float getMyValue(String customerID) throws MyValueException; 
 }
