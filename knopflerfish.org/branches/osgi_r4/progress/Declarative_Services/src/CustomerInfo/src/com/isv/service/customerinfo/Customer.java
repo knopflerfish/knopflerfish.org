@@ -38,5 +38,17 @@ public void setErrorMsg(String input) {
 	errorMsg = input;
 	
 }
+
+public String getErrorMsg(){
+	return errorMsg;
+}
+
+public String getSymbol(){
+	return symbol;
+}
+
+public int getNumShares(){
+	return numShares;
+}
 }
 
