@@ -149,11 +149,6 @@ runtime-knopflerfish/jars/
 				<pathelement 
 					location = "StockQuote/out/com/isv/service/stockquote"
 				/>
-<!-- Needs to be inserted in order to compile
-				<pathelement 
-					location = "SCR/out/"
-				/>
--->
 			</classpath>
 		</javac>
 		<!-- Create jar file of MyValueLocate -->
