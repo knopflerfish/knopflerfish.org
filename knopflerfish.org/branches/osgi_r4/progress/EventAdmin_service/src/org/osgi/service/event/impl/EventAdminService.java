@@ -333,17 +333,17 @@ public class EventAdminService implements EventAdmin, LogListener,
 		case BundleEvent.UNINSTALLED:
 			topic += "UNINSTALLED";
 			break;
+
+		case BundleEvent.RESOLVED:
+			topic += "RESOLVED";
+			break;
+			case BundleEvent.UNRESOLVED:
+			topic += "UNRESOLVED";
+			break;
 		default:
 			/* Setting the boolean to false if an unknown event arrives */
 			knownMessageType = false;
 			break;
-		/*		case BundleEvent.RESOLVED:
-		 topic += "RESOLVED";
-		 break;
-		 case BundleEvent.UNRESOLVED:
-		 topic += "UNRESOLVED";
-		 break;
-		 */
 		}
 
 		/* Stores the properties of the event in the dictionary, if the event is known */
