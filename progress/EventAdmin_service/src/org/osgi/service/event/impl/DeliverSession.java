@@ -47,8 +47,11 @@ public class DeliverSession extends Thread {
     private final static String WILD_CARD = "*";
 
     /** the timeout variable */
-    private long timeOut = 10000;
+    private long timeOut;
 
+    /** the default timeout variable */
+    private long defaultTimeout = 20000;
+    
     /** the references to the blacklisted handlers */
     private static Vector blacklisted = new Vector();
 
@@ -82,6 +85,15 @@ public class DeliverSession extends Thread {
         /* assign the owner */
         ownerThread = owner;
         
+        /* Tries to get the timeout property from the system*/
+        try{
+        	timeOut=	Long.parseLong(System.getProperty("org.knopflerfish.eventadmin.timeout"));
+        }catch(NumberFormatException e)
+		{
+        	/* if the get fails, a default value is to be used */
+        	timeOut = defaultTimeout;
+        	System.out.println(e + "using the defaultTimeout");
+		}
         
 
     }
