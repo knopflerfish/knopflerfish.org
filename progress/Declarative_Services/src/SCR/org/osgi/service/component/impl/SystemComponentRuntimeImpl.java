@@ -14,27 +14,14 @@
 
 package org.osgi.service.component.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
-import org.xml.sax.Parser;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
@@ -73,6 +60,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 		String bundleLocation = event.getBundle().getLocation();
 		/* check if null */
 		if(manifestEntry!=null){
+			
 			/* print that a service component is found */
 			System.out.println("Found service component");
 			/* print the bundle location */
@@ -124,6 +112,14 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 								readXmlAdhocData(parser);
 							}
 							
+							if(parser.getName().equals("property")){
+								readXmlAdhocData(parser);
+							}
+							
+							if(parser.getName().equals("properties")){
+								readXmlAdhocData(parser);
+							}
+							
 						
 						}
 					
@@ -152,7 +148,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 	}
 	
 	private void readXmlAdhocData(XmlPullParser parser){
-		System.out.println("Parsing:" + parser.getName());
+		System.out.println("Reading:" + parser.getName());
 		if(parser.getName().equals("implementation") || parser.getName().equals("provide") ||
 				parser.getName().equals("reference")){
 			
@@ -172,7 +168,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 	
 	private void readXmlStrict(XmlPullParser parser){
 		if(parser.getName().equals("service")){
-			System.out.println("Parsing service");
+			System.out.println("Reading service");
 			try{
 				parser.require(XmlPullParser.START_TAG,"","service");
 				while (parser.nextTag() != XmlPullParser.END_TAG) {
@@ -184,6 +180,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 					//System.out.println ("<"+name+">"+text);
 
 					if(name.equals("provide")){
+						System.out.println("Reading provide");
 						parser.require(XmlPullParser.START_TAG, null, "provide");
 						for(int i=0;i<parser.getAttributeCount();i++){
 							System.out.println("Set "+ name + " "+ parser.getAttributeName(i) +" to: " +  parser.getAttributeValue(0));
