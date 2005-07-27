@@ -60,7 +60,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 		String bundleLocation = event.getBundle().getLocation();
 		/* check if null */
 		if(manifestEntry!=null){
-			
+			System.out.println("\n**************************** START ********************************");
 			/* print that a service component is found */
 			System.out.println("Found service component");
 			/* print the bundle location */
@@ -131,7 +131,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 						System.out.println("ParseException:" +e);
 					}
 					
-					
+					System.out.println("\n**************************** END *********************************");
 				}else{
 					
 				}
