@@ -15,36 +15,45 @@
 package org.osgi.service.component.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
-import org.xml.sax.Attributes;
-import org.xml.sax.HandlerBase;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import org.xml.sax.Parser;
+import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+
 
 /**
- * This class is the implementation of the declarative service
- * feature. It will locate and bind diffrent types of declared
- * components on demand. It will also listen to BundleEvents 
- * rasied within the framework and 
+ * This class is the implementation of the declarative service feature. It will
+ * locate and bind diffrent types of declared components on demand. It will also
+ * listen to BundleEvents rasied within the framework and
  */
 public class SystemComponentRuntimeImpl implements BundleListener{
 	/* variable holding the bundlecontext */
-	BundleContext bundleContext;  
+	private BundleContext bundleContext;
+	
+	static final String JAXP_SCHEMA_LANGUAGE =
+	    "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
+
+	static final String W3C_XML_SCHEMA =
+	    "http://www.w3.org/2001/XMLSchema"; 
 	
 	public SystemComponentRuntimeImpl(BundleContext context){
 		/* assign the bundlecontext */
@@ -54,7 +63,8 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 	}
 	
 	/**
-	 *  Listen for BundleEvents from the framework
+	 * Listen for BundleEvents from the framework
+	 * 
 	 * @throws IOException
 	 */
 	public void bundleChanged(BundleEvent event)  {
@@ -65,7 +75,7 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 		if(manifestEntry!=null){
 			/* print that a service component is found */
 			System.out.println("Found service component");
-			/* print the bundle  location */
+			/* print the bundle location */
 			System.out.println("The bundle location: " + bundleLocation);
 			/* format the location string */
 			String formattedLocation = bundleLocation.substring(5,bundleLocation.length());
@@ -85,48 +95,45 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 					
 					/* get the input stream */
 					InputStream inputStream= 	jarFile.getInputStream(zipEntry);
-					/* variable holding EOF */
-					int c;
-					/* buffer size */
-					Long bufferSize = new Long(zipEntry.getSize());
-					/* byte buffer with size of bufferSize */
-					byte buffer[] = new byte[bufferSize.intValue()];
-					/* string */
-					String XMLContents="";
-					/* byte array outputstream using with the same size as the buffer */
-					OutputStream outputStream = new ByteArrayOutputStream(bufferSize.intValue()); 
-					
-					/* read the inputstream */
-					while ((c = inputStream.read(buffer)) != -1){
-						/* write it to the ByteArray */
-						 outputStream.write(buffer,0,c);
+	
+					/* create the pareser */
+					try{
+						XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+						factory.setNamespaceAware(true);
 						
-					}
-					
-					/* assign the string variable */
-					XMLContents=outputStream.toString();
-					/* write the XML File Contents */
-					System.out.println("\nXML-file contents:\n" +XMLContents );
+						XmlPullParser parser = factory.newPullParser();
+						
+						parser.setInput(inputStream,null);
+						parser.nextTag();
 				
+						
+						parser.require(XmlPullParser.START_TAG,"http://www.osgi.org/xmlns/scr/v1.0.0","component");
+						//parser.require(XmlPullParser.START_TAG,null,null);
+						
+						while(parser.nextTag()!= XmlPullParser.END_TAG) {
+							
+							if(parser.getName().equals("implementation")){
+								readXmlAdhocData(parser);
+							}
+							
+							if(parser.getName().equals("service")){
+								readXmlStrict(parser);
+							}
+							
+							if(parser.getName().equals("reference")){
+								readXmlAdhocData(parser);
+							}
+							
+						
+						}
 					
-					
-				    // specify this in system properties
-		            // or use one of the next 2 lines
-		            //XMLReader reader = XMLReaderFactory.createXMLReader();
-		            //XMLReader reader = XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
-		            XMLReader reader = XMLReaderFactory.createXMLReader("org.apache.crimson.parser.XMLReaderImpl");
-		            
-		            reader.setFeature("http://xml.org/sax/features/validation", true);
-		            reader.setFeature("http://apache.org/xml/features/validation/schema", true);
-		            reader.setProperty("http://apache.org/xml/properties/schema/external-noNamespaceSchemaLocation", "T.xsd");
-	
-	
-		            CustomHandler handler = new CustomHandler();
-		            
-		            reader.setContentHandler(handler);
-		            reader.setErrorHandler(handler);
-		            reader.parse("T.xml");
-					
+						parser.require(XmlPullParser.END_TAG,"http://www.osgi.org/xmlns/scr/v1.0.0","component");
+						
+						//parser.require(XmlPullParser.END_DOCUMENT, null, null);
+						
+					}catch(Exception e){
+						System.out.println("ParseException:" +e);
+					}
 					
 					
 				}else{
@@ -144,32 +151,57 @@ public class SystemComponentRuntimeImpl implements BundleListener{
 		}
 	}
 	
+	private void readXmlAdhocData(XmlPullParser parser){
+		System.out.println("Parsing:" + parser.getName());
+		if(parser.getName().equals("implementation") || parser.getName().equals("provide") ||
+				parser.getName().equals("reference")){
+			
+			try{
+			
+				for(int i=0;i<parser.getAttributeCount();i++){
+					System.out.println("Set " + parser.getName() +" "+ parser.getAttributeName(i) +" to: " +  parser.getAttributeValue(i));
+				}
+			
+			parser.next();
+			
+			}catch(Exception e){
+				System.out.println("Error Parsing implementation tag:" + e);
+			}
+		}
+	}
 	
-	
-	class CustomHandler extends DefaultHandler {
-	    public void startElement(String uri,   String localName,
-	                             String qName, Attributes attributes)  
-	                             throws SAXException {
+	private void readXmlStrict(XmlPullParser parser){
+		if(parser.getName().equals("service")){
+			System.out.println("Parsing service");
+			try{
+				parser.require(XmlPullParser.START_TAG,"","service");
+				while (parser.nextTag() != XmlPullParser.END_TAG) {
 
-	        System.out.println("tag: " + qName);
-	    }
-	    public void warning(SAXParseException e) throws SAXException {
-	        // you can choose not to handle it
-	        throw new SAXException(getMessage("Warning", e));
-	    }
-	    public void error(SAXParseException e) throws SAXException {
-	        throw new SAXException(getMessage("Error", e));
-	    }
-	    public void fatalError(SAXParseException e) throws SAXException 
-	    {
-	        throw new SAXException(getMessage("Fatal Error", e));
-	    }
-	    private String getMessage(String level, SAXParseException e) {
-	        return ( "Parsing " + level + "\n" +
-	                 "Line:    " + e.getLineNumber() + "\n" +
-	                 "URI:     " + e.getSystemId() + "\n" +
-	                 "Message: " + e.getMessage()             );
-	    }
+					parser.require(XmlPullParser.START_TAG, null, null);
+					String name = parser.getName();
+
+					//String text = parser.nextText();
+					//System.out.println ("<"+name+">"+text);
+
+					if(name.equals("provide")){
+						parser.require(XmlPullParser.START_TAG, null, "provide");
+						for(int i=0;i<parser.getAttributeCount();i++){
+							System.out.println("Set "+ name + " "+ parser.getAttributeName(i) +" to: " +  parser.getAttributeValue(0));
+						}
+						parser.next();
+						
+					}
+					
+					
+					parser.require(XmlPullParser.END_TAG, null, name);
+				}
+				
+				parser.require(XmlPullParser.END_TAG, null, "service");
+			
+			}catch(Exception e){
+				System.out.println("Error Parsing Service:" +e);
+			}
+		}
 	}
 
 }
