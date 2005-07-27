@@ -9,8 +9,8 @@ You can download the latest release from the link below.
 
  <tr>
   <td>
-  <a href="releases/eclipse-plugin/0.6.0/knopflerfish_eclipse_plugin_0.6.0.zip">knopflerfish_eclipse_plugin_0.6.0.zip</a><br>
-  (approx 217 kB)
+  <a href="releases/eclipse-plugin/0.7.0/knopflerfish_eclipse_plugin_0.7.0.zip">knopflerfish_eclipse_plugin_0.7.0.zip</a><br>
+  (approx 251 kB)
   </td>
  </tr>
 </table>
@@ -206,7 +206,35 @@ Eclipse Console and press return a few times.
 <h3>Packaging Bundle</h3>
 
 <p>
-<b>TODO:</b> Create help for packaging bundle. For now use the built in JAR file utility under 'File/Export.../JAR file'.
+The contents of the bundle  is specified by the bundle.jar file. A special editor is linked to this file, which is opened when the file is selected. The editor allows the contents to be specified either through a graphical view or by directly editing the underlying XML file.
 </p>
+<p>
+The graphical view has two sections:
+<ul>
+ <li>Export</li>
+ <li>Contents</li> 
+</ul>
+
+<h4>Export</h4>
+By selecting export the bundle is packaged and exported to the selected destination. The contents of the bundle is set in the contents section.
+
+<h4>Contents</h4>
+The contents section specifies all resources that shall be included and where to store them in the bundle JAR file. Each row in the contents table shows a resource that shall be included and consists of the following:
+<ul>
+ <li><b>Resource</b> - The path to a file or folder in the current workspace.</li>
+ <li><b>Destination</b> - The path to store the resource in the JAR file. The resource contents is stored in the JAR entry specified by destination. If destination is empty it means the JAR root.</li>
+ <li><b>Pattern</b> - An regular expression can be specified to filter the resources to be included</li>
+</ul>
+<p>
+By default the bundle.jar specifies the class-files from the output directory to be included in the JAR file.
+</p>
+<pre>
+ &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+ &lt;bundlejar&gt;
+ &lt;resource dst="" pattern=".*\.class" src="/positron/out"/&gt;
+ &lt;/bundlejar&gt;
+
+</pre>
+
 
 
