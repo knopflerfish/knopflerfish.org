@@ -1,5 +1,6 @@
 Manifest-Version: 1.0
-Bundle-Name: com.isv.process.myvalue.impl.MyValueLocate
-Bundle-SymbolicName: MyValueLocate
+Bundle-SymbolicName: com.isv.process.myvalue.impl.MyValueLocate
 Bundle-Version: 1.0
+Bundle-UpdateLocation: MyValueLocate
+Bundle-Name: MyValueLocate
 
