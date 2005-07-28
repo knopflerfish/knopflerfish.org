@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<scr:component name="com.isv.process.myvalue.MyValue" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0"> 
+<implementation class="com.isv.process.myvalue.impl.MyValueImpl" /> 
+<service> 
+<provide interface="com.isv.process.myvalue.MyValue"/> 
+</service> 
+<reference name="customerInfo" interface="com.isv.service.customerinfo.CustomerInfo" cardinality="1..1" policy="static" target="(component.name=com.isv.service.customerinfo.CustomerInfo)" /> 
+<reference name="stockQuote" interface="com.isv.service.stockquote.StockQuote" cardinality="1..1" policy="static" target="(component.name=com.isv.service.stockquote.StockQuote)" /> 
+</scr:component>
