@@ -3,6 +3,7 @@ Bundle-Name: SCR
 Bundle-Activator: org.osgi.service.component.impl.Activator
 Bundle-SymbolicName: org.osgi.service.component.impl.SystemComponentRuntimeImpl
 Bundle-Version: 1.0
+Import-Package: org.xmlpull.v1
 
 
 
