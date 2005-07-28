@@ -26,7 +26,7 @@ import java.util.ArrayList;
  * ServiceInformation
  * ReferenceInformation
  */
-public class ComponentController {
+public class ComponentConfiguration {
 	/* The name of the component */
 	private String componentName;
 	/* to use autoenable on the component or not */
@@ -49,7 +49,7 @@ public class ComponentController {
 	private ArrayList referenceInfo;
 	
 	/* The constructor */
-	ComponentController(){
+	ComponentConfiguration(){
 		propertiesInfo = new ArrayList();
 		propertyInfo = new ArrayList();
 		serviceInfo = new ArrayList();
