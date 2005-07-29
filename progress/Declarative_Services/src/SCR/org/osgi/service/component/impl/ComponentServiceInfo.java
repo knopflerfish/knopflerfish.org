@@ -36,4 +36,22 @@ public class ComponentServiceInfo {
 	public void instertInterface(String componentInterface) {
 		componentInterfaces.add(componentInterface);
 	}
+	/**
+	 * @return Returns the serviceFactory.
+	 */
+	public boolean isServiceFactory() {
+		return serviceFactory;
+	}
+	/**
+	 * @return Returns the componentInterfaces.
+	 */
+	public ArrayList getComponentInterfaces() {
+		return componentInterfaces;
+	}
+	/**
+	 * @param serviceFactory The serviceFactory to set.
+	 */
+	public void setServiceFactory(boolean serviceFactory) {
+		this.serviceFactory = serviceFactory;
+	}
 }
