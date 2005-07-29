@@ -23,8 +23,10 @@ import java.util.ArrayList;
  */
 public class ComponentServiceInfo {
 
+	/* to use a factory with the component or not */
+	private boolean serviceFactory;
 	/* A list containing all interfaces that the component supplys */
-	ArrayList componentInterfaces;
+	private ArrayList componentInterfaces;
 
 	ComponentServiceInfo() {
 		componentInterfaces = new ArrayList();

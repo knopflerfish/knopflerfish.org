@@ -15,189 +15,38 @@
 package org.osgi.service.component.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-
 
 /**
  * This class is the implementation of the declarative service feature. It will
  * locate and bind diffrent types of declared components on demand. It will also
  * listen to BundleEvents rasied within the framework and
  */
-public class SystemComponentRuntimeImpl implements BundleListener{
+public class SystemComponentRuntimeImpl implements BundleListener {
 	/* variable holding the bundlecontext */
 	private BundleContext bundleContext;
-	
-	static final String JAXP_SCHEMA_LANGUAGE =
-	    "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
 
-	static final String W3C_XML_SCHEMA =
-	    "http://www.w3.org/2001/XMLSchema"; 
-	
-	public SystemComponentRuntimeImpl(BundleContext context){
+	private CustomParser customParser;
+
+	public SystemComponentRuntimeImpl(BundleContext context) {
 		/* assign the bundlecontext */
-		bundleContext=context;
+		bundleContext = context;
 		/* add this as a bundle listener */
 		bundleContext.addBundleListener(this);
 	}
-	
+
 	/**
 	 * Listen for BundleEvents from the framework
 	 * 
 	 * @throws IOException
 	 */
-	public void bundleChanged(BundleEvent event)  {
-		/* try to get the XML file */
-		String manifestEntry= (String) event.getBundle().getHeaders().get("Service-Component");
-		String bundleLocation = event.getBundle().getLocation();
-		/* check if null */
-		if(manifestEntry!=null){
-			System.out.println("\n**************************** START ********************************");
-			/* print that a service component is found */
-			System.out.println("Found service component");
-			/* print the bundle location */
-			System.out.println("The bundle location: " + bundleLocation);
-			/* format the location string */
-			String formattedLocation = bundleLocation.substring(5,bundleLocation.length());
-			/* print the bundle formatted location */
-			System.out.println("The bundle formatted location: " + formattedLocation);
-			/* print the xml file location */
-			System.out.println("The XML file location: "+manifestEntry);
-			
-			try{
-				/* get the jar file use the formatted location */
-				JarFile jarFile = new JarFile(formattedLocation);
-				/* get the xmlfile located by the manifestEntry */
-				ZipEntry zipEntry= jarFile.getEntry(manifestEntry);
-				
-				/* check if null */
-				if(zipEntry!=null){
-					
-					/* get the input stream */
-					InputStream inputStream= 	jarFile.getInputStream(zipEntry);
-	
-					/* create the pareser */
-					try{
-						XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-						factory.setNamespaceAware(true);
-						
-						XmlPullParser parser = factory.newPullParser();
-						
-						parser.setInput(inputStream,null);
-						parser.nextTag();
-				
-						
-						parser.require(XmlPullParser.START_TAG,"http://www.osgi.org/xmlns/scr/v1.0.0","component");
-						//parser.require(XmlPullParser.START_TAG,null,null);
-						
-						while(parser.nextTag()!= XmlPullParser.END_TAG) {
-							
-							if(parser.getName().equals("implementation")){
-								readXmlAdhocData(parser);
-							}
-							
-							if(parser.getName().equals("service")){
-								readXmlStrict(parser);
-							}
-							
-							if(parser.getName().equals("reference")){
-								readXmlAdhocData(parser);
-							}
-							
-							if(parser.getName().equals("property")){
-								readXmlAdhocData(parser);
-							}
-							
-							if(parser.getName().equals("properties")){
-								readXmlAdhocData(parser);
-							}
-							
-						
-						}
-					
-						parser.require(XmlPullParser.END_TAG,"http://www.osgi.org/xmlns/scr/v1.0.0","component");
-						
-						//parser.require(XmlPullParser.END_DOCUMENT, null, null);
-						
-					}catch(Exception e){
-						System.out.println("ParseException:" +e);
-					}
-					
-					System.out.println("\n**************************** END *********************************");
-				}else{
-					
-				}
-				
-				
-				
-			}catch(IOException e){
-				System.out.println("Error getting xml file" + e) ;
-			}catch(Exception e){
-				System.out.println("Error reading zipentry" + e);
-			}
-			
-		}
-	}
-	
-	private void readXmlAdhocData(XmlPullParser parser){
-		System.out.println("Reading:" + parser.getName());
-		if(parser.getName().equals("implementation") || parser.getName().equals("provide") ||
-				parser.getName().equals("reference")){
-			
-			try{
-			
-				for(int i=0;i<parser.getAttributeCount();i++){
-					System.out.println("Set " + parser.getName() +" "+ parser.getAttributeName(i) +" to: " +  parser.getAttributeValue(i));
-				}
-			
-			parser.next();
-			
-			}catch(Exception e){
-				System.out.println("Error Parsing implementation tag:" + e);
-			}
-		}
-	}
-	
-	private void readXmlStrict(XmlPullParser parser){
-		if(parser.getName().equals("service")){
-			System.out.println("Reading service");
-			try{
-				parser.require(XmlPullParser.START_TAG,"","service");
-				while (parser.nextTag() != XmlPullParser.END_TAG) {
+	public synchronized void bundleChanged(BundleEvent event) {
 
-					parser.require(XmlPullParser.START_TAG, null, null);
-					String name = parser.getName();
-
-					//String text = parser.nextText();
-					//System.out.println ("<"+name+">"+text);
-
-					if(name.equals("provide")){
-						System.out.println("Reading provide");
-						parser.require(XmlPullParser.START_TAG, null, "provide");
-						for(int i=0;i<parser.getAttributeCount();i++){
-							System.out.println("Set "+ name + " "+ parser.getAttributeName(i) +" to: " +  parser.getAttributeValue(0));
-						}
-						parser.next();
-						
-					}
-					
-					
-					parser.require(XmlPullParser.END_TAG, null, name);
-				}
-				
-				parser.require(XmlPullParser.END_TAG, null, "service");
-			
-			}catch(Exception e){
-				System.out.println("Error Parsing Service:" +e);
-			}
-		}
+		customParser = new CustomParser();
+		ComponentDeclaration compDec = customParser.readXML(event);
 	}
+
 }
