@@ -26,15 +26,14 @@ public class ComponentServiceInfo {
 	/* to use a factory with the component or not */
 	private boolean serviceFactory;
 	/* A list containing all interfaces that the component supplys */
-	private ArrayList componentInterfaces;
+	private ArrayList interfaces;
 
-	ComponentServiceInfo() {
-		componentInterfaces = new ArrayList();
+	ComponentServiceInfo(){
+		interfaces = new ArrayList();
 	}
-
 	/* insert a componentInterface in the list */
 	public void instertInterface(String componentInterface) {
-		componentInterfaces.add(componentInterface);
+		interfaces.add(componentInterface);
 	}
 	/**
 	 * @return Returns the serviceFactory.
@@ -46,7 +45,7 @@ public class ComponentServiceInfo {
 	 * @return Returns the componentInterfaces.
 	 */
 	public ArrayList getComponentInterfaces() {
-		return componentInterfaces;
+		return interfaces;
 	}
 	/**
 	 * @param serviceFactory The serviceFactory to set.
