@@ -404,6 +404,8 @@ public class CustomParser {
 		/* Required attributes in the component tag*/
 		boolean nameFound = false;
 		
+		boolean autoEnableFound = false;
+		
 		/* test print */
 		System.out.println("*-*-*-*-*-* Parsing Component *-*-*-*-*-*");
 		try {
@@ -427,8 +429,10 @@ public class CustomParser {
 					} else {
 						if (parser.getAttributeValue(i).equals("true")) {
 							compConf.setAutoEnable(true);
+							autoEnableFound = true;
 						} else {
 							compConf.setAutoEnable(false);
+							autoEnableFound = true;
 						}
 						/* test print */
 						System.out.println("Adding the autoenable attribute:"
@@ -451,6 +455,11 @@ public class CustomParser {
 			parser.next();
 		} catch (Exception e) {
 			System.out.println("Error Parsing reference tag:" + e);
+		}
+		
+		/* Setting default value if no other value was set*/
+		if(autoEnableFound == false){
+			compConf.setAutoEnable(true);
 		}
 		
 		/* check if required attributes has been set */
