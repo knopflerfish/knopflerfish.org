@@ -34,21 +34,35 @@ public class ComponentContextImpl implements ComponentContext{
 	private BundleContext bundleContext;
 	/* the component instance */
 	private ComponentInstance componentInstance;
+	/* the component properties */
+	private Dictionary properties;
+	/* the service reference */
+	private ServiceReference serviceReference;
 	
 	
 	/* The constructor */
-	public ComponentContextImpl(BundleContext context) {
+	public ComponentContextImpl(ComponentInstance component,BundleContext context,Dictionary props,
+			ServiceReference serviceRef) {
+		
 		/* assign the bundle context */
 		bundleContext = context;
-
+		/* assign the properties */
+		properties = props;
+		/* assign the component instance */
+		componentInstance =component;
+		/* assign the service reference */
+		serviceReference = serviceRef;
+		
+		
+		
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#getProperties()
+	/**
+	 * returns the properties for this component 
+	 * i,e the component the context is holding
 	 */
 	public Dictionary getProperties() {
-		// TODO Auto-generated method stub
-		return null;
+		return properties;
 	}
 	
 	/* (non-Javadoc)
@@ -67,16 +81,16 @@ public class ComponentContextImpl implements ComponentContext{
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#getServiceReference()
+	/**
+	 * returns the service reference of the ComponentInstance
 	 */
 	public ServiceReference getServiceReference() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		return serviceReference;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#getComponentInstance()
+	/**
+	 * returns the ComponentInstance object this context is holding
 	 */
 	public ComponentInstance getComponentInstance() {
 		return componentInstance;
