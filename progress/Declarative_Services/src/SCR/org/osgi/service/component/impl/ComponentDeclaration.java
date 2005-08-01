@@ -49,13 +49,16 @@ public class ComponentDeclaration {
 	private ArrayList serviceInfo;
 	/* A list containing all references for the component */
 	private ArrayList referenceInfo;
+	/* A list containing all interfaces for the component */
+	private ArrayList provideInfo;
 	
 	/* The constructor */
 	ComponentDeclaration(){
 		propertiesInfo = new ArrayList();
 		propertyInfo = new ArrayList();
 		serviceInfo = new ArrayList();
-		referenceInfo = new ArrayList();			
+		referenceInfo = new ArrayList();
+		provideInfo = new ArrayList();
 	}
 		
 	/**

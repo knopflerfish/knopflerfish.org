@@ -13,6 +13,8 @@
  */
 package org.osgi.service.component.impl;
 
+import java.util.ArrayList;
+
 /**
  * @author Administrator
  * 
@@ -24,11 +26,14 @@ public class ComponentPropertyInfo {
 	private String name;
 
 	/* Property value */
-	private String value;
+	private ArrayList value;
 
 	/* Property type */
 	private String type;
 
+	ComponentPropertyInfo(){
+		value = new ArrayList();
+	}
 	/**
 	 * @return Returns the name.
 	 */
@@ -62,7 +67,7 @@ public class ComponentPropertyInfo {
 	/**
 	 * @return Returns the value.
 	 */
-	public String getValue() {
+	public ArrayList getValues() {
 		return value;
 	}
 
@@ -71,6 +76,6 @@ public class ComponentPropertyInfo {
 	 *            The value to set.
 	 */
 	public void setValue(String value) {
-		this.value = value;
+		this.value.add(value);
 	}
 }
