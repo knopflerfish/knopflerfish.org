@@ -311,6 +311,7 @@ public class CustomParser {
 			throws IllegalXMLException {
 		/* Required attributes in the component tag*/
 		boolean interfaceFound = false;
+		boolean servicefactoryFound = false;
 		
 		/* Test print*/
 		System.out.println("*-*-*-*-*-* Parsing Services *-*-*-*-*-*");
@@ -326,8 +327,10 @@ public class CustomParser {
 					if (parser.getAttributeName(i).equals("servicefactory")) {
 						if (parser.getAttributeValue(i).equals("true")) {
 							compServ.setServiceFactory(true);
+							servicefactoryFound = true;
 						} else if (parser.getAttributeValue(i).equals("false")) {
 							compServ.setServiceFactory(false);
+							servicefactoryFound = true;
 						} else {
 							throw new IllegalXMLException(
 									"Unsupported value tag service, attribute servicefactory:"
@@ -345,6 +348,11 @@ public class CustomParser {
 				}
 			} catch (Exception e) {
 				System.out.println("Error Parsing reference tag:" + e);
+			}
+			
+			/* Set default value */
+			if(servicefactoryFound == false){
+				compServ.setServiceFactory(false);
 			}
 		}
 
