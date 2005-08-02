@@ -50,5 +50,29 @@ public String getSymbol(){
 public int getNumShares(){
 	return numShares;
 }
+/**
+ * @return Returns the custNo.
+ */
+public String getCustNo() {
+	return custNo;
+}
+/**
+ * @return Returns the firstName.
+ */
+public String getFirstName() {
+	return firstName;
+}
+/**
+ * @return Returns the lastName.
+ */
+public String getLastName() {
+	return lastName;
+}
+/**
+ * @return Returns the postalCode.
+ */
+public String getPostalCode() {
+	return postalCode;
+}
 }
 
