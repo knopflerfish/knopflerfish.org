@@ -14,6 +14,9 @@
 package com.gstm.scr;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+
+import com.isv.process.myvalue.MyValueBind;
 
 /** 
  * This class wil start a dummy client used 
@@ -26,7 +29,12 @@ public class MyValueClient implements BundleActivator{
 	 * Start the bundle 
 	 */
 	public void start(BundleContext context) throws Exception {
+		ServiceReference reference = context.getServiceReference("com.isv.process.myvalue.MyValueBind");
 		
+		MyValueBind myValue = (MyValueBind) context.getService(reference);
+		
+		
+		System.out.println("***************** My value is:" +myValue.getMyValue("WhatEver") +" ******************");
 		
 	}
 
