@@ -3,7 +3,4 @@ Bundle-Name: MyValueClient
 Bundle-SymbolicName: com.gstm.scr.MyValueClient
 Bundle-Version: 1.0
 Bundle-Activator: com.gstm.scr.MyValueClient
-
-
-
-
+Import-Package: com.isv.process.myvalue
