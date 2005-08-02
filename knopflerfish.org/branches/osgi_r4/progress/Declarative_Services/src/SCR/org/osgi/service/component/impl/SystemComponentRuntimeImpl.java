@@ -14,8 +14,13 @@
 
 package org.osgi.service.component.impl;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -23,8 +28,10 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -32,6 +39,8 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 /**
  * This class is the implementation of the declarative service feature. It will
@@ -55,22 +64,30 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 	/**
 	 * Listen for BundleEvents from the framework and
 	 * creates a ComponentDeclaration 
+	 * @throws BundleException
 	 * 
 	 * @throws IOException
 	 */
 	public void bundleChanged(BundleEvent event) {
-		
+		System.out.println("******************* INCOMING EVENT *****************************");
 		if(event.getBundle().getHeaders().get("Service-Component") !=null){
 			
+			System.out.println("******************* Parsing Started *****************************");
 			customParser = new CustomParser();
+			
+		
 			ComponentDeclaration componentDeclaration = customParser.readXML(event);
 			
+		
 			if(componentDeclaration.isAutoEnable()){
 				
 				ComponentContext componentContext = createComponentContext(componentDeclaration);
 				registerComponentServices(componentDeclaration,componentContext);
+				this.trackReferences(componentDeclaration,componentContext.getComponentInstance());
 				
 			}
+		
+			
 		}
 
 	}
@@ -148,29 +165,17 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 	private ComponentContext createComponentContext(
 			ComponentDeclaration componentDeclaration) {
 		try {
-			/* check if component is auto enable */
-			if (!componentDeclaration.isAutoEnable()) {
-				Dictionary props = new Hashtable();
-				/* TODO
-				 * Create properties here pick them from component declaration
-				 */
+			
+			Dictionary props = new Hashtable();
+			/* TODO
+			 * Create properties here pick from component declaration
+			 */
+			ComponentContextImpl newContext = new ComponentContextImpl(
+					createComponentInstance(componentDeclaration),
+					bundleContext, props, null);
 
-				ComponentContextImpl newContext = new ComponentContextImpl(
-						null, bundleContext, props, null);
-				
-				return newContext;
-			} else {
-				Dictionary props = new Hashtable();
-				/* TODO
-				 * Create properties here pick from component declaration
-				 */
-				ComponentContextImpl newContext = new ComponentContextImpl(
-						createComponentInstance(componentDeclaration),
-						bundleContext, props, null);
+			return newContext;
 
-				return newContext;
-
-			}
 		} catch (Exception e) {
 			System.err.println("Error in createComponentContext():" + e);
 
@@ -178,7 +183,7 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 
 		return null;
 	}
-
+ 
 	/**
 	 * this function will use a ComponentDeclaration to create a new ComponentInstance object
 	 * 
@@ -232,10 +237,9 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 				.println("**************** Tracking references *********************");
 		/* create an iterator */
 		Iterator it = null;
-
+		/* get the reference info array */
 		ArrayList referenceInfo = componentDeclaration.getReferenceInfo();
-
-		/* assign the iterator */
+		/* create the iterator */
 		it = referenceInfo.iterator();
 
 		/* iterate while still has next */
@@ -248,14 +252,15 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 			if (componentRef.getInterfaceType() != null) {
 				/* get the interface */
 				String interfaceName = componentRef.getInterfaceType();
+				/* print the service interface name */
+				System.out.println("service interface name is:" + interfaceName);
 				/* get the reference */
 				String targetFilter = componentRef.getTarget();
 				/* assign a component class object */
 				Object componentObject = componentInstance.getInstance();
 
-				/*
-				 * create a string representing the method which should be
-				 * called
+				/* create a string representing the method which should be
+				 * called, i.e, the bind method
 				 */
 				String methodName = "";
 
@@ -267,91 +272,51 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 					/* else set activate as default */
 					methodName = "activate";
 				}
-
+				
+				System.out.println("The bind-method is:" + methodName);
+				
 				/*
 				 * check if methodName equals activate if so it is an locate
 				 * delcared component
 				 */
 				if (methodName.equals("activate")) {
-					try {
-						/* get the argument classes */
-						Class partypes[] = new Class[1];
-						/* get the argument classes */
-						partypes[0] = this.getClass();
-						/* get the method */
-						Method method = componentObject.getClass().getMethod(
-								methodName, partypes);
-
-						/* create the arglist */
-						Object arglist[] = new Object[1];
-						/* add the argument variable to the arglist */
-						arglist[0] = this;
-						/* invoke method att the component class */
-						method.invoke(componentObject, arglist);
-
-					} catch (NoSuchMethodException e) {
-						System.err
-								.println("Error calling \"activate() method\" No Method Found:"
-										+ e);
-
-					} catch (IllegalAccessException e) {
-						System.err.println("Error invoking Class:"
-								+ componentObject
-								+ " Class Cannot be Accessed:" + e);
-
-					} catch (InvocationTargetException e) {
-						System.err.println("Error Invoking Target in:"
-								+ componentObject + ":" + e);
-
-					} catch (NullPointerException e) {
-						System.err.println("Error in trackReferences" + e);
-					}
-
+					
+					/*TODO enter the activate method here 
+					 * 
+					 */
+					
 				} else {
 
 					try {
-						/* get the bundle context */
-						ServiceReference serviceReference = bundleContext
-								.getServiceReference(interfaceName);
-
+						
+						/* get the service reference */
+						ServiceReference serviceReference = bundleContext.getServiceReference(interfaceName);
 						/* get the service */
-						Object argument = bundleContext
-								.getService(serviceReference);
-
-						/* create an array to store the arguments in */
-						Class partypes[] = new Class[0];
-						/* get the argument classes */
-						partypes[0] = Class.forName(interfaceName);
-						/* get the method */
-						Method method = componentObject.getClass().getMethod(
-								methodName, partypes);
-
-						/* create the arglist */
-						Object arglist[] = new Object[1];
-						/* add the argument variable to the arglist */
-						arglist[0] = argument;
-						/* invoke method att the component class */
-						method.invoke(componentObject, arglist);
-
-					} catch (ClassNotFoundException e) {
-						System.err
-								.println("Error when trying to locate the class interfaceClass:"
-										+ interfaceName);
-
-					} catch (NoSuchMethodException e) {
-						System.err.println("Error calling \"" + methodName
-								+ " method\" No Method Found:" + e);
-
-					} catch (IllegalAccessException e) {
-						System.err.println("Error invoking Class:"
-								+ componentObject
-								+ " Class Cannot be Accessed:" + e);
-
-					} catch (InvocationTargetException e) {
-						System.err.println("Error Invoking Target in:"
-								+ componentObject + ":" + e);
-
+						Object reference = bundleContext.getService(serviceReference);
+												
+						try{
+							/* print that we try to invoke the method */
+							System.out.println("Trying to invoke " + methodName + " in class:" + componentDeclaration.getImplementation());
+							/* get the method */
+							Method method =componentObject.getClass().getDeclaredMethod(methodName, 
+									new Class[]{Class.forName(interfaceName)});
+							
+							/* set this as accessible */
+							method.setAccessible(true);
+							/* invoke the method */
+							method.invoke(componentObject,new Object[]{reference});
+							
+						}catch(NoSuchMethodException e){
+							System.err.println("ERROR GETTING METHOD:"  +e);
+						}catch(IllegalAccessException e){
+							System.err.println("ERROR GETTING METHOD:" +e);
+						}catch(Exception e){
+							System.err.println("ERROR GETTING METHOD:" +e);
+						}
+										
 					} catch (NullPointerException e) {
+						System.err.println("Error in trackReferences" + e);
+					} catch(Exception e){
 						System.err.println("Error in trackReferences" + e);
 					}
 
@@ -406,10 +371,11 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 				Object returnObject = componentClass
 						.newInstance();
 				
-				/* create the return object with tracing feature */
-				returnObject=TracingIH.createProxy(
-						returnObject, new PrintWriter(System.out));
+				/* create the return object with tracing feature will give the object as proxy */
+				//returnObject=TracingIH.createProxy(
+				//		returnObject, new PrintWriter(System.out));
 				
+				System.out.println("Creating instance:" + returnObject);
 				/* return the object */
 				return returnObject;
 				
