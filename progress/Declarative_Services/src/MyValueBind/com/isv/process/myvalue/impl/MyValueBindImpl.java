@@ -3,6 +3,7 @@ import com.isv.process.myvalue.MyValueBind;
 import com.isv.process.myvalue.MyValueException;
 import com.isv.service.customerinfo.Customer;
 import com.isv.service.customerinfo.CustomerInfo;
+import com.isv.service.customerinfo.impl.CustomerInfoImpl;
 import com.isv.service.stockquote.StockQuote;
 
 /**
@@ -18,15 +19,17 @@ public class MyValueBindImpl implements MyValueBind {
     private StockQuote sQuote; 
     
     	protected void bindCustomerInfo(CustomerInfo cInfo) { 
+    		System.out.println("********************* bindCustomerInfo is Invoked ***********************");
     		this.cInfo = cInfo; 
     	} 
 
         protected void unbindCustomerInfo(CustomerInfo cInfo) { 
-    	this.cInfo = null; 
+        	this.cInfo = null; 
         } 
 
-        protected void bindStockQuote(StockQuote sQuote) { 
-    	this. sQuote = sQuote; 
+        protected void bindStockQuote(StockQuote sQuote) {
+        	System.out.println("********************* bindStockQuote is Invoked ***********************'");
+    	    this. sQuote = sQuote; 
         } 
 
         protected void unbindStockQuote(StockQuote sQuote) { 	
