@@ -319,21 +319,28 @@ public class CustomParser {
 			try {
 				for (int i = 0; i < parser.getAttributeCount(); i++) {
 					if (parser.getAttributeName(i).equals("servicefactory")) {
-						if (parser.getAttributeValue(i).equals("true")) {
-							compServ.setServiceFactory(true);
-							servicefactoryFound = true;
-						} else if (parser.getAttributeValue(i).equals("false")) {
-							compServ.setServiceFactory(false);
-							servicefactoryFound = true;
+						if(compConf.getFactory() == null){
+							if (parser.getAttributeValue(i).equals("true")) {
+								compServ.setServiceFactory(true);
+								servicefactoryFound = true;
+							} else if (parser.getAttributeValue(i).equals("false")) {
+								compServ.setServiceFactory(false);
+								servicefactoryFound = true;
+							} else {
+								throw new IllegalXMLException(
+										"Unsupported value tag service, attribute servicefactory:"
+												+ parser.getAttributeValue(i));
+							}
+							/* test print */
+//							System.out
+//									.println("Adding the servicefactory attribute:"
+//											+ parser.getAttributeValue(i));
 						} else {
 							throw new IllegalXMLException(
-									"Unsupported value tag service, attribute servicefactory:"
-											+ parser.getAttributeValue(i));
+									"Unsupported Attribute name:"
+											+ parser.getAttributeName(i) + 
+											" The component is a ComponentFacotry");
 						}
-						/* test print */
-//						System.out
-//								.println("Adding the servicefactory attribute:"
-//										+ parser.getAttributeValue(i));
 					} else {
 						throw new IllegalXMLException(
 								"Unsupported Attribute name:"
