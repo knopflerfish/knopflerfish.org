@@ -425,7 +425,7 @@ public class CustomParser {
 //						System.out.println("Adding the name attribute:"
 //								+ parser.getAttributeValue(i));
 					}
-				} else if (parser.getAttributeName(i).equals("autoenable")) {
+				} else if (parser.getAttributeName(i).equals("enable")) {
 					if (parser.getAttributeValue(i) == null) {
 						/* optional attribute */
 					} else {
