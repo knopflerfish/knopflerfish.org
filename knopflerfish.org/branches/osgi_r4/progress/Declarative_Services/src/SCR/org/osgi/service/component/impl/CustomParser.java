@@ -90,20 +90,20 @@ public class CustomParser {
 
 		/* check if null */
 		if (manifestEntry != null) {
-			System.out
-					.println("\n**************************** START ********************************");
+//			System.out
+//					.println("\n**************************** START ********************************");
 			/* print that a service component is found */
-			System.out.println("Found service component");
+			//System.out.println("Found service component");
 			/* print the bundle location */
-			System.out.println("The bundle location: " + bundleLocation);
+//			System.out.println("The bundle location: " + bundleLocation);
 			/* format the location string */
 			String formattedLocation = bundleLocation.substring(5,
 					bundleLocation.length());
 			/* print the bundle formatted location */
-			System.out.println("The bundle formatted location: "
-					+ formattedLocation);
+//			System.out.println("The bundle formatted location: "
+//					+ formattedLocation);
 			/* print the xml file location */
-			System.out.println("The XML file location: " + manifestEntry);
+//			System.out.println("The XML file location: " + manifestEntry);
 
 			try {
 				/* get the jar file use the formatted location */
@@ -111,7 +111,7 @@ public class CustomParser {
 				/* get the xmlfile located by the manifestEntry */
 				ZipEntry zipEntry = jarFile.getEntry(manifestEntry);
 
-				/* check if null *///TODO This mabey should be done in the SCR
+				/* check if null */
 				if (zipEntry != null) {
 
 					/* get the input stream */
@@ -135,8 +135,8 @@ public class CustomParser {
 						setComponentInfo(parser);
 						while (parser.nextTag() != XmlPullParser.END_TAG) { 
 							//TODO The parser does not skip commented parts ie <!--  comment  -->
-							System.out.println("Current tag is:"
-									+ parser.getName());
+//							System.out.println("Current tag is:"
+//									+ parser.getName());
 							if (parser.getName().equals("implementation")) {
 								setImplementationInfo(parser);
 							} else if (parser.getName().equals("property")) {
@@ -155,24 +155,19 @@ public class CustomParser {
 								"http://www.osgi.org/xmlns/scr/v1.0.0",
 								"component");
 					} catch (IllegalXMLException e){
-						System.out.println("IllegalXMLException:" + e);
+						System.out.println("IllegalXMLException:" + e); //TODO Replace with Exceptions
 					} catch (Exception e) {
-						System.out.println("ParseException:" + e);
+						System.out.println("ParseException:" + e); //TODO Replace with Exceptions
 					}
-					System.out
-							.println("\n**************************** END *********************************");
+//					System.out
+//							.println("\n**************************** END *********************************");
 					/* print everything that has been found in the xml */
 					printComponentConfiguration();
-				} else {
-					/*
-					 * TODO If we keep the check of the xml file here we need
-					 * this to return null.
-					 */
-				}
+				} else {}
 			} catch (IOException e) {
-				System.out.println("Error getting xml file" + e);
+				System.out.println("Error getting xml file" + e); //TODO Replace with Exceptions
 			} catch (Exception e) {
-				System.out.println("Error reading zipentry" + e);
+				System.out.println("Error reading zipentry" + e); //TODO Replace with Exceptions
 			}
 		}
 		
@@ -201,7 +196,7 @@ public class CustomParser {
 		/*Declare an instanse to store the values in */
 		ComponentPropertyInfo compProp = compConf.getNewPropertyIntance();
 		/* test print */
-		System.out.println("*-*-*-*-*-* Parsing Property *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Parsing Property *-*-*-*-*-*");
 
 		try {
 			for (int i = 0; i < parser.getAttributeCount(); i++) {
@@ -215,8 +210,8 @@ public class CustomParser {
 						compProp.setName(parser.getAttributeValue(i));
 						nameFound = true;
 						/* test print */
-						System.out.println("Adding the name attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the name attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("value")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -224,14 +219,13 @@ public class CustomParser {
 					} else {
 						compProp.setValue(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the value attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the value attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("type")) {
-					//TODO Fix so that only supported types are accepted
 					if (parser.getAttributeValue(i) == null) {
 						/* default value */
-						compProp.setType("String"); //TODO fix so that this default sets even if the type attribute isnt pressent
+						compProp.setType("String");
 					} else {
 						for(int j = 0; j < supportedTypes.length ; j++){
 							/* If the found attribute value equals one of the supported types*/
@@ -239,8 +233,8 @@ public class CustomParser {
 								compProp.setType(supportedTypes[j]);
 								typeFound = true;
 								/* test print */
-								System.out.println("Adding the type attribute:"
-										+ parser.getAttributeValue(i));
+//								System.out.println("Adding the type attribute:"
+//										+ parser.getAttributeValue(i));
 							}
 						}
 					}
@@ -250,7 +244,7 @@ public class CustomParser {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e);
+			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
 		}
 		
 		/*
@@ -266,15 +260,15 @@ public class CustomParser {
 				for (int i = 0; i < values.length; i++) {
 					compProp.setValue(values[i]);
 					/* test print */
-					System.out.println("Adding the value attribute:"
-							+ values[i]);
+//					System.out.println("Adding the value attribute:"
+//							+ values[i]);
 				}
 			} else {
-				/* test print */
-				System.out.println("Not adding " + parser.nextText());
+//				/* test print */
+//				System.out.println("Not adding " + parser.nextText());
 			}
 		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag2:" + e);
+			System.out.println("Error Parsing reference tag2:" + e); //TODO Replace with Exceptions
 		}
 
 		/* Setting default values if no other has been sett*/
@@ -293,7 +287,7 @@ public class CustomParser {
 		}
 		
 		/* Test print */
-		System.out.println("*-*-*-*-*-* Finished Parsing Property *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Finished Parsing Property *-*-*-*-*-*");
 		
 		/* add the ComponentPropertyInfo to the ComponentConfiguration */
 		compConf.addPropertyInfo(compProp);
@@ -314,14 +308,14 @@ public class CustomParser {
 		boolean servicefactoryFound = false;
 		
 		/* Test print*/
-		System.out.println("*-*-*-*-*-* Parsing Services *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Parsing Services *-*-*-*-*-*");
 		ComponentServiceInfo compServ = compConf.getNewServiceIntance();
 
 		/* test print */
-		System.out.println("Current tag is:" + parser.getName());
+//		System.out.println("Current tag is:" + parser.getName());
 		/* If there is an attribute in the service tag */
 		if (parser.getAttributeCount() > 0) {
-			System.out.println("There is an attribute in the service tag");
+//			System.out.println("There is an attribute in the service tag");
 			try {
 				for (int i = 0; i < parser.getAttributeCount(); i++) {
 					if (parser.getAttributeName(i).equals("servicefactory")) {
@@ -337,9 +331,9 @@ public class CustomParser {
 											+ parser.getAttributeValue(i));
 						}
 						/* test print */
-						System.out
-								.println("Adding the servicefactory attribute:"
-										+ parser.getAttributeValue(i));
+//						System.out
+//								.println("Adding the servicefactory attribute:"
+//										+ parser.getAttributeValue(i));
 					} else {
 						throw new IllegalXMLException(
 								"Unsupported Attribute name:"
@@ -347,7 +341,7 @@ public class CustomParser {
 					}
 				}
 			} catch (Exception e) {
-				System.out.println("Error Parsing reference tag:" + e);
+				System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
 			}
 			
 			/* Set default value */
@@ -364,7 +358,7 @@ public class CustomParser {
 				String name = parser.getName();
 				if (name.equals("provide")) {
 					/* test print */
-					System.out.println("Reading provide");
+//					System.out.println("Reading provide");
 					parser.require(XmlPullParser.START_TAG, null, "provide");
 					for (int i = 0; i < parser.getAttributeCount(); i++) {
 						if (parser.getAttributeName(i).equals("interface")) {
@@ -372,9 +366,9 @@ public class CustomParser {
 									.getAttributeValue(i));
 							interfaceFound = true;
 							/* test print */
-							System.out
-									.println("Adding the interface attribute:"
-											+ parser.getAttributeValue(i));
+//							System.out
+//									.println("Adding the interface attribute:"
+//											+ parser.getAttributeValue(i));
 						} else {
 							throw new IllegalXMLException(
 									"Unsupported Attribute name:"
@@ -387,7 +381,7 @@ public class CustomParser {
 			}
 			parser.require(XmlPullParser.END_TAG, null, "service");
 		} catch (Exception e) {
-			System.out.println("Error Parsing Service:" + e);
+			System.out.println("Error Parsing Service:" + e); //TODO Replace with Exceptions
 		}
 
 		/* check if required attributes has been set */
@@ -415,7 +409,7 @@ public class CustomParser {
 		boolean autoEnableFound = false;
 		
 		/* test print */
-		System.out.println("*-*-*-*-*-* Parsing Component *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Parsing Component *-*-*-*-*-*");
 		try {
 			for (int i = 0; i < parser.getAttributeCount(); i++) {
 				if (parser.getAttributeName(i).equals("name")) {
@@ -428,8 +422,8 @@ public class CustomParser {
 						compConf.setComponentName(parser.getAttributeValue(i));
 						nameFound = true;
 						/* test print */
-						System.out.println("Adding the name attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the name attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("autoenable")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -443,8 +437,8 @@ public class CustomParser {
 							autoEnableFound = true;
 						}
 						/* test print */
-						System.out.println("Adding the autoenable attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the autoenable attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("factory")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -452,8 +446,8 @@ public class CustomParser {
 					} else {
 						compConf.setFactory(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the factory attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the factory attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else {
 					throw new IllegalXMLException("Unsupported Attribute name:"
@@ -462,7 +456,7 @@ public class CustomParser {
 			}
 			parser.next();
 		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e);
+			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
 		}
 		
 		/* Setting default value if no other value was set*/
@@ -491,7 +485,7 @@ public class CustomParser {
 		
 		ComponentPropertiesInfo compProps = compConf.getNewPropertiesIntance();
 		/* test print */
-		System.out.println("*-*-*-*-*-* Parsing Properties *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Parsing Properties *-*-*-*-*-*");
 		try {
 			for (int i = 0; i < parser.getAttributeCount(); i++) {
 				if (parser.getAttributeName(i).equals("entry")) {
@@ -504,8 +498,8 @@ public class CustomParser {
 						compProps.setEntry(parser.getAttributeValue(i));
 						entryFound = true;
 						/* test print */
-						System.out.println("Adding the autoenable entry:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the autoenable entry:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else {
 					throw new IllegalXMLException("Unsupported Attribute name:"
@@ -514,7 +508,7 @@ public class CustomParser {
 			}
 			parser.next();
 		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e);
+			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
 		}
 
 		/* check if required attributes has been set */
@@ -523,8 +517,8 @@ public class CustomParser {
 		}
 		
 		/* test print */
-		System.out
-				.println("*-*-*-*-*-* Finished parsing Properties *-*-*-*-*-*");
+//		System.out
+//				.println("*-*-*-*-*-* Finished parsing Properties *-*-*-*-*-*");
 
 		/* add the ComponentPropertyInfo to the ComponentConfiguration */
 		compConf.addPropertiesInfo(compProps);
@@ -544,7 +538,7 @@ public class CustomParser {
 		boolean classFound = false;
 		
 		/* test print */
-		System.out.println("*-*-*-*-*-* Parsing Implementation *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Parsing Implementation *-*-*-*-*-*");
 		if (compConf.getImplementation() == null) {
 			try {
 				for (int i = 0; i < parser.getAttributeCount(); i++) {
@@ -559,8 +553,8 @@ public class CustomParser {
 									.getAttributeValue(i));
 							classFound = true;
 							/* test print */
-							System.out.println("Adding the class attribute:"
-									+ parser.getAttributeValue(i));
+//							System.out.println("Adding the class attribute:"
+//									+ parser.getAttributeValue(i));
 						}
 					} else {
 						throw new IllegalXMLException(
@@ -570,7 +564,7 @@ public class CustomParser {
 				}
 				parser.next();
 			} catch (Exception e) {
-				System.out.println("Error Parsing implementation tag:" + e);
+				System.out.println("Error Parsing implementation tag:" + e); //TODO Replace with Exceptions
 			}
 		} else {
 			throw new IllegalXMLException("Only one implementation tag allowed");
@@ -582,8 +576,8 @@ public class CustomParser {
 		}
 		
 		/* test print */
-		System.out
-				.println("*-*-*-*-*-* Finished parsing Implementation *-*-*-*-*-*");
+//		System.out
+//				.println("*-*-*-*-*-* Finished parsing Implementation *-*-*-*-*-*");
 	}
 
 	/**
@@ -609,7 +603,7 @@ public class CustomParser {
 		
 		ComponentReferenceInfo compRef = compConf.getNewReferenceIntance();
 		/* test print */
-		System.out.println("*-*-*-*-*-* Parsing References *-*-*-*-*-*");
+//		System.out.println("*-*-*-*-*-* Parsing References *-*-*-*-*-*");
 		try {
 			for (int i = 0; i < parser.getAttributeCount(); i++) {
 				if (parser.getAttributeName(i).equals("name")) {
@@ -622,8 +616,8 @@ public class CustomParser {
 						compRef.setReferenceName(parser.getAttributeValue(i));
 						nameFound = true;
 						/* test print */
-						System.out.println("Adding the name attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the name attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("interface")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -635,15 +629,13 @@ public class CustomParser {
 						compRef.setInterfaceType(parser.getAttributeValue(i));
 						interfaceFound = true;
 						/* test print */
-						System.out.println("Adding the interface attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the interface attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("cardinality")) { 
-					//TODO Fix so that there is a check of the cardinality types so only supported are pressent
 					if (parser.getAttributeValue(i) == null) {
 						/* set default value if non pressent */
-						compRef.setCardinality("1..1"); 
-						//TODO fix so that this is set even if no attribute was found
+						compRef.setCardinality("1..1");
 					} else {
 						for(int j = 0; j < supportedCardniality.length ; j++){
 							/* If the found attribute value equals one of the supported types*/
@@ -651,14 +643,14 @@ public class CustomParser {
 								compRef.setCardinality(supportedCardniality[j]);
 								cardinalityFound = true;
 								/* test print */
-								System.out.println("Adding the type attribute:"
-										+ parser.getAttributeValue(i));
+//								System.out.println("Adding the type attribute:"
+//										+ parser.getAttributeValue(i));
 							}
 						}
 						compRef.setCardinality(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the cardinality attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the cardinality attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("policy")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -667,8 +659,8 @@ public class CustomParser {
 					} else {
 						compRef.setPolicy(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the policy attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the policy attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("target")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -678,8 +670,8 @@ public class CustomParser {
 					} else {
 						compRef.setTarget(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the target attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the target attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("bind")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -688,8 +680,8 @@ public class CustomParser {
 					} else {
 						compRef.setBind(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the bind attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the bind attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else if (parser.getAttributeName(i).equals("unbind")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -698,8 +690,8 @@ public class CustomParser {
 					} else {
 						compRef.setUnbind(parser.getAttributeValue(i));
 						/* test print */
-						System.out.println("Adding the unbind attribute:"
-								+ parser.getAttributeValue(i));
+//						System.out.println("Adding the unbind attribute:"
+//								+ parser.getAttributeValue(i));
 					}
 				} else {
 					throw new IllegalXMLException("Unsupported Attribute name:"
@@ -708,7 +700,7 @@ public class CustomParser {
 			}
 			parser.next();
 		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e);
+			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
 		}
 		
 		/* Setting default values if no other has been sett*/
@@ -722,14 +714,15 @@ public class CustomParser {
 		}
 		
 		/* test print */
-		System.out
-				.println("*-*-*-*-*-* Finished Parsing References *-*-*-*-*-*");
+//		System.out
+//				.println("*-*-*-*-*-* Finished Parsing References *-*-*-*-*-*");
 		/* add the ComponentReferenceInfo to the ComponentConfiguration */
 		compConf.addReferenceInfo(compRef);
 	}
 
 	/* Test function that prints the contents of a component */
 	private void printComponentConfiguration() {
+		System.out.println("************** THE RESULT FROM THE PARSING**************");
 		printComponent();
 		printImplementation();
 		printProperty();
@@ -772,10 +765,6 @@ public class CustomParser {
 				System.out.println("Value:" + values.get(j));
 			}
 			System.out.println("Type:" + compProp.getType());
-			/*
-			 * TODO This part will not work later on fix so that it traverse an
-			 * array
-			 */
 		}
 	}
 
