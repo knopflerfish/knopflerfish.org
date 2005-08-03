@@ -605,6 +605,7 @@ public class CustomParser {
 		boolean nameFound = false;
 		boolean interfaceFound = false;
 		boolean cardinalityFound = false;
+		boolean policyFound = false;
 		
 		String[] supportedCardniality = {"0..1", "0..n", "1..1", "1..n"};
 		
@@ -665,6 +666,7 @@ public class CustomParser {
 						compRef.setPolicy("static");
 					} else {
 						compRef.setPolicy(parser.getAttributeValue(i));
+						policyFound = true;
 						/* test print */
 //						System.out.println("Adding the policy attribute:"
 //								+ parser.getAttributeValue(i));
@@ -713,6 +715,9 @@ public class CustomParser {
 		/* Setting default values if no other has been sett*/
 		if(compRef.getCardinality() == null){
 			compRef.setCardinality(supportedCardniality[2]);
+		}
+		if(compRef.getPolicy() == null){
+			compRef.setPolicy("static");
 		}
 		
 		/* check if required attributes has been set */
