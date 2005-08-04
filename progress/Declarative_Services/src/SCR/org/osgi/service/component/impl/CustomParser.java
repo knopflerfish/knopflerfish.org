@@ -134,7 +134,6 @@ public class CustomParser {
 
 						setComponentInfo(parser);
 						while (parser.nextTag() != XmlPullParser.END_TAG) { 
-							//TODO The parser does not skip commented parts ie <!--  comment  -->
 //							System.out.println("Current tag is:"
 //									+ parser.getName());
 							if (parser.getName().equals("implementation")) {
@@ -621,24 +620,38 @@ public class CustomParser {
 										+ parser.getAttributeName(i)
 										+ " in reference tag");
 					} else {
-						compRef.setReferenceName(parser.getAttributeValue(i));
-						nameFound = true;
-						/* test print */
-//						System.out.println("Adding the name attribute:"
-//								+ parser.getAttributeValue(i));
+						if(checkNMToken(parser.getAttributeValue(i))){
+							compRef.setReferenceName(parser.getAttributeValue(i));
+							nameFound = true;
+							/* test print */
+//							System.out.println("Adding the name attribute:"
+//									+ parser.getAttributeValue(i));
+						}else{
+							throw new IllegalXMLException(
+									"Invalid value in mandatory attribute:"
+											+ parser.getAttributeName(i)
+											+ " in reference tag");
+						}
 					}
-				} else if (parser.getAttributeName(i).equals("interface")) {
+				} else if (parser.getAttributeName(i).equals("interface")) {	
 					if (parser.getAttributeValue(i) == null) {
 						throw new IllegalXMLException(
 								"No value in mandatory attribute:"
 										+ parser.getAttributeName(i)
 										+ " in reference tag");
 					} else {
-						compRef.setInterfaceType(parser.getAttributeValue(i));
-						interfaceFound = true;
-						/* test print */
-//						System.out.println("Adding the interface attribute:"
-//								+ parser.getAttributeValue(i));
+						if(checkToken(parser.getAttributeValue(i))){
+							compRef.setInterfaceType(parser.getAttributeValue(i));
+							interfaceFound = true;
+							/* test print */
+//							System.out.println("Adding the interface attribute:"
+//									+ parser.getAttributeValue(i));	
+						}else{
+							throw new IllegalXMLException(
+									"Invalid value in mandatory attribute:"
+											+ parser.getAttributeName(i)
+											+ " in reference tag");
+						}
 					}
 				} else if (parser.getAttributeName(i).equals("cardinality")) { 
 					if (parser.getAttributeValue(i) == null) {
@@ -741,6 +754,24 @@ public class CustomParser {
 		printProperties();
 		printService();
 		printReference();
+	}
+	
+	//TODO Check if the string follows the NMTOKEN in XML SCHEMA
+	private boolean checkNMToken(String text){
+		return checkToken(text);
+	}
+	
+	/**
+	 * A Function that test if no Line terminators and whitespaces is used
+	 * in a string 
+	 */
+	private boolean checkToken(String text){
+		String[] result = text.split(" |\\n|\\t|\\r|'\u0085'|'\u2028'|'\u2029'");
+		if (result.length > 1){
+			return false;
+		}else{
+			return true;
+		}
 	}
 
 	/* Test function that prints a part of a component */
