@@ -14,13 +14,7 @@
 
 package org.osgi.service.component.impl;
 
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -28,7 +22,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
@@ -39,8 +32,6 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
-import org.osgi.service.packageadmin.ExportedPackage;
-import org.osgi.service.packageadmin.PackageAdmin;
 
 /**
  * This class is the implementation of the declarative service feature. It will
@@ -68,32 +59,141 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 	 * 
 	 * @throws IOException
 	 */
-	public void bundleChanged(BundleEvent event) {
-		System.out.println("******************* INCOMING EVENT *****************************");
+	public synchronized void bundleChanged(BundleEvent event) {
 		if(event.getBundle().getHeaders().get("Service-Component") !=null){
 			
-			System.out.println("******************* Parsing Started *****************************");
+			System.out.println("\n\n******************* Parsing Started *****************************");
+			/* create the parser */
 			customParser = new CustomParser();
-			
-		
+			/* parse the document and retrieve a component declaration */
 			ComponentDeclaration componentDeclaration = customParser.readXML(event);
 			
-		
-			if(componentDeclaration.isAutoEnable()){
+			/* check if the declaration is satisfied */
+			if(isSatisfied(componentDeclaration)){
 				
+				/* activate the component i.e create an instance and */
 				ComponentContext componentContext = createComponentContext(componentDeclaration);
-				registerComponentServices(componentDeclaration,componentContext);
-				this.trackReferences(componentDeclaration,componentContext.getComponentInstance());
+				/* activate the component */
+				activateInstance(componentContext);
+				
+				/* check if the component declares references */
+				if(componentDeclaration.getReferenceInfo().size()>0){
+					/* if so bind the references declared */
+					bindReferences(componentDeclaration,componentContext.getComponentInstance());
+				}
+				
+				/* check if the component is enabled */
+				if(componentDeclaration.isAutoEnable()){
+					/* register its services */
+					registerComponentServices(componentDeclaration,componentContext);
+				}else{
+					System.out.println("****************** " + event.getBundle().getHeaders().get("Bundle-Name") +
+						" is not enabled saving data for later *************************");
+					/*
+					 * Save the component data here nothing more or less
+					 */
+				}
+				
+			} else {
+				/*
+				 * Save the component data here nothing more or less
+				 */
+				
+				/* print that this bundles component is not satisfied */ 
+				System.out.println("****************** " + event.getBundle().getHeaders().get("Bundle-Name") +
+						" is not satisfied *************************");
 				
 			}
-		
-			
-		}
+				
+		}// if(event.getBundle().getHeaders().get("Service-Component") !=null)
 
 	}
-
+	
+	
 	/**
-	 * this method registers services declared in the componentDeclaration
+	 * This method will activate a component using reflection 
+	 * Some component declares a activate(ComponentContext context)
+	 * method just because they want the ComponentContext. This method will
+	 * try to call the method and pass the context as argument. This method may 
+	 * fail then a component doesn't declare an activate method.
+	 * 
+	 * @param ComponentContext the context which should be passed
+	 */
+	private void activateInstance(ComponentContext componentContext){
+		/* get the component instance */
+		Object componentInstance = componentContext.getComponentInstance().getInstance();
+		/*  create a string representing the method name */
+		String methodName = "activate";
+		try{
+			System.out.println("The instance is:" + componentInstance);
+			
+			Method method =componentInstance.getClass().getDeclaredMethod(methodName, 
+					new Class[]{ComponentContext.class});
+			/* set this as accessible */
+			method.setAccessible(true);
+			/* invoke the method */
+			method.invoke(componentInstance,new Object[]{componentContext});
+			
+		}catch(NoSuchMethodException e){
+			System.out.println("************* Component " + componentContext.getProperties().get("component.name") +
+					" does not declare an activate method Ignoring **************");
+			
+		}catch(InvocationTargetException e){
+			System.err.println("error in activateInstance:" +e);
+		}catch(IllegalAccessException e){
+			System.err.println("error in activateInstance:" +e);
+		}
+		
+	}
+	
+	/**
+	 * this method checks if a ComponentDeclaration is satisfied or not.
+	 * It will check that all references/dependencies are available.
+	 *   
+	 * @param componentDeclaration
+	 * @return true if satisfies false otherwise
+	 */
+	private boolean  isSatisfied(ComponentDeclaration componentDeclaration){
+		
+		/* always assume that the component is satisfied */
+		boolean isSatisfied=true;
+		
+		
+		/* create an arraylist with the components reference infos */
+		ArrayList componentReferences  = componentDeclaration.getReferenceInfo();
+		
+		/* create an iterator */
+		Iterator referenceIterator = componentReferences.iterator();
+		
+		while(referenceIterator.hasNext()){
+			/* create the a temporary object */
+			ComponentReferenceInfo componentReference = (ComponentReferenceInfo) referenceIterator
+					.next();
+			
+			/* get the policy */
+			String policy =  componentReference.getPolicy();
+			/* get the cardinality */
+			String cardinality= componentReference.getCardinality();
+			/* get the refered interface */
+			String interfaceName = componentReference.getInterfaceType();
+			/* get the service reference */
+			ServiceReference reference = bundleContext.getServiceReference(interfaceName);
+			
+			/* check cardinality */
+			if((cardinality.equals("1..1") || cardinality.equals("1..n"))&& reference ==null){
+						/* this service must be available */
+						return false;
+			}
+			
+		}
+		
+		
+		return isSatisfied;
+	}
+	
+	
+	/**
+	 * this method registers services declared in the ComponentDeclaration
 	 * 
 	 * @param componentDeclaration the component declaration
 	 * @param componentContext the componentContext
@@ -122,30 +222,55 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 				
 				/* create a temporary string variable */
 				String serviceInterface = (String)iteratorInterfaces.next();
-				 /* create the hashtable */
-		        Hashtable propsTable = new Hashtable();
+		        /* variable holding the componentFactory attribute */
+		        String componentFactory = componentDeclaration.getFactory();
+		        /* variable holding the service factory attribute */
+		        boolean isServiceFactory = serviceInfo.isServiceFactory();
 		        
-		        /* TODO check if more properties should be added 
-		        *  here. That might require some changes
-		        */
-		        
-		        /* add the Constant indicating the service_PID */
-		        propsTable.put(Constants.SERVICE_PID,serviceInterface);
-		        /* add the Constant variable and the id to the Hashtable */
-		        propsTable.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
-		        /* print that we register a service */
-		        System.out.println("SCR registers service for interface:"+ serviceInterface );
-
-		        /* register the service to the framework use the componentInstance */
-		        try{       	 		        
-		        	 bundleContext.registerService(serviceInterface
-			        		,componentContext.getComponentInstance().getInstance(),
-			                propsTable);
-		        
-		        }catch(Exception e){
-		        	System.err.println("Error registering service:" + e);
+		        if(componentFactory!=null && isServiceFactory){
+		        	System.err.println("**************** CHECK IF CAN BE BOTH COMPONENT FACTORY AND SERVICE FACTORY *************");
+		        } else {
+		        	/* check if it is a single service and register if so */
+		        	if(componentFactory==null && !isServiceFactory){
+		        		 /*  create the hashtable */
+				        Hashtable propsTable = new Hashtable();
+				        /* put some properties in the table */
+		        		propsTable.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
+		  		        /* print that we register a service */
+		  		        System.out.println("SCR registers single instance service for interface:"+ serviceInterface );
+		  		        
+		  		        /* register the service to the framework use the componentInstance */
+		  		        try{       	 		        
+		  		        	
+		  		        	bundleContext.registerService(serviceInterface
+		  			        		,componentContext.getComponentInstance().getInstance(),
+		  			                propsTable);
+		  		        
+		  		        }catch(Exception e){
+		  		        	System.err.println("Error registering single service:" + e);
+		  		        }
+		  		        
+		        	}else{
+		        		/* check if it is a service factory */
+		        		if(serviceInfo.isServiceFactory()){
+		        			
+		        			
+			        	}
+		        		
+		        		/* check if it is a component factory */
+		        		if(componentFactory!=null){
+			        	
+		        		}
+			        
+		        		
+		        	}
 		        }
 		        
+		        
+		        /* add the Constant indicating the service_PID */
+		        //propsTable.put(Constants.SERVICE_PID,serviceInterface);
+		        /* add the Constant variable and the id to the Hashtable */
+		      
 		        
 			}
         
@@ -155,9 +280,8 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 	}
 
 	/**
-	 * this method creates a ComponentContext, it will check if the 
-	 * component is autoenable if all variables will be passed to the 
-	 * constuctor else only selective variables. 
+	 * this method creates a ComponentContext containing
+	 * a component instance.
 	 * 
 	 * @param componentDeclaration the ComponentDeclaration object
 	 * @return ComponentContext Object if succeed
@@ -166,13 +290,16 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 			ComponentDeclaration componentDeclaration) {
 		try {
 			
+			/* create a dictionary */
 			Dictionary props = new Hashtable();
-			/* TODO
-			 * Create properties here pick from component declaration
-			 */
+			/* create a property */
+			String componentName= componentDeclaration.getComponentName();
+			/* put the property into the table */
+			props.put("component.name",componentName);
+			/* create a new context */
 			ComponentContextImpl newContext = new ComponentContextImpl(
 					createComponentInstance(componentDeclaration),
-					bundleContext, props, null);
+					bundleContext, props);
 
 			return newContext;
 
@@ -221,20 +348,19 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 
 	/**
 	 * this method will track the dependencies and give them to the declarative
-	 * service which this class controlls. If the component doesn't declare
-	 * a bind method the method will try to call a pressumed activate() method
-	 * with the configurator as context. Dependencies are kept in the class
-	 * ComponentReferenceInfo. 
+	 * service which this class controlls. Dependencies are kept in the class
+	 * ComponentReferenceInfo.
+	 *  
 	 * @param componentDeclaration the component declaration
 	 * @param componentInstance the componentInstance
 	 * 
 	 * @author Magnus Klack
 	 */
-	private void trackReferences(ComponentDeclaration componentDeclaration,
+	private void bindReferences(ComponentDeclaration componentDeclaration,
 			ComponentInstance componentInstance) {
 
 		System.out
-				.println("**************** Tracking references *********************");
+				.println("**************** Tracking references for activation *********************");
 		/* create an iterator */
 		Iterator it = null;
 		/* get the reference info array */
@@ -262,32 +388,9 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 				/* create a string representing the method which should be
 				 * called, i.e, the bind method
 				 */
-				String methodName = "";
-
-				/* check if a bind method is declared */
-				if (componentRef.getBind() != null) {
-					/* assign the method name */
-					methodName = componentRef.getBind();
-				} else {
-					/* else set activate as default */
-					methodName = "activate";
-				}
-				
+				String methodName = componentRef.getBind();
+				/* print the bind method */
 				System.out.println("The bind-method is:" + methodName);
-				
-				/*
-				 * check if methodName equals activate if so it is an locate
-				 * delcared component
-				 */
-				if (methodName.equals("activate")) {
-					
-					/*TODO enter the activate method here 
-					 * 
-					 */
-					
-				} else {
-
-					try {
 						
 						/* get the service reference */
 						ServiceReference serviceReference = bundleContext.getServiceReference(interfaceName);
@@ -307,23 +410,19 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 							method.invoke(componentObject,new Object[]{reference});
 							
 						}catch(NoSuchMethodException e){
-							System.err.println("ERROR GETTING METHOD:"  +e);
+							System.err.println("error in bindReferences():"  +e);
 						}catch(IllegalAccessException e){
-							System.err.println("ERROR GETTING METHOD:" +e);
-						}catch(Exception e){
-							System.err.println("ERROR GETTING METHOD:" +e);
+							System.err.println("error in bindReferences():" +e);
+						}catch(InvocationTargetException e){
+							System.err.println("error in bindReferences():" +e);
+						}catch(ClassNotFoundException e){
+							System.err.println("error in bindReferences():" +e);
 						}
-										
-					} catch (NullPointerException e) {
-						System.err.println("Error in trackReferences" + e);
-					} catch(Exception e){
-						System.err.println("Error in trackReferences" + e);
-					}
 
-				}// end if (methodName.equals("activate"))
+			
 
 			} else {
-				System.err.println("dependency interface not declared");
+				System.err.println("FATAL ERROR IN bindReferences(): dependency interface not declared");
 
 			}//if (componentRef.getInterfaceType() != null)
 
@@ -371,7 +470,10 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 				Object returnObject = componentClass
 						.newInstance();
 				
-				/* create the return object with tracing feature will give the object as proxy */
+				/* create the return object with tracing feature will give the object as proxy 
+				 * DO NOT USE THIS FEATURE! IF used then it is easier to invoke methods via 
+				 * the proxy instance
+				 **/
 				//returnObject=TracingIH.createProxy(
 				//		returnObject, new PrintWriter(System.out));
 				
@@ -398,7 +500,9 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 	
 	}//end ComponentCreator
 	
-
+	
+	//private class
+	
 }
 
 
