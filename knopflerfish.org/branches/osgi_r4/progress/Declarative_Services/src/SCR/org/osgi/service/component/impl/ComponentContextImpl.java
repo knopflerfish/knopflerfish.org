@@ -41,8 +41,7 @@ public class ComponentContextImpl implements ComponentContext{
 	
 	
 	/* The constructor */
-	public ComponentContextImpl(ComponentInstance component,BundleContext context,Dictionary props,
-			ServiceReference serviceRef) {
+	public ComponentContextImpl(ComponentInstance component,BundleContext context,Dictionary props) {
 		
 		/* assign the bundle context */
 		bundleContext = context;
@@ -51,7 +50,7 @@ public class ComponentContextImpl implements ComponentContext{
 		/* assign the component instance */
 		componentInstance =component;
 		/* assign the service reference */
-		serviceReference = serviceRef;
+		//serviceReference = serviceRef;
 		
 		
 		
