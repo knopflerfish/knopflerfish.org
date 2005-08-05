@@ -1,14 +1,13 @@
-/*
- * Created on Jul 7, 2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package org.osgi.service.event.impl;
 
 import java.util.Calendar;
 
-
+/**
+ * A wrapper class for events. Connects an event with a timestamp and a boolean which'
+ *  is used to determine whether an event has been delivered or not.
+ * 
+ * @author Magnus Klack
+ */
 public class InternalAdminEvent {
     /** the Object from external source */
     private Object element;
@@ -18,7 +17,13 @@ public class InternalAdminEvent {
     private boolean isDelivered=false;
     /** variable holding the creator of the object */
     EventAdminService owner;
-    
+    /**
+     * Standard constructor of the InternalAdminEvent
+     * @param object the event to be stored, most likely either a BundleEvent, LogEntry, ServiceEvent 
+     * or FrameworkEvent
+     * @param time The timestamp of this event
+     * @param creator A handle to the admin service
+     */
     public InternalAdminEvent (Object object,Calendar time,EventAdminService creator){
         /* assign the element */
         element=object;
@@ -28,23 +33,36 @@ public class InternalAdminEvent {
          owner = creator;
     }
     
-    public Object getElement(){
+    /**
+     * Returns the event
+     * @return the event
+     */
+    protected Object getElement(){
        return element;
     }
     
-    public Calendar getTimeStamp(){
+    /**
+     * Returns the timestamp
+     * @return the time at which the event arrived
+     */
+    protected Calendar getTimeStamp(){
         return timeStamp;
     }
     
-    public synchronized boolean isDelivered(){
+    /**
+     * Returns the boolean illustrating whether the event has been delivered or not.
+     * @return true if the event has been delivered, false otherwise
+     */
+    protected synchronized boolean isDelivered(){
         return isDelivered;
     }
     
-    public void setAsDelivered(){
+    /**
+     * Notifies the owner that the even has been delivered.
+     */
+    protected void setAsDelivered(){
         synchronized(owner){
             owner.notify();
         }
-        
-    
     }
 }

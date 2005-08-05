@@ -38,8 +38,7 @@ public class Activator implements BundleActivator {
     /**
      * Main entry for the service
      * 
-     * @param context
-     *            the BundleContext ,ie, the handle to the OSGi framework
+     * @param context the BundleContext ,ie, the handle to the OSGi framework
      */
     public void start(BundleContext context) throws Exception {
         /* assign the context variable to a local variable */
@@ -56,22 +55,14 @@ public class Activator implements BundleActivator {
 
         /* print that the service is up */
         //System.out.println("EventAdmin Service is up\n");
-        
-        
-
-        
     }
 
     /**
      * Stop the service
      * 
-     * @param context
-     *            the BundleContext ,ie, the handle to the OSGi framework
+     * @param context the BundleContext ,ie, the handle to the OSGi framework
      */
     public void stop(BundleContext context) throws Exception {
     	eventAdmin = null;
-        
-
     }
-
 }
