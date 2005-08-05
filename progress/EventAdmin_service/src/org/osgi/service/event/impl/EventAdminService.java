@@ -69,8 +69,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 	/**  hashtable of eventhandlers and timestamps */
 	static Hashtable eventHandlers = new Hashtable();
 
-
-
 	/**
 	 * the constructor use this to create a new Event admin service.
 	 *
@@ -108,15 +106,13 @@ public class EventAdminService implements EventAdmin, LogListener,
 			/* Adds this class as a listener of framework events */
 			bundleContext.addFrameworkListener(this);
 		}
-
 	}
 
 	/**
 	 * This method should be used when an asynchronus events are to be
 	 * published.
 	 *
-	 * @param event
-	 *            the event to publish
+	 * @param event the event to publish
 	 */
 	public void postEvent(Event event) {
 		/* console text for debugging purpose */
@@ -125,7 +121,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 		Calendar time = Calendar.getInstance();
 
 		try{
-
 			/* create an internal admin event */
 			InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
 					this);
@@ -136,20 +131,17 @@ public class EventAdminService implements EventAdmin, LogListener,
 				/* console text for debugging purpose */
 				// System.out.println("Event has been sent to the send queue");
 			}
-
 		}catch(Exception e){
 			System.out.println("Unknown exception in postEvent():" +e);
 			e.printStackTrace();
 		}
-
 	}
 	
 	/**
 	 * This method should be used when synchronous events are to be published
 	 *
+	 * @param event the event to publish
 	 * @author Magnus Klack
-	 * @param event
-	 *            the event to publish
 	 */
 	public void sendEvent(Event event) {
 		/* console text for debugging purpose */
@@ -158,8 +150,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		Calendar time = Calendar.getInstance();
 		/* create an internal admin event */
-		InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
-				this);
+		InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,this);
 		try {
 			if(queueHandlerSynch!=null && getReferences()!=null){
 				/* add the admin event to the queueHandlers send queue */
@@ -206,7 +197,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			if(topic.length()==0){
 				return false;
 			}
-			
+		
 			/* this is a topic with length >1 */
 			if(topic.length()> 1){
 				return true;
@@ -214,7 +205,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 		}	
 		/* this is the null topic */
 		return false;
-		
 	}
 	
 	/**
@@ -222,11 +212,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * only se if there are any permissions granted for all objects to
 	 * subscribe.
 	 *
-	 * @param event
-	 *            the subscription event
-	 * @param securityManager
-	 *            the system securitymanager
-	 * @return true if the object is permitted else false
+	 * @param event the subscription event
+	 * @param securityManager the system securitymanager
+	 * @return true if the object is permitted, false otherwise
 	 */
 	private boolean checkPermissionToSubscribe(Event event,
 			SecurityManager securityManager) {
@@ -249,11 +237,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 	/**
 	 * This function checks if the publisher is permitted to publish the event.
 	 *
-	 * @param event
-	 *            the event to be published
-	 * @param securityManager
-	 *            the system security manager
-	 * @return true if the publisher can publish the subject else false
+	 * @param event the event to be published
+	 * @param securityManager the system security manager
+	 * @return true if the publisher can publish the subject, false otherwise
 	 */
 	private boolean checkPermissionToPublish(Event event,
 			SecurityManager securityManager) {
@@ -271,7 +257,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 			/* return false */
 			return false;
 		}
-
 	}
 
 	/**
@@ -288,8 +273,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 	 * returns the servicereferences
 	 *
 	 * @return ServiceReferences[] array if any else null
-	 * @throws InvalidSyntaxException
-	 *             if syntax error
+	 * @throws InvalidSyntaxException if syntax error
 	 */
 	private ServiceReference[] getReferences() throws InvalidSyntaxException {
 		try {
@@ -299,13 +283,13 @@ public class EventAdminService implements EventAdmin, LogListener,
 			/* throw the error */
 			throw e;
 		}
-
 	}
+	
 	/**
 	 * A listener for events sent by bundles
-	 * @author Johnny B�ver�s
+	 * @param bundleEvent The event sent by the bundle
+	 * @author Johnny Baveras
 	 */
-
 	public void bundleChanged(BundleEvent bundleEvent) {
 		//synchronized(this){
 		/* A dictionary to store properties in */
@@ -333,11 +317,10 @@ public class EventAdminService implements EventAdmin, LogListener,
 		case BundleEvent.UNINSTALLED:
 			topic += "UNINSTALLED";
 			break;
-
 		case BundleEvent.RESOLVED:
 			topic += "RESOLVED";
 			break;
-			case BundleEvent.UNRESOLVED:
+		case BundleEvent.UNRESOLVED:
 			topic += "UNRESOLVED";
 			break;
 		default:
@@ -368,7 +351,8 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 	/**
 	 * A listener for entries in the log
-	 * @author Johnny B�ver�s
+	 * @param logEntry the entry of the log
+	 * @author Johnny Baveras
 	 */
 	public void logged(LogEntry logEntry) {
 
@@ -435,13 +419,12 @@ public class EventAdminService implements EventAdmin, LogListener,
 				System.err.println("EXCEPTION in logged(LogEntry logEntry):"
 						+ e.getMessage());
 			}
-		
-
 	}
 
 	/**
 	 * A listener for service events
-	 * @author Johnny B�ver�s
+	 * @param serviceEvent the event sent by the service
+	 * @author Johnny Baveras
 	 */
 	public void serviceChanged(ServiceEvent serviceEvent) {
 		/* A dictionary to store properties in */
@@ -502,11 +485,12 @@ public class EventAdminService implements EventAdmin, LogListener,
 			/* Logs an error if the event, which arrived, were of an unknown type */
 			log.error("Recieved unknown message, discarding");
 		}
-
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.FrameworkListener#frameworkEvent(org.osgi.framework.FrameworkEvent)
+	/**
+	 * A listener of framework events
+	 * @param frameworkEvent the event sent by the framework
+	 * @author Johnny Baveras
 	 */
 	public void frameworkEvent(FrameworkEvent frameworkEvent) {
 		/* A dictionary to store properties in */
@@ -566,19 +550,20 @@ public class EventAdminService implements EventAdmin, LogListener,
 		}
 	}
 
-
 	/**
 	 * this class will send the events synchronus and asynchronus to the event handlers it contains
 	 * one internal class doing a producer consumer algorithm between itself and the mainclass.
 	 * the internal worker class will pick the first element in the queue and create a deliver session.
 	 *
-	 *
 	 * @author Magnus Klack
 	 */
 	private class QueueHandler extends Thread {
+		/** constant for synchronous handlers */
 		public final static int SYNCHRONUS_HANDLER=0;
-
+		
+		/** constant for asynchronous handlers */
 		public final static int ASYNCHRONUS_HANDLER=1;
+		
 		/** the queue */
 		private LinkedList syncQueue = new LinkedList();
 
@@ -606,8 +591,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/**
 		 * This adds a new InternalAdminEvent to the que
 		 *
-		 * @param event
-		 *            the new InternalAdminEvent
+		 * @param event the new InternalAdminEvent
 		 */
 		public void addEvent(Object event) {
 			/* lock the synchQueue */
@@ -619,7 +603,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 //					System.out.println("notifiying worker thread");
 					/* wake him up */
 					workerThread.notify();
-
 				}
 			}
 			// else{
@@ -628,7 +611,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 			// }
 
 		}
-
+        /**
+         * Inherited from Thread, starts the thread.
+         */
 		public void run() {
 
 			/*
@@ -853,8 +838,6 @@ public class EventAdminService implements EventAdmin, LogListener,
 			/* start the worker */
 //			System.out.println("starting worker thread");
 			workerThread.start();
-
-
 		}// end run()
 
 	}// end class QueueHandler

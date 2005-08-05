@@ -25,7 +25,7 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
 /**
- * Private class to deliver events ascynchronous to the event handlers.
+ * Thread which handles the event deliveries to event handlers.
  * 
  * @author Magnus Klack,Martin Berg
  */
@@ -62,13 +62,14 @@ public class DeliverSession extends Thread {
     private Thread ownerThread;
 
     /**
-     * Constructor for the DeliverSession. Use this to deliver events
+     * Standard constructor for DeliverSession.
      * 
-     * 
-     * @param evt
-     *            the event to be delivered
-     * @param refs
-     *            an array of service references
+     * @param evt the event to be delivered
+     * @param refs an array of service references
+     * @param context the bundle context
+     * @param logRef reference to a LogRef
+     * @param owner The thread which launched the deliver session
+     * @param name the type of delivery which is being made, either synchronous or asynchronous
      */
     public DeliverSession(InternalAdminEvent evt, BundleContext context,
             ServiceReference[] refs, LogRef logRef, Thread owner,String name) {
@@ -94,12 +95,10 @@ public class DeliverSession extends Thread {
         	timeOut = defaultTimeout;
         	System.out.println(e + "using the defaultTimeout");
 		}
-        
-
     }
 
     /**
-     * Start the thread in this case deliver events
+     * Inherited from Thread, starts the thread.
      */
     public void run() {
         /* start the deliverance in asynchronus mode */
@@ -114,8 +113,11 @@ public class DeliverSession extends Thread {
             }
         }
     }
-
-    public void startDeliver() {
+    
+	/**
+	 *  Initiates the delivery.
+	 */
+    protected void startDeliver() {
         /* method variable indicating that the topic mathces */
         boolean isSubscribed = false;
         /* method variable indicating that the filter matches */
@@ -157,18 +159,15 @@ public class DeliverSession extends Thread {
                         /* this means no filter */
                         filterMatch = true;
                     }
-
                 }catch(NullPointerException e){
                 	  /* this means no filter */
-                    filterMatch = true;
-                	
+                    filterMatch = true;       	
                 }
                 catch (InvalidSyntaxException err) {
                     /* print the message */
                     if (log != null) {
                         /* log the error */
-                    	CustomDebugLogger logger = new CustomDebugLogger("Invalid Syntax when matching filter of " + currentHandler);
-                      
+                    	CustomDebugLogger logger = new CustomDebugLogger("Invalid Syntax when matching filter of " + currentHandler);           
                     }
 //                    System.err.println("\n*******************************************"
 //									  +"\n**       BLACKLISTED   INVALID SYNTAX    **"
@@ -190,7 +189,6 @@ public class DeliverSession extends Thread {
                             .getProperty(EventConstants.EVENT_TOPIC);
                     /* check if topic is null */
                     if (topics != null) {
-
                         /* check the lenght of the topic */
                         if (topics.length > 0 ) {
                             /* assign the isSubscribed variable */
@@ -204,7 +202,6 @@ public class DeliverSession extends Thread {
                         isSubscribed = true;
                     }
                 } catch (ClassCastException e) {
-                    
                     if (log != null) {
                         /* log the error */
                     	CustomDebugLogger logger = new CustomDebugLogger("Invalid topic in handler:" + currentHandler);
@@ -220,16 +217,12 @@ public class DeliverSession extends Thread {
                     	blacklisted.add(currentHandler);
                     	isBlacklisted=true;
                     }
-
                 }
-
-               
                 
                 isInTime=this.isInTime(serviceReferences[i],internalEvent);
                 
                 /* check that all indicating variables fulfills the condition */
                 if (isSubscribed && filterMatch && !isBlacklisted && isInTime) {
-
                     /* check that the service is still registered */
                     if (bundleContext.getService(serviceReferences[i]) != null) {
                         /* start a thread to notify the EventHandler */
@@ -241,19 +234,12 @@ public class DeliverSession extends Thread {
                             synchronized (this) {
                                 /* wait for notification */
                                 wait();
-                                
                             }
-
                         } catch (InterruptedException e) {
                             System.err.println("DeliverSession object was interrupted this is not expected"
                                     + e.getMessage());
-                            
                         }
-
-                     
-
                     } 
-
                 } 
 //else {	*** DEBUGGING CONTEXT **
 //                    /* check if blacklisted */
@@ -322,7 +308,6 @@ public class DeliverSession extends Thread {
                 
         }//end  if(!isBlacklisted.....
 
-        
         /* set the event as delivered  */
         synchronized(internalEvent){
         	internalEvent.setAsDelivered();
@@ -332,20 +317,18 @@ public class DeliverSession extends Thread {
         /* lock the owner */
         synchronized (ownerThread) {
             /* notify the owner */
-        	ownerThread.notify();
-            
+        	ownerThread.notify();   
         }
      }   
-        
     }// end startDeliver...
 
     /**
      * isInTime determines whether a handler is eligable for a certain message or not.
      * The handler has to be registered before the event was registered.
-     * @param handler - the handler to receive the message
-     * @param event - the event to be sent
+     * @param handler the handler to receive the message
+     * @param event the event to be sent
      * @return true if the handler should receive the message, false otherwise
-     * @author Johnny B�ver�s
+     * @author Johnny Baveras
      */
     private boolean isInTime(ServiceReference handler,  InternalAdminEvent event) {
          /* Gets the registration time of the handler. */
@@ -353,27 +336,22 @@ public class DeliverSession extends Thread {
          /* Gets the timestamp stored in the internal event and converts it to the standard used by the handler */
          long eventTime = event.getTimeStamp().getTimeInMillis();
          /* Determines the value of the boolean to be returned */
-         return eventTime<=handlerTime.longValue()?false:true;
-         
+         return eventTime<=handlerTime.longValue()?false:true;   
     }
 
     /**
      * This method should be used when matching from an event against a specific
      * filter in an Eventhandler
-     * 
      * @author Martin Berg
-     * @param event
-     *            the event to compare
-     * @param filter
-     *            the filter the listener is interested in
+     * @param event the event to compare
+     * @param filter the filter the listener is interested in
      */
     private boolean filterMatched(Event event, Filter filter) {
         /* return the functions return value */
         if (filter == null) {
             return true;
         } else {
-            return event.matches(filter);
-	        
+            return event.matches(filter);	        
         }
     }
 
@@ -381,10 +359,8 @@ public class DeliverSession extends Thread {
      * Iterates through a set of topics and if any element matches the events
      * topic it will return true.
      * 
-     * @param topics
-     *            the event topic
-     * @param event
-     *            the event
+     * @param topics the event topic
+     * @param event the event
      * @return true if any element matche else false
      */
     private synchronized boolean anyTopicMatch(String[] topics, Event event) {
@@ -402,12 +378,10 @@ public class DeliverSession extends Thread {
                 	//System.out.println("It's a Match");
                 	return true;
                 }
-
             } 
         }
         //System.out.println("It's No match");
         return false;
-
     }
 
     /**
@@ -415,13 +389,10 @@ public class DeliverSession extends Thread {
      * specific topic in an Eventhandler
      * 
      * @author Martin Berg
-     * @param event
-     *            the event to compare
-     * @param topic
-     *            the topic the listener is interested in
+     * @param event the event to compare
+     * @param topic the topic the listener is interested in
      */
     private synchronized boolean topicMatch(Event event, String topic) {
-    	
         /* Split the event topic into an string array */
         String[] eventTopic = event.getTopic().split("/");
         /* Split the desired topic into a string array */
@@ -466,14 +437,15 @@ public class DeliverSession extends Thread {
         /**
          * Constructor of the Notifier class
          * 
-         * @param handler
-         *            the EventHandler class to be notified
+         * @param handler the EventHandler class to be notified
          */
         public Notifier(EventHandler handler, DeliverSession owner) {
             currentHandler = handler;
             deliverSession = owner;
         }
-
+        /**
+         * Inherited from Thread, starts the thread.
+         */
         public void run() {
             /* try to start a deliver session */
             try {
@@ -494,30 +466,22 @@ public class DeliverSession extends Thread {
                         /* add it to the vector */
                         blacklisted.addElement(currentHandler);
 
-                        if (log != null) {
-                        	
+                        if (log != null) {        	
                         	CustomDebugLogger logger = new CustomDebugLogger("The handler "
                                     + currentHandler.toString()
                                     + " was blacklisted due to timeout");
                         	logger.start();
                         }
                     }
-                   
-
-                }
-
+               }
             } catch (InterruptedException e) {
                 /* this will happen if a deliverance succeeded */
-
             }
 
             synchronized (deliverSession) {
                 deliverSession.notify();
-
             }
-
         }
-
     }
 
     /**
@@ -537,16 +501,17 @@ public class DeliverSession extends Thread {
         /**
          * Constructor of the TimeoutDeliver object
          * 
-         * @param main
-         *            the owner object
-         * @param handler
-         *            the event handler to be updated
+         * @param main the owner object
+         * @param handler the event handler to be updated
          */
         public TimeoutDeliver(Object main, EventHandler handler) {
             owner = main;
             currentHandler = handler;
         }
-
+        
+        /**
+        Inherited from Thread, starts the thread.
+        */
         public void run() {
             try {
             	synchronized(currentHandler){
@@ -567,10 +532,12 @@ public class DeliverSession extends Thread {
                 ((Thread) owner).interrupt();
             }
         }
-
     }
     
-    
+    /**
+     * A class used to log messages.
+     * @author Magnus Klack
+     */
     private class CustomDebugLogger extends Thread{
     	/** the log message */
     	private String message;
@@ -579,7 +546,9 @@ public class DeliverSession extends Thread {
     		message=msg;
     		
     	}
-    	
+    	/**
+    	 * Inherited from Thread, starts the thread.
+    	 */
     	public void run(){
     		log.debug(message);
     	}
