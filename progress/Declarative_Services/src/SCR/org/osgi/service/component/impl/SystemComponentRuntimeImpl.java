@@ -51,6 +51,9 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 
 	/** variable counting components */
 	private long componentCounter = 0;
+	
+	/** variable holdein the storage object */
+	private ComponentStorage storage;
 
 	public SystemComponentRuntimeImpl(BundleContext context) {
 		/* assign the bundlecontext */
@@ -101,24 +104,25 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 							componentContext);
 				} else {
 					System.out
-							.println("****************** "
-									+ event.getBundle().getHeaders().get(
-											"Bundle-Name")
-									+ " is not enabled saving data for later *************************");
-					/*
-					 * Save the component data here nothing more or less
-					 */
+					.println("****************** "
+							+ event.getBundle().getHeaders().get(
+									"Bundle-Name")
+							+ " is not enabled saving data for later *************************");
+					
+					/* Save data */
+					ComponentContainer componentContainer = new ComponentContainer(componentDeclaration);
+					componentContainer.insertComponentContext(componentContext);
+					storage.setSatisfied(componentContainer);	
 				}
 
 			} else {
-				/*
-				 * Save the component data here nothing more or less
-				 */
-
 				/* print that this bundles component is not satisfied */
 				System.out.println("****************** "
 						+ event.getBundle().getHeaders().get("Bundle-Name")
-						+ " is not satisfied *************************");
+						+ " is not satisfied saving data for later *************************");
+				/* Save data */
+				ComponentContainer componentContainer = new ComponentContainer(componentDeclaration);
+				storage.setUnsatisfied(componentContainer);
 
 			}
 
