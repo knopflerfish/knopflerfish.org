@@ -33,6 +33,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
 
@@ -71,9 +72,7 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 
 			System.out
 					.println("\n\n******************* Parsing Started *****************************");
-			/* increase the component counter */
-			componentCounter++;
-
+			
 			/* create the parser */
 			customParser = new CustomParser();
 			/* parse the document and retrieve a component declaration */
@@ -286,9 +285,6 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 							propsTable.put(ComponentConstants.COMPONENT_NAME,
 									componentDeclaration.getComponentName());
 							
-							/* put the component id into the table */
-							propsTable.put(ComponentConstants.COMPONENT_ID,
-									new Long(componentCounter));
 							
 							/* put the service PID into the table */
 							propsTable.put(Constants.SERVICE_PID,
@@ -328,6 +324,11 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 							Hashtable propsTable = new Hashtable();
 							/* put the factory property into the table */
 							propsTable.put(ComponentConstants.COMPONENT_FACTORY,componentFactory);
+							
+							/* put name property into the table */
+							propsTable.put(ComponentConstants.COMPONENT_NAME,
+									componentDeclaration.getComponentName());
+							
 							
 							/* put the service PID into the table */
 							propsTable.put(Constants.SERVICE_PID,
@@ -382,7 +383,11 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 			/* create a property */
 			String componentName = componentDeclaration.getComponentName();
 			/* put the property into the table */
-			props.put("component.name", componentName);
+			props.put(ComponentConstants.COMPONENT_NAME, componentName);
+			/* put the property into the table */
+			props.put(ComponentConstants.COMPONENT_ID,new Long(componentCounter));
+			/* increase the componentCounter */
+			componentCounter++;
 			/* create a new context */
 			ComponentContextImpl newContext = new ComponentContextImpl(
 					createComponentInstance(componentDeclaration),
@@ -639,6 +644,20 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 								System.out.println("************* component factory  registers single service "+
 										"for interface:"+serviceInterface +" ******************");
 								
+								
+								/* put the factory property into the table */
+								properties.put(ComponentConstants.COMPONENT_FACTORY,
+										componentDeclaration.getFactory());
+								
+								/* put name property into the table */
+								properties.put(ComponentConstants.COMPONENT_NAME,
+										componentDeclaration.getComponentName());
+								
+								
+								/* put the service PID into the table */
+								properties.put(Constants.SERVICE_PID,
+										componentDeclaration.getFactory());
+								
 								/* register the service */
 								bundleContext.registerService(serviceInterface,
 										componentContext.getComponentInstance()
@@ -646,7 +665,8 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 								
 							}catch(Exception e){
 								System.out.println("Error when register service in component factory:" + e);
-							
+								throw new ComponentException("Error when register service in component factory",
+										e.getCause());
 							}
 
 						}
@@ -656,7 +676,8 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 					return componentContext.getComponentInstance();
 			} else{
 					System.err.println("Component factory is not satisfied");
-				return null;
+					throw new ComponentException("Component factory is not satisfied");
+				
 			}
 			
 		}
@@ -692,20 +713,25 @@ public class SystemComponentRuntimeImpl implements BundleListener {
 			/* print that getService is called */
 			System.out
 					.println("********** getService() is called in CustomServiceFactory **************");
+			try {
+				/* check if the bundle already have a configuration */
+				Object componentConfiguration = configurations.get(bundle);
 
-			/* check if the bundle already have a configuration */
-			Object componentConfiguration = configurations.get(bundle);
+				if (componentConfiguration == null) {
+					/* create a new configuration */
+					componentConfiguration = createComponentInstance(
+							componentDeclaration).getInstance();
+					/* put the configuration into the table */
+					configurations.put(bundle, componentConfiguration);
+				}
 
-			if (componentConfiguration == null) {
-				/* create a new configuration */
-				componentConfiguration = createComponentInstance(
-						componentDeclaration).getInstance();
-				/* put the configuration into the table */
-				configurations.put(bundle, componentConfiguration);
+				/* return the configuration */
+				return componentConfiguration;
+				
+			} catch (Exception e) {
+				throw new ComponentException("Error in CustomServiceFactory.getService(..):\n "+
+						e.getMessage(), e.getCause());
 			}
-
-			/* return the configuration */
-			return componentConfiguration;
 		}
 
 		/**
