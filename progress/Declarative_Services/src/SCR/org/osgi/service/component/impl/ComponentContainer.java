@@ -32,6 +32,7 @@ public class ComponentContainer {
 
 	protected ComponentContainer(ComponentDeclaration componentDeclaration){
 		this.componentDeclaration = componentDeclaration;
+		componentContexts = new ArrayList();
 	}
 	
 	/**
@@ -58,5 +59,11 @@ public class ComponentContainer {
 	 */
 	protected void emptyComponentContexts(){
 		componentContexts.clear();
+	}
+	/**
+	 * Empty the componentDeclaration
+	 */
+	protected void removeComponentDeclaration(){
+		componentDeclaration = null;
 	}
 }
