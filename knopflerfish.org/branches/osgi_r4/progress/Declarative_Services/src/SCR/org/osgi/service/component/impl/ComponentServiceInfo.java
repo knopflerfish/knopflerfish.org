@@ -23,8 +23,6 @@ import java.util.ArrayList;
  */
 public class ComponentServiceInfo {
 
-	/* to use a factory with the component or not */
-	private boolean serviceFactory;
 	/* A list containing all interfaces that the component supplys */
 	private ArrayList interfaces;
 
@@ -36,21 +34,9 @@ public class ComponentServiceInfo {
 		interfaces.add(componentInterface);
 	}
 	/**
-	 * @return Returns the serviceFactory.
-	 */
-	public boolean isServiceFactory() {
-		return serviceFactory;
-	}
-	/**
 	 * @return Returns the componentInterfaces.
 	 */
 	public ArrayList getComponentInterfaces() {
 		return interfaces;
-	}
-	/**
-	 * @param serviceFactory The serviceFactory to set.
-	 */
-	public void setServiceFactory(boolean serviceFactory) {
-		this.serviceFactory = serviceFactory;
 	}
 }

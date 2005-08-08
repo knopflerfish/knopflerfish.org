@@ -33,6 +33,8 @@ public class ComponentDeclaration {
 	private boolean autoEnable;
 	/* the factory to use */
 	private String factory;
+	/* to use a factory with the component or not */
+	private boolean serviceFactory;
 
 	
 	/*
@@ -66,6 +68,18 @@ public class ComponentDeclaration {
 	 */
 	public boolean isAutoEnable() {
 		return autoEnable;
+	}
+	/**
+	 * @return Returns the serviceFactory.
+	 */
+	public boolean isServiceFactory() {
+		return serviceFactory;
+	}
+	/**
+	 * @param serviceFactory The serviceFactory to set.
+	 */
+	public void setServiceFactory(boolean serviceFactory) {
+		this.serviceFactory = serviceFactory;
 	}
 	/**
 	 * @param autoEnable
