@@ -75,10 +75,13 @@ public class CustomParser {
 	static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
 
 	static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+	
+	int serviceCount;
 
 	public CustomParser() {
 		/* Store the values from the xml-file in this */
 		compConf = new ComponentDeclaration();
+		serviceCount = 0;
 	}
 
 	public ComponentDeclaration readXML(BundleEvent event) {
@@ -306,6 +309,15 @@ public class CustomParser {
 		boolean interfaceFound = false;
 		boolean servicefactoryFound = false;
 		
+		/* count the number of times the servicetag is found */
+		serviceCount++;
+		
+		/* There may only be one occurance of the service tag*/
+		if(serviceCount > 1){
+			throw new IllegalXMLException(
+					"To many service tags found in the xml document:");
+		}
+		
 		/* Test print*/
 //		System.out.println("*-*-*-*-*-* Parsing Services *-*-*-*-*-*");
 		ComponentServiceInfo compServ = compConf.getNewServiceIntance();
@@ -320,10 +332,10 @@ public class CustomParser {
 					if (parser.getAttributeName(i).equals("servicefactory")) {
 						if(compConf.getFactory() == null){
 							if (parser.getAttributeValue(i).equals("true")) {
-								compServ.setServiceFactory(true);
+								compConf.setServiceFactory(true);
 								servicefactoryFound = true;
 							} else if (parser.getAttributeValue(i).equals("false")) {
-								compServ.setServiceFactory(false);
+								compConf.setServiceFactory(false);
 								servicefactoryFound = true;
 							} else {
 								throw new IllegalXMLException(
@@ -352,7 +364,7 @@ public class CustomParser {
 			
 			/* Set default value */
 			if(servicefactoryFound == false){
-				compServ.setServiceFactory(false);
+				compConf.setServiceFactory(false);
 			}
 		}
 
@@ -836,7 +848,7 @@ public class CustomParser {
 		for (int i = 0; i < serviceInfo.size(); i++) {
 			ComponentServiceInfo compServ = (ComponentServiceInfo) serviceInfo
 					.get(i);
-			System.out.println("ServiceFactory:" + compServ.isServiceFactory());
+			System.out.println("ServiceFactory:" + compConf.isServiceFactory());
 			ArrayList interfaces = compServ.getComponentInterfaces();
 			System.out.println("The number of interfaces in this service is:"
 					+ serviceInfo.size());
