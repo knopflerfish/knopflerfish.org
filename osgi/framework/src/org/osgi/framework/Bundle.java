@@ -598,5 +598,13 @@ public abstract interface Bundle
 	 * @exception java.lang.IllegalStateException If this bundle has been uninstalled.
 	 */
     public abstract URL getResource(String name);
+
+
+    /**
+	 * Find the specific bundle's BundleContext.
+	 * @retun the bundle's BundleContext, null if the bundle has been stopped.
+	 * @see BundleContext
+	 */
+    public abstract BundleContext getBundleContext();
 }
 
