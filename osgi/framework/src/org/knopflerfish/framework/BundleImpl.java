@@ -102,7 +102,7 @@ class BundleImpl implements Bundle {
    * Zombie classloaders for bundle.
    */
   private Map /* String -> BundleClassLoader */ oldClassLoaders = null;
-    
+
   /**
    * Directory for bundle data.
    */
@@ -172,19 +172,19 @@ class BundleImpl implements Bundle {
     ProtectionDomain pd = null;
     if (fw.bPermissions) {
       try {
-        URLStreamHandler handler 
+        URLStreamHandler handler
           = bpkgs.bundle.framework.bundleURLStreamhandler;
-        
-	URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, 
-                                Long.toString(id), 
+
+	URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
+                                Long.toString(id),
                                 -1,
                                 "",
                                 handler);
 	PermissionCollection pc = fw.permissions.getPermissionCollection(this);
-	pd = new ProtectionDomain(new CodeSource(bundleUrl, 
-						 (java.security.cert.Certificate[])null), 
+	pd = new ProtectionDomain(new CodeSource(bundleUrl,
+						 (java.security.cert.Certificate[])null),
 				  pc);
-      } catch (MalformedURLException e) { 
+      } catch (MalformedURLException e) {
 	e.printStackTrace();
       }
     }
@@ -199,7 +199,7 @@ class BundleImpl implements Bundle {
 	if(oldStartLevel == -1) {
 	  archive.setStartLevel(framework.startLevelService.getInitialBundleStartLevel());
 	} else {
-	} 
+	}
       }
     } catch (Exception e) {
       Debug.println("Failed to set start level on #" + getBundleId() + ": " + e);
@@ -232,7 +232,7 @@ class BundleImpl implements Bundle {
     int updState = getUpdatedState();
 
     setPersistent(true);
-    
+
     if(framework.startLevelService != null) {
       if(getStartLevel() > framework.startLevelService.getStartLevel()) {
 	bDelayedStart = true;
@@ -272,7 +272,7 @@ class BundleImpl implements Bundle {
 		  }
 
 		  if (ba != null) {
-		    
+
 		    Class c = getClassLoader().loadClass(ba.trim());
 		    bactivator = (BundleActivator)c.newInstance();
 
@@ -280,30 +280,30 @@ class BundleImpl implements Bundle {
 		    bStarted = true;
 		  } else {
 		    // Check if we have a standard Main-class attribute as
-		    // in normal executable jar files. This is a slight 
+		    // in normal executable jar files. This is a slight
 		    // extension to the OSGi spec.
 		    final String mc = archive.getAttribute("Main-class");
-		    
+
 		    if (mc != null) {
 		      if(Debug.packages) {
 			Debug.println("starting main class " + mc);
 		      }
 		      Class mainClass = getClassLoader().loadClass(mc.trim());
-		      
+
 		      bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
 		      bactivator.start(bundleContext);
 		      bStarted = true;
 		    }
-		  } 
-		  
+		  }
+
 		  if(!bStarted) {
-		    // Even bundles without an activator is marked as 
+		    // Even bundles without an activator is marked as
 		    // ACTIVE.
-		    
-		    // Should we possible log an information message to 
+
+		    // Should we possible log an information message to
 		    // make sure users are aware of the missing activator?
 		  }
-		  
+
 		  state = ACTIVE;
 		  startOnLaunch(true);
 
@@ -349,19 +349,19 @@ class BundleImpl implements Bundle {
    * Check if setStartOnLaunch(false) is allowed.
    */
   boolean allowSetStartOnLaunchFalse() {
-    boolean bCompat = 
+    boolean bCompat =
       framework.startLevelService == null ||
       framework.startLevelService.bCompat;
-    
-    return 
+
+    return
       // never never touch on FW shutdown
       !framework.shuttingdown && !archive.isPersistent();
 
       /*
-	&& 
-      
+	&&
+
       // allow touch if in startlevel compatibility mode
-      (bCompat || 
+      (bCompat ||
        // ...also allow touch if not marked as persistant startlevel active
        !isPersistent());
       */
@@ -376,7 +376,7 @@ class BundleImpl implements Bundle {
     framework.checkAdminPermission();
 
     bDelayedStart = false;
-    
+
     setPersistent(false);
 
     if(framework.startLevelService != null) {
@@ -502,7 +502,7 @@ class BundleImpl implements Bundle {
 		  if (newArchive != null) {
 		    newArchive.purge();
 		  }
-		
+
 		  if (wasActive) {
 		    try {
 		      start();
@@ -539,7 +539,7 @@ class BundleImpl implements Bundle {
 		}
 
 		checkEE(newArchive);
-      
+
 		// Broadcast updated event
 		framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, thisBundle));
 
@@ -588,7 +588,7 @@ class BundleImpl implements Bundle {
       if(!framework.isValidEE(ee)) {
 	throw new BundleException("Execution environment '" + ee + "' is not supported");
       }
-    }      
+    }
   }
 
 
@@ -605,7 +605,7 @@ class BundleImpl implements Bundle {
     } catch (Exception ignored) {   }
 
     bDelayedStart = false;
-    
+
     switch (state) {
     case ACTIVE:
       try {
@@ -643,8 +643,8 @@ class BundleImpl implements Bundle {
 	      try {
 		archive.setStartLevel(-2); // Mark as uninstalled
 	      } catch (Exception e) {
-		Debug.println("Failed to mark bundle " + id + 
-			      " as uninstalled, " + bundleDir + 
+		Debug.println("Failed to mark bundle " + id +
+			      " as uninstalled, " + bundleDir +
 			      " must be deleted manually: " + e);
 	      }
 	    }
@@ -653,7 +653,7 @@ class BundleImpl implements Bundle {
 	  }
 	});
       }
-    
+
       // id, location and headers survices after uninstall.
       state = UNINSTALLED;
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
@@ -969,15 +969,15 @@ class BundleImpl implements Bundle {
    *
    * @param value Boolean state for start on launch flag.
    */
-  private void startOnLaunch(boolean value) { 
+  private void startOnLaunch(boolean value) {
     try {
       archive.setStartOnLaunchFlag(value);
     } catch (IOException e) {
       framework.listeners.frameworkError(this, e);
     }
   }
-  
-  void setPersistent(final boolean value) { 
+
+  void setPersistent(final boolean value) {
     try {
       AccessController.doPrivileged(new PrivilegedExceptionAction() {
 	  public Object run() throws Exception {
@@ -989,22 +989,22 @@ class BundleImpl implements Bundle {
       framework.listeners.frameworkError(this, e);
     }
   }
-  
-  
+
+
 
   /**
    * Filter out all services that we don't have permission to get.
    *
    * @param srs Set of ServiceRegistrationImpls to check.
    */
-  private void filterGetServicePermission(Set srs) { 
+  private void filterGetServicePermission(Set srs) {
     AccessControlContext acc = AccessController.getContext();
     for (Iterator i = srs.iterator(); i.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();;
       String[] classes = (String[])sr.properties.get(Constants.OBJECTCLASS);
       boolean perm = false;
       for (int n = 0; n < classes.length; n++) {
-	try { 
+	try {
 	  acc.checkPermission(new ServicePermission(classes[n], ServicePermission.GET));
 	  perm = true;
 	  break;
@@ -1038,7 +1038,7 @@ class BundleImpl implements Bundle {
    * used services.
    *
    */
-  private void removeBundleResources() { 
+  private void removeBundleResources() {
     framework.listeners.removeAllListeners(this);
     Set srs = framework.services.getRegisteredByBundle(this);
     for (Iterator i = srs.iterator(); i.hasNext();) {
@@ -1077,13 +1077,13 @@ class BundleImpl implements Bundle {
 
   boolean isPersistent() {
     boolean b = archive.isPersistent();
-    
+
     // yup.
     b |= bDelayedStart;
 
     return b;
   }
- 
+
   int getStartLevel() {
     if(archive != null) {
       return archive.getStartLevel();
@@ -1120,7 +1120,7 @@ class BundleImpl implements Bundle {
 
   String toString(int detail) {
     StringBuffer sb = new StringBuffer();
-    
+
     sb.append("BundleImpl[");
     sb.append("id=" + getBundleId());
     if(detail > 0) {
@@ -1149,5 +1149,12 @@ class BundleImpl implements Bundle {
     sb.append("]");
 
     return sb.toString();
-  }  
+  }
+  /*
+  TODO: Protect this method with permissions
+  */
+  public BundleContext getBundleContext()
+  {
+	  return bundleContext;
+  }
 }
