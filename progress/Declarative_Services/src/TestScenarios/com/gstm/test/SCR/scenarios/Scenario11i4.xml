@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="Scenario11i" enabled="true" factory="com.gstm.test.SCR.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.SCR.scenarios.scenario11i.impl.ComponentImpl" />
+    <service>
+        <provide interface="com#xDgstm#xDtest#xDSCR#xDscenarios#xDscenario11i#xDimpl#xDComponentImpl" />
+    </service>
+</scr:component>
