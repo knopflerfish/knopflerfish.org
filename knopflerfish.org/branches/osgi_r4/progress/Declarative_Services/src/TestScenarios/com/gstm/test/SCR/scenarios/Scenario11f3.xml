@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="This
+is
+not
+a
+correct
+name" enabled="true" factory="com.gstm.test.SCR.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.SCR.scenarios.scenario11f.impl.ComponentImpl" />
+</scr:component>
