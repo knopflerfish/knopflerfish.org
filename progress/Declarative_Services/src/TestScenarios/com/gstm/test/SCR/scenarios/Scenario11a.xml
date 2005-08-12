@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="com.gstm.test.SCR.scenarios.scenario11a.Component" enabled="true" factory="com.gstm.test.SCR.scenarios.scenario11a.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.SCR.scenarios.scenario11a.impl.CirComponent4Impl" />
+    <property name="Property" value="This is a value" type="String">
+    </property>
+    <property name="MultivaluedProperty" type="String">This is value 1 This is value 2 This is value 3 This is value 4</property>
+    <property name="LongProperty" value="10000" type="Long">
+    </property>
+    <property name="DoubleProperty" value="100.0" type="Double">
+    </property>
+    <property name="FloatProperty" value="10.0" type="Float">
+    </property>
+    <property name="IntegerProperty" value="100" type="Integer">
+    </property>
+    <property name="ByteProperty" value="1" type="Byte">
+    </property>
+    <property name="CharProperty" value="c" type="Char">
+    </property>
+    <property name="BooleanProperty" value="true" type="Boolean">
+    </property>
+    <property name="ChortProperty" value="100" type="Chort">
+    </property>
+    <properties entry="com/gstm/testSCR/scenarios/scenario11a/properties/prop1.properties" />
+    <properties entry="com/gstm/testSCR/scenarios/scenario11a/properties/prop2.properties" />
+    <service>
+        <provide interface="com.gstm.testSCR.scenarios.scenario11a.Interface1" />
+        <provide interface="com.gstm.testSCR.scenarios.scenario11a.Interface2" />
+    </service>
+    <reference name="Reference1" interface="com.gstm.testSCR.scenarios.scenario11a.Interface3" cardinality="1..1" policy="static" target="(component.name=com.gstm.test.SCR.scenarios.scenario11a.Target1)" bind="bindTest11a" unbind="unbindTest11a" />
+    <reference name="Reference2" interface="com.gstm.testSCR.scenarios.scenario11a.Interface4" cardinality="1..n" policy="dynamic" target="(component.name=com.gstm.test.SCR.scenarios.scenario11a.Target2)" bind="bindTest11a" unbind="unbindTest11a" />
+</scr:component>
