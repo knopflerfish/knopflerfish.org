@@ -15,10 +15,14 @@ package org.osgi.service.component.impl;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
 
-public class Activator implements BundleActivator {
+public class Activator implements BundleActivator{
    /* System component runtime variable */
 	SystemComponentRuntimeImpl systemComponentRuntime;
+   /* the bundle context for this bundle */
+	BundleContext bundleContext;
 	
   /**
    * Main Entry for the SCR
@@ -26,6 +30,7 @@ public class Activator implements BundleActivator {
    */
   public void start(BundleContext context) throws Exception {
   	systemComponentRuntime= new SystemComponentRuntimeImpl(context);
+  	bundleContext = context;
   }
 
  /**
@@ -33,4 +38,6 @@ public class Activator implements BundleActivator {
   */
   public void stop(BundleContext context) throws Exception {
   }
+
+
 }

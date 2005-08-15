@@ -18,30 +18,47 @@ import java.util.Dictionary;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentInstance;
 
 /**
- * @author Martin Berg
+ * This class is the implementation of the ComponentContext
+ * Used by a component to interact with its executioner
  * 
- * This class is used to store information of a specific component It has four
- * helper classes that supply additional information these are:
- * PropertiesInformation PropertyInformation ServiceInformation
- * ReferenceInformation
+ * @author Magnus Klack
  */
 public class ComponentContextImpl implements ComponentContext{
-	/* the bundle context */
+	/** the bundle context */
 	private BundleContext bundleContext;
-	/* the component instance */
-	private ComponentInstance componentInstance;
-	/* the component properties */
-	private Dictionary properties;
-	/* the service reference */
-	private ServiceReference serviceReference;
 	
+	/** the component instance */
+	private ComponentInstance componentInstance;
+	
+	/** the component properties */
+	private Dictionary properties;
+	
+	/** the servicereference */
+	private ServiceRegistration serviceRegistration;
+	
+	/** variable holding the SCR instance */
+	private SystemComponentRuntimeImpl systemComponentRuntime;
+	
+	/** variable holding the bundle using this context */
+	private Bundle usingBundle;
+	
+	/** 
+	 *  variable holding the requesting bundle the same as using bundle
+	 *  but this variable is never null 
+	 */
+	private Bundle requestBundle;
 	
 	/* The constructor */
-	public ComponentContextImpl(ComponentInstance component,BundleContext context,Dictionary props) {
+	public ComponentContextImpl(ComponentInstance component,BundleContext context,Dictionary props,
+			ServiceRegistration registration,SystemComponentRuntimeImpl scr,
+			Bundle useBundle,Bundle reqBundle) {
 		
 		/* assign the bundle context */
 		bundleContext = context;
@@ -50,10 +67,13 @@ public class ComponentContextImpl implements ComponentContext{
 		/* assign the component instance */
 		componentInstance =component;
 		/* assign the service reference */
-		//serviceReference = serviceRef;
-		
-		
-		
+		serviceRegistration = registration;
+		/* assign the SCR */
+		systemComponentRuntime = scr;
+		/* assign the using bundle */
+		usingBundle = useBundle;
+		/* assign the declaring bundle */
+		requestBundle = reqBundle;
 	}
 	
 	/**
@@ -64,28 +84,41 @@ public class ComponentContextImpl implements ComponentContext{
 		return properties;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#enableComponent(java.lang.String)
+	/**
+	 * This is used by a component to activate another component in the same bundle
+	 * 
+	 * @param name the component name
 	 */
-	public void enableComponent(String name) {
-		// TODO Auto-generated method stub
+	public void enableComponent(String name){
+		try{
+			/* tell the SCR to enable component with the given name */
+			systemComponentRuntime.enableComponent(name,requestBundle);
+		}catch(ComponentException e){
+			System.err.println(e);
+		}
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#disableComponent(java.lang.String)
+	/**
+	 * This is used by a component to disable another component in the same bundle
+	 * or the same component.
+	 * 
+	 * @param name the name of the component
 	 */
 	public void disableComponent(String name) {
-		// TODO Auto-generated method stub
-		
+		try{
+			/* tell the SCR to disable the component */
+			systemComponentRuntime.disableComponent(name,requestBundle,false);
+		}catch(ComponentException e){
+			System.err.println(e);
+		}
 	}
 
 	/**
 	 * returns the service reference of the ComponentInstance
 	 */
 	public ServiceReference getServiceReference() {
-		
-		return serviceReference;
+		return serviceRegistration.getReference();
 	}
 
 	/**
@@ -93,39 +126,72 @@ public class ComponentContextImpl implements ComponentContext{
 	 */
 	public ComponentInstance getComponentInstance() {
 		return componentInstance;
-
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#locateService(java.lang.String)
+	/**
+	 * this method is used by a component declaring an activate() and
+	 * a deactivate() method it will tell SCR to locate a service with a 
+	 * given name. 
+	 *  
 	 */
 	public Object locateService(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		String serviceName =(String) properties.get(ComponentConstants.COMPONENT_NAME);
+		
+		if(serviceName!=null){
+			try{
+				return systemComponentRuntime.locateService(name,serviceName);
+			
+			}catch(ComponentException e){
+				System.err.println(e);
+				return null;
+			}	
+			
+		}else{
+			System.err.println("no component.name specified in the context");
+			return null;
+		}
+		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#locateServices(java.lang.String)
+	/**
+	 * This is used 
 	 */
 	public Object[] locateServices(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		String serviceName =(String) properties.get(ComponentConstants.COMPONENT_NAME);
+		
+		if(serviceName!=null){
+			try{
+				return systemComponentRuntime.locateServices(name,serviceName);
+			
+			}catch(ComponentException e){
+				System.err.println(e);
+				return null;
+			}	
+			
+		}else{
+			System.err.println("no component.name specified in the context");
+			return null;
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#getBundleContext()
+	/**
+	 * 
 	 */
 	public BundleContext getBundleContext() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.component.ComponentContext#getUsingBundle()
+	/**
+	 * this returns the bundle using this service if its a service factory 
+	 * else it returns null
+	 * 
+	 * @return Bundle the bundle using this component as a service null if
+	 *  the component shares context with many bundles, i.e, it is a delayed
+	 *  service component. 
 	 */
 	public Bundle getUsingBundle() {
-		// TODO Auto-generated method stub
-		return null;
+		return usingBundle;
 	}
 
 
