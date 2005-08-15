@@ -15,6 +15,8 @@ package org.osgi.service.component.impl;
 
 import java.util.ArrayList;
 
+import org.osgi.framework.Bundle;
+
 /**
  * @author Martin Berg
  *
@@ -27,31 +29,32 @@ import java.util.ArrayList;
  * ReferenceInformation
  */
 public class ComponentDeclaration {
-	/* The name of the component */
+	/** The name of the component */
 	private String componentName;
-	/* to use autoenable on the component or not */
+	/** to use autoenable on the component or not */
 	private boolean autoEnable;
-	/* the factory to use */
+	/** the factory to use */
 	private String factory;
-	/* to use a factory with the component or not */
+	/** to use a factory with the component or not */
 	private boolean serviceFactory;
-
+	/** variable holding the declaring bundle */	
+	private Bundle declaringBundle;
 	
-	/*
+	/**
 	 * the class that implements the interfaces that is listed in
 	 * serviceInfo
 	 */
 	private String implementation;
 	
-	/* A list containing all properties for the component */
+	/** A list containing all properties for the component */
 	private ArrayList propertiesInfo;
-	/* A list containing all property for the component */
+	/** A list containing all property for the component */
 	private ArrayList propertyInfo;
-	/* A list containing all services for the component */
+	/** A list containing all services for the component */
 	private ArrayList serviceInfo;
-	/* A list containing all references for the component */
+	/** A list containing all references for the component */
 	private ArrayList referenceInfo;
-	/* A list containing all interfaces for the component */
+	/** A list containing all interfaces for the component */
 	private ArrayList provideInfo;
 	
 	/* The constructor */
@@ -62,7 +65,35 @@ public class ComponentDeclaration {
 		referenceInfo = new ArrayList();
 		provideInfo = new ArrayList();
 	}
-		
+	
+	
+	public Object getClone() throws CloneNotSupportedException {
+		try{
+			return this.clone();
+		}catch(CloneNotSupportedException e){
+			throw e;
+		}
+	}
+	
+	/**
+	 * sets the bundle which declares the component
+	 * 
+	 * @param bundle the declaring bundle
+	 */
+	public void setDeclaraingBundle(Bundle bundle){
+		declaringBundle=bundle;
+	}
+	
+	/**
+	 * returns the declaring bundle,i.e,
+	 * the bundle holding this component.
+	 * 
+	 * @return bundle if set else null
+	 */
+	public Bundle getDeclaringBundle(){
+		return declaringBundle;
+	}
+	
 	/**
 	 * @return Returns the autoEnable.
 	 */

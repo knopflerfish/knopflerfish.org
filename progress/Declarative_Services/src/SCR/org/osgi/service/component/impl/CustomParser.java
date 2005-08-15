@@ -71,10 +71,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 public class CustomParser {
 
 	private ComponentDeclaration compConf;
-
-	static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
-
-	static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
 	
 	int serviceCount;
 
@@ -84,36 +80,9 @@ public class CustomParser {
 		serviceCount = 0;
 	}
 
-	public ComponentDeclaration readXML(BundleEvent event) {
-
-		/* try to get the XML file */
-		String manifestEntry = (String) event.getBundle().getHeaders().get(
-				"Service-Component");
-		String bundleLocation = event.getBundle().getLocation();
-
-		/* check if null */
-		if (manifestEntry != null) {
-//			System.out
-//					.println("\n**************************** START ********************************");
-			/* print that a service component is found */
-			//System.out.println("Found service component");
-			/* print the bundle location */
-//			System.out.println("The bundle location: " + bundleLocation);
-			/* format the location string */
-			String formattedLocation = bundleLocation.substring(5,
-					bundleLocation.length());
-			/* print the bundle formatted location */
-//			System.out.println("The bundle formatted location: "
-//					+ formattedLocation);
-			/* print the xml file location */
-//			System.out.println("The XML file location: " + manifestEntry);
+	public ComponentDeclaration readXML(BundleEvent event,ZipEntry zipEntry,JarFile jarFile) {
 
 			try {
-				/* get the jar file use the formatted location */
-				JarFile jarFile = new JarFile(formattedLocation);
-				/* get the xmlfile located by the manifestEntry */
-				ZipEntry zipEntry = jarFile.getEntry(manifestEntry);
-
 				/* check if null */
 				if (zipEntry != null) {
 
@@ -171,7 +140,7 @@ public class CustomParser {
 			} catch (Exception e) {
 				System.out.println("Error reading zipentry" + e); //TODO Replace with Exceptions
 			}
-		}
+		
 		
 		//TODO Before returning the component check if all required tags are pressent
 		return compConf;
