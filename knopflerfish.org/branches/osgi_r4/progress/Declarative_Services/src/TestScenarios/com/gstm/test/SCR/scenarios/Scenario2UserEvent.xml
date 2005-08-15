@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component name="com.gstm.test.SCR.scenarios.scenario2.UserEvent" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario2.impl.UserEventImpl " />
+    <implementation class="com.gstm.test.SCR.scenarios.scenario2.impl.UserEventImpl" />
     <reference name="Provider1" interface="com.gstm.test.SCR.scenarios.scenario2.Provider1" cardinality="1..1" policy="dynamic" target="(component.name=com.gstm.test.SCR.scenarios.scenario2.Provider1)" bind="bindProvider1" unbind="unbindProvider1" />
     <reference name="Provider2" interface="com.gstm.test.SCR.scenarios.scenario2.Provider2" cardinality="1..1" policy="dynamic" target="(component.name=com.gstm.test.SCR.scenarios.scenario2.Provider2)" bind="bindProvider2" unbind="unbindProvider2" />
 </scr:component>
