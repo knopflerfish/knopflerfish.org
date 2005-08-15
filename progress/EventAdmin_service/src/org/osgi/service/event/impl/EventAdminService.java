@@ -136,7 +136,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * This method should be used when synchronous events are to be published
 	 *
@@ -177,36 +177,36 @@ public class EventAdminService implements EventAdmin, LogListener,
 		/* console text for debugging purpose */
 		//System.out.println("FINISHED");
 	}
-	
+
 	/**
 	 * this function checks for invalid topics
 	 * like null topics and "" topics.
-	 * 
+	 *
 	 * @param topic the topic string
 	 * @return true if well formatted else false if null or "" formatted
 	 */
 	private boolean topicIsWellFormatted(String topic){
-	
+
 		if(topic!=null){
 			/* this is the "*" topic  */
 			if(topic.length()==1 && topic.equals("*")){
 				return true;
 			}
-			
+
 			/* this is the "" topic */
 			if(topic.length()==0){
 				return false;
 			}
-		
+
 			/* this is a topic with length >1 */
 			if(topic.length()> 1){
 				return true;
 			}
-		}	
+		}
 		/* this is the null topic */
 		return false;
 	}
-	
+
 	/**
 	 * checks the permission to subscribe to this subject. OBS! this one will
 	 * only se if there are any permissions granted for all objects to
@@ -284,7 +284,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 			throw e;
 		}
 	}
-	
+
 	/**
 	 * A listener for events sent by bundles
 	 * @param bundleEvent The event sent by the bundle
@@ -333,7 +333,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 		if (knownMessageType) {
 			props.put(EventConstants.EVENT, bundleEvent);
 			props.put("bundle.id", new Long(bundle.getBundleId()));
-			props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os�ker p� denna
+			props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os?ker p? denna
 			props.put("bundle", bundle);
 			/* Tries posting the event once the properties are set */
 			try {
@@ -384,7 +384,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 
 		/* Stores the properties of the event in the dictionary */
 		props.put("bundle.id", new Long(bundle.getBundleId()));
-		props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os�ker p� denna, ska bara s�ttas om den inte �r null
+		props.put(EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os?ker p? denna, ska bara s?ttas om den inte ?r null
 		props.put("bundle", bundle);
 		props.put("log.level", new Integer(logEntry.getLevel()));
 		props.put(EventConstants.MESSAGE, logEntry.getMessage());
@@ -403,11 +403,11 @@ public class EventAdminService implements EventAdmin, LogListener,
 		if (logEntry.getServiceReference() != null) {
 			props.put(EventConstants.SERVICE, logEntry.getServiceReference());
 			props.put(EventConstants.SERVICE_ID, logEntry.getServiceReference().getProperty(Constants.SERVICE_ID));
-			props.put(EventConstants.SERVICE_OBJECTCLASS, Constants.OBJECTCLASS);//not yet implemented
+			props.put(EventConstants.SERVICE_OBJECTCLASS, logEntry.getServiceReference().getProperty(Constants.OBJECTCLASS));
 		}
 			/* If service_pid returns a non-null value, further properties shall be set*/
 			if (EventConstants.SERVICE_PID != null) {// not yet implemented
-				props.put(EventConstants.SERVICE_PID, Constants.SERVICE_PID); // not yet implemented
+				props.put(EventConstants.SERVICE_PID, logEntry.getServiceReference().getProperty(Constants.SERVICE_PID));
 			}
 
 			/* Tries posting the event once the properties are set */
@@ -470,9 +470,9 @@ public class EventAdminService implements EventAdmin, LogListener,
 		if (knownMessageType) {
 			props.put(EventConstants.EVENT, serviceEvent);
 			props.put(EventConstants.SERVICE, serviceEvent.getServiceReference());
-			props.put(EventConstants.SERVICE_PID, Constants.SERVICE_PID); //not yet implemented
+			props.put(EventConstants.SERVICE_PID, serviceEvent.getServiceReference().getProperty(Constants.SERVICE_PID));
 			props.put(EventConstants.SERVICE_ID, serviceEvent.getServiceReference().getProperty(Constants.SERVICE_ID));
-			props.put(EventConstants.SERVICE_OBJECTCLASS, Constants.OBJECTCLASS); // not yet implemented
+			props.put(EventConstants.SERVICE_OBJECTCLASS, serviceEvent.getServiceReference().getProperty(Constants.OBJECTCLASS));
 
 			/* Tries posting the event once the properties are set */
 			try {
@@ -560,10 +560,10 @@ public class EventAdminService implements EventAdmin, LogListener,
 	private class QueueHandler extends Thread {
 		/** constant for synchronous handlers */
 		public final static int SYNCHRONUS_HANDLER=0;
-		
+
 		/** constant for asynchronous handlers */
 		public final static int ASYNCHRONUS_HANDLER=1;
-		
+
 		/** the queue */
 		private LinkedList syncQueue = new LinkedList();
 
@@ -647,7 +647,7 @@ public class EventAdminService implements EventAdmin, LogListener,
 											/* get the 'Event' not the InternalAdminEvent */
 											InternalAdminEvent event = (InternalAdminEvent) syncQueue
 													.getFirst();
-									
+
 											/* remove it from the list */
 											syncQueue.removeFirst();
 
@@ -664,10 +664,10 @@ public class EventAdminService implements EventAdmin, LogListener,
 											 * to topic
 											 */
 											boolean canSubscribe;
-											
-											
-											/* variable indicates if the topic is well formatted 
-											 * 
+
+
+											/* variable indicates if the topic is well formatted
+											 *
 											 */
 											boolean isWellFormatted;
 
@@ -691,12 +691,12 @@ public class EventAdminService implements EventAdmin, LogListener,
 												/* no security here */
 												canSubscribe = true;
 											}
-											
+
 											/* get if the topic is wellformatted */
 											isWellFormatted = topicIsWellFormatted( ((Event)event.getElement()).getTopic());
-											
-											
-											
+
+
+
 											if (canPublish && canSubscribe && isWellFormatted) {
 
 												/*
