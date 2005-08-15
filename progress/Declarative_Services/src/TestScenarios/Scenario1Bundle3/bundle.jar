@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundlejar>
+<resource src="/Scenario1Bundle3/out" dst="" pattern=".*\.class"/>
+</bundlejar>

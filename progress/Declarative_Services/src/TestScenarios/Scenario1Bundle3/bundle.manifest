@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario1Bundle3
+Bundle-Activator: com.gstm.test.scr.scenarios.scenario1.bundle3.Activator
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario1.bundle3
+Bundle-Version: 1.0
+Import-Package: com.gstm.test.scr.scenarios.scenario1.bundle1,
+ org.osgi.service.component

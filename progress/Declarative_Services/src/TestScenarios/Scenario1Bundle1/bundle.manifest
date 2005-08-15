@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario1Bundle1
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario1.bundle1
+Bundle-Version: 1.0
+Export-Package: com.gstm.test.scr.scenarios.scenario1.bundle1,
+ com.gstm.test.scr.scenarios.scenario1.bundle1.impl,
+ org.osgi.service.component
+Service-Component: OSGI-INF/Scenario1Component1.xml
