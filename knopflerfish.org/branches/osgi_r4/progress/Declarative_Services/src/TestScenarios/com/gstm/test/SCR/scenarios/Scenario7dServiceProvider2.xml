@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.SCR.scenarios.scenario7d.ServiceProvider2" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario7d.impl.ServiceProvider2Impl" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario7d.ServiceProvider2" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario7d.impl.ServiceProvider2Impl" />
     <service>
-        <provide interface="com.gstm.test.SCR.scenarios.scenario7d.ServiceProvider" />
+        <provide interface="com.gstm.test.scr.scenarios.scenario7d.ServiceProvider" />
     </service>
 </scr:component>

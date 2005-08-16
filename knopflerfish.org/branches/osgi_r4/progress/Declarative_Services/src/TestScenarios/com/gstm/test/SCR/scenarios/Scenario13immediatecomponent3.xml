@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?> 
-<scr:component name="com.gstm.test.SCR.scenarios.scenario13.ImmediateComponent3" enabled="false"  xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0"> 
+<scr:component name="com.gstm.test.scr.scenarios.scenario13.ImmediateComponent3" enabled="false"  xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0"> 
 
-<implementation class="com.gstm.test.SCR.scenarios.scenario13.impl.ImmediateComponent3Impl"/> 
+<implementation class="com.gstm.test.scr.scenarios.scenario13.impl.ImmediateComponent3Impl"/> 
 </scr:component>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="Scenario11L" enabled="true" factory="com.gstm.test.SCR.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario11j.impl.ComponentImpl" />
-        <reference name="Invalid reference name" cardinality="Incorrect" policy="static" target="(component.name=com.gstm.test.SCR.scenarios.scenario11L.Target2)" bind="bindTest11L" unbind="unbindTest11L" interface="com.gstm.testSCR.scenarios.scenario1L.Interface3" />
+<scr:component name="Scenario11L" enabled="true" factory="com.gstm.test.scr.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario11j.impl.ComponentImpl" />
+        <reference name="Invalid reference name" cardinality="Incorrect" policy="static" target="(component.name=com.gstm.test.scr.scenarios.scenario11L.Target2)" bind="bindTest11L" unbind="unbindTest11L" interface="com.gstm.testSCR.scenarios.scenario1L.Interface3" />
 </scr:component>

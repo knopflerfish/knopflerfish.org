@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.SCR.scenarios.scenario11b.Component" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario11b.impl.CirComponent4Impl" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario11b.Component" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario11b.impl.CirComponent4Impl" />
     <property name="Property" value="This is a value">
     </property>
     <property name="MultivaluedProperty">This is value 1 This is value 2 This is value 3 This is value 4</property>
@@ -8,5 +8,5 @@
         <provide interface="com.gstm.testSCR.scenarios.scenario11b.Interface1" />
         <provide interface="com.gstm.testSCR.scenarios.scenario11b.Interface2" />
     </service>
-    <reference name="Reference1" interface="com.gstm.testSCR.scenarios.scenario11b.Interface3" target="(component.name=com.gstm.test.SCR.scenarios.scenario11b.Target1)" bind="bindTest11b" unbind="unbindTest11b" />
+    <reference name="Reference1" interface="com.gstm.testSCR.scenarios.scenario11b.Interface3" target="(component.name=com.gstm.test.scr.scenarios.scenario11b.Target1)" bind="bindTest11b" unbind="unbindTest11b" />
 </scr:component>

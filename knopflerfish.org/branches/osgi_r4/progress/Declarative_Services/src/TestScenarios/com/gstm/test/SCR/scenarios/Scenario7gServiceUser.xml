@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.SCR.scenarios.scenario7g.ServiceUser" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario7g.impl.ServiceUserImpl" />
-    <reference name="message" interface="com.gstm.test.SCR.scenarios.scenario7g.ServiceProvider" cardinality="0..n" policy="static" target="(component.name=com.gstm.test.SCR.scenarios.scenario7g.ServiceProvider)" bind="bindServiceUser" unbind="unbindServiceUser" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario7g.ServiceUser" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario7g.impl.ServiceUserImpl" />
+    <reference name="message" interface="com.gstm.test.scr.scenarios.scenario7g.ServiceProvider" cardinality="0..n" policy="static" target="(component.name=com.gstm.test.scr.scenarios.scenario7g.ServiceProvider)" bind="bindServiceUser" unbind="unbindServiceUser" />
 </scr:component>

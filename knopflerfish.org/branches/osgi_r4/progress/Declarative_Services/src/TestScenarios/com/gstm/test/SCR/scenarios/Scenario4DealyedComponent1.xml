@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.SCR.scenarios.scenario4.DelayedComponent1" enabled="false" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario4.impl.DelayedComponent1Impl" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario4.DelayedComponent1" enabled="false" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario4.impl.DelayedComponent1Impl" />
     <service>
-        <provide interface="com.gstm.test.SCR.scenarios.scenario4.DelayedComponent1" />
+        <provide interface="com.gstm.test.scr.scenarios.scenario4.DelayedComponent1" />
     </service>
 </scr:component>

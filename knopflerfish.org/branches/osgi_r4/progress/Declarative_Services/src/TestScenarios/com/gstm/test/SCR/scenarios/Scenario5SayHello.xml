@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.SCR.scenarios.scenario5.SayHello" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario5.impl.SayHelloImpl" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario5.SayHello" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario5.impl.SayHelloImpl" />
     <service>
-        <provide interface="com.gstm.test.SCR.scenarios.scenario5.SayHello" />
+        <provide interface="com.gstm.test.scr.scenarios.scenario5.SayHello" />
     </service>
 </scr:component>
