@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.SCR.scenarios.scenario11c.Component" enabled="true" factory="com.gstm.test.SCR.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario11c.impl.ComponentImpl" />
-    <reference name="Reference2" cardinality="1..n" policy="dynamic" target="(component.name=com.gstm.test.SCR.scenarios.scenario11c.Target2)" bind="bindTest11c" unbind="unbindTest11c" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario11c.Component" enabled="true" factory="com.gstm.test.scr.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario11c.impl.ComponentImpl" />
+    <reference name="Reference2" cardinality="1..n" policy="dynamic" target="(component.name=com.gstm.test.scr.scenarios.scenario11c.Target2)" bind="bindTest11c" unbind="unbindTest11c" />
 </scr:component>

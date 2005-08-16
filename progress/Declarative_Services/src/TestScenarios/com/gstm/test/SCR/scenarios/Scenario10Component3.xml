@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="com.gstm.test.SCR.scenarios.scenario10a.Component1" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.SCR.scenarios.scenario10a.impl.CirComponent4Impl" />
+<component name="com.gstm.test.scr.scenarios.scenario10a.Component1" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario10a.impl.CirComponent4Impl" />
 </component>
