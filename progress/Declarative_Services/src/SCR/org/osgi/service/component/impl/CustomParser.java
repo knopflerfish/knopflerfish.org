@@ -80,7 +80,7 @@ public class CustomParser {
 		serviceCount = 0;
 	}
 
-	public ComponentDeclaration readXML(BundleEvent event,ZipEntry zipEntry,JarFile jarFile) {
+	public ComponentDeclaration readXML(ZipEntry zipEntry,JarFile jarFile) {
 
 			try {
 				/* check if null */

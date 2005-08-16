@@ -13,7 +13,16 @@
  */
 package org.osgi.service.component.impl;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import org.osgi.framework.Bundle;
 
@@ -39,13 +48,14 @@ public class ComponentDeclaration {
 	private boolean serviceFactory;
 	/** variable holding the declaring bundle */	
 	private Bundle declaringBundle;
+	/** String variable holding the path to the XML **/
+	private String xmlFile;
 	
 	/**
 	 * the class that implements the interfaces that is listed in
 	 * serviceInfo
 	 */
 	private String implementation;
-	
 	/** A list containing all properties for the component */
 	private ArrayList propertiesInfo;
 	/** A list containing all property for the component */
@@ -56,6 +66,7 @@ public class ComponentDeclaration {
 	private ArrayList referenceInfo;
 	/** A list containing all interfaces for the component */
 	private ArrayList provideInfo;
+	
 	
 	/* The constructor */
 	ComponentDeclaration(){
@@ -282,5 +293,293 @@ public class ComponentDeclaration {
 	 */
 	public void addReferenceInfo(ComponentReferenceInfo refInfo){
 		referenceInfo.add(refInfo);
+	}
+	
+	/**
+	 * this method converts properties located in a component 
+	 * declaration and returns a dictionary. Those properties 
+	 * are declared within the property element in the
+	 * xml file.
+	 * 
+	 * @return	Dictionary with properties 
+	 */
+	public Dictionary getDeclaredProperties(){
+		/* hashtable holding properties */
+		Dictionary properties = new Hashtable();
+				
+		/* create an iterator */
+		Iterator propsIterator = propertyInfo.iterator();
+		
+		/* iterate through them */
+		while(propsIterator.hasNext()){
+			/* get the property */
+			ComponentPropertyInfo propertyInfo = (ComponentPropertyInfo)
+													propsIterator.next();
+			/* get the type of the property */
+			String type= propertyInfo.getType();
+			/* get the name of the propery */
+			String name = propertyInfo.getName();
+			
+			if(type==null){
+				type="String";
+			}
+			
+			/* get the values */
+			ArrayList values = propertyInfo.getValues();
+			/* create an iterator */
+			Iterator valuesIterator = values.iterator();
+			
+			/* if it is a string type */
+			if(type.equals("String")){
+				/* value array */
+				String[] valueArray = new String[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= (String)valuesIterator.next();
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property to the property */
+				properties.put(name,valueArray);
+			}
+			
+			/* if it is a long type */
+			if(type.equals("Long")){
+				/* value array */
+				long[] valueArray = new long[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= Long.parseLong((String)valuesIterator.next());
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			
+			
+			/* if it is a double type */
+			if(type.equals("Double")){
+				/* value array */
+				double[] valueArray = new double[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= Double.parseDouble((String)valuesIterator.next());
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			
+			/* if it is a float type */
+			if(type.equals("Float")){
+				/* value array */
+				float[] valueArray = new float[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= Float.parseFloat((String)valuesIterator.next());
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			/* if it is a integer type */
+			if(type.equals("Integer")){
+				/* value array */
+				int[] valueArray = new int[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= Integer.parseInt((String)valuesIterator.next());
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			/* if it is a byte type */
+			if(type.equals("Byte")){
+				/* value array */
+				byte[] valueArray = new byte[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= Byte.parseByte((String)valuesIterator.next());
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			/* if it is a char type */
+			if(type.equals("Char")){
+				/* new string array */
+				String chars = new String();
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					chars = chars + (String)valuesIterator.next();
+					/* increase the value counter */
+					
+				}
+				/* convert the string to char array */
+				char[] valueArray =chars.toCharArray(); 
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			/* if it is a integer type */
+			if(type.equals("Boolean")){
+				/* value array */
+				boolean[] valueArray = new boolean[values.size()];
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the string value */
+					String value = (String)valuesIterator.next();
+					/* assign the the value */
+					valueArray[valueCounter]= Boolean.valueOf(value).booleanValue(); 
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			
+			/* if it is a integer type */
+			if(type.equals("Short")){
+				/* value array */
+				short[] valueArray = new short[values.size()];
+			
+				/* array counter */
+				int valueCounter=0;
+				
+				while(valuesIterator.hasNext()){
+					/* assign the the value */
+					valueArray[valueCounter]= Short.parseShort((String)valuesIterator.next());
+					/* increase the value counter */
+					valueCounter++;
+				}
+				/* add the property */
+				properties.put(name,valueArray);
+			}
+			
+			
+		}
+		
+		
+		return mergeProperties(readPropertyFile(), properties);
+	}
+	
+	/**
+	 * this method overides values in one dictionary with values from
+	 * another dictionary.
+	 *  
+	 * @param overideTable the dictionary which overides other simular values 
+	 * @param mergeTable the dictionary to be modified
+	 * @return Dictionary a modified table
+	 */
+	public Dictionary mergeProperties(Dictionary overideTable,Dictionary mergeTable){
+		Enumeration enumeration = overideTable.keys();
+		
+		while(enumeration.hasMoreElements()){
+			/* get the key */
+			String key = (String)enumeration.nextElement();
+			/* add the value to the merge table */
+			mergeTable.put(key,overideTable.get(key));
+		}
+		
+		return mergeTable;
+	}
+	
+	/**
+	 * @return Returns the xmlFile.
+	 */
+	public String getXmlFile() {
+		return xmlFile;
+	}
+	
+	/**
+	 * @param xmlFile The xmlFile to set.
+	 */
+	public void setXmlFile(String xml) {
+		this.xmlFile = xml;
+	}
+	
+	private Dictionary readPropertyFile(){
+		Iterator propsIterator = propertiesInfo.iterator();
+		
+		Dictionary returnDictionary = new Hashtable();
+		while(propsIterator.hasNext()){
+			try {
+				/* get the information class */
+				ComponentPropertiesInfo propertyEntry = (ComponentPropertiesInfo)propsIterator.next();
+				/* get the string representing the file */
+				String propertyFile =propertyEntry.getEntry();
+				
+				System.out.println("****************** Reading property file:" + propertyFile +
+				" ********************");
+				
+				/* get the bundle location */
+				String bundleLocation = declaringBundle.getLocation();
+				/* get the formatted location */
+				String formattedLocation = bundleLocation.substring(5,
+						bundleLocation.length());
+
+				/* get the jar file use the formatted location */
+				JarFile jarFile = new JarFile(formattedLocation);
+				ZipEntry zipEntry = jarFile.getEntry(propertyFile);
+				
+				
+				Properties properties = new Properties();
+				properties.load(jarFile.getInputStream(zipEntry));
+				
+				Enumeration enumeration = properties.keys();
+				
+				while(enumeration.hasMoreElements()){
+					/* assign the key */
+					String key = (String)enumeration.nextElement();
+					/* put the key into the return dictonary element */
+					returnDictionary.put(key,properties.get(key));
+				}
+								
+			} catch (IOException e) {
+				System.err.println("error when reading property file:" + e);
+				e.printStackTrace();
+			} catch(Exception e){
+				System.err.println("error when reading property file:" + e);
+				e.printStackTrace();
+			}
+
+		}
+		
+		/* return the dictionary */
+		return returnDictionary;
+		
 	}
 }
