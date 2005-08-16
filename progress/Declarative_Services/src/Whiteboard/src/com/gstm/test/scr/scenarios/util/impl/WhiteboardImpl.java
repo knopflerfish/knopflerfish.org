@@ -24,7 +24,7 @@ public class WhiteboardImpl implements Whiteboard{
     private WhiteboardImpl() {
           // Exists only to defeat instantiation.
 	}
-    public WhiteboardImpl getInstance(){
+    public static Whiteboard getInstance(){
     	return INSTANCE;
     }
 	public void setValue(String key, Object value){

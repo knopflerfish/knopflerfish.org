@@ -2,6 +2,7 @@ Manifest-Version: 1.0
 Bundle-Name: Whiteboard
 Bundle-SymbolicName: com.gstm.test.scr.scenarios.util.Whiteboard
 Bundle-Version: 1.0
-Export-Package: com.gstm.test.scr.scenarios.util
+Export-Package: com.gstm.test.scr.scenarios.util,
+ com.gstm.test.scr.scenarios.util.impl
 
 
