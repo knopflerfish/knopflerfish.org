@@ -67,12 +67,21 @@ public class ComponentDeclaration {
 	}
 	
 	
-	public Object getClone() throws CloneNotSupportedException {
-		try{
-			return this.clone();
-		}catch(CloneNotSupportedException e){
-			throw e;
-		}
+	public Object getClone()  {
+		
+			ComponentDeclaration clone = new ComponentDeclaration();
+			clone.setAutoEnable(isAutoEnable());
+			clone.setComponentName(getComponentName());
+			clone.setDeclaraingBundle(getDeclaringBundle());
+			clone.setFactory(getFactory());
+			clone.setImplementation(getImplementation());
+			clone.setPropertiesInfo(getPropertiesInfo());
+			clone.setReferenceInfo(getReferenceInfo());
+			clone.setServiceFactory(isServiceFactory());
+			clone.setServiceInfo(getServiceInfo());
+			
+			return clone;
+		
 	}
 	
 	/**
