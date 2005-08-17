@@ -93,7 +93,6 @@ public class DeliverSession extends Thread {
 		{
         	/* if the get fails, a default value is to be used */
         	timeOut = defaultTimeout;
-        	System.out.println(e + "using the defaultTimeout");
 		}
     }
 
