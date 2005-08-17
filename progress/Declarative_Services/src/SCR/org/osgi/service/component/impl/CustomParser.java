@@ -80,7 +80,7 @@ public class CustomParser {
 		serviceCount = 0;
 	}
 
-	public ComponentDeclaration readXML(ZipEntry zipEntry,JarFile jarFile) {
+	public ComponentDeclaration readXML(ZipEntry zipEntry,JarFile jarFile) throws IllegalXMLException {
 
 			try {
 				/* check if null */
@@ -126,19 +126,17 @@ public class CustomParser {
 								"http://www.osgi.org/xmlns/scr/v1.0.0",
 								"component");
 					} catch (IllegalXMLException e){
-						System.out.println("IllegalXMLException:" + e); //TODO Replace with Exceptions
+						throw e;
 					} catch (Exception e) {
-						System.out.println("ParseException:" + e); //TODO Replace with Exceptions
+						throw new IllegalXMLException(e.getMessage(),e.getCause());
 					}
-//					System.out
-//							.println("\n**************************** END *********************************");
-					/* print everything that has been found in the xml */
+
 					printComponentConfiguration();
 				} else {}
 			} catch (IOException e) {
-				System.out.println("Error getting xml file" + e); //TODO Replace with Exceptions
+				throw new IllegalXMLException("Error getting xml file" + e,e.getCause());
 			} catch (Exception e) {
-				System.out.println("Error reading zipentry" + e); //TODO Replace with Exceptions
+				throw new IllegalXMLException("Error reading zipentry" + e,e.getCause());
 			}
 		
 		
