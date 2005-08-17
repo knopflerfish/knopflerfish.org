@@ -12,7 +12,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import com.gstm.test.scr.scenarios.scenario1.Scenario1;
-import com.gstm.test.scr.scenarios.util.Util;
 
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -130,10 +129,10 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
         			desiredBundles[0] = bundle;
         			System.out.println("Adding: Scenario1Bundle1");
         		}else if(name.equals("Scenario1Bundle2")){
-        			desiredBundles[0] = bundle;
+        			desiredBundles[1] = bundle;
         			System.out.println("Adding: Scenario1Bundle2");
         		} else if(name.equals("Scenario1Bundle3")){
-        			desiredBundles[0] = bundle;
+        			desiredBundles[2] = bundle;
         			System.out.println("Adding: Scenario1Bundle3");
         		}
         	}
@@ -144,7 +143,12 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
         	amoutOfServices = bundleContext.getServiceReferences(null, null).length;
         	System.out.println("The number of services currently avalible is: " + amoutOfServices);
         	System.out.println("Starting the old style bundles");
-        	desiredBundles[1].start();
+        	try{
+        		desiredBundles[1].start();
+        	}catch (Exception e){
+        		System.out.println("Couldn't start the bundle:" + e);
+        	}
+        	
         	desiredBundles[2].start();
         	System.out.println("Now the number of services is: " + bundleContext.getServiceReferences(null, null).length);
         	assertTrue("There wasn't 2 more services avalible", amoutOfServices+2 == bundleContext.getServiceReferences(null, null).length);
