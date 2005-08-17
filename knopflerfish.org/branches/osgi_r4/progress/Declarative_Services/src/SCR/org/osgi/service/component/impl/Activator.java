@@ -83,7 +83,6 @@ public class Activator implements BundleActivator{
 					activeComponents.add(componentDeclaration);
   				}
   				
-  				
   			}
   		}
   			
@@ -102,8 +101,11 @@ public class Activator implements BundleActivator{
   */
   public void stop(BundleContext context) throws Exception {
   	
+  	systemComponentRuntime.shutdown();
   	
+  	/* set the SCR to null  */
   	systemComponentRuntime=null;
+  	
   }
 
 

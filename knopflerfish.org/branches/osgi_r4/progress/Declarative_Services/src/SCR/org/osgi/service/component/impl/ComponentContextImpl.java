@@ -106,12 +106,19 @@ public class ComponentContextImpl implements ComponentContext{
 	 * @param name the name of the component
 	 */
 	public void disableComponent(String name) {
+		
 		try{
-			/* tell the SCR to disable the component */
-			systemComponentRuntime.disableComponent(name,requestBundle,false);
+			/* create new process which will stop the component */
+			StopProcess stopper = new StopProcess(name);
+			/* run the process */
+			stopper.run();
 		}catch(ComponentException e){
-			System.err.println(e);
+			/* print the error */
+			System.err.println("error then stopping component " + name
+					+" due to:" + e);
 		}
+		
+		
 	}
 
 	/**
@@ -178,8 +185,7 @@ public class ComponentContextImpl implements ComponentContext{
 	 * 
 	 */
 	public BundleContext getBundleContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return requestBundle.getBundleContext();
 	}
 
 	/**
@@ -193,6 +199,29 @@ public class ComponentContextImpl implements ComponentContext{
 	public Bundle getUsingBundle() {
 		return usingBundle;
 	}
-
+	
+	/**
+	 * This class will stop a specific component
+	 * 
+	 * @author Magnus Klack
+	 */
+	private class StopProcess extends Thread{
+		/** the component to be stopped */
+		private String componentName;
+		
+		public StopProcess(String name){
+			componentName=name;
+		}
+		
+		public void run(){
+			try{
+				/* tell the SCR to disable the component */
+			    systemComponentRuntime.disableComponent(componentName,requestBundle,false);
+			}catch(Exception e){
+				throw new ComponentException(e.getMessage(),e.getCause());
+			}
+		}
+		
+	}
 
 }
