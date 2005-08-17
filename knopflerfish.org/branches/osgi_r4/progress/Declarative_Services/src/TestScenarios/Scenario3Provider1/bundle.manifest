@@ -2,4 +2,9 @@ Manifest-Version: 1.0
 Bundle-Name: Scenario3Provider1
 Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario3
 Bundle-Version: 1.0
+Service-Component: OSGI-INF/Scenario3Provider1.xml
+Export-Package: com.gstm.test.scr.scenarios.scenario3.provider1,
+ com.gstm.test.scr.scenarios.scenario3.provider1.impl
+ 
 
+ 
