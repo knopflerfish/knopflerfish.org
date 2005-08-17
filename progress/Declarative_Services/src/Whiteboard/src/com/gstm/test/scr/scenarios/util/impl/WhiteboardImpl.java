@@ -15,17 +15,20 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
-import com.gstm.test.scr.scenarios.util.Whiteboard;
 
-public class WhiteboardImpl implements Whiteboard, BundleActivator{
+public class WhiteboardImpl implements BundleActivator{
 	 Dictionary d = new Hashtable();
 	 EventAdmin eventAdmin;
+	 int i = 0;
 
 	public static WhiteboardImpl INSTANCE;
 	
     private WhiteboardImpl(EventAdmin ea) {
     	eventAdmin = ea;
 	}
+    public WhiteboardImpl()
+    {
+    }
     
     public WhiteboardImpl getInstance(){
     	return INSTANCE;
@@ -33,9 +36,12 @@ public class WhiteboardImpl implements Whiteboard, BundleActivator{
     
 	public void setValue(String key, Object value){
 		Dictionary props = new Hashtable();
+		i++;
+		System.out.println("Whiteboard contains: " + i);
 		props.put(key, value);
 		d.put(key, value);
 		Event evt = new Event("com/gstm/test/scr/scenarios/util/Whiteboard", props);
+		eventAdmin.postEvent(evt);
 	}
 	
 	public Object getValue(String key){
