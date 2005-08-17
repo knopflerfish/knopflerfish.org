@@ -18,7 +18,7 @@
     </property>
     <property name="BooleanProperty" value="true" type="Boolean">
     </property>
-    <property name="ChortProperty" value="100" type="Chort">
+    <property name="ShortProperty" value="100" type="Short">
     </property>
     <properties entry="com/gstm/testSCR/scenarios/scenario11a/properties/prop1.properties" />
     <properties entry="com/gstm/testSCR/scenarios/scenario11a/properties/prop2.properties" />
