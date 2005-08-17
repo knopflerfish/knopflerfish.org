@@ -44,8 +44,16 @@ import org.osgi.service.component.ComponentInstance;
 /**
  * This class is the implementation of the declarative service feature. It will
  * locate and bind diffrent types of declared components on demand. It will also
- * listen to BundleEvents rasied within the framework and
+ * listen to BundleEvents rasied within the framework and act after that. 
+ * It is right now very hard to get information from the declaration class
+ * and that demands, in many cases, nestle loops, for or while statements.
+ * The class uses a ComponentDeclarations, BundleContexts, CustomParsers to
+ * fulfill its responsibility. It keeps active components in a vector and
+ * inactive components in another vector. 
+ * 
+ * @author Magnus Klack
  */
+
 public class SystemComponentRuntimeImpl implements BundleListener,
 		ServiceListener {
 	/** variable holding the bundlecontext */
@@ -57,15 +65,20 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	/** variable counting components */
 	private long componentCounter = 0;
 
-	/** variable holdein the storage object */
-	private ComponentStorage storage;
-
 	/** variable holding active components */
 	private Vector activeComponents = new Vector();
 
 	/** variable holding inactive components */
 	private Vector inactiveComponents = new Vector();
-
+	
+	/**
+	 * Constructor for the SCR assigns local variable and 
+	 * if there are already active declarative bundles within 
+	 * the framework an evaluation of them.
+	 *  
+	 * @param context the bundle context 
+	 * @param alreadyActive an array with already active components
+	 */
 	public SystemComponentRuntimeImpl(BundleContext context,
 			Vector alreadyActive) {
 		/* assign the bundlecontext */
@@ -82,10 +95,36 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}
-
+	
+	/**
+	 * this method will be called when SCR is shutting down
+	 * it will dispose all active components handled by the
+	 * SCR and return to the caller method
+	 */
+	public void shutdown(){
+		
+		/* go through all active components */
+		for(int i=0;i<activeComponents.size();i++){
+			/* get the component */			
+			DeclarativeComponent component = (DeclarativeComponent)
+												activeComponents.get(i);
+			/* disable the component */
+			disableComponent(component.getComponentDeclaration().getComponentName(),
+					component.getComponentDeclaration().getDeclaringBundle(),
+					true);
+			
+			/* decrease one element is removed */
+			i--;
+		}
+	
+	}
+	
 	/**
 	 * this method listens for service changes it will check the type of the
-	 * event and perform correct actions depending on the event.
+	 * event and perform correct actions depending on the event. More explanations
+	 * are attatched within the method. 
+	 * 
+	 * @param event
 	 */
 	public synchronized void serviceChanged(ServiceEvent event) {
 		/* check if a new service is registered */
@@ -1166,6 +1205,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * a stop event then the method will check if the bundle has declarative
 	 * components and if they are activated. If that is the case the
 	 * configurations will be disabled and unregistered from the framework.
+	 * 
+	 * @param event the event from the framework
 	 */
 	public synchronized void bundleChanged(BundleEvent event) {
 
@@ -1403,6 +1444,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	public void disposeComponent(Object componentObject)
 			throws ComponentException {
+		
 		/* go through all active components */
 		for (int i = 0; i < activeComponents.size(); i++) {
 			/* get the component */
@@ -1572,9 +1614,9 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	}
 
 	/**
-	 * this method will disable a component or components after a given name it
+	 * this method will disable a component or components after a given name. It
 	 * will ensure that the component is in the same bundle as the bundle
-	 * calling the method. The method cannot just only check if its a
+	 * calling this method. The method cannot just only check if its a
 	 * DeclarativeComponent type. It has to check the implementation of the
 	 * DeclarativeComponent because it will perfom diffrent actions depending on
 	 * the implementation that is to be disabled.
@@ -2094,7 +2136,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	/**
 	 * this method will enable component(s) with a given name it will also
 	 * ensure that the component is in the same bundle as the requesting
-	 * component is.
+	 * component is before it will enable it.
 	 * 
 	 * @param componentName
 	 *            the name of the component(s) to be enabled null enables all in
@@ -2642,7 +2684,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	/**
 	 * this method checks if a ComponentDeclaration is satisfied or not. It will
-	 * check that all references/dependencies are available.
+	 * check that all references/dependencies are available. If they are a
+	 * true will be returned other wise false.
 	 * 
 	 * @param componentDeclaration
 	 * @return true if satisfies false otherwise
@@ -2695,7 +2738,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		return isSatisfied;
 	}
-
+	
+	/**
+	 * this method registers a component factory into the 
+	 * framework. A component factory is responsible for
+	 * creating new components on demand.
+	 * 
+	 * @param componentDeclaration the component declaration for the component
+	 * @return CustomComponentFactory the factory which has been created
+	 * @throws ComponentException if fails to register a component factory
+	 */
 	private CustomComponentFactory registerComponentFactory(
 			ComponentDeclaration componentDeclaration)
 			throws ComponentException {
@@ -2743,6 +2795,15 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	}
 
+	/**
+	 * this method registers a CustomComponentServiceFactory into the framework
+	 * the service factory will always create new instances on demand. 
+	 * 
+	 * @param interfaceNames a string array with interfaces for this services
+	 * @param componentDeclaration the component declaration for this component
+	 * @return CustomComponentServiceFactory the service factory object
+	 * @throws ComponentException if fails to register 
+	 */
 	private CustomComponentServiceFactory registerComponentServiceFactory(
 			String[] interfaceNames, ComponentDeclaration componentDeclaration)
 			throws ComponentException {
@@ -2782,7 +2843,17 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}
-
+	
+	/**
+	 * this method registers a delayed component into the framework
+	 * delayed components declares service(s) and instances will be
+	 * created on demand.
+	 * 
+	 * @param interfaceNames an array with interfaces for this component
+	 * @param componentDeclaration the component declaration for this component
+	 * @return CustomDelayedService if managed to register else null
+	 * @throws ComponentException if fails to register the services declared
+	 */
 	private CustomDelayedService registerDelayedComponent(
 			String[] interfaceNames, ComponentDeclaration componentDeclaration)
 			throws ComponentException {
@@ -2825,18 +2896,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	}
 
 	/**
-	 * This method creates a ComponentContext containing a component instance.
+	 * this method creates a componentContext with all features within
 	 * 
-	 * @param componentDeclaration
-	 *            the ComponentDeclaration object
-	 * @param componentID
-	 *            the component id
-	 * @param reference
-	 *            the service reference
-	 * @param properties
-	 *            the properties
-	 * 
-	 * @return ComponentContext Object if succeed
+	 * @param componentDeclaration the componentDeclaration
+	 * @param componentID the Components ID
+	 * @param registration the Registration object if any 
+	 * @param properties the properties for this component
+	 * @param usingBundle the bundle using the service the component offers
+	 * @param requestBundle the bundle requesting the service
+	 * @return ComponentContext if creation succeeded else null
+	 * @throws ComponentException if fails to create a context
 	 */
 	private ComponentContext createComponentContext(
 			ComponentDeclaration componentDeclaration, long componentID,
@@ -2885,12 +2954,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	/**
 	 * This method will track the dependencies and give them to the declarative
 	 * service which this class controlls. Dependencies are kept in the class
-	 * ComponentReferenceInfo.
+	 * ComponentReferenceInfo.The method can be used for unbind as well as bind 
+	 * actions.
 	 * 
 	 * @param componentDeclaration
 	 *            the component declaration
 	 * @param componentInstance
 	 *            the componentInstance
+	 * @param bind if its a bind action or not
 	 * 
 	 * @author Magnus Klack
 	 */
