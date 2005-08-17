@@ -128,7 +128,7 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
             bundleContext = context;
         }
         
-        public synchronized void runTest() throws Throwable {
+        public void runTest() throws Throwable {
         	/* create the hashtable to put properties in */
             Hashtable props = new Hashtable();
             /* put service.pid property in hashtable */
