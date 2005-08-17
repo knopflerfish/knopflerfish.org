@@ -15,8 +15,22 @@ package org.osgi.service.component.impl;
 public class IllegalXMLException extends Exception {
 
 	String error;
+	Throwable cause;
 	
-	IllegalXMLException(String error){
+	public IllegalXMLException(String e){
 		this.error = error;
+	}
+	
+	public IllegalXMLException(String error, Throwable cause){
+		this.error = error;
+		this.cause=cause;
+	}
+	
+	public Throwable getCause(){
+		return cause;
+	}
+	
+	public String getMessage(){
+		return error;
 	}
 }
