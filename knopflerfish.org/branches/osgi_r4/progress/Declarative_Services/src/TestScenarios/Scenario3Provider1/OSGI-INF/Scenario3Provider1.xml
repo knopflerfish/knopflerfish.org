@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component name="com.gstm.test.scr.scenarios.scenario3.provider1.Provider1" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <property name="message" value="1" type="String">
-    </property>
     <implementation class="com.gstm.test.scr.scenarios.scenario3.provider1.impl.Provider1Impl" />
     <service>
         <provide interface="com.gstm.test.scr.scenarios.scenario3.provider1.Provider1" />
