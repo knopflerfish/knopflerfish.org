@@ -22,19 +22,22 @@ public class WhiteboardImpl implements Whiteboard, BundleActivator{
 	 EventAdmin eventAdmin;
 
 	public static WhiteboardImpl INSTANCE;
+	
     private WhiteboardImpl(EventAdmin ea) {
     	eventAdmin = ea;
-    
 	}
+    
     public WhiteboardImpl getInstance(){
     	return INSTANCE;
     }
+    
 	public void setValue(String key, Object value){
 		Dictionary props = new Hashtable();
 		props.put(key, value);
 		d.put(key, value);
 		Event evt = new Event("com/gstm/test/scr/scenarios/util/Whiteboard", props);
 	}
+	
 	public Object getValue(String key){
 		return d.get(key);// can this generate an exception?
 	}
