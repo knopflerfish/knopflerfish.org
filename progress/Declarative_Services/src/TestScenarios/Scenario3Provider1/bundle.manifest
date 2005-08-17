@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario3Provider1
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario3
+Bundle-Version: 1.0
+

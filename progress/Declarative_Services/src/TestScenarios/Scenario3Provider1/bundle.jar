@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundlejar>
+<resource src="/Scenario3Provider1/out" dst="" pattern=".*\.class"/>
+<resource src="/Scenario3Provider1/OSGI-INF/Scenario3Provider1.xml" dst="OSGI-INF/Scenario3Provider1.xml"/>
+</bundlejar>
