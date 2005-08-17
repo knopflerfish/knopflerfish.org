@@ -3,7 +3,8 @@ Bundle-Name: ScenariosSCR
 Bundle-Activator: com.gstm.test.scr.scenarios.Activator
 Bundle-SymbolicName: com.gstm.test.scr.scenarios
 Bundle-Version: 1.0
-Export-Package: com.gstm.test.scr.scenarios.scenario1
+Export-Package: com.gstm.test.scr.scenarios.scenario1,
+ com.gstm.test.scr.scenarios.scenario3
 Import-Package: junit.framework,
  org.knopflerfish.service.demo1,
  org.knopflerfish.service.log
