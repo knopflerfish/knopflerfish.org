@@ -201,7 +201,9 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 										 */
 										evaluateComponentDeclaration(
 												componentDeclaration, false);
-
+										
+										inactiveComponents.remove(componentDeclaration);
+										j--;
 									} catch (ComponentException e) {
 										/* print the error */
 										System.out.println(e);
