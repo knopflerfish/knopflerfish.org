@@ -1,7 +1,9 @@
 Manifest-Version: 1.0
+Bundle-Name: MyValueLocate
 Bundle-SymbolicName: com.isv.process.myvalue.impl.MyValueLocate
 Bundle-Version: 1.0
-Bundle-UpdateLocation: MyValueLocate
-Bundle-Name: MyValueLocate
+Export-Package: org.osgi.service.component,
+ com.isv.process.myvalue,
+ com.isv.process.myvalue.impl
+DynamicImport-Package: *
 Service-Component: OSGI-INF/myvaluelocate.xml
-
