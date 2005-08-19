@@ -3,5 +3,6 @@ Bundle-Name: CustomerInfo
 Bundle-SymbolicName: com.isv.service.impl.CustomerInfoImpl
 Bundle-Version: 1.0
 Export-Package: com.isv.service.customerinfo,
- com.isv.service.customerinfo.impl
+ com.isv.service.customerinfo.impl,
+ org.osgi.service.component
 Service-Component: OSGI-INF/customerinfo.xml

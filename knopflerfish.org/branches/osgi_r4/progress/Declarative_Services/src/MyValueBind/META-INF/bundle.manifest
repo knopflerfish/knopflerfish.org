@@ -4,7 +4,5 @@ Bundle-SymbolicName: com.isv.process.myvalue.impl.MyValueBindImpl
 Bundle-Version: 1.0
 Service-Component: OSGI-INF/myvaluebind.xml
 Export-Package: com.isv.process.myvalue,
- com.isv.process.myvalue.impl,
- com.isv.service.customerinfo,
- com.isv.service.stockquote
-
+ com.isv.process.myvalue.impl
+DynamicImport-Package: *

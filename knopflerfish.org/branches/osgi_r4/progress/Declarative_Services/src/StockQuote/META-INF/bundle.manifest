@@ -2,6 +2,8 @@ Manifest-Version: 1.0
 Bundle-Name: StockQuote
 Bundle-SymbolicName: com.isv.service.impl.StockQuoteImpl
 Bundle-Version: 1.0
+Service-Component: OSGI-INF/stockquote.xml
 Export-Package: com.isv.service.stockquote,
  com.isv.service.stockquote.impl
-Service-Component: OSGI-INF/stockquote.xml
+DynamicImport-Package: *
+
