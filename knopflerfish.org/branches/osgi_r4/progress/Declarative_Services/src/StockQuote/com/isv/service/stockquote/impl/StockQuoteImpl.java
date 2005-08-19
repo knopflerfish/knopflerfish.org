@@ -25,7 +25,7 @@ public class StockQuoteImpl implements StockQuote {
 	 */
 	public float getQuote(String symbol) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 1000;
 	}
 
 }
