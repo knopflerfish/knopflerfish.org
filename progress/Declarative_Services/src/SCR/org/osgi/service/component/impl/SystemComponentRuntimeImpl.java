@@ -154,9 +154,12 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						 * go through all inactive components to se if any of
 						 * them has a reference to this service
 						 */
-						for (int j = 0; j < inactiveComponents.size(); j++) {
+						
+						Vector copyOfInactiveComponents = (Vector)inactiveComponents.clone();
+						
+						for (int j = 0; j < copyOfInactiveComponents.size(); j++) {
 							/* get the componentDeclaration */
-							ComponentDeclaration componentDeclaration = (ComponentDeclaration) inactiveComponents
+							ComponentDeclaration componentDeclaration = (ComponentDeclaration) copyOfInactiveComponents
 									.get(j);
 
 							/* get the components references */
@@ -199,11 +202,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 										 * therefore no concerns about the
 										 * filter is taken here.
 										 */
+										//copyOfInactiveComponents.remove(componentDeclaration);
+										
 										evaluateComponentDeclaration(
 												componentDeclaration, false);
 										
-										inactiveComponents.remove(componentDeclaration);
-										j--;
+										
+										//j--;
 									} catch (ComponentException e) {
 										/* print the error */
 										System.out.println(e);
@@ -2421,6 +2426,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						CustomComponentFactory componentFactory = registerComponentFactory(componentDeclaration);
 						/* add the factory to the vector */
 						activeComponents.add(componentFactory);
+						
+						if(inactiveComponents.contains(componentDeclaration)){
+							inactiveComponents.remove(componentDeclaration);
+						}
 
 					} catch (ComponentException e) {
 						throw e;
@@ -2517,6 +2526,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								 * active components
 								 */
 								activeComponents.add(serviceComponent);
+								
+								if(inactiveComponents.contains(componentDeclaration)){
+									inactiveComponents.remove(componentDeclaration);
+								}
 
 							} catch (ComponentException e) {
 								/* just throw the error */
@@ -2540,6 +2553,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								 * active components
 								 */
 								activeComponents.add(delayedComponent);
+								
+								if(inactiveComponents.contains(componentDeclaration)){
+									inactiveComponents.remove(componentDeclaration);
+								}
 
 							} catch (ComponentException e) {
 								e.printStackTrace();
@@ -2557,6 +2574,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						/* this is an immediate component */
 						activeComponents.add(new ImmediateComponent(
 								componentDeclaration));
+						
+						if(inactiveComponents.contains(componentDeclaration)){
+							inactiveComponents.remove(componentDeclaration);
+						}
 
 					}
 
