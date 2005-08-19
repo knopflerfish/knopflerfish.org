@@ -17,6 +17,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import com.isv.process.myvalue.MyValueBind;
+import com.isv.process.myvalue.MyValueLocate;
 
 /** 
  * This class wil start a dummy client used 
@@ -29,12 +30,51 @@ public class MyValueClient implements BundleActivator{
 	 * Start the bundle 
 	 */
 	public void start(BundleContext context) throws Exception {
+		
+		
 		ServiceReference reference = context.getServiceReference("com.isv.process.myvalue.MyValueBind");
+		//System.out.println("THE REFERENCE IS:" + reference);
 		
-		MyValueBind myValue = (MyValueBind) context.getService(reference);
+		
+		if(reference!=null){
+			MyValueBind myValue = (MyValueBind) context.getService(reference);
+			
+			if(myValue!=null){
+				System.out.println("***************** My value is:" +myValue.getMyValue("WhatEver") +" ******************");
+			}else{
+				System.err.println("error getting myvalue service");
+			}
+		}
+		
+//		
+//		MyValueLocate myValue = (MyValueLocate) context.getService(reference);
+//		 	//System.out.println("THE INSTANCE IS:" + myValue);
+//		
+//			if(myValue!=null){
+//				System.out.println("***************** My value is:" +myValue.getMyValue("WhatEver") +" ******************");
+//			}else{
+//				System.err.println("error getting myvalue service");
+//			}
+//		}else{
+//			reference = context.getServiceReference("com.isv.process.myvalue.MyValueBind");
+//			
+//			if(reference!=null){
+//				MyValueBind myValue = (MyValueBind) context.getService(reference);
+//				
+//				if(myValue!=null){
+//					System.out.println("***************** My value is:" +myValue.getMyValue("WhatEver") +" ******************");
+//				}else{
+//					System.err.println("error getting myvalue service");
+//				}
+//				
+//			}else{
+//				System.err.println("error getting myvalue service");
+//			}
+//			
+//		}
 		
 		
-		System.out.println("***************** My value is:" +myValue.getMyValue("WhatEver") +" ******************");
+		
 		
 	}
 

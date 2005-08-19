@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-	<scr:component name="com.isv.service.customerinfo.CustomerInfo"
-		xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+	<scr:component name="com.isv.service.customerinfo.CustomerInfo" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
 		<implementation class="com.isv.service.customerinfo.impl.CustomerInfoImpl"/>
 		<service>
 			<provide interface="com.isv.service.customerinfo.CustomerInfo"/>

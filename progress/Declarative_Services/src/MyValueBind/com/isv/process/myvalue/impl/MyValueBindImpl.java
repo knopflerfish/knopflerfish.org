@@ -3,7 +3,6 @@ import com.isv.process.myvalue.MyValueBind;
 import com.isv.process.myvalue.MyValueException;
 import com.isv.service.customerinfo.Customer;
 import com.isv.service.customerinfo.CustomerInfo;
-import com.isv.service.customerinfo.impl.CustomerInfoImpl;
 import com.isv.service.stockquote.StockQuote;
 
 /**
@@ -20,6 +19,9 @@ public class MyValueBindImpl implements MyValueBind {
     
     	protected void bindCustomerInfo(CustomerInfo cInfo) { 
     		System.out.println("********************* bindCustomerInfo is Invoked ***********************");
+    		if(cInfo==null){
+    			System.err.println("Error Customer info is null");
+    		}
     		this.cInfo = cInfo; 
     	} 
 
