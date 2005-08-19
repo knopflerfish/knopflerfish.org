@@ -35,56 +35,24 @@ import com.gstm.test.scr.scenarios.util.impl.WhiteboardImpl;
  */
 public class UserEventImpl {
 	private Provider1 provider = null;
+	WhiteboardImpl board = WhiteboardImpl.INSTANCE;
 	
 	public UserEventImpl(){
-		new ValueGetter();
+
 	}
 	
 	/* bind the service reference*/
 	protected void bindProvider1(Provider1 provider){
 		this.provider = provider;
+		System.out.println("||||||||||||||||The binding has been executed||||||||||||||||");
+		int serviceValue = provider.getValue();
+		System.out.println("UserEventImpl - The provider has returned the value: " + serviceValue);
+		board.setValue("com.gstm.test.scr.scenarios.scenario3.userevent.impl.UserEventImpl", new Integer(serviceValue));
 	}
 	
 	/* unbind the service reference*/
 	protected void unbindProvider1(Provider1 provider){
 		this.provider = null;
-	}
-	
-	/* returns the provider instance */
-	private Provider1 getProvider(){
-		return provider;
-	}
-	
-	/* A class used to accuire the value in the service when the service has been bound */
-	class ValueGetter extends Thread{
-		Provider1 provider;
-		
-		/* Shared Dictonary, store events */
-		WhiteboardImpl board = WhiteboardImpl.INSTANCE;
-		//Whiteboard board = WhiteboardImpl.getInstance();
-		
-		boolean searchingProvider = true; 
-		
-		ValueGetter(){
-			while(searchingProvider){
-				provider = getProvider();
-		
-				if(provider == null){
-					/* no service bound waiting a litle */
-				} else {
-					int serviceValue = provider.getValue();
-					System.out.println("UserEventImpl - The provider has returned the value: " + serviceValue);
-					board.setValue("com.gstm.test.scr.scenarios.scenario3.UserEventImpl", new Integer(serviceValue));
-					searchingProvider = false;
-				}
-				
-				/* Let the service get avalible */
-				try {
-					wait(40);
-				} catch (Exception e) {
-					System.out.println("Couldn't wait:" + e);
-				}
-			}
-		}
+		System.out.println("The unbinding has been executed");
 	}
 }
