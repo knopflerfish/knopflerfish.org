@@ -14,10 +14,14 @@
 
 package com.isv.process.myvalue.impl; 
 
+
+import java.util.Dictionary;
+import java.util.Enumeration;
+
 import org.osgi.service.component.ComponentContext; 
 import com.isv.process.myvalue.*; 
 import com.isv.service.stockquote.*; 
-import com.isv.service.customerinfo.*; 
+import com.isv.service.customerinfo.*;
 
 public class MyValueLocateImpl implements MyValueLocate { 
     private ComponentContext context; 
@@ -26,6 +30,22 @@ public class MyValueLocateImpl implements MyValueLocate {
     protected void activate(ComponentContext context) { 
 	// prepare to be useable as a service 
 	this.context = context; 
+	
+	System.out.println("\nMyValueLocate was activated:");
+	Dictionary properties = context.getProperties();
+	Enumeration keys = properties.keys();
+	
+	for(;keys.hasMoreElements();){
+		String key=(String)keys.nextElement();
+		System.out.println(key +":" + properties.get(key));
+	}
+	
+	
+	System.out.println("\n");
+	
+	
+	
+	
     } 
 
     public float getMyValue(String customerID) throws MyValueException {
@@ -48,6 +68,7 @@ public class MyValueLocateImpl implements MyValueLocate {
 	    // throw 
 	    throw new MyValueException(customer.getErrorMsg()); 
 	} 
+	
 	// reply 
 	return value; 
     } 
