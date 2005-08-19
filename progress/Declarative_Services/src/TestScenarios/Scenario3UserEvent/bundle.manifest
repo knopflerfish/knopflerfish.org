@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: Scenario3UserEvent
-Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario3
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario3.userevent
 Bundle-Version: 1.0
 Import-Package: com.gstm.test.scr.scenarios.util.impl,
  com.gstm.test.scr.scenarios.scenario3.provider1

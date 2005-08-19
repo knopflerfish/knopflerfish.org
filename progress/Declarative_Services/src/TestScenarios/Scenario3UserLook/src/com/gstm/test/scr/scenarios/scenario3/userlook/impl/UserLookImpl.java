@@ -19,52 +19,24 @@ import com.gstm.test.scr.scenarios.util.impl.WhiteboardImpl;
  */
 public class UserLookImpl {
     private ComponentContext context; 
+    WhiteboardImpl board = WhiteboardImpl.INSTANCE;
+    Provider1 provider = null;
     
     // component activator 
-    protected void activate(ComponentContext context) { 
-		this.context = context; 
+    public void activate(ComponentContext context) { 
+    	System.out.println("||||||||||||||||The activate has been executed||||||||||||||||");
+    	this.context = context;
+		
+		provider = (Provider1) context.locateService("message");
+		System.out.println("Provider:" + provider);
+		if(provider!=null){
+			int serviceValue = provider.getValue();
+			System.out.println("UserLookImpl - The provider has returned the value: " + serviceValue);
+			board.setValue("com.gstm.test.scr.scenarios.scenario3.userlook.impl.UserLookImpl", new Integer(serviceValue));
+		}
     }
     
     public UserLookImpl(){
-    	new ValueGetter();
+
     }
-    
-    private ComponentContext getContext(){
-    	return context;
-    }
-	
-    /* A class used to accuire the value in the service when the service has been bound */
-	class ValueGetter extends Thread{
-		ComponentContext context;
-		
-		/* Shared Dictonary, store events */
-		WhiteboardImpl board = WhiteboardImpl.INSTANCE;
-		//Whiteboard board = WhiteboardImpl.getInstance();
-		
-		boolean searchingProvider = true; 
-		
-		ValueGetter(){
-			while(searchingProvider){
-				context = getContext();
-		
-				if(context == null){
-					/* no service bound waiting a litle */
-				} else {
-					Provider1 provider = (Provider1) context.locateService("message");
-					
-					int serviceValue = provider.getValue();
-					System.out.println("UserLookImpl - The provider has returned the value: " + serviceValue);
-					board.setValue("com.gstm.test.scr.scenarios.scenario3.UserLookImpl", new Integer(serviceValue));
-					searchingProvider = false;
-				}
-				
-				/* Let the service get avalible */
-				try {
-					wait(40);
-				} catch (Exception e) {
-					System.out.println("Couldn't wait:" + e);
-				}
-			}
-		}
-	}
 }

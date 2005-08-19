@@ -1,10 +1,8 @@
 Manifest-Version: 1.0
 Bundle-Name: Scenario3UserLook
-Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario3
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario3.userlook
 Bundle-Version: 1.0
-Import-Package: com.gstm.test.scr.scenarios.util.impl,
- com.gstm.test.scr.scenarios.scenario3.provider1
-Export-Package: com.gstm.test.scr.scenarios.scenario3.userlook.impl
+DynamicImport-Package: *
+Export-Package: org.osgi.service.component,
+ com.gstm.test.scr.scenarios.scenario3.userlook.impl
 Service-Component: OSGI-INF/Scenario3UserLook.xml
-
-
