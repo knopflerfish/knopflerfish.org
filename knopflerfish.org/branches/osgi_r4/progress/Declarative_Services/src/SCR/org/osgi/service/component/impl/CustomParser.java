@@ -21,6 +21,7 @@ import java.util.zip.ZipEntry;
 
 import org.osgi.framework.BundleEvent;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 /**
@@ -30,7 +31,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
  * 
  * <!-- Required, Allways at least one attribute --> 
  * <scr:component name="component name"
- * 		autoenable="boolean" 
+ * 		enabled="boolean" 
  * 		factory="component.factory property value"
  * 		xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
  * 
@@ -82,6 +83,8 @@ public class CustomParser {
 
 	public ComponentDeclaration readXML(ZipEntry zipEntry,JarFile jarFile) throws IllegalXMLException {
 
+	boolean foundImplementation = false;
+		
 			try {
 				/* check if null */
 				if (zipEntry != null) {
@@ -110,6 +113,7 @@ public class CustomParser {
 //									+ parser.getName());
 							if (parser.getName().equals("implementation")) {
 								setImplementationInfo(parser);
+								foundImplementation = true;
 							} else if (parser.getName().equals("property")) {
 								setPropertyInfo(parser);
 							} else if (parser.getName().equals("properties")) {
@@ -126,11 +130,17 @@ public class CustomParser {
 								"http://www.osgi.org/xmlns/scr/v1.0.0",
 								"component");
 					} catch (IllegalXMLException e){
-						throw e;
+						System.out.println("An Exception was thrown:" + e);
+						//throw e;
 					} catch (Exception e) {
 						throw new IllegalXMLException(e.getMessage(),e.getCause());
 					}
 
+					/*Check that required tags has been found */
+					if(foundImplementation == false){
+						throw new IllegalXMLException("No Implementations tag found:");
+					}
+					
 					printComponentConfiguration();
 				} else {}
 			} catch (IOException e) {
@@ -167,7 +177,6 @@ public class CustomParser {
 		/* test print */
 //		System.out.println("*-*-*-*-*-* Parsing Property *-*-*-*-*-*");
 
-		try {
 			for (int i = 0; i < parser.getAttributeCount(); i++) {
 				if (parser.getAttributeName(i).equals("name")) {
 					if (parser.getAttributeValue(i) == null) {
@@ -212,9 +221,6 @@ public class CustomParser {
 							+ parser.getAttributeName(i));
 				}
 			}
-		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
-		}
 		
 		/*
 		 * need to do this because: 1: If no value was found in the attribute,
@@ -233,11 +239,14 @@ public class CustomParser {
 //							+ values[i]);
 				}
 			} else {
-//				/* test print */
-//				System.out.println("Not adding " + parser.nextText());
+				parser.nextText();
+				/* test print */
+//				System.out.println("Not adding ");
 			}
-		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag2:" + e); //TODO Replace with Exceptions
+		} catch (XmlPullParserException e) {
+			System.out.println("Error Parsing property tag:" + e);
+		} catch (IOException ioe){
+			System.out.println("Error Parsing property tag:" + ioe);
 		}
 
 		/* Setting default values if no other has been sett*/
@@ -294,7 +303,6 @@ public class CustomParser {
 		/* If there is an attribute in the service tag */
 		if (parser.getAttributeCount() > 0) {
 //			System.out.println("There is an attribute in the service tag");
-			try {
 				for (int i = 0; i < parser.getAttributeCount(); i++) {
 					if (parser.getAttributeName(i).equals("servicefactory")) {
 						if(compConf.getFactory() == null){
@@ -325,9 +333,6 @@ public class CustomParser {
 										+ parser.getAttributeName(i));
 					}
 				}
-			} catch (Exception e) {
-				System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
-			}
 			
 			/* Set default value */
 			if(servicefactoryFound == false){
@@ -365,8 +370,13 @@ public class CustomParser {
 				parser.require(XmlPullParser.END_TAG, null, name);
 			}
 			parser.require(XmlPullParser.END_TAG, null, "service");
-		} catch (Exception e) {
-			System.out.println("Error Parsing Service:" + e); //TODO Replace with Exceptions
+		} catch (XmlPullParserException e) {
+			System.out.println("Error Parsing service tag:" + e);
+		} catch (IOException ioe){
+			System.out.println("Error Parsing service tag:" + ioe);
+		} catch (IllegalXMLException xe){
+			System.out.println("Error Parsing service tag:" + xe);
+			throw new IllegalXMLException("Error getting xml file" + xe, xe.getCause());
 		}
 
 		/* check if required attributes has been set */
@@ -410,7 +420,7 @@ public class CustomParser {
 //						System.out.println("Adding the name attribute:"
 //								+ parser.getAttributeValue(i));
 					}
-				} else if (parser.getAttributeName(i).equals("enable")) {
+				} else if (parser.getAttributeName(i).equals("enabled")) {
 					if (parser.getAttributeValue(i) == null) {
 						/* optional attribute */
 					} else {
@@ -440,8 +450,13 @@ public class CustomParser {
 				}
 			}
 			parser.next();
-		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
+		} catch (XmlPullParserException e) {
+			System.out.println("Error Parsing component tag:" + e);
+		} catch (IOException ioe){
+			System.out.println("Error Parsing component tag:" + ioe);
+		} catch (IllegalXMLException xe){
+			System.out.println("Error Parsing component tag:" + xe);
+			throw new IllegalXMLException("Error getting xml file" + xe, xe.getCause());
 		}
 		
 		/* Setting default value if no other value was set*/
@@ -492,8 +507,13 @@ public class CustomParser {
 				}
 			}
 			parser.next();
-		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
+		} catch (XmlPullParserException e) {
+			System.out.println("Error Parsing properties tag:" + e);
+		} catch (IOException ioe){
+			System.out.println("Error Parsing properties tag:" + ioe);
+		} catch (IllegalXMLException xe){
+			System.out.println("Error Parsing properties tag:" + xe);
+			throw new IllegalXMLException("Error getting xml file" + xe, xe.getCause());
 		}
 
 		/* check if required attributes has been set */
@@ -548,8 +568,13 @@ public class CustomParser {
 					}
 				}
 				parser.next();
-			} catch (Exception e) {
-				System.out.println("Error Parsing implementation tag:" + e); //TODO Replace with Exceptions
+			} catch (XmlPullParserException e) {
+				System.out.println("Error Parsing implementation tag:" + e);
+			} catch (IOException ioe){
+				System.out.println("Error Parsing implementation tag:" + ioe);
+			} catch (IllegalXMLException xe){
+				System.out.println("Error Parsing implementation tag:" + xe);
+				throw new IllegalXMLException("Error getting xml file" + xe, xe.getCause());
 			}
 		} else {
 			throw new IllegalXMLException("Only one implementation tag allowed");
@@ -700,8 +725,13 @@ public class CustomParser {
 				}
 			}
 			parser.next();
-		} catch (Exception e) {
-			System.out.println("Error Parsing reference tag:" + e); //TODO Replace with Exceptions
+		} catch (XmlPullParserException e) {
+			System.out.println("Error Parsing reference tag:" + e);
+		} catch (IOException ioe){
+			System.out.println("Error Parsing reference tag:" + ioe);
+		} catch (IllegalXMLException xe){
+			System.out.println("Error Parsing reference tag:" + xe);
+			throw new IllegalXMLException("Error getting xml file" + xe, xe.getCause());
 		}
 		
 		/* Setting default values if no other has been sett*/
@@ -768,7 +798,7 @@ public class CustomParser {
 		/* <implementation> */
 		System.out
 				.println("------------Everything in the <implementation> tag------------");
-		System.out.println("Class:" + compConf.getClass());
+		System.out.println("Class:" + compConf.getImplementation());
 	}
 
 	/* Test function that prints a part of a component */
