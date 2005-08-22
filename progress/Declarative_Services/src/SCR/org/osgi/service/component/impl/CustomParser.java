@@ -167,7 +167,6 @@ public class CustomParser {
 			throws IllegalXMLException {
 		/* Required attributes in the component tag*/
 		boolean nameFound = false;
-		boolean typeFound = false;
 		
 		/* Supported types in the type attribute*/
 		String[] supportedTypes = {"String", "Long", "Double", "Float", "Integer", "Byte", "Char", "Boolean", "Short"};
@@ -209,7 +208,6 @@ public class CustomParser {
 							/* If the found attribute value equals one of the supported types*/
 							if(parser.getAttributeValue(i).toLowerCase().equals(supportedTypes[j].toLowerCase())){
 								compProp.setType(supportedTypes[j]);
-								typeFound = true;
 								/* test print */
 //								System.out.println("Adding the type attribute:"
 //										+ parser.getAttributeValue(i));
@@ -257,11 +255,6 @@ public class CustomParser {
 		/* check if required attributes has been set */
 		if(nameFound == false){
 			throw new IllegalXMLException("A required attribute in the tag:property was not pressent");
-		}
-
-		/* check if required type has been set */
-		if( typeFound == false){
-			throw new IllegalXMLException("A illegal type in the attribute:type in the tag:property");
 		}
 		
 		/* Test print */
