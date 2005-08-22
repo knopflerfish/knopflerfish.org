@@ -22,6 +22,7 @@ import org.osgi.framework.ServiceRegistration;
 import com.gstm.test.scr.scenarios.scenario1.impl.Scenario1TestSuite;
 import com.gstm.test.scr.scenarios.scenario3.impl.Scenario3TestSuite;
 import com.gstm.test.scr.scenarios.scenario4.impl.Scenario4TestSuite;
+import com.gstm.test.scr.scenarios.scenario6.impl.Scenario6TestSuite;
 
 import junit.framework.*;
 
@@ -48,6 +49,10 @@ public class Activator implements BundleActivator {
 		TestSuite testSuiteScenario1 = new Scenario1TestSuite(context);
 		/* add scenario 1 to the all tests suite */
 		testSuiteAllTests.addTest(testSuiteScenario1);
+		
+		
+		
+		
 		/* create the test suite for scenario 3 */
 		TestSuite testSuiteScenario3 = new Scenario3TestSuite(context);
 		/* add scenario 3 to the all tests suite */
@@ -56,7 +61,14 @@ public class Activator implements BundleActivator {
 		TestSuite testSuiteScenario4 = new Scenario4TestSuite(context);
 		/* add scenario 4 to the all tests suite */
 		testSuiteAllTests.addTest(testSuiteScenario4);
+
 		
+		
+		
+		/* create the test suite for scenario 6 */
+		TestSuite testSuiteScenario6 = new Scenario6TestSuite(context);
+		/* add scenario 6 to the all tests suite */
+		testSuiteAllTests.addTest(testSuiteScenario6);
 		
 		/* create the hashtable to put properties in */
 		Hashtable props = new Hashtable();
