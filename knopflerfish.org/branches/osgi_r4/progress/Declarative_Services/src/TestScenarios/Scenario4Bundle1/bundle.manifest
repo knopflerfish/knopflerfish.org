@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario4Bundle1
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario4
+Bundle-Version: 1.0
+DynamicImport-Package: *
+Export-Package: com.gstm.test.scr.scenarios.scenario4.delayedcomponent1,
+ com.gstm.test.scr.scenarios.scenario4.delayedcomponent1.impl,
+ com.gstm.test.scr.scenarios.scenario4.immediatecomponent1,
+ com.gstm.test.scr.scenarios.scenario4.immediatecomponent1.impl,
+ com.gstm.test.scr.scenarios.scenario4.immediatecomponent2,
+ com.gstm.test.scr.scenarios.scenario4.immediatecomponent2.impl,
+ com.gstm.test.scr.scenarios.scenario4.immediatecomponent3,
+ com.gstm.test.scr.scenarios.scenario4.immediatecomponent3.impl,
+Service-Component: OSGI-INF/Scenario4DealyedComponent1.xml,OSGI-INF/Scenario4ImmediateComponent2.xml,OSGI-INF/Scenario4ImmediateComponent3.xml,OSGI-INF/Scenario4ImmediateComponent1.xml
