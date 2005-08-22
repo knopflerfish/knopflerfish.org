@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="com.gstm.test.scr.scenarios.scenario6.factory.CounterFactory" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario6.factory.impl.CounterFactoryImpl" />
+    <service servicefactory="true">
+        <provide interface="com.gstm.test.scr.scenarios.scenario6.factory.CounterFactory" />
+    </service>
+</scr:component>

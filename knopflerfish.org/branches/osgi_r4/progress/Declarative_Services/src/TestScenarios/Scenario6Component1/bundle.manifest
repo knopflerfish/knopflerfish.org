@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario6Component1
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario6.component1
+Bundle-Version: 1.0
+Service-Component: OSGI-INF/Scenario6Component1.xml
+DynamicImport-Package: *
+Export-Package: org.osgi.service.component,
+ com.gstm.test.scr.scenarios.scenario6.component1.impl
