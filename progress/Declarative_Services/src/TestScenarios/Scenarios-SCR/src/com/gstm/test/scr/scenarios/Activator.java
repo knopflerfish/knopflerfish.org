@@ -1,5 +1,5 @@
 /*
- * @(#)Activator.java        1.0 2005/06/28
+ * @(#)Activator.java        1.0 2005/08/16
  *
  * Copyright (c) 2003-2005 Gatespace telematics AB
  * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
@@ -25,13 +25,10 @@ import com.gstm.test.scr.scenarios.scenario3.impl.Scenario3TestSuite;
 import junit.framework.*;
 
 /**
- * Entry class for the Scenario 1 test case specified in test specifiacation for
- * EventAdmin service feature.
- * 
  * IMPORTANT! This test require the eventadmin service to be installed and
  * active within the framework.
  * 
- * @author Magnus Klack
+ * @author Magnus Klack, Martin Berg
  */
 public class Activator implements BundleActivator {
 
