@@ -40,6 +40,8 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
 
 /**
  * This class is the implementation of the declarative service feature. It will
@@ -307,17 +309,23 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 														.getComponentContext()
 														.getComponentInstance()
 														.getInstance();
+												
 												/* get the method name */
 												String methodName = referenceInfo
 														.getBind();
-												/* get the interface type */
-												String interfaceName = referenceInfo
-														.getInterfaceType();
-												/* invoke the bind method */
-												reInvokeReference(
-														serviceObject,
-														instance, methodName,
-														interfaceName);
+												
+												if(methodName!=null){
+													/* get the interface type */
+													String interfaceName = referenceInfo
+															.getInterfaceType();
+													/* invoke the bind method */
+													reInvokeReference(
+															serviceObject,
+															instance, methodName,
+															interfaceName);
+													
+												}
+												
 												/* invoke the activate method */
 												activateInstance(component
 														.getComponentContext());
@@ -364,15 +372,17 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 													/* get the method name */
 													String methodName = referenceInfo
 															.getBind();
-													/* get the interface type */
-													String interfaceName = referenceInfo
-															.getInterfaceType();
-													/* invoke the bind method */
-													reInvokeReference(
-															serviceObject,
-															instance,
-															methodName,
-															interfaceName);
+													
+													if(methodName!=null){													/* get the interface type */
+														String interfaceName = referenceInfo
+																.getInterfaceType();
+														/* invoke the bind method */
+														reInvokeReference(
+																serviceObject,
+																instance,
+																methodName,
+																interfaceName);
+													}
 													/*
 													 * invoke the activate
 													 * method
@@ -2408,209 +2418,247 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			ComponentDeclaration componentDeclaration, boolean overideEnable)
 			throws ComponentException {
 
-		/* check if enabled */
-		if (componentDeclaration.isAutoEnable() || overideEnable) {
-			/* if it is enable when the services have to be registered */
-			if (componentDeclaration.getFactory() != null) {
+		/* check if the component has properties */
+		ArrayList declaredProperties = componentDeclaration.getPropertyInfo();
 
-				/* check if the component is satisfied and enabled */
-				if (isSatisfied(componentDeclaration)
-						&& componentDeclaration.isAutoEnable()) {
-					System.out.println("********************** "
-							+ " register component factory for:"
-							+ componentDeclaration.getComponentName()
-							+ " **************");
+		/* check if the component has a property file */
+		ArrayList declaredPropertyFile = componentDeclaration
+				.getPropertiesInfo();
 
-					try {
-						/* register the component factory */
-						CustomComponentFactory componentFactory = registerComponentFactory(componentDeclaration);
-						/* add the factory to the vector */
-						activeComponents.add(componentFactory);
-						
-						if(inactiveComponents.contains(componentDeclaration)){
-							inactiveComponents.remove(componentDeclaration);
+			/* check if enabled */
+			if (componentDeclaration.isAutoEnable() || overideEnable) {
+				/* if it is enable when the services have to be registered */
+				if (componentDeclaration.getFactory() != null) {
+
+					/* check if the component is satisfied and enabled */
+					if (isSatisfied(componentDeclaration)
+							&& componentDeclaration.isAutoEnable()) {
+						System.out.println("********************** "
+								+ " register component factory for:"
+								+ componentDeclaration.getComponentName()
+								+ " **************");
+
+						try {
+							/* register the component factory */
+							CustomComponentFactory componentFactory = registerComponentFactory(componentDeclaration);
+							/* add the factory to the vector */
+							activeComponents.add(componentFactory);
+
+							if (inactiveComponents
+									.contains(componentDeclaration)) {
+								inactiveComponents.remove(componentDeclaration);
+							}
+
+						} catch (ComponentException e) {
+							throw e;
 						}
 
-					} catch (ComponentException e) {
-						throw e;
+					} else {
+						/*
+						 * check that the vector doesn't contain the
+						 * componentDeclaration
+						 */
+						if (!inactiveComponents.contains(componentDeclaration)) {
+							System.out.println("*************** "
+									+ componentDeclaration.getComponentName()
+									+ " is not satisfied **********");
+							/* Save data here */
+							inactiveComponents.add(componentDeclaration);
+						}
 					}
 
 				} else {
-					/*
-					 * check that the vector doesn't contain the
-					 * componentDeclaration
-					 */
-					if (!inactiveComponents.contains(componentDeclaration)) {
-						System.out.println("*************** "
-								+ componentDeclaration.getComponentName()
-								+ " is not satisfied **********");
-						/* Save data here */
-						inactiveComponents.add(componentDeclaration);
-					}
-				}
 
-			} else {
-
-				/* this is a immediate or servicefactory component */
-				if (isSatisfied(componentDeclaration)) {
-					/*
-					 * check if it has references ,i.e, if its a delayed
-					 * component
-					 */
-					if (componentDeclaration.getServiceInfo().size() > 0) {
-
-						/*
-						 * the tricky thing is that we have to create one
-						 * CustomComponent instance for MANY provided interface
-						 */
-						ArrayList serviceInfos = componentDeclaration
-								.getServiceInfo();
-
-						Iterator serviceIterator = serviceInfos.iterator();
-
-						Vector vectorInterfaces = new Vector();
-
-						while (serviceIterator.hasNext()) {
-							/* create the info instance */
-							ComponentServiceInfo info = (ComponentServiceInfo) serviceIterator
-									.next();
-							/*
-							 * create an arraylist holding the declared
-							 * interfaces
-							 */
-							ArrayList interfaces = info
-									.getComponentInterfaces();
-
-							/* create an iterator */
-							Iterator interfacesIterator = interfaces.iterator();
-
-							/* iterate through the interface */
-							while (interfacesIterator.hasNext()) {
-								/*
-								 * create a string representing the interface
-								 */
-								String interfaceName = (String) interfacesIterator
-										.next();
-
-								vectorInterfaces.add(interfaceName);
-							}//end while(interfacesIterator.hasNext())
-
-						} // end while(serviceIterator.hasNext())
-
-						String[] allInterfaces = new String[vectorInterfaces
-								.size()];
-
-						/* copy all objects to the allinterfaces array */
-						for (int i = 0; i < vectorInterfaces.size(); i++) {
-							allInterfaces[i] = (String) vectorInterfaces.get(i);
-						}
-
-						/* check if it is a service factory */
-						if (componentDeclaration.isServiceFactory()) {
-							System.out
-									.println("********************** "
-											+ " register component service factory for:"
-											+ componentDeclaration
-													.getComponentName()
-											+ " **************");
-							try {
-
-								/*
-								 * register service factory component here
-								 */
-								CustomComponentServiceFactory serviceComponent = registerComponentServiceFactory(
-										allInterfaces, componentDeclaration);
-
-								/*
-								 * add the service factory to the vector of
-								 * active components
-								 */
-								activeComponents.add(serviceComponent);
+					/* this is a immediate or servicefactory component */
+					if (isSatisfied(componentDeclaration)) {
+						
+						if(componentDeclaration.getPropertiesInfo().size()>0 ||
+								componentDeclaration.getPropertyInfo().size()>0){
+								System.out.println("***********************" +
+										" register managed component for:" +
+										componentDeclaration.getComponentName() +
+										" ***************************");
 								
-								if(inactiveComponents.contains(componentDeclaration)){
-									inactiveComponents.remove(componentDeclaration);
+								registerManagedComponent(componentDeclaration);
+							
+						}
+						
+						/*
+						 * check if it has references ,i.e, if its a delayed
+						 * component
+						 */
+						if (componentDeclaration.getServiceInfo().size() > 0) {
+
+							/*
+							 * the tricky thing is that we have to create one
+							 * CustomComponent instance for MANY provided
+							 * interface
+							 */
+							ArrayList serviceInfos = componentDeclaration
+									.getServiceInfo();
+
+							Iterator serviceIterator = serviceInfos.iterator();
+
+							Vector vectorInterfaces = new Vector();
+
+							while (serviceIterator.hasNext()) {
+								/* create the info instance */
+								ComponentServiceInfo info = (ComponentServiceInfo) serviceIterator
+										.next();
+								/*
+								 * create an arraylist holding the declared
+								 * interfaces
+								 */
+								ArrayList interfaces = info
+										.getComponentInterfaces();
+
+								/* create an iterator */
+								Iterator interfacesIterator = interfaces
+										.iterator();
+
+								/* iterate through the interface */
+								while (interfacesIterator.hasNext()) {
+									/*
+									 * create a string representing the
+									 * interface
+									 */
+									String interfaceName = (String) interfacesIterator
+											.next();
+
+									vectorInterfaces.add(interfaceName);
+								}//end while(interfacesIterator.hasNext())
+
+							} // end while(serviceIterator.hasNext())
+
+							String[] allInterfaces = new String[vectorInterfaces
+									.size()];
+
+							/* copy all objects to the allinterfaces array */
+							for (int i = 0; i < vectorInterfaces.size(); i++) {
+								allInterfaces[i] = (String) vectorInterfaces
+										.get(i);
+							}
+
+							/* check if it is a service factory */
+							if (componentDeclaration.isServiceFactory()) {
+								System.out
+										.println("********************** "
+												+ " register component service factory for:"
+												+ componentDeclaration
+														.getComponentName()
+												+ " **************");
+								try {
+
+									/*
+									 * register service factory component here
+									 */
+									CustomComponentServiceFactory serviceComponent = registerComponentServiceFactory(
+											allInterfaces, componentDeclaration);
+
+									/*
+									 * add the service factory to the vector of
+									 * active components
+									 */
+									activeComponents.add(serviceComponent);
+
+									if (inactiveComponents
+											.contains(componentDeclaration)) {
+										inactiveComponents
+												.remove(componentDeclaration);
+									}
+
+								} catch (ComponentException e) {
+									/* just throw the error */
+									throw e;
 								}
 
-							} catch (ComponentException e) {
-								/* just throw the error */
-								throw e;
+							} else {
+								System.out.println("********************** "
+										+ " register delayed service for:"
+										+ componentDeclaration
+												.getComponentName()
+										+ " **************");
+								try {
+									/*
+									 * register custom delayed service here
+									 */
+									DeclarativeComponent delayedComponent = registerDelayedComponent(
+											allInterfaces, componentDeclaration);
+
+									/*
+									 * add the delayed service to the vector of
+									 * active components
+									 */
+									activeComponents.add(delayedComponent);
+
+									if (inactiveComponents
+											.contains(componentDeclaration)) {
+										inactiveComponents
+												.remove(componentDeclaration);
+									}
+
+								} catch (ComponentException e) {
+									e.printStackTrace();
+									/* throw the error */
+									throw e;
+								} catch (Exception e) {
+									throw new ComponentException(
+											e.getMessage(), e.getCause());
+								}
+
 							}
 
 						} else {
-							System.out.println("********************** "
-									+ " register delayed service for:"
-									+ componentDeclaration.getComponentName()
-									+ " **************");
-							try {
-								/*
-								 * register custom delayed service here
-								 */
-								DeclarativeComponent delayedComponent = registerDelayedComponent(
-										allInterfaces, componentDeclaration);
-
-								/*
-								 * add the delayed service to the vector of
-								 * active components
-								 */
-								activeComponents.add(delayedComponent);
 								
-								if(inactiveComponents.contains(componentDeclaration)){
-									inactiveComponents.remove(componentDeclaration);
-								}
+							ImmediateComponent immediateComponent = 
+								new ImmediateComponent(
+										componentDeclaration);
+							
+							/* this is an immediate component */
+							activeComponents.add(immediateComponent);
+							
+							immediateComponent.activate();
 
-							} catch (ComponentException e) {
-								e.printStackTrace();
-								/* throw the error */
-								throw e;
-							} catch (Exception e) {
-								throw new ComponentException(e.getMessage(), e
-										.getCause());
+							if (inactiveComponents
+									.contains(componentDeclaration)) {
+								inactiveComponents.remove(componentDeclaration);
 							}
 
 						}
 
 					} else {
+						System.out.println("********* "
+								+ componentDeclaration.getComponentName()
+								+ " is not satisfied ************");
 
-						/* this is an immediate component */
-						activeComponents.add(new ImmediateComponent(
-								componentDeclaration));
-						
-						if(inactiveComponents.contains(componentDeclaration)){
-							inactiveComponents.remove(componentDeclaration);
+						/* save the component data here */
+						/*
+						 * check that the vector doesn't contain the
+						 * componentDeclaration
+						 */
+						if (!inactiveComponents.contains(componentDeclaration)) {
+							/* Save data here */
+							inactiveComponents.add(componentDeclaration);
 						}
 
 					}
 
-				} else {
-					System.out.println("********* "
-							+ componentDeclaration.getComponentName()
-							+ " is not satisfied ************");
-
-					/* save the component data here */
-					/*
-					 * check that the vector doesn't contain the
-					 * componentDeclaration
-					 */
-					if (!inactiveComponents.contains(componentDeclaration)) {
-						/* Save data here */
-						inactiveComponents.add(componentDeclaration);
-					}
-
 				}
 
-			}
-
-		} else {
-			System.out
-					.println("**************** autoEnable is false in the component delcaration ********************");
-			/* check that the vector doesn't contain the componentDeclaration */
-			if (!inactiveComponents.contains(componentDeclaration)) {
-				/* Save data here */
-				inactiveComponents.add(componentDeclaration);
-			}
-		} // if(componentDeclaration.isAutoEnable())
-
-	}
+			} else {
+				System.out
+						.println("**************** autoEnable is false in the component delcaration ********************");
+				/*
+				 * check that the vector doesn't contain the
+				 * componentDeclaration
+				 */
+				if (!inactiveComponents.contains(componentDeclaration)) {
+					/* Save data here */
+					inactiveComponents.add(componentDeclaration);
+				}
+			} // if(componentDeclaration.isAutoEnable())
+		}
+	
 
 	/**
 	 * This method will activate a component using reflection Some component
@@ -2625,34 +2673,41 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	private void activateInstance(ComponentContext componentContext)
 			throws ComponentException {
-
+		try{
 		/* get the component instance */
 		Object componentInstance = componentContext.getComponentInstance()
 				.getInstance();
-		/* create a string representing the method name */
-		String methodName = "activate";
-		try {
-
-			System.out.println("************* trying to invoke "
-					+ componentInstance.toString() + ".activate(...) method ");
-
-			/* get the method */
-			Method method = componentInstance.getClass().getDeclaredMethod(
-					methodName, new Class[] { ComponentContext.class });
-
-			/* set this as accessible */
-			method.setAccessible(true);
-			/* invoke the method */
-			method.invoke(componentInstance, new Object[] { componentContext });
-
-		} catch (NoSuchMethodException e) {
-			System.out.println(componentInstance
-					+ " does not declare an activate(..) method");
-			/* do nothing here */
-			//throw new ComponentException(e.getMessage(), e.getCause());
-		} catch (InvocationTargetException e) {
-			throw new ComponentException(e.getMessage(), e.getCause());
-		} catch (IllegalAccessException e) {
+			/* create a string representing the method name */
+			String methodName = "activate";
+			try {
+	
+				System.out.println("************* trying to invoke "
+						+ componentInstance.toString() + ".activate(...) method ");
+	
+				/* get the method */
+				Method method = componentInstance.getClass().getDeclaredMethod(
+						methodName, new Class[] { ComponentContext.class });
+				
+				if(method!=null){
+					/* set this as accessible */
+					method.setAccessible(true);
+					/* invoke the method */
+					method.invoke(componentInstance, new Object[] { componentContext });
+				}else{
+					
+				}
+	
+			} catch (NoSuchMethodException e) {
+				System.out.println(componentInstance
+						+ " does not declare an activate(..) method");
+				/* do nothing here */
+				//throw new ComponentException(e.getMessage(), e.getCause());
+			} catch (InvocationTargetException e) {
+				throw new ComponentException(e.getMessage(), e.getCause());
+			} catch (IllegalAccessException e) {
+				throw new ComponentException(e.getMessage(), e.getCause());
+			}
+		}catch(Exception e){
 			throw new ComponentException(e.getMessage(), e.getCause());
 		}
 
@@ -2880,44 +2935,62 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	private CustomDelayedService registerDelayedComponent(
 			String[] interfaceNames, ComponentDeclaration componentDeclaration)
 			throws ComponentException {
-
-		/* create a property table */
-		Dictionary properties = new Hashtable();
-
-		/* put the component name in it */
-		properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration
-				.getComponentName());
-
-		/* put the description in it */
-		properties.put(Constants.SERVICE_DESCRIPTION,
-				"Declarative delayed component service created by SCR");
-
-		/* create a service factory */
-		CustomDelayedService delayedService = new CustomDelayedService(
-				interfaceNames, componentDeclaration);
-
-		try {
-
-			/* register the delayed service use the interface name */
-			ServiceRegistration registration = componentDeclaration
-					.getDeclaringBundle().getBundleContext().registerService(
-							interfaceNames, delayedService, properties);
-
-			/* ad the service registration to the delayed service */
-			delayedService.setServiceRegistration(registration);
-			/* add the service reference to the delayed service */
-			delayedService.setServiceReference(registration.getReference());
-
-			return delayedService;
-
-		} catch (Exception e) {
-			throw new ComponentException(
-					"error registering delayed component service:" + e, e
-							.getCause());
-		}
+		
+			/* create a property table */
+			Dictionary properties = new Hashtable();
+	
+			/* put the component name in it */
+			properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration
+					.getComponentName());
+	
+			/* put the description in it */
+			properties.put(Constants.SERVICE_DESCRIPTION,
+					"Declarative delayed component service created by SCR");
+			
+			properties.put(Constants.SERVICE_PID,componentDeclaration.getComponentName());
+	
+			/* create a service factory */
+			CustomDelayedService delayedService = new CustomDelayedService(
+					interfaceNames, componentDeclaration);
+	
+			try {
+	
+				/* register the delayed service use the interface name */
+				ServiceRegistration registration = componentDeclaration
+						.getDeclaringBundle().getBundleContext().registerService(
+								interfaceNames, delayedService, properties);
+	
+				/* ad the service registration to the delayed service */
+				delayedService.setServiceRegistration(registration);
+				/* add the service reference to the delayed service */
+				delayedService.setServiceReference(registration.getReference());
+	
+				return delayedService;
+	
+			} catch (Exception e) {
+				throw new ComponentException(
+						"error registering delayed component service:" + e, e
+								.getCause());
+			}
+		
 
 	}
-
+	
+	
+	private CustomManagedService registerManagedComponent(ComponentDeclaration componentDeclaration) throws ComponentException{
+		try{
+		Dictionary properties = new Hashtable();
+		
+		properties.put(Constants.SERVICE_ID,componentDeclaration.getComponentName());
+		
+		ManagedService managed  = new CustomManagedService(null,null);
+		bundleContext.registerService(ManagedService.class.getName(),managed,properties);
+		}catch(Exception e){
+			System.err.println("error registering managed component due to:\n" + e);
+		}
+		
+		return null;
+	}
 	/**
 	 * this method creates a componentContext with all features within
 	 * 
@@ -3321,6 +3394,9 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			throw new ComponentException(e.getMessage(), e.getCause());
 		} catch (ClassNotFoundException e) {
 			throw new ComponentException(e.getMessage(), e.getCause());
+		} catch(Exception e){
+			e.printStackTrace();
+			throw new ComponentException(e.getMessage(), e.getCause());
 		}
 
 	}
@@ -3395,7 +3471,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	}//end ComponentCreator
 
 	private class CustomDelayedService implements ServiceFactory,
-			DeclarativeComponent {
+			DeclarativeComponent,ManagedService {
 		/** variable holding the instance */
 		private ComponentInstance componentInstance = null;
 
@@ -3639,6 +3715,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			boundedReferences.remove(reference);
 
 		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
+		 */
+		public void updated(Dictionary arg0) throws ConfigurationException {
+			System.out.println("Update is called in delayed component");
+			
+		}
 	}
 
 	/**
@@ -3662,8 +3746,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		private Vector boundedReferences = new Vector();
 
 		public ImmediateComponent(ComponentDeclaration declaration) {
-			componentDeclaration = declaration;
+			componentDeclaration = declaration;			
+		}
 
+		/**
+		 * activates the component 
+		 */
+		public void activate() {
 			try {
 
 				/* increase the componentCounter */
@@ -3702,8 +3791,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						activateInstance(componentContext);
 					} catch (ComponentException e) {
 						System.err
-								.println("error when activate the component instanne in ImmediateComponent:"
-										+ e);
+								.println("error when activate the component instance in ImmediateComponent:"
+										+ e.getMessage());
 					}
 
 				} catch (ComponentException e) {
@@ -3718,6 +3807,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								+ e);
 			}
 
+			
 		}
 
 		public ComponentDeclaration getComponentDeclaration() {
@@ -4442,7 +4532,134 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}
+	
+	/**
+	 * 
+	 * @author magnus
+	 *
+	 * TODO To change the template for this generated type comment go to
+	 * Window - Preferences - Java - Code Style - Code Templates
+	 */
+	private class CustomManagedService implements ManagedService,DeclarativeComponent{
+		/** variable holding all interfaces this component offers as service */
+		private String[] interfaces;
+		/** variable holding the componentdeclaration */
+		private ComponentDeclaration componentDeclaration;
+		
+		
+		/**
+		 * @param interfaceNames
+		 * @param componentDeclaration
+		 */
+		public CustomManagedService(String[] interfaceNames, ComponentDeclaration declaration) {
+			/* assign the interfaces */
+			interfaces = interfaceNames;
+			/* assign the declaration */
+			componentDeclaration = declaration;
+			
+			
+		}
+		
+		/* (non-Javadoc)
+		 * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
+		 */
+		public void updated(Dictionary arg0) throws ConfigurationException {
+			// TODO Auto-generated method stub
+			System.out.println("************ updated is called in CustomManagedService *************");
+			
+		}
+		
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#getServiceRegistration()
+		 */
+		public ServiceRegistration getServiceRegistration() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#setServiceRegistration(org.osgi.framework.ServiceRegistration)
+		 */
+		public void setServiceRegistration(ServiceRegistration registration) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#getComponentDeclaration()
+		 */
+		public ComponentDeclaration getComponentDeclaration() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#setServiceReference(org.osgi.framework.ServiceReference)
+		 */
+		public void setServiceReference(ServiceReference reference) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#getServiceReference()
+		 */
+		public ServiceReference getServiceReference() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#getComponentContexts()
+		 */
+		public Vector getComponentContexts() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#getComponentContext()
+		 */
+		public ComponentContext getComponentContext() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#bindReference(org.osgi.framework.ServiceReference)
+		 */
+		public void bindReference(ServiceReference reference) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#isBoundedTo(org.osgi.framework.ServiceReference)
+		 */
+		public boolean isBoundedTo(ServiceReference reference) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#getAllBoundedReferences()
+		 */
+		public Vector getAllBoundedReferences() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.osgi.service.component.impl.SystemComponentRuntimeImpl.DeclarativeComponent#unBindReference(org.osgi.framework.ServiceReference)
+		 */
+		public void unBindReference(ServiceReference reference) {
+			// TODO Auto-generated method stub
+			
+		}
+
+	
+	
+	}
 	/**
 	 * interface for wrapping components and its internal configuration
 	 * 
