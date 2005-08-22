@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario6CounterFactory
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario6.factory
+Bundle-Version: 1.0
+Service-Component: OSGI-INF/Scenario6CounterFactory.xml
+Export-Package: com.gstm.test.scr.scenarios.scenario6.factory.impl,
+ com.gstm.test.scr.scenarios.scenario6.factory
