@@ -21,6 +21,7 @@ import org.osgi.framework.ServiceRegistration;
 
 import com.gstm.test.scr.scenarios.scenario1.impl.Scenario1TestSuite;
 import com.gstm.test.scr.scenarios.scenario3.impl.Scenario3TestSuite;
+import com.gstm.test.scr.scenarios.scenario4.impl.Scenario4TestSuite;
 
 import junit.framework.*;
 
@@ -51,7 +52,12 @@ public class Activator implements BundleActivator {
 		TestSuite testSuiteScenario3 = new Scenario3TestSuite(context);
 		/* add scenario 3 to the all tests suite */
 		testSuiteAllTests.addTest(testSuiteScenario3);
-
+		/* create the test suite for scenario 4 */
+		TestSuite testSuiteScenario4 = new Scenario4TestSuite(context);
+		/* add scenario 4 to the all tests suite */
+		testSuiteAllTests.addTest(testSuiteScenario4);
+		
+		
 		/* create the hashtable to put properties in */
 		Hashtable props = new Hashtable();
 		/* put service.pid property in hashtable */
