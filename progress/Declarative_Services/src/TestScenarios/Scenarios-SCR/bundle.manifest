@@ -5,6 +5,7 @@ Bundle-SymbolicName: com.gstm.test.scr.scenarios
 Bundle-Version: 1.0
 Export-Package: com.gstm.test.scr.scenarios.scenario1,
  com.gstm.test.scr.scenarios.scenario3,
+ com.gstm.test.scr.scenarios.scenario4,
  org.osgi.service.event
 Import-Package: junit.framework, 
  org.osgi.service.event,

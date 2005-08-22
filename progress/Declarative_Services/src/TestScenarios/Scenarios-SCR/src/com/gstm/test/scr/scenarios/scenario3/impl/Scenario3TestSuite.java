@@ -263,11 +263,11 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 					}
 					/* check that the value received is the expected value */
 					assertEquals("Not the expected event value", userLookValue,
-							2);
+							3);
 				} else {
 					/* check that the value received is the expected value */
 					assertEquals("Not the expected event value",
-							userEventValue, 2);
+							userEventValue, 3);
 				}
 				eventCounter++;
 				break;
@@ -281,11 +281,11 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 					}
 					/* check that the value received is the expected value */
 					assertEquals("Not the expected event value", userLookValue,
-							3);
+							2);
 				} else {
 					/* check that the value received is the expected value */
 					assertEquals("Not the expected event value",
-							userEventValue, 3);
+							userEventValue, 2);
 				}
 				eventCounter++;
 				break;
