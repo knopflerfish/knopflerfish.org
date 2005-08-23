@@ -191,33 +191,34 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 			String immediateComponent2Name = "com.gstm.test.scr.scenarios.scenario4.immediatecomponent2.ImmediateComponent2";
 			String immediateComponent3Name = "com.gstm.test.scr.scenarios.scenario4.immediatecomponent3.ImmediateComponent3";
 
+			int immediate2Value;
+			int immediate3Value;
+			
+			try{
+				immediate2Value = ((Integer) event.getProperty(immediateComponent2Name)).intValue();
+			}catch (NullPointerException e){
+				immediate2Value = 0;
+			}
+			
+			try{
+				immediate3Value = ((Integer) event.getProperty(immediateComponent3Name)).intValue();
+			}catch (NullPointerException e){
+				immediate3Value = 0;
+			}
+			
 			switch (eventCounter) {
 			case 1: //
-				assertNotNull(
-						"The first event should be from  ImmediateComponent2",
-						event.getProperty(immediateComponent2Name));
-
-				int immediate2Value = ((Integer) event
-						.getProperty(immediateComponent2Name)).intValue();
-
 				System.out.println("First event:immediate2Value:"
 						+ immediate2Value);
 
-				assertEquals("The value should be 1", immediate2Value, 1);
+				assertEquals("The value from Component2 should be 1", immediate2Value, 5);
 				eventCounter++;
 				break;
 			case 2: //
-				assertNotNull(
-						"The second event should be from  ImmediateComponent3",
-						event.getProperty(immediateComponent3Name));
-
-				int immediate3Value = ((Integer) event
-						.getProperty(immediateComponent3Name)).intValue();
-
 				System.out.println("Second event:immediate3Value:"
 						+ immediate3Value);
 
-				assertEquals("The value should be 1", immediate3Value, 1);
+				assertEquals("The value from Component3 should be 1", immediate3Value, 1);
 				eventCounter++;
 				break;
 			default:
