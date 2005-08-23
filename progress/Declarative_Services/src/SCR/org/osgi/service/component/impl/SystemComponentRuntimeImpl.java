@@ -2439,337 +2439,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	private synchronized void evaluateComponentDeclaration(
 			ComponentDeclaration componentDeclaration, boolean overideEnable)
 			throws ComponentException {
-		
-		/* variable representing if the component implements managed service */
-		boolean isManaged = false;
-		/* variable representing if the component implements managed service factory */
-		boolean isManagedFactory =false;
-		
-	
-		
 		try{
-			
-			/* get the class representation */
-			Class implementationClass= Class.forName(componentDeclaration.getImplementation());
-			/* get the interfaces implemented on this class */
-			Class[] interfaces = implementationClass.getInterfaces();
-			
-			/* counter variable */
-			int q=0;
-			/* variable holding the length of the interface array */
-			int length = interfaces.length;
-			
-			/* go through the interfaces */
-			while(q<length){
-				
-				System.out.println("Interface implemented on " + 
-						componentDeclaration.getImplementation() + 
-						": " + interfaces[q].getName());
-//				
-//				System.out.println("the lenght of the interface array is: " + length+"\n" +
-//						"And q value is: " + q);
-				/* get the interface name */
-				String interfaceName = interfaces[q].getName();
-				
-				/* check if the interfaces is a managed service */
-				if(interfaceName.equals("org.osgi.service.cm.ManagedService")){
-					/* print that a managed service is found */
-					System.out.println("found managed component");
-					/* set the attribute to true */
-					isManaged=true;
-				}
-				
-				/* check if it is a managed factory */
-				if(interfaceName.equals("org.osgi.service.cm.ManagedServiceFactory")){
-					/* print that a managed service factory is found */
-					System.out.println("found managed service factory");
-					/* set the attribute to true */
-					isManagedFactory=true;
-				}
-				q++;
-				
-			}
-		
-		}catch(ClassNotFoundException e){
-			/* this will happen if the class isn't found */
-			throw new ComponentException("Can't find class " + componentDeclaration.getImplementation() 
-					+" due to: " + e, e.getCause());
+			Evaluator evaluator = new Evaluator(componentDeclaration,overideEnable);
+			evaluator.start();
+		}catch(ComponentException e){
+			throw e;
 		}
-		
-		/* check if the component has properties */
-		ArrayList declaredProperties = componentDeclaration.getPropertyInfo();
-
-		/* check if the component has a property file */
-		ArrayList declaredPropertyFile = componentDeclaration
-				.getPropertiesInfo();
-		
-			/* check if enabled */
-			if (componentDeclaration.isAutoEnable() || overideEnable) {
-				/* if it is enable when the services have to be registered */
-				if (componentDeclaration.getFactory() != null) {
-
-					/* check if the component is satisfied and enabled */
-					if (isSatisfied(componentDeclaration)
-							&& componentDeclaration.isAutoEnable()) {
-						System.out.println("********************** "
-								+ " register component factory for:"
-								+ componentDeclaration.getComponentName()
-								+ " **************");
-
-						try {
-							/* register the component factory */
-							CustomComponentFactory componentFactory = registerComponentFactory(componentDeclaration);
-							/* add the factory to the vector */
-							activeComponents.add(componentFactory);
-
-							if (inactiveComponents
-									.contains(componentDeclaration)) {
-								inactiveComponents.remove(componentDeclaration);
-							}
-
-						} catch (ComponentException e) {
-							throw e;
-						}
-
-					} else {
-						/*
-						 * check that the vector doesn't contain the
-						 * componentDeclaration
-						 */
-						if (!inactiveComponents.contains(componentDeclaration)) {
-							System.out.println("*************** "
-									+ componentDeclaration.getComponentName()
-									+ " is not satisfied **********");
-							/* Save data here */
-							inactiveComponents.add(componentDeclaration);
-						}
-					}
-
-				} else {
-
-					/* this is a immediate or servicefactory component */
-					if (isSatisfied(componentDeclaration)) {
-						
-						/*
-						 * check if it has references ,i.e, if its a delayed
-						 * component or managed service component
-						 */
-						if (componentDeclaration.getServiceInfo().size() > 0 || isManaged ||
-								isManagedFactory) {
-
-							/*
-							 * the tricky thing is that we have to create one
-							 * CustomComponent instance for MANY provided
-							 * interface
-							 */
-							ArrayList serviceInfos = componentDeclaration
-									.getServiceInfo();
-							
-							/* create an iterator */
-							Iterator serviceIterator = serviceInfos.iterator();
-							/* create a vector holding all interfaces */
-							Vector vectorInterfaces = new Vector();
-
-							while (serviceIterator.hasNext()) {
-								/* create the info instance */
-								ComponentServiceInfo info = (ComponentServiceInfo) serviceIterator
-										.next();
-								/*
-								 * create an arraylist holding the declared
-								 * interfaces
-								 */
-								ArrayList interfaces = info
-										.getComponentInterfaces();
-
-								/* create an iterator */
-								Iterator interfacesIterator = interfaces
-										.iterator();
-
-								/* iterate through the interface */
-								while (interfacesIterator.hasNext()) {
-									/*
-									 * create a string representing the
-									 * interface
-									 */
-									String interfaceName = (String) interfacesIterator
-											.next();
-
-									vectorInterfaces.add(interfaceName);
-								}//end while(interfacesIterator.hasNext())
-
-							} // end while(serviceIterator.hasNext())
-							
-							/* create a string array holding all interfaces to be registerd */
-							String[] allInterfaces=null;
-							
-							/* check if managed feature is implemented */
-							if(isManaged || isManagedFactory){
-								/* check if it is a managed service */
-								if(isManaged){
-									/* extend the array by 1 */
-									 allInterfaces = new String[vectorInterfaces
-											.size()+1];
-									/* add the managed service interface to the array */
-									allInterfaces[allInterfaces.length-1] = "org.osgi.service.cm.ManagedService";
-								}
-								
-								/* check if it is a managed factory */
-								if(isManagedFactory){
-									/* extend the size by 1 */
-									 allInterfaces = new String[vectorInterfaces
-											.size()+1];
-									 /* add the managed factory interface to the array */
-									allInterfaces[allInterfaces.length-1] = "org.osgi.service.cm.ManagedServiceFactory";
-								}
-							}else{
-								if(!(isManaged && isManagedFactory)){
-								 allInterfaces = new String[vectorInterfaces
-															.size()];
-								}else{
-									System.err.println("Can't handle both managed service and factory in "+
-											"the same implementation class");
-								}
-							}
-							
-							/* copy all objects to the allinterfaces array */
-							for (int i = 0; i < vectorInterfaces.size(); i++) {
-								allInterfaces[i] = (String) vectorInterfaces
-										.get(i);
-							}
-
-							/* check if it is a service factory */
-							if (componentDeclaration.isServiceFactory()) {
-								System.out
-										.println("********************** "
-												+ " register component service factory for:"
-												+ componentDeclaration
-														.getComponentName()
-												+ " **************");
-								try {
-
-									/*
-									 * register service factory component here
-									 */
-									CustomComponentServiceFactory serviceComponent = registerComponentServiceFactory(
-											allInterfaces, componentDeclaration);
-
-									/*
-									 * add the service factory to the vector of
-									 * active components
-									 */
-									activeComponents.add(serviceComponent);
-
-									if (inactiveComponents
-											.contains(componentDeclaration)) {
-										inactiveComponents
-												.remove(componentDeclaration);
-									}
-
-								} catch (ComponentException e) {
-									/* just throw the error */
-									throw e;
-								}
-
-							} else {
-								
-								System.out.println("********************** "
-										+ " register delayed service for:"
-										+ componentDeclaration
-												.getComponentName()
-										+ " **************");
-								try {
-									/*
-									 * register custom delayed service here
-									 */
-									DeclarativeComponent delayedComponent = registerDelayedComponent(
-											allInterfaces, componentDeclaration);
-
-									/*
-									 * add the delayed service to the vector of
-									 * active components
-									 */
-									activeComponents.add(delayedComponent);
-
-									if (inactiveComponents
-											.contains(componentDeclaration)) {
-										inactiveComponents
-												.remove(componentDeclaration);
-									}
-
-								} catch (ComponentException e) {
-									e.printStackTrace();
-									/* throw the error */
-									throw e;
-								} catch (Exception e) {
-									throw new ComponentException(
-											e.getMessage(), e.getCause());
-								}
-
-							}
-
-						} else {
-							
-							if(componentDeclaration.isAutoEnable()&& !isManaged && !isManagedFactory){
-								System.out.println("********************** "
-										+ " register immediate component for:"
-										+ componentDeclaration
-												.getComponentName()
-										+ " **************");
-								
-								ImmediateComponent immediateComponent = 
-									new ImmediateComponent(
-											componentDeclaration);
-								
-								/* this is an immediate component */
-								activeComponents.add(immediateComponent);
-								
-								immediateComponent.activate();
-	
-								if (inactiveComponents
-										.contains(componentDeclaration)) {
-									inactiveComponents.remove(componentDeclaration);
-								}
-								
-							}else{
-								inactiveComponents.add(componentDeclaration);
-							}
-
-						}
-
-					} else {
-						
-						System.out.println("********* "
-								+ componentDeclaration.getComponentName()
-								+ " is not satisfied ************");
-
-						/*
-						 * check that the vector doesn't contain the
-						 * componentDeclaration
-						 */
-						if (!inactiveComponents.contains(componentDeclaration)) {
-							/* Save data here */
-							inactiveComponents.add(componentDeclaration);
-						}
-
-					}
-
-				}
-
-			} else {
-				
-				System.out
-						.println("**************** autoEnable is false in the component delcaration ********************");
-				/*
-				 * check that the vector doesn't contain the
-				 * componentDeclaration
-				 */
-				if (!inactiveComponents.contains(componentDeclaration)) {
-					/* Save data here */
-					inactiveComponents.add(componentDeclaration);
-				}
-				
-			} // if(componentDeclaration.isAutoEnable())
-		}
+			
+	}
 	
 
 	/**
@@ -4697,6 +4374,353 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	}
 	
 	
+	/**
+	 * This class will evaluate a componentDeclaration 
+	 */
+	private class Evaluator extends Thread{
+		private ComponentDeclaration componentDeclaration;
+		private boolean overideEnable;
+		
+		public Evaluator(ComponentDeclaration componentDeclaration, boolean overideEnable){
+			this.componentDeclaration = componentDeclaration;
+			this.overideEnable = overideEnable;
+		}
+		
+		public void run(){
+
+			/* variable representing if the component implements managed service */
+			boolean isManaged = false;
+			/* variable representing if the component implements managed service factory */
+			boolean isManagedFactory =false;
+			
+		
+			
+			try{
+				
+				/* get the class representation */
+				Class implementationClass= Class.forName(componentDeclaration.getImplementation());
+				/* get the interfaces implemented on this class */
+				Class[] interfaces = implementationClass.getInterfaces();
+				
+				/* counter variable */
+				int q=0;
+				/* variable holding the length of the interface array */
+				int length = interfaces.length;
+				
+				/* go through the interfaces */
+				while(q<length){
+					
+					System.out.println("Interface implemented on " + 
+							componentDeclaration.getImplementation() + 
+							": " + interfaces[q].getName());
+//					
+//					System.out.println("the lenght of the interface array is: " + length+"\n" +
+//							"And q value is: " + q);
+					/* get the interface name */
+					String interfaceName = interfaces[q].getName();
+					
+					/* check if the interfaces is a managed service */
+					if(interfaceName.equals("org.osgi.service.cm.ManagedService")){
+						/* print that a managed service is found */
+						System.out.println("found managed component");
+						/* set the attribute to true */
+						isManaged=true;
+					}
+					
+					/* check if it is a managed factory */
+					if(interfaceName.equals("org.osgi.service.cm.ManagedServiceFactory")){
+						/* print that a managed service factory is found */
+						System.out.println("found managed service factory");
+						/* set the attribute to true */
+						isManagedFactory=true;
+					}
+					q++;
+					
+				}
+			
+			}catch(ClassNotFoundException e){
+				/* this will happen if the class isn't found */
+				throw new ComponentException("Can't find class " + componentDeclaration.getImplementation() 
+						+" due to: " + e, e.getCause());
+			}
+			
+			/* check if the component has properties */
+			ArrayList declaredProperties = componentDeclaration.getPropertyInfo();
+
+			/* check if the component has a property file */
+			ArrayList declaredPropertyFile = componentDeclaration
+					.getPropertiesInfo();
+			
+				/* check if enabled */
+				if (componentDeclaration.isAutoEnable() || overideEnable) {
+					/* if it is enable when the services have to be registered */
+					if (componentDeclaration.getFactory() != null) {
+
+						/* check if the component is satisfied and enabled */
+						if (isSatisfied(componentDeclaration)
+								&& componentDeclaration.isAutoEnable()) {
+							System.out.println("********************** "
+									+ " register component factory for:"
+									+ componentDeclaration.getComponentName()
+									+ " **************");
+
+							try {
+								/* register the component factory */
+								CustomComponentFactory componentFactory = registerComponentFactory(componentDeclaration);
+								/* add the factory to the vector */
+								activeComponents.add(componentFactory);
+
+								if (inactiveComponents
+										.contains(componentDeclaration)) {
+									inactiveComponents.remove(componentDeclaration);
+								}
+
+							} catch (ComponentException e) {
+								throw e;
+							}
+
+						} else {
+							/*
+							 * check that the vector doesn't contain the
+							 * componentDeclaration
+							 */
+							if (!inactiveComponents.contains(componentDeclaration)) {
+								System.out.println("*************** "
+										+ componentDeclaration.getComponentName()
+										+ " is not satisfied **********");
+								/* Save data here */
+								inactiveComponents.add(componentDeclaration);
+							}
+						}
+
+					} else {
+
+						/* this is a immediate or servicefactory component */
+						if (isSatisfied(componentDeclaration)) {
+							
+							/*
+							 * check if it has references ,i.e, if its a delayed
+							 * component or managed service component
+							 */
+							if (componentDeclaration.getServiceInfo().size() > 0 || isManaged ||
+									isManagedFactory) {
+
+								/*
+								 * the tricky thing is that we have to create one
+								 * CustomComponent instance for MANY provided
+								 * interface
+								 */
+								ArrayList serviceInfos = componentDeclaration
+										.getServiceInfo();
+								
+								/* create an iterator */
+								Iterator serviceIterator = serviceInfos.iterator();
+								/* create a vector holding all interfaces */
+								Vector vectorInterfaces = new Vector();
+
+								while (serviceIterator.hasNext()) {
+									/* create the info instance */
+									ComponentServiceInfo info = (ComponentServiceInfo) serviceIterator
+											.next();
+									/*
+									 * create an arraylist holding the declared
+									 * interfaces
+									 */
+									ArrayList interfaces = info
+											.getComponentInterfaces();
+
+									/* create an iterator */
+									Iterator interfacesIterator = interfaces
+											.iterator();
+
+									/* iterate through the interface */
+									while (interfacesIterator.hasNext()) {
+										/*
+										 * create a string representing the
+										 * interface
+										 */
+										String interfaceName = (String) interfacesIterator
+												.next();
+
+										vectorInterfaces.add(interfaceName);
+									}//end while(interfacesIterator.hasNext())
+
+								} // end while(serviceIterator.hasNext())
+								
+								/* create a string array holding all interfaces to be registerd */
+								String[] allInterfaces=null;
+								
+								/* check if managed feature is implemented */
+								if(isManaged || isManagedFactory){
+									/* check if it is a managed service */
+									if(isManaged){
+										/* extend the array by 1 */
+										 allInterfaces = new String[vectorInterfaces
+												.size()+1];
+										/* add the managed service interface to the array */
+										allInterfaces[allInterfaces.length-1] = "org.osgi.service.cm.ManagedService";
+									}
+									
+									/* check if it is a managed factory */
+									if(isManagedFactory){
+										/* extend the size by 1 */
+										 allInterfaces = new String[vectorInterfaces
+												.size()+1];
+										 /* add the managed factory interface to the array */
+										allInterfaces[allInterfaces.length-1] = "org.osgi.service.cm.ManagedServiceFactory";
+									}
+								}else{
+									if(!(isManaged && isManagedFactory)){
+									 allInterfaces = new String[vectorInterfaces
+																.size()];
+									}else{
+										System.err.println("Can't handle both managed service and factory in "+
+												"the same implementation class");
+									}
+								}
+								
+								/* copy all objects to the allinterfaces array */
+								for (int i = 0; i < vectorInterfaces.size(); i++) {
+									allInterfaces[i] = (String) vectorInterfaces
+											.get(i);
+								}
+
+								/* check if it is a service factory */
+								if (componentDeclaration.isServiceFactory()) {
+									System.out
+											.println("********************** "
+													+ " register component service factory for:"
+													+ componentDeclaration
+															.getComponentName()
+													+ " **************");
+									try {
+
+										/*
+										 * register service factory component here
+										 */
+										CustomComponentServiceFactory serviceComponent = registerComponentServiceFactory(
+												allInterfaces, componentDeclaration);
+
+										/*
+										 * add the service factory to the vector of
+										 * active components
+										 */
+										activeComponents.add(serviceComponent);
+
+										if (inactiveComponents
+												.contains(componentDeclaration)) {
+											inactiveComponents
+													.remove(componentDeclaration);
+										}
+
+									} catch (ComponentException e) {
+										/* just throw the error */
+										throw e;
+									}
+
+								} else {
+									
+									System.out.println("********************** "
+											+ " register delayed service for:"
+											+ componentDeclaration
+													.getComponentName()
+											+ " **************");
+									try {
+										/*
+										 * register custom delayed service here
+										 */
+										DeclarativeComponent delayedComponent = registerDelayedComponent(
+												allInterfaces, componentDeclaration);
+
+										/*
+										 * add the delayed service to the vector of
+										 * active components
+										 */
+										activeComponents.add(delayedComponent);
+
+										if (inactiveComponents
+												.contains(componentDeclaration)) {
+											inactiveComponents
+													.remove(componentDeclaration);
+										}
+
+									} catch (ComponentException e) {
+										e.printStackTrace();
+										/* throw the error */
+										throw e;
+									} catch (Exception e) {
+										throw new ComponentException(
+												e.getMessage(), e.getCause());
+									}
+
+								}
+
+							} else {
+								
+								if(componentDeclaration.isAutoEnable()&& !isManaged && !isManagedFactory){
+									System.out.println("********************** "
+											+ " register immediate component for:"
+											+ componentDeclaration
+													.getComponentName()
+											+ " **************");
+									
+									ImmediateComponent immediateComponent = 
+										new ImmediateComponent(
+												componentDeclaration);
+									
+									/* this is an immediate component */
+									activeComponents.add(immediateComponent);
+									
+									immediateComponent.activate();
+		
+									if (inactiveComponents
+											.contains(componentDeclaration)) {
+										inactiveComponents.remove(componentDeclaration);
+									}
+									
+								}else{
+									inactiveComponents.add(componentDeclaration);
+								}
+
+							}
+
+						} else {
+							
+							System.out.println("********* "
+									+ componentDeclaration.getComponentName()
+									+ " is not satisfied ************");
+
+							/*
+							 * check that the vector doesn't contain the
+							 * componentDeclaration
+							 */
+							if (!inactiveComponents.contains(componentDeclaration)) {
+								/* Save data here */
+								inactiveComponents.add(componentDeclaration);
+							}
+
+						}
+
+					}
+
+				} else {
+					
+					System.out
+							.println("**************** autoEnable is false in the component delcaration ********************");
+					/*
+					 * check that the vector doesn't contain the
+					 * componentDeclaration
+					 */
+					if (!inactiveComponents.contains(componentDeclaration)) {
+						/* Save data here */
+						inactiveComponents.add(componentDeclaration);
+					}
+					
+				} // if(componentDeclaration.isAutoEnable())
+			
+		}
+	
+	}
 	/**
 	 * this class will deactivate a given component implementation 
 	 * and will prevent SCR from stall if the components implemented 
