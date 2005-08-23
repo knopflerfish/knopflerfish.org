@@ -31,7 +31,11 @@ public class Component2Impl implements Component2 {
     public void activate(ComponentContext context) { 
     	this.context = context;
 		
-    	provider = (CounterFactory) context.locateService("counter");
+    	try{
+    		provider = (CounterFactory) context.locateService("counter");
+		}catch(ClassCastException e){
+   			System.err.println("error due to:\n" + e);
+   		}
 		
 		System.out.println("Provider:" + provider);
 		
