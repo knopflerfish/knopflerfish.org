@@ -106,7 +106,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * it will dispose all active components handled by the
 	 * SCR and return to the caller method
 	 */
-	public void shutdown(){
+	public synchronized void shutdown(){
 		
 		/* go through all active components */
 		for(int i=0;i<activeComponents.size();i++){
@@ -1475,7 +1475,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @throws ComponentException
 	 *             if failed during the process
 	 */
-	public void disposeComponent(Object componentObject)
+	public synchronized void disposeComponent(Object componentObject)
 			throws ComponentException {
 		
 		/* go through all active components */
@@ -1660,7 +1660,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @param requestBundle
 	 *            the bundle the requesting component is located in
 	 */
-	public void disableComponent(String componentName, Bundle requestBundle,
+	public synchronized void disableComponent(String componentName, Bundle requestBundle,
 			boolean isStopping) throws ComponentException {
 
 		System.out
@@ -2177,7 +2177,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @param requestBundle
 	 *            the bundle the requesting component is located in
 	 */
-	public void enableComponent(String componentName, Bundle requestBundle)
+	public synchronized void enableComponent(String componentName, Bundle requestBundle)
 			throws ComponentException {
 		/* go through all component declaration */
 		for (int i = 0; i < inactiveComponents.size(); i++) {
@@ -2235,7 +2235,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * 
 	 * @return object the service object
 	 */
-	public Object locateService(String serviceName, String componentName)
+	public synchronized Object locateService(String serviceName, String componentName)
 			throws ComponentException {
 
 		/*
@@ -2317,7 +2317,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * 
 	 * @return object the service object
 	 */
-	public Object[] locateServices(String serviceName, String componentName)
+	public synchronized Object[] locateServices(String serviceName, String componentName)
 			throws ComponentException {
 
 		/*
