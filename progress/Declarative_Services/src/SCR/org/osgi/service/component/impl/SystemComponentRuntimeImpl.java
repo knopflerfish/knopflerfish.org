@@ -2179,11 +2179,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	public synchronized void enableComponent(String componentName, Bundle requestBundle)
 			throws ComponentException {
+		
+		/* get a clone of the active components to avoid synchronize problem */
+		Vector currentComponents = (Vector)inactiveComponents.clone();
 		/* go through all component declaration */
-		for (int i = 0; i < inactiveComponents.size(); i++) {
+		for (int i = 0; i < currentComponents.size(); i++) {
 			try {
 				/* create a componentDeclaration variable */
-				ComponentDeclaration componentDeclaration = (ComponentDeclaration) inactiveComponents
+				ComponentDeclaration componentDeclaration = (ComponentDeclaration) currentComponents
 						.get(i);
 
 				/* check if the component name is equal to the given name */
@@ -2199,8 +2202,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * evalute the declaration override the
 							 * componentdeclarations isAutoEnabled()
 							 */
+							
 							evaluateComponentDeclaration(componentDeclaration,
 									true);
+							
 
 						} catch (ComponentException e) {
 							/* throw the error */
@@ -2440,6 +2445,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		/* variable representing if the component implements managed service factory */
 		boolean isManagedFactory =false;
 		
+	
+		
 		try{
 			
 			/* get the class representation */
@@ -2447,14 +2454,22 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			/* get the interfaces implemented on this class */
 			Class[] interfaces = implementationClass.getInterfaces();
 			
+			/* counter variable */
+			int q=0;
+			/* variable holding the length of the interface array */
+			int length = interfaces.length;
+			
 			/* go through the interfaces */
-			for(int i=0;i<interfaces.length;i++){
+			while(q<length){
+				
 				System.out.println("Interface implemented on " + 
 						componentDeclaration.getImplementation() + 
-						": " + interfaces[i].getName());
-				
+						": " + interfaces[q].getName());
+//				
+//				System.out.println("the lenght of the interface array is: " + length+"\n" +
+//						"And q value is: " + q);
 				/* get the interface name */
-				String interfaceName = interfaces[i].getName();
+				String interfaceName = interfaces[q].getName();
 				
 				/* check if the interfaces is a managed service */
 				if(interfaceName.equals("org.osgi.service.cm.ManagedService")){
@@ -2471,8 +2486,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					/* set the attribute to true */
 					isManagedFactory=true;
 				}
+				q++;
+				
 			}
-			
+		
 		}catch(ClassNotFoundException e){
 			/* this will happen if the class isn't found */
 			throw new ComponentException("Can't find class " + componentDeclaration.getImplementation() 
