@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="com.gstm.test.scr.scenarios.scenario8.component1.Component1" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario8.component1.impl.Component1Impl" />
+    <reference name="message" interface="com.gstm.test.scr.scenarios.scenario8.faultyprovider.FaultyProvider" cardinality="1..1" policy="static" target="(component.name=com.gstm.test.scr.scenarios.scenario8.faultyprovider.FaultyProvider)" />
+</scr:component>
