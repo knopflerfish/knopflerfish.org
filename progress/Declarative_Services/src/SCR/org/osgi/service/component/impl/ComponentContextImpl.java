@@ -91,8 +91,12 @@ public class ComponentContextImpl implements ComponentContext{
 	 */
 	public void enableComponent(String name){
 		try{
-			/* tell the SCR to enable component with the given name */
-			systemComponentRuntime.enableComponent(name,requestBundle);
+			
+			/* create a process */
+			EnableProcess enableProcess = new EnableProcess(name);
+			/* start the process */
+			enableProcess.start();
+			
 		}catch(ComponentException e){
 			System.err.println(e);
 		}
@@ -200,6 +204,30 @@ public class ComponentContextImpl implements ComponentContext{
 		return usingBundle;
 	}
 	
+	
+	
+	/**
+	 * this class will enable a component after a given name
+	 * it will do it in a thread just to prevent the calling
+	 * bundle to hang.
+	 * 
+	 * @author Magnus Klack
+	 */
+	private class EnableProcess extends Thread{
+		private String componentName;
+		/**
+		 * @param name
+		 */
+		public EnableProcess(String name) {
+			componentName=name;
+		}
+		
+		public void run(){
+			/* tell the SCR to enable component with the given name */
+			systemComponentRuntime.enableComponent(componentName,requestBundle);
+		}
+		
+	}
 	/**
 	 * This class will stop a specific component
 	 * 
