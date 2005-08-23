@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario8Bundle1
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario8.component1
+Bundle-Version: 1.0
+Export-Package: com.gstm.test.scr.scenarios.scenario8.component1.impl
+DynamicImport-Package: *
+Service-Component: OSGI-INF/Scenario8Component1.xml
