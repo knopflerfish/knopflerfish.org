@@ -29,7 +29,6 @@ public class Component1Impl  {
     
     public Component1Impl(){
     	/* Notifying that the component has been instanciated */
-    	System.out.println("THE CONSTRUCTOR IN COMPONENT1 IS CALLED");
     	board.setValue("com.gstm.test.scr.scenarios.scenario8.component1.Component1", new Integer(10));
     }
     
@@ -40,7 +39,7 @@ public class Component1Impl  {
     	try{
     		provider = (FaultyProvider) context.locateService("message");
    		}catch(ClassCastException e){
-   			System.err.println("error due to:\n" + e);
+   			System.err.println("error when getting counter");
    		}
 		
 		System.out.println("Provider:" + provider);
