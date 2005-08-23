@@ -49,12 +49,12 @@ import com.sun.rsasign.c;
 /**
  * This class is the implementation of the declarative service feature. It will
  * locate and bind diffrent types of declared components on demand. It will also
- * listen to BundleEvents rasied within the framework and act after that. 
- * It is right now very hard to get information from the declaration class
- * and that demands, in many cases, nestle loops, for or while statements.
- * The class uses a ComponentDeclarations, BundleContexts, CustomParsers to
- * fulfill its responsibility. It keeps active components in a vector and
- * inactive components in another vector. 
+ * listen to BundleEvents rasied within the framework and act after that. It is
+ * right now very hard to get information from the declaration class and that
+ * demands, in many cases, nestle loops, for or while statements. The class uses
+ * a ComponentDeclarations, BundleContexts, CustomParsers to fulfill its
+ * responsibility. It keeps active components in a vector and inactive
+ * components in another vector.
  * 
  * @author Magnus Klack
  */
@@ -75,14 +75,17 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	/** variable holding inactive components */
 	private Vector inactiveComponents = new Vector();
-	
+
+	private Object evaluationSemaphore = new Object();
+
 	/**
-	 * Constructor for the SCR assigns local variable and 
-	 * if there are already active declarative bundles within 
-	 * the framework an evaluation of them.
-	 *  
-	 * @param context the bundle context 
-	 * @param alreadyActive an array with already active components
+	 * Constructor for the SCR assigns local variable and if there are already
+	 * active declarative bundles within the framework an evaluation of them.
+	 * 
+	 * @param context
+	 *            the bundle context
+	 * @param alreadyActive
+	 *            an array with already active components
 	 */
 	public SystemComponentRuntimeImpl(BundleContext context,
 			Vector alreadyActive) {
@@ -92,7 +95,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		bundleContext.addBundleListener(this);
 		/* add the serviceListener */
 		bundleContext.addServiceListener(this);
-		
+
 		for (int i = 0; i < alreadyActive.size(); i++) {
 			ComponentDeclaration declaration = (ComponentDeclaration) alreadyActive
 					.get(i);
@@ -100,1128 +103,43 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}
-	
+
 	/**
-	 * this method will be called when SCR is shutting down
-	 * it will dispose all active components handled by the
-	 * SCR and return to the caller method
+	 * this method will be called when SCR is shutting down it will dispose all
+	 * active components handled by the SCR and return to the caller method
 	 */
-	public synchronized void shutdown(){
-		
+	public synchronized void shutdown() {
+
 		/* go through all active components */
-		for(int i=0;i<activeComponents.size();i++){
-			/* get the component */			
-			DeclarativeComponent component = (DeclarativeComponent)
-												activeComponents.get(i);
+		for (int i = 0; i < activeComponents.size(); i++) {
+			/* get the component */
+			DeclarativeComponent component = (DeclarativeComponent) activeComponents
+					.get(i);
 			/* disable the component */
-			disableComponent(component.getComponentDeclaration().getComponentName(),
-					component.getComponentDeclaration().getDeclaringBundle(),
-					true);
-			
+			disableComponent(component.getComponentDeclaration()
+					.getComponentName(), component.getComponentDeclaration()
+					.getDeclaringBundle(), true);
+
 			/* decrease one element is removed */
 			i--;
 		}
-	
+
 	}
-	
+
 	/**
 	 * this method listens for service changes it will check the type of the
-	 * event and perform correct actions depending on the event. More explanations
-	 * are attatched within the method. 
+	 * event and perform correct actions depending on the event. More
+	 * explanations are attatched within the method.
 	 * 
 	 * @param event
 	 */
 	public synchronized void serviceChanged(ServiceEvent event) {
-		/* check if a new service is registered */
-		if (event.getType() == ServiceEvent.REGISTERED
-				|| event.getType() == ServiceEvent.UNREGISTERING) {
-			try {
-				/* get all the object classes */
-				String[] objectClasses = (String[]) event.getServiceReference()
-						.getProperty("objectClass");
-
-				/* go through them */
-				for (int i = 0; i < objectClasses.length; i++) {
-					/* create a string representing the newly registered service */
-					String objectClass = objectClasses[i];
-
-					/*
-					 * check if the event is a REGISTERED event check if any
-					 * inactive component has this registered event as reference
-					 * if so try to evalutate the that component with the
-					 * evaluateComponentDeclaration(..) method. if the component
-					 * is satisfied,i.e has all dependencies it needs when it
-					 * will be activated and its services, if any , will be
-					 * registered into the framework.
-					 */
-					if (event.getType() == ServiceEvent.REGISTERED) {
-						/*
-						 * go through all inactive components to se if any of
-						 * them has a reference to this service
-						 */
-						
-						Vector copyOfInactiveComponents = (Vector)inactiveComponents.clone();
-						
-						for (int j = 0; j < copyOfInactiveComponents.size(); j++) {
-							/* get the componentDeclaration */
-							ComponentDeclaration componentDeclaration = (ComponentDeclaration) copyOfInactiveComponents
-									.get(j);
-
-							/* get the components references */
-							ArrayList references = componentDeclaration
-									.getReferenceInfo();
-							/* create an iterator */
-							Iterator referenceIterator = references.iterator();
-
-							/* iteratre through the reference info objects */
-							while (referenceIterator.hasNext()) {
-								/* get the reference info object */
-								ComponentReferenceInfo referenceInfo = (ComponentReferenceInfo) referenceIterator
-										.next();
-
-								/* get the filter */
-								String filter = referenceInfo.getTarget();
-								/* get the target */
-								String eventTarget = (String) event
-										.getServiceReference().getProperty(
-												"component.name");
-
-								/*
-								 * check if the names of the declared interface
-								 * and the object class are equal to each other
-								 * and that the component declaration is auto
-								 * enabled. Also make sure that the targets of
-								 * the declaration equals the component name
-								 */
-								if (referenceInfo.getInterfaceType().equals(
-										objectClass)
-										&& componentDeclaration.isAutoEnable()) {
-									try {
-										/*
-										 * try to start the component again this
-										 * may failed if the component has other
-										 * unsatisfied references which aren't
-										 * obvious here, but the
-										 * evaluateComponentDeclaration(...)
-										 * method will take care of it.
-										 * therefore no concerns about the
-										 * filter is taken here.
-										 */
-										//copyOfInactiveComponents.remove(componentDeclaration);
-										
-										evaluateComponentDeclaration(
-												componentDeclaration, false);
-										
-										
-										//j--;
-									} catch (ComponentException e) {
-										/* print the error */
-										System.out.println(e);
-									}
-
-								}// end
-								// if(referenceInfo.getInterfaceType().equals(objectClass)
-								// &&
-								//componentDeclaration.isAutoEnable())
-
-							}// end while (referenceIterator.hasNext())
-
-						}// end for(int j=0;j<inactiveComponents.size();j++)
-
-					}//end if(event.getType()==ServiceEvent.REGISTERED)
-
-					/*
-					 * always check all active components no matter if it is a
-					 * REGISTERED or UNREGISTERED event if an active component
-					 * has a refence to the event perform correct action i.e,
-					 * disable the component if its necessary, rebind the
-					 * component and call the components activate method.
-					 *  
-					 */
-					for (int j = 0; j < activeComponents.size(); j++) {
-
-						/* check if it is an DeclarativeComponent */
-						if (activeComponents.get(j) instanceof DeclarativeComponent) {
-							/* create an ImmediateComponent variable */
-							DeclarativeComponent component = (DeclarativeComponent) activeComponents
-									.get(j);
-							/* create a componentDeclaration variable */
-							ComponentDeclaration componentDeclaration = component
-									.getComponentDeclaration();
-
-							/* get the components references */
-							ArrayList references = componentDeclaration
-									.getReferenceInfo();
-							/* create an iterator */
-							Iterator referenceIterator = references.iterator();
-
-							/* iteratre through the reference info objects */
-							while (referenceIterator.hasNext()) {
-								/* get the reference info object */
-								ComponentReferenceInfo referenceInfo = (ComponentReferenceInfo) referenceIterator
-										.next();
-
-								/*
-								 * check if the name of the interface is the
-								 * same as the newly registered. Also check that
-								 * the cardinality is 0..n or 1..n. Also ensure
-								 * that a bind method is declared If that is the
-								 * case the active component should be binded or
-								 * rebinded again. This should only be done if
-								 * the event is a REGISTERED event
-								 */
-								if (referenceInfo.getInterfaceType().equals(
-										objectClass)
-										&& (referenceInfo.getCardinality()
-												.equals("0..n") || referenceInfo
-												.getCardinality()
-												.equals("1..n"))
-										&& (event.getType() == ServiceEvent.REGISTERED)) {
-
-									try {
-										/*
-										 * make sure the context has been
-										 * created before trying to bind this
-										 * one.
-										 */
-										if (component.getComponentContext() != null
-												|| component
-														.getComponentContexts() != null) {
-
-											if (!component
-													.getComponentDeclaration()
-													.isServiceFactory()){
-													
-														
-												System.out.println("NOTICE:");
-												
-												System.out
-														.println("\n"
-																+ component
-																		.getComponentDeclaration()
-																		.getComponentName()
-																+ "\nhas declared that its instance wants to be notified about all\n"
-																+ "registered service of this type therefore an instance of\n"
-																+ "this service will be passed to this components bind method\n");
-
-												/* get the service object */
-												Object serviceObject = bundleContext
-														.getService(event
-																.getServiceReference());
-												/*
-												 * get the instance to be
-												 * invoked
-												 */
-												Object instance = component
-														.getComponentContext()
-														.getComponentInstance()
-														.getInstance();
-												
-												/* get the method name */
-												String methodName = referenceInfo
-														.getBind();
-												
-												if(methodName!=null){
-													/* get the interface type */
-													String interfaceName = referenceInfo
-															.getInterfaceType();
-													/* invoke the bind method */
-													reInvokeReference(
-															serviceObject,
-															instance, methodName,
-															interfaceName);
-													
-												}
-												
-												if(!component.isBoundedTo(event.getServiceReference())){
-													/* invoke the activate method */
-													
-													activateInstance(component
-															.getComponentContext());
-													/*
-													 * add the service reference to
-													 * the component
-													 */
-													component.bindReference(event
-															.getServiceReference());
-												}
-											}
-
-											if (component
-													.getComponentDeclaration()
-													.isServiceFactory()) {
-
-												System.out
-														.println("\n"
-																+ component
-																		.getComponentDeclaration()
-																		.getComponentName()
-																+ "\nhas declared that its instances wants to be notified about all\n"
-																+ "registered service of this type therefore an instance of\n"
-																+ "this service will be passed to this components bind method\n");
-
-												Vector contexts = component
-														.getComponentContexts();
-												/* get the service object */
-												Object serviceObject = bundleContext
-														.getService(event
-																.getServiceReference());
-
-												for (int z = 0; z < contexts
-														.size(); z++) {
-													/* get the current context */
-													ComponentContext currentContext = (ComponentContext) contexts
-															.get(z);
-													/*
-													 * get the instance to be
-													 * invoked
-													 */
-													Object instance = currentContext
-															.getComponentInstance()
-															.getInstance();
-													/* get the method name */
-													String methodName = referenceInfo
-															.getBind();
-													
-													if(methodName!=null){													/* get the interface type */
-														String interfaceName = referenceInfo
-																.getInterfaceType();
-														/* invoke the bind method */
-														reInvokeReference(
-																serviceObject,
-																instance,
-																methodName,
-																interfaceName);
-													}
-													/*
-													 * invoke the activate
-													 * method
-													 */
-													activateInstance(currentContext);
-													/*
-													 * add the service reference
-													 * to the component
-													 */
-													component
-															.bindReference(event
-																	.getServiceReference());
-
-												}
-
-											}
-
-										}
-
-									} catch (ComponentException e) {
-										System.err
-												.println("error in serviceChanged(..) when reInvoking component:\n"
-														+ e);
-									}
-
-								}
-
-								/*
-								 * variable represents if the component is
-								 * bounded or not
-								 */
-								boolean isBounded = false;
-								/* make sure the component is not null */
-								if (component != null) {
-									/* check if the component is bounded */
-									isBounded = component.isBoundedTo(event
-											.getServiceReference());
-								}
-
-								/*
-								 * check if the objectclass matches the
-								 * interface in declaration also check if its a
-								 * UNREGISTERING event if so check if any
-								 * component has the unregistered reference as
-								 * dependency. if a dependency exists perform
-								 * the legal action depending on the policy and
-								 * the cardinality
-								 */
-								if ((event.getType() == ServiceEvent.UNREGISTERING)
-										&& isBounded
-										&& referenceInfo.getInterfaceType()
-												.equals(objectClass)) {
-
-									/*
-									 * create a string representing the
-									 * cardinality
-									 */
-									String cardinality = referenceInfo
-											.getCardinality();
-									/* get the policy */
-									String policy = referenceInfo.getPolicy();
-
-									/*
-									 * check if it is a static policy. Static
-									 * policy will not try to dynamically rebind
-									 * the component SCR will instead disable
-									 * the component and try to create a new
-									 * one.
-									 */
-									if (policy.equals("static")) {
-
-										/*
-										 * make sure this component doesn't
-										 * belong to a stopping bundle if that
-										 * is the case this reference is in the
-										 * same bundle as the stopping bundle.
-										 * Don't disable the component it will
-										 * be disabled later.
-										 */
-										if (componentDeclaration
-												.getDeclaringBundle()
-												.getState() != Bundle.STOPPING) {
-											/* disable the component */
-											System.out
-													.println("disabel "
-															+ componentDeclaration
-																	.getComponentName()
-															+ " because it has a reference to "
-															+ objectClass
-															+ " with a static policy");
-
-											/* disable the component */
-											disableComponent(
-													componentDeclaration
-															.getComponentName(),
-													componentDeclaration
-															.getDeclaringBundle(),
-													false);
-											/* decrease one element is removed */
-											j--;
-
-										} else {
-
-											System.out
-													.println("****************  "
-															+ componentDeclaration
-																	.getComponentName()
-															+ "'s bundle is stopping "
-															+ "this is probably a bundle internal reference *********");
-										}
-
-										/*
-										 * evaluate the component again if the
-										 * component is satisfied it will
-										 * restart else it will be saved for
-										 * later use TODO check if the
-										 * evaluation method should care about
-										 * the isAutoEnable attribute
-										 */
-										try {
-
-											if (componentDeclaration
-													.getDeclaringBundle()
-													.getState() != Bundle.STOPPING) {
-												evaluateComponentDeclaration(
-														componentDeclaration,
-														false);
-											} else {
-												System.err
-														.println("************** This component's bundle is stopping"
-																+ " ignore to restart **********************");
-											}
-
-										} catch (Exception e) {
-											System.err
-													.println("error occured when trying to restart"
-															+ componentDeclaration
-																	.getComponentName()
-															+ " due to:\n"
-															+ e.getMessage());
-											/* remove the component */
-											activeComponents.remove(component);
-											/* decrease one element is removed */
-											j--;
-										}
-
-									}
-
-									/*
-									 * dynamic policy is a little bit more
-									 * complex it will behave diffrent depending
-									 * on the cardinality declared. if the
-									 * cardinality is 1..1 and no references are
-									 * available then the component declaring
-									 * dependency to this unregistered service
-									 * cannot work with out a rebind action. If
-									 * the cardinality is 0..1 it means it will
-									 * be able to work with out this reference
-									 * but the standard procedure is to look for
-									 * another equal reference and rebind the
-									 * component.
-									 */
-									if (policy.equals("dynamic")
-											&& component
-													.getComponentDeclaration()
-													.getDeclaringBundle()
-													.getState() != Bundle.STOPPING) {
-
-										System.out
-												.println("*************** Found dynamic reference to:"
-														+ component
-																.getComponentDeclaration()
-																.getComponentName()
-														+ " ********************");
-
-										/*
-										 * if the cardinality is 1..1 or 0..1
-										 * when unbind the old service a try to
-										 * locate a new service and bind it to
-										 * the service
-										 */
-										if (cardinality.equals("1..1")
-												|| cardinality.equals("0..1")) {
-
-											/*
-											 * check if a new service of this
-											 * type is available
-											 */
-											ServiceReference[] serviceReferences = bundleContext
-													.getServiceReferences(
-															referenceInfo
-																	.getInterfaceType(),
-															referenceInfo
-																	.getTarget());
-
-											/*
-											 * declare a new service object set
-											 * it to null
-											 */
-											Object serviceObject = null;
-
-											/* get the old service object */
-											Object oldServiceObject = bundleContext
-													.getService(event
-															.getServiceReference());
-
-											/*
-											 * check that the reference is not
-											 * null
-											 */
-											if (serviceReferences != null) {
-												/* get the service */
-												serviceObject = bundleContext
-														.getService(serviceReferences[0]);
-											}
-
-											/*
-											 * this is the easy task because
-											 * those component types do only
-											 * have one instance of the
-											 * component object
-											 */
-											if (component instanceof ImmediateComponent
-													|| component instanceof CustomDelayedService
-													|| component instanceof CustomComponentFactory
-													&& (serviceObject != null)) {
-
-												/* get the context */
-												ComponentContext componentContext = component
-														.getComponentContext();
-
-												/*
-												 * ensure that the context isn't
-												 * null if so it means that the
-												 * service never been requested
-												 * and the component is of the
-												 * type CustomDelayedService. If
-												 * the context is null then
-												 * there are no instance(s) to
-												 * rebind.
-												 */
-
-												if (componentContext != null) {
-													/*
-													 * create a string
-													 * representing the unbind
-													 * method
-													 */
-													String unbindMethod = referenceInfo
-															.getUnbind();
-													/*
-													 * create a string
-													 * representing the bind
-													 * method
-													 */
-													String bindMethod = referenceInfo
-															.getBind();
-
-													/*
-													 * make sure unbind method
-													 * is declared
-													 */
-													if (unbindMethod != null) {
-														try {
-															/*
-															 * unbind the old
-															 * service
-															 */
-															reInvokeReference(
-																	oldServiceObject,
-																	componentContext
-																			.getComponentInstance()
-																			.getInstance(),
-																	unbindMethod,
-																	referenceInfo
-																			.getInterfaceType());
-														} catch (ComponentException e) {
-															System.err
-																	.println(e);
-														}
-													}
-
-													if (bindMethod != null) {
-														try {
-															/*
-															 * bind the old
-															 * service
-															 */
-															reInvokeReference(
-																	serviceObject,
-																	componentContext
-																			.getComponentInstance()
-																			.getInstance(),
-																	bindMethod,
-																	referenceInfo
-																			.getInterfaceType());
-														} catch (ComponentException e) {
-															/* print the error */
-															System.err
-																	.println(e);
-														}
-													}
-
-													try {
-														/*
-														 * invoke the activate
-														 * method
-														 */
-														activateInstance(componentContext);
-													} catch (ComponentException e) {
-														/* print the error */
-														System.err
-																.println("error calling activate method due to:\n"
-																		+ e);
-													}
-
-												}// end
-												// if(componentContext!=null){
-
-											} else if (component instanceof CustomComponentServiceFactory
-													&& serviceObject != null) {
-												/*
-												 * this is a service factory get
-												 * all contexts
-												 */
-												Vector contexts = component
-														.getComponentContexts();
-												/*
-												 * create a string representing
-												 * the unbind method
-												 */
-												String unbindMethod = referenceInfo
-														.getUnbind();
-												/*
-												 * create a string representing
-												 * the bind method
-												 */
-												String bindMethod = referenceInfo
-														.getBind();
-
-												for (int x = 0; x < contexts
-														.size(); x++) {
-													/* get the component context */
-													ComponentContext componentContext = (ComponentContext) contexts
-															.get(x);
-
-													/*
-													 * make sure unbind method
-													 * is declared
-													 */
-													if (unbindMethod != null) {
-														try {
-															/*
-															 * unbind the old
-															 * service
-															 */
-															reInvokeReference(
-																	oldServiceObject,
-																	componentContext
-																			.getComponentInstance()
-																			.getInstance(),
-																	unbindMethod,
-																	referenceInfo
-																			.getInterfaceType());
-														} catch (ComponentException e) {
-															System.err
-																	.println(e);
-														}
-													}
-
-													if (bindMethod != null) {
-														try {
-															/*
-															 * bind the new
-															 * service
-															 */
-															reInvokeReference(
-																	serviceObject,
-																	componentContext
-																			.getComponentInstance()
-																			.getInstance(),
-																	bindMethod,
-																	referenceInfo
-																			.getInterfaceType());
-														} catch (ComponentException e) {
-															System.err
-																	.println(e);
-														}
-													}
-
-													try {
-														/*
-														 * invoke the activate
-														 * method
-														 */
-														activateInstance(componentContext);
-													} catch (ComponentException e) {
-														/* print the error */
-														System.err
-																.println("error calling activate method due to:\n"
-																		+ e);
-													}
-
-												}// end for(int
-												// x=0;x<contexts.size();x++)
-
-											}// end else if(component instanceof
-											// CustomComponentServiceFactory)
-
-											if (cardinality.equals("1..1")
-													&& serviceObject == null) {
-												/*
-												 * in this case disable the
-												 * component it should not work
-												 * with the declared cardinality
-												 */
-												try {
-													System.out
-															.println("************ disable "
-																	+ componentDeclaration
-																			.getComponentName()
-																	+ " unable to bind new equal reference to component *************");
-													/* call the disable method */
-													disableComponent(
-															componentDeclaration
-																	.getComponentName(),
-															componentDeclaration
-																	.getDeclaringBundle(),
-															false);
-													/*
-													 * decrease one element is
-													 * removed
-													 */
-													j--;
-												} catch (ComponentException e) {
-													System.err.println(e);
-												}
-
-											}// end
-											// if(cardinality.equals("1..1") &&
-											// serviceObject==null)
-										}
-
-										/*
-										 * if cardinality is 1..n means that the
-										 * component wants all references of the
-										 * given type and MUST have at least one
-										 * reference bounded. 0..n means that
-										 * the component can work with out a
-										 * reference and should not be disabled
-										 * if no references are available.
-										 */
-										if (cardinality.equals("1..n")
-												|| cardinality.equals("0..n")) {
-											/* get all the service references */
-											ServiceReference[] newReferences = null;
-											/* get the old service object */
-											Object oldServiceObject = bundleContext
-													.getService(event
-															.getServiceReference());
-											/*
-											 * create a string representing the
-											 * unbind method
-											 */
-											String unbindMethod = referenceInfo
-													.getUnbind();
-											/*
-											 * create a string representing the
-											 * bind method
-											 */
-											String bindMethod = referenceInfo
-													.getBind();
-
-											/*
-											 * those component types only have
-											 * one instance
-											 */
-											if (component instanceof ImmediateComponent
-													|| component instanceof CustomDelayedService
-													|| component instanceof CustomComponentFactory) {
-
-												/*
-												 * create a componentContext
-												 * variable
-												 */
-												ComponentContext componentContext = component
-														.getComponentContext();
-
-												/*
-												 * check if component has an
-												 * unbind method
-												 */
-												if (unbindMethod != null) {
-													try {
-														/*
-														 * unbind the old
-														 * service
-														 */
-														reInvokeReference(
-																oldServiceObject,
-																componentContext
-																		.getComponentInstance()
-																		.getInstance(),
-																unbindMethod,
-																referenceInfo
-																		.getInterfaceType());
-														component
-																.unBindReference(event
-																		.getServiceReference());
-													} catch (ComponentException e) {
-														System.err.println(e);
-													}
-												}
-
-												try {
-													/* get the references */
-													newReferences = bundleContext
-															.getServiceReferences(
-																	referenceInfo
-																			.getInterfaceType(),
-																	referenceInfo
-																			.getTarget());
-												} catch (InvalidSyntaxException e) {
-													System.err
-															.println("error getting servicereferences due to:\n"
-																	+ e);
-												} catch (Exception e) {
-													System.err
-															.println("error getting servicereferences due to:\n"
-																	+ e);
-												}
-
-												/*
-												 * check this again because the
-												 * old references can be the
-												 * left
-												 */
-												if (newReferences != null) {
-
-													for (int x = 0; x < newReferences.length; x++) {
-														/*
-														 * make sure unbind
-														 * method is declared
-														 */
-														if (bindMethod != null) {
-															try {
-																/*
-																 * check if
-																 * already
-																 * bounded
-																 */
-																if (!component
-																		.isBoundedTo(newReferences[x])) {
-																	/*
-																	 * get the
-																	 * object
-																	 */
-																	Object serviceObject = bundleContext
-																			.getService(newReferences[x]);
-																	/*
-																	 * bind the
-																	 * old
-																	 * service
-																	 */
-																	reInvokeReference(
-																			serviceObject,
-																			componentContext
-																					.getComponentInstance()
-																					.getInstance(),
-																			bindMethod,
-																			referenceInfo
-																					.getInterfaceType());
-																}
-															} catch (ComponentException e) {
-																System.err
-																		.println(e);
-															}
-														}
-
-														try {
-															/*
-															 * invoke the
-															 * activate method
-															 */
-															activateInstance(componentContext);
-														} catch (ComponentException e) {
-															System.err
-																	.println("error calling activate method due to:\n"
-																			+ e);
-														}
-
-													}// end for(int
-													// x=0;x<newReferences.length;x++)
-
-												}// end if(newReferences!=null)
-
-											} else if (component instanceof CustomComponentServiceFactory) {
-												/*
-												 * this is even moore tricky
-												 * here we need all the
-												 * component instances
-												 */
-												Vector contexts = component
-														.getComponentContexts();
-												try {
-													/* get the references */
-													newReferences = bundleContext
-															.getServiceReferences(
-																	referenceInfo
-																			.getInterfaceType(),
-																	null);
-												} catch (InvalidSyntaxException e) {
-													System.err
-															.println("error getting servicereferences due to:\n"
-																	+ e);
-												} catch (Exception e) {
-													System.err
-															.println("error getting servicereferences due to:\n"
-																	+ e);
-												}
-
-												if (newReferences != null) {
-													for (int m = 0; m < contexts
-															.size(); m++) {
-														/*
-														 * get the current
-														 * context
-														 */
-														ComponentContext componentContext = (ComponentContext) contexts
-																.get(m);
-
-														if (unbindMethod != null) {
-															try {
-																/*
-																 * unbind the
-																 * old service
-																 */
-																reInvokeReference(
-																		oldServiceObject,
-																		componentContext
-																				.getComponentInstance()
-																				.getInstance(),
-																		unbindMethod,
-																		referenceInfo
-																				.getInterfaceType());
-																component
-																		.unBindReference(event
-																				.getServiceReference());
-															} catch (ComponentException e) {
-																System.err
-																		.println(e);
-															}
-														}
-
-														for (int x = 0; x < newReferences.length; x++) {
-
-															/*
-															 * make sure unbind
-															 * method is
-															 * declared
-															 */
-															if (bindMethod != null) {
-																try {
-																	/*
-																	 * make sure
-																	 * the
-																	 * component
-																	 * isnt
-																	 * bounded
-																	 * to this
-																	 * reference
-																	 */
-																	if (!component
-																			.isBoundedTo(newReferences[x])) {
-																		Object serviceObject = bundleContext
-																				.getService(newReferences[x]);
-																		/*
-																		 * bind
-																		 * the
-																		 * old
-																		 * service
-																		 */
-																		reInvokeReference(
-																				serviceObject,
-																				componentContext
-																						.getComponentInstance()
-																						.getInstance(),
-																				bindMethod,
-																				referenceInfo
-																						.getInterfaceType());
-																	}
-																} catch (ComponentException e) {
-																	System.err
-																			.println(e);
-																}
-															}
-
-															try {
-																/*
-																 * invoke the
-																 * activate
-																 * method
-																 */
-																activateInstance(componentContext);
-															} catch (ComponentException e) {
-																System.err
-																		.println("error calling activate method due to:\n"
-																				+ e);
-															}
-
-														}// end for(int
-														// x=0;x<newReferences.length;x++)
-
-													}//end for(int m= 0;
-													// m<contexts.size();m++)
-
-												}// end if(newReferences!=null)
-
-											}// if(component instanceof
-											// CustomComponentServiceFactory)
-
-											/*
-											 * check the cardinality if it is
-											 * 1..n it should be disabled here
-											 * it can't work if no service
-											 * references are available
-											 */
-											if (component
-													.getAllBoundedReferences()
-													.size() == 0
-													&& cardinality
-															.equals("1..n")) {
-												System.out
-														.println("************ disable "
-																+ componentDeclaration
-																		.getComponentName()
-																+ " unable to bind new equal references to component *************");
-												disableComponent(
-														componentDeclaration
-																.getComponentName(),
-														componentDeclaration
-																.getDeclaringBundle(),
-														false);
-												/*
-												 * decrease one element is
-												 * removed
-												 */
-												j--;
-
-											}// end if(newReferences==null &&
-											// cardinality.equals("1..n"))
-										}
-
-									} else if (policy.equals("dynamic")
-											&& component
-													.getComponentDeclaration()
-													.getDeclaringBundle()
-													.getState() != Bundle.STOPPING) {
-										System.err
-												.println("************************* "
-														+ component
-																.getComponentDeclaration()
-														+ "'s bundle is stopping this is probably an internal reference"
-														+ " **********************");
-
-									}
-
-								}//end
-								// if(referenceInfo.getInterfaceType().equals(objectClass)
-								// &&
-								//event.getType()==ServiceEvent.UNREGISTERING)
-
-							}// end while (referenceIterator.hasNext())
-
-						} else {
-
-							System.err
-									.println("error in SystemComponentRuntimeImpl.serviceChanged(..) due to:\n"
-											+ "occurance of none DeclarativeComponent type should not be in the vector"
-											+ " for active components");
-						}
-
-					}// end for(int j=0
-
-				}// end for(int i=0;i<objectClasses.length;i++)
-
-				/* if it is an unregister event */
-				if (event.getType() == ServiceEvent.UNREGISTERING) {
-					/*
-					 * check all component instances wich haven't been requested
-					 * yet this is problematic because an instance isn't done by
-					 * them yet.
-					 */
-
-					for (int x = 0; x < activeComponents.size(); x++) {
-						DeclarativeComponent component = (DeclarativeComponent) activeComponents
-								.get(x);
-
-						if (!isSatisfied(component.getComponentDeclaration())
-								&& component.getComponentDeclaration()
-										.getDeclaringBundle().getState() != Bundle.STOPPING) {
-							System.out
-									.println("******** found an unrequested service component wich is unsatisfied:"
-											+ component
-													.getComponentDeclaration()
-													.getComponentName()
-											+ " ****************");
-							disableComponent(component
-									.getComponentDeclaration()
-									.getComponentName(), component
-									.getComponentDeclaration()
-									.getDeclaringBundle(), false);
-						}
-
-					}
-
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.err
-						.println("error in SystemComponentRuntimeImpl.serviceChanged(..) due to:\n"
-								+ e);
-
-			} // end try
-
-		}// if(event.getType()==ServiceEvent.REGISTERED ||
-		// event.getType()==ServiceEvent.UNREGISTERING)
-
+		try{
+			Maintainer maintainer = new Maintainer(event);
+			maintainer.start();
+		}catch(ComponentException e){
+			System.err.println(e);
+		}
 	}
 
 	/**
@@ -1233,16 +151,17 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * components and if they are activated. If that is the case the
 	 * configurations will be disabled and unregistered from the framework.
 	 * 
-	 * @param event the event from the framework
+	 * @param event
+	 *            the event from the framework
 	 */
 	public synchronized void bundleChanged(BundleEvent event) {
-		
-		if(event.getType() == BundleEvent.UPDATED){
+
+		if (event.getType() == BundleEvent.UPDATED) {
 			System.out.println("Bundle #" + event.getBundle().getBundleId()
 					+ " is updated");
-			
+
 		}
-		
+
 		if (event.getBundle().getHeaders().get("Service-Component") != null
 				&& event.getType() == BundleEvent.STARTED) {
 
@@ -1477,7 +396,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	public synchronized void disposeComponent(Object componentObject)
 			throws ComponentException {
-		
+
 		/* go through all active components */
 		for (int i = 0; i < activeComponents.size(); i++) {
 			/* get the component */
@@ -1660,8 +579,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @param requestBundle
 	 *            the bundle the requesting component is located in
 	 */
-	public synchronized void disableComponent(String componentName, Bundle requestBundle,
-			boolean isStopping) throws ComponentException {
+	public synchronized void disableComponent(String componentName,
+			Bundle requestBundle, boolean isStopping) throws ComponentException {
 
 		System.out
 				.println("\n****************** disable component was called in SCR ***********");
@@ -2177,11 +1096,11 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @param requestBundle
 	 *            the bundle the requesting component is located in
 	 */
-	public synchronized void enableComponent(String componentName, Bundle requestBundle)
-			throws ComponentException {
-		
+	public synchronized void enableComponent(String componentName,
+			Bundle requestBundle) throws ComponentException {
+
 		/* get a clone of the active components to avoid synchronize problem */
-		Vector currentComponents = (Vector)inactiveComponents.clone();
+		Vector currentComponents = (Vector) inactiveComponents.clone();
 		/* go through all component declaration */
 		for (int i = 0; i < currentComponents.size(); i++) {
 			try {
@@ -2202,10 +1121,9 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * evalute the declaration override the
 							 * componentdeclarations isAutoEnabled()
 							 */
-							
+
 							evaluateComponentDeclaration(componentDeclaration,
 									true);
-							
 
 						} catch (ComponentException e) {
 							/* throw the error */
@@ -2240,8 +1158,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * 
 	 * @return object the service object
 	 */
-	public synchronized Object locateService(String serviceName, String componentName)
-			throws ComponentException {
+	public synchronized Object locateService(String serviceName,
+			String componentName) throws ComponentException {
 
 		/*
 		 * TODO Check if ID is needed here to identify the component split up in
@@ -2289,8 +1207,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 									.getServiceReference(interfaceName);
 
 							if (serviceReference != null) {
-								return componentDeclaration.getDeclaringBundle().
-									getBundleContext().getService(serviceReference);
+								return componentDeclaration
+										.getDeclaringBundle()
+										.getBundleContext().getService(
+												serviceReference);
 
 							}
 
@@ -2322,12 +1242,12 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * 
 	 * @return object the service object
 	 */
-	public synchronized Object[] locateServices(String serviceName, String componentName)
-			throws ComponentException {
+	public synchronized Object[] locateServices(String serviceName,
+			String componentName) throws ComponentException {
 
 		/*
-		 * TODO Check if ID is needed here to identify the component & split up in
-		 * smaller methods
+		 * TODO Check if ID is needed here to identify the component & split up
+		 * in smaller methods
 		 */
 
 		for (int i = 0; i < activeComponents.size(); i++) {
@@ -2439,39 +1359,44 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	private synchronized void evaluateComponentDeclaration(
 			ComponentDeclaration componentDeclaration, boolean overideEnable)
 			throws ComponentException {
-		try{
-			Evaluator evaluator = new Evaluator(componentDeclaration,overideEnable);
+		try {
+			/* create an evaluator to evaluate the component with */
+			Evaluator evaluator = new Evaluator(componentDeclaration,
+					overideEnable);
+			/* start the evaluation process */
 			evaluator.start();
-		}catch(ComponentException e){
+
+		} catch (ComponentException e) {
 			throw e;
 		}
-			
+
 	}
-	
 
 	/**
-	 * This method start a thread which will try to invoke 
-	 * the activte(..) method implemented in a given object.
+	 * This method start a thread which will try to invoke the activte(..)
+	 * method implemented in a given object.
 	 * 
-	 * @param componentContext the componentContext
-	 * @throws ComponentException if fails to invoke the method OBS!
-	 *  		an exception will not be thrown if the method doesn't
-	 * 			exits.
+	 * @param componentContext
+	 *            the componentContext
+	 * @throws ComponentException
+	 *             if fails to invoke the method OBS! an exception will not be
+	 *             thrown if the method doesn't exits.
 	 */
 	private void activateInstance(ComponentContext componentContext)
 			throws ComponentException {
-			
-		if(componentContext!=null){
-			try{
+
+		if (componentContext != null) {
+			try {
 				Activator activatorThread = new Activator(componentContext);
 				activatorThread.start();
-			}catch(ComponentException e){
+			} catch (ComponentException e) {
 				throw e;
 			}
-			
-		}else{
-			throw new ComponentException("Can't activate the component context is null");
-		}	
+
+		} else {
+			throw new ComponentException(
+					"Can't activate the component context is null");
+		}
 
 	}
 
@@ -2487,24 +1412,25 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	private void inactivateInstance(ComponentContext componentContext)
 			throws ComponentException {
-			if(componentContext!=null){
-				try{
-					Deactivator deactivator = new Deactivator(componentContext);
-					deactivator.start();
-				}catch(ComponentException e){
-					throw e;
-				}
-				
-			}else{
-				throw new ComponentException("Can't deactivate the component context is null");
+		if (componentContext != null) {
+			try {
+				Deactivator deactivator = new Deactivator(componentContext);
+				deactivator.start();
+			} catch (ComponentException e) {
+				throw e;
 			}
-	
+
+		} else {
+			throw new ComponentException(
+					"Can't deactivate the component context is null");
+		}
+
 	}
 
 	/**
 	 * this method checks if a ComponentDeclaration is satisfied or not. It will
-	 * check that all references/dependencies are available. If they are a
-	 * true will be returned other wise false.
+	 * check that all references/dependencies are available. If they are a true
+	 * will be returned other wise false.
 	 * 
 	 * @param componentDeclaration
 	 * @return true if satisfies false otherwise
@@ -2557,15 +1483,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		return isSatisfied;
 	}
-	
+
 	/**
-	 * this method registers a component factory into the 
-	 * framework. A component factory is responsible for
-	 * creating new components on demand.
+	 * this method registers a component factory into the framework. A component
+	 * factory is responsible for creating new components on demand.
 	 * 
-	 * @param componentDeclaration the component declaration for the component
+	 * @param componentDeclaration
+	 *            the component declaration for the component
 	 * @return CustomComponentFactory the factory which has been created
-	 * @throws ComponentException if fails to register a component factory
+	 * @throws ComponentException
+	 *             if fails to register a component factory
 	 */
 	private CustomComponentFactory registerComponentFactory(
 			ComponentDeclaration componentDeclaration)
@@ -2616,12 +1543,15 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	/**
 	 * this method registers a CustomComponentServiceFactory into the framework
-	 * the service factory will always create new instances on demand. 
+	 * the service factory will always create new instances on demand.
 	 * 
-	 * @param interfaceNames a string array with interfaces for this services
-	 * @param componentDeclaration the component declaration for this component
+	 * @param interfaceNames
+	 *            a string array with interfaces for this services
+	 * @param componentDeclaration
+	 *            the component declaration for this component
 	 * @return CustomComponentServiceFactory the service factory object
-	 * @throws ComponentException if fails to register 
+	 * @throws ComponentException
+	 *             if fails to register
 	 */
 	private CustomComponentServiceFactory registerComponentServiceFactory(
 			String[] interfaceNames, ComponentDeclaration componentDeclaration)
@@ -2662,80 +1592,88 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}
-	
+
 	/**
-	 * this method registers a delayed component into the framework
-	 * delayed components declares service(s) and instances will be
-	 * created on demand.
+	 * this method registers a delayed component into the framework delayed
+	 * components declares service(s) and instances will be created on demand.
 	 * 
-	 * @param interfaceNames an array with interfaces for this component
-	 * @param componentDeclaration the component declaration for this component
+	 * @param interfaceNames
+	 *            an array with interfaces for this component
+	 * @param componentDeclaration
+	 *            the component declaration for this component
 	 * @return CustomDelayedService if managed to register else null
-	 * @throws ComponentException if fails to register the services declared
+	 * @throws ComponentException
+	 *             if fails to register the services declared
 	 */
 	private CustomDelayedService registerDelayedComponent(
 			String[] interfaceNames, ComponentDeclaration componentDeclaration)
 			throws ComponentException {
-		
-			/* create a property table */
-			Dictionary properties = new Hashtable();
-	
-			/* put the component name in it */
-			properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration
-					.getComponentName());
-	
-			/* put the description in it */
-			properties.put(Constants.SERVICE_DESCRIPTION,
-					"Declarative delayed component service created by SCR");
-			
-			properties.put(Constants.SERVICE_PID,componentDeclaration.getComponentName());
-	
-			/* create a service factory */
-			CustomDelayedService delayedService = new CustomDelayedService(
-					interfaceNames, componentDeclaration);
-	
-			try {
-	
-				/* register the delayed service use the interface name */
-				ServiceRegistration registration = componentDeclaration
-						.getDeclaringBundle().getBundleContext().registerService(
-								interfaceNames, delayedService, properties);
-	
-				/* ad the service registration to the delayed service */
-				delayedService.setServiceRegistration(registration);
-				/* add the service reference to the delayed service */
-				delayedService.setServiceReference(registration.getReference());
-	
-				return delayedService;
-	
-			} catch (Exception e) {
-				throw new ComponentException(
-						"error registering delayed component service:" + e, e
-								.getCause());
-			}
-		
+
+		/* create a property table */
+		Dictionary properties = new Hashtable();
+
+		/* put the component name in it */
+		properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration
+				.getComponentName());
+
+		/* put the description in it */
+		properties.put(Constants.SERVICE_DESCRIPTION,
+				"Declarative delayed component service created by SCR");
+
+		properties.put(Constants.SERVICE_PID, componentDeclaration
+				.getComponentName());
+
+		/* create a service factory */
+		CustomDelayedService delayedService = new CustomDelayedService(
+				interfaceNames, componentDeclaration);
+
+		try {
+
+			/* register the delayed service use the interface name */
+			ServiceRegistration registration = componentDeclaration
+					.getDeclaringBundle().getBundleContext().registerService(
+							interfaceNames, delayedService, properties);
+
+			/* ad the service registration to the delayed service */
+			delayedService.setServiceRegistration(registration);
+			/* add the service reference to the delayed service */
+			delayedService.setServiceReference(registration.getReference());
+
+			return delayedService;
+
+		} catch (Exception e) {
+			throw new ComponentException(
+					"error registering delayed component service:" + e, e
+							.getCause());
+		}
 
 	}
-	
 
 	/**
 	 * this method creates a componentContext with all features within
 	 * 
-	 * @param componentDeclaration the componentDeclaration
-	 * @param componentID the Components ID
-	 * @param registration the Registration object if any 
-	 * @param properties the properties for this component
-	 * @param usingBundle the bundle using the service the component offers
-	 * @param requestBundle the bundle requesting the service
+	 * @param componentDeclaration
+	 *            the componentDeclaration
+	 * @param componentID
+	 *            the Components ID
+	 * @param registration
+	 *            the Registration object if any
+	 * @param properties
+	 *            the properties for this component
+	 * @param usingBundle
+	 *            the bundle using the service the component offers
+	 * @param requestBundle
+	 *            the bundle requesting the service
 	 * @return ComponentContext if creation succeeded else null
-	 * @throws ComponentException if fails to create a context
+	 * @throws ComponentException
+	 *             if fails to create a context
 	 */
 	private ComponentContext createComponentContext(
 			ComponentDeclaration componentDeclaration, long componentID,
 			ServiceRegistration registration, Dictionary properties,
 			Bundle usingBundle, Bundle requestBundle) throws ComponentException {
 		try {
-			
+
 			/* create a new context */
 			ComponentContextImpl newContext = new ComponentContextImpl(
 					createComponentInstance(componentDeclaration),
@@ -2774,38 +1712,38 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		return new ComponentInstanceImpl(element, this);
 	}
 
-
 	/**
-	 * this method will create a thread to invoke the components 
-	 * declared bind methods. 
-	 *  
+	 * this method will create a thread to invoke the components declared bind
+	 * methods.
+	 * 
 	 * @param componentDeclaration
 	 *            the component declaration
 	 * @param componentInstance
 	 *            the componentInstance
-	 * @param bind if its a bind action or not
+	 * @param bind
+	 *            if its a bind action or not
 	 * 
 	 * @author Magnus Klack
 	 */
 	private synchronized void invokeReferences(DeclarativeComponent component,
 			ComponentInstance componentInstance, boolean bind)
 			throws ComponentException {
-	
-			try{
-				/* create a Invoker object to invoke the bind methods */
-				Invoker invoker = new Invoker(component,componentInstance,bind);
-				/* start the thread */
-				invoker.start();
-			}catch(ComponentException e){
-				throw e;
-			}
-		
+
+		try {
+			/* create a Invoker object to invoke the bind methods */
+			Invoker invoker = new Invoker(component, componentInstance, bind);
+			/* start the thread */
+			invoker.start();
+		} catch (ComponentException e) {
+			throw e;
+		}
+
 	}
 
 	/**
 	 * this method will invoke an active component configurations bind or unbind
-	 * method and pass the new object to it. To fullfill this it will
-	 * create a thread to prevent the SCR to hang.
+	 * method and pass the new object to it. To fullfill this it will create a
+	 * thread to prevent the SCR to hang.
 	 * 
 	 * @param serviceObject
 	 *            the service object to be passed as argument
@@ -2819,15 +1757,15 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	private void reInvokeReference(Object serviceObject, Object instance,
 			String methodName, String interfaceName) {
 
-		try{
+		try {
 			/* create the thread */
-			Reinvoker reInvoker = new Reinvoker(serviceObject,  instance,
-					 methodName,  interfaceName);
-			
+			Reinvoker reInvoker = new Reinvoker(serviceObject, instance,
+					methodName, interfaceName);
+
 			/* start the thread */
 			reInvoker.start();
-			
-		}catch(ComponentException e){
+
+		} catch (ComponentException e) {
 			throw e;
 		}
 
@@ -2901,17 +1839,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}//end ComponentCreator
-	
-	
+
 	/**
-	 * this class will be created when a custom delayed service is declared
-	 * the first component instance will be created when a request for its 
-	 * service is requested.  
-	 *
+	 * this class will be created when a custom delayed service is declared the
+	 * first component instance will be created when a request for its service
+	 * is requested.
+	 * 
 	 * @author Magnus Klack
 	 */
 	private class CustomDelayedService implements ServiceFactory,
-			DeclarativeComponent,ManagedService {
+			DeclarativeComponent, ManagedService {
 		/** variable holding the instance */
 		private ComponentInstance componentInstance = null;
 
@@ -2980,46 +1917,53 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								componentDeclaration, componentCounter,
 								serviceRegistration, properties, null,
 								componentDeclaration.getDeclaringBundle());
-						
-							try {
-								if(componentDeclaration.getReferenceInfo().size()!=boundedReferences.size() ||
-										componentDeclaration.getReferenceInfo().size()==0){
-									/* bind its references */
-									invokeReferences(this, componentContext
-											.getComponentInstance(), true);
-		
-									try {
-										activateInstance(componentContext);
-										
-										/* assign the component instance to local variable */
-										componentInstance=componentContext.getComponentInstance();
-										
-										/* return the component instance */
-										return componentContext.getComponentInstance()
-												.getInstance();
-		
-									} catch (ComponentException e) {
-										System.err
-												.println("error when activating instance in CustomDelayedService.getService:\n"
-														+ e);
-									} catch (Exception e) {
-										System.err
-												.println("error when activating instance in CustomDelayedService.getService:\n"
-														+ e);
-									}
+
+						try {
+							if (componentDeclaration.getReferenceInfo().size() != boundedReferences
+									.size()
+									|| componentDeclaration.getReferenceInfo()
+											.size() == 0) {
+								/* bind its references */
+								invokeReferences(this, componentContext
+										.getComponentInstance(), true);
+
+								try {
+									activateInstance(componentContext);
+
+									/*
+									 * assign the component instance to local
+									 * variable
+									 */
+									componentInstance = componentContext
+											.getComponentInstance();
+
+									/* return the component instance */
+									return componentContext
+											.getComponentInstance()
+											.getInstance();
+
+								} catch (ComponentException e) {
+									System.err
+											.println("error when activating instance in CustomDelayedService.getService:\n"
+													+ e);
+								} catch (Exception e) {
+									System.err
+											.println("error when activating instance in CustomDelayedService.getService:\n"
+													+ e);
 								}
-							} catch (ComponentException e) {
-								/* print the error */
-								System.err
-										.println("error when binding references in CustomDelayedService.getService:\n"
-												+ e);
-							} catch (Exception e) {
-								/* print the error */
-								System.err
-										.println("error when binding references in CustomDelayedService.getService:\n"
-												+ e);
 							}
-						
+						} catch (ComponentException e) {
+							/* print the error */
+							System.err
+									.println("error when binding references in CustomDelayedService.getService:\n"
+											+ e);
+						} catch (Exception e) {
+							/* print the error */
+							System.err
+									.println("error when binding references in CustomDelayedService.getService:\n"
+											+ e);
+						}
+
 					} catch (ComponentException e) {
 						/* print the error */
 						System.err
@@ -3048,7 +1992,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				ServiceRegistration registration, Object service) {
 			System.out
 					.println("************* ungetService is called in CustomDelayedService *********** ");
-			
+
 		}
 
 		/**
@@ -3161,12 +2105,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
 		 */
 		public void updated(Dictionary arg0) throws ConfigurationException {
 			System.out.println("Update is called in delayed component");
-			
+
 		}
 	}
 
@@ -3191,11 +2137,11 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		private Vector boundedReferences = new Vector();
 
 		public ImmediateComponent(ComponentDeclaration declaration) {
-			componentDeclaration = declaration;			
+			componentDeclaration = declaration;
 		}
 
 		/**
-		 * activates the component 
+		 * activates the component
 		 */
 		public void activate() {
 			try {
@@ -3227,21 +2173,24 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						componentDeclaration.getDeclaringBundle());
 
 				try {
-					/* this means that a component is not bounded to all references or that the
-					 * component doesn't have any references if the bounded references equals the
-					 * declared references no activation should be done because it has already
-					 * been done by the serviceChanged() method.
+					/*
+					 * this means that a component is not bounded to all
+					 * references or that the component doesn't have any
+					 * references if the bounded references equals the declared
+					 * references no activation should be done because it has
+					 * already been done by the serviceChanged() method.
 					 */
-					if(boundedReferences.size()!= componentDeclaration.getReferenceInfo().size() ||
-							componentDeclaration.getReferenceInfo().size()==0){	
+					if (boundedReferences.size() != componentDeclaration
+							.getReferenceInfo().size()
+							|| componentDeclaration.getReferenceInfo().size() == 0) {
 						/* bind the references */
 						invokeReferences(this, componentContext
 								.getComponentInstance(), true);
-	
+
 						try {
 							/* activate the component */
 							activateInstance(componentContext);
-											
+
 						} catch (ComponentException e) {
 							e.printStackTrace();
 							System.err
@@ -3261,7 +2210,6 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								+ e);
 			}
 
-			
 		}
 
 		public ComponentDeclaration getComponentDeclaration() {
@@ -3406,7 +2354,6 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			componentDeclaration = declaration;
 			/* assign the interface name */
 			interfaceNames = serviceInterfaces;
-			
 
 		}
 
@@ -3469,10 +2416,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 								/* add it to the collection of contexts */
 								componentContexts.add(componentContext);
-								
-								Object toReturn =componentContext.getComponentInstance()
-								.getInstance();
-								
+
+								Object toReturn = componentContext
+										.getComponentInstance().getInstance();
+
 								/* return the instance of the component */
 								return toReturn;
 
@@ -3988,119 +2935,128 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 	}
-	
+
 	/**
 	 * This class will track the dependencies and give them to the declarative
 	 * service which this class controlls. Dependencies are kept in the class
-	 * ComponentReferenceInfo.The class can be used for unbind as well as bind 
+	 * ComponentReferenceInfo.The class can be used for unbind as well as bind
 	 * actions.
 	 */
-	private class Invoker extends Thread{
+	private class Invoker extends Thread {
 		/** variable holding the component */
 		private DeclarativeComponent component;
+
 		/** variable holding the component instance */
 		private ComponentInstance componentInstance;
+
 		/** variable indicating if the class should bind or unbind */
 		private boolean bind;
-		
+
 		public Invoker(DeclarativeComponent component,
-				ComponentInstance componentInstance, boolean bind){
+				ComponentInstance componentInstance, boolean bind) {
 			/* assign the component */
-			this.component=component;
+			this.component = component;
 			/* assign the component instance */
-			this.componentInstance=componentInstance;
+			this.componentInstance = componentInstance;
 			/* assign the bind value */
 			this.bind = bind;
 		}
-		
-		
-		public void run(){
-			
+
+		public void run() {
+
 			/* get the declaration */
 			ComponentDeclaration componentDeclaration = component
-			.getComponentDeclaration();
-		
+					.getComponentDeclaration();
+
 			System.out
 					.println("**************** Tracking references for activation *********************");
 			/* create an iterator */
 			Iterator it = null;
 			/* get the reference info array */
 			ArrayList referenceInfo = componentDeclaration.getReferenceInfo();
-			
-			if(referenceInfo!=null){
-				
+
+			if (referenceInfo != null) {
+
 				/* create the iterator */
 				it = referenceInfo.iterator();
-				
+
 				/* iterate while still has next */
 				while (it.hasNext()) {
-		
+
 					/* create the a temporary object */
 					ComponentReferenceInfo componentRef = (ComponentReferenceInfo) it
 							.next();
-		
+
 					if (componentRef.getInterfaceType() != null
 							&& componentRef != null
 							&& (componentRef.getCardinality().equals("0..1") || componentRef
 									.getCardinality().equals("1..1"))) {
-		
+
 						/* get the interface */
 						String interfaceName = componentRef.getInterfaceType();
 						/* print the service interface name */
-						System.out
-								.println("service interface name is:" + interfaceName);
+						System.out.println("service interface name is:"
+								+ interfaceName);
 						/* get the reference */
 						String targetFilter = componentRef.getTarget();
 						/* assign a component class object */
-						Object componentObject = componentInstance.getInstance();
-		
+						Object componentObject = componentInstance
+								.getInstance();
+
 						/*
-						 * create a string representing the method which should be
-						 * called, i.e, the bind or unbind method
+						 * create a string representing the method which should
+						 * be called, i.e, the bind or unbind method
 						 */
 						String methodName;
-		
+
 						if (bind) {
 							/* get the bind method */
 							methodName = componentRef.getBind();
 							/* print the bind method */
-							System.out.println("The bind-method is:" + methodName);
+							System.out.println("The bind-method is:"
+									+ methodName);
 						} else {
 							/* get the bind method */
 							methodName = componentRef.getUnbind();
 							/* print the bind method */
-							System.out.println("The unbind-method is:" + methodName);
-		
+							System.out.println("The unbind-method is:"
+									+ methodName);
+
 						}
-		
+
 						if (methodName != null) {
-		
+
 							try {
 								/* get the service references */
 								ServiceReference[] serviceReferences = bundleContext
 										.getServiceReferences(interfaceName,
 												targetFilter);
-		
+
 								/*
-								 * check that the reference is there if it isn't then do
-								 * nothing. Null may occur if the reference is in the
-								 * same bundle as the component is and the bundle is
-								 * stopped
+								 * check that the reference is there if it isn't
+								 * then do nothing. Null may occur if the
+								 * reference is in the same bundle as the
+								 * component is and the bundle is stopped
 								 */
 								if (serviceReferences != null) {
 									/* print the service reference */
-									System.out.println("The service reference is:"
-											+ serviceReferences[0]
-											+ " with cardinality:"
-											+ componentRef.getCardinality());
-		
+									System.out
+											.println("The service reference is:"
+													+ serviceReferences[0]
+													+ " with cardinality:"
+													+ componentRef
+															.getCardinality());
+
 									/* get the service */
 									Object reference = bundleContext
 											.getService(serviceReferences[0]);
-		
+
 									if (reference != null) {
 										try {
-											/* print that we try to invoke the method */
+											/*
+											 * print that we try to invoke the
+											 * method
+											 */
 											System.out
 													.println("************* Trying to invoke "
 															+ methodName
@@ -4108,7 +3064,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															+ componentDeclaration
 																	.getImplementation()
 															+ " ******************");
-		
+
 											/* get the method */
 											Method method = componentObject
 													.getClass()
@@ -4116,35 +3072,41 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															methodName,
 															new Class[] { Class
 																	.forName(interfaceName) });
-		
+
 											/* set this as accessible */
 											method.setAccessible(true);
 											/* invoke the method */
 											method.invoke(componentObject,
 													new Object[] { reference });
-		
+
 											if (bind) {
-												/* bind the declarative component */
+												/*
+												 * bind the declarative
+												 * component
+												 */
 												component
 														.bindReference(serviceReferences[0]);
 											} else if (!bind) {
-												/* unbind the declarative component */
+												/*
+												 * unbind the declarative
+												 * component
+												 */
 												component
 														.unBindReference(serviceReferences[0]);
 											}
-		
+
 										} catch (NoSuchMethodException e) {
-											throw new ComponentException(
-													e.getMessage(), e.getCause());
+											throw new ComponentException(e
+													.getMessage(), e.getCause());
 										} catch (IllegalAccessException e) {
-											throw new ComponentException(
-													e.getMessage(), e.getCause());
+											throw new ComponentException(e
+													.getMessage(), e.getCause());
 										} catch (InvocationTargetException e) {
-											throw new ComponentException(
-													e.getMessage(), e.getCause());
+											throw new ComponentException(e
+													.getMessage(), e.getCause());
 										} catch (ClassNotFoundException e) {
-											throw new ComponentException(
-													e.getMessage(), e.getCause());
+											throw new ComponentException(e
+													.getMessage(), e.getCause());
 										}
 									} else {
 										throw new ComponentException(
@@ -4152,72 +3114,77 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 														+ interfaceName
 														+ " in invokeReferences() the service is null");
 									}
-		
+
 								} else {
 									if (bind
-											&& componentRef.getCardinality().equals(
-													"1..1")) {
+											&& componentRef.getCardinality()
+													.equals("1..1")) {
 										throw new ComponentException(
 												"error getting service "
 														+ interfaceName
 														+ " in invokeReferences() the reference is null");
 									}
-		
+
 								}
-		
+
 							} catch (InvalidSyntaxException e) {
 								throw new ComponentException(
 										"error getting services due to:\n"
 												+ e.getMessage(), e.getCause());
-		
+
 							}
 						}//end if(methodName!=null)
-						
+
 					} else if (componentRef.getInterfaceType() != null
 							&& componentRef != null
 							&& (componentRef.getCardinality().equals("0..n") || componentRef
 									.getCardinality().equals("1..n"))) {
-		
+
 						/*
-						 * this is more complex the component has declared that all
-						 * services available in the framwork should be bounded
+						 * this is more complex the component has declared that
+						 * all services available in the framwork should be
+						 * bounded
 						 */
-		
+
 						/* get the interface */
 						String interfaceName = componentRef.getInterfaceType();
 						/* print the service interface name */
-						System.out
-								.println("service interface name is:" + interfaceName);
+						System.out.println("service interface name is:"
+								+ interfaceName);
 						/* get the reference */
 						String targetFilter = componentRef.getTarget();
 						/* assign a component class object */
-						Object componentObject = componentInstance.getInstance();
+						Object componentObject = componentInstance
+								.getInstance();
 						/* create a string representing the method name */
 						String methodName = null;
-		
+
 						if (bind) {
 							/* get the bind method */
 							methodName = componentRef.getBind();
 							/* print the bind method */
-							System.out.println("The bind-method is:" + methodName);
+							System.out.println("The bind-method is:"
+									+ methodName);
 						} else {
 							/* get the bind method */
 							methodName = componentRef.getUnbind();
 							/* print the bind method */
-							System.out.println("The unbind-method is:" + methodName);
-		
+							System.out.println("The unbind-method is:"
+									+ methodName);
+
 						}
-		
+
 						try {
-		
+
 							/* get all available services for this reference */
 							ServiceReference[] serviceReferences = bundleContext
-									.getServiceReferences(interfaceName, targetFilter);
-		
+									.getServiceReferences(interfaceName,
+											targetFilter);
+
 							/* print the service reference */
 							System.out.println("cardinality:"
 									+ componentRef.getCardinality());
-		
+
 							if (serviceReferences != null) {
 								for (int i = 0; i < serviceReferences.length; i++) {
 									Object serviceInstance = bundleContext
@@ -4226,8 +3193,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 										if (methodName != null) {
 											try {
 												/*
-												 * print that we try to invoke the
-												 * method
+												 * print that we try to invoke
+												 * the method
 												 */
 												System.out
 														.println("************* Trying to invoke "
@@ -4236,7 +3203,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																+ componentDeclaration
 																		.getImplementation()
 																+ " ******************");
-		
+
 												/* get the method */
 												Method method = componentObject
 														.getClass()
@@ -4244,7 +3211,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																methodName,
 																new Class[] { Class
 																		.forName(interfaceName) });
-		
+
 												/* set this as accessible */
 												method.setAccessible(true);
 												/* invoke the method */
@@ -4252,33 +3219,43 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 														.invoke(
 																componentObject,
 																new Object[] { serviceInstance });
-		
+
 												if (bind) {
-													/* bind the declarative component */
+													/*
+													 * bind the declarative
+													 * component
+													 */
 													component
 															.bindReference(serviceReferences[i]);
 												} else if (!bind) {
-													/* unbind the declarative component */
+													/*
+													 * unbind the declarative
+													 * component
+													 */
 													component
 															.unBindReference(serviceReferences[i]);
 												}
-		
+
 											} catch (NoSuchMethodException e) {
 												e.printStackTrace();
 												throw new ComponentException(e
-														.getMessage(), e.getCause());
+														.getMessage(), e
+														.getCause());
 											} catch (IllegalAccessException e) {
 												e.printStackTrace();
 												throw new ComponentException(e
-														.getMessage(), e.getCause());
+														.getMessage(), e
+														.getCause());
 											} catch (InvocationTargetException e) {
 												e.printStackTrace();
 												throw new ComponentException(e
-														.getMessage(), e.getCause());
+														.getMessage(), e
+														.getCause());
 											} catch (ClassNotFoundException e) {
 												e.printStackTrace();
 												throw new ComponentException(e
-														.getMessage(), e.getCause());
+														.getMessage(), e
+														.getCause());
 											} catch (Exception e) {
 												e.printStackTrace();
 											}
@@ -4291,53 +3268,56 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							throw new ComponentException(
 									"error getting multiple services due to:\n"
 											+ e.getMessage(), e.getCause());
-		
+
 						} catch (Exception e) {
 							throw new ComponentException(
 									"error getting multiple services due to:\n"
 											+ e.getMessage(), e.getCause());
 						}
-		
+
 					}//if (componentRef.getInterfaceType() != null)
-		
+
 				}//end while
 			}
-		
+
 		}
-	
+
 	}
-	
-	
+
 	/**
-	 * this class is used to reInvoke a specific instance object 
-	 * and a given method name
-	 * 
+	 * this class is used to reInvoke a specific instance object and a given
+	 * method name
+	 *  
 	 */
-	private class Reinvoker extends Thread{
+	private class Reinvoker extends Thread {
 		/** variable holding the service object */
 		private Object serviceObject;
+
 		/** variable holding the instance to be updated */
 		private Object instance;
+
 		/** variable representing the method name */
 		private String methodName;
+
 		/** variable representing the interface name */
 		private String interfaceName;
-		
+
 		public Reinvoker(Object serviceObject, Object instance,
-				String methodName, String interfaceName){
+				String methodName, String interfaceName) {
 			/* assign the service object */
-			this.serviceObject= serviceObject;
+			this.serviceObject = serviceObject;
 			/* assign the instance */
 			this.instance = instance;
 			/* assign the method name */
-			this.methodName=methodName;
+			this.methodName = methodName;
 			/* assign the interface name */
-			this.interfaceName=interfaceName;
+			this.interfaceName = interfaceName;
 		}
-		
-		public void run(){
+
+		public void run() {
 			try {
-				Method method = instance.getClass().getDeclaredMethod(methodName,
+				Method method = instance.getClass().getDeclaredMethod(
+						methodName,
 						new Class[] { Class.forName(interfaceName) });
 
 				/* set this as accessible */
@@ -4348,16 +3328,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					method.invoke(instance, new Object[] { serviceObject });
 				} catch (IllegalArgumentException e) {
 					throw new ComponentException(
-							"error in reinvokeReference due to:\n" + e.getMessage(),
-							e.getCause());
+							"error in reinvokeReference due to:\n"
+									+ e.getMessage(), e.getCause());
 				} catch (IllegalAccessException e) {
 					throw new ComponentException(
-							"error in reinvokeReference due to:\n" + e.getMessage(),
-							e.getCause());
+							"error in reinvokeReference due to:\n"
+									+ e.getMessage(), e.getCause());
 				} catch (InvocationTargetException e) {
 					throw new ComponentException(
-							"error in reinvokeReference due to:\n" + e.getMessage(),
-							e.getCause());
+							"error in reinvokeReference due to:\n"
+									+ e.getMessage(), e.getCause());
 				}
 
 			} catch (SecurityException e) {
@@ -4366,91 +3346,109 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				throw new ComponentException(e.getMessage(), e.getCause());
 			} catch (ClassNotFoundException e) {
 				throw new ComponentException(e.getMessage(), e.getCause());
-			} catch(Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 				throw new ComponentException(e.getMessage(), e.getCause());
 			}
 		}
 	}
-	
-	
+
 	/**
-	 * This class will evaluate a componentDeclaration 
+	 * This class will evaluate a componentDeclaration
+	 * and handle after the component declaration 
+	 * 
+	 * @author Magnus Klack
 	 */
-	private class Evaluator extends Thread{
-		private ComponentDeclaration componentDeclaration;
-		private boolean overideEnable;
+	private class Evaluator extends Thread {
 		
-		public Evaluator(ComponentDeclaration componentDeclaration, boolean overideEnable){
+		private ComponentDeclaration componentDeclaration;
+
+		private boolean overideEnable;
+
+		public Evaluator(ComponentDeclaration componentDeclaration,
+				boolean overideEnable) {
 			this.componentDeclaration = componentDeclaration;
 			this.overideEnable = overideEnable;
 		}
-		
-		public void run(){
 
-			/* variable representing if the component implements managed service */
-			boolean isManaged = false;
-			/* variable representing if the component implements managed service factory */
-			boolean isManagedFactory =false;
-			
-		
-			
-			try{
-				
-				/* get the class representation */
-				Class implementationClass= Class.forName(componentDeclaration.getImplementation());
-				/* get the interfaces implemented on this class */
-				Class[] interfaces = implementationClass.getInterfaces();
-				
-				/* counter variable */
-				int q=0;
-				/* variable holding the length of the interface array */
-				int length = interfaces.length;
-				
-				/* go through the interfaces */
-				while(q<length){
+		public void run() {
+			/* lock the semaphore */
+			synchronized (evaluationSemaphore) {
+				/*
+				 * variable representing if the component implements managed
+				 * service
+				 */
+				boolean isManaged = false;
+
+				/*
+				 * variable representing if the component implements managed
+				 * service factory
+				 */
+				boolean isManagedFactory = false;
+
+				try {
+
+					/* get the class representation */
+					Class implementationClass = Class
+							.forName(componentDeclaration.getImplementation());
+					/* get the interfaces implemented on this class */
+					Class[] interfaces = implementationClass.getInterfaces();
+
+					/* counter variable */
+					int q = 0;
+					/* variable holding the length of the interface array */
+					int length = interfaces.length;
+
+					/* go through the interfaces */
+					while (q < length) {
+
+						System.out.println("Interface implemented on "
+								+ componentDeclaration.getImplementation()
+								+ ": " + interfaces[q].getName());
 					
-					System.out.println("Interface implemented on " + 
-							componentDeclaration.getImplementation() + 
-							": " + interfaces[q].getName());
-//					
-//					System.out.println("the lenght of the interface array is: " + length+"\n" +
-//							"And q value is: " + q);
-					/* get the interface name */
-					String interfaceName = interfaces[q].getName();
-					
-					/* check if the interfaces is a managed service */
-					if(interfaceName.equals("org.osgi.service.cm.ManagedService")){
-						/* print that a managed service is found */
-						System.out.println("found managed component");
-						/* set the attribute to true */
-						isManaged=true;
+						/* get the interface name */
+						String interfaceName = interfaces[q].getName();
+
+						/* check if the interfaces is a managed service */
+						if (interfaceName
+								.equals("org.osgi.service.cm.ManagedService")) {
+							/* print that a managed service is found */
+							System.out.println("found managed component");
+							/* set the attribute to true */
+							isManaged = true;
+						}
+
+						/* check if it is a managed factory */
+						if (interfaceName
+								.equals("org.osgi.service.cm.ManagedServiceFactory")) {
+							/* print that a managed service factory is found */
+							System.out.println("found managed service factory");
+							/* set the attribute to true */
+							isManagedFactory = true;
+						}
+						q++;
+
 					}
-					
-					/* check if it is a managed factory */
-					if(interfaceName.equals("org.osgi.service.cm.ManagedServiceFactory")){
-						/* print that a managed service factory is found */
-						System.out.println("found managed service factory");
-						/* set the attribute to true */
-						isManagedFactory=true;
-					}
-					q++;
-					
+
+				} catch (ClassNotFoundException e) {
+
+					/* this will happen if the class isn't found */
+					throw new ComponentException("Can't find class "
+							+ componentDeclaration.getImplementation()
+							+ " due to: " + e, e.getCause());
+				} catch (Exception e) {
+
+					throw new ComponentException(e.getMessage(), e.getCause());
 				}
-			
-			}catch(ClassNotFoundException e){
-				/* this will happen if the class isn't found */
-				throw new ComponentException("Can't find class " + componentDeclaration.getImplementation() 
-						+" due to: " + e, e.getCause());
-			}
-			
-			/* check if the component has properties */
-			ArrayList declaredProperties = componentDeclaration.getPropertyInfo();
+				
+				/* check if the component has properties */
+				ArrayList declaredProperties = componentDeclaration
+						.getPropertyInfo();
 
-			/* check if the component has a property file */
-			ArrayList declaredPropertyFile = componentDeclaration
-					.getPropertiesInfo();
-			
+				/* check if the component has a property file */
+				ArrayList declaredPropertyFile = componentDeclaration
+						.getPropertiesInfo();
+
 				/* check if enabled */
 				if (componentDeclaration.isAutoEnable() || overideEnable) {
 					/* if it is enable when the services have to be registered */
@@ -4472,7 +3470,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 								if (inactiveComponents
 										.contains(componentDeclaration)) {
-									inactiveComponents.remove(componentDeclaration);
+									inactiveComponents
+											.remove(componentDeclaration);
 								}
 
 							} catch (ComponentException e) {
@@ -4484,12 +3483,15 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * check that the vector doesn't contain the
 							 * componentDeclaration
 							 */
-							if (!inactiveComponents.contains(componentDeclaration)) {
+							synchronized (inactiveComponents) {
+
 								System.out.println("*************** "
-										+ componentDeclaration.getComponentName()
+										+ componentDeclaration
+												.getComponentName()
 										+ " is not satisfied **********");
 								/* Save data here */
 								inactiveComponents.add(componentDeclaration);
+
 							}
 						}
 
@@ -4497,24 +3499,25 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 						/* this is a immediate or servicefactory component */
 						if (isSatisfied(componentDeclaration)) {
-							
+
 							/*
 							 * check if it has references ,i.e, if its a delayed
 							 * component or managed service component
 							 */
-							if (componentDeclaration.getServiceInfo().size() > 0 || isManaged ||
-									isManagedFactory) {
+							if (componentDeclaration.getServiceInfo().size() > 0
+									|| isManaged || isManagedFactory) {
 
 								/*
-								 * the tricky thing is that we have to create one
-								 * CustomComponent instance for MANY provided
-								 * interface
+								 * the tricky thing is that we have to create
+								 * one CustomComponent instance for MANY
+								 * provided interface
 								 */
 								ArrayList serviceInfos = componentDeclaration
 										.getServiceInfo();
-								
+
 								/* create an iterator */
-								Iterator serviceIterator = serviceInfos.iterator();
+								Iterator serviceIterator = serviceInfos
+										.iterator();
 								/* create a vector holding all interfaces */
 								Vector vectorInterfaces = new Vector();
 
@@ -4546,39 +3549,49 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 									}//end while(interfacesIterator.hasNext())
 
 								} // end while(serviceIterator.hasNext())
-								
-								/* create a string array holding all interfaces to be registerd */
-								String[] allInterfaces=null;
-								
+
+								/*
+								 * create a string array holding all interfaces
+								 * to be registerd
+								 */
+								String[] allInterfaces = null;
+
 								/* check if managed feature is implemented */
-								if(isManaged || isManagedFactory){
+								if (isManaged || isManagedFactory) {
 									/* check if it is a managed service */
-									if(isManaged){
+									if (isManaged) {
 										/* extend the array by 1 */
-										 allInterfaces = new String[vectorInterfaces
-												.size()+1];
-										/* add the managed service interface to the array */
-										allInterfaces[allInterfaces.length-1] = "org.osgi.service.cm.ManagedService";
+										allInterfaces = new String[vectorInterfaces
+												.size() + 1];
+										/*
+										 * add the managed service interface to
+										 * the array
+										 */
+										allInterfaces[allInterfaces.length - 1] = "org.osgi.service.cm.ManagedService";
 									}
-									
+
 									/* check if it is a managed factory */
-									if(isManagedFactory){
+									if (isManagedFactory) {
 										/* extend the size by 1 */
-										 allInterfaces = new String[vectorInterfaces
-												.size()+1];
-										 /* add the managed factory interface to the array */
-										allInterfaces[allInterfaces.length-1] = "org.osgi.service.cm.ManagedServiceFactory";
+										allInterfaces = new String[vectorInterfaces
+												.size() + 1];
+										/*
+										 * add the managed factory interface to
+										 * the array
+										 */
+										allInterfaces[allInterfaces.length - 1] = "org.osgi.service.cm.ManagedServiceFactory";
 									}
-								}else{
-									if(!(isManaged && isManagedFactory)){
-									 allInterfaces = new String[vectorInterfaces
-																.size()];
-									}else{
-										System.err.println("Can't handle both managed service and factory in "+
-												"the same implementation class");
+								} else {
+									if (!(isManaged && isManagedFactory)) {
+										allInterfaces = new String[vectorInterfaces
+												.size()];
+									} else {
+										System.err
+												.println("Can't handle both managed service and factory in "
+														+ "the same implementation class");
 									}
 								}
-								
+
 								/* copy all objects to the allinterfaces array */
 								for (int i = 0; i < vectorInterfaces.size(); i++) {
 									allInterfaces[i] = (String) vectorInterfaces
@@ -4596,15 +3609,18 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 									try {
 
 										/*
-										 * register service factory component here
+										 * register service factory component
+										 * here
 										 */
 										CustomComponentServiceFactory serviceComponent = registerComponentServiceFactory(
-												allInterfaces, componentDeclaration);
+												allInterfaces,
+												componentDeclaration);
 
 										/*
-										 * add the service factory to the vector of
-										 * active components
+										 * add the service factory to the vector
+										 * of active components
 										 */
+
 										activeComponents.add(serviceComponent);
 
 										if (inactiveComponents
@@ -4619,22 +3635,24 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 									}
 
 								} else {
-									
-									System.out.println("********************** "
-											+ " register delayed service for:"
-											+ componentDeclaration
-													.getComponentName()
-											+ " **************");
+
+									System.out
+											.println("********************** "
+													+ " register delayed service for:"
+													+ componentDeclaration
+															.getComponentName()
+													+ " **************");
 									try {
 										/*
 										 * register custom delayed service here
 										 */
 										DeclarativeComponent delayedComponent = registerDelayedComponent(
-												allInterfaces, componentDeclaration);
+												allInterfaces,
+												componentDeclaration);
 
 										/*
-										 * add the delayed service to the vector of
-										 * active components
+										 * add the delayed service to the vector
+										 * of active components
 										 */
 										activeComponents.add(delayedComponent);
 
@@ -4649,43 +3667,50 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 										/* throw the error */
 										throw e;
 									} catch (Exception e) {
-										throw new ComponentException(
-												e.getMessage(), e.getCause());
+										throw new ComponentException(e
+												.getMessage(), e.getCause());
 									}
 
 								}
 
 							} else {
 								
-								if(componentDeclaration.isAutoEnable()&& !isManaged && !isManagedFactory){
-									System.out.println("********************** "
-											+ " register immediate component for:"
-											+ componentDeclaration
-													.getComponentName()
-											+ " **************");
+								if ((componentDeclaration.isAutoEnable()
+										&& (!isManaged) && (!isManagedFactory)) || 
+										(overideEnable) && (!isManaged) && (!isManagedFactory)) {
 									
-									ImmediateComponent immediateComponent = 
-										new ImmediateComponent(
-												componentDeclaration);
-									
+									System.out
+											.println("********************** "
+													+ " register immediate component for:"
+													+ componentDeclaration
+															.getComponentName()
+													+ " **************");
+
+									ImmediateComponent immediateComponent = new ImmediateComponent(
+											componentDeclaration);
+
 									/* this is an immediate component */
 									activeComponents.add(immediateComponent);
-									
+
 									immediateComponent.activate();
-		
+
 									if (inactiveComponents
 											.contains(componentDeclaration)) {
-										inactiveComponents.remove(componentDeclaration);
+										inactiveComponents
+												.remove(componentDeclaration);
 									}
-									
-								}else{
-									inactiveComponents.add(componentDeclaration);
+
+								} else {
+									System.out.println("******** the immediate component "
+											+ componentDeclaration.getComponentName() + " is not autoenabled *********************");
+									inactiveComponents
+											.add(componentDeclaration);
 								}
 
 							}
 
 						} else {
-							
+
 							System.out.println("********* "
 									+ componentDeclaration.getComponentName()
 									+ " is not satisfied ************");
@@ -4694,7 +3719,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * check that the vector doesn't contain the
 							 * componentDeclaration
 							 */
-							if (!inactiveComponents.contains(componentDeclaration)) {
+							if (!inactiveComponents
+									.contains(componentDeclaration)) {
 								/* Save data here */
 								inactiveComponents.add(componentDeclaration);
 							}
@@ -4704,7 +3730,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					}
 
 				} else {
-					
+
 					System.out
 							.println("**************** autoEnable is false in the component delcaration ********************");
 					/*
@@ -4715,29 +3741,31 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						/* Save data here */
 						inactiveComponents.add(componentDeclaration);
 					}
-					
+
 				} // if(componentDeclaration.isAutoEnable())
-			
+			}
 		}
-	
+
 	}
+
 	/**
-	 * this class will deactivate a given component implementation 
-	 * and will prevent SCR from stall if the components implemented 
-	 * activate(ComponentContext context) is hanging in a while or for- 
-	 * statement. 
+	 * this class will deactivate a given component implementation and will
+	 * prevent SCR from stall if the components implemented
+	 * activate(ComponentContext context) is hanging in a while or for-
+	 * statement.
 	 * 
 	 * @author Magnus Klack
 	 */
-	private class Deactivator extends Thread{
+	private class Deactivator extends Thread {
 		/** local variable holding the componentContext */
 		ComponentContext componentContext;
-		public Deactivator(ComponentContext context){
-			componentContext=context;
+
+		public Deactivator(ComponentContext context) {
+			componentContext = context;
 		}
-		
-		public void run(){
-			
+
+		public void run() {
+
 			/* get the component instance */
 			Object componentInstance = componentContext.getComponentInstance()
 					.getInstance();
@@ -4745,10 +3773,9 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			String methodName = "deactivate";
 			try {
 
-				System.out
-						.println("************* trying to invoke "
-								+ componentInstance.toString()
-								+ ".deactivate(...) method ");
+				System.out.println("************* trying to invoke "
+						+ componentInstance.toString()
+						+ ".deactivate(...) method ");
 
 				/* get the method */
 				Method method = componentInstance.getClass().getDeclaredMethod(
@@ -4757,7 +3784,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				/* set this as accessible */
 				method.setAccessible(true);
 				/* invoke the method */
-				method.invoke(componentInstance, new Object[] { componentContext });
+				method.invoke(componentInstance,
+						new Object[] { componentContext });
 
 			} catch (NoSuchMethodException e) {
 				System.out.println(componentInstance
@@ -4770,101 +3798,1298 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				throw new ComponentException(e.getMessage(), e.getCause());
 			}
 
-			
 		}
 	}
-	
-	
+
 	/**
-	 * this class will activate a given component implementation 
-	 * and will prevent SCR from stall if the components implemented 
-	 * activate(ComponentContext context) is hanging in a while or for- 
-	 * statement. 
+	 * this class will activate a given component implementation and will
+	 * prevent SCR from stall if the components implemented
+	 * activate(ComponentContext context) is hanging in a while or for-
+	 * statement.
 	 * 
 	 * @author Magnus Klack
 	 */
-	private class Activator extends Thread{
+	private class Activator extends Thread {
 		/** local variable holding the component context */
 		private ComponentContext componentContext;
-		
-		public Activator(ComponentContext context){
+
+		public Activator(ComponentContext context) {
 			componentContext = context;
 		}
-		
+
 		/**
 		 * This method will activate a component using reflection Some component
-		 * declares a activate(ComponentContext context) method just because they
-		 * want the ComponentContext. This method will try to call the method and
-		 * pass the context as argument. This method may fail then a component
-		 * doesn't declare an activate method. Normally a NoSuchMethodException is
-		 * raises, but this has to be ignored.
-		 * 
+		 * declares a activate(ComponentContext context) method just because
+		 * they want the ComponentContext. This method will try to call the
+		 * method and pass the context as argument. This method may fail then a
+		 * component doesn't declare an activate method. Normally a
+		 * NoSuchMethodException is raises, but this has to be ignored.
+		 *  
 		 */
-		public void run(){
-			
-			if(componentContext!=null){
-				try{
+		public void run() {
+
+			if (componentContext != null) {
+				try {
 					Object componentInstance = null;
-					try{
-					/* get the component instance */
-						componentInstance = componentContext.getComponentInstance()
-							.getInstance();
-					}catch(Exception e){
-						throw new ComponentException(e.getMessage(),e.getCause());
+					try {
+						/* get the component instance */
+						componentInstance = componentContext
+								.getComponentInstance().getInstance();
+					} catch (Exception e) {
+						throw new ComponentException(e.getMessage(), e
+								.getCause());
 					}
-					
-					if(componentInstance!=null){
+
+					if (componentInstance != null) {
 						/* create a string representing the method name */
 						String methodName = "activate";
 						try {
-				
-							System.out.println("************* trying to invoke "
-									+ componentInstance.toString() + ".activate(...) method ");
-				
+
+							System.out
+									.println("************* trying to invoke "
+											+ componentInstance.toString()
+											+ ".activate(...) method ");
+
 							/* get the method */
-							Method method = componentInstance.getClass().getDeclaredMethod(
-									methodName, new Class[] { ComponentContext.class });
-							
-							if(method!=null){
+							Method method = componentInstance
+									.getClass()
+									.getDeclaredMethod(
+											methodName,
+											new Class[] { ComponentContext.class });
+
+							if (method != null) {
 								/* set this as accessible */
 								method.setAccessible(true);
 								/* invoke the method */
-								method.invoke(componentInstance, new Object[] { componentContext });
-							}else{
-								throw new ComponentException("Can't find any activate method");
+								method.invoke(componentInstance,
+										new Object[] { componentContext });
+							} else {
+								throw new ComponentException(
+										"Can't find any activate method");
 							}
-				
+
 						} catch (NoSuchMethodException e) {
-							System.out.println(componentInstance
-									+ " does not declare an activate(..) method");
+							System.out
+									.println(componentInstance
+											+ " does not declare an activate(..) method");
 							/* do nothing here */
-							//throw new ComponentException(e.getMessage(), e.getCause());
+							//throw new ComponentException(e.getMessage(),
+							// e.getCause());
 						} catch (InvocationTargetException e) {
-							throw new ComponentException(e.getMessage(), e.getCause());
+							throw new ComponentException(e.getMessage(), e
+									.getCause());
 						} catch (IllegalAccessException e) {
-							throw new ComponentException(e.getMessage(), e.getCause());
-						}catch(Exception e){
-							throw new ComponentException(e.getMessage(), e.getCause());
+							throw new ComponentException(e.getMessage(), e
+									.getCause());
+						} catch (Exception e) {
+							throw new ComponentException(e.getMessage(), e
+									.getCause());
 						}
-					}else{
-						throw new ComponentException("Can't get the component instance");
+					} else {
+						throw new ComponentException(
+								"Can't get the component instance");
 					}
-					}catch(Exception e){
-						e.printStackTrace();
-						throw new ComponentException(e.getMessage(), e.getCause());
-					}
-			}else{
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new ComponentException(e.getMessage(), e.getCause());
+				}
+			} else {
 				throw new ComponentException("The ComponentContext is null");
 			}
 		}
-	
+
 	}
-	
+
+	private class Maintainer extends Thread {
+		private ServiceEvent event;
+		
+		public Maintainer(ServiceEvent serviceEvent){
+			event=serviceEvent;
+		}
+		
+		public void run() {
+			synchronized (evaluationSemaphore) {
+			/* check if a new service is registered */
+			if (event.getType() == ServiceEvent.REGISTERED
+					|| event.getType() == ServiceEvent.UNREGISTERING) {
+				try {
+					/* get all the object classes */
+					String[] objectClasses = (String[]) event
+							.getServiceReference().getProperty("objectClass");
+
+					/* go through them */
+					for (int i = 0; i < objectClasses.length; i++) {
+						/*
+						 * create a string representing the newly registered
+						 * service
+						 */
+						String objectClass = objectClasses[i];
+
+						/*
+						 * check if the event is a REGISTERED event check if any
+						 * inactive component has this registered event as
+						 * reference if so try to evalutate the that component
+						 * with the evaluateComponentDeclaration(..) method. if
+						 * the component is satisfied,i.e has all dependencies
+						 * it needs when it will be activated and its services,
+						 * if any , will be registered into the framework.
+						 */
+						if (event.getType() == ServiceEvent.REGISTERED) {
+							/*
+							 * go through all inactive components to se if any
+							 * of them has a reference to this service
+							 */
+
+							Vector copyOfInactiveComponents = (Vector) inactiveComponents
+									.clone();
+
+							for (int j = 0; j < copyOfInactiveComponents.size(); j++) {
+								/* get the componentDeclaration */
+								ComponentDeclaration componentDeclaration = (ComponentDeclaration) copyOfInactiveComponents
+										.get(j);
+
+								/* get the components references */
+								ArrayList references = componentDeclaration
+										.getReferenceInfo();
+								/* create an iterator */
+								Iterator referenceIterator = references
+										.iterator();
+
+								/* iteratre through the reference info objects */
+								while (referenceIterator.hasNext()) {
+									/* get the reference info object */
+									ComponentReferenceInfo referenceInfo = (ComponentReferenceInfo) referenceIterator
+											.next();
+
+									/* get the filter */
+									String filter = referenceInfo.getTarget();
+									/* get the target */
+									String eventTarget = (String) event
+											.getServiceReference().getProperty(
+													"component.name");
+
+									/*
+									 * check if the names of the declared
+									 * interface and the object class are equal
+									 * to each other and that the component
+									 * declaration is auto enabled. Also make
+									 * sure that the targets of the declaration
+									 * equals the component name
+									 */
+									if (referenceInfo.getInterfaceType()
+											.equals(objectClass)
+											&& componentDeclaration
+													.isAutoEnable()) {
+										try {
+											/*
+											 * try to start the component again
+											 * this may failed if the component
+											 * has other unsatisfied references
+											 * which aren't obvious here, but
+											 * the
+											 * evaluateComponentDeclaration(...)
+											 * method will take care of it.
+											 * therefore no concerns about the
+											 * filter is taken here.
+											 */
+											//copyOfInactiveComponents.remove(componentDeclaration);
+											evaluateComponentDeclaration(
+													componentDeclaration, false);
+
+											//j--;
+										} catch (ComponentException e) {
+											/* print the error */
+											System.out.println(e);
+										}
+
+									}// end
+									// if(referenceInfo.getInterfaceType().equals(objectClass)
+									// &&
+									//componentDeclaration.isAutoEnable())
+
+								}// end while (referenceIterator.hasNext())
+
+							}// end for(int j=0;j<inactiveComponents.size();j++)
+
+						}//end if(event.getType()==ServiceEvent.REGISTERED)
+
+						/*
+						 * always check all active components no matter if it is
+						 * a REGISTERED or UNREGISTERED event if an active
+						 * component has a refence to the event perform correct
+						 * action i.e, disable the component if its necessary,
+						 * rebind the component and call the components activate
+						 * method.
+						 *  
+						 */
+						for (int j = 0; j < activeComponents.size(); j++) {
+
+							/* check if it is an DeclarativeComponent */
+							if (activeComponents.get(j) instanceof DeclarativeComponent) {
+								/* create an ImmediateComponent variable */
+								DeclarativeComponent component = (DeclarativeComponent) activeComponents
+										.get(j);
+								/* create a componentDeclaration variable */
+								ComponentDeclaration componentDeclaration = component
+										.getComponentDeclaration();
+
+								/* get the components references */
+								ArrayList references = componentDeclaration
+										.getReferenceInfo();
+								/* create an iterator */
+								Iterator referenceIterator = references
+										.iterator();
+
+								/* iteratre through the reference info objects */
+								while (referenceIterator.hasNext()) {
+									/* get the reference info object */
+									ComponentReferenceInfo referenceInfo = (ComponentReferenceInfo) referenceIterator
+											.next();
+
+									/*
+									 * check if the name of the interface is the
+									 * same as the newly registered. Also check
+									 * that the cardinality is 0..n or 1..n.
+									 * Also ensure that a bind method is
+									 * declared If that is the case the active
+									 * component should be binded or rebinded
+									 * again. This should only be done if the
+									 * event is a REGISTERED event
+									 */
+									if (referenceInfo.getInterfaceType()
+											.equals(objectClass)
+											&& (referenceInfo.getCardinality()
+													.equals("0..n") || referenceInfo
+													.getCardinality().equals(
+															"1..n"))
+											&& (event.getType() == ServiceEvent.REGISTERED)) {
+
+										try {
+											/*
+											 * make sure the context has been
+											 * created before trying to bind
+											 * this one.
+											 */
+											if (component.getComponentContext() != null
+													|| component
+															.getComponentContexts() != null) {
+
+												if (!component
+														.getComponentDeclaration()
+														.isServiceFactory()) {
+
+													System.out
+															.println("NOTICE:");
+
+													System.out
+															.println("\n"
+																	+ component
+																			.getComponentDeclaration()
+																			.getComponentName()
+																	+ "\nhas declared that its instance wants to be notified about all\n"
+																	+ "registered service of this type therefore an instance of\n"
+																	+ "this service will be passed to this components bind method\n");
+
+													/* get the service object */
+													Object serviceObject = bundleContext
+															.getService(event
+																	.getServiceReference());
+													/*
+													 * get the instance to be
+													 * invoked
+													 */
+													Object instance = component
+															.getComponentContext()
+															.getComponentInstance()
+															.getInstance();
+
+													/* get the method name */
+													String methodName = referenceInfo
+															.getBind();
+
+													if (methodName != null) {
+														/*
+														 * get the interface
+														 * type
+														 */
+														String interfaceName = referenceInfo
+																.getInterfaceType();
+														/*
+														 * invoke the bind
+														 * method
+														 */
+														reInvokeReference(
+																serviceObject,
+																instance,
+																methodName,
+																interfaceName);
+
+													}
+
+													if (!component
+															.isBoundedTo(event
+																	.getServiceReference())) {
+														/*
+														 * invoke the activate
+														 * method
+														 */
+
+														activateInstance(component
+																.getComponentContext());
+														/*
+														 * add the service
+														 * reference to the
+														 * component
+														 */
+														component
+																.bindReference(event
+																		.getServiceReference());
+													}
+												}
+
+												if (component
+														.getComponentDeclaration()
+														.isServiceFactory()) {
+
+													System.out
+															.println("\n"
+																	+ component
+																			.getComponentDeclaration()
+																			.getComponentName()
+																	+ "\nhas declared that its instances wants to be notified about all\n"
+																	+ "registered service of this type therefore an instance of\n"
+																	+ "this service will be passed to this components bind method\n");
+
+													Vector contexts = component
+															.getComponentContexts();
+													/* get the service object */
+													Object serviceObject = bundleContext
+															.getService(event
+																	.getServiceReference());
+
+													for (int z = 0; z < contexts
+															.size(); z++) {
+														/*
+														 * get the current
+														 * context
+														 */
+														ComponentContext currentContext = (ComponentContext) contexts
+																.get(z);
+														/*
+														 * get the instance to
+														 * be invoked
+														 */
+														Object instance = currentContext
+																.getComponentInstance()
+																.getInstance();
+														/* get the method name */
+														String methodName = referenceInfo
+																.getBind();
+
+														if (methodName != null) { /*
+																				   * get
+																				   * the
+																				   * interface
+																				   * type
+																				   */
+															String interfaceName = referenceInfo
+																	.getInterfaceType();
+															/*
+															 * invoke the bind
+															 * method
+															 */
+															reInvokeReference(
+																	serviceObject,
+																	instance,
+																	methodName,
+																	interfaceName);
+														}
+														/*
+														 * invoke the activate
+														 * method
+														 */
+														activateInstance(currentContext);
+														/*
+														 * add the service
+														 * reference to the
+														 * component
+														 */
+														component
+																.bindReference(event
+																		.getServiceReference());
+
+													}
+
+												}
+
+											}
+
+										} catch (ComponentException e) {
+											System.err
+													.println("error in serviceChanged(..) when reInvoking component:\n"
+															+ e);
+										}
+
+									}
+
+									/*
+									 * variable represents if the component is
+									 * bounded or not
+									 */
+									boolean isBounded = false;
+									/* make sure the component is not null */
+									if (component != null) {
+										/* check if the component is bounded */
+										isBounded = component.isBoundedTo(event
+												.getServiceReference());
+									}
+
+									/*
+									 * check if the objectclass matches the
+									 * interface in declaration also check if
+									 * its a UNREGISTERING event if so check if
+									 * any component has the unregistered
+									 * reference as dependency. if a dependency
+									 * exists perform the legal action depending
+									 * on the policy and the cardinality
+									 */
+									if ((event.getType() == ServiceEvent.UNREGISTERING)
+											&& isBounded
+											&& referenceInfo.getInterfaceType()
+													.equals(objectClass)) {
+
+										/*
+										 * create a string representing the
+										 * cardinality
+										 */
+										String cardinality = referenceInfo
+												.getCardinality();
+										/* get the policy */
+										String policy = referenceInfo
+												.getPolicy();
+
+										/*
+										 * check if it is a static policy.
+										 * Static policy will not try to
+										 * dynamically rebind the component SCR
+										 * will instead disable the component
+										 * and try to create a new one.
+										 */
+										if (policy.equals("static")) {
+
+											/*
+											 * make sure this component doesn't
+											 * belong to a stopping bundle if
+											 * that is the case this reference
+											 * is in the same bundle as the
+											 * stopping bundle. Don't disable
+											 * the component it will be disabled
+											 * later.
+											 */
+											if (componentDeclaration
+													.getDeclaringBundle()
+													.getState() != Bundle.STOPPING) {
+												/* disable the component */
+												System.out
+														.println("disabel "
+																+ componentDeclaration
+																		.getComponentName()
+																+ " because it has a reference to "
+																+ objectClass
+																+ " with a static policy");
+
+												/* disable the component */
+												disableComponent(
+														componentDeclaration
+																.getComponentName(),
+														componentDeclaration
+																.getDeclaringBundle(),
+														false);
+												/*
+												 * decrease one element is
+												 * removed
+												 */
+												j--;
+
+											} else {
+
+												System.out
+														.println("****************  "
+																+ componentDeclaration
+																		.getComponentName()
+																+ "'s bundle is stopping "
+																+ "this is probably a bundle internal reference *********");
+											}
+
+											/*
+											 * evaluate the component again if
+											 * the component is satisfied it
+											 * will restart else it will be
+											 * saved for later use TODO check if
+											 * the evaluation method should care
+											 * about the isAutoEnable attribute
+											 */
+											try {
+
+												if (componentDeclaration
+														.getDeclaringBundle()
+														.getState() != Bundle.STOPPING) {
+													evaluateComponentDeclaration(
+															componentDeclaration,
+															false);
+												} else {
+													System.err
+															.println("************** This component's bundle is stopping"
+																	+ " ignore to restart **********************");
+												}
+
+											} catch (Exception e) {
+												System.err
+														.println("error occured when trying to restart"
+																+ componentDeclaration
+																		.getComponentName()
+																+ " due to:\n"
+																+ e
+																		.getMessage());
+												/* remove the component */
+												activeComponents
+														.remove(component);
+												/*
+												 * decrease one element is
+												 * removed
+												 */
+												j--;
+											}
+
+										}
+
+										/*
+										 * dynamic policy is a little bit more
+										 * complex it will behave diffrent
+										 * depending on the cardinality
+										 * declared. if the cardinality is 1..1
+										 * and no references are available then
+										 * the component declaring dependency to
+										 * this unregistered service cannot work
+										 * with out a rebind action. If the
+										 * cardinality is 0..1 it means it will
+										 * be able to work with out this
+										 * reference but the standard procedure
+										 * is to look for another equal
+										 * reference and rebind the component.
+										 */
+										if (policy.equals("dynamic")
+												&& component
+														.getComponentDeclaration()
+														.getDeclaringBundle()
+														.getState() != Bundle.STOPPING) {
+
+											System.out
+													.println("*************** Found dynamic reference to:"
+															+ component
+																	.getComponentDeclaration()
+																	.getComponentName()
+															+ " ********************");
+
+											/*
+											 * if the cardinality is 1..1 or
+											 * 0..1 when unbind the old service
+											 * a try to locate a new service and
+											 * bind it to the service
+											 */
+											if (cardinality.equals("1..1")
+													|| cardinality
+															.equals("0..1")) {
+
+												/*
+												 * check if a new service of
+												 * this type is available
+												 */
+												ServiceReference[] serviceReferences = bundleContext
+														.getServiceReferences(
+																referenceInfo
+																		.getInterfaceType(),
+																referenceInfo
+																		.getTarget());
+
+												/*
+												 * declare a new service object
+												 * set it to null
+												 */
+												Object serviceObject = null;
+
+												/* get the old service object */
+												Object oldServiceObject = bundleContext
+														.getService(event
+																.getServiceReference());
+
+												/*
+												 * check that the reference is
+												 * not null
+												 */
+												if (serviceReferences != null) {
+													/* get the service */
+													serviceObject = bundleContext
+															.getService(serviceReferences[0]);
+												}
+
+												/*
+												 * this is the easy task because
+												 * those component types do only
+												 * have one instance of the
+												 * component object
+												 */
+												if (component instanceof ImmediateComponent
+														|| component instanceof CustomDelayedService
+														|| component instanceof CustomComponentFactory
+														&& (serviceObject != null)) {
+
+													/* get the context */
+													ComponentContext componentContext = component
+															.getComponentContext();
+
+													/*
+													 * ensure that the context
+													 * isn't null if so it means
+													 * that the service never
+													 * been requested and the
+													 * component is of the type
+													 * CustomDelayedService. If
+													 * the context is null then
+													 * there are no instance(s)
+													 * to rebind.
+													 */
+
+													if (componentContext != null) {
+														/*
+														 * create a string
+														 * representing the
+														 * unbind method
+														 */
+														String unbindMethod = referenceInfo
+																.getUnbind();
+														/*
+														 * create a string
+														 * representing the bind
+														 * method
+														 */
+														String bindMethod = referenceInfo
+																.getBind();
+
+														/*
+														 * make sure unbind
+														 * method is declared
+														 */
+														if (unbindMethod != null) {
+															try {
+																/*
+																 * unbind the
+																 * old service
+																 */
+																reInvokeReference(
+																		oldServiceObject,
+																		componentContext
+																				.getComponentInstance()
+																				.getInstance(),
+																		unbindMethod,
+																		referenceInfo
+																				.getInterfaceType());
+															} catch (ComponentException e) {
+																System.err
+																		.println(e);
+															}
+														}
+
+														if (bindMethod != null) {
+															try {
+																/*
+																 * bind the old
+																 * service
+																 */
+																reInvokeReference(
+																		serviceObject,
+																		componentContext
+																				.getComponentInstance()
+																				.getInstance(),
+																		bindMethod,
+																		referenceInfo
+																				.getInterfaceType());
+															} catch (ComponentException e) {
+																/*
+																 * print the
+																 * error
+																 */
+																System.err
+																		.println(e);
+															}
+														}
+
+														try {
+															/*
+															 * invoke the
+															 * activate method
+															 */
+															activateInstance(componentContext);
+														} catch (ComponentException e) {
+															/* print the error */
+															System.err
+																	.println("error calling activate method due to:\n"
+																			+ e);
+														}
+
+													}// end
+													// if(componentContext!=null){
+
+												} else if (component instanceof CustomComponentServiceFactory
+														&& serviceObject != null) {
+													/*
+													 * this is a service factory
+													 * get all contexts
+													 */
+													Vector contexts = component
+															.getComponentContexts();
+													/*
+													 * create a string
+													 * representing the unbind
+													 * method
+													 */
+													String unbindMethod = referenceInfo
+															.getUnbind();
+													/*
+													 * create a string
+													 * representing the bind
+													 * method
+													 */
+													String bindMethod = referenceInfo
+															.getBind();
+
+													for (int x = 0; x < contexts
+															.size(); x++) {
+														/*
+														 * get the component
+														 * context
+														 */
+														ComponentContext componentContext = (ComponentContext) contexts
+																.get(x);
+
+														/*
+														 * make sure unbind
+														 * method is declared
+														 */
+														if (unbindMethod != null) {
+															try {
+																/*
+																 * unbind the
+																 * old service
+																 */
+																reInvokeReference(
+																		oldServiceObject,
+																		componentContext
+																				.getComponentInstance()
+																				.getInstance(),
+																		unbindMethod,
+																		referenceInfo
+																				.getInterfaceType());
+															} catch (ComponentException e) {
+																System.err
+																		.println(e);
+															}
+														}
+
+														if (bindMethod != null) {
+															try {
+																/*
+																 * bind the new
+																 * service
+																 */
+																reInvokeReference(
+																		serviceObject,
+																		componentContext
+																				.getComponentInstance()
+																				.getInstance(),
+																		bindMethod,
+																		referenceInfo
+																				.getInterfaceType());
+															} catch (ComponentException e) {
+																System.err
+																		.println(e);
+															}
+														}
+
+														try {
+															/*
+															 * invoke the
+															 * activate method
+															 */
+															activateInstance(componentContext);
+														} catch (ComponentException e) {
+															/* print the error */
+															System.err
+																	.println("error calling activate method due to:\n"
+																			+ e);
+														}
+
+													}// end for(int
+													// x=0;x<contexts.size();x++)
+
+												}// end else if(component
+												 // instanceof
+												// CustomComponentServiceFactory)
+
+												if (cardinality.equals("1..1")
+														&& serviceObject == null) {
+													/*
+													 * in this case disable the
+													 * component it should not
+													 * work with the declared
+													 * cardinality
+													 */
+													try {
+														System.out
+																.println("************ disable "
+																		+ componentDeclaration
+																				.getComponentName()
+																		+ " unable to bind new equal reference to component *************");
+														/*
+														 * call the disable
+														 * method
+														 */
+														disableComponent(
+																componentDeclaration
+																		.getComponentName(),
+																componentDeclaration
+																		.getDeclaringBundle(),
+																false);
+														/*
+														 * decrease one element
+														 * is removed
+														 */
+														j--;
+													} catch (ComponentException e) {
+														System.err.println(e);
+													}
+
+												}// end
+												// if(cardinality.equals("1..1")
+												// &&
+												// serviceObject==null)
+											}
+
+											/*
+											 * if cardinality is 1..n means that
+											 * the component wants all
+											 * references of the given type and
+											 * MUST have at least one reference
+											 * bounded. 0..n means that the
+											 * component can work with out a
+											 * reference and should not be
+											 * disabled if no references are
+											 * available.
+											 */
+											if (cardinality.equals("1..n")
+													|| cardinality
+															.equals("0..n")) {
+												/*
+												 * get all the service
+												 * references
+												 */
+												ServiceReference[] newReferences = null;
+												/* get the old service object */
+												Object oldServiceObject = bundleContext
+														.getService(event
+																.getServiceReference());
+												/*
+												 * create a string representing
+												 * the unbind method
+												 */
+												String unbindMethod = referenceInfo
+														.getUnbind();
+												/*
+												 * create a string representing
+												 * the bind method
+												 */
+												String bindMethod = referenceInfo
+														.getBind();
+
+												/*
+												 * those component types only
+												 * have one instance
+												 */
+												if (component instanceof ImmediateComponent
+														|| component instanceof CustomDelayedService
+														|| component instanceof CustomComponentFactory) {
+
+													/*
+													 * create a componentContext
+													 * variable
+													 */
+													ComponentContext componentContext = component
+															.getComponentContext();
+
+													/*
+													 * check if component has an
+													 * unbind method
+													 */
+													if (unbindMethod != null) {
+														try {
+															/*
+															 * unbind the old
+															 * service
+															 */
+															reInvokeReference(
+																	oldServiceObject,
+																	componentContext
+																			.getComponentInstance()
+																			.getInstance(),
+																	unbindMethod,
+																	referenceInfo
+																			.getInterfaceType());
+															component
+																	.unBindReference(event
+																			.getServiceReference());
+														} catch (ComponentException e) {
+															System.err
+																	.println(e);
+														}
+													}
+
+													try {
+														/* get the references */
+														newReferences = bundleContext
+																.getServiceReferences(
+																		referenceInfo
+																				.getInterfaceType(),
+																		referenceInfo
+																				.getTarget());
+													} catch (InvalidSyntaxException e) {
+														System.err
+																.println("error getting servicereferences due to:\n"
+																		+ e);
+													} catch (Exception e) {
+														System.err
+																.println("error getting servicereferences due to:\n"
+																		+ e);
+													}
+
+													/*
+													 * check this again because
+													 * the old references can be
+													 * the left
+													 */
+													if (newReferences != null) {
+
+														for (int x = 0; x < newReferences.length; x++) {
+															/*
+															 * make sure unbind
+															 * method is
+															 * declared
+															 */
+															if (bindMethod != null) {
+																try {
+																	/*
+																	 * check if
+																	 * already
+																	 * bounded
+																	 */
+																	if (!component
+																			.isBoundedTo(newReferences[x])) {
+																		/*
+																		 * get
+																		 * the
+																		 * object
+																		 */
+																		Object serviceObject = bundleContext
+																				.getService(newReferences[x]);
+																		/*
+																		 * bind
+																		 * the
+																		 * old
+																		 * service
+																		 */
+																		reInvokeReference(
+																				serviceObject,
+																				componentContext
+																						.getComponentInstance()
+																						.getInstance(),
+																				bindMethod,
+																				referenceInfo
+																						.getInterfaceType());
+																	}
+																} catch (ComponentException e) {
+																	System.err
+																			.println(e);
+																}
+															}
+
+															try {
+																/*
+																 * invoke the
+																 * activate
+																 * method
+																 */
+																activateInstance(componentContext);
+															} catch (ComponentException e) {
+																System.err
+																		.println("error calling activate method due to:\n"
+																				+ e);
+															}
+
+														}// end for(int
+														// x=0;x<newReferences.length;x++)
+
+													}// end
+													 // if(newReferences!=null)
+
+												} else if (component instanceof CustomComponentServiceFactory) {
+													/*
+													 * this is even moore tricky
+													 * here we need all the
+													 * component instances
+													 */
+													Vector contexts = component
+															.getComponentContexts();
+													try {
+														/* get the references */
+														newReferences = bundleContext
+																.getServiceReferences(
+																		referenceInfo
+																				.getInterfaceType(),
+																		null);
+													} catch (InvalidSyntaxException e) {
+														System.err
+																.println("error getting servicereferences due to:\n"
+																		+ e);
+													} catch (Exception e) {
+														System.err
+																.println("error getting servicereferences due to:\n"
+																		+ e);
+													}
+
+													if (newReferences != null) {
+														for (int m = 0; m < contexts
+																.size(); m++) {
+															/*
+															 * get the current
+															 * context
+															 */
+															ComponentContext componentContext = (ComponentContext) contexts
+																	.get(m);
+
+															if (unbindMethod != null) {
+																try {
+																	/*
+																	 * unbind
+																	 * the old
+																	 * service
+																	 */
+																	reInvokeReference(
+																			oldServiceObject,
+																			componentContext
+																					.getComponentInstance()
+																					.getInstance(),
+																			unbindMethod,
+																			referenceInfo
+																					.getInterfaceType());
+																	component
+																			.unBindReference(event
+																					.getServiceReference());
+																} catch (ComponentException e) {
+																	System.err
+																			.println(e);
+																}
+															}
+
+															for (int x = 0; x < newReferences.length; x++) {
+
+																/*
+																 * make sure
+																 * unbind method
+																 * is declared
+																 */
+																if (bindMethod != null) {
+																	try {
+																		/*
+																		 * make
+																		 * sure
+																		 * the
+																		 * component
+																		 * isnt
+																		 * bounded
+																		 * to
+																		 * this
+																		 * reference
+																		 */
+																		if (!component
+																				.isBoundedTo(newReferences[x])) {
+																			Object serviceObject = bundleContext
+																					.getService(newReferences[x]);
+																			/*
+																			 * bind
+																			 * the
+																			 * old
+																			 * service
+																			 */
+																			reInvokeReference(
+																					serviceObject,
+																					componentContext
+																							.getComponentInstance()
+																							.getInstance(),
+																					bindMethod,
+																					referenceInfo
+																							.getInterfaceType());
+																		}
+																	} catch (ComponentException e) {
+																		System.err
+																				.println(e);
+																	}
+																}
+
+																try {
+																	/*
+																	 * invoke
+																	 * the
+																	 * activate
+																	 * method
+																	 */
+																	activateInstance(componentContext);
+																} catch (ComponentException e) {
+																	System.err
+																			.println("error calling activate method due to:\n"
+																					+ e);
+																}
+
+															}// end for(int
+															// x=0;x<newReferences.length;x++)
+
+														}//end for(int m= 0;
+														// m<contexts.size();m++)
+
+													}// end
+													 // if(newReferences!=null)
+
+												}// if(component instanceof
+												// CustomComponentServiceFactory)
+
+												/*
+												 * check the cardinality if it
+												 * is 1..n it should be disabled
+												 * here it can't work if no
+												 * service references are
+												 * available
+												 */
+												if (component
+														.getAllBoundedReferences()
+														.size() == 0
+														&& cardinality
+																.equals("1..n")) {
+													System.out
+															.println("************ disable "
+																	+ componentDeclaration
+																			.getComponentName()
+																	+ " unable to bind new equal references to component *************");
+													disableComponent(
+															componentDeclaration
+																	.getComponentName(),
+															componentDeclaration
+																	.getDeclaringBundle(),
+															false);
+													/*
+													 * decrease one element is
+													 * removed
+													 */
+													j--;
+
+												}// end if(newReferences==null
+												 // &&
+												// cardinality.equals("1..n"))
+											}
+
+										} else if (policy.equals("dynamic")
+												&& component
+														.getComponentDeclaration()
+														.getDeclaringBundle()
+														.getState() != Bundle.STOPPING) {
+											System.err
+													.println("************************* "
+															+ component
+																	.getComponentDeclaration()
+															+ "'s bundle is stopping this is probably an internal reference"
+															+ " **********************");
+
+										}
+
+									}//end
+									// if(referenceInfo.getInterfaceType().equals(objectClass)
+									// &&
+									//event.getType()==ServiceEvent.UNREGISTERING)
+
+								}// end while (referenceIterator.hasNext())
+
+							} else {
+
+								System.err
+										.println("error in SystemComponentRuntimeImpl.serviceChanged(..) due to:\n"
+												+ "occurance of none DeclarativeComponent type should not be in the vector"
+												+ " for active components");
+							}
+
+						}// end for(int j=0
+
+					}// end for(int i=0;i<objectClasses.length;i++)
+
+					/* if it is an unregister event */
+					if (event.getType() == ServiceEvent.UNREGISTERING) {
+						/*
+						 * check all component instances wich haven't been
+						 * requested yet this is problematic because an instance
+						 * isn't done by them yet.
+						 */
+
+						for (int x = 0; x < activeComponents.size(); x++) {
+							DeclarativeComponent component = (DeclarativeComponent) activeComponents
+									.get(x);
+
+							if (!isSatisfied(component
+									.getComponentDeclaration())
+									&& component.getComponentDeclaration()
+											.getDeclaringBundle().getState() != Bundle.STOPPING) {
+								System.out
+										.println("******** found an unrequested service component wich is unsatisfied:"
+												+ component
+														.getComponentDeclaration()
+														.getComponentName()
+												+ " ****************");
+								disableComponent(component
+										.getComponentDeclaration()
+										.getComponentName(), component
+										.getComponentDeclaration()
+										.getDeclaringBundle(), false);
+							}
+
+						}
+
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.err
+							.println("error in SystemComponentRuntimeImpl.serviceChanged(..) due to:\n"
+									+ e);
+
+				} // end try
+
+			}// if(event.getType()==ServiceEvent.REGISTERED ||
+			// event.getType()==ServiceEvent.UNREGISTERING)
+			}
+		}
+
+	}
+
 	/**
-	 * interface for wrapping components and its internal configuration
-	 * this interface makes it easier to generalize the fact that components
-	 * behave diffrent depending on what kind of component the attached
-	 * XML file declares. 
+	 * interface for wrapping components and its internal configuration this
+	 * interface makes it easier to generalize the fact that components behave
+	 * diffrent depending on what kind of component the attached XML file
+	 * declares.
 	 * 
 	 * @author Magnus Klack
 	 */
