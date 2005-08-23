@@ -23,6 +23,7 @@ import com.gstm.test.scr.scenarios.scenario1.impl.Scenario1TestSuite;
 import com.gstm.test.scr.scenarios.scenario3.impl.Scenario3TestSuite;
 import com.gstm.test.scr.scenarios.scenario4.impl.Scenario4TestSuite;
 import com.gstm.test.scr.scenarios.scenario6.impl.Scenario6TestSuite;
+import com.gstm.test.scr.scenarios.scenario8.impl.Scenario8TestSuite;
 
 import junit.framework.*;
 
@@ -69,6 +70,14 @@ public class Activator implements BundleActivator {
 		TestSuite testSuiteScenario6 = new Scenario6TestSuite(context);
 		/* add scenario 6 to the all tests suite */
 		testSuiteAllTests.addTest(testSuiteScenario6);
+
+		
+		
+		/* create the test suite for scenario 8 */
+		TestSuite testSuiteScenario8 = new Scenario8TestSuite(context);
+		/* add scenario 8 to the all tests suite */
+		testSuiteAllTests.addTest(testSuiteScenario8);
+		
 		
 		/* create the hashtable to put properties in */
 		Hashtable props = new Hashtable();
