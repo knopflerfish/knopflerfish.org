@@ -27,6 +27,7 @@ public class ImmediateComponent2Impl implements ImmediateComponent2{
 	
 	/* bind the service reference*/
 	protected void bindDelayedComponent1(DelayedComponent1 provider){
+		System.out.println("ImmediateComponent2 is binded");
 		this.provider = provider;
 		int serviceValue = provider.getValue();
 		System.out.println("ImmediateComponent2Impl - The provider has returned the value: " + serviceValue);

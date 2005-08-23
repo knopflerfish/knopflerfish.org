@@ -39,7 +39,7 @@ public class Component1Impl  {
     	try{
     		provider = (FaultyProvider) context.locateService("message");
    		}catch(ClassCastException e){
-   			System.err.println("error when getting counter");
+   			System.err.println("error due to:\n" + e);
    		}
 		
 		System.out.println("Provider:" + provider);

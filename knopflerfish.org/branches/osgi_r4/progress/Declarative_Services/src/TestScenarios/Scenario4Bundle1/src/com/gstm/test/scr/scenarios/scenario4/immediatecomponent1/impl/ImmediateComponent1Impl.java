@@ -32,7 +32,7 @@ public class ImmediateComponent1Impl {
 	 
 	 private void activateComponents(){
 	 	/* Starting DealyedComponent1 */
-	 	System.out.println("<<<<<<<<<< Enabeling DealyedComponent1 >>>>>>>>>>>>>>");
+ 		System.out.println("<<<<<<<<<< Enabeling DealyedComponent1 >>>>>>>>>>>>>>");
 	 	context.enableComponent("com.gstm.test.scr.scenarios.scenario4.delayedcomponent1.DelayedComponent1");
 	 	
 	 	/* Waiting a coouple of seconds */
@@ -46,12 +46,12 @@ public class ImmediateComponent1Impl {
 	 	}
 	 	
 		/* Starting ImmediateComponent2 and ImmediateComponent3 */ 
-	 	System.out.println("<<<<<<<<<< Enabeling ImmediateComponent2 and ImmediateComponent3 >>>>>>>>>>>>>>");
-	 	context.enableComponent(null);
-//	 	System.out.println("<<<<<<<<<< Enabeling ImmediateComponent2 >>>>>>>>>>>>>>");
-//	 	context.enableComponent("com.gstm.test.scr.scenarios.scenario4.immediatecomponent2.ImmediateComponent2");
-//	 	System.out.println("<<<<<<<<<< Enabeling ImmediateComponent3 >>>>>>>>>>>>>>");
-//	 	context.enableComponent("com.gstm.test.scr.scenarios.scenario4.immediatecomponent3.ImmediateComponent3");
+//	 	System.out.println("<<<<<<<<<< Enabeling ImmediateComponent2 and ImmediateComponent3 >>>>>>>>>>>>>>");
+//	 	context.enableComponent(null);
+	 	System.out.println("<<<<<<<<<< Enabeling ImmediateComponent2 >>>>>>>>>>>>>>");
+	 	context.enableComponent("com.gstm.test.scr.scenarios.scenario4.immediatecomponent2.ImmediateComponent2");
+	 	System.out.println("<<<<<<<<<< Enabeling ImmediateComponent3 >>>>>>>>>>>>>>");
+	 	context.enableComponent("com.gstm.test.scr.scenarios.scenario4.immediatecomponent3.ImmediateComponent3");
 	 	
 	 }
 }

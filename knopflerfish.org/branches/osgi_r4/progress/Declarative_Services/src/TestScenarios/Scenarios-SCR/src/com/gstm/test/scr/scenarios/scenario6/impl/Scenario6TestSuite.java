@@ -169,12 +169,14 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 			} catch (Exception e) {
 				assertFalse("Couldn't start the bundle:" + e, true);
 			}
+			
 			/* Start Scenario6Component2 */
 			try {
 				desiredBundles[1].start();
 			} catch (Exception e) {
 				assertFalse("Couldn't start the bundle:" + e, true);
 			}
+			
 			/* Start Scenario6CounterFactory */
 			try {
 				desiredBundles[2].start();
@@ -205,12 +207,24 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 		}
 
 		public void handleEvent(Event event) {
-
+			
 			String component1Name = "com.gstm.test.scr.scenarios.scenario6.component1.Component1";
 			String component2Name = "com.gstm.test.scr.scenarios.scenario6.component2.Component2";
 			
-			int component1Value = ((Integer) event.getProperty(component1Name)).intValue();
-			int component2Value = ((Integer) event.getProperty(component1Name)).intValue();
+			int component1Value;
+			int component2Value;
+			
+			try{
+				component1Value = ((Integer) event.getProperty(component1Name)).intValue();
+			}catch (NullPointerException e){
+				component1Value = 0;
+			}
+			
+			try{
+				component2Value = ((Integer) event.getProperty(component2Name)).intValue();
+			}catch (NullPointerException e){
+				component2Value = 0;
+			}
 			
 			/*assert that the values isn't higher than 50 on each */ 
 			if(component1Value == 0){
