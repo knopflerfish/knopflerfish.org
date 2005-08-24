@@ -162,6 +162,10 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
 
 			// Find expected bundles and start them in predetermined order
 			findBundles();
+			/* Make sure that all bundles needed were found */
+			for(int i=0 ; i<desiredBundles.length ; i++){
+				assertNotSame("Not all bundles needed in the test were found", null, desiredBundles[i]);
+			}
 
 			/* Start Scenario6Bundle1 */
 			try {
@@ -206,13 +210,15 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
 
 		public void handleEvent(Event event) {
 
-			synchronized (this){				
+			synchronized (this){
+				/* The key to be used to get a value from the event */
 				String component1Name = "com.gstm.test.scr.scenarios.scenario8.component1.Component1";
 				String component2Name = "com.gstm.test.scr.scenarios.scenario8.component2.Component2";
 				
 				int component1Value;
 				int component2Value;
 				
+				/* Getting the value from the event, if no value is found the variable value is set to 0. */
 				try{
 					component1Value = ((Integer) event.getProperty(component1Name)).intValue();
 				}catch (Exception e){
@@ -225,6 +231,7 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
 					component2Value = 0;
 				}
 				
+				/* Testing the values against the expected values, see scenario8 in the STS */
 				switch (eventCounter) {
 					case 1: 
 						/* assert that that component1 is started */
