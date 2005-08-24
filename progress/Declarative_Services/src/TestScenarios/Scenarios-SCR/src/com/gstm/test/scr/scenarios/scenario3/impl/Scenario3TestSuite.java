@@ -199,6 +199,8 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
 			} catch (Exception e) {
 				assertFalse("Couldn't start the bundle:" + e, true);
 			}
+			
+			System.err.println("IF NOTHING(or verry litle) HAPPENDS AFTER THIS THERE IS SOMETHING WRONG");
 		}
 
 		private void findBundles() {
