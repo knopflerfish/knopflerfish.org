@@ -102,7 +102,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		for (int i = 0; i < alreadyActive.size(); i++) {
 			ComponentDeclaration declaration = (ComponentDeclaration) alreadyActive
 					.get(i);
-			evaluateComponentDeclaration(declaration, false);
+			Evaluator evaluator = new Evaluator(declaration,false,this);
+			evaluator.start();
+			synchronized(this){
+				try{
+					wait();
+				}catch(InterruptedException e){
+					
+				}
+			}
+			
 		}
 
 	}
@@ -158,8 +167,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 *            the event from the framework
 	 */
 	public synchronized void bundleChanged(BundleEvent event) {
-		/* lock the evaluation semaphore */
-		synchronized (workerSemaphore) {
+		synchronized(workerSemaphore){
 			if (event.getType() == BundleEvent.UPDATED) {
 				System.out.println("Bundle #" + event.getBundle().getBundleId()
 						+ " is updated");
@@ -168,7 +176,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 			if (event.getBundle().getHeaders().get("Service-Component") != null
 					&& event.getType() == BundleEvent.STARTED) {
-
+				
 				try {
 
 					/* try to get the XML file */
@@ -210,16 +218,18 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * parse the document and retrieve a component
 							 * declaration
 							 */
-							ComponentDeclaration componentDeclaration = customParser
+							ComponentDeclaration componentDeclaration;
+							
+								componentDeclaration= customParser
 									.readXML(zipEntry, jarFile);
-
+							
 							/* add the declaring bundle to the declaration */
 							componentDeclaration.setDeclaraingBundle(event
 									.getBundle());
 
 							/* add the path to the xmlfile to declaration */
 							componentDeclaration.setXmlFile(manifestEntries[i]);
-
+							
 							try {
 								System.out
 										.println("***************** Evaluate "
@@ -231,9 +241,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								 * evaluate the component don't overide the
 								 * isAutoEnable() attribute
 								 */
-								evaluateComponentDeclaration(
-										componentDeclaration, false);
-
+								//evaluateComponentDeclaration(
+								//		componentDeclaration, false);
+								Evaluator evaluator = new Evaluator(componentDeclaration,false,null);
+								//evaluator.setPriority(Thread.MAX_PRIORITY);
+								evaluator.start();
+							
+								
 							} catch (ComponentException e) {
 								/* print the error */
 								System.err
@@ -1260,9 +1274,18 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * evalute the declaration override the
 							 * componentdeclarations isAutoEnabled()
 							 */
-
-							evaluateComponentDeclaration(componentDeclaration,
-									true);
+							Evaluator evaluator = new Evaluator(componentDeclaration,true,this);
+							evaluator.start();
+							
+							synchronized(this){
+								try{
+									wait();
+								}catch(InterruptedException e){
+									
+								}
+							}
+							//evaluateComponentDeclaration(componentDeclaration,
+							//		true);
 
 						} catch (ComponentException e) {
 							/* throw the error */
@@ -1482,34 +1505,6 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		return null;
 	}
 
-	/**
-	 * this method will evaluate all component declarations create custom
-	 * service objects depending on what kind of component the declaration
-	 * declares. if the decalaration is not satisfied it will just save the
-	 * declaration for later use. The method will also check if the component
-	 * implements managed service features.
-	 * 
-	 * @param componentDeclaration
-	 *            the componentDeclaration
-	 * @param overideEnable
-	 *            if the method should over care about the component
-	 *            declarations isAutoEnable() attribute.
-	 */
-	private synchronized void evaluateComponentDeclaration(
-			ComponentDeclaration componentDeclaration, boolean overideEnable)
-			throws ComponentException {
-		try {
-			/* create an evaluator to evaluate the component with */
-			Evaluator evaluator = new Evaluator(componentDeclaration,
-					overideEnable);
-			/* start the evaluation process */
-			evaluator.start();
-
-		} catch (ComponentException e) {
-			throw e;
-		}
-
-	}
 
 	
 
@@ -1838,13 +1833,6 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				/* creates the class instance */
 				Object returnObject = componentClass.newInstance();
 
-				/*
-				 * create the return object with tracing feature will give the
-				 * object as proxy DO NOT USE THIS FEATURE! IF used then you
-				 * have to to invoke methods via the proxy instance
-				 */
-				//returnObject=TracingIH.createProxy(
-				//		returnObject, new PrintWriter(System.out));
 				System.out.println("Creating instance:" + returnObject);
 				/* return the object */
 				return returnObject;
@@ -3500,16 +3488,18 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		private ComponentDeclaration componentDeclaration;
 
 		private boolean overideEnable;
+		
+		private Object ownerProcess;
 
 		public Evaluator(ComponentDeclaration componentDeclaration,
-				boolean overideEnable) {
+				boolean overideEnable,Object owner) {
 			this.componentDeclaration = componentDeclaration;
 			this.overideEnable = overideEnable;
+			this.ownerProcess = owner;
 		}
 
 		public void run() {
-			/* lock the semaphore */
-			synchronized (workerSemaphore) {
+			synchronized(workerSemaphore){
 				/*
 				 * variable representing if the component implements managed
 				 * service
@@ -3521,20 +3511,20 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				 * service factory
 				 */
 				boolean isManagedFactory = false;
-
+				
 				try {
-
+					
 					/* get the class representation */
 					Class implementationClass = Class
 							.forName(componentDeclaration.getImplementation());
 					/* get the interfaces implemented on this class */
 					Class[] interfaces = implementationClass.getInterfaces();
-
+					
 					/* counter variable */
 					int q = 0;
 					/* variable holding the length of the interface array */
 					int length = interfaces.length;
-
+				
 					/* go through the interfaces */
 					while (q < length) {
 
@@ -3567,13 +3557,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					}
 
 				} catch (ClassNotFoundException e) {
-
+					e.printStackTrace();
 					/* this will happen if the class isn't found */
 					throw new ComponentException("Can't find class "
 							+ componentDeclaration.getImplementation()
 							+ " due to: " + e, e.getCause());
 				} catch (Exception e) {
-
+					e.printStackTrace();
 					throw new ComponentException(e.getMessage(), e.getCause());
 				}
 
@@ -3611,6 +3601,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								}
 
 							} catch (ComponentException e) {
+								e.printStackTrace();
 								throw e;
 							}
 
@@ -3766,6 +3757,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 										}
 
 									} catch (ComponentException e) {
+										e.printStackTrace();
 										/* just throw the error */
 										throw e;
 									}
@@ -3803,6 +3795,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 										/* throw the error */
 										throw e;
 									} catch (Exception e) {
+										e.printStackTrace();
 										throw new ComponentException(e
 												.getMessage(), e.getCause());
 									}
@@ -3885,7 +3878,18 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 				} // if(componentDeclaration.isAutoEnable())
 			}
-		
+			
+			if(ownerProcess!=null){
+				System.out.println("************ evaluation finished for: " + 
+						componentDeclaration.getComponentName()+ " notifies owner process ************");
+				synchronized(ownerProcess){
+					try{
+					ownerProcess.notify();
+					}catch(Exception e){
+						System.err.println("error notifying owner process");
+					}
+				}
+			}
 		}
 
 	}
@@ -4066,6 +4070,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		public void run() {
 			synchronized (workerSemaphore) {
+				System.out.println("**************** Maintainer process is started **************");
 				/* check if a new service is registered */
 				if (event.getType() == ServiceEvent.REGISTERED
 						|| event.getType() == ServiceEvent.UNREGISTERING) {
@@ -4158,12 +4163,21 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 												 * therefore no concerns about
 												 * the filter is taken here.
 												 */
-												//copyOfInactiveComponents.remove(componentDeclaration);
-												evaluateComponentDeclaration(
-														componentDeclaration,
-														false);
-
-												//j--;
+												
+												Evaluator evaluator = new Evaluator(componentDeclaration,
+														false,this);
+												
+												evaluator.start();
+												
+												synchronized(this){
+													try{
+														wait();
+													}catch(InterruptedException e){
+														
+													}
+												}
+												
+												
 											} catch (ComponentException e) {
 												/* print the error */
 												System.out.println(e);
@@ -4565,9 +4579,21 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 													if (componentDeclaration
 															.getDeclaringBundle()
 															.getState() != Bundle.STOPPING) {
-														evaluateComponentDeclaration(
-																componentDeclaration,
-																false);
+														
+														Evaluator evaluator = 
+															new Evaluator(componentDeclaration,false,this);
+														evaluator.start();
+														
+														synchronized(this){
+															try{
+																wait();
+															}catch(InterruptedException e){
+																
+															}
+														}
+														
+														
+														
 													} else {
 														System.err
 																.println("************** This component's bundle is stopping"
