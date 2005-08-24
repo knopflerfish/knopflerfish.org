@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="com.gstm.test.scr.scenarios.scenario9.circomponent.CirComponent4" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario9.circomponent4.impl.CirComponent4Impl" />
+    <service>
+        <provide interface="com.gstm.test.scr.scenarios.scenario9.circomponent4.CirComponent4" />
+    </service>
+    <reference name="message" interface="com.gstm.test.scr.scenarios.scenario9.circomponent3.CirComponent3" cardinality="1..1" policy="static" target="(component.name=com.gstm.test.scr.scenarios.scenario9.circomponent3.CirComponent3)" />
+</scr:component>
