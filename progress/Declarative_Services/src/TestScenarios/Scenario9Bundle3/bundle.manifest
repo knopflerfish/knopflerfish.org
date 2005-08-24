@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario9Bundle3
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario9.circomponent3
+Bundle-Version: 1.0
+Service-Component: OSGI-INF/Scenario9CirComponent3.xml
+DynamicImport-Package: *
+Export-Package: com.gstm.test.scr.scenarios.scenario9.circomponent3.impl,
+ com.gstm.test.scr.scenarios.scenario9.circomponent3
