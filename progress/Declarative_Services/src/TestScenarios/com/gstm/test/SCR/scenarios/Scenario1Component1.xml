@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.scr.scenarios.scenario1.bundle1.Scenario1" factory="com.gstm.test.scr.scenarios.scenario1.bundle1.Scenario1" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0" enabled="true">
+<scr:component name="com.gstm.test.SCR.scenarios.scenario1.bundle1.Scenario1" factory="com.gstm.test.scr.scenarios.scenario1.bundle1.Scenario1" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0" enabled="true">
     <implementation class="com.gstm.test.scr.scenarios.scenario1.bundle1.impl.Scenario1Impl" />
     <service>
         <provide interface="com.gstm.test.scr.scenarios.scenario1.bundle1.Scenario1" />
