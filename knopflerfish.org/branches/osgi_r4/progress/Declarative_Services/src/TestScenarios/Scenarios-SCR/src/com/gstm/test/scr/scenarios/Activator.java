@@ -20,6 +20,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import com.gstm.test.scr.scenarios.scenario1.impl.Scenario1TestSuite;
+import com.gstm.test.scr.scenarios.scenario12.impl.Scenario12TestSuite;
 import com.gstm.test.scr.scenarios.scenario3.impl.Scenario3TestSuite;
 import com.gstm.test.scr.scenarios.scenario4.impl.Scenario4TestSuite;
 import com.gstm.test.scr.scenarios.scenario6.impl.Scenario6TestSuite;
@@ -80,7 +81,17 @@ public class Activator implements BundleActivator {
 		/* create the test suite for scenario 9 */
 		TestSuite testSuiteScenario9 = new Scenario9TestSuite(context);
 		/* add scenario 9 to the all tests suite */
-		testSuiteAllTests.addTest(testSuiteScenario9);		
+		testSuiteAllTests.addTest(testSuiteScenario9);	
+		
+		
+		
+		
+		
+		
+		/* create the test suite for scenario 12 */
+		TestSuite testSuiteScenario12 = new Scenario12TestSuite(context);
+		/* add scenario 12 to the all tests suite */
+		testSuiteAllTests.addTest(testSuiteScenario12);	
 		
 		/* create the hashtable to put properties in */
 		Hashtable props = new Hashtable();
