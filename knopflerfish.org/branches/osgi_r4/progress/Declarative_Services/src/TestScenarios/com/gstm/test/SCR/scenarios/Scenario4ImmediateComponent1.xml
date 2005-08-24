@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component name="com.gstm.test.scr.scenarios.scenario4.ImmediateComponent1" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <implementation class="com.gstm.test.scr.scenarios.scenario4.impl.ImmediateComponent1Impl" />
+<scr:component name="com.gstm.test.scr.scenarios.scenario4.immediatecomponent1.ImmediateComponent1" enabled="true" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario4.immediatecomponent1.impl.ImmediateComponent1Impl" />
 </scr:component>
