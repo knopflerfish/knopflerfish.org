@@ -8,6 +8,8 @@ Export-Package: com.gstm.test.scr.scenarios.scenario1,
  com.gstm.test.scr.scenarios.scenario4,
  com.gstm.test.scr.scenarios.scenario6,
  com.gstm.test.scr.scenarios.scenario8,
+ com.gstm.test.scr.scenarios.scenario9,
+ com.gstm.test.scr.scenarios.scenario12,
  org.osgi.service.event
 Import-Package: junit.framework, 
  org.osgi.service.event,
