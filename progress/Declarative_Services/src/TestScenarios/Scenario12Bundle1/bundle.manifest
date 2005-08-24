@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-Name: Scenario12Bundle1
+Bundle-SymbolicName: com.gstm.test.scr.scenarios.scenario12.serviceprovider1
+Bundle-Version: 1.0
+Service-Component: OSGI-INF/Scenario12ServiceProvider1.xml
+Export-Package: com.gstm.test.scr.scenarios.scenario12.serviceprovider1,
+ com.gstm.test.scr.scenarios.scenario12.serviceprovider1.impl
