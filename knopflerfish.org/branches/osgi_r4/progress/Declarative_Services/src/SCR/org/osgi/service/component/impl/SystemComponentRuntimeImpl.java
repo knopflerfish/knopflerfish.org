@@ -146,11 +146,20 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @param event
 	 */
 	public synchronized void serviceChanged(ServiceEvent event) {
-		try {
-			Maintainer maintainer = new Maintainer(event);
-			maintainer.start();
-		} catch (ComponentException e) {
-			System.err.println(e);
+		if(event.getType()== ServiceEvent.REGISTERED || event.getType()== ServiceEvent.UNREGISTERING){
+			try {
+				Maintainer maintainer = new Maintainer(event,this);
+				maintainer.start();
+				
+				synchronized(this){
+					try{
+						wait();
+					}catch(InterruptedException e){}
+				}
+				
+			} catch (ComponentException e) {
+				System.err.println(e);
+			}
 		}
 	}
 
@@ -1686,10 +1695,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 * @throws ComponentException
 	 *             if fails to register the services declared
 	 */
-	private CustomDelayedService registerDelayedComponent(
+	private  CustomDelayedService registerDelayedComponent(
 			String[] interfaceNames, ComponentDeclaration componentDeclaration)
 			throws ComponentException {
-
+		
 		/* create a property table */
 		Dictionary properties = new Hashtable();
 
@@ -1727,7 +1736,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					"error registering delayed component service:" + e, e
 							.getCause());
 		}
-
+		
 	}
 
 	/**
@@ -3316,6 +3325,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																		.getImplementation()
 																+ " ******************");
 												
+												System.out.println("Component is: " + componentObject);
+												System.out.println("methodName: " + methodName);
+												System.out.println("InterfaceName: " + interfaceName);
+												System.out.println("ServiceInstance: " + serviceInstance);
+												
+												if(componentObject!=null && methodName!=null&&
+														interfaceName!=null && serviceInstance!=null){
 												/* get the method */
 												Method method = componentObject
 														.getClass()
@@ -3323,31 +3339,33 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																methodName,
 																new Class[] { Class
 																		.forName(interfaceName) });
-
-												/* set this as accessible */
-												method.setAccessible(true);
-												/* invoke the method */
-												method
-														.invoke(
-																componentObject,
-																new Object[] { serviceInstance });
 												
-												if (bind) {
-													/*
-													 * bind the declarative
-													 * component
-													 */
-													component
-															.bindReference(serviceReferences[i]);
-												} else if (!bind) {
-													/*
-													 * unbind the declarative
-													 * component
-													 */
-													component
-															.unBindReference(serviceReferences[i]);
+													/* set this as accessible */
+													method.setAccessible(true);
+													/* invoke the method */
+													method
+															.invoke(
+																	componentObject,
+																	new Object[] { serviceInstance });
+												
+												
+													if (bind) {
+														/*
+														 * bind the declarative
+														 * component
+														 */
+														component
+																.bindReference(serviceReferences[i]);
+													} else if (!bind) {
+														/*
+														 * unbind the declarative
+														 * component
+														 */
+														component
+																.unBindReference(serviceReferences[i]);
+													}
 												}
-
+								
 											} catch (NoSuchMethodException e) {
 												e.printStackTrace();
 												throw new ComponentException(e
@@ -4063,13 +4081,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	private class Maintainer extends Thread {
 		private ServiceEvent event;
-
-		public Maintainer(ServiceEvent serviceEvent) {
+		private Object ownerProcess;
+		public Maintainer(ServiceEvent serviceEvent,Object owner) {
 			event = serviceEvent;
+			ownerProcess=owner;
 		}
 
 		public void run() {
-			synchronized (workerSemaphore) {
+			//synchronized (workerSemaphore) {
 				System.out.println("**************** Maintainer process is started **************");
 				/* check if a new service is registered */
 				if (event.getType() == ServiceEvent.REGISTERED
@@ -4165,17 +4184,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 												 */
 												
 												Evaluator evaluator = new Evaluator(componentDeclaration,
-														false,this);
+														false,null);
 												
 												evaluator.start();
-												
-												synchronized(this){
-													try{
-														wait();
-													}catch(InterruptedException e){
-														
-													}
-												}
+
 												
 												
 											} catch (ComponentException e) {
@@ -4581,7 +4593,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															.getState() != Bundle.STOPPING) {
 														
 														Evaluator evaluator = 
-															new Evaluator(componentDeclaration,false,this);
+															new Evaluator(componentDeclaration,false,null);
 														evaluator.start();
 														
 														synchronized(this){
@@ -5500,6 +5512,11 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 				}// if(event.getType()==ServiceEvent.REGISTERED ||
 				// event.getType()==ServiceEvent.UNREGISTERING)
+			//}
+			
+			System.out.println("************** Maintaince done notify owner **************");
+			synchronized(ownerProcess){
+				ownerProcess.notify();
 			}
 		}
 
