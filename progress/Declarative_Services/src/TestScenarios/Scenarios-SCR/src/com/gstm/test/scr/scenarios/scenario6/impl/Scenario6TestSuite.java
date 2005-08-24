@@ -162,6 +162,10 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 
 			// Find expected bundles and start them in predetermined order
 			findBundles();
+			/* Make sure that all bundles needed were found */
+			for(int i=0 ; i<desiredBundles.length ; i++){
+				assertNotSame("Not all bundles needed in the test were found", null, desiredBundles[i]);
+			}
 
 			/* Start Scenario6Component1 */
 			try {
@@ -207,13 +211,14 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 		}
 
 		public void handleEvent(Event event) {
-			
+			/* The key to be used to get a value from the event */
 			String component1Name = "com.gstm.test.scr.scenarios.scenario6.component1.Component1";
 			String component2Name = "com.gstm.test.scr.scenarios.scenario6.component2.Component2";
 			
 			int component1Value;
 			int component2Value;
 			
+			/* Getting the value from the event, if no value is found the variable value is set to 0. */
 			try{
 				component1Value = ((Integer) event.getProperty(component1Name)).intValue();
 			}catch (NullPointerException e){
@@ -226,7 +231,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 				component2Value = 0;
 			}
 			
-			/*assert that the values isn't higher than 50 on each */ 
+			/* Testing the values against the expected values, see scenario6 in the STS, assert that the values isn't higher than 50 on each */ 
 			if(component1Value == 0){
 				if(component2Value == 0){
 					/* Something is wrong */

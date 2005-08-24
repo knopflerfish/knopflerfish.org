@@ -162,6 +162,10 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
 			// Find expected bundles and start them in predetermined order
 			findBundles();
+			/* Make sure that all bundles needed were found */
+			for(int i=0 ; i<desiredBundles.length ; i++){
+				assertNotSame("Not all bundles needed in the test were found", null, desiredBundles[i]);
+			}
 
 			/* Start Scenario4Bundle1 */
 			try {
@@ -187,13 +191,14 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 		}
 
 		public void handleEvent(Event event) {
-
+			/* The key to be used to get a value from the event */
 			String immediateComponent2Name = "com.gstm.test.scr.scenarios.scenario4.immediatecomponent2.ImmediateComponent2";
 			String immediateComponent3Name = "com.gstm.test.scr.scenarios.scenario4.immediatecomponent3.ImmediateComponent3";
 
 			int immediate2Value;
 			int immediate3Value;
 			
+			/* Getting the value from the event, if no value is found the variable value is set to 0. */
 			try{
 				immediate2Value = ((Integer) event.getProperty(immediateComponent2Name)).intValue();
 			}catch (NullPointerException e){
@@ -206,19 +211,20 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 				immediate3Value = 0;
 			}
 			
+			/* Testing the values against the expected values, see scenario4 in the STS */
 			switch (eventCounter) {
 			case 1: //
 				System.out.println("First event:immediate2Value:"
 						+ immediate2Value);
 
-				assertEquals("The value from Component2 should be 1", immediate2Value, 5);
+				assertEquals("The value from Component2 should be 1", 1, immediate2Value);
 				eventCounter++;
 				break;
 			case 2: //
 				System.out.println("Second event:immediate3Value:"
 						+ immediate3Value);
 
-				assertEquals("The value from Component3 should be 1", immediate3Value, 1);
+				assertEquals("The value from Component3 should be 1", 1, immediate3Value);
 				eventCounter++;
 				break;
 			default:
