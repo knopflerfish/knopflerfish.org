@@ -73,7 +73,11 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	/** variable holding inactive components */
 	private Vector inactiveComponents = new Vector();
-
+	
+	/** 
+	 * semaphore used by the diffrent threads to aquire when they are working,
+	 * i.e, then they need to perform critical tasks.
+	 */
 	private Object workerSemaphore = new Object();
 
 	/**
@@ -87,6 +91,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	public SystemComponentRuntimeImpl(BundleContext context,
 			Vector alreadyActive) {
+		
 		/* assign the bundlecontext */
 		bundleContext = context;
 		/* add this as a bundle listener */
@@ -284,6 +289,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 											+ componentDeclaration
 													.getComponentName()
 											+ " due to BUNDLE STOPPED");
+									
 									/* if so disable the component */
 									disableComponent(componentDeclaration
 											.getComponentName(), event
@@ -297,15 +303,16 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 									//component=null;
 
 								}
+								
 							} catch (IndexOutOfBoundsException e) {
 								System.err
-										.println("THIS SHOULD NOT HAPPEN WHEN GOING THROUGH ACTIVE");
+										.println("FATAL ERROR: THIS SHOULD NOT HAPPEN WHEN GOING THROUGH ACTIVE");
 								/*
 								 * the list can become empty before the
 								 * iteration therefore catch the exception but
-								 * do nothing
+								 * do nothing but this should not happen
 								 */
-							}
+							} 
 
 						}
 
@@ -431,12 +438,38 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				if (element.equals(componentObject)) {
 					/* we found the component lets dispose it */
 					try {
-						/* unbind its references */
-						invokeReferences(component, component
+						
+						/* create a invoker thread */
+						Invoker invoker = new Invoker(component, component
 								.getComponentContext().getComponentInstance(),
-								false);
+								false,this);
+						
+						/* start the thread */
+						invoker.start();
+						
+						synchronized(this){
+							try{
+								wait();
+							}catch(InterruptedException e){
+								
+							}
+						}
+						
 						try {
-							inactivateInstance(component.getComponentContext());
+							/* create a deactivator thread */
+							Deactivator deactivator = new Deactivator(component.getComponentContext(),this);
+							/* start the thread */
+							deactivator.start();
+							
+							synchronized(this){
+								try{
+									wait();
+								}catch(InterruptedException e){
+									
+								}
+							}
+							
+							
 							try {
 
 								/* remove the element from the active array */
@@ -511,13 +544,37 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					if (element.equals(componentObject)) {
 						/* we found the component lets dispose it */
 						try {
-							/* unbind its references */
-							invokeReferences(component,
+							/* create a new invoker thread */
+							Invoker invoker = new Invoker(component,
 									((ComponentContext) contexts.get(j))
-											.getComponentInstance(), false);
+									.getComponentInstance(), false,this);
+							
+							invoker.start();
+							
+							synchronized(this){
+								try{
+									wait();
+								}catch(InterruptedException e){
+									
+								}
+							}
+							
 							try {
-								inactivateInstance((ComponentContext) contexts
-										.get(j));
+								
+								
+								Deactivator deactivator = new Deactivator((ComponentContext) contexts
+								.get(j),this);
+								
+								deactivator.start();
+								
+								synchronized(this){
+									try{
+										wait();
+									}catch(InterruptedException e){
+										
+									}
+								}
+								
 								try {
 
 									/* remove the element from the active array */
@@ -621,17 +678,43 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * unbind the current Immediate commponents
 							 * references
 							 */
-							invokeReferences(component, component
+						
+							Invoker invoker = new Invoker(component, component
 									.getComponentContext()
-									.getComponentInstance(), false);
+									.getComponentInstance(), false,this);
+							
+							/* start the thread */
+							invoker.start();
+							
+							synchronized(this){
+								try{
+									/* wait until finished or interrupted */
+									wait();
+								}catch(InterruptedException e){
+									
+								}
+							}
 
 							try {
 								/*
 								 * inactivate the component use the components
 								 * own context
-								 */
-								inactivateInstance(component
-										.getComponentContext());
+								 */								
+								Deactivator deactivator = new Deactivator(component
+										.getComponentContext(),this);
+								
+								deactivator.start();
+								
+								synchronized(this){
+									try{
+										/* wait until finished or interrupted */
+										wait();
+									}catch(InterruptedException e){
+										
+									}
+								}
+								
+								
 								/* remove the instance from the vector */
 								activeComponents.remove(object);
 
@@ -702,9 +785,20 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								 */
 								if (componentContext != null) {
 									/* invoke the declared references */
-									invokeReferences(component, component
+									Invoker invoker = new Invoker(component, component
 											.getComponentContext()
-											.getComponentInstance(), false);
+											.getComponentInstance(), false,this);
+									
+									invoker.start();
+									
+									synchronized(this){
+										try{
+											/* wait until notified or interrupted */
+											wait();
+										}catch(InterruptedException e){
+											
+										}
+									}
 
 									try {
 
@@ -738,9 +832,21 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 										try {
 
-											/* in activate the component */
-											inactivateInstance(component
-													.getComponentContext());
+											/* in activate the component */											
+											Deactivator deactivator = new Deactivator(component
+													.getComponentContext(),this);
+											
+											/* start the thread */
+											deactivator.start();
+											
+											synchronized(this){
+												try{
+													/* wait until interrupted or notified */
+													wait();
+												}catch(InterruptedException e){
+													
+												}
+											}
 
 											synchronized (activeComponents) {
 												/*
@@ -923,12 +1029,37 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							ComponentContext componentContext = (ComponentContext) contexts
 									.get(j);
 							try {
-								/* unbind the references */
-								invokeReferences(component, componentContext
-										.getComponentInstance(), false);
+								/* unbind the references */								
+								Invoker invoker = new Invoker(component, componentContext
+										.getComponentInstance(), false,this);
+								
+								/* invoker start */
+								invoker.start();
+								
+								synchronized(this){
+									try{
+										/* wait until interrupted or notified */
+										wait();
+									}catch(InterruptedException e){
+										
+									}
+								}
+								
 								try {
 									/* inactivate the component */
-									inactivateInstance(componentContext);
+									Deactivator deactivator = new Deactivator(componentContext,this);
+									/* start the deactivation */
+									deactivator.start();
+									
+									synchronized(this){
+										try{
+											/* wait until interrupted or notified */
+											wait();
+										}catch(InterruptedException e){
+											
+										}
+									}
+									
 									/* remove the context from the orgin vector */
 									contexts.remove(componentContext);
 
@@ -1380,60 +1511,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 	}
 
-	/**
-	 * This method start a thread which will try to invoke the activte(..)
-	 * method implemented in a given object.
-	 * 
-	 * @param componentContext
-	 *            the componentContext
-	 * @throws ComponentException
-	 *             if fails to invoke the method OBS! an exception will not be
-	 *             thrown if the method doesn't exits.
-	 */
-	private void activateInstance(ComponentContext componentContext)
-			throws ComponentException {
-
-		if (componentContext != null) {
-			try {
-				Activator activatorThread = new Activator(componentContext);
-				activatorThread.start();
-			} catch (ComponentException e) {
-				throw e;
-			}
-
-		} else {
-			throw new ComponentException(
-					"Can't activate the component context is null");
-		}
-
-	}
-
-	/**
-	 * This method will inactivate a component using reflection Some component
-	 * declares a activate(ComponentContext context) method just because they
-	 * want the ComponentContext. This method will try to call the method and
-	 * pass the context as argument. This method may fail then a component
-	 * doesn't declare an activate method.
-	 * 
-	 * @param ComponentContext
-	 *            the context which should be passed
-	 */
-	private void inactivateInstance(ComponentContext componentContext)
-			throws ComponentException {
-		if (componentContext != null) {
-			try {
-				Deactivator deactivator = new Deactivator(componentContext);
-				deactivator.start();
-			} catch (ComponentException e) {
-				throw e;
-			}
-
-		} else {
-			throw new ComponentException(
-					"Can't deactivate the component context is null");
-		}
-
-	}
+	
 
 	/**
 	 * this method checks if a ComponentDeclaration is satisfied or not. It will
@@ -1721,65 +1799,6 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	}
 
 	/**
-	 * this method will create a thread to invoke the components declared bind
-	 * methods.
-	 * 
-	 * @param componentDeclaration
-	 *            the component declaration
-	 * @param componentInstance
-	 *            the componentInstance
-	 * @param bind
-	 *            if its a bind action or not
-	 * 
-	 * @author Magnus Klack
-	 */
-	private synchronized void invokeReferences(DeclarativeComponent component,
-			ComponentInstance componentInstance, boolean bind)
-			throws ComponentException {
-
-		try {
-			/* create a Invoker object to invoke the bind methods */
-			Invoker invoker = new Invoker(component, componentInstance, bind);
-			/* start the thread */
-			invoker.start();
-		} catch (ComponentException e) {
-			throw e;
-		}
-
-	}
-
-	/**
-	 * this method will invoke an active component configurations bind or unbind
-	 * method and pass the new object to it. To fullfill this it will create a
-	 * thread to prevent the SCR to hang.
-	 * 
-	 * @param serviceObject
-	 *            the service object to be passed as argument
-	 * @param instance
-	 *            the target instance which should retrive the serviceObject
-	 * @param methodName
-	 *            the name of the bind method
-	 * @param interfaceName
-	 *            the interfaceName
-	 */
-	private void reInvokeReference(Object serviceObject, Object instance,
-			String methodName, String interfaceName) {
-
-		try {
-			/* create the thread */
-			Reinvoker reInvoker = new Reinvoker(serviceObject, instance,
-					methodName, interfaceName);
-
-			/* start the thread */
-			reInvoker.start();
-
-		} catch (ComponentException e) {
-			throw e;
-		}
-
-	}
-
-	/**
 	 * This class will create new instances of a given class it will use the
 	 * class to trace and return an instance of the class.
 	 * 
@@ -1895,7 +1914,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				ServiceRegistration registration) {
 			System.out
 					.println("************* getService is called in CustomDelayedService *********** ");
-
+			
 			if (componentInstance == null) {
 				if (isSatisfied(componentDeclaration)) {
 					try {
@@ -1927,17 +1946,39 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								componentDeclaration.getDeclaringBundle());
 
 						try {
-							if (componentDeclaration.getReferenceInfo().size() != boundedReferences
-									.size()
-									|| componentDeclaration.getReferenceInfo()
-											.size() == 0) {
-								/* bind its references */
-								invokeReferences(this, componentContext
-										.getComponentInstance(), true);
-
+								
+								/* create Invoker thread */
+								Invoker invoker= new Invoker(this,componentContext.getComponentInstance()
+										,true,this);
+								
+								/* start the invoker */
+								invoker.start();
+								
+								synchronized(this){
+									try{
+										/* wait until notified */
+										wait();
+									}catch(InterruptedException e){
+										
+									}
+								}
+							
 								try {
-									activateInstance(componentContext);
-
+									/* create an activator */
+									Activator activator = new Activator(componentContext,this);
+									/* start the activator */
+									activator.start();
+									
+									synchronized(this){
+										try{
+											/* wait until notified */
+											wait();
+										}catch(InterruptedException e){
+											
+										}
+									}
+									
+									
 									/*
 									 * assign the component instance to local
 									 * variable
@@ -1959,7 +2000,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 											.println("error when activating instance in CustomDelayedService.getService:\n"
 													+ e);
 								}
-							}
+							
 						} catch (ComponentException e) {
 							/* print the error */
 							System.err
@@ -1992,7 +2033,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				/* just return the instance here */
 				return componentContext.getComponentInstance().getInstance();
 			}
-
+			
 			return null;
 		}
 
@@ -2191,13 +2232,38 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					if (boundedReferences.size() != componentDeclaration
 							.getReferenceInfo().size()
 							|| componentDeclaration.getReferenceInfo().size() == 0) {
-						/* bind the references */
-						invokeReferences(this, componentContext
-								.getComponentInstance(), true);
+						
+						/* create  Invoker  Thread */
+						Invoker invoker = new Invoker(this, componentContext
+								.getComponentInstance(), true,this);
+						
+						/* start the activation thread */
+						invoker.start();
+						
+						synchronized(this){
+							try{
+								/* wait until notified */
+								wait();
+							}catch(InterruptedException e){
+								
+							}
+						}
 
 						try {
 							/* activate the component */
-							activateInstance(componentContext);
+							Activator activator = new Activator(componentContext,this);
+							/* start the activation thread */
+							activator.start();
+							
+							synchronized(this){
+								try{
+									/* wait until notified */
+									wait();
+								}catch(InterruptedException e){
+									
+								}
+							}
+							
 
 						} catch (ComponentException e) {
 							e.printStackTrace();
@@ -2414,13 +2480,34 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 						try {
 
-							/* bind the references */
-							invokeReferences(this, componentContext
-									.getComponentInstance(), true);
-
+							/* create an invoker thread */
+							Invoker invoker = new Invoker(this, componentContext.getComponentInstance(), true,this);
+							/* start the thread */
+							invoker.start();
+							synchronized(this){
+								try{
+									/* wait until notified */
+									wait();
+								}catch(InterruptedException e){
+									
+								}
+							}
+							
 							try {
 								/* activate the componentInstance */
-								activateInstance(componentContext);
+								Activator activator = new Activator(componentContext,this);
+								/* start the activator thread */
+								activator.start();
+								
+								synchronized(this){
+									try{
+										/* wait until notified */
+										wait();
+									}catch(InterruptedException e){
+										
+									}
+								}
+								
 
 								/* add it to the collection of contexts */
 								componentContexts.add(componentContext);
@@ -2695,13 +2782,36 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 				try {
 					/* bind the references declared in component declaration */
-					invokeReferences(this, componentContext
-							.getComponentInstance(), true);
+					Invoker invoker = new Invoker(this, componentContext
+							.getComponentInstance(), true,this);
+					
+					/* start the invokation thread */
+					invoker.start();
+					
+					synchronized(this){
+						try{
+							/* wait until notified */
+							wait();
+						}catch(InterruptedException e){
+							
+						}
+					}
 
 					try {
-						/* activate the component */
-						activateInstance(componentContext);
-
+						/* create an activation thread */
+						Activator activator = new Activator(componentContext,this);
+						/* start the activation thread */
+						activator.start();
+						
+						synchronized(this){
+							try{
+								/* wait until notified */
+								wait();
+							}catch(InterruptedException e){
+								
+							}
+						}
+												
 						if (componentDeclaration.getServiceInfo().size() > 0) {
 
 							/* get all services */
@@ -2959,19 +3069,25 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		/** variable indicating if the class should bind or unbind */
 		private boolean bind;
-
+		
+		/** variable holding the owner process */
+		private Object ownerProcess;
+		
 		public Invoker(DeclarativeComponent component,
-				ComponentInstance componentInstance, boolean bind) {
+				ComponentInstance componentInstance, boolean bind,Object owner) {
 			/* assign the component */
 			this.component = component;
 			/* assign the component instance */
 			this.componentInstance = componentInstance;
 			/* assign the bind value */
 			this.bind = bind;
+			/* assignt the owner process */
+			ownerProcess = owner;
+			
 		}
 
 		public void run() {
-
+			
 			/* get the declaration */
 			ComponentDeclaration componentDeclaration = component
 					.getComponentDeclaration();
@@ -3211,7 +3327,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																+ componentDeclaration
 																		.getImplementation()
 																+ " ******************");
-
+												
 												/* get the method */
 												Method method = componentObject
 														.getClass()
@@ -3227,7 +3343,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 														.invoke(
 																componentObject,
 																new Object[] { serviceInstance });
-
+												
 												if (bind) {
 													/*
 													 * bind the declarative
@@ -3287,7 +3403,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 				}//end while
 			}
-
+			
+			synchronized(ownerProcess){
+				ownerProcess.notify();
+			}
 		}
 
 	}
@@ -3309,9 +3428,12 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		/** variable representing the interface name */
 		private String interfaceName;
+		
+		/** variable holding the processOwner */
+		private Object processOwner;
 
 		public Reinvoker(Object serviceObject, Object instance,
-				String methodName, String interfaceName) {
+				String methodName, String interfaceName,Object owner) {
 			/* assign the service object */
 			this.serviceObject = serviceObject;
 			/* assign the instance */
@@ -3320,6 +3442,8 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			this.methodName = methodName;
 			/* assign the interface name */
 			this.interfaceName = interfaceName;
+			/* assign the processOwner */
+			this.processOwner = owner;
 		}
 
 		public void run() {
@@ -3357,6 +3481,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new ComponentException(e.getMessage(), e.getCause());
+			}
+			
+			synchronized(processOwner){
+				processOwner.notify();
 			}
 		}
 	}
@@ -3757,6 +3885,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 				} // if(componentDeclaration.isAutoEnable())
 			}
+		
 		}
 
 	}
@@ -3771,10 +3900,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	private class Deactivator extends Thread {
 		/** local variable holding the componentContext */
-		ComponentContext componentContext;
-
-		public Deactivator(ComponentContext context) {
+		private ComponentContext componentContext;
+		/** local variable holding the component */
+		private Object ownerProcess;
+		
+		public Deactivator(ComponentContext context,Object owner) {
 			componentContext = context;
+			ownerProcess=owner;
 		}
 
 		public void run() {
@@ -3810,7 +3942,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			} catch (IllegalAccessException e) {
 				throw new ComponentException(e.getMessage(), e.getCause());
 			}
-
+			
+			synchronized(ownerProcess){
+				ownerProcess.notify();
+			}
 		}
 	}
 
@@ -3825,9 +3960,14 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	private class Activator extends Thread {
 		/** local variable holding the component context */
 		private ComponentContext componentContext;
+		
+		/** local variable holding the owner process */
+		private Object ownerProcess;
 
-		public Activator(ComponentContext context) {
+		public Activator(ComponentContext context,Object owner) {
 			componentContext = context;
+			
+			ownerProcess = owner; 
 		}
 
 		/**
@@ -3908,6 +4048,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				}
 			} else {
 				throw new ComponentException("The ComponentContext is null");
+			}
+			
+			synchronized(ownerProcess){
+				ownerProcess.notify();
 			}
 		}
 
@@ -4151,12 +4295,26 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															 * invoke the bind
 															 * method
 															 */
-															reInvokeReference(
+														
+															/* create the thread */
+															Reinvoker reInvoker = new Reinvoker(
 																	serviceObject,
 																	instance,
 																	methodName,
-																	interfaceName);
+																	interfaceName,this);
 
+															/* start the thread */
+															reInvoker.start();
+															
+															synchronized(this){
+																try{
+																	wait();
+																}catch(InterruptedException e){
+																	
+																}
+															}
+															
+															
 														}
 
 														if (!component
@@ -4166,9 +4324,21 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															 * invoke the
 															 * activate method
 															 */
-
-															activateInstance(component
-																	.getComponentContext());
+															/* create an activation thread */
+															Activator activator = new Activator(
+																	component.getComponentContext(),this);
+															/* start the activation thread */
+															activator.start();
+															
+															synchronized(this){
+																try{
+																	/* wait until notified */
+																	wait();
+																}catch(InterruptedException e){
+																	
+																}
+															}
+																
 															/*
 															 * add the service
 															 * reference to the
@@ -4225,29 +4395,45 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															String methodName = referenceInfo
 																	.getBind();
 
-															if (methodName != null) { /*
-																					   * get
-																					   * the
-																					   * interface
-																					   * type
-																					   */
+															if (methodName != null) { 
+															  /*
+															   * get the interface type
+															   */
 																String interfaceName = referenceInfo
 																		.getInterfaceType();
-																/*
-																 * invoke the
-																 * bind method
-																 */
-																reInvokeReference(
+																
+																/* create reinvoker object */
+																Reinvoker reinvoker = new Reinvoker(
 																		serviceObject,
 																		instance,
 																		methodName,
-																		interfaceName);
+																		interfaceName,this);
+																
+																/* start reinvocation */
+																reinvoker.start();
+																
+																synchronized(this){
+																	try{
+																		wait();
+																	}catch(InterruptedException e){
+																	}
+																}
 															}
-															/*
-															 * invoke the
-															 * activate method
-															 */
-															activateInstance(currentContext);
+													
+															/* create an activation thread */
+															Activator activator = new Activator(currentContext,this);
+															/* start the activation thread */
+															activator.start();
+															
+															synchronized(this){
+																try{
+																	/* wait until notified */
+																	wait();
+																}catch(InterruptedException e){
+																	
+																}
+															}
+																
 															/*
 															 * add the service
 															 * reference to the
@@ -4543,14 +4729,24 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																	 * the old
 																	 * service
 																	 */
-																	reInvokeReference(
+																	Reinvoker reinvoker = new Reinvoker(
 																			oldServiceObject,
 																			componentContext
 																					.getComponentInstance()
 																					.getInstance(),
 																			unbindMethod,
 																			referenceInfo
-																					.getInterfaceType());
+																					.getInterfaceType(),this);
+																	reinvoker.start();
+																	
+																	synchronized(this){
+																		try{
+																			wait();
+																		}catch(InterruptedException e){
+																			
+																		}
+																	}
+																
 																} catch (ComponentException e) {
 																	System.err
 																			.println(e);
@@ -4564,14 +4760,26 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																	 * old
 																	 * service
 																	 */
-																	reInvokeReference(
+																	Reinvoker reinvoker = new Reinvoker(
 																			serviceObject,
 																			componentContext
 																					.getComponentInstance()
 																					.getInstance(),
 																			bindMethod,
 																			referenceInfo
-																					.getInterfaceType());
+																					.getInterfaceType(),this);
+																	
+																	/* start the reinvocation */
+																	reinvoker.start();
+																	
+																	synchronized(this){
+																		try{
+																			wait();
+																		}catch(InterruptedException e){
+																			
+																		}
+																	}
+																	
 																} catch (ComponentException e) {
 																	/*
 																	 * print the
@@ -4583,12 +4791,20 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															}
 
 															try {
-																/*
-																 * invoke the
-																 * activate
-																 * method
-																 */
-																activateInstance(componentContext);
+															
+																/* create an activation thread */
+																Activator activator = new Activator(componentContext,this);
+																/* start the activation thread */
+																activator.start();
+																
+																synchronized(this){
+																	try{
+																		/* wait until notified */
+																		wait();
+																	}catch(InterruptedException e){
+																		
+																	}
+																}
 															} catch (ComponentException e) {
 																/*
 																 * print the
@@ -4647,14 +4863,22 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																	 * the old
 																	 * service
 																	 */
-																	reInvokeReference(
+																	Reinvoker reinvoker = new Reinvoker(
 																			oldServiceObject,
 																			componentContext
 																					.getComponentInstance()
 																					.getInstance(),
 																			unbindMethod,
 																			referenceInfo
-																					.getInterfaceType());
+																					.getInterfaceType(),this);
+																	
+																	synchronized(this){
+																		try{
+																			wait();
+																		}catch(InterruptedException e){
+																			
+																		}
+																	}
 																} catch (ComponentException e) {
 																	System.err
 																			.println(e);
@@ -4668,14 +4892,26 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																	 * new
 																	 * service
 																	 */
-																	reInvokeReference(
+																	Reinvoker reinvoker = new Reinvoker(
 																			serviceObject,
 																			componentContext
 																					.getComponentInstance()
 																					.getInstance(),
 																			bindMethod,
 																			referenceInfo
-																					.getInterfaceType());
+																					.getInterfaceType(),this);
+																	
+																	reinvoker.start();
+																	
+																	synchronized(this){
+																		try{
+																			wait();
+																		}catch(InterruptedException e){
+																			
+																		}
+																	}
+																	
+																	
 																} catch (ComponentException e) {
 																	System.err
 																			.println(e);
@@ -4683,12 +4919,19 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 															}
 
 															try {
-																/*
-																 * invoke the
-																 * activate
-																 * method
-																 */
-																activateInstance(componentContext);
+																/* create an activation thread */
+																Activator activator = new Activator(componentContext,this);
+																/* start the activation thread */
+																activator.start();
+																
+																synchronized(this){
+																	try{
+																		/* wait until notified */
+																		wait();
+																	}catch(InterruptedException e){
+																		
+																	}
+																}
 															} catch (ComponentException e) {
 																/*
 																 * print the
@@ -4816,14 +5059,25 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																 * unbind the
 																 * old service
 																 */
-																reInvokeReference(
+																Reinvoker reinvoker = new Reinvoker(
 																		oldServiceObject,
 																		componentContext
 																				.getComponentInstance()
 																				.getInstance(),
 																		unbindMethod,
 																		referenceInfo
-																				.getInterfaceType());
+																				.getInterfaceType(),this);
+																
+																reinvoker.start();
+																
+																synchronized(this){
+																	try{
+																		wait();
+																	}catch(InterruptedException e){
+																		
+																	}
+																}
+																
 																component
 																		.unBindReference(event
 																				.getServiceReference());
@@ -4891,14 +5145,24 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																			 * old
 																			 * service
 																			 */
-																			reInvokeReference(
+																			 Reinvoker reinvoker = new Reinvoker(
 																					serviceObject,
 																					componentContext
 																							.getComponentInstance()
 																							.getInstance(),
 																					bindMethod,
 																					referenceInfo
-																							.getInterfaceType());
+																							.getInterfaceType(),this);
+																			 
+																			 reinvoker.start();
+																			 
+																			 synchronized(this){
+																			 	try{
+																			 		wait();
+																			 	}catch(InterruptedException e){
+																			 		
+																			 	}
+																			 }
 																		}
 																	} catch (ComponentException e) {
 																		System.err
@@ -4907,13 +5171,20 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																}
 
 																try {
-																	/*
-																	 * invoke
-																	 * the
-																	 * activate
-																	 * method
-																	 */
-																	activateInstance(componentContext);
+																	/* create an activation thread */
+																	Activator activator = new Activator(componentContext,this);
+																	/* start the activation thread */
+																	activator.start();
+																	
+																	synchronized(this){
+																		try{
+																			/* wait until notified */
+																			wait();
+																		}catch(InterruptedException e){
+																			
+																		}
+																	}
+																	
 																} catch (ComponentException e) {
 																	System.err
 																			.println("error calling activate method due to:\n"
@@ -4974,14 +5245,25 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																		 * old
 																		 * service
 																		 */
-																		reInvokeReference(
+																		Reinvoker reinvoker = new Reinvoker(
 																				oldServiceObject,
 																				componentContext
 																						.getComponentInstance()
 																						.getInstance(),
 																				unbindMethod,
 																				referenceInfo
-																						.getInterfaceType());
+																						.getInterfaceType(),this);
+																		
+																		reinvoker.start();
+																		
+																		synchronized(this){
+																			try{
+																				wait();
+																			}catch(InterruptedException e){
+																				
+																			}
+																		}
+																		
 																		component
 																				.unBindReference(event
 																						.getServiceReference());
@@ -5022,14 +5304,24 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																				 * old
 																				 * service
 																				 */
-																				reInvokeReference(
+																				Reinvoker reinvoker = new Reinvoker(
 																						serviceObject,
 																						componentContext
 																								.getComponentInstance()
 																								.getInstance(),
 																						bindMethod,
 																						referenceInfo
-																								.getInterfaceType());
+																								.getInterfaceType(),this);
+																				
+																				reinvoker.start();
+																				
+																				synchronized(this){
+																					try{
+																						wait();
+																					}catch(InterruptedException e){
+																						
+																					}
+																				}
 																			}
 																		} catch (ComponentException e) {
 																			System.err
@@ -5038,13 +5330,19 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																	}
 
 																	try {
-																		/*
-																		 * invoke
-																		 * the
-																		 * activate
-																		 * method
-																		 */
-																		activateInstance(componentContext);
+																		/* create an activation thread */
+																		Activator activator = new Activator(componentContext,this);
+																		/* start the activation thread */
+																		activator.start();
+																		
+																		synchronized(this){
+																			try{
+																				/* wait until notified */
+																				wait();
+																			}catch(InterruptedException e){
+																				
+																			}
+																		}
 																	} catch (ComponentException e) {
 																		System.err
 																				.println("error calling activate method due to:\n"
