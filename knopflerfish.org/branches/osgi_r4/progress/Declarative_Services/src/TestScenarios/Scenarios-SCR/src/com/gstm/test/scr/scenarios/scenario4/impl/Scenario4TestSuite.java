@@ -173,6 +173,8 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 			} catch (Exception e) {
 				assertFalse("Couldn't start the bundle:" + e, true);
 			}
+			
+			System.err.println("IF NOTHING(or verry litle) HAPPENDS AFTER THIS THERE IS SOMETHING WRONG");
 		}
 
 		private void findBundles() {
