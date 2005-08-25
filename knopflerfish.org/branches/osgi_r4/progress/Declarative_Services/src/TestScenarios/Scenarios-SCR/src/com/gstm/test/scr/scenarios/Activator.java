@@ -20,8 +20,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import com.gstm.test.scr.scenarios.scenario1.impl.Scenario1TestSuite;
+import com.gstm.test.scr.scenarios.scenario11.impl.Scenario11TestSuite;
 import com.gstm.test.scr.scenarios.scenario12.impl.Scenario12TestSuite;
-import com.gstm.test.scr.scenarios.scenario3.impl.Scenario3TestSuite;
 import com.gstm.test.scr.scenarios.scenario4.impl.Scenario4TestSuite;
 import com.gstm.test.scr.scenarios.scenario6.impl.Scenario6TestSuite;
 import com.gstm.test.scr.scenarios.scenario8.impl.Scenario8TestSuite;
@@ -54,11 +54,6 @@ public class Activator implements BundleActivator {
 		
 		
 		
-		
-		/* create the test suite for scenario 3 */
-		TestSuite testSuiteScenario3 = new Scenario3TestSuite(context);
-		/* add scenario 3 to the all tests suite */
-		testSuiteAllTests.addTest(testSuiteScenario3);
 		/* create the test suite for scenario 4 */
 		TestSuite testSuiteScenario4 = new Scenario4TestSuite(context);
 		/* add scenario 4 to the all tests suite */
@@ -87,7 +82,10 @@ public class Activator implements BundleActivator {
 		
 		
 		
-		
+		/* create the test suite for scenario 11 */
+		TestSuite testSuiteScenario11 = new Scenario11TestSuite(context);
+		/* add scenario 11 to the all tests suite */
+		testSuiteAllTests.addTest(testSuiteScenario11);			
 		/* create the test suite for scenario 12 */
 		TestSuite testSuiteScenario12 = new Scenario12TestSuite(context);
 		/* add scenario 12 to the all tests suite */

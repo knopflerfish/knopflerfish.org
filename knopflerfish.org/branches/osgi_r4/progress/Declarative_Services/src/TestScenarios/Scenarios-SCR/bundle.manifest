@@ -4,15 +4,15 @@ Bundle-Activator: com.gstm.test.scr.scenarios.Activator
 Bundle-SymbolicName: com.gstm.test.scr.scenarios
 Bundle-Version: 1.0
 Export-Package: com.gstm.test.scr.scenarios.scenario1,
- com.gstm.test.scr.scenarios.scenario3,
  com.gstm.test.scr.scenarios.scenario4,
  com.gstm.test.scr.scenarios.scenario6,
- com.gstm.test.scr.scenarios.scenario7,
  com.gstm.test.scr.scenarios.scenario8,
  com.gstm.test.scr.scenarios.scenario9,
  com.gstm.test.scr.scenarios.scenario11,
- com.gstm.test.scr.scenarios.scenario12
-Import-Package: junit.framework,
+ com.gstm.test.scr.scenarios.scenario12,
+ org.osgi.service.event
+Import-Package: junit.framework, 
+ org.osgi.service.event,
  org.knopflerfish.service.demo1,
  org.knopflerfish.service.log,
  org.xmlpull.v1
