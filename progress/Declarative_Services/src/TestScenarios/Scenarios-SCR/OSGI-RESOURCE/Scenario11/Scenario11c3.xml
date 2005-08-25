@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="com.gstm.test.scr.scenarios.scenario11c.Component" enabled="true" factory="com.gstm.test.scr.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario11c.impl.ComponentImpl" />
+    <property value="This is a value" type="String">
+    </property>
+</scr:component>

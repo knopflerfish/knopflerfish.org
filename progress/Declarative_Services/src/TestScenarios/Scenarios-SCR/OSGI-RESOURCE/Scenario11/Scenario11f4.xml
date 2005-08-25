@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="This#xDis#xDnot#xDa#xDcorrect#xDname" enabled="true" factory="com.gstm.test.scr.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario11f.impl.ComponentImpl" />
+</scr:component>
