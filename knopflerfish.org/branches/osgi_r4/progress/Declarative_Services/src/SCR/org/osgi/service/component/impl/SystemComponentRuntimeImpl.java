@@ -4028,6 +4028,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 											new Class[] { ComponentContext.class });
 
 							if (method != null) {
+								
 								/* set this as accessible */
 								method.setAccessible(true);
 								/* invoke the method */
@@ -4046,8 +4047,13 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							//throw new ComponentException(e.getMessage(),
 							// e.getCause());
 						} catch (InvocationTargetException e) {
-							throw new ComponentException(e.getMessage(), e
-									.getCause());
+							System.err.println("\nWarning InvocationTargetException occured!\n"+
+									"When activating:\n" + componentInstance +".activate()\n"+
+									"due to:\n" + e.getCause() +
+									"\nplease check your implementation" );
+							
+							//throw new ComponentException(e.getMessage(), e
+							//		.getCause());
 						} catch (IllegalAccessException e) {
 							throw new ComponentException(e.getMessage(), e
 									.getCause());
