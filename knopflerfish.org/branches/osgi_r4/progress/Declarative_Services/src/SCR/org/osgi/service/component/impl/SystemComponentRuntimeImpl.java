@@ -149,6 +149,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		if(event.getType()== ServiceEvent.REGISTERED || event.getType()== ServiceEvent.UNREGISTERING){
 			try {
 				Maintainer maintainer = new Maintainer(event,this);
+				
 				maintainer.start();
 				
 				synchronized(this){
@@ -1260,7 +1261,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 	 */
 	public synchronized void enableComponent(String componentName,
 			Bundle requestBundle) throws ComponentException {
-
+		synchronized(workerSemaphore){
 		/* get a clone of the active components to avoid synchronize problem */
 		Vector currentComponents = (Vector) inactiveComponents.clone();
 		/* go through all component declaration */
@@ -1283,16 +1284,17 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							 * evalute the declaration override the
 							 * componentdeclarations isAutoEnabled()
 							 */
-							Evaluator evaluator = new Evaluator(componentDeclaration,true,this);
+							System.out.println("******************** Starting evaluator *******************");
+							Evaluator evaluator = new Evaluator(componentDeclaration,true,null);
 							evaluator.start();
 							
-							synchronized(this){
-								try{
-									wait();
-								}catch(InterruptedException e){
-									
-								}
-							}
+//							synchronized(this){
+//								try{
+//									wait();
+//								}catch(InterruptedException e){
+//									
+//								}
+//							}
 							//evaluateComponentDeclaration(componentDeclaration,
 							//		true);
 
@@ -1314,7 +1316,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 			}// end try
 
 		}//end for(int i=0;i<inactiveComponents.size();i++)
-
+		}
 	}
 
 	/**
@@ -3332,22 +3334,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 												
 												if(componentObject!=null && methodName!=null&&
 														interfaceName!=null && serviceInstance!=null){
-												/* get the method */
-												Method method = componentObject
-														.getClass()
-														.getDeclaredMethod(
-																methodName,
-																new Class[] { Class
-																		.forName(interfaceName) });
-												
-													/* set this as accessible */
-													method.setAccessible(true);
-													/* invoke the method */
-													method
-															.invoke(
-																	componentObject,
-																	new Object[] { serviceInstance });
-												
+
+													
+													Reinvoker reinvoker = new Reinvoker((Object)serviceInstance,(Object)componentObject,methodName,interfaceName,null);
+													reinvoker.start();
 												
 													if (bind) {
 														/*
@@ -3365,29 +3355,18 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 																.unBindReference(serviceReferences[i]);
 													}
 												}
-								
-											} catch (NoSuchMethodException e) {
+									
+											}catch(NullPointerException e){
 												e.printStackTrace();
 												throw new ComponentException(e
 														.getMessage(), e
 														.getCause());
-											} catch (IllegalAccessException e) {
-												e.printStackTrace();
-												throw new ComponentException(e
-														.getMessage(), e
-														.getCause());
-											} catch (InvocationTargetException e) {
-												e.printStackTrace();
-												throw new ComponentException(e
-														.getMessage(), e
-														.getCause());
-											} catch (ClassNotFoundException e) {
-												e.printStackTrace();
-												throw new ComponentException(e
-														.getMessage(), e
-														.getCause());
+											
 											} catch (Exception e) {
 												e.printStackTrace();
+												throw new ComponentException(e
+														.getMessage(), e
+														.getCause());
 											}
 										}
 									}
@@ -3454,43 +3433,59 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 		public void run() {
 			try {
-				Method method = instance.getClass().getDeclaredMethod(
-						methodName,
-						new Class[] { Class.forName(interfaceName) });
-
-				/* set this as accessible */
-				method.setAccessible(true);
-
-				try {
-					/* invoke the method */
-					method.invoke(instance, new Object[] { serviceObject });
-				} catch (IllegalArgumentException e) {
-					throw new ComponentException(
-							"error in reinvokeReference due to:\n"
-									+ e.getMessage(), e.getCause());
-				} catch (IllegalAccessException e) {
-					throw new ComponentException(
-							"error in reinvokeReference due to:\n"
-									+ e.getMessage(), e.getCause());
-				} catch (InvocationTargetException e) {
-					throw new ComponentException(
-							"error in reinvokeReference due to:\n"
-									+ e.getMessage(), e.getCause());
+				
+				synchronized(workerSemaphore){
+					if(serviceObject!=null && instance!=null && methodName!=null && interfaceName!=null){
+						System.out.println("reInvoking " + instance + "." + methodName +"(..)");
+						
+						Method method = instance.getClass().getDeclaredMethod(
+								methodName,
+								new Class[] { Class.forName(interfaceName) });
+		
+						/* set this as accessible */
+						method.setAccessible(true);
+		
+						try {
+							/* invoke the method */
+							method.invoke(instance, new Object[] { serviceObject });
+						} catch (IllegalArgumentException e) {
+							throw new ComponentException(
+									"error in reinvokeReference due to:\n"
+											+ e.getMessage(), e.getCause());
+						} catch (IllegalAccessException e) {
+							throw new ComponentException(
+									"error in reinvokeReference due to:\n"
+											+ e.getMessage(), e.getCause());
+						} catch (InvocationTargetException e) {
+							System.err.println("\nWarning InvocationTargetException occured!\n" +
+									"when invoking:\n" + instance+"."+ methodName+"()\n" +
+									"The error occured during the due to:" + e.getCause() +
+									"\nplease check your implementation");
+							
+							
+							//throw new ComponentException(
+							//		"error in reinvokeReference due to:\n"
+							//				+ e.getMessage(), e.getCause());
+						}
+					}
 				}
-
 			} catch (SecurityException e) {
 				throw new ComponentException(e.getMessage(), e.getCause());
 			} catch (NoSuchMethodException e) {
 				throw new ComponentException(e.getMessage(), e.getCause());
 			} catch (ClassNotFoundException e) {
 				throw new ComponentException(e.getMessage(), e.getCause());
-			} catch (Exception e) {
+			}catch(NullPointerException e){
+				System.err.println("Warning Nullpointer exception occured");
+			}catch (Exception e) {
 				e.printStackTrace();
 				throw new ComponentException(e.getMessage(), e.getCause());
 			}
 			
-			synchronized(processOwner){
-				processOwner.notify();
+			if(processOwner!=null){
+				synchronized(processOwner){
+					processOwner.notify();
+				}
 			}
 		}
 	}
@@ -4088,7 +4083,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 		public void run() {
-			//synchronized (workerSemaphore) {
+			
 				System.out.println("**************** Maintainer process is started **************");
 				/* check if a new service is registered */
 				if (event.getType() == ServiceEvent.REGISTERED
@@ -5512,7 +5507,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 				}// if(event.getType()==ServiceEvent.REGISTERED ||
 				// event.getType()==ServiceEvent.UNREGISTERING)
-			//}
+			
 			
 			System.out.println("************** Maintaince done notify owner **************");
 			synchronized(ownerProcess){
