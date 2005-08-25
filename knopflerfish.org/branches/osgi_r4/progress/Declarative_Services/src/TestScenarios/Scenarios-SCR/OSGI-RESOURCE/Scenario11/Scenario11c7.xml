@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component name="com.gstm.test.scr.scenarios.scenario11c.Component" enabled="true" factory="com.gstm.test.scr.scenarios.scenario11c.Factory" xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation class="com.gstm.test.scr.scenarios.scenario11c.impl.ComponentImpl" />
+    <reference interface="com.gstm.testSCR.scenarios.scenario11c.Interface4" cardinality="1..n" policy="dynamic" target="(component.name=com.gstm.test.scr.scenarios.scenario11c.Target2)" bind="bindTest10d" unbind="unbindTest10d" />
+</scr:component>
