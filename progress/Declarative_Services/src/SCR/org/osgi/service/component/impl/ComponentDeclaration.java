@@ -90,7 +90,7 @@ public class ComponentDeclaration {
 			clone.setReferenceInfo(getReferenceInfo());
 			clone.setServiceFactory(isServiceFactory());
 			clone.setServiceInfo(getServiceInfo());
-			
+			clone.setXmlFile(this.xmlFile);
 			return clone;
 		
 	}

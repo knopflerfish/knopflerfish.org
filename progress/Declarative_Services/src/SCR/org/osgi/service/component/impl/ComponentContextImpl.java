@@ -96,6 +96,8 @@ public class ComponentContextImpl implements ComponentContext{
 			EnableProcess enableProcess = new EnableProcess(name);
 			/* start the process */
 			enableProcess.start();
+			/* tell the SCR to enable component with the given name */
+			//systemComponentRuntime.enableComponent(name,requestBundle);
 			
 		}catch(ComponentException e){
 			System.err.println(e);
@@ -121,7 +123,6 @@ public class ComponentContextImpl implements ComponentContext{
 			System.err.println("error then stopping component " + name
 					+" due to:" + e);
 		}
-		
 		
 	}
 
@@ -225,6 +226,7 @@ public class ComponentContextImpl implements ComponentContext{
 		public void run(){
 			/* tell the SCR to enable component with the given name */
 			systemComponentRuntime.enableComponent(componentName,requestBundle);
+		
 		}
 		
 	}
