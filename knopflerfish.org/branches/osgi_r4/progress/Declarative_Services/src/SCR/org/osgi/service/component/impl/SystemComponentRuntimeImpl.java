@@ -236,7 +236,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 							/* add the declaring bundle to the declaration */
 							componentDeclaration.setDeclaraingBundle(event
 									.getBundle());
-
+							
 							/* add the path to the xmlfile to declaration */
 							componentDeclaration.setXmlFile(manifestEntries[i]);
 							
@@ -1932,13 +1932,26 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 								new Long(componentCounter));
 
 						/* put the XML file here */
-						properties.put(ComponentConstants.SERVICE_COMPONENT,
-								componentDeclaration.getXmlFile());
+						if(componentDeclaration.getXmlFile()!=null){
+							properties.put(ComponentConstants.SERVICE_COMPONENT,
+									componentDeclaration.getXmlFile());
+						}else{
+							System.err.println("WARNING the property SERVICE_COMPONENT is missing for delayed component:"+
+									"\n" + componentDeclaration.getComponentName() + 
+									"\nthis may happen then a component is created by a component factory");
+						}
 
 						/*
 						 * create a context request will come from the same
 						 * bundle declaring the the component
 						 */
+						System.out.println("the componentDeclaration is:" + componentDeclaration);
+						System.out.println("the componentCounter is:" + componentCounter);
+						System.out.println("the serviceRegistration is:" + serviceRegistration);
+						System.out.println("the properties is:" + properties);
+						System.out.println("the declaringBundle is:" + componentDeclaration.getDeclaringBundle());
+						
+						
 						componentContext = createComponentContext(
 								componentDeclaration, componentCounter,
 								serviceRegistration, properties, null,
@@ -2014,10 +2027,12 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 
 					} catch (ComponentException e) {
 						/* print the error */
+						e.printStackTrace();
 						System.err
 								.println("error when creating ComponentContext in CustomDelayedService.getService:\n"
 										+ e);
 					} catch (Exception e) {
+						e.printStackTrace();
 						/* print the error */
 						System.err
 								.println("error when creating ComponentContext in CustomDelayedService.getService:\n"
@@ -2722,6 +2737,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		public CustomComponentFactory(ComponentDeclaration declaration) {
 			/* assign the declaration */
 			componentDeclaration = declaration;
+			
+			if(componentDeclaration.getXmlFile()==null){
+				System.err.println("FEEEEEEEEEEEL");
+			}
 
 		}
 
@@ -2755,12 +2774,12 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 						new Long(componentCounter));
 
 				/* put the XML file here */
-				standardProperties.put(ComponentConstants.SERVICE_COMPONENT,
+				if(componentDeclaration.getXmlFile()!=null){
+					standardProperties.put(ComponentConstants.SERVICE_COMPONENT,
 						componentDeclaration.getXmlFile());
-
-				//				/* put the component factory into it */
-				//				standardProperties.put(ComponentConstants.COMPONENT_FACTORY,
-				//						componentDeclaration.getFactory());
+				}else{
+					System.err.println("Warning the property SERVICE_COMPONENT is null in CustomComponentFactory");
+				}
 
 				/*
 				 * merge the standard properties usally created with the given
@@ -2774,8 +2793,10 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 				 * declaring the bundle use the declaring bundle in the
 				 * component declaration.
 				 */
+				Object cloneDeclaration = componentDeclaration.getClone();
+				
 				ComponentContext componentContext = createComponentContext(
-						componentDeclaration, componentCounter,
+						(ComponentDeclaration)cloneDeclaration, componentCounter,
 						serviceRegistration, mergedProperties, null,
 						componentDeclaration.getDeclaringBundle());
 
@@ -3512,7 +3533,6 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 		}
 
 		public void run() {
-			synchronized(workerSemaphore){
 				/*
 				 * variable representing if the component implements managed
 				 * service
@@ -3890,7 +3910,7 @@ public class SystemComponentRuntimeImpl implements BundleListener,
 					}
 
 				} // if(componentDeclaration.isAutoEnable())
-			}
+			
 			
 			if(ownerProcess!=null){
 				System.out.println("************ evaluation finished for: " + 

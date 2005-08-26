@@ -166,8 +166,8 @@ public class Scenario11TestSuite extends TestSuite implements Scenario11 {
 			
 			/* TODO FOUND THESE FILES!!!
 			/* set up scenario 11l */
-			ZipEntry[] entriesL = {jarFile.getEntry(path +"/Scenario11l1.xml"),
-					jarFile.getEntry(path +"/Scenario11l2.xml")
+			ZipEntry[] entriesL = {jarFile.getEntry(path +"/Scenario11L1.xml"),
+					jarFile.getEntry(path +"/Scenario11L2.xml")
 					}
 			;
 			/* add the test case */

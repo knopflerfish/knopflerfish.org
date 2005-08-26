@@ -18,7 +18,7 @@ public class IllegalXMLException extends Exception {
 	Throwable cause;
 	
 	public IllegalXMLException(String e){
-		this.error = e;
+		this.error = error;
 	}
 	
 	public IllegalXMLException(String error, Throwable cause){
