@@ -14,16 +14,36 @@ import org.osgi.service.component.ComponentInstance;
 import com.gstm.test.scr.scenarios.scenario1.bundle1.Scenario1;
 
 public class Activator implements BundleActivator {
-  
+	private BundleContext bundleContext;  
+	
 	  public void start(BundleContext context) throws Exception {
 	  	System.out.println("Starting Scenario1Bundle3");
 //	  	ServiceReference servicerReference = context.getServiceReference(ComponentFactory.class.getName());
-	  	ServiceReference servicerReference = context.getServiceReference("org.osgi.service.component.ComponentFactory");
-	  	ComponentFactory factory = (ComponentFactory) context.getService(servicerReference);
 	  	
-	  	ComponentInstance componentInstance = factory.newInstance(new Hashtable());
-		Scenario1 service = (Scenario1) componentInstance.getInstance();
-	  	System.out.println("Scenario1Bundle3 has received the value:" + service.getValue());
+	  	bundleContext=context;
+	  	Thread serviceThread = new Thread(){
+	  	
+	  		public void run(){
+		  		ServiceReference serviceReference = bundleContext.getServiceReference("org.osgi.service.component.ComponentFactory");
+		  	
+			  	
+			  	serviceReference = bundleContext.getServiceReference("org.osgi.service.component.ComponentFactory");
+			  	
+			  	
+			  	if(serviceReference!=null){
+				  	ComponentFactory factory = (ComponentFactory) bundleContext.getService(serviceReference);
+				  	
+				  	ComponentInstance componentInstance = factory.newInstance(new Hashtable());
+					Scenario1 service = (Scenario1) componentInstance.getInstance();
+				  	System.out.println("Scenario1Bundle3 has received the value:" + service.getValue());
+			  	}else{
+			  		System.err.println("error service reference is null in Scenario1Bundle3");
+			  	}
+	  		}
+	  	};
+	  	
+	  	serviceThread.start();
+	  	
 	  }
 
   public void stop(BundleContext context) throws Exception {
