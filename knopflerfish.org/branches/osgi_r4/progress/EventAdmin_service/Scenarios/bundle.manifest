@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-Description: Scenario  tests
+Bundle-Name: Scenarios
+Bundle-Activator: com.gstm.test.eventadmin.scenarios.Activator
+Bundle-SymbolicName: com.gstm.test.eventadmin.scenarios
+Bundle-Version: 1.0
+Export-Package: com.gstm.test.eventadmin.scenarios.scenario1,
+ com.gstm.test.eventadmin.scenarios.scenario2,
+ com.gstm.test.eventadmin.scenarios.scenario3,
+ com.gstm.test.eventadmin.scenarios.scenario4,
+ com.gstm.test.eventadmin.scenarios.scenario5,
+ com.gstm.test.eventadmin.scenarios.scenario6 
+Import-Package: junit.framework, 
+ org.osgi.service.event,
+ org.knopflerfish.service.demo1,
+ org.knopflerfish.service.log
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
