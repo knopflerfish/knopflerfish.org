@@ -1,0 +1,46 @@
+How to run the testbundles 
+The SCR.jar bundle can be replaced by another version if necessary.
+Install all bundles and use the following setup
+
+*********** initlevel 1 *************************
+http_all-1.1.0.jar
+logcommands-1.0.0.jar
+junit_all-1.0.0.jar
+consoletty-1.0.1.jar
+pullkxml.jar
+cm_cmd-1.0.0.jar
+jsdk-2.2.jar
+cm_all-1.0.0.jar
+xml-1.0.0.jar
+demo1_all-1.0.0.jar
+useradmin_api-1.0.0.jar
+frameworkcommands\frameworkcommands-1.0.0.jar
+console_all-1.0.0.jar
+util-1.0.0.jar
+httproot-1.0.0.jar
+crimson-1.1.3.jar
+log_all-1.0.0.jar
+
+******************** initlevel 2 **************************
+Scenario9Bundle1.jar
+Scenario4Bundle1.jar
+Scenario12Bundle1.jar
+EventAdmin_service.jar
+Scenario6CounterFactory.jar
+Scenario9Bundle4.jar
+Scenario1Bundle2.jar
+Scenario6Component1.jar
+Scenario8Bundle2.jar
+Scenario12Bundle2.jar
+Scenario1Bundle1.jar
+Scenario6Component2.jar
+Scenarios-SCR.jar
+Scenario8FaultyProvider.jar
+Scenario1Bundle3.jar
+Scenario8Bundle1.jar
+Scenario9Bundle3.jar
+Scenario9Bundle2.jar
+**************************** initlevel 3 ***************************
+SCR.jar
+Whiteboard.jar
+
