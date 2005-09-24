@@ -62,16 +62,10 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
     private static final int EXPORT_PACKAGE_IDX = 0;
     private static final int EXPORT_BUNDLE_IDX = 1;
 
-    private int m_hopCount = 1;
-
-    private static final String[] DEFAULT_REPOSITORY_URL = {
-        "http://oscar-osgi.sf.net/repository.xml"
-    };
-
+    private static final String DEFAULT_REPOSITORY_URL
+        = "http://oscar-osgi.sf.net/repo/repository.xml";
     public static final String REPOSITORY_URL_PROP
         = "oscar.repository.url";
-
-    public static final String EXTERN_REPOSITORY_TAG = "extern-repositories";
 
     public BundleRepositoryServiceImpl(BundleContext context)
     {
@@ -93,7 +87,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         // Use the default URL if none were specified.
         if (m_urls == null)
         {
-            m_urls = DEFAULT_REPOSITORY_URL;
+            m_urls = new String[] { DEFAULT_REPOSITORY_URL };
         }
     }
 
@@ -651,193 +645,164 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         m_bundleList.clear();
         m_exportPackageMap.clear();
 
-        for (int urlIdx = 0; (m_urls != null) && (urlIdx < m_urls.length); urlIdx++)
-        {
-            parseRepositoryFile(m_hopCount, m_urls[urlIdx]);
-        }
-    }
-    
-    private void parseRepositoryFile(int hopCount, String urlStr)
-    {
         InputStream is = null;
         InputStreamReader isr = null;
         BufferedReader br = null;
 
-        try
+        for (int urlIdx = 0; (m_urls != null) && (urlIdx < m_urls.length); urlIdx++)
         {
-            // Do it the manual way to have a chance to 
-            // set request properties as proxy auth (EW).
-            URL url = new URL(urlStr);
-            URLConnection conn = url.openConnection(); 
-
-            // Support for http proxy authentication
-            String auth = System.getProperty("http.proxyAuth");
-            if ((auth != null) && (auth.length() > 0))
-            {
-                if ("http".equals(url.getProtocol()) ||
-                    "https".equals(url.getProtocol()))
-                {
-                    String base64 = Util.base64Encode(auth);
-                    conn.setRequestProperty(
-                        "Proxy-Authorization", "Basic " + base64);
-                }
-            }
-            is = conn.getInputStream();
-
-            // Create the parser Kxml
-            XmlCommonHandler handler = new XmlCommonHandler();
-            handler.addType("bundles", ArrayList.class);
-            handler.addType("repository", HashMap.class);
-            handler.addType("extern-repositories", ArrayList.class);
-            handler.addType("bundle", MultivalueMap.class);
-            handler.addType("import-package", HashMap.class);
-            handler.addType("export-package", HashMap.class);
-            handler.setDefaultType(String.class);
-
-            br = new BufferedReader(new InputStreamReader(is));
-            KXmlSAXParser parser;
-            parser = new KXmlSAXParser(br);
+            is = null;
             try
             {
-                parser.parseXML(handler);
-            }
-            catch (Exception ex)
-            {
-                ex.printStackTrace();
-                return;
-            }
 
-            List root = (List) handler.getRoot();
-            for (int bundleIdx = 0; bundleIdx < root.size(); bundleIdx++)
-            {
-                Object obj = root.get(bundleIdx);
-                
-                // The elements of the root will either be a HashMap for
-                // the repository tag or a MultivalueMap for the bundle
-                // tag, as indicated above when we parsed the file.
-                
-                // If HashMap, then read repository information.
-                if (obj instanceof HashMap)
+	      // Do it the manual way to have a chance to 
+	      // set request properties as proxy auth (EW)
+	      URL           url  = new URL(m_urls[urlIdx]);
+	      URLConnection conn = url.openConnection(); 
+	      
+	      // Support for http proxy authentication
+	      String auth = System.getProperty("http.proxyAuth");
+	      if(auth != null && !"".equals(auth)) {
+		if("http".equals(url.getProtocol()) ||
+		   "https".equals(url.getProtocol())) {
+		  String base64 = Util.base64Encode(auth);
+		  conn.setRequestProperty("Proxy-Authorization", 
+					  "Basic " + base64);
+		}
+	      }
+	      is = conn.getInputStream();
+
+                // Create the parser Kxml
+                XmlCommonHandler handler = new XmlCommonHandler();
+                /* 
+                 * Stefano "Kismet" Lenzi 
+                 * kismet-sl [at] users [dot] sourceforge [dot] net
+                 * 22 Set 2005
+                 */
+                handler.addType("repository",HashMap.class);
+                handler.addType("bundles", ArrayList.class);
+                handler.addType("bundle", MultivalueMap.class);
+                handler.addType("import-package", HashMap.class);
+                handler.addType("export-package", HashMap.class);
+                handler.setDefaultType(String.class);
+
+                br = new BufferedReader(new InputStreamReader(is));
+                KXmlSAXParser parser;
+                parser = new KXmlSAXParser(br);
+                try
                 {
-                    // Create a case-insensitive map.
-                    Map repoMap = new TreeMap(new Comparator() {
-                        public int compare(Object o1, Object o2)
-                        {
-                            return o1.toString().compareToIgnoreCase(o2.toString());
-                        }
-                    });
-                    repoMap.putAll((Map) obj);
-
-                    // Process external repositories if hop count is
-                    // greater than zero.
-                    if (hopCount > 0)
-                    {
-                        // Get the external repository list.
-                        List externList = (List) repoMap.get(EXTERN_REPOSITORY_TAG);
-                        for (int i = 0; (externList != null) && (i < externList.size()); i++)
-                        {
-                            parseRepositoryFile(hopCount - 1, (String) externList.get(i));
-                        }
-                    }
+                    parser.parseXML(handler);
                 }
-                // Else if mulitvalue map, then create a bundle record
-                // for the associated bundle meta-data.
-                else if (obj instanceof MultivalueMap)
+                catch (Exception ex)
                 {
-                    // Create a case-insensitive map.
-                    Map bundleMap = new TreeMap(new Comparator() {
-                        public int compare(Object o1, Object o2)
-                        {
-                            return o1.toString().compareToIgnoreCase(o2.toString());
-                        }
-                    });
-                    bundleMap.putAll((Map) obj);
-                    
-                    // Convert any import package declarations
-                    // to PackageDeclaration objects.
-                    Object target = bundleMap.get(BundleRecord.IMPORT_PACKAGE);
-                    if (target != null)
-                    {
-                        // Overwrite the original package declarations.
-                        bundleMap.put(
-                            BundleRecord.IMPORT_PACKAGE,
-                            convertPackageDeclarations(target));
-                    }
+                    ex.printStackTrace();
+                    return;
+                }
 
-                    // Convert any export package declarations
-                    // to PackageDeclaration objects.
-                    target = bundleMap.get(BundleRecord.EXPORT_PACKAGE);
-                    if (target != null)
+                List root = (List) handler.getRoot();
+                for (int bundleIdx = 0; bundleIdx < root.size(); bundleIdx++)
+                {
+                    Object obj = root.get(bundleIdx);
+                    // Create a BundleRecord for each parsed bundle.
+                    // Bundle meta-data is mapped to a MultivalueMap,
+                    // as indicated above when we parsed.
+                    if (obj instanceof MultivalueMap)
                     {
-                        // Overwrite the original package declarations.
-                        bundleMap.put(
-                            BundleRecord.EXPORT_PACKAGE,
-                            convertPackageDeclarations(target));
-                    }
-
-                    // Create a bundle record using the map.
-                    BundleRecord record = new BundleRecord(bundleMap);
-
-                    // Try to put all exported packages from this bundle
-                    // into the export package map to simplify access.
-                    try
-                    {
-                        PackageDeclaration[] exportPkgs = (PackageDeclaration[])
-                            record.getAttribute(BundleRecord.EXPORT_PACKAGE);
-                        for (int exportIdx = 0;
-                            (exportPkgs != null) && (exportIdx < exportPkgs.length);
-                            exportIdx++)
-                        {
-                            // Check to see if this package is already in the
-                            // export package map.
-                            ArrayList exporterList = (ArrayList)
-                                m_exportPackageMap.get(exportPkgs[exportIdx].getName());
-                            // If the package is not in the map, create an
-                            // array list for it.
-                            if (exporterList == null)
+                        // Create a case-insensitive map.
+                        Map bundleMap = new TreeMap(new Comparator() {
+                            public int compare(Object o1, Object o2)
                             {
-                                exporterList = new ArrayList();
+                                return o1.toString().compareToIgnoreCase(o2.toString());
                             }
-                            // Add the export info to the array list.
-                            Object[] exportInfo = new Object[2];
-                            exportInfo[EXPORT_PACKAGE_IDX] = exportPkgs[exportIdx];
-                            exportInfo[EXPORT_BUNDLE_IDX] = record;
-                            exporterList.add(exportInfo);
-                            // Put the array list containing the export info
-                            // into the export map, which will make it easy
-                            // to search for which bundles export what. Note,
-                            // if the exporterList already was in the map, this
-                            // will just overwrite it with the same value.
-                            m_exportPackageMap.put(
-                                exportPkgs[exportIdx].getName(), exporterList);
+                        });
+                        bundleMap.putAll((Map) obj);
+                        
+                        // Convert any import package declarations
+                        // to PackageDeclaration objects.
+                        Object target = bundleMap.get(BundleRecord.IMPORT_PACKAGE);
+                        if (target != null)
+                        {
+                            // Overwrite the original package declarations.
+                            bundleMap.put(
+                                BundleRecord.IMPORT_PACKAGE,
+                                convertPackageDeclarations(target));
                         }
-                        // TODO: Filter duplicates.
-                        m_bundleList.add(record);
-                    }
-                    catch (IllegalArgumentException ex)
-                    {
-                        // Ignore.
+
+                        // Convert any export package declarations
+                        // to PackageDeclaration objects.
+                        target = bundleMap.get(BundleRecord.EXPORT_PACKAGE);
+                        if (target != null)
+                        {
+                            // Overwrite the original package declarations.
+                            bundleMap.put(
+                                BundleRecord.EXPORT_PACKAGE,
+                                convertPackageDeclarations(target));
+                        }
+
+                        // Create a bundle record using the map.
+                        BundleRecord record = new BundleRecord(bundleMap);
+
+                        // Try to put all exported packages from this bundle
+                        // into the export package map to simplify access.
+                        try
+                        {
+                            PackageDeclaration[] exportPkgs = (PackageDeclaration[])
+                                record.getAttribute(BundleRecord.EXPORT_PACKAGE);
+                            for (int exportIdx = 0;
+                                (exportPkgs != null) && (exportIdx < exportPkgs.length);
+                                exportIdx++)
+                            {
+                                // Check to see if this package is already in the
+                                // export package map.
+                                ArrayList exporterList = (ArrayList)
+                                    m_exportPackageMap.get(exportPkgs[exportIdx].getName());
+                                // If the package is not in the map, create an
+                                // array list for it.
+                                if (exporterList == null)
+                                {
+                                    exporterList = new ArrayList();
+                                }
+                                // Add the export info to the array list.
+                                Object[] exportInfo = new Object[2];
+                                exportInfo[EXPORT_PACKAGE_IDX] = exportPkgs[exportIdx];
+                                exportInfo[EXPORT_BUNDLE_IDX] = record;
+                                exporterList.add(exportInfo);
+                                // Put the array list containing the export info
+                                // into the export map, which will make it easy
+                                // to search for which bundles export what. Note,
+                                // if the exporterList already was in the map, this
+                                // will just overwrite it with the same value.
+                                m_exportPackageMap.put(
+                                    exportPkgs[exportIdx].getName(), exporterList);
+                            }
+                            // TODO: Filter duplicates.
+                            m_bundleList.add(record);
+                        }
+                        catch (IllegalArgumentException ex)
+                        {
+                            // Ignore.
+                        }
                     }
                 }
             }
-        }
-        catch (MalformedURLException ex)
-        {
-            System.err.println("Error: " + ex);
-        }
-        catch (IOException ex)
-        {
-            System.err.println("Error: " + ex);
-        }
-        finally
-        {
-            try
+            catch (MalformedURLException ex)
             {
-                if (is != null) is.close();
+                System.err.println("Error: " + ex);
             }
             catch (IOException ex)
             {
-                // Not much we can do.
+                System.err.println("Error: " + ex);
+            }
+            finally
+            {
+                try
+                {
+                    if (is != null) is.close();
+                }
+                catch (IOException ex)
+                {
+                    // Not much we can do.
+                }
             }
         }
 
