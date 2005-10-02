@@ -34,42 +34,71 @@
 
 package org.knopflerfish.bundle.logcommands;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Hashtable;
+
 import org.knopflerfish.service.console.CommandGroup;
+import org.knopflerfish.service.log.LogConfig;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
- ** Bundle activator implementation.
- **
- ** @author Jan Stein
- ** @version $Revision: 1.1.1.1 $
+ * * Bundle activator implementation. * *
+ * 
+ * @author Jan Stein *
+ * @version $Revision: 1.1.1.1 $
  */
 public class LogCommands implements BundleActivator {
 
-  final static String COMMAND_GROUP = "org.knopflerfish.service.console.CommandGroup";
+    static final String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
+            .getName();
 
-  /*---------------------------------------------------------------------------*
-   *			  BundleActivator implementation
-   *---------------------------------------------------------------------------*/
-  
-  /**
-   * Called by the framework when this bundle is started.
-   *
-   * @param bc Bundle context.
-   */
-  public void start(BundleContext bc) {
-    // Register log commands
-    CommandGroup cg = new LogCommandGroup(bc);
-    Hashtable props = new Hashtable();
-    props.put("groupName", cg.getGroupName());
-    bc.registerService(COMMAND_GROUP, cg, props);
-  }
+    static BundleContext bc;
 
-  /**
-   * Called by the framework when this bundle is stopped.
-   *
-   * @param bc Bundle context.
-   */
-  public void stop(BundleContext bc) { }
+    static ServiceTracker logConfigTracker;
+
+    /*---------------------------------------------------------------------------*
+     *			  BundleActivator implementation
+     *---------------------------------------------------------------------------*/
+
+    /**
+     * Called by the framework when this bundle is started.
+     * 
+     * @param bc
+     *            Bundle context.
+     */
+    public void start(BundleContext bc) {
+        LogCommands.bc = bc;
+
+        // Create service tracker for log config service
+        LogCommands.logConfigTracker = new ServiceTracker(bc, LogConfig.class
+                .getName(), null);
+        LogCommands.logConfigTracker.open();
+
+        // Register log commands
+        CommandGroup logCommandGroup = new LogCommandGroup(bc);
+        Hashtable props = new Hashtable();
+        props.put("groupName", logCommandGroup.getGroupName());
+        bc.registerService(COMMAND_GROUP, logCommandGroup, props);
+
+        // Register log config commands
+        CommandGroup logConfigCommandGroup = new LogConfigCommandGroup();
+        props = new Hashtable();
+        props.put("groupName", logConfigCommandGroup.getGroupName());
+        bc.registerService(COMMAND_GROUP, logConfigCommandGroup, props);
+    }
+
+    /**
+     * Called by the framework when this bundle is stopped.
+     * 
+     * @param bc
+     *            Bundle context.
+     */
+    public void stop(BundleContext bc) {
+        // Close service tracker for log config service
+        if (LogCommands.logConfigTracker != null)
+            LogCommands.logConfigTracker.close();
+
+    }
 
 }
