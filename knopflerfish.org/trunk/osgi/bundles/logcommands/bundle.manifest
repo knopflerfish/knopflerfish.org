@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-Name: LogCommands
+Bundle-SymbolicName: org.knopflerfish:Log Commands:1.0.0
+Bundle-Version: 1.0.1
+Bundle-Description: Log commands
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.logcommands.LogCommands
+Bundle-Category: service
+Import-Package: org.knopflerfish.service.console,org.osgi.framework,or
+ g.osgi.service.log, org.knopflerfish.service.log
+
+

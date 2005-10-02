@@ -34,200 +34,225 @@
 
 package org.knopflerfish.bundle.logcommands;
 
-import java.io.*;
-import java.security.*;
-import java.text.*;
-import java.util.*;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.*;
+import org.knopflerfish.service.console.CommandGroupAdapter;
+import org.knopflerfish.service.console.Session;
+import org.knopflerfish.service.console.Util;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogReaderService;
+import org.osgi.service.log.LogService;
 
-import org.knopflerfish.service.console.*;
-
-//  ********************     LogCommandGroup    ********************
+// ******************** LogCommandGroup ********************
 /**
- ** Interface for commands to be handled by the console.
- **
- ** @author Jan Stein
- ** @version $Revision: 1.1.1.1 $
+ * * Interface for commands to be handled by the console. * *
+ * 
+ * @author Jan Stein *
+ * @version $Revision: 1.1.1.1 $
  */
-
 
 public class LogCommandGroup extends CommandGroupAdapter {
 
-  private BundleContext bc;
+    BundleContext bc;
 
-  private final static String LOGREADER = "org.osgi.service.log.LogReaderService";
+    private final static String LOGREADER = "org.osgi.service.log.LogReaderService";
 
-  LogCommandGroup(BundleContext bc) {
-    super("log", "Log commands");
-    this.bc = bc;
-  }
+    LogCommandGroup(BundleContext bc) {
+        super("log", "Log commands");
+        this.bc = bc;
+    }
 
-  //
-  // Show command
-  //
+    //
+    // Show command
+    //
 
-  public final static String USAGE_SHOW = "[-f] [-h #hours#] [-l #level#] [-n #count#] [-r] [-s] [<bundle>] ...";
-  public final static String [] HELP_SHOW = new String [] {
-    "Show log bundle entries",
-    "If no parameters are given show all entries",
-    "-f         Show framework events that aren't connected to a bundle",
-    "-h #hours# Show only entries entered in the #hours# last hours",
-    "-l #level# Show only entries with minimum level error,warning,info or debug",
-    "-n #count# Show the #count# latest entries",
-    "-r         Show entries in reversed order",
-    "-s         Show stacktrace for exceptions",
-    "<bundle>   Name or id of bundle" };
+    public final static String USAGE_SHOW = "[-f] [-h #hours#] [-l #level#] [-n #count#] [-r] [-s] [<bundle>] ...";
 
-  public int cmdShow(final Dictionary opts, final Reader in,
-		     final PrintWriter out, final Session session) {
-    Integer res = (Integer)
-      AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  ServiceReference sr = bc.getServiceReference(LOGREADER);
-	  if (sr == null ) {
-	    out.println("Unable to get a LogReaderService");
-	    return new Integer(1);
-	  }
-	  LogReaderService lr = (LogReaderService)bc.getService(sr);
-	  if (lr == null) {
-	    out.println("Unable to get a LogReaderService");
-	    return new Integer(1);
-	  }
+    public final static String[] HELP_SHOW = new String[] {
+            "Show log bundle entries",
+            "If no parameters are given show all entries",
+            "-f         Show framework events that aren't connected to a bundle",
+            "-h #hours# Show only entries entered in the #hours# last hours",
+            "-l #level# Show only entries with minimum level error,warning,info or debug",
+            "-n #count# Show the #count# latest entries",
+            "-r         Show entries in reversed order",
+            "-s         Show stacktrace for exceptions",
+            "<bundle>   Name or id of bundle" };
 
-	  ArrayList bv = null;
-	  String [] selection = (String [])opts.get("bundle");
-	  if (selection != null) {
-	    Bundle [] b = bc.getBundles();
-	    Util.selectBundles(b, selection);
-	    bv = new ArrayList();
-	    for (int i = 0; i < b.length; i++) {
-	      if (b[i] != null) {
-		bv.add(b[i]);
-	      }
-	    }
-	  }
+    public int cmdShow(final Dictionary opts, final Reader in,
+            final PrintWriter out, final Session session) {
+        Integer res = (Integer) AccessController
+                .doPrivileged(new PrivilegedAction() {
+                    public Object run() {
+                        ServiceReference sr = bc.getServiceReference(LOGREADER);
+                        if (sr == null) {
+                            out.println("Unable to get a LogReaderService");
+                            return new Integer(1);
+                        }
+                        LogReaderService lr = (LogReaderService) bc
+                                .getService(sr);
+                        if (lr == null) {
+                            out.println("Unable to get a LogReaderService");
+                            return new Integer(1);
+                        }
 
-	  boolean fflag = opts.get("-f") != null;
+                        ArrayList bv = null;
+                        String[] selection = (String[]) opts.get("bundle");
+                        if (selection != null) {
+                            Bundle[] b = bc.getBundles();
+                            Util.selectBundles(b, selection);
+                            bv = new ArrayList();
+                            for (int i = 0; i < b.length; i++) {
+                                if (b[i] != null) {
+                                    bv.add(b[i]);
+                                }
+                            }
+                        }
 
-	  String lflag = (String)opts.get("-l");
-	  int level;
-	  if (lflag != null) {
-	    if (lflag.equalsIgnoreCase("error")) {
-	      level = LogService.LOG_ERROR;
-	    } else if (lflag.equalsIgnoreCase("warning")) {
-	      level = LogService.LOG_WARNING;
-	    } else if (lflag.equalsIgnoreCase("info")) {
-	      level = LogService.LOG_INFO;
-	    } else if (lflag.equalsIgnoreCase("debug")) {
-	      level = LogService.LOG_DEBUG;
-	    } else {
-	      out.println("Unknown level: " + lflag);
-	      return new Integer(1);
-	    }
-	  } else {
-	    level = LogService.LOG_DEBUG;
-	  }
+                        boolean fflag = opts.get("-f") != null;
 
-	  String hflag = (String)opts.get("-h");
-	  long startTime = 0;
-	  if (hflag != null) {
-	    try {
-	      startTime = System.currentTimeMillis() - (long)(60*60*1000*(new Double(hflag)).doubleValue());
-	    } catch (NumberFormatException e) {
-	      out.println("Illegal number of hours: " + hflag);
-	      return new Integer(1);
-	    }
-	  }
+                        String lflag = (String) opts.get("-l");
+                        int level;
+                        if (lflag != null) {
+                            if (lflag.equalsIgnoreCase("error")) {
+                                level = LogService.LOG_ERROR;
+                            } else if (lflag.equalsIgnoreCase("warning")) {
+                                level = LogService.LOG_WARNING;
+                            } else if (lflag.equalsIgnoreCase("info")) {
+                                level = LogService.LOG_INFO;
+                            } else if (lflag.equalsIgnoreCase("debug")) {
+                                level = LogService.LOG_DEBUG;
+                            } else {
+                                out.println("Unknown level: " + lflag);
+                                return new Integer(1);
+                            }
+                        } else {
+                            level = LogService.LOG_DEBUG;
+                        }
 
-	  String nflag = (String)opts.get("-n");
-	  int count = Integer.MAX_VALUE;
-	  if (nflag != null) {
-	    try {
-	      count = Integer.parseInt(nflag);
-	    } catch (NumberFormatException e) {
-	      out.println("Illegal number as count: " + nflag);
-	      return new Integer(1);
-	    }
-	  }
+                        String hflag = (String) opts.get("-h");
+                        long startTime = 0;
+                        if (hflag != null) {
+                            try {
+                                startTime = System.currentTimeMillis()
+                                        - (long) (60 * 60 * 1000 * (new Double(
+                                                hflag)).doubleValue());
+                            } catch (NumberFormatException e) {
+                                out
+                                        .println("Illegal number of hours: "
+                                                + hflag);
+                                return new Integer(1);
+                            }
+                        }
 
-	  Enumeration e = lr.getLog();
-	  Vector lv = new Vector();
-	  boolean rflag = opts.get("-r") == null;
-	  while (e.hasMoreElements()) {
-	    LogEntry le = (LogEntry) e.nextElement();
-	    Bundle b = le.getBundle();
-	    if (b == null && fflag || bv == null && !fflag || bv != null && bv.contains(b)) {
-	      if (count-- <= 0) {
-		break;
-	      }
-	      if (le.getLevel() > level) {
-		continue;
-	      }
-	      if (le.getTime() < startTime) {
-		break;
-	      }
-	      if (rflag) {
-		lv.insertElementAt(le, 0);
-	      } else {
-		lv.addElement(le);
-	      }
-	    }
-	  }
+                        String nflag = (String) opts.get("-n");
+                        int count = Integer.MAX_VALUE;
+                        if (nflag != null) {
+                            try {
+                                count = Integer.parseInt(nflag);
+                            } catch (NumberFormatException e) {
+                                out
+                                        .println("Illegal number as count: "
+                                                + nflag);
+                                return new Integer(1);
+                            }
+                        }
 
-	  StringBuffer sb = new StringBuffer();
-	  SimpleDateFormat tf = new SimpleDateFormat("MMM dd HH:mm:ss ");
-	  
-	  for (e = lv.elements(); e.hasMoreElements();) {
-	    LogEntry le = (LogEntry) e.nextElement();
-	    sb.setLength(0);
-	    sb.append(tf.format (new Date(le.getTime())));
-	    pad(sb, 16);
-	    switch (le.getLevel()) {
-	    case LogService.LOG_INFO:
-	      sb.append("INFO");
-	      break;
-	    case LogService.LOG_DEBUG:
-	      sb.append("DEBUG");
-	      break;
-	    case LogService.LOG_WARNING:
-	      sb.append("WARNING");
-	      break;
-	    case LogService.LOG_ERROR:
-	      sb.append("ERROR");
-	      break;
-	    default:
-	      sb.append("UNKNOWN");
-	      break;
-	    }
-	    pad(sb, 23);
-	    Bundle b = le.getBundle();
-	    if (b != null) {
-	      sb.append(" #" + b.getBundleId());
-	      pad(sb, 28);
-	      sb.append(Util.shortName(b));
-	    } else {
-	      sb.append(" FRAMEWORK");
-	    }
-	    pad(sb, 42);
-	    sb.append(" - ");
-	    sb.append(le.getMessage());
-	    if (le.getServiceReference() != null) {
-	      sb.append(", Service: " + Util.showServiceClasses(le.getServiceReference()));
-	    }
-	    out.println(sb.toString());
-	    if (le.getException() != null && opts.get("-s") != null) {
-	      le.getException().printStackTrace(out);
-	    }
-	  }
-	  bc.ungetService(sr);
-	  return new Integer(0);
-	}});
-    return res.intValue();
-  }
+                        Enumeration e = lr.getLog();
+                        Vector lv = new Vector();
+                        boolean rflag = opts.get("-r") == null;
+                        while (e.hasMoreElements()) {
+                            LogEntry le = (LogEntry) e.nextElement();
+                            Bundle b = le.getBundle();
+                            if (b == null && fflag || bv == null && !fflag
+                                    || bv != null && bv.contains(b)) {
+                                if (count-- <= 0) {
+                                    break;
+                                }
+                                if (le.getLevel() > level) {
+                                    continue;
+                                }
+                                if (le.getTime() < startTime) {
+                                    break;
+                                }
+                                if (rflag) {
+                                    lv.insertElementAt(le, 0);
+                                } else {
+                                    lv.addElement(le);
+                                }
+                            }
+                        }
 
-  void pad(StringBuffer sb, int n) {
-    while(sb.length() < n) sb.append(" ");
-  }
+                        StringBuffer sb = new StringBuffer();
+                        SimpleDateFormat tf = new SimpleDateFormat(
+                                "MMM dd HH:mm:ss ");
+
+                        for (e = lv.elements(); e.hasMoreElements();) {
+                            LogEntry le = (LogEntry) e.nextElement();
+                            sb.setLength(0);
+                            sb.append(tf.format(new Date(le.getTime())));
+                            pad(sb, 16);
+                            switch (le.getLevel()) {
+                            case LogService.LOG_INFO:
+                                sb.append("INFO");
+                                break;
+                            case LogService.LOG_DEBUG:
+                                sb.append("DEBUG");
+                                break;
+                            case LogService.LOG_WARNING:
+                                sb.append("WARNING");
+                                break;
+                            case LogService.LOG_ERROR:
+                                sb.append("ERROR");
+                                break;
+                            default:
+                                sb.append("UNKNOWN");
+                                break;
+                            }
+                            pad(sb, 23);
+                            Bundle b = le.getBundle();
+                            if (b != null) {
+                                sb.append(" #" + b.getBundleId());
+                                pad(sb, 28);
+                                sb.append(Util.shortName(b));
+                            } else {
+                                sb.append(" FRAMEWORK");
+                            }
+                            pad(sb, 42);
+                            sb.append(" - ");
+                            sb.append(le.getMessage());
+                            if (le.getServiceReference() != null) {
+                                sb.append(", Service: "
+                                        + Util.showServiceClasses(le
+                                                .getServiceReference()));
+                            }
+                            out.println(sb.toString());
+                            if (le.getException() != null
+                                    && opts.get("-s") != null) {
+                                le.getException().printStackTrace(out);
+                            }
+                        }
+                        bc.ungetService(sr);
+                        return new Integer(0);
+                    }
+                });
+        return res.intValue();
+    }
+
+    void pad(StringBuffer sb, int n) {
+        while (sb.length() < n)
+            sb.append(" ");
+    }
 }
