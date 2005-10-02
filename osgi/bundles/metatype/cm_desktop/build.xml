@@ -17,8 +17,8 @@
 -->
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
    <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>
    <pathelement location="${topdir}/jars/metatype/metatype-1.0.0.jar"/>
