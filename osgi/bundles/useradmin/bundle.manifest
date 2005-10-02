@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-Name: UserAdmin
+Bundle-SymbolicName: org.knopflerfish:User Admin:1.0.0
+Bundle-Version: 1.0.0
+Bundle-Description: User administration Service
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.service.um.useradmin.impl.Activator
+Bundle-Category: service
+Export-Package: org.knopflerfish.service.um.ipam;specification-version
+ =1.0,org.knopflerfish.service.um.useradmin;specification-version=1.0,
+ org.osgi.service.useradmin;specification-version=1.0.0
+Import-Package: org.knopflerfish.service.log,org.knopflerfish.service.
+ um.ipam,org.knopflerfish.service.um.useradmin,org.osgi.framework,org.
+ osgi.service.useradmin
+
+
