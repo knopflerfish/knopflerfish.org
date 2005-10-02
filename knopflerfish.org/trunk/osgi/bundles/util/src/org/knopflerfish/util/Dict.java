@@ -36,23 +36,22 @@ package org.knopflerfish.util;
 
 import java.util.Dictionary;
 
-//  ********************     Dict     ********************
+// ******************** Dict ********************
 /**
- ** Util methods for dealing with dictionaries.
- **
- ** @author Gatespace AB 
- **
+ * * Util methods for dealing with dictionaries. * *
+ * 
+ * @author Gatespace AB *
  */
 public class Dict {
 
-  public static String getStringValue(Dictionary dict, String key) {
-    Object o = dict.get(key);
-    return (o != null && o instanceof String) ? (String)o : null;
-  }
+    public static String getStringValue(Dictionary dict, String key) {
+        Object o = dict.get(key);
+        return (o != null && o instanceof String) ? (String) o : null;
+    }
 
-  public static String getStringValue(Dictionary dict, String key, String def) {
-    Object o = dict.get(key);
-    return (o != null && o instanceof String) ? (String)o : def;
-  }
-  
-} // Dict 
+    public static String getStringValue(Dictionary dict, String key, String def) {
+        Object o = dict.get(key);
+        return (o != null && o instanceof String) ? (String) o : def;
+    }
+
+} // Dict

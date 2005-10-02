@@ -36,118 +36,123 @@ package org.knopflerfish.util;
 
 import java.util.Vector;
 
-//  ********************     Queue     ********************
+// ******************** Queue ********************
 /**
- * The <code>Queue</code> class represents a first-in-first-out 
- * (FIFO) queue of objects. 
+ * The <code>Queue</code> class represents a first-in-first-out (FIFO) queue
+ * of objects.
+ * 
  * @author Per Lundgren
  */
 public class Queue extends Vector {
-  private int m_nMaxSize = -1;
-  private boolean queueClosed = false;
-  
-  //  ====================    Queue      ====================
-  /**
-   ** Constructs an Queue with the specifies maximum size.
-   **
-   ** @param	size	maximum queue size.
-   */
-  public Queue(int size)
-  {
-    m_nMaxSize = size;
-  }
- 
-  //  ====================    insert      ====================
-  /**
-   ** Inserts an item into the queue. If there are threads blocked on
-   ** <code>remove</code>, one of them is unblocked.
-   **
-   ** @param	item	the item to be inserted.
-   ** @exception IndexOutOfBoundsException if maximum queue size is reached.
-   */
-  public synchronized void insert(Object item) throws IndexOutOfBoundsException
-  {
-    // Check if queue is full
-    if (m_nMaxSize > 0 && size() >= m_nMaxSize) 
-      throw new IndexOutOfBoundsException("Queue full");
 
-    addElement(item);
-    notify();
-  }
+    private static final long serialVersionUID = 1L;
 
-  //  ====================    insertFirst      ====================
-  /**
-   ** Inserts an item first into the queue. If there are threads blocked on
-   ** <code>remove</code>, one of them is unblocked.
-   **
-   ** @param	item	the item to be inserted.
-   */
-  public synchronized void insertFirst(Object item)
-  {
-    insertElementAt(item, 0);
-    notify();
-  }
+    private int m_nMaxSize = -1;
 
-  //  ====================    remove      ====================
-  /**
-   ** Removes and returns the first item in the queue.
-   ** If the queue is empty, the calling thread will block.
-   **
-   ** @param    timeout timeout in seconds.
-   ** @return The first item in the queue, or <code>null</code> if a
-   ** timeout occurred. To distinguish timeouts, <code>null</code>
-   ** items should not be inserted in the queue.
-   */
-  public synchronized Object removeWait(float timeout)
-  {
-    Object obj = null;
+    private boolean queueClosed = false;
 
-    // If queue is empty wait for object to be inserted
-    if (isEmpty() && !queueClosed) {
-      try {
-	if (timeout > 0) {
-	  wait(Math.round(timeout * 1000.0f));
-	} else
-	  wait();
-      } catch (InterruptedException e) {}
+    // ==================== Queue ====================
+    /**
+     * * Constructs an Queue with the specifies maximum size. * *
+     * 
+     * @param size
+     *            maximum queue size.
+     */
+    public Queue(int size) {
+        m_nMaxSize = size;
     }
 
-    if (queueClosed) {
-      return null;
-    }    
-    
-    try {
-      obj = firstElement();
-      removeElementAt(0);
-    } catch (Exception e) {}
- 
-    return obj;
-  }
+    // ==================== insert ====================
+    /**
+     * * Inserts an item into the queue. If there are threads blocked on *
+     * <code>remove</code>, one of them is unblocked. * *
+     * 
+     * @param item
+     *            the item to be inserted. *
+     * @exception IndexOutOfBoundsException
+     *                if maximum queue size is reached.
+     */
+    public synchronized void insert(Object item)
+            throws IndexOutOfBoundsException {
+        // Check if queue is full
+        if (m_nMaxSize > 0 && size() >= m_nMaxSize)
+            throw new IndexOutOfBoundsException("Queue full");
 
-  //  ====================    remove      ====================
-  /**
-   ** Removes and returns the first object in the queue.
-   ** Same as <code>remove(float timeout)</code> but this function
-   ** blocks forever.
-   **
-   ** @return The first item in the queue.
-   */
-  public Object remove()
-  {
-    return removeWait(0);
-  }
+        addElement(item);
+        notify();
+    }
 
+    // ==================== insertFirst ====================
+    /**
+     * * Inserts an item first into the queue. If there are threads blocked on *
+     * <code>remove</code>, one of them is unblocked. * *
+     * 
+     * @param item
+     *            the item to be inserted.
+     */
+    public synchronized void insertFirst(Object item) {
+        insertElementAt(item, 0);
+        notify();
+    }
 
-  //  ====================     close     ====================
-  /**
-   ** Closes the queue, i.e. wakes up all threads blocking on
-   ** a call to remove(). 
-   */
+    // ==================== remove ====================
+    /**
+     * * Removes and returns the first item in the queue. * If the queue is
+     * empty, the calling thread will block. * *
+     * 
+     * @param timeout
+     *            timeout in seconds. *
+     * @return The first item in the queue, or <code>null</code> if a *
+     *         timeout occurred. To distinguish timeouts, <code>null</code> *
+     *         items should not be inserted in the queue.
+     */
+    public synchronized Object removeWait(float timeout) {
+        Object obj = null;
 
-  public synchronized void close() {
-    queueClosed = true;
-    notifyAll();
-  }
-  
+        // If queue is empty wait for object to be inserted
+        if (isEmpty() && !queueClosed) {
+            try {
+                if (timeout > 0) {
+                    wait(Math.round(timeout * 1000.0f));
+                } else
+                    wait();
+            } catch (InterruptedException e) {
+            }
+        }
+
+        if (queueClosed) {
+            return null;
+        }
+
+        try {
+            obj = firstElement();
+            removeElementAt(0);
+        } catch (Exception e) {
+        }
+
+        return obj;
+    }
+
+    // ==================== remove ====================
+    /**
+     * * Removes and returns the first object in the queue. * Same as
+     * <code>remove(float timeout)</code> but this function * blocks forever. * *
+     * 
+     * @return The first item in the queue.
+     */
+    public Object remove() {
+        return removeWait(0);
+    }
+
+    // ==================== close ====================
+    /**
+     * * Closes the queue, i.e. wakes up all threads blocking on * a call to
+     * remove().
+     */
+
+    public synchronized void close() {
+        queueClosed = true;
+        notifyAll();
+    }
+
 }
-

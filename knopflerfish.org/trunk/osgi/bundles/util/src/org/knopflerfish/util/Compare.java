@@ -37,45 +37,47 @@ package org.knopflerfish.util;
 public class Compare {
 
     /**
-     * Returns true if the two specified arrays of bytes are equal to one 
-     * another. Two arrays are considered equal if both arrays contain the
-     * same number of elements, and all corresponding pairs of elements in
-     * the two arrays are equal. In other words, two arrays are equal if 
-     * they contain the same elements in the same order. Also, two array 
-     * references are considered equal if both are null.
-     *
-     * @param a One array to be tested for equality.
-     * @param a2 The other array to be tested for equality.
+     * Returns true if the two specified arrays of bytes are equal to one
+     * another. Two arrays are considered equal if both arrays contain the same
+     * number of elements, and all corresponding pairs of elements in the two
+     * arrays are equal. In other words, two arrays are equal if they contain
+     * the same elements in the same order. Also, two array references are
+     * considered equal if both are null.
+     * 
+     * @param a
+     *            One array to be tested for equality.
+     * @param a2
+     *            The other array to be tested for equality.
      * @return <code>true</code> if the two arrays are equal.
      */
     public static boolean compareByteArrays(byte[] a, byte[] a2) {
-	boolean equal = false;
-       
-	if (a == a2) {
-	    // If the array references are equal, the arrays are equal
-	    equal = true;
-	} else if (a == null && a2 == null) {
-	    // Two array references are considered equal if both are null
-	    equal = true;
-	} else if (a == null || a2 == null) {
-	    // If one reference is null and the other isn't, the arrays 
-	    // are not equal
-	    equal =  false;
-	} else if (a.length != a2.length) {
-	    // If the arrays have different lengths, they're not equal
-	    equal = false;
-	} else {
-	    // If the arrays are of equal length and all corresponding
-	    // pairs of elements are equal, the arrays are equal
-	    equal = true;
-	    for(int i = 0; i < a.length; i++) {
-		if( a[i] != a2[i] ) {
-		    equal = false;
-		    break;
-		}
-	    }
-	}
+        boolean equal = false;
 
-	return equal;
+        if (a == a2) {
+            // If the array references are equal, the arrays are equal
+            equal = true;
+        } else if (a == null && a2 == null) {
+            // Two array references are considered equal if both are null
+            equal = true;
+        } else if (a == null || a2 == null) {
+            // If one reference is null and the other isn't, the arrays
+            // are not equal
+            equal = false;
+        } else if (a.length != a2.length) {
+            // If the arrays have different lengths, they're not equal
+            equal = false;
+        } else {
+            // If the arrays are of equal length and all corresponding
+            // pairs of elements are equal, the arrays are equal
+            equal = true;
+            for (int i = 0; i < a.length; i++) {
+                if (a[i] != a2[i]) {
+                    equal = false;
+                    break;
+                }
+            }
+        }
+
+        return equal;
     }
 }

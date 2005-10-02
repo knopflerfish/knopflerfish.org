@@ -36,9 +36,9 @@ package org.knopflerfish.util.sort;
 
 /**
  * Like the 1.2 Comparable interface.
- *
+ * 
  * @see QSort
  */
 public interface CompareFunc {
-  int compare(Object a, Object b);
+    int compare(Object a, Object b);
 }
