@@ -38,116 +38,123 @@ import java.util.Dictionary;
 
 /**
  * Control interface for a command session.
- *
+ * 
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  * @see ConsoleService
  */
 public interface Session {
-  /**
-   * Constant for the session property that is the session's
-   * Authorization object.
-   */
-  String PROPERTY_AUTHORIZATION = "Authorization";
+    /**
+     * Constant for the session property that is the session's Authorization
+     * object.
+     */
+    String PROPERTY_AUTHORIZATION = "Authorization";
 
-  /**
-   * Constant for the session property that indicates that the
-   * session is a TCP session.
-   */
-  String PROPERTY_TCP = "tcp";
+    /**
+     * Constant for the session property that indicates that the session is a
+     * TCP session.
+     */
+    String PROPERTY_TCP = "tcp";
 
-  /**
-   * Constant for the session property that indicates that the
-   * session should be closed if the user logs out. If this is
-   * not set, the session will be kept open, but no Authorization
-   * object will be present and hence the user will have no special
-   * rights.
-   */
-  String PROPERTY_EXIT_ON_LOGOUT = "ExitOnLogout";
+    /**
+     * Constant for the session property that indicates that the session should
+     * be closed if the user logs out. If this is not set, the session will be
+     * kept open, but no Authorization object will be present and hence the user
+     * will have no special rights.
+     */
+    String PROPERTY_EXIT_ON_LOGOUT = "ExitOnLogout";
 
-  /**
-   * Abort current command in session. Sends an interrupt to the
-   * thread executing the command. The command should terminate
-   * as soon as possible when it receives an interrupt.
-   * 
-   * @exception java.lang.IllegalStateException If this session is closed.
-   */
-  void abortCommand();
+    /**
+     * Abort current command in session. Sends an interrupt to the thread
+     * executing the command. The command should terminate as soon as possible
+     * when it receives an interrupt.
+     * 
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     */
+    void abortCommand();
 
-  /**
-   * Get escape character.
-   *
-   * @return Current escape character
-   * @exception java.lang.IllegalStateException If this session is closed.
-   * @see #setEscapeChar
-   */
-  char getEscapeChar();
+    /**
+     * Get escape character.
+     * 
+     * @return Current escape character
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     * @see #setEscapeChar
+     */
+    char getEscapeChar();
 
-  /**
-   * Set escape character. The escape character is used
-   * to escape the interrupt string and the escape character.
-   *
-   * @param ch new escape character
-   * @exception java.lang.IllegalStateException If this session is closed.
-   */
-  void setEscapeChar(char ch);
+    /**
+     * Set escape character. The escape character is used to escape the
+     * interrupt string and the escape character.
+     * 
+     * @param ch
+     *            new escape character
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     */
+    void setEscapeChar(char ch);
 
+    /**
+     * Get interrupt string.
+     * 
+     * @return Current interrupt string
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     * @see #setInterruptString
+     */
+    String getInterruptString();
 
-  /**
-   * Get interrupt string.
-   *
-   * @return Current interrupt string
-   * @exception java.lang.IllegalStateException If this session is closed.
-   * @see #setInterruptString
-   */
-  String getInterruptString();
+    /**
+     * Set interrupt string. When the read thread sees this string in the input
+     * it will call {@link #abortCommand() abortCommand()} for this session.
+     * 
+     * @param str
+     *            new interrupt string
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     */
+    void setInterruptString(String str);
 
-  /**
-   * Set interrupt string. When the read thread sees this
-   * string in the input it will call
-   * {@link #abortCommand() abortCommand()} for this session.
-   *
-   * @param str new interrupt string
-   * @exception java.lang.IllegalStateException If this session is closed.
-   */
-  void setInterruptString(String str);
+    /**
+     * Get session name.
+     * 
+     * @return Current session name
+     */
+    String getName();
 
-  /**
-   * Get session name.
-   *
-   * @return Current session name
-   */
-  String getName();
+    /**
+     * Close session. Interrupts all threads and waits for them to terminate.
+     * 
+     */
+    void close();
 
-  /**
-   * Close session. Interrupts all threads and waits for them
-   * to terminate.
-   * 
-   */
-  void close();
+    /**
+     * Add session event listener. This listener will be called when the session
+     * is closed.
+     * 
+     * @param l
+     *            session listener
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     */
+    void addSessionListener(SessionListener l);
 
-  /**
-   * Add session event listener. This listener will be called
-   * when the session is closed.
-   *
-   * @param l session listener
-   * @exception java.lang.IllegalStateException If this session is closed.
-   */
-  void addSessionListener(SessionListener l);
+    /**
+     * Remove session event listener.
+     * 
+     * @param l
+     *            session listener
+     * @exception java.lang.IllegalStateException
+     *                If this session is closed.
+     * @see #addSessionListener
+     */
+    void removeSessionListener(SessionListener l);
 
-  /**
-   * Remove session event listener.
-   *
-   * @param l session listener
-   * @exception java.lang.IllegalStateException If this session is closed.
-   * @see #addSessionListener
-   */
-  void removeSessionListener(SessionListener l);
-
-  /**
-   * Returns the property information tied to this session.
-   *
-   * @return Properties associated with this Session.
-   */
-  Dictionary getProperties();
+    /**
+     * Returns the property information tied to this session.
+     * 
+     * @return Properties associated with this Session.
+     */
+    Dictionary getProperties();
 }

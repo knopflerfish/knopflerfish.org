@@ -34,62 +34,66 @@
 
 package org.knopflerfish.service.console;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.Reader;
 
 /**
- * Interface for a command group service. This service will
- * be used by the console service to present the commands to the user.
+ * Interface for a command group service. This service will be used by the
+ * console service to present the commands to the user.
  * <p>
  * The service object must then be registered under the class name <br>
- * <code>org.knopflerfish.service.console.CommandGroup</code>
- * with the property "groupName" set to the command group name.
- *
+ * <code>org.knopflerfish.service.console.CommandGroup</code> with the
+ * property "groupName" set to the command group name.
+ * 
  * @see CommandGroupAdapter
  * @see ConsoleService
- * @author  Gatespace AB
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 
 public interface CommandGroup {
-  
-  /**
-   * Property key for group name to use when registering a CommandGroup.
-   */
-  public final static String GROUP_NAME = "groupName";
 
-  /**
-   * Returns a string with the command group name.
-   *
-   * @return Command group name.
-   */
-  public String getGroupName();
+    /**
+     * Property key for group name to use when registering a CommandGroup.
+     */
+    public final static String GROUP_NAME = "groupName";
 
-  /**
-   * Returns a string containing a short help text for
-   * the command group.
-   *
-   * @return Short command group help.
-   */
-  public String getShortHelp();
+    /**
+     * Returns a string with the command group name.
+     * 
+     * @return Command group name.
+     */
+    public String getGroupName();
 
-  /**
-   * Returns a string containing a long help text for
-   * the command group.
-   *
-   * @return Long command group help.
-   */
-  public String getLongHelp();
+    /**
+     * Returns a string containing a short help text for the command group.
+     * 
+     * @return Short command group help.
+     */
+    public String getShortHelp();
 
-  /**
-   * Executes a command in the command group. The command and its
-   * arguments are passed in the args parameter.
-   *
-   * @param args   argument list
-   * @param out    output write for command to print result to
-   * @param in     input reader for command to read interactively
-   * @param session a handle to command session or null if single command
-   * @return Status from execution, 0 means okey
-   */
-  public int execute(String[] args, Reader in, PrintWriter out, Session session);
+    /**
+     * Returns a string containing a long help text for the command group.
+     * 
+     * @return Long command group help.
+     */
+    public String getLongHelp();
+
+    /**
+     * Executes a command in the command group. The command and its arguments
+     * are passed in the args parameter.
+     * 
+     * @param args
+     *            argument list
+     * @param out
+     *            output write for command to print result to
+     * @param in
+     *            input reader for command to read interactively
+     * @param session
+     *            a handle to command session or null if single command
+     * @return Status from execution, 0 means okey
+     */
+    public int execute(String[] args, Reader in, PrintWriter out,
+            Session session);
 
 }

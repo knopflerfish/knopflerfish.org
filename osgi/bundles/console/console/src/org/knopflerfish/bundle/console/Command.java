@@ -34,231 +34,261 @@
 
 package org.knopflerfish.bundle.console;
 
-import java.io.*;
-import java.security.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.io.Writer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.console.*;
-import org.osgi.service.log.LogService;
+import org.knopflerfish.service.console.CommandGroup;
+import org.knopflerfish.service.console.Session;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+
 /**
  * Class for command parseing and execution.
- *
- * @author  Jan Stein
+ * 
+ * @author Jan Stein
  * @version $Revision: 1.1.1.1 $
  */
 public class Command implements ServiceListener, Runnable {
 
-  final static String COMMAND_GROUP = 
-    org.knopflerfish.service.console.CommandGroup.class.getName();
+    final static String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
+            .getName();
 
-  static SessionCommandGroup sessionCommandGroup;
+    static SessionCommandGroup sessionCommandGroup;
 
-  final BundleContext bc;
-  String [] args;
-  Reader in;
-  Writer out;
-  Alias aliases;
-  String groupName;
-  Session session;
-  ServiceReference commandGroupRef;
-  Thread thread = null;
-  int status = -1;
-  public boolean isPiped = false;
-  public boolean isBackground = false;
+    final BundleContext bc;
 
-  public Command(BundleContext bc, String group, Alias aliases, final StreamTokenizer cmd, Reader in, PrintWriter out, Session session) throws IOException {
-    this.bc = bc;
-    this.in = in;
-    this.out = out;
-    this.aliases = aliases;
-    this.session = session;
-    if (sessionCommandGroup == null) {
-      sessionCommandGroup = new SessionCommandGroup(bc);
+    String[] args;
+
+    Reader in;
+
+    Writer out;
+
+    Alias aliases;
+
+    String groupName;
+
+    Session session;
+
+    ServiceReference commandGroupRef;
+
+    Thread thread = null;
+
+    int status = -1;
+
+    public boolean isPiped = false;
+
+    public boolean isBackground = false;
+
+    public Command(BundleContext bc, String group, Alias aliases,
+            final StreamTokenizer cmd, Reader in, PrintWriter out,
+            Session session) throws IOException {
+        this.bc = bc;
+        this.in = in;
+        this.out = out;
+        this.aliases = aliases;
+        this.session = session;
+        if (sessionCommandGroup == null) {
+            sessionCommandGroup = new SessionCommandGroup(bc);
+        }
+        groupName = group;
+        try {
+            AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                public Object run() throws IOException {
+                    parseCommand(cmd);
+                    return null;
+                }
+            });
+        } catch (PrivilegedActionException e) {
+            throw (IOException) e.getException();
+        }
     }
-    groupName = group;
-    try {
-      AccessController.doPrivileged(new PrivilegedExceptionAction() {
-	  public Object run() throws IOException {
-	    parseCommand(cmd);
-	    return null;
-	  }
-	});
-    } catch (PrivilegedActionException e) {
-      throw (IOException)e.getException();
-    }
-  }
 
-  void parseCommand(StreamTokenizer in) throws IOException {
-    if (in.nextToken() != StreamTokenizer.TT_WORD) {
-      throw new IOException("Unexpected token: " + in.ttype);
+    void parseCommand(StreamTokenizer in) throws IOException {
+        if (in.nextToken() != StreamTokenizer.TT_WORD) {
+            throw new IOException("Unexpected token: " + in.ttype);
+        }
+        String word;
+        String[] aliasBuf = null;
+        int aliasPos;
+        if (aliases != null
+                && (aliasBuf = (String[]) aliases.get(in.sval)) != null) {
+            word = aliasBuf[0];
+            aliasPos = 1;
+        } else {
+            word = in.sval;
+            aliasPos = 0;
+        }
+        if ("".equals(groupName) || word.startsWith("/")) {
+            if (word.startsWith("/"))
+                word = word.substring(1);
+            commandGroupRef = matchCommandGroup(bc, word);
+            word = null;
+        } else {
+            if (SessionCommandGroup.NAME.equals(groupName)) {
+                commandGroupRef = null;
+            } else {
+                ServiceReference[] refs = null;
+                try {
+                    refs = bc.getServiceReferences(COMMAND_GROUP, "(groupName="
+                            + groupName + ")");
+                } catch (InvalidSyntaxException ignore) {
+                }
+                if (refs == null) {
+                    throw new IOException("No such command group: " + groupName);
+                }
+                commandGroupRef = refs[0];
+            }
+        }
+        ArrayList vargs = new ArrayList();
+        boolean done = false;
+        while (!done) {
+            if (word != null) {
+                vargs.add(word);
+                word = null;
+            } else if (aliasPos > 0) {
+                if (aliasPos < aliasBuf.length) {
+                    word = aliasBuf[aliasPos++];
+                } else {
+                    aliasPos = 0;
+                }
+            } else {
+                switch (in.nextToken()) {
+                case '|':
+                    out = new Pipe();
+                    isPiped = true;
+                    done = true;
+                    break;
+                case '&':
+                    isBackground = true;
+                case ';':
+                    done = true;
+                    break;
+                case '<':
+                    if (in.nextToken() != StreamTokenizer.TT_WORD) {
+                        throw new IOException("Empty input redirect");
+                    }
+                    // Set input to file
+                    break;
+                case '>':
+                    if (in.nextToken() != StreamTokenizer.TT_WORD) {
+                        throw new IOException("Empty output redirect");
+                    }
+                    // Set output to file
+                    break;
+                case StreamTokenizer.TT_EOL:
+                case StreamTokenizer.TT_EOF:
+                    in.pushBack();
+                    done = true;
+                    break;
+                case '"':
+                case '\'':
+                case StreamTokenizer.TT_WORD:
+                    word = in.sval;
+                    break;
+                default:
+                    throw new IOException("Unknown token: " + in.ttype);
+                }
+            }
+        }
+        args = (String[]) vargs.toArray(new String[vargs.size()]);
     }
-    String word;
-    String [] aliasBuf = null;
-    int aliasPos;
-    if (aliases != null && (aliasBuf = (String []) aliases.get(in.sval)) != null) {
-      word = aliasBuf[0];
-      aliasPos = 1;
-    } else {
-      word = in.sval;
-      aliasPos = 0;
+
+    public void runThreaded() {
+        String gname = commandGroupRef != null ? (String) commandGroupRef
+                .getProperty("groupName") : SessionCommandGroup.NAME;
+
+        thread = new Thread(this, "Console cmd: " + gname
+                + (args.length == 0 ? "" : "/" + args[0]));
+
+        thread.start();
+
     }
-    if ("".equals(groupName) || word.startsWith("/")) {
-      if (word.startsWith("/"))
-	word = word.substring(1);
-      commandGroupRef = matchCommandGroup(bc, word);
-      word = null;
-    } else {
-      if (SessionCommandGroup.NAME.equals(groupName)) {
-	commandGroupRef = null;
-      } else {
-	ServiceReference [] refs = null;
-	try {
-	  refs = bc.getServiceReferences(COMMAND_GROUP, "(groupName=" + groupName + ")");
-	} catch (InvalidSyntaxException ignore) { }
-	if (refs == null) {
-	  throw new IOException("No such command group: " + groupName);
-	}
-	commandGroupRef = refs[0];
-      }
+
+    public synchronized void run() {
+        bc.addServiceListener(this);
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                CommandGroup cg;
+                if (commandGroupRef != null) {
+                    cg = (CommandGroup) bc.getService(commandGroupRef);
+                    if (cg == null) {
+                        status = -2;
+                        return null;
+                    }
+                } else {
+                    cg = sessionCommandGroup;
+                }
+                if (out instanceof PrintWriter) {
+                    status = cg.execute(args, in, (PrintWriter) out, session);
+                } else {
+                    status = cg
+                            .execute(args, in, new PrintWriter(out), session);
+                }
+                if (commandGroupRef != null) {
+                    bc.ungetService(commandGroupRef);
+                }
+                if (out instanceof Pipe) {
+                    try {
+                        out.close();
+                    } catch (IOException ignore) {
+                    }
+                }
+                return null;
+            }
+        });
+        bc.removeServiceListener(this);
     }
-    ArrayList vargs = new ArrayList();
-    boolean done = false;
-    while (!done) {
-      if (word != null) {
-	vargs.add(word);
-	word = null;
-      } else if (aliasPos > 0) {
-	if (aliasPos < aliasBuf.length) {
-	  word = aliasBuf[aliasPos++];
-	} else {
-	  aliasPos = 0;
-	}
-      } else {
-	switch (in.nextToken()) {
-	case '|':
-	  out = new Pipe();
-	  isPiped = true;
-	  done = true;
-	  break;
-	case '&':
-	  isBackground = true;
-	case ';':
-	  done = true;
-	  break;
-	case '<':
-	  if (in.nextToken() != StreamTokenizer.TT_WORD) {
-	    throw new IOException("Empty input redirect");
-	  }
-	  // Set input to file
-	  break;
-	case '>':
-	  if (in.nextToken() != StreamTokenizer.TT_WORD) {
-	    throw new IOException("Empty output redirect");
-	  }
-	  // Set output to file
-	  break;
-	case StreamTokenizer.TT_EOL:
-	case StreamTokenizer.TT_EOF:
-	  in.pushBack();
-	  done = true;
-	  break;
-	case '"':
-	case '\'':
-	case StreamTokenizer.TT_WORD:
-	  word = in.sval;
-	  break;
-	default:
-	  throw new IOException("Unknown token: " + in.ttype);
-	}
-      }
+
+    public void serviceChanged(ServiceEvent e) {
+        if (e.getServiceReference() == commandGroupRef) {
+            synchronized (this) {
+                // Wait for run command
+            }
+        }
     }
-    args = (String []) vargs.toArray(new String [vargs.size()]);
-  }
 
-  public void runThreaded() {
-    String gname = commandGroupRef != null ?
-      (String)commandGroupRef.getProperty("groupName") :
-      SessionCommandGroup.NAME;
-    
-    thread = new Thread(this, "Console cmd: " + gname + (args.length == 0 ? "" : "/" + args[0]));
-
-    thread.start();
-
-  }
-
-  public synchronized void run() {
-    bc.addServiceListener(this);
-    AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  CommandGroup cg;
-	  if (commandGroupRef != null) {
-	    cg = (CommandGroup) bc.getService(commandGroupRef);
-	    if (cg == null) {
-	      status = -2;
-	      return null;
-	    }
-	  } else {
-	    cg = sessionCommandGroup;
-	  }
-	  if (out instanceof PrintWriter) {
-	    status = cg.execute(args, in, (PrintWriter)out, session);
-	  } else {
-	    status = cg.execute(args, in, new PrintWriter(out), session);
-	  }
-	  if (commandGroupRef != null) {
-	    bc.ungetService(commandGroupRef);
-	  }
-	  if (out instanceof Pipe) {
-	    try {
-	      out.close();
-	    } catch (IOException ignore) { }
-	  }
-	  return null;
-	}
-      });
-    bc.removeServiceListener(this);
-  }
-
-  public void serviceChanged(ServiceEvent e) {
-    if (e.getServiceReference() == commandGroupRef) {
-      synchronized (this) {
-	// Wait for run command
-      }
+    static ServiceReference matchCommandGroup(BundleContext bc, String word)
+            throws IOException {
+        ServiceReference res = null;
+        ServiceReference[] refs = null;
+        try {
+            refs = bc.getServiceReferences(COMMAND_GROUP, "(groupName=" + word
+                    + "*)");
+        } catch (InvalidSyntaxException ignore) {
+        }
+        if (refs != null) {
+            if (refs.length == 1) {
+                res = refs[0];
+            } else if (refs.length > 1) {
+                for (int i = 0; i < refs.length; i++) {
+                    if (word.equals(refs[i].getProperty("groupName"))) {
+                        res = refs[i];
+                        break;
+                    }
+                }
+            }
+        }
+        if (SessionCommandGroup.NAME.startsWith(word)) {
+            if (refs == null || SessionCommandGroup.NAME.equals(word)) {
+                return null;
+            }
+        } else if (res != null) {
+            return res;
+        } else if (refs == null) {
+            throw new IOException("No such command group: " + word);
+        }
+        throw new IOException("Several command groups starting with: " + word);
     }
-  }
-
-
-  static ServiceReference matchCommandGroup(BundleContext bc, String word) 
-    throws IOException
-  {
-    ServiceReference res = null;
-    ServiceReference [] refs = null;
-    try {
-      refs = bc.getServiceReferences(COMMAND_GROUP, "(groupName=" + word + "*)");
-    } catch (InvalidSyntaxException ignore) { }
-    if (refs != null) {
-      if (refs.length == 1) {
-	res = refs[0];
-      } else if (refs.length > 1) {
-	for (int i = 0; i < refs.length; i++) {
-	  if (word.equals(refs[i].getProperty("groupName"))) {
-	    res = refs[i];
-	    break;
-	  }
-	}
-      }
-    }
-    if (SessionCommandGroup.NAME.startsWith(word)) {
-      if (refs == null || SessionCommandGroup.NAME.equals(word)) {
-	return null;
-      }
-    } else if (res != null) {
-      return res;
-    } else if (refs == null) {
-      throw new IOException("No such command group: " + word);
-    }
-    throw new IOException("Several command groups starting with: " + word);
-  }
 
 }

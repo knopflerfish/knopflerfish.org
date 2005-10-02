@@ -34,132 +34,137 @@
 
 package org.knopflerfish.bundle.console;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
-
-//  ********************     BundleDependentsCommand     ********************
+// ******************** BundleDependentsCommand ********************
 /**
  * 
- *
+ * 
  * @author Jan Stein
  * @version $Revision: 1.1.1.1 $
  */
 class Alias extends Hashtable {
-  
-  public String getString(String key) {
-    String [] a = (String [])get(key);
-    if (a != null) {
-      StringBuffer sb = new StringBuffer();
-      sb.append(a[0]);
-      for (int i = 1; i < a.length; i++) {
-	sb.append(" ");
-	sb.append(a[i]);
-      }
-      return sb.toString();
+
+    private static final long serialVersionUID = 1L;
+
+    public String getString(String key) {
+        String[] a = (String[]) get(key);
+        if (a != null) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(a[0]);
+            for (int i = 1; i < a.length; i++) {
+                sb.append(" ");
+                sb.append(a[i]);
+            }
+            return sb.toString();
+        }
+        return null;
     }
-    return null;
-  }
 
+    void save(OutputStream out) {
+        try {
+            Properties props = new Properties();
+            for (Enumeration e = keys(); e.hasMoreElements();) {
+                String k = (String) e.nextElement();
+                String[] a = (String[]) get(k);
 
-  void save(OutputStream out) {
-    try {
-      Properties props = new Properties();
-      for (Enumeration e = keys(); e.hasMoreElements(); ) {
-	String   k = (String) e.nextElement();
-	String[] a = (String[])get(k);
-	
-	StringBuffer sb = new StringBuffer();
-	
-	for (int i = 0; i < a.length; i++) {
-	  sb.append(a[i].trim());
-	  if(i < a.length - 1) {
-	    sb.append(" ");
-	  }
-	}
-	props.put(k.trim(), sb.toString());
-      }
-      props.save(out, "aliases");
-    } finally {
-      try {out.close(); } catch (Exception ignored) { }
+                StringBuffer sb = new StringBuffer();
+
+                for (int i = 0; i < a.length; i++) {
+                    sb.append(a[i].trim());
+                    if (i < a.length - 1) {
+                        sb.append(" ");
+                    }
+                }
+                props.put(k.trim(), sb.toString());
+            }
+            props.save(out, "aliases");
+        } finally {
+            try {
+                out.close();
+            } catch (Exception ignored) {
+            }
+        }
     }
-  }
 
-  void restore(InputStream in) throws IOException {
-    try {
-      Properties props = new Properties();
-      props.load(in);
-      for (Enumeration e = props.keys(); e.hasMoreElements(); ) {
-	String   k    = (String)e.nextElement();
-	String   args = (String)props.get(k);
-	
-	StringTokenizer st = new StringTokenizer(args," ");
-	String[] a         = new String[st.countTokens()];
-	for (int i = 0; i < a.length; i++) {
-	  a[i] = st.nextToken();
-	}
-	put(k, a);
-      }
-    } finally {
-      try { in.close(); } catch (Exception ignored) { }
+    void restore(InputStream in) throws IOException {
+        try {
+            Properties props = new Properties();
+            props.load(in);
+            for (Enumeration e = props.keys(); e.hasMoreElements();) {
+                String k = (String) e.nextElement();
+                String args = (String) props.get(k);
+
+                StringTokenizer st = new StringTokenizer(args, " ");
+                String[] a = new String[st.countTokens()];
+                for (int i = 0; i < a.length; i++) {
+                    a[i] = st.nextToken();
+                }
+                put(k, a);
+            }
+        } finally {
+            try {
+                in.close();
+            } catch (Exception ignored) {
+            }
+        }
     }
-  }
 
-  void cgalias(String group, String [] cmds) {
-    for (int i = 0; i < cmds.length; i++) {
-      put(cmds[i], new String [] { group, cmds[i] });
+    void cgalias(String group, String[] cmds) {
+        for (int i = 0; i < cmds.length; i++) {
+            put(cmds[i], new String[] { group, cmds[i] });
+        }
     }
-  }
 
-  void setDefault() {
-    clear();
+    void setDefault() {
+        clear();
 
-    cgalias("/session", new String [] {
-      "alias", "echo", "enter", "leave", "help",
-      "prompt", "quit", "source", "unalias", "save", "restore",
-    });
+        cgalias("/session", new String[] { "alias", "echo", "enter", "leave",
+                "help", "prompt", "quit", "source", "unalias", "save",
+                "restore", });
 
-    String aliasFile = System.getProperty("org.knopflerfish.console.alias.file");
-    if(aliasFile != null && !"".equals(aliasFile)) {
-      File file = new File(aliasFile);
-      if(file.exists()) {
-	try {
-	  restore(new FileInputStream(aliasFile));
-	} catch (Exception e) {
-	  System.err.println("Failed to restore aliases from " + aliasFile);
-	}
-	return;
-      }  else {
-	System.out.println("default alias file " + file.getAbsolutePath() + 
-			   " does not exists, using internal defaults");
-      }
+        String aliasFile = System
+                .getProperty("org.knopflerfish.console.alias.file");
+        if (aliasFile != null && !"".equals(aliasFile)) {
+            File file = new File(aliasFile);
+            if (file.exists()) {
+                try {
+                    restore(new FileInputStream(aliasFile));
+                } catch (Exception e) {
+                    System.err.println("Failed to restore aliases from "
+                            + aliasFile);
+                }
+                return;
+            }
+            System.out.println("default alias file " + file.getAbsolutePath()
+                    + " does not exists, using internal defaults");
+        }
+
+        cgalias("/framework", new String[] { "bundles", "install", "start",
+                "stop", "update", "refresh", "services", "startlevel",
+                "shutdown", });
+        // shortcuts
+        put("fw", new String[] { "/session", "enter", "framework" });
+
+        // backward compability
+        put("log", new String[] { "/log", "show" });
+        put("lsb", new String[] { "/framework", "bundles", "-i" });
+        put("lss", new String[] { "/framework", "services" });
+
+        // Oscar compatability
+        put("exports", new String[] { "/framework", "package", "-b" });
+        put("ps", new String[] { "/framework", "bundles", "-i" });
+        put("cd", new String[] { "/framework", "cd" });
+
+        // JES compatability
+        put("manifest", new String[] { "/framework", "headers" });
     }
-    
-    cgalias("/framework", new String [] {
-      "bundles", 
-      "install", 
-      "start", 
-      "stop", 
-      "update", 
-      "refresh",
-      "services",
-      "startlevel",
-      "shutdown",
-    });
-    // shortcuts
-    put("fw", new String [] { "/session", "enter", "framework" });
-    
-    // backward compability
-    put("log",     new String [] { "/log", "show" });
-    put("lsb",     new String [] { "/framework", "bundles", "-i" });
-    put("lss",     new String [] { "/framework", "services" });
-    
-    // Oscar compatability
-    put("exports", new String [] { "/framework", "package", "-b" });
-    put("ps",      new String [] { "/framework", "bundles", "-i" });
-    put("cd",      new String [] { "/framework", "cd" });
-    
-    // JES compatability
-    put("manifest", new String [] { "/framework", "headers" });
-  }
 }
