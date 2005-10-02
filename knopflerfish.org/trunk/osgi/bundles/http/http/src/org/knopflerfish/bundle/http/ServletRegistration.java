@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.http;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -45,65 +44,61 @@ import javax.servlet.ServletException;
 
 import org.osgi.service.http.HttpContext;
 
-
 public class ServletRegistration implements Registration {
 
-  // private fields
+    // private fields
 
-  private final ServletContextManager contextManager;
-  private final Registrations registrations;
-  private final RequestDispatcherImpl dispatcher;
+    private final ServletContextManager contextManager;
 
+    private final Registrations registrations;
 
-  // constructors
+    private final RequestDispatcherImpl dispatcher;
 
-  public ServletRegistration(final String alias,
-                             final Servlet servlet,
-                             Dictionary parameters,
-                             final HttpContext httpContext,
-                             final ServletContextManager contextManager,
-                             final Registrations registrations)
-      throws ServletException {
+    // constructors
 
-    if (parameters == null)
-      parameters = new Hashtable();
+    public ServletRegistration(final String alias, final Servlet servlet,
+            Dictionary parameters, final HttpContext httpContext,
+            final ServletContextManager contextManager,
+            final Registrations registrations) throws ServletException {
 
-    if (parameters.get(HttpUtil.SERVLET_NAME_KEY) == null)
-      parameters.put(HttpUtil.SERVLET_NAME_KEY,
-                     servlet.getClass().getName());
+        if (parameters == null)
+            parameters = new Hashtable();
 
-    this.contextManager = contextManager;
-    this.registrations = registrations;
+        if (parameters.get(HttpUtil.SERVLET_NAME_KEY) == null)
+            parameters.put(HttpUtil.SERVLET_NAME_KEY, servlet.getClass()
+                    .getName());
 
-    final ServletContext context =
-        contextManager.getServletContext(httpContext, null);
-    final ServletConfig config = new ServletConfigImpl(parameters, context);
-    servlet.init(config);
+        this.contextManager = contextManager;
+        this.registrations = registrations;
 
-    dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext);
+        final ServletContext context = contextManager.getServletContext(
+                httpContext, null);
+        final ServletConfig config = new ServletConfigImpl(parameters, context);
+        servlet.init(config);
 
-    registrations.addServlet(servlet);
-  }
+        dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext);
 
+        registrations.addServlet(servlet);
+    }
 
-  // implements Registration
+    // implements Registration
 
-  public RequestDispatcherImpl getRequestDispatcher(final String uri) {
+    public RequestDispatcherImpl getRequestDispatcher(final String uri) {
 
-    dispatcher.setURI(uri);
+        dispatcher.setURI(uri);
 
-    return dispatcher;
-  }
+        return dispatcher;
+    }
 
-  public void destroy() {
+    public void destroy() {
 
-    final Servlet servlet = dispatcher.getServlet();
-    final ServletContext context =
-        servlet.getServletConfig().getServletContext();
-    servlet.destroy();
-    contextManager.ungetServletContext(context);
+        final Servlet servlet = dispatcher.getServlet();
+        final ServletContext context = servlet.getServletConfig()
+                .getServletContext();
+        servlet.destroy();
+        contextManager.ungetServletContext(context);
 
-    registrations.removeServlet(servlet);
-  }
+        registrations.removeServlet(servlet);
+    }
 
 } // ServletRegistration

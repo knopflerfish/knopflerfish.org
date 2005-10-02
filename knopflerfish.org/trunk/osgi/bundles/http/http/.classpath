@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" excluding="**/.svn/**|**/CVS/**" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.EXECUTION_ENVIRONMENT_CONTAINER"/>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.FRAMEWORK_CONTAINER">
+		<accessrules>
+			<accessrule kind="accessible" pattern="**/*"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/cm"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/log"/>
+	<classpathentry kind="lib" path="C:/Projects/Knopflerfish/knopflerfish.org/osgi/bundles/jsdk/resources/servlet.jar"/>
+	<classpathentry kind="output" path="out"/>
+</classpath>

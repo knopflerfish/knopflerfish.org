@@ -36,35 +36,31 @@ package org.knopflerfish.bundle.http;
 
 import javax.servlet.Servlet;
 
-
 public class PoolableServletWrapper implements PoolableObject {
 
-  // private fields
+    // private fields
 
-  private final Servlet servlet;
+    private final Servlet servlet;
 
+    // constructors
 
-  // constructors
+    PoolableServletWrapper(final Servlet servlet) {
+        this.servlet = servlet;
+    }
 
-  PoolableServletWrapper(final Servlet servlet) {
-    this.servlet = servlet;
-  }
+    // public methods
 
+    public Servlet getServlet() {
+        return servlet;
+    }
 
-  // public methods
+    // implements PoolableObject
 
-  public Servlet getServlet() {
-    return servlet;
-  }
+    public void init() {
+    }
 
-
-  // implements PoolableObject
-
-  public void init() {
-  }
-
-  public void destroy() {
-    servlet.destroy();
-  }
+    public void destroy() {
+        servlet.destroy();
+    }
 
 } // PoolableServletWrapper

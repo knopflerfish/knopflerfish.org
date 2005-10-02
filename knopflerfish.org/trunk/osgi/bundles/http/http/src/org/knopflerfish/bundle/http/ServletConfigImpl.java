@@ -40,44 +40,42 @@ import java.util.Enumeration;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
-
 public class ServletConfigImpl implements ServletConfig {
 
-  // private fields
+    // private fields
 
-  private final Dictionary parameters;
-  private final ServletContext context;
-  private final String servletName;
+    private final Dictionary parameters;
 
+    private final ServletContext context;
 
-  // constructors
+    private final String servletName;
 
-  public ServletConfigImpl(final Dictionary parameters,
-                           final ServletContext context) {
+    // constructors
 
-    this.parameters = parameters;
-    this.context = context;
-    this.servletName =
-        (String) parameters.get(HttpUtil.SERVLET_NAME_KEY);
-  }
+    public ServletConfigImpl(final Dictionary parameters,
+            final ServletContext context) {
 
+        this.parameters = parameters;
+        this.context = context;
+        this.servletName = (String) parameters.get(HttpUtil.SERVLET_NAME_KEY);
+    }
 
-  // implements ServletConfig
+    // implements ServletConfig
 
-  public String getInitParameter(final String name) {
-    return (String) parameters.get(name);
-  }
+    public String getInitParameter(final String name) {
+        return (String) parameters.get(name);
+    }
 
-  public Enumeration getInitParameterNames() {
-    return parameters.keys();
-  }
+    public Enumeration getInitParameterNames() {
+        return parameters.keys();
+    }
 
-  public ServletContext getServletContext() {
-    return context;
-  }
+    public ServletContext getServletContext() {
+        return context;
+    }
 
-  public String getServletName() {
-    return servletName;
-  }
+    public String getServletName() {
+        return servletName;
+    }
 
 } // ServletConfigImpl

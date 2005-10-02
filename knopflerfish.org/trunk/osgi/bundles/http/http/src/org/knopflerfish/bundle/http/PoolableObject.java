@@ -34,10 +34,10 @@
 
 package org.knopflerfish.bundle.http;
 
-
 public interface PoolableObject {
 
-  public void init();
-  public void destroy();
+    public void init();
+
+    public void destroy();
 
 } // PoolableObject

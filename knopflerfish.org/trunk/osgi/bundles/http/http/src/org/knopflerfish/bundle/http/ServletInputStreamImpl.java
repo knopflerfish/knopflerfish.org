@@ -34,69 +34,71 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.servlet.ServletInputStream;
 
-
 public class ServletInputStreamImpl extends ServletInputStream {
 
-  private boolean isLimited = false;
-  private volatile int available;
-  private final InputStream is;
-  private byte[] lineBuffer = null;
+    private boolean isLimited = false;
 
-  public ServletInputStreamImpl(final InputStream is) {
-    this(is, -1);
-  }
+    private volatile int available;
 
-  public ServletInputStreamImpl(final InputStream is, final int available) {
+    private final InputStream is;
 
-    this.is = is;
+    private byte[] lineBuffer = null;
 
-    setLimit(available);
-  }
-
-  public void setLimit(int available) {
-
-    this.available = available;
-    this.isLimited = available != -1;
-  }
-
-  public int read() throws IOException {
-
-    if (isLimited && --available < 0)
-      return -1;
-
-    return is.read();
-  }
-
-  public String readLine() throws IOException {
-
-    if (lineBuffer == null)
-      lineBuffer = new byte[127];
-
-    int count = readLine(lineBuffer, 0, lineBuffer.length);
-    int offset = count;
-
-    while (count > 0 &&
-           offset == lineBuffer.length &&
-           lineBuffer[offset - 1] != '\n') {
-      // double the size of the buffer
-      byte[] tmp = new byte[offset * 2 + 1];
-      System.arraycopy(lineBuffer, 0, tmp, 0, offset);
-      lineBuffer = tmp;
-      tmp = null;
-
-      count = readLine(lineBuffer, offset, lineBuffer.length - offset);
-      offset += count;
+    public ServletInputStreamImpl(final InputStream is) {
+        this(is, -1);
     }
 
-    if (count == -1)
-      throw new IOException("End of stream reached before CRLF");
+    public ServletInputStreamImpl(final InputStream is, final int available) {
 
-    return HttpUtil.newString(lineBuffer, 0, 0, offset - 2); // remove CRLF
-  }
+        this.is = is;
+
+        setLimit(available);
+    }
+
+    public void setLimit(int available) {
+
+        this.available = available;
+        this.isLimited = available != -1;
+    }
+
+    public int read() throws IOException {
+
+        if (isLimited && --available < 0)
+            return -1;
+
+        return is.read();
+    }
+
+    public String readLine() throws IOException {
+
+        if (lineBuffer == null)
+            lineBuffer = new byte[127];
+
+        int count = readLine(lineBuffer, 0, lineBuffer.length);
+        int offset = count;
+
+        while (count > 0 && offset == lineBuffer.length
+                && lineBuffer[offset - 1] != '\n') {
+            // double the size of the buffer
+            byte[] tmp = new byte[offset * 2 + 1];
+            System.arraycopy(lineBuffer, 0, tmp, 0, offset);
+            lineBuffer = tmp;
+            tmp = null;
+
+            count = readLine(lineBuffer, offset, lineBuffer.length - offset);
+            offset += count;
+        }
+
+        if (count == -1)
+            throw new IOException("End of stream reached before CRLF");
+
+        return HttpUtil.newString(lineBuffer, 0, 0, offset - 2); // remove
+                                                                    // CRLF
+    }
 
 } // ServletInputStreamImpl

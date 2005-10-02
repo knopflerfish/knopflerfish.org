@@ -46,246 +46,251 @@ import java.util.StringTokenizer;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-
 public class HeaderBase {
 
-  // private constants
+    // private constants
 
-  private static final int NO_VALUE = Integer.MIN_VALUE;
+    private static final int NO_VALUE = Integer.MIN_VALUE;
 
+    // protected constants
 
-  // protected constants
+    protected static final String CONNECTION_HEADER_KEY = "Connection";
 
-  protected static final String CONNECTION_HEADER_KEY = "Connection";
-  protected static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
-  protected static final String CONTENT_LENGTH_HEADER_KEY = "Content-Length";
-  protected static final String COOKIE_HEADER_KEY = "Cookie";
-  protected static final String DATE_HEADER_KEY = "Date";
-  protected static final String LANGUAGE_HEADER_KEY = "Accept-Language";
-  protected static final String HOST_HEADER_KEY = "Host";
+    protected static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
 
+    protected static final String CONTENT_LENGTH_HEADER_KEY = "Content-Length";
 
-  // private fields
+    protected static final String COOKIE_HEADER_KEY = "Cookie";
 
-  private final Dictionary headers = new Hashtable();
+    protected static final String DATE_HEADER_KEY = "Date";
 
-  private String contentType = null;
-  private int contentLength = NO_VALUE;
+    protected static final String LANGUAGE_HEADER_KEY = "Accept-Language";
 
-  private final Dictionary cookies = new Hashtable();
-  private final ArrayList locales = new ArrayList(3);
+    protected static final String HOST_HEADER_KEY = "Host";
 
+    // private fields
 
-  // constructors
+    private final Dictionary headers = new Hashtable();
 
-  HeaderBase() { }
+    private String contentType = null;
 
+    private int contentLength = NO_VALUE;
 
-  // public methods
+    private final Dictionary cookies = new Hashtable();
 
-  public void init(ServletInputStreamImpl in)
-      throws HttpException, IOException {
-    parseHeaders(in);
-  }
+    private final ArrayList locales = new ArrayList(3);
 
-  public void destroy() {
+    // constructors
 
-    HttpUtil.removeAll(headers);
+    HeaderBase() {
+    }
 
-    contentType = null;
-    contentLength = NO_VALUE;
+    // public methods
 
-    HttpUtil.removeAll(cookies);
-    locales.clear();
-  }
+    public void init(ServletInputStreamImpl in) throws HttpException,
+            IOException {
+        parseHeaders(in);
+    }
 
-  public String getHeader(String name) {
+    public void destroy() {
 
-    ArrayList values = (ArrayList) headers.get(name.toLowerCase());
-    if (values == null)
-      return null;
-    Iterator i = values.iterator();
-    if (i.hasNext())
-      return (String) i.next();
-    else
-      return null;
-  }
+        HttpUtil.removeAll(headers);
 
-  public Enumeration getHeaders(String name) {
+        contentType = null;
+        contentLength = NO_VALUE;
 
-    ArrayList values = (ArrayList) headers.get(name.toLowerCase());
-    if (values == null)
-      return HttpUtil.EMPTY_ENUMERATION;
+        HttpUtil.removeAll(cookies);
+        locales.clear();
+    }
 
-    return HttpUtil.enumeration(values);
-  }
+    public String getHeader(String name) {
 
-  public Dictionary getHeaders() {
-    return headers;
-  }
-
-  public String getContentType() {
-
-    if (contentType == null)
-      parseContentType();
-
-    return contentType;
-  }
-
-  public int getContentLength() {
-
-    if (contentLength == NO_VALUE)
-      contentLength = parseContentLength();
-
-    return contentLength;
-  }
-
-  public Dictionary getCookies() {
-
-    if (cookies.isEmpty())
-      parseCookies();
-
-    return cookies;
-  }
-
-  public Enumeration getLocales() {
-
-    if (locales.isEmpty())
-      parseLocales();
-
-    return HttpUtil.enumeration(locales);
-  }
-
-
-  // private methods
-
-  private void parseHeaders(ServletInputStreamImpl in)
-      throws HttpException, IOException {
-
-    String name = null;
-    String value = null;
-    ArrayList values = null;
-
-    String line = in.readLine();
-    while (line != null && line.length() > 0) {
-
-      char c = line.charAt(0);
-      if (c == ' ' || c == '\t') { // continued header value
-
-        // check not first line
-        if (!(name != null && value != null && values != null))
-          throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
-
-        // set concatenated header value
-        value = value + line.substring(1);
-        values.remove(values.size() - 1);
-        values.add(value);
-
-      } else {
-
-        int index = line.indexOf(": ");
-
-        // get header name
-        name = line.substring(0, index).trim().toLowerCase();
-
-        // get header value
-        values = (ArrayList) headers.get(name);
+        ArrayList values = (ArrayList) headers.get(name.toLowerCase());
         if (values == null)
-          values = new ArrayList();
-
-        // add header value to vector
-        value = line.substring(index + 2);
-        values.add(value);
-        headers.put(name, values);
-      }
-
-      // read next line
-      line = in.readLine();
+            return null;
+        Iterator i = values.iterator();
+        if (i.hasNext())
+            return (String) i.next();
+        return null;
     }
-  }
 
-  private void parseContentType() {
+    public Enumeration getHeaders(String name) {
 
-    contentType = getHeader(CONTENT_TYPE_HEADER_KEY);
-    // encoding = getHeader(CONTENT_TYPE_HEADER_KEY);
-  }
+        ArrayList values = (ArrayList) headers.get(name.toLowerCase());
+        if (values == null)
+            return HttpUtil.EMPTY_ENUMERATION;
 
-  private int parseContentLength() {
-
-    String headerValue = getHeader(CONTENT_LENGTH_HEADER_KEY);
-
-    if (headerValue == null)
-      return -1;
-
-    try {
-      return Integer.parseInt(headerValue);
-    } catch (NumberFormatException nfe) {
-      return -1;
+        return HttpUtil.enumeration(values);
     }
-  }
 
-  private void parseCookies() {
+    public Dictionary getHeaders() {
+        return headers;
+    }
 
-    Enumeration cookieEnumeration = getHeaders(COOKIE_HEADER_KEY);
-    while (cookieEnumeration.hasMoreElements()) {
-      String cookieString = (String) cookieEnumeration.nextElement();
+    public String getContentType() {
 
-      int version = 0;
-      String previousToken = "";
-      boolean isValue = false;
-      Cookie cookie = null;
+        if (contentType == null)
+            parseContentType();
 
-      StringTokenizer st = new StringTokenizer(cookieString, "=;,", true);
-      while (st.hasMoreElements()) {
-        String token = ((String) st.nextElement()).trim();
+        return contentType;
+    }
 
-        if (token.equals("="))
-          isValue = true;
-        else if (";,".indexOf(token) != -1)
-          isValue = false;
-        else {
-          if (isValue) {
-            if (token.charAt(0) == '\"') {
-              int index = token.indexOf('\"', 1);
-              if (index == -1) break;
-              token = token.substring(1, index);
-            }
-            if (previousToken.equals("$Version")) {
-              try {
-                version = Integer.parseInt(token);
-              } catch (Exception e) {
-                break;
-              }
-            } else if (previousToken.equals("$Path")) {
-              if (cookie == null) break;
-              cookie.setPath(token);
-            } else if (previousToken.equals("$Domain")) {
-              if (cookie == null) break;
-              cookie.setDomain(token);
+    public int getContentLength() {
+
+        if (contentLength == NO_VALUE)
+            contentLength = parseContentLength();
+
+        return contentLength;
+    }
+
+    public Dictionary getCookies() {
+
+        if (cookies.isEmpty())
+            parseCookies();
+
+        return cookies;
+    }
+
+    public Enumeration getLocales() {
+
+        if (locales.isEmpty())
+            parseLocales();
+
+        return HttpUtil.enumeration(locales);
+    }
+
+    // private methods
+
+    private void parseHeaders(ServletInputStreamImpl in) throws HttpException,
+            IOException {
+
+        String name = null;
+        String value = null;
+        ArrayList values = null;
+
+        String line = in.readLine();
+        while (line != null && line.length() > 0) {
+
+            char c = line.charAt(0);
+            if (c == ' ' || c == '\t') { // continued header value
+
+                // check not first line
+                if (!(name != null && value != null && values != null))
+                    throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
+
+                // set concatenated header value
+                value = value + line.substring(1);
+                values.remove(values.size() - 1);
+                values.add(value);
+
             } else {
-              cookie = new Cookie(previousToken, token);
-              cookie.setVersion(version);
-              cookies.put(cookie.getName(), cookie);
+
+                int index = line.indexOf(": ");
+
+                // get header name
+                name = line.substring(0, index).trim().toLowerCase();
+
+                // get header value
+                values = (ArrayList) headers.get(name);
+                if (values == null)
+                    values = new ArrayList();
+
+                // add header value to vector
+                value = line.substring(index + 2);
+                values.add(value);
+                headers.put(name, values);
             }
-          } else
-            previousToken = token;
+
+            // read next line
+            line = in.readLine();
         }
-      }
-
-    }
-  }
-
-  private void parseLocales() {
-
-    Enumeration localeEnumeration = getHeaders(LANGUAGE_HEADER_KEY);
-    while (localeEnumeration.hasMoreElements()) {
-      String localeString = (String) localeEnumeration.nextElement();
-
-      // NYI: parse locale strings
     }
 
-    if (locales.size() == 0)
-      locales.add(Locale.getDefault());
-  }
+    private void parseContentType() {
+
+        contentType = getHeader(CONTENT_TYPE_HEADER_KEY);
+        // encoding = getHeader(CONTENT_TYPE_HEADER_KEY);
+    }
+
+    private int parseContentLength() {
+
+        String headerValue = getHeader(CONTENT_LENGTH_HEADER_KEY);
+
+        if (headerValue == null)
+            return -1;
+
+        try {
+            return Integer.parseInt(headerValue);
+        } catch (NumberFormatException nfe) {
+            return -1;
+        }
+    }
+
+    private void parseCookies() {
+
+        Enumeration cookieEnumeration = getHeaders(COOKIE_HEADER_KEY);
+        while (cookieEnumeration.hasMoreElements()) {
+            String cookieString = (String) cookieEnumeration.nextElement();
+
+            int version = 0;
+            String previousToken = "";
+            boolean isValue = false;
+            Cookie cookie = null;
+
+            StringTokenizer st = new StringTokenizer(cookieString, "=;,", true);
+            while (st.hasMoreElements()) {
+                String token = ((String) st.nextElement()).trim();
+
+                if (token.equals("="))
+                    isValue = true;
+                else if (";,".indexOf(token) != -1)
+                    isValue = false;
+                else {
+                    if (isValue) {
+                        if (token.charAt(0) == '\"') {
+                            int index = token.indexOf('\"', 1);
+                            if (index == -1)
+                                break;
+                            token = token.substring(1, index);
+                        }
+                        if (previousToken.equals("$Version")) {
+                            try {
+                                version = Integer.parseInt(token);
+                            } catch (Exception e) {
+                                break;
+                            }
+                        } else if (previousToken.equals("$Path")) {
+                            if (cookie == null)
+                                break;
+                            cookie.setPath(token);
+                        } else if (previousToken.equals("$Domain")) {
+                            if (cookie == null)
+                                break;
+                            cookie.setDomain(token);
+                        } else {
+                            cookie = new Cookie(previousToken, token);
+                            cookie.setVersion(version);
+                            cookies.put(cookie.getName(), cookie);
+                        }
+                    } else
+                        previousToken = token;
+                }
+            }
+
+        }
+    }
+
+    private void parseLocales() {
+
+        Enumeration localeEnumeration = getHeaders(LANGUAGE_HEADER_KEY);
+        while (localeEnumeration.hasMoreElements()) {
+            // String localeString = (String) localeEnumeration.nextElement();
+
+            // NYI: parse locale strings
+        }
+
+        if (locales.size() == 0)
+            locales.add(Locale.getDefault());
+    }
 
 } // HeaderBase

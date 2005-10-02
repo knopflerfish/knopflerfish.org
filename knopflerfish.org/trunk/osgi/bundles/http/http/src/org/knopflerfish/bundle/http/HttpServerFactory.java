@@ -35,105 +35,104 @@
 package org.knopflerfish.bundle.http;
 
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Hashtable;
 
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
-import org.knopflerfish.service.log.LogRef;
-
 
 public class HttpServerFactory implements ManagedServiceFactory {
 
-  final static String DEFAULT_PID = Activator.FACTORY_PID + ".default";
-  // private fields
+    final static String DEFAULT_PID = Activator.FACTORY_PID + ".default";
 
-  private final BundleContext bc;
-  private final LogRef log;
+    // private fields
 
-  private final Dictionary servers = new Hashtable();
+    private final BundleContext bc;
 
+    private final LogRef log;
 
-  // constructors
+    private final Dictionary servers = new Hashtable();
 
-  HttpServerFactory(final BundleContext bc, final LogRef log) {
+    // constructors
 
-    this.bc  = bc;
-    this.log = log;
-  }
+    HttpServerFactory(final BundleContext bc, final LogRef log) {
 
-
-  // public methods
-
-  public void destroy() {
-
-    Enumeration e = servers.keys();
-    while (e.hasMoreElements())
-      deleted((String) e.nextElement());
-  }
-
-
-  // implements ManagedServiceFactory
-
-  Object updateLock = new Object();
-
-  public void updated(String pid, Dictionary configuration)
-      throws ConfigurationException {
-
-    synchronized(updateLock) {
-      if(log.doDebug()) {
-	log.debug("Updated pid=" + pid);
-      }
-      
-      if(DEFAULT_PID.equals(pid) && servers.size() > 0) {
-	if(log.doDebug()) {
-	  log.debug("Skip default since we already have something");
-	}
-	return;
-      }
-      
-      // As soon as we get a "non-default"-config, delete default
-      if(!DEFAULT_PID.equals(pid)  && (null != servers.get(DEFAULT_PID))) {
-	if(log.doDebug()) {
-	  log.debug("Overriding default instance with new pid " + pid);
-	}
-	deleted(DEFAULT_PID);
-      }
-      
-      HttpServer httpServer = (HttpServer) servers.get(pid);
-      if (httpServer == null) {
-	if(log.doDebug()) {
-	  log.debug("create pid=" + pid);
-	}
-	httpServer = new HttpServer(bc, new HttpConfig(configuration), log);
-	servers.put(pid, httpServer);
-
-	// registration is moved to HttpServer.update()
-      } else {
-	httpServer.getHttpConfig().updated(configuration);
-      }
-      
-      // this will setup and possibly register the actual service
-      httpServer.updated();
+        this.bc = bc;
+        this.log = log;
     }
-  }
 
-  public void deleted(String pid) {
+    // public methods
 
-    HttpServer httpServer = (HttpServer) servers.remove(pid);
-    if (httpServer != null) {
-      if(log.doDebug()) {
-	log.debug("delete pid=" + pid);
-      }
-      httpServer.destroy();
+    public void destroy() {
+
+        Enumeration e = servers.keys();
+        while (e.hasMoreElements())
+            deleted((String) e.nextElement());
     }
-  }
 
-  public String getName() {
-    return "Knopflerfish HTTP Service"; // NYI
-  }
+    // implements ManagedServiceFactory
+
+    Object updateLock = new Object();
+
+    public void updated(String pid, Dictionary configuration)
+            throws ConfigurationException {
+
+        synchronized (updateLock) {
+            if (log.doDebug()) {
+                log.debug("Updated pid=" + pid);
+            }
+
+            if (DEFAULT_PID.equals(pid) && servers.size() > 0) {
+                if (log.doDebug()) {
+                    log.debug("Skip default since we already have something");
+                }
+                return;
+            }
+
+            // As soon as we get a "non-default"-config, delete default
+            if (!DEFAULT_PID.equals(pid) && (null != servers.get(DEFAULT_PID))) {
+                if (log.doDebug()) {
+                    log
+                            .debug("Overriding default instance with new pid "
+                                    + pid);
+                }
+                deleted(DEFAULT_PID);
+            }
+
+            HttpServer httpServer = (HttpServer) servers.get(pid);
+            if (httpServer == null) {
+                if (log.doDebug()) {
+                    log.debug("create pid=" + pid);
+                }
+                httpServer = new HttpServer(bc, new HttpConfig(configuration),
+                        log);
+                servers.put(pid, httpServer);
+
+                // registration is moved to HttpServer.update()
+            } else {
+                httpServer.getHttpConfig().updated(configuration);
+            }
+
+            // this will setup and possibly register the actual service
+            httpServer.updated();
+        }
+    }
+
+    public void deleted(String pid) {
+
+        HttpServer httpServer = (HttpServer) servers.remove(pid);
+        if (httpServer != null) {
+            if (log.doDebug()) {
+                log.debug("delete pid=" + pid);
+            }
+            httpServer.destroy();
+        }
+    }
+
+    public String getName() {
+        return "Knopflerfish HTTP Service"; // NYI
+    }
 
 } // HttpServerFactory

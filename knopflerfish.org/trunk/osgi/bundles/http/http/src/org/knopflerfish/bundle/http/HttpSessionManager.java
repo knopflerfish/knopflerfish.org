@@ -41,144 +41,146 @@ import java.util.Stack;
 
 import javax.servlet.http.HttpSession;
 
-
 public class HttpSessionManager implements Runnable {
 
-  // private constants
+    // private constants
 
-  private final static int CHECK_INTERVAL = 60;
+    private final static int CHECK_INTERVAL = 60;
 
+    // private fields
 
-  // private fields
+    private final HttpConfig httpConfig;
 
-  private final HttpConfig httpConfig;
-  private final Thread sessionTimeoutThread;
+    private final Thread sessionTimeoutThread;
 
-  private static int count = 0;
-  private boolean stopped = false;
+    private static int count = 0;
 
-  private final Dictionary sessions = new Hashtable();
-  private final Stack recycledSessions = new Stack();
+    private boolean stopped = false;
 
+    private final Dictionary sessions = new Hashtable();
 
-  // constructors
+    private final Stack recycledSessions = new Stack();
 
-  public HttpSessionManager(final HttpConfig httpConfig) {
+    // constructors
 
-    this.httpConfig = httpConfig;
+    public HttpSessionManager(final HttpConfig httpConfig) {
 
-    sessionTimeoutThread = new Thread(this, "HttpServer-SessionTimeout");
-    sessionTimeoutThread.setDaemon(true);
-    sessionTimeoutThread.start();
-  }
+        this.httpConfig = httpConfig;
 
-
-  // private methods
-
-  private void removeSession(HttpSession session) {
-
-    synchronized (sessions) {
-      sessions.remove(session.getId());
-    }
-    try {
-      session.invalidate();
-    } catch (IllegalStateException ignore) { }
-  }
-
-  private void reuseSession(HttpSessionImpl session) {
-
-    session.destroy();
-    synchronized (recycledSessions) {
-      recycledSessions.push(session);
-    }
-  }
-
-
-  // public methods
-
-  public HttpSession createHttpSession() {
-
-    HttpSessionImpl session;
-    if (recycledSessions.empty()) {
-      session = new HttpSessionImpl();
-    } else {
-      synchronized (recycledSessions) {
-        session = (HttpSessionImpl) recycledSessions.pop();
-      }
+        sessionTimeoutThread = new Thread(this, "HttpServer-SessionTimeout");
+        sessionTimeoutThread.setDaemon(true);
+        sessionTimeoutThread.start();
     }
 
-    session.init(count++);
-    session.setMaxInactiveInterval(httpConfig.getDefaultSessionTimeout());
-    synchronized (sessions) {
-      sessions.put(session.getId(), session);
+    // private methods
+
+    private void removeSession(HttpSession session) {
+
+        synchronized (sessions) {
+            sessions.remove(session.getId());
+        }
+        try {
+            session.invalidate();
+        } catch (IllegalStateException ignore) {
+        }
     }
 
-    return session;
-  }
+    private void reuseSession(HttpSessionImpl session) {
 
-  public HttpSession getHttpSession(String sessionId) {
-
-    if (sessionId == null)
-      return null;
-
-    HttpSessionImpl session;
-    synchronized (sessions) {
-      session = (HttpSessionImpl) sessions.get(sessionId);
+        session.destroy();
+        synchronized (recycledSessions) {
+            recycledSessions.push(session);
+        }
     }
-    if (session != null) {
-      synchronized (session) {
-        if (session.isExpired()) {
-          removeSession(session);
-          reuseSession(session);
-          session = null;
+
+    // public methods
+
+    public HttpSession createHttpSession() {
+
+        HttpSessionImpl session;
+        if (recycledSessions.empty()) {
+            session = new HttpSessionImpl();
         } else {
-          session.join();
+            synchronized (recycledSessions) {
+                session = (HttpSessionImpl) recycledSessions.pop();
+            }
         }
-      }
-    }
 
-    return session;
-  }
-
-  public void destroy() {
-
-    if (sessionTimeoutThread != null) {
-      stopped = true;
-      sessionTimeoutThread.interrupt();
-      try {
-        sessionTimeoutThread.join();
-      } catch (InterruptedException ignore) { }
-    }
-  }
-
-
-  // implements Runnable
-
-  public void run() {
-
-    long sleepTime = CHECK_INTERVAL * 1000;
-
-    while (!stopped) {
-
-      Enumeration sessionEnum;
-      synchronized (sessions) {
-        sessionEnum = ((Hashtable) ((Hashtable) sessions).clone()).elements();
-      }
-
-      while (sessionEnum.hasMoreElements()) {
-        HttpSessionImpl session = (HttpSessionImpl) sessionEnum.nextElement();
-        synchronized (session) {
-          if (session.isExpired()) {
-            removeSession(session);
-            reuseSession(session);
-          }
+        session.init(count++);
+        session.setMaxInactiveInterval(httpConfig.getDefaultSessionTimeout());
+        synchronized (sessions) {
+            sessions.put(session.getId(), session);
         }
-      }
 
-      try {
-        sessionTimeoutThread.sleep(sleepTime);
-      } catch (InterruptedException ignore) { }
+        return session;
     }
-  }
+
+    public HttpSession getHttpSession(String sessionId) {
+
+        if (sessionId == null)
+            return null;
+
+        HttpSessionImpl session;
+        synchronized (sessions) {
+            session = (HttpSessionImpl) sessions.get(sessionId);
+        }
+        if (session != null) {
+            synchronized (session) {
+                if (session.isExpired()) {
+                    removeSession(session);
+                    reuseSession(session);
+                    session = null;
+                } else {
+                    session.join();
+                }
+            }
+        }
+
+        return session;
+    }
+
+    public void destroy() {
+
+        if (sessionTimeoutThread != null) {
+            stopped = true;
+            sessionTimeoutThread.interrupt();
+            try {
+                sessionTimeoutThread.join();
+            } catch (InterruptedException ignore) {
+            }
+        }
+    }
+
+    // implements Runnable
+
+    public void run() {
+
+        long sleepTime = CHECK_INTERVAL * 1000;
+
+        while (!stopped) {
+
+            Enumeration sessionEnum;
+            synchronized (sessions) {
+                sessionEnum = ((Hashtable) ((Hashtable) sessions).clone())
+                        .elements();
+            }
+
+            while (sessionEnum.hasMoreElements()) {
+                HttpSessionImpl session = (HttpSessionImpl) sessionEnum
+                        .nextElement();
+                synchronized (session) {
+                    if (session.isExpired()) {
+                        removeSession(session);
+                        reuseSession(session);
+                    }
+                }
+            }
+
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException ignore) {
+            }
+        }
+    }
 
 } // HttpSessionManager

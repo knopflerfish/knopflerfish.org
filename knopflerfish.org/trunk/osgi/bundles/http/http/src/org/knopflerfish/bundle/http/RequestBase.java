@@ -34,186 +34,189 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.util.Hashtable;
-import java.util.Enumeration;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.BufferedInputStream;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpUtils;
 
-
 public class RequestBase extends HeaderBase {
 
-  // protected constants
+    // protected constants
 
-  protected static final String POST_METHOD = "POST";
-  protected static final String HTTP_1_0_PROTOCOL = "HTTP/1.0";
-  protected static final String HTTP_1_1_PROTOCOL = "HTTP/1.1";
+    protected static final String POST_METHOD = "POST";
 
-  protected static final String FORM_MIME_TYPE =
-      "application/x-www-form-urlencoded";
+    protected static final String HTTP_1_0_PROTOCOL = "HTTP/1.0";
 
+    protected static final String HTTP_1_1_PROTOCOL = "HTTP/1.1";
 
-  // private fields
+    protected static final String FORM_MIME_TYPE = "application/x-www-form-urlencoded";
 
-  private String method = null;
-  private String uri = null;
-  private String protocol = null;
-  private String queryString = null;
+    // private fields
 
-  private Hashtable queryParameters = null;
-  private Hashtable parameters = null;
+    private String method = null;
 
-  private ServletInputStreamImpl body = null;
+    private String uri = null;
 
+    private String protocol = null;
 
-  // constructors
+    private String queryString = null;
 
-  RequestBase() { }
+    private Hashtable queryParameters = null;
 
+    private Hashtable parameters = null;
 
-  // public methods
+    private ServletInputStreamImpl body = null;
 
-  public void init(InputStream is) throws HttpException, IOException {
+    // constructors
 
-    ServletInputStreamImpl in =
-        new ServletInputStreamImpl(new BufferedInputStream(is));
-
-    parseRequestLine(in);
-    super.init(in);
-
-    body = in;
-  }
-
-  public void destroy() {
-
-    method = null;
-    uri = null;
-    protocol = null;
-    queryString = null;
-
-    queryParameters = null;
-    parameters = null;
-
-    body = null;
-
-    super.destroy();
-  }
-
-  public String getMethod() {
-    return method;
-  }
-
-  public String getURI() {
-    return uri;
-  }
-
-  public String getProtocol() {
-    return protocol;
-  }
-
-  public String getQueryString() {
-    return queryString;
-  }
-
-  public Hashtable getQueryParameters() {
-
-    if (queryParameters == null)
-      queryParameters = parseQueryString();
-
-    return queryParameters;
-  }
-
-  public ServletInputStreamImpl getBody() {
-    return body;
-  }
-
-  public Hashtable getParameters() {
-
-    if (parameters == null)
-      parameters = parseParameters();
-
-    return parameters;
-  }
-
-
-  // private methods
-
-  private void parseRequestLine(ServletInputStreamImpl in)
-      throws HttpException, IOException {
-
-    String line;
-    int index;
-
-    // parse method
-    line = in.readLine();
-    index = line.indexOf(' ');
-    if (index == -1)
-      throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
-    method = line.substring(0, index);
-
-    // parse uri
-    line = line.substring(index + 1);
-    index = line.indexOf(' ');
-    if (index == -1)
-      throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
-    uri = line.substring(0, index);
-
-    // parse protocol
-    protocol = line.substring(index + 1).trim();
-
-    // parse query string
-    index = uri.indexOf('?');
-    if (index != -1) {
-      queryString = uri.substring(index + 1);
-      uri = uri.substring(0, index);
-    }
-  }
-
-  private Hashtable parseQueryString() {
-
-    if (queryString != null) {
-      try {
-        return HttpUtils.parseQueryString(queryString);
-      } catch (IllegalArgumentException ignore) { }
+    RequestBase() {
     }
 
-    return new Hashtable();
-  }
+    // public methods
 
-  private Hashtable parseParameters() {
+    public void init(InputStream is) throws HttpException, IOException {
 
-    Hashtable parameters = getQueryParameters();
+        ServletInputStreamImpl in = new ServletInputStreamImpl(
+                new BufferedInputStream(is));
 
-    if (POST_METHOD.equals(method) &&
-        FORM_MIME_TYPE.equals(getContentType())) {
-      // Check that the input stream has not been touched
-      try {
-        Hashtable p = HttpUtils.parsePostData(getContentLength(),
-                                              getBody());
-        Enumeration e = p.keys();
-        while (e.hasMoreElements()) {
-          String key = (String) e.nextElement();
-          String[] val = (String[]) p.get(key);
-          String[] valArray;
-          String oldVals[] = (String []) parameters.get(key);
-          if (oldVals == null) {
-            valArray = val;
-          } else {
-            valArray = new String[oldVals.length + val.length];
-            for (int i = 0; i < val.length; i++)
-              valArray[i] = val[i];
-            for (int i = 0; i < oldVals.length; i++)
-              valArray[val.length + i] = oldVals[i];
-          }
-          parameters.put(key, valArray);
+        parseRequestLine(in);
+        super.init(in);
+
+        body = in;
+    }
+
+    public void destroy() {
+
+        method = null;
+        uri = null;
+        protocol = null;
+        queryString = null;
+
+        queryParameters = null;
+        parameters = null;
+
+        body = null;
+
+        super.destroy();
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getURI() {
+        return uri;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public String getQueryString() {
+        return queryString;
+    }
+
+    public Hashtable getQueryParameters() {
+
+        if (queryParameters == null)
+            queryParameters = parseQueryString();
+
+        return queryParameters;
+    }
+
+    public ServletInputStreamImpl getBody() {
+        return body;
+    }
+
+    public Hashtable getParameters() {
+
+        if (parameters == null)
+            parameters = parseParameters();
+
+        return parameters;
+    }
+
+    // private methods
+
+    private void parseRequestLine(ServletInputStreamImpl in)
+            throws HttpException, IOException {
+
+        String line;
+        int index;
+
+        // parse method
+        line = in.readLine();
+        index = line.indexOf(' ');
+        if (index == -1)
+            throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
+        method = line.substring(0, index);
+
+        // parse uri
+        line = line.substring(index + 1);
+        index = line.indexOf(' ');
+        if (index == -1)
+            throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
+        uri = line.substring(0, index);
+
+        // parse protocol
+        protocol = line.substring(index + 1).trim();
+
+        // parse query string
+        index = uri.indexOf('?');
+        if (index != -1) {
+            queryString = uri.substring(index + 1);
+            uri = uri.substring(0, index);
         }
-      } catch (IllegalArgumentException ignore) { }
     }
 
-    return parameters;
-  }
+    private Hashtable parseQueryString() {
+
+        if (queryString != null) {
+            try {
+                return HttpUtils.parseQueryString(queryString);
+            } catch (IllegalArgumentException ignore) {
+            }
+        }
+
+        return new Hashtable();
+    }
+
+    private Hashtable parseParameters() {
+
+        Hashtable parameters = getQueryParameters();
+
+        if (POST_METHOD.equals(method)
+                && FORM_MIME_TYPE.equals(getContentType())) {
+            // Check that the input stream has not been touched
+            try {
+                Hashtable p = HttpUtils.parsePostData(getContentLength(),
+                        getBody());
+                Enumeration e = p.keys();
+                while (e.hasMoreElements()) {
+                    String key = (String) e.nextElement();
+                    String[] val = (String[]) p.get(key);
+                    String[] valArray;
+                    String oldVals[] = (String[]) parameters.get(key);
+                    if (oldVals == null) {
+                        valArray = val;
+                    } else {
+                        valArray = new String[oldVals.length + val.length];
+                        for (int i = 0; i < val.length; i++)
+                            valArray[i] = val[i];
+                        for (int i = 0; i < oldVals.length; i++)
+                            valArray[val.length + i] = oldVals[i];
+                    }
+                    parameters.put(key, valArray);
+                }
+            } catch (IllegalArgumentException ignore) {
+            }
+        }
+
+        return parameters;
+    }
 
 } // RequestBase

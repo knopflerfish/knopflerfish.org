@@ -35,73 +35,70 @@
 package org.knopflerfish.bundle.http;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.InvocationTargetException;
-
+import java.lang.reflect.Modifier;
 
 public class SimpleObjectPool extends ObjectPool {
 
-  // private fields
+    // private fields
 
-  private Constructor constructor;
+    private Constructor constructor;
 
+    // constructors
 
-  // constructors
+    public SimpleObjectPool(final Class clazz) {
 
-  public SimpleObjectPool(final Class clazz) {
+        super();
 
-    super();
-
-    init(clazz);
-  }
-
-  public SimpleObjectPool(final Class clazz, final int maxInstances) {
-
-    super(maxInstances);
-
-    init(clazz);
-  }
-
-  public SimpleObjectPool(final Class clazz,
-                          final int maxInstances,
-                          final int createInstances) {
-
-    super(maxInstances, createInstances);
-
-    init(clazz);
-  }
-
-
-  // private methods
-
-  private void init(final Class clazz) {
-
-    if (!clazz.isAssignableFrom(PoolableObject.class))
-      throw new IllegalArgumentException("Class must implement " +
-                                         PoolableObject.class.getName());
-    try {
-      constructor = clazz.getConstructor(null);
-    } catch (NoSuchMethodException nsme) {
-      throw new IllegalArgumentException("Class must have public default constructor");
+        init(clazz);
     }
-    if (!Modifier.isPublic(constructor.getModifiers()))
-      throw new IllegalArgumentException("Class must have public default constructor");
-  }
 
+    public SimpleObjectPool(final Class clazz, final int maxInstances) {
 
-  // extends ObjectPool
+        super(maxInstances);
 
-  protected PoolableObject createPoolableObject() {
-
-    try {
-      return (PoolableObject) constructor.newInstance(null);
-    } catch (InstantiationException e) {
-      return null;
-    } catch (IllegalAccessException e) {
-      return null;
-    } catch (InvocationTargetException e) {
-      return null;
+        init(clazz);
     }
-  }
+
+    public SimpleObjectPool(final Class clazz, final int maxInstances,
+            final int createInstances) {
+
+        super(maxInstances, createInstances);
+
+        init(clazz);
+    }
+
+    // private methods
+
+    private void init(final Class clazz) {
+
+        if (!clazz.isAssignableFrom(PoolableObject.class))
+            throw new IllegalArgumentException("Class must implement "
+                    + PoolableObject.class.getName());
+        try {
+            constructor = clazz.getConstructor(null);
+        } catch (NoSuchMethodException nsme) {
+            throw new IllegalArgumentException(
+                    "Class must have public default constructor");
+        }
+        if (!Modifier.isPublic(constructor.getModifiers()))
+            throw new IllegalArgumentException(
+                    "Class must have public default constructor");
+    }
+
+    // extends ObjectPool
+
+    protected PoolableObject createPoolableObject() {
+
+        try {
+            return (PoolableObject) constructor.newInstance(null);
+        } catch (InstantiationException e) {
+            return null;
+        } catch (IllegalAccessException e) {
+            return null;
+        } catch (InvocationTargetException e) {
+            return null;
+        }
+    }
 
 } // SimpleObjectPool

@@ -37,72 +37,69 @@ package org.knopflerfish.bundle.http;
 import java.net.MalformedURLException;
 import java.util.Hashtable;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 
 import org.osgi.service.http.HttpContext;
 
-
 public class ResourceRegistration implements Registration {
 
-  // private fields
+    // private fields
 
-  private final String alias;
-  private final HttpContext httpContext;
-  private final ServletContextManager contextManager;
-  private final ServletContext context;
-  private final ServletConfig config;
+    private final String alias;
 
+    private final HttpContext httpContext;
 
-  // constructors
+    private final ServletContextManager contextManager;
 
-  public ResourceRegistration(final String alias,
-                              final String realPath,
-                              final HttpContext httpContext,
-                              final ServletContextManager contextManager) {
+    private final ServletContext context;
 
-    this.alias = alias;
-    this.httpContext = httpContext;
-    this.contextManager = contextManager;
+    private final ServletConfig config;
 
-    context = contextManager.getServletContext(httpContext, realPath);
-    config = new ServletConfigImpl(new Hashtable(), context);
-  }
+    // constructors
 
+    public ResourceRegistration(final String alias, final String realPath,
+            final HttpContext httpContext,
+            final ServletContextManager contextManager) {
 
-  // private methods
+        this.alias = alias;
+        this.httpContext = httpContext;
+        this.contextManager = contextManager;
 
-  private boolean exists(String path) {
-
-    if (path.startsWith(alias)) {
-      try {
-        return context.getResource(path.substring(alias.length())) != null;
-      } catch (MalformedURLException ignore) { }
+        context = contextManager.getServletContext(httpContext, realPath);
+        config = new ServletConfigImpl(new Hashtable(), context);
     }
 
-    return false;
-  }
+    // private methods
 
+    private boolean exists(String path) {
 
-  // implements Registration
+        if (path.startsWith(alias)) {
+            try {
+                return context.getResource(path.substring(alias.length())) != null;
+            } catch (MalformedURLException ignore) {
+            }
+        }
 
-  public RequestDispatcherImpl getRequestDispatcher(String uri) {
+        return false;
+    }
 
-    if (!exists(uri))
-      return null;
+    // implements Registration
 
-    RequestDispatcherImpl dispatcher =
-        new RequestDispatcherImpl(alias, null, httpContext, config);
-    dispatcher.setURI(uri);
+    public RequestDispatcherImpl getRequestDispatcher(String uri) {
 
-    return dispatcher;
-  }
+        if (!exists(uri))
+            return null;
 
-  public void destroy() {
-    contextManager.ungetServletContext(context);
-  }
+        RequestDispatcherImpl dispatcher = new RequestDispatcherImpl(alias,
+                null, httpContext, config);
+        dispatcher.setURI(uri);
+
+        return dispatcher;
+    }
+
+    public void destroy() {
+        contextManager.ungetServletContext(context);
+    }
 
 } // ResourceRegistration

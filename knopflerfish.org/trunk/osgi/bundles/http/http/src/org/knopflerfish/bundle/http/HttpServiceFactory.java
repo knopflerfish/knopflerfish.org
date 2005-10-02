@@ -34,47 +34,41 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-import org.knopflerfish.service.log.LogRef;
-
-
 public class HttpServiceFactory implements ServiceFactory {
 
-  // private fields
+    // private fields
 
-  private final LogRef log;
-  private final Registrations registrations;
-  private final ServletContextManager contextManager;
+    private final LogRef log;
 
+    private final Registrations registrations;
 
-  // constructors
+    private final ServletContextManager contextManager;
 
-  public HttpServiceFactory(final LogRef log,
-                            final Registrations registrations,
-                            final ServletContextManager contextManager) {
+    // constructors
 
-    this.log = log;
-    this.registrations = registrations;
-    this.contextManager = contextManager;
-  }
+    public HttpServiceFactory(final LogRef log,
+            final Registrations registrations,
+            final ServletContextManager contextManager) {
 
+        this.log = log;
+        this.registrations = registrations;
+        this.contextManager = contextManager;
+    }
 
-  // implements ServiceFactory
+    // implements ServiceFactory
 
-  public Object getService(Bundle bundle, ServiceRegistration serviceReg) {
-    return new HttpServiceImpl(bundle, log, registrations, contextManager);
-  }
+    public Object getService(Bundle bundle, ServiceRegistration serviceReg) {
+        return new HttpServiceImpl(bundle, log, registrations, contextManager);
+    }
 
-  public void ungetService(Bundle bundle,
-                           ServiceRegistration serviceReg,
-                           Object serviceObject) {
-    ((HttpServiceImpl) serviceObject).unregisterBundle();
-  }
+    public void ungetService(Bundle bundle, ServiceRegistration serviceReg,
+            Object serviceObject) {
+        ((HttpServiceImpl) serviceObject).unregisterBundle();
+    }
 
 } // HttpServiceFactory

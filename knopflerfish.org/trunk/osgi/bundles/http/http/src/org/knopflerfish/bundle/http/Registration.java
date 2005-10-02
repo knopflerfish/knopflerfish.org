@@ -34,14 +34,12 @@
 
 package org.knopflerfish.bundle.http;
 
-import javax.servlet.RequestDispatcher;
-
-
 public interface Registration {
 
-  // public methods
+    // public methods
 
-  public RequestDispatcherImpl getRequestDispatcher(String uri);
-  public void destroy();
+    public RequestDispatcherImpl getRequestDispatcher(String uri);
+
+    public void destroy();
 
 } // Registration

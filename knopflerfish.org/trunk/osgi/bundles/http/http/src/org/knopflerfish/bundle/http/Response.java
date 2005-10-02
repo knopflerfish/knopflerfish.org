@@ -38,11 +38,10 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
-
 interface Response extends HttpServletResponse {
 
-  // public methods
+    // public methods
 
-  public OutputStream getRawOutputStream();
+    public OutputStream getRawOutputStream();
 
 } // Response
