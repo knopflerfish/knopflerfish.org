@@ -34,79 +34,81 @@
 
 package org.knopflerfish.bundle.console;
 
-import java.io.*;
-import java.util.*;
-import java.security.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.console.*;
+import org.knopflerfish.service.console.ConsoleService;
+import org.knopflerfish.service.console.Session;
+import org.osgi.framework.BundleContext;
 
 /**
  * Implementation of the service interface ConsoleService.
- *
+ * 
  * @see org.knopflerfish.service.console.ConsoleService
- * @author  Jan Stein
+ * @author Jan Stein
  */
 public class ConsoleServiceImpl implements ConsoleService {
 
-  final BundleContext bc;
+    final BundleContext bc;
 
-  Alias aliases;
+    Alias aliases;
 
-  public ConsoleServiceImpl(BundleContext bc) {
-    this.bc = bc;
+    public ConsoleServiceImpl(BundleContext bc) {
+        this.bc = bc;
 
-    aliases = new Alias();
-    aliases.setDefault();
-  }
-
-  
-  public String[] setAlias(final String key, final String[] val) {
-    String oldVal[] = 
-      (String[])AccessController.doPrivileged( new PrivilegedAction() 
-	{
-	  public Object run() {
-	    return aliases.put(key, (String[])val.clone());
-	  }
-	});
-
-    return oldVal;
-  }
-  
-  
-  /**
-   * Start a command session
-   * 
-   * @param command Command string to match against
-   * @return Session object
-   */
-  public Session runSession(String      name, 
-			    Reader      in, 
-			    PrintWriter out) throws IOException {
-    SessionImpl s = new SessionImpl(bc, name, in, out, aliases);
-    s.start();
-    return s;
-  }
-
-
-  /**
-   * Run a single command
-   * 
-   * @param commands String with command to run
-   * @return Result of commands
-   */
-  public String runCommand(String command) {
-
-    Reader       in  = new StringReader(command);
-    StringWriter buf = new StringWriter();
-    PrintWriter  out = new PrintWriter(buf);
-
-    try {
-      (new Command(bc, "", null, SessionImpl.setupTokenizer(in), in, out, null)).run();
-      out.flush();
-      return buf.toString();
-    } catch (IOException e) {
-      return "Command failed; " + e.getMessage();
+        aliases = new Alias();
+        aliases.setDefault();
     }
-  }
+
+    public String[] setAlias(final String key, final String[] val) {
+        String oldVal[] = (String[]) AccessController
+                .doPrivileged(new PrivilegedAction() {
+                    public Object run() {
+                        return aliases.put(key, val.clone());
+                    }
+                });
+
+        return oldVal;
+    }
+
+    /**
+     * Start a command session
+     * 
+     * @param command
+     *            Command string to match against
+     * @return Session object
+     */
+    public Session runSession(String name, Reader in, PrintWriter out) {
+        SessionImpl s = new SessionImpl(bc, name, in, out, aliases);
+        s.start();
+        return s;
+    }
+
+    /**
+     * Run a single command
+     * 
+     * @param commands
+     *            String with command to run
+     * @return Result of commands
+     */
+    public String runCommand(String command) {
+
+        Reader in = new StringReader(command);
+        StringWriter buf = new StringWriter();
+        PrintWriter out = new PrintWriter(buf);
+
+        try {
+            (new Command(bc, "", null, SessionImpl.setupTokenizer(in), in, out,
+                    null)).run();
+            out.flush();
+            return buf.toString();
+        } catch (IOException e) {
+            return "Command failed; " + e.getMessage();
+        }
+    }
 }

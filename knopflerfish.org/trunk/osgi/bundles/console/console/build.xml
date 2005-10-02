@@ -20,7 +20,6 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/log/cm_api-1.0.0.jar"/>
   </path>
 
   <property name="bundle.description"    value="Service system console"/>

@@ -34,94 +34,101 @@
 
 package org.knopflerfish.bundle.console;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.Reader;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.console.*;
+import org.knopflerfish.service.console.Session;
 
 /**
  * Implementation of the service interface ConsoleService.
- *
+ * 
  * @see org.knopflerfish.service.console.ConsoleService
- * @author  Jan Stein
+ * @author Jan Stein
  * @version $Revision: 1.1.1.1 $
  */
 public class ReadThread extends Thread {
 
-  Reader in;
-  Session session;
-  Pipe pipe;
-  boolean open = true;
-  char escapeChar = '\026'; // default CTRL-V 
-  String interruptString = "\003"; // default CTRL-C 
+    Reader in;
 
-  public ReadThread(Reader in, Session session) throws IOException {
-    super("Reader thread " + session.getName());
-    this.in = in;
-    this.session = session;
-    pipe = new Pipe();
-  }
+    Session session;
 
-  /**
-   * 
-   * 
-   */
-  public Reader getReader() {
-    return pipe.getReader();
-  }
+    Pipe pipe;
 
+    boolean open = true;
 
-  //
-  // Thread main
-  //
+    char escapeChar = '\026'; // default CTRL-V
 
-  /**
-   * Run
-   * 
-   * @param commands String with command to run
-   * @return Result of commands
-   */
-  public void run() {
-    boolean escape = false;
-    int ipos = 0;
-    int c;
-    while (open) {
-      try {
-	c = in.read();
-      } catch (InterruptedIOException ignore) {
-	// If we are interrupted, we check open flag and try to read again.
-	continue;
-      } catch (IOException ignore) {
-	// Treat every IO problem as EOF.
-	c = -1;
-      }
-      if (c == -1) {
-	close();
-      } else if (!escape && c == escapeChar) {
-	escape = true;
-	ipos = 0;
-      } else if (!escape && c == interruptString.charAt(ipos)) {
-	if (++ipos == interruptString.length()) {
-	  ipos = 0;
-	  session.abortCommand();
-	}
-      } else {
-	if (ipos > 0) {
-	  pipe.write(interruptString, 0, ipos);
-	  ipos = 0;
-	}
-	pipe.write(c);
-	escape = false;
-      }
+    String interruptString = "\003"; // default CTRL-C
+
+    public ReadThread(Reader in, Session session) {
+        super("Reader thread " + session.getName());
+        this.in = in;
+        this.session = session;
+        pipe = new Pipe();
     }
-    pipe.close();
-  }
 
-  /**
-   * Close this thread
-   */
-  public void close() {
-    open = false;
-    this.interrupt();
-  }
+    /**
+     * 
+     * 
+     */
+    public Reader getReader() {
+        return pipe.getReader();
+    }
+
+    //
+    // Thread main
+    //
+
+    /**
+     * Run
+     * 
+     * @param commands
+     *            String with command to run
+     * @return Result of commands
+     */
+    public void run() {
+        boolean escape = false;
+        int ipos = 0;
+        int c;
+        while (open) {
+            try {
+                c = in.read();
+            } catch (InterruptedIOException ignore) {
+                // If we are interrupted, we check open flag and try to read
+                // again.
+                continue;
+            } catch (IOException ignore) {
+                // Treat every IO problem as EOF.
+                c = -1;
+            }
+            if (c == -1) {
+                close();
+            } else if (!escape && c == escapeChar) {
+                escape = true;
+                ipos = 0;
+            } else if (!escape && c == interruptString.charAt(ipos)) {
+                if (++ipos == interruptString.length()) {
+                    ipos = 0;
+                    session.abortCommand();
+                }
+            } else {
+                if (ipos > 0) {
+                    pipe.write(interruptString, 0, ipos);
+                    ipos = 0;
+                }
+                pipe.write(c);
+                escape = false;
+            }
+        }
+        pipe.close();
+    }
+
+    /**
+     * Close this thread
+     */
+    public void close() {
+        open = false;
+        this.interrupt();
+    }
 }

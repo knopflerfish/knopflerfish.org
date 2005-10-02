@@ -34,156 +34,163 @@
 
 package org.knopflerfish.bundle.console;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 
 /**
  * Pipe between Command Input and Output.
- *
+ * 
  * @author Jan Stein
  * @version $Revision: 1.1.1.1 $
  */
 class Pipe extends PrintWriter {
-  
-  PipeBuffer pipe;
 
-  public Pipe() {
-    this(new PipeBuffer());
-  }
+    PipeBuffer pipe;
 
-  Pipe(PipeBuffer p) {
-    super(p);
-    pipe = p;
-  }
+    public Pipe() {
+        this(new PipeBuffer());
+    }
 
-  public Reader getReader() {
-    return pipe.getReader();
-  }
+    Pipe(PipeBuffer p) {
+        super(p);
+        pipe = p;
+    }
+
+    public Reader getReader() {
+        return pipe.getReader();
+    }
 
 }
 
 class PipeBuffer extends Writer {
-  
-  private static final int SIZE = 512;
-  private char [] buf = new char[SIZE];
-  private int size = 0;
-  private int rpos = 0;
-  private PipeReader pr;
-  boolean open = true;
 
-  PipeBuffer() {
-    super();
-    pr = new PipeReader(this);
-  }
+    private static final int SIZE = 512;
 
-  public void write(char cbuf[], int off, int len) throws IOException {
-    synchronized (lock) {
-      while (len > 0) {
-	while (SIZE == size) {
-	  try {
-	    lock.wait();
-	  } catch (InterruptedException e) {
-	    throw new IOException("Write interrupted");
-	  }
-	}
-	int clen;
-	if (size + len > SIZE) {
-	  clen = SIZE - size;
-	} else {
-	  clen = len;
-	}
-	int wpos = (rpos + size) % SIZE;
-	if (wpos + clen > SIZE) {
-	  clen = SIZE - wpos;
-	}
-	System.arraycopy(cbuf, off, buf, wpos, clen);
-	len -= clen;
-	off += clen;
-	size += clen;
-	lock.notifyAll();
-      }
+    private char[] buf = new char[SIZE];
+
+    private int size = 0;
+
+    private int rpos = 0;
+
+    private PipeReader pr;
+
+    boolean open = true;
+
+    PipeBuffer() {
+        super();
+        pr = new PipeReader(this);
     }
-  }
 
-  public void flush() {
-  }
-
-  public int read(char [] cbuf, int off, int len) throws IOException {
-    synchronized (lock) {
-      while (open && size < len) {
-	try {
-	  lock.wait();
-	} catch (InterruptedException e) {
-	  throw new IOException("Read interrupted");
-	}
-      }
-      if (size < len) {
-	len = size;
-      }
-      int clen;
-      if (rpos + len > SIZE) {
-	clen = SIZE - rpos;
-	System.arraycopy(buf, rpos, cbuf, off, clen);
-	rpos = 0;
-	off += clen;
-	clen = len - clen;
-      } else {
-	clen = len;
-      }
-      if (len > 0) {
-	System.arraycopy(buf, rpos, cbuf, off, clen);
-	rpos += clen;
-	size -= len;
-	lock.notifyAll();
-	int x = (int) cbuf[off];
-	return len;
-      }
-      return -1;
+    public void write(char cbuf[], int off, int len) throws IOException {
+        synchronized (lock) {
+            while (len > 0) {
+                while (SIZE == size) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        throw new IOException("Write interrupted");
+                    }
+                }
+                int clen;
+                if (size + len > SIZE) {
+                    clen = SIZE - size;
+                } else {
+                    clen = len;
+                }
+                int wpos = (rpos + size) % SIZE;
+                if (wpos + clen > SIZE) {
+                    clen = SIZE - wpos;
+                }
+                System.arraycopy(cbuf, off, buf, wpos, clen);
+                len -= clen;
+                off += clen;
+                size += clen;
+                lock.notifyAll();
+            }
+        }
     }
-  }
 
-  public void close() throws IOException {
-    synchronized (lock) {
-      open = false;
-      lock.notify();
+    public void flush() {
     }
-  }
 
-  public Reader getReader() {
-    return pr;
-  }
+    public int read(char[] cbuf, int off, int len) throws IOException {
+        synchronized (lock) {
+            while (open && size < len) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    throw new IOException("Read interrupted");
+                }
+            }
+            if (size < len) {
+                len = size;
+            }
+            int clen;
+            if (rpos + len > SIZE) {
+                clen = SIZE - rpos;
+                System.arraycopy(buf, rpos, cbuf, off, clen);
+                rpos = 0;
+                off += clen;
+                clen = len - clen;
+            } else {
+                clen = len;
+            }
+            if (len > 0) {
+                System.arraycopy(buf, rpos, cbuf, off, clen);
+                rpos += clen;
+                size -= len;
+                lock.notifyAll();
+                return len;
+            }
+            return -1;
+        }
+    }
+
+    public void close() {
+        synchronized (lock) {
+            open = false;
+            lock.notify();
+        }
+    }
+
+    public Reader getReader() {
+        return pr;
+    }
 }
-
 
 class PipeReader extends Reader {
 
-  private PipeBuffer pb;
+    private PipeBuffer pb;
 
-  public PipeReader(PipeBuffer pb) {
-    super();
-    this.pb = pb;
-  }
+    public PipeReader(PipeBuffer pb) {
+        super();
+        this.pb = pb;
+    }
 
-  /**
-   * Read characters into a portion of an array.
-   *
-   * @param buf  Output buffer
-   * @param off  Offset at which to start storing characters
-   * @param len  Maximum number of characters to read
-   * @return     The number of characters read, or -1 if end of stream
-   * @exception  IOException  If an I/O error occurs
-   */
-  public int read(char buf[], int off, int len) throws IOException {
-    return pb.read(buf, off, len);
-  }
+    /**
+     * Read characters into a portion of an array.
+     * 
+     * @param buf
+     *            Output buffer
+     * @param off
+     *            Offset at which to start storing characters
+     * @param len
+     *            Maximum number of characters to read
+     * @return The number of characters read, or -1 if end of stream
+     * @exception IOException
+     *                If an I/O error occurs
+     */
+    public int read(char buf[], int off, int len) throws IOException {
+        return pb.read(buf, off, len);
+    }
 
-  /**
-   * Close the stream.
-   *
-   * @exception  IOException  If an I/O error occurs
-   */
-  public void close() throws IOException {
-    pb.close();
-  }
+    /**
+     * Close the stream.
+     */
+    public void close() {
+        pb.close();
+    }
 
 }

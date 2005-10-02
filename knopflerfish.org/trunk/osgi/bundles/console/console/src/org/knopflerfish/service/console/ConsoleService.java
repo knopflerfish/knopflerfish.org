@@ -34,53 +34,53 @@
 
 package org.knopflerfish.service.console;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
 
 /**
- * Console service for OSG platforms. This service is meant for
- * building an extensible debug console for OSG systems.
- * The ConsoleService has two methods one for running a single
- * command and one for running a session of commands. The console
- * service can execute any command from all the exported CommandGroup
- * services in the platform.
- *
+ * Console service for OSG platforms. This service is meant for building an
+ * extensible debug console for OSG systems. The ConsoleService has two methods
+ * one for running a single command and one for running a session of commands.
+ * The console service can execute any command from all the exported
+ * CommandGroup services in the platform.
+ * 
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public interface ConsoleService {
 
-  /**
-   * Start a command session. Returns a Session object that can be
-   * used to control the session.
-   * 
-   * @param name name of session
-   * @param in input to session
-   * @param out output from session
-   * @return Session object
-   * @exception IOException if we fail to use input or output
-   */
-  public Session runSession(String name, Reader in, PrintWriter out) throws IOException;
+    /**
+     * Start a command session. Returns a Session object that can be used to
+     * control the session.
+     * 
+     * @param name
+     *            name of session
+     * @param in
+     *            input to session
+     * @param out
+     *            output from session
+     * @return Session object
+     * @exception IOException
+     *                if we fail to use input or output
+     */
+    public Session runSession(String name, Reader in, PrintWriter out)
+            throws IOException;
 
-  /**
-   * Run a command string. Here we can only execute a single
-   * command. There is no possiblity to supply any input data other
-   * than command line options and the output from the command
-   * is returned as a string. The return value from the command is
-   * discarded.
-   * 
-   * @param command command and arguments as string
-   * @return Resulting output of command
-   */
-  public String runCommand(String command);
+    /**
+     * Run a command string. Here we can only execute a single command. There is
+     * no possiblity to supply any input data other than command line options
+     * and the output from the command is returned as a string. The return value
+     * from the command is discarded.
+     * 
+     * @param command
+     *            command and arguments as string
+     * @return Resulting output of command
+     */
+    public String runCommand(String command);
 
-
-  /**
-   * Set alias value for a shortcut key.
-   */
-  public String[] setAlias(String key, String[] val);
+    /**
+     * Set alias value for a shortcut key.
+     */
+    public String[] setAlias(String key, String[] val);
 }
-
-
-
-
-
