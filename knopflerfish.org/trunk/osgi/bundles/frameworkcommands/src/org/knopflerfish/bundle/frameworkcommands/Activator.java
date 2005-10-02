@@ -34,39 +34,43 @@
 
 package org.knopflerfish.bundle.frameworkcommands;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Hashtable;
+
 import org.knopflerfish.service.console.CommandGroup;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 /**
- ** Bundle activator implementation.
- **
- ** @author Jan Stein
+ * * Bundle activator implementation. * *
+ * 
+ * @author Jan Stein
  */
 public class Activator implements BundleActivator {
 
-  final static String COMMAND_GROUP = 
-    org.knopflerfish.service.console.CommandGroup.class.getName();
+    final static String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
+            .getName();
 
+    /**
+     * Called by the framework when this bundle is started.
+     * 
+     * @param bc
+     *            Bundle context.
+     */
+    public void start(BundleContext bc) {
+        // Register framework commands
+        CommandGroup cg = new FrameworkCommandGroup(bc);
+        Hashtable props = new Hashtable();
+        props.put("groupName", cg.getGroupName());
+        bc.registerService(COMMAND_GROUP, cg, props);
+    }
 
-  /**
-   * Called by the framework when this bundle is started.
-   *
-   * @param bc Bundle context.
-   */
-  public void start(BundleContext bc) {
-    // Register framework commands
-    CommandGroup cg = new FrameworkCommandGroup(bc);
-    Hashtable props = new Hashtable();
-    props.put("groupName", cg.getGroupName());
-    bc.registerService(COMMAND_GROUP, cg, props);
-  }
-
-  /**
-   * Called by the framework when this bundle is stopped.
-   *
-   * @param bc Bundle context.
-   */
-  public void stop(BundleContext bc) { }
+    /**
+     * Called by the framework when this bundle is stopped.
+     * 
+     * @param bc
+     *            Bundle context.
+     */
+    public void stop(BundleContext bc) {
+    }
 
 }
