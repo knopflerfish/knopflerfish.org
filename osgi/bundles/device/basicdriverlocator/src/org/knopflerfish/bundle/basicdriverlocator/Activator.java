@@ -34,37 +34,40 @@
 
 package org.knopflerfish.bundle.basicdriverlocator;
 
-import org.osgi.framework.*;
-import org.osgi.service.device.*;
-import java.util.*;
+import java.util.Properties;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.device.DriverLocator;
 
 /**
  * Creates and registers a DriverLocator Service with basic file lookup.
- *
+ * 
  */
 public class Activator implements BundleActivator {
-  BasicDriverLocator basicLocator = null;
-  ServiceRegistration sr          = null;
+    BasicDriverLocator basicLocator = null;
 
-  /**
-   * Bundle is started by framework.
-   */
-  public void start(BundleContext bc) throws Exception {
+    ServiceRegistration sr = null;
 
-    basicLocator     = new BasicDriverLocator(bc);
+    /**
+     * Bundle is started by framework.
+     */
+    public void start(BundleContext bc) throws Exception {
 
-    Properties props = new Properties();
+        basicLocator = new BasicDriverLocator(bc);
 
-    sr = bc.registerService(DriverLocator.class.getName(),
-			    basicLocator,
-			    props);
-  }
+        Properties props = new Properties();
 
-  /**
-   * Bundle is stopped by framework.
-   */
-  public void stop(BundleContext bc) throws Exception {
+        sr = bc.registerService(DriverLocator.class.getName(), basicLocator,
+                props);
+    }
 
-    // Cleanup of registered service is done automatically by framework.
-  }
+    /**
+     * Bundle is stopped by framework.
+     */
+    public void stop(BundleContext bc) throws Exception {
+
+        // Cleanup of registered service is done automatically by framework.
+    }
 }
