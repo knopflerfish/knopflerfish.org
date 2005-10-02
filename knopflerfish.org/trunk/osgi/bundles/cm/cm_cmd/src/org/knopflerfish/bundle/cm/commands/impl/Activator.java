@@ -34,30 +34,30 @@
 
 package org.knopflerfish.bundle.cm.commands.impl;
 
-
-import org.knopflerfish.service.console.CommandGroup;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleContext;
 import java.util.Hashtable;
 
-public class Activator implements BundleActivator {
-  BundleContext bc;
-  ServiceRegistration sr;
-  
-  public void start(BundleContext bc) throws BundleException {
-    this.bc = bc;
-    CommandGroup cg = new CMCommands(bc);
-    Hashtable props = new Hashtable();
-    props.put("groupName", cg.getGroupName());
-    bc.registerService(CommandGroup.class.getName(), cg, props);
-  }
+import org.knopflerfish.service.console.CommandGroup;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
-  public void stop(BundleContext bc) {
-    if(sr != null) {
-      sr.unregister();
-      sr = null;
+public class Activator implements BundleActivator {
+    BundleContext bc;
+
+    ServiceRegistration sr;
+
+    public void start(BundleContext bc) {
+        this.bc = bc;
+        CommandGroup cg = new CMCommands(bc);
+        Hashtable props = new Hashtable();
+        props.put("groupName", cg.getGroupName());
+        bc.registerService(CommandGroup.class.getName(), cg, props);
     }
-  }
+
+    public void stop(BundleContext bc) {
+        if (sr != null) {
+            sr.unregister();
+            sr = null;
+        }
+    }
 }
