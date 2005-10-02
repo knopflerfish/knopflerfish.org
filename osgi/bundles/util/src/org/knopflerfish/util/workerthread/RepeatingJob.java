@@ -34,74 +34,72 @@
 
 package org.knopflerfish.util.workerthread;
 
-public abstract class RepeatingJob
-  extends Job
-{
-  private int[] delays;
-  int repeatsMade = 0;
-  private int repeatPolicy;
-  boolean quit = false;
+public abstract class RepeatingJob extends Job {
+    private int[] delays;
 
-  /**
-   *  Creates a repetetive event.  This Job still needs to be added
-   *  to an WorkerThread, but after its <code>run</code> has been called the
-   *  first time, it will add itself after a delay indicated by
-   *  <code>delays[0]</code>.  Subsequent runs will occur as
-   *  indicated by the array <code>delays</code>.  All delays are in
-   *  milliseconds.
-   *
-   * @param delays The delays (in milliseconds) to make between the
-   * calls to this RepeatingJobs <code>run()</code> method.
-   * @param repeatPolicy Indicates what to do when this
-   * RepeatingJob has been called as many times as the
-   * <code>delays</code> parameter specifies by its length.  A
-   * positive value will keep on calling the <code>run()</code> method
-   * indefinitely, each time using <code>repeatPolicy</code>
-   * milliseconds as the delay.  A negative value or zero, will cause
-   * this event not to be repeated any more.
-   **/
-  public RepeatingJob(int[] delays, int repeatPolicy) {
-    this.delays = delays;
-    this.repeatPolicy = repeatPolicy;
-  }
+    int repeatsMade = 0;
 
-  /**
-   * Internal method. Called by an WorkerThread to enable the
-   * RepeatingJob to add itself to the WorkerThread after the
-   * <code>run()</code> is called. If that method throws an Exception, no
-   * further repeats will be scheduled.
-   **/
-  final void run(WorkerThread workerthread)
-    throws Exception
-  {
-    if ( quit )
-      return;
-    run();
-    int nextdelay = repeatPolicy;
-    if ( delays != null && repeatsMade < delays.length )
-      nextdelay = delays[repeatsMade];
-    repeatsMade++;
-    if ( quit )
-      return;
-    if ( nextdelay > 0 ) 
-      workerthread.delayedJobQueueAdd(this, nextdelay);
-  }
+    private int repeatPolicy;
 
-  /**
-   *	This method can be called to stop repeating this Job.
-   **/
-  public void quit() {
-    quit = true;
-  }
+    boolean quit = false;
 
-  /**
-   *	Returns the number of successful repeats this job has made.
-   *	I.e., the number of times its run() method has been invoked
-   *	and terminated normally since it was last added to the
-   *	WorkerThread.
-   **/
-  public int getRepeatNo() {
-    return repeatsMade;
-  }
+    /**
+     * Creates a repetetive event. This Job still needs to be added to an
+     * WorkerThread, but after its <code>run</code> has been called the first
+     * time, it will add itself after a delay indicated by
+     * <code>delays[0]</code>. Subsequent runs will occur as indicated by the
+     * array <code>delays</code>. All delays are in milliseconds.
+     * 
+     * @param delays
+     *            The delays (in milliseconds) to make between the calls to this
+     *            RepeatingJobs <code>run()</code> method.
+     * @param repeatPolicy
+     *            Indicates what to do when this RepeatingJob has been called as
+     *            many times as the <code>delays</code> parameter specifies by
+     *            its length. A positive value will keep on calling the
+     *            <code>run()</code> method indefinitely, each time using
+     *            <code>repeatPolicy</code> milliseconds as the delay. A
+     *            negative value or zero, will cause this event not to be
+     *            repeated any more.
+     */
+    public RepeatingJob(int[] delays, int repeatPolicy) {
+        this.delays = delays;
+        this.repeatPolicy = repeatPolicy;
+    }
+
+    /**
+     * Internal method. Called by an WorkerThread to enable the RepeatingJob to
+     * add itself to the WorkerThread after the <code>run()</code> is called.
+     * If that method throws an Exception, no further repeats will be scheduled.
+     */
+    final void run(WorkerThread workerthread) throws Exception {
+        if (quit)
+            return;
+        run();
+        int nextdelay = repeatPolicy;
+        if (delays != null && repeatsMade < delays.length)
+            nextdelay = delays[repeatsMade];
+        repeatsMade++;
+        if (quit)
+            return;
+        if (nextdelay > 0)
+            workerthread.delayedJobQueueAdd(this, nextdelay);
+    }
+
+    /**
+     * This method can be called to stop repeating this Job.
+     */
+    public void quit() {
+        quit = true;
+    }
+
+    /**
+     * Returns the number of successful repeats this job has made. I.e., the
+     * number of times its run() method has been invoked and terminated normally
+     * since it was last added to the WorkerThread.
+     */
+    public int getRepeatNo() {
+        return repeatsMade;
+    }
 
 }

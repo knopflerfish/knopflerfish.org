@@ -34,96 +34,99 @@
 
 package org.knopflerfish.util;
 
-
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 
 /**
- * Utility class for handling common class loading cases, like wrapping
- * external libraries in the correct context class loader.
+ * Utility class for handling common class loading cases, like wrapping external
+ * libraries in the correct context class loader.
  */
 public class ClassLoaderUtil {
 
-  /**
-   * Run the specified action in a specified ContextClassLoader.
-   *
-   * <p>
-   * The <tt>doContextClassLoader</tt> sets the current thread's context 
-   * class loader to the specified <tt>classloader</tt>, calls the 
-   * action's <tt>run</tt>  method, resets the thread's context class 
-   * loader and finally returns the resulting value.
-   * </p>
-   *
-   * <p>
-   * Example:
-   * <pre>
-   * Object result = ClassLoaderUtil
-   *   .doContextClassLoader(Activator.getClass().getClassLoader(),
-   *                         new PrivilegedAction() {
-   *                           public Object run() {
-   *                             // Use external library
-   *                             // ...
-   *                             return someresult;
-   *                           }
-   *                         };
-   * </pre>
-   * where <tt>Activator</tt> is the bundle activator, or any other
-   * class loaded by the bundle class loader.
-   * </p>
-   *
-   * @param classloader Class loader to be used as the thread's context 
-   *                    class loader.
-   * @param action Action code to run in the specified class loader.<br>
-   *               The usage of the <tt>PrivilegedAction</tt> interface
-   *               is to avoid creating a new interface with exactly the
-   *               same methods. It does <b>not</b> imply that the code is run
-   *               using <tt>AccessController.doPrivileged</tt>
-   * @return       Value returned from the <tt>action.run</tt>
-   */
-  public static Object doContextClassLoader(ClassLoader classloader, 
-					    PrivilegedAction action) {
-    ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
-    
-    try {
-      Thread.currentThread().setContextClassLoader(classloader);
-      Object obj = action.run();
-      return obj;
-    } finally {
-      Thread.currentThread().setContextClassLoader(oldLoader);
-    }
-  }
+    /**
+     * Run the specified action in a specified ContextClassLoader.
+     * 
+     * <p>
+     * The <tt>doContextClassLoader</tt> sets the current thread's context
+     * class loader to the specified <tt>classloader</tt>, calls the action's
+     * <tt>run</tt> method, resets the thread's context class loader and
+     * finally returns the resulting value.
+     * </p>
+     * 
+     * <p>
+     * Example:
+     * 
+     * <pre>
+     *    Object result = ClassLoaderUtil
+     *      .doContextClassLoader(Activator.getClass().getClassLoader(),
+     *                            new PrivilegedAction() {
+     *                              public Object run() {
+     *                                // Use external library
+     *                                // ...
+     *                                return someresult;
+     *                              }
+     *                            };
+     * </pre>
+     * 
+     * where <tt>Activator</tt> is the bundle activator, or any other class
+     * loaded by the bundle class loader.
+     * </p>
+     * 
+     * @param classloader
+     *            Class loader to be used as the thread's context class loader.
+     * @param action
+     *            Action code to run in the specified class loader.<br>
+     *            The usage of the <tt>PrivilegedAction</tt> interface is to
+     *            avoid creating a new interface with exactly the same methods.
+     *            It does <b>not</b> imply that the code is run using
+     *            <tt>AccessController.doPrivileged</tt>
+     * @return Value returned from the <tt>action.run</tt>
+     */
+    public static Object doContextClassLoader(ClassLoader classloader,
+            PrivilegedAction action) {
+        ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
 
-  /**
-   * Run the specified action in a specified ContextClassLoader.
-   *
-   * <p>
-   * As above, but accepts and rethrows exceptions from the action.
-   * </p>
-   *
-   * @param classloader  Class loader to be used as the thread's context 
-   *                     class loader.
-   * @param action Action code to run in the specified class loader.<br>
-   *               The usage of the <tt>PrivilegedAction</tt> interface
-   *               is to avoid creating a new interface with exactly the
-   *               same methods. It does <b>not</b> imply that the code is run
-   *               using <tt>AccessController.doPrivileged</tt>
-   * @return       Value returned from the <tt>action.run</tt>
-   *
-   * @throws Exception if <tt>action.run</tt> throws an exception, pass this 
-   *                   upwards
-   */
-  public static Object doContextClassLoader(ClassLoader classloader, 
-					    PrivilegedExceptionAction action) 
-    throws Exception {
-
-    ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
-    
-    try {
-      Thread.currentThread().setContextClassLoader(classloader);
-      Object obj = action.run();
-      return obj;
-    } finally {
-      Thread.currentThread().setContextClassLoader(oldLoader);
+        try {
+            Thread.currentThread().setContextClassLoader(classloader);
+            Object obj = action.run();
+            return obj;
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldLoader);
+        }
     }
-  }
+
+    /**
+     * Run the specified action in a specified ContextClassLoader.
+     * 
+     * <p>
+     * As above, but accepts and rethrows exceptions from the action.
+     * </p>
+     * 
+     * @param classloader
+     *            Class loader to be used as the thread's context class loader.
+     * @param action
+     *            Action code to run in the specified class loader.<br>
+     *            The usage of the <tt>PrivilegedAction</tt> interface is to
+     *            avoid creating a new interface with exactly the same methods.
+     *            It does <b>not</b> imply that the code is run using
+     *            <tt>AccessController.doPrivileged</tt>
+     * @return Value returned from the <tt>action.run</tt>
+     * 
+     * @throws Exception
+     *             if <tt>action.run</tt> throws an exception, pass this
+     *             upwards
+     */
+    public static Object doContextClassLoader(ClassLoader classloader,
+            PrivilegedExceptionAction action) throws Exception {
+
+        ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
+
+        try {
+            Thread.currentThread().setContextClassLoader(classloader);
+            Object obj = action.run();
+            return obj;
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldLoader);
+        }
+    }
 }

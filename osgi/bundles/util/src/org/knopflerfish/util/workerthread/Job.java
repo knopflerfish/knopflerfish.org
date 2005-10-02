@@ -34,12 +34,10 @@
 
 package org.knopflerfish.util.workerthread;
 
-
-public abstract class Job implements Runnable
-{
-  /**
-   *	Called by the WorkerThread when this Job is scheduled to run.
-   **/
-  public abstract void run();
+public abstract class Job implements Runnable {
+    /**
+     * Called by the WorkerThread when this Job is scheduled to run.
+     */
+    public abstract void run();
 
 } // class Job

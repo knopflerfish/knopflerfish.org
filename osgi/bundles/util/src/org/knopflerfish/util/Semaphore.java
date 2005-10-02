@@ -35,62 +35,61 @@
 package org.knopflerfish.util;
 
 /**
- ** The <code>Semaphore</code> class handles synchronization and waiting for values.
- ** @author Johan Agat and Anders Rimen
+ * * The <code>Semaphore</code> class handles synchronization and waiting for
+ * values. *
+ * 
+ * @author Johan Agat and Anders Rimen
  */
-public class Semaphore  
-{
-  private Object value = null;
-  private boolean closed = false;
+public class Semaphore {
+    private Object value = null;
 
-  /**
-   *	Waits up to <code>timeout</code> milliseconds for this
-   *	Semaphore to receive a value.
-   *
-   * 	@return The value of the Semaphore or null if this Semaphore
-   * 	has been closed or if the specified timeout has expired.
-   **/
-  public synchronized Object get(long timeout) {
-    long until = System.currentTimeMillis() + timeout;
-    while ( !closed && value == null ) {
-      try {
-	long t = until - System.currentTimeMillis();
-	if ( t >= 0 )
-	  wait(t);
-	else
-	  return null;
-      }
-      catch (InterruptedException ignore){}
+    private boolean closed = false;
+
+    /**
+     * Waits up to <code>timeout</code> milliseconds for this Semaphore to
+     * receive a value.
+     * 
+     * @return The value of the Semaphore or null if this Semaphore has been
+     *         closed or if the specified timeout has expired.
+     */
+    public synchronized Object get(long timeout) {
+        long until = System.currentTimeMillis() + timeout;
+        while (!closed && value == null) {
+            try {
+                long t = until - System.currentTimeMillis();
+                if (t >= 0)
+                    wait(t);
+                else
+                    return null;
+            } catch (InterruptedException ignore) {
+            }
+        }
+        return value;
     }
-    return value;
-  }
 
+    /**
+     * Sets the value of this Semaphore. This will cause all blocked calls to
+     * get() to return the value. If set() is called several times with a short
+     * or no delay between the calls, the exact value returned by a given
+     * blocked call to get() is not deterministic.
+     * 
+     */
+    public synchronized void set(Object v) {
+        if (closed)
+            return;
+        value = v;
+        // setCount++;
+        notifyAll();
+    }
 
-  /**
-   *	Sets the value of this Semaphore.  This will cause all blocked
-   *	calls to get() to return the value.  If set() is called
-   *	several times with a short or no delay between the calls, the
-   *	exact value returned by a given blocked call to get() is not
-   *	deterministic.
-   *
-   **/
-  public synchronized void set(Object v) {
-    if ( closed ) 
-      return;
-    value = v;
-//    setCount++;
-    notifyAll();
-  }
+    public synchronized void reset() {
+        value = null;
+    }
 
-
-  public synchronized void reset() {
-    value = null;
-  }
-
-  public synchronized void close() {
-    value = null;
-    closed = true;
-    notifyAll();
-  }
+    public synchronized void close() {
+        value = null;
+        closed = true;
+        notifyAll();
+    }
 
 }
