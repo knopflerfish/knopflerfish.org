@@ -34,45 +34,53 @@
 
 package org.osgi.service.cm;
 
-import java.util.*;
-
 /**
- * An <tt>Exception</tt> class to inform the Configuration Admin service of problems with configuration
- * data.
- *
+ * An <tt>Exception</tt> class to inform the Configuration Admin service of
+ * problems with configuration data.
+ * 
  * @version $Revision: 1.1.1.1 $
  * @author Open Services Gateway Initiative
-*/
+ */
 public class ConfigurationException extends Exception {
-    String          property;
-    String          reason;
-    
+
+    private static final long serialVersionUID = 1L;
+
+    String property;
+
+    String reason;
+
     /**
      * Create a <tt>ConfigurationException</tt> object.
      * 
-     * @param property name of the property that caused the problem, <tt>null</tt> if no specific property was the cause
-     * @param reason reason for failure
-    */
-    public ConfigurationException( String property, String reason ) {
-        super( property + " : " + reason );
+     * @param property
+     *            name of the property that caused the problem, <tt>null</tt>
+     *            if no specific property was the cause
+     * @param reason
+     *            reason for failure
+     */
+    public ConfigurationException(String property, String reason) {
+        super(property + " : " + reason);
         this.property = property;
         this.reason = reason;
     }
-    
+
     /**
      * Return the property name that caused the failure or null.
      * 
-     * @return name of property or null if no specific property caused the problem
-    */
-    public String getProperty() { return property; }
-    
+     * @return name of property or null if no specific property caused the
+     *         problem
+     */
+    public String getProperty() {
+        return property;
+    }
+
     /**
      * Return the reason for this exception.
      * 
-      * @return reason of the failure
-    */
-    public String getReason() { return reason; }
-    
+     * @return reason of the failure
+     */
+    public String getReason() {
+        return reason;
+    }
+
 }
-
-

@@ -34,93 +34,96 @@
 
 package org.knopflerfish.bundle.cm;
 
-import org.knopflerfish.service.log.*;
+import java.io.File;
 
-import org.osgi.service.cm.*;
-import org.osgi.framework.*;
-import java.io.*;
+import org.knopflerfish.service.log.LogRef;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * CM bundle activator implementation
- *
+ * 
  * @author Per Gustafson
  * @version $Revision: 1.1.1.1 $
  */
 
 public class Activator implements BundleActivator {
-  private static final String STORE_DIR_PROP = "com.gatespace.bundle.cm.store";
-  private static final String DEFAULT_STORE_DIR = "cm_store";
-  
-  static BundleContext bc;
-  static LogRef log;
-  
-  private ServiceRegistration serviceRegistration;
+    private static final String STORE_DIR_PROP = "com.gatespace.bundle.cm.store";
 
-  static boolean R3_TESTCOMPLIANT = false;
+    private static final String DEFAULT_STORE_DIR = "cm_store";
 
-  public void start(BundleContext bc) throws BundleException {
-    this.bc = bc;
-    
-    R3_TESTCOMPLIANT = "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant", "false").toLowerCase());
-    
-    throwIfBundleContextIsNull();
-    createLogRef();
-    createAndRegisterConfigurationAdminFactory();
-  }
+    static BundleContext bc;
 
-  public void stop(BundleContext bc) throws BundleException {
-    unregisterConfigurationAdminFactory();
-    closeLogRef();
-  }
+    static LogRef log;
 
-  private void createLogRef() {
-    throwIfBundleContextIsNull();
-    log = new LogRef(bc);
-  }
+    private ServiceRegistration serviceRegistration;
 
-  private void closeLogRef() {
-    if(log != null) {
-      log.close();
-      log = null;
+    static boolean R3_TESTCOMPLIANT = false;
+
+    public void start(BundleContext bc) {
+        Activator.bc = bc;
+
+        R3_TESTCOMPLIANT = "true".equals(System.getProperty(
+                "org.knopflerfish.osgi.r3.testcompliant", "false")
+                .toLowerCase());
+
+        throwIfBundleContextIsNull();
+        createLogRef();
+        createAndRegisterConfigurationAdminFactory();
     }
-  }
 
-  private void createAndRegisterConfigurationAdminFactory() {
-    throwIfBundleContextIsNull();
-    File storeDir = getStoreDir();
-    serviceRegistration =
-      bc.registerService( ConfigurationAdmin.class.getName(),
-                          new ConfigurationAdminFactory(storeDir),
-                          null);
-  }
-
-  private void unregisterConfigurationAdminFactory() {
-    if(serviceRegistration !=  null) {
-      serviceRegistration.unregister();
-      serviceRegistration = null;
+    public void stop(BundleContext bc) {
+        unregisterConfigurationAdminFactory();
+        closeLogRef();
     }
-  }
 
-
-  private File getStoreDir() {
-    throwIfBundleContextIsNull();
-    String storeDirName = System.getProperty(STORE_DIR_PROP);
-    File storeDir = null;
-    if(storeDirName == null || "".equals(storeDirName)) {
-      storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
-    } else {
-      storeDir = new File(storeDirName);
+    private void createLogRef() {
+        throwIfBundleContextIsNull();
+        log = new LogRef(bc);
     }
-    return storeDir;
-  }
 
-  private void throwIfBundleContextIsNull() {
-    if(bc == null) {
-      throw new NullPointerException("Null BundleContext in Activator");
+    private void closeLogRef() {
+        if (log != null) {
+            log.close();
+            log = null;
+        }
     }
-  }
 
-  static boolean r3TestCompliant() {
-    return R3_TESTCOMPLIANT;
-  }
+    private void createAndRegisterConfigurationAdminFactory() {
+        throwIfBundleContextIsNull();
+        File storeDir = getStoreDir();
+        serviceRegistration = bc.registerService(ConfigurationAdmin.class
+                .getName(), new ConfigurationAdminFactory(storeDir), null);
+    }
+
+    private void unregisterConfigurationAdminFactory() {
+        if (serviceRegistration != null) {
+            serviceRegistration.unregister();
+            serviceRegistration = null;
+        }
+    }
+
+    private File getStoreDir() {
+        throwIfBundleContextIsNull();
+        String storeDirName = System.getProperty(STORE_DIR_PROP);
+        File storeDir = null;
+        if (storeDirName == null || "".equals(storeDirName)) {
+            storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
+        } else {
+            storeDir = new File(storeDirName);
+        }
+        return storeDir;
+    }
+
+    private void throwIfBundleContextIsNull() {
+        if (bc == null) {
+            throw new NullPointerException("Null BundleContext in Activator");
+        }
+    }
+
+    static boolean r3TestCompliant() {
+        return R3_TESTCOMPLIANT;
+    }
 }
