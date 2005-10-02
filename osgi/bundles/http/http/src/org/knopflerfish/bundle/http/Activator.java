@@ -34,111 +34,110 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
-import org.knopflerfish.service.log.LogRef;
-
 
 public class Activator implements BundleActivator {
 
-  // public constants
+    // public constants
 
-  public static final String FACTORY_PID =
-      "org.knopflerfish.bundle.http.factory.HttpServer";
+    public static final String FACTORY_PID = "org.knopflerfish.bundle.http.factory.HttpServer";
 
+    // public fields
 
-  // public fields
+    public static BundleContext bc = null;
 
-  public static BundleContext bc = null;
+    // private fields
 
+    private LogRef log = null;
 
-  // private fields
+    private HttpServerFactory serverFactory = null;
 
-  private LogRef log = null;
-  private HttpServerFactory serverFactory = null;
-  private ServiceRegistration configReg = null;
+    private ServiceRegistration configReg = null;
 
+    // implements BundleActivator
 
-  // implements BundleActivator
+    public void start(BundleContext bc) {
 
-  public void start(BundleContext bc) throws BundleException {
+        Activator.bc = bc;
 
-    this.bc = bc;
-    
-    log = new LogRef(bc, true);
+        log = new LogRef(bc, true);
 
-    serverFactory = new HttpServerFactory(bc, log);
+        serverFactory = new HttpServerFactory(bc, log);
 
-    Dictionary parameters = new Hashtable();
-    parameters.put("service.pid", FACTORY_PID);
-    configReg = bc.registerService(ManagedServiceFactory.class.getName(),
-                                   serverFactory,
-                                   parameters);
+        Dictionary parameters = new Hashtable();
+        parameters.put("service.pid", FACTORY_PID);
+        configReg = bc.registerService(ManagedServiceFactory.class.getName(),
+                serverFactory, parameters);
 
-    ServiceReference adminRef = null;
-    try {
-      ConfigurationAdmin admin = null;
-      Configuration[] configs = null;
-      try {
-        adminRef = bc.getServiceReference(ConfigurationAdmin.class.getName());
+        ServiceReference adminRef = null;
+        try {
+            ConfigurationAdmin admin = null;
+            Configuration[] configs = null;
+            try {
+                adminRef = bc.getServiceReference(ConfigurationAdmin.class
+                        .getName());
 
-	// Potential start order problem!
-	if(adminRef != null) {
-	  admin = (ConfigurationAdmin) bc.getService(adminRef);
-	  String filter =
-            "(&(service.factoryPid=" + FACTORY_PID + ")" +
-	    "(|(service.bundleLocation=" + bc.getBundle().getLocation() + ")" +
-	    "(service.bundleLocation=NULL)" +
-	    "(!(service.bundleLocation=*))))";
-	  configs = admin.listConfigurations(filter);
-	}
-      } catch (Exception e) {
-	if (log.doDebug()) log.debug("Exception when trying to get CM", e);
-      }
-      if (admin == null) {
-        if (log.doInfo()) log.info("No CM present, using default configuration");
-        serverFactory.updated(HttpServerFactory.DEFAULT_PID,
-                              HttpConfig.getDefaultConfig());
-      } else {
-        if (configs == null || configs.length == 0) {
-          if (log.doInfo()) log.info("No configuration present, creating default configuration");
+                // Potential start order problem!
+                if (adminRef != null) {
+                    admin = (ConfigurationAdmin) bc.getService(adminRef);
+                    String filter = "(&(service.factoryPid=" + FACTORY_PID
+                            + ")" + "(|(service.bundleLocation="
+                            + bc.getBundle().getLocation() + ")"
+                            + "(service.bundleLocation=NULL)"
+                            + "(!(service.bundleLocation=*))))";
+                    configs = admin.listConfigurations(filter);
+                }
+            } catch (Exception e) {
+                if (log.doDebug())
+                    log.debug("Exception when trying to get CM", e);
+            }
+            if (admin == null) {
+                if (log.doInfo())
+                    log.info("No CM present, using default configuration");
+                serverFactory.updated(HttpServerFactory.DEFAULT_PID, HttpConfig
+                        .getDefaultConfig());
+            } else {
+                if (configs == null || configs.length == 0) {
+                    if (log.doInfo())
+                        log
+                                .info("No configuration present, creating default configuration");
 
-	  serverFactory.updated(HttpServerFactory.DEFAULT_PID,
-				HttpConfig.getDefaultConfig());
+                    serverFactory.updated(HttpServerFactory.DEFAULT_PID,
+                            HttpConfig.getDefaultConfig());
+                }
+            }
+        } catch (ConfigurationException ce) {
+            if (log.doError())
+                log.error("Configuration error", ce);
+        } finally {
+            if (adminRef != null)
+                bc.ungetService(adminRef);
         }
-      }
-    } catch (ConfigurationException ce) {
-      if (log.doError()) log.error("Configuration error", ce);
-    } finally {
-      if (adminRef != null)
-        bc.ungetService(adminRef);
     }
-  }
 
-  public void stop(BundleContext bc) throws BundleException {
+    public void stop(BundleContext bc) {
 
-    bc = null;
+        bc = null;
 
-    configReg.unregister();
-    configReg = null;
+        configReg.unregister();
+        configReg = null;
 
-    serverFactory.destroy();
-    serverFactory = null;
+        serverFactory.destroy();
+        serverFactory = null;
 
-    log.close();
-    log = null;
-  }
+        log.close();
+        log = null;
+    }
 
 } // Activator

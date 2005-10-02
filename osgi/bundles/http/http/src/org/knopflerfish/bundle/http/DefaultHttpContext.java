@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.io.IOException;
 import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,34 +42,31 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.HttpContext;
 
-
 public class DefaultHttpContext implements HttpContext {
 
-  // private fields
+    // private fields
 
-  private Bundle bundle;
+    private Bundle bundle;
 
+    // constructors
 
-  // constructors
+    public DefaultHttpContext(Bundle bundle) {
+        this.bundle = bundle;
+    }
 
-  public DefaultHttpContext(Bundle bundle) {
-    this.bundle = bundle;
-  }
+    // implements HttpContext
 
+    public boolean handleSecurity(HttpServletRequest request,
+            HttpServletResponse response) {
+        return true;
+    }
 
-  // implements HttpContext
+    public URL getResource(String name) {
+        return bundle.getResource(name);
+    }
 
-  public boolean handleSecurity(HttpServletRequest request,
-                                HttpServletResponse response) throws IOException {
-    return true;
-  }
-
-  public URL getResource(String name) {
-    return bundle.getResource(name);
-  }
-
-  public String getMimeType(String name) {
-    return null;
-  }
+    public String getMimeType(String name) {
+        return null;
+    }
 
 } // DefaultHttpContext

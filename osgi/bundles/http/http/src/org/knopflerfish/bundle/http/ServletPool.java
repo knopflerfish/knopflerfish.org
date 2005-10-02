@@ -37,61 +37,54 @@ package org.knopflerfish.bundle.http;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 import javax.servlet.Servlet;
-import javax.servlet.ServletConfig;
-
 
 public class ServletPool extends ObjectPool {
 
-  // private fields
+    // private fields
 
-  private Constructor servletConstructor;
-  private final Dictionary wrappers = new Hashtable();
+    private Constructor servletConstructor;
 
+    public ServletPool(final Class servletClass) {
 
-  // constructors
+        super(10, 5);
 
-  public ServletPool(final Class servletClass) {
-
-    super(10, 5);
-
-    init(servletClass);
-  }
-
-
-  // private methods
-
-  private void init(final Class servletClass) {
-
-    if (!servletClass.isAssignableFrom(Servlet.class))
-      throw new IllegalArgumentException("Class must implement " +
-                                         Servlet.class.getName());
-    try {
-      servletConstructor = servletClass.getConstructor(null);
-    } catch (NoSuchMethodException nsme) {
-      throw new IllegalArgumentException("Class must have public default constructor");
+        init(servletClass);
     }
-    if (!Modifier.isPublic(servletConstructor.getModifiers()))
-      throw new IllegalArgumentException("Class must have public default constructor");
-  }
 
+    // private methods
 
-  // extends ObjectPool
+    private void init(final Class servletClass) {
 
-  protected PoolableObject createPoolableObject() {
-
-    try {
-      return new PoolableServletWrapper((Servlet) servletConstructor.newInstance(null));
-    } catch (InstantiationException e) {
-      return null;
-    } catch (IllegalAccessException e) {
-      return null;
-    } catch (InvocationTargetException e) {
-      return null;
+        if (!servletClass.isAssignableFrom(Servlet.class))
+            throw new IllegalArgumentException("Class must implement "
+                    + Servlet.class.getName());
+        try {
+            servletConstructor = servletClass.getConstructor(null);
+        } catch (NoSuchMethodException nsme) {
+            throw new IllegalArgumentException(
+                    "Class must have public default constructor");
+        }
+        if (!Modifier.isPublic(servletConstructor.getModifiers()))
+            throw new IllegalArgumentException(
+                    "Class must have public default constructor");
     }
-  }
+
+    // extends ObjectPool
+
+    protected PoolableObject createPoolableObject() {
+
+        try {
+            return new PoolableServletWrapper((Servlet) servletConstructor
+                    .newInstance(null));
+        } catch (InstantiationException e) {
+            return null;
+        } catch (IllegalAccessException e) {
+            return null;
+        } catch (InvocationTargetException e) {
+            return null;
+        }
+    }
 
 } // ServletPool

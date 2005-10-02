@@ -44,179 +44,175 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-
 public class ResponseWrapper implements Response {
 
-  // private fields
+    // private fields
 
-  private final HttpServletResponse response;
+    private final HttpServletResponse response;
 
-  private ServletOutputStream sos = null;
-  private PrintWriter pw = null;
+    private ServletOutputStream sos = null;
 
+    private PrintWriter pw = null;
 
-  // constructors
+    // constructors
 
-  public ResponseWrapper(final HttpServletResponse response) {
-    this.response = response;
-  }
-
-
-  // implements Response
-
-  public OutputStream getRawOutputStream() {
-
-    if (response instanceof Response)
-      return ((Response) response).getRawOutputStream();
-    else
-      return null;
-  }
-
-
-  // implements ServletResponse
-
-  public void flushBuffer() throws IOException {
-    response.flushBuffer();
-  }
-
-  public int getBufferSize() {
-    return response.getBufferSize();
-  }
-
-  public String getCharacterEncoding() {
-    return response.getCharacterEncoding();
-  }
-
-  public Locale getLocale() {
-    return response.getLocale();
-  }
-
-  public ServletOutputStream getOutputStream() throws IOException {
-
-    if (pw != null)
-      throw new IllegalStateException("getWriter() already called");
-
-    if (sos == null) {
-      final OutputStream os = getRawOutputStream();
-      if (os == null)
-        sos = response.getOutputStream();
-      else
-        sos = new ServletOutputStreamImpl(os);
+    public ResponseWrapper(final HttpServletResponse response) {
+        this.response = response;
     }
 
-    return sos;
-  }
+    // implements Response
 
-  public PrintWriter getWriter() throws IOException {
+    public OutputStream getRawOutputStream() {
 
-    if (sos != null)
-      throw new IllegalStateException("getOutputStream() already called");
-
-    if (pw == null) {
-      final OutputStream os = getRawOutputStream();
-      if (os == null)
-        pw = response.getWriter();
-      else
-        pw = new PrintWriter(new OutputStreamWriter(os,
-                                                    getCharacterEncoding()));
+        if (response instanceof Response) {
+            return ((Response) response).getRawOutputStream();
+        }
+        return null;
     }
 
-    return  pw;
-  }
+    // implements ServletResponse
 
-  public boolean isCommitted() {
-    return response.isCommitted();
-  }
+    public void flushBuffer() throws IOException {
+        response.flushBuffer();
+    }
 
-  public void reset() {
-    response.reset();
-  }
+    public int getBufferSize() {
+        return response.getBufferSize();
+    }
 
-  public void setBufferSize(int size) {
-    response.setBufferSize(size);
-  }
+    public String getCharacterEncoding() {
+        return response.getCharacterEncoding();
+    }
 
-  public void setContentLength(int length) {
-    response.setContentLength(length);
-  }
+    public Locale getLocale() {
+        return response.getLocale();
+    }
 
-  public void setContentType(String contentType) {
-    response.setContentType(contentType);
-  }
+    public ServletOutputStream getOutputStream() throws IOException {
 
-  public void setLocale(Locale locale) {
-    response.setLocale(locale);
-  }
+        if (pw != null)
+            throw new IllegalStateException("getWriter() already called");
 
+        if (sos == null) {
+            final OutputStream os = getRawOutputStream();
+            if (os == null)
+                sos = response.getOutputStream();
+            else
+                sos = new ServletOutputStreamImpl(os);
+        }
 
-  // implements HttpServletResponse
+        return sos;
+    }
 
-  public void addCookie(Cookie cookie) {
-    response.addCookie(cookie);
-  }
+    public PrintWriter getWriter() throws IOException {
 
-  public void addDateHeader(String name, long value) {
-    response.addDateHeader(name, value);
-  }
+        if (sos != null)
+            throw new IllegalStateException("getOutputStream() already called");
 
-  public void addHeader(String name, String value) {
-    response.addHeader(name, value);
-  }
+        if (pw == null) {
+            final OutputStream os = getRawOutputStream();
+            if (os == null)
+                pw = response.getWriter();
+            else
+                pw = new PrintWriter(new OutputStreamWriter(os,
+                        getCharacterEncoding()));
+        }
 
-  public void addIntHeader(String name, int value) {
-    response.addIntHeader(name, value);
-  }
+        return pw;
+    }
 
-  public boolean containsHeader(String name) {
-    return response.containsHeader(name);
-  }
+    public boolean isCommitted() {
+        return response.isCommitted();
+    }
 
-  public String encodeRedirectURL(String url) {
-    return response.encodeRedirectURL(url);
-  }
+    public void reset() {
+        response.reset();
+    }
 
-  public String encodeRedirectUrl(String url) {
-    return response.encodeRedirectUrl(url); // deprecated
-  }
+    public void setBufferSize(int size) {
+        response.setBufferSize(size);
+    }
 
-  public String encodeURL(String url) {
-    return response.encodeURL(url);
-  }
+    public void setContentLength(int length) {
+        response.setContentLength(length);
+    }
 
-  public String encodeUrl(String url) {
-    return response.encodeUrl(url); // deprecated
-  }
+    public void setContentType(String contentType) {
+        response.setContentType(contentType);
+    }
 
-  public void sendError(int code) throws IOException {
-    response.sendError(code);
-  }
+    public void setLocale(Locale locale) {
+        response.setLocale(locale);
+    }
 
-  public void sendError(int code, String message) throws IOException {
-    response.sendError(code, message);
-  }
+    // implements HttpServletResponse
 
-  public void sendRedirect(String uri) throws IOException {
-    response.sendRedirect(uri);
-  }
+    public void addCookie(Cookie cookie) {
+        response.addCookie(cookie);
+    }
 
-  public void setDateHeader(String name, long value) {
-    response.setDateHeader(name, value);
-  }
+    public void addDateHeader(String name, long value) {
+        response.addDateHeader(name, value);
+    }
 
-  public void setHeader(String name, String value) {
-    response.setHeader(name, value);
-  }
+    public void addHeader(String name, String value) {
+        response.addHeader(name, value);
+    }
 
-  public void setIntHeader(String name, int value) {
-    response.setIntHeader(name, value);
-  }
+    public void addIntHeader(String name, int value) {
+        response.addIntHeader(name, value);
+    }
 
-  public void setStatus(int code) {
-    response.setStatus(code);
-  }
+    public boolean containsHeader(String name) {
+        return response.containsHeader(name);
+    }
 
-  public void setStatus(int code, String message) {
-    response.setStatus(code, message); // deprecated
-  }
+    public String encodeRedirectURL(String url) {
+        return response.encodeRedirectURL(url);
+    }
+
+    public String encodeRedirectUrl(String url) {
+        return response.encodeRedirectUrl(url); // deprecated
+    }
+
+    public String encodeURL(String url) {
+        return response.encodeURL(url);
+    }
+
+    public String encodeUrl(String url) {
+        return response.encodeUrl(url); // deprecated
+    }
+
+    public void sendError(int code) throws IOException {
+        response.sendError(code);
+    }
+
+    public void sendError(int code, String message) throws IOException {
+        response.sendError(code, message);
+    }
+
+    public void sendRedirect(String uri) throws IOException {
+        response.sendRedirect(uri);
+    }
+
+    public void setDateHeader(String name, long value) {
+        response.setDateHeader(name, value);
+    }
+
+    public void setHeader(String name, String value) {
+        response.setHeader(name, value);
+    }
+
+    public void setIntHeader(String name, int value) {
+        response.setIntHeader(name, value);
+    }
+
+    public void setStatus(int code) {
+        response.setStatus(code);
+    }
+
+    public void setStatus(int code, String message) {
+        response.setStatus(code, message); // deprecated
+    }
 
 } // ResponseWrapper

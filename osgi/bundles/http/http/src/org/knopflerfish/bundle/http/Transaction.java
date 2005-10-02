@@ -34,9 +34,9 @@
 
 package org.knopflerfish.bundle.http;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -47,167 +47,170 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.knopflerfish.service.log.LogRef;
 
-
 public class Transaction implements Runnable, PoolableObject {
 
-  // private fields
+    // private fields
 
-  private HttpConfigWrapper httpConfig;
-  private final Registrations registrations;
-  private final ObjectPool requestPool;
-  private final ObjectPool responsePool;
+    private HttpConfigWrapper httpConfig;
 
-  private InputStream is = null;
-  private OutputStream os = null;
+    private final Registrations registrations;
 
+    private final ObjectPool requestPool;
 
-  // protected fields
+    private final ObjectPool responsePool;
 
-  protected LogRef log;
+    private InputStream is = null;
 
-  protected Socket client = null;
+    private OutputStream os = null;
 
+    // protected fields
 
-  // constructors
+    protected LogRef log;
 
-  public Transaction(final LogRef log,
-                     final Registrations registrations,
-                     final ObjectPool requestPool,
-                     final ObjectPool responsePool) {
+    protected Socket client = null;
 
-    this.log = log;
-    this.registrations = registrations;
-    this.requestPool = requestPool;
-    this.responsePool = responsePool;
-  }
+    // constructors
 
+    public Transaction(final LogRef log, final Registrations registrations,
+            final ObjectPool requestPool, final ObjectPool responsePool) {
 
-  // public methods
-
-  public void init(final Socket client, final HttpConfigWrapper httpConfig) 
-  {
-    this.httpConfig = httpConfig;
-    this.client = client;
-  }
-
-  public void init(final InputStream is, final OutputStream os, final HttpConfigWrapper httpConfig) 
-  {
-    this.httpConfig = httpConfig;
-    this.is = is;
-    this.os = os;
-  }
-
-
-  // implements Runnable
-
-  public void run() {
-
-    final RequestImpl request = (RequestImpl) requestPool.get();
-    final ResponseImpl response = (ResponseImpl) responsePool.get();
-
-    InetAddress remoteAddress = null;
-
-    try {
-
-      if (client != null) {
-        client.setSoTimeout(1000 * httpConfig.getConnectionTimeout());
-        is = client.getInputStream();
-        os = client.getOutputStream();
-        remoteAddress = client.getInetAddress();
-      }
-
-      while (true) {
-
-        try {
-
-          request.init(is, remoteAddress, httpConfig);
-          response.init(os, request, httpConfig);
-
-          String uri = request.getRequestURI();
-          RequestDispatcherImpl dispatcher = registrations.getRequestDispatcher(uri);
-          if (dispatcher != null) {
-            try {
-              request.setServletPath(dispatcher.getServletPath());
-              dispatcher.forward(request, response);
-            } catch (ServletException se) {
-              response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-          } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
-          }
-
-        } catch (HttpException he) {
-
-          response.init(os, httpConfig);
-          response.sendError(he.getCode(), he.getMessage());
-        }
-
-        response.commit();
-
-        if (response.getKeepAlive()) {
-          InputStream is = request.getRawInputStream();
-          if (is != null && is.markSupported()) {
-            is.mark(4);
-            if (is.read() != '\r' || is.read() != '\n')
-              is.reset();
-          }
-        } else
-          break;
-
-        request.destroy();
-        response.destroy();
-      }
-
-    } catch (SocketException se) {
-      // ignore: client closed socket
-    } catch (InterruptedIOException iioe) {
-      // ignore: keep alive socket timeout
-    } catch (IOException ioe) {
-      // ignore: broken pipe
-    } catch (ThreadDeath td) {
-      throw td;
-    } catch (Throwable t) {
-      if (log.doError()) log.error("Internal error", t);
-      try {
-        response.init(os, request, httpConfig);
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                           "Internal error: " + t);
-      } catch (IOException ignore) { }
-    } finally {
-
-      requestPool.put(request);
-      responsePool.put(response);
-
-      if (is != null) {
-        try {
-          is.close();
-        } catch (Exception ignore) { }
-      }
-      if (os != null) {
-        try {
-          // os.flush();
-          os.close();
-        } catch (Exception ignore) { }
-      }
-      if (client != null) {
-        try {
-          client.close();
-        } catch (Exception ignore) { }
-      }
+        this.log = log;
+        this.registrations = registrations;
+        this.requestPool = requestPool;
+        this.responsePool = responsePool;
     }
-  }
 
+    // public methods
 
-  // implements PoolableObject
+    public void init(final Socket client, final HttpConfigWrapper httpConfig) {
+        this.httpConfig = httpConfig;
+        this.client = client;
+    }
 
-  public void init() {
-  }
+    public void init(final InputStream is, final OutputStream os,
+            final HttpConfigWrapper httpConfig) {
+        this.httpConfig = httpConfig;
+        this.is = is;
+        this.os = os;
+    }
 
-  public void destroy() {
+    // implements Runnable
 
-    client = null;
-    is = null;
-    os = null;
-  }
+    public void run() {
+
+        final RequestImpl request = (RequestImpl) requestPool.get();
+        final ResponseImpl response = (ResponseImpl) responsePool.get();
+
+        InetAddress remoteAddress = null;
+
+        try {
+
+            if (client != null) {
+                client.setSoTimeout(1000 * httpConfig.getConnectionTimeout());
+                is = client.getInputStream();
+                os = client.getOutputStream();
+                remoteAddress = client.getInetAddress();
+            }
+
+            while (true) {
+
+                try {
+
+                    request.init(is, remoteAddress, httpConfig);
+                    response.init(os, request, httpConfig);
+
+                    String uri = request.getRequestURI();
+                    RequestDispatcherImpl dispatcher = registrations
+                            .getRequestDispatcher(uri);
+                    if (dispatcher != null) {
+                        try {
+                            request.setServletPath(dispatcher.getServletPath());
+                            dispatcher.forward(request, response);
+                        } catch (ServletException se) {
+                            response
+                                    .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        }
+                    } else {
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
+
+                } catch (HttpException he) {
+
+                    response.init(os, httpConfig);
+                    response.sendError(he.getCode(), he.getMessage());
+                }
+
+                response.commit();
+
+                if (response.getKeepAlive()) {
+                    InputStream is = request.getRawInputStream();
+                    if (is != null && is.markSupported()) {
+                        is.mark(4);
+                        if (is.read() != '\r' || is.read() != '\n')
+                            is.reset();
+                    }
+                } else
+                    break;
+
+                request.destroy();
+                response.destroy();
+            }
+
+        } catch (SocketException se) {
+            // ignore: client closed socket
+        } catch (InterruptedIOException iioe) {
+            // ignore: keep alive socket timeout
+        } catch (IOException ioe) {
+            // ignore: broken pipe
+        } catch (ThreadDeath td) {
+            throw td;
+        } catch (Throwable t) {
+            if (log.doError())
+                log.error("Internal error", t);
+            try {
+                response.init(os, request, httpConfig);
+                response.sendError(
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Internal error: " + t);
+            } catch (IOException ignore) {
+            }
+        } finally {
+
+            requestPool.put(request);
+            responsePool.put(response);
+
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception ignore) {
+                }
+            }
+            if (os != null) {
+                try {
+                    // os.flush();
+                    os.close();
+                } catch (Exception ignore) {
+                }
+            }
+            if (client != null) {
+                try {
+                    client.close();
+                } catch (Exception ignore) {
+                }
+            }
+        }
+    }
+
+    // implements PoolableObject
+
+    public void init() {
+    }
+
+    public void destroy() {
+
+        client = null;
+        is = null;
+        os = null;
+    }
 
 } // Transaction

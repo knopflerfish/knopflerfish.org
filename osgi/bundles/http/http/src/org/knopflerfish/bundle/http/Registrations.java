@@ -38,73 +38,69 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 
-
 public class Registrations {
 
-  // private fields
+    // private fields
 
-  private final Dictionary registrations = new Hashtable();
-  private final Vector servlets = new Vector();
+    private final Dictionary registrations = new Hashtable();
 
+    private final Vector servlets = new Vector();
 
-  // private methods
+    // private methods
 
-  private String fixAlias(String alias) {
+    private String fixAlias(String alias) {
 
-    if (alias.equals("/"))
-      return "";
-    else
-      return alias;
-  }
-
-
-  // public methods
-
-  public void addServlet(Servlet servlet) throws ServletException {
-
-    if (servlets.contains(servlet))
-      throw new ServletException("Servlet already registered");
-
-    servlets.addElement(servlet);
-  }
-
-  public void removeServlet(Servlet servlet) {
-    servlets.removeElement(servlet);
-  }
-
-  public void put(String alias, Registration registration) {
-    registrations.put(fixAlias(alias), registration);
-  }
-
-  public Registration remove(String alias) {
-    return (Registration) registrations.remove(fixAlias(alias));
-  }
-
-  public Registration get(String alias) {
-    return (Registration) registrations.get(fixAlias(alias));
-  }
-
-  public RequestDispatcherImpl getRequestDispatcher(String uri) {
-
-    String alias = uri;
-    while (true) {
-      Registration registration = (Registration) registrations.get(alias);
-      if (registration != null) {
-        RequestDispatcherImpl dispatcher =
-            registration.getRequestDispatcher(uri);
-        if (dispatcher != null)
-          return dispatcher;
-      }
-      int index = alias.lastIndexOf('/');
-      if (index == -1)
-        return null;
-      else
-        alias = alias.substring(0, index);
+        if (alias.equals("/"))
+            return "";
+        return alias;
     }
-  }
+
+    // public methods
+
+    public void addServlet(Servlet servlet) throws ServletException {
+
+        if (servlets.contains(servlet))
+            throw new ServletException("Servlet already registered");
+
+        servlets.addElement(servlet);
+    }
+
+    public void removeServlet(Servlet servlet) {
+        servlets.removeElement(servlet);
+    }
+
+    public void put(String alias, Registration registration) {
+        registrations.put(fixAlias(alias), registration);
+    }
+
+    public Registration remove(String alias) {
+        return (Registration) registrations.remove(fixAlias(alias));
+    }
+
+    public Registration get(String alias) {
+        return (Registration) registrations.get(fixAlias(alias));
+    }
+
+    public RequestDispatcherImpl getRequestDispatcher(String uri) {
+
+        String alias = uri;
+        while (true) {
+            Registration registration = (Registration) registrations.get(alias);
+            if (registration != null) {
+                RequestDispatcherImpl dispatcher = registration
+                        .getRequestDispatcher(uri);
+                if (dispatcher != null)
+                    return dispatcher;
+            }
+            int index = alias.lastIndexOf('/');
+            if (index == -1) {
+                return null;
+            }
+            alias = alias.substring(0, index);
+        }
+    }
 
 } // Registrations

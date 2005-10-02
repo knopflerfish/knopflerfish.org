@@ -34,102 +34,86 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.net.Socket;
-import java.io.OutputStream;
 import java.io.InputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Constructor;
+import java.io.OutputStream;
+import java.net.Socket;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-
-import org.osgi.service.cm.ConfigurationException;
 import org.knopflerfish.service.log.LogRef;
-
 
 public class TransactionManager extends ThreadGroup {
 
-  // private fields
+    // private fields
 
-  private static int managerCount = 0;
-  private static int transactionCount = 0;
+    private static int managerCount = 0;
 
-  private HttpConfigWrapper httpConfig;
-  private final LogRef log;
+    private static int transactionCount = 0;
 
-  private final Registrations registrations;
+    private final LogRef log;
 
-  private final ObjectPool requestPool;
-  private final ObjectPool responsePool;
+    final Registrations registrations;
 
-  private ObjectPool transactionPool = null;
-  private Boolean isSecure = null;
+    final ObjectPool requestPool;
 
+    final ObjectPool responsePool;
 
-  // constructors
+    private ObjectPool transactionPool = null;
 
-  public TransactionManager(final LogRef log,
-                            final Registrations registrations,
-                            final HttpSessionManager sessionManager) {
+    // constructors
 
-    super("HttpServer-TransactionGroup-" + managerCount++);
+    public TransactionManager(final LogRef log,
+            final Registrations registrations,
+            final HttpSessionManager sessionManager) {
 
-    this.log = log;
-    this.registrations = registrations;
+        super("HttpServer-TransactionGroup-" + managerCount++);
 
-    requestPool = new ObjectPool() {
-      protected PoolableObject createPoolableObject() {
-        return new RequestImpl(TransactionManager.this.registrations,
-                               sessionManager);
-      }
-    };
-    responsePool = new ObjectPool() {
-      protected PoolableObject createPoolableObject() {
-        return new ResponseImpl();
-      }
-    };
-    transactionPool = new ObjectPool() {
-        protected PoolableObject createPoolableObject() {
-          return new Transaction(log,
-                                 registrations,
-                                 requestPool,
-                                 responsePool);
+        this.log = log;
+        this.registrations = registrations;
+
+        requestPool = new ObjectPool() {
+            protected PoolableObject createPoolableObject() {
+                return new RequestImpl(TransactionManager.this.registrations,
+                        sessionManager);
+            }
+        };
+        responsePool = new ObjectPool() {
+            protected PoolableObject createPoolableObject() {
+                return new ResponseImpl();
+            }
+        };
+        transactionPool = new ObjectPool() {
+            protected PoolableObject createPoolableObject() {
+                return new Transaction(log, registrations, requestPool,
+                        responsePool);
+            }
+        };
+    }
+
+    // public methods
+
+    public void startTransaction(final Socket client,
+            final HttpConfigWrapper httpConfig) {
+        final Transaction transaction = (Transaction) transactionPool.get();
+        transaction.init(client, httpConfig);
+        new Thread(this, transaction, "HttpServer-Transaction-"
+                + transactionCount++).start();
+    }
+
+    public void startTransaction(final InputStream is, final OutputStream os,
+            final HttpConfigWrapper httpConfig) {
+        final Transaction transaction = (Transaction) transactionPool.get();
+        transaction.init(is, os, httpConfig);
+        new Thread(this, transaction).start();
+    }
+
+    // extends ThreadGroup
+
+    public void uncaughtException(Thread thread, Throwable t) {
+
+        if (t instanceof ThreadDeath) {
+
+        } else if (log.doDebug()) {
+            log.debug("Internal error", t);
         }
-      };
-  }
-
-
-  // public methods
-
-  public void startTransaction(final Socket client, final HttpConfigWrapper httpConfig) 
-  {
-     this.httpConfig = httpConfig;
-     final Transaction transaction = (Transaction) transactionPool.get();
-     transaction.init(client, httpConfig);
-     new Thread(this,
-               transaction,
-               "HttpServer-Transaction-" + transactionCount++).start();
-  }
-
-  public void startTransaction(final InputStream is, final OutputStream os, 
-  		                                             final HttpConfigWrapper httpConfig) 
-  {
-    this.httpConfig = httpConfig;
-    final Transaction transaction = (Transaction) transactionPool.get();
-    transaction.init(is, os, httpConfig);
-    new Thread(this, transaction).start();
-  }
-
-  // extends ThreadGroup
-
-  public void uncaughtException(Thread thread, Throwable t) {
-
-    if (t instanceof ThreadDeath)
-      ;
-    else
-      if (log.doDebug()) log.debug("Internal error", t);
-  }
+    }
 
 } // TransactionManager

@@ -34,32 +34,30 @@
 
 package org.knopflerfish.bundle.http;
 
-
 public class HttpException extends Exception {
 
-  // private fields
+    // private fields
+    private static final long serialVersionUID = 1L;
 
-  private final int code;
+    private final int code;
 
+    // constructors
 
-  // constructors
+    HttpException(final int code) {
+        this(code, null);
+    }
 
-  HttpException(final int code) {
-    this(code, null);
-  }
+    HttpException(final int code, final String message) {
 
-  HttpException(final int code, final String message) {
+        super(message);
 
-    super(message);
+        this.code = code;
+    }
 
-    this.code = code;
-  }
+    // public methods
 
-
-  // public methods
-
-  public int getCode() {
-    return code;
-  }
+    public int getCode() {
+        return code;
+    }
 
 } // HttpException

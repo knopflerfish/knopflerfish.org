@@ -6,101 +6,80 @@
  */
 package org.knopflerfish.bundle.http;
 
-import java.util.Dictionary;
-
-import org.osgi.service.cm.ConfigurationException;
-
 /**
  * @author tenderes
- *
- * There is a relationship of 1 : 1 between HttpServer objects and 
- * Http Config instances.
- * Each HttpServer instance should be able to expose all registered
- * resources both via HTTP and/or via HTTPS. 
- * This class enables us to provide two different views to the same
- * HttpConfig object, one for HTTP, one for HTTPS. This keeps the
- * processing of HTTPS-aware processing in other classes to a 
- * minimum.
+ * 
+ * There is a relationship of 1 : 1 between HttpServer objects and Http Config
+ * instances. Each HttpServer instance should be able to expose all registered
+ * resources both via HTTP and/or via HTTPS. This class enables us to provide
+ * two different views to the same HttpConfig object, one for HTTP, one for
+ * HTTPS. This keeps the processing of HTTPS-aware processing in other classes
+ * to a minimum.
  */
-public class HttpConfigWrapper 
-{
+public class HttpConfigWrapper {
     private final HttpConfig config;
+
     private boolean isSecure;
-    
-	public HttpConfigWrapper(boolean isSecure, HttpConfig config)
-    {
+
+    public HttpConfigWrapper(boolean isSecure, HttpConfig config) {
         this.isSecure = isSecure;
-		this.config = config;
+        this.config = config;
     }
-    
-    public boolean isSecure()
-    {
-    	return isSecure;
+
+    public boolean isSecure() {
+        return isSecure;
     }
-    
-    public String getScheme()
-    {
-    	return isSecure ? "https" : "http";
+
+    public String getScheme() {
+        return isSecure ? "https" : "http";
     }
-    
-	public int getConnectionTimeout() 
-    {
-		return config.getConnectionTimeout();
-	}
 
-	public int getDefaultBufferSize() 
-    {
-		return config.getDefaultBufferSize();
-	}
+    public int getConnectionTimeout() {
+        return config.getConnectionTimeout();
+    }
 
-	public int getDefaultSessionTimeout() 
-    {
-		return config.getDefaultSessionTimeout();
-	}
+    public int getDefaultBufferSize() {
+        return config.getDefaultBufferSize();
+    }
 
-    public boolean getDNSLookup() 
-    {
-		return config.getDNSLookup();
-	}
+    public int getDefaultSessionTimeout() {
+        return config.getDefaultSessionTimeout();
+    }
 
-	public String getHost() 
-    {
-		return config.getHost();
-	}
+    public boolean getDNSLookup() {
+        return config.getDNSLookup();
+    }
 
-	public int getPort() 
-    {
-		return isSecure ? config.getHttpsPort() : config.getHttpPort();
-	}
-	public int getMaxConnections() 
-    {
-		return config.getMaxConnections();
-	}
+    public String getHost() {
+        return config.getHost();
+    }
 
-    public String getMimeType(String file) 
-    {
-		return config.getMimeType(file);
-	}
+    public int getPort() {
+        return isSecure ? config.getHttpsPort() : config.getHttpPort();
+    }
 
-	public String getServerInfo() 
-    {
-		return config.getServerInfo();
-	}
+    public int getMaxConnections() {
+        return config.getMaxConnections();
+    }
 
-	public boolean isEnabled() 
-    {
-		return isSecure ? config.isHttpsEnabled() : config.isHttpEnabled();
-	}
+    public String getMimeType(String file) {
+        return config.getMimeType(file);
+    }
 
-  public String getDefaultCharacterEncoding() 
-  {
-    return config.getDefaultCharacterEncoding();
-  }
+    public String getServerInfo() {
+        return config.getServerInfo();
+    }
 
-  public boolean requireClientAuth()
-  {
-      return config.requireClientAuth();
-  }
+    public boolean isEnabled() {
+        return isSecure ? config.isHttpsEnabled() : config.isHttpEnabled();
+    }
 
+    public String getDefaultCharacterEncoding() {
+        return config.getDefaultCharacterEncoding();
+    }
+
+    public boolean requireClientAuth() {
+        return config.requireClientAuth();
+    }
 
 }

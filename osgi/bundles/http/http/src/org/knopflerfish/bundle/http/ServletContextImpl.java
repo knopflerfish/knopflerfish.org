@@ -34,157 +34,152 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.NoSuchElementException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
-import org.osgi.service.http.HttpContext;
 
 import org.knopflerfish.service.log.LogRef;
-
+import org.osgi.service.http.HttpContext;
 
 public class ServletContextImpl implements ServletContext {
 
-  // private fields
+    // private fields
 
-  private final HttpContext httpContext;
-  private final String realPath;
-  private final HttpConfig httpConfig;
-  private final LogRef log;
-  private final Registrations registrations;
+    private final HttpContext httpContext;
 
-  private final Attributes attributes = new Attributes();
+    private final String realPath;
 
+    private final HttpConfig httpConfig;
 
-  // constructors
+    private final LogRef log;
 
-  ServletContextImpl(final HttpContext httpContext,
-                     final String realPath,
-                     final HttpConfig httpConfig,
-                     final LogRef log,
-                     final Registrations registrations) {
+    private final Registrations registrations;
 
-    this.httpContext = httpContext;
-    this.realPath = realPath;
-    this.httpConfig = httpConfig;
-    this.log = log;
-    this.registrations = registrations;
-  }
+    private final Attributes attributes = new Attributes();
 
+    // constructors
 
-  // implements ServletContext
+    ServletContextImpl(final HttpContext httpContext, final String realPath,
+            final HttpConfig httpConfig, final LogRef log,
+            final Registrations registrations) {
 
-  public ServletContext getContext(final String uri) {
-    return null; // NYI: OK
-  }
-
-  public int getMajorVersion() {
-    return 2;
-  }
-
-  public int getMinorVersion() {
-    return 1;
-  }
-
-  public String getMimeType(final String file) {
-
-    String mimeType = httpContext.getMimeType(file);
-
-    if (mimeType == null)
-      mimeType = httpConfig.getMimeType(file);
-
-    return mimeType;
-  }
-
-  public URL getResource(final String path) {
-    return httpContext.getResource(realPath + path);
-  }
-
-  public InputStream getResourceAsStream(final String path) {
-
-    final URL url = getResource(path);
-    if (url == null)
-      return null;
-    else {
-      try {
-        return url.openStream();
-      } catch (IOException ioe) {
-        return null;
-      }
+        this.httpContext = httpContext;
+        this.realPath = realPath;
+        this.httpConfig = httpConfig;
+        this.log = log;
+        this.registrations = registrations;
     }
-  }
 
-  public RequestDispatcher getRequestDispatcher(final String uri) {
-    return registrations.getRequestDispatcher(uri);
-  }
+    // implements ServletContext
 
-  public RequestDispatcher getNamedDispatcher(final String name) {
-    return null; // NYI: OK, but could be implemented
-  }
+    public ServletContext getContext(final String uri) {
+        return null; // NYI: OK
+    }
 
-  public Servlet getServlet(final String name) throws ServletException {
-    return null; // deprecated
-  }
+    public int getMajorVersion() {
+        return 2;
+    }
 
-  public Enumeration getServlets() {
-    return HttpUtil.EMPTY_ENUMERATION; // deprecated
-  }
+    public int getMinorVersion() {
+        return 1;
+    }
 
-  public Enumeration getServletNames() {
-    return HttpUtil.EMPTY_ENUMERATION; // deprecated
-  }
+    public String getMimeType(final String file) {
 
-  public void log(final String message) {
-    if (log.doInfo()) log.info(message);
-  }
+        String mimeType = httpContext.getMimeType(file);
 
-  public void log(final Exception exception, final String message) {
-    log(message, exception); // deprecated
-  }
+        if (mimeType == null)
+            mimeType = httpConfig.getMimeType(file);
 
-  public void log(final String message, final Throwable throwable) {
-    if (log.doWarn()) log.warn(message, throwable);
-  }
+        return mimeType;
+    }
 
-  public String getRealPath(final String path) {
-    return null;
-  }
+    public URL getResource(final String path) {
+        return httpContext.getResource(realPath + path);
+    }
 
-  public String getServerInfo() {
-    return httpConfig.getServerInfo();
-  }
+    public InputStream getResourceAsStream(final String path) {
 
-  public String getInitParameter(final String name) {
-    return null; // NYI: OK
-  }
+        final URL url = getResource(path);
+        if (url == null) {
+            return null;
+        }
+        try {
+            return url.openStream();
+        } catch (IOException ioe) {
+            return null;
+        }
+    }
 
-  public Enumeration getInitParameterNames() {
-    return HttpUtil.EMPTY_ENUMERATION; // NYI: OK
-  }
+    public RequestDispatcher getRequestDispatcher(final String uri) {
+        return registrations.getRequestDispatcher(uri);
+    }
 
-  public Object getAttribute(final String name) {
-    return attributes.getAttribute(name);
-  }
+    public RequestDispatcher getNamedDispatcher(final String name) {
+        return null; // NYI: OK, but could be implemented
+    }
 
-  public Enumeration getAttributeNames() {
-    return attributes.getAttributeNames();
-  }
+    public Servlet getServlet(final String name) {
+        return null; // deprecated
+    }
 
-  public void setAttribute(final String name, final Object value) {
-    attributes.setAttribute(name, value);
-  }
+    public Enumeration getServlets() {
+        return HttpUtil.EMPTY_ENUMERATION; // deprecated
+    }
 
-  public void removeAttribute(final String name) {
-    attributes.removeAttribute(name);
-  }
+    public Enumeration getServletNames() {
+        return HttpUtil.EMPTY_ENUMERATION; // deprecated
+    }
+
+    public void log(final String message) {
+        if (log.doInfo())
+            log.info(message);
+    }
+
+    public void log(final Exception exception, final String message) {
+        log(message, exception); // deprecated
+    }
+
+    public void log(final String message, final Throwable throwable) {
+        if (log.doWarn())
+            log.warn(message, throwable);
+    }
+
+    public String getRealPath(final String path) {
+        return null;
+    }
+
+    public String getServerInfo() {
+        return httpConfig.getServerInfo();
+    }
+
+    public String getInitParameter(final String name) {
+        return null; // NYI: OK
+    }
+
+    public Enumeration getInitParameterNames() {
+        return HttpUtil.EMPTY_ENUMERATION; // NYI: OK
+    }
+
+    public Object getAttribute(final String name) {
+        return attributes.getAttribute(name);
+    }
+
+    public Enumeration getAttributeNames() {
+        return attributes.getAttributeNames();
+    }
+
+    public void setAttribute(final String name, final Object value) {
+        attributes.setAttribute(name, value);
+    }
+
+    public void removeAttribute(final String name) {
+        attributes.removeAttribute(name);
+    }
 
 } // ServletContextImpl

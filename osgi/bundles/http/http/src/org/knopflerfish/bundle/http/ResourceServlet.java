@@ -40,57 +40,57 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
 public class ResourceServlet extends HttpServlet {
 
-  // extends HttpServlet
+    // extends HttpServlet
 
-  protected void doGet(HttpServletRequest request,
-                       HttpServletResponse response)
-      throws ServletException, IOException {
+    private static final long serialVersionUID = 1L;
 
-    doOptions(request, response);
+    protected void doGet(HttpServletRequest request,
+            HttpServletResponse response) throws ServletException, IOException {
 
-    long date = getLastModified(request);
-    if (date > -1)
-      response.setDateHeader("Last-Modified", date);
+        doOptions(request, response);
 
-    InputStream is;
-    OutputStream os;
+        long date = getLastModified(request);
+        if (date > -1)
+            response.setDateHeader("Last-Modified", date);
 
-    String path = request.getPathInfo();
-    ServletContext context = getServletContext();
-    URL url = context.getResource(path);
-    URLConnection resource = url.openConnection();
-    is = resource.getInputStream();
+        InputStream is;
+        OutputStream os;
 
-    String contentType = context.getMimeType(path);
-    if (contentType == null)
-      contentType = resource.getContentType();
-    String encoding = resource.getContentEncoding();
-    if (encoding != null)
-      contentType += "; charset=" + encoding;
-    response.setContentType(contentType);
+        String path = request.getPathInfo();
+        ServletContext context = getServletContext();
+        URL url = context.getResource(path);
+        URLConnection resource = url.openConnection();
+        is = resource.getInputStream();
 
-    int contentLength = resource.getContentLength();
-    if (contentLength > 0)
-      response.setContentLength(contentLength);
+        String contentType = context.getMimeType(path);
+        if (contentType == null)
+            contentType = resource.getContentType();
+        String encoding = resource.getContentEncoding();
+        if (encoding != null)
+            contentType += "; charset=" + encoding;
+        response.setContentType(contentType);
 
-    os = response.getOutputStream();
+        int contentLength = resource.getContentLength();
+        if (contentLength > 0)
+            response.setContentLength(contentLength);
 
-    int bytesRead = 0;
-    byte buffer[] = new byte[512];
-    while ((bytesRead = is.read(buffer)) != -1)
-      os.write(buffer, 0, bytesRead);
+        os = response.getOutputStream();
 
-    is.close();
+        int bytesRead = 0;
+        byte buffer[] = new byte[512];
+        while ((bytesRead = is.read(buffer)) != -1)
+            os.write(buffer, 0, bytesRead);
 
-  }
+        is.close();
+
+    }
 
 } // ResourceServlet

@@ -23,8 +23,6 @@
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/cm/cm_api-1.0.0.jar"/>
    <pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/useradmin/useradmin_api-1.0.0.jar"/>
    <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/> 
   </path>
 
