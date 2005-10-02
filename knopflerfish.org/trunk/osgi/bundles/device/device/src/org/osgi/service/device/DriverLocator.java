@@ -28,49 +28,53 @@
 
 package org.osgi.service.device;
 
-import java.util.Dictionary;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Dictionary;
 
 /**
- * A Driver Locator service can find and load device driver
- * bundles given a property set. Each driver is represented by
- * a unique <tt>DRIVER_ID</tt>.
- * <p>Driver Locator services provide the mechanism for dynamically
- * downloading new device driver bundles into an OSGi environment.  They
- * are supplied by providers and encapsulate all
- * provider-specific details related to the location and acquisition
- * of driver bundles.
- *
+ * A Driver Locator service can find and load device driver bundles given a
+ * property set. Each driver is represented by a unique <tt>DRIVER_ID</tt>.
+ * <p>
+ * Driver Locator services provide the mechanism for dynamically downloading new
+ * device driver bundles into an OSGi environment. They are supplied by
+ * providers and encapsulate all provider-specific details related to the
+ * location and acquisition of driver bundles.
+ * 
  * @version $Revision: 1.1.1.1 $
  * @author Open Services Gateway Initiative
  * @see Driver
  */
 
-public abstract interface DriverLocator
-{
+public abstract interface DriverLocator {
     /**
-     * Returns an array of <tt>DRIVER_ID</tt> strings of drivers capable
-     * of attaching to a device with the given properties.
-     *
-     * <p> The property keys in the specified <tt>Dictionary</tt> objects are case-insensitive.
-     *
-     * @param props the properties of the device for which a driver is sought
-     * @return array of driver <tt>DRIVER_ID</tt> strings of drivers capable of attaching to a
-     * Device service with the given properties, or <tt>null</tt> if this
-     * Driver Locator service does not know of any such drivers
+     * Returns an array of <tt>DRIVER_ID</tt> strings of drivers capable of
+     * attaching to a device with the given properties.
+     * 
+     * <p>
+     * The property keys in the specified <tt>Dictionary</tt> objects are
+     * case-insensitive.
+     * 
+     * @param props
+     *            the properties of the device for which a driver is sought
+     * @return array of driver <tt>DRIVER_ID</tt> strings of drivers capable
+     *         of attaching to a Device service with the given properties, or
+     *         <tt>null</tt> if this Driver Locator service does not know of
+     *         any such drivers
      */
     public abstract String[] findDrivers(Dictionary props);
 
     /**
-     * Get an <tt>InputStream</tt> from which the driver bundle providing
-     * a driver with the giving <tt>DRIVER_ID</tt> can be installed.
-     *
-     * @param id the <tt>DRIVER_ID</tt> of the driver that needs to be installed.
-     * @return a <tt>InputStream</tt> object from which the driver
-     * bundle can be installed
-     * @throws java.io.IOException the input stream for the bundle
-     * cannot be created
+     * Get an <tt>InputStream</tt> from which the driver bundle providing a
+     * driver with the giving <tt>DRIVER_ID</tt> can be installed.
+     * 
+     * @param id
+     *            the <tt>DRIVER_ID</tt> of the driver that needs to be
+     *            installed.
+     * @return a <tt>InputStream</tt> object from which the driver bundle can
+     *         be installed
+     * @throws java.io.IOException
+     *             the input stream for the bundle cannot be created
      */
     public abstract InputStream loadDriver(String id) throws IOException;
 }

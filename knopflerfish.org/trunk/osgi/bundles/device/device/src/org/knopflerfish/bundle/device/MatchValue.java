@@ -34,18 +34,18 @@
 
 package org.knopflerfish.bundle.device;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.*;
-import org.osgi.service.device.*;
-
-import java.io.*;
-import java.util.*;
+import org.osgi.framework.ServiceReference;
 
 public class MatchValue {
-  MatchValue next;
-  Integer key;
-  String drvid;
-  String pid;
-  ServiceReference dev;
-  int match;
+    MatchValue next;
+
+    Integer key;
+
+    String drvid;
+
+    String pid;
+
+    ServiceReference dev;
+
+    int match;
 }

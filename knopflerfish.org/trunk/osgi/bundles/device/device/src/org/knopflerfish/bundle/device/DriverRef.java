@@ -34,16 +34,17 @@
 
 package org.knopflerfish.bundle.device;
 
-import org.osgi.framework.*;
-import org.osgi.service.device.*;
-
-import java.io.*;
-import java.util.*;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.device.Driver;
 
 public class DriverRef {
-  int ranking;
-  long servid;
-  String id;
-  ServiceReference sr;
-  Driver drv;
+    int ranking;
+
+    long servid;
+
+    String id;
+
+    ServiceReference sr;
+
+    Driver drv;
 }
