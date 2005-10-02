@@ -34,80 +34,80 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
+import java.security.AccessController;
 import java.text.SimpleDateFormat;
 import java.util.Dictionary;
 import java.util.Vector;
-import java.security.AccessController;
-
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.service.useradmin.Role;
 
 import org.knopflerfish.service.um.useradmin.Condition;
 import org.knopflerfish.service.um.useradmin.ContextualAuthorization;
+import org.osgi.framework.InvalidSyntaxException;
 
 /**
  * Condition implementation.
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class ConditionImpl extends RoleImpl implements Condition {
-  private static final SimpleDateFormat date_format =
-    new SimpleDateFormat("yyyy-MM-dd");
-  private static final SimpleDateFormat time_format =
-    new SimpleDateFormat("HH:mm:ss");
-  private static final SimpleDateFormat day_format =
-    new SimpleDateFormat("EEEE");
+    private static final SimpleDateFormat date_format = new SimpleDateFormat(
+            "yyyy-MM-dd");
 
-  protected String filter;
+    private static final SimpleDateFormat time_format = new SimpleDateFormat(
+            "HH:mm:ss");
 
-  ConditionImpl( String name, UserAdminImpl uai ) {
-    super( name, uai );
-  }
+    private static final SimpleDateFormat day_format = new SimpleDateFormat(
+            "EEEE");
 
-  boolean hasMember(String user, Dictionary context, Vector v) {
-    //System.out.print( name + "-Condition.hasMember user: " + user );
-    //System.out.print( "  filter: " + filter );
-    //System.out.print( "  context: " + context );
-    //System.out.println( "  visited: " + v );
-    if( filter == null ) {
-      return true;
+    protected String filter;
+
+    ConditionImpl(String name, UserAdminImpl uai) {
+        super(name, uai);
     }
 
-    if( context != null ) {
-      // add current time to context  
-      long now = System.currentTimeMillis();
-      context.put(ContextualAuthorization.CONTEXT_DATE,
-		  date_format.format(new Long(now)).toString());
-      context.put(ContextualAuthorization.CONTEXT_TIME,
-		  time_format.format(new Long(now)).toString());
-      context.put(ContextualAuthorization.CONTEXT_DAY,
-		  day_format.format(new Long(now)).toString());
-      try {
-	return LDAPQuery.query(filter, context);
-      } catch (InvalidSyntaxException e) {
-	uai.log.error("Bad LDAP syntax: " + filter);
-      }
+    boolean hasMember(String user, Dictionary context, Vector v) {
+        // System.out.print( name + "-Condition.hasMember user: " + user );
+        // System.out.print( " filter: " + filter );
+        // System.out.print( " context: " + context );
+        // System.out.println( " visited: " + v );
+        if (filter == null) {
+            return true;
+        }
+
+        if (context != null) {
+            // add current time to context
+            long now = System.currentTimeMillis();
+            context.put(ContextualAuthorization.CONTEXT_DATE, date_format
+                    .format(new Long(now)).toString());
+            context.put(ContextualAuthorization.CONTEXT_TIME, time_format
+                    .format(new Long(now)).toString());
+            context.put(ContextualAuthorization.CONTEXT_DAY, day_format.format(
+                    new Long(now)).toString());
+            try {
+                return LDAPQuery.query(filter, context);
+            } catch (InvalidSyntaxException e) {
+                uai.log.error("Bad LDAP syntax: " + filter);
+            }
+        }
+
+        return false;
     }
 
-    return false;
-  }
-
-  public int getType() {
-    return CONDITION;
-  }
-
-  //- interface org.osgi.service.useradmin.Condition -------------------------- 
-  public String getFilter() {
-    return filter;
-  }
-  
-  public void setFilter(String filter) {
-    if( UserAdminImpl.checkPermissions ) {
-      AccessController.checkPermission(UserAdminImpl.adminPermission);
+    public int getType() {
+        return CONDITION;
     }
-    this.filter = filter;
-  }
+
+    // - interface org.osgi.service.useradmin.Condition
+    // --------------------------
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        if (UserAdminImpl.checkPermissions) {
+            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        }
+        this.filter = filter;
+    }
 
 }
-

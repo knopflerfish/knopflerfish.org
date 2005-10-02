@@ -31,18 +31,21 @@ package org.osgi.service.useradmin;
 import org.osgi.framework.ServiceReference;
 
 /**
- * <tt>Role</tt> change event. 
- * <p><tt>UserAdminEvent</tt> objects are delivered asynchronously to any
- * <tt>UserAdminListener</tt> objects when a change occurs in any of the <tt>Role</tt> objects managed
- * by a User Admin service.
+ * <tt>Role</tt> change event.
+ * <p>
+ * <tt>UserAdminEvent</tt> objects are delivered asynchronously to any
+ * <tt>UserAdminListener</tt> objects when a change occurs in any of the
+ * <tt>Role</tt> objects managed by a User Admin service.
  * 
- * <p>A type code is used to identify the event. The following event types are
+ * <p>
+ * A type code is used to identify the event. The following event types are
  * defined: {@link #ROLE_CREATED}type, {@link #ROLE_CHANGED}type, and
- * {@link #ROLE_REMOVED}type. Additional event types may be defined in the future.
- *
+ * {@link #ROLE_REMOVED}type. Additional event types may be defined in the
+ * future.
+ * 
  * @see UserAdmin
  * @see UserAdminListener
- *
+ * 
  * @version $Revision: 1.1.1.1 $
  * @author Open Services Gateway Initiative
  */
@@ -50,66 +53,83 @@ import org.osgi.framework.ServiceReference;
 public class UserAdminEvent {
 
     private ServiceReference ref;
+
     private int type;
+
     private Role role;
 
     /**
      * A <tt>Role</tt> object has been created.
-     *
-     * <p>The value of <tt>ROLE_CREATED</tt> is 0x00000001.
+     * 
+     * <p>
+     * The value of <tt>ROLE_CREATED</tt> is 0x00000001.
      */
     public static final int ROLE_CREATED = 0x00000001;
 
     /**
      * A <tt>Role</tt> object has been modified.
-     *
-     * <p>The value of <tt>ROLE_CHANGED</tt> is 0x00000002.
+     * 
+     * <p>
+     * The value of <tt>ROLE_CHANGED</tt> is 0x00000002.
      */
     public static final int ROLE_CHANGED = 0x00000002;
 
     /**
      * A <tt>Role</tt> object has been removed.
-     *
-     * <p>The value of <tt>ROLE_REMOVED</tt> is 0x00000004.
+     * 
+     * <p>
+     * The value of <tt>ROLE_REMOVED</tt> is 0x00000004.
      */
     public static final int ROLE_REMOVED = 0x00000004;
 
     /**
-     * Constructs a <tt>UserAdminEvent</tt> object from the given <tt>ServiceReference</tt> object, event type,
-     * and <tt>Role</tt> object.
-     *
-     * @param ref The <tt>ServiceReference</tt> object of the User Admin service that generated this
-     * event.
-     * @param type The event type.
-     * @param role The <tt>Role</tt> object on which this event occurred.
+     * Constructs a <tt>UserAdminEvent</tt> object from the given
+     * <tt>ServiceReference</tt> object, event type, and <tt>Role</tt>
+     * object.
+     * 
+     * @param ref
+     *            The <tt>ServiceReference</tt> object of the User Admin
+     *            service that generated this event.
+     * @param type
+     *            The event type.
+     * @param role
+     *            The <tt>Role</tt> object on which this event occurred.
      */
     public UserAdminEvent(ServiceReference ref, int type, Role role) {
-    this.ref = ref;
-    this.type = type;
-    this.role = role;
+        this.ref = ref;
+        this.type = type;
+        this.role = role;
     }
 
     /**
-     * Gets the <tt>ServiceReference</tt> object of the User Admin service that generated this event.
-     *
+     * Gets the <tt>ServiceReference</tt> object of the User Admin service
+     * that generated this event.
+     * 
      * @return The User Admin service's <tt>ServiceReference</tt> object.
      */
-    public ServiceReference getServiceReference() { return ref; }
+    public ServiceReference getServiceReference() {
+        return ref;
+    }
 
     /**
      * Returns the type of this event.
-     *
-     * <p>The type values are {@link #ROLE_CREATED}type, {@link #ROLE_CHANGED}type,
+     * 
+     * <p>
+     * The type values are {@link #ROLE_CREATED}type, {@link #ROLE_CHANGED}type,
      * and {@link #ROLE_REMOVED}type.
-     *
+     * 
      * @return The event type.
      */
-    public int getType() { return type; }
+    public int getType() {
+        return type;
+    }
 
     /**
      * Gets the <tt>Role</tt> object this event was generated for.
-     *
+     * 
      * @return The <tt>Role</tt> object this event was generated for.
      */
-    public Role getRole() { return role; }
+    public Role getRole() {
+        return role;
+    }
 }

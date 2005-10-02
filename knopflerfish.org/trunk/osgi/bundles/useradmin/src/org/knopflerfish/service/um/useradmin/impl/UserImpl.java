@@ -34,8 +34,8 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.util.Dictionary;
 import java.security.AccessController;
+import java.util.Dictionary;
 
 import org.osgi.service.useradmin.Role;
 import org.osgi.service.useradmin.User;
@@ -43,58 +43,57 @@ import org.osgi.service.useradmin.UserAdminPermission;
 
 /**
  * Implementation of Role.
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class UserImpl extends RoleImpl implements User {
-  protected UACredentials creds;
+    protected UACredentials creds;
 
-  UserImpl( String name, UserAdminImpl uai ) {
-    super( name, uai );
-    creds = new UACredentials( this );
-  }
-
-  public int getType() {
-    return Role.USER;
-  }
-
-  //- interface org.osgi.service.useradmin.User ------------------------------ 
-  public Dictionary getCredentials() {
-    return creds;
-  }
-
-  public boolean hasCredential(String key, Object value) {
-    if( UserAdminImpl.checkPermissions ) {
-      AccessController.checkPermission(new UserAdminPermission((String)key, 
-	UserAdminPermission.GET_CREDENTIAL));
-    }
-    Object val = creds.get(key);
-    if (val instanceof byte[] && value instanceof byte[]) {
-      return arraysEquals((byte[])val, (byte[])value);
-    }
-    if (val instanceof String && value instanceof String) {
-      return val.equals( value );
+    UserImpl(String name, UserAdminImpl uai) {
+        super(name, uai);
+        creds = new UACredentials(this);
     }
 
-    return false;
-  }
-
-  //- private helper methods -------------------------------------------------
-  // pJava1.2 compliant substitue for Arrays.equals
-  private boolean arraysEquals( byte[] a, byte[] b ) {
-    if (a.length == b.length) {
-      for (int i = 0; i < a.length; i++) {
-	if (a[i] != b[i]) {
-	  return false;
-	}
-      }
-      return true;
+    public int getType() {
+        return Role.USER;
     }
-    return false;
-  }
+
+    // - interface org.osgi.service.useradmin.User
+    // ------------------------------
+    public Dictionary getCredentials() {
+        return creds;
+    }
+
+    public boolean hasCredential(String key, Object value) {
+        if (UserAdminImpl.checkPermissions) {
+            AccessController.checkPermission(new UserAdminPermission(key,
+                    UserAdminPermission.GET_CREDENTIAL));
+        }
+        Object val = creds.get(key);
+        if (val instanceof byte[] && value instanceof byte[]) {
+            return arraysEquals((byte[]) val, (byte[]) value);
+        }
+        if (val instanceof String && value instanceof String) {
+            return val.equals(value);
+        }
+
+        return false;
+    }
+
+    // - private helper methods
+    // -------------------------------------------------
+    // pJava1.2 compliant substitue for Arrays.equals
+    private boolean arraysEquals(byte[] a, byte[] b) {
+        if (a.length == b.length) {
+            for (int i = 0; i < a.length; i++) {
+                if (a[i] != b[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
 }
-
-
-

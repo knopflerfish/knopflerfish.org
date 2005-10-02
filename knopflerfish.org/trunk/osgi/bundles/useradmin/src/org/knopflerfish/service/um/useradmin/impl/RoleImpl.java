@@ -38,119 +38,126 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import org.osgi.service.useradmin.UserAdmin;
 import org.osgi.service.useradmin.Role;
 
 /**
  * Implementation of Role.
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 class RoleImpl implements Role {
-  UserAdminImpl uai;
-  Vector /* RoleImpl */ basicMemberOf = new Vector();
-  Vector /* RoleImpl */ reqMemberOf = new Vector();
-  protected String name;
-  protected UAProperties props;
+    UserAdminImpl uai;
 
-  RoleImpl( String name, UserAdminImpl uai ) {
-    this.uai = uai;
-    this.name = name;
-    props = new UAProperties( this );
-  }
+    Vector /* RoleImpl */basicMemberOf = new Vector();
 
+    Vector /* RoleImpl */reqMemberOf = new Vector();
 
-  /**
-   * Checks if this role implies the specified role.
-   *
-   * @param roleName the role to check for
-   * @param user the user that is being checked 
-   * @param context the context of the check
-   * @param visited list of already examined roles, to detect loops in the db
-   *
-   * @return true if this role implies the specified role.
-   */
-  boolean hasRole( String roleName, String user,
-		   Dictionary context, Vector visited ) {
-    //System.out.print( name + "-Role.hasRole roleName: " + roleName );
-    //System.out.print( "  user: " + user );
-    //System.out.println( "  visited: " + visited );
+    protected String name;
 
-    // role always implies itself
-    if (name.equals( roleName )) {
-      return true;
+    protected UAProperties props;
+
+    RoleImpl(String name, UserAdminImpl uai) {
+        this.uai = uai;
+        this.name = name;
+        props = new UAProperties(this);
     }
 
-    // check if any basic parent has the role
-    for (Enumeration en = basicMemberOf.elements(); en.hasMoreElements();) {
-      RoleImpl parentGroup = (RoleImpl)en.nextElement();
-      if (parentGroup.hasRole( roleName, user, context, visited )) {
-	return true;
-      }
+    /**
+     * Checks if this role implies the specified role.
+     * 
+     * @param roleName
+     *            the role to check for
+     * @param user
+     *            the user that is being checked
+     * @param context
+     *            the context of the check
+     * @param visited
+     *            list of already examined roles, to detect loops in the db
+     * 
+     * @return true if this role implies the specified role.
+     */
+    boolean hasRole(String roleName, String user, Dictionary context,
+            Vector visited) {
+        // System.out.print( name + "-Role.hasRole roleName: " + roleName );
+        // System.out.print( " user: " + user );
+        // System.out.println( " visited: " + visited );
+
+        // role always implies itself
+        if (name.equals(roleName)) {
+            return true;
+        }
+
+        // check if any basic parent has the role
+        for (Enumeration en = basicMemberOf.elements(); en.hasMoreElements();) {
+            RoleImpl parentGroup = (RoleImpl) en.nextElement();
+            if (parentGroup.hasRole(roleName, user, context, visited)) {
+                return true;
+            }
+        }
+
+        // check if the predefined role has the role
+        if (!name.equals(UserAdminImpl.ANYONE))
+            if (uai.anyone.hasRole(roleName, user, context, visited))
+                return true;
+
+        return false;
     }
 
-    // check if the predefined role has the role
-    if (!name.equals( UserAdminImpl.ANYONE ))
-      if (uai.anyone.hasRole( roleName, user, context, visited ))
-	return true;
-    
-    return false;
-  }
+    /**
+     * Checks if the specified role is implied by this role.
+     * 
+     * @param user
+     *            the user that is being checked
+     * @param context
+     *            the context of the check
+     * @param visited
+     *            list of already examined roles, to detect loops in the db
+     * 
+     * @return true if the specified role is a valid member of this role.
+     */
+    boolean hasMember(String user, Dictionary context, Vector visited) {
+        // System.out.print( name + "-Role.hasMember user: " + user );
+        // System.out.println( " visited: " + visited );
 
+        if (name.equals(user) || name.equals(UserAdminImpl.ANYONE)) {
+            return true;
+        }
 
-  /**
-   * Checks if the specified role is implied by this role.
-   *
-   * @param user the user that is being checked
-   * @param context the context of the check
-   * @param visited list of already examined roles, to detect loops in the db
-   *
-   * @return true if the specified role is a valid member of this role.
-   */
-  boolean hasMember( String user, Dictionary context, Vector visited ) {
-    //System.out.print( name + "-Role.hasMember user: " + user );
-    //System.out.println( "  visited: " + visited );
-
-    if (name.equals(user) || name.equals( UserAdminImpl.ANYONE )) {
-      return true;
+        return false;
     }
 
-    return false;
-  }
-
-
-  /**
-   * Called to remove this role from the user database. This role is removed
-   * as a member of any basic or required parent group.
-   */
-  void remove() {
-    for (Enumeration en = basicMemberOf.elements(); en.hasMoreElements();) {
-      GroupImpl parentGroup = (GroupImpl)en.nextElement();
-      parentGroup.removeMember( this );
+    /**
+     * Called to remove this role from the user database. This role is removed
+     * as a member of any basic or required parent group.
+     */
+    void remove() {
+        for (Enumeration en = basicMemberOf.elements(); en.hasMoreElements();) {
+            GroupImpl parentGroup = (GroupImpl) en.nextElement();
+            parentGroup.removeMember(this);
+        }
+        for (Enumeration en = reqMemberOf.elements(); en.hasMoreElements();) {
+            GroupImpl parentGroup = (GroupImpl) en.nextElement();
+            parentGroup.removeMember(this);
+        }
     }
-    for (Enumeration en = reqMemberOf.elements(); en.hasMoreElements();) {
-      GroupImpl parentGroup = (GroupImpl)en.nextElement();
-      parentGroup.removeMember( this );
+
+    public String toString() {
+        return name;
     }
-  }
 
-  public String toString() {
-    return name;
-  }
+    // - interface org.osgi.service.useradmin.Role
+    // ------------------------------
+    public String getName() {
+        return name;
+    }
 
+    public int getType() {
+        return Role.ROLE;
+    }
 
-  //- interface org.osgi.service.useradmin.Role ------------------------------ 
-  public String getName() {
-    return name;
-  }
-
-  public int getType() {
-    return Role.ROLE;
-  }
-
-  public Dictionary getProperties() {
-    return props;
-  }
+    public Dictionary getProperties() {
+        return props;
+    }
 
 }

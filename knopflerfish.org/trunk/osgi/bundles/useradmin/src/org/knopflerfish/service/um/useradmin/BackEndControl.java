@@ -35,45 +35,46 @@
 package org.knopflerfish.service.um.useradmin;
 
 /**
- * Service that can be used to load the user admin with contents
- * from a back end system, save the user admin's current contents
- * to the back end system and get the subscription for this service
- * gateway from the back end system.<p>
+ * Service that can be used to load the user admin with contents from a back end
+ * system, save the user admin's current contents to the back end system and get
+ * the subscription for this service gateway from the back end system.
+ * <p>
  * 
- * First and foremost, this service is an internal service that
- * the bundle um_ui_sg uses to communicate with the back-end. The
- * interface is likely to change in future releases of the user
- * management component.
- *
- * @author  Gatespace AB
+ * First and foremost, this service is an internal service that the bundle
+ * um_ui_sg uses to communicate with the back-end. The interface is likely to
+ * change in future releases of the user management component.
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public interface BackEndControl {
-  /**
-   * Load the user admin with contents form the back end system.
-   * All data currently in the user admin is overwritten.
-   * 
-   * @throws SecurityException If a security manager exists and the caller
-   * does not have the <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
-   */
-  void load() throws BackEndException;
+    /**
+     * Load the user admin with contents form the back end system. All data
+     * currently in the user admin is overwritten.
+     * 
+     * @throws SecurityException
+     *             If a security manager exists and the caller does not have the
+     *             <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
+     */
+    void load() throws BackEndException;
 
-  /**
-   * Save the user admin's current contents to the back end system.
-   * All user management data in the back end system for this gateway's
-   * subscription is overwritten. 
-   *
-   * @throws SecurityException If a security manager exists and the caller
-   * does not have the <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
-   */
-  void save() throws BackEndException;
+    /**
+     * Save the user admin's current contents to the back end system. All user
+     * management data in the back end system for this gateway's subscription is
+     * overwritten.
+     * 
+     * @throws SecurityException
+     *             If a security manager exists and the caller does not have the
+     *             <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
+     */
+    void save() throws BackEndException;
 
-  /**
-   * Get the subscription for this service gateway.
-   *
-   *@return the subscription for this service gateway.
-   *@deprecated the subscription is now communicated as the service
-   * property "subscription", getSubscription still works though.
-   */
-  String getSubscription();
+    /**
+     * Get the subscription for this service gateway.
+     * 
+     * @return the subscription for this service gateway.
+     * @deprecated the subscription is now communicated as the service property
+     *             "subscription", getSubscription still works though.
+     */
+    String getSubscription();
 }

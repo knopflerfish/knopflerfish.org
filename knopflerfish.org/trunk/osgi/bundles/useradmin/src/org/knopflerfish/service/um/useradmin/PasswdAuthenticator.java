@@ -35,27 +35,28 @@
 package org.knopflerfish.service.um.useradmin;
 
 /**
- * Service for user name/password authentication. 
- *
- * @author  Gatespace AB
+ * Service for user name/password authentication.
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public interface PasswdAuthenticator {
-  /**
-   * Tests if it is possible to authenticate the user with the
-   * specified username with this authentication method (that
-   * there is a user with the specified user name and that the
-   * user has a password credential.
-   *
-   * @param username the username
-   * @return true if this authentication method can be used to authenticate
-   * the user, false otherwise.
-   */
-  boolean canAuthenticate( String username );
+    /**
+     * Tests if it is possible to authenticate the user with the specified
+     * username with this authentication method (that there is a user with the
+     * specified user name and that the user has a password credential.
+     * 
+     * @param username
+     *            the username
+     * @return true if this authentication method can be used to authenticate
+     *         the user, false otherwise.
+     */
+    boolean canAuthenticate(String username);
 
-  /**
-   * Creates an authentication session.
-   * @return a session.
-   */ 
-  PasswdSession createSession();
+    /**
+     * Creates an authentication session.
+     * 
+     * @return a session.
+     */
+    PasswdSession createSession();
 }
