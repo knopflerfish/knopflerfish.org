@@ -32,14 +32,15 @@ import java.util.EventListener;
 
 /**
  * Subscribes to <tt>LogEntry</tt> objects from the <tt>LogReaderService</tt>.
- *
- * <p>A <tt>LogListener</tt> object may be registered with the Log Reader Service
- * using the <tt>LogReaderService.addLogListener</tt> method.
- * After the listener is registered, the <tt>logged</tt> method will be called for
- * each <tt>LogEntry</tt> object created. The <tt>LogListener</tt> object
- * may be unregistered by calling the
- * <tt>LogReaderService.removeLogListener</tt> method.
- *
+ * 
+ * <p>
+ * A <tt>LogListener</tt> object may be registered with the Log Reader Service
+ * using the <tt>LogReaderService.addLogListener</tt> method. After the
+ * listener is registered, the <tt>logged</tt> method will be called for each
+ * <tt>LogEntry</tt> object created. The <tt>LogListener</tt> object may be
+ * unregistered by calling the <tt>LogReaderService.removeLogListener</tt>
+ * method.
+ * 
  * @version $Revision: 1.1.1.1 $
  * @author Open Services Gateway Initiative
  * @see LogReaderService
@@ -47,18 +48,17 @@ import java.util.EventListener;
  * @see LogReaderService#addLogListener(LogListener)
  * @see LogReaderService#removeLogListener(LogListener)
  */
-public abstract interface LogListener extends EventListener
-{
+public abstract interface LogListener extends EventListener {
     /**
      * Listener method called for each LogEntry object created.
-     *
-     * <p>As with all event listeners, this method should return to its caller as soon
-     * as possible.
-     *
-     * @param entry A <tt>LogEntry</tt> object containing log information.
+     * 
+     * <p>
+     * As with all event listeners, this method should return to its caller as
+     * soon as possible.
+     * 
+     * @param entry
+     *            A <tt>LogEntry</tt> object containing log information.
      * @see LogEntry
      */
     public abstract void logged(LogEntry entry);
 }
-
-
