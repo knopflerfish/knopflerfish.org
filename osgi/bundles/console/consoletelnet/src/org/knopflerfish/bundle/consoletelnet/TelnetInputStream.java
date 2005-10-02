@@ -34,135 +34,120 @@
 
 package org.knopflerfish.bundle.consoletelnet;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FilterInputStream;
 
 /**
- ** Reads an input stream and extracts telnet commands.
- ** When a command is found a callback is made to the
- ** telnet session.
- **
- ** The following transformations are made:
- **
- ** CR null to CR 
- ** CR LF to CR 
- ** CR n,  where n is not null or LF is discarded
- ** IAC IAC to IAC
- ** 
- ** in the data part of the input stream.
- **
- ** While parsing telnet commands no transforms 
- ** except IAC IAC to IAC are made.
- ** 
- ** A state machine is used to parse the telnet commands.
+ * * Reads an input stream and extracts telnet commands. * When a command is
+ * found a callback is made to the * telnet session. * * The following
+ * transformations are made: * * CR null to CR * CR LF to CR * CR n, where n is
+ * not null or LF is discarded * IAC IAC to IAC * * in the data part of the
+ * input stream. * * While parsing telnet commands no transforms * except IAC
+ * IAC to IAC are made. * * A state machine is used to parse the telnet
+ * commands.
  */
 
 public class TelnetInputStream extends FilterInputStream {
-  private InputStream        is;
-  private TelnetSession      tels;
-  private TelnetStateMachine tsm;
-  private int                prevChar;
-  private int                thisChar;
+    private TelnetStateMachine tsm;
 
-  /*
-  public TelnetInputStream (InputStream is) {
-    super(is);
-  }
-  */
+    private int prevChar;
 
-  public TelnetInputStream (InputStream is, TelnetSession tels) {
-    super (is);
-    this.tels = tels;
-    tsm = new TelnetStateMachine(tels);
-    prevChar = -1;
-  }
-  
-  public int available () throws IOException {
-    return in.available();
-  }
+    private int thisChar;
 
-  public void close () throws IOException {
-    in.close();
-  }
+    /*
+     * public TelnetInputStream (InputStream is) { super(is); }
+     */
 
-  public void mark (int readlimit) {
-    in.mark(readlimit);
-  }
-
-  public boolean markSupported () {
-    return in.markSupported();
-  }
-
-  public int read () throws IOException {
-    scanStream: while (true) {
-      prevChar = thisChar;
-      thisChar = in.read();
-
-      //      System.out.println("TelnetIS char=" + thisChar);
-
-      if (thisChar == -1) {
-        break scanStream;
-      } else {
-        if (prevChar == TCC.IAC && thisChar == TCC.IAC) { 
-          // Strip one double written IAC from input stream
-          continue scanStream;
-        }
-        if (tsm.getState() == 0 && thisChar == TCC.IAC) {
-          // Detect command start
-          tsm.nextState(tsm.getState(), thisChar);
-          continue scanStream;
-        }
-        if (tsm.getState() != 0) { 
-          // Continue commad extraction 
-          tsm.nextState(tsm.getState(), thisChar);
-          continue scanStream;
-        }
-        if ((thisChar == TCC.NULL || thisChar == TCC.LF) && prevChar == TCC.CR) {
-	  //	  System.out.println("break CR");
-          thisChar = TCC.CR;
-          break scanStream;
-        }
-        if (thisChar == TCC.CR) {
-	  //	  System.out.println("break2 CR");
-	  return thisChar;
-	  //          continue scanStream;
-        }
-        
-        break scanStream;
-      }
+    public TelnetInputStream(InputStream is, TelnetSession tels) {
+        super(is);
+        tsm = new TelnetStateMachine(tels);
+        prevChar = -1;
     }
-    return thisChar;
- }
 
-  public int read (byte [] b) throws IOException {
-    return read (b, 0, b.length);
-  }
-
-  public int read (byte [] b, int off, int len) throws IOException {
-    int count = 0;
-    int character = 0;
-    while (count < (len - off) && in.available() > 0) {
-      character = read ();
-      if (character == -1) {
-        if (count != 0) {
-          return count;
-        } else {
-          return -1; 
-        }
-      } else {
-        b[off + count] = (byte) character;
-        count++;
-      }
+    public int available() throws IOException {
+        return in.available();
     }
-    return count;
-  }
 
-  public void reset () throws IOException {
-    in.reset();
-  }
+    public void close() throws IOException {
+        in.close();
+    }
 
-  public long skip (long n) throws IOException {
-    return in.skip(n);
-  }
+    public void mark(int readlimit) {
+        in.mark(readlimit);
+    }
+
+    public boolean markSupported() {
+        return in.markSupported();
+    }
+
+    public int read() throws IOException {
+        scanStream: while (true) {
+            prevChar = thisChar;
+            thisChar = in.read();
+
+            // System.out.println("TelnetIS char=" + thisChar);
+
+            if (thisChar == -1) {
+                break scanStream;
+            }
+            if (prevChar == TCC.IAC && thisChar == TCC.IAC) {
+                // Strip one double written IAC from input stream
+                continue scanStream;
+            }
+            if (tsm.getState() == 0 && thisChar == TCC.IAC) {
+                // Detect command start
+                tsm.nextState(tsm.getState(), thisChar);
+                continue scanStream;
+            }
+            if (tsm.getState() != 0) {
+                // Continue commad extraction
+                tsm.nextState(tsm.getState(), thisChar);
+                continue scanStream;
+            }
+            if ((thisChar == TCC.NULL || thisChar == TCC.LF)
+                    && prevChar == TCC.CR) {
+                // System.out.println("break CR");
+                thisChar = TCC.CR;
+                break scanStream;
+            }
+            if (thisChar == TCC.CR) {
+                // System.out.println("break2 CR");
+                return thisChar;
+                // continue scanStream;
+            }
+
+            break scanStream;
+        }
+        return thisChar;
+    }
+
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+
+    public int read(byte[] b, int off, int len) throws IOException {
+        int count = 0;
+        int character = 0;
+        while (count < (len - off) && in.available() > 0) {
+            character = read();
+            if (character == -1) {
+                if (count != 0) {
+                    return count;
+                }
+                return -1;
+            }
+            b[off + count] = (byte) character;
+            count++;
+        }
+        return count;
+    }
+
+    public void reset() throws IOException {
+        in.reset();
+    }
+
+    public long skip(long n) throws IOException {
+        return in.skip(n);
+    }
 }

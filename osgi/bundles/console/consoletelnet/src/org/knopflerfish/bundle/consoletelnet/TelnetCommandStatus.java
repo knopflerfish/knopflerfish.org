@@ -34,135 +34,125 @@
 
 package org.knopflerfish.bundle.consoletelnet;
 
-  /**
-   ** The STATUS command has one sub negotiable parameter
-   ** that may be IS or SEND.
-   */
+/**
+ * * The STATUS command has one sub negotiable parameter * that may be IS or
+ * SEND.
+ */
 
 public class TelnetCommandStatus extends TelnetCommand {
 
-  public TelnetCommandStatus (TelnetSession ts,
-                              int commandCode,
-                              boolean doStatus,
-			      boolean show) {
-    super(ts, commandCode, doStatus, show);
-  }
-
-
-  /**
-   ** Option negotiation and execution mechanism
-   **
-   ** To follow the intentions of RFC 854, a change in status
-   ** is always followed by a response but if trying to enter a mode
-   ** that we are already in, no response is returned.
-   **
-   ** This is essential to prevent negotiation loops.
-   **
-   ** @parameter action, one of the telnet protocol basic actions
-   **            DO, DONT, WILL, WONT or  SE
-   ** @parameter optionCode, the option code
-   ** @parameter parameters, a string with optional parameters to the option code.
-   **
-   ** @return a String with the response to the command.
-   */
-
-  public String execute (int action, int optionCode, byte[] parameters) {
-    // printCommand(action, optionCode, parameters);
-    StringBuffer sb = new StringBuffer();
-
-    switch (action) {
-    case TCC.DO:
-      if (doStatus == true) {
-        // willing and ready, send no resonse, 
-        // to prevent creation of negotiation loop
-      } else {
-        doStatus = true;
-        sb.append(getWILL());
-      }
-      break;
-
-    case TCC.WILL:
-      if (doStatus == true) {
-        // willing and ready, send no resonse, 
-        // to prevent creation of negotiation loop
-      } else {
-        doStatus = true;
-        sb.append(getDO());
-      }
-      break;
-
-    case TCC.DONT:
-      if (doStatus == true) {
-        sb.append(getWONT());
-        doStatus = false;
-        // now not willing, send no resonse, 
-        // to prevent creation of negotiation loop
-      } else {
-        doStatus = false;
-      }
-      break;
-
-    case TCC.WONT:
-      if (doStatus == true) {
-        // no appropriate answer to send
-        doStatus = false;
-        // now not willing, send no resonse, 
-        // to prevent creation of negotiation loop
-      } else {
-        doStatus = false;
-      }
-      break;
-
-    // SB .... SE, command execution, when negotiations 
-    // are finished and both parties have agreed
-
-    case TCC.SE:
-      if (doStatus == true) {
-        sb.append(doCommand(action, optionCode, parameters));
-      } else { // not in right state 
-        sb.append(getDONT());
-      }
-      break;
-
-    default:
-      break;
+    public TelnetCommandStatus(TelnetSession ts, int commandCode,
+            boolean doStatus, boolean show) {
+        super(ts, commandCode, doStatus, show);
     }
-    return sb.toString();
-  }
 
+    /**
+     * * Option negotiation and execution mechanism * * To follow the intentions
+     * of RFC 854, a change in status * is always followed by a response but if
+     * trying to enter a mode * that we are already in, no response is returned. * *
+     * This is essential to prevent negotiation loops. * *
+     * 
+     * @parameter action, one of the telnet protocol basic actions * DO, DONT,
+     *            WILL, WONT or SE *
+     * @parameter optionCode, the option code *
+     * @parameter parameters, a string with optional parameters to the option
+     *            code. * *
+     * @return a String with the response to the command.
+     */
 
-  public String doCommand(int action, int optionCode, byte[] parameters) {
-    // printCommand( action, optionCode, parameters);
+    public String execute(int action, int optionCode, byte[] parameters) {
+        // printCommand(action, optionCode, parameters);
+        StringBuffer sb = new StringBuffer();
 
-    StringBuffer sb = new StringBuffer();
-    if (parameters != null && (parameters[0] == (byte) TCC.SEND)) {
-      // assume SEND
-      sb.append(TCC.IAC_string
-                  + TCC.SB_string
-                  + String.valueOf((char) optionCode)
-                  + TCC.IS_string);
+        switch (action) {
+        case TCC.DO:
+            if (doStatus == true) {
+                // willing and ready, send no resonse,
+                // to prevent creation of negotiation loop
+            } else {
+                doStatus = true;
+                sb.append(getWILL());
+            }
+            break;
 
-      TelnetCommand [] tcs = getCommands();
-      for (int i = 0; i< tcs.length; i++) {
-        TelnetCommand tc = tcs[i];
-        if (tc != null) {
-          sb.append(TCC.WILL_string); 
-          sb.append(String.valueOf((char) i));
-          
-          if (tc.getDoStatus() == true) {
-            sb.append(TCC.DO_string); 
-            sb.append(String.valueOf((char) i));
-          } else {
-            sb.append(TCC.DONT_string); 
-            sb.append(String.valueOf((char) i));
-          }
+        case TCC.WILL:
+            if (doStatus == true) {
+                // willing and ready, send no resonse,
+                // to prevent creation of negotiation loop
+            } else {
+                doStatus = true;
+                sb.append(getDO());
+            }
+            break;
+
+        case TCC.DONT:
+            if (doStatus == true) {
+                sb.append(getWONT());
+                doStatus = false;
+                // now not willing, send no resonse,
+                // to prevent creation of negotiation loop
+            } else {
+                doStatus = false;
+            }
+            break;
+
+        case TCC.WONT:
+            if (doStatus == true) {
+                // no appropriate answer to send
+                doStatus = false;
+                // now not willing, send no resonse,
+                // to prevent creation of negotiation loop
+            } else {
+                doStatus = false;
+            }
+            break;
+
+        // SB .... SE, command execution, when negotiations
+        // are finished and both parties have agreed
+
+        case TCC.SE:
+            if (doStatus == true) {
+                sb.append(doCommand(action, optionCode, parameters));
+            } else { // not in right state
+                sb.append(getDONT());
+            }
+            break;
+
+        default:
+            break;
         }
-      }
-      sb.append(TCC.IAC_string
-              + TCC.SE_string);
-    } else if (parameters != null && (parameters[0] == (byte) TCC.IS)) {
-      ;
+        return sb.toString();
     }
-    return sb.toString();
-  }
+
+    public String doCommand(int action, int optionCode, byte[] parameters) {
+        // printCommand( action, optionCode, parameters);
+
+        StringBuffer sb = new StringBuffer();
+        if (parameters != null && (parameters[0] == (byte) TCC.SEND)) {
+            // assume SEND
+            sb.append(TCC.IAC_string + TCC.SB_string
+                    + String.valueOf((char) optionCode) + TCC.IS_string);
+
+            TelnetCommand[] tcs = getCommands();
+            for (int i = 0; i < tcs.length; i++) {
+                TelnetCommand tc = tcs[i];
+                if (tc != null) {
+                    sb.append(TCC.WILL_string);
+                    sb.append(String.valueOf((char) i));
+
+                    if (tc.getDoStatus() == true) {
+                        sb.append(TCC.DO_string);
+                        sb.append(String.valueOf((char) i));
+                    } else {
+                        sb.append(TCC.DONT_string);
+                        sb.append(String.valueOf((char) i));
+                    }
+                }
+            }
+            sb.append(TCC.IAC_string + TCC.SE_string);
+        } else if (parameters != null && (parameters[0] == (byte) TCC.IS)) {
+
+        }
+        return sb.toString();
+    }
 }

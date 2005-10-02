@@ -37,40 +37,41 @@ package org.knopflerfish.bundle.consoletelnet;
 import org.osgi.service.useradmin.Authorization;
 
 /**
- ** This class contains if a login was permitted, 
- ** the login name and also if there is an associated 
- ** authorization object (that might be null)
- **
+ * * This class contains if a login was permitted, * the login name and also if
+ * there is an associated * authorization object (that might be null) *
  */
 
 public class TelnetLogin {
-  Authorization authorization;
-  boolean loginStatus;
-  String userName;
+    Authorization authorization;
 
-  public TelnetLogin (boolean loginStatus, Authorization authorization, String userName) {
-    this.authorization = authorization;
-    this.loginStatus = loginStatus;
-    this.userName = userName;
-  }
+    boolean loginStatus;
 
-  public Authorization getAuthorization() {
-    return authorization;
-  }
+    String userName;
 
-  public void setAuthorization(Authorization authorization) {
-    this.authorization = authorization;
-  }
+    public TelnetLogin(boolean loginStatus, Authorization authorization,
+            String userName) {
+        this.authorization = authorization;
+        this.loginStatus = loginStatus;
+        this.userName = userName;
+    }
 
-  public boolean isPermitted () {
-    return loginStatus;
-  }
+    public Authorization getAuthorization() {
+        return authorization;
+    }
 
-  public void setPermitted (boolean loginStatus) {
-    this.loginStatus = loginStatus;
-  }
+    public void setAuthorization(Authorization authorization) {
+        this.authorization = authorization;
+    }
 
-  public String getUser() {
-    return userName;
-  }
+    public boolean isPermitted() {
+        return loginStatus;
+    }
+
+    public void setPermitted(boolean loginStatus) {
+        this.loginStatus = loginStatus;
+    }
+
+    public String getUser() {
+        return userName;
+    }
 }
