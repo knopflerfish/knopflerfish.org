@@ -34,114 +34,131 @@
 
 package org.knopflerfish.bundle.log;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
-import org.knopflerfish.service.console.Util;
 
 /**
- ** Catch all framework generated events and add them to the log.
- ** <p>
- ** Mapping from event to log entry is according to the proposal
- ** <b>Mapping Rules from Framework-Generated Events to Log Entries
- ** (Draft 1)</b> to CPEG by Jan Luehe (Sun) 2000-08-29.
- ** The severity level of service events for modified services has
- ** been changed to debug since such event may be very frequent.
- **
- ** @author Gatespace AB
- ** @version $Revision: 1.1.1.1 $
- **/
-public class LogFrameworkListener
-  implements FrameworkListener, BundleListener, ServiceListener
-{
+ * * Catch all framework generated events and add them to the log. *
+ * <p> * Mapping from event to log entry is according to the proposal *
+ * <b>Mapping Rules from Framework-Generated Events to Log Entries * (Draft 1)</b>
+ * to CPEG by Jan Luehe (Sun) 2000-08-29. * The severity level of service events
+ * for modified services has * been changed to debug since such event may be
+ * very frequent. * *
+ * 
+ * @author Gatespace AB *
+ * @version $Revision: 1.1.1.1 $
+ */
+public class LogFrameworkListener implements FrameworkListener, BundleListener,
+        ServiceListener {
 
-  private final LogReaderServiceFactory lrsf;
+    private final LogReaderServiceFactory lrsf;
 
-  public LogFrameworkListener( LogReaderServiceFactory lrsf )
-  {
-    this.lrsf = lrsf;
-  }
-
-  /**
-   ** The framework event callback method inserts all framework events
-   ** into the log.
-   **
-   ** Events of type <code>error</code> are logged at the error level
-   ** other event types are logged on the info level.
-   ** <p>FrameworkListener callback.
-   ** @param fe the framework event that has occured.
-   **/
-  public void frameworkEvent( FrameworkEvent fe ) {
-    int level = LogService.LOG_INFO;
-    String msg = null;
-    Throwable thr = null;
-    switch (fe.getType()) {
-    case FrameworkEvent.ERROR:
-      msg   = "FrameworkEvent ERROR";
-      level = LogService.LOG_ERROR;
-      thr   = fe.getThrowable();
-      break;
-    case FrameworkEvent.STARTED:
-      msg   = "FrameworkEvent STARTED";
-      level = LogService.LOG_INFO;
-      break;
-    case FrameworkEvent.STARTLEVEL_CHANGED:
-      msg   = "FrameworkEvent STARTLEVEL_CHANGED";
-      level = LogService.LOG_INFO;
-      break;
-    case FrameworkEvent.PACKAGES_REFRESHED:
-      msg   = "FrameworkEvent PACKAGES_REFRESHED";
-      level = LogService.LOG_INFO;
-      break;
-    default:
-      msg   = "FrameworkEvent <" + fe.getType() + ">";
-      level = LogService.LOG_WARNING;
-      break;
+    public LogFrameworkListener(LogReaderServiceFactory lrsf) {
+        this.lrsf = lrsf;
     }
-    lrsf.log(new LogEntryImpl(fe.getBundle(), level, msg, thr ));
-  }
 
-  /**
-   ** The bundle event callback method inserts all bundle events
-   ** into the log.
-   **
-   ** Events are all assinged the log level info, 
-   ** @param be the bundle event that has occured.
-   **/
-  public void bundleChanged( BundleEvent be ) {
-    Bundle bundle = be.getBundle();
-    String msg = null;
-    switch (be.getType()) {
-    case BundleEvent.INSTALLED:   msg = "BundleEvent INSTALLED";  break;
-    case BundleEvent.STARTED:     msg = "BundleEvent STARTED";    break;
-    case BundleEvent.STOPPED:     msg = "BundleEvent STOPPED";    break;
-    case BundleEvent.UNINSTALLED: msg = "BundleEvent UNINSTALLED";break;
-    case BundleEvent.UPDATED:     msg = "BundleEvent UPDATED";    break;
+    /**
+     * * The framework event callback method inserts all framework events * into
+     * the log. * * Events of type <code>error</code> are logged at the error
+     * level * other event types are logged on the info level. *
+     * <p>
+     * FrameworkListener callback. *
+     * 
+     * @param fe
+     *            the framework event that has occured.
+     */
+    public void frameworkEvent(FrameworkEvent fe) {
+        int level = LogService.LOG_INFO;
+        String msg = null;
+        Throwable thr = null;
+        switch (fe.getType()) {
+        case FrameworkEvent.ERROR:
+            msg = "FrameworkEvent ERROR";
+            level = LogService.LOG_ERROR;
+            thr = fe.getThrowable();
+            break;
+        case FrameworkEvent.STARTED:
+            msg = "FrameworkEvent STARTED";
+            level = LogService.LOG_INFO;
+            break;
+        case FrameworkEvent.STARTLEVEL_CHANGED:
+            msg = "FrameworkEvent STARTLEVEL_CHANGED";
+            level = LogService.LOG_INFO;
+            break;
+        case FrameworkEvent.PACKAGES_REFRESHED:
+            msg = "FrameworkEvent PACKAGES_REFRESHED";
+            level = LogService.LOG_INFO;
+            break;
+        default:
+            msg = "FrameworkEvent <" + fe.getType() + ">";
+            level = LogService.LOG_WARNING;
+            break;
+        }
+        lrsf.log(new LogEntryImpl(fe.getBundle(), level, msg, thr));
     }
-    lrsf.log( new LogEntryImpl(be.getBundle(), LogService.LOG_INFO, msg ));
-  }
 
-  /**
-   ** The service event callback method inserts all service events
-   ** into the log.
-   **
-   ** Event of types REGISTERED, UNREGISTERED are assinged the log
-   * level info. Events of type MODIFIED are assigned the log level DEBUG.
-   ** @param se the service event that has occured.
-   **/
-  public void serviceChanged( ServiceEvent se ) {
-    ServiceReference sr = se.getServiceReference();
-    Bundle bundle       = sr.getBundle();
-    String msg    = null;
-    int    level  = LogService.LOG_INFO;
-    switch (se.getType()) {
-    case ServiceEvent.REGISTERED:    msg = "ServiceEvent REGISTERED";    break;
-    case ServiceEvent.UNREGISTERING: msg = "ServiceEvent UNREGISTERING"; break;
-    case ServiceEvent.MODIFIED:
-      msg   = "ServiceEvent MODIFIED";
-      level = LogService.LOG_DEBUG;
-      break;
+    /**
+     * * The bundle event callback method inserts all bundle events * into the
+     * log. * * Events are all assinged the log level info, *
+     * 
+     * @param be
+     *            the bundle event that has occured.
+     */
+    public void bundleChanged(BundleEvent be) {
+        String msg = null;
+        switch (be.getType()) {
+        case BundleEvent.INSTALLED:
+            msg = "BundleEvent INSTALLED";
+            break;
+        case BundleEvent.STARTED:
+            msg = "BundleEvent STARTED";
+            break;
+        case BundleEvent.STOPPED:
+            msg = "BundleEvent STOPPED";
+            break;
+        case BundleEvent.UNINSTALLED:
+            msg = "BundleEvent UNINSTALLED";
+            break;
+        case BundleEvent.UPDATED:
+            msg = "BundleEvent UPDATED";
+            break;
+        }
+        lrsf.log(new LogEntryImpl(be.getBundle(), LogService.LOG_INFO, msg));
     }
-    lrsf.log( new LogEntryImpl(bundle, sr, level, msg ));
-  }
+
+    /**
+     * * The service event callback method inserts all service events * into the
+     * log. * * Event of types REGISTERED, UNREGISTERED are assinged the log
+     * level info. Events of type MODIFIED are assigned the log level DEBUG. *
+     * 
+     * @param se
+     *            the service event that has occured.
+     */
+    public void serviceChanged(ServiceEvent se) {
+        ServiceReference sr = se.getServiceReference();
+        Bundle bundle = sr.getBundle();
+        String msg = null;
+        int level = LogService.LOG_INFO;
+        switch (se.getType()) {
+        case ServiceEvent.REGISTERED:
+            msg = "ServiceEvent REGISTERED";
+            break;
+        case ServiceEvent.UNREGISTERING:
+            msg = "ServiceEvent UNREGISTERING";
+            break;
+        case ServiceEvent.MODIFIED:
+            msg = "ServiceEvent MODIFIED";
+            level = LogService.LOG_DEBUG;
+            break;
+        }
+        lrsf.log(new LogEntryImpl(bundle, sr, level, msg));
+    }
 
 }// end of class LogFrameworkListener

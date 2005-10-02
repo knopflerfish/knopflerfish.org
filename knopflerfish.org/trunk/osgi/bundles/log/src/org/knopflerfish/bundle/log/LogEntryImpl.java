@@ -34,140 +34,131 @@
 
 package org.knopflerfish.bundle.log;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.LogEntry;
-
-import org.knopflerfish.service.log.LogUtil;
-
-import java.util.Date;
 import java.text.SimpleDateFormat;
 
+import org.knopflerfish.service.log.LogUtil;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogEntry;
+
 /**
- ** This class implements the LogEntry interface defined by OSGi.
- **
- ** @author Gatespace AB
- ** @version $Revision: 1.1.1.1 $
- **/
+ * * This class implements the LogEntry interface defined by OSGi. * *
+ * 
+ * @author Gatespace AB *
+ * @version $Revision: 1.1.1.1 $
+ */
 public final class LogEntryImpl implements LogEntry {
 
-  // Date formater used in toString().
-  private static SimpleDateFormat simpleDateFormat = null;
+    // Date formater used in toString().
+    private static SimpleDateFormat simpleDateFormat = null;
 
-  // Log entry data.
-  private Bundle bundle;
-  private ServiceReference sr;
-  private int level;
-  private String msg;
-  private Throwable e;
-  private long millis;
+    // Log entry data.
+    private Bundle bundle;
 
-  public LogEntryImpl(Bundle bc,
-		      int l,
-		      String m)
-  {
-    this(bc,null,l,m,null);
-  }
+    private ServiceReference sr;
 
-  public LogEntryImpl(Bundle bc,
-		      int l,
-		      String m,
-		      Throwable e)
-  {
-    this(bc,null,l,m,e);
-  }
+    private int level;
 
-  public LogEntryImpl(Bundle bc,
-		      ServiceReference sd,
-		      int l,
-		      String m)
-  {
-    this(bc,sd,l,m,null);
-  }
+    private String msg;
 
-  public LogEntryImpl(Bundle bc,
-		      ServiceReference sd,
-		      int l,
-		      String m,
-		      Throwable e)
-  {
-    this.bundle = bc;
-    this.sr     = sd;
-    this.level  = l;
-    this.msg    = m;
-    this.e      = e;
-    this.millis = System.currentTimeMillis();
-  }
+    private Throwable e;
 
+    private long millis;
 
-  /**
-   ** Returns a string representing this log entry.
-   ** The format is:
-   ** <pre>
-   ** level    YYYYMMDD HH:MM:ss bid#NR       - [Service] - Message (Exception)
-   ** </pre>
-   **/
-  public String toString() {
-
-    StringBuffer sb = new StringBuffer(100);
-    sb.append(LogUtil.fromLevel(level,8) );
-    sb.append(" ");
-    if (simpleDateFormat == null) {
-      simpleDateFormat = new SimpleDateFormat ("yyyyMMdd HH:mm:ss");
+    public LogEntryImpl(Bundle bc, int l, String m) {
+        this(bc, null, l, m, null);
     }
-    sb.append( simpleDateFormat.format( new Long(millis) ) );
-    sb.append(" ");
-    sb.append("bid#");
-    if (bundle!=null) {
-      sb.append(bundle.getBundleId());
+
+    public LogEntryImpl(Bundle bc, int l, String m, Throwable e) {
+        this(bc, null, l, m, e);
     }
-    // Ensure that the service/message part start in pos 40
-    if(sb.length()<40) {
-      sb.append("          ");
-      sb.setLength(40);
+
+    public LogEntryImpl(Bundle bc, ServiceReference sd, int l, String m) {
+        this(bc, sd, l, m, null);
     }
-    sb.append("- ");
-    if (sr!=null) {
-      sb.append("[");
-      sb.append( sr.getProperty(Constants.SERVICE_ID).toString() );
-      sb.append(";");
-      String[] clazzes = (String[]) sr.getProperty(Constants.OBJECTCLASS);
-      for (int i=0;i<clazzes.length;i++) {
-        if (i>0) sb.append(",");
-        sb.append(clazzes[i]);
-      }
-      sb.append("] ");
+
+    public LogEntryImpl(Bundle bc, ServiceReference sd, int l, String m,
+            Throwable e) {
+        this.bundle = bc;
+        this.sr = sd;
+        this.level = l;
+        this.msg = m;
+        this.e = e;
+        this.millis = System.currentTimeMillis();
     }
-    sb.append(msg);
-    if (e!=null) {
-      sb.append(" (");
-      sb.append(e.toString());
-      sb.append(")");
+
+    /**
+     * * Returns a string representing this log entry. * The format is: *
+     * 
+     * <pre>
+     *   * level    YYYYMMDD HH:MM:ss bid#NR       - [Service] - Message (Exception)
+     *   *
+     * </pre>
+     */
+    public String toString() {
+
+        StringBuffer sb = new StringBuffer(100);
+        sb.append(LogUtil.fromLevel(level, 8));
+        sb.append(" ");
+        if (simpleDateFormat == null) {
+            simpleDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+        }
+        sb.append(simpleDateFormat.format(new Long(millis)));
+        sb.append(" ");
+        sb.append("bid#");
+        if (bundle != null) {
+            sb.append(bundle.getBundleId());
+        }
+        // Ensure that the service/message part start in pos 40
+        if (sb.length() < 40) {
+            sb.append("          ");
+            sb.setLength(40);
+        }
+        sb.append("- ");
+        if (sr != null) {
+            sb.append("[");
+            sb.append(sr.getProperty(Constants.SERVICE_ID).toString());
+            sb.append(";");
+            String[] clazzes = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+            for (int i = 0; i < clazzes.length; i++) {
+                if (i > 0)
+                    sb.append(",");
+                sb.append(clazzes[i]);
+            }
+            sb.append("] ");
+        }
+        sb.append(msg);
+        if (e != null) {
+            sb.append(" (");
+            sb.append(e.toString());
+            sb.append(")");
+        }
+
+        return sb.toString();
     }
-    
-    return sb.toString();
-  }
 
-  public Bundle getBundle() {
-    return bundle;
-  }
+    public Bundle getBundle() {
+        return bundle;
+    }
 
-  public ServiceReference getServiceReference() {
-    return sr;
-  }
+    public ServiceReference getServiceReference() {
+        return sr;
+    }
 
-  public int getLevel() {
-    return level;
-  }
+    public int getLevel() {
+        return level;
+    }
 
-  public String getMessage() {
-    return msg;
-  }
+    public String getMessage() {
+        return msg;
+    }
 
-  public Throwable getException() {
-    return e;
-  }
+    public Throwable getException() {
+        return e;
+    }
 
-  public long getTime() {
-    return millis;
-  }
+    public long getTime() {
+        return millis;
+    }
 }

@@ -22,13 +22,12 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/cm/cm_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
   </path>
 
 
   <property name="bundle.description"     value="The Knopflerfish OSGi log service"/>
   <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.version"        value="1.0.1"/>
   <property name="bundle.name"           value="Log Service"/>
 
   <property name="bundle.apivendor"      value="OSGi/Knopflerfish"/>

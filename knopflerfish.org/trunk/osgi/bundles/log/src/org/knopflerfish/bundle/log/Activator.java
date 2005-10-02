@@ -36,89 +36,54 @@ package org.knopflerfish.bundle.log;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceRegistration;
-
-import org.osgi.framework.ServiceReference;
-
 import org.osgi.service.log.LogService;
 
-import org.knopflerfish.service.console.CommandGroup;
-
 /**
- ** Bundle activator for <code>log_gs</code>.
- **
- ** @author  Gatespace AB
- ** @version $Revision: 1.1 $
- **/
+ * * Bundle activator for <code>log_gs</code>. * *
+ * 
+ * @author Gatespace AB *
+ * @version $Revision: 1.1 $
+ */
 public class Activator implements BundleActivator {
 
-  static final String[] LOG_SERVICE_CLASSES = 
-  { 
-    org.osgi.service.log.LogService.class.getName(), 
-    org.knopflerfish.service.log.LogService.class.getName() 
-  };
+    static final String[] LOG_SERVICE_CLASSES = {
+            org.osgi.service.log.LogService.class.getName(),
+            org.knopflerfish.service.log.LogService.class.getName() };
 
-  static final String LOG_READER_SERVICE_CLASS
-    = org.osgi.service.log.LogReaderService.class.getName();
+    static final String LOG_READER_SERVICE_CLASS = org.osgi.service.log.LogReaderService.class
+            .getName();
 
-  static final String COMMAND_GROUP
-    = org.knopflerfish.service.console.CommandGroup.class.getName();
-  
+    private LogServiceFactory lsf;
 
-  private LogServiceFactory   lsf;
-  private ServiceRegistration lsfReg;
+    private LogReaderServiceFactory lrsf;
 
-  private LogReaderServiceFactory lrsf;
-  private ServiceRegistration     lrsfReg;
+    private LogConfigImpl lc;
 
-  private LogConfig           lc;
+    /** BundleActivator callback. */
+    public void start(BundleContext bc) {
 
-  private CommandGroup        logConfigCommandGroup;
-  private ServiceRegistration logConfigCommandGroupReg;
+        lc = new LogConfigImpl(bc);
+        lrsf = new LogReaderServiceFactory(bc, lc);
+        lsf = new LogServiceFactory(lrsf);
 
-  /** BundleActivator callback.*/
-  public void start(BundleContext bc) throws BundleException {
-      
+        // Catch all framework error and place in the log.
+        LogFrameworkListener lfl = new LogFrameworkListener(lrsf);
+        bc.addFrameworkListener(lfl);
+        bc.addBundleListener(lfl);
+        bc.addServiceListener(lfl);
 
-    lc   = new LogConfig(bc);
-    lrsf = new LogReaderServiceFactory(bc, lc);
-    lsf  = new LogServiceFactory(lrsf);
+        // Register our services
+        bc.registerService(LOG_READER_SERVICE_CLASS, lrsf, null);
+        bc.registerService(LOG_SERVICE_CLASSES, lsf, null);
 
-    // Catch all framework error and place in the log.
-    LogFrameworkListener lfl = new LogFrameworkListener(lrsf);
-    bc.addFrameworkListener( lfl );
-    bc.addBundleListener( lfl );
-    bc.addServiceListener( lfl );
-
-    // Register our services
-    lsfReg  = bc.registerService(LOG_READER_SERVICE_CLASS, lrsf, null);
-    lrsfReg = bc.registerService(LOG_SERVICE_CLASSES, lsf, null);
-
-    lc.setLogReaderServiceFactory(lrsf);
-
-    try {
-      logConfigCommandGroup = new LogConfigCommandGroup( bc, lc );
-      java.util.Hashtable props = new java.util.Hashtable();
-      props.put("groupName", logConfigCommandGroup.getGroupName());
-      logConfigCommandGroupReg
-	= bc.registerService(COMMAND_GROUP, logConfigCommandGroup, props);
-    } catch (Exception e) {
-      lrsf.log( new LogEntryImpl
-	(bc.getBundle(),
-	 LogService.LOG_ERROR,
-	 "Failed to register logconfig console command group.",
-	 e ) );
+        lc.setLogReaderServiceFactory(lrsf);
     }
-  }
 
-
-  /** BundleActivator callback.*/
-  public void stop(BundleContext bc) {
-    lrsf.log( new LogEntryImpl(bc.getBundle(),
-			       LogService.LOG_INFO,
-			       "Log stopped."));
-    lrsf.stop();
-  }
+    /** BundleActivator callback. */
+    public void stop(BundleContext bc) {
+        lrsf.log(new LogEntryImpl(bc.getBundle(), LogService.LOG_INFO,
+                "Log stopped."));
+        lrsf.stop();
+    }
 
 }

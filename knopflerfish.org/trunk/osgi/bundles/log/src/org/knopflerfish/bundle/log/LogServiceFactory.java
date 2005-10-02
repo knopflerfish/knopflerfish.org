@@ -34,44 +34,37 @@
 
 package org.knopflerfish.bundle.log;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceRegistration;
 
 /**
- ** The LogServiceFactory creates an implementation of the
- ** interface of the LogService that will forward all calls to the
- ** LogReaderServiceFactory that implements the log functionlity.
- **
- ** The reason a Factory is used is that we need the BundleContext of
- ** the bundle using the LogService.
- **
- ** @author Gatespace AB
- ** @version $Revision: 1.1.1.1 $
- **
- **/
+ * * The LogServiceFactory creates an implementation of the * interface of the
+ * LogService that will forward all calls to the * LogReaderServiceFactory that
+ * implements the log functionlity. * * The reason a Factory is used is that we
+ * need the BundleContext of * the bundle using the LogService. * *
+ * 
+ * @author Gatespace AB *
+ * @version $Revision: 1.1.1.1 $ *
+ */
 public class LogServiceFactory implements ServiceFactory {
 
-  /** A reference to the log reader service factory that implements
-   ** the log functionlity.
-   **/
-  LogReaderServiceFactory lrsf;
+    /**
+     * A reference to the log reader service factory that implements * the log
+     * functionlity.
+     */
+    LogReaderServiceFactory lrsf;
 
-  LogServiceFactory(LogReaderServiceFactory lrsf) {
-    this.lrsf = lrsf;
-  }
+    LogServiceFactory(LogReaderServiceFactory lrsf) {
+        this.lrsf = lrsf;
+    }
 
-  public Object getService(Bundle bundle,
-			   ServiceRegistration sreg)
-  {
-    return new LogServiceImpl(bundle, lrsf);
-  }
+    public Object getService(Bundle bundle, ServiceRegistration sreg) {
+        return new LogServiceImpl(bundle, lrsf);
+    }
 
-
-  public void ungetService(Bundle bundle,
-			   ServiceRegistration sreg,
-			   Object s)
-  {
-    // Nothing to do here;
-  }
+    public void ungetService(Bundle bundle, ServiceRegistration sreg, Object s) {
+        // Nothing to do here;
+    }
 
 }
