@@ -34,36 +34,41 @@
 
 package org.knopflerfish.service.um.ipam;
 
-
 /**
  * Container for the three levels returned by
- * IPAMValuationService.getLevels(String, String).
- * See {@link org.knopflerfish.service.um.useradmin.ContextualAuthorization}
- * for description of the three levels, auth conf and integr.
+ * IPAMValuationService.getLevels(String, String). See
+ * {@link org.knopflerfish.service.um.useradmin.ContextualAuthorization} for
+ * description of the three levels, auth conf and integr.
  */
 public interface Levels {
 
-  int LOWEST = 0;
-  int LOW = 1;
-  int HIGH = 2;
-  int HIGHEST = 3;
+    int LOWEST = 0;
 
-  /**
-   * Get authentication level.
-   * @return LOWEST, LOW, HIGH or HIGHEST
-   */
-  int getAuthLevel();
+    int LOW = 1;
 
-  /**
-   * Get confidentiality level.
-   * @return LOWEST, LOW, HIGH or HIGHEST
-   */
-  int getConfLevel();
+    int HIGH = 2;
 
-  /**
-   * Get integrity level.
-   * @return LOWEST, LOW, HIGH or HIGHEST
-   */
-  int getIntegrLevel();
+    int HIGHEST = 3;
+
+    /**
+     * Get authentication level.
+     * 
+     * @return LOWEST, LOW, HIGH or HIGHEST
+     */
+    int getAuthLevel();
+
+    /**
+     * Get confidentiality level.
+     * 
+     * @return LOWEST, LOW, HIGH or HIGHEST
+     */
+    int getConfLevel();
+
+    /**
+     * Get integrity level.
+     * 
+     * @return LOWEST, LOW, HIGH or HIGHEST
+     */
+    int getIntegrLevel();
 
 }

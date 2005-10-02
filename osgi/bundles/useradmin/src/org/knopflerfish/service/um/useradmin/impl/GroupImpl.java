@@ -34,179 +34,177 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
+import java.security.AccessController;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.security.AccessController;
 
 import org.osgi.service.useradmin.Group;
 import org.osgi.service.useradmin.Role;
 
-
 /**
  * Implementation of Group.
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class GroupImpl extends UserImpl implements Group {
-  protected Vector basicMembers = new Vector();
-  protected Vector reqMembers = new Vector();
+    protected Vector basicMembers = new Vector();
 
-  GroupImpl( String name, UserAdminImpl uai ) {
-    super( name, uai );
-  }
-  
-  
-  boolean hasRole( String roleName, String user,
-		   Dictionary context, Vector visited ) {
-    
-    //System.out.print( name + "-Group.hasRole roleName: " + roleName );
-    //System.out.print( "  user: " + user );
-    //System.out.println( "  visited: " + visited );
+    protected Vector reqMembers = new Vector();
 
-    if (visited.contains( this )) {
-      // with ANYONE, we get loops as sone as ANYONE is added to a group
-      // stop and return false
-      return false;
-    }
-    visited.addElement( this );
-
-    for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-      RoleImpl member = (RoleImpl)en.nextElement();
-      if (!member.hasMember( user, context, new Vector() )) {
-	return false;
-      }
+    GroupImpl(String name, UserAdminImpl uai) {
+        super(name, uai);
     }
 
-    return super.hasRole( roleName, user, context, visited );
-  }
+    boolean hasRole(String roleName, String user, Dictionary context,
+            Vector visited) {
 
+        // System.out.print( name + "-Group.hasRole roleName: " + roleName );
+        // System.out.print( " user: " + user );
+        // System.out.println( " visited: " + visited );
 
-  boolean hasMember( String user, Dictionary context, Vector visited ) {
+        if (visited.contains(this)) {
+            // with ANYONE, we get loops as sone as ANYONE is added to a group
+            // stop and return false
+            return false;
+        }
+        visited.addElement(this);
 
-    //System.out.print( name + "-Group.hasMember user: " + user );
-    //System.out.println( "  visited: " + visited );
+        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
+            RoleImpl member = (RoleImpl) en.nextElement();
+            if (!member.hasMember(user, context, new Vector())) {
+                return false;
+            }
+        }
 
-    // for the case where user is a group
-    if (name.equals( user )) {
-      return true;
+        return super.hasRole(roleName, user, context, visited);
     }
 
-    if( visited.contains( this ) ) {
-      return false;
-      //throw new IllegalStateException( "UserAdmin database loops: " +
-      //			       name + " points back to itself.");
-    }
-    visited.addElement( this );
+    boolean hasMember(String user, Dictionary context, Vector visited) {
 
-    for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-      RoleImpl member = (RoleImpl)en.nextElement();
-      if( !member.hasMember( user, context, visited ) ) {
-	return false;
-      }
-    }
-    
-    for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
-      RoleImpl member = (RoleImpl)en.nextElement();
-      if( member.hasMember( user, context, visited ) ) {
-	return true;
-      }
-    }
+        // System.out.print( name + "-Group.hasMember user: " + user );
+        // System.out.println( " visited: " + visited );
 
-    return false;
-  }
+        // for the case where user is a group
+        if (name.equals(user)) {
+            return true;
+        }
 
-  void remove() {
-    super.remove();
-    for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
-      RoleImpl role = (RoleImpl)en.nextElement();
-      role.basicMemberOf.removeElement( this );
-    }
-    for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-      RoleImpl role = (RoleImpl)en.nextElement();
-      role.reqMemberOf.removeElement( this );
-    }
-    
-  }
+        if (visited.contains(this)) {
+            return false;
+            // throw new IllegalStateException( "UserAdmin database loops: " +
+            // name + " points back to itself.");
+        }
+        visited.addElement(this);
 
-  public int getType() {
-    return Role.GROUP;
-  }
-  
-  //- interface org.osgi.service.useradmin.Group ----------------------------- 
-  public boolean addMember( Role role ) {
-    if( UserAdminImpl.checkPermissions ) {
-      AccessController.checkPermission(UserAdminImpl.adminPermission);
-    }
-    if (basicMembers.contains( role )){
-      return false;
-    }
-     
-    basicMembers.addElement( role );
-    ((RoleImpl)role).basicMemberOf.addElement( this );
-    
-    return true;
-  }
-  
-  public boolean addRequiredMember( Role role ) {
-    if( UserAdminImpl.checkPermissions ) {
-      AccessController.checkPermission(UserAdminImpl.adminPermission);
-    }
-    if (reqMembers.contains( role )) {
-      return false;
+        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
+            RoleImpl member = (RoleImpl) en.nextElement();
+            if (!member.hasMember(user, context, visited)) {
+                return false;
+            }
+        }
+
+        for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
+            RoleImpl member = (RoleImpl) en.nextElement();
+            if (member.hasMember(user, context, visited)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    reqMembers.addElement( role );
-    ((RoleImpl)role).reqMemberOf.addElement( this );
-    
-    return true;
-  }
-  
-  public boolean removeMember( Role role ) {
-    if( UserAdminImpl.checkPermissions ) {
-      AccessController.checkPermission(UserAdminImpl.adminPermission);
-    }
-    if (basicMembers.removeElement( role )) {
-      ((RoleImpl)role).basicMemberOf.removeElement( this );
-	
-      return true;
-    }
-    if (reqMembers.removeElement( role )) {
-      ((RoleImpl)role).reqMemberOf.removeElement( this );
-      
-      return true;
-    }
-    
-    return false;
-  }
+    void remove() {
+        super.remove();
+        for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
+            RoleImpl role = (RoleImpl) en.nextElement();
+            role.basicMemberOf.removeElement(this);
+        }
+        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
+            RoleImpl role = (RoleImpl) en.nextElement();
+            role.reqMemberOf.removeElement(this);
+        }
 
-  public Role[] getMembers() {
-    Vector v = new Vector();
-    for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
-      v.addElement(en.nextElement());
     }
 
-    if (v.size() == 0)
-      return null;
-
-    Role[] result = new Role[v.size()];
-    v.copyInto( result );
-    return result;
-  }
-
-  public Role[] getRequiredMembers() {
-    Vector v = new Vector();
-    for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-      v.addElement(en.nextElement());
+    public int getType() {
+        return Role.GROUP;
     }
 
-    if (v.size() == 0)
-      return null;
+    // - interface org.osgi.service.useradmin.Group
+    // -----------------------------
+    public boolean addMember(Role role) {
+        if (UserAdminImpl.checkPermissions) {
+            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        }
+        if (basicMembers.contains(role)) {
+            return false;
+        }
 
-    Role[] result = new Role[v.size()];
-    v.copyInto( result );
-    return result;
-  }
+        basicMembers.addElement(role);
+        ((RoleImpl) role).basicMemberOf.addElement(this);
+
+        return true;
+    }
+
+    public boolean addRequiredMember(Role role) {
+        if (UserAdminImpl.checkPermissions) {
+            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        }
+        if (reqMembers.contains(role)) {
+            return false;
+        }
+
+        reqMembers.addElement(role);
+        ((RoleImpl) role).reqMemberOf.addElement(this);
+
+        return true;
+    }
+
+    public boolean removeMember(Role role) {
+        if (UserAdminImpl.checkPermissions) {
+            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        }
+        if (basicMembers.removeElement(role)) {
+            ((RoleImpl) role).basicMemberOf.removeElement(this);
+
+            return true;
+        }
+        if (reqMembers.removeElement(role)) {
+            ((RoleImpl) role).reqMemberOf.removeElement(this);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public Role[] getMembers() {
+        Vector v = new Vector();
+        for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
+            v.addElement(en.nextElement());
+        }
+
+        if (v.size() == 0)
+            return null;
+
+        Role[] result = new Role[v.size()];
+        v.copyInto(result);
+        return result;
+    }
+
+    public Role[] getRequiredMembers() {
+        Vector v = new Vector();
+        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
+            v.addElement(en.nextElement());
+        }
+
+        if (v.size() == 0)
+            return null;
+
+        Role[] result = new Role[v.size()];
+        v.copyInto(result);
+        return result;
+    }
 }
-

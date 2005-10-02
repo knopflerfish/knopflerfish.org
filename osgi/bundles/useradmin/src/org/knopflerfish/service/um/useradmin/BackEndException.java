@@ -34,49 +34,54 @@
 
 package org.knopflerfish.service.um.useradmin;
 
-
 /**
- * BackEndException is the base class for exceptions thrown from
- * BackEndControl.
+ * BackEndException is the base class for exceptions thrown from BackEndControl.
  */
 public class BackEndException extends Exception {
-  protected Throwable nested;
-  
-  /**
-   * Public constructor.
-   * @param msg Message for this exception.
-   * @param nested A Throwable that caused this exception to be thrown.
-   */
-  public BackEndException(String msg, Throwable nested) {
-    super(msg);
-    this.nested = nested;
-  }
-  
-  /**
-   * Public constructor.
-   * @param msg Message for this exception.
-   */
-  public BackEndException(String msg) {
-    this(msg, null);
-  }
-  
-  /**
-   * Returns the nested throwable of this BackEndException.
-   * @return a Throwable object or null.
-   */
-  public Throwable getNestedException() {
-    return nested;
-  }
+    private static final long serialVersionUID = 1L;
 
-  /** 
-   * Returns a short description of this throwable object.
-   *
-   * @return  a string representation of this <code>BackEndException</code>.
+    protected Throwable nested;
+
+    /**
+     * Public constructor.
+     * 
+     * @param msg
+     *            Message for this exception.
+     * @param nested
+     *            A Throwable that caused this exception to be thrown.
+     */
+    public BackEndException(String msg, Throwable nested) {
+        super(msg);
+        this.nested = nested;
+    }
+
+    /**
+     * Public constructor.
+     * 
+     * @param msg
+     *            Message for this exception.
+     */
+    public BackEndException(String msg) {
+        this(msg, null);
+    }
+
+    /**
+     * Returns the nested throwable of this BackEndException.
+     * 
+     * @return a Throwable object or null.
+     */
+    public Throwable getNestedException() {
+        return nested;
+    }
+
+    /**
+     * Returns a short description of this throwable object.
+     * 
+     * @return a string representation of this <code>BackEndException</code>.
      */
     public String toString() {
-        return (super.toString()) + 
-          ((nested != null) ? (" , Nested: " + nested.toString()) : "");
+        return (super.toString())
+                + ((nested != null) ? (" , Nested: " + nested.toString()) : "");
     }
 
 }
-

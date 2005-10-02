@@ -34,24 +34,29 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import org.osgi.framework.*;
-import org.osgi.service.useradmin.UserAdmin;
 import java.util.Hashtable;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.useradmin.UserAdmin;
 
 /**
  * Activator for stand alone service gateway UserAdmin service
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class Activator implements BundleActivator {
-  ServiceRegistration umsr;
+    ServiceRegistration umsr;
 
-  public void start(BundleContext bc) throws BundleException {
-    UserAdminImpl ua = new UserAdminImpl( bc ); 
-    umsr = bc.registerService(UserAdmin.class.getName(), ua, new Hashtable());
-  }
-  
-  public void stop(BundleContext bc) throws BundleException { }
-  
+    public void start(BundleContext bc) {
+        UserAdminImpl ua = new UserAdminImpl(bc);
+        umsr = bc.registerService(UserAdmin.class.getName(), ua,
+                new Hashtable());
+    }
+
+    public void stop(BundleContext bc) {
+    }
+
 }

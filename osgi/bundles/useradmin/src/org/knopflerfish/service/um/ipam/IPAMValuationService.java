@@ -34,20 +34,18 @@
 
 package org.knopflerfish.service.um.ipam;
 
-
 /**
  * Maps input path and auth method to auth, conf and integer levels.
  */
 public interface IPAMValuationService {
 
-  /**
-   * Get the three levels given an input path and an auth method.
-   * @param inputPath
-   * @param authMethod
-   * @return Levels. By default, all levels are LOWEST.
-   */
-  Levels getLevels(String inputPath, String authMethod);
+    /**
+     * Get the three levels given an input path and an auth method.
+     * 
+     * @param inputPath
+     * @param authMethod
+     * @return Levels. By default, all levels are LOWEST.
+     */
+    Levels getLevels(String inputPath, String authMethod);
 
 }
-
-  

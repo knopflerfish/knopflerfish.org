@@ -34,38 +34,38 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import org.osgi.service.useradmin.UserAdminPermission;
 import java.security.AccessController;
 
+import org.osgi.service.useradmin.UserAdminPermission;
+
 /**
- * Dictionary for user admin credentials. Security checks for
- * get and put.
- *
- * @author  Gatespace AB
+ * Dictionary for user admin credentials. Security checks for get and put.
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class UACredentials extends UAProperties {
-  public UACredentials(RoleImpl role) {
-    super(role);
-  }
+    public UACredentials(RoleImpl role) {
+        super(role);
+    }
 
-  protected String getChangeAction() {
-    return UserAdminPermission.CHANGE_CREDENTIAL;
-  }
+    protected String getChangeAction() {
+        return UserAdminPermission.CHANGE_CREDENTIAL;
+    }
 
-  public Object get(Object key) {
-    if (key instanceof String) {
-      if( UserAdminImpl.checkPermissions ) {
-	AccessController.checkPermission(new UserAdminPermission((String)key, 
-	  UserAdminPermission.GET_CREDENTIAL));
-      }
-      return super.get(key);
-    } else
-      throw new IllegalArgumentException("The key must be a String, got " +
-					 key.getClass());
-  }
+    public Object get(Object key) {
+        if (key instanceof String) {
+            if (UserAdminImpl.checkPermissions) {
+                AccessController.checkPermission(new UserAdminPermission(
+                        (String) key, UserAdminPermission.GET_CREDENTIAL));
+            }
+            return super.get(key);
+        }
+        throw new IllegalArgumentException("The key must be a String, got "
+                + key.getClass());
+    }
 
-  public String toString() {
-    return "#Credentials#";
-  }
+    public String toString() {
+        return "#Credentials#";
+    }
 }

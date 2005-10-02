@@ -34,117 +34,120 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.util.Vector;
+import java.text.SimpleDateFormat;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.text.SimpleDateFormat;
+import java.util.Vector;
 
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-
-import org.osgi.service.useradmin.Role;
-import org.knopflerfish.service.um.useradmin.ContextualAuthorization;
 import org.knopflerfish.service.um.ipam.IPAMValuationService;
 import org.knopflerfish.service.um.ipam.Levels;
+import org.knopflerfish.service.um.useradmin.ContextualAuthorization;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.useradmin.Role;
 
 /**
  * Authorization implementation.
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class AuthorizationImpl implements ContextualAuthorization {
-  private static final String CONTEXT_DATE_FORMAT = "yyyy-MM-dd";
-  private static final String CONTEXT_TIME_FORMAT = "HH:mm:ss";
-  private static final String CONTEXT_DAY_FORMAT = "EEEE";
+    private static final String CONTEXT_DATE_FORMAT = "yyyy-MM-dd";
 
-  protected RoleImpl user;
-  protected Dictionary context;
-  private UserAdminImpl uai;
+    private static final String CONTEXT_TIME_FORMAT = "HH:mm:ss";
 
-  AuthorizationImpl( RoleImpl user, UserAdminImpl uai) {
-    this.user = user;
-    this.uai = uai;
+    private static final String CONTEXT_DAY_FORMAT = "EEEE";
 
-    // Default context:
-    context = new Hashtable();
-    long now = System.currentTimeMillis();
-    SimpleDateFormat format = new SimpleDateFormat(CONTEXT_DATE_FORMAT);
-    context.put(CONTEXT_AUTH_DATE,
-		format.format(new Long(now)).toString());
-    format = new SimpleDateFormat(CONTEXT_TIME_FORMAT);
-    context.put(CONTEXT_AUTH_TIME,
-		format.format(new Long(now)).toString());
-    format = new SimpleDateFormat(CONTEXT_DAY_FORMAT);
-    context.put(CONTEXT_AUTH_DAY,
-		format.format(new Long(now)).toString());
-  }
+    protected RoleImpl user;
 
-  //- interface org.osgi.service.useradmin.Authorization --------------------- 
-  public String getName() {
-    if (user.getName().equals( UserAdminImpl.ANYONE ))
-      return null;
+    protected Dictionary context;
 
-    return user.getName();
-  }
+    private UserAdminImpl uai;
 
-  public boolean hasRole(String roleName) {
-    return user.hasRole( roleName, user.getName(), context, new Vector() );
-  }
+    AuthorizationImpl(RoleImpl user, UserAdminImpl uai) {
+        this.user = user;
+        this.uai = uai;
 
-  public String[] getRoles() {
-    // This is probably not the best implementation...
-    Vector result = new Vector();
-    try {
-      Role[] roles = uai.getRoles( null );
-      for( int i = 0; i < roles.length; i++ ) {
-	if( hasRole( roles[i].getName() ) ) {
-	  result.addElement( roles[i].getName() );
-	}
-      }
-    } catch(InvalidSyntaxException ex) {}
-    
-    if( result.size() == 0 )
-      return null;
-    
-    String[] res = new String[result.size()];
-    result.copyInto( res );
-    return res;
-  }
-
-  //- interface org.knopflerfish.service.um.useradmin.ContextualAuthorization -- 
-  public void setIPAMContext(String inputPath, String authMethod) {
-    int authLevel = Levels.LOWEST;
-    int confLevel = Levels.LOWEST;
-    int integrLevel = Levels.LOWEST;
-    ServiceReference ipamsr 
-      = uai.bc.getServiceReference(IPAMValuationService.class.getName());
-    if (ipamsr != null) {
-      IPAMValuationService ipam
-	= (IPAMValuationService)uai.bc.getService(ipamsr);
-      if (ipam != null) {
-	Levels levels = ipam.getLevels(inputPath, authMethod);
-	authLevel = levels.getAuthLevel();
-	confLevel = levels.getConfLevel();
-	integrLevel = levels.getIntegrLevel();
-      }
-      else {
-	if (uai.log.doWarn()) uai.log.warn( "IPAM service is not available. "
-					    + "Using fallback IPAM context" );
-      }
-      uai.bc.ungetService( ipamsr );
+        // Default context:
+        context = new Hashtable();
+        long now = System.currentTimeMillis();
+        SimpleDateFormat format = new SimpleDateFormat(CONTEXT_DATE_FORMAT);
+        context.put(CONTEXT_AUTH_DATE, format.format(new Long(now)).toString());
+        format = new SimpleDateFormat(CONTEXT_TIME_FORMAT);
+        context.put(CONTEXT_AUTH_TIME, format.format(new Long(now)).toString());
+        format = new SimpleDateFormat(CONTEXT_DAY_FORMAT);
+        context.put(CONTEXT_AUTH_DAY, format.format(new Long(now)).toString());
     }
-    else {
-	if (uai.log.doWarn()) uai.log.warn( "IPAM service is not available. "
-					    + "Using fallback IPAM context" );
-    }
-    context.put(CONTEXT_AUTH_LEVEL, new Integer(authLevel));
-    context.put(CONTEXT_CONF_LEVEL, new Integer(confLevel));
-    context.put(CONTEXT_INTEGR_LEVEL, new Integer(integrLevel));
-  }
 
-  public Dictionary getContext() {
-    return context;
-  }
+    // - interface org.osgi.service.useradmin.Authorization
+    // ---------------------
+    public String getName() {
+        if (user.getName().equals(UserAdminImpl.ANYONE))
+            return null;
+
+        return user.getName();
+    }
+
+    public boolean hasRole(String roleName) {
+        return user.hasRole(roleName, user.getName(), context, new Vector());
+    }
+
+    public String[] getRoles() {
+        // This is probably not the best implementation...
+        Vector result = new Vector();
+        try {
+            Role[] roles = uai.getRoles(null);
+            for (int i = 0; i < roles.length; i++) {
+                if (hasRole(roles[i].getName())) {
+                    result.addElement(roles[i].getName());
+                }
+            }
+        } catch (InvalidSyntaxException ex) {
+        }
+
+        if (result.size() == 0)
+            return null;
+
+        String[] res = new String[result.size()];
+        result.copyInto(res);
+        return res;
+    }
+
+    // - interface org.knopflerfish.service.um.useradmin.ContextualAuthorization
+    // --
+    public void setIPAMContext(String inputPath, String authMethod) {
+        int authLevel = Levels.LOWEST;
+        int confLevel = Levels.LOWEST;
+        int integrLevel = Levels.LOWEST;
+        ServiceReference ipamsr = uai.bc
+                .getServiceReference(IPAMValuationService.class.getName());
+        if (ipamsr != null) {
+            IPAMValuationService ipam = (IPAMValuationService) uai.bc
+                    .getService(ipamsr);
+            if (ipam != null) {
+                Levels levels = ipam.getLevels(inputPath, authMethod);
+                authLevel = levels.getAuthLevel();
+                confLevel = levels.getConfLevel();
+                integrLevel = levels.getIntegrLevel();
+            } else {
+                if (uai.log.doWarn())
+                    uai.log.warn("IPAM service is not available. "
+                            + "Using fallback IPAM context");
+            }
+            uai.bc.ungetService(ipamsr);
+        } else {
+            if (uai.log.doWarn())
+                uai.log.warn("IPAM service is not available. "
+                        + "Using fallback IPAM context");
+        }
+        context.put(CONTEXT_AUTH_LEVEL, new Integer(authLevel));
+        context.put(CONTEXT_CONF_LEVEL, new Integer(confLevel));
+        context.put(CONTEXT_INTEGR_LEVEL, new Integer(integrLevel));
+    }
+
+    public Dictionary getContext() {
+        return context;
+    }
 
 }

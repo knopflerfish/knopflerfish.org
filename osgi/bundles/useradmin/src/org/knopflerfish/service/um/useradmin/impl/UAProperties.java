@@ -45,114 +45,112 @@ import org.osgi.service.useradmin.UserAdminPermission;
 
 /**
  * Dictionary for user admin properties. Security checks for put.
- *
- * @author  Gatespace AB
+ * 
+ * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class UAProperties extends Dictionary {
-  protected RoleImpl role;  
-  protected Hashtable /* String -> byte[] or String */ ht = new Hashtable();
+    protected RoleImpl role;
 
-  public UAProperties(RoleImpl role) {
-    this.role = role;
-  }
+    protected Hashtable /* String -> byte[] or String */ht = new Hashtable();
 
-  public Enumeration elements() {
-    Vector v = new Vector();
-    for (Enumeration en = ht.keys(); en.hasMoreElements();) {
-      try {
-	v.addElement(get(en.nextElement()));
-      } catch (SecurityException e) {
-	// Ignore elements we don't have access to.
-      }
+    public UAProperties(RoleImpl role) {
+        this.role = role;
     }
-    return v.elements();
-  }
 
-  public Object get(Object key) {
-    // No security check for properties
-    Object value = ht.get(key);
-    if (value instanceof byte[] ) {
-      return ((byte[])value).clone();
+    public Enumeration elements() {
+        Vector v = new Vector();
+        for (Enumeration en = ht.keys(); en.hasMoreElements();) {
+            try {
+                v.addElement(get(en.nextElement()));
+            } catch (SecurityException e) {
+                // Ignore elements we don't have access to.
+            }
+        }
+        return v.elements();
     }
-    
-    return value;
-  }
 
-  public boolean isEmpty() {
-    return ht.isEmpty();
-  } 
+    public Object get(Object key) {
+        // No security check for properties
+        Object value = ht.get(key);
+        if (value instanceof byte[]) {
+            return ((byte[]) value).clone();
+        }
 
-  public Enumeration keys() {
-    return ht.keys();
-  }
+        return value;
+    }
 
-  public int size() {
-    return ht.size();
-  }
+    public boolean isEmpty() {
+        return ht.isEmpty();
+    }
 
-  public Object remove(Object key) {
-    //synchronized (role) {
-      if (key instanceof String) {
-	if( UserAdminImpl.checkPermissions ) {
-	  AccessController.checkPermission(
-	    new UserAdminPermission((String)key, getChangeAction()));
-	}
-	Object res = ht.remove(key);
-	role.uai.sendEvent( UserAdminEvent.ROLE_CHANGED, role );
-	//role.um.save();
-	return res;
-      } else
-	throw new IllegalArgumentException("The key must be a String, got " +
-					   key.getClass());
-      //}
-  }
+    public Enumeration keys() {
+        return ht.keys();
+    }
 
-  public Object put(Object key, Object value) {
-    //synchronized (role) {
-      if (key instanceof String) {
-	if( UserAdminImpl.checkPermissions ) {
-	  AccessController.checkPermission(
-	    new UserAdminPermission((String)key, getChangeAction()));
-	}
-	Object res;
-	// value of type byte[] or String is ok
-	if (value instanceof byte[]) {
-	  res = ht.put(key, ((byte[])value).clone());
-	}
-	else if (value instanceof String ) {
-	  res = ht.put( key, value );
-	}
-	else
-	  throw new IllegalArgumentException("The value must be of type byte[]"
-					     + " or String,  got "
-					     + value.getClass());
-	role.uai.sendEvent( UserAdminEvent.ROLE_CHANGED, role );
-	//role.uai.save();
-	
-	return res;
-      } else
-	throw new IllegalArgumentException("The key must be a String, got " +
-					   key.getClass());
-      //}
-  }
+    public int size() {
+        return ht.size();
+    }
 
-  
-  public String toString() {
-    //return ht.toString();
-    return "#Properties#";
-  }
+    public Object remove(Object key) {
+        // synchronized (role) {
+        if (key instanceof String) {
+            if (UserAdminImpl.checkPermissions) {
+                AccessController.checkPermission(new UserAdminPermission(
+                        (String) key, getChangeAction()));
+            }
+            Object res = ht.remove(key);
+            role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
+            // role.um.save();
+            return res;
+        }
+        throw new IllegalArgumentException("The key must be a String, got "
+                + key.getClass());
+        // }
+    }
 
-  protected String getChangeAction() {
-    return UserAdminPermission.CHANGE_PROPERTY;
-  }
+    public Object put(Object key, Object value) {
+        // synchronized (role) {
+        if (key instanceof String) {
+            if (UserAdminImpl.checkPermissions) {
+                AccessController.checkPermission(new UserAdminPermission(
+                        (String) key, getChangeAction()));
+            }
+            Object res;
+            // value of type byte[] or String is ok
+            if (value instanceof byte[]) {
+                res = ht.put(key, ((byte[]) value).clone());
+            } else if (value instanceof String) {
+                res = ht.put(key, value);
+            } else
+                throw new IllegalArgumentException(
+                        "The value must be of type byte[]"
+                                + " or String,  got " + value.getClass());
+            role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
+            // role.uai.save();
 
-  protected Dictionary getUnderlyingDictionary() {
-    return ht;
-  }
+            return res;
+        }
+        throw new IllegalArgumentException("The key must be a String, got "
+                + key.getClass());
+        // }
+    }
 
-  protected void setUnderlyingDictionary(Hashtable ht) {
-    this.ht = ht;
-  }
+    public String toString() {
+        // return ht.toString();
+        return "#Properties#";
+    }
+
+    protected String getChangeAction() {
+        return UserAdminPermission.CHANGE_PROPERTY;
+    }
+
+    protected Dictionary getUnderlyingDictionary() {
+        return ht;
+    }
+
+    protected void setUnderlyingDictionary(Hashtable ht) {
+        this.ht = ht;
+    }
 
 }

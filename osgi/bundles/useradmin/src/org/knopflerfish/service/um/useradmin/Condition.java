@@ -35,37 +35,41 @@
 package org.knopflerfish.service.um.useradmin;
 
 import org.osgi.service.useradmin.Role;
+
 /**
  * This interface represents a Condition that is managed by a
- * {@link org.osgi.service.useradmin.UserAdmin}
- * service.
+ * {@link org.osgi.service.useradmin.UserAdmin} service.
  * <p>
- * A Condition may have a filter associated with it. The condition
- * is true if the condition's filter evaluates to true with a context
- * supplied to it by a {@link ContextualAuthorization}.
+ * A Condition may have a filter associated with it. The condition is true if
+ * the condition's filter evaluates to true with a context supplied to it by a
+ * {@link ContextualAuthorization}.
  */
 
 public interface Condition extends Role {
-  /**
-   * The type of a Condition role.
-   *
-   * <p>The value of <tt>CONDITION</tt> is -1.
-   */
-  int CONDITION = -1;
+    /**
+     * The type of a Condition role.
+     * 
+     * <p>
+     * The value of <tt>CONDITION</tt> is -1.
+     */
+    int CONDITION = -1;
 
-  /**
-   * Get the filter
-   * @return the filter
-   */
-  String getFilter();
-  
-  /**
-   * Set the filter 
-   * @param filter what it should be set to
-   * @throws SecurityException If a security manager exists and the caller
-   * does not have the <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
-   */
-  void setFilter(String filter);
+    /**
+     * Get the filter
+     * 
+     * @return the filter
+     */
+    String getFilter();
+
+    /**
+     * Set the filter
+     * 
+     * @param filter
+     *            what it should be set to
+     * @throws SecurityException
+     *             If a security manager exists and the caller does not have the
+     *             <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
+     */
+    void setFilter(String filter);
 
 }
-
