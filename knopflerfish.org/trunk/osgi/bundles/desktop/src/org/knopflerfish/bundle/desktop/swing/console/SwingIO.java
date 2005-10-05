@@ -38,7 +38,7 @@ import java.util.Vector;
 import java.io.*;
 
 import java.awt.*;
-import java.awt.event.*; 
+import java.awt.event.*;
 import javax.swing.*;
 
 import java.net.URL;
@@ -75,65 +75,67 @@ public class SwingIO extends JPanel {
 
   boolean bGrabbed = false;
 
+  int maxLines = new Integer(System.getProperty("org.knopflerfish.desktop.console.maxlines", "5000")).intValue();
+
   void setSystemIO() {
 
     boolean bDebugClass = "true".equals(System.getProperty("org.knopflerfish.framework.debug.classloader", "false"));
 
     if(!bDebugClass) {
       if(!bGrabbed) {
-	try {
-	  
-	  ConsoleSwing.log(LogService.LOG_DEBUG, "grabbing system I/O...");
-	  
-	  origIn  = System.in;
-	  origOut = System.out;
-	  origErr = System.err;
-	  
-	  //	  System.setIn(in);
-	  System.setOut(new PrefixPrintStream(out, "[stdout] ", 
-					      ConsoleSwing.config.multiplexSystemOut ? System.out : null));
-	  System.setErr(new PrefixPrintStream(out, "[stderr] ", 
-					      ConsoleSwing.config.multiplexSystemErr ? System.err : null));
-	  
-	  bGrabbed = true;
-	  ConsoleSwing.log(LogService.LOG_DEBUG, "...grabbed system I/O");
-	  
-	} catch (Exception e) {
-	  ConsoleSwing.log(LogService.LOG_ERROR, "Failed to set IO", e);
-	  bGrabbed = false;
-	}
+        try {
+
+          ConsoleSwing.log(LogService.LOG_DEBUG, "grabbing system I/O...");
+
+          origIn  = System.in;
+          origOut = System.out;
+          origErr = System.err;
+
+          //    System.setIn(in);
+          System.setOut(new PrefixPrintStream(out, "[stdout] ",
+                                              ConsoleSwing.config.multiplexSystemOut ? System.out : null));
+          System.setErr(new PrefixPrintStream(out, "[stderr] ",
+                                              ConsoleSwing.config.multiplexSystemErr ? System.err : null));
+
+          bGrabbed = true;
+          ConsoleSwing.log(LogService.LOG_DEBUG, "...grabbed system I/O");
+
+        } catch (Exception e) {
+          ConsoleSwing.log(LogService.LOG_ERROR, "Failed to set IO", e);
+          bGrabbed = false;
+        }
       }
     }
   }
 
   void restoreSystemIO() {
 
-    //    synchronized(grabLock) 
+    //    synchronized(grabLock)
       {
       if(bGrabbed) {
-	ConsoleSwing.log(LogService.LOG_DEBUG, "restoring system I/O...");
-	try {
-	  if(origIn != null) {
-	    System.setIn(origIn);
-	  }
-	  if(origOut != null) {
-	    System.setOut(origOut);
-	  }
-	  if(origIn != null) {
-	    System.setErr(origErr);
-	  }
-	  ConsoleSwing.log(LogService.LOG_DEBUG, "...restored system I/O");
-	  bGrabbed = false;
-	} catch (Exception e) {
-	  ConsoleSwing.log(LogService.LOG_ERROR, "Failed to restore IO", e);
-	}
+        ConsoleSwing.log(LogService.LOG_DEBUG, "restoring system I/O...");
+        try {
+          if(origIn != null) {
+            System.setIn(origIn);
+          }
+          if(origOut != null) {
+            System.setOut(origOut);
+          }
+          if(origIn != null) {
+            System.setErr(origErr);
+          }
+          ConsoleSwing.log(LogService.LOG_DEBUG, "...restored system I/O");
+          bGrabbed = false;
+        } catch (Exception e) {
+          ConsoleSwing.log(LogService.LOG_ERROR, "Failed to restore IO", e);
+        }
       }
 
     }
 
   }
 
-  
+
   public SwingIO() {
     super(new BorderLayout());
 
@@ -142,101 +144,101 @@ public class SwingIO extends JPanel {
     try {
       text = new JTextArea("", 8, 80);
       text.setEditable(false);
-      String bootText = 
-	"Knopflerfish OSGi console. Copyright (c) 2004 Knopflerfish.";
-    
+      String bootText =
+        "Knopflerfish OSGi console. Copyright (c) 2004 Knopflerfish.";
+
       // See if we're using the knopflerfish framework. If so, grab
       // the boot string from the startup class
       try {
-	Class mainClazz = Class.forName("org.knopflerfish.framework.Main");
-	bootText        = (String)mainClazz.getField("bootText").get(null);
+        Class mainClazz = Class.forName("org.knopflerfish.framework.Main");
+        bootText        = (String)mainClazz.getField("bootText").get(null);
       } catch (Throwable e) {
-	bootText        = "";
-	//	e.printStackTrace();
-	// anything else defaults to the std boot text above
+        bootText        = "";
+        //  e.printStackTrace();
+        // anything else defaults to the std boot text above
       }
-      text.setText(bootText + 
-		   "\n\n" + 
-		   "Type 'help' for help or 'alias' for a list of common commands\n\n");
-      scroll = new JScrollPane(text, 
-			       JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			       JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      
+      text.setText(bootText +
+       "\n\n" +
+       "Type 'help' for help or 'alias' for a list of common commands\n\n");
+      scroll = new JScrollPane(text,
+                               JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                               JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
       tfCmd = new JTextField();
 
       final KeyListener keyL = new KeyAdapter() {
-	  public void keyPressed(KeyEvent ev) {
-	    if(ev.getKeyCode() == KeyEvent.VK_UP) {
-	      if(historyPos > 0) {
-		String line = (String)history.elementAt(historyPos-1);
-		historyPos--;
-		tfCmd.setText(line);
-	      }
-	    } else if(ev.getKeyCode() == KeyEvent.VK_DOWN) {
-	      if(historyPos < history.size()-1) {
-		String line = (String)history.elementAt(historyPos+1);
-		historyPos++;
-		tfCmd.setText(line);
-	      }
-	    } else if(ev.getKeyCode() == KeyEvent.VK_ENTER) {
-	      String line = tfCmd.getText();
-	      if(!("".equals(line) || 
-		   "\n".equals(line) ||
-		   "\n\r".equals(line) ||
-		   "\r\n".equals(line))) {
-		history.addElement(line);
-		historyPos = history.size();
-	      }
-	      if("clear".equals(line)) {
-		clear();
-	      } else if("quit".equals(line)) {
-		org.knopflerfish.bundle.desktop.swing
-		  .Activator.desktop.stopFramework();
-	      } else {
-		// Try simple command expansion first
-		if(line.startsWith("!") && line.length() > 1) {
-		  String s2 = line.substring(1);
-		  String bestStr = "";
-		  for(int i = 0; i < history.size(); i++) {
-		    String s = (String)history.elementAt(i);
-		    if(s.startsWith(s2) || s.length() >= bestStr.length()) {
-		      bestStr = s;
-		    }
-		  }
-		  if(!"".equals(bestStr)) {
-		    line = bestStr;
-		  } 
-		}
-		
-		// ..and send to console via inputstream
-		String s = line + "\r\n";
-		text.append(s);
-		showLastLine();
-		if(in != null) {
-		  in.print(s);
-		  in.flush();
-		}
-	      }
-	      tfCmd.setText("");
-	    }
-	  }
-	};
+          public void keyPressed(KeyEvent ev) {
+            if(ev.getKeyCode() == KeyEvent.VK_UP) {
+              if(historyPos > 0) {
+                String line = (String)history.elementAt(historyPos-1);
+                historyPos--;
+                tfCmd.setText(line);
+              }
+            } else if(ev.getKeyCode() == KeyEvent.VK_DOWN) {
+              if(historyPos < history.size()-1) {
+                String line = (String)history.elementAt(historyPos+1);
+                historyPos++;
+                tfCmd.setText(line);
+              }
+            } else if(ev.getKeyCode() == KeyEvent.VK_ENTER) {
+              String line = tfCmd.getText();
+              if(!("".equals(line) ||
+                   "\n".equals(line) ||
+                   "\n\r".equals(line) ||
+                   "\r\n".equals(line))) {
+                history.addElement(line);
+                historyPos = history.size();
+              }
+              if("clear".equals(line)) {
+                clear();
+              } else if("quit".equals(line)) {
+                org.knopflerfish.bundle.desktop.swing
+                  .Activator.desktop.stopFramework();
+              } else {
+                // Try simple command expansion first
+                if(line.startsWith("!") && line.length() > 1) {
+                  String s2 = line.substring(1);
+                  String bestStr = "";
+                  for(int i = 0; i < history.size(); i++) {
+                    String s = (String)history.elementAt(i);
+                    if(s.startsWith(s2) || s.length() >= bestStr.length()) {
+                      bestStr = s;
+                    }
+                  }
+                  if(!"".equals(bestStr)) {
+                    line = bestStr;
+                  }
+                }
+
+                // ..and send to console via inputstream
+                String s = line + "\r\n";
+                text.append(s);
+                showLastLine();
+                if(in != null) {
+                  in.print(s);
+                  in.flush();
+                }
+              }
+              tfCmd.setText("");
+            }
+          }
+        };
 
       tfCmd.addKeyListener(keyL);
 
       // move focus away from text output to text input
       // in key press
       text.addKeyListener(new  KeyAdapter() {
-	  public void keyPressed(KeyEvent ev) {
-	    int modifiers = ev.getModifiers();
+          public void keyPressed(KeyEvent ev) {
+            int modifiers = ev.getModifiers();
 
-	    // Don't steal special key events like CTRL-C
-	    if(modifiers == 0) {
-	      tfCmd.requestFocus();
-	    }
-	  }
+            // Don't steal special key events like CTRL-C
+            if(modifiers == 0) {
+              tfCmd.requestFocus();
+            }
+          }
 
-	});
+        });
 
       out = new PrintStream(new TextAreaOutputStream(this, text));
 
@@ -258,7 +260,7 @@ public class SwingIO extends JPanel {
     } catch (Exception e) {
       e.printStackTrace();
     }
-  } 
+  }
 
 
   void clear() {
@@ -267,16 +269,27 @@ public class SwingIO extends JPanel {
 
   void showLastLine() {
     SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  JScrollBar bar = scroll.getVerticalScrollBar();
-	  if(bar != null) {
-	    int v = bar.getMaximum();
-	    bar.setValue(v*2);
-	  }
-	}
-      });
+      public void run() {
+        if (maxLines > 0) {
+          int linesToRemove = text.getLineCount() - maxLines;
+          int index = 0;
+          if (linesToRemove > 0) {
+            for (int i=0; i<linesToRemove; i++) {
+              index = text.getText().indexOf('\n', index) + 1;
+            }
+            text.setText(text.getText().substring(index));
+          }
+        }
+
+        JScrollBar bar = scroll.getVerticalScrollBar();
+        if(bar != null) {
+          int v = bar.getMaximum();
+          bar.setValue(v*2);
+        }
+      }
+    });
   }
-  
+
   Font font;
 
   synchronized void reinit() {
