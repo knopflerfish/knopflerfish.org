@@ -81,17 +81,17 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       JLargeIcons comp = (JLargeIcons)it.next();
       switch(ev.getType()) {
       case BundleEvent.INSTALLED:
-	comp.addBundle(ev.getBundle());
-	break;
+        comp.addBundle(ev.getBundle());
+        break;
       case BundleEvent.UNINSTALLED:
-	comp.removeBundle(ev.getBundle());
-	break;
+        comp.removeBundle(ev.getBundle());
+        break;
       default:
-	comp.updateBundleComp(ev.getBundle());
-	break;
+        comp.updateBundleComp(ev.getBundle());
+        break;
       }
     }
-    
+
     repaintComponents();
   }
 
@@ -99,7 +99,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     return new JLargeIcons();
   }
 
-  
+
   class JLargeIcons extends JPanel {
     Map         bundleMap = new TreeMap();
     GridLayout  grid;
@@ -115,7 +115,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     public JLargeIcons() {
       setLayout(new BorderLayout());
       setBackground(Color.white);
-      
+
       grid  = new GridLayout(0, 4);
       panel = new JPanel(grid);
 
@@ -124,268 +124,268 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       contextPopupMenu = new JPopupMenu();
 
       ButtonGroup       group         = new ButtonGroup();
-      
+
       JCheckBoxMenuItem item = new JCheckBoxMenuItem("Sort by name");
       item.setState(iconComparator == nameComparator);
       item.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    iconComparator = nameComparator;
-	    rebuildPanel();
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            iconComparator = nameComparator;
+            rebuildPanel();
+          }
+        });
       contextPopupMenu.add(item);
       group.add(item);
 
       item = new JCheckBoxMenuItem("Sort by bundle ID");
       item.setState(iconComparator == null);
       item.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    iconComparator = null;
-	    rebuildPanel();
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            iconComparator = null;
+            rebuildPanel();
+          }
+        });
       contextPopupMenu.add(item);
       group.add(item);
-            
+
       contextMenuListener = new MouseAdapter() {
-	  public void mousePressed(MouseEvent e) {
-	    maybeShowPopup(e);
-	  }
-	  public void mouseReleased(MouseEvent e) {
-	    maybeShowPopup(e);
-	  }
-	  private void maybeShowPopup(MouseEvent e) {
-	    if(contextPopupMenu != null && 
-	       (e.isPopupTrigger() || 
-		((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0))) {
-	      Component comp = e.getComponent();
-	      contextPopupMenu.show(comp, e.getX(), e.getY());
-	    }
-	  }
-	};
+          public void mousePressed(MouseEvent e) {
+            maybeShowPopup(e);
+          }
+          public void mouseReleased(MouseEvent e) {
+            maybeShowPopup(e);
+          }
+          private void maybeShowPopup(MouseEvent e) {
+            if(contextPopupMenu != null &&
+               (e.isPopupTrigger() ||
+                ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0))) {
+              Component comp = e.getComponent();
+              contextPopupMenu.show(comp, e.getX(), e.getY());
+            }
+          }
+        };
 
       panel.addMouseListener(contextMenuListener);
 
       // handle scroll panel resizing to be able to set grid size
       scroll = new JScrollPane(panel) {
-	  int oldW = -1;
-	  int oldH = -1;
-	  public void setBounds(int x, int y, int w, int h) {
-	    super.setBounds(x, y, w, h);
+          int oldW = -1;
+          int oldH = -1;
+          public void setBounds(int x, int y, int w, int h) {
+            super.setBounds(x, y, w, h);
 
-	    // avoid looping when rebuilding panel
-	    if(w != oldW || h != oldH) {
-	      oldW = w;
-	      oldH = h;
-	      rebuildPanel();
-	    }
-	  }
-	};
-      
+            // avoid looping when rebuilding panel
+            if(w != oldW || h != oldH) {
+              oldW = w;
+              oldH = h;
+              rebuildPanel();
+            }
+          }
+        };
+
       add(scroll, BorderLayout.CENTER);
     }
 
     public void addBundle(final Bundle b) {
-      
+
       final long bid = b.getBundleId();
 
       if(null == getBundleComponent(b)) {
-	JLabel c = new JLabel(Util.getBundleName(b),  
-			      bundleIcon,
-			      SwingConstants.CENTER) { 
-	    {
-	      addMouseListener(new MouseAdapter() {
-		  public void mousePressed(MouseEvent ev) {
-		    if((ev.getModifiers() & InputEvent.CTRL_MASK) != 0) {
-		      bundleSelModel
-			.setSelected(bid, !bundleSelModel.isSelected(bid));
-		    } else {
-		      bundleSelModel.clearSelection();
-		      bundleSelModel.setSelected(bid, true);
-		    }
-		    setBackground(getBackground());
-		  }
-		});
-	      addMouseListener(contextMenuListener);
-	      setBorder(null);
-	      setOpaque(true);
-	      setBackground(Color.yellow);
-	    }
-	    
-	    
-	    public Color getBackground() {
+        JLabel c = new JLabel(Util.getBundleName(b),
+                              bundleIcon,
+                              SwingConstants.CENTER) {
+            {
+              addMouseListener(new MouseAdapter() {
+                  public void mousePressed(MouseEvent ev) {
+                    if((ev.getModifiers() & InputEvent.CTRL_MASK) != 0) {
+                      bundleSelModel
+                        .setSelected(bid, !bundleSelModel.isSelected(bid));
+                    } else {
+                      bundleSelModel.clearSelection();
+                      bundleSelModel.setSelected(bid, true);
+                    }
+                    setBackground(getBackground());
+                  }
+                });
+              addMouseListener(contextMenuListener);
+              setBorder(null);
+              setOpaque(true);
+              setBackground(Color.yellow);
+            }
 
-	      try {
-		boolean bSel = bundleSelModel != null 
-		  ? bundleSelModel.isSelected(b.getBundleId())
-		  : false;
-		
-		return bSel 
-		  ? selColor
-		  : JLargeIcons.this.getBackground();
-	      } catch (Exception e) {
-		return Color.black;
-	      }
-	    }
-	  };
-	
-	//	System.out.println("created icon " + c.getText());
 
-	c.setToolTipText(Util.bundleInfo(b));
-	c.setVerticalTextPosition(AbstractButton.BOTTOM);
-	c.setHorizontalTextPosition(AbstractButton.CENTER);
-	
-	c.setPreferredSize(new Dimension(96, 64));
-	c.setBorder(null);
-	c.setFont(getFont());
-	
-	synchronized(bundleMap) {
-	  bundleMap.put(new Long(b.getBundleId()), c);
-	}
+            public Color getBackground() {
 
-	updateBundleComp(b);
+              try {
+                boolean bSel = bundleSelModel != null
+                  ? bundleSelModel.isSelected(b.getBundleId())
+                  : false;
 
-	rebuildPanel();
+                return bSel
+                  ? selColor
+                  : JLargeIcons.this.getBackground();
+              } catch (Exception e) {
+                return Color.black;
+              }
+            }
+          };
+
+        //        System.out.println("created icon " + c.getText());
+
+        c.setToolTipText(Util.bundleInfo(b));
+        c.setVerticalTextPosition(AbstractButton.BOTTOM);
+        c.setHorizontalTextPosition(AbstractButton.CENTER);
+
+        c.setPreferredSize(new Dimension(96, 64));
+        c.setBorder(null);
+        c.setFont(getFont());
+
+        synchronized(bundleMap) {
+          bundleMap.put(new Long(b.getBundleId()), c);
+        }
+
+        updateBundleComp(b);
+
+        rebuildPanel();
 
       }
-      
+
     }
 
     Comparator nameComparator = new Comparator() {
-	public int compare(Object o1, Object o2) {
-	  Bundle b1 = 
-	    Activator.getTargetBC().getBundle(((Long)o1).longValue());
-	  Bundle b2 = 
-	    Activator.getTargetBC().getBundle(((Long)o2).longValue());
+        public int compare(Object o1, Object o2) {
+          Bundle b1 =
+            Activator.getTargetBC().getBundle(((Long)o1).longValue());
+          Bundle b2 =
+            Activator.getTargetBC().getBundle(((Long)o2).longValue());
 
-	  if(b1 == b2) {
-	    return 0;
-	  }
-	  if(b1 == null) {
-	    return -1;
-	  }
-	  if(b2 == null) {
-	    return 1;
-	  }
+          if(b1 == b2) {
+            return 0;
+          }
+          if(b1 == null) {
+            return -1;
+          }
+          if(b2 == null) {
+            return 1;
+          }
 
-	  return 
-	    Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
-	}
+          return
+            Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
+        }
       };
 
     Comparator iconComparator = null;
 
     void rebuildPanel() {
       SwingUtilities.invokeLater(new Runnable() {
-	  public void run() {
-	    synchronized(bundleMap) {
-	      panel.removeAll();
-	      
-	      //	    Comparator comp = nameComparator;
-	      
-	      Set set = new TreeSet(iconComparator);
-	      set.addAll(bundleMap.keySet());
+          public void run() {
+            synchronized(bundleMap) {
+              panel.removeAll();
 
-	      int w = 0;
-	      int h = 0;
-	      for(Iterator it = set.iterator(); it.hasNext(); ) {
-		Long      bid = (Long)it.next();
-		JComponent c   = (JComponent)bundleMap.get(bid);
-		Dimension size = c.getPreferredSize();
-		w = Math.max(w, size.width);
-		h = Math.max(h, size.height);
-	      }
+              //            Comparator comp = nameComparator;
+
+              Set set = new TreeSet(iconComparator);
+              set.addAll(bundleMap.keySet());
+
+              int w = 0;
+              int h = 0;
+              for(Iterator it = set.iterator(); it.hasNext(); ) {
+                Long      bid = (Long)it.next();
+                JComponent c   = (JComponent)bundleMap.get(bid);
+                Dimension size = c.getPreferredSize();
+                w = Math.max(w, size.width);
+                h = Math.max(h, size.height);
+              }
 
 
-	      Dimension size = scroll.getViewport().getExtentSize();
-	      
-	      if(size.width != 0) {
-		grid.setColumns(size.width / w);
-		grid.setRows(0);
-	      }
+              Dimension size = scroll.getViewport().getExtentSize();
 
-	      for(Iterator it = set.iterator(); it.hasNext(); ) {
-		Long      bid = (Long)it.next();
-		Component c   = (Component)bundleMap.get(bid);
-		panel.add(c);
-	      }
-	    }
+              if(size.width != 0) {
+                grid.setColumns(size.width / w);
+                grid.setRows(0);
+              }
 
-	    
-	    revalidate();
-	    repaint();
-	  }
-	});
+              for(Iterator it = set.iterator(); it.hasNext(); ) {
+                Long      bid = (Long)it.next();
+                Component c   = (Component)bundleMap.get(bid);
+                panel.add(c);
+              }
+            }
+
+
+            revalidate();
+            repaint();
+          }
+        });
     }
 
     public void removeBundle(Bundle b) {
       synchronized(bundleMap) {
-	bundleMap.remove(new Long(b.getBundleId()));
-	icons.remove(b);
+        bundleMap.remove(new Long(b.getBundleId()));
+        icons.remove(b);
       }
       rebuildPanel();
     }
 
     JComponent getBundleComponent(Bundle b) {
       synchronized(bundleMap) {
-	return (JComponent)bundleMap.get(new Long(b.getBundleId()));
+        return (JComponent)bundleMap.get(new Long(b.getBundleId()));
       }
     }
-        
+
     // Bundle -> BundleImageIcon
     Map icons = new HashMap();
-    
+
     public void updateBundleComp(Bundle b) {
-      
+
       JLabel c = (JLabel)getBundleComponent(b);
 
       if(c == null) {
-	addBundle(b);
-	return;
+        addBundle(b);
+        return;
       }
 
       c.setToolTipText(Util.bundleInfo(b));
-      
-      Icon icon = (Icon)icons.get(b);
-      
-      if(icon == null) {
-	URL appURL = null;
-	String iconName = (String)b.getHeaders().get("Application-Icon");
-	if(iconName == null) {
-	  iconName = "";
-	}
-	iconName = iconName.trim();
-	
-	if(iconName != null && !"".equals(iconName)) {
-	  try {
-	    appURL = new URL("bundle://" + b.getBundleId() + "/" + iconName);
-	  } catch (Exception e) {
-	    Activator.log.error("Failed to load icon", e);
-	  }
-	}
 
-	//	System.out.println("#" + b.getBundleId() + ", appURL=" + appURL);
-	try {
-	  if(Util.hasMainClass(b)) {
-	    icon = new BundleImageIcon(b, 
-				       appURL != null ? appURL : getClass().getResource("/jarexec.gif"));
-	  } else if(Util.hasActivator(b)) {
-	    icon = new BundleImageIcon(b, 
-				       appURL != null ? appURL : getClass().getResource("/bundle.png"));
-	  } else {
-	    icon = new BundleImageIcon(b, 
-				       appURL != null ? appURL : getClass().getResource("/lib.png"));
-	  }
-	} catch (Exception e) {
-	  Activator.log.error("Failed to load icon, appURL=" + appURL);
-	  icon = new BundleImageIcon(b, getClass().getResource("/bundle.png"));
-	}
-	icons.put(b, icon);
+      Icon icon = (Icon)icons.get(b);
+
+      if(icon == null) {
+        URL appURL = null;
+        String iconName = (String)b.getHeaders().get("Application-Icon");
+        if(iconName == null) {
+          iconName = "";
+        }
+        iconName = iconName.trim();
+
+        if(iconName != null && !"".equals(iconName)) {
+          try {
+            appURL = new URL("bundle://" + b.getBundleId() + "/" + iconName);
+          } catch (Exception e) {
+            Activator.log.error("Failed to load icon", e);
+          }
+        }
+
+        //        System.out.println("#" + b.getBundleId() + ", appURL=" + appURL);
+        try {
+          if(Util.hasMainClass(b)) {
+            icon = new BundleImageIcon(b,
+                                       appURL != null ? appURL : getClass().getResource("/jarexec.gif"));
+          } else if(Util.hasActivator(b)) {
+            icon = new BundleImageIcon(b,
+                                       appURL != null ? appURL : getClass().getResource("/bundle.png"));
+          } else {
+            icon = new BundleImageIcon(b,
+                                       appURL != null ? appURL : getClass().getResource("/lib.png"));
+          }
+        } catch (Exception e) {
+          Activator.log.error("Failed to load icon, appURL=" + appURL);
+          icon = new BundleImageIcon(b, getClass().getResource("/bundle.png"));
+        }
+        icons.put(b, icon);
       }
-      
+
       c.setIcon(icon);
-      
-      
+
+
       c.invalidate();
       c.repaint();
       invalidate();
