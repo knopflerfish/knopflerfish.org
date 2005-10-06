@@ -358,7 +358,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
         if(iconName != null && !"".equals(iconName)) {
           try {
-            appURL = new URL("bundle://" + b.getBundleId() + "/" + iconName);
+            appURL = b.getResource(iconName);
           } catch (Exception e) {
             Activator.log.error("Failed to load icon", e);
           }
