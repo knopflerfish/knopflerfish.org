@@ -216,7 +216,7 @@ public class Desktop
     lfManager = new LFManager();
     lfManager.init();
 
-    consoleSwing = new ConsoleSwing(Activator.getBC());
+    consoleSwing = new ConsoleSwing(Activator.getTargetBC());
     consoleSwing.start();
 
     toolBar       = makeToolBar();
