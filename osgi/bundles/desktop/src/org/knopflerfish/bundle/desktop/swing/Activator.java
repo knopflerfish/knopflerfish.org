@@ -215,12 +215,12 @@ public class Activator implements BundleActivator {
     reg = disp.register();
     displayers.put(disp, reg);
 
-    if(getBC() == getTargetBC()) {
+    //if(getBC() == getTargetBC()) {
       disp = new LogDisplayer(getTargetBC());
       disp.open();
       reg = disp.register();
       displayers.put(disp, reg);
-    }
+    //}
 
 
     // We really want this one to be displayed.
