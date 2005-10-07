@@ -46,6 +46,18 @@ TD.tableheader  {
  background: #eeeeee;
 }
 
+TD.newsdate {
+ white-space:	nowrap;
+}  
+
+.newsflash {
+ font-style:italic;
+}
+
+TD.newstext {
+ padding-left: 10;
+}
+
 TD.bottomfish  {
 }
 
@@ -224,6 +236,10 @@ li.A:hover {
 table.bodytable {
 }
 
+table.newstable {
+# border-spacing:	10pt;
+}
+
 .mainblock {
 # background-color: #ffffff;
  border-left:   solid 10px #dddddd;
@@ -324,6 +340,9 @@ dd {
 .mail {
  font-style:italic;
 }
+
+
+
 
 table.yellow {
  border-type: solid;
