@@ -158,6 +158,20 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public long installBundle(String location) {
+    try {
+      if (location.startsWith("file:") && !"true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.sendlocalpaths", "false"))) {
+        FileInputStream in = new FileInputStream(location.substring("file:".length()));
+        int i;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        while ((i = in.read()) != -1) {
+          out.write(i);
+        }
+        location = "B64:" + Base64.encode(out.toByteArray());
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new NestedRuntimeException("Failed to call installBundle(file:...): ", e);
+    }
     Object obj = doCall("installBundle", location);
     Long bid = new Long(obj == null ? "0" : obj.toString());
     flushCache();
