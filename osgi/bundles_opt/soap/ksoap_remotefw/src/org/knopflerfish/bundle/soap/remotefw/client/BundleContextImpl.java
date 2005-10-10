@@ -107,6 +107,9 @@ public class BundleContextImpl implements BundleContext {
   }
 
   void stop() {
+    if (logReader != null) {
+      logReader.stop();
+    }
     if(runner != null) {
       bRun = false;
       try {
