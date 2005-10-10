@@ -34,6 +34,7 @@
 package org.knopflerfish.bundle.soap.remotefw;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PipedReader;
 import java.io.PipedWriter;
@@ -46,6 +47,7 @@ import org.osgi.framework.*;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
+import org.osgi.service.packageadmin.*;
 import org.osgi.util.tracker.*;
 
 import org.knopflerfish.service.log.LogRef;
@@ -54,7 +56,7 @@ import org.knopflerfish.service.console.Session;
 import org.osgi.service.startlevel.*;
 
 import org.knopflerfish.service.soap.remotefw.*;
-import org.osgi.service.packageadmin.*;
+import org.knopflerfish.util.Base64;
 
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
@@ -124,10 +126,20 @@ public class RemoteFWServer implements RemoteFW {
   }
   public long installBundle(String location) {
     try {
-      Bundle b = Activator.bc.installBundle(location);
+      Bundle b;
+      if (location.startsWith("B64:")) {
+        location = location.substring("B64:".length());
+        byte[] bytes = Base64.decode(location);
+        b = Activator.bc.installBundle("remotefw-" + System.currentTimeMillis(), new ByteArrayInputStream(bytes));
+      } else {
+        b = Activator.bc.installBundle(location);
+      }
       return b.getBundleId();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to install location=" + location);
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new IllegalArgumentException("Failed to install encoded bundle");
     }
   }
 

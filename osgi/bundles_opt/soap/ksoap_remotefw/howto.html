@@ -78,6 +78,7 @@ h4 { font-family: Verdana, Arial, Helvetica, sans-serif; }
     <li><b>org.knopflerfish.soap.remotefw.client.eventinterval</b> - Defines the time (in ms) between polls to get events and log entries from the server. Defaults to 3000.</li>
     <li><b>org.knopflerfish.soap.remotefw.server</b> - Can be set to <b>false</b> on the client. No servlet will be registered and other desktops will not be able to connect to this framework. Defaults to true.</li>
     <li><b>org.knopflerfish.soap.remotefw.client</b> - Can be set to <b>true</b> on the client just to make it clear that it is a client. Defaults to true.</li>
+    <li><b>org.knopflerfish.soap.remotefw.client.sendlocalpaths</b> - Set to true to avoid sending base64 encoded bundles when installing. Defaults to false.</li>
   </ul>
 
   <h4>Common</h4>
@@ -105,9 +106,6 @@ h4 { font-family: Verdana, Arial, Helvetica, sans-serif; }
 <h3>Known Problems</h3>
 
   If the remote framework is shut down (which can be done remotely by running the console command "framework shutdown"), the desktop may behave strangely.
-  <p/>
-
-  Bundles cannot be sent to the server over SOAP. URL's/locations used in install commands are relative to the server.
   <p/>
 
   Log entries can appear in unexpected order.
