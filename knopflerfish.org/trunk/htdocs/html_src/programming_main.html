@@ -284,12 +284,12 @@ public class <b>Activator</b> implements BundleActivator {
    <b>static</b> BundleContext bc;
 
    public void start(BundleContext bc) {
-     this.bc = bc;
+     Activator.bc = bc;
      ...
    }
 
    public void stop(BundleContext bc) {
-     this.bc = null; // allow for garbage collection
+     Activator.bc = null; // allow for garbage collection
      ...
    }
 }
@@ -311,7 +311,7 @@ public class <b>Activator</b> implements BundleActivator {
     <td valign=top>
       <pre>
 public void stop(BundleContext bc) {
-  this.bc = null;
+  Activator.bc = null;
 }
 </pre>
     </td>
@@ -330,7 +330,7 @@ public void stop(BundleContext bc) {
       <pre>
 // Cleanup up resources in stop method
 public void stop(BundleContext bc) {
-  this.bc = null;
+  Activator.bc = null;
   if(window != null) {
     window.setVisible(false);
     window = null;
