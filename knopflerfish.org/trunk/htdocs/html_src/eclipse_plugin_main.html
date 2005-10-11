@@ -10,12 +10,6 @@ You can download the latest release from the link below or from the Knoplferfish
   <td>Update site URL</td>
   <td>http://www.knopflerfish.org/eclipse-update/</td>
  </tr>
- <tr>
-  <td colspan="2">
-  <a href="releases/eclipse-plugin/0.7.0/knopflerfish_eclipse_plugin_0.7.0.zip">knopflerfish_eclipse_plugin_0.7.0.zip</a><br>
-  (approx 251 kB)
-  </td>
- </tr>
 </table>
 
 <p>
@@ -38,42 +32,27 @@ After the plugin has been installed the first time you can search for updates of
 using the first option, 'Search for updates...' on the 'Help->Software Updates->Find and 
 Install...' page.
 
-<h3>Manually install</h3>
-<ol>
- <li>Unzip the distribution zip file in your eclipse directory. The following plug-ins are extracted
- to the plugins directory.
- <ul>
- <li>org.knopflerfish.eclipse.core
- <li>org.knopflerfish.eclipse.core.ui
- </ul>
-</ol>
+
+
+<h2>Setting preferences</h2>
 
 
 
-<h2>Getting started</h2>
-
-
-
-<h3>Specify location of Knopflerfish distribution</h3>
-Before developing bundles the location of a Knopflerfish installation must be specified. The information is saved 
+<h3>Specify location of OSGi framework</h3>
+Before developing bundles the location of a OSGi framework must be specified. The information is saved 
 in the Eclipse Preferences.
 
 <ol>
  <li>Select Window/Preferences
- <li>In Preferences dialog select OSGi/Knopflerfish
- <li>Select to 'Add' a new Knopflerfish definition and enter 
- location of your Knopflerfish installation in the shown
- dialog page.
+ <li>In Preferences dialog select OSGi/Framework.
+ <li>Select to 'Add' a new OSGi framework. 
+ <li>Enter a name for the framework and select the type of framework. Currently Knopflerfish and Oscar is supported.
+ <li>Enter location to where the framework is installed.
 </ol>
 
 
 
-<h3>Defining bundle sets</h3>
-Bundle sets are used to group bundles into logical units, which later can be referred to when selecting bundles to 
-deploy on a framework. Bundle set information is saved in the Eclipse Preferences.
-<p>
-<b>TODO:</b> Work in progress.
-</p>
+<h2>Creating a bundle project</h2>
 
 
 <h3>Creating a new bundle project</h3>
