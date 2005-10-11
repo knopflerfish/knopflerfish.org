@@ -148,8 +148,6 @@ public class  PrefsStorageFile implements PrefsStorage {
         props.put(encode(key), val);
       }
 
-      propsMap.put(path, props);
-
       OutputStream out = null;
       try {
         File f = getKeyFile(path);
@@ -170,7 +168,7 @@ public class  PrefsStorageFile implements PrefsStorage {
       dirtySet.add(path);
       Dictionary p = loadProps(path);
 
-      p.put(encode(key), val);
+      p.put(key, val);
 
       // System.out.println("dirty " + path);
       //      saveProps(path, p);
@@ -211,7 +209,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
       int i = 0;
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-        keys[i++] = decode((String)e.nextElement());
+        keys[i++] = (String) e.nextElement();
       }
       return keys;
     } catch (Exception e) {
@@ -299,6 +297,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
       if(!keyFile.exists()) {
         Dictionary props = new Hashtable();
+        propsMap.put(path, props);
         saveProps(path, props);
       }
 
