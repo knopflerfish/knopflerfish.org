@@ -173,6 +173,14 @@
       <param name="desc"     value=""/>
       <param name="CLASS_NAVIGATION_ECLIPSE" value="navigation_disabled"/>
     </antcall>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/remote_howto.html"/>
+      <param name="tofile"   value="remote_howto.html"/>
+      <param name="title"    value="The Remote Knopflerfish OSGi Desktop"/>
+      <param name="desc"     value="How to Activate the 'Remote framework...' Menu Item in the Knopflerfish Desktop."/>
+      <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
+    </antcall>
   </target>
 
   <target name="makehtml">
