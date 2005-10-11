@@ -161,7 +161,11 @@ public class CMDataReader extends XmlReader {
             objects.removeAllElements();
         }
         read(r);
-        return (Hashtable[]) objects.toArray(new Hashtable[objects.size()]);
+        Hashtable[] configs = new Hashtable[objects.size()];
+        for (int i=0; i<objects.size(); i++) {
+            configs[i] = (Hashtable) objects.elementAt(i);
+        }
+        return configs;
     }
 
     protected void startElement(String elementType, Dictionary attributes)
