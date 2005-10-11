@@ -23,9 +23,9 @@ See <a href="eclipse_plugin.html">Knopflerfish Eclipse Plugin</a>.
 <h4>Prerequisites</h4>
 <ul>
   <li><i>JDK 1.3 or later</i>, available from <a href="http://java.sun.com">java.sun.com</a>
-  <li><i>Ant</i>,	available from <a href="http://ant.apache.org/">ant.apache.org</a>
+  <li><i>Ant</i>,  available from <a href="http://ant.apache.org/">ant.apache.org</a>
   <li><i>BCEL</i>, available from <a href="http://jakarta.apache.org/bcel">jakarta.apache.org/bcel</a>
-  
+
 </ul>
 
 
@@ -44,19 +44,19 @@ system. Naturally, you can create bundles manually, but this requires some knowl
       <pre>
 &gt; cd <i>knopflerfish</i>/osgi/bundles
 &gt; mkdir mybundle
-		    </pre>
+      </pre>
     </td>
   </tr>
-  
+
   <tr>
     <td><b>2. Copy</b> the ant bundle build template</td>
     <td>
       <pre>
 &gt; cp <i>knopflerfish</i>/ant/build_example.xml build.xml
-		    </pre>
+      </pre>
     </td>
   </tr>
-  
+
   <tr>
     <td><b>3. Change</b> the project name in the <tt>build.xml</tt> file
       <p>Set the <tt><b>impl.pattern</b></tt> and
@@ -66,7 +66,7 @@ system. Naturally, you can create bundles manually, but this requires some knowl
       <p>
       Depending on where you have put your new bundle, you might have to modify the <tt><b>bundlebuild_include</b></tt> and <tt><b>topdir</b></tt> references
       in the <tt>build.xml</tt> file too.
-      
+
       <p>
       For details on bundle generation, see <tt><i>knopflerfish</i>/ant/bundlebuild_include.xml</tt>
       </p>
@@ -81,10 +81,10 @@ system. Naturally, you can create bundles manually, but this requires some knowl
 &lt;property name  = "api.pattern"
           value = "example/mybundle/*"/&gt;
 
-		    </pre>
+      </pre>
     </td>
   </tr>
-  
+
   <tr>
     <td><b>4. Create the java source code</b> in <tt>src</tt>
       directory.
@@ -93,7 +93,7 @@ system. Naturally, you can create bundles manually, but this requires some knowl
       <pre>
 &gt; mkdir -p src/example/mybundle/impl
       </pre>
-      
+
       <b>Example BundleActivator:</b> src/examples/mybundle/impl/Activator.java
       <pre>
 package example.mybundle.impl;
@@ -107,8 +107,8 @@ public class Activator implements BundleActivator {
   }
   public void stop(BundleContext bc) {
     ...
-  } 
-		    </pre>
+  }
+      </pre>
     </td>
   </tr>
 
@@ -124,7 +124,7 @@ public class Activator implements BundleActivator {
       </p>
     </td>
     <td>
-  <pre>
+      <pre>
 &gt; ant
       </pre>
     </td>
@@ -143,7 +143,7 @@ public class Activator implements BundleActivator {
     </td>
     <td>
       <b>Using the console to install and start the bundle.
-  <pre>
+      <pre>
 &gt; install file:jars/mybundle/mybundle.jar
 &gt; start mybundle.jar
       </pre>
@@ -164,7 +164,7 @@ public class Activator implements BundleActivator {
   type us these built-in target to handle the life cycle of the bundle.
 </p>
 <p>
-The properties <tt>console.host</tt>, <tt>console.port</tt>, 
+The properties <tt>console.host</tt>, <tt>console.port</tt>,
 <tt>console.user</tt> and <tt>console.pwd</tt> controls the details of the
 console connection.
 </p>
@@ -178,7 +178,7 @@ console connection.
 </pre>
 to install the compiled bundle. Similarily, type
 <pre>
-&gt; ant start 
+&gt; ant start
 </pre>
 to start the bundle. Type
 <pre>
@@ -208,7 +208,7 @@ which is expected to start, register or use other service, <b>must</b>
 have a BundleActivator implementation and a reference to the BundleActivator's
 class name in its manifest file.
 
-<table border=0>  
+<table border=0>
 
 <tr>
 <td class="tableheader" colspan=2>Naming the BundleActivator</td>
@@ -216,7 +216,7 @@ class name in its manifest file.
 
   <tr>
     <td valign=top>
-      Preferably name the <code>BundleActivator</code> class <b>Activator</b>. 
+      Preferably name the <code>BundleActivator</code> class <b>Activator</b>.
 This makes it easy to find for other developers.
     </td>
     <td valign=top>
@@ -225,7 +225,7 @@ public class <b>Activator</b> implements BundleActivator {
   ...
 }
 </pre>
-      
+
     </td>
   </tr>
 
@@ -241,7 +241,7 @@ the implementation parts of bundle with <tt>.impl</tt>
 </p>
 
 <p>
-However, the implementation parts can theoretically  
+However, the implementation parts can theoretically
 have any package name you want, since the framework keeps separate
 name spaces for separate bundles.
 </p>
@@ -252,27 +252,27 @@ name spaces for separate bundles.
 package com.acme.osgi.test.impl;
 
 // from the bundle's API part
-import com.acme.osgi.test.TestService; 
+import com.acme.osgi.test.TestService;
 
 public class <b>Activator</b> implements BundleActivator {
   TestService testService = ...
   ...
 }
 </pre>
-      
+
     </td>
   </tr>
 
-  
+
 <tr>
 <td class="tableheader" colspan=2>Store the BundleContext</td>
 </tr>
 
   <tr>
     <td valign=top>
-      You can use a <b>static</b> <code>BundleContext</code> in the 
+      You can use a <b>static</b> <code>BundleContext</code> in the
       <code>Activator</code> class.<br>
-      There is really no need for passing around <code>bc</code> by 
+      There is really no need for passing around <code>bc</code> by
       parameter to all internal classes. The same trick should be used for
       other <b>singular</b> common objects as the log service tracker.
     </td>
@@ -282,7 +282,7 @@ public class <b>Activator</b> implements BundleActivator {
 public class <b>Activator</b> implements BundleActivator {
 
    <b>static</b> BundleContext bc;
-	    
+
    public void start(BundleContext bc) {
      this.bc = bc;
      ...
@@ -294,10 +294,10 @@ public class <b>Activator</b> implements BundleActivator {
    }
 }
 </pre>
-      
+
     </td>
   </tr>
-  
+
 <tr>
 <td class="tableheader" colspan=2>Automatic cleanup of services</td>
 </tr>
@@ -323,7 +323,7 @@ public void stop(BundleContext bc) {
   <tr>
     <td valign=top>
       <b>Do</b> deallocate
-      any other resources as threads or (gah!) Swing windows. 
+      any other resources as threads or (gah!) Swing windows.
       They are <b>not</b> stopped or closed automatically.
     </td>
     <td valign=top>
@@ -339,7 +339,7 @@ public void stop(BundleContext bc) {
 </pre>
     </td>
   </tr>
-  
+
 <tr>
 <td class="tableheader" colspan=2>Beware of re-using service object</td>
 </tr>
@@ -356,18 +356,18 @@ public void stop(BundleContext bc) {
       the registered service's
       interface.
       <p>
-      A more compact method than multiple interfaces, 
+      A more compact method than multiple interfaces,
       is to use anonymous inner classes.
       </p>
     </td>
-    
+
     <td valign=top>
       <b>Common mistake of re-using the activator as service implementation:</b>
       <pre>
 import org.osgi.framework.BundleActivator;
 import org.osgi.service.cm.ManagesService;
 
-public class Activator 
+public class Activator
        implements BundleActivator, <b>ManagedService</b> {
 
   // implements BundleActivator
@@ -376,15 +376,15 @@ public class Activator
     Hashtable props = new Hashtable();
     props.put("service.pid", "myfantasticpid");
 
-    // We can register ourselves as a ManagedService, 
+    // We can register ourselves as a ManagedService,
     // This is formally OK, but a service
     // that can get this service (as a ManagedService),
-    // can also call start() and stop() using 
+    // can also call start() and stop() using
     // reflection trickery or casting. Which hardly
     // was the intention of the bundle programmer.
     bc.registerService(ManagedService.class.getName(),
                        this, props);
-                       
+
   }
 
   // implements BundleActivator
@@ -399,7 +399,7 @@ public class Activator
   }
 }
 </pre>
-      
+
       <b>Better variant, using anonymous inner class:</b>
       <pre>
 public class Activator implements BundleActivator {
@@ -415,11 +415,11 @@ public class Activator implements BundleActivator {
       }
     };
 
-    // BundleActivator methods now hidden 
+    // BundleActivator methods now hidden
     // from outside access.
     bc.registerService(ManagedService.class.getName(),
                        mg, props);
-                       
+
   }
   ...
 }
@@ -466,8 +466,8 @@ public class Activator implements BundleActivator {
 <td>
 <p>
 Many external libraries, like most JNDI lookup services requires a correctly
-set <b>thread context classloader</b>. If this is not set, 
-ClassNotFoundException, or similar might be thrown even if you have 
+set <b>thread context classloader</b>. If this is not set,
+ClassNotFoundException, or similar might be thrown even if you have
 included all necessary libs.
 </p>
 
@@ -475,12 +475,12 @@ included all necessary libs.
 To fix this, simple spawn a new thread in the activator and do the work
 from that thread. If you use the lib in any callback methods from the
 framework, as <tt>ServiceListener</tt> or <tt>BundleListener</tt> you should
-do a similar trick inside of these listeners. 
+do a similar trick inside of these listeners.
 </p>
 
 <p>
 It is <b>not</b> recommended to set the context class loader persistenly on
-the startup thread, since that might not be unique for your bundle. 
+the startup thread, since that might not be unique for your bundle.
 Effects might vary depending on OSGi vendor. If you don't spawn a new
 thread, you <b>must</b> reset the context class loader before returning.
 </p>
@@ -490,15 +490,15 @@ thread, you <b>must</b> reset the context class loader before returning.
 public class Activator implements BundleActivator {
    public void start(BundleContext bc) {
 
-     final ClassLoader classLoader = 
-        getClass().getClassLoader();         
+     final ClassLoader classLoader =
+        getClass().getClassLoader();
 
      Thread thread = new Thread() {
        public void run() {
          Thread.currentThread()
            .setContextClassLoader(classLoader);
          ...
-         // do any work that uses the context 
+         // do any work that uses the context
          // class loader, like :
          context.lookup("QueueConnectionFactory");
        }
@@ -533,15 +533,15 @@ Thanks to Rob Evans for this example.
     <td valign=top>
       <pre>
   ServiceTracker logTracker =
-    new ServiceTracker(bc, 
-                       LogService.class.getName(), 
+    new ServiceTracker(bc,
+                       LogService.class.getName(),
                        null);
   logTracker.open();
 
   // this might throw a NullPointerException
   // if the log is not available
   (LogService)logTracker
-    .getService().log(LogService.LOG_INFO, 
+    .getService().log(LogService.LOG_INFO,
                       "Hello log");
 
 </pre>
@@ -576,15 +576,15 @@ Thanks to Rob Evans for this example.
       }
     }
   };
-    
-  String filter = 
+
+  String filter =
    "(objectclass=" + HttpService.class.getName() + ")";
 
   try {
     bc.addServiceListener(listener, filter);
 
     // get all already registered services.
-    ServiceReference[] srl = 
+    ServiceReference[] srl =
       bc.getServiceReferences(null, filter);
 
     for(int i = 0; srl != null && i < srl.length; i++) {
@@ -593,7 +593,7 @@ Thanks to Rob Evans for this example.
           srl[i]));
     }
   } catch (Exception e) {
-     log.error("Failed to set up listener for http", 
+     log.error("Failed to set up listener for http",
                e);
   }
 </pre>
@@ -613,20 +613,20 @@ Thanks to Rob Evans for this example.
 </tr>
 
   <tr>
-    <td valign=top>You can access bundle data using 
+    <td valign=top>You can access bundle data using
       the <b>getResourceAsStream</b> method
     </td>
     <td valign=top>
       <pre>
-// Get the bundle's manifest file using the 
-// bundle class loader 
-InputStream in = 
+// Get the bundle's manifest file using the
+// bundle class loader
+InputStream in =
   getClass()
    .getResourceAsStream("/META-INF/MANIFEST.MF");
 ..
 </pre>
     </td>
-    
+
   </tr>
 
 <tr>
@@ -639,18 +639,18 @@ InputStream in =
     </td>
     <td valign=top>
       <pre>
- // Get the bundle's raw manifest file using an URL 
- // Syntax: (jar number represents internal jars, 
+ // Get the bundle's raw manifest file using an URL
+ // Syntax: (jar number represents internal jars,
  // where 0 is the top level jar)
  //  "bundle://&lt;bundle id&gt;:&lt;jar number&gt;&lt;path&gt;"
- String s = 
-   "bundle://" + bc.getBundle().getBundleId() + ":0" + 
+ String s =
+   "bundle://" + bc.getBundle().getBundleId() + ":0" +
    "/META-INF/MANIFEST.MF";
 
  URL url = new URL(s);
 
  InputStream in = url.openStream();
- 
+
  ..
 </pre>
     </td>
@@ -672,7 +672,7 @@ to the framework itself, needs to be explicitly <b>refreshed</b> before
 classes in those packages are releases.
 </p>
 <p>
-If you happen to have exported the package that your BundleActivator 
+If you happen to have exported the package that your BundleActivator
 resides in, this could mean that the "old" class will be used and not
 the newly installed one.
 </p>
@@ -692,7 +692,7 @@ or CTRL + R
 </p>
 <p>
 
-Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service 
+Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service
 to refresh packages:
 <pre>
   // refresh all bundles
@@ -705,7 +705,7 @@ to refresh packages:
 <!--- /#refreshing -->
 
 </table>
-    
+
 <a class=top href="#top">top</a>
 
 <a name="win32"></a>
@@ -723,23 +723,23 @@ to refresh packages:
     </td>
     <td valign=top>
       <ol>
-	<li>Install all the .dlls and jars in the
-	<b>JRE runtime</b> <code>ext/</code> directory. <br>
-	Common installation directory:
-	<pre>
+  <li>Install all the .dlls and jars in the
+  <b>JRE runtime</b> <code>ext/</code> directory. <br>
+  Common installation directory:
+  <pre>
 C:\Program Files\JavaSoft\JRE\1.3\lib\ext\
-	  </pre>
-	<li>This is not enough, copy the file <code>jmutils.dll</code> to the
-	JRE runtime <code>bin/</code> directory. <br>
-	Common installation directory:
-	<pre>				  
+    </pre>
+  <li>This is not enough, copy the file <code>jmutils.dll</code> to the
+  JRE runtime <code>bin/</code> directory. <br>
+  Common installation directory:
+  <pre>
 C:\Program Files\JavaSoft\JRE\1.3\bin\
-	  </pre>
-	  
+    </pre>
+
       </ol>
     </td>
   </tr>
-  
+
 </table>
 
 <a name="custom"></a>
@@ -759,7 +759,7 @@ C:\Program Files\JavaSoft\JRE\1.3\bin\
 
  <tr>
   <td>topdir</td>
-  <td>Must be set to the top directory of build. This should be the same 
+  <td>Must be set to the top directory of build. This should be the same
      directory where framework.jar is located.
   </td>
  </tr>
@@ -835,10 +835,10 @@ Default is <tt>_all-${bundle.version}</tt>
   <td class="tableheader" colspan="2">Bundle manifest attributes</td>
  </tr>
 
- 
+
  <tr>
   <td>bundle.name</td>
-  <td>Name of bundle. Will be stored in manifest as "Bundle-Name". 
+  <td>Name of bundle. Will be stored in manifest as "Bundle-Name".
       <br>Default value is ${ant.project.name}
   </td>
  </tr>
@@ -880,70 +880,70 @@ Default is <tt>_all-${bundle.version}</tt>
 
  <tr>
   <td>bundle.classpath</td>
-  <td>Bundle classpath. Will be stored in manifest as "Bundle-Classpath". 
+  <td>Bundle classpath. Will be stored in manifest as "Bundle-Classpath".
       <br>Default value is "."</td>
  </tr>
 
  <tr>
   <td>bundle.docurl</td>
-  <td>Bundle doc URL. Will be stored in manifest as "Bundle-DocURL". 
+  <td>Bundle doc URL. Will be stored in manifest as "Bundle-DocURL".
       <br>Default value is "http://www.knopflerfish.org"
   </td>
  </tr>
 
  <tr>
   <td>bundle.contactaddress</td>
-  <td>Bundle contact address. Will be stored in manifest as "Bundle-ContactAddress". 
+  <td>Bundle contact address. Will be stored in manifest as "Bundle-ContactAddress".
   <br>Default value is "http://www.knopflerfish.org"
   </td>
  </tr>
 
  <tr>
   <td>bundle.activator</td>
-  <td>Class name of bundle activator. Will be stored in manifest as "Bundle-Activator". 
+  <td>Class name of bundle activator. Will be stored in manifest as "Bundle-Activator".
   <br>Default value is automatically derived from bundle classes in impl code.
   </td>
  </tr>
 
  <tr>
   <td>import.package</td>
-  <td>Comma-separated list of packages. Will be stored in manifest as "Import-Package". 
+  <td>Comma-separated list of packages. Will be stored in manifest as "Import-Package".
   <br>Default value is automatically derived from bundle classes in impl code
   </td>
  </tr>
 
  <tr>
   <td>export.package</td>
-  <td>Comma-separated list of packages. Will be stored in manifest as "Export-Package". 
+  <td>Comma-separated list of packages. Will be stored in manifest as "Export-Package".
   <br>Default value is automatically derived from bundle classes in API code
   </td>
  </tr>
 
  <tr>
   <td>dynamicimport.package</td>
-  <td>Comma-separated list of dynamic import packages. Will be stored in 
-  manifest as "DynamicImport-Package". 
+  <td>Comma-separated list of dynamic import packages. Will be stored in
+  manifest as "DynamicImport-Package".
   <br>Default value is empty
   </td>
  </tr>
 
  <tr>
   <td>bundle.nativecode</td>
-  <td>Comma-separated list of native code specifications. Will be stored in 
-  manifest as "Bundle-NativeCode". 
+  <td>Comma-separated list of native code specifications. Will be stored in
+  manifest as "Bundle-NativeCode".
   <br>Default value is empty
   </td>
  </tr>
 
  <tr>
   <td>import.service</td>
-  <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Service". 
+  <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Service".
   </td>
  </tr>
 
  <tr>
   <td>export.service</td>
-  <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Package". 
+  <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Package".
   </td>
  </tr>
 
@@ -961,8 +961,8 @@ Default is <tt>${bundle.uuid}</tt>
   </td>
 
  <tr>
-  <td colspan=2><b>Note</b>: If any of the manifest attributes above are set to the 
-   special value <tt>"[bundle.emptystring]"</tt>, that attribute will not 
+  <td colspan=2><b>Note</b>: If any of the manifest attributes above are set to the
+   special value <tt>"[bundle.emptystring]"</tt>, that attribute will not
 be present at all in the manifest, not even as a zero-length string.
  </td>
  </tr>
@@ -1034,8 +1034,8 @@ be present at all in the manifest, not even as a zero-length string.
 
 <h3>Special pre and post target</h3>
 
-If you need special handling of the bundle build process, you can 
-add the special targets <tt>bundle.custom.pre</tt> or 
+If you need special handling of the bundle build process, you can
+add the special targets <tt>bundle.custom.pre</tt> or
 <tt>bundle.custom.post</tt>. These will be run just before and just after
 the standard bundle build.
 
@@ -1071,12 +1071,12 @@ the standard bundle build.
 
 <p>
 The Knopflerfish framework can be started in either disk-optimizing or
-memory-optimizing modes. This is useful for systems with lowe memory or 
+memory-optimizing modes. This is useful for systems with lowe memory or
 small or slow disks. It also affects the startup time for the farmework.
 </p>
 
 <p>
-See <a href="perf.html">Knopflerfish performance test</a> for actual performance data 
+See <a href="perf.html">Knopflerfish performance test</a> for actual performance data
 with different methods.
 </p>
 
@@ -1085,13 +1085,13 @@ The following apply:
 <ol>
  <li>If you need quick startup, rememeber that initial startup is always
      much slower than a restart, so
-     a avoid deleting the <tt>fwdir</tt> bundle storage directory, if 
-     possible. 
+     a avoid deleting the <tt>fwdir</tt> bundle storage directory, if
+     possible.
 
  <li> Jar unpacking to disk costs time and disk space. When you
     have a slow write-disk (as flash mem) this is really
-    notable. 
- 
+    notable.
+
 <p>
     As a solution, memory can be used as bundle storage
     instead of disk. Just start with
@@ -1110,6 +1110,6 @@ The following apply:
     be extracted from the bundle to be accessed.
 <p>
     A work-around is to manually unpack a lib jar file and add it
-    to a bundle (instead of referencing the .jar from <tt>Bundle-Classpath</tt>) 
+    to a bundle (instead of referencing the .jar from <tt>Bundle-Classpath</tt>)
 </p>
 </ol>
