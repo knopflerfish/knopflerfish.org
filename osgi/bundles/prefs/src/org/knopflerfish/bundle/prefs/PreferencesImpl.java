@@ -50,11 +50,11 @@ public class PreferencesImpl implements Preferences {
 
   boolean      bStale = false;
   boolean      bDirty = false;
-  
+
   PreferencesImpl(PrefsStorage storage, String path) {
     this.storage = storage;
     this.path    = path;
-    
+
     if("/".equals(path)) {
       path = "";
     }
@@ -107,10 +107,10 @@ public class PreferencesImpl implements Preferences {
       return def;
     } else {
       try {
-	return Base64.decode(s.getBytes());
+        return Base64.decode(s.getBytes());
       } catch (IOException e) {
-	Activator.log.warn("Failed to decode byte array", e);
-	return def;
+        Activator.log.warn("Failed to decode byte array", e);
+        return def;
       }
     }
   }
@@ -176,7 +176,7 @@ public class PreferencesImpl implements Preferences {
 
     if(bStale) {
       if(!"".equals(pathName)) {
-	throw new IllegalStateException("node removed");
+        throw new IllegalStateException("node removed");
       }
     }
 
@@ -229,20 +229,20 @@ public class PreferencesImpl implements Preferences {
   public void putBoolean(String key, boolean value)  {
     put(key, value ? "true" : "false");
   }
-  
+
 
   public void putDouble(String key, double value)   {
     put(key, Double.toString(value));
   }
-  
+
   public void putFloat(String key, float value)   {
     put(key, Float.toString(value));
   }
-  
+
   public void putInt(String key, int value)   {
     put(key, Integer.toString(value));
   }
-  
+
   public void putLong(String key, long value)  {
     put(key, Long.toString(value));
   }
@@ -256,7 +256,7 @@ public class PreferencesImpl implements Preferences {
     assertValid();
     if("".equals(path)) {
       throw new RuntimeException("Cannot remove root node");
-    } 
+    }
     storage.removeNode(path);
     bStale = true;
   }
@@ -278,7 +278,7 @@ public class PreferencesImpl implements Preferences {
 
   protected void assertValid() {
     if(bStale || !storage.nodeExists(path)) {
-      throw new IllegalStateException("no node at '" + path + "'");    
+      throw new IllegalStateException("no node at '" + path + "'");
     }
   }
 
@@ -287,17 +287,17 @@ public class PreferencesImpl implements Preferences {
       throw new IllegalArgumentException("Illegal // in path name '" + pathName + "'");
     }
     if(pathName.length() > 1 && pathName.endsWith("/")) {
-      throw new IllegalArgumentException("Trailing / in path name '" + 
-					 pathName + "'");
+      throw new IllegalArgumentException("Trailing / in path name '" +
+                                         pathName + "'");
     }
   }
-  
+
   public String toString() {
     return "Preferences[" +
-      "path=" + path + 
-      ", name=" + name + 
-      ", parentPath=" + parentPath + 
-      ", bStale=" + bStale + 
+      "path=" + path +
+      ", name=" + name +
+      ", parentPath=" + parentPath +
+      ", bStale=" + bStale +
       "]";
   }
 
@@ -313,4 +313,4 @@ public class PreferencesImpl implements Preferences {
     return path.equals(pi.path);
   }
 }
- 
+
