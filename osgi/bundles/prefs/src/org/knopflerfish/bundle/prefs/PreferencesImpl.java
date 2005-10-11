@@ -262,7 +262,7 @@ public class PreferencesImpl implements Preferences {
   }
 
   public void sync() {
-    assertValid();
+    flush();
   }
 
   protected String absPath(String pathName) {
