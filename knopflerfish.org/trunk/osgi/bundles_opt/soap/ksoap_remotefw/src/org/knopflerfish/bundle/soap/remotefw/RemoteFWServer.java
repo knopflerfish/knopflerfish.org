@@ -171,9 +171,10 @@ public class RemoteFWServer implements RemoteFW {
       }
       return b.getBundleId();
     } catch (BundleException e) {
+      Activator.log.warn("Failed to install location=" + location, e);
       throw new IllegalArgumentException("Failed to install location=" + location);
     } catch (IOException e) {
-      e.printStackTrace();
+      Activator.log.warn("Failed to install encoded bundle", e);
       throw new IllegalArgumentException("Failed to install encoded bundle");
     }
   }
@@ -183,7 +184,6 @@ public class RemoteFWServer implements RemoteFW {
   }
 
   public long[]    getBundles() {
-    //try{throw new Exception();}catch (Exception e) {e.printStackTrace();}
     Bundle[] bl = Activator.bc.getBundles();
     long[] bids = new long[bl.length];
 
@@ -244,7 +244,7 @@ public class RemoteFWServer implements RemoteFW {
       }
       return bids;
     } catch (InvalidSyntaxException e) {
-      e.printStackTrace();
+      Activator.log.warn("Failed to get using bundles", e);
       return null;
     }
   }
@@ -279,11 +279,6 @@ public class RemoteFWServer implements RemoteFW {
       }
       ServiceReference[] srl = Activator.bc.getServiceReferences(clazz, filter);
 
-      /*
-      System.out.println("server:getServiceReferences2 class=" + clazz +
-       ", filter=" + filter +
-       ", srl=" + (srl != null ? ("" + srl.length) : "null"));
-      */
       if(srl == null) {
         return new long[0];
       }
@@ -338,6 +333,7 @@ public class RemoteFWServer implements RemoteFW {
       try {
 
         long[] r = new long[frameworkEvents.size() * 2];
+        if (Activator.log.doDebug()) Activator.log.debug("server: getFrameworkEvents size=" + r.length / 2);
         if(bDebug) {
           System.out.println("server: getFrameworkEvents size=" + r.length / 2);
         }
@@ -348,6 +344,7 @@ public class RemoteFWServer implements RemoteFW {
           Bundle b = ev.getBundle();
           long bid = -1;
           if(b == null) {
+            if (Activator.log.doDebug()) Activator.log.debug("fw event: " + ev + " - no bundle");
             if(bDebug) {
               System.out.println("fw event: " + ev + " - no bundle");
             }
@@ -360,11 +357,13 @@ public class RemoteFWServer implements RemoteFW {
         }
 
         frameworkEvents.clear();
+        if (Activator.log.doDebug()) Activator.log.debug("server: getFrameworkEvents -> " + r);
         if(bDebug) {
           System.out.println("server: getFrameworkEvents -> " + r);
         }
         return r;
       } catch (Exception e) {
+        if (Activator.log.doDebug()) Activator.log.debug("Exception during getFrameworkEvents", e);
         if(bDebug) {
           e.printStackTrace();
         }
@@ -741,6 +740,7 @@ public class RemoteFWServer implements RemoteFW {
         first = false;
       }
     } catch (Exception e) {
+      Activator.log.warn("Exception during runCommand", e);
       e.printStackTrace();
       buf.append(e.toString());
     }
@@ -807,6 +807,7 @@ public class RemoteFWServer implements RemoteFW {
               Bundle b = ev.getBundle();
               if(b == null) {
                 Object obj = ev.getSource();
+                if (Activator.log.doDebug()) Activator.log.debug("obj=" + obj + " source class=" + (obj == null ? "null" : obj.getClass().getName()));
                 if(bDebug) {
                   System.out.println("obj=" + obj);
                   if(obj != null) {
@@ -817,6 +818,7 @@ public class RemoteFWServer implements RemoteFW {
                   b = (Bundle)obj;
                 }
               }
+              if (Activator.log.doDebug()) Activator.log.debug("server: add fw event: " + ev + ", type=" + type + ", bundle=" + b);
               if(bDebug) {
                 System.out.println("server: add fw event: " + ev + ", type=" + type + ", bundle=" + b);
               }
