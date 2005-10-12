@@ -99,6 +99,32 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
+  public void updateBundle(SoapPrimitive bid, SoapPrimitive data) {
+    updateBundle(Long.parseLong(bid.toString()), data.toString());
+  }
+  public void updateBundle(long bid, String data) {
+    try {
+      if (data.startsWith(Util.B64_START)) {
+        int end = data.indexOf(Util.B64_END);
+        if (end == -1) {
+          data = data.substring(Util.B64_START.length());
+        } else {
+          data = data.substring(end + Util.B64_END.length());
+        }
+        byte[] bytes = Base64.decode(data);
+        Activator.bc.getBundle(bid).update(new ByteArrayInputStream(bytes));
+      } else {
+        updateBundle(bid);
+      }
+    } catch (BundleException e) {
+      Activator.log.warn("Failed to update encoded bundle, bid=" + bid, e);
+      throw new IllegalArgumentException("Failed to update encoded bundle, bid=" + bid);
+    } catch (IOException e) {
+      Activator.log.warn("Failed to update encoded bundle, bid=" + bid, e);
+      throw new IllegalArgumentException("Failed to update encoded bundle");
+    }
+  }
+
   public void updateBundle(SoapPrimitive bid) {
     updateBundle(Long.parseLong(bid.toString()));
   }
@@ -106,6 +132,7 @@ public class RemoteFWServer implements RemoteFW {
     try {
       Activator.bc.getBundle(bid).update();
     } catch (BundleException e) {
+      Activator.log.warn("Failed to update bid=" + bid, e);
       throw new IllegalArgumentException("Failed to update bid=" + bid);
     }
   }
@@ -127,10 +154,18 @@ public class RemoteFWServer implements RemoteFW {
   public long installBundle(String location) {
     try {
       Bundle b;
-      if (location.startsWith("B64:")) {
-        location = location.substring("B64:".length());
-        byte[] bytes = Base64.decode(location);
-        b = Activator.bc.installBundle("remotefw-" + System.currentTimeMillis(), new ByteArrayInputStream(bytes));
+      if (location.startsWith(Util.B64_START)) {
+        int end = location.indexOf(Util.B64_END);
+        String data;
+        if (end == -1) {
+          data = location.substring(Util.B64_START.length());
+          location = Util.LOC_PROT + System.currentTimeMillis();
+        } else {
+          data = location.substring(end + Util.B64_END.length());
+          location = Util.LOC_PROT + location.substring(Util.B64_START.length(), end);
+        }
+        byte[] bytes = Base64.decode(data);
+        b = Activator.bc.installBundle(location, new ByteArrayInputStream(bytes));
       } else {
         b = Activator.bc.installBundle(location);
       }

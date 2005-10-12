@@ -44,6 +44,7 @@ import org.osgi.util.tracker.*;
 
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.soap.remotefw.*;
+import org.knopflerfish.bundle.soap.remotefw.*;
 import org.knopflerfish.util.*;
 
 import org.ksoap2.SoapEnvelope;
@@ -148,7 +149,18 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public void updateBundle(long bid) {
-    doCall("updateBundle", bid);
+    String location = getBundleLocation(bid);
+    if (location.startsWith(Util.LOC_PROT)) {
+      try {
+        String data = encodeFile(location.substring(Util.LOC_PROT.length()));
+        doCall("updateBundle", new Object[] { new Long(bid), data });
+      } catch (IOException e) {
+        Activator.log.warn("Failed to encode bundle for update", e);
+        throw new NestedRuntimeException("Failed to encode bundle for update", e);
+      }
+    } else {
+      doCall("updateBundle", bid);
+    }
     flushCache();
   }
 
@@ -159,23 +171,27 @@ public class RemoteFWClient implements RemoteFW {
 
   public long installBundle(String location) {
     try {
-      if (location.startsWith("file:") && !"true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.sendlocalpaths", "false"))) {
-        FileInputStream in = new FileInputStream(location.substring("file:".length()));
-        int i;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        while ((i = in.read()) != -1) {
-          out.write(i);
-        }
-        location = "B64:" + Base64.encode(out.toByteArray());
+      if (location.startsWith(Util.FILE_PROT) && !"true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.sendlocalpaths", "false"))) {
+        location = encodeFile(location);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Activator.log.warn("Failed to call installBundle(file:...): ", e);
       throw new NestedRuntimeException("Failed to call installBundle(file:...): ", e);
     }
     Object obj = doCall("installBundle", location);
     Long bid = new Long(obj == null ? "0" : obj.toString());
     flushCache();
     return bid.longValue();
+  }
+
+  private String encodeFile(String location) throws IOException {
+    FileInputStream in = new FileInputStream(location.substring("file:".length()));
+    int i;
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    while ((i = in.read()) != -1) {
+      out.write(i);
+    }
+    return "B64(" + location + "):" + Base64.encode(out.toByteArray());
   }
 
 
