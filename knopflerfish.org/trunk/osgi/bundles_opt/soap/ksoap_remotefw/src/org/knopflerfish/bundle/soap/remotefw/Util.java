@@ -44,6 +44,11 @@ import java.lang.reflect.*;
 
 public class Util {
 
+  public static final String LOC_PROT  = "remotefw:";
+  public static final String FILE_PROT  = "file:";
+  public static final String B64_START = "B64(";
+  public static final String B64_END = "):";
+
   public static long[] referencesToLong(ServiceReference[] srl) {
     if(srl == null) {
       return new long[0];

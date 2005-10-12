@@ -44,7 +44,7 @@ import org.knopflerfish.service.remotefw.*;
 public class Activator implements BundleActivator {
 
   public static BundleContext bc;
-  static LogRef        log;
+  public static LogRef        log;
 
   RemoteFWServer remoteFW;
 
