@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: TelnetConsole
-Bundle-SymbolicName: org.knopflerfish:Telnet Console:1.0.0
+Bundle-SymbolicName: org.knopflerfish.consoletelnet
 Bundle-Version: 1.0.0
 Bundle-Description: Telnet console 
 Bundle-Vendor: Knopflerfish

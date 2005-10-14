@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: FWCommands
-Bundle-SymbolicName: org.knopflerfish:FW Commands:1.0.0
+Bundle-SymbolicName: org.knopflerfish.frameworkcommands
 Bundle-Version: 1.0.0
 Bundle-Description: Framework commands
 Bundle-Vendor: Knopflerfish

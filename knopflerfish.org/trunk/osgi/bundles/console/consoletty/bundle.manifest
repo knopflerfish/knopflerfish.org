@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: TTYConsole
-Bundle-SymbolicName: org.knopflerfish:TTY Console:1.0.1
+Bundle-SymbolicName: org.knopflerfish.consoletty
 Bundle-Version: 1.0.1
 Bundle-Description: Command line system console
 Bundle-Vendor: Knopflerfish

@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: Console
-Bundle-SymbolicName: org.knopflerfish:Console:1.0.0
+Bundle-SymbolicName: org.knopflerfish.console
 Bundle-Version: 1.0.0
 Bundle-Description: Service system console
 Bundle-Vendor: Knopflerfish

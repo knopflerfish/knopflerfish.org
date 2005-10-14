@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: CMCommands
-Bundle-SymbolicName: org.knopflerfish:CM Commands:1.0.0
+Bundle-SymbolicName: org.knopflerfish.cmcommands
 Bundle-Version: 1.0.1
 Bundle-Description: Commands for the CM service
 Bundle-Vendor: Knopflerfish

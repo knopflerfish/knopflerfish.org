@@ -11,15 +11,6 @@
 			<accessrule kind="nonaccessible" pattern="**/*"/>
 		</accessrules>
 	</classpathentry>
-	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.log">
-		<attributes>
-			<attribute value="LogService" name="bundle-name"/>
-			<attribute value="0.0.0" name="org.osgi.service.log"/>
-		</attributes>
-		<accessrules>
-			<accessrule kind="accessible" pattern="org/osgi/service/log/"/>
-			<accessrule kind="nonaccessible" pattern="**/*"/>
-		</accessrules>
-	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="resources/servlet.jar"/>
 	<classpathentry kind="output" path="out"/>
 </classpath>

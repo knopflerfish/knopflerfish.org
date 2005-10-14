@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: basicdriverlocator
-Bundle-SymbolicName: org.knopflerfish:basicdriverlocator:1.0.0
+Bundle-SymbolicName: org.knopflerfish.basicdriverlocator
 Bundle-Version: 1.0.0
 Bundle-Description: Basic device driver locator
 Bundle-Vendor: Knopflerfish

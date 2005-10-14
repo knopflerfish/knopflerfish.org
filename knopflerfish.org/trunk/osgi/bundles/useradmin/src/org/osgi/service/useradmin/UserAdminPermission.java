@@ -507,7 +507,7 @@ public final class UserAdminPermission extends BasicPermission {
      * 
      * @return The <tt>PermissionInfo</tt> encoded string for this
      *         <tt>UserAdminPermission</tt> object.
-     * @see org.osgi.service.permissionadmin.PermissionInfo#getEncoded
+     * TODO@see org.osgi.service.permissionadmin.PermissionInfo#getEncoded
      */
     public String toString() {
         if (description == null) {
