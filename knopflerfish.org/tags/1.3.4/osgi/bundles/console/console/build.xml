@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="console" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="api.pattern"  value="org/knopflerfish/service/console/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/bundle/console/**"/> 
+
+  <path id="impl.src">
+   <pathelement location="src/org/knopflerfish/bundle/console"/>
+  </path>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+  </path>
+
+  <property name="bundle.description"    value="Service system console"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/readme.txt"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="Console"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+
+  <property name="export.package"  
+            value="org.knopflerfish.service.console;specification-version=1.0.0"/>
+
+  <property name="import.service"        value="org.knopflerfish.service.console.CommandGroup,org.osgi.service.log.LogService"/>
+
+  <property name="export.service"        value="org.knopflerfish.service.console.ConsoleService"/>
+
+
+  &bundlebuild_include;
+
+</project>

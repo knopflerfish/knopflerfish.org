@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="tjx10" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "include.source"       value = "true"/>
+
+  <property name = "bundle.build.api"      value = "false"/>
+  <property name = "bundle.build.impl"     value = "false"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/**"/>
+
+  <property name="api.pattern"
+            value="x10/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="../../serial/comm-win32/resources/comm.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="X10 serial device driver from The Java X10 Project. This bundle is GPL licensed and must contain full source. Other bundles depending on the tjx10 bundle must also be distributed as GPL"/>
+  <property name="bundle.category"       value="driver"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.classpath"      value="."/>
+  <property name="bundle.vendor"         value="The Java X10 Project/Knopflerfih"/>
+
+
+  <property name="bundle.docurl"         value="http://x10.homelinux.org/"/>
+
+  <property name="import.package"        value="org.osgi.framework,org.osgi.service.cm,javax.comm,org.knopflerfish.service.log"/>
+
+  <property name="export.package"        value="x10;specification-version=1.2,x10.net;specification-version=1.2,x10.awt;specification-version=1.2,x10.util;specification-version=1.2"/>
+
+  &bundlebuild_include;
+
+</project>

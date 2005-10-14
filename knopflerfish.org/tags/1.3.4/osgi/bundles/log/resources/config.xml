@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE cfg PUBLIC "-//knopflerfish//DTD cfg 1.0//EN" "http://www.knopflerfish.org/dtd/config.dtd">
+
+<cfg version="0.1">
+
+  <managedService 
+  pid="org.knopflerfish.bundle.log.LogConfig"
+  descr="The Knopflerfish OSGi log service implementation">
+
+    <property name="default.level">
+      <description>Default log level. Possible values: warning, error, info, and debug</description>
+      <value type="String" default="warning" />
+      <helptext>
+        Log entries with severity lower than this level are not saved in the log.
+      </helptext>
+    </property>
+
+    <property name="bundle.log.level">
+      <description>Default log level for specific bundles.</description>
+      <vector>
+      <array length="2">
+        <value type="String" name="Bundle location" />
+        <value type="String" name="Log level" />
+      </array>
+      </vector>
+      <helptext>
+        The value for each bundle indicates which logs are actually saved for that bundle. The full or short bundle location may be entered.
+      </helptext>
+    </property>
+
+    <property name="memory.size">
+      <description>Number of log entries in memory</description>
+      <value type="Integer" default="250" />
+      <helptext>
+      The value is the number of log entries that are kept in memory by the log.
+      </helptext>
+    </property>
+
+    <property name="log.out">
+      <description>Send log to the console</description>
+      <value type="Boolean" default="false" />
+      <helptext>
+      The value of this boolean property decides if log entries should be 
+      sent to the standard console output or not.
+      </helptext>
+    </property>
+
+    <property name="file">
+      <description>Send log to file</description>
+      <value type="Boolean" default="true" />
+      <helptext>
+      The value of this boolean property decides if log entries should be 
+      written to a log file or not.
+      </helptext>
+    </property>
+
+    <property name="file.dir">
+      <description>Path to log directory</description>
+      <value type="String" />
+      <helptext>
+      The value is an absolute path to the directory where log files are 
+      created. If this value is empty log files will be placed in the data 
+      directory of this bundle.
+      </helptext>
+    </property>
+
+    <property name="file.size">
+      <description>Max size of a log file (characters)</description>
+      <value type="Integer" default="20000" />
+      <helptext>
+      The value is the maximum size of a log file measured in characters.
+      </helptext>
+    </property>
+
+    <property name="file.generations">
+      <description>Number of log files</description>
+      <value type="Integer" default="4" />
+      <helptext>
+      This value is the number of generations of log files that are kept.
+      </helptext>
+    </property>
+
+    <property name="file.flush">
+      <description>Flush log file after each log entry</description>
+      <value type="Boolean" default="true" />
+      <helptext>
+      Setting this proprety to true means that the log file will be flushed 
+      (written to disk) after each new entry. Setting it to false reduces the 
+      number of write operations, but the last few log entries may not get 
+      written to the log file if the service gateway crashes.
+      </helptext>
+    </property>
+
+  </managedService>
+
+</cfg>

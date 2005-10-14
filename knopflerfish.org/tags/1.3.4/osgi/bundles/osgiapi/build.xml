@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+  <target name="all">
+    <ant dir="servicetracker"           target="all"/>
+    <ant dir="permissionadmin"          target="all"/>
+  </target>
+
+  <target name="clean">
+    <ant dir="servicetracker"           target="clean"/>
+    <ant dir="permissionadmin"          target="clean"/>
+  </target>
+
+</project>

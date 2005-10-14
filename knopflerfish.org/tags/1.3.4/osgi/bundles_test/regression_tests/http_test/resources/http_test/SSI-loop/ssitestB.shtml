@@ -1,0 +1,8 @@
+<h3>SSItestB</h3>
+Test B
+<p>
+Include begin of A
+<p>
+<!--#include file="ssitestA.shtml" -->
+<p>
+Include end of A
