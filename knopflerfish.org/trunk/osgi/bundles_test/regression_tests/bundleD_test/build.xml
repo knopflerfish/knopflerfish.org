@@ -33,6 +33,9 @@
 <property name     = "javac.target"
           value    = "1.2"/>
 
+<property name     = "javac.source"
+          value    = "1.2"/>
+
 <property name     = "manifest.file"
           location = "all.mf"/>
 
@@ -56,6 +59,7 @@
            debug         = "on"
            srcdir        = "${src.dir}"
            target        = "${javac.target}"
+           source        = "${javac.source}"
            classpathref  = "bundle.path"
            includes      = "**/*.java"
   >
