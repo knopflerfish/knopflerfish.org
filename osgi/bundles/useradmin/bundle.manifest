@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: UserAdmin
-Bundle-SymbolicName: org.knopflerfish:User Admin:1.0.0
+Bundle-SymbolicName: org.knopflerfish.useradmin
 Bundle-Version: 1.0.0
 Bundle-Description: User administration Service
 Bundle-Vendor: Knopflerfish

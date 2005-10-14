@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: TCPConsole
-Bundle-SymbolicName: org.knopflerfish:TCP Console:1.0.0
+Bundle-SymbolicName: org.knopflerfish.consoletcp
 Bundle-Version: 1.0.0
 Bundle-Description: TCP console 
 Bundle-Vendor: Knopflerfish
@@ -8,8 +8,8 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.consoletcp.ConsoleTcp
 Bundle-Category: console
-Import-Package: org.knopflerfish.service.console,org.knopflerfish.serv
- ice.um.useradmin,org.osgi.framework,org.osgi.service.cm,org.osgi.serv
- ice.log,org.osgi.service.useradmin
+Import-Package: org.knopflerfish.service.console, org.knopflerfish.ser
+ vice.um.useradmin, org.osgi.framework, org.osgi.service.cm, org.osgi.
+ service.log, org.osgi.service.useradmin
 
 

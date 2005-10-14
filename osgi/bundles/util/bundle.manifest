@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-Name: util
-Bundle-SymbolicName: org.knopflerfish:util:1.0.0
+Bundle-SymbolicName: org.knopflerfish.uti
 Bundle-Version: 1.0.0
 Bundle-Description: Misc utilities
 Bundle-Vendor: Knopflerfish
