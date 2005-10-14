@@ -15,6 +15,7 @@
   <property name = "ant.dir"         location = "${topdir}/../ant"/>
   <property name = "antclasses"      location = "${ant.dir}/classes"/>
   <property name = "javac.target"    value="1.1"/>
+  <property name = "javac.source"    value="1.2"/>
 
   <property name="src.dir" location = "src"/>
 
@@ -40,6 +41,7 @@
            debug         = "on"
 	   includes      = "**/*.java"
            target        = "${javac.target}"
+           source        = "${javac.source}"
     >
    </javac>
   </target>
@@ -55,6 +57,7 @@
 	   includes      = "**/*.java"
            excludes      = "org/knopflerfish/framework/bundlestorage/memory/*.java"
            target        = "${javac.target}"
+           source        = "${javac.source}"
     >
    </javac>
   </target>
