@@ -159,11 +159,19 @@
     </antcall>
 
     <antcall target="makehtml">
+      <param name="fromfile" value="html_src/remote_howto.html"/>
+      <param name="tofile"   value="remote_howto.html"/>
+      <param name="title"    value="The Remote Knopflerfish OSGi Desktop"/>
+      <param name="desc"     value="How to Activate the 'Remote framework...' Menu Item in the Knopflerfish Desktop."/>
+      <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
+    </antcall>
+
+    <antcall target="makehtml">
       <param name="fromfile" value="html_src/eclipse_plugin_main.html"/>
       <param name="tofile"   value="eclipse_plugin.html"/>
       <param name="title"    value="Knopflerfish Eclipse Plugin"/>
       <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_ECLIPSE" value="navigation_disabled"/>
+      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -171,17 +179,27 @@
       <param name="tofile"   value="eclipse_changelog.html"/>
       <param name="title"    value="Knopflerfish Eclipse Plugin Changelog"/>
       <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_ECLIPSE" value="navigation_disabled"/>
+      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
-      <param name="fromfile" value="html_src/remote_howto.html"/>
-      <param name="tofile"   value="remote_howto.html"/>
-      <param name="title"    value="The Remote Knopflerfish OSGi Desktop"/>
-      <param name="desc"     value="How to Activate the 'Remote framework...' Menu Item in the Knopflerfish Desktop."/>
-      <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
+      <param name="fromfile" value="html_src/eclipse_install.html"/>
+      <param name="tofile"   value="eclipse_install.html"/>
+      <param name="title"    value="Installing the Knopflerfish Eclipse Plugin"/>
+      <param name="desc"     value=""/>
+      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
     </antcall>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/eclipse_preferences.html"/>
+      <param name="tofile"   value="eclipse_preferences.html"/>
+      <param name="title"    value="Setting Preferences for Plugin"/>
+      <param name="desc"     value=""/>
+      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
+    </antcall>
+
   </target>
+
 
   <target name="makehtml">
     <loadfile property = "main" 
