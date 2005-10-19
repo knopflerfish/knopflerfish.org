@@ -25,15 +25,13 @@
 			<accessrule kind="nonaccessible" pattern="**/*"/>
 		</accessrules>
 	</classpathentry>
-	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.log">
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.log;version=0.0.0">
 		<attributes>
 			<attribute value="LogService" name="bundle-name"/>
-			<attribute value="0.0.0" name="org.osgi.service.log"/>
 			<attribute value="0.0.0" name="org.knopflerfish.service.log"/>
 		</attributes>
 		<accessrules>
 			<accessrule kind="accessible" pattern="org/knopflerfish/service/log/"/>
-			<accessrule kind="accessible" pattern="org/osgi/service/log/"/>
 			<accessrule kind="nonaccessible" pattern="**/*"/>
 		</accessrules>
 	</classpathentry>

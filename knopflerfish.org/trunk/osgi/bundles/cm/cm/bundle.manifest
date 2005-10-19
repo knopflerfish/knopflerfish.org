@@ -10,8 +10,7 @@ Bundle-Activator: org.knopflerfish.bundle.cm.Activator
 Bundle-Category: service
 Export-Package: org.osgi.service.cm;specification-version=1.0.0, org.k
  nopflerfish.shared.cm
-Import-Package: org.knopflerfish.service.log, org.osgi.framework, org.
- osgi.service.cm, org.knopflerfish.shared.cm
+Import-Package: org.knopflerfish.service.log, org.osgi.framework
 Bundle-APIVendor: OSGi
 
 

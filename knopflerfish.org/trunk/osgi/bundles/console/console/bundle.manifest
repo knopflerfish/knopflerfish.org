@@ -11,7 +11,6 @@ Bundle-Activator: org.knopflerfish.bundle.console.Activator
 Bundle-Category: service
 Export-Package: org.knopflerfish.service.console;specification-version
  =1.0.0
-Import-Package: org.knopflerfish.service.console,org.osgi.framework,or
- g.osgi.service.log
+Import-Package: org.osgi.framework, org.osgi.service.log
 
 

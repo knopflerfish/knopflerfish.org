@@ -1,5 +1,4 @@
 Manifest-Version: 1.0
-Import-Package: org.osgi.framework
 Export-Package: javax.servlet ; specification-version=2.2,javax.servle
  t.http ; specification-version=2.2,javax.servlet.jsp ; specification-
  version=2.2
@@ -7,7 +6,6 @@ Bundle-Version: 2.2
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Name: JSDK
 Bundle-Description: The servlet.jar from SUN jsdk lib
-Bundle-Classpath: 
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-Vendor: Knopflerfish/Sun
 Bundle-APIVendor: Sun

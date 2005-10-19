@@ -9,5 +9,4 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: util
 Export-Package: org.knopflerfish.util,org.knopflerfish.util.sort,org.k
  nopflerfish.util.workerthread
-Import-Package: org.osgi.framework
 Bundle-APIVendor: Knopflerfish
