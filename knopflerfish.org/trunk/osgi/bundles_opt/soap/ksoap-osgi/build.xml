@@ -39,7 +39,7 @@
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.classpath"      value = ".,ksoap2-j2me-full.jar,ksoap_servlet.jar"/>
 
-  <property name="bundle.apivendor"      value="Knopflerfish/Apache"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
 
   <property name="export.package"
             value="org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.knopflerfish.service.ksoap"/>
