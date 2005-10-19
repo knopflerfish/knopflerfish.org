@@ -132,7 +132,7 @@ copyout:
 	| ${AWK} -f outlist.awk \
 	> ${OUT_DIR}/index.html
 
-	${CP} -r ${TAG}/osgi/jars \
+	@${CP} -r ${TAG}/osgi/jars \
 	${OUT_DIR}/jars
 
 
