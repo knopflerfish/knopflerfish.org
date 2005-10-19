@@ -71,10 +71,10 @@ public class ServiceReferenceImpl implements ServiceReference {
       keys = new String[vector.size() / 2];
 
       int keyi = 0;
-      for (Enumeration enum = vector.elements(); enum.hasMoreElements(); keyi++) {
-        String key = enum.nextElement().toString().toLowerCase();
-        if (!enum.hasMoreElements()) break;
-        Object val = enum.nextElement();
+      for (Enumeration enumIsReserved = vector.elements(); enumIsReserved.hasMoreElements(); keyi++) {
+        String key = enumIsReserved.nextElement().toString().toLowerCase();
+        if (!enumIsReserved.hasMoreElements()) break;
+        Object val = enumIsReserved.nextElement();
         if (val instanceof SoapPrimitive) {
           String name = ((SoapPrimitive)val).getName();
           if ("long".equals(name)) {

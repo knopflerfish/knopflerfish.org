@@ -505,10 +505,10 @@ public class RemoteFWClient implements RemoteFW {
 
   static Map vectorToMap(Vector vector) {
     Map result = new HashMap();
-    for (Enumeration enum = vector.elements(); enum.hasMoreElements();) {
-      Object key = enum.nextElement();
-      if (!enum.hasMoreElements()) break;
-      Object val = enum.nextElement();
+    for (Enumeration enumIsReserved = vector.elements(); enumIsReserved.hasMoreElements();) {
+      Object key = enumIsReserved.nextElement();
+      if (!enumIsReserved.hasMoreElements()) break;
+      Object val = enumIsReserved.nextElement();
       if (key instanceof SoapPrimitive) key = key.toString();
       if (val instanceof SoapPrimitive) {
         String name = ((SoapPrimitive)val).getName();
