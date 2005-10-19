@@ -33,6 +33,7 @@
   <property name="bundle.description"    value="kSOAP remote framework"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.docurl"         value="http://www.knopflerfish.org/remote_howto.html"/>
   <property name="bundle.name"           value="kSOAP FW"/>
 
   <property name="bundle.apivendor"      value="Knopflerfish"/>
