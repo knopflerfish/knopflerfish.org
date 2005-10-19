@@ -9,6 +9,8 @@
     <ant dir="soap_remotefw"        target="all"/>
     <ant dir="soapobject"           target="all"/>
     <ant dir="demos"                target="all"/>
+    <ant dir="ksoap-osgi"           target="all"/>
+    <ant dir="ksoap_remotefw"       target="all"/>
   </target>
 
    <target name="clean">
@@ -18,6 +20,8 @@
     <ant dir="soap_remotefw"        target="clean"/>
     <ant dir="soapobject"           target="clean"/>
     <ant dir="demos"                target="clean"/>
+    <ant dir="ksoap-osgi"           target="clean"/>
+    <ant dir="ksoap_remotefw"       target="clean"/>
   </target>
 
 </project>
