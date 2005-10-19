@@ -447,7 +447,7 @@
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
            <include name = "osgi/jars/logcommands/logcommands-1.0.1.jar"/>
            <include name = "osgi/jars/jsdk/jsdk-2.2.jar"/>
-           <include name = "osgi/jars/log/log_all-1.0.1.jar"/>
+           <include name = "osgi/jars/log/**"/>
            <include name = "osgi/jars/measurement/measurement-1.0.0.jar"/>
            <include name = "osgi/jars/position/position-1.0.0.jar"/>
            <include name = "osgi/jars/metatype/metatype-1.0.0.jar"/>
@@ -458,12 +458,12 @@
            <include name = "osgi/jars/prefs/prefs_all-1.0.0.jar"/>
            <include name = "osgi/jars/provisioning/provisioning_api-1.0.0.jar"/>
 
-           <include name = "osgi/jars/useradmin/useradmin_all-1.0.0.jar"/>
+           <include name = "osgi/jars/useradmin/**"/>
            <include name = "osgi/jars/util/util-1.0.0.jar"/>
            <include name = "osgi/jars/frameworkcommands/frameworkcommands-1.0.0.jar"/>
-           <include name = "osgi/jars/console/console_all-1.0.0.jar"/>
+           <include name = "osgi/jars/console/**"/>
            <include name = "osgi/jars/crimson/crimson-1.1.3.jar"/>
-           <include name = "osgi/jars/cm/cm_all-1.0.1.jar"/>
+           <include name = "osgi/jars/cm/**"/>
            <include name = "osgi/jars/cm_cmd/cm_cmd-1.0.1.jar"/>
            <include name = "osgi/jars/consoletty/consoletty-1.0.1.jar"/>
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
