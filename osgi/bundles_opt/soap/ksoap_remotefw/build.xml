@@ -35,6 +35,8 @@
   <property name="bundle.version"        value="1.0.0"/>
   <property name="bundle.name"           value="kSOAP FW"/>
 
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+
 <!--
   <property name="export.package"
             value="org.knopflerfish.service.soap.remotefw"/>
