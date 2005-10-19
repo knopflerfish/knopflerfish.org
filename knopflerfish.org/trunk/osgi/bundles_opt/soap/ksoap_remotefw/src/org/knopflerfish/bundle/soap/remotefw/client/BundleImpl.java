@@ -70,10 +70,10 @@ public class BundleImpl implements Bundle {
   public Dictionary getHeaders() {
     Hashtable props = new Hashtable();
     Vector vector = fw.getBundleManifest(bid);
-    for (Enumeration enum = vector.elements(); enum.hasMoreElements();) {
-      Object key = enum.nextElement();
-      if (!enum.hasMoreElements()) break;
-      Object val = enum.nextElement();
+    for (Enumeration enumIsReserved = vector.elements(); enumIsReserved.hasMoreElements();) {
+      Object key = enumIsReserved.nextElement();
+      if (!enumIsReserved.hasMoreElements()) break;
+      Object val = enumIsReserved.nextElement();
       props.put(key.toString(), val.toString());
     }
     return props;
