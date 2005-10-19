@@ -445,9 +445,9 @@
            <include name = "osgi/jars/desktop/desktop_all-1.1.0.jar"/>
            <include name = "osgi/jars/consoletelnet/consoletelnet-1.0.0.jar"/>
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
-           <include name = "osgi/jars/logcommands/logcommands-1.0.0.jar"/>
+           <include name = "osgi/jars/logcommands/logcommands-1.0.1.jar"/>
            <include name = "osgi/jars/jsdk/jsdk-2.2.jar"/>
-           <include name = "osgi/jars/log/log_all-1.0.0.jar"/>
+           <include name = "osgi/jars/log/log_all-1.0.1.jar"/>
            <include name = "osgi/jars/measurement/measurement-1.0.0.jar"/>
            <include name = "osgi/jars/position/position-1.0.0.jar"/>
            <include name = "osgi/jars/metatype/metatype-1.0.0.jar"/>
@@ -463,8 +463,8 @@
            <include name = "osgi/jars/frameworkcommands/frameworkcommands-1.0.0.jar"/>
            <include name = "osgi/jars/console/console_all-1.0.0.jar"/>
            <include name = "osgi/jars/crimson/crimson-1.1.3.jar"/>
-           <include name = "osgi/jars/cm/cm_all-1.0.0.jar"/>
-           <include name = "osgi/jars/cm_cmd/cm_cmd-1.0.0.jar"/>
+           <include name = "osgi/jars/cm/cm_all-1.0.1.jar"/>
+           <include name = "osgi/jars/cm_cmd/cm_cmd-1.0.1.jar"/>
            <include name = "osgi/jars/consoletty/consoletty-1.0.1.jar"/>
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
            <include name = "osgi/jars/http/http_all-1.1.0.jar"/>
@@ -735,6 +735,9 @@
            <include name = "osgi/jars/soap_soapclient/*.jar"/>
            <include name = "osgi/jars/soapobject/*.jar"/>
            <include name = "osgi/jars/soap_demoservice/*.jar"/>
+
+           <include name = "osgi/jars/ksoap_remotefw/*.jar"/>
+           <include name = "osgi/jars/ksoap-osgi/*.jar"/>
 
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
