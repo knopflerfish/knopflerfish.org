@@ -5,6 +5,57 @@ trunk are available each night at
 
    http://www.knopflerfish.org/snapshots/trunk/
 
+2005-10-14:
+             1.3.4 Release
+
+ fw:         Framework starts at level 0. if start level is still 0 
+             when launching set level to 1. 
+             Remove need for launch flag. If no launch flag is 
+             encountered on the command line/xargs file, launch(0) is 
+             called.
+             Remove archive on purge. Fix for memory leak in bug 
+             tracker with request id 1109204.
+
+ prefs:      Fix for bug 1106335 (Preferences doesn't handle dotted 
+             keys properly): Make sure that encoded keys do not find 
+             their way into the in-memory Preferences objects.
+             Fixed bug 1159943 (Preferences.sync() in bundle prefs 
+             works not as specified): sync() calls flush().
+
+ desktop:    Fix for bug 1189943 (Desktop bundle throws 
+             MalformedURLException). Get resource URL from bundle 
+             rather than create it in the desktop bundle.
+             Fix for bug 1116067 bug desktop memory leak: By default, 
+             the console window is limited to 5000 lines. The limit 
+             can be set using the system property 
+             org.knopflerfish.desktop.console.maxlines. 0 means infinite.
+
+ log:        The log bundle is no longer dependent on console packages. 
+             The log conifgurations commands which where part of the log
+             bundle has been moved to the logcommands bundle.
+             Bumped version to 1.0.1.
+
+ logcmd:     Log configurations commands added, moved from the log bundle.
+             Bumped version to 1.0.1.
+
+ cm:         The bundle is no longer dependent on any XML packages (sax
+             and dom). The package org.knopflerfish.util.cm has been 
+             removed from cm. The classes in org.knopflerfish.shared.cm 
+             are exported and can be used to read cm-data.
+             Bumped version to 1.0.1.
+
+ cmcmd       Uses the org.knopflerfish.shared.cm package from the cm 
+             bundle when importing configurations.
+             Bumped version to 1.0.1.
+
+ obr:        Source code upgraded to 1.1.2 release from Oscar project.
+             Bumped version to 1.1.2.
+
+ consoletty: Uses service tracker for console to avoid startup problems.
+             Bumped version to 1.0.1.
+
+
+
 2004-12-29: 
              1.3.3 Release
 
