@@ -1008,6 +1008,13 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         try {
             if (pids != null && pids.length > 0) {
                 for (int i = 0; i < pids.length; i++) {
+                	try { 
+                		Integer.parseInt(pids[i]); 
+                	} 
+                	catch (NumberFormatException e) {
+                		out.println("Illegal pid: must be an integer"); 
+                		return 1; 
+                	} 
                     showstate(out, bc.getServiceReferences(null, "(service.id="
                             + pids[i] + ")"));
                 }
@@ -1030,11 +1037,19 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 
     public int cmdShutdown(Dictionary opts, Reader in, PrintWriter out,
             Session session) {
-        /*
-         * String c = (String) opts.get("exit code"); int ec = 0; if (c != null) {
-         * try { ec = Integer.parseInt(c); } catch (NumberFormatException e) {
-         * out.println("Illegal exit code must be an integer."); return 1; } }
-         */
+        
+        String c = (String) opts.get("exit code"); 
+        int ec = 0; 
+        if (c != null) {
+        	try { 
+        		ec = Integer.parseInt(c); 
+        	} 
+        	catch (NumberFormatException e) {
+        		out.println("Illegal exit code: must be an integer"); 
+        		return 1; 
+        	} 
+        }
+         
         try {
             Bundle sysBundle = bc.getBundle(0);
             sysBundle.stop();
