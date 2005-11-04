@@ -702,7 +702,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                     epkgs[i] = packageAdmin.getExportedPackage(selection[i]);
                 }
             } else {
-                epkgs = packageAdmin.getExportedPackages(null);
+                epkgs = packageAdmin.getExportedPackages((Bundle)null);
                 // TODO: We should sort here
             }
         }

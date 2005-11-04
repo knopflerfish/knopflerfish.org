@@ -1,86 +1,104 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
- * All rights reserved.
+ * $Header: /cvshome/build/org.osgi.service.cm/src/org/osgi/service/cm/ConfigurationException.java,v 1.10 2005/08/12 01:14:57 hargrave Exp $
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following
- * conditions are met:
+ * Copyright (c) OSGi Alliance (2001, 2005). All Rights Reserved.
  *
- * - Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * - Redistributions in binary form must reproduce the above
- *   copyright notice, this list of conditions and the following
- *   disclaimer in the documentation and/or other materials
- *   provided with the distribution.
- *
- * - Neither the name of the KNOPFLERFISH project nor the names of its
- *   contributors may be used to endorse or promote products derived
- *   from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this 
+ * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
-
 package org.osgi.service.cm;
 
 /**
- * An <tt>Exception</tt> class to inform the Configuration Admin service of
- * problems with configuration data.
+ * An <code>Exception</code> class to inform the Configuration Admin service
+ * of problems with configuration data.
  * 
- * @version $Revision: 1.1.1.1 $
- * @author Open Services Gateway Initiative
+ * @version $Revision: 1.10 $
  */
 public class ConfigurationException extends Exception {
+	static final long	serialVersionUID	= -1690090413441769377L;
 
-    private static final long serialVersionUID = 1L;
+	private String		property;
+	private String		reason;
 
-    String property;
+	/**
+	 * Nested exception.
+	 */
+	private Throwable	cause;
 
-    String reason;
+	/**
+	 * Create a <code>ConfigurationException</code> object.
+	 * 
+	 * @param property name of the property that caused the problem,
+	 *        <code>null</code> if no specific property was the cause
+	 * @param reason reason for failure
+	 */
+	public ConfigurationException(String property, String reason) {
+		super(property + " : " + reason);
+		this.property = property;
+		this.reason = reason;
+		this.cause = null;
+	}
 
-    /**
-     * Create a <tt>ConfigurationException</tt> object.
-     * 
-     * @param property
-     *            name of the property that caused the problem, <tt>null</tt>
-     *            if no specific property was the cause
-     * @param reason
-     *            reason for failure
-     */
-    public ConfigurationException(String property, String reason) {
-        super(property + " : " + reason);
-        this.property = property;
-        this.reason = reason;
-    }
+	/**
+	 * Create a <code>ConfigurationException</code> object.
+	 * 
+	 * @param property name of the property that caused the problem,
+	 *        <code>null</code> if no specific property was the cause
+	 * @param reason reason for failure
+	 * @param cause The cause of this exception.
+	 * @since 1.2
+	 */
+	public ConfigurationException(String property, String reason,
+			Throwable cause) {
+		super(property + " : " + reason);
+		this.property = property;
+		this.reason = reason;
+		this.cause = cause;
+	}
 
-    /**
-     * Return the property name that caused the failure or null.
-     * 
-     * @return name of property or null if no specific property caused the
-     *         problem
-     */
-    public String getProperty() {
-        return property;
-    }
+	/**
+	 * Return the property name that caused the failure or null.
+	 * 
+	 * @return name of property or null if no specific property caused the
+	 *         problem
+	 */
+	public String getProperty() {
+		return property;
+	}
 
-    /**
-     * Return the reason for this exception.
-     * 
-     * @return reason of the failure
-     */
-    public String getReason() {
-        return reason;
-    }
+	/**
+	 * Return the reason for this exception.
+	 * 
+	 * @return reason of the failure
+	 */
+	public String getReason() {
+		return reason;
+	}
 
+	/**
+	 * Returns the cause of this exception or <code>null</code> if no cause
+	 * was specified when this exception was created.
+	 * 
+	 * @return The cause of this exception or <code>null</code> if no cause
+	 *         was specified.
+	 * @since 1.2
+	 */
+	public Throwable getCause() {
+		return cause;
+	}
+
+	/**
+	 * The cause of this exception can only be set when constructed.
+	 * 
+	 * @param cause Cause of the exception.
+	 * @return This object.
+	 * @throws java.lang.IllegalStateException This method will always throw an
+	 *         <code>IllegalStateException</code> since the cause of this
+	 *         exception can only be set when constructed.
+	 * @since 1.2
+	 */
+	public Throwable initCause(Throwable cause) {
+		throw new IllegalStateException();
+	}
 }

@@ -285,4 +285,44 @@ public class PackageAdminImpl implements PackageAdmin {
 	return (int)(b1.getBundleId() - b2.getBundleId());
       }
     };
+
+public Bundle getBundle(Class clazz) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public Bundle[] getBundles(String symbolicName, String versionRange) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public int getBundleType(Bundle bundle) {
+	// TODO Auto-generated method stub
+	return 0;
+}
+
+public ExportedPackage[] getExportedPackages(String name) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public Bundle[] getFragments(Bundle bundle) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public Bundle[] getHosts(Bundle bundle) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public RequiredBundle[] getRequiredBundles(String symbolicName) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public boolean resolveBundles(Bundle[] bundles) {
+	// TODO Auto-generated method stub
+	return false;
+}
 }

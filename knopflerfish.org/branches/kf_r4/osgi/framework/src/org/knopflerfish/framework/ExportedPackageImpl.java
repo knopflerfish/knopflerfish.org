@@ -159,4 +159,10 @@ public class ExportedPackageImpl implements ExportedPackage {
     }
   }
 
+
+public Version getVersion() {
+	// TODO Auto-generated method stub
+	return null;
+}
+
 }
