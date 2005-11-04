@@ -415,4 +415,9 @@ public class BundleContextImpl
     }
   }
 
+public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
 }

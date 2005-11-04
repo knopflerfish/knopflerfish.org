@@ -1,57 +1,36 @@
 /*
- * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/bundles/device/device/src/org/osgi/service/device/Match.java,v 1.1.1.1 2004/03/05 20:35:06 wistrand Exp $
+ * $Header: /cvshome/build/org.osgi.service.device/src/org/osgi/service/device/Match.java,v 1.7 2005/08/10 01:07:55 hargrave Exp $
  *
- * Copyright (c) The Open Services Gateway Initiative (2001, 2002).
- * All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2005). All Rights Reserved.
  *
- * Implementation of certain elements of the Open Services Gateway Initiative
- * (OSGI) Specification may be subject to third party intellectual property
- * rights, including without limitation, patent rights (such a third party may
- * or may not be a member of OSGi). OSGi is not responsible and shall not be
- * held responsible in any manner for identifying or failing to identify any or
- * all such third party intellectual property rights.
- *
- * This document and the information contained herein are provided on an "AS
- * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
- * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
- * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
- * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
- * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
- * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
- * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH LOSS OR DAMAGE.
- *
- * All Company, brand and product names may be trademarks that are the sole
- * property of their respective owners. All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this 
+ * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
-
 package org.osgi.service.device;
 
 import org.osgi.framework.ServiceReference;
 
 /**
- * Instances of <tt>Match</tt> are used in the {@link DriverSelector#select}
+ * Instances of <code>Match</code> are used in the {@link DriverSelector#select}
  * method to identify Driver services matching a Device service.
  * 
- * @version $Revision: 1.1.1.1 $
- * @author Open Services Gateway Initiative
+ * @version $Revision: 1.7 $
  * @since 1.1
  * @see DriverSelector
  */
+public interface Match {
+	/**
+	 * Return the reference to a Driver service.
+	 * 
+	 * @return <code>ServiceReference</code> object to a Driver service.
+	 */
+	public ServiceReference getDriver();
 
-public abstract interface Match {
-    /**
-     * Return the reference to a Driver service.
-     * 
-     * @return <tt>ServiceReference</tt> object to a Driver service.
-     */
-    public abstract ServiceReference getDriver();
-
-    /**
-     * Return the match value of this object.
-     * 
-     * @return the match value returned by this Driver service.
-     */
-    public abstract int getMatchValue();
+	/**
+	 * Return the match value of this object.
+	 * 
+	 * @return the match value returned by this Driver service.
+	 */
+	public int getMatchValue();
 }

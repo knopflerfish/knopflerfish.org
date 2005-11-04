@@ -38,6 +38,7 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 
+import java.util.Enumeration;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.List;
@@ -1151,5 +1152,45 @@ class BundleImpl implements Bundle {
     sb.append("]");
 
     return sb.toString();
-  }  
+  }
+
+public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public URL getEntry(String name) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public Enumeration getEntryPaths(String path) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public Dictionary getHeaders(String locale) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public long getLastModified() {
+	// TODO Auto-generated method stub
+	return 0;
+}
+
+public Enumeration getResources(String name) throws IOException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public String getSymbolicName() {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+public Class loadClass(String name) throws ClassNotFoundException {
+	// TODO Auto-generated method stub
+	return null;
+}  
 }

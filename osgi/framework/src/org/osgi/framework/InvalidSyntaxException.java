@@ -1,80 +1,110 @@
 /*
- * Copyright (c) The Open Services Gateway Initiative (2000-2001).
- * All Rights Reserved.
- *
- * Implementation of certain elements of the Open Services Gateway Initiative
- * (OSGI) Specification may be subject to third party intellectual property
- * rights, including without limitation, patent rights (such a third party may
- * or may not be a member of OSGi). OSGi is not responsible and shall not be
- * held responsible in any manner for identifying or failing to identify any or
- * all such third party intellectual property rights.
- *
- * This document and the information contained herein are provided on an "AS
- * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
- * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
- * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
- * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
- * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
- * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
- * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH LOSS OR DAMAGE.
- *
- * All Company, brand and product names may be trademarks that are the sole
- * property of their respective owners. All rights reserved.
+ * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/InvalidSyntaxException.java,v 1.12 2005/08/11 03:07:30 hargrave Exp $
+ * 
+ * Copyright (c) OSGi Alliance (2000, 2005). All Rights Reserved.
+ * 
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this 
+ * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
 
 package org.osgi.framework;
 
 /**
  * A Framework exception.
- *
- * <p>An <tt>InvalidSyntaxException</tt> object indicates that a filter
+ * 
+ * <p>
+ * An <code>InvalidSyntaxException</code> object indicates that a filter
  * string parameter has an invalid syntax and cannot be parsed.
- *
- * <p> See {@link Filter} for a description of the filter string syntax.
- *
- * @version $Revision: 1.1.1.1 $
- * @author Open Services Gateway Initiative
+ * 
+ * <p>
+ * See {@link Filter} for a description of the filter string syntax.
+ * 
+ * @version $Revision: 1.12 $
  */
 
-public class InvalidSyntaxException extends Exception
-{
-    /**
-     * The invalid filter string.
-     */
-    private transient String filter;
+public class InvalidSyntaxException extends Exception {
+	static final long	serialVersionUID	= -4295194420816491875L;
+	/**
+	 * The invalid filter string.
+	 */
+	private String		filter;
+	/**
+	 * Nested exception.
+	 */
+	private Throwable	cause;
 
-    /**
-     * Creates an exception of type <tt>InvalidSyntaxException</tt>. 
-     *
-     * <p>This method creates an <tt>InvalidSyntaxException</tt> object with 
-     * the specified message and the filter string which generated the exception.
-     *
-     * @param msg The message.
-     * @param filter The invalid filter string.
-     */
-    public InvalidSyntaxException(String msg, String filter)
-    {
-        super(msg);
-        this.filter = filter;
-    }
+	/**
+	 * Creates an exception of type <code>InvalidSyntaxException</code>.
+	 * 
+	 * <p>
+	 * This method creates an <code>InvalidSyntaxException</code> object with
+	 * the specified message and the filter string which generated the
+	 * exception.
+	 * 
+	 * @param msg The message.
+	 * @param filter The invalid filter string.
+	 */
+	public InvalidSyntaxException(String msg, String filter) {
+		super(msg);
+		this.filter = filter;
+		this.cause = null;
+	}
 
-    /**
-     * Returns the filter string that generated the <tt>InvalidSyntaxException</tt> object.
-     *
-     * @return The invalid filter string.
-     * @see BundleContext#getServiceReferences
-     * @see BundleContext#addServiceListener
-     */
-    public String getFilter()
-    {
-        return(filter);
-    }
+	/**
+	 * Creates an exception of type <code>InvalidSyntaxException</code>.
+	 * 
+	 * <p>
+	 * This method creates an <code>InvalidSyntaxException</code> object with
+	 * the specified message and the filter string which generated the
+	 * exception.
+	 * 
+	 * @param msg The message.
+	 * @param filter The invalid filter string.
+	 * @param cause The cause of this exception.
+	 * @since 1.3
+	 */
+	public InvalidSyntaxException(String msg, String filter, Throwable cause) {
+		super(msg);
+		this.filter = filter;
+		this.cause = cause;
+	}
 
-  public String toString() {
-    return super.toString() + ", filter=" + filter;
-  }
+	/**
+	 * Returns the filter string that generated the
+	 * <code>InvalidSyntaxException</code> object.
+	 * 
+	 * @return The invalid filter string.
+	 * @see BundleContext#getServiceReferences
+	 * @see BundleContext#addServiceListener(ServiceListener,String)
+	 */
+	public String getFilter() {
+		return filter;
+	}
+
+	/**
+	 * Returns the cause of this exception or <code>null</code> if no cause
+	 * was specified when this exception was created.
+	 * 
+	 * @return The cause of this exception or <code>null</code> if no cause
+	 *         was specified.
+	 * @since 1.3
+	 */
+	public Throwable getCause() {
+		return cause;
+	}
+
+	/**
+	 * The cause of this exception can only be set when constructed.
+	 * 
+	 * @param cause Cause of the exception.
+	 * @return This object.
+	 * @throws java.lang.IllegalStateException This method will always throw an
+	 *         <code>IllegalStateException</code> since the cause of this
+	 *         exception can only be set when constructed.
+	 * @since 1.3
+	 */
+	public Throwable initCause(Throwable cause) {
+		throw new IllegalStateException();
+	}
 }
-
-

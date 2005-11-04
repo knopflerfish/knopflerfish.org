@@ -88,4 +88,10 @@ public class FilterImpl implements Filter {
   public int hashCode() {
     return toString().hashCode();
   }
+
+
+public boolean matchCase(Dictionary dictionary) {
+	// TODO Auto-generated method stub
+	return false;
+}
 }

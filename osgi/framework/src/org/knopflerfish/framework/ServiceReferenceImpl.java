@@ -324,4 +324,9 @@ public class ServiceReferenceImpl implements ServiceReference
     return val;
   }
 
+public boolean isAssignableTo(Bundle bundle, String className) {
+	// TODO Auto-generated method stub
+	return false;
+}
+
 }
