@@ -1,0 +1,87 @@
+#
+# Generated from template.xargs
+# Knopflerfish release 1.3.0a1
+#
+
+## platform ID, if unset of empty, don't use
+-Dorg.osgi.provisioning.spid=EW
+
+-Dorg.knopflerfish.soap.remotefw.server=false
+-Dorg.knopflerfish.soap.remotefw.client=true
+
+-Dorg.knopflerfish.verbosity=0
+
+-Dorg.knopflerfish.gosg.jars=file:../../jars/
+
+-Dorg.knopflerfish.framework.debug.packages=false
+-Dorg.knopflerfish.framework.debug.errors=true
+-Dorg.knopflerfish.framework.debug.classloader=false
+-Dorg.knopflerfish.framework.debug.startlevel=false
+-Dorg.knopflerfish.framework.debug.ldap=false
+-Dorg.knopflerfish.framework.debug.url=false
+
+-Dorg.osgi.framework.system.packages=
+
+-Dorg.knopflerfish.http.dnslookup=false
+-Dorg.osgi.service.http.port=8080
+
+-Dorg.knopflerfish.startlevel.use=true
+
+-Dorg.knopflerfish.log.out=false
+-Dorg.knopflerfish.log.level=info
+-Dorg.knopflerfish.log.grabio=true
+-Dorg.knopflerfish.log.file=false
+
+-init
+
+## Basic KF bundles
+-install log/log_all-1.0.0.jar
+-install cm/cm_all-1.0.0.jar
+-install console/console_all-1.0.0.jar
+
+## Some library bundles
+-install util/util-1.0.0.jar
+-install jaxp/jaxp-1.0.jar
+-install jsdk/jsdk-2.2.jar
+
+## More basic KF bundles
+-install device/device_all-1.0.0.jar
+-install useradmin/useradmin_all-1.0.0.jar
+
+-istart http/http_all-1.0.0.jar
+
+## console command bundles
+#-install frameworkcommands/frameworkcommands-1.0.0.jar
+-install logcommands/logcommands-1.0.0.jar
+-install cm_cmd/cm_cmd-1.0.0.jar
+
+-install consoletty/consoletty-1.0.1.jar
+
+-install consoletelnet/consoletelnet-1.0.jar
+
+-install  httproot/httproot-1.0.0.jar
+
+
+## Windows platforms are likely to support tray icons
+
+-istart tester/tester-1.0.0.jar
+
+
+-launch
+-start 1
+-start 2
+-start 3
+-start 4
+-start 5
+-start 6
+-start 7
+-start 8
+-start 9
+-start 10
+-start 11
+-start 12
+-start 13
+-start 14
+
+
+

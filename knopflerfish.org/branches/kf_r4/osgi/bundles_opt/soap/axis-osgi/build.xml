@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="axis-osgi" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/**"/>
+
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/axis/**"/>
+
+  <property name = "bundle.build.all"  value="true"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="lib"/>
+  <property name = "bundle.build.impl" value="false"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/crimson/crimson-1.1.3.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
+   <pathelement location="resources/axis.jar"/>
+   <pathelement location="imports/commons-logging.jar"/>
+   <pathelement location="resources/jaxrpc.jar"/>
+   <pathelement location="resources/saaj.jar"/>
+  </path>
+
+  <property name="import.package" value ="org.knopflerfish.service.log,org.osgi.framework,org.apache.commons.logging,org.osgi.service.http,javax.servlet,javax.servlet.http"/>
+
+  <property name="dynamicimport.package" value ="*"/>
+
+  <property name="bundle.description"    value="Axis Server"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Apache"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.html"/>
+  <property name="bundle.subversionurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/"/>
+  <property name="bundle.version"        value="0.1.0"/>
+  <property name="bundle.classpath"      value = ".,axis.jar,commons-discovery.jar,jaxrpc.jar,saaj.jar,wsdl4j.jar"
+/>
+
+  <property name="bundle.apivendor"      value="Knopflerfish/Apache"/>
+ 
+  <property name="export.package"
+            value="org.knopflerfish.service.axis,org.apache.axis,org.apache.axis.wsdl,org.apache.axis.types,org.apache.axis.transport,org.apache.axis.soap,org.apache.axis.client,javax.xml.rpc,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.soap,javax.xml.rpc.handler,javax.xml.rpc.handler.soap,javax.xml.rpc.holders,javax.xml.soap,org.apache.axis.description,org.apache.axis.encoding,org.apache.axis.enum,org.apache.axis.utils,org.apache.axis.configuration"/>
+
+  &bundlebuild_include;
+
+</project>
+

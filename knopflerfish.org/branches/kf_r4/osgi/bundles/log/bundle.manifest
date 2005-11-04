@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-Activator: org.knopflerfish.bundle.log.Activator
+Import-Package: org.osgi.framework, org.osgi.service.cm
+Export-Package: org.osgi.service.log;specification-version=1.2,org.kno
+ pflerfish.service.log;specification-version=1.1
+Bundle-Version: 1.0.1
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Name: LogService
+Bundle-Description: The Knopflerfish OSGi log service
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi/Knopflerfish
+Bundle-SymbolicName: org.knopflerfish.log
+Bundle-Category: service
+

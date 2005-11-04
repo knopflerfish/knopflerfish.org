@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="consoletcp" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/consoletcp/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/useradmin/useradmin_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+  </path>
+
+  <property name="bundle.description"    value="TCP console "/>
+  <property name="bundle.category"       value="console"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="TCP Console"/>
+
+  &bundlebuild_include;
+
+</project>

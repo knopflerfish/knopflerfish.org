@@ -1,0 +1,14 @@
+Bundle-Name: bundleP3_test
+Bundle-SymbolicName: bundleP3_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleP3_test for test 
+ of version control of exported packages.
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleP1_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.bundle.bundleP1_test; specification-v
+ ersion=3.0
+Bundle-UUID: org.knopflerfish:bundleP3_test:1.0.0:all
+
