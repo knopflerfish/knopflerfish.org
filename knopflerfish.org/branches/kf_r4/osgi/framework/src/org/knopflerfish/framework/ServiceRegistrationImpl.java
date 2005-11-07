@@ -152,7 +152,6 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
   }
 
-
   /**
    * Unregister the service.
    *
@@ -160,16 +159,18 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   public void unregister() {
     synchronized (eventLock) {
-      synchronized (properties) {
-	if (available) {
-	  bundle.framework.services.removeServiceRegistration(this);
-	  available = false;
-	} else {
-	  throw new IllegalStateException("Service is unregistered");
-	}
-      }
 
-      bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
+	    if(!Framework.UNREGISTERSERVICE_WORKAROUND)
+	    {
+		    unregister_removeService();
+	    }
+
+	    bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
+
+	    if(Framework.UNREGISTERSERVICE_WORKAROUND)
+	    {
+		    unregister_removeService();
+	    }
     }
     final ServiceRegistration sr = this;
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -211,6 +212,21 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     } else {
       return false;
     }
+  }
+
+  /**
+   * Remove the service registration for this service.
+   */
+  private void unregister_removeService()
+  {
+      synchronized (properties) {
+	if (available) {
+	  bundle.framework.services.removeServiceRegistration(this);
+	  available = false;
+	} else {
+	  throw new IllegalStateException("Service is unregistered");
+	}
+      }
   }
 
 }

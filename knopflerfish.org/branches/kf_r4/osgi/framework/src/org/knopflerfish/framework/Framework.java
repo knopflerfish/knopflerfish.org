@@ -165,6 +165,12 @@ public class Framework {
   final static String osName    = System.getProperty("os.name");
   final static String osVersion = System.getProperty("os.version");
 
+  // If set to true, then during the UNREGISTERING event the Listener
+  // can use the ServiceReference to recieve an instance of the service.
+  public final static boolean UNREGISTERSERVICE_WORKAROUND =
+	  "true".equals(System.getProperty("org.knopflerfish.osgi.unregisterservice.workaround",
+				     "false"));
+
   // Some tests conflicts with the R3 spec. If testcompliant=true
   // prefer the tests, not the spec
   public final static boolean R3_TESTCOMPLIANT =
