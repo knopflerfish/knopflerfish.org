@@ -304,6 +304,13 @@ final public class BundleClassLoader extends ClassLoader {
 	  if (debug) {
 	    Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " + name);
 	  }
+	  int pos = name.lastIndexOf('.');
+	  if (pos > 0) {
+	    String pkg = name.substring(0, pos);
+		    if (getPackage(pkg) == null) {
+	    definePackage(pkg, null, null, null, null, null, null, null);
+	    }
+	  }
 	  if(bpkgs.bundle.protectionDomain == null) {
 	    // Kaffe can't handle null protectiondomain
 	    return defineClass(name, bytes, 0, bytes.length);
@@ -433,3 +440,4 @@ final public class BundleClassLoader extends ClassLoader {
   }
 
 }
+
