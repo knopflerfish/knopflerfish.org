@@ -1020,7 +1020,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                 }
             } else
                 showstate(out, bc.getServiceReferences(null, "(state=*)"));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             out.println("Error: " + e);
         }
         return 0;
