@@ -56,9 +56,8 @@ $(WINDOWS_BUNDLES)
 
 -startlevel 7
 
--launch
 
-# Start of these bundles are delayed since thise makes start
+# Start of these bundles are delayed since this makes start
 # order dependencies much easier
 
 -start log/log_all-1.0.1.jar
