@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="io" default="all">
+
+  <property name = "topdir"  location="../../.."/>
+  <property name = "ant.dir" location="${topdir}/ant"/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name = "bundle.build.lib"   value = "false"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+
+  <property name="api.pattern"  value="org/osgi/service/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/bundle/io/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="resources/javax.microedition.io.jar"/>
+  </path>
+
+  <property name="bundle.description"    value="IO"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.docurl"         value=""/>
+  <property name="bundle.classpath"      value=".,javax.microedition.io.jar"/>
+
+  <property name="export.package"        value="org.osgi.service.io; specification-version=1.0,javax.microedition.io"/>
+  <property name="import.package"        value="org.osgi.framework"/>
+
+  &bundlebuild_include;
+
+</project>
