@@ -58,7 +58,7 @@ public class Activator implements BundleActivator {
 
     static LogRef log;
 
-    private ServiceRegistration serviceRegistration;
+    static ServiceRegistration serviceRegistration;
 
     static boolean R3_TESTCOMPLIANT = false;
 
