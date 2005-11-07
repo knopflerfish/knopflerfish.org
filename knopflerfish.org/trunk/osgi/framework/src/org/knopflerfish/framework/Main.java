@@ -615,7 +615,6 @@ public class Main {
       i++;
     }
     String[] r = new String[v.size()];
-    
     v.copyInto(r);
     return r;
   }
