@@ -160,14 +160,14 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   public void unregister() {
     synchronized (eventLock) {
 
-	    if(!Framework.UNREGISTERSERVICE_WORKAROUND)
+	    if(!Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING)
 	    {
 		    unregister_removeService();
 	    }
 
 	    bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
 
-	    if(Framework.UNREGISTERSERVICE_WORKAROUND)
+	    if(Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING)
 	    {
 		    unregister_removeService();
 	    }
