@@ -167,8 +167,8 @@ public class Framework {
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to recieve an instance of the service.
-  public final static boolean UNREGISTERSERVICE_WORKAROUND =
-	  "true".equals(System.getProperty("org.knopflerfish.osgi.unregisterservice.workaround",
+  public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
+	  "true".equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
 				     "false"));
 
   // Some tests conflicts with the R3 spec. If testcompliant=true
