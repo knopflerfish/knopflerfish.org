@@ -180,7 +180,6 @@ public class Main {
       error("New Framework failed!");
     }
     
-
     // Save these for possible restart()
     initArgs    = args;
     initOffset  = 0;
