@@ -61,6 +61,8 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationPlugin;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.cm.ManagedServiceFactory;
+import org.osgi.service.cm.ConfigurationListener;
+import org.osgi.service.cm.ConfigurationEvent;
 
 /**
  * ConfigurationAdmin implementation
@@ -81,6 +83,8 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     private PluginManager pluginManager;
 
     private ConfigurationDispatcher configurationDispatcher;
+
+    private ListenerEventQueue listenerEventQueue;
 
     // Constants
     static AdminPermission ADMIN_PERMISSION = new AdminPermission();
@@ -110,6 +114,8 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
         pluginManager = new PluginManager();
 
+	listenerEventQueue = new ListenerEventQueue(Activator.bc);
+
         configurationDispatcher = new ConfigurationDispatcher(pluginManager);
 
         lookForExisitingBundleLocations();
@@ -132,6 +138,31 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         lookForAlreadyRegisteredServices(ManagedServiceFactory.class);
         lookForAlreadyRegisteredServices(ManagedService.class);
     }
+
+    private void sendEvent(final ConfigurationEvent event) {
+
+        ServiceReference[] serviceReferences = null;
+
+        try {
+             serviceReferences = Activator.bc.getServiceReferences(ConfigurationListener.class.getName(),null);
+        } catch (InvalidSyntaxException ignored) {}
+
+        if(serviceReferences != null)
+        {
+            // we have have listeners
+            for(int i=0;i<serviceReferences.length;++i)
+            {
+                final ServiceReference serviceReference = serviceReferences[i];
+                if(serviceReference != null)
+                {
+                    // ok we have a service which should be sent an event
+                   listenerEventQueue.enqueue(new ListenerEvent(serviceReference,event));
+                }
+            }
+        }
+    }
+
+
 
     private void lookForAlreadyRegisteredServices(Class c) {
         ServiceReference[] srs = null;
@@ -568,6 +599,23 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             throwIfDeleted();
             ConfigurationAdminFactory.this.delete(this);
             deleted = true;
+
+	    ServiceReference reference = Activator.serviceRegistration.getReference();
+	    if(reference == null)
+	    {
+	        Activator.log.error("ConfigurationImpl.delete: Could not get service reference");
+		return;
+	    }
+
+	    // Note we cannot use the getPid and getFactoryPid methods here
+	    // since they thrown an exception if the configuration has been deleted
+	    // which it just has been
+	    ConfigurationAdminFactory.this.sendEvent(new ConfigurationEvent(
+			reference,
+			ConfigurationEvent.CM_DELETED,
+			factoryPid,
+			servicePid
+			));
         }
 
         public String getBundleLocation() {
@@ -620,6 +668,20 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             throwIfDeleted();
             ensureAutoPropertiesAreWritten();
             ConfigurationAdminFactory.this.update(this);
+
+	    ServiceReference reference = Activator.serviceRegistration.getReference();
+	    if(reference == null)
+	    {
+	        Activator.log.error("ConfigurationImpl.update: Could not get service reference");
+		return;
+	    }
+
+	    ConfigurationAdminFactory.this.sendEvent(new ConfigurationEvent(
+			reference,
+			ConfigurationEvent.CM_UPDATED,
+			getFactoryPid(),
+			getPid()
+			));
         }
 
         public void update(Dictionary properties) throws IOException {
