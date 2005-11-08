@@ -90,8 +90,54 @@ public class FilterImpl implements Filter {
   }
 
 
-public boolean matchCase(Dictionary dictionary) {
-	// TODO Auto-generated method stub
-	return false;
-}
+  public boolean matchCase(Dictionary dictionary) {
+    // TODO Auto-generated method stub
+    return false;
+
+    /* Probably implemented by expanding the LDAPExpr class. The following is from the osgi_r4 branch:
+
+    try{
+      //System.out.println("**************** COMPARE IN FILTER ****************");
+      Enumeration propertyKeys = dictionary.keys();
+      boolean matchingCase = true;
+  
+      // To extract the keynames located in the filter a two step split is perfomed using regexp.
+      // First off all occurrence of any parenthesis or logical operand.. Remaining strings will
+      // be stored in a String[], using the layout "key=value"
+  
+      //System.out.println("************FILTER IS:" + filter +"********************");
+      String localFilter=  ldap.toString();
+      String[] temp = localFilter.split("[(|)|&|!||]");
+  
+      // This boolean is initially set as true, only to be changed if a keyname is found
+      // using a different casing than the actual property
+      Vector filterKeys = new Vector();
+      // This loop cleans up the String[] keys, and stores the keynames in a vector
+      for(int i = 0;i<temp.length;i++)
+        if(!temp[i].equals(""))
+          filterKeys.add((temp[i].split("=|<|>"))[0]);
+  
+      filterKeys.trimToSize();
+  
+      // These loops matches the keynames of the filter with the keynames in the dictionary.
+      // If a match is found using the equalsIgnoreCase is found, a comparision using equals is performed.
+      // Should this return false, matchingCase will be set to false and the loop breaks
+      String currentPropertyKey;
+      while(propertyKeys.hasMoreElements() && matchingCase){
+        currentPropertyKey = (String)propertyKeys.nextElement();
+        for(int i = 0; (i < filterKeys.size()&&matchingCase); i++)
+          if(currentPropertyKey.equalsIgnoreCase((String)filterKeys.get(i)) && !currentPropertyKey.equals((String)filterKeys.get(i)))
+            matchingCase = false;
+      }
+      // If the case differs, false will be returned, otherwise, the value returned from match will be returned
+      return matchingCase?match(dictionary):false;
+  
+    }catch(NullPointerException e){
+      System.err.println("Error in matchCase():" + e);
+      e.printStackTrace();
+  
+      return false;
+    }
+    */
+  }
 }
