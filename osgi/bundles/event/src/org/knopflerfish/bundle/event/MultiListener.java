@@ -226,6 +226,8 @@ public class MultiListener implements LogListener,
         eventHandlers.put(serviceEvent.getServiceReference(), new Long(
             System.currentTimeMillis()));
       }
+      // We're not actually using the service
+      bundleContext.ungetService(serviceEvent.getServiceReference());
       break;
     case ServiceEvent.MODIFIED:
       topic += "MODIFIED";
