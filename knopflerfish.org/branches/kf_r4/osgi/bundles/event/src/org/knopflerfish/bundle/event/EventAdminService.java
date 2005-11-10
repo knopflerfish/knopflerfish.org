@@ -136,9 +136,6 @@ public class EventAdminService implements EventAdmin {
     } catch (InterruptedException e) {
       /* write the exception */
       System.out.println("sendEvent() was interrupted by external process:" + e);
-    } catch(InvalidSyntaxException e){
-      /* write the exception */
-      System.out.println("invalid syntax in getReferences()" + e);
     }
 
     /* console text for debugging purpose */
@@ -151,13 +148,16 @@ public class EventAdminService implements EventAdmin {
    * @return ServiceReferences[] array if any else null
    * @throws InvalidSyntaxException if syntax error
    */
-  ServiceReference[] getReferences() throws InvalidSyntaxException {
+  ServiceReference[] getReferences() {
     try {
       return bundleContext.getServiceReferences(
           "org.osgi.service.event.EventHandler", null);
-    } catch (InvalidSyntaxException e) {
-      /* throw the error */
-      throw e;
+    } catch (InvalidSyntaxException ignore) {
+      // What? We're not even using a filter!
+      return null;
+    } catch (IllegalStateException e) {
+      // The bundleContext is invalid. We're probably being stopped.
+      return null;
     }
   }
 
