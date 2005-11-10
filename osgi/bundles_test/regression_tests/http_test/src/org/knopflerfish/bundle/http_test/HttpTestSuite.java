@@ -157,7 +157,7 @@ public class HttpTestSuite extends TestSuite  {
     public void runTest() throws Throwable {
       Object obj = httpSR.getProperty("port");
 
-      assertNotNull("No 'port' property set on http server");
+      assertNotNull("No 'port' property set on http server", obj);
       
       assertTrue("Port property must be integer", obj instanceof Integer);
     }
