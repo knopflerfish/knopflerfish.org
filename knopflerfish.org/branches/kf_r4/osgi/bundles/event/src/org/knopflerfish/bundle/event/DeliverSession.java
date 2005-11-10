@@ -335,7 +335,7 @@ public class DeliverSession extends Thread {
          /* Gets the timestamp stored in the internal event and converts it to the standard used by the handler */
          long eventTime = event.getTimeStamp().getTimeInMillis();
          /* Determines the value of the boolean to be returned */
-         return eventTime<=handlerTime.longValue()?false:true;
+         return (handlerTime==null || eventTime<=handlerTime.longValue()) ? false : true;
     }
 
     /**
