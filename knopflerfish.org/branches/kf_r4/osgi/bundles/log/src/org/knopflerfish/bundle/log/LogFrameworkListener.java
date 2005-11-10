@@ -96,6 +96,14 @@ public class LogFrameworkListener implements FrameworkListener, BundleListener,
             msg = "FrameworkEvent PACKAGES_REFRESHED";
             level = LogService.LOG_INFO;
             break;
+        case FrameworkEvent.WARNING:
+            msg   = "FrameworkEvent WARNING";
+            level = LogService.LOG_INFO; // sic! According to spec.
+            break;
+        case FrameworkEvent.INFO:
+            msg   = "FrameworkEvent INFO";
+            level = LogService.LOG_INFO;
+            break;
         default:
             msg = "FrameworkEvent <" + fe.getType() + ">";
             level = LogService.LOG_WARNING;
@@ -128,6 +136,12 @@ public class LogFrameworkListener implements FrameworkListener, BundleListener,
             break;
         case BundleEvent.UPDATED:
             msg = "BundleEvent UPDATED";
+            break;
+        case BundleEvent.RESOLVED:
+            msg = "BundleEvent RESOLVED";
+            break;
+        case BundleEvent.UNRESOLVED:
+            msg = "BundleEvent UNRESOLVED";
             break;
         }
         lrsf.log(new LogEntryImpl(be.getBundle(), LogService.LOG_INFO, msg));
