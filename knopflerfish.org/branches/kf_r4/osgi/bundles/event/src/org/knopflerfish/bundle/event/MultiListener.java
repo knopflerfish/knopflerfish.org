@@ -137,7 +137,6 @@ public class MultiListener implements LogListener,
    * @author Johnny Baveras
    */
   public void logged(LogEntry logEntry) {
-
     /* A dictionary to store properties in */
     Dictionary props = new Hashtable();
     /* The bundle included in the bundleEvent */
@@ -186,21 +185,16 @@ public class MultiListener implements LogListener,
       putProp(props, EventConstants.SERVICE, logEntry.getServiceReference());
       putProp(props, EventConstants.SERVICE_ID, logEntry.getServiceReference().getProperty(Constants.SERVICE_ID));
       putProp(props, EventConstants.SERVICE_OBJECTCLASS, logEntry.getServiceReference().getProperty(Constants.OBJECTCLASS));
+      putProp(props, EventConstants.SERVICE_PID, logEntry.getServiceReference().getProperty(Constants.SERVICE_PID));
     }
-      /* If service_pid returns a non-null value, further properties shall be set*/
-      if (EventConstants.SERVICE_PID != null) {// not yet implemented
-        putProp(props, EventConstants.SERVICE_PID, logEntry.getServiceReference().getProperty(Constants.SERVICE_PID));
-      }
 
-      /* Tries posting the event once the properties are set */
-      try {
-
-        eventAdmin.postEvent(new Event(topic, props));
-
-      } catch (Exception e) {
-        System.err.println("EXCEPTION in logged(LogEntry logEntry):"
-            + e.getMessage());
-      }
+    /* Tries posting the event once the properties are set */
+    try {
+      eventAdmin.postEvent(new Event(topic, props));
+    } catch (Exception e) {
+      System.err.println("EXCEPTION in logged(LogEntry logEntry):"
+          + e.getMessage());
+    }
   }
 
   /**
