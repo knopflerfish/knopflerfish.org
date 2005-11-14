@@ -20,6 +20,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.osgi.service.event.EventHandler;
 
 import org.knopflerfish.service.log.LogRef;
 
@@ -82,25 +83,14 @@ public class EventAdminService implements EventAdmin {
    * @param event the event to publish
    */
   public void postEvent(Event event) {
-    /* console text for debugging purpose */
-    //System.out.println("INCOMMING ASYNCHRONOUS EVENT");
-    /* create a calendar */
     Calendar time = Calendar.getInstance();
-
+    InternalAdminEvent adminEvent = new InternalAdminEvent(event, time, this);
     try{
-      /* create an internal admin event */
-      InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,
-          this);
-
-      if (queueHandlerAsynch != null && getReferences()!=null) {
-        /* add the admin event to the queueHandlers send queue */
+      if (getReferences() != null) {
         queueHandlerAsynch.addEvent(adminEvent);
-        /* console text for debugging purpose */
-        // System.out.println("Event has been sent to the send queue");
       }
-    }catch(Exception e){
-      System.out.println("Unknown exception in postEvent():" +e);
-      e.printStackTrace();
+    } catch(Exception e){
+      log.error("Unknown exception in postEvent():", e);
     }
   }
 
@@ -111,35 +101,16 @@ public class EventAdminService implements EventAdmin {
    * @author Magnus Klack
    */
   public void sendEvent(Event event) {
-    /* console text for debugging purpose */
-    //System.out.println("INCOMMING SYNCHRONOUS EVENT");
-    /* create a calendar */
-
-    Calendar time = Calendar.getInstance();
-    /* create an internal admin event */
-    InternalAdminEvent adminEvent = new InternalAdminEvent(event, time,this);
+    postEvent(event);
     try {
-      if(queueHandlerSynch!=null && getReferences()!=null){
-        /* add the admin event to the queueHandlers send queue */
-        queueHandlerSynch.addEvent(adminEvent);
-      }
-      /* lock this object to make it
-       * possible to be notified */
       synchronized (this) {
-        /* check not null */
-        if(this.getReferences()!=null){
-          /* wait until notified*/
+        if (getReferences() != null){
           wait();
         }
       }
-
     } catch (InterruptedException e) {
-      /* write the exception */
-      System.out.println("sendEvent() was interrupted by external process:" + e);
+      log.warn("sendEvent() was interrupted by external process:", e);
     }
-
-    /* console text for debugging purpose */
-    //System.out.println("FINISHED");
   }
 
   /**
@@ -150,8 +121,7 @@ public class EventAdminService implements EventAdmin {
    */
   ServiceReference[] getReferences() {
     try {
-      return bundleContext.getServiceReferences(
-          "org.osgi.service.event.EventHandler", null);
+      return bundleContext.getServiceReferences(EventHandler.class.getName(), null);
     } catch (InvalidSyntaxException ignore) {
       // What? We're not even using a filter!
       return null;
@@ -159,6 +129,11 @@ public class EventAdminService implements EventAdmin {
       // The bundleContext is invalid. We're probably being stopped.
       return null;
     }
+  }
+
+  void stop() {
+    queueHandlerSynch.stopIt();
+    queueHandlerAsynch.stopIt();
   }
 
 }
