@@ -47,10 +47,7 @@ public class DeliverSession extends Thread {
     private final static String WILD_CARD = "*";
 
     /** the timeout variable */
-    private long timeOut;
-
-    /** the default timeout variable */
-    private long defaultTimeout = 20000;
+    private long timeOut = 20000;
 
     /** the references to the blacklisted handlers */
     private static Vector blacklisted = new Vector();
@@ -74,26 +71,17 @@ public class DeliverSession extends Thread {
     public DeliverSession(InternalAdminEvent evt, BundleContext context,
             ServiceReference[] refs, LogRef logRef, Thread owner,String name) {
       super(name);
-        internalEvent = evt;
-        /* assign the 'evt' argument */
-        event = (Event) internalEvent.getElement();
-        /* assign the context */
-        bundleContext = context;
-        /* assign the serviceReferences variable */
-        serviceReferences = refs;
-        /* assign the log */
-        log = logRef;
-        /* assign the owner */
-        ownerThread = owner;
+      internalEvent = evt;
+      event = (Event) internalEvent.getElement();
+      bundleContext = context;
+      serviceReferences = refs;
+      log = logRef;
+      ownerThread = owner;
 
-        /* Tries to get the timeout property from the system*/
-        try{
-          timeOut=  Long.parseLong(System.getProperty("org.knopflerfish.eventadmin.timeout"));
-        }catch(NumberFormatException e)
-    {
-          /* if the get fails, a default value is to be used */
-          timeOut = defaultTimeout;
-    }
+      /* Tries to get the timeout property from the system*/
+      try {
+        timeOut=  Long.parseLong(System.getProperty("org.knopflerfish.eventadmin.timeout"));
+      } catch (NumberFormatException ignore) {}
     }
 
     /**
@@ -113,205 +101,104 @@ public class DeliverSession extends Thread {
         }
     }
 
-  /**
-   *  Initiates the delivery.
-   */
+    /**
+     *  Initiates the delivery.
+     */
     protected void startDeliver() {
-        /* method variable indicating that the topic mathces */
-        boolean isSubscribed = false;
-        /* method variable indicating that the filter matches */
-        boolean filterMatch = false;
-        /* method variable indicating if the handler is blacklisted */
-        boolean isBlacklisted = false;
-        /* method variable indicating that the eventhandler should have this event */
-        boolean isInTime = false;
+      /* method variable indicating that the topic mathces */
+      boolean isSubscribed = false;
+      /* method variable indicating that the filter matches */
+      boolean filterMatch = false;
+      /* method variable indicating if the handler is blacklisted */
+      boolean isBlacklisted = false;
+      /* method variable indicating that the eventhandler should have this event */
+      boolean isInTime = false;
 
-        /* iterate through all service references */
-        for (int i = 0; i < serviceReferences.length; i++) {
-            /* get the EventHandler by using its references */
-            EventHandler currentHandler = (EventHandler) bundleContext
-                    .getService(serviceReferences[i]);
+      for (int i = 0; i < serviceReferences.length; i++) {
+        EventHandler currentHandler = (EventHandler) bundleContext
+                .getService(serviceReferences[i]);
+        isBlacklisted = blacklisted.contains(currentHandler);
+        if (!isBlacklisted) {
+          try {
+            String filterString = (String) serviceReferences[i].getProperty(EventConstants.EVENT_FILTER);
+            if (filterString != null) {
+              Filter filter = bundleContext.createFilter(filterString);
+              if (filter!=null) {
+                filterMatch = filterMatched(event,filter);
+              } else {
+                filterMatch = true;
+              }
+            } else {
+              filterMatch = true;
+            }
+          } catch(NullPointerException e) {
+            filterMatch = true;
+          } catch (InvalidSyntaxException err) {
+            if (log != null && log.doDebug()) {
+              log.debug("Invalid Syntax when matching filter of " + currentHandler);
+            }
+            blacklisted.add(currentHandler);
+            isBlacklisted=true;
+            /* this means no filter match */
+            filterMatch = false;
+          }
 
-            /* assign the blacklist value */
-            isBlacklisted = blacklisted.contains(currentHandler);
+          try {
+            /* get the topics */
+            String[] topics = (String[]) serviceReferences[i]
+                    .getProperty(EventConstants.EVENT_TOPIC);
+            /* check if topic is null */
+            if (topics != null) {
+              /* check the lenght of the topic */
+              if (topics.length > 0 ) {
+                /* assign the isSubscribed variable */
+                isSubscribed = anyTopicMatch(topics, event);
+              } else {
+                /* an empty array is set as topic, i.e, {} */
+                isSubscribed = true;
+              }
+            } else {
+              /* no topic given from the handler -> all topic */
+              isSubscribed = true;
+            }
+          } catch (ClassCastException e) {
+            if (log != null && log.doDebug()) {
+              log.debug("Invalid topic in handler:" + currentHandler);
+            }
+            /* blacklist the handler */
+            if(!blacklisted.contains(currentHandler)){
+              blacklisted.add(currentHandler);
+              isBlacklisted=true;
+            }
+          }
 
-            if (!isBlacklisted) {
-                try {
-                    /* get the filter String */
-                    String filterString = (String) serviceReferences[i]
-                            .getProperty(EventConstants.EVENT_FILTER);
+          isInTime=this.isInTime(serviceReferences[i],internalEvent);
 
-                    /* check that filterString is not null */
-                    if (filterString != null) {
-
-                        /* get the filter */
-                      Filter filter = bundleContext
-                                .createFilter(filterString);
-
-                      /* assign the filterMatch variable */
-                        if(filter!=null){
-                          filterMatch = filterMatched(event,filter);
-                        }else{
-                          filterMatch=true;
-                        }
-                    } else {
-                        /* this means no filter */
-                        filterMatch = true;
-                    }
-                }catch(NullPointerException e){
-                    /* this means no filter */
-                    filterMatch = true;
+          /* check that all indicating variables fulfills the condition */
+          if (isSubscribed && filterMatch && !isBlacklisted && isInTime) {
+            /* check that the service is still registered */
+            if (bundleContext.getService(serviceReferences[i]) != null) {
+              /* start a thread to notify the EventHandler */
+              Thread notifier = new Notifier(currentHandler, this);
+              /* start the thread */
+              notifier.start();
+              try {
+                /* lock this session */
+                synchronized (this) {
+                  /* wait for notification */
+                  wait();
                 }
-                catch (InvalidSyntaxException err) {
-                    /* print the message */
-                    if (log != null) {
-                        /* log the error */
-                      CustomDebugLogger logger = new CustomDebugLogger("Invalid Syntax when matching filter of " + currentHandler);
-                    }
-//                    System.err.println("\n*******************************************"
-//                    +"\n**       BLACKLISTED   INVALID SYNTAX    **"
-//                    +"\n**"+       this.getName()+"   ****"
-//                              +"\n*******************************************");
-
-
-          /* add it to the blacklist */
-          blacklisted.add(currentHandler);
-                    /* set the flag */
-          isBlacklisted=true;
-          /* this means no filter match */
-                    filterMatch = false;
-                }
-
-                try {
-                    /* get the topics */
-                    String[] topics = (String[]) serviceReferences[i]
-                            .getProperty(EventConstants.EVENT_TOPIC);
-                    /* check if topic is null */
-                    if (topics != null) {
-                        /* check the lenght of the topic */
-                        if (topics.length > 0 ) {
-                            /* assign the isSubscribed variable */
-                            isSubscribed = anyTopicMatch(topics, event);
-                        } else {
-                            /* an empty array is set as topic, i.e, {} */
-                            isSubscribed = true;
-                        }
-                    } else {
-                        /* no topic given from the handler -> all topic */
-                        isSubscribed = true;
-                    }
-                } catch (ClassCastException e) {
-                    if (log != null) {
-                        /* log the error */
-                      CustomDebugLogger logger = new CustomDebugLogger("Invalid topic in handler:" + currentHandler);
-
-//                        System.err.println("\n*******************************************"
-//                        +"\n**       BLACKLISTED   INVALID TOPIC     **"
-//                        +"\n**      "+this.getName()+"   ****"
-//                        +"\n********************************************\n");
-
-                    }
-                    /* blacklist the handler */
-                    if(!blacklisted.contains(currentHandler)){
-                      blacklisted.add(currentHandler);
-                      isBlacklisted=true;
-                    }
-                }
-
-                isInTime=this.isInTime(serviceReferences[i],internalEvent);
-
-                /* check that all indicating variables fulfills the condition */
-                if (isSubscribed && filterMatch && !isBlacklisted && isInTime) {
-                    /* check that the service is still registered */
-                    if (bundleContext.getService(serviceReferences[i]) != null) {
-                        /* start a thread to notify the EventHandler */
-                        Thread notifier = new Notifier(currentHandler, this);
-                        /* start the thread */
-                        notifier.start();
-                        try {
-                            /* lock this session */
-                            synchronized (this) {
-                                /* wait for notification */
-                                wait();
-                            }
-                        } catch (InterruptedException e) {
-                            System.err.println("DeliverSession object was interrupted this is not expected"
-                                    + e.getMessage());
-                        }
-                    }
-                }
-//else {  *** DEBUGGING CONTEXT **
-//                    /* check if blacklisted */
-//                    if (isBlacklisted) {
-//                      //System.out.println("\n\n****************************** BLACKLISTED:"+ this.getName() + "***************************");
-//                        /* check the log */
-//                        if (log != null) {
-//                            /* log the error */
-//                            CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" +currentHandler + " due to a recently blacklisted handler"
-//                                      + " ,i.e, mallformatted topic");
-//                            logger.start();
-//                        }
-//                    }
-//
-//                    /* check if no topic match */
-//                    if (!isSubscribed) {
-//                        if(isBlacklisted){
-//                          System.out.println("****************************** NOT SUBSCRIBED:"+ this.getName() + "****************************");
-//                        }else{
-//                          System.out.println("\n\n************************** NOT SUBSCRIBED:"+ this.getName() + "****************************");
-//                        }
-//                        /* check the log */
-//                          if (log != null) {
-//                              /* log the error */
-//
-//                            CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler + " due to no match on topic");
-//                            logger.start();
-//                        }
-//                    }
-//
-//                    /* check if match no match on filter */
-//                    if (!filterMatch) {
-//                      if(isBlacklisted || isSubscribed){
-//                        System.out.println("****************************** NO FILTER MATCH :"+ this.getName() + "****************************");
-//                      }else{
-//                        System.out.println("\n\n****************************** NO FILTER MATCH:"+ this.getName()+"****************************");
-//                      }
-//                        /* check the log */
-//                        if (log != null) {
-//                            /* log the info */
-//                            CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:" + currentHandler +" due to no match on filter");
-//                            logger.start();
-//                        }
-//                    }
-//
-//                    if(!isInTime){
-//                      if(isBlacklisted || isSubscribed || filterMatch){
-//                        System.out.println("****************************** NOT IN TIME:"+ this.getName() + "****************************");
-//                      }else{
-//                        System.out.println("\n\n****************************** NOT IN TIME:"+ this.getName() + "****************************");
-//                      }
-//
-//                    }
-//
-//                    System.out.println("************************* MESSAGE NOT DELIVERED DUE TO ABOVE REASON(S):"+ this.getName() + "****************************");
-//
-//                }
-//
-//            } else {
-//              System.out.println("\n\n****************************** ALREADY BLACKLISTED:"+ this.getName() + "****************************");
-//              System.out.println("************************* MESSAGE NOT DELIVERED DUE TO ABOVE REASON:"+ this.getName() + "* ***************************");
-//                /* this will happen if the handler is already blacklisted */
-//              CustomDebugLogger logger = new CustomDebugLogger("Deliverance failed to:"+currentHandler +"due to a blacklisted handler");
-//                  logger.start();
-//            }//end if(!isBlacklisted.....
-
+              } catch (InterruptedException e) {
+                log.error("DeliverSession object was interrupted this is not expected", e);
+              }
+            }
+          }
         }//end  if(!isBlacklisted.....
 
         /* set the event as delivered  */
         synchronized(internalEvent){
           internalEvent.setAsDelivered();
         }
-//        System.out.println("************************* SESSION FINISHED NOTIFIES OWNER THREAD:"+ this.getName() + "* ***************************");
 
         /* lock the owner */
         synchronized (ownerThread) {
@@ -368,18 +255,14 @@ public class DeliverSession extends Thread {
 
         /* iterate through the topics array */
         for (int i = 0; i < topics.length; i++) {
-            //System.out.println(this.getName()+" Matching:" + event.getTopic() +" with " + topics[i] +"\n");
           if (!haveMatch) {
-
                 /* check if this topic matches */
                 if (topicMatch(event, topics[i])) {
-                    /* have a match */
-                  //System.out.println("It's a Match");
+                  /* have a match */
                   return true;
                 }
             }
         }
-        //System.out.println("It's No match");
         return false;
     }
 
@@ -456,20 +339,15 @@ public class DeliverSession extends Thread {
                     timeoutDeliver.start();
                     /* wait for N seconds */
                     wait(timeOut);
-                    System.err.println("\n*******************************************"
-                    +"\n**        NOTIFER TIMED OUT        **"
-                    +"\n**     "+ deliverSession.getName() + "*******"
-                    +"\n*******************************************\n");
+                    log.error("NOTIFER TIMED OUT: "+ deliverSession.getName());
                     /* check if already blacklisted by another thread */
                     if (!blacklisted.contains(currentHandler)) {
                         /* add it to the vector */
                         blacklisted.addElement(currentHandler);
 
-                        if (log != null) {
-                          CustomDebugLogger logger = new CustomDebugLogger("The handler "
-                                    + currentHandler.toString()
+                        if (log != null && log.doDebug()) {
+                          log.debug("The handler " + currentHandler.toString()
                                     + " was blacklisted due to timeout");
-                          logger.start();
                         }
                     }
                }
@@ -492,7 +370,7 @@ public class DeliverSession extends Thread {
      */
     private class TimeoutDeliver extends Thread {
         /** local representation of the main class */
-        private Object owner;
+        private Thread owner;
 
         /** local representation of the EventHandler to be updated */
         private EventHandler currentHandler;
@@ -503,7 +381,7 @@ public class DeliverSession extends Thread {
          * @param main the owner object
          * @param handler the event handler to be updated
          */
-        public TimeoutDeliver(Object main, EventHandler handler) {
+        public TimeoutDeliver(Thread main, EventHandler handler) {
             owner = main;
             currentHandler = handler;
         }
@@ -514,42 +392,45 @@ public class DeliverSession extends Thread {
         public void run() {
             try {
               synchronized(currentHandler){
-                /* call the handlers 'update' function */
                 currentHandler.handleEvent(event);
               }
 
                 /* tell the owner that notification is done */
-                ((Thread) owner).interrupt();
+                owner.interrupt();
             } catch (Exception e) {
-                if (log != null) {
-                  CustomDebugLogger logger = new CustomDebugLogger("TimeOutDeliver.run() caught an Exception "
+                if (log != null && log.doDebug()) {
+                  log.debug("TimeOutDeliver.run() caught an Exception "
                             + e.getMessage()
                             + "while delivering event with topic "
                             + event.getTopic());
                 }
                 /* interrupt the owner thread to avoid blacklist */
-                ((Thread) owner).interrupt();
+                owner.interrupt();
             }
         }
     }
 
-    /**
-     * A class used to log messages.
-     * @author Magnus Klack
-     */
-    private class CustomDebugLogger extends Thread{
-      /** the log message */
-      private String message;
-      public CustomDebugLogger(String msg){
-        /* assign message */
-        message=msg;
 
-      }
-      /**
-       * Inherited from Thread, starts the thread.
-       */
-      public void run(){
-        log.debug(message);
-      }
+
+  // The following class is not used. It's a nice class, though, isn't it?
+
+  /**
+   * A class used to log messages.
+   * @author Magnus Klack
+   */
+  private class CustomDebugLogger extends Thread{
+    /** the log message */
+    private String message;
+    public CustomDebugLogger(String msg){
+      /* assign message */
+      message=msg;
+
     }
+    /**
+     * Inherited from Thread, starts the thread.
+     */
+    public void run(){
+      log.debug(message);
+    }
+  }
 }

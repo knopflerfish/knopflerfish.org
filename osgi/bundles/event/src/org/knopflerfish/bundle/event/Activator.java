@@ -30,7 +30,7 @@ public class Activator implements BundleActivator {
     private BundleContext bundleContext;
 
     /** the EventAdminService */
-    private EventAdmin eventAdmin;
+    private EventAdminService eventAdmin;
 
     /** the service id string */
     final static String SERVICE_ID = "org.osgi.service.event.EventAdmin";
@@ -52,9 +52,6 @@ public class Activator implements BundleActivator {
         /* register the service to the framework */
         bundleContext.registerService(EventAdmin.class.getName(), eventAdmin,
                 propsTable);
-
-        /* print that the service is up */
-        //System.out.println("EventAdmin Service is up\n");
     }
 
     /**
@@ -63,6 +60,7 @@ public class Activator implements BundleActivator {
      * @param context the BundleContext ,ie, the handle to the OSGi framework
      */
     public void stop(BundleContext context) throws Exception {
+      eventAdmin.stop();
       eventAdmin = null;
     }
 }

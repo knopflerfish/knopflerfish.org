@@ -25,11 +25,11 @@ public class InternalAdminEvent {
      * @param creator A handle to the admin service
      */
     public InternalAdminEvent (Object object,Calendar time,EventAdminService creator){
-        /* assign the element */
+        // assign the element
         element=object;
-        /* assign the time */
+        // assign the time
         timeStamp=time;
-        /* assign the owner */
+        // assign the owner
          owner = creator;
     }
 

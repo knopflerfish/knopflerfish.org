@@ -47,9 +47,6 @@ public class QueueHandler extends Thread {
   /** variable indicating that this is running */
   private boolean running;
 
-  /** thread worker **/
-  private Thread workerThread;
-
   /** private variable holding the queue type */
   private int queueType;
 
@@ -68,7 +65,7 @@ public class QueueHandler extends Thread {
     this.bundleContext = bundleContext;
     log = new LogRef(bundleContext);
     running = true;
-    queueType=type;
+    queueType = type;
   }
 
   /**
@@ -77,251 +74,123 @@ public class QueueHandler extends Thread {
    * @param event the new InternalAdminEvent
    */
   public void addEvent(Object event) {
-    /* lock the synchQueue */
-//      System.out.println("Adding new event");
-    syncQueue.add(event);
-    if (workerThread != null) {
-      /* lock the worker object */
-      synchronized (workerThread) {
-//          System.out.println("notifiying worker thread");
-        /* wake him up */
-        workerThread.notify();
-      }
+    synchronized(this) {
+      syncQueue.add(event);
+      notifyAll();
     }
-    // else{
-    // System.out.println("worker thread is not started ignoring
-    // event");
-    // }
-
   }
-      /**
-       * Inherited from Thread, starts the thread.
-       */
+
+  /**
+   * Inherited from Thread, starts the thread.
+   */
   public void run() {
+    // as long as the thread is running
+    while (running) {
 
-    /*
-     * This is the worker thread
-     * starting delivering sessions and check
-     * things such as permissions.
-     */
-    workerThread = new Thread() {
-      public void run() {
+      if (!syncQueue.isEmpty()) {
+        synchronized (this) {
+          // get the service references do this now to ensure
+          // that only handlers registered now will recive the event
 
-        /* as long as the thread is running */
-        while (running) {
+          // method variable holding all service references
+          ServiceReference[] serviceReferences = eventAdmin.getReferences();
+          if(serviceReferences!=null){
+            // get the 'Event' not the InternalAdminEvent
+            // and remove it from the list
+            InternalAdminEvent event = (InternalAdminEvent) syncQueue.removeFirst();
 
-          if (!syncQueue.isEmpty()) {
-            synchronized(syncQueue){
-              /* lock the object */
-              synchronized (this) {
-                try {
-                  /*
-                   * get the service references do this now to ensure
-                   * that only handlers registered now will recive the
-                   * event
-                   */
+            SecurityManager securityManager = getSecurityManager();
 
-                  /* method variable holding all service references */
-                  ServiceReference[] serviceReferences;
+            // variable indicates if the handler is allowed to publish
+            boolean canPublish;
 
-                  /* get the references */
-                  serviceReferences = eventAdmin.getReferences();
-                  if(serviceReferences!=null){
-                    /* get the 'Event' not the InternalAdminEvent */
-                    InternalAdminEvent event = (InternalAdminEvent) syncQueue
-                        .getFirst();
+            // variable indicates if handlers are granted access to topic
+            boolean canSubscribe;
 
-                    /* remove it from the list */
-                    syncQueue.removeFirst();
+            // variable indicates if the topic is well formatted
+            boolean isWellFormatted;
 
-                    /* get the securityManager */
-                    SecurityManager securityManager = getSecurityManager();
-                    /*
-                     * variable indicates if the handler is allowed to
-                     * publish
-                     */
-                    boolean canPublish;
-
-                    /*
-                     * variable indicates if handlers are granted access
-                     * to topic
-                     */
-                    boolean canSubscribe;
-
-
-                    /* variable indicates if the topic is well formatted
-                     *
-                     */
-                    boolean isWellFormatted;
-
-                    /* check if security is applied */
-                    if (securityManager != null) {
-                      /* check if there are any security limitation */
-                      canPublish = checkPermissionToPublish(
-                          (Event) event.getElement(),
-                          securityManager);
-                    } else {
-                      /* no security here */
-                      canPublish = true;
-                    }
-
-                    if (securityManager != null) {
-                      /* check if there are any security limitation */
-                      canSubscribe = checkPermissionToSubscribe(
-                          (Event) event.getElement(),
-                          securityManager);
-                    } else {
-                      /* no security here */
-                      canSubscribe = true;
-                    }
-
-                    /* get if the topic is wellformatted */
-                    isWellFormatted = topicIsWellFormatted( ((Event)event.getElement()).getTopic());
-
-
-
-                    if (canPublish && canSubscribe && isWellFormatted) {
-
-                      /*
-                       * create an instance of the deliver session to
-                       * deliver events
-                       */
-                      DeliverSession deliverSession;
-                      String sessionName;
-                      if(queueType==ASYNCHRONUS_HANDLER){
-                         sessionName="ASYNCRONOUS_SESSION:" + sessionCounter;
-                         deliverSession = new DeliverSession(
-                            event, bundleContext,
-                            serviceReferences, log,
-                            this,sessionName);
-                      }else{
-                        sessionName="SYNCRONOUS_SESSION:" + sessionCounter;
-                        deliverSession = new DeliverSession(
-                            event, bundleContext,
-                            serviceReferences, log,
-                            this,sessionName);
-                      }
-
-                      sessionCounter++;
-
-                      /* start deliver events */
-                      deliverSession.start();
-
-                      try {
-                        /* wait for notification */
-
-                        wait();
-//                          System.out.println("\n***********************************************"
-//                                            +"\n** DELIVER SESSION DONE :"+sessionName+"**"
-//                                            +"\n***********************************************\n");
-
-
-
-                      } catch (InterruptedException e) {
-                        /* print the error message */
-//                          System.out
-//                              .println("Exception in SynchDeliverThread:"
-//                                  + e);
-                      }catch(Exception e){
-                        System.out
-                        .println("Exception in SynchDeliverThread:"
-                            + e);
-                      }
-
-                    } else {
-                      /* no permissions at all are given */
-                      if (!canPublish && !canSubscribe) {
-                        /*
-                         * this will happen if an error occurres in
-                         * getReferences()
-                         */
-                        if (log != null) {
-                          /* log the error */
-                          log
-                              .error("No permission to publish and subscribe top topic:"
-                                  + ((Event) event
-                                      .getElement())
-                                      .getTopic());
-                        }
-                      }
-
-                      /* no publish permission */
-                      if (!canPublish && canSubscribe) {
-                        /*
-                         * this will happen if an error occures in
-                         * getReferences()
-                         */
-                        if (log != null) {
-                          /* log the error */
-                          log
-                              .error("No permission to publishto topic:"
-                                  + ((Event) event
-                                      .getElement())
-                                      .getTopic());
-                        }
-                      }
-
-                      /* no subscribe permission */
-                      if (canPublish && !canSubscribe) {
-                        /*
-                         * this will happen if an error occures in
-                         * getReferences()
-                         */
-                        if (log != null) {
-                          /* log the error */
-                          log
-                              .error("No permission to granted for subscription to topic:"
-                                  + ((Event) event
-                                      .getElement())
-                                      .getTopic());
-                        }
-                      }
-                    }
-                  }else{
-
-                    for(int i=0;i<syncQueue.size();i++){
-                      synchronized(syncQueue){
-                        syncQueue.remove(i);
-                      }
-                    }
-                  }
-                } catch (InvalidSyntaxException e) {
-                  /*
-                   * this will happen if an error occures in
-                   * getReferences()
-                   */
-                  if (log != null) {
-                    /* log the error */
-                    log
-                        .error("Can't get any service references");
-                  }
-                }
-
-              }// end synchronized
-          }
-          } else {
-            try {
-              /* lock this object */
-              synchronized (this) {
-                /* wait until notified */
-                wait();
-              }
-            } catch (InterruptedException e) {
-              /* this shouldn't happen */
-              System.err.println("Worker was interrupted unexpected");
+            // check if security is applied
+            if (securityManager != null) {
+              // check if there are any security limitation
+              canPublish = checkPermissionToPublish((Event) event.getElement(),
+                                                    securityManager);
+              canSubscribe = checkPermissionToSubscribe((Event) event.getElement(),
+                                                        securityManager);
+            } else {
+              // no security here
+              canPublish = true;
+              canSubscribe = true;
             }
+
+            // get if the topic is wellformatted
+            isWellFormatted = topicIsWellFormatted( ((Event)event.getElement()).getTopic());
+
+            if (canPublish && canSubscribe && isWellFormatted) {
+              // create an instance of the deliver session to deliver events
+              DeliverSession deliverSession;
+              String sessionName;
+              if (queueType==ASYNCHRONUS_HANDLER) {
+                sessionName = "ASYNCRONOUS_SESSION:" + sessionCounter;
+              } else {
+                sessionName = "SYNCRONOUS_SESSION:" + sessionCounter;
+              }
+              deliverSession = new DeliverSession(event, bundleContext,
+                                                  serviceReferences, log,
+                                                  this,sessionName);
+              sessionCounter++;
+
+              // start deliver events
+              deliverSession.start();
+
+              try {
+                // wait for notification
+                wait();
+              } catch (InterruptedException ignore) {
+              } catch(Exception e){
+                log.error("Exception in SynchDeliverThread:", e);
+              }
+
+            // this will happen if an error occures in getReferences():
+            } else if (canSubscribe) {
+              // no publish permission
+              log.error("No permission to publishto topic:"
+                        + ((Event) event.getElement()).getTopic());
+            } else if (canPublish) {
+              // no subscribe permission
+              log.error("No permission to granted for subscription to topic:"
+                        + ((Event) event.getElement()).getTopic());
+            } else {
+              // no permissions at all are given
+              log.error("No permission to publish and subscribe top topic:"
+                        + ((Event) event.getElement()).getTopic());
+            }
+          } else { // (serviceReferences == null)
+            syncQueue.clear();
           }
 
-        }//end while...
+        }// end synchronized
+      } else {
+        try {
+          synchronized (this) {
+            wait();
+          }
+        } catch (InterruptedException e) {
+          log.error("Worker was interrupted unexpected");
+        }
+      }
 
-      }// end run
+    }//end while...
 
-    };//end worker thread
-
-    /* start the worker */
-//      System.out.println("starting worker thread");
-    workerThread.start();
   }// end run()
+
+  /**
+   * Stop this thread.
+   */
+  synchronized void stopIt() {
+    running = false;
+    notifyAll();
+  }
 
   /**
    * this function checks for invalid topics
@@ -330,25 +199,24 @@ public class QueueHandler extends Thread {
    * @param topic the topic string
    * @return true if well formatted else false if null or "" formatted
    */
-  private boolean topicIsWellFormatted(String topic){
-
+  private boolean topicIsWellFormatted(String topic) {
     if(topic!=null){
-      /* this is the "*" topic  */
+      // this is the "*" topic
       if(topic.length()==1 && topic.equals("*")){
         return true;
       }
 
-      /* this is the "" topic */
+      // this is the "" topic
       if(topic.length()==0){
         return false;
       }
 
-      /* this is a topic with length >1 */
+      // this is a topic with length >1
       if(topic.length()> 1){
         return true;
       }
     }
-    /* this is the null topic */
+    // this is the null topic
     return false;
   }
 
@@ -362,18 +230,17 @@ public class QueueHandler extends Thread {
    * @return true if the object is permitted, false otherwise
    */
   private boolean checkPermissionToSubscribe(Event event,
-      SecurityManager securityManager) {
-
+                                             SecurityManager securityManager) {
     try {
-      /* create a topic */
+      // create a topic
       TopicPermission subscribePermission = new TopicPermission(event
           .getTopic(), "subscribe");
-      /* check the permission */
+      // check the permission
       securityManager.checkPermission(subscribePermission);
-      /* return true */
+      // return true
       return true;
     } catch (AccessControlException e) {
-      /* return false */
+      // return false
       return false;
     }
 
@@ -387,19 +254,18 @@ public class QueueHandler extends Thread {
    * @return true if the publisher can publish the subject, false otherwise
    */
   private boolean checkPermissionToPublish(Event event,
-      SecurityManager securityManager) {
-
+                                           SecurityManager securityManager) {
     try {
-      /* create a topic */
+      // create a topic
       TopicPermission publishPermission = new TopicPermission(event
           .getTopic(), "publish");
-      /* check the permission */
+      // check the permission
       securityManager.checkPermission(publishPermission);
-      /* return true */
+      // return true
       return true;
 
     } catch (AccessControlException e) {
-      /* return false */
+      // return false
       return false;
     }
   }
@@ -410,7 +276,7 @@ public class QueueHandler extends Thread {
    * @return the security manager if any else null
    */
   private SecurityManager getSecurityManager() {
-    /* return the security manager */
+    // return the security manager
     return System.getSecurityManager();
   }
 

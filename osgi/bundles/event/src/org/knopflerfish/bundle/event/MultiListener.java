@@ -121,8 +121,7 @@ public class MultiListener implements LogListener,
       try {
         eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        System.err.println("EXCEPTION in bundleChanged()"
-            + e.getMessage());
+        log.error("EXCEPTION in bundleChanged()", e);
       }
     } else {
       /* Logs an error if the event, which arrived, were of an unknown type */
@@ -192,8 +191,7 @@ public class MultiListener implements LogListener,
     try {
       eventAdmin.postEvent(new Event(topic, props));
     } catch (Exception e) {
-      System.err.println("EXCEPTION in logged(LogEntry logEntry):"
-          + e.getMessage());
+      log.error("EXCEPTION in logged(LogEntry logEntry):", e);
     }
   }
 
@@ -241,8 +239,6 @@ public class MultiListener implements LogListener,
       break;
     }
 
-//    System.out.println("EventADMIN: current listneners: "
-//        + eventHandlers.size());
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
       putProp(props, EventConstants.EVENT, serviceEvent);
@@ -255,8 +251,7 @@ public class MultiListener implements LogListener,
       try {
         eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        System.err.println("EXCEPTION in serviceChanged() :"
-            + e.getMessage());
+        log.error("EXCEPTION in serviceChanged() :", e);
       }
     } else {
       /* Logs an error if the event, which arrived, were of an unknown type */
@@ -319,8 +314,7 @@ public class MultiListener implements LogListener,
       try {
         eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        System.err.println("Exception in frameworkEvent() :"
-            + e.getMessage());
+        log.error("Exception in frameworkEvent() :", e);
       }
     } else {
       log.error("Recieved unknown message, discarding");
