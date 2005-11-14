@@ -57,6 +57,7 @@
 -istart file:bundles_test/regression_tests/jars/servicetracker_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/constants_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/eventadmin_test-1.0.0.jar
 
 # the test case runner bundle.
 -istart junit_runner/junit_runner_all-1.0.0.jar
