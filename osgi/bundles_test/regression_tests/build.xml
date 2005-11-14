@@ -39,47 +39,49 @@
     <ant dir="servicetracker_test"      target="all"/>
     <ant dir="http_test"                target="all"/>
     <ant dir="registryperformance_test" target="all"/>
-    <ant dir="restart_test"                target="all"/>
+    <ant dir="restart_test"             target="all"/>
+    <ant dir="eventadmin_test"          target="all"/>
   </target>
 
    <target name="clean">
-    <ant dir="bundleA_test"            target="clean"/>
-    <ant dir="bundleA1_test"           target="clean"/>
-    <ant dir="bundleB_test"            target="clean"/>
-    <ant dir="bundleC_test"            target="clean"/>
-    <ant dir="bundleD_test"            target="clean"/>
-    <ant dir="bundleD1_test"           target="clean"/>
-    <ant dir="bundleE_test"            target="clean"/>
-    <ant dir="bundleF_test"            target="clean"/>
-    <ant dir="bundleG_test"            target="clean"/>
-    <ant dir="bundleH_test"            target="clean"/>
-    <ant dir="bundleJ_test"            target="clean"/>
-    <ant dir="bundleP_test"            target="clean"/>
-    <ant dir="bundleP1_test"           target="clean"/>
-    <ant dir="bundleP2_test"           target="clean"/>
-    <ant dir="bundleP3_test"           target="clean"/>
-    <ant dir="bundleQ_test"           target="clean"/>
-    <ant dir="bundleR_test"            target="clean"/>
-    <ant dir="bundleR1_test"           target="clean"/>
-    <ant dir="bundleR2_test"           target="clean"/>
-    <ant dir="bundleR3_test"           target="clean"/>
-    <ant dir="bundleR4_test"           target="clean"/>
-    <ant dir="bundleR5_test"           target="clean"/>
-    <ant dir="bundleR6_test"           target="clean"/>
-    <ant dir="bundleS_test"            target="clean"/>
-    <ant dir="bundleU_test"            target="clean"/>
-    <ant dir="bundleV_test"            target="clean"/>
-    <ant dir="bundleW_test"            target="clean"/>
-    <ant dir="bundleW1_test"           target="clean"/>
-    <ant dir="resexp_test"             target="clean"/>
-    <ant dir="resimp_test"             target="clean"/>
-    <ant dir="framework_test"          target="clean"/>
-    <ant dir="filter_test"             target="clean"/>
-    <ant dir="servicetracker_test"     target="clean"/>
-    <ant dir="constants_test"          target="clean"/>
-    <ant dir="http_test"               target="clean"/>
-    <ant dir="registryperformance_test"               target="clean"/>
-    <ant dir="restart_test"                target="clean"/>
+    <ant dir="bundleA_test"             target="clean"/>
+    <ant dir="bundleA1_test"            target="clean"/>
+    <ant dir="bundleB_test"             target="clean"/>
+    <ant dir="bundleC_test"             target="clean"/>
+    <ant dir="bundleD_test"             target="clean"/>
+    <ant dir="bundleD1_test"            target="clean"/>
+    <ant dir="bundleE_test"             target="clean"/>
+    <ant dir="bundleF_test"             target="clean"/>
+    <ant dir="bundleG_test"             target="clean"/>
+    <ant dir="bundleH_test"             target="clean"/>
+    <ant dir="bundleJ_test"             target="clean"/>
+    <ant dir="bundleP_test"             target="clean"/>
+    <ant dir="bundleP1_test"            target="clean"/>
+    <ant dir="bundleP2_test"            target="clean"/>
+    <ant dir="bundleP3_test"            target="clean"/>
+    <ant dir="bundleQ_test"             target="clean"/>
+    <ant dir="bundleR_test"             target="clean"/>
+    <ant dir="bundleR1_test"            target="clean"/>
+    <ant dir="bundleR2_test"            target="clean"/>
+    <ant dir="bundleR3_test"            target="clean"/>
+    <ant dir="bundleR4_test"            target="clean"/>
+    <ant dir="bundleR5_test"            target="clean"/>
+    <ant dir="bundleR6_test"            target="clean"/>
+    <ant dir="bundleS_test"             target="clean"/>
+    <ant dir="bundleU_test"             target="clean"/>
+    <ant dir="bundleV_test"             target="clean"/>
+    <ant dir="bundleW_test"             target="clean"/>
+    <ant dir="bundleW1_test"            target="clean"/>
+    <ant dir="resexp_test"              target="clean"/>
+    <ant dir="resimp_test"              target="clean"/>
+    <ant dir="framework_test"           target="clean"/>
+    <ant dir="filter_test"              target="clean"/>
+    <ant dir="servicetracker_test"      target="clean"/>
+    <ant dir="constants_test"           target="clean"/>
+    <ant dir="http_test"                target="clean"/>
+    <ant dir="registryperformance_test" target="clean"/>
+    <ant dir="restart_test"             target="clean"/>
+    <ant dir="eventadmin_test"          target="clean"/>
   </target>
 
 </project>
