@@ -74,7 +74,7 @@ public class EventAdminService implements EventAdmin {
    */
   public void postEvent(Event event) {
     try {
-      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, Calendar.getInstance(), this, getReferences()));
+      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, getReferences()));
     } catch(Exception e){
       Activator.log.error("Unknown exception in postEvent():", e);
     }
@@ -88,7 +88,7 @@ public class EventAdminService implements EventAdmin {
    */
   public void sendEvent(Event event) {
     try {
-      new InternalAdminEvent(event, Calendar.getInstance(), this, getReferences()).deliver();
+      new InternalAdminEvent(event, getReferences()).deliver();
     } catch(Exception e){
       Activator.log.error("Unknown exception in sendEvent():", e);
     }

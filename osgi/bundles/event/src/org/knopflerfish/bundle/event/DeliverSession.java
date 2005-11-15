@@ -79,8 +79,6 @@ public class DeliverSession {
       boolean filterMatch = false;
       /* method variable indicating if the handler is blacklisted */
       boolean isBlacklisted = false;
-      /* method variable indicating that the eventhandler should have this event */
-      boolean isInTime = false;
 
       for (int i = 0; i < serviceReferences.length; i++) {
         EventHandler currentHandler =
@@ -136,11 +134,9 @@ public class DeliverSession {
             }
           }
 
-          isInTime = this.isInTime(serviceReferences[i],internalEvent);
-
           /* check that all indicating variables fulfills the condition */
           /* and check that the service is still registered */
-          if (isSubscribed && filterMatch && !isBlacklisted && isInTime
+          if (isSubscribed && filterMatch && !isBlacklisted
               && Activator.bundleContext.getService(serviceReferences[i]) != null) {
             if (timeout == 0) {
               currentHandler.handleEvent(event);
@@ -168,23 +164,6 @@ public class DeliverSession {
         }//end if(!isBlacklisted.....
       }//end for
     }// end deliver...
-
-    /**
-     * isInTime determines whether a handler is eligable for a certain message or not.
-     * The handler has to be registered before the event was registered.
-     * @param handler the handler to receive the message
-     * @param event the event to be sent
-     * @return true if the handler should receive the message, false otherwise
-     * @author Johnny Baveras
-     */
-    private boolean isInTime(ServiceReference handler,  InternalAdminEvent event) {
-         /* Gets the registration time of the handler. */
-         Long handlerTime = (Long) MultiListener.eventHandlers.get(handler);
-         /* Gets the timestamp stored in the internal event and converts it to the standard used by the handler */
-         long eventTime = event.getTimeStamp().getTimeInMillis();
-         /* Determines the value of the boolean to be returned */
-         return (handlerTime==null || eventTime<=handlerTime.longValue()) ? false : true;
-    }
 
     /**
      * This method should be used when matching from an event against a specific
