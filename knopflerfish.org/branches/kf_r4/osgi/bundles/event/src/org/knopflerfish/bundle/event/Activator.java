@@ -19,6 +19,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.event.EventAdmin;
+import org.knopflerfish.service.log.LogRef;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
@@ -26,14 +27,14 @@ import org.osgi.service.event.EventAdmin;
  * @author Magnus Klack
  */
 public class Activator implements BundleActivator {
-    /** local representation of the bundlecontext */
-    private BundleContext bundleContext;
-
-    /** the EventAdminService */
-    private EventAdminService eventAdmin;
 
     /** the service id string */
-    final static String SERVICE_ID = "org.osgi.service.event.EventAdmin";
+    final static String SERVICE_PID = "org.osgi.service.event.EventAdmin";
+
+    protected static BundleContext bundleContext;
+    protected static LogRef log;
+
+    private EventAdminService eventAdmin;
 
     /**
      * Main entry for the service
@@ -43,12 +44,14 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) throws Exception {
         /* assign the context variable to a local variable */
         bundleContext = context;
+        log = new LogRef(context);
+
         /* create the event admin service */
         eventAdmin = new EventAdminService(bundleContext);
         /* create the hashtable */
         Hashtable propsTable = new Hashtable();
         /* add the Constant variable and the id to the Hashtable */
-        propsTable.put(Constants.SERVICE_PID, SERVICE_ID);
+        propsTable.put(Constants.SERVICE_PID, SERVICE_PID);
         /* register the service to the framework */
         bundleContext.registerService(EventAdmin.class.getName(), eventAdmin,
                 propsTable);

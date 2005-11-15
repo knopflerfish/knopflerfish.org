@@ -32,15 +32,12 @@ import org.knopflerfish.service.log.LogRef;
  * published event the EventAdmin service will put the event on one of the two internal sendstacks
  * depending on what type of deliverance the event requires.
  *
- * @author Magnus Klack
+ * @author Magnus Klack (refactoring by Björn Andersson)
  */
 public class EventAdminService implements EventAdmin {
 
   /** the local representation of the bundle context */
   private BundleContext bundleContext;
-
-  /** the log * */
-  private LogRef log;
 
   /** variable holding the synchronus send procedure */
   private QueueHandler queueHandlerSynch;
@@ -53,22 +50,15 @@ public class EventAdminService implements EventAdmin {
   /**
    * the constructor use this to create a new Event admin service.
    *
-   * @param context
-   *            the BundleContext
+   * @param context the BundleContext
    */
   public EventAdminService(BundleContext context) {
     synchronized(this){
       /* assign the context to the local variable */
       bundleContext = context;
-      /* create the log */
-      log = new LogRef(context);
 
-      /* create the synchronus sender process */
-      queueHandlerSynch  = new QueueHandler(this, context, QueueHandler.SYNCHRONUS_HANDLER);
-      /* start the asynchronus sender */
-      queueHandlerSynch.start();
       /* create the asynchronus queue handler */
-      queueHandlerAsynch = new QueueHandler(this, context, QueueHandler.ASYNCHRONUS_HANDLER);
+      queueHandlerAsynch = new QueueHandler();
       /* start the handler */
       queueHandlerAsynch.start();
 
@@ -83,14 +73,10 @@ public class EventAdminService implements EventAdmin {
    * @param event the event to publish
    */
   public void postEvent(Event event) {
-    Calendar time = Calendar.getInstance();
-    InternalAdminEvent adminEvent = new InternalAdminEvent(event, time, this);
-    try{
-      if (getReferences() != null) {
-        queueHandlerAsynch.addEvent(adminEvent);
-      }
+    try {
+      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, Calendar.getInstance(), this, getReferences()));
     } catch(Exception e){
-      log.error("Unknown exception in postEvent():", e);
+      Activator.log.error("Unknown exception in postEvent():", e);
     }
   }
 
@@ -101,15 +87,10 @@ public class EventAdminService implements EventAdmin {
    * @author Magnus Klack
    */
   public void sendEvent(Event event) {
-    postEvent(event);
     try {
-      synchronized (this) {
-        if (getReferences() != null){
-          wait();
-        }
-      }
-    } catch (InterruptedException e) {
-      log.warn("sendEvent() was interrupted by external process:", e);
+      new InternalAdminEvent(event, Calendar.getInstance(), this, getReferences()).deliver();
+    } catch(Exception e){
+      Activator.log.error("Unknown exception in sendEvent():", e);
     }
   }
 
@@ -121,7 +102,8 @@ public class EventAdminService implements EventAdmin {
    */
   ServiceReference[] getReferences() {
     try {
-      return bundleContext.getServiceReferences(EventHandler.class.getName(), null);
+      ServiceReference[] refs = bundleContext.getServiceReferences(EventHandler.class.getName(), null);
+      return refs;
     } catch (InvalidSyntaxException ignore) {
       // What? We're not even using a filter!
       return null;
@@ -132,7 +114,7 @@ public class EventAdminService implements EventAdmin {
   }
 
   void stop() {
-    queueHandlerSynch.stopIt();
+    //queueHandlerSynch.stopIt();
     queueHandlerAsynch.stopIt();
   }
 

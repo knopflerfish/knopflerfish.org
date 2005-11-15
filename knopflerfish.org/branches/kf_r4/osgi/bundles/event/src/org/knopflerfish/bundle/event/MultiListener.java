@@ -34,6 +34,11 @@ import org.osgi.service.log.LogReaderService;
 
 import org.knopflerfish.service.log.LogRef;
 
+/**
+ * Listen for LogEntries, ServiceEvents, FrameworkEvents, BundleEvents
+ *
+ * @author Magnus Klack,Martin Berg (refactoring by Björn Andersson)
+ */
 public class MultiListener implements LogListener,
                                       ServiceListener,
                                       FrameworkListener,
