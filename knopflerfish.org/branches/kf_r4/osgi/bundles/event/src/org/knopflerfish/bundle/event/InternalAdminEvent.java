@@ -1,42 +1,30 @@
 package org.knopflerfish.bundle.event;
 
 import java.security.AccessControlException;
-import java.util.Calendar;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.TopicPermission;
 
 /**
- * A wrapper class for events. Connects an event with a timestamp and a boolean which
- * is used to determine whether an event has been delivered or not.
+ * A wrapper class for events. Connects an event with ServiceReferences to
+ * the EventHandlers it should be delivered to.
  *
  * @author Magnus Klack (refactoring by Björn Andersson)
  */
 public class InternalAdminEvent {
 
   private Event event;
-  private Calendar timeStamp;
-  private boolean isDelivered=false;
-  /** variable holding the creator of the object */
-  EventAdminService owner;
 
   private ServiceReference[] references;
 
   /**
    * Standard constructor of the InternalAdminEvent
    * @param event the event to be stored
-   * @param time The timestamp of this event
-   * @param creator A handle to the admin service
    * @param references ServiceReference to the EventHandlers this event should be
    *                   delivered to.
    */
-  public InternalAdminEvent(Event event,
-                            Calendar time,
-                            EventAdminService creator,
-                            ServiceReference[] references){
+  public InternalAdminEvent(Event event, ServiceReference[] references){
     this.event = event;
-    timeStamp = time;
-    owner = creator;
     this.references = references;
   }
 
@@ -48,24 +36,8 @@ public class InternalAdminEvent {
     return event;
   }
 
-  /**
-   * Returns the timestamp
-   * @return the time at which the event arrived
-   */
-  protected Calendar getTimeStamp(){
-    return timeStamp;
-  }
-
   public ServiceReference[] getReferences() {
     return references;
-  }
-
-  /**
-   * Returns the boolean illustrating whether the event has been delivered or not.
-   * @return true if the event has been delivered, false otherwise
-   */
-  protected synchronized boolean isDelivered(){
-    return isDelivered;
   }
 
   public void deliver() {
