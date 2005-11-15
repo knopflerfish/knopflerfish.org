@@ -15,7 +15,6 @@ package org.knopflerfish.bundle.event;
 
 import java.util.Vector;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -25,11 +24,13 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
 /**
- * Thread which handles the event deliveries to event handlers.
+ * Class which handles the event deliveries to event handlers.
  *
- * @author Magnus Klack,Martin Berg
+ * @author Magnus Klack,Martin Berg (refactoring by Björn Andersson)
  */
-public class DeliverSession extends Thread {
+public class DeliverSession {
+
+    private static final String TIMEOUT_PROP = "org.knopflerfish.eventadmin.timeout";
 
     /** local event variable */
     private Event event;
@@ -40,71 +41,38 @@ public class DeliverSession extends Thread {
     /** local array of service references */
     private ServiceReference[] serviceReferences;
 
-    /** bundle context */
-    private BundleContext bundleContext;
-
     /** the wildcard char */
     private final static String WILD_CARD = "*";
 
-    /** the timeout variable */
-    private long timeOut = 20000;
+    /** The timeout variable. Default: no timeout */
+    private long timeout = 0;
 
     /** the references to the blacklisted handlers */
     private static Vector blacklisted = new Vector();
-
-    /** the log reference */
-    private LogRef log;
-
-    /** variable indicating thread owner **/
-    private Thread ownerThread;
 
     /**
      * Standard constructor for DeliverSession.
      *
      * @param evt the event to be delivered
-     * @param refs an array of service references
      * @param context the bundle context
-     * @param logRef reference to a LogRef
      * @param owner The thread which launched the deliver session
      * @param name the type of delivery which is being made, either synchronous or asynchronous
      */
-    public DeliverSession(InternalAdminEvent evt, BundleContext context,
-            ServiceReference[] refs, LogRef logRef, Thread owner,String name) {
-      super(name);
+    public DeliverSession(InternalAdminEvent evt) {
       internalEvent = evt;
-      event = (Event) internalEvent.getElement();
-      bundleContext = context;
-      serviceReferences = refs;
-      log = logRef;
-      ownerThread = owner;
+      event = internalEvent.getEvent();
+      serviceReferences = internalEvent.getReferences();
 
       /* Tries to get the timeout property from the system*/
       try {
-        timeOut=  Long.parseLong(System.getProperty("org.knopflerfish.eventadmin.timeout"));
+        timeout = Long.parseLong(System.getProperty(TIMEOUT_PROP));
       } catch (NumberFormatException ignore) {}
-    }
-
-    /**
-     * Inherited from Thread, starts the thread.
-     */
-    public void run() {
-        /* start the deliverance in asynchronus mode */
-        if (serviceReferences != null) {
-            startDeliver();
-        } else {
-            internalEvent.setAsDelivered();
-            /* lock the owner */
-            synchronized (ownerThread) {
-                /* notify the owner */
-                ownerThread.notify();
-            }
-        }
     }
 
     /**
      *  Initiates the delivery.
      */
-    protected void startDeliver() {
+    public void deliver() {
       /* method variable indicating that the topic mathces */
       boolean isSubscribed = false;
       /* method variable indicating that the filter matches */
@@ -115,30 +83,26 @@ public class DeliverSession extends Thread {
       boolean isInTime = false;
 
       for (int i = 0; i < serviceReferences.length; i++) {
-        EventHandler currentHandler = (EventHandler) bundleContext
-                .getService(serviceReferences[i]);
+        EventHandler currentHandler =
+          (EventHandler) Activator.bundleContext.getService(serviceReferences[i]);
         isBlacklisted = blacklisted.contains(currentHandler);
         if (!isBlacklisted) {
           try {
             String filterString = (String) serviceReferences[i].getProperty(EventConstants.EVENT_FILTER);
             if (filterString != null) {
-              Filter filter = bundleContext.createFilter(filterString);
-              if (filter!=null) {
-                filterMatch = filterMatched(event,filter);
-              } else {
-                filterMatch = true;
-              }
+              Filter filter = Activator.bundleContext.createFilter(filterString);
+              filterMatch = filter==null || filterMatched(event, filter);
             } else {
               filterMatch = true;
             }
           } catch(NullPointerException e) {
             filterMatch = true;
           } catch (InvalidSyntaxException err) {
-            if (log != null && log.doDebug()) {
-              log.debug("Invalid Syntax when matching filter of " + currentHandler);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("Invalid Syntax when matching filter of " + currentHandler);
             }
             blacklisted.add(currentHandler);
-            isBlacklisted=true;
+            isBlacklisted = true;
             /* this means no filter match */
             filterMatch = false;
           }
@@ -162,8 +126,8 @@ public class DeliverSession extends Thread {
               isSubscribed = true;
             }
           } catch (ClassCastException e) {
-            if (log != null && log.doDebug()) {
-              log.debug("Invalid topic in handler:" + currentHandler);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("Invalid topic in handler:" + currentHandler);
             }
             /* blacklist the handler */
             if(!blacklisted.contains(currentHandler)){
@@ -172,41 +136,38 @@ public class DeliverSession extends Thread {
             }
           }
 
-          isInTime=this.isInTime(serviceReferences[i],internalEvent);
+          isInTime = this.isInTime(serviceReferences[i],internalEvent);
 
           /* check that all indicating variables fulfills the condition */
-          if (isSubscribed && filterMatch && !isBlacklisted && isInTime) {
-            /* check that the service is still registered */
-            if (bundleContext.getService(serviceReferences[i]) != null) {
-              /* start a thread to notify the EventHandler */
-              Thread notifier = new Notifier(currentHandler, this);
-              /* start the thread */
-              notifier.start();
+          /* and check that the service is still registered */
+          if (isSubscribed && filterMatch && !isBlacklisted && isInTime
+              && Activator.bundleContext.getService(serviceReferences[i]) != null) {
+            if (timeout == 0) {
+              currentHandler.handleEvent(event);
+            } else { // use timeout
               try {
-                /* lock this session */
                 synchronized (this) {
-                  /* wait for notification */
-                  wait();
+                  TimeoutDeliver timeoutDeliver = new TimeoutDeliver(Thread.currentThread(), currentHandler);
+                  timeoutDeliver.start();
+                  wait(timeout);
+                  Activator.log.error("NOTIFER TIMED OUT: "+ timeoutDeliver.getName());
+                  /* check if already blacklisted by another thread */
+                  if (!blacklisted.contains(currentHandler)) {
+                    blacklisted.addElement(currentHandler);
+                    if (Activator.log.doDebug()) {
+                      Activator.log.debug("The handler " + currentHandler.toString()
+                                          + " was blacklisted due to timeout");
+                    }
+                  }
                 }
               } catch (InterruptedException e) {
-                log.error("DeliverSession object was interrupted this is not expected", e);
+                /* this will happen if a deliverance succeeded */
               }
-            }
+            }//end use timeout
           }
-        }//end  if(!isBlacklisted.....
-
-        /* set the event as delivered  */
-        synchronized(internalEvent){
-          internalEvent.setAsDelivered();
-        }
-
-        /* lock the owner */
-        synchronized (ownerThread) {
-            /* notify the owner */
-          ownerThread.notify();
-        }
-     }
-    }// end startDeliver...
+        }//end if(!isBlacklisted.....
+      }//end for
+    }// end deliver...
 
     /**
      * isInTime determines whether a handler is eligable for a certain message or not.
@@ -302,66 +263,6 @@ public class DeliverSession extends Thread {
     }
 
     /**
-     * This class will start a deliver thread, i.e, instance of 'TimeoutDeliver'
-     * and wait for N seconds, if N seconds have passed the class will blacklist
-     * the current EventHandler class. if the deliver thread returns in N
-     * seconds an InterruptedException will be catched and the thread exits.
-     *
-     * @author Magnus Klack & Johnny Baveras
-     */
-    private class Notifier extends Thread {
-        /** local representation of the eventhandler */
-        private EventHandler currentHandler;
-
-        /** local variable represents the owner of the process */
-        private DeliverSession deliverSession;
-
-        /**
-         * Constructor of the Notifier class
-         *
-         * @param handler the EventHandler class to be notified
-         */
-        public Notifier(EventHandler handler, DeliverSession owner) {
-            currentHandler = handler;
-            deliverSession = owner;
-        }
-        /**
-         * Inherited from Thread, starts the thread.
-         */
-        public void run() {
-            /* try to start a deliver session */
-            try {
-                synchronized (this) {
-                    /* create a deliver object */
-                    TimeoutDeliver timeoutDeliver = new TimeoutDeliver(this,
-                            currentHandler);
-                    /* start the thread */
-                    timeoutDeliver.start();
-                    /* wait for N seconds */
-                    wait(timeOut);
-                    log.error("NOTIFER TIMED OUT: "+ deliverSession.getName());
-                    /* check if already blacklisted by another thread */
-                    if (!blacklisted.contains(currentHandler)) {
-                        /* add it to the vector */
-                        blacklisted.addElement(currentHandler);
-
-                        if (log != null && log.doDebug()) {
-                          log.debug("The handler " + currentHandler.toString()
-                                    + " was blacklisted due to timeout");
-                        }
-                    }
-               }
-            } catch (InterruptedException e) {
-                /* this will happen if a deliverance succeeded */
-            }
-
-            synchronized (deliverSession) {
-                deliverSession.notify();
-            }
-        }
-    }
-
-    /**
      * This class will try to update the EventHandler if it succeed an interrupt
      * will be performed on the 'owner' class.
      *
@@ -369,45 +270,45 @@ public class DeliverSession extends Thread {
      *
      */
     private class TimeoutDeliver extends Thread {
-        /** local representation of the main class */
-        private Thread owner;
+      /** local representation of the main class */
+      private Thread owner;
 
-        /** local representation of the EventHandler to be updated */
-        private EventHandler currentHandler;
+      /** local representation of the EventHandler to be updated */
+      private EventHandler currentHandler;
 
-        /**
-         * Constructor of the TimeoutDeliver object
-         *
-         * @param main the owner object
-         * @param handler the event handler to be updated
-         */
-        public TimeoutDeliver(Thread main, EventHandler handler) {
-            owner = main;
-            currentHandler = handler;
+      /**
+       * Constructor of the TimeoutDeliver object
+       *
+       * @param main the owner object
+       * @param handler the event handler to be updated
+       */
+      public TimeoutDeliver(Thread main, EventHandler handler) {
+        owner = main;
+        currentHandler = handler;
+      }
+
+      /**
+      Inherited from Thread, starts the thread.
+      */
+      public void run() {
+        if (Activator.log.doDebug()) Activator.log.debug("TimeOutDeliver.run()");
+        try {
+          synchronized(currentHandler){
+            currentHandler.handleEvent(event);
+          }
+          /* tell the owner that notification is done */
+          owner.interrupt();
+        } catch (Exception e) {
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("TimeOutDeliver.run() caught an Exception "
+                                + e.getMessage()
+                                + "while delivering event with topic "
+                                + event.getTopic());
+          }
+          /* interrupt the owner thread to avoid blacklist */
+          owner.interrupt();
         }
-
-        /**
-        Inherited from Thread, starts the thread.
-        */
-        public void run() {
-            try {
-              synchronized(currentHandler){
-                currentHandler.handleEvent(event);
-              }
-
-                /* tell the owner that notification is done */
-                owner.interrupt();
-            } catch (Exception e) {
-                if (log != null && log.doDebug()) {
-                  log.debug("TimeOutDeliver.run() caught an Exception "
-                            + e.getMessage()
-                            + "while delivering event with topic "
-                            + event.getTopic());
-                }
-                /* interrupt the owner thread to avoid blacklist */
-                owner.interrupt();
-            }
-        }
+      }
     }
 
 
@@ -430,7 +331,7 @@ public class DeliverSession extends Thread {
      * Inherited from Thread, starts the thread.
      */
     public void run(){
-      log.debug(message);
+      Activator.log.debug(message);
     }
   }
 }
