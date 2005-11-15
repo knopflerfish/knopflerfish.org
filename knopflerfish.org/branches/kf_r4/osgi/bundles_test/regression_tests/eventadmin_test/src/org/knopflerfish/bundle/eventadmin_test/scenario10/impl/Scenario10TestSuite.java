@@ -153,7 +153,7 @@ public class Scenario10TestSuite extends TestSuite {
             try {
               bundle=Util.installBundle(bundleContext,"testlibs/ThreadTest.jar");
             } catch (Exception e) {
-                fail("Can't install bundle make sure testlibs folder is"
+                fail("Can't install bundle make sure testlibs folder is "
                     + "added to the framework.jar file:" + e.getMessage());
             }
 
@@ -255,6 +255,7 @@ public class Scenario10TestSuite extends TestSuite {
           try {
             serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+          assertTrue("Not all events received (" + eventCounter + "/5)", eventCounter==5);
         }
 
         public void handleEvent(Event event) {

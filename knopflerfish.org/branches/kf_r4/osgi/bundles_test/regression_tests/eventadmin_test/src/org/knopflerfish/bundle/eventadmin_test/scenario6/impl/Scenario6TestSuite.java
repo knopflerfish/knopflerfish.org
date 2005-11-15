@@ -72,17 +72,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
     /** constant type representing what to assert */
     private final int ASSERT_ASYNCHRONUS = 1;
 
-    /** the first consumer */
-    private EventConsumer consumer1;
-
-    /** the second consumer */
-    private EventConsumer consumer2;
-
-    /** the third consumer */
-    private EventConsumer consumer3;
-
-    /** the fourth consumer */
-    private EventConsumer consumer4;
+    private EventConsumer[] eventConsumer;
 
     /** the publisher */
     private EventPublisher eventPublisher;
@@ -103,24 +93,24 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         eventPublisher = new EventPublisher(bundleContext, "EventPublisher", 1,
                 "com/acme/timer");
 
-        EventConsumer[] eventConsumer = new EventConsumer[] {
-          consumer1 = new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 1),
-          consumer2 = new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 2),
-          consumer3 = new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 3),
-          consumer4 = new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 4) };
+        eventConsumer = new EventConsumer[] {
+          new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 1),
+          new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 2),
+          new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 3),
+          new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 4) };
 
         /* add set up to the testsuite */
         addTest(new Setup());
         /* add the monitor */
         addTest(new Monitor());
         /* add the first consumer */
-        addTest(consumer1);
+        //addTest(consumer1);
         /* add the second consumer */
-        addTest(consumer2);
+        //addTest(consumer2);
         /* add the third consumer */
-        addTest(consumer3);
+        //addTest(consumer3);
         /* add the fourth consumer */
-        addTest(consumer4);
+        //addTest(consumer4);
         /* add the cleanup class */
         addTest(new Cleanup(eventConsumer));
 
@@ -199,9 +189,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         public void runTest() throws Throwable {
 
             /* register the consumer 1 */
-            consumer1.register();
+            eventConsumer[0].register();
             /* registe consumer 2 */
-            consumer2.register();
+            eventConsumer[1].register();
+
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
 
             /*
              * set this will tell the publisher to save the last published
@@ -211,8 +204,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             /* start to publish synchronus */
             eventPublisher.startSendSynchronus();
             /* print that publication is started */
-            System.out
-                    .println("\n ************* Starting to publish synchronus ************ \n");
+            System.out.println("************* Starting to publish synchronus ************");
 
 
             /* lock the object */
@@ -221,16 +213,18 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                 wait(2000);
             }
 
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* tell the publisher to stop register */
             synchronized(dummySemaphore){
                 shouldRegister = false;
             }
 
             /* register the service */
-            consumer3.register(true, ASSERT_SYNCHRONUS);
+            eventConsumer[2].register(true, ASSERT_SYNCHRONUS);
             /* register a third consumer */
-            System.out
-                    .println("\n\n ************** Register the third consumer ************\n\n");
+            System.out.println("************** Register the third consumer ************");
 
             /* lock this object */
             synchronized (this) {
@@ -238,13 +232,15 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                 wait(50);
             }
 
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* lock the publisher */
             synchronized (eventPublisher) {
                 eventPublisher.stopSend();
             }
 
-            System.out
-                    .println("\n ************* Starting to publish asynchronus ************ \n");
+            System.out.println("************* Starting to publish asynchronus ************");
 
             /*
              * this will tell the publisher to save the last sent asyncrhonus
@@ -253,6 +249,10 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             synchronized(dummySemaphore){
                 shouldRegister = true;
             }
+
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* this will start the publication */
             eventPublisher.startSendAsynchronus();
 
@@ -263,30 +263,38 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 
             }
 
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* tell the publisher to stop register */
             synchronized(dummySemaphore){
                 shouldRegister = false;
             }
 
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* register the fourth consumer */
-            consumer4.register(true, ASSERT_ASYNCHRONUS);
+            eventConsumer[3].register(true, ASSERT_ASYNCHRONUS);
             /* print that the comsumer is registered */
-            System.out
-                    .println("\n\n *************** Register the fourth consumer ****************\n\n");
+            System.out.println("*************** Register the fourth consumer ****************");
 
             /* lock this object */
             synchronized (this) {
                 wait(10);
             }
 
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* stop the publisher */
             eventPublisher.stopSend();
 
+            for (int i=0; i<eventConsumer.length; i++)
+              if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+
             /* print that the test is done */
-            System.out
-                    .println("\n****************** All messages sent test done ***************'\n");
-
-
+            System.out.println("****************** All messages sent test done ***************");
         }
 
         public String getName() {
@@ -331,12 +339,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             serviceReference = bundleContext
                     .getServiceReference(EventAdmin.class.getName());
 
-
             /* get the service */
             eventAdmin = (EventAdmin) bundleContext
                     .getService(serviceReference);
-
-
         }
 
         /**
@@ -367,16 +372,11 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                                 lastPublishedIDSynch = i;
                             }
                         }
-
-                        /* increase the variable */
                         i++;
                     }
-
                 }
             };
-
             thread.start();
-
         }
 
         /**
@@ -415,17 +415,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                                 lastPublishedIDAsynch = i;
                             }
                         }
-                        /* increase the variable */
                         i++;
                     }
-
                 }
             };
-
             thread.start();
-
         }
-
     }
 
     /**
@@ -452,6 +447,8 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 
         private ServiceRegistration serviceRegistration;
 
+        private Throwable error = null;
+
         /**
          * Constructor for the EventConsumer class this class will listen for
          * events and notify the Monitor class if changes have been made.
@@ -473,8 +470,10 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             displayName = name + ":" + id;
             /* assign the consume topics */
             topicsToConsume = topics;
+        }
 
-
+        public Throwable getError() {
+          return error;
         }
 
         /**
@@ -526,13 +525,13 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             /* register the service */
             serviceRegistration = bundleContext.registerService(EventHandler.class.getName(), this,
                     props);
-
         }
 
         /**
          * This method takes events from the event admin service.
          */
         public void handleEvent(Event event)  {
+          try {
             /* try to get the message */
             Object message = event.getProperty("Synchronus message");
 
@@ -542,7 +541,6 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                 System.out.println(displayName
                         + " received an Synchronus event with message:"
                         + message.toString());
-
 
                 if (shouldAssert && assertType == ASSERT_SYNCHRONUS ) {
                    lastPublished = lastPublishedIDSynch;
@@ -576,8 +574,6 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                      + lastPublished;
 
                     assertEquals(errorMessage,expected,true);
-
-
 
                 }
 
@@ -618,13 +614,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
                          + lastPublished;
 
                          assertEquals(errorMessage,expected,true);
-
-
-
                   }
-
                 }
             }
+          } catch (Throwable e) {
+            error = e;
+          }
 
         }
 
@@ -639,7 +634,5 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             }
             return name;
         }
-
     }
-
 }
