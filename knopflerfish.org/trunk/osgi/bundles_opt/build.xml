@@ -13,6 +13,7 @@
     <ant dir="dirdeployer"        target="all"/>
     <ant dir="desktop_awt"        target="all"/>
     <ant dir="kxml"               target="all"/>
+    <ant dir="j2me"               target="all"/>
   </target>
 
   <target name="clean">
@@ -26,6 +27,7 @@
     <ant dir="dirdeployer"        target="clean"/>
     <ant dir="desktop_awt"        target="clean"/>
     <ant dir="kxml"               target="clean"/>
+    <ant dir="j2me"               target="clean"/>
   </target>
 
 </project>
