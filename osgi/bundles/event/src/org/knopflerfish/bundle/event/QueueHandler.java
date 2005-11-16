@@ -30,18 +30,9 @@ import org.osgi.service.event.EventAdmin;
  * @author Magnus Klack (refactoring by Björn Andersson)
  */
 public class QueueHandler extends Thread {
-  /** the queue */
+
   private LinkedList syncQueue = new LinkedList();
-
-  /** variable indicating that this is running */
   private boolean running;
-
-  /**
-   * Constructor for the QueueHandler
-   */
-  public QueueHandler() {
-    running = true;
-  }
 
   /**
    * This adds a new InternalAdminEvent to the que
@@ -53,7 +44,7 @@ public class QueueHandler extends Thread {
       // Noone to deliver to
       return;
     }
-    synchronized(this) {
+    synchronized (this) {
       syncQueue.add(event);
       notifyAll();
     }
@@ -63,18 +54,25 @@ public class QueueHandler extends Thread {
    * Inherited from Thread, starts the thread.
    */
   public void run() {
+    running = true;
     while (running) {
+      InternalAdminEvent event = null;
       synchronized (this) {
         if (!syncQueue.isEmpty()) {
-          ((InternalAdminEvent) syncQueue.removeFirst()).deliver();
-        } else {
+          event = ((InternalAdminEvent) syncQueue.removeFirst());
+        }
+      }
+      if (event != null) {
+        event.deliver(); // Must be outside synchronized since the delivery can cause new events.
+      } else {
+        synchronized (this) {
           try {
             wait();
           } catch (InterruptedException e) {
-            Activator.log.error("Worker was interrupted unexpected");
+            Activator.log.error("QueueHandler was interrupted unexpectedly");
           }
         }
-      }// end synchronized
+      }
     }//end while...
   }// end run()
 
