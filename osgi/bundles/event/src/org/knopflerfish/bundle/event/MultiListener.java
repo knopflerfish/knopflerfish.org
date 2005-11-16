@@ -168,13 +168,17 @@ public class MultiListener implements LogListener,
     }
 
     /* Stores the properties of the event in the dictionary */
-    putProp(props, "bundle.id", new Long(bundle.getBundleId()));
-    putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os?ker p? denna, ska bara s?ttas om den inte ?r null
-    putProp(props, "bundle", bundle);
-    putProp(props, "log.level", new Integer(logEntry.getLevel()));
-    putProp(props, EventConstants.MESSAGE, logEntry.getMessage());
-    putProp(props, EventConstants.TIMESTAMP, new Long(logEntry.getTime()));
-    putProp(props, "log.entry", logEntry);
+    if (bundle != null) {
+      putProp(props, "bundle.id", new Long(bundle.getBundleId()));
+      putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());
+      putProp(props, "bundle", bundle);
+    }
+    if (logEntry != null) {
+      putProp(props, "log.level", new Integer(logEntry.getLevel()));
+      putProp(props, EventConstants.MESSAGE, logEntry.getMessage());
+      putProp(props, EventConstants.TIMESTAMP, new Long(logEntry.getTime()));
+      putProp(props, "log.entry", logEntry);
+    }
 
     /* If the event contains an exception, further properties shall be set */
     if (logEntry.getException() != null) {

@@ -65,7 +65,7 @@ public class DeliverSession {
 
       /* Tries to get the timeout property from the system*/
       try {
-        timeout = Long.parseLong(System.getProperty(TIMEOUT_PROP));
+        timeout = Long.parseLong(System.getProperty(TIMEOUT_PROP, "0"));
       } catch (NumberFormatException ignore) {}
     }
 
@@ -272,9 +272,7 @@ public class DeliverSession {
       public void run() {
         if (Activator.log.doDebug()) Activator.log.debug("TimeOutDeliver.run()");
         try {
-          synchronized(currentHandler){
-            currentHandler.handleEvent(event);
-          }
+          currentHandler.handleEvent(event);
           /* tell the owner that notification is done */
           owner.interrupt();
         } catch (Exception e) {
