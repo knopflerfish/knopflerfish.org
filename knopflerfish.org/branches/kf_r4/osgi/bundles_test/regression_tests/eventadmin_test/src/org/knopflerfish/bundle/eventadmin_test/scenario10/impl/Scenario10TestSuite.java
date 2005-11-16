@@ -205,12 +205,10 @@ public class Scenario10TestSuite extends TestSuite {
             /* uninstall the bundle */
             bundle.uninstall();
 
-
-
+            try {
+              Thread.sleep(500); // allow for delivery
+            } catch (Exception ignore) {}
         }
-
-
-
     }
 
     /**
@@ -338,7 +336,7 @@ public class Scenario10TestSuite extends TestSuite {
                 System.out.println(displayName + " receviced topic:"
                         + event.getTopic());
 
-                /* register a fail */
+                /* register a failure */
                 fail("Order not granted in event admin service");
 
             }

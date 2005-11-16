@@ -72,14 +72,14 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
                 1,1, "Scenario 2 EventConsumer1", 2),
           new EventConsumer(bundleContext, scenario2_topics2,
                 2,2, "Scenario 2 EventConsumer2", 2) };
-        addTest(eventConsumer[0]);
         addTest(eventConsumer[1]);
+        addTest(eventConsumer[0]);
         /* add the event publisher to the test suite */
         addTest(new EventPublisher(bundleContext, "Scenario 2 EventPublisher",
             scenario2_topicsToPublish, 2, 4));
         /* add the cleanup class */
         addTest(new Cleanup(eventConsumer));
-        }
+    }
 
     /**
      * Sets up neccessary environment
@@ -237,6 +237,12 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
             asynchDeliver.start();
             /* wait until thread is dead */
             asynchDeliver.join();
+
+            bundleContext.ungetService(serviceReference);
+
+            try {
+              Thread.sleep(500); // allow for delivery
+            } catch (Exception ignore) {}
         }
     }
 
@@ -261,6 +267,8 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
 
         /** class variable indication the number of asynchronous messages to be received */
         private int numAsyncMessages;
+
+        private Throwable error;
 
         /**
          * Constructor creates a consumer service
@@ -302,25 +310,31 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
             }
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
             try {
                 serviceRegistration.unregister();
             } catch (IllegalStateException ignore) {}
+            if (error != null) {
+              throw error;
+            }
+            assertTrue("Not all synch messages recieved", synchMessages == numSyncMessages);
+            assertTrue("Not all asynch messages recieved", asynchMessages == numAsyncMessages);
         }
 
         /**
          * This method takes events from the event admin service.
          */
         public void handleEvent(Event event) {
+          try {
 
-          /* get the topic from the event*/
-          String eventTopic = event.getTopic();
-          /* make a topic permission from the received topic in order to check it*/
-          TopicPermission permissionAccuired = new TopicPermission(eventTopic, "SUBSCRIBE");
-          /* make a topic permission from the topic to consume in order to check it*/
-          TopicPermission actualPermission = new TopicPermission(topicsToConsume[0], "SUBSCRIBE");
-          /* assert if the topic in the event is the same as the topic to listen fore including wildcard */
-          assertTrue("The topics was not equal", actualPermission.implies(permissionAccuired));
+            /* get the topic from the event*/
+            String eventTopic = event.getTopic();
+            /* make a topic permission from the received topic in order to check it*/
+            TopicPermission permissionAccuired = new TopicPermission(eventTopic, "SUBSCRIBE");
+            /* make a topic permission from the topic to consume in order to check it*/
+            TopicPermission actualPermission = new TopicPermission(topicsToConsume[0], "SUBSCRIBE");
+            /* assert if the topic in the event is the same as the topic to listen fore including wildcard */
+            assertTrue("The topics was not equal", actualPermission.implies(permissionAccuired));
 
             Object message;
             /* try to get the message */
@@ -328,24 +342,27 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
 
             if(message != null){
                 /* its an asyncronous message */
-                synchMessages++;
-
                 System.out.println(getName() + " recived an Synchronus event with message:" + message.toString());
-
+                /* assert that the messages of syncronous type are not to many */
+                assertTrue("to many synchronous messages", synchMessages < numSyncMessages);
+                synchMessages++;
+                System.out.println("Max number of Sync messages is:"+numSyncMessages+"and number of received Sync messages is:"+ synchMessages);
             }else{
               message = event.getProperty("Asynchronus message");
               if(message!=null){
-                  asynchMessages++;
                   System.out.println(getName() + " recived an Asynchronus event with message:" + message.toString());
+                  /* assert that the messsage of the asyncronous type are not to many */
+                  assertTrue("to many asynchronous messages", asynchMessages < numAsyncMessages);
+                  asynchMessages++;
+                  System.out.println("Max number of Async messages is:"+numAsyncMessages+"and number of received Async messages is:"+ asynchMessages);
               }
             }
-
-            /* assert that the messages of syncronous type are not to many */
-            System.out.println("Max number of Sync messages is:"+numSyncMessages+"and number of received Sync messages is:"+ synchMessages);
-            assertTrue("to many synchronous messages", synchMessages<numSyncMessages+1);
-            /* assert that the messsage of the asyncronous type are not to many */
-            assertTrue("to many asynchronous messages", asynchMessages<numAsyncMessages+1);
-
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
         }
     }
 }
