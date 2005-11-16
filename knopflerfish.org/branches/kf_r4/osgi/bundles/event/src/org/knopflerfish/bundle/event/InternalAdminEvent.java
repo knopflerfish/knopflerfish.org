@@ -66,8 +66,6 @@ public class InternalAdminEvent {
     // get if the topic is wellformatted
     isWellFormatted = topicIsWellFormatted(event.getTopic());
 
-    if (Activator.log.doDebug()) Activator.log.debug("Checks: " + canPublish + " " + canSubscribe + " " + isWellFormatted);
-
     if (canPublish && canSubscribe && isWellFormatted) {
       // create an instance of the deliver session to deliver events
       DeliverSession deliverSession;
