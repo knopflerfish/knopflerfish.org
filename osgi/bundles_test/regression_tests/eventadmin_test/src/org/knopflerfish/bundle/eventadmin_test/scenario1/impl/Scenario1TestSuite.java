@@ -109,6 +109,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
         }
         public void runTest() throws Throwable {
           eventConsumer.cleanup();
+System.out.println("End of Scenario 1");
         }
         public String getName() {
             String name = getClass().getName();
@@ -232,6 +233,10 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
             asynchDeliver.join();
 
             bundleContext.ungetService(serviceReference);
+
+            try {
+              Thread.sleep(500); // allow for delivery
+            } catch (Exception ignore) {}
         }
     }
 
@@ -258,6 +263,8 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
 
         /** class variable holding the old asyncronus message nummber */
         private int asynchMessageExpectedNumber=0;
+
+        private Throwable error;
 
         /**
          * Constructor creates a consumer service
@@ -302,10 +309,15 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
 
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
             try {
                 serviceRegistration.unregister();
             } catch (IllegalStateException ignore) {}
+            if (error != null) {
+              throw error;
+            }
+            assertTrue("Not all synch messages recieved", MESSAGES_SENT == synchMessageExpectedNumber);
+            assertTrue("Not all asynch messages recieved", MESSAGES_SENT == asynchMessageExpectedNumber);
         }
 
         public void reset(){
@@ -320,6 +332,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
          * This method takes events from the event admin service.
          */
         public void handleEvent(Event event) {
+          try {
             //System.out.println(getName() + " recived an event");
 
             TopicPermission permissionAquired = new TopicPermission((String)event.getProperty(EventConstants.EVENT_TOPIC),"subscribe");
@@ -371,10 +384,12 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
             assertTrue("to many synchronous messages in "+ getName() +" handleEvent()", numOfsynchMessages<MESSAGES_SENT+1);
             /* assert that the messsage of the asyncronous type are not to many */
             assertTrue("to many asynchronous messages in "+ getName() + "handleEvent()", numOfasynchMessages<MESSAGES_SENT+1);
-
-
-
-
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
         }
 
     }
