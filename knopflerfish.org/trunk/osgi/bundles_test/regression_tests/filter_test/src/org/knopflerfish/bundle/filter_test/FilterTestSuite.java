@@ -284,6 +284,7 @@ public class FilterTestSuite extends TestSuite {
 	  "(BigInteger<=-98765432109876543211)",
 	  // Greater Equal tests
 	  "(String>=tests)",
+	  //triggering an exception on purpose
 	  "(Byte>=160)",
 	  "(Character>=Y)",
 	  "(Short>=11)",
