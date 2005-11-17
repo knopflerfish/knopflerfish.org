@@ -37,23 +37,26 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.security.*;
 
-import java.util.Set;
+//import java.util.Set;
 import java.util.Dictionary;
+/*
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
-
+*/
 
 import org.osgi.framework.*;
+import org.osgi.framework.AdminPermission;
 
 /**
  * Implementation of the BundleContext object.
  *
  * @see org.osgi.framework.BundleContext
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 public class BundleContextImpl
   implements BundleContext
@@ -70,12 +73,34 @@ public class BundleContextImpl
   private BundleImpl bundle;
 
 
+  private AdminPermission LISTENER_ADMIN_PERM;
+
+  private void initPerm(){
+	 if(System.getSecurityManager() != null){
+		 LISTENER_ADMIN_PERM = new AdminPermission(bundle, AdminPermission.LISTENER);
+	 }
+  }
+  
+  private void checkListenerAdminPerm(){
+	  if(LISTENER_ADMIN_PERM != null){
+		  AccessController.checkPermission(LISTENER_ADMIN_PERM);
+	  }
+  }
+  
+  private void checkLifecycleAdminPerm(BundleImpl bundle){
+	  //looks like unrelated check but it's not
+      if(LISTENER_ADMIN_PERM != null){
+      	AccessController.checkPermission(new AdminPermission(bundle, AdminPermission.LIFECYCLE));
+  	  }
+  }
+  
   /**
    * Create a BundleContext for specified bundle.
    */
   public BundleContextImpl(BundleImpl bundle) {
     this.bundle = bundle;
     framework = bundle.framework;
+    initPerm();
   }
 
   //
@@ -100,8 +125,16 @@ public class BundleContextImpl
    */
   public Bundle installBundle(String location) throws BundleException {
     isBCvalid();
-    framework.checkAdminPermission();
-    return framework.bundles.install(location, (InputStream)null);
+    //TODO install/uninstall scheme a bit weird: revisit
+    BundleImpl bundle = framework.bundles.install(location, null);
+    try{
+    	checkLifecycleAdminPerm(bundle);
+    }
+    catch(AccessControlException ace){
+    	bundle.uninstall();
+    	throw ace;
+    }
+    return bundle;
   }
 
 
@@ -115,8 +148,15 @@ public class BundleContextImpl
   {
     try {
       isBCvalid();
-      framework.checkAdminPermission();
-      return framework.bundles.install(location, in);
+      BundleImpl bundle = framework.bundles.install(location, in);
+      try{
+      	checkLifecycleAdminPerm(bundle);
+      }
+      catch(AccessControlException ace){
+      	bundle.uninstall();
+      	throw ace;
+      }
+      return bundle;
     } finally {
       if (in != null) {
 	try {
@@ -144,7 +184,6 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
-    isBCvalid();
     return framework.bundles.getBundle(id);
   }
 
@@ -155,7 +194,6 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundles
    */
   public Bundle[] getBundles() {
-    isBCvalid();
     return framework.bundles.getBundles();
   }
 
@@ -204,7 +242,7 @@ public class BundleContextImpl
   public void addBundleListener(BundleListener listener) {
     isBCvalid();
     if (listener instanceof SynchronousBundleListener) {
-      framework.checkAdminPermission();
+    	checkListenerAdminPerm();
     }
     framework.listeners.addBundleListener(bundle, listener);
   }
@@ -218,7 +256,7 @@ public class BundleContextImpl
   public void removeBundleListener(BundleListener listener) {
     isBCvalid();
     if (listener instanceof SynchronousBundleListener) {
-      framework.checkAdminPermission();
+    	checkListenerAdminPerm();
     }
     framework.listeners.removeBundleListener(bundle, listener);
   }
@@ -282,15 +320,18 @@ public class BundleContextImpl
   public ServiceReference[] getServiceReferences(String clazz, String filter)
     throws InvalidSyntaxException {
     isBCvalid();
-    if (framework.bPermissions) {
-      try {
-	String c = (clazz != null) ? clazz : "*";
-	AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
-      } catch (AccessControlException ignore) {
-	return null;
-      }
-    }
-    return framework.services.get(clazz, filter);
+    return framework.services.get(clazz, filter, bundle, true, framework.permissions != null);
+  }
+  
+  /**
+   * Get a list of service references.
+   *
+   * @see org.osgi.framework.BundleContext#getAllServiceReferences
+   */
+  public ServiceReference[] getAllServiceReferences(String clazz, String filter) 
+  throws InvalidSyntaxException {
+	  isBCvalid();
+	  return framework.services.get(clazz, filter, null, false, framework.permissions != null);
   }
 
 
@@ -301,15 +342,15 @@ public class BundleContextImpl
    */
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
-    if (framework.bPermissions) {
+    if (framework.permissions != null) {
       try { 
 	String c = (clazz != null) ? clazz : "*";
 	AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
-      } catch (AccessControlException ignore) {
+      } catch (AccessControlException e) {
 	return null;
       }
     }
-    return framework.services.get(clazz);
+    return framework.services.get(bundle, clazz);
   }
 
 
@@ -361,7 +402,7 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getDataFile
    */
-  public File getDataFile(String filename) {
+  public File getDataFile(String filename) {  
     isBCvalid();
     File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
@@ -415,9 +456,6 @@ public class BundleContextImpl
     }
   }
 
-public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
-	// TODO Auto-generated method stub
-	return null;
-}
+
 
 }
