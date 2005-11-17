@@ -54,6 +54,7 @@ import java.net.URL;
  * @author Jan Stein
  * @author Erik Wistrand
  * @author Robert Shelley
+ * @author Philippe Laporte
  */
 class BundleArchiveImpl implements BundleArchive
 {
@@ -61,11 +62,12 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Bundle status files
    */
-  private final static String LOCATION_FILE   = "location";
-  private final static String REV_FILE        = "revision";
-  private final static String STOP_FILE       = "stopped";
-  private final static String STARTLEVEL_FILE = "startlevel";
-  private final static String PERSISTENT_FILE = "persistent";
+  private final static String LOCATION_FILE      = "location";
+  private final static String REV_FILE           = "revision";
+  private final static String STOP_FILE          = "stopped";
+  private final static String STARTLEVEL_FILE    = "startlevel";
+  private final static String PERSISTENT_FILE    = "persistent";
+  private final static String LAST_MODIFIED_FILE = "lastModifed";
 
   /**
    * Method mapLibraryName if we run in a Java 2 environment.
@@ -97,7 +99,9 @@ class BundleArchiveImpl implements BundleArchive
 
   private int startLevel = -1;
 
-  private boolean bPersistant = false;
+  private boolean bPersistent = false;
+  
+  private long lastModified = 0;
 
   static {
     try {
@@ -154,23 +158,31 @@ class BundleArchiveImpl implements BundleArchive
       throw new IOException("No bundle location information found");
     }
     int rev = -1;
-    String revS = getContent(REV_FILE);
-    if (revS != null) {
+    String s = getContent(REV_FILE);
+    if (s != null) {
       try {
-	rev = Integer.parseInt(revS);
+	rev = Integer.parseInt(s);
       } catch (NumberFormatException e) { }
     }
 
-    String slS = getContent(STARTLEVEL_FILE);
-    if (slS != null) {
+    s = getContent(STARTLEVEL_FILE);
+    if (s != null) {
       try {
-	startLevel = Integer.parseInt(slS);
+	startLevel = Integer.parseInt(s);
       } catch (NumberFormatException e) { }
     }
 
-    String pS = getContent(PERSISTENT_FILE);
-    if (pS != null) {
-      bPersistant = "true".equals(pS);
+    s = getContent(PERSISTENT_FILE);
+    if (s != null) {
+      bPersistent = "true".equals(s);
+    }
+    
+    s = getContent(LAST_MODIFIED_FILE);
+    if (s != null) {
+    	try {
+    		lastModified = Long.parseLong(s);
+    	} 
+    	catch (NumberFormatException ignore) {}
     }
 
     archive       = new Archive(bundleDir, rev, location);
@@ -245,12 +257,10 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   /**
-   * Get all attributes from the manifest of a bundle.
-   *
-   * @return All attributes, null if bundle doesn't exists.
+   * @see org.knopflerfish.framework.BundleArchive#getAttributes
    */
-  public Dictionary getAttributes() {
-    return new HeaderDictionary(archive.getAttributes());
+  public Dictionary getAttributes(String locale) {
+    return new HeaderDictionary(archive.getAttributes(locale));
   }
 
   /**
@@ -283,18 +293,26 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   public void setPersistent(boolean b) throws IOException {
-    if (bPersistant != b) {
-      bPersistant = b;
+    if (bPersistent != b) {
+      bPersistent = b;
       putContent(PERSISTENT_FILE, b ? "true" : "false");
     }
   }
 
 
   public boolean isPersistent() {
-    return bPersistant;
+    return bPersistent;
   }
 
-
+  public long getLastModified() {
+		return lastModified;
+  }
+  
+  public void setLastModified(long timemillisecs) throws IOException{
+	  lastModified = timemillisecs;
+	  putContent(LAST_MODIFIED_FILE, Long.toString(timemillisecs));
+  }
+  
 
   /**
    * Get a byte array containg the contents of named file from a bundle
@@ -485,7 +503,7 @@ class BundleArchiveImpl implements BundleArchive
    * Read content of file as a string.
    *
    * @param f File to write too
-   * @return contenet String to write
+   * @return content String to write
    */
   private String getContent(String f) {
     DataInputStream in = null;
@@ -696,5 +714,7 @@ class BundleArchiveImpl implements BundleArchive
     }
     return false;
   }
+
+
 
 }
