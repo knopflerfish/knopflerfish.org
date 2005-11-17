@@ -53,6 +53,8 @@ import java.security.ProtectionDomain;
  * @author Jan Stein
  */
 public class SystemBundle extends BundleImpl {
+	
+  	
 
   /**
    * Property name for telling which packages framework exports.
@@ -74,19 +76,12 @@ public class SystemBundle extends BundleImpl {
 
 
   /**
-   * Construct a the System Bundle handle.
+   * Construct the System Bundle handle.
    *
-   * @param bundlesDir Directory where to store the bundles all persistent data.
-   * @param fw Framework for this bundle.
-   * @param loc Location for new bundle.
-   * @param in Bundle JAR as an inputstream.
-   * @exception SecurityException If we don't have permission to import and export
-   *            bundle packages.
    */
   SystemBundle(Framework fw, ProtectionDomain pd) {
     super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd);
     state = STARTING;
-
     StringBuffer sp = new StringBuffer(System.getProperty(SYSPKG, ""));
 
     if (sp.length() > 0) {
@@ -138,7 +133,7 @@ public class SystemBundle extends BundleImpl {
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
-	      "=" +  "1.2");
+	      "=" +  "1.3");
     
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
@@ -198,8 +193,9 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#start
    */
-  synchronized public void start() throws BundleException {
-    framework.checkAdminPermission();
+  synchronized public void start() throws BundleException 
+  {
+	checkExecuteAdminPerm();
   }
 
 
@@ -210,7 +206,7 @@ public class SystemBundle extends BundleImpl {
    */
   synchronized public void stop() throws BundleException
   {
-    framework.checkAdminPermission();
+	checkExecuteAdminPerm();
     Main.shutdown(0);
   }
 
@@ -221,7 +217,7 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#update
    */
   synchronized public void update(InputStream in) throws BundleException {
-    framework.checkAdminPermission();
+	checkLifecycleAdminPerm();
     if(Framework.R3_TESTCOMPLIANT || "true".equals(System.getProperty("org.knopflerfish.framework.restart.allow", "true"))) {
       Main.restart();
     } else {
@@ -236,7 +232,7 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#uninstall
    */
   synchronized public void uninstall() throws BundleException {
-    framework.checkAdminPermission();
+	checkLifecycleAdminPerm();
     throw new BundleException("uninstall of System bundle is not allowed");
   }
     
@@ -247,7 +243,7 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders() {
-    framework.checkAdminPermission();
+	checkMetadataAdminPerm();
     if (headers == null) {
       headers = new HeaderDictionary();
       headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
