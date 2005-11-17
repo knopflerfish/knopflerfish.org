@@ -137,9 +137,9 @@ public class ServiceURLStreamHandlerFactory
 	URLConstants.URL_HANDLER_PROTOCOL + 
 	"=" + protocol + 
 	")";
-      
+//    TODO true or false?
       ServiceReference[] srl = framework.services
-	.get(URLStreamHandlerService.class.getName(), filter);
+	.get(URLStreamHandlerService.class.getName(), filter, null, false, false);
       
       if(srl != null && srl.length > 0) {
 	URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)
