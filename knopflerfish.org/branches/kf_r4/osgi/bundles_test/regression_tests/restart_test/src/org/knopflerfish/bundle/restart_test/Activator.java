@@ -39,6 +39,8 @@ import org.osgi.framework.*;
 import junit.framework.*;
 import java.io.*;
 
+//TODO test persistency of bundle.lastModified()
+
 public class Activator implements BundleActivator {
   
   static final String STATE_FILENAME = "state.props";
