@@ -107,9 +107,9 @@ public class ServiceContentHandlerFactory
   ContentHandler getServiceHandler(String mimetype) {
     try {
       String filter = "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype + ")";
-      
+      //TODO true or false?
       ServiceReference[] srl = framework.services
-	.get(ContentHandler.class.getName(), filter);
+	.get(ContentHandler.class.getName(), filter, null, false, false);
       
       if(srl != null && srl.length > 0) {
 	ContentHandlerWrapper wrapper = 
