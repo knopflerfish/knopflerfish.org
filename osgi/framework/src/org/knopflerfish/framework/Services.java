@@ -57,16 +57,17 @@ import org.osgi.service.permissionadmin.PermissionAdmin;
 class Services {
 
   /**
-   * All registered services in current framework.
+   * All registered services in the current framework.
+   * Mapping of registered service to class names under which service is registerd.
    */
-  private List /* ServiceRegistration */ services = new ArrayList();
-
+  //private List /* ServiceRegistration */ services = new ArrayList();
+	private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
 
   /**
    * Mapping of classname to registered service.
    */
-  private Map /* String->ServiceRegistration */ classServices = new HashMap();
-
+  private HashMap /* String->ServiceRegistration */ classServices = new HashMap();
+  
 
   /**
    * Register a service in the framework wide register.
@@ -89,20 +90,20 @@ class Services {
 			       Object service,
 			       Dictionary properties) {
     if (service == null) {
-      throw new IllegalArgumentException("Can't register null as service");
+      throw new IllegalArgumentException("Can't register null as a service");
     }
     ServiceRegistration res;
     synchronized (this) {
-      // Check if service implements claimed classes and that they exists.
+      // Check if service implements claimed classes and that they exist.
       ClassLoader bcl = bundle.getClassLoader();
       for (int i = 0; i < classes.length; i++) {
 	if (classes[i] == null) {
 	  throw new IllegalArgumentException("Can't register as null class");
 	}
 
-	//	Debug.println("#" + bundle.getBundleId() + " registred " + i + ": " + classes[i] + " " + properties);
+	//	Debug.println("#" + bundle.getBundleId() + " registered " + i + ": " + classes[i] + " " + properties);
 
-	if (bundle.framework.bPermissions) {
+	if (bundle.framework.permissions != null) {
 	  AccessController.checkPermission(new ServicePermission(classes[i], ServicePermission.REGISTER));
 	  if (bundle.id != 0 && classes[i].equals(PermissionAdmin.class.getName())) {
 	    throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
@@ -127,16 +128,18 @@ class Services {
 	}
       }
       res = new ServiceRegistrationImpl(bundle, service,
-					new PropertiesDictionary(properties, classes, null));
-      services.add(res);
+					                    new PropertiesDictionary(properties, classes, null));
+     
+      services.put(res, classes);
       for (int i = 0; i < classes.length; i++) {
-	ArrayList s = (ArrayList) classServices.get(classes[i]);
-	if (s == null) {
-	  s = new ArrayList(1);
-	  classServices.put(classes[i], s);
-	}
-	s.add(res);
+    	  ArrayList s = (ArrayList) classServices.get(classes[i]);
+    	  if (s == null) {
+    		  s = new ArrayList(1);
+    		  classServices.put(classes[i], s);
+    	  }
+    	  s.add(res);
       }
+      
     }
     bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
     return res;
@@ -146,27 +149,41 @@ class Services {
   /**
    * Get a service implementing a certain class.
    *
+   * @param bundle bundle requesting reference
    * @param clazz The class name of requested service.
    * @return A {@link ServiceReference} object.
    */
-  synchronized ServiceReference get(String clazz) {
+  synchronized ServiceReference get(BundleImpl bundle, String clazz) {
+	//TODO spec omits to say when to do the isAssignableTo test
     ArrayList v = (ArrayList) classServices.get(clazz);
     if (v != null) {
-      ServiceReference res = ((ServiceRegistration)v.get(0)).getReference();
+      ServiceReference lowestId = ((ServiceRegistration)v.get(0)).getReference();
+      ServiceReference res = lowestId;
       int size = v.size();
       if (size > 1) {
-	int rank_res = ranking(res);
-	for (int i = 1; i < size; i++) {
-	  ServiceReference s = ((ServiceRegistration)v.get(i)).getReference();
-	  int rank_s = ranking(s);
-	  if (rank_s > rank_res) {
-	    res = s;
-	    rank_res = rank_s;
-	  }
-	}
+    	  int rank_res = ranking(res);
+    	  for (int i = 1; i < size; i++) {
+    		  ServiceReference s = ((ServiceRegistration)v.get(i)).getReference();
+    		  int rank_s = ranking(s);
+    		  if (rank_s > rank_res && s.isAssignableTo(bundle, clazz)) {
+    			  res = s;
+    			  rank_res = rank_s;
+    		  }
+    	  }
       }
-      return res;
-    } else {
+      if(res == lowestId){
+    	  if(res.isAssignableTo(bundle, clazz)){
+    		  return res;
+    	  }
+    	  else{
+    		  return null;
+    	  }
+      }
+      else{
+    	  return res;
+      }
+    } 
+    else {
       return null;
     }
   }
@@ -178,14 +195,21 @@ class Services {
    *
    * @param clazz The class name of requested service.
    * @param filter The property filter.
+   * @param bundle bundle requesting reference. can be null if doAssignableToTest is false
+   * (this is not an interface class so don't check)
+   * @param isAssignableToTest whether to if the bundle that registered the service 
+   * referenced by this ServiceReference and the specified bundle are both wired to 
+   * same source for the registration class.
+   * @param checkSecurity whether to check security as specified in specs
    * @return An array of {@link ServiceReference} object.
    */
-  synchronized ServiceReference[] get(String clazz, String filter)
+  synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle,
+		                              boolean doAssignableToTest, boolean checkSecurity)
     throws InvalidSyntaxException {
     Iterator s;
     if (clazz == null) {
-      s = services.iterator();
-      if (s == null) {
+      s = services.keySet().iterator();
+      if (s == null) { //TODO can this ever happen?
 	return null;
       }
     } else {
@@ -199,8 +223,44 @@ class Services {
     ArrayList res = new ArrayList();
     while (s.hasNext()) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
+      String[] classes = (String[]) services.get(sr);
+	  //should never happen
+	  if(classes == null){
+		  return null;
+	  }
+	  if (checkSecurity) {
+		  int failures = 0;
+		  int length = classes.length; //loop invariant. help the compiler
+		  for (int i = 0; i < length; i++) {
+			  try {
+				  AccessController.checkPermission(new ServicePermission(classes[i], 
+					                               ServicePermission.GET));
+			  } 
+			  catch (AccessControlException e) {
+				  failures++;
+			  }
+		  }
+		  if(failures == length){
+			  continue; //sr not part of returned set
+		  }
+	  }
+      
       if (filter == null || LDAPExpr.query(filter, sr.properties)) {
-	res.add(sr.getReference());
+    	  if(doAssignableToTest){
+    		  int i;
+    		  int length = classes.length;
+    	      for (i = 0; i < length; i++) {
+    	    	  if(!sr.getReference().isAssignableTo(bundle, classes[i])){
+    	    		  break;
+    			  }
+    		  }
+    	      if(i == length){
+    		      res.add(sr.getReference());
+    		  }
+    	  }
+    	  else{
+    		  res.add(sr.getReference());
+    	  }
       }
     }
     if (res.isEmpty()) {
@@ -208,7 +268,6 @@ class Services {
     } else {
       ServiceReference[] a = new ServiceReference[res.size()];
       res.toArray((Object[])a);
-      //      System.out.println("*** return " + res);
       return a;
     }
   }
@@ -241,7 +300,7 @@ class Services {
    */
   synchronized Set getRegisteredByBundle(Bundle b) {
     HashSet res = new HashSet();
-    for (Iterator e = services.iterator(); e.hasNext();) {
+    for (Iterator e = services.keySet().iterator(); e.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
       if (sr.bundle == b) {
 	res.add(sr);
@@ -259,7 +318,7 @@ class Services {
    */
   synchronized Set getUsedByBundle(Bundle b) {
     HashSet res = new HashSet();
-    for (Iterator e = services.iterator(); e.hasNext();) {
+    for (Iterator e = services.keySet().iterator(); e.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
       if (sr.isUsedByBundle(b)) {
 	res.add(sr);
