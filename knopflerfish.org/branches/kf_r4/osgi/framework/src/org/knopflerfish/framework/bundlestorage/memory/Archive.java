@@ -34,15 +34,16 @@
 
 package org.knopflerfish.framework.bundlestorage.memory;
 
-import org.knopflerfish.framework.*;
+//import org.knopflerfish.framework.*;
 import org.osgi.framework.Constants;
 import java.io.*;
-import java.net.*;
-import java.security.*;
+//import java.net.*;
+//import java.security.*;
 import java.util.HashMap;
+import java.util.Locale;
 
 import java.util.jar.*;
-import java.util.zip.*;
+//import java.util.zip.*;
 
 /**
  * JAR file handling.
@@ -120,8 +121,18 @@ class Archive {
    *
    * @return All attributes.
    */
-  Attributes getAttributes() {
-    return manifest.getMainAttributes();
+  Attributes getAttributes(String locale) {
+	  Attributes attr = manifest.getMainAttributes();
+	    //TODO finish up
+	    if(locale != null && locale.equals("")){
+	    	return attr;
+	    }
+	    else if (locale == null){
+	    	Locale localeL = Locale.getDefault();
+	    	//TODO what should this be?
+	    	locale = localeL.getLanguage();
+	    }
+	    return attr;
   }
   
 
