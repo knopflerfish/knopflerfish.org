@@ -40,18 +40,15 @@ import java.io.*;
 import java.util.Vector;
 import java.util.Dictionary;
 import java.util.StringTokenizer;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Map;
-import java.net.URL;
+
 
 
 /**
  * Interface for managing bundle data.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  * @version $Revision: 1.2 $
  */
 class BundleArchiveImpl implements BundleArchive
@@ -72,7 +69,8 @@ class BundleArchiveImpl implements BundleArchive
   private boolean bFake;
 
   private int startLevel = -1;
-  private boolean bPersistant = false;
+  private boolean bPersistent = false;
+  private long lastModified;
 
   /**
    * Construct new bundle archive.
@@ -136,12 +134,10 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   /**
-   * Get all attributes from the manifest of a bundle.
-   *
-   * @return All attributes, null if bundle doesn't exists.
+   * @see org.knopflerfish.framework.BundleArchive#getAttributes
    */
-  public Dictionary getAttributes() {
-    return new HeaderDictionary(archive.getAttributes());
+  public Dictionary getAttributes(String locale) {
+    return new HeaderDictionary(archive.getAttributes(locale));
   }
 
   /**
@@ -171,12 +167,19 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   public void setPersistent(boolean b) {
-    bPersistant = b;
+    bPersistent = b;
   }
 
-
   public boolean isPersistent() {
-    return bPersistant;
+    return bPersistent;
+  }
+  
+  public long getLastModified() {
+	  return lastModified;
+  }
+
+  public void setLastModified(long timemillisecs) throws IOException{
+	  lastModified = timemillisecs;
   }
   
   /**
@@ -333,5 +336,8 @@ class BundleArchiveImpl implements BundleArchive
       archives = new Archive[] { archive };
     }
   }
+
+
+
 
 }
