@@ -36,8 +36,6 @@ package org.knopflerfish.bundle.framework_test;
 
 import java.util.*;
 import java.io.*;
-import java.math.*;
-import java.net.*;
 import java.lang.reflect.*;
 import java.security.*;
 
@@ -1000,6 +998,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   }
 
   private String getStateString(int bundleState) {
+	//TODO use constants instead  
     switch (bundleState) {
     case 0x01: return "UNINSTALLED";
     case 0x02: return "INSTALLED";
@@ -1008,7 +1007,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
     case 0x10: return "STOPPING";
     case 0x20: return "ACTIVE";
 
-    default: return "Unknow state";
+    default: return "Unknown state";
 
     }
   }
