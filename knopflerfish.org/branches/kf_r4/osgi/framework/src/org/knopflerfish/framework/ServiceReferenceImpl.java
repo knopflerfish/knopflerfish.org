@@ -173,7 +173,7 @@ public class ServiceReferenceImpl implements ServiceReference
 	Integer ref = (Integer)registration.dependents.get(bundle);
 	if (ref == null) {
 	  String[] classes = (String[])registration.properties.get(Constants.OBJECTCLASS);
-	  if (bundle.framework.bPermissions) {
+	  if (bundle.framework.permissions != null) {
 	    boolean perm = false;
 	    AccessControlContext acc = AccessController.getContext();
 	    for (int i = 0; i < classes.length; i++) {
@@ -324,9 +324,10 @@ public class ServiceReferenceImpl implements ServiceReference
     return val;
   }
 
-public boolean isAssignableTo(Bundle bundle, String className) {
+  public boolean isAssignableTo(Bundle bundle, String className) {
 	// TODO Auto-generated method stub
-	return false;
-}
+	//registration.bundle.  
+	return true;
+  }
 
 }
