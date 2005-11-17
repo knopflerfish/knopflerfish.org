@@ -47,7 +47,7 @@ import java.util.List;
 public interface BundleStorage {
 
   /**
-   * Insert bundle into persistent storagedataGet an attribute from the manifest of a bundle.
+   * Insert bundle into persistent storagedata.
    *
    * @param key Name of attribute to get.
    * @return 
