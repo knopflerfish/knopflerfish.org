@@ -38,11 +38,13 @@ import org.knopflerfish.framework.*;
 import org.osgi.framework.Constants;
 import java.io.*;
 import java.net.*;
-import java.security.*;
+//import java.security.*;
 import java.util.StringTokenizer;
 import java.util.Iterator;
 import java.util.jar.*;
 import java.util.zip.*;
+
+import java.util.Locale;
 
 /**
  * JAR file handling.
@@ -88,7 +90,7 @@ class Archive {
   private ZipFile jar;
 
   /**
-   * Archives manifest
+   * Archive's manifest
    */
   Manifest manifest = null;
 
@@ -347,11 +349,23 @@ class Archive {
 
   /**
    * Get all attributes from the manifest of the archive.
+   * @param locale, the locale to be used, null means use java.util.Locale.getDefault
+   * empty string means get raw (unlocalized) manifest headers
    *
    * @return All attributes.
    */
-  Attributes getAttributes() {
-    return manifest.getMainAttributes();
+  Attributes getAttributes(String locale) {
+    Attributes attr = manifest.getMainAttributes();
+    //TODO finish up
+    if(locale != null && locale.equals("")){
+    	return attr;
+    }
+    else if (locale == null){
+    	Locale localeL = Locale.getDefault();
+    	//TODO what should this be?
+    	locale = localeL.getLanguage();
+    }
+    return attr;
   }
   
 
@@ -649,7 +663,7 @@ class Archive {
 	  os.write(buf, 0, n);
 	}
       } catch (EOFException ignore) {
-	// On Pjava we somtimes get a mysterious EOF excpetion,
+	// On Pjava we sometimes get a mysterious EOF exception,
 	// but everything seems okey. (SUN Bug 4040920)
       }
     } catch (IOException e) {
