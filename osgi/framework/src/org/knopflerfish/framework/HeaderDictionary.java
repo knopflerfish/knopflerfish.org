@@ -34,20 +34,23 @@
 
 package org.knopflerfish.framework;
 
+/*
 import java.io.*;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.ArrayList;*/
 import java.util.Map;
+/*
 import java.util.HashSet;
 import java.util.HashMap;
+*/
 import java.util.Iterator;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
+//import java.util.Vector;
 
 import java.util.jar.*;
 
@@ -150,7 +153,7 @@ public class HeaderDictionary extends Dictionary
 
   
   /** 
-   * Returns the number of entries (dinstint keys) in this dictionary.
+   * Returns the number of entries (distinct keys) in this dictionary.
    */
   public int size() {
     return headers.size();
