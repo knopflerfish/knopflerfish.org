@@ -39,14 +39,14 @@ import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 
-import org.osgi.framework.*;
+import org.osgi.framework.AdminPermission;
 import org.osgi.service.permissionadmin.*;
 
 
 /**
- * Wrapps Permissions so that we can update it dynamicly.
+ * Wrapps Permissions so that we can update it dynamically.
  *
- * @author Jan Stein
+ * @author Jan Stein, Philippe Laporte
  */
 
 
@@ -56,11 +56,11 @@ class PermissionsWrapper extends PermissionCollection {
   private PermissionAdminImpl pa;
   private PermissionCollection permissions;
   private boolean readOnly = false;
-
+  
   PermissionsWrapper(PermissionAdminImpl p, BundleImpl b) {
     pa = p;
     bundle = b;
-    permissions = makePermissionCollection(b);;
+    permissions = makePermissionCollection(b);
   }
 
 
@@ -114,10 +114,10 @@ class PermissionsWrapper extends PermissionCollection {
 
 
   /**
-   * Create the permissionCollection assigned to the bundle with the specified id.
+   * Create the permissionCollection assigned to the bundle.
    * The collection contains the configured permissions for the bundle location
-   * plus implict granted permissions (FilePermission for the data area and
-   * java runtime permissions).
+   * plus implicitly granted permissions (FilePermission for the data area,
+   * java runtime permissions, and AdminPermissions.
    *
    * @param bundle The bundle whose permissions are to be created.
    *
@@ -149,6 +149,10 @@ class PermissionsWrapper extends PermissionCollection {
 	pc.add((Permission) e.nextElement());
       }
     }
+    pc.add(new AdminPermission(bundle, 
+    		                   AdminPermission.RESOURCE + "," +
+    		                   AdminPermission.METADATA + "," +
+    		                   AdminPermission.CLASS));
     return pc;
   }
 
@@ -159,11 +163,8 @@ class PermissionsWrapper extends PermissionCollection {
    *
    * @param pi Array of PermissionInfo to enter into the PermissionCollection.
    *
-   * @return The permissions assigned to the bundle with the specified
-   * location, or the default permissions if that bundle has not been assigned
-   * any permissions.
    */
-  private PermissionCollection makePermissionCollection(PermissionInfo[] pi) {
+  static PermissionCollection makePermissionCollection(PermissionInfo[] pi) {
     Permissions p = new Permissions();
     for (int i = pi.length - 1; i >= 0; i--) {
       String a = pi[i].getActions();
