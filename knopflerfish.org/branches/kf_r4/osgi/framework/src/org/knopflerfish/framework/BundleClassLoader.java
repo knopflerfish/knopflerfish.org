@@ -36,8 +36,8 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.security.*;
-
+//import java.security.*;
+/*
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.List;
@@ -45,18 +45,19 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Iterator;*/
 import java.util.Enumeration;
 import java.util.Vector;
 
-import java.util.jar.*;
+//import java.util.jar.*;
 
-import org.osgi.framework.*;
+//import org.osgi.framework.*;
 
 /**
  * Classloader for bundle JAR files.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 final public class BundleClassLoader extends ClassLoader {
 
@@ -81,7 +82,7 @@ final public class BundleClassLoader extends ClassLoader {
   private BundleArchive archive;
 
   /**
-   * Imported java package.
+   * Imported java packages.
    */
   private BundlePackages bpkgs = null;
 
@@ -201,7 +202,7 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected URL findResource(String name) {
     Enumeration e = findResources(name);
-    if (e.hasMoreElements()) {
+    if (e != null && e.hasMoreElements()) {
       return (URL)e.nextElement();
     }
     return null;
@@ -373,6 +374,14 @@ final public class BundleClassLoader extends ClassLoader {
   URL getBundleResource(String name) {
     return findResource(name);
   }
+  
+  /**
+   * Get all the resources with the given name in this bundle.
+   *
+   */
+  Enumeration getBundleResources(String name) {
+    return findResources(name);
+  }
 
   /**
    * Get bundle package handler.
@@ -391,7 +400,7 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @return Enumeration of resources
    */
-  private Enumeration findBundleResources(String name) {
+  Enumeration findBundleResources(String name) {
     Vector answer = new Vector(1);
     Vector items = archive.componentExists(name);
     if (items != null) {
@@ -402,7 +411,7 @@ final public class BundleClassLoader extends ClassLoader {
         
         try {
           /*
-           * Fix for Java profiles which does not support 
+           * Fix for Java profiles which do not support 
            * URL(String, String,int,String,URLStreamHandler).
            *  
            * These profiles must set the 
@@ -431,13 +440,18 @@ final public class BundleClassLoader extends ClassLoader {
           answer.addElement(url);
         } catch (MalformedURLException ignore) {
           ignore.printStackTrace();
-          // Return null since we couldn't construct a valid url.
+          //Return null since we couldn't construct a valid url.
+          return null;   
           // TODO: Rewrite URL if we have special characters.
         }
       }
     }
+    else{
+    	return null;
+    }
     return answer.elements();
   }
+  
 
-}
+} //class
 
