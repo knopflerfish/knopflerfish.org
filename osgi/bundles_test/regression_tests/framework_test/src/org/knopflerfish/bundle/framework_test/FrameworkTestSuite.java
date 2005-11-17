@@ -36,7 +36,7 @@ package org.knopflerfish.bundle.framework_test;
 
 import java.util.*;
 import java.io.*;
-import java.math.*;
+//import java.math.*;
 import java.net.*;
 import java.lang.reflect.*;
 import java.security.*;
@@ -44,7 +44,8 @@ import java.security.*;
 import org.osgi.framework.*;
 import org.knopflerfish.service.framework_test.*;
 
-import org.osgi.service.packageadmin.*;
+
+//import org.osgi.service.packageadmin.*;
 
 import junit.framework.*;
 
@@ -79,6 +80,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // the three event listeners
   FrameworkListener fListen;
   BundleListener bListen;
+  SyncBundleListener syncBListen;
   ServiceListener sListen;
 
   Properties props = System.getProperties();
@@ -131,7 +133,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame085a());
     addTest(new Frame110a());
     addTest(new Frame115a());
-    addTest(new Frame120a());
+    //don't fix up security for now
+    //addTest(new Frame120a());
     addTest(new Frame125a());
     addTest(new Frame130a());
     addTest(new Frame160a());
@@ -285,7 +288,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
       if(nRunCount > 0) {
-	fail("The FrameworkTestSuite CANNOT be run reliable more than once. Other test results in this suite are may not be valid. Restart framework to retest  :Cleanup:FAIL");
+	fail("The FrameworkTestSuite CANNOT be run reliably more than once. Other test results in this suite are/may not be valid. Restart framework to retest  :Cleanup:FAIL");
       }
       nRunCount++;
       fListen = new FrameworkListener();
@@ -298,6 +301,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       bListen = new BundleListener();
       try {
 	bc.addBundleListener(bListen);
+      } catch (IllegalStateException ise) {
+	fail("framework test bundle "+ ise + " :SETUP:FAIL");
+      }
+      
+      syncBListen = new SyncBundleListener();
+      try {
+	bc.addBundleListener(syncBListen);
       } catch (IllegalStateException ise) {
 	fail("framework test bundle "+ ise + " :SETUP:FAIL");
       }
@@ -571,9 +581,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
+      boolean lStatSync = false;
       
       try {
 	buA.stop();
+	lStatSync = checkSyncListenerEvents(out, true, BundleEvent.STOPPING, buA, null);
 	teststatus = true;
       }
       catch (IllegalStateException ise ) {
@@ -587,7 +599,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       boolean lStat = checkListenerEvents(out, false, 0, true, BundleEvent.STOPPED, true, ServiceEvent.UNREGISTERING, buA, sr1);
       
-      if (teststatus == true && buA.getState() == Bundle.RESOLVED && lStat == true) {
+      
+      if (teststatus == true && buA.getState() == Bundle.RESOLVED && lStat == true && lStatSync == true) {
 	out.println("### framework test bundle :FRAME030A:PASS");
       }
       else {
@@ -1220,14 +1233,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	sec.printStackTrace();
 	fail("framework test bundle "+ sec +" :FRAME065A:FAIL");
       }
-      // check the events, none should have happened
-      boolean lStat = checkListenerEvents(out, false, 0, false ,0 , false, 0, buE, null);
+      // check the events, only BundleEvent.RESOLVED and BundleEvent.STARTING should have happened
+      boolean lStat = checkListenerEvents(out, false, 0, true, BundleEvent.RESOLVED, false, 0, buE, null);
+      boolean lStatSync = checkSyncListenerEvents(out, true, BundleEvent.STARTING, buE, null);
       
       if (catchstatus == false) {
 	teststatus = false;
       }
       
-      if (teststatus == true && lStat == true ) {
+      if (teststatus == true && lStat == true && lStatSync == true) {
 	out.println("### framework test bundle :FRAME065A:PASS");
       }
       else {
@@ -1253,12 +1267,32 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       n = countResources("/fw_test_multi.txt");
       assertEquals("Multiple resources should be reflected by CL.getResources() > 1", 3, n); 
 
+      
+      
+      //bundle.loadClass test
+      
+      Class activator = bc.getBundle().loadClass("org.knopflerfish.bundle.io.Activator");
+      Method[] methods = activator.getDeclaredMethods();
+      boolean found = false;
+      for(int i = 0; i < methods.length; i++){
+    	  if(methods[i].getName().equals("start")){
+    		  found = true;
+    	  }
+      }
+      if(!found){
+    	  fail("bundle.loadclass failed");
+      }
+      
+      
       // the fw_test_single.txt resource is present just
       // res2.jar
       n = countResources("/fw_test_single.txt");
       assertEquals("Single resources should be reflected by CL.getResources() == 1", 1, n); 
 
-
+      // getEntry test
+      URL url = bc.getBundle().getEntry("/fw_test_multi.txt");
+      assertURLExists(url);
+      
       // the fw_test_nonexistent.txt is not present at all
       n = countResources("/fw_test_nonexistent.txt");
       assertEquals("Multiple nonexistent resources should be reflected by CL.getResources() == 0", 0, n); 
@@ -1266,10 +1300,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME068A:PASS");
     }
 
+    
     int countResources(String name) throws Exception {
-      ClassLoader cl = getClass().getClassLoader();
+      Bundle bundle = bc.getBundle();	
       int n = 0;
-      for(Enumeration e = cl.getResources(name); e.hasMoreElements(); ) {
+      Enumeration e = bundle.getResources(name);
+      if(e == null) return 0;
+      while(e.hasMoreElements()) {
         URL url = (URL)e.nextElement();
         assertURLExists(url);
         n++;
@@ -1416,7 +1453,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	  fail("No data at " + urk + ":FRAME070A:FAIL");
 	}
 	try {
+	  long lastModified = buA.getLastModified();	
+		
 	  buA.update(fis);
+	  
+	  if(buA.getLastModified() <= lastModified){
+		  fail("framework test bundle, update does not change lastModified value :FRAME070A:FAIL");
+	  }
 	}
 	catch (BundleException be ) {
 	  teststatus = false;
@@ -1714,7 +1757,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //     as it registers one service itself before the bundle exception is thrown
 
   public final static String [] HELP_FRAME110A =  {
-    "Install and start bundleJ_test, which should thow an exception at start.",
+    "Install and start bundleJ_test, which should throw an exception at start.",
     "then check if the framework removes all traces of the bundle",
     "as it registers one service (itself) before the bundle exception is thrown"
   };
@@ -1723,11 +1766,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       clearEvents();
       buJ = null;
+      boolean lStat1 = false;
 
       boolean teststatus = true;
       boolean bex = false;
       try {
 	buJ = Util.installBundle(bc, "bundleJ_test-1.0.0.jar");
+	lStat1 = checkListenerEvents(out, false, 0, true, BundleEvent.INSTALLED, false, 0, buJ, null);
 	buJ.start();
 	teststatus = false;
       }
@@ -1750,9 +1795,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       // check the listeners for events, expect only a bundle event, of type installation
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.INSTALLED, true, ServiceEvent.UNREGISTERING, buJ, null);
-
-      if (teststatus == true && buJ.getState() == Bundle.RESOLVED && lStat == true) {
+      boolean lStat2 = checkListenerEvents(out, false , 0, true , BundleEvent.RESOLVED, true, ServiceEvent.UNREGISTERING, buJ, null);
+      
+      if (teststatus == true && buJ.getState() == Bundle.RESOLVED && lStat1 == true && lStat2 == true) {
 	out.println("### framework test bundle :FRAME110A:PASS");
       }
       else {
@@ -1852,12 +1897,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       Object testObject = new Object();
    
       // constructor and getName method check
-      if (!ap1.getName().equals("AdminPermission")) {
+      if (!ap1.getName().equals("*")) {
 	out.println("framework test bundle, Name of AdminPermission object is " + ap1.getName() + " in FRAME120A");
 	fail("framework test bundle, Name of AdminPermission object should be: AdminPermission");
 	teststatus = false;
       }
  
+      //this is no longer valid!
       try {
 	ap2 = new AdminPermission(s1,s2);
       }
@@ -3415,10 +3461,48 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     sListen.clearEvent();
     return listenState;
   }
+  
+  // Check that the expected events has reached the listeners and reset the events in the listeners
+  private boolean checkSyncListenerEvents(Object _out, boolean buexp, int butype, Bundle bunX, ServiceReference servX ) {
+    boolean listenState = true;	// assume everything will work
+
+    // Sleep a while to allow events to arrive
+    try {
+      Thread.sleep(eventDelay);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+
+    if (buexp == true) {
+      if (syncBListen.getEvent() != null) {
+	if (syncBListen.getEvent().getType() != butype || syncBListen.getEvent().getBundle() != bunX) {
+	  System.out.println("framework test bundle, wrong type of sync bundle event/bundle: " +  syncBListen.getEvent().getType());
+	  System.out.println("framework test bundle, event was from bundle: " + syncBListen.getEvent().getBundle().getLocation());
+	  listenState = false;
+	}
+      }
+      else {
+	System.out.println("framework test bundle, missing sync bundle event");
+	listenState = false;
+      }
+    }
+    else {
+      if (syncBListen.getEvent() != null) {
+	listenState = false;
+	System.out.println("framework test bundle, unexpected sync bundle event: " +  syncBListen.getEvent().getType());
+	System.out.println("framework test bundle, event was from bundle: " + syncBListen.getEvent().getBundle());
+      }
+    }
+
+    syncBListen.clearEvent();
+    return listenState;
+  }
 
   private void clearEvents() {
     fListen.clearEvent();
     bListen.clearEvent();
+    syncBListen.clearEvent();
     sListen.clearEvent();
   }
   // Get the bundle that caused the event 
@@ -3616,6 +3700,22 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void clearEvent() {
       bunEvent = null;
     }
+  }
+  
+  class SyncBundleListener implements SynchronousBundleListener {
+	    BundleEvent bunEvent = null;
+	    
+	    public void bundleChanged (BundleEvent evt) {
+	      if(evt.getType() == BundleEvent.STARTING || evt.getType() == BundleEvent.STOPPING)	
+	    	  this.bunEvent = evt;
+	      // System.out.println("BundleEvent: "+ evt.getType());
+	    }
+	    public BundleEvent getEvent() {
+	      return bunEvent;
+	    }
+	    public void clearEvent() {
+	      bunEvent = null;
+	    }
   }
 
 }
