@@ -43,6 +43,7 @@ import java.util.Vector;
  * Interface for managing bundle data.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 public interface BundleArchive {
 
@@ -56,10 +57,12 @@ public interface BundleArchive {
 
   /**
    * Get all attributes from the manifest of a bundle.
+   * @param locale, the locale to be used, null means use java.util.Locale.getDefault
+   * empty string means get raw (unlocalized) manifest headers
    *
    * @return All attributes, null if bundle doesn't exists.
    */
-  Dictionary getAttributes();
+  Dictionary getAttributes(String locale);
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -88,6 +91,10 @@ public interface BundleArchive {
   void setPersistent(boolean b)  throws IOException;
 
   boolean isPersistent();
+  
+  long getLastModified();
+  
+  void setLastModified(long timemillisecs)throws IOException;
 
   /**
    * Get a byte array containg the contents of named file from a bundle
@@ -106,7 +113,7 @@ public interface BundleArchive {
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @return Vector or entry numbers, or null if it doesn't exist.
+   * @return Vector of entry numbers, or null if it doesn't exist.
    */
   Vector componentExists(String component);
 
