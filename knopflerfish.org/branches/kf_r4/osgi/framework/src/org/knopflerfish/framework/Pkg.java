@@ -35,9 +35,9 @@
 package org.knopflerfish.framework;
 
 import java.util.*;
-
+/*
 import org.osgi.framework.*;
-
+*/
 
 /**
  * Class representing a package.
