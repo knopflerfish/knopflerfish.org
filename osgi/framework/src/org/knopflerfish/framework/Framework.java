@@ -38,43 +38,32 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Vector;
 import java.util.Locale;
-
 
 import org.osgi.framework.*;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
+import org.osgi.framework.AdminPermission;
+
 
 /**
  * This class contains references to all common data structures
  * inside the framework.
  *
- * @author Jan Stein, Erik Wistrand
+ * @author Jan Stein, Erik Wistrand, Philippe Laporte
  */
 public class Framework {
 
   /**
    * Specification version for this framework.
    */
-  static final String SPEC_VERSION = "1.2";
-
-  /**
-   * AdminPermission used for permission check.
-   */
-  final static AdminPermission ADMIN_PERMISSION = new AdminPermission();
+  static final String SPEC_VERSION = "1.3";
 
   /**
    * Boolean indicating that framework is running.
@@ -84,7 +73,7 @@ public class Framework {
   /**
    * Set during shutdown process.
    */
-  boolean shuttingdown = false;
+  boolean shuttingdown /*= false*/;
 
   /**
    * All bundle in this framework.
@@ -109,12 +98,8 @@ public class Framework {
   /**
    * PermissionAdmin service
    */
-  PermissionAdminImpl permissions = null;
+  PermissionAdminImpl permissions /*= null*/;
 
-  /**
-   * indicates that we use security
-   */
-  boolean bPermissions = false;
 
   /**
    * System bundle
@@ -131,17 +116,20 @@ public class Framework {
   /**
    * Private Bundle Data Storage
    */
-  FileTree dataStorage = null;
+  FileTree dataStorage /*= null*/;
 
   /**
-   * Main handle so that main does get GCed.
+   * Main handle so that main doesn't get GCed.
    */
   Object mainHandle;
 
   /**
    * The start level service.
    */
+//#ifdef USESTARTLEVEL
   StartLevelImpl                 startLevelService;
+//#endif  
+ 
 
   /**
    * Factory for handling service-based URLs
@@ -166,12 +154,12 @@ public class Framework {
   final static String osVersion = System.getProperty("os.version");
 
   // If set to true, then during the UNREGISTERING event the Listener
-  // can use the ServiceReference to recieve an instance of the service.
+  // can use the ServiceReference to receive an instance of the service.
   public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
 	  "true".equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
 				     "false"));
 
-  // Some tests conflicts with the R3 spec. If testcompliant=true
+  // Some tests conflict with the R3 spec. If testcompliant=true
   // prefer the tests, not the spec
   public final static boolean R3_TESTCOMPLIANT =
     "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
@@ -193,7 +181,10 @@ public class Framework {
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
-  static boolean bIsMemoryStorage = false;
+  static boolean bIsMemoryStorage /*= false*/;
+  
+  private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
+  
 
   /**
    * Contruct a framework.
@@ -221,7 +212,7 @@ public class Framework {
     // by design.
     if(R3_TESTCOMPLIANT && bIsMemoryStorage) {
       throw new RuntimeException("Memory bundle storage is not compatible " + 
-				 "with R3 complicance");
+				                 "with R3 compliance");
     }
 
     Class storageImpl = Class.forName(whichStorageImpl);
@@ -232,7 +223,7 @@ public class Framework {
 
     // guard this for profiles without Class.getProtectionDomain 
     ProtectionDomain pd = null;
-    if(System.getSecurityManager() != null) {
+    if(System.getSecurityManager()!= null) {
       try {
         pd = getClass().getProtectionDomain();
       } catch (Throwable t) {
@@ -248,10 +239,7 @@ public class Framework {
 
     systemBundle.setBundleContext(systemBC);
 
-
-    
-    if (System.getSecurityManager() != null) {
-      bPermissions = true;
+    if (System.getSecurityManager() != null) { 	
       permissions       = new PermissionAdminImpl(this);
       String [] classes = new String [] { PermissionAdmin.class.getName() };
       services.register(systemBundle,
@@ -261,37 +249,19 @@ public class Framework {
 
       Policy.setPolicy(new FrameworkPolicy(permissions));
     }
-
+    /* for testing
+    permissions.setPermissions("file:///C:\\devel\\ubicore2\\out\\dmt_gst_plugin.jar",
+    		                   new PermissionInfo[]{new PermissionInfo("org.knopflerfish.framework.AdminPermission", null, AdminPermission.STARTLEVEL)})
+*/
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
 		      classes,
 		      new PackageAdminImpl(this),
 		      null);
-
-
-    String useStartLevel = 
-      System.getProperty("org.knopflerfish.startlevel.use", "true");
-
-    if("true".equals(useStartLevel)) {
-      if(Debug.startlevel) {
-	Debug.println("[using startlevel service]");
-      }
-      startLevelService = new StartLevelImpl(this);
-
-      // restoreState just reads from persistant storage
-      // open() needs to be called to actually do the work
-      // This is done after framework has been launched.
-      startLevelService.restoreState();
-      
-      services.register(systemBundle,
-			new String [] { StartLevel.class.getName() },
-			startLevelService,
-			null);
-    }
-
-
-    mainHandle = m;
-
+    
+//#ifdef USESTARTLEVEL
+    registerStartLevel();
+//#endif
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
     contentHandlerFactory   = new ServiceContentHandlerFactory(this);
     bundleURLStreamhandler  = new BundleURLStreamHandler(bundles);
@@ -321,9 +291,36 @@ public class Framework {
       }
     }
     bundles.load();
+    
+    mainHandle = m;
   }
 
+//#ifdef USESTARTLEVEL
 
+  private void registerStartLevel(){
+	  String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, "true");
+      
+	  if("true".equals(useStartLevel)) {
+		  if(Debug.startlevel) {
+			  Debug.println("[using startlevel service]");
+	      }
+		  		  
+	      startLevelService = new StartLevelImpl(this);
+
+	      // restoreState just reads from persistent storage
+	      // open() needs to be called to actually do the work
+	      // This is done after framework has been launched.
+	      startLevelService.restoreState();
+	      
+	      services.register(systemBundle,
+				new String [] { StartLevel.class.getName() },
+				startLevelService,
+				null);
+	  } 
+  }
+
+//#endif
+  
   /**
    * Start this Framework.
    * This method starts all the bundles that were started at
@@ -371,9 +368,11 @@ public class Framework {
 
       // start level open is delayed to this point to 
       // correctly work at restart
+//#ifdef USESTARTLEVEL      
       if(startLevelService != null) {
         startLevelService.open();
       }
+//#endif      
 
       listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, systemBundle, null));
     }
@@ -405,9 +404,11 @@ public class Framework {
       active = false;
       List slist = storage.getStartOnLaunchBundles();
       shuttingdown = true;
+//    #ifdef USESTARTLEVEL      
       if(startLevelService != null) {
-	startLevelService.close();
+    	  startLevelService.close();
       }
+//#endif      
       systemBundle.systemShuttingdown();
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
@@ -542,17 +543,6 @@ public class Framework {
       return b.id;
     } else {
       return -1;
-    }
-  }
-
-  /**
-   * Check that we have admin permission.
-   *
-   * @exception SecurityException if we don't have admin permission.
-   */
-  void checkAdminPermission() {
-    if (bPermissions) {
-      AccessController.checkPermission(ADMIN_PERMISSION);
     }
   }
 
