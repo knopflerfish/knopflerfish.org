@@ -59,10 +59,10 @@ public class Main {
 
   static Framework framework;
 
-  static long bootMgr = 0;
+  static long bootMgr/* = 0*/;
 
   // Verbosity level of printouts. 0 is low.
-  static int verbosity = 0;
+  static int verbosity /*= 0*/;
 
   // Will be filled in from manifest entry during startup
   static String version = "<unknown>";
@@ -81,7 +81,7 @@ public class Main {
 
 
   // Set to true if JVM is started without any arguments
-  static boolean bZeroArgs          = false;
+  static boolean bZeroArgs     /*     = false*/;
 
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
@@ -188,6 +188,7 @@ public class Main {
     initBase    = base;
 
     handleArgs(args, initOffset, base);
+   
   }
 
   static String[] initArgs   = null;
@@ -499,8 +500,9 @@ public class Main {
     return location;
   }
 
+  //is this ever used??
   public static void frameworkEvent(final FrameworkEvent evt) {
-    framework.checkAdminPermission();
+    //framework.checkAdminPermission();
 
     final FrameworkEvent e2 = new FrameworkEvent(evt.getType(),
                                                  evt.getBundle(),
@@ -522,7 +524,6 @@ public class Main {
    * </p>
    */
   static public void shutdown(final int exitcode) {
-    framework.checkAdminPermission();
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           Thread t = new Thread() {
@@ -557,8 +558,6 @@ public class Main {
    * </p>
    */
   static public void restart() {
-    framework.checkAdminPermission();
-
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           Thread t = new Thread() {
@@ -835,7 +834,7 @@ public class Main {
           sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
         }
         jars = sb.toString().replace('\\', '/');
-        sysProps.put("org.knopflerfish.gosg.jars", jars);
+        sysProps.put(JARDIR_PROP, jars);
         println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
