@@ -153,7 +153,7 @@ class BundlePackages {
 
 
   /**
-   * Register bundle packages in framework.
+   * Unregister bundle packages in framework.
    *
    */
   synchronized boolean unregisterPackages(boolean force) {
@@ -168,14 +168,14 @@ class BundlePackages {
 
 
   /**
-   * Resolve all the bundles packages.
+   * Resolve all the bundles' packages.
    *
    * @return true if we resolved all packages. If we failed
    *         return false. Reason for fail can be fetched with
    *         getResolveFailReason().
    */
   boolean resolvePackages() {
-    if (bundle.framework.bPermissions) {
+    if (bundle.framework.permissions != null) {
       String e = checkPackagePermission(exports, PackagePermission.EXPORT);
       if (e != null) {
 	failReason = "missing export permission for package(s): " + e;
@@ -211,9 +211,9 @@ class BundlePackages {
 
 
   /**
-   * If bundle packages has been resolved look for a bundle
+   * If bundle package has been resolved look for a bundle
    * that provides the requested package.
-   * If found, check we import it. If not imported, check
+   * If found, check if we import it. If not imported, check
    * if we can dynamicly import the package.
    *
    * @param pkg Package name
@@ -303,7 +303,7 @@ class BundlePackages {
    */
   private String checkPackagePermission(List pkgs, String perm) {
     String res = null;
-    if (bundle.framework.bPermissions) {
+    if (bundle.framework.permissions != null) {
       for (Iterator i = pkgs.iterator(); i.hasNext();) {
 	PkgEntry p = (PkgEntry)i.next();
 	if (!checkPackagePermission(p.name, perm)) {
@@ -327,7 +327,7 @@ class BundlePackages {
    * @return Returns true if we have permission.
    */
   private boolean checkPackagePermission(String pkg, String perm) {
-    if (bundle.framework.bPermissions) {
+    if (bundle.framework.permissions != null) {
       return bundle.framework.permissions.getPermissionCollection(bundle)
 	.implies(new PackagePermission(pkg, perm));
     } else {
