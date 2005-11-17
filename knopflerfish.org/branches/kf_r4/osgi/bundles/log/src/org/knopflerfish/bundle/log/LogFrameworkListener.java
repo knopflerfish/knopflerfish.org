@@ -55,7 +55,7 @@ import org.osgi.service.log.LogService;
  * @author Gatespace AB *
  * @version $Revision: 1.1.1.1 $
  */
-public class LogFrameworkListener implements FrameworkListener, BundleListener,
+public class LogFrameworkListener implements FrameworkListener, /*Synchronous*/BundleListener,
         ServiceListener {
 
     private final LogReaderServiceFactory lrsf;
@@ -107,7 +107,7 @@ public class LogFrameworkListener implements FrameworkListener, BundleListener,
         default:
             msg = "FrameworkEvent <" + fe.getType() + ">";
             level = LogService.LOG_WARNING;
-            break;
+            break;     
         }
         lrsf.log(new LogEntryImpl(fe.getBundle(), level, msg, thr));
     }
@@ -139,10 +139,17 @@ public class LogFrameworkListener implements FrameworkListener, BundleListener,
             break;
         case BundleEvent.RESOLVED:
             msg = "BundleEvent RESOLVED";
-            break;
+            break;  
         case BundleEvent.UNRESOLVED:
             msg = "BundleEvent UNRESOLVED";
             break;
+   /*     case BundleEvent.STARTING:
+            msg = "BundleEvent STARTING";
+            break;
+        case BundleEvent.STOPPING:
+            msg = "BundleEvent STOPPING";
+            break;  
+            */   
         }
         lrsf.log(new LogEntryImpl(be.getBundle(), LogService.LOG_INFO, msg));
     }
