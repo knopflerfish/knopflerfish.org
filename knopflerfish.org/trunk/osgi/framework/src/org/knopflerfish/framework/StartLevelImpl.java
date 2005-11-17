@@ -59,6 +59,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   int currentLevel     = 0;
   int initStartLevel   = 1;
   int targetStartLevel = currentLevel;
+  boolean acceptChanges = true;
 
   Framework framework;
 
@@ -89,6 +90,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
     wc   = new Thread(this, "startlevel job thread");
     bRun = true;
     wc.start();
+    acceptChanges = true;
 
   }
 
@@ -140,6 +142,17 @@ public class StartLevelImpl implements StartLevel, Runnable {
     }
   }
 
+  void shutdown() {
+    acceptChanges = false;
+    privateSetStartLevel(0, true);
+    while (currentLevel > 1) {
+      synchronized (wc) {
+        try { wc.wait(); } catch (Exception e) {}
+      }
+    }
+    close();
+  }
+
   public void run() {
     while(bRun) {
       try {
@@ -158,12 +171,16 @@ public class StartLevelImpl implements StartLevel, Runnable {
   }
 
   public void setStartLevel(final int startLevel) {
-
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
 
+    if (acceptChanges) {
+      privateSetStartLevel(startLevel, false);
+    }
+  }
 
+  private void privateSetStartLevel(final int startLevel, final boolean notifyWC) {
     if(Debug.startlevel) {
       Debug.println("startlevel: setStartLevel " + startLevel);
     }
@@ -194,6 +211,12 @@ public class StartLevelImpl implements StartLevel, Runnable {
               }
             }
           notifyFramework();
+          if (notifyWC) {
+            synchronized (wc) {
+              wc.notifyAll();
+            }
+          }
+
         }
       });
   }
@@ -249,7 +272,6 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   void decreaseStartLevel() {
     synchronized(lock) {
-      currentLevel--;
 
       Vector set = new Vector();
 
@@ -259,7 +281,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
         BundleImpl bs  = bundles[i];
 
         if(bs.getState() == Bundle.ACTIVE) {
-          if(bs.getStartLevel() == currentLevel + 1) {
+          if(bs.getStartLevel() == currentLevel) {
             set.addElement(bs);
           }
         }
@@ -276,10 +298,14 @@ public class StartLevelImpl implements StartLevel, Runnable {
           bs.setPersistent(true);
         } catch (Exception e) {
           framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
-
         }
-
       }
+
+      currentLevel--;
+      if(Debug.startlevel) {
+        Debug.println("startlevel: decreaseStartLevel currentLevel=" + currentLevel);
+      }
+
     }
   }
 
