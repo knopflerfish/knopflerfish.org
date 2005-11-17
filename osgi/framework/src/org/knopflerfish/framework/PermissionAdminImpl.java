@@ -38,7 +38,7 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-import org.osgi.framework.*;
+//import org.osgi.framework.*;
 import org.osgi.service.permissionadmin.*;
 
 
@@ -47,22 +47,28 @@ import org.osgi.service.permissionadmin.*;
  *
  * @see org.osgi.service.permissionadmin.PermissionAdmin
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 
 public class PermissionAdminImpl implements PermissionAdmin {
 
-  final static String SPEC_VERSION = "1.1";
+  final static String SPEC_VERSION = "1.2";
 
   // Property name for initial defaults
   // Format is the same used as encoding format by PermissionInfo.
-  // More than one permission can be used by separating by ";"
+  // More than one permission can be used by separating with ";"
   final static String PROP_DEFAULTPERMS = 
     "org.knopflerfish.permissions.initialdefault";
 
   // value for initial defaults if PROP_DEFAULTPERMS is not set
   final static String DEFAULTPERMS = 
     "(java.security.AllPermission)";
-
+  
+  /**
+   * AllPermission used for permission check.
+   */
+  private AllPermission ALL_PERMISSION = new AllPermission();
+  
   // set by constructor from PROP_DEFAULTPERMS
   private PermissionInfo[] initialDefault = null;
 
@@ -89,25 +95,39 @@ public class PermissionAdminImpl implements PermissionAdmin {
     String initPerms = System.getProperty(PROP_DEFAULTPERMS, DEFAULTPERMS);
     String[] rows = Util.splitwords(initPerms, ";", '\0');
 
-    initialDefault = new PermissionInfo[rows.length];
-    for(int i = 0; i < rows.length; i++) {
-      PermissionInfo pi = new PermissionInfo(rows[i]);
-      initialDefault[i] = pi;
+    Vector initialDefaultTemp = new Vector();
+    initialDefault = new PermissionInfo[1];
+    
+    int i = 0;
+    for(; i < rows.length; i++) {
+      PermissionInfo pi = null;
+      try{
+    	  pi = new PermissionInfo(rows[i]);
+      }
+      catch(IllegalArgumentException e){
+    	  //improperly formatted, skip it
+    	  System.err.println("Improperly formatted permission, skipped");
+    	  continue;
+      }
+      initialDefaultTemp.add(pi); 
     }
+    initialDefault = (PermissionInfo[]) initialDefaultTemp.toArray(initialDefault);
+    
     defaultPermissions = initialDefault;
 
     // Get system default permissions
-    PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource(null, ( java.security.cert.Certificate[] )null));
+    PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource(null, null));
     // Remove AllPermission
     if (pc != null && pc.implies(new AllPermission())) {
       runtimePermissions = new Permissions();
       for (Enumeration e = pc.elements(); e.hasMoreElements();) {
-	Permission p = (Permission) e.nextElement();
-	if (!(p instanceof AllPermission)) {
-	  runtimePermissions.add(p);
-	}
+    	  Permission p = (Permission) e.nextElement();
+    	  if (!(p instanceof AllPermission)) {
+    		  runtimePermissions.add(p);
+    	  }
       }
-    } else {
+    } 
+    else {
       runtimePermissions = pc;
     }
     permDir = Util.getFileStorage("perms");
@@ -118,6 +138,16 @@ public class PermissionAdminImpl implements PermissionAdmin {
       load();
     }
   }
+  
+  /**
+   * Check that we have all permission.
+   *
+   * @exception SecurityException if we don't have all permission.
+   */
+  void checkAllPermission() { 
+	  AccessController.checkPermission(ALL_PERMISSION);
+  }
+
 
   //
   // Interface PermissionAdmin
@@ -140,18 +170,18 @@ public class PermissionAdminImpl implements PermissionAdmin {
   }
 
   /**
-   * Assigns the specified permissions to the bundle with the specified
-   * location.
-   *
-   * @param location The location of the bundle that will be assigned the
-   *                 permissions. 
-   * @param perms The permissions to be assigned, or <tt>null</tt>
-   * if the specified location is to be removed from the permission table.
-   * @exception SecurityException if the caller does not have the
-   * <tt>AdminPermission</tt>.
-   */
+	 * Assigns the specified permissions to the bundle with the specified
+	 * location.
+	 * 
+	 * @param location The location of the bundle that will be assigned the
+	 *        permissions.
+	 * @param permissions The permissions to be assigned, or <code>null</code> if
+	 *        the specified location is to be removed from the permission table.
+	 * @throws SecurityException If the caller does not have
+	 *            <code>AllPermission</code>.
+	 */
   public synchronized void setPermissions(String location, PermissionInfo[] perms) {
-    framework.checkAdminPermission();
+	checkAllPermission();
     PermissionsWrapper w = (PermissionsWrapper) cache.get(location);
     if (w != null) {
       w.invalidate();
@@ -202,17 +232,19 @@ public class PermissionAdminImpl implements PermissionAdmin {
   }
 
   /**
-   * Sets the default permissions.
-   *
-   * <p>These are the permissions granted to any bundle that does not
-   * have permissions assigned to its location.
-   *
-   * @param permissions The default permissions.
-   * @exception SecurityException if the caller does not have the
-   * <tt>AdminPermission</tt>.
-   */
+	 * Sets the default permissions.
+	 * 
+	 * <p>
+	 * These are the permissions granted to any bundle that does not have
+	 * permissions assigned to its location.
+	 * 
+	 * @param permissions The default permissions, or <code>null</code> if the
+	 *        default permissions are to be removed from the permission table.
+	 * @throws SecurityException If the caller does not have
+	 *            <code>AllPermission</code>.
+	 */
   public synchronized void setDefaultPermissions(PermissionInfo[] permissions) {
-    framework.checkAdminPermission();
+    checkAllPermission();
     for (Enumeration e = cache.elements(); e.hasMoreElements();) {
       ((PermissionsWrapper) e.nextElement()).invalidate();
     }
@@ -237,27 +269,26 @@ public class PermissionAdminImpl implements PermissionAdmin {
    *
    * @return The permissions assigned to the bundle with the specified
    * location, or the default permissions if that bundle has not been assigned
-   * any permissions.
+   * any permissions or does not yet exist.
    */
   PermissionCollection getPermissionCollection(Long bid) {
     BundleImpl b = framework.bundles.getBundle(bid.longValue());
     if (b != null) {
       return getPermissionCollection(b);
     } else {
-      return null;
+      return PermissionsWrapper.makePermissionCollection(defaultPermissions);
     }
   }
 
 
   /**
-   * Gets the permissionCollection assigned to the bundle with the specified id.
-   * We return a permission wrapper so that we can change it dynamicly.
+   * Gets the permissionCollection assigned to the bundle.
+   * We return a permission wrapper so that we can change it dynamically.
    *
    * @param bundle The bundle whose permissions are to be returned.
    *
    * @return The permissions assigned to the bundle with the specified
-   * location, or the default permissions if that bundle has not been assigned
-   * any permissions.
+   * location
    */
   synchronized PermissionCollection getPermissionCollection(BundleImpl bundle) {
     PermissionCollection pc = (PermissionCollection)cache.get(bundle.location);
