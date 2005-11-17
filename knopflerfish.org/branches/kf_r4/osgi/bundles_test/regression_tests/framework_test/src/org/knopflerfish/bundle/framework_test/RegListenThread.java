@@ -84,6 +84,6 @@ public class RegListenThread implements Runnable, org.osgi.framework.ServiceList
       status = false;
     }
 
-    Object o1 = bc.getService(srlocal);
+    bc.getService(srlocal);
   }
 }
