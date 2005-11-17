@@ -1,18 +1,51 @@
 /*
- * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/AdminPermission.java,v 1.27 2005/08/11 03:11:13 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2000, 2005). All Rights Reserved.
- * 
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Copyright (c) 2005, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package org.osgi.framework;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+/**
+ * @author Philippe Laporte
+ */
+
 import java.security.*;
+
+import org.knopflerfish.framework.*;
+
+import java.util.Enumeration;
+import java.util.StringTokenizer;
+import java.util.Hashtable;
+
 
 /**
  * Indicates the caller's authority to perform specific privileged
@@ -61,11 +94,9 @@ import java.security.*;
  * <li>name - The symbolic name of a bundle.</li>
  * </ul>
  * 
- * @version $Revision: 1.27 $
  */
 
-public final class AdminPermission extends BasicPermission {
-	static final long					serialVersionUID	= 307051004521261705L;
+public final class AdminPermission extends Permission {
 
 	/**
 	 * The action string <code>class</code> (Value is "class").
@@ -114,68 +145,35 @@ public final class AdminPermission extends BasicPermission {
 	 */
 	public final static String			STARTLEVEL			= "startlevel";
 
-	/*
-	 * NOTE: A framework implementor may also choose to replace this class in
-	 * their distribution with a class that directly interfaces with the
-	 * framework implementation. This replacement class MUST NOT
-	 * alter the public/protected signature of this class.
-	 */
-
-	/*
-	 * This class will load the AdminPermission class in the package named by
-	 * the org.osgi.vendor.framework package. For each instance of this class,
-	 * an instance of the vendor AdminPermission class will be created and this
-	 * class will delegate method calls to the vendor AdminPermission instance.
-	 */
-	private static final String			packageProperty		= "org.osgi.vendor.framework";
-	private static final Constructor	initStringString;
-	private static final Constructor	initBundleString;
-	static {
-		Constructor[] constructors = (Constructor[]) AccessController
-				.doPrivileged(new PrivilegedAction() {
-					public Object run() {
-						String packageName = System
-								.getProperty(packageProperty);
-						if (packageName == null) {
-							throw new NoClassDefFoundError(packageProperty
-									+ " property not set");
-						}
-
-						Class delegateClass;
-						try {
-							delegateClass = Class.forName(packageName
-									+ ".AdminPermission");
-						}
-						catch (ClassNotFoundException e) {
-							throw new NoClassDefFoundError(e.toString());
-						}
-
-						Constructor[] result = new Constructor[2];
-						try {
-							result[0] = delegateClass
-									.getConstructor(new Class[] {String.class,
-			String.class			});
-							result[1] = delegateClass
-									.getConstructor(new Class[] {Bundle.class,
-			String.class			});
-						}
-						catch (NoSuchMethodException e) {
-							throw new NoSuchMethodError(e.toString());
-						}
-
-						return result;
-					}
-				});
-
-		initStringString = constructors[0];
-		initBundleString = constructors[1];
-	}
-
-	/*
-	 * This is the delegate permission created by the constructor.
-	 */
-	private final Permission			delegate;
-
+	
+	LDAPExpr ldap;
+	
+	Bundle bundle;
+	
+	private long id = -1; // bundle ID
+	
+	private String location;
+	
+	private String symbName;
+	
+	int actionMask /*= 0*/;
+	
+	private static final String WILDCARD = "*";
+	
+	private static final int CLASS_BIT               = 1;
+	private static final int EXECUTE_BIT             = 2;
+	private static final int EXTENSIONLIFECYCLE_BIT  = 4;
+	private static final int LIFECYCLE_BIT           = 8;
+	private static final int LISTENER_BIT            = 16;
+	private static final int METADATA_BIT            = 32;
+	private static final int RESOLVE_BIT             = 64;
+	private static final int RESOURCE_BIT            = 128;
+	private static final int STARTLEVEL_BIT          = 256;
+	private static final int ALL_BITS                = CLASS_BIT  | EXECUTE_BIT  | 
+	                                                   EXTENSIONLIFECYCLE_BIT  | LIFECYCLE_BIT  | 
+	                                                   LISTENER_BIT  | METADATA_BIT  | 
+	                                                   RESOLVE_BIT  | RESOURCE_BIT  | STARTLEVEL_BIT ;
+	 
 	/**
 	 * Creates a new <code>AdminPermission</code> object that matches all
 	 * bundles and has all actions. Equivalent to AdminPermission("*","*");
@@ -183,7 +181,7 @@ public final class AdminPermission extends BasicPermission {
 	public AdminPermission() {
 		this("*", "*"); //$NON-NLS-1$
 	}
-
+	
 	/**
 	 * Create a new AdminPermission.
 	 * 
@@ -215,27 +213,15 @@ public final class AdminPermission extends BasicPermission {
 	 *        indicates all actions
 	 */
 	public AdminPermission(String filter, String actions) {
-		// arguments will be null if called from a PermissionInfo defined with
-		// no args
-		super(filter == null ? "*" : filter);
-		try {
-			try {
-				delegate = (Permission) initStringString
-						.newInstance(new Object[] {filter, actions});
-			}
-			catch (InvocationTargetException e) {
-				throw e.getTargetException();
-			}
+		super(filter == null ? (filter = WILDCARD) : filter);
+		//TODO implement LDAP extensions for location and signer
+		try{
+			ldap = new LDAPExpr(filter);
 		}
-		catch (Error e) {
-			throw e;
+		catch(InvalidSyntaxException e){
+			//SPECS what to do?
 		}
-		catch (RuntimeException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			throw new RuntimeException(e.toString());
-		}
+		parseActions(actions);
 	}
 
 	/**
@@ -251,39 +237,70 @@ public final class AdminPermission extends BasicPermission {
 	 * @since 1.3
 	 */
 	public AdminPermission(Bundle bundle, String actions) {
-		super(createName(bundle));
-		try {
-			try {
-				delegate = (Permission) initBundleString
-						.newInstance(new Object[] {bundle, actions});
-			}
-			catch (InvocationTargetException e) {
-				throw e.getTargetException();
-			}
-		}
-		catch (Error e) {
-			throw e;
-		}
-		catch (RuntimeException e) {
-			throw e;
-		}
-		catch (Throwable e) {
-			throw new RuntimeException(e.toString());
-		}
+		super("irrelevant");
+		setBundle(bundle);
+	    parseActions(actions);
 	}
-
-	/**
-	 * Create a permission name from a Bundle
-	 * 
-	 * @param bundle Bundle to use to create permission name.
-	 * @return permission name.
-	 */
-	private static String createName(Bundle bundle) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("(id=");
-		sb.append(bundle.getBundleId());
-		sb.append(")");
-		return sb.toString();
+	
+	//package only
+	AdminPermission(String filter, int actionMask){
+		super(filter);
+		this.actionMask = actionMask;
+	}
+	
+    //package only
+	AdminPermission(Bundle bundle, int actionMask){
+		super("irrelevant");
+		setBundle(bundle);
+		this.actionMask = actionMask;
+	}
+	
+	private void setBundle(Bundle bundle){
+		this.bundle = bundle;
+		id = bundle.getBundleId();
+		location = bundle.getLocation();
+		
+		symbName = bundle.getSymbolicName();
+	}
+	
+	private void parseActions(String actions){
+		StringTokenizer st = new StringTokenizer(actions, ",");
+		while(st.hasMoreTokens()){
+			String tok = st.nextToken();
+			if(tok.equals(CLASS)){
+				actionMask |= CLASS_BIT ;
+			}
+			else if(tok.equals(EXECUTE)){
+				actionMask |= EXECUTE_BIT ;
+			}
+			else if(tok.equals(EXTENSIONLIFECYCLE)){
+				actionMask |= EXTENSIONLIFECYCLE_BIT ;
+			}
+			else if(tok.equals(LIFECYCLE)){
+				actionMask |= LIFECYCLE_BIT ;
+			}
+			else if(tok.equals(LISTENER)){
+				actionMask |= LISTENER_BIT ;
+			}
+			else if(tok.equals(METADATA)){
+				actionMask |= METADATA_BIT ;
+			}
+			else if(tok.equals(RESOLVE)){
+				actionMask |= RESOLVE_BIT ;
+			}
+			else if(tok.equals(RESOURCE)){
+				actionMask |= RESOURCE_BIT ;
+			}
+			else if(tok.equals(STARTLEVEL)){
+				actionMask |= STARTLEVEL_BIT ;
+			}
+			else if(tok.equals("*")){
+				actionMask = ALL_BITS ;
+			}
+			else{
+				throw new IllegalArgumentException("Unknown action " + tok);
+			}
+		}	
 	}
 
 	/**
@@ -302,9 +319,18 @@ public final class AdminPermission extends BasicPermission {
 			return false;
 		}
 
-		AdminPermission p = (AdminPermission) obj;
-
-		return delegate.equals(p.delegate);
+		AdminPermission ap = (AdminPermission) obj;
+		
+		if(bundle == null){
+			return ((actionMask == ap.actionMask) && getName().equals(ap.getName()));
+		}
+		else{
+			return (actionMask == ap.actionMask  && 
+					id == ap.id                  &&
+					location.equals(ap.location) &&
+					symbName.equals(ap.symbName)
+					);
+		}
 	}
 
 	/**
@@ -313,7 +339,13 @@ public final class AdminPermission extends BasicPermission {
 	 * @return Hash code value for this object.
 	 */
 	public int hashCode() {
-		return delegate.hashCode();
+		if(bundle == null){
+			return getName().hashCode() ^ actionMask;
+		}
+		else{//TODO is this right?
+			return (int)id ^ location.hashCode() ^ 
+			       symbName.hashCode() ^ actionMask;
+		}	
 	}
 
 	/**
@@ -331,9 +363,70 @@ public final class AdminPermission extends BasicPermission {
 	 *         <code>AdminPermission</code> actions.
 	 */
 	public String getActions() {
-		return delegate.getActions();
+		StringBuffer sb = new StringBuffer();
+		
+		if((actionMask & CLASS_BIT ) != 0){
+			sb.append(CLASS);
+			sb.append(',');
+		}
+		if((actionMask & EXECUTE_BIT ) != 0){
+			sb.append(EXECUTE);
+			sb.append(',');
+		}
+		if((actionMask & EXTENSIONLIFECYCLE_BIT ) != 0){
+			sb.append(EXTENSIONLIFECYCLE);
+			sb.append(',');
+		}
+		if((actionMask & LIFECYCLE_BIT ) != 0){
+			sb.append(LIFECYCLE);
+			sb.append(',');
+		}
+		if((actionMask & LISTENER_BIT ) != 0){
+			sb.append(LISTENER);
+			sb.append(',');
+		}
+		if((actionMask & METADATA_BIT ) != 0){
+			sb.append(METADATA);
+			sb.append(',');
+		}
+		if((actionMask & RESOLVE_BIT ) != 0){
+			sb.append(RESOLVE);
+			sb.append(',');
+		}
+		if((actionMask & RESOURCE_BIT ) != 0){
+			sb.append(RESOURCE);
+			sb.append(',');
+		}
+		if((actionMask & STARTLEVEL_BIT ) != 0){
+			sb.append(STARTLEVEL);
+			sb.append(',');
+		}
+		
+		int length = sb.length();
+		if(length > 0){
+			sb.deleteCharAt(length - 1);
+		}
+		return sb.toString();
 	}
 
+	private boolean match(AdminPermission ap){
+		if(ap.bundle == null){
+			return false;
+		}
+	    Hashtable t = new Hashtable();
+	    if(ap.id != -1){
+	    	t.put("id", new Long(ap.id));	
+	    }
+	    if(ap.location != null){
+	    	t.put("location", ap.location);
+	    }
+	    if(ap.symbName != null){
+	    	t.put("name", ap.symbName);
+	    }
+	    //SPECS should it be case sensitive or not?
+	    return ldap.evaluate(t, false);
+	}
+	
 	/**
 	 * Determines if the specified permission is implied by this object. This
 	 * method throws an exception if the specified permission was not
@@ -367,9 +460,27 @@ public final class AdminPermission extends BasicPermission {
 		if (!(p instanceof AdminPermission)) {
 			return false;
 		}
-
-		AdminPermission pp = (AdminPermission) p;
-		return delegate.implies(pp.delegate);
+		AdminPermission ap = (AdminPermission) p;
+		
+		if(ap.bundle == null && !ap.getName().equals(WILDCARD)){
+			throw new RuntimeException("permission not contructed with bundle or *");
+		}
+		
+		if((getName().equals(WILDCARD) || match(ap))		
+			&&  
+		   ((actionMask | ap.actionMask) == actionMask)
+		   ){
+			return true;
+		}
+		
+		if(ap.getName().equals(WILDCARD)   && 
+		   (getName().equals(WILDCARD) &&  
+		   (actionMask | ap.actionMask) == actionMask)
+		   ){
+			return true;
+		}	
+		
+		return false;
 	}
 
 	/**
@@ -379,6 +490,97 @@ public final class AdminPermission extends BasicPermission {
 	 * @return A new <code>PermissionCollection</code> object.
 	 */
 	public PermissionCollection newPermissionCollection() {
-		return delegate.newPermissionCollection();
+		return new AdminPermissionCollection();
 	}
 }
+
+
+
+final class AdminPermissionCollection extends PermissionCollection {
+	
+	private Hashtable permissions;
+
+	private boolean	addedAll;
+	private int allMask /* = 0 */;
+
+	public AdminPermissionCollection() {
+		permissions = new Hashtable();
+		addedAll = false;
+	}
+
+	public void add(Permission permission) {
+		if (isReadOnly())
+			throw new SecurityException("read only PermissionCollection");
+		if (!(permission instanceof AdminPermission))
+			throw new IllegalArgumentException("invalid permission: " + permission);
+
+		AdminPermission ap = (AdminPermission) permission;
+		AdminPermission existing;
+		String name = null;
+		
+		if(ap.bundle != null){
+			existing = (AdminPermission) permissions.get(ap.bundle);
+		}
+		else{
+			existing = (AdminPermission) permissions.get(name = ap.getName());
+		}
+		
+		if (existing != null) {
+			int oldMask = existing.actionMask;
+			int newMask = ap.actionMask;
+			if (oldMask != newMask) {
+				if(ap.bundle != null){
+					permissions.put(ap.bundle, new AdminPermission(ap.bundle, oldMask | newMask));
+				}
+				else{
+					permissions.put(name, new AdminPermission(name, oldMask | newMask));
+				}	
+			}
+		}
+		else {
+			if(ap.bundle != null){
+				permissions.put(ap.bundle, permission);
+			}
+			else{
+				permissions.put(name, permission);
+			}	
+		}
+
+		if (name != null && name.equals("*")){
+			addedAll = true;
+			allMask |= ap.actionMask;  
+		}    		
+	}
+
+	public boolean implies(Permission permission) {
+		if (!(permission instanceof AdminPermission))
+			return (false);
+
+		AdminPermission ap = (AdminPermission)permission;
+		if (addedAll && ((allMask | ap.actionMask) == allMask)){
+            return true;
+		}
+		if(ap.bundle != null){
+			Permission inTable = (Permission) permissions.get(ap.bundle);
+			if (inTable == null)
+	            return false;
+	        
+	        return inTable.implies(ap);
+		}
+		else{
+			Enumeration enume = permissions.keys();
+			while(enume.hasMoreElements()){
+				if(((Permission) permissions.get(enume.nextElement())).implies(permission)){
+					return true;
+				}
+			}
+			return false;
+		}	  
+	}
+
+	public Enumeration elements() {
+		return (permissions.elements());
+	}
+}
+
+
