@@ -87,6 +87,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     private ListenerEventQueue listenerEventQueue;
 
     // Constants
+    //TODO update this
     static AdminPermission ADMIN_PERMISSION = new AdminPermission();
 
     static String SERVICE_PID = Constants.SERVICE_PID;
