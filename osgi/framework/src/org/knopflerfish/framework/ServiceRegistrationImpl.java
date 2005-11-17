@@ -52,7 +52,7 @@ import org.osgi.framework.*;
 public class ServiceRegistrationImpl implements ServiceRegistration
 {
   /**
-   * Bundle implementing this services.
+   * Bundle registering this service.
    */
   BundleImpl bundle;
 
@@ -95,7 +95,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   /**
    * Avoid recursive unregistrations.
    */
-  private boolean unregistering = false;
+  //private boolean unregistering = false;
 
 
   /**
