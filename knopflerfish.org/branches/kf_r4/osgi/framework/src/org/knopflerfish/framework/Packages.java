@@ -41,7 +41,7 @@ import org.osgi.framework.*;
 
 /**
  * Here we handle all the java packages that are imported and exported
- * within framework.
+ * within the framework.
  *
  * @author Jan Stein, Erik Wistrand
  */
