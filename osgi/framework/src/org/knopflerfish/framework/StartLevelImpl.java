@@ -35,14 +35,17 @@
 package org.knopflerfish.framework;
 
 import org.osgi.framework.*;
+import org.osgi.framework.AdminPermission;
 import org.osgi.service.startlevel.*;
 import java.util.Vector;
 
 import java.io.File;
 
+import java.security.AccessController;
+
 
 /**
- * StartLevel service implemenetation.
+ * StartLevel service implementation.
  *
  */
 public class StartLevelImpl implements StartLevel, Runnable {
@@ -56,7 +59,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   final static String LEVEL_FILE = "currentlevel";
 
-  int currentLevel     = 0;
+  int currentLevel   /*  = 0*/;
   int initStartLevel   = 1;
   int targetStartLevel = currentLevel;
 
@@ -66,19 +69,29 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   // Set to true indicates startlevel compatability mode.
   // all bundles and current start level will be 1
-  boolean  bCompat = false;
+  boolean  bCompat /*= false*/;
 
   public static final String SPEC_VERSION = "1.0";
+  
+  private AdminPermission SYSTEM_ADMIN_STARTLEVEL_PERM;
 
   public StartLevelImpl(Framework framework) {
     this.framework = framework;
-
+    
+    if(framework.permissions != null){
+    	SYSTEM_ADMIN_STARTLEVEL_PERM = new AdminPermission(framework.systemBundle, AdminPermission.STARTLEVEL);
+    }
+    
     storage = Util.getFileStorage("startlevel");
 
     setStartLevel(1);
   }
   
-
+  private void checkStartLevelAdminSystem(){
+	  if(SYSTEM_ADMIN_STARTLEVEL_PERM != null){  
+			AccessController.checkPermission(SYSTEM_ADMIN_STARTLEVEL_PERM);  
+	  } 
+  }
 
   void open() {
     
@@ -156,9 +169,13 @@ public class StartLevelImpl implements StartLevel, Runnable {
   public int getStartLevel() {
     return currentLevel;
   }
+  
+  
 
   public void setStartLevel(final int startLevel) {
-    
+	    
+	checkStartLevelAdminSystem();
+	
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
@@ -309,6 +326,10 @@ public class StartLevelImpl implements StartLevel, Runnable {
   
   public void setBundleStartLevel(Bundle bundle, final int startLevel) {
 
+	if(framework.permissions != null){  
+		AccessController.checkPermission(new AdminPermission(bundle, AdminPermission.EXECUTE));  
+	} 
+	  
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
@@ -369,6 +390,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
   }
   
   public void setInitialBundleStartLevel(int startLevel) {
+	checkStartLevelAdminSystem();  
+	  
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
