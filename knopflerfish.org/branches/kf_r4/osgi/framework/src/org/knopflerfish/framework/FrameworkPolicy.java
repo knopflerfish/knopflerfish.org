@@ -36,7 +36,7 @@ package org.knopflerfish.framework;
 
 import java.net.*;
 import java.security.*;
-
+/*
 import java.util.Collection;
 import java.util.Set;
 import java.util.List;
@@ -48,21 +48,23 @@ import java.util.Iterator;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.Hashtable;
+*/
+//import java.util.Hashtable;
 
 
 /**
  * Implementation of a Permission Policy for Framework.
  *
  * @see java.security.Policy
- * @author Jan Stein
+ * @author Jan Stein, Philippe Laporte
  */
 
 class FrameworkPolicy extends Policy {
 
   private final PermissionCollection all = new Permissions();
 
-  private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
+  //must not cache
+  //private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
 
   private PermissionAdminImpl permissionAdmin;
 
@@ -85,7 +87,8 @@ class FrameworkPolicy extends Policy {
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       try {
         Long id = new Long(u.getHost());
-        return getPermissions(id);
+        //return getPermissions(id);
+        return permissionAdmin.getPermissionCollection(id);
       } catch (NumberFormatException ignore) {
         return null;
       }
@@ -101,20 +104,23 @@ class FrameworkPolicy extends Policy {
   //
   // Package methods
   //
-
+  
+  /* no, must always refresh from admin! 
   PermissionCollection getPermissions(Long id) {
+     
     PermissionCollection pc = (PermissionCollection)permissions.get(id);
     if (pc == null) {
       pc = permissionAdmin.getPermissionCollection(id);
       if (pc != null) {
-	permissions.put(id, pc);
+    	  permissions.put(id, pc);
       }
     }
     return pc;
   }
-
+*/
+  /*
   void invalidate(long id) {
     permissions.remove(new Long(id));
   }
-
+*/
 }
