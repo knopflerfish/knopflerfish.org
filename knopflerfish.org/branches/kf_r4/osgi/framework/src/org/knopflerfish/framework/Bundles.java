@@ -53,7 +53,7 @@ import java.util.Hashtable;
 import org.osgi.framework.*;
 
 /**
- * Here we handle all the bundles that are installed in framework.
+ * Here we handle all the bundles that are installed in the framework.
  * Also handles load and save of bundle states to file, so that we
  * can restart the platform.
  *
@@ -65,7 +65,7 @@ class Bundles {
    * Table of all installed bundles in this framework.
    * Key is bundle location.
    */
-  private Hashtable /* String -> BundleImpl */ bundles = new Hashtable();
+  private Hashtable /* location String -> BundleImpl */ bundles = new Hashtable();
 
   /**
    * Link to framework object.
@@ -105,6 +105,7 @@ class Bundles {
 		URLConnection conn = url.openConnection(); 
 
 		// Support for http proxy authentication
+		//TODO put in update as well
 		String auth = System.getProperty("http.proxyAuth");
 		if(auth != null && !"".equals(auth)) {
 		  if("http".equals(url.getProtocol()) ||
@@ -131,7 +132,9 @@ class Bundles {
 		    throw new RuntimeException("Execution environment '" + ee + "' is not supported");
 		  }
 		}
-
+		
+        ba.setLastModified(System.currentTimeMillis());
+        
 		res = new BundleImpl(framework, ba);
 	      } finally {
 		bin.close();
@@ -191,9 +194,10 @@ class Bundles {
    *         if bundle was not found.
    */
   BundleImpl getBundle(String location) {
-    synchronized (bundles) {
+	//pl: hashtable operations are already synchronized  
+    //synchronized (bundles) {
       return (BundleImpl) bundles.get(location);
-    }
+   // }
   }
 
 
@@ -207,7 +211,7 @@ class Bundles {
       BundleImpl [] result = new BundleImpl[bundles.size()];
       int i = 0;
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-	result[i++] = (BundleImpl)e.nextElement();
+    	  result[i++] = (BundleImpl)e.nextElement();
       }
       return result;
     }
@@ -222,7 +226,6 @@ class Bundles {
   List getActiveBundles() {
     ArrayList slist = new ArrayList();
     synchronized (bundles) {
-      int i = 0;
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
 	BundleImpl b = (BundleImpl)e.nextElement();
 	int s = b.getState();
@@ -237,11 +240,10 @@ class Bundles {
 
   /**
    * Try to load any saved framework state.
-   * This is done by installing all saved bundle from the local archive
-   * copy. And restoring the saved state for each bundle. This is only
-   * intended to be executed during start of framework.
+   * This is done by installing all saved bundles from the local archive
+   * copy, and restoring the saved state for each bundle. This is only
+   * intended to be executed during the start of the framework.
    *
-   * @return True if we found a saved state.
    */
   synchronized void load() {
     BundleArchive [] bas = framework.storage.getAllBundleArchives();
