@@ -38,6 +38,7 @@ import java.security.*;
 import java.util.*;
 
 import org.osgi.framework.*;
+import org.osgi.framework.AdminPermission;
 import org.osgi.service.packageadmin.*;
 
 /**
@@ -65,15 +66,31 @@ import org.osgi.service.packageadmin.*;
  * @author Jan Stein
  * @author Erik Wistrand
  * @author Robert Shelley
+ * @author Philippe Laporte
  */
 public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.1";
 
   private Framework framework;
+  
+  private AdminPermission RESOLVE_ADMIN_PERM;
+   
+  private void initPerm(){
+	 if(framework.permissions != null){
+		 RESOLVE_ADMIN_PERM = new AdminPermission(framework.systemBundle, AdminPermission.RESOLVE);
+	 }
+  }
+  
+  private void checkResolveAdminPerm(){
+	  if(RESOLVE_ADMIN_PERM != null){
+		  AccessController.checkPermission(RESOLVE_ADMIN_PERM);
+	  }
+  }
 
   PackageAdminImpl(Framework fw) {
     framework = fw;
+    initPerm();
   }
 
   /**
@@ -142,69 +159,10 @@ public class PackageAdminImpl implements PackageAdmin {
    * Forces the update (replacement) or removal of packages exported by
    * the specified bundles.
    *
-   * <p> If no bundles are specified, this method will update or remove any
-   * packages exported by any bundles that were previously updated or
-   * uninstalled. The technique by which this is accomplished
-   * may vary among different framework implementations. One permissible
-   * implementation is to stop and restart the Framework.
-   *
-   * <p> This method returns to the caller immediately and then performs the
-   * following steps in its own thread:
-   *
-   * <ol>
-   * <p>
-   * <li> Compute a graph of bundles starting with the specified ones. If no
-   * bundles are specified, compute a graph of bundles starting with
-   * previously updated or uninstalled ones.
-   * Any bundle that imports a package that is currently exported
-   * by a bundle in the graph is added to the graph. The graph is fully
-   * constructed when there is no bundle outside the graph that imports a
-   * package from a bundle in the graph. The graph may contain
-   * <tt>UNINSTALLED</tt> bundles that are currently still
-   * exporting packages.
-   *
-   * <p>
-   * <li> Each bundle in the graph will be stopped as described in the 
-   * <tt>Bundle.stop</tt> method.
-   *
-   * <p>
-   * <li> Each bundle in the graph that is in the
-   * <tt>RESOLVED</tt> state is moved
-   * to the <tt>INSTALLED</tt> state.
-   * The effect of this step is that bundles in the graph are no longer
-   * <tt>RESOLVED</tt>.
-   *
-   * <p>
-   * <li> Each bundle in the graph that is in the UNINSTALLED state is
-   * removed from the graph and is now completely removed from the framework.
-   *
-   * <p>
-   * <li> Each bundle in the graph that was in the
-   * <tt>ACTIVE</tt> state prior to Step 2 is started as
-   * described in the <tt>Bundle.start</tt> method, causing all
-   * bundles required for the restart to be resolved.
-   * It is possible that, as a
-   * result of the previous steps, packages that were
-   * previously exported no longer are. Therefore, some bundles
-   * may be unresolvable until another bundle
-   * offering a compatible package for export has been installed in the
-   * framework.
-   * </ol>
-   *
-   * <p> For any exceptions that are thrown during any of these steps, a
-   * <tt>FrameworkEvent</tt> of type <tt>ERROR</tt> is
-   * broadcast, containing the exception. 
-   *
-   * @param bundles the bundles whose exported packages are to be updated or 
-   * removed,
-   * or <tt>null</tt> for all previously updated or uninstalled bundles.
-   *
-   * @exception SecurityException if the caller does not have the
-   * <tt>AdminPermission</tt> and the Java runtime environment supports
-   * permissions.
+   * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
-    framework.checkAdminPermission();
+	checkResolveAdminPerm();
 //XXX - begin L-3 modification
     Thread t = new Thread() {
 	public void run() {
@@ -248,6 +206,7 @@ public class PackageAdminImpl implements PackageAdmin {
 		      switch (bi[bx].state) {
 		      case Bundle.STARTING:
 		      case Bundle.ACTIVE:
+		    	  //TODO did we not stop it above?
 			try {
 			  bi[bx].stop();
 			} catch(BundleException be) {
@@ -262,6 +221,11 @@ public class PackageAdminImpl implements PackageAdmin {
 		      }
 		      bi[bx].purge();
 		    }
+		  }
+		  
+		  //TODO integrate with previous loops? must be done after all are stopped and before any are restarted
+		  for (int bx = 0; bx < bi.length; bx++) {
+			  framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
 		  }
 
 		  // Restart previously active bundles in normal start order
@@ -323,6 +287,7 @@ public RequiredBundle[] getRequiredBundles(String symbolicName) {
 
 public boolean resolveBundles(Bundle[] bundles) {
 	// TODO Auto-generated method stub
+	checkResolveAdminPerm();
 	return false;
 }
 }
