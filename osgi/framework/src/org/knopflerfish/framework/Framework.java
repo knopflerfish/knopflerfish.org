@@ -403,6 +403,9 @@ public class Framework {
         startLevelService.shutdown();
       }
       systemBundle.systemShuttingdown();
+      try {
+        systemBundle.stop();
+      } catch (BundleException ignore) {}
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
         Bundle b = bundles.getBundle((String)slist.get(i));
