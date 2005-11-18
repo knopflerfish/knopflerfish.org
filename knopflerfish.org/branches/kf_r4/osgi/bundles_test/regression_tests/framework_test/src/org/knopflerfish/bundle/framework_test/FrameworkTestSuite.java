@@ -2657,7 +2657,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	
 	if (tsr.getReference().getUsingBundles() != null) {
 	  pass = false;
-	  fail("Unknown bundle using service in FRAME170A:FAIL");
+          String ids = "" + tsr.getReference().getUsingBundles()[0].getBundleId();
+          for (int i=1; i<tsr.getReference().getUsingBundles().length; i++) {
+            ids += "," + tsr.getReference().getUsingBundles()[i].getBundleId();
+          }
+	  fail("Unknown bundle (" + ids + ") using service in FRAME170A:FAIL");
 	}
 	try {
 	  buQ.start();
