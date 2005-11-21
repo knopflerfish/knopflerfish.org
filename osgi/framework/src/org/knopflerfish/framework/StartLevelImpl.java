@@ -90,7 +90,10 @@ public class StartLevelImpl implements StartLevel, Runnable {
     wc   = new Thread(this, "startlevel job thread");
     bRun = true;
     wc.start();
-    acceptChanges = true;
+    if (!acceptChanges) {
+      acceptChanges = true;
+      restoreState();
+    }
 
   }
 
@@ -144,7 +147,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   void shutdown() {
     acceptChanges = false;
-    privateSetStartLevel(0, true);
+    privateSetStartLevel(0, true, false);
     while (currentLevel > 1) {
       synchronized (wc) {
         try { wc.wait(); } catch (Exception e) {}
@@ -176,11 +179,13 @@ public class StartLevelImpl implements StartLevel, Runnable {
     }
 
     if (acceptChanges) {
-      privateSetStartLevel(startLevel, false);
+      privateSetStartLevel(startLevel, false, true);
     }
   }
 
-  private void privateSetStartLevel(final int startLevel, final boolean notifyWC) {
+  private void privateSetStartLevel(final int startLevel,
+                                    final boolean notifyWC,
+                                    final boolean storeLevel) {
     if(Debug.startlevel) {
       Debug.println("startlevel: setStartLevel " + startLevel);
     }
@@ -198,18 +203,16 @@ public class StartLevelImpl implements StartLevel, Runnable {
             decreaseStartLevel();
           }
 
-
           // Skip level save in mem storage since bundle levels
           // won't be saved anyway
-          if(!Framework.bIsMemoryStorage)
-            {
-              try {
-                Util.putContent(new File(storage, LEVEL_FILE),
-                                Integer.toString(currentLevel));
-              } catch (Exception e) {
-                e.printStackTrace();
-              }
+          if(storeLevel && !Framework.bIsMemoryStorage) {
+            try {
+              Util.putContent(new File(storage, LEVEL_FILE),
+                              Integer.toString(currentLevel));
+            } catch (Exception e) {
+              e.printStackTrace();
             }
+          }
           notifyFramework();
           if (notifyWC) {
             synchronized (wc) {
