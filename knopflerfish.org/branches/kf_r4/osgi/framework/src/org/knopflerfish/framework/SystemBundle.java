@@ -44,8 +44,6 @@ import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
 
-import java.security.ProtectionDomain;
-
 /**
  * Implementation of the System Bundle object.
  *
@@ -79,8 +77,8 @@ public class SystemBundle extends BundleImpl {
    * Construct the System Bundle handle.
    *
    */
-  SystemBundle(Framework fw, ProtectionDomain pd) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd);
+  SystemBundle(Framework fw) {
+    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION);
     state = STARTING;
     StringBuffer sp = new StringBuffer(System.getProperty(SYSPKG, ""));
 
@@ -251,6 +249,7 @@ public class SystemBundle extends BundleImpl {
     }
     return new HeaderDictionary(headers);
   }
+  
 
   //
   // Package method

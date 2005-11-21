@@ -36,22 +36,9 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-//import java.security.*;
-/*
-import java.util.Set;
-import java.util.Dictionary;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;*/
 import java.util.Enumeration;
 import java.util.Vector;
 
-//import java.util.jar.*;
-
-//import org.osgi.framework.*;
 
 /**
  * Classloader for bundle JAR files.
@@ -72,7 +59,7 @@ final public class BundleClassLoader extends ClassLoader {
   final static private ClassLoader parent = Framework.class.getClassLoader();
 
   /**
-   * Do we run in a Java 2 environment.
+   * Whether we run in a Java 2 environment.
    */
   private static boolean isJava2;
 
@@ -84,7 +71,8 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Imported java packages.
    */
-  private BundlePackages bpkgs = null;
+  private BundlePackages bpkgs /*= null*/;
+  
 
   static {
     try {
@@ -114,7 +102,7 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Find bundle class to load.
    * First check if this load comes from an imported package.
-   * Otherwise load class from out bundle.
+   * Otherwise load class from our bundle.
    *
    * @see java.lang.ClassLoader#findClass
    */
@@ -128,26 +116,26 @@ final public class BundleClassLoader extends ClassLoader {
       String pkg = name.substring(0, pos);
       BundleImpl p = bpkgs.getProviderBundle(pkg);
       if (p != null) {
-	if (p.getBundleId() != 0) {
-	  BundleClassLoader cl = p.getExporterClassLoader(pkg);
-	  if (cl != null) {
-	    c = cl.loadOwnClass(name);
-	    if (debug) {
-	      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported: " + name +
-			    " from #" + p.getBundleId());
-	    }
-	    return c;
-	  }
-	}
-	if (debug) {
-	  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - no imported found: " + name);
-	}
-	throw new ClassNotFoundException(name);
+    	  if (p.getBundleId() != 0) {
+    		  BundleClassLoader cl = p.getExporterClassLoader(pkg);
+    		  if (cl != null) {
+    			  c = cl.loadOwnClass(name);
+    			  if (debug) {
+    				  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported: " + name +
+    						        " from #" + p.getBundleId());
+    			  }
+    			  return c;
+    		  }
+    	  }
+    	  if (debug) {
+    		  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - no imported found: " + name);
+    	  }
+    	  throw new ClassNotFoundException(name);
       }
     }
     c = loadOwnClass(name);
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - loaded: " + name);
+    	Debug.println("classLoader(#" + bpkgs.bundle.id + ") - loaded: " + name);
     }
     return c;
   }
@@ -296,39 +284,35 @@ final public class BundleClassLoader extends ClassLoader {
   synchronized Class loadOwnClass(String name) throws ClassNotFoundException {
     Class c = findLoadedClass(name);
     if (c == null) {
-      if (debug) {
-	Debug.println("classLoader(#" + bpkgs.bundle.id + ") - try to find: " + name);
-      }
-      try {
-	byte[] bytes = archive.getClassBytes(name);
-	if (bytes != null) {
-	  if (debug) {
-	    Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " + name);
-	  }
-	  int pos = name.lastIndexOf('.');
-	  if (pos > 0) {
-	    String pkg = name.substring(0, pos);
-		    if (getPackage(pkg) == null) {
-	    definePackage(pkg, null, null, null, null, null, null, null);
-	    }
-	  }
-	  if(bpkgs.bundle.protectionDomain == null) {
-	    // Kaffe can't handle null protectiondomain
-	    return defineClass(name, bytes, 0, bytes.length);
-	  } else {
-	    return defineClass(name, bytes, 0, bytes.length, bpkgs.bundle.protectionDomain);
-	  }
-	}
-      } catch (IOException ioe) {
-	bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
-      }
-      throw new ClassNotFoundException(name);
-    } else {
-      if (debug) {
-	Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " +
-		      name + ", already loaded by " + this);
-      }
-      return c;
+    	if (debug) {
+    		Debug.println("classLoader(#" + bpkgs.bundle.id + ") - try to find: " + name);
+    	}
+        try {
+        	byte[] bytes = archive.getClassBytes(name);
+        	if (bytes != null) {
+        		if (debug) {
+        			Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " + name);
+        		}
+        		int pos = name.lastIndexOf('.');
+        		if (pos > 0) {
+        			String pkg = name.substring(0, pos);
+        			if (getPackage(pkg) == null) {
+        				definePackage(pkg, null, null, null, null, null, null, null);
+        			}
+        		}
+        		return defineClass(name, bytes, 0, bytes.length);
+        	}
+        } catch (IOException ioe) {
+        	bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
+        }
+        throw new ClassNotFoundException(name);
+    } 
+    else {
+        if (debug) {
+        	Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " +
+        				      name + ", already loaded by " + this);
+        }
+        return c;
     }
   }
 

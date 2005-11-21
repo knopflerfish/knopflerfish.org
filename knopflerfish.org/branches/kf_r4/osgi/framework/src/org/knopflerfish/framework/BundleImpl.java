@@ -78,12 +78,6 @@ class BundleImpl implements Bundle {
   final String location;
 
   /**
-   * Bundle protect domain.
-   */
-  //permissions are dynamic! do not set ProtectionDomain once and for all except for system bundle!
-  /* final */ ProtectionDomain protectionDomain;
-
-  /**
    * State of bundle.
    */
   int state;
@@ -199,11 +193,10 @@ class BundleImpl implements Bundle {
    *
    * @param fw Framework for this bundle.
    */
-  BundleImpl(Framework fw, long id, String loc, ProtectionDomain pd) {
+  BundleImpl(Framework fw, long id, String loc) {
     this.framework = fw;
     this.id = id;
     this.location = loc;
-    this.protectionDomain = pd;
     initPerms();
     modified();
   }
@@ -825,13 +818,8 @@ class BundleImpl implements Bundle {
     }  
     if (permission instanceof Permission) {
     	if (framework.permissions != null) {
-    		PermissionCollection pc;
-    	    if(protectionDomain != null){//if system bundle 	
-    	    	pc = protectionDomain.getPermissions();	
-    	    }
-    	    else{ //get the current status from permission admin
-    	    	pc = framework.permissions.getPermissionCollection(this);
-    	    }
+            //get the current status from permission admin
+    		PermissionCollection pc = framework.permissions.getPermissionCollection(this);
     	    return pc != null ? pc.implies((Permission)permission) : false;
     	} 
     	else {
@@ -940,17 +928,17 @@ class BundleImpl implements Bundle {
    * Get a Classloader object that we export from our bundle.
    *
    * @param pkg Name of java package to get from.
-   * @return Class object for specfied class, null if no classloader.
+   * @return BundleClassLoader object for specified pkg, null if no classloader.
    */
   BundleClassLoader getExporterClassLoader(String pkg) {
       BundleClassLoader cl;
-    if (oldClassLoaders != null) {
-      cl = (BundleClassLoader)oldClassLoaders.get(pkg);
-      if (cl != null) {
-	return cl;
+      if (oldClassLoaders != null) {
+    	  cl = (BundleClassLoader)oldClassLoaders.get(pkg);
+    	  if (cl != null) {
+    		  return cl;
+    	  }
       }
-    }
-    return (BundleClassLoader)getClassLoader();
+      return (BundleClassLoader)getClassLoader();
   }
 
 

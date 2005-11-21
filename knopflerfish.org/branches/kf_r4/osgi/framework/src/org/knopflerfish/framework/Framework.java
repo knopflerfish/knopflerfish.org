@@ -220,19 +220,9 @@ public class Framework {
 
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
+    
 
-    // guard this for profiles without Class.getProtectionDomain 
-    ProtectionDomain pd = null;
-    if(System.getSecurityManager()!= null) {
-      try {
-        pd = getClass().getProtectionDomain();
-      } catch (Throwable t) {
-        if(Debug.classLoader) {
-          Debug.println("Failed to get protection domain: " + t);
-        }
-      }
-    }
-    systemBundle      = new SystemBundle(this, pd);
+    systemBundle      = new SystemBundle(this);
 
     systemBC          = new BundleContextImpl(systemBundle);
     bundles           = new Bundles(this);
