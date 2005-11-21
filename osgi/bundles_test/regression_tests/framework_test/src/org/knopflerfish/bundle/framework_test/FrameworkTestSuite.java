@@ -1270,19 +1270,25 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       
       //bundle.loadClass test
-      
-      Class activator = bc.getBundle().loadClass("org.knopflerfish.bundle.io.Activator");
-      Method[] methods = activator.getDeclaredMethods();
-      boolean found = false;
-      for(int i = 0; i < methods.length; i++){
-    	  if(methods[i].getName().equals("start")){
-    		  found = true;
-    	  }
+      boolean cauchtException = false;
+      try{
+    	  bc.getBundle().loadClass("org.knopflerfish.bundle.io.Activato");
       }
-      if(!found){
+      catch(ClassNotFoundException e){
+    	  cauchtException = true;
+      }
+      
+      if(!cauchtException){
+    	  fail("bundle.loadclass failed to generate exception for non-existent class");
+      }
+      
+      try{
+    	  bc.getBundle().loadClass("org.knopflerfish.bundle.io.Activator");
+      }
+      catch(ClassNotFoundException e){
     	  fail("bundle.loadclass failed");
       }
-      
+     
       
       // the fw_test_single.txt resource is present just
       // res2.jar
