@@ -326,7 +326,14 @@ public class ServiceReferenceImpl implements ServiceReference
 
   public boolean isAssignableTo(Bundle bundle, String className) {
 	// TODO Auto-generated method stub
-	//registration.bundle.  
+	//registration.bundle. 
+	int pos = className.lastIndexOf('.');
+	if (pos != -1) {
+		String classPackage = className.substring(0, pos);  
+	} 
+	else{
+		return false;
+	}
 	return true;
   }
 
