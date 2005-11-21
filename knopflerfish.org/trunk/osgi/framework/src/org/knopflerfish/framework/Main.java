@@ -103,6 +103,8 @@ public class Main {
   static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
   static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
+  static boolean restarting = false;
+
   /**
    * Help class for starting the OSGi framework.
    */
@@ -523,6 +525,7 @@ public class Main {
    * </p>
    */
   static public void shutdown(final int exitcode) {
+    if (restarting) return;
     framework.checkAdminPermission();
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
@@ -559,29 +562,33 @@ public class Main {
    */
   static public void restart() {
     framework.checkAdminPermission();
-
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           Thread t = new Thread() {
               public void run() {
-                if (bootMgr != 0) {
-                  try {
-                    framework.stopBundle(bootMgr);
-                  } catch (BundleException e) {
-                    System.err.println("Stop of BootManager failed, " +
-                                       e.getNestedException());
-                  }
-                }
-                framework.shutdown();
-
+                restarting = true;
                 try {
                   if (bootMgr != 0) {
-                    framework.launch(bootMgr);
-                  } else {
-                    framework.launch(0);
+                    try {
+                      framework.stopBundle(bootMgr);
+                    } catch (BundleException e) {
+                      System.err.println("Stop of BootManager failed, " +
+                                         e.getNestedException());
+                    }
                   }
-                } catch (Exception e) {
-                  println("Failed to restart framework", 0);
+                  framework.shutdown();
+
+                  try {
+                    if (bootMgr != 0) {
+                      framework.launch(bootMgr);
+                    } else {
+                      framework.launch(0);
+                    }
+                  } catch (Exception e) {
+                    println("Failed to restart framework", 0);
+                  }
+                } finally {
+                  restarting = false;
                 }
               }
             };
