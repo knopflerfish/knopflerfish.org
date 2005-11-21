@@ -72,6 +72,7 @@ public class SystemBundle extends BundleImpl {
 
   private HeaderDictionary headers = null;
 
+  boolean restarting = false;
 
   /**
    * Construct a the System Bundle handle.
@@ -208,8 +209,8 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#stop
    */
-  synchronized public void stop() throws BundleException
-  {
+  synchronized public void stop() throws BundleException {
+    if (restarting) return;
     framework.checkAdminPermission();
     Main.shutdown(0);
   }
@@ -223,7 +224,12 @@ public class SystemBundle extends BundleImpl {
   synchronized public void update(InputStream in) throws BundleException {
     framework.checkAdminPermission();
     if(Framework.R3_TESTCOMPLIANT || "true".equals(System.getProperty("org.knopflerfish.framework.restart.allow", "true"))) {
-      Main.restart();
+      restarting = true;
+      try {
+        Main.restart();
+      } finally {
+        restarting = false;
+      }
     } else {
       Main.shutdown(2);
     }
