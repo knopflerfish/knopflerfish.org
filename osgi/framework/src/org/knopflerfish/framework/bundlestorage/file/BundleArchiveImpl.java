@@ -97,7 +97,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private int startLevel = -1;
 
-  private boolean bPersistant = false;
+  private boolean bPersistent = false;
 
   static {
     try {
@@ -170,7 +170,7 @@ class BundleArchiveImpl implements BundleArchive
 
     String pS = getContent(PERSISTENT_FILE);
     if (pS != null) {
-      bPersistant = "true".equals(pS);
+      bPersistent = "true".equals(pS);
     }
 
     archive       = new Archive(bundleDir, rev, location);
@@ -283,15 +283,15 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   public void setPersistent(boolean b) throws IOException {
-    if (bPersistant != b) {
-      bPersistant = b;
+    if (bPersistent != b) {
+      bPersistent = b;
       putContent(PERSISTENT_FILE, b ? "true" : "false");
     }
   }
 
 
   public boolean isPersistent() {
-    return bPersistant;
+    return bPersistent;
   }
 
 
