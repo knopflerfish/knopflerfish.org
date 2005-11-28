@@ -51,6 +51,7 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Debug
    */
+  //TODO have option to remove all such from production builds
   final private boolean debug = Debug.classLoader;
 
   /**
@@ -64,7 +65,7 @@ final public class BundleClassLoader extends ClassLoader {
   private static boolean isJava2;
 
   /**
-   * Archives that we load code from.
+   * Archive that we load code from.
    */
   private BundleArchive archive;
 
@@ -172,11 +173,11 @@ final public class BundleClassLoader extends ClassLoader {
       String pkg = name.substring(start, pos).replace('/', '.');
       BundleImpl p = bpkgs.getProviderBundle(pkg);
       if (p != null && p.getBundleId() != 0) {
-	cl = p.getExporterClassLoader(pkg);
-	if (debug) {
-	  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported resource: " + name +
-			" from #" + p.getBundleId());
-	}
+    	  cl = p.getExporterClassLoader(pkg);
+    	  if (debug) {
+    		  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported resource: " + name +
+    				        " from #" + p.getBundleId());
+    	  }
       }
     }
     return cl.findBundleResources(name);
@@ -375,9 +376,6 @@ final public class BundleClassLoader extends ClassLoader {
     return bpkgs;
   }
 
-  //
-  // Private methods
-  //
 
   /**
    * Find resources within bundle.
@@ -389,9 +387,8 @@ final public class BundleClassLoader extends ClassLoader {
     Vector items = archive.componentExists(name);
     if (items != null) {
       for(int i = 0; i < items.size(); i++) {
-        int jarId = items.size() == 1 
-          ? -1
-          : ((Integer)items.elementAt(i)).intValue();
+        int jarId = (items.size() == 1) ? -1
+                                        : ((Integer)items.elementAt(i)).intValue();
         
         try {
           /*
