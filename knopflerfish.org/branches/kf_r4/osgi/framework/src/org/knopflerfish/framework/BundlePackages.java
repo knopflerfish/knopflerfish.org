@@ -210,7 +210,7 @@ class BundlePackages {
    * If bundle package has been resolved look for a bundle
    * that provides the requested package.
    * If found, check if we import it. If not imported, check
-   * if we can dynamicly import the package.
+   * if we can dynamically import the package.
    *
    * @param pkg Package name
    * @return Bundle exporting
