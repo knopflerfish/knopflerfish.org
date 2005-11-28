@@ -53,6 +53,7 @@ import org.osgi.service.permissionadmin.PermissionAdmin;
  * Here we handle all the services that are registered in framework.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 class Services {
 
@@ -60,7 +61,6 @@ class Services {
    * All registered services in the current framework.
    * Mapping of registered service to class names under which service is registerd.
    */
-  //private List /* ServiceRegistration */ services = new ArrayList();
 	private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
 
   /**
