@@ -89,9 +89,7 @@ final public class BundleClassLoader extends ClassLoader {
     } catch (NoSuchMethodException ignore) {
       isJava2 = false;
     }
-    
-    //TODO maybe this needs to be dynamic, refreshing from the sys prop on every call?
-    //behavior elsewhere in the framework seems to be for a static setting
+   
     buildDelegations();
   }
 
@@ -133,8 +131,7 @@ final public class BundleClassLoader extends ClassLoader {
 	      Main.framework.listeners.frameworkError(Main.framework.systemBundle, e);
 	  }
 	  //TODO remove when finished up. This currently insures R3 compliant behavior
-	  //for now removing this will break. finish up when when working on other new classLoading aspects
-	  
+	  //for now removing this will break. finish up when when working on other new classLoading aspects 
 	  //I could have done more but felt like leaving this to the one who will do the other 
 	  //new classLoading aspects was more appropriate
 	  bootDelegationPatterns = null;
