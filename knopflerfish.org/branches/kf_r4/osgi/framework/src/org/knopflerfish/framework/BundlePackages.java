@@ -121,6 +121,7 @@ class BundlePackages {
 	String key = (String)e.get("key");
 	if (key.equals("*")) {
 	  dImportPatterns = null;
+	  break;
 	} else if (key.endsWith(".*")) {
 	  dImportPatterns.add(key.substring(0, key.length() - 1));
 	} else if (key.endsWith(".")) {
