@@ -36,9 +36,13 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
+import org.osgi.framework.*;
 
 /**
  * Classloader for bundle JAR files.
@@ -74,6 +78,9 @@ final public class BundleClassLoader extends ClassLoader {
    */
   private BundlePackages bpkgs /*= null*/;
   
+  private static ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
+  private static boolean bootDelegationUsed /*= false*/;
+  
 
   static {
     try {
@@ -82,13 +89,87 @@ final public class BundleClassLoader extends ClassLoader {
     } catch (NoSuchMethodException ignore) {
       isJava2 = false;
     }
+    
+    //TODO maybe this needs to be dynamic, refreshing from the sys prop on every call?
+    //behavior elsewhere in the framework seems to be for a static setting
+    buildDelegations();
   }
 
 
+  static void buildDelegations(){ 
+	  String bootDelegationString = System.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
+	  bootDelegationUsed = (bootDelegationString != null);
+   
+	  try {
+		  Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION, 
+				                         bootDelegationString,
+                                         true);
+		  
+	      while (i.hasNext()) {
+	    	  Map e = (Map)i.next();
+	    	  String key = (String)e.get("key");
+	    	  if (key.equals("*")) {
+	    		  bootDelegationPatterns = null;
+	    		  //in case funny person puts a * amongst other things
+	    		  break;
+	    	  } 
+	    	  else if (key.endsWith(".*")) {
+	    		  bootDelegationPatterns.add(key.substring(0, key.length() - 1));
+	    	  } 
+	    	  else if (key.endsWith(".")) {
+	    		  Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
+	    				                                  Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
+	    	  } 
+	    	  else if (key.indexOf("*") != - 1) {
+	    		  Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
+	    				  							      Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
+	    	  } 
+	    	  else {
+	    		  bootDelegationPatterns.add(key);
+	    	  }
+	      }
+	  } 
+	  catch (IllegalArgumentException e) {
+	      Main.framework.listeners.frameworkError(Main.framework.systemBundle, e);
+	  }
+	  //TODO remove when finished up. This currently insures R3 compliant behavior
+	  //for now removing this will break. finish up when when working on other new classLoading aspects
+	  
+	  //I could have done more but felt like leaving this to the one who will do the other 
+	  //new classLoading aspects was more appropriate
+	  bootDelegationPatterns = null;
+	  bootDelegationUsed = true;
+  }
+  
+  static boolean isBootDelegated(String className){ 
+	  if(!bootDelegationUsed){
+		  return false;
+	  }
+	  int pos = className.lastIndexOf('.');
+	  if (pos != -1) {
+			String classPackage = className.substring(0, pos);  
+			if (bootDelegationPatterns == null) {
+				return true;
+			} 
+			else {
+				for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
+					String ps = (String)i.next();
+					if ((ps.endsWith(".") && 
+						classPackage.startsWith(ps)) || 
+						classPackage.equals(ps)) {
+						return true;
+					}
+				}
+			}
+	  }
+	  return false;
+  }
+  
   /**
    * Create class loader for specified bundle.
    */
   BundleClassLoader(BundlePackages bpkgs, BundleArchive ba) {
+	super(parent); //otherwise getResource will bypass OUR parent
     this.bpkgs = bpkgs;
     archive = ba;
     if (debug) {
@@ -215,18 +296,26 @@ final public class BundleClassLoader extends ClassLoader {
   {
     Class c = findLoadedClass(name);
     if (c == null) {
-      try {
-	if (parent != null) {
-	  c = parent.loadClass(name);
-	} else {
-	  c = findSystemClass(name);
-	}
-      } catch (ClassNotFoundException e) {
-	c = findClass(name);
-      }
+        //assert: parent != null
+    	if(name.startsWith("java.")){
+    		c = parent.loadClass(name);
+    	}
+    	else{
+    		if(isBootDelegated(name)){
+    			try{
+    				c = parent.loadClass(name);
+    	        } 
+    			catch (ClassNotFoundException e) {
+    				c = findClass(name);
+    			}
+    		}
+    		else{
+    			c = findClass(name);
+    		}
+    	}
     }
     if (resolve) {
-      resolveClass(c);
+    	resolveClass(c);
     }
     return c;
   }
@@ -245,6 +334,7 @@ final public class BundleClassLoader extends ClassLoader {
    * @see java.lang.ClassLoader#getResource
    */
   public URL getResource(String name) {
+	//TODO same delegation logic as for loadClass  
     URL res = super.getResource(name);
     if (res == null && !isJava2) {
       return findResource(name);
