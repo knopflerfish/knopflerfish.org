@@ -325,15 +325,29 @@ public class ServiceReferenceImpl implements ServiceReference
   }
 
   public boolean isAssignableTo(Bundle bundle, String className) {
-	// TODO Auto-generated method stub
-	//registration.bundle. 
-	int pos = className.lastIndexOf('.');
+	// TODO 
+	
+	/*int pos = className.lastIndexOf('.');
 	if (pos != -1) {
 		String classPackage = className.substring(0, pos);  
+		BundleImpl exportingBundleReg = ((BundleClassLoader) 
+				                     registration.bundle.getClassLoader()).getBpkgs()
+				                     .getProviderBundle(classPackage);
+		if(exportingBundleReg == null){
+			if(registration.bundle == (BundleImpl)bundle){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		else{
+			if
+		}
 	} 
 	else{
 		return false;
-	}
+	}*/
 	return true;
   }
 
