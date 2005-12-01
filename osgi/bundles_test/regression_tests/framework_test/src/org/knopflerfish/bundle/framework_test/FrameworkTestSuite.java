@@ -1263,9 +1263,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // first check that correct number of files exists
       
       // the fw_test_multi.txt resources are present in
-      // res1.jar, res2.jar and in the top bundle
+      // res1.jar, subdir/res1.jar, res2.jar and in the top bundle
       n = countResources("/fw_test_multi.txt");
-      assertEquals("Multiple resources should be reflected by CL.getResources() > 1", 3, n); 
+      assertEquals("Multiple resources should be reflected by CL.getResources() > 1", 4, n); 
 
       
       
@@ -1284,6 +1284,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       try{
     	  bc.getBundle().loadClass("org.knopflerfish.bundle.io.Activator");
+      }
+      catch(ClassNotFoundException e){
+    	  fail("bundle.loadclass failed");
+      }
+      
+      try{
+    	  bc.getBundle().loadClass("org.osgi.service.io.ConnectionFactory");
       }
       catch(ClassNotFoundException e){
     	  fail("bundle.loadclass failed");
