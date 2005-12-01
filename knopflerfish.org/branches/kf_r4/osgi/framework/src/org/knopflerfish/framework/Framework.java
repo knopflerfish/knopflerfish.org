@@ -49,9 +49,6 @@ import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
-import org.osgi.framework.AdminPermission;
-
-
 /**
  * This class contains references to all common data structures
  * inside the framework.
