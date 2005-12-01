@@ -53,16 +53,10 @@ import org.osgi.service.startlevel.StartLevel;
 public class SystemBundle extends BundleImpl {
 	
   	
-
   /**
-   * Property name for telling which packages framework exports.
+   * Property name pointing to file listing of system-exported packages
    */
-  private final static String SYSPKG = "org.osgi.framework.system.packages";
-
-  /**
-   * Property name pointing to file of system packages
-   */
-  private final static String SYSPKG_FILE = "org.osgi.framework.system.packages.file";
+  private final static String SYSPKG_FILE = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
 
   /**
    * Name of system property for exporting all J2SE 1.3 packages.
@@ -80,7 +74,7 @@ public class SystemBundle extends BundleImpl {
   SystemBundle(Framework fw) {
     super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION);
     state = STARTING;
-    StringBuffer sp = new StringBuffer(System.getProperty(SYSPKG, ""));
+    StringBuffer sp = new StringBuffer(System.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
 
     if (sp.length() > 0) {
       sp.append(",");
