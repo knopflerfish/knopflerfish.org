@@ -193,7 +193,7 @@ class BundleArchiveImpl implements BundleArchive
   public byte[] getClassBytes(String clazz) throws IOException {
     String cp = clazz.replace('.', '/') + ".class";
     for (int i = 0; i < archives.length; i++) {
-      byte [] res = archives[i].getBytes(cp);
+      byte [] res = archives[i].getClassBytes(cp);
       if (res != null) {
 	return res;
       }
@@ -316,7 +316,7 @@ class BundleArchiveImpl implements BundleArchive
   //
   // Private methods
   //
-
+  //
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
     
@@ -326,10 +326,17 @@ class BundleArchiveImpl implements BundleArchive
       while (st.hasMoreTokens()) {
 	String path = st.nextToken().trim();
 	if (".".equals(path)) {
-	  a.add(archive);
-	} else {
-	  a.add(archive.getSubArchive(path));
-	}
+		  a.add(archive);
+	  } 
+	  else if (path.endsWith(".jar")){
+		  a.add(archive.getSubArchive(path));
+	  }
+	  else{
+		  if(archive.subDirs == null){
+			  archive.subDirs = new ArrayList(1);
+		  }
+		  archive.subDirs.add(path);
+	  }
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
     } else {
