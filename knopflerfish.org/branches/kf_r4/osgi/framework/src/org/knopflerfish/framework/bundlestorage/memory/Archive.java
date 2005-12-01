@@ -39,7 +39,9 @@ import org.osgi.framework.Constants;
 import java.io.*;
 //import java.net.*;
 //import java.security.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 
 import java.util.jar.*;
@@ -63,6 +65,8 @@ class Archive {
    * If not null, it is a sub jar instead.
    */
   protected HashMap /* String -> byte[] */ content;
+  
+  ArrayList subDirs/*= null*/;
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -144,8 +148,27 @@ class Archive {
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getBytes(String component) throws IOException {
-    return (byte [])content.remove(component);
+  byte[] getClassBytes(String classFile) throws IOException {
+	byte[] bytes;
+	if((bytes = (byte [])content.remove(classFile)) == null){
+		if(subDirs == null){
+			return null;
+		}
+		Iterator it = subDirs.iterator();
+		boolean found = false;
+		while(it.hasNext()){
+			String subDir = (String) it.next();
+			bytes = (byte [])content.remove(subDir + "/" + classFile);
+			if(bytes != null){
+				found = true;
+				break;
+			}
+		}
+		if(!found){
+			return null;
+		}	
+	}
+	return bytes;		
   }
 
 
