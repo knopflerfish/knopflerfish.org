@@ -761,7 +761,7 @@ public class Main {
    * Default values for some system properties.
    */
   static String[][] defaultSysProps = new String[][] {
-    {"org.osgi.framework.system.packages", "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
+    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
     {FWDIR_PROP,    FWDIR_DEFAULT},
     {CMDIR_PROP,    CMDIR_DEFAULT},
     //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
