@@ -127,7 +127,7 @@ public class Util {
    * @param a Attribute being parsed
    * @param s String to parse
    * @param single If true, only allow one key per ENTRY
-   *        and only allow unique parmeters for each ENTRY.
+   *        and only allow unique parameters for each ENTRY.
    * @return Iterator(Map(param -> value)).
    * @exception IllegalArgumentException If syntax error in input string.
    */
