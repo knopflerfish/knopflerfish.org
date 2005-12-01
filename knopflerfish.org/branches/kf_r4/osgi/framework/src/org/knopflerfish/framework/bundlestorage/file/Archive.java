@@ -41,6 +41,7 @@ import java.net.*;
 //import java.security.*;
 import java.util.StringTokenizer;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.jar.*;
 import java.util.zip.*;
 
@@ -92,13 +93,15 @@ class Archive {
   /**
    * Archive's manifest
    */
-  Manifest manifest = null;
+  Manifest manifest /*= null*/;
 
   /**
    * JAR Entry handle for file that contains current archive.
    * If not null, it is a sub jar instead.
    */
-  private ZipEntry subJar = null;
+  private ZipEntry subJar /*= null*/;
+  
+  ArrayList subDirs/*= null*/;
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -133,23 +136,26 @@ class Archive {
       ji = new JarInputStream(bis);
       manifest = ji.getManifest();
       if (manifest != null) {
-	if (checkManifest()) {
-	  doUnpack = true;
-	} else {
-	  try {
-	    bis.reset();
-	  } catch (IOException fail) {
-	    doUnpack = true;
-	  }
-	}
-      } else {
+    	  if (checkManifest()) {
+    		  doUnpack = true;
+    	  } 
+    	  else {
+    		  try {
+    			  bis.reset();
+    		  } 
+    		  catch (IOException fail) {
+    			  doUnpack = true;
+    		  }
+    	  }
+      } 
+      else {
 	// The manifest is probably not first in the file. We do not
 	// unpack to minimize disk footprint. Should we warn?
-	try {
-	  bis.reset();
-	} catch (IOException fail) {
-	  doUnpack = true;
-	}
+    	  try {
+    		  bis.reset();
+    	  } catch (IOException fail) {
+    		  doUnpack = true;
+    	  }
       }
     }
     file = new File(dir, ARCHIVE + rev);
@@ -158,40 +164,44 @@ class Archive {
       f.mkdirs();
       BufferedOutputStream o = new BufferedOutputStream(new FileOutputStream(new File(f, "MANIFEST.MF")));
       try {
-	manifest.write(o);
+    	  manifest.write(o);
       } finally {
-	o.close();
+    	  o.close();
       }
       ZipEntry ze;
       while ((ze = ji.getNextJarEntry()) != null) {
-	if (!ze.isDirectory()) {
-	  if(isSkipped(ze.getName())) {
-	    // Optional files are not copied to disk
-	  } else {
-	    StringTokenizer st = new StringTokenizer(ze.getName(), "/");
-	    f = new File(file, st.nextToken());
-	    while (st.hasMoreTokens()) {
-	      f.mkdir();
-	      f = new File(f, st.nextToken());
-	    }
-	    loadFile(f, ji, true);
-	  }
-	}
+    	  if (!ze.isDirectory()) {
+    		  if(isSkipped(ze.getName())) {
+    			  // Optional files are not copied to disk
+    		  } 
+    		  else {
+    			  StringTokenizer st = new StringTokenizer(ze.getName(), "/");
+    			  f = new File(file, st.nextToken());
+    			  while (st.hasMoreTokens()) {
+    				  f.mkdir();
+    				  f = new File(f, st.nextToken());
+    			  }
+    			  loadFile(f, ji, true);
+    		  }
+    	  }
       }
       jar = null;
-    } else {
+    } 
+    else {
       // Only copy to storage when applicable, otherwise
       // use reference
       if(source != null && bReference && "file".equals(source.getProtocol())) {
-	refFile = new File(source.getFile());
-	jar = new ZipFile(refFile);
-      } else {
-	loadFile(file, bis, true);
-	jar = new ZipFile(file);
+    	  refFile = new File(source.getFile());
+    	  jar = new ZipFile(refFile);
+      } 
+      else {
+    	  loadFile(file, bis, true);
+    	  jar = new ZipFile(file);
       }
       if (manifest == null) {
-	manifest = getManifest();
-	checkManifest();
+    	  manifest = getManifest();
+    	  //TODO something more here?
+    	  checkManifest();
       }
     }
   }
@@ -211,8 +221,6 @@ class Archive {
    * archive in the specified directory.
    * Take lowest versioned archive and remove rest.
    *
-   * @param dir Directory with saved Archive.
-   * @param url URL to use to CodeSource.
    */
   Archive(File dir, int rev, String location) throws IOException {
     String [] f = dir.list();
@@ -293,7 +301,7 @@ class Archive {
       jar = a.jar;
       subJar = jar.getEntry(path);
       if (subJar == null) {
-	throw new IOException("No such JAR componenet: " + path);
+    	  throw new IOException("No such JAR component: " + path);
       }
       file = a.file;
     } else {
@@ -370,68 +378,101 @@ class Archive {
   
 
   /**
-   * Get a byte array containg the contents of named file from
+   * Get a byte array containg the contents of named class file from
    * the archive.
    *
-   * @param component File to get.
-   * @return Byte array with contents of file or null if file doesn't exist.
+   * @param Class File to get.
+   * @return Byte array with contents of class file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getBytes(String component) throws IOException {
+  byte[] getClassBytes(String classFile) throws IOException {
     if(bClosed) {
-      return null;
+    	return null;
     }
 
     ZipEntry ze;
     InputStream is;
     int len;
     if (jar != null) {
-      if (subJar != null) {
-	JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-	do {
-	  ze = ji.getNextJarEntry();
-	  if (ze == null) {
-	    ji.close();
-	    return null;
-	  }
-	} while (!component.equals(ze.getName()));
-	is = (InputStream)ji;
-      } else {
-	ze = jar.getEntry(component);
-	if (ze == null) {
-	  return null;
-	}
-	is = jar.getInputStream(ze);
-      }
-      len = (int)ze.getSize();
-    } else {
-      File f = findFile(file, component);
-      if (f.exists()) {
-	is = new FileInputStream(f);
-	len = is.available();
-      } else {
-	return null;
-      }
+    	if (subJar != null) {
+    		JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+    		do {
+    			ze = ji.getNextJarEntry();
+    			if (ze == null) {
+    				ji.close();
+    				return null;
+    			}
+    		} while (!classFile.equals(ze.getName()));
+    		is = (InputStream)ji;
+    	} 
+    	else {
+    		ze = jar.getEntry(classFile);
+    		if (ze == null) {
+    			if(subDirs == null){
+    				return null;
+    			}
+    			Iterator it = subDirs.iterator();
+    			boolean found = false;
+    			while(it.hasNext()){
+    				String subDir = (String) it.next();
+    				ze = jar.getEntry(subDir + "/" + classFile);
+    				if(ze != null){
+    					found = true;
+    					break;
+    				}
+    			}
+    			if(!found){
+    				return null;
+    			}
+    		}
+    		is = jar.getInputStream(ze);
+    	}
+    	len = (int)ze.getSize();
+    } 
+    else {
+    	File f = findFile(file, classFile);
+    	if(!f.exists()) {
+    		if(subDirs == null){
+				return null;
+			}
+    		Iterator it = subDirs.iterator();
+    		boolean found = false;
+    		while(it.hasNext()){
+				String subDir = (String) it.next();
+				f = findFile(file,subDir + "/" + classFile);
+				if(f.exists()){
+					found = true;
+					break;
+				}
+			}
+			if(!found){
+				return null;
+			}
+    	}	
+		is = new FileInputStream(f);
+    	len = is.available();
     }
     byte[] bytes;
     if (len >= 0) {
-      bytes = new byte[len];
-      DataInputStream dis = new DataInputStream(is);
-      dis.readFully(bytes);
-    } else {
-      bytes = new byte[0];
-      byte[] tmp = new byte[8192];
-      try {
-	while ((len = is.read(tmp)) > 0) {
-	  byte[] oldbytes = bytes;
-	  bytes = new byte[oldbytes.length + len];
-	  System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
-	  System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
-	}
-      } catch (EOFException ignore) {
-	// On Pjava we somtimes get a mysterious EOF excpetion,
-	// but everything seems okey. (SUN Bug 4040920)
-      }
+    	bytes = new byte[len];
+    	DataInputStream dis = new DataInputStream(is);
+    	dis.readFully(bytes);
+    } 
+    else {
+    	bytes = new byte[0];
+    	byte[] tmp = new byte[8192];
+    	try {
+    		while ((len = is.read(tmp)) > 0) {
+    			byte[] oldbytes = bytes;
+    			bytes = new byte[oldbytes.length + len];
+    			System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
+    			System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
+    		}
+    	} 
+    	catch (EOFException ignore) {
+	    // On Pjava we somtimes get a mysterious EOF excpetion,
+	    // but everything seems okey. (SUN Bug 4040920)
+    	}
     }
     is.close();
     return bytes;
@@ -454,26 +495,28 @@ class Archive {
     ZipEntry ze;
     InputStream is;
     try {
-      if (jar != null) {
-	if (subJar != null) {
-	  JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-	  do {
-	    ze = ji.getNextJarEntry();
-	    if (ze == null) {
-	      ji.close();
-	      return null;
-	    }
-	  } while (!component.equals(ze.getName()));
-	  is = (InputStream)ji;
-	} else {
-	  ze = jar.getEntry(component);
-	  is = (ze != null) ? jar.getInputStream(ze) : null;
-	}
-      } else {
-	File f = findFile(file, component);
-	is = f.exists() ? new FileInputStream(f) : null;
-      }
-      return is;
+    	if (jar != null) {
+    		if (subJar != null) {
+    			JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+    			do {
+    				ze = ji.getNextJarEntry();
+    				if (ze == null) {
+    					ji.close();
+    					return null;
+    				}
+    			} while (!component.equals(ze.getName()));
+    			is = (InputStream)ji;
+    		} 
+    		else {
+    			ze = jar.getEntry(component);
+    			is = (ze != null) ? jar.getInputStream(ze) : null;
+    		}
+    	} 
+    	else {
+    		File f = findFile(file, component);
+    		is = f.exists() ? new FileInputStream(f) : null;
+    	}
+    	return is;
     } catch (IOException ignore) {
       return null;
     }
@@ -579,7 +622,7 @@ class Archive {
    * and if we need to unpack bundle for fast performance,
    * i.e has native code file or subjars.
    *
-   * @return true if bundle needs to be unpack.
+   * @return true if bundle needs to be unpacked.
    * @exception IllegalArgumentException if we have a broken manifest.
    */
   private boolean checkManifest() {
