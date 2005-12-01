@@ -219,7 +219,7 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   boolean isFake() {
-    // What the f**k is this? Test case seem to require it!
+    // Test cases require this
     // 
     // OK. Some background story might me good here:
     //
@@ -325,7 +325,7 @@ class BundleArchiveImpl implements BundleArchive
   public byte[] getClassBytes(String clazz) throws IOException {
     String cp = clazz.replace('.', '/') + ".class";
     for (int i = 0; i < archives.length; i++) {
-      byte [] res = archives[i].getBytes(cp);
+      byte [] res = archives[i].getClassBytes(cp);
       if (res != null) {
 	return res;
       }
@@ -348,18 +348,18 @@ class BundleArchiveImpl implements BundleArchive
       component = component.substring(1);
     }
 
-
     for (int i = 0; i < archives.length; i++) {
-      InputStream is = archives[i].getInputStream(component);
-      if (is != null) {
-        if(v == null) {
-	   v = new Vector();
-        }
-        v.addElement(new Integer(i));
-	try {
-	  is.close();
-	} catch (IOException ignore) { }
-      }
+    	InputStream is = archives[i].getInputStream(component);
+    	if (is != null) {
+    		if(v == null) {
+    			v = new Vector();
+    		}
+    		v.addElement(new Integer(i));
+    		try {
+    			is.close();
+    		} 
+    		catch (IOException ignore) { }
+    	}
     }
     return v;
   }
@@ -393,7 +393,8 @@ class BundleArchiveImpl implements BundleArchive
         }
       }
       return null;
-    } else {
+    } 
+    else {
       return archives[ix].getInputStream(component);
     }
   }
@@ -583,15 +584,23 @@ class BundleArchiveImpl implements BundleArchive
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {
-	String path = st.nextToken().trim();
-	if (".".equals(path)) {
-	  a.add(archive);
-	} else {
-	  a.add(archive.getSubArchive(path));
-	}
+    	  String path = st.nextToken().trim();
+    	  if (".".equals(path)) {
+    		  a.add(archive);
+    	  } 
+    	  else if (path.endsWith(".jar")){
+    		  a.add(archive.getSubArchive(path));
+    	  }
+    	  else{
+    		  if(archive.subDirs == null){
+    			  archive.subDirs = new ArrayList(1);
+    		  }
+    		  archive.subDirs.add(path);
+    	  }
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
-    } else {
+    } 
+    else {
       archives = new Archive[] { archive };
     }
 
