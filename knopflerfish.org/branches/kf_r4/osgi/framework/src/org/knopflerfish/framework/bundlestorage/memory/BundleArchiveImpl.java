@@ -136,8 +136,8 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * @see org.knopflerfish.framework.BundleArchive#getAttributes
    */
-  public Dictionary getAttributes(String locale) {
-    return new HeaderDictionary(archive.getAttributes(locale));
+  public Dictionary getAttributes(String locale, int bundle_state) {
+    return archive.getAttributes(locale, bundle_state);
   }
 
   /**
@@ -267,10 +267,10 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Get native library from JAR.
    *
-   * @param component Name of Jar file to get.
+   * @param libName Name of Jar file to get.
    * @return A string with path to native library.
    */
-  public String getNativeLibrary(String component) {
+  public String getNativeLibrary(String libName) {
     return null;
   }
 

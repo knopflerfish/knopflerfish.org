@@ -35,17 +35,24 @@
 package org.knopflerfish.framework.bundlestorage.memory;
 
 //import org.knopflerfish.framework.*;
+import org.knopflerfish.framework.HeaderDictionary;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import java.io.*;
 //import java.net.*;
 //import java.security.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
 import java.util.jar.*;
-//import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.Dictionary;
 
 /**
  * JAR file handling.
@@ -119,24 +126,88 @@ class Archive {
     return manifest.getMainAttributes().getValue(key);
   }
   
-
+  private static final String LOCALIZATION_FILE_SUFFIX = ".properties";
+  
   /**
    * Get all attributes from the manifest of the archive.
+   * @param locale, the locale to be used, null means use java.util.Locale.getDefault
+   * empty string means get raw (unlocalized) manifest headers
    *
    * @return All attributes.
    */
-  Attributes getAttributes(String locale) {
-	  Attributes attr = manifest.getMainAttributes();
-	    //TODO finish up
-	    if(locale != null && locale.equals("")){
-	    	return attr;
-	    }
-	    else if (locale == null){
-	    	Locale localeL = Locale.getDefault();
-	    	//TODO what should this be?
-	    	locale = localeL.getLanguage();
-	    }
-	    return attr;
+  //TODO test (ex: what to do whem uninstalled?)
+  Dictionary getAttributes(String locale, int bundle_state){
+	Attributes attr = manifest.getMainAttributes();
+	if(attr == null){
+    	return null;
+    }
+    
+    if(locale != null && locale.equals("")){
+    	return new HeaderDictionary(attr);
+    }
+    else if (locale == null){
+    	locale = Locale.getDefault().toString();
+    }
+    
+    Hashtable localization_entries = new Hashtable();
+    
+    if(bundle_state != Bundle.UNINSTALLED){
+    	String fileName = attr.getValue(Constants.BUNDLE_LOCALIZATION);
+    	if(fileName == null){
+    		fileName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+    	}
+    	StringTokenizer st = new StringTokenizer(locale, "_");
+   
+    	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
+    	
+    	while(st.hasMoreTokens()){
+    		fileName += "_" + st.nextToken();
+    		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
+    	}
+    }
+    
+    Hashtable localized_headers = new Hashtable();
+    
+    Iterator i = attr.entrySet().iterator();
+    while(i.hasNext()){
+    	Map.Entry e = (Map.Entry)i.next();
+    	String value = (String) e.getValue();
+    	if(value.startsWith("%")){
+    		Object o = localization_entries.get(value.substring(1));
+    		if(o != null){
+    			localized_headers.put(e.getKey(), o);
+    		}
+    		else{
+    			//TODO is this right?
+    			localized_headers.put(e.getKey(), value);
+    		}
+    	}
+    	else{
+    		localized_headers.put(e.getKey(), value);
+    	}
+    }
+    //TODO cache localized headers?
+    return new HeaderDictionary(localized_headers);
+  }
+  
+  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries) {
+	  try{
+		  Properties locale_entries = new Properties();
+		  InputStream is = getInputStream(fileName);
+		  if(is == null){
+			  return current_entries;
+		  }
+	      locale_entries.load(is);
+		  Iterator it = locale_entries.keySet().iterator();
+		  while(it.hasNext()){
+			  Object o = it.next();
+			  current_entries.put(o, locale_entries.get(o));
+		  }
+	  }
+	  catch(IOException e){
+		  return current_entries;
+	  }
+	  return current_entries;
   }
   
 
