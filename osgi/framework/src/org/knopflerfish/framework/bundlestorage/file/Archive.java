@@ -39,10 +39,12 @@ import org.osgi.framework.*;
 import java.io.*;
 import java.net.*;
 //import java.security.*;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Vector;
 import java.util.jar.*;
 import java.util.zip.*;
 import java.util.Properties;
@@ -106,6 +108,10 @@ class Archive {
   private ZipEntry subJar /*= null*/;
   
   ArrayList subDirs/*= null*/;
+  
+  private Hashtable defaultLocaleEntries;
+  
+  private String localizationFilesLocation;
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -208,6 +214,8 @@ class Archive {
     	  checkManifest();
       }
     }
+    
+    loadDefaultLocaleEntries();
   }
 
 
@@ -287,6 +295,8 @@ class Archive {
       jar = new ZipFile(file);
     }
     manifest = getManifest();
+    
+    loadDefaultLocaleEntries();
   }
 
 
@@ -371,6 +381,7 @@ class Archive {
   
   Dictionary getAttributes(String locale, int bundle_state){
 	Attributes attr = manifest.getMainAttributes();
+	Hashtable localization_entries = null;
 	if(attr == null){
     	return null;
     }
@@ -381,13 +392,15 @@ class Archive {
     	locale = Locale.getDefault().toString();
     }
     
-    Hashtable localization_entries = new Hashtable();
+    if(locale.equals(Locale.getDefault().toString()) && bundle_state == Bundle.UNINSTALLED){
+    	localization_entries = defaultLocaleEntries;
+    }
+    else{
+    	localization_entries = new Hashtable();
+    }
     
     if(bundle_state != Bundle.UNINSTALLED){
-    	String fileName = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    	if(fileName == null){
-    		fileName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    	}
+    	String fileName = localizationFilesLocation;
     	StringTokenizer st = new StringTokenizer(locale, "_");
    
     	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
@@ -397,6 +410,7 @@ class Archive {
     		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
     	}
     }
+    
     
     Hashtable localized_headers = new Hashtable();
     
@@ -458,6 +472,16 @@ class Archive {
 		  return current_entries;
 	  }
 	  return current_entries;
+  }
+  
+  private void loadDefaultLocaleEntries(){
+	  defaultLocaleEntries = new Hashtable();
+	  Attributes attr = manifest.getMainAttributes();
+	  localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
+  	  if(localizationFilesLocation == null){
+  		localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+  	  }	
+      defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation + "_" + Locale.getDefault().toString() + LOCALIZATION_FILE_SUFFIX, defaultLocaleEntries);
   }
 
   /**
@@ -605,6 +629,36 @@ class Archive {
     }
   }
 
+  
+  public Enumeration findResourcesPath(String path) {
+	  Vector answer = new Vector();
+	  /*if (jar != null) {
+  		if (subJar != null) {
+  			JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+  			do {
+  				ze = ji.getNextJarEntry();
+  				if (ze == null) {
+  					ji.close();
+  					return null;
+  				}
+  			} while (!component.equals(ze.getName()));
+  			is = (InputStream)ji;
+  		} 
+  		else {
+  			ze = jar.getEntry(component);
+  			is = (ze != null) ? jar.getInputStream(ze) : null;
+  		}
+  	} 
+  	else {
+  		File f = findFile(file, path);
+  		if(!f.exists()){
+  			return null;
+  		}
+  		is = f.exists() ? new FileInputStream(f) : null;
+  	}*/
+	  return answer.elements();
+  }
+  
 
   /**
    * Get an Archive handle to a named Jar file within this archive.
@@ -695,6 +749,8 @@ class Archive {
       } catch (IOException ignore) {}
     }
   }
+  
+  
 
   //
   // Private methods
