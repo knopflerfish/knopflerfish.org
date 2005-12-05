@@ -35,15 +35,19 @@
 package org.knopflerfish.framework.bundlestorage.file;
 
 import org.knopflerfish.framework.*;
-import org.osgi.framework.Constants;
+import org.osgi.framework.*;
 import java.io.*;
 import java.net.*;
 //import java.security.*;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.jar.*;
 import java.util.zip.*;
+import java.util.Properties;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import java.util.Locale;
 
@@ -355,6 +359,8 @@ class Archive {
   }
   
 
+  private static final String LOCALIZATION_FILE_SUFFIX = ".properties";
+  
   /**
    * Get all attributes from the manifest of the archive.
    * @param locale, the locale to be used, null means use java.util.Locale.getDefault
@@ -362,20 +368,97 @@ class Archive {
    *
    * @return All attributes.
    */
-  Attributes getAttributes(String locale) {
-    Attributes attr = manifest.getMainAttributes();
-    //TODO finish up
+  
+  Dictionary getAttributes(String locale, int bundle_state){
+	Attributes attr = manifest.getMainAttributes();
+	if(attr == null){
+    	return null;
+    }
     if(locale != null && locale.equals("")){
-    	return attr;
+    	return new HeaderDictionary(attr);
     }
     else if (locale == null){
-    	Locale localeL = Locale.getDefault();
-    	//TODO what should this be?
-    	locale = localeL.getLanguage();
+    	locale = Locale.getDefault().toString();
     }
-    return attr;
+    
+    Hashtable localization_entries = new Hashtable();
+    
+    if(bundle_state != Bundle.UNINSTALLED){
+    	String fileName = attr.getValue(Constants.BUNDLE_LOCALIZATION);
+    	if(fileName == null){
+    		fileName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+    	}
+    	StringTokenizer st = new StringTokenizer(locale, "_");
+   
+    	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
+    	
+    	while(st.hasMoreTokens()){
+    		fileName += "_" + st.nextToken();
+    		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
+    	}
+    }
+    
+    Hashtable localized_headers = new Hashtable();
+    
+    Iterator i = attr.entrySet().iterator();
+    while(i.hasNext()){
+    	Map.Entry e = (Map.Entry)i.next();
+    	String value = (String) e.getValue();
+    	if(value.startsWith("%")){
+    		Object o = localization_entries.get(value.substring(1));
+    		if(o != null){
+    			localized_headers.put(e.getKey(), o);
+    		}
+    		else{
+    			localized_headers.put(e.getKey(), value);
+    		}
+    	}
+    	else{
+    		localized_headers.put(e.getKey(), value);
+    	}
+    }
+    //TODO cache localized headers?
+    return new HeaderDictionary(localized_headers);
   }
   
+  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries) {
+	  /*if(bClosed) {
+	      return current_entries;
+	  }*/
+	  try{
+		  InputStream is = null;
+		  Properties locale_entries = new Properties();
+		  if(jar != null){
+			  ZipEntry ze = jar.getEntry(fileName);
+			  if(ze != null){
+				  is = jar.getInputStream(ze);
+			  }
+			  else{
+				  return current_entries;
+			  }
+		  }
+		  else{
+			  File f = findFile(file, fileName);
+			  if(f.exists()) {
+				  is = new FileInputStream(f);
+			  }
+			  else{
+				  return current_entries;
+			  }
+		  }
+	
+		  locale_entries.load(is);
+		  Iterator it = locale_entries.keySet().iterator();
+		  while(it.hasNext()){
+			  Object o = it.next();
+			  current_entries.put(o, locale_entries.get(o));
+		  }
+	  }
+	  catch(IOException e){
+		  return current_entries;
+	  }
+	  return current_entries;
+  }
 
   /**
    * Get a byte array containg the contents of named class file from
@@ -681,7 +764,7 @@ class Archive {
    *
    * @param archive Archive which contains the component.
    * @param path Name of the component to get.
-   * @return File for componets cache file.
+   * @return File for components cache file.
    */
   private File getSubFile(Archive archive, String path) {
     return new File(getSubFileTree(archive), path.replace('/', '-'));
