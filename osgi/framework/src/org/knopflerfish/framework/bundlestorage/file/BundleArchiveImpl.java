@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -259,8 +259,8 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * @see org.knopflerfish.framework.BundleArchive#getAttributes
    */
-  public Dictionary getAttributes(String locale) {
-    return new HeaderDictionary(archive.getAttributes(locale));
+  public Dictionary getAttributes(String locale, int bundle_state) {
+    return archive.getAttributes(locale, bundle_state);
   }
 
   /**
@@ -403,44 +403,48 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Get native library from JAR.
    *
-   * @param component Name of Jar file to get.
-   * @return A string with path to native library.
+   * @param libName Name of Jar file to get.
+   * @return A string with the path to the native library.
    */
-  public String getNativeLibrary(String component) {
-    if (nativeLibs != null) {
-      try {
+  public String getNativeLibrary(String libName) {
+	  if (nativeLibs != null) {
+		  try {
 //XXX - start L-3 modification
-	String key = (String)mapLibraryName.invoke(null, new Object[] {component});
-	String val = (String)nativeLibs.get(key);
-	File file1 = new File(val);
-	if (file1.exists() && file1.isFile()) {
-	  if (renameLibs.containsKey(key)) {
-	    File file2 = new File((String)renameLibs.get(key));
-	    if (file1.renameTo(file2)) {
-	      val = file2.getAbsolutePath();
-	      nativeLibs.put(key, val);
-	    }
-	  }
-	  StringBuffer rename = new StringBuffer(val);
-	  int index0 = val.lastIndexOf(File.separatorChar) + 1;
-	  int index1 = val.indexOf("_", index0);
-	  if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
-	    try {
-	      int prefix = Integer.parseInt(val.substring(index0, index1));
-	      rename.replace(index0, index1, Integer.toString(prefix + 1));
-	    } catch (Throwable t) {
-	      rename.insert(index0, "0_");
-	    }
-	  } else {
-	    rename.insert(index0, "0_");
-	  }
-	  renameLibs.put(key, rename.toString());
-	}
-	return val;
+			  String key = (String)mapLibraryName.invoke(null, new Object[] {libName});
+			  String val = (String)nativeLibs.get(key);
+			  File file1 = new File(val);
+			  if (file1.exists() && file1.isFile()) {
+				  if (renameLibs.containsKey(key)) {
+					  File file2 = new File((String)renameLibs.get(key));
+					  if (file1.renameTo(file2)) {
+						  val = file2.getAbsolutePath();
+						  nativeLibs.put(key, val);
+					  }
+				  }
+				  StringBuffer rename = new StringBuffer(val);
+				  int index0 = val.lastIndexOf(File.separatorChar) + 1;
+				  int index1 = val.indexOf("_", index0);
+				  if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
+					  try {
+						  int prefix = Integer.parseInt(val.substring(index0, index1));
+						  rename.replace(index0, index1, Integer.toString(prefix + 1));
+					  } 
+					  catch (Throwable t) {
+						  rename.insert(index0, "0_");
+					  }
+				  } 
+				  else {
+					  rename.insert(index0, "0_");
+				  }
+				  renameLibs.put(key, rename.toString());
+			  }
+			  return val;
 //XXX - end L-3 modification
-      } catch (Exception ignore) { }
-    }
-    return null;
+		  } 
+		  catch (Exception ignore) {	  
+		  }
+	  }
+	  return null;
   }
 
 
@@ -616,100 +620,108 @@ class BundleArchiveImpl implements BundleArchive
    * @exception Exception If can not find an entry that match this JVM.
    */
   private Map getNativeCode() throws Exception {
-    String bnc = getAttribute(Constants.BUNDLE_NATIVECODE);
-    if (bnc != null) {
-      if (mapLibraryName == null) {
-	throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
-      }
-      Map best = null;
-      List perfectVer = new ArrayList();
-      List okVer = new ArrayList();
-      List noVer = new ArrayList();
-      for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false); i.hasNext(); ) {
-	Map params = (Map)i.next();
-	String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
-	List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
-	String o =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
-	List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
-	if ((containsIgnoreCase(pl, p) ||
-	     containsIgnoreCase(pl, Alias.unifyProcessor(p))) &&
-	    (containsIgnoreCase(ol, o) ||
-	     containsIgnoreCase(ol, Alias.unifyOsName(o)))) {
-	  String fosVer = Framework.getProperty(Constants.FRAMEWORK_OS_VERSION);
-	  List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
-	  // Skip if we require a newer OS version.
-	  if (ver != null) {
-	    for (Iterator v = ver.iterator(); v.hasNext(); ) {
-	      String nov = (String)v.next();
-	      int cmp = Util.compareStringVersion(nov, fosVer);
-	      if (cmp == 0) {
-		// Found perfect OS version
-		perfectVer.add(params);
-		break;
-	      }
-	      if (cmp < 0 && !okVer.contains(params)) {
-		// Found lower OS version
-		okVer.add(params);
-	      }
-	    }
-	  } else {
-	    // Found unspecfied OS version
-	    noVer.add(params);
-	  }
-	}
-      }
+	  String bnc = getAttribute(Constants.BUNDLE_NATIVECODE);
+	  if (bnc != null) {
+		  if (mapLibraryName == null) {
+			  throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
+		  }
+		  Map best = null;
+		  List perfectVer = new ArrayList();
+		  List okVer = new ArrayList();
+		  List noVer = new ArrayList();
+		  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false); i.hasNext(); ) {
+			  Map params = (Map)i.next();
+			  String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
+			  List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
+			  String o =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
+			  List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
+			  if ((containsIgnoreCase(pl, p) || 
+				   containsIgnoreCase(pl, Alias.unifyProcessor(p))) &&
+	               (containsIgnoreCase(ol, o) ||
+	            		   containsIgnoreCase(ol, Alias.unifyOsName(o)))) {
+				  String fosVer = Framework.getProperty(Constants.FRAMEWORK_OS_VERSION);
+				  List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+				  // Skip if we require a newer OS version.
+				  if (ver != null) {
+					  for (Iterator v = ver.iterator(); v.hasNext(); ) {
+						  String nov = (String)v.next();
+						  int cmp = Util.compareStringVersion(nov, fosVer);
+						  if (cmp == 0) {
+							  // Found perfect OS version
+							  perfectVer.add(params);
+							  break;
+						  }
+						  if (cmp < 0 && !okVer.contains(params)) {
+							  // Found lower OS version
+							  okVer.add(params);
+						  }
+					  }
+				  } 
+				  else {
+					  // Found unspecfied OS version
+					  noVer.add(params);
+				  }
+			  }
+		  }
 
-      List langSearch = null;
-      if (perfectVer.size() == 1) {
-	best = (Map)perfectVer.get(0);
-      } else if (perfectVer.size() > 1) {
-	langSearch = perfectVer;
-      } else if (okVer.size() == 1) {
-	best = (Map)okVer.get(0);
-      } else if (okVer.size() > 1) {
-	langSearch = okVer;
-      } else if (noVer.size() == 1) {
-	best = (Map)noVer.get(0);
-      } else if (noVer.size() > 1) {
-	langSearch = noVer;
-      }
-      if (langSearch != null) {
-	String fosLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
-	lloop: for (Iterator i = langSearch.iterator(); i.hasNext(); ) {
-	  Map params = (Map)i.next();
-	  List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
-	  if (lang != null) {
-	    for (Iterator l = lang.iterator(); l.hasNext(); ) {
-	      if (fosLang.equalsIgnoreCase((String)l.next())) {
-		// Found specfied language version, search no more
-		best = params;
-		break lloop;
-	      }
-	    }
-	  } else {
-	    // Found unspecfied language version
-	    best = params;
-	  }
-	}
-      }
-      if (best == null) {
-	throw new Exception("Native-Code: No matching libraries found.");
-      }
+		  List langSearch = null;
+		  if (perfectVer.size() == 1) {
+			  best = (Map)perfectVer.get(0);
+		  } 
+		  else if (perfectVer.size() > 1) {
+			  langSearch = perfectVer;
+		  } 
+		  else if (okVer.size() == 1) {
+			  best = (Map)okVer.get(0);
+		  } 
+		  else if (okVer.size() > 1) {
+			  langSearch = okVer;
+		  } 
+		  else if (noVer.size() == 1) {
+			  best = (Map)noVer.get(0);
+		  } 
+		  else if (noVer.size() > 1) {
+			  langSearch = noVer;
+		  }
+		  if (langSearch != null) {
+			  String fosLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
+			  lloop: for (Iterator i = langSearch.iterator(); i.hasNext(); ) {
+				  Map params = (Map)i.next();
+				  List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+				  if (lang != null) {
+					  for (Iterator l = lang.iterator(); l.hasNext(); ) {
+						  if (fosLang.equalsIgnoreCase((String)l.next())) {
+							  // Found specfied language version, search no more
+							  best = params;
+							  break lloop;
+						  }
+					  }
+				  } 
+				  else {
+					  // Found unspecfied language version
+					  best = params;
+				  }
+			  }
+		  }
+		  if (best == null) {
+			  throw new Exception("Native-Code: No matching libraries found.");
+		  }
 //XXX - start L-3 modification
-      renameLibs  = new HashMap();
+		  renameLibs  = new HashMap();
 //XXX - end L-3 modification
-      HashMap res = new HashMap();
-      for (Iterator p = ((List)best.get("keys")).iterator(); p.hasNext();) {
-	String name = (String)p.next();
-	int sp = name.lastIndexOf('/');
-	String key = (sp != -1) ? name.substring(sp+1) : name;
-	res.put(key, archive.getNativeLibrary(name));
-      }
-      return res;
-    } else {
-      // No native code in this bundle
-      return null;
-    }
+		  HashMap res = new HashMap();
+		  for (Iterator p = ((List)best.get("keys")).iterator(); p.hasNext();) {
+			  String name = (String)p.next();
+			  int sp = name.lastIndexOf('/');
+			  String key = (sp != -1) ? name.substring(sp+1) : name;
+			  res.put(key, archive.getNativeLibrary(name));
+		  }
+		  return res;
+	  } 
+	  else {
+		  // No native code in this bundle
+		  return null;
+	  }
   }
 
   /**
@@ -718,12 +730,10 @@ class BundleArchiveImpl implements BundleArchive
   private boolean containsIgnoreCase(List l, String s) {
     for (Iterator i = l.iterator(); i.hasNext(); ) {
       if (s.equalsIgnoreCase((String)i.next())) {
-	return true;
+    	  return true;
       }
     }
     return false;
   }
-
-
-
-}
+  
+}//class
