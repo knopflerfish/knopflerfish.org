@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,12 @@ package org.knopflerfish.bundle.framework_test;
 
 import java.util.*;
 import java.io.*;
-//import java.math.*;
 import java.net.*;
 import java.lang.reflect.*;
 import java.security.*;
 
 import org.osgi.framework.*;
 import org.knopflerfish.service.framework_test.*;
-
-
-//import org.osgi.service.packageadmin.*;
 
 import junit.framework.*;
 
@@ -146,6 +142,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame186a());
     addTest(new Frame190a());
     addTest(new Frame210a());
+    addTest(new Frame211a());
     addTest(new Cleanup());
   }
  
@@ -328,7 +325,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       Bundle[] bundles = new Bundle[] {
 	buA ,
 	buB ,
-	buC ,
 	buD ,
 	buD1 ,
 	buE ,
@@ -350,7 +346,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	try {  bundles[i].uninstall();  } 
 	catch (Exception ignored) { }      
       }
-
+      
+      
       buA = null;
       buB = null;
       buC = null;
@@ -481,6 +478,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	fail("framework test bundle "+ secA +" :FRAME020A:FAIL");
 	teststatus = false;
       }
+      
+      //Localization tests
+      Dictionary dict = buA.getHeaders();
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleA_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have default-localized value:FRAME020A:FAIL");
+      }
+      
       
       // Check that no service reference exist yet.
       ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
@@ -665,6 +669,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	exception = true;
       }
       
+      
+      
       if (exception == false) {
 	teststatus = false;
       }
@@ -834,6 +840,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	ise.printStackTrace();
       }
       
+     
+      
       // Check if testbundleB registered the expected service
       ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleB_test.BundleB");
       if (sr1 == null) {
@@ -910,6 +918,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	ise.printStackTrace();
 	fail("framework test bundle "+ ise +" :FRAME055A:FAIL");
       }
+      
+      Locale.setDefault(Locale.CANADA_FRENCH);
+      Dictionary dict = buC.getHeaders();
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleC_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have default-localized value:FRAME020A:FAIL");
+      }
+      
       
       // Check if testbundleC registered the expected service
       ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleC_test.BundleC");
@@ -1241,6 +1256,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	teststatus = false;
       }
       
+      Locale.setDefault(Locale.CANADA_FRENCH);
+      Dictionary dict = buE.getHeaders();
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleE_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have default-localized value:FRAME020A:FAIL");
+      }
+      
       if (teststatus == true && lStat == true && lStatSync == true) {
 	out.println("### framework test bundle :FRAME065A:PASS");
       }
@@ -1471,13 +1492,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	
 	try {
       //		TODO rework, does not always work 
-	  //long lastModified = buA.getLastModified();	
+	  long lastModified = buA.getLastModified();	
 		
 	  buA.update(fis);
-	  /*
+	  
 	  if(buA.getLastModified() <= lastModified){
 		  fail("framework test bundle, update does not change lastModified value :FRAME070A:FAIL");
-	  }*/
+	  }
 	}
 	catch (BundleException be ) {
 	  teststatus = false;
@@ -1638,6 +1659,21 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	fail("framework test bundle "+ secA +" :FRAME080A:FAIL");
 	teststatus = false;
       }
+      
+      Dictionary dict = buF.getHeaders("fr_CA");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleF_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have correct localized value:FRAME020A:FAIL");
+      }
+      if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("Test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have correct localized value:FRAME020A:FAIL");
+      }
+      
+      dict = buF.getHeaders("fr");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleF_test_stillnotthisone")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have correct localized value:FRAME020A:FAIL");
+      }
+      
+      
       
       // now start it
       try {
@@ -3328,7 +3364,23 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
   
+  class Frame211a extends FWTestCase {
+	    public void runTest() throws Throwable {
+	    	if (buC != null) {
+	    		try {
+	    		    buC.uninstall();
+	    		} 
+	    		catch (BundleException ignore) {
+	    			int i =8 ;
+	    		}
+	    	}
   
+	        Dictionary dict = buC.getHeaders();
+	        if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("%symName")){
+	      	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have raw value:FRAME020A:FAIL");
+	        }
+	    }
+  }    
   
   // General status check functions
   // prevent control characters to be printed
