@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.util.Dictionary;
+import java.util.Hashtable;
 
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -49,6 +50,7 @@ import org.osgi.service.startlevel.StartLevel;
  *
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 public class SystemBundle extends BundleImpl {
 	
@@ -64,7 +66,7 @@ public class SystemBundle extends BundleImpl {
   private final static String EXPORT13 = 
     "org.knopflerfish.framework.system.export.all_13";
 
-  private HeaderDictionary headers = null;
+  private Hashtable headers = null;
 
 
   /**
@@ -235,16 +237,20 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders() {
-	checkMetadataAdminPerm();
-    if (headers == null) {
-      headers = new HeaderDictionary();
-      headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
-      headers.put(Constants.EXPORT_PACKAGE, framework.packages.systemPackages());
-    }
-    return new HeaderDictionary(headers);
+	return getHeaders(null);
   }
   
+  public Dictionary getHeaders(String locale) {
+	checkMetadataAdminPerm();
+	if (headers == null) {
+	  headers = new Hashtable();
+	  headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
+	  headers.put(Constants.EXPORT_PACKAGE, framework.packages.systemPackages());
+	}
+	return headers;
+  }
 
+  
   //
   // Package method
   //
