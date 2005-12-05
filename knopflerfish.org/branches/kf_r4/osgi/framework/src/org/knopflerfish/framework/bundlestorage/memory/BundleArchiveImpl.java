@@ -37,6 +37,7 @@ package org.knopflerfish.framework.bundlestorage.memory;
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Dictionary;
 import java.util.StringTokenizer;
@@ -343,6 +344,12 @@ class BundleArchiveImpl implements BundleArchive
       archives = new Archive[] { archive };
     }
   }
+
+
+public Enumeration findResourcesPath(String path) {
+	// TODO Auto-generated method stub
+	return null;
+}
 
 
 

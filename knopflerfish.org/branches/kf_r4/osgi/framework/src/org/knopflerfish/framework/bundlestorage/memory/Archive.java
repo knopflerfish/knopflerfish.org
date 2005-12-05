@@ -74,6 +74,10 @@ class Archive {
   protected HashMap /* String -> byte[] */ content;
   
   ArrayList subDirs/*= null*/;
+  
+  private Hashtable defaultLocaleEntries;
+  
+  private String localizationFilesLocation;
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -92,6 +96,7 @@ class Archive {
       throw new IOException("Native code not allowed by memory storage");
     }
     content = loadJarStream(ji);
+    loadDefaultLocaleEntries();
   }
 
 
@@ -138,10 +143,10 @@ class Archive {
   //TODO test (ex: what to do whem uninstalled?)
   Dictionary getAttributes(String locale, int bundle_state){
 	Attributes attr = manifest.getMainAttributes();
+	Hashtable localization_entries = null;
 	if(attr == null){
     	return null;
     }
-    
     if(locale != null && locale.equals("")){
     	return new HeaderDictionary(attr);
     }
@@ -149,13 +154,15 @@ class Archive {
     	locale = Locale.getDefault().toString();
     }
     
-    Hashtable localization_entries = new Hashtable();
+    if(locale.equals(Locale.getDefault().toString()) && bundle_state == Bundle.UNINSTALLED){
+    	localization_entries = defaultLocaleEntries;
+    }
+    else{
+    	localization_entries = new Hashtable();
+    }
     
     if(bundle_state != Bundle.UNINSTALLED){
-    	String fileName = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    	if(fileName == null){
-    		fileName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    	}
+    	String fileName = localizationFilesLocation;
     	StringTokenizer st = new StringTokenizer(locale, "_");
    
     	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
@@ -210,7 +217,15 @@ class Archive {
 	  return current_entries;
   }
   
-
+  private void loadDefaultLocaleEntries(){
+	  defaultLocaleEntries = new Hashtable();
+	  Attributes attr = manifest.getMainAttributes();
+	  localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
+  	  if(localizationFilesLocation == null){
+  		localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+  	  }	
+      defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation + "_" + Locale.getDefault().toString() + LOCALIZATION_FILE_SUFFIX, defaultLocaleEntries);
+  }
   /**
    * Get a byte array containg the contents of named file from
    * the archive.
