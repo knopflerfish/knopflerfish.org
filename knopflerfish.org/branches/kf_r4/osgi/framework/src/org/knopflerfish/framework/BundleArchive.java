@@ -49,6 +49,8 @@ public interface BundleArchive {
 
   /**
    * Get an attribute from the manifest of a bundle.
+   * 
+   * Not localized
    *
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
@@ -60,9 +62,9 @@ public interface BundleArchive {
    * @param locale, the locale to be used, null means use java.util.Locale.getDefault
    * empty string means get raw (unlocalized) manifest headers
    *
-   * @return All attributes, null if bundle doesn't exists.
+   * @return All attributes, null if bundle doesn't exist.
    */
-  Dictionary getAttributes(String locale);
+  Dictionary getAttributes(String locale, int bundle_state);
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -109,7 +111,7 @@ public interface BundleArchive {
 
 
   /**
-   * Check if named entry exist in bundles archive.
+   * Check if named entry exists in the bundle's archive.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
@@ -136,20 +138,20 @@ public interface BundleArchive {
   /**
    * Extract native library from JAR.
    *
-   * @param component Name of Jar file to get.
+   * @param libName Name of Jar file to get.
    * @return A string with path to native library.
    */
-  String getNativeLibrary(String component);
+  String getNativeLibrary(String libName);
 
   /**
-   * Get state of start on launch flag.
+   * Get state of start-on-launch flag.
    *
    * @return Boolean value for start on launch flag.
    */
   boolean getStartOnLaunchFlag();
 
   /**
-   * Set state of start on launch flag.
+   * Set state of start-on-launch flag.
    *
    * @param value Boolean value for start on launch flag.
    */

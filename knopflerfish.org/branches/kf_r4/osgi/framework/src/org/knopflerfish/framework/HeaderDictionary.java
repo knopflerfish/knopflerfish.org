@@ -64,12 +64,6 @@ public class HeaderDictionary extends Dictionary
 
   private Hashtable headers;
 
-  /**
-   * Create an empty dictionary for manifest attributes.
-   */
-  public HeaderDictionary() {
-    headers = new Hashtable();
-  }
 
 
   /**
@@ -87,12 +81,8 @@ public class HeaderDictionary extends Dictionary
   /**
    * Create a clone of an existing HeaderDictionary
    */
-  HeaderDictionary(HeaderDictionary in) {
-    if (in != null) {
-      headers = (Hashtable)in.headers.clone();
-    } else {
-      headers = new Hashtable();
-    }
+  public HeaderDictionary(Hashtable t) {
+    headers = t;
   }
 
 

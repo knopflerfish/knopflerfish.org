@@ -1213,9 +1213,18 @@ class BundleImpl implements Bundle {
     return sb.toString();
   }
 
-public Enumeration findEntries(String path, String filePattern, boolean recurse) {
-	// TODO Auto-generated method stub
-	checkResourceAdminPerm();
+public Enumeration findEntries(String path, String filePattern, boolean recurse) { 
+	try{
+		checkResourceAdminPerm();
+	}
+	catch(AccessControlException e){
+		return null;
+	}
+	if(this.state == INSTALLED){
+		getUpdatedState(); 
+	}
+    //TODO
+	//look in fragments etc
 	return null;
 }
 
@@ -1229,7 +1238,7 @@ public URL getEntry(String name) {
 	if(state == UNINSTALLED){
 		throw new IllegalStateException("state is uninstalled");
 	}
-	//not REALLY using class loader
+	//not REALLY using class loader, just don't want to duplicate functionality
 	BundleClassLoader cl = (BundleClassLoader) getClassLoader();
     if (cl != null) {
     	Enumeration e =  cl.findBundleResources(name);
@@ -1254,7 +1263,7 @@ public Enumeration getEntryPaths(String path) {
     //not REALLY using class loader
 	BundleClassLoader cl = (BundleClassLoader) getClassLoader();
     if (cl != null) {
-    	return cl.findBundleResources(path);
+    	return cl.findBundleResourcesPath(path);
     }
 	return null;
 }
@@ -1263,14 +1272,9 @@ public Enumeration getEntryPaths(String path) {
  * @see org.osgi.framework.Bundle#getHeaders(String locale)
  */
 public Dictionary getHeaders(String locale) {
+	//TODO look in fragments
 	checkMetadataAdminPerm();
-	if(id != 0){
-		return archive.getAttributes(locale);
-	}
-	else{
-		//TODO
-		return new Hashtable();
-	}
+	return archive.getAttributes(locale, state);
 }
 
 private void modified(){
