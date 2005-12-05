@@ -90,11 +90,11 @@ final public class BundleClassLoader extends ClassLoader {
       isJava2 = false;
     }
    
-    buildDelegations();
+    buildBootDelegationPatterns();
   }
 
 
-  static void buildDelegations(){ 
+  static void buildBootDelegationPatterns(){ 
 	  String bootDelegationString = System.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
 	  bootDelegationUsed = (bootDelegationString != null);
    
@@ -520,6 +520,19 @@ final public class BundleClassLoader extends ClassLoader {
     return answer.elements();
   }
   
+  /**
+   * Returns an Enumeration of all the paths (<code>String</code> objects)
+   * to entries within the bundle whose longest sub-path matches the supplied
+   * path argument.
+   * @param name
+   * @return
+   */
+  Enumeration findBundleResourcesPath(String path) {
+	  Vector answer = new Vector();
+	  
+	  
+	  return answer.elements();
+  }
 
 } //class
 
