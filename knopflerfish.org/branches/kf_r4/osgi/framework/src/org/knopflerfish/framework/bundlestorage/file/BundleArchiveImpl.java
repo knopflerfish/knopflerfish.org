@@ -38,6 +38,7 @@ import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Dictionary;
 import java.util.StringTokenizer;
@@ -735,5 +736,12 @@ class BundleArchiveImpl implements BundleArchive
     }
     return false;
   }
+
+  public Enumeration findResourcesPath(String path) {
+	  return archive.findResourcesPath(path);
+  }
+
+
+
   
 }//class
