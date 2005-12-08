@@ -37,9 +37,12 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.security.*;
 import java.util.*;
+import java.net.*;
+import java.security.cert.*;
 
 //import org.osgi.framework.*;
 import org.osgi.service.permissionadmin.*;
+
 
 
 /**
@@ -116,7 +119,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
     defaultPermissions = initialDefault;
 
     // Get system default permissions
-    PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource(null, null));
+    PermissionCollection pc = Policy.getPolicy().getPermissions(new CodeSource((URL)null, (Certificate[])null));
     // Remove AllPermission
     if (pc != null && pc.implies(new AllPermission())) {
       runtimePermissions = new Permissions();
