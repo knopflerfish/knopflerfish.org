@@ -1260,12 +1260,8 @@ public Enumeration getEntryPaths(String path) {
 	if(state == UNINSTALLED){
 		throw new IllegalStateException("state is uninstalled");
 	}
-    //not REALLY using class loader
-	BundleClassLoader cl = (BundleClassLoader) getClassLoader();
-    if (cl != null) {
-    	return cl.findBundleResourcesPath(path);
-    }
-	return null;
+	
+	return archive.findResourcesPath(path);
 }
 
 /**
