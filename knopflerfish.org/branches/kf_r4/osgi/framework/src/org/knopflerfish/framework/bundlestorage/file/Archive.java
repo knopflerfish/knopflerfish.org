@@ -57,6 +57,7 @@ import java.util.Locale;
  * JAR file handling.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 class Archive {
 
@@ -169,6 +170,7 @@ class Archive {
       }
     }
     file = new File(dir, ARCHIVE + rev);
+  
     if (doUnpack) {
       File f = new File(file, "META-INF");
       f.mkdirs();
@@ -213,6 +215,7 @@ class Archive {
     	  //TODO something more here?
     	  checkManifest();
       }
+      
     }
     
     loadDefaultLocaleEntries();
@@ -382,6 +385,8 @@ class Archive {
   Dictionary getAttributes(String locale, int bundle_state){
 	Attributes attr = manifest.getMainAttributes();
 	Hashtable localization_entries = null;
+	boolean usingDefault = false;
+	
 	if(attr == null){
     	return null;
     }
@@ -390,6 +395,7 @@ class Archive {
     }
     else if (locale == null){
     	locale = Locale.getDefault().toString();
+    	usingDefault = true;
     }
     
     if(locale.equals(Locale.getDefault().toString()) && bundle_state == Bundle.UNINSTALLED){
@@ -401,16 +407,26 @@ class Archive {
     
     if(bundle_state != Bundle.UNINSTALLED){
     	String fileName = localizationFilesLocation;
-    	StringTokenizer st = new StringTokenizer(locale, "_");
-   
+    
     	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
     	
+    	if(!usingDefault){ //since otherwise will redo it right after
+    		StringTokenizer std = new StringTokenizer(Locale.getDefault().toString(), "_");
+  
+    		while(std.hasMoreTokens()){
+        		fileName += "_" + std.nextToken();
+        		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
+        	}
+  
+    		fileName = localizationFilesLocation;
+    	}
+    	
+    	StringTokenizer st = new StringTokenizer(locale, "_");
     	while(st.hasMoreTokens()){
     		fileName += "_" + st.nextToken();
     		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
     	}
     }
-    
     
     Hashtable localized_headers = new Hashtable();
     
@@ -435,7 +451,8 @@ class Archive {
     return new HeaderDictionary(localized_headers);
   }
   
-  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries) {
+  //TODO should this be done just before uninstalling? -> does DefaultLocale change?
+  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries){
 	  /*if(bClosed) {
 	      return current_entries;
 	  }*/
@@ -468,7 +485,7 @@ class Archive {
 			  current_entries.put(o, locale_entries.get(o));
 		  }
 	  }
-	  catch(IOException e){
+	  catch(IOException e){ //includes FileNotFoundException
 		  return current_entries;
 	  }
 	  return current_entries;
@@ -481,7 +498,8 @@ class Archive {
   	  if(localizationFilesLocation == null){
   		localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
   	  }	
-      defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation + "_" + Locale.getDefault().toString() + LOCALIZATION_FILE_SUFFIX, defaultLocaleEntries);
+  	  
+  	  defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation + "_" + Locale.getDefault().toString() + LOCALIZATION_FILE_SUFFIX, defaultLocaleEntries);
   }
 
   /**
@@ -629,33 +647,78 @@ class Archive {
     }
   }
 
-  
-  public Enumeration findResourcesPath(String path) {
+  //TODO not extensively tested
+  Enumeration findResourcesPath(String path) {
 	  Vector answer = new Vector();
-	  /*if (jar != null) {
-  		if (subJar != null) {
-  			JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-  			do {
-  				ze = ji.getNextJarEntry();
-  				if (ze == null) {
-  					ji.close();
-  					return null;
+	  if (jar != null) { 
+		ZipEntry entry; 
+		//"normalize" + erroneous path check: be generous
+		if(path.startsWith("/") || path.startsWith("\\")){
+		    path =  path.substring(1);   
+		}  
+		if(!path.endsWith("/") && !path.endsWith("\\")/*in case bad argument*/){
+			if(path.length() > 1){
+				path += "/";
+			}	
+		} 
+		path.replace('\\', '/');
+		
+		/* for some reason this does not work and always returns null
+		if((entry = jar.getEntry(path)) == null){
+			return null;
+		}
+		if(!entry.isDirectory()){
+			return null;
+		}
+		*/
+		
+  		Enumeration entries = jar.entries();
+  		while(entries.hasMoreElements()){
+  			entry = (ZipEntry) entries.nextElement();
+  			String name = entry.getName();
+  			if(name.equals(path) && !entry.isDirectory()){
+  				return null;
+  			}
+  			if(name.startsWith(path)){
+  				int idx = name.lastIndexOf('/');
+  				if(entry.isDirectory()){
+  					idx = name.substring(0, idx).lastIndexOf('/');
   				}
-  			} while (!component.equals(ze.getName()));
-  			is = (InputStream)ji;
-  		} 
-  		else {
-  			ze = jar.getEntry(component);
-  			is = (ze != null) ? jar.getInputStream(ze) : null;
+  				if(idx > 0){
+  					if(name.substring(0, idx + 1).equals(path)){
+  						answer.add("/" + name);
+  					}
+  				}
+  				else if(path.equals("")){
+  					answer.add("/" + name);
+  				}
+  			}	
   		}
-  	} 
-  	else {
-  		File f = findFile(file, path);
+  	  } 
+  	  else {
+  	    File f = findFile(file, path);
   		if(!f.exists()){
   			return null;
   		}
-  		is = f.exists() ? new FileInputStream(f) : null;
-  	}*/
+  		if(!f.isDirectory()){
+  			return null;
+  		}
+  		File[] files = f.listFiles();
+  		int length = files.length;
+  		for(int i = 0; i < length; i++){
+  			String filePath = files[i].getPath();
+  			filePath = filePath.substring(file.getPath().length() + 1);
+  			filePath.replace(File.separatorChar, '/');
+  			if(files[i].isDirectory()){
+  				filePath += "/";
+  			}
+  			answer.add(filePath);
+  		}
+  	  }
+	  
+	  if(answer.size() == 0){
+		  return null;
+	  }
 	  return answer.elements();
   }
   

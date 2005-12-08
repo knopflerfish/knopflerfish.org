@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,14 @@
 
 package org.knopflerfish.framework.bundlestorage.memory;
 
-//import org.knopflerfish.framework.*;
+
 import org.knopflerfish.framework.HeaderDictionary;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import java.io.*;
-//import java.net.*;
-//import java.security.*;
+
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -49,15 +49,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.NoSuchElementException;
 
 import java.util.jar.*;
-import java.util.zip.ZipEntry;
 import java.util.Dictionary;
 
 /**
  * JAR file handling.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  * @version $Revision: 1.1.1.1 $
  */
 class Archive {
@@ -140,10 +142,12 @@ class Archive {
    *
    * @return All attributes.
    */
-  //TODO test (ex: what to do whem uninstalled?)
+  
   Dictionary getAttributes(String locale, int bundle_state){
 	Attributes attr = manifest.getMainAttributes();
 	Hashtable localization_entries = null;
+    boolean usingDefault = false;
+	
 	if(attr == null){
     	return null;
     }
@@ -152,6 +156,7 @@ class Archive {
     }
     else if (locale == null){
     	locale = Locale.getDefault().toString();
+    	usingDefault = true;
     }
     
     if(locale.equals(Locale.getDefault().toString()) && bundle_state == Bundle.UNINSTALLED){
@@ -163,15 +168,27 @@ class Archive {
     
     if(bundle_state != Bundle.UNINSTALLED){
     	String fileName = localizationFilesLocation;
-    	StringTokenizer st = new StringTokenizer(locale, "_");
-   
+    
     	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
     	
+    	if(!usingDefault){
+    		StringTokenizer std = new StringTokenizer(Locale.getDefault().toString(), "_");
+  
+    		while(std.hasMoreTokens()){
+        		fileName += "_" + std.nextToken();
+        		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
+        	}
+  
+    		fileName = localizationFilesLocation;
+    	}
+    	
+    	StringTokenizer st = new StringTokenizer(locale, "_");
     	while(st.hasMoreTokens()){
     		fileName += "_" + st.nextToken();
     		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
     	}
     }
+        
     
     Hashtable localized_headers = new Hashtable();
     
@@ -197,7 +214,7 @@ class Archive {
     return new HeaderDictionary(localized_headers);
   }
   
-  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries) {
+  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries){
 	  try{
 		  Properties locale_entries = new Properties();
 		  InputStream is = getInputStream(fileName);
@@ -224,7 +241,8 @@ class Archive {
   	  if(localizationFilesLocation == null){
   		localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
   	  }	
-      defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation + "_" + Locale.getDefault().toString() + LOCALIZATION_FILE_SUFFIX, defaultLocaleEntries);
+  	
+	  defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation + "_" + Locale.getDefault().toString() + LOCALIZATION_FILE_SUFFIX, defaultLocaleEntries);
   }
   /**
    * Get a byte array containg the contents of named file from
@@ -275,6 +293,47 @@ class Archive {
       return null;
     }
   }
+  
+  //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest 
+  //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
+  //investigate further later
+  Enumeration findResourcesPath(String path) {
+	  Vector answer = new Vector();
+      //"normalize" + erroneous path check: be generous
+	  if(path.startsWith("/") || path.startsWith("\\")){
+		  path =  path.substring(1);   
+	  }  
+	  if(!path.endsWith("/") && !path.endsWith("\\")/*in case bad argument*/){
+		  if(path.length() > 1){
+			  path += "/";
+		  }	
+	  } 
+	  path.replace('\\', '/');
+		
+	  Iterator it = content.keySet().iterator();
+	  while(it.hasNext()){
+		  String entry = (String) it.next();
+		  if(entry.startsWith(path)){
+			  String terminal = entry.substring(path.length());
+			  StringTokenizer st = new StringTokenizer(terminal, "/");
+			  String entryPath;  
+			  if(st.hasMoreTokens()){
+				  entryPath = path + st.nextToken();
+			  }
+		  	  else{//this should not happen even for "", or?
+				  entryPath = path;
+			  }
+              if(!answer.contains(entryPath)){
+				  answer.add(entryPath);
+              }	  
+		  }
+	  } 
+	  
+	  if(answer.size() == 0){
+		  return null;
+	  }
+	  return answer.elements();
+  }
 
 
   /**
@@ -303,32 +362,32 @@ class Archive {
     HashMap files = new HashMap();
     JarEntry je;
     while ((je = ji.getNextJarEntry()) != null) {
-      if (!je.isDirectory()) {
-	int len = (int)je.getSize();
-	if (len == -1) {
-	  len = 8192;
-	}
-	byte [] b = new byte[len];
-	int pos = 0;
-	do {
-	  if (pos == len) {
-	    len *= 2;
-	    byte[] oldb = b;
-	    b = new byte[len];
-	    System.arraycopy(oldb, 0, b, 0, oldb.length);
-	  }
-	  int n;
-	  while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
-	    pos += n;
-	  }
-	} while (ji.available() > 0);
-	if (pos != b.length) {
-	    byte[] oldb = b;
-	    b = new byte[pos];
-	    System.arraycopy(oldb, 0, b, 0, pos);
-	}
-	files.put(je.getName(), b);
-      }
+    	if (!je.isDirectory()) {
+    		int len = (int)je.getSize();
+    		if (len == -1) {
+    			len = 8192;
+    		}
+    		byte [] b = new byte[len];
+    		int pos = 0;
+    		do {
+    			if (pos == len) {
+    				len *= 2;
+    				byte[] oldb = b;
+    				b = new byte[len];
+    				System.arraycopy(oldb, 0, b, 0, oldb.length);
+    			}
+    			int n;
+    			while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
+    				pos += n;
+    			}
+    		} while (ji.available() > 0);
+    		if (pos != b.length) {
+    			byte[] oldb = b;
+    			b = new byte[pos];
+    			System.arraycopy(oldb, 0, b, 0, pos);
+    		}
+    		files.put(je.getName(), b);
+    	}
     }
     return files;
   }
