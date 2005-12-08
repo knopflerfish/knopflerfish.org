@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Vector;
 
 /**
@@ -166,5 +167,15 @@ public interface BundleArchive {
    * Close archive and all its open files.
    */
   void close();
+  
+  /**
+   * Returns an Enumeration of all the paths (<code>String</code> objects)
+   * to entries within the bundle whose longest sub-path matches the supplied
+   * path argument.
+   * @param name
+   * @return
+   */
+  Enumeration findResourcesPath(String path);
+
 
 }
