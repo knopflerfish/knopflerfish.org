@@ -18,6 +18,7 @@
     </condition>
 
     <ant dir="log"               target="jar_api"/>
+    <ant dir="event"             target="all"/>
     <ant dir="cm/cm"             target="all"/>
     <ant dir="console/console"   target="all"/>
     <ant dir="io"                target="all"/>
