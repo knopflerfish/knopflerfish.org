@@ -345,11 +345,10 @@ class BundleArchiveImpl implements BundleArchive
     }
   }
 
-
-public Enumeration findResourcesPath(String path) {
-	// TODO Auto-generated method stub
-	return null;
-}
+  
+  public Enumeration findResourcesPath(String path) {
+	  return archive.findResourcesPath(path);
+  }
 
 
 
