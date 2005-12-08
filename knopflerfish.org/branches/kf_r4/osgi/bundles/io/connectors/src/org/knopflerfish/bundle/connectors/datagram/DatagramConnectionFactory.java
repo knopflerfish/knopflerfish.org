@@ -35,13 +35,14 @@ public class DatagramConnectionFactory implements ConnectionFactory {
     	//URI uri = new URI(name);
         //DatagramSocket socket = new DatagramSocket(uri.getPort());
         
-    	//this does :-)
+    	//this does :-) TODO: make this clean ie better/investigate
     	URI uri = new URI(name);
     	int port = Integer.parseInt(uri.getAuthority().substring(1));
         DatagramSocket socket = new DatagramSocket(port);  
         if (!timeouts) socket.setSoTimeout(0);  
         return new DatagramConnectionAdapter(socket);
       } 
+      //TODOs
       else if (mode == ConnectorService.WRITE) {
     	  throw new UnsupportedOperationException();
       } 
