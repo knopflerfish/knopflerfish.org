@@ -1,7 +1,7 @@
-Bundle-Name: bundleH_test
-Bundle-SymbolicName: bundleH_test
-Bundle-Version: 1.0.0
-Bundle-Description: Test bundle for framework, bundleH_test
+Bundle-Name: %name
+Bundle-SymbolicName: %symName
+Bundle-Version: %version
+Bundle-Description: %description
 Bundle-Vendor: Knopflerfish/Gatespace Telematics
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
