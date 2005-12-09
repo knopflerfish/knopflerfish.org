@@ -236,7 +236,7 @@ public class Scenario12TestSuite extends TestSuite {
 
         public void handleEvent(Event event) {
           try {
-            System.out.println(displayName + " receviced topic:"
+            System.out.println(displayName + " received topic:"
                       + event.getTopic());
             msgs.put(event.getProperty(EventConstants.MESSAGE), Boolean.TRUE);
           } catch (RuntimeException e) {
