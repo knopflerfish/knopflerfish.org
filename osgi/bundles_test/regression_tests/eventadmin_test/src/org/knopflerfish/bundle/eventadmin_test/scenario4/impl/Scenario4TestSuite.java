@@ -77,7 +77,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
           new EventConsumer(bundleContext, scenario4_topics1,
             1, 1, scenario4_filter1, "Scenario 4 EventConsumer1", 4),
           new EventConsumer(bundleContext, scenario4_topics1,
-            1, 1, scenario4_filter2, "Scenario 4 EventConsumer2", 4),
+            2, 2, scenario4_filter2, "Scenario 4 EventConsumer2", 4),
           new EventConsumer(bundleContext, scenario4_topics1,
             0, 0, scenario4_filter3, "Scenario 4 EventConsumer3", 4),
           new EventConsumer(bundleContext, scenario4_topics1,
@@ -347,13 +347,13 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
         public void cleanup() throws Throwable {
           try {
-            //serviceRegistration.unregister();
+            serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
-            if (error != null) {
-              throw error;
-            }
-            assertTrue("Not all synch messages recieved", synchMessages == numSyncMessages);
-            assertTrue("Not all asynch messages recieved", asynchMessages == numAsyncMessages);
+          if (error != null) {
+            throw error;
+          }
+          assertTrue("Not all synch messages recieved", synchMessages == numSyncMessages);
+          assertTrue("Not all asynch messages recieved", asynchMessages == numAsyncMessages);
         }
 
         /**
@@ -393,9 +393,9 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             /* assert that the messages property is not null */
             assertNotNull("Message should not be null in handleEvent()",message);
             /* assert that the messages of syncronous type are not to many */
-            assertTrue("to many synchronous messages in:" + getName(), synchMessages<numSyncMessages+1);
+            assertTrue("to many synchronous messages in:" + getName() + " (" + synchMessages + " >= " + (numSyncMessages+1) + ")", synchMessages<numSyncMessages+1);
             /* assert that the messsage of the asyncronous type are not to many */
-            assertTrue("to many asynchronous messages in:" + getName(), asynchMessages<numAsyncMessages+1);
+            assertTrue("to many asynchronous messages in:" + getName() + " (" + asynchMessages + " >= " + (numAsyncMessages+1) + ")", asynchMessages<numAsyncMessages+1);
           } catch (RuntimeException e) {
             error = e;
             throw e;
