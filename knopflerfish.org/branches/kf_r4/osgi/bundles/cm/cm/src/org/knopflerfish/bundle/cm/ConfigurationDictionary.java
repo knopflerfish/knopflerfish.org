@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,9 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * * This class implements the datatype restrictions, and case insensitive *
@@ -245,7 +248,7 @@ final class ConfigurationDictionary extends Dictionary {
 
     ConfigurationDictionary createCopyAndRemoveLocation() {
         ConfigurationDictionary cd = createCopy();
-        cd.remove(ConfigurationAdminFactory.BUNDLE_LOCATION);
+        cd.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
         cd.remove(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION);
         return cd;
     }
@@ -255,11 +258,11 @@ final class ConfigurationDictionary extends Dictionary {
         if (numberOfProperties > 5) {
             return false;
         }
-        if (get(ConfigurationAdminFactory.SERVICE_PID) != null)
+        if (get(Constants.SERVICE_PID) != null)
             --numberOfProperties;
-        if (get(ConfigurationAdminFactory.FACTORY_PID) != null)
+        if (get(ConfigurationAdmin.SERVICE_FACTORYPID) != null)
             --numberOfProperties;
-        if (get(ConfigurationAdminFactory.BUNDLE_LOCATION) != null)
+        if (get(ConfigurationAdmin.SERVICE_BUNDLELOCATION) != null)
             --numberOfProperties;
         if (get(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION) != null)
             --numberOfProperties;
@@ -370,6 +373,7 @@ final class ConfigurationDictionary extends Dictionary {
         return out;
     }
 
+    //TODO see http://membercvs.osgi.org/bugs/show_bug.cgi?id=89
     static void validateDictionary(Dictionary dictionary)
             throws IllegalArgumentException {
         if (dictionary == null) {
@@ -390,14 +394,13 @@ final class ConfigurationDictionary extends Dictionary {
                         + " is not of correct type: " + e.getMessage());
             }
 
-            /*
-             * if(Activator.r3TestCompliant()) { String s = (String)key; String
-             * lower = s.toLowerCase(); if(!s.equals(lower)) { if(null !=
-             * dictionary.get(lower)) { throw new IllegalArgumentException("key '" +
-             * s + "'" + " also appears with different " + "case '" + lower +
-             * "'"); } } }
-             */
-
+            String s = (String)key; 
+            String lower = s.toLowerCase(); 
+            if(!s.equals(lower)) { 
+            	if(null != dictionary.get(lower)) { 
+            		throw new IllegalArgumentException("key '" + s + "'" + " also appears with different " + "case '" + lower + "'"); 
+                } 
+            } 
         }
 
     }
