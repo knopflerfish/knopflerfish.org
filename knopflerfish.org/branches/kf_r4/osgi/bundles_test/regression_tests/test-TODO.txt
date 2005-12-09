@@ -1,0 +1,1 @@
+automate in-memory bundle "persistent" storage.
