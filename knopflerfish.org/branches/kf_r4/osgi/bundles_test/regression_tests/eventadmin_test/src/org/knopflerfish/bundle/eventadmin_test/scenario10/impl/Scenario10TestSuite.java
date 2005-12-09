@@ -273,7 +273,7 @@ public class Scenario10TestSuite extends TestSuite {
              * use the case statement to determine that the right event has arrived
              * if not an assertment error will occurr.
              */
-            System.out.println(displayName + " receviced topic:" + event.getTopic());
+            System.out.println(displayName + " received topic:" + event.getTopic());
 
             switch (eventCounter) {
             case 0:

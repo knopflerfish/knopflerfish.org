@@ -265,7 +265,7 @@ public class Scenario11TestSuite extends TestSuite {
 
         public void handleEvent(Event event) {
           try {
-            System.out.println(displayName + " receviced topic:"
+            System.out.println(displayName + " received topic:"
                     + event.getTopic());
 
             eventCounter++;
