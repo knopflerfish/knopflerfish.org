@@ -122,9 +122,15 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
         public String getName() {
             String name = getClass().getName();
@@ -238,6 +244,9 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
       };
       asynchDeliver.start();
       asynchDeliver.join();
+      try {
+        Thread.sleep(500); // allow for delivery
+      } catch (Exception ignore) {}
 
     }
   }
@@ -278,6 +287,8 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
      * received
      */
     private int numAsyncMessages;
+
+    private Throwable error;
 
     /**
      * Constructor creates a consumer service
@@ -366,48 +377,60 @@ public class Scenario3TestSuite extends TestSuite implements Scenario3 {
       }
     }
 
-    public void cleanup() {
+    public void cleanup() throws Throwable {
       try {
         serviceRegistration.unregister();
       } catch (IllegalStateException ignore) {}
+      if (error != null) {
+        throw error;
+      }
+      assertTrue("Not all synch messages recieved", synchMessages == numSyncMessages);
+      assertTrue("Not all asynch messages recieved", asynchMessages == numAsyncMessages);
     }
 
     /**
      * This method takes events from the event admin service.
      */
     public void handleEvent(Event event) {
-      Object message;
-      /* try to get the message */
-      message = event.getProperty("Synchronus message");
+      try {
+        Object message;
+        /* try to get the message */
+        message = event.getProperty("Synchronus message");
 
-      if (message != null) {
-        /* its an asyncronous message */
-        synchMessages++;
-
-        System.out.println(getName()
-            + " recived an Synchronus event with message:"
-            + message.toString());
-
-      } else {
-        message = event.getProperty("Asynchronus message");
         if (message != null) {
-          asynchMessages++;
-          System.out.println(getName()
-              + " recived an Asynchronus event with message:"
-              + message.toString());
-        }
-      }
+          /* its an asyncronous message */
+          synchMessages++;
 
-      /* assert that the messages property is not null */
-      assertNotNull("Message should not be null in handleEvent()",
-          message);
-      /* assert that the messages of syncronous type are not to many */
-      /* assign the number of synchronous messages to consume */
-      assertTrue("to many synchronous messages",
-          synchMessages < numSyncMessages + 1);
-      /* assert that the messsage of the asyncronous type are not to many */
-      assertTrue("to many asynchronous messages",
-          asynchMessages < numAsyncMessages + 1);
+          System.out.println(getName()
+              + " recived an Synchronus event with message:"
+              + message.toString());
+
+        } else {
+          message = event.getProperty("Asynchronus message");
+          if (message != null) {
+            asynchMessages++;
+            System.out.println(getName()
+                + " recived an Asynchronus event with message:"
+                + message.toString());
+          }
+        }
+
+        /* assert that the messages property is not null */
+        assertNotNull("Message should not be null in handleEvent()",
+            message);
+        /* assert that the messages of syncronous type are not to many */
+        /* assign the number of synchronous messages to consume */
+        assertTrue("to many synchronous messages",
+            synchMessages < numSyncMessages + 1);
+        /* assert that the messsage of the asyncronous type are not to many */
+        assertTrue("to many asynchronous messages",
+            asynchMessages < numAsyncMessages + 1);
+      } catch (RuntimeException e) {
+        error = e;
+        throw e;
+      } catch (Throwable e) {
+        error = e;
+      }
 
     }
   }

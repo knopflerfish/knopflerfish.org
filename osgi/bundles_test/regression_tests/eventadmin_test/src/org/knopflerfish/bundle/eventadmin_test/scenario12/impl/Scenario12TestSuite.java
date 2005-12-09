@@ -112,9 +112,15 @@ public class Scenario12TestSuite extends TestSuite {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
         public String getName() {
             String name = getClass().getName();
@@ -186,6 +192,8 @@ public class Scenario12TestSuite extends TestSuite {
         private ServiceRegistration serviceRegistration;
         private Hashtable msgs;
 
+        private Throwable error;
+
         public EventConsumer(String[] topics, String name, int id) {
             /* call the super class */
             super(name + " " + id);
@@ -212,10 +220,13 @@ public class Scenario12TestSuite extends TestSuite {
             assertNotNull(displayName + " Can't get service", serviceRegistration);
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
           try {
             serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+          if (error != null) {
+            throw error;
+          }
           assertTrue("Not all messages received",
                      (((Boolean) msgs.get(ERROR_MSG)).booleanValue() &&
                       ((Boolean) msgs.get(WARN_MSG)).booleanValue() &&
@@ -224,9 +235,16 @@ public class Scenario12TestSuite extends TestSuite {
         }
 
         public void handleEvent(Event event) {
+          try {
             System.out.println(displayName + " receviced topic:"
                       + event.getTopic());
             msgs.put(event.getProperty(EventConstants.MESSAGE), Boolean.TRUE);
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
         }// end handleEvent(....
 
     }

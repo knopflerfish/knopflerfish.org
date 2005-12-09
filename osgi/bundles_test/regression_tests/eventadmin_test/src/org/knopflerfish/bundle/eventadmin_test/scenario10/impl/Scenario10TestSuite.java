@@ -111,9 +111,15 @@ public class Scenario10TestSuite extends TestSuite {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
 
         public String getName() {
@@ -227,6 +233,8 @@ public class Scenario10TestSuite extends TestSuite {
         private int eventCounter = 0;
         private ServiceRegistration serviceRegistration;
 
+        private Throwable error;
+
         public EventConsumer(String[] topics, String name, int id) {
             /* call the super class */
             super(name + " " + id);
@@ -249,14 +257,18 @@ public class Scenario10TestSuite extends TestSuite {
             assertNotNull(displayName + " Can't get service", serviceRegistration);
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
           try {
             serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+          if (error != null) {
+            throw error;
+          }
           assertTrue("Not all events received (" + eventCounter + "/5)", eventCounter==5);
         }
 
         public void handleEvent(Event event) {
+          try {
             /*
              * use the case statement to determine that the right event has arrived
              * if not an assertment error will occurr.
@@ -340,6 +352,12 @@ public class Scenario10TestSuite extends TestSuite {
                 fail("Order not granted in event admin service");
 
             }
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
 
         }
 

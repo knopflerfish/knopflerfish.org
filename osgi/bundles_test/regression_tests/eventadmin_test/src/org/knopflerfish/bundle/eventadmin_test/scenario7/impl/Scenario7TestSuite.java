@@ -284,6 +284,8 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
     /** class variable keeping number of asynchronus message */
     private int synchMessages = 0;
 
+    private Throwable error;
+
     /**
      * Constructor creates a consumer service
      *
@@ -322,43 +324,53 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
       }
     }
 
-    public void cleanup() {
+    public void cleanup() throws Throwable {
       try {
         serviceRegistration.unregister();
       } catch (IllegalStateException ignore) {}
+      if (error != null) {
+        throw error;
+      }
     }
 
     /**
      * This method takes events from the event admin service.
      */
     public void handleEvent(Event event) {
-      //System.out.println(getName() + " recived an event");
+      try {
+        //System.out.println(getName() + " recived an event");
 
-      Object message;
-      /* try to get the message */
-      message = event.getProperty("Synchronus message");
+        Object message;
+        /* try to get the message */
+        message = event.getProperty("Synchronus message");
 
-      if (message != null) {
-        /* its an asyncronous message */
-        synchMessages++;
-
-        System.out.println(getName()
-            + " recived an Synchronus event with message:"
-            + message.toString());
-
-      } else {
-        message = event.getProperty("Asynchronus message");
         if (message != null) {
-          asynchMessages++;
-          System.out.println(getName()
-              + " recived an Asynchronus event with message:"
-              + message.toString());
-        }
-      }
+          /* its an asyncronous message */
+          synchMessages++;
 
-      /* assert that the messages property is not null */
-      assertNotNull("Message should not be null in handleEvent()",
-          message);
+          System.out.println(getName()
+              + " recived an Synchronus event with message:"
+              + message.toString());
+
+        } else {
+          message = event.getProperty("Asynchronus message");
+          if (message != null) {
+            asynchMessages++;
+            System.out.println(getName()
+                + " recived an Asynchronus event with message:"
+                + message.toString());
+          }
+        }
+
+        /* assert that the messages property is not null */
+        assertNotNull("Message should not be null in handleEvent()",
+            message);
+      } catch (RuntimeException e) {
+        error = e;
+        throw e;
+      } catch (Throwable e) {
+        error = e;
+      }
     }
   }
 
@@ -377,6 +389,8 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 
     /** class variable keeping number of asynchronus message */
     private int synchMessages = 0;
+
+    private Throwable error;
 
     /**
      * Constructor creates a consumer service
@@ -416,48 +430,61 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
       }
     }
 
-    public void cleanup() {
+    public void cleanup() throws Throwable {
       try {
         serviceRegistration.unregister();
       } catch (IllegalStateException ignore) {}
+      if (error != null) {
+        throw error;
+      }
     }
 
     /**
      * This method takes events from the event admin service.
      */
     public void handleEvent(Event event) {
-      //System.out.println(getName() + " recived an event");
+      try {
+        //System.out.println(getName() + " recived an event");
 
-      Object message;
-      /* try to get the message */
-      message = event.getProperty("Synchronus message");
-      if (message != null) {
-        /* its an syncronous message */
-        synchMessages++;
-        System.out.println(getName()
-            + " recived an Synchronus event with message:"
-            + message.toString());
-      } else {
-        message = event.getProperty("Asynchronus message");
+        Object message;
+        /* try to get the message */
+        message = event.getProperty("Synchronus message");
         if (message != null) {
-          asynchMessages++;
+          /* its an syncronous message */
+          synchMessages++;
           System.out.println(getName()
-              + " recived an Asynchronus event with message:"
+              + " recived an Synchronus event with message:"
               + message.toString());
+        } else {
+          message = event.getProperty("Asynchronus message");
+          if (message != null) {
+            asynchMessages++;
+            System.out.println(getName()
+                + " recived an Asynchronus event with message:"
+                + message.toString());
+          }
         }
-      }
 
-      /* assert that the messages property is not null */
-      assertNotNull("Message should not be null in handleEvent()",
-          message);
+        /* assert that the messages property is not null */
+        assertNotNull("Message should not be null in handleEvent()",
+            message);
 
-      /* assert that the messsage of the asyncronous type are not to many */
-      assertTrue("to many synchronous messages", synchMessages < 2);
-      /* assert that the messsage of the asyncronous type are not to many */
-      assertTrue("to many asynchronous messages", asynchMessages < 2);
+        /* assert that the messsage of the asyncronous type are not to many */
+        assertTrue("to many synchronous messages", synchMessages < 2);
+        /* assert that the messsage of the asyncronous type are not to many */
+        assertTrue("to many asynchronous messages", asynchMessages < 2);
 
-      /* Infinit loop in order to force a blacklist on the listener from the EventAdmin */
-      while (true) {
+        /* Infinit loop in order to force a blacklist on the listener from the EventAdmin */
+        while (true) {
+          try {
+            Thread.sleep(1000);
+          } catch (Throwable ignore) {}
+        }
+      } catch (RuntimeException e) {
+        error = e;
+        throw e;
+      } catch (Throwable e) {
+        error = e;
       }
     }
   }
