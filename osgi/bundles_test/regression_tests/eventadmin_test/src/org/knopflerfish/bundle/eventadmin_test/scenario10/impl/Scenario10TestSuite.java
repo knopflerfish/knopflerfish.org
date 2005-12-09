@@ -264,7 +264,7 @@ public class Scenario10TestSuite extends TestSuite {
           if (error != null) {
             throw error;
           }
-          assertTrue("Not all events received (" + eventCounter + "/5)", eventCounter==5);
+          assertTrue("Not all events received (" + eventCounter + "/7)", eventCounter==7);
         }
 
         public void handleEvent(Event event) {
@@ -273,85 +273,48 @@ public class Scenario10TestSuite extends TestSuite {
              * use the case statement to determine that the right event has arrived
              * if not an assertment error will occurr.
              */
+            System.out.println(displayName + " receviced topic:" + event.getTopic());
+
             switch (eventCounter) {
             case 0:
-                System.out.println(displayName + " receviced topic:"
-                        + event.getTopic());
-
-                /* Assert */
-                assertEquals("Should have an event with topic "
-                        + " org/osgi/framework/BundleEvent/INSTALLED",
-                        (String) event.getTopic(),
-                        "org/osgi/framework/BundleEvent/INSTALLED");
-
-                /* increase event counter */
-                eventCounter++;
-
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/INSTALLED",
+                             (String) event.getTopic());
                 break;
             case 1:
-                System.out.println(displayName + " receviced topic:"
-                        + event.getTopic());
-
-                /* Assert */
-                assertEquals("Should have an event with topic "
-                        + " org/osgi/framework/BundleEvent/S", (String) event
-                        .getTopic(), "org/osgi/framework/BundleEvent/STARTED");
-
-                /* increase event counter */
-                eventCounter++;
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/RESOLVED",
+                             (String) event.getTopic());
                 break;
             case 2:
-                System.out.println(displayName + " receviced topic:"
-                        + event.getTopic());
-
-                /* Assert */
-                assertEquals("Should have an event with topic "
-                        + " org/osgi/framework/BundleEvent/STOPPED",
-                        (String) event.getTopic(),
-                        "org/osgi/framework/BundleEvent/STOPPED");
-
-                /* increase event counter */
-                eventCounter++;
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/STARTED",
+                             (String) event.getTopic());
                 break;
-
             case 3:
-                System.out.println(displayName + " receviced topic:"
-                        + event.getTopic());
-
-                /* Assert */
-                assertEquals("Should have an event with topic "
-                        + " org/osgi/framework/BundleEvent/UPDATED",
-                        (String) event.getTopic(),
-                        "org/osgi/framework/BundleEvent/UPDATED");
-
-                /* increase event counter */
-                eventCounter++;
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/STOPPED",
+                             (String) event.getTopic());
                 break;
-
             case 4:
-                System.out.println(displayName + " receviced topic:"
-                        + event.getTopic());
-
-                /* Assert */
-                assertEquals("Should have an event with topic "
-                        + " org/osgi/framework/BundleEvent/UNINSTALLED",
-                        (String) event.getTopic(),
-                        "org/osgi/framework/BundleEvent/UNINSTALLED");
-
-                /* increase event counter */
-                eventCounter++;
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/UNRESOLVED",
+                             (String) event.getTopic());
                 break;
-
-
+            case 5:
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/UPDATED",
+                             (String) event.getTopic());
+                break;
+            case 6:
+                assertEquals("Wrong topic!",
+                             "org/osgi/framework/BundleEvent/UNINSTALLED",
+                             (String) event.getTopic());
+                break;
             default:
-                /* this should not happen */
-                System.out.println(displayName + " receviced topic:"
-                        + event.getTopic());
-
-                /* register a failure */
                 fail("Order not granted in event admin service");
-
             }
+            eventCounter++;
           } catch (RuntimeException e) {
             error = e;
             throw e;
