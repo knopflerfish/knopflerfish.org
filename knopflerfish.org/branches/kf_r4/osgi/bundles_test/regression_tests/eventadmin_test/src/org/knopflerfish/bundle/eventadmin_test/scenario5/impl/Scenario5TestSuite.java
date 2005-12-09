@@ -112,16 +112,22 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
    * @author Magnus Klack
    */
   class Cleanup extends TestCase {
-        private EventConsumer[] eventConsumer;
+    private EventConsumer[] eventConsumer;
 
-        public Cleanup(EventConsumer[] eventConsumer) {
-            this.eventConsumer = eventConsumer;
+    public Cleanup(EventConsumer[] eventConsumer) {
+        this.eventConsumer = eventConsumer;
+    }
+    public void runTest() throws Throwable {
+      Throwable error = null;
+      for (int i=0; i<eventConsumer.length; i++) {
+        try {
+          eventConsumer[i].cleanup();
+        } catch (Throwable e) {
+          error = e;
         }
-        public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
-            }
-        }
+      }
+      if (error != null) throw error;
+    }
     public String getName() {
       String name = getClass().getName();
       int ix = name.lastIndexOf("$");
@@ -237,6 +243,9 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
       asynchDeliver.start();
       asynchDeliver.join();
 
+      try {
+        Thread.sleep(500); // allow for delivery
+      } catch (Exception ignore) {}
     }
   }
 
@@ -261,6 +270,8 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
 
     /** class variable indication the number of asynchronous messages to be received */
     private int numAsyncMessages;
+
+    private Throwable error;
 
     /**
      * Constructor creates a consumer service
@@ -306,49 +317,61 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
       }
     }
 
-    public void cleanup() {
+    public void cleanup() throws Throwable {
       try {
         serviceRegistration.unregister();
       } catch (IllegalStateException ignore) {}
+      if (error != null) {
+        throw error;
+      }
+      assertTrue("Not all synch messages recieved", synchMessages == numSyncMessages);
+      assertTrue("Not all asynch messages recieved", asynchMessages == numAsyncMessages);
     }
 
     /**
      * This method takes events from the event admin service.
      */
     public void handleEvent(Event event) {
-      //System.out.println(getName() + " recived an event");
+      try {
+        //System.out.println(getName() + " recived an event");
 
-      Object message;
-      /* try to get the message */
-      message = event.getProperty("Synchronus message");
+        Object message;
+        /* try to get the message */
+        message = event.getProperty("Synchronus message");
 
-      if (message != null) {
-        /* its an asyncronous message */
-        synchMessages++;
-
-        System.out.println(getName()
-            + " recived an Synchronus event with message:"
-            + message.toString() + " the nr of syncmsgs:" + synchMessages);
-
-      } else {
-        message = event.getProperty("Asynchronus message");
         if (message != null) {
-          asynchMessages++;
-          System.out.println(getName()
-              + " recived an Asynchronus event with message:"
-              + message.toString() + " the nr of asyncmsgs:" + asynchMessages);
-        }
-      }
+          /* its an asyncronous message */
+          synchMessages++;
 
-      /* assert that the messages property is not null */
-      assertNotNull("Message should not be null in handleEvent()",
-          message);
-      /* assert that the messages of syncronous type are not to many */
-      assertTrue("to many synchronous messages",
-          synchMessages < numSyncMessages + 1);
-      /* assert that the messsage of the asyncronous type are not to many */
-      assertTrue("to many asynchronous messages",
-          asynchMessages < numAsyncMessages + 1);
+          System.out.println(getName()
+              + " recived an Synchronus event with message:"
+              + message.toString() + " the nr of syncmsgs:" + synchMessages);
+
+        } else {
+          message = event.getProperty("Asynchronus message");
+          if (message != null) {
+            asynchMessages++;
+            System.out.println(getName()
+                + " recived an Asynchronus event with message:"
+                + message.toString() + " the nr of asyncmsgs:" + asynchMessages);
+          }
+        }
+
+        /* assert that the messages property is not null */
+        assertNotNull("Message should not be null in handleEvent()",
+            message);
+        /* assert that the messages of syncronous type are not to many */
+        assertTrue("to many synchronous messages",
+            synchMessages < numSyncMessages + 1);
+        /* assert that the messsage of the asyncronous type are not to many */
+        assertTrue("to many asynchronous messages",
+            asynchMessages < numAsyncMessages + 1);
+      } catch (RuntimeException e) {
+        error = e;
+        throw e;
+      } catch (Throwable e) {
+        error = e;
+      }
 
     }
   }

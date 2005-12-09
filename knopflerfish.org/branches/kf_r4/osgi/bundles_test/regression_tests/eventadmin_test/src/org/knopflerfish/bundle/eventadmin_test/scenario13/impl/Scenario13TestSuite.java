@@ -117,9 +117,15 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
         public String getName() {
             String name = getClass().getName();
@@ -249,6 +255,8 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
         /** variable indicates the id of the consumer */
         private int numericId;
 
+        private Throwable error;
+
         /**
          * Constructor creates a consumer service
          *
@@ -289,10 +297,13 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
 
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
           try {
             serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+          if (error != null) {
+            throw error;
+          }
         }
 
         public void reset(){
@@ -311,10 +322,17 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
             /* try to crash the consumer */
             Long eventId = (Long)event.getProperty("Synchronus message");
           }else{
-            /* normal phase */
-            Integer eventId = (Integer)event.getProperty("Synchronus message");
-            /* print that we received the message */
-            System.out.println(this.getName() + " recevived an event:" + eventId );
+            try {
+              /* normal phase */
+              Integer eventId = (Integer)event.getProperty("Synchronus message");
+              /* print that we received the message */
+              System.out.println(this.getName() + " recevived an event:" + eventId );
+            } catch (RuntimeException e) {
+              error = e;
+              throw e;
+            } catch (Throwable e) {
+              error = e;
+            }
 
           }
 

@@ -126,9 +126,15 @@ public class Scenario14TestSuite extends TestSuite {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
         public String getName() {
             String name = getClass().getName();
@@ -240,6 +246,8 @@ public class Scenario14TestSuite extends TestSuite {
         /** class variable holding the old asyncronus message nummber */
         private int asynchMessageExpectedNumber=0;
 
+        private Throwable error;
+
         /**
          * Constructor creates a consumer service
          *
@@ -278,21 +286,30 @@ public class Scenario14TestSuite extends TestSuite {
 
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
           try {
             serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+          if (error != null) {
+            throw error;
+          }
         }
 
         /**
          * This method takes events from the event admin service.
          */
         public void handleEvent(Event event) {
-          //System.out.println("****************************  RECEVIED ***********************************");
+          try {
+            //System.out.println("****************************  RECEVIED ***********************************");
 
-          //String from = (String)event.getProperty("FROM");
-          System.err.println(getName() + " recived an event  with topic:"+ event.getTopic());
-
+            //String from = (String)event.getProperty("FROM");
+            System.err.println(getName() + " recived an event  with topic:"+ event.getTopic());
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
 
         }
 

@@ -118,9 +118,15 @@ public class Scenario2TestSuite extends TestSuite implements Scenario2 {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
         public String getName() {
             String name = getClass().getName();

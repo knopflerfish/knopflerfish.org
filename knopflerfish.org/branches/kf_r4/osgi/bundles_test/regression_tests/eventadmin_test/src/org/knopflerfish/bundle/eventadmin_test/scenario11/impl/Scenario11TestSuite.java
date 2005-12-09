@@ -180,6 +180,9 @@ public class Scenario11TestSuite extends TestSuite {
               fail("Can't stop bundle:" + e.getMessage());
             }
           }
+          try {
+            Thread.sleep(500); // allow for delivery
+          } catch (Exception ignore) {}
         }
 
         public void cleanup() {
@@ -216,6 +219,13 @@ public class Scenario11TestSuite extends TestSuite {
 
         private ServiceRegistration serviceRegistration;
 
+        private Throwable error;
+
+        /* The topics that the consumer should receive*/
+        String registered = "org/osgi/framework/ServiceEvent/REGISTERED";
+        String modified = "org/osgi/framework/ServiceEvent/MODIFIED";
+        String unregistering = "org/osgi/framework/ServiceEvent/UNREGISTERING";
+
         public EventConsumer(String[] topics, String name, int id) {
             /* call the super class */
             super(name + " " + id);
@@ -241,51 +251,48 @@ public class Scenario11TestSuite extends TestSuite {
             assertNotNull(displayName + " Can't get service", serviceRegistration);
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
           try {
             serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+          if (error != null) {
+            throw error;
+          }
+          assertTrue("No " + registered + " received", registeredCounter > 0);
+          assertTrue("No " + modified + " received", modifiedCounter > 0);
+          assertTrue("No " + unregistering + " received", unregisteringCounter > 0);
         }
 
         public void handleEvent(Event event) {
+          try {
             System.out.println(displayName + " receviced topic:"
                     + event.getTopic());
 
-            /* The topics that the consumer should receive*/
-          String registered = "org/osgi/framework/ServiceEvent/REGISTERED";
-          String modified = "org/osgi/framework/ServiceEvent/MODIFIED";
-          String unregistering = "org/osgi/framework/ServiceEvent/UNREGISTERING";
+            eventCounter++;
 
-          /* count the number of received messages with the topic org/osgi/framework/ServiceEvent/REGISTERED*/
-      if(event.getTopic().equals(registered)){
-        registeredCounter++;
-        System.out.println("The number of org/osgi/framework/ServiceEvent/REGISTERED events received is:" +
-            registeredCounter);
-      }
+            if(event.getTopic().equals(registered)){
+              registeredCounter++;
+              System.out.println("The number of " + registered + " events received is:" + registeredCounter);
+            } else if(event.getTopic().equals(modified)){
+              modifiedCounter++;
+              System.out.println("The number of " + modified + " events received is:" + modifiedCounter);
+            } else if(event.getTopic().equals(unregistering)){
+              unregisteringCounter++;
+              System.out.println("The number of " + unregistering + " events received is:" + unregisteringCounter);
+            } else {
+              fail("Only REGISTERED, MODIFIED or UNREGISTERING events are to be received");
+            }
 
-      /* count the number of received messages with the topic org/osgi/framework/ServiceEvent/MODIFIED*/
-      if(event.getTopic().equals(modified)){
-        modifiedCounter++;
-        System.out.println("The number of org/osgi/framework/ServiceEvent/MODIFIED events received is:" +
-            modifiedCounter);
-      }
+            System.out.println("Number of received events:\t" + eventCounter + "\nNumber of received REGISTERED events:\t" +
+                registeredCounter + "\nNumber of received MODIFIED events:\t" + modifiedCounter +
+                "\nNumber of received UNREGISTERING events:\t" + unregisteringCounter);
 
-      /* count the number of received messages with the topic org/osgi/framework/ServiceEvent/UNREGISTERING*/
-      if(event.getTopic().equals(unregistering)){
-        unregisteringCounter++;
-        System.out.println("The number of org/osgi/framework/ServiceEvent/MODIFIED events received is:" +
-            unregisteringCounter);
-      }
-
-      eventCounter++;
-      System.out.println("Number of received events:\t" + eventCounter + "\nNumber of received REGISTERED events:\t" +
-          registeredCounter + "\nNumber of received MODIFIED events:\t" + modifiedCounter +
-          "\nNumber of received UNREGISTERING events:\t" + unregisteringCounter);
-
-      /* Assert that only REGISTERED, MODIFIED and UNREGISTERED is received */
-      assertTrue("Only REGISTERED, MODIFIED or UNREGISTERING events are to be received",
-          (event.getTopic().equals(registered)) || (event.getTopic().equals(modified)) ||
-          (event.getTopic().equals(unregistering)));
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
         }
     }
 }

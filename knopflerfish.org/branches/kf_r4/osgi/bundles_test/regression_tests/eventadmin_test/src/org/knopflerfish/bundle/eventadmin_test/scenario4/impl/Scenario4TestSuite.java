@@ -59,7 +59,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         /* keys and properties to be used in the EventProducers*/
         String [] keysAndProps1 = {"year", "2004", "month", "12"};
         String [] keysAndProps2 = {"year", "2005", "month", "12"};
-        String [] keysAndProps3 = {"YEAR", "2005", "month", "11"};
+        String [] keysAndProps3 = {"YEAR", "2005", "month", "11"}; // Won't year filters match because year is not present?
 
         /*Topics to be used in the EventConsumers*/
         String[] scenario4_topics1 = { "com/acme/timer" };
@@ -67,6 +67,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         String scenario4_filter1 = "(year=2004)";
         String scenario4_filter2 = "(year=2005)";
         String scenario4_filter3 = "(year:2004)";
+        String scenario4_filter4 = null;
         String scenario4_filter5 = "(month=12)";
 
         /* add the setup */
@@ -80,7 +81,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
           new EventConsumer(bundleContext, scenario4_topics1,
             0, 0, scenario4_filter3, "Scenario 4 EventConsumer3", 4),
           new EventConsumer(bundleContext, scenario4_topics1,
-            3, 3, null, "Scenario 4 EventConsumer4", 4),
+            3, 3, scenario4_filter4, "Scenario 4 EventConsumer4", 4),
           new EventConsumer(bundleContext, scenario4_topics1,
             2, 2, scenario4_filter5, "Scenario 4 EventConsumer5", 4) };
         addTest(eventConsumer[0]);
@@ -137,9 +138,15 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             this.eventConsumer = eventConsumer;
         }
         public void runTest() throws Throwable {
-            for (int i=0; i<eventConsumer.length; i++) {
-                eventConsumer[i].cleanup();
+          Throwable error = null;
+          for (int i=0; i<eventConsumer.length; i++) {
+            try {
+              eventConsumer[i].cleanup();
+            } catch (Throwable e) {
+              error = e;
             }
+          }
+          if (error != null) throw error;
         }
         public String getName() {
             String name = getClass().getName();
@@ -219,56 +226,40 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
                 fail(getName() + " event admin should not be null");
             }
 
-            Thread synchDeliver = new Thread() {
-                public void run() {
-                    /* a Hash table to store message in */
-                  Hashtable message = new Hashtable();
-                  for(int j = 0; j < propertiesToSend.length; )
-                  {
-                    /*fill the propstable*/
-                    System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
-                    message.put(propertiesToSend[j], propertiesToSend[j+1]);
-                    j = j+2;
-                  }
+            /* a Hash table to store message in */
+            Hashtable message = new Hashtable();
+            for(int j = 0; j < propertiesToSend.length; j += 2) {
+              /*fill the propstable*/
+              System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
+              message.put(propertiesToSend[j], propertiesToSend[j+1]);
+            }
 
-                    for (int i = 0; i < messageTosend; i++) {
-                        message.put("Synchronus message",new Integer(i));
-                        /* test print out */
-                        System.out.println(getName() + " sending a Synchronus event with message:" +
-                            message.toString() + "and the topic:" + topicToSend);
-                        /* send the message */
-                        eventAdmin.sendEvent(new Event(topicToSend, message));
-                    }
-                }
-            };
+            for (int i = 0; i < messageTosend; i++) {
+                message.put("Synchronus message",new Integer(i));
+                /* test print out */
+                System.out.println(getName() + " sending a Synchronus event with message:" +
+                    message.toString() + "and the topic:" + topicToSend);
+                /* send the message */
+                eventAdmin.sendEvent(new Event(topicToSend, message));
+            }
 
-            synchDeliver.start();
-            synchDeliver.join();
 
-            Thread asynchDeliver = new Thread() {
-                public void run() {
-                    /* a Hash table to store message in */
-                  Hashtable message = new Hashtable();
-                  for(int j = 0; j < propertiesToSend.length; )
-                  {
-                    /*fill the propstable*/
-                    System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
-                    message.put(propertiesToSend[j], propertiesToSend[j+1]);
-                    j = j+2;
-                  }
+            /* a Hash table to store message in */
+            message = new Hashtable();
+            for(int j = 0; j < propertiesToSend.length;  j += 2) {
+              /*fill the propstable*/
+              System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
+              message.put(propertiesToSend[j], propertiesToSend[j+1]);
+            }
 
-                    for (int i = 0; i < messageTosend; i++) {
-                        message.put("Asynchronus message",new Integer(i));
-                        /* test print out */
-                        System.out.println(getName() + " sending an Asynchronus event with message:" +
-                            message.toString() + "and the topic:" + topicToSend);
-                        /* send the message */
-                        eventAdmin.sendEvent(new Event(topicToSend, message));
-                    }
-                }
-            };
-            asynchDeliver.start();
-            asynchDeliver.join();
+            for (int i = 0; i < messageTosend; i++) {
+                message.put("Asynchronus message",new Integer(i));
+                /* test print out */
+                System.out.println(getName() + " sending an Asynchronus event with message:" +
+                    message.toString() + "and the topic:" + topicToSend);
+                /* send the message */
+                eventAdmin.sendEvent(new Event(topicToSend, message));
+            }
 
         }
     }
@@ -301,6 +292,8 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
         /** class variable indication the number of asynchronous messages to be received */
         private int numAsyncMessages;
 
+        private Throwable error;
+
         /**
          * Constructor creates a consumer service
          *
@@ -308,8 +301,8 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
          * @param topics
          */
         public EventConsumer(BundleContext bundleContext, String[] topics,
-            int numSyncMsg, int numAsyncMsg, String filter, String name,
-        int id) {
+                             int numSyncMsg, int numAsyncMsg, String filter, String name,
+                             int id) {
             /* call super class */
             super(name + ":" + id);
             /* assign the instance id */
@@ -352,19 +345,24 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             }
         }
 
-        public void cleanup() {
+        public void cleanup() throws Throwable {
           try {
-            serviceRegistration.unregister();
+            //serviceRegistration.unregister();
           } catch (IllegalStateException ignore) {}
+            if (error != null) {
+              throw error;
+            }
+            assertTrue("Not all synch messages recieved", synchMessages == numSyncMessages);
+            assertTrue("Not all asynch messages recieved", asynchMessages == numAsyncMessages);
         }
 
         /**
          * This method takes events from the event admin service.
          */
         public void handleEvent(Event event) {
-            Object message;
+          try {
             /* try to get the message */
-            message = event.getProperty("Synchronus message");
+            Object message = event.getProperty("Synchronus message");
 
             Object filter1 = event.getProperty("year");
             Object filter2 = event.getProperty("month");
@@ -375,21 +373,20 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
                 System.out.println(getName() + " recived an Synchronus event with message:" +
                     message.toString() + ", topic:"+ eventTopic + ", property_year:" +
-            filter1 + ", property_month:" + filter2 + " number of sync messages received:" + synchMessages);
+                filter1 + ", property_month:" + filter2 + " number of sync messages received:" + synchMessages);
 
-            }else {
+            } else {
               message = event.getProperty("Asynchronus message");
-              if(message!=null){
+              if (message != null) {
                   asynchMessages++;
                   System.out.println(getName() + " recived an Asynchronus event with message:" +
-                    message.toString() + ", topic:"+ eventTopic + ", property_year:" +
-            filter1 + ", property_month:" + filter2 + " number of async messages received:" + asynchMessages);
-              }
-              else{
+                                     message.toString() + ", topic:"+ eventTopic + ", property_year:" +
+                  filter1 + ", property_month:" + filter2 + " number of async messages received:" + asynchMessages);
+              } else {
                 unidentMessages++;
-                System.out.println(getName() + " recived an Unidentified event with message:" +
-                    message.toString() + ", topic:"+ eventTopic + ", property_year:" +
-            filter1 + ", property_month:" + filter2 + " number of unidentified messages received:" + unidentMessages);
+                System.out.println(getName() + " recived an Unidentified event with message:null, topic:" +
+                                   eventTopic + ", property_year:" +
+                filter1 + ", property_month:" + filter2 + " number of unidentified messages received:" + unidentMessages);
               }
             }
 
@@ -399,6 +396,12 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
             assertTrue("to many synchronous messages in:" + getName(), synchMessages<numSyncMessages+1);
             /* assert that the messsage of the asyncronous type are not to many */
             assertTrue("to many asynchronous messages in:" + getName(), asynchMessages<numAsyncMessages+1);
+          } catch (RuntimeException e) {
+            error = e;
+            throw e;
+          } catch (Throwable e) {
+            error = e;
+          }
         }
     }
 }
