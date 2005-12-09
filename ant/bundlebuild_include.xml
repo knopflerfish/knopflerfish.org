@@ -110,9 +110,12 @@
  <property name = "bundle.build.api"    value = "true"/>
  <property name = "bundle.build.impl"   value = "true"/>
  <property name = "bundle.build.all"    value = "true"/>
+ <property name = "bundle.build.decl"   value = "false"/>
 
  
  <property name     = "all.suffix" value="_all-${bundle.version}"/>
+
+ <property name     = "decl.suffix" value="_decl-${bundle.version}"/>
 
  <property name     = "api.jar"  
            location = "${jardir}/${ant.project.name}_api-${bundle.version}.jar"/>
@@ -128,6 +131,9 @@
 
  <property name     = "all.jar"
            location = "${jardir}/${ant.project.name}${all.suffix}.jar"/>
+
+ <property name     = "decl.jar"
+           location = "${jardir}/${ant.project.name}${decl.suffix}.jar"/>
 
  <property name     = "all_noversion.jar"
            location = "${jardir}/${ant.project.name}_all.jar"/>
@@ -299,6 +305,7 @@
   <antcall target = "jar_lib"/>
   <antcall target = "jar_impl"/>
   <antcall target = "jar_all0"/>
+  <antcall target = "jar_decl"/>
 
  </target>
 
@@ -331,11 +338,16 @@
    <equals arg1="${bundle.build.all}" arg2="true"/>
   </condition>
 
+  <condition property="do_build_decl">
+   <equals arg1="${bundle.build.decl}" arg2="true"/>
+  </condition>
+
 <!--
   <echo message="do_build_lib  = ${do_build_lib}"/>
   <echo message="do_build_api  = ${do_build_api}"/>
   <echo message="do_build_impl = ${do_build_impl}"/>
   <echo message="do_build_all  = ${do_build_all}"/>
+  <echo message="do_build_decl = ${do_build_decl}"/>
 -->
  </target>
 
@@ -388,7 +400,7 @@
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
-    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+    <attribute name = "Bundle-APIVendor"      value = "${bundle.apivendor}"/>
     
   </bundlemanifest>
 
@@ -542,6 +554,76 @@
 
  <target name = "make_resource_dir" if = "resources.dir">
    <mkdir dir = "${resources.dir}"/>
+ </target>
+
+ <target name    = "jar_decl" 
+         depends = "init,compile_ant" 
+	 if      = "do_build_decl">
+
+  <antcall target = "compile"/>
+
+  <bundleinfo exports   = "export.package"
+              checkFoundationEE = "${ee.check.foundation}"
+  >
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${api.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <bundleinfo activator = "bundle.activator" 
+              imports   = "import.package"
+              checkFoundationEE = "${ee.check.foundation}"
+>
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${impl.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <echo message = "${decl.jar}"/>
+  <echo message = " imports   = ${import.package}"/>
+  <echo message = " exports   = ${export.package}"/>
+  <echo message = " activator = ${bundle.activator}"/>
+
+  <mkdir dir = "${jardir}"/>
+  <antcall target="make_resource_dir"/>
+
+  <bundlemanifest file="${outdir}/all.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Export-Service"        value = "${export.service}"/>
+    <attribute name = "Import-Service"        value = "${import.service}"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"      value = "${bundle.apivendor}"/>
+    <attribute name = "Service-Component"     value = "${service.component}"/>
+  </bundlemanifest>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${decl.jar}"
+       compress = "true"
+       includes = "${api.pattern},${impl.pattern}"
+       excludes = "**/pspbrwse.jbf"
+       manifest = "${outdir}/all.mf"
+    >
+     <fileset dir = "${resources.dir}"/>
+    </jar>
+    
+   <antcall target = "add_src_all"/>
  </target>
 
  <target name    = "jar_all" 
