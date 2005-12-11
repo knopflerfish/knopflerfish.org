@@ -7,7 +7,6 @@
 <project name="io" default="all">
 
   <property name = "topdir"  location="../../.."/>
-  <property name = "ant.dir" location="${topdir}/ant"/>
 
   <property name = "ee.check.foundation"   value = "false"/>
 
