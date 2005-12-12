@@ -43,7 +43,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-
+import java.util.Iterator;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -531,7 +531,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             throw (IOException) e.getException();
         }
     }
-    /*
+    
     ConfigurationDictionary[] loadAll(final String factoryPid) throws IOException {
         try {
             return (ConfigurationDictionary[]) AccessController
@@ -543,7 +543,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         } catch (PrivilegedActionException e) {
             throw (IOException) e.getException();
         }
-    }*/
+    }
 
     Configuration[] listConfigurations(String filterString, String callingBundleLocation) throws IOException,
             InvalidSyntaxException {
@@ -796,19 +796,32 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             	checkConfigPerm();
             }
             catch(SecurityException e){
-            	//TODO
-            	/*
-            	try {
-                    d = ConfigurationAdminFactory.this.loadAll(factoryPid);
-                } catch (IOException ex) {
-                    d = null;
+            	//TODO surely this could be improved
+            	Hashtable pidsForLocation = (Hashtable) locationToPids.get(callingBundleLocation);
+                if (pidsForLocation == null) {
+                	throw new SecurityException("Not owner of the factoryPid");
                 }
-                if (d != null && d.length > 0) {
-                	String bundleLocation = (String) d[0].get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
-                	if(callingBundleLocation.equals(bundleLocation)){
-                		throw new SecurityException("Not owner of the factoryPid, owned by " + bundleLocation + " caller is " + callingBundleLocation);
-                	}
-                }*/
+                boolean found = false;
+                Iterator it = pidsForLocation.entrySet().iterator();
+                
+                while(it.hasNext()){
+                	String pid = (String) it.next();
+                	if(pid.equals(factoryPid)){
+                		found = true;
+                		break;
+                	}                	
+                }
+                if(!found){
+                	try {
+                        d = ConfigurationAdminFactory.this.loadAll(factoryPid);
+                    } catch (IOException ex) {
+                        d = null;
+                    }
+                    if (d != null){
+                    	throw new SecurityException("Not owner of the factoryPid");
+                    
+                    }
+                }
             }	
             ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, factoryPid,
                     ConfigurationAdminFactory.this.generatePid(factoryPid));
