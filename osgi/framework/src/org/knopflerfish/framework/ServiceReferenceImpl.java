@@ -184,7 +184,7 @@ public class ServiceReferenceImpl implements ServiceReference
 	      } catch (AccessControlException ignore) { }
 	    }
 	    if (!perm) {
-	      throw new SecurityException("Bundle has not permission to get service.");
+	      throw new SecurityException("Bundle does not have permission to get the service.");
 	    }
 	  }
 	  if (registration.service instanceof ServiceFactory) {
