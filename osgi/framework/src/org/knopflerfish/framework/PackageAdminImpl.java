@@ -70,7 +70,7 @@ import org.osgi.service.packageadmin.*;
  */
 public class PackageAdminImpl implements PackageAdmin {
 
-  final static String SPEC_VERSION = "1.1";
+  final static String SPEC_VERSION = "1.2";
 
   private Framework framework;
   
