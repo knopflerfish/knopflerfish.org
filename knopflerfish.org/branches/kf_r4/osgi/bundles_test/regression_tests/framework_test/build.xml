@@ -60,6 +60,10 @@
    <copy file  = "${topdir}/jars/bundleP2_test-1.0.0.jar" todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleP3_test-1.0.0.jar" todir = "resources"/>
 
+   <copy file  = "${topdir}/jars/bundlePT1_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundlePT2_test-1.0.0.jar" todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundlePT3_test-1.0.0.jar" todir = "resources"/>
+
    <copy file  = "${topdir}/jars/bundleR_test-1.0.0.jar" todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleR1_test-1.0.0.jar" todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleR2_test-1.0.0.jar" todir = "resources"/>

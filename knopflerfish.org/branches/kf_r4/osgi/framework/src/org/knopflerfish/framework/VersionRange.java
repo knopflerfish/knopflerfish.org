@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,88 +34,105 @@
 
 package org.knopflerfish.framework;
 
-//import java.io.*;
+import org.osgi.framework.Version;
+
+import java.io.*;
 import java.util.StringTokenizer;
 
-public class VersionNumber implements Comparable
+public class VersionRange implements Comparable
 {
-  final private int x;
-  final private int y;
-  final private int z;
-
-  static boolean bFuzzy = "true".equals(System.getProperty("org.knopflerfish.framework.version.fuzzy", "true"));
+  final private Version low;
+  final private Version high;
+  final private boolean lowIncluded;
+  final private boolean highIncluded;
 
   /**
-   * Construct a VersionNumber object
+   * Construct a VersionRanger object
    *
-   * @param ver string in X.Y.Z format.
+   * @param vr string in "X.Y.Z" format.
    */
-  public VersionNumber(String ver) throws NumberFormatException {
-    if (ver != null) {
-      StringTokenizer st = new StringTokenizer(ver,".");
-      x = st.hasMoreTokens() ? Integer.parseInt(st.nextToken()) : -1;
-      y = st.hasMoreTokens() ? Integer.parseInt(st.nextToken()) : -1;
-      z = st.hasMoreTokens() ? Integer.parseInt(st.nextToken()) : -1;
-      if (st.hasMoreTokens()) {
-	throw new NumberFormatException("Too many '.' in version number");
+  public VersionRange(String vr) throws NumberFormatException {
+    if (vr != null) {
+      boolean op = vr.startsWith("(");
+      boolean ob = vr.startsWith("[");
+
+      if (op || ob) {
+	boolean cp = vr.endsWith(")");
+	boolean cb = vr.endsWith("]");
+	int comma = vr.indexOf(',');
+
+	if (comma > 0 && (cp || cb)) {
+	  low = new Version(vr.substring(1, comma));
+	  high = new Version(vr.substring(comma + 1, vr.length() - 1));
+	  lowIncluded = ob;
+	  highIncluded = cb;
+	} else  {
+	  throw new NumberFormatException("Illegal version range: " + vr);
+	}
+      } else {
+	low = new Version(vr);
+	high = null;
+	lowIncluded = true;
+	highIncluded = false;
       }
     } else {
-      x = -1;
-      y = -1;
-      z = -1;
+      low = Version.emptyVersion;
+      high = null;
+      lowIncluded = true;
+      highIncluded = false;
     }
   }
 
 
   public boolean isSpecified() {
-    return x != -1;
+    return lowIncluded && high == null && low == Version.emptyVersion;
   }
 
 
   /**
-   * Compare object to another VersionNumber.
+   * Compare object to another VersionRange.
    *
    * @param obj Version to compare to.
    * @return Return 0 if equals, negative if this object is less than obj
    *         and positive if this object is larger then obj.
-   * @exception ClassCastException if object is not a VersionNumber object.
+   * @exception ClassCastException if object is not a Version object.
    */
-  public int compareTo(Object obj) throws ClassCastException {
-    return bFuzzy ? compareToFuzzy(obj) : compareToStrict(obj);
+  public boolean withinRange(Version ver) {
+    int c = low.compareTo(ver);
+
+    if (c < 0 || (c == 0 && lowIncluded)) {
+      if (high == null) {
+	return true;
+      }
+      c = high.compareTo(ver);
+      return c > 0 || (c == 0 && highIncluded);
+    }
+    return false;
   }
 
+  /**
+   * Compare object to another VersionRange. VersionRanges are compared on the
+   * lower bound.
+   *
+   * @param obj VersionRange to compare to.
+   * @return Return 0 if equals, negative if this object is less than obj
+   *         and positive if this object is larger then obj.
+   * @exception ClassCastException if object is not a VersionRange object.
+   */
+  public int compareTo(Object obj) throws ClassCastException {
+    VersionRange o = (VersionRange)obj;
+    return low.compareTo(o.low);
+  }
+
+  /*
   public int compareToFuzzy(Object obj) throws ClassCastException {
-    VersionNumber v2 = (VersionNumber)obj;
-
-    int a = x != -1 ? x : 0;
-    int b = y != -1 ? y : 0;
-    int c = z != -1 ? z : 0;
-
-    int res = x - v2.x;
-
-    if (res == 0) {
-      res = b - (v2.y != -1 ? v2.y : 0);
-      if (res == 0) {
-	res = c - (v2.z != -1 ? v2.z : 0);
-      }
-    }
-
-    return res;
+    throw new RuntimeException("NYI");
   }
 
   public int compareToStrict(Object obj) throws ClassCastException {
-    VersionNumber v2 = (VersionNumber)obj;
-
-    int res = x - v2.x;
-
-    if (res == 0) {
-      res = y - v2.y;
-      if (res == 0) {
-	res = z - v2.z;
-      }
-    }
-    return res;
+    throw new RuntimeException("NYI");
   }
+  */
 
 
   /**
@@ -125,18 +142,24 @@ public class VersionNumber implements Comparable
    * @return String.
    */
   public String toString() {
-    StringBuffer res = new StringBuffer();
-    if (x != -1) {
-      res.append(x);
-      if (y != -1) {
-	res.append("." + y);
-	if (z != -1) {
-	  res.append("." + z);
-	}
+    if (high != null) {
+      StringBuffer res = new StringBuffer();
+      if (lowIncluded) {
+	res.append('[');
+      } else {
+	res.append('(');
+      }
+      res.append(low.toString());
+      res.append(',');
+      res.append(high.toString());
+      if (highIncluded) {
+	res.append(']');
+      } else {
+	res.append(')');
       }
       return res.toString();
     } else {
-      return "";
+      return low.toString();
     }
   }
 
@@ -148,8 +171,7 @@ public class VersionNumber implements Comparable
    * @return true if equal, otherwise false.
    */
   public boolean equals(Object obj) throws ClassCastException {
-    VersionNumber o = (VersionNumber)obj;
-    return x == o.x && y == o.y && z == o.z;
+    throw new RuntimeException("NYI");
   }
 
 
@@ -159,6 +181,10 @@ public class VersionNumber implements Comparable
    * @return int value.
    */
   public int hashCode() {
-    return x << 6 + y << 3 + z;
+    if (high != null) {
+      return low.hashCode() + high.hashCode();
+    } else {
+      return low.hashCode();
+    }
   }
 }

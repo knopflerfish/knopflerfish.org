@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.util.*;
-/*
-import org.osgi.framework.*;
-*/
+
 
 /**
  * Class representing a package.
@@ -46,13 +44,11 @@ class Pkg {
 
   final String pkg;
 
-  boolean zombie = false;
+  ArrayList /* ExportPkg */ providers = new ArrayList(1);
 
-  PkgEntry provider = null;
+  ArrayList /* ExportPkg */ exporters = new ArrayList(1);
 
-  ArrayList /* PkgEntry */ exporters = new ArrayList(1);
-
-  ArrayList /* PkgEntry */ importers = new ArrayList();
+  ArrayList /* ImportPkg */ importers = new ArrayList();
 
   /**
    * Create package entry.
@@ -65,31 +61,40 @@ class Pkg {
   /**
    * Add an exporter entry from this package.
    *
-   * @param pe PkgEntry to add.
+   * @param pe ExportPkg to add.
    */
-  synchronized void addExporter(PkgEntry pe) {
-    int i = Math.abs(binarySearch(exporters, pe) + 1);
-    exporters.add(i, pe);
-    pe.pkg = this;
+  synchronized void addExporter(ExportPkg ep) {
+    int i = Math.abs(binarySearch(exporters, ep) + 1);
+    exporters.add(i, ep);
+    ep.pkg = this;
   }
 
 
   /**
    * Remove an exporter entry from this package.
+   * Fail if exporter is provider.
    *
-   * @param p PkgEntry to remove.
+   * @param p ExportPkg to remove.
+   * @return false if package is provider otherwise true.
    */
-  synchronized boolean removeExporter(PkgEntry p) {
-    if (p == provider) {
-      return false;
-    }
-    for (int i = exporters.size() - 1; i >= 0; i--) {
-      if (p == exporters.get(i)) {
-	exporters.remove(i);
-	p.pkg = null;
-	break;
+  synchronized boolean removeExporter(ExportPkg p, boolean force) {
+    if (providers.contains(p)) {
+      if (force) {
+	providers.remove(p);
+	for (Iterator i = importers.iterator(); i.hasNext(); ) {
+	  ImportPkg ip = (ImportPkg) i.next();
+	  
+	  if (p == ip.provider) {
+	    ip.provider = null;
+	  }
+	}
+      } else {
+	return false;
       }
     }
+    exporters.remove(p);
+    p.pkg = null;
+    p.zombie = false;
     return true;
   }
 
@@ -97,21 +102,21 @@ class Pkg {
   /**
    * Add an importer entry to this package.
    *
-   * @param pe PkgEntry to add.
+   * @param pe ImportPkg to add.
    */
-  synchronized void addImporter(PkgEntry pe) {
-    int i = Math.abs(binarySearch(importers, pe) + 1);
-    importers.add(i, pe);
-    pe.pkg = this;
+  synchronized void addImporter(ImportPkg ip) {
+    int i = Math.abs(binarySearch(importers, ip) + 1);
+    importers.add(i, ip);
+    ip.pkg = this;
   }
 
 
   /**
    * Remove an importer entry from this package.
    *
-   * @param p PkgEntry to remove.
+   * @param p ImportPkg to remove.
    */
-  synchronized void removeImporter(PkgEntry p) {
+  synchronized void removeImporter(ImportPkg p) {
     for (int i = importers.size() - 1; i >= 0; i--) {
       if (p == importers.get(i)) {
 	importers.remove(i);
@@ -119,6 +124,7 @@ class Pkg {
 	break;
       }
     }
+    p.provider = null;
   }
 
 
@@ -146,13 +152,31 @@ class Pkg {
    *         point</i> is defined as the point at which the
    *         key would be inserted into the list.
    */
-  int binarySearch(List pl, PkgEntry p) {
+  int binarySearch(List pl, ImportPkg p) {
     int l = 0;
     int u = pl.size()-1;
 
     while (l <= u) {
       int m = (l + u)/2;
-      int v = ((PkgEntry)pl.get(m)).compareVersion(p);
+      int v = ((ImportPkg)pl.get(m)).compareVersion(p);
+      if (v > 0) {
+	l = m + 1;
+      } else if (v < 0) {
+	u = m - 1;
+      } else {
+	return m;
+      }
+    }
+    return -(l + 1);  // key not found.
+  }
+
+  int binarySearch(List pl, ExportPkg p) {
+    int l = 0;
+    int u = pl.size()-1;
+
+    while (l <= u) {
+      int m = (l + u)/2;
+      int v = ((ExportPkg)pl.get(m)).compareVersion(p);
       if (v > 0) {
 	l = m + 1;
       } else if (v < 0) {
@@ -176,10 +200,12 @@ class Pkg {
       sb.append("pkg=" + pkg);
     }
     if(level > 1) {
-      sb.append(", provider=" + provider);
+      sb.append(", provider=" + providers);
     }
     if(level > 2) {
-      sb.append(", zombie=" + zombie);
+      // NYI iterate
+      sb.append(", zombie=" + (providers.isEmpty() ? false :
+			       ((ExportPkg)providers.get(0)).zombie));
     } 
     if(level > 3) {
       sb.append(", exporters=" + exporters);

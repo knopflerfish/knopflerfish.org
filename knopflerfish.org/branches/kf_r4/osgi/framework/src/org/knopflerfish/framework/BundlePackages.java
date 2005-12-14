@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,13 @@ class BundlePackages {
 
   final BundleImpl bundle;
 
-  private ArrayList /* PkgEntry */ exports = new ArrayList(1);
+  private ArrayList /* ExportPkg */ exports = new ArrayList(1);
 
-  private ArrayList /* PkgEntry */ imports = new ArrayList(1);
+  private ArrayList /* ImportPkg */ imports = new ArrayList(1);
 
   private ArrayList /* String */ dImportPatterns = new ArrayList(1);
 
-  private HashMap /* String -> PkgEntry */ okImports = null;
+  private HashMap /* String -> ImportPkg */ okImports = null;
 
   private String failReason = null;
 
@@ -66,7 +66,8 @@ class BundlePackages {
   BundlePackages(BundleImpl b, 
 		 String exportStr, 
 		 String importStr, 
-		 String dimportStr) {
+		 String dimportStr,
+		 String manifestVer) {
     this.bundle = b;
 
     if(b.getBundleArchive() != null) {
@@ -79,14 +80,14 @@ class BundlePackages {
     }
     
     try {
+      int manver = manifestVer != null ? Integer.parseInt(manifestVer) : 0;
       Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, true);
       while (i.hasNext()) {
-	Map e = (Map)i.next();
-	PkgEntry p = new PkgEntry((String)e.get("key"), 
-				  (String)e.get(Constants.PACKAGE_SPECIFICATION_VERSION),
-				  bundle);
+	ExportPkg p = new ExportPkg((Map)i.next(), bundle);
 	exports.add(p);
-	imports.add(new PkgEntry(p));
+	if ( manver < 2 ) {
+	  imports.add(new ImportPkg(p));
+	}
       }
     } catch (IllegalArgumentException e) {
       b.framework.listeners.frameworkError(b, e);
@@ -95,20 +96,17 @@ class BundlePackages {
       Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, true);
     wloop:
       while (i.hasNext()) {
-	Map e = (Map)i.next();
-	PkgEntry pe = new PkgEntry((String)e.get("key"), 
-				  (String)e.get(Constants.PACKAGE_SPECIFICATION_VERSION),
-				  bundle);
+	ImportPkg p = new ImportPkg((Map)i.next(), bundle);
 	for (int x = imports.size() - 1; x >= 0; x--) {
-	  PkgEntry ip = (PkgEntry)imports.get(x);
-	  if (pe.packageEqual(ip)) {
-	    if (pe.compareVersion(ip) < 0) {
-	      imports.set(x, pe);
+	  ImportPkg ip = (ImportPkg)imports.get(x);
+	  if (p.packageNameEqual(ip)) {
+	    if (p.compareVersion(ip) < 0) {
+	      imports.set(x, p);
 	    }
 	    continue wloop;
 	  }
 	}
-	imports.add(pe);
+	imports.add(p);
       }
     } catch (IllegalArgumentException e) {
       b.framework.listeners.frameworkError(b, e);
@@ -174,14 +172,8 @@ class BundlePackages {
    */
   boolean resolvePackages() {
     if (bundle.framework.permissions != null) {
-      String e = checkPackagePermission(exports, PackagePermission.EXPORT);
-      if (e != null) {
-	failReason = "missing export permission for package(s): " + e;
-	return false;
-      }
-      String i = checkPackagePermission(imports, PackagePermission.IMPORT);
-      if (i != null) {
-	failReason = "missing import permission for package(s): " + i;
+      failReason = checkPackagePermissions();
+      if (failReason != null) {
 	return false;
       }
     }
@@ -189,10 +181,10 @@ class BundlePackages {
     if (m != null) {
       StringBuffer r = new StringBuffer("missing package(s) or can not resolve all of the them: ");
       Iterator mi = m.iterator();
-      r.append(((PkgEntry)mi.next()).pkgString());
+      r.append(((ImportPkg)mi.next()).pkgString());
       while (mi.hasNext()) {
 	r.append(", ");
-	r.append(((PkgEntry)mi.next()).pkgString());
+	r.append(((ImportPkg)mi.next()).pkgString());
       }
       failReason = r.toString();
       return false;
@@ -200,8 +192,10 @@ class BundlePackages {
       failReason = null;
       okImports = new HashMap();
       for (Iterator i = imports.iterator(); i.hasNext(); ) {
-	PkgEntry pe = (PkgEntry)i.next();
-	okImports.put(pe.name, pe);
+	ImportPkg ip = (ImportPkg)i.next();
+	// NYI, fix multiple providers
+	ip.provider = bundle.framework.packages.getProvider(ip.name);
+	okImports.put(ip.name, ip);
       }
       return true;
     }
@@ -221,16 +215,9 @@ class BundlePackages {
     if (okImports == null) {
       return null;
     }
-    PkgEntry pe = (PkgEntry)okImports.get(pkg);
-    if (pe != null) {
-      Pkg p = pe.pkg;
-      if (p != null) {
-	PkgEntry ppe = p.provider;
-	if (ppe != null) {
-	  return ppe.bundle;
-	}
-      }
-      return null;
+    ImportPkg ip = (ImportPkg)okImports.get(pkg);
+    if (ip != null) {
+      return ip.provider.bundle;
     }
     boolean match = false;
     if (dImportPatterns == null) {
@@ -245,11 +232,12 @@ class BundlePackages {
       }
     }
     if (match && checkPackagePermission(pkg, PackagePermission.IMPORT)) {
-      pe = new PkgEntry(pkg, (String)null, bundle);
-      PkgEntry ppe = bundle.framework.packages.registerDynamicImport(pe);
-      if (ppe != null) {
-	okImports.put(pkg, pe);
-	return ppe.bundle;
+      ip = new ImportPkg(pkg, bundle);
+      ExportPkg ep = bundle.framework.packages.registerDynamicImport(ip);
+      if (ep != null) {
+	ip.provider = ep;
+	okImports.put(pkg, ip);
+	return ep.bundle;
       }
     }
     return null;
@@ -259,7 +247,7 @@ class BundlePackages {
   /**
    * Get an iterator over all exported packages.
    *
-   * @return An Iterator over PkgEntry.
+   * @return An Iterator over ExportPkg.
    */
   Iterator getExports() {
     return exports.iterator();
@@ -269,7 +257,7 @@ class BundlePackages {
   /**
    * Get an iterator over all static imported packages.
    *
-   * @return An Iterator over PkgEntry.
+   * @return An Iterator over ImportPkg.
    */
   Iterator getImports() {
     return imports.iterator();
@@ -290,30 +278,44 @@ class BundlePackages {
   //
 
   /**
-   * Check that we have right package permission for a list of packages.
+   * Check that we have right export and import package permission for the bundle.
    *
-   * @param pkgs List over all packages to check. Data is
-   *             Map.Entry with a List of package names as key
-   *             and a Map of parameters as value.
-   * @param perm Package permission action to check against.
    * @return Returns null if we have correct permission for listed package.
    *         Otherwise a string of failed entries.
    */
-  private String checkPackagePermission(List pkgs, String perm) {
-    String res = null;
-    if (bundle.framework.permissions != null) {
-      for (Iterator i = pkgs.iterator(); i.hasNext();) {
-	PkgEntry p = (PkgEntry)i.next();
-	if (!checkPackagePermission(p.name, perm)) {
-	  if (res != null) {
-	    res = res + ", " + p.name;
-	  } else {
-	    res = p.name;
-	  }
+  private String checkPackagePermissions() {
+    String e_res = null;
+    for (Iterator i = exports.iterator(); i.hasNext();) {
+      ExportPkg p = (ExportPkg)i.next();
+      if (!checkPackagePermission(p.name, PackagePermission.EXPORT)) {
+	if (e_res != null) {
+	  e_res = e_res + ", " + p.name;
+	} else {
+	  e_res = "missing export permission for package(s): " + p.name;
+	  e_res = p.name;
 	}
       }
     }
-    return res;
+    String i_res = null;
+    for (Iterator i = imports.iterator(); i.hasNext();) {
+      ImportPkg p = (ImportPkg)i.next();
+      if (!checkPackagePermission(p.name, PackagePermission.IMPORT)) {
+	if (i_res != null) {
+	  i_res = i_res + ", " + p.name;
+	} else {
+	  i_res = "missing import permission for package(s): " + p.name;
+	}
+      }
+    }
+    if (e_res != null) {
+      if (i_res != null) {
+	return e_res + "; " + i_res;
+      } else {
+	return e_res;
+      }
+    } else {
+      return i_res;
+    }
   }
 
 

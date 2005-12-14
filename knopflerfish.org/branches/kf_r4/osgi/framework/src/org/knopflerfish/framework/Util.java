@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,8 +121,40 @@ public class Util {
    * Parse strings of format:
    *
    *   ENTRY (, ENTRY)*
-   *   ENTRY = key (; key)* (; OP)*
-   *   OP = param '=' value
+   *
+   * @param d Directive being parsed
+   * @param s String to parse
+   * @return String array with enumeration or null if enumeration string was null.
+   * @exception IllegalArgumentException If syntax error in input string.
+   */
+  public static String [] parseEnumeration(String d, String s) {
+    ArrayList result = new ArrayList();
+    if (s != null) {
+      AttributeTokenizer at = new AttributeTokenizer(s);
+      do {
+	String key = at.getKey();
+	if (key == null) {
+	  throw new IllegalArgumentException("Directive " + d + ", unexpected character at: "
+					     + at.getRest());
+	}
+	if (!at.getEntryEnd()) {
+	  throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
+					     + at.getRest());
+	}
+      } while (!at.getEnd());
+      return (String []) result.toArray(new String [result.size()]);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Parse strings of format:
+   *
+   *   ENTRY (, ENTRY)*
+   *   ENTRY = key (; key)* (; PARAM)*
+   *   PARAM = attribute '=' value
+   *   PARAM = directive ':=' value
    *
    * @param a Attribute being parsed
    * @param s String to parse
@@ -155,9 +187,13 @@ public class Util {
 	  if (old != null && single) {
 	    throw new IllegalArgumentException("Attribute, " + a + ", duplicate parameter: " + param);
 	  }
+	  boolean is_directive = at.isDirective();
 	  String value = at.getValue();
 	  if (value == null) {
 	    throw new IllegalArgumentException("Attribute, " + a + ", expected value at: " + at.getRest());
+	  }
+	  if (is_directive) {
+	    // NYI Handle directives and check them
 	  }
 	  if (single) {
 	    params.put(param, value);
@@ -613,7 +649,7 @@ class AttributeTokenizer {
 	case '\\':
 	  backslash = true;
 	  break;
-	case ',': case ';': case '=':
+	case ',': case ':': case ';': case '=':
 	  if (!quote) {
 	    break loop;
 	  }
@@ -657,20 +693,32 @@ class AttributeTokenizer {
     return null;
   }
 
-
   String getParam() {
     if (pos == length || s.charAt(pos) != ';') {
       return null;
     }
     int save = pos++;
     String res = getWord();
-    if (res != null && pos < length && s.charAt(pos) == '=') {
-      return res;
+    if (res != null) {
+      if (pos < length && s.charAt(pos) == '=') {
+	return res;
+      } if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos+1) == '=') {
+	return res;
+      }
     }
     pos = save;
     return null;
   }
 
+  boolean isDirective() {
+    if (pos + 1 < length && s.charAt(pos) == ':') {
+      pos++;
+      return true;
+    } else {
+      return false;
+    }
+  }
+    
   String getValue() {
     if (s.charAt(pos) != '=') {
       return null;
