@@ -42,6 +42,7 @@
 	   includes      = "**/*.java"
            target        = "${javac.target}"
            source        = "${javac.source}"
+           classpath     = "${topdir}/framework/resources"
     >
    </javac>
   </target>
@@ -58,6 +59,7 @@
            excludes      = "org/knopflerfish/framework/bundlestorage/memory/*.java"
            target        = "${javac.target}"
            source        = "${javac.source}"
+           classpath     = "${topdir}/resources"
     >
    </javac>
   </target>
@@ -90,9 +92,9 @@
       <attribute name = "Bundle-Version"         value="1.2"/>
       <attribute name = "Bundle-Name"            value="frameworkbundle"/>
       <attribute name = "Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
-      <attribute name = "Export-Package"         value="org.osgi.framework;specification-version=1.2,org.osgi.service.packageadmin;specification-version=1.1,org.osgi.service.permissionadmin;specification-version=1.1,org.osgi.util.tracker;specification-version=1.2,org.osgi.service.startlevel;specification-version=1.0"/>
+      <attribute name = "Export-Package"         value="org.osgi.framework;specification-version=1.2,org.osgi.service.packageadmin;specification-version=1.2,org.osgi.service.permissionadmin;specification-version=1.1,org.osgi.util.tracker;specification-version=1.2,org.osgi.service.startlevel;specification-version=1.0"/>
       <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org"/>
-      <attribute name = "Build-Date"            value = "${framework.tstamp}"/>
+      <attribute name = "Build-Date"             value="${framework.tstamp}"/>
      </manifest>
     </jar>  
  </target>  
