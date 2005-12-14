@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,16 +107,16 @@ public class Main {
    * Help class for starting the OSGi framework.
    */
   public static void main(String[] args) {
-    try { 
-      verbosity = 
+    try {
+      verbosity =
         Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     version = readVersion();
 
-    bootText = 
-      "Knopflerfish OSGi framework, version " + version + "\n" + 
-      "Copyright 2003-2005 Knopflerfish. All Rights Reserved.\n\n" + 
+    bootText =
+      "Knopflerfish OSGi framework, version " + version + "\n" +
+      "Copyright 2003-2005 Knopflerfish. All Rights Reserved.\n\n" +
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);
@@ -131,14 +131,14 @@ public class Main {
     // uses "restart" variant.
     String xargsPath = getDefaultXArgs(args);
     if(xargsPath != null) {
-      
+
       if(bZeroArgs) {
         args = new String[] {"-xargs", xargsPath};
       } else if(args.length == 1 && "-init".equals(args[0])) {
         args = new String[] {"-init", "-xargs", xargsPath};
       }
     }
-    
+
 
     // expand all -xargs options
     args = expandArgs(args);
@@ -150,8 +150,8 @@ public class Main {
     }
 
     // redo this since it might have changed
-    try { 
-      verbosity = 
+    try {
+      verbosity =
         Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
@@ -180,7 +180,13 @@ public class Main {
       e.printStackTrace();
       error("New Framework failed!");
     }
-    
+
+    try {
+      new ComponentActivator().start(new BundleContextImpl(framework.systemBundle));
+    } catch (Exception e) {
+      e.printStackTrace();
+      error("Declarative services activation failed!");
+    }
 
     // Save these for possible restart()
     initArgs    = args;
@@ -188,7 +194,7 @@ public class Main {
     initBase    = base;
 
     handleArgs(args, initOffset, base);
-   
+
   }
 
   static String[] initArgs   = null;
@@ -197,7 +203,7 @@ public class Main {
 
   static void doInit() {
     String d = System.getProperty(FWDIR_PROP);
-    
+
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
       if(dir.exists()) {
@@ -213,14 +219,14 @@ public class Main {
 
   static String[] getJarBase() {
     String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
-    
+
     String[] base = Util.splitwords(jars, ";", '\"');
     for (int i=0; i<base.length; i++) {
       try {
         base[i] = new URL(base[i]).toString();
       } catch (Exception ignored) {
       }
-      println("jar base[" + i + "]=" + base[i], 3); 
+      println("jar base[" + i + "]=" + base[i], 3);
     }
 
     return base;
@@ -232,7 +238,7 @@ public class Main {
    * @param args argument line
    * @param startOffset index to start from in argv
    */
-  private static void handleArgs(String[] args, 
+  private static void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
     for (int i = startOffset; i < args.length; i++) {
@@ -257,7 +263,7 @@ public class Main {
           printJVMInfo();
           System.exit(0);
         } else if ("-install".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             String bundle = args[i+1];
             long id = framework.installBundle(completeLocation(base,bundle), null);
             println("Installed: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
@@ -266,7 +272,7 @@ public class Main {
             error("No URL for install command");
           }
         } else if ("-istart".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             String bundle = args[i+1];
             long id = framework.installBundle(completeLocation(base,bundle), null);
             framework.startBundle(id);
@@ -288,7 +294,7 @@ public class Main {
           framework.shutdown();
           println("Framework shutdown", 0);
         } else if ("-sleep".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             long t = Long.parseLong(args[i+1]);
             try {
               println("Sleeping...", 0);
@@ -301,7 +307,7 @@ public class Main {
             error("No time for sleep command");
           }
         } else if ("-start".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             long id = getBundleID(base,args[i+1]);
             framework.startBundle(id);
             println("Started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
@@ -310,7 +316,7 @@ public class Main {
             error("No ID for start command");
           }
         } else if ("-stop".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             long id = getBundleID(base,args[i+1]);
             framework.stopBundle(id);
             println("Stopped: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
@@ -319,7 +325,7 @@ public class Main {
             error("No ID for stop command");
           }
         } else if ("-uninstall".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             long id = getBundleID(base,args[i+1]);
             String loc = framework.getBundleLocation(id);
             framework.uninstallBundle(id);
@@ -329,7 +335,7 @@ public class Main {
             error("No id for uninstall command");
           }
         } else if ("-update".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             long[] ids = null;
             if("ALL".equals(args[i+1])) {
               Bundle[] bl = framework.getSystemBundleContext().getBundles();
@@ -352,7 +358,7 @@ public class Main {
             error("No id for update command");
           }
         } else if ("-initlevel".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             int n = Integer.parseInt(args[i+1]);
             if(framework.startLevelService != null) {
               framework.startLevelService.setInitialBundleStartLevel(n);
@@ -364,7 +370,7 @@ public class Main {
             error("No integer level for initlevel command");
           }
         } else if ("-startlevel".equals(args[i])) {
-          if (i+1 < args.length) { 
+          if (i+1 < args.length) {
             int n = Integer.parseInt(args[i+1]);
             if(framework.startLevelService != null) {
               if(n == 1) {
@@ -373,7 +379,7 @@ public class Main {
                 }
                 framework.startLevelService.bCompat = true;
               }
-	      
+
               framework.startLevelService.setStartLevel(n);
             } else {
               println("No start level service - ignoring start level " + n, 0);
@@ -383,7 +389,7 @@ public class Main {
             error("No integer level for startlevel command");
           }
         } else {
-          error("Unknown option: " + args[i] + 
+          error("Unknown option: " + args[i] +
                 "\nUse option -help to see all options");
         }
       } catch (BundleException e) {
@@ -393,14 +399,14 @@ public class Main {
         } else {
           e.printStackTrace(System.err);
         }
-        error("Command \"" + args[i] + 
+        error("Command \"" + args[i] +
               ((i+1 < args.length && !args[i+1].startsWith("-")) ?
                " " + args[i+1] :
                "") +
               "\" failed, " + e.getMessage());
       } catch (Exception e) {
         e.printStackTrace(System.err);
-        error("Command \"" + args[i] + 
+        error("Command \"" + args[i] +
               ((i+1 < args.length && !args[i+1].startsWith("-")) ?
                " " + args[i+1] :
                "") +
@@ -439,7 +445,7 @@ public class Main {
       long id = framework.getBundleId( completeLocation( base, idLocation ) );
       if (id!=-1) {
         return id;
-      } 
+      }
       throw new IllegalArgumentException
         ("Invalid bundle id/location: " +idLocation);
     }
@@ -471,7 +477,7 @@ public class Main {
             File f = new File(url.getFile());
             if (!f.exists() || !f.canRead()) {
               continue; // Noope; try next.
-            }            
+            }
           } else if ("http".equals(url.getProtocol())) {
             HttpURLConnection uc = (HttpURLConnection) url.openConnection();
             uc.connect();
@@ -514,7 +520,7 @@ public class Main {
         }
       });
   }
-  
+
   /**
    * Shutdown framework.
    *
@@ -599,7 +605,7 @@ public class Main {
     int i = 0;
     while(i < argv.length) {
       if ("-xargs".equals(argv[i])) {
-        if (i+1 < argv.length) { 
+        if (i+1 < argv.length) {
           String   xargsPath = argv[i+1];
           String[] moreArgs = loadArgs(xargsPath, argv);
           i++;
@@ -616,7 +622,7 @@ public class Main {
       i++;
     }
     String[] r = new String[v.size()];
-    
+
     v.copyInto(r);
     return r;
   }
@@ -639,14 +645,14 @@ public class Main {
     Constants.FRAMEWORK_OS_NAME ,
     Constants.FRAMEWORK_OS_VERSION,
     Constants.FRAMEWORK_PROCESSOR,
-    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,      
+    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
   };
 
   /**
    * Print help for starting the platform.
    */
   static void printJVMInfo() {
-    
+
     try {
       Properties props = System.getProperties();
       System.out.println("--- System properties ---");
@@ -689,11 +695,11 @@ public class Main {
     String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
     File fwDir      = new File(fwDirStr);
     File xargsFile  = null;
-    
+
     // avoid getParentFile since some profiles don't have this
     String defDirStr = (new File(fwDir.getAbsolutePath())).getParent();
     File   defDir    = defDirStr != null ? new File(defDirStr) : null;
-    
+
     println("fwDir="+ fwDir, 2);
     println("defDir="+ defDir, 2);
     println("bInit=" + bInit, 2);
@@ -719,15 +725,15 @@ public class Main {
         println("found fwdir at " + fwDir.getAbsolutePath(), 1);
         xargsFile = new File(defDir, defaultXArgsStart);
         if(xargsFile.exists()) {
-          println("\n" + 
-                  "Default restart xargs file: " + xargsFile + 
-                  "\n" + 
-                  "To reinitialize, remove the " + fwDir.toString() + 
-                  " directory\n", 
+          println("\n" +
+                  "Default restart xargs file: " + xargsFile +
+                  "\n" +
+                  "To reinitialize, remove the " + fwDir.toString() +
+                  " directory\n",
                   5);
         } else {
           File xargsFile2 = new File(defDir, defaultXArgsInit);
-          println("No restart xargs file " + xargsFile + 
+          println("No restart xargs file " + xargsFile +
                   ", trying " + xargsFile2 + " instead.", 0);
           xargsFile = xargsFile2;
         }
@@ -735,16 +741,16 @@ public class Main {
         println("no fwdir at " + fwDir.getAbsolutePath(), 1);
         xargsFile = new File(defDir, defaultXArgsInit);
         if(xargsFile.exists()) {
-          println("\n" + 
-                  "Default init xargs file: " + xargsFile + 
-                  "\n", 
+          println("\n" +
+                  "Default init xargs file: " + xargsFile +
+                  "\n",
                   5);
         } else {
           xargsFile = new File(defDir, defaultXArgsInit2);
           if(xargsFile.exists()) {
-            println("\n" + 
-                    "Deafult secondary init xargs file: " + xargsFile + 
-                    "\n", 
+            println("\n" +
+                    "Deafult secondary init xargs file: " + xargsFile +
+                    "\n",
                     5);
           }
         }
@@ -752,7 +758,7 @@ public class Main {
     } else {
       // No parent dir to fwdir
     }
-    return xargsFile != null 
+    return xargsFile != null
       ?  xargsFile.getAbsolutePath()
       : null;
   }
@@ -766,12 +772,12 @@ public class Main {
     {CMDIR_PROP,    CMDIR_DEFAULT},
     //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
   };
-  
+
 
 
   /**
    * Check current system properties and set default values
-   * if importand ones are missing. The default values 
+   * if importand ones are missing. The default values
    * are taken from the <tt>defaultSysProps</tt> variable.
    *
    * <p>
@@ -791,11 +797,11 @@ public class Main {
 
     for(int i = 0; i < defaultSysProps.length; i++) {
       if(null == System.getProperty(defaultSysProps[i][0])) {
-        println("Using default " + defaultSysProps[i][0] + "=" + 
+        println("Using default " + defaultSysProps[i][0] + "=" +
                 defaultSysProps[i][1], 1);
         sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
       } else {
-        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1); 
+        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1);
       }
     }
 
@@ -808,11 +814,11 @@ public class Main {
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
     String jars = System.getProperty(JARDIR_PROP, null);
-    
+
     if(jars == null || "".equals(jars)) {
       String jarBaseDir = topDir + "jars";
       println("jarBaseDir=" + jarBaseDir, 1);
-      
+
       File jarDir = new File(jarBaseDir);
       if(jarDir.exists() && jarDir.isDirectory()) {
 
@@ -827,7 +833,7 @@ public class Main {
         }
         String [] subdirs = new String[v.size()];
         v.copyInto(subdirs);
-	
+
         StringBuffer sb = new StringBuffer();
         sb.append("file:" + jarBaseDir + "/");
         for(int i = 0; i < subdirs.length; i++) {
@@ -838,7 +844,7 @@ public class Main {
         println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
-      
+
     // Write back system properties
     System.setProperties(sysProps);
   }
@@ -848,7 +854,7 @@ public class Main {
    * If really bad things are found, they might be fixed ;)
    *
    * <p>
-   * This method is intended to be called in the "zeroargs" 
+   * This method is intended to be called in the "zeroargs"
    * startup case to preserve backwards compatibility.
    * </p>
    *
@@ -891,7 +897,7 @@ public class Main {
    *
    * <ul>
    *  <li>Each line starting with '-D' and containing an '=' is set as
-   *      a system property. 
+   *      a system property.
    *      Example "-Dorg.knopflerfish.test=apa" is equivalent
    *      to <code>System.setProperty("org.knopflerfish.test", "apa");</code>
    *  <li>Each line of length zero is ignored.
@@ -902,10 +908,10 @@ public class Main {
    *      command line array.
    * </ul>
    * </p>
-   * 
    *
-   * @param argv Original command line arguments. These should begin 
-   *             with "-xargs" "<file to load>". If argv.length &lt; 2 
+   *
+   * @param argv Original command line arguments. These should begin
+   *             with "-xargs" "<file to load>". If argv.length &lt; 2
    *             return original argv.
    * @return     Original argv + argv loaded from file
    */
@@ -914,7 +920,7 @@ public class Main {
     if(XARGS_DEFAULT.equals(xargsPath)) {
       xargsPath = getDefaultXArgs(oldArgs);
     }
-    
+
 
 
     // out result
@@ -938,7 +944,7 @@ public class Main {
           println("Loading xargs url " + url, 0);
           in = new BufferedReader(new InputStreamReader(url.openStream()));
         } catch (MalformedURLException e)  {
-          throw new IllegalArgumentException("Bad xargs URL " + xargsPath + 
+          throw new IllegalArgumentException("Bad xargs URL " + xargsPath +
                                              ": " + e);
         }
       }
@@ -949,7 +955,7 @@ public class Main {
       String       line     = null;
       String       tmpline  = null;
       int          lineno   = 0;
-      for(tmpline = in.readLine(); tmpline != null; 
+      for(tmpline = in.readLine(); tmpline != null;
           tmpline = in.readLine()) {
         lineno++;
         tmpline = tmpline.trim();
@@ -957,7 +963,7 @@ public class Main {
         // check for line continuation char and
         // build up line until aline without such a mark is found.
         if(tmpline.endsWith("\\")) {
-          // found continuation mark, store actual line to 
+          // found continuation mark, store actual line to
           // buffered continuation line
           tmpline = tmpline.substring(0, tmpline.length() - 1);
           if(contLine == null) {
@@ -976,7 +982,7 @@ public class Main {
           } else {
             // this is the normal case if no continuation char is found
             // or any buffered line is found
-            line = tmpline;   
+            line = tmpline;
           }
         }
 
@@ -986,7 +992,7 @@ public class Main {
           if(ix != -1) {
             String name = line.substring(2, ix);
             String val  = line.substring(ix + 1);
-	    
+
             // replace "${syspropname}" with system prop value if found
             if(-1 != val.indexOf("${")) {
               for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
@@ -1025,7 +1031,7 @@ public class Main {
     String [] args2 = new String[v.size()];
 
     v.copyInto(args2);
-    
+
     return args2;
   }
 
@@ -1043,13 +1049,13 @@ public class Main {
 
   static void setSecurityManager(Properties props) {
     try {
-      String manager  = (String)props.get("java.security.manager");      
+      String manager  = (String)props.get("java.security.manager");
       String policy   = (String)props.get("java.security.policy");
-      
+
 
       if(manager != null) {
         if(System.getSecurityManager() == null) {
-          println("Setting security manager=" + manager + 
+          println("Setting security manager=" + manager +
                   ", policy=" + policy, 1);
           System.setProperty("java.security.manager", manager);
           if(policy != null) {
