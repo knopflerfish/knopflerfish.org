@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ class Packages {
    */
   synchronized void registerPackages(Iterator exports, Iterator imports) {
     while (exports.hasNext()) {
-      PkgEntry pe = (PkgEntry)exports.next();
+      ExportPkg pe = (ExportPkg)exports.next();
       Pkg p = (Pkg)packages.get(pe.name);
       if (p == null) {
 	p = new Pkg(pe.name);
@@ -106,7 +106,7 @@ class Packages {
       }
     }
     while (imports.hasNext()) {
-      PkgEntry pe = (PkgEntry)imports.next();
+      ImportPkg pe = (ImportPkg)imports.next();
       Pkg p = (Pkg)packages.get(pe.name);
       if (p == null) {
 	p = new Pkg(pe.name);
@@ -124,27 +124,29 @@ class Packages {
   /**
    * Dynamically check and register a dynamic package import.
    *
-   * @param pe PkgEntry import to add.
-   * @return PkgEntry for package provider.
+   * @param pe ImportPkg import to add.
+   * @return ExportPkg for package provider.
    */
-  synchronized PkgEntry registerDynamicImport(PkgEntry pe) {
+  synchronized ExportPkg registerDynamicImport(ImportPkg ip) {
     if (Debug.packages) {
-      Debug.println("dynamicImportPackage: try " + pe);
+      Debug.println("dynamicImportPackage: try " + ip);
     }
-    Pkg p = (Pkg)packages.get(pe.name);
+    Pkg p = (Pkg)packages.get(ip.name);
     if (p != null) {
-      if(p.provider != null) {
-	if((pe.bundle.getState() & RESOLVED_FLAGS) != 0) {
-	  p.addImporter(pe);
+      if (!p.providers.isEmpty()) {
+	if ((ip.bundle.getState() & RESOLVED_FLAGS) != 0) {
+	  p.addImporter(ip);
 	  if (Debug.packages) {
-	    Debug.println("dynamicImportPackage: added " + pe);
+	    Debug.println("dynamicImportPackage: added " + ip);
 	  }
 	} else {
 	  if (Debug.packages) {
-	    Debug.println("dynamicImportPackage: skip add since bundle is not resolved " + pe);
+	    Debug.println("dynamicImportPackage: skip add since bundle is not resolved " + ip);
 	  }
+	  // TBD, is this correct, what should we return here?
+	  throw new RuntimeException("NYI");
 	}
-	return p.provider;
+	return (ExportPkg)p.providers.get(0);
       } else {
 	// If the bundle trying to use dynamic import is resolved but 
 	// potential providers are yet not resolved check for providers 
@@ -153,27 +155,30 @@ class Packages {
 	// List of bundles we try to resolve but fail
 	List /* BundleImpl */ failedBundles = new ArrayList();	
 
-	if((pe.bundle.getState() & RESOLVED_FLAGS) != 0) {
-	  for(Iterator it = p.exporters.iterator(); it.hasNext();) {
-	    PkgEntry pe2 = (PkgEntry)it.next();
-	    int state = pe2.bundle.getUpdatedState();
-	    if((state & RESOLVED_FLAGS) != 0) {
-	      p.addImporter(pe);
-	      return p.provider;
+	if ((ip.bundle.getState() & RESOLVED_FLAGS) != 0) {
+	  for (Iterator it = p.exporters.iterator(); it.hasNext();) {
+	    ExportPkg ep = (ExportPkg)it.next();
+	    int state = ep.bundle.getUpdatedState();
+	    if ((state & RESOLVED_FLAGS) != 0) {
+	      p.addImporter(ip);
+	      if (Debug.packages) {
+		Debug.println("dynamicImportPackage: added " + ip);
+	      }
+	      return (ExportPkg)p.providers.get(0);
 	    } else {
 	      // add to set, to be able to give informative debug info in 
 	      // the case of all exporters fail to resolve
-	      failedBundles.add(pe2.bundle);
+	      failedBundles.add(ep.bundle);
 	    }
 	  }
 	  // If we reach this, not potential exporter has been
 	  // possible to resolve.
-	  framework.listeners.frameworkError(pe.bundle,
-					     new Exception("dynamicResolve: failed to resolve " + pe +", unresolved exportes: " + failedBundles));
+	  framework.listeners.frameworkError(ip.bundle,
+					     new Exception("dynamicResolve: failed to resolve " + ip +", unresolved exportes: " + failedBundles));
 	  return null;
 	} else {
 	  if (Debug.packages) {
-	    Debug.println("dynamicImportPackage: failed because importing bundle is not resolved: " + pe.bundle.toString(2));
+	    Debug.println("dynamicImportPackage: failed because importing bundle is not resolved: " + ip.bundle.toString(2));
 	  }
 	}
       }
@@ -198,30 +203,19 @@ class Packages {
   synchronized boolean unregisterPackages(Iterator exports, Iterator imports, boolean force) {
     boolean allRemoved = true;
     while (exports.hasNext()) {
-      PkgEntry pe = (PkgEntry)exports.next();
+      ExportPkg pe = (ExportPkg)exports.next();
       Pkg p = pe.pkg;
       if (p != null) {
 	if (Debug.packages) {
 	  Debug.println("unregisterPackages: unregister export - " + pe);
 	}
-	if (!p.removeExporter(pe)) {
-	  if (force) {
-	    p.provider = null;
-	    p.removeExporter(pe);
-//XXX - begin L-3 modification
-	    p.zombie = false;
-//XXX - end L-3 modification
-	    if (Debug.packages) {
-	      Debug.println("unregisterPackages: forced unregister - " + pe);
-	    }
-	  } else {
-	    allRemoved = false;
-	    p.zombie = true;
-	    if (Debug.packages) {
+	if (!p.removeExporter(pe, force)) {
+	  allRemoved = false;
+	  pe.zombie = true;
+	  if (Debug.packages) {
 	      Debug.println("unregisterPackages: failed to unregister - " + pe);
-	    }
-	    continue;
 	  }
+	  continue;
 	}
 	if (p.isEmpty()) {
 	  packages.remove(pe.name);
@@ -230,7 +224,7 @@ class Packages {
     }
     if (allRemoved) {
       while (imports.hasNext()) {
-	PkgEntry pe = (PkgEntry)imports.next();
+	ImportPkg pe = (ImportPkg)imports.next();
 	Pkg p = pe.pkg;
 	if (p != null) {
 	  if (Debug.packages) {
@@ -275,8 +269,8 @@ class Packages {
     List res = resolvePackages(pkgs);
     if (res.size() == 0) {
       for (Iterator i = tempProvider.values().iterator(); i.hasNext();) {
-	PkgEntry pe = (PkgEntry)i.next();
-	pe.pkg.provider = pe;
+	ExportPkg ep = (ExportPkg)i.next();
+	ep.pkg.providers.add(ep);
       }
       tempResolved.remove(0);
       for (Iterator i = tempResolved.iterator(); i.hasNext();) {
@@ -295,15 +289,17 @@ class Packages {
 
 
   /**
-   * Get selected provider of a package.
+   * Get selected provider of a package. If several providers,
+   * get the one with the highest version.
    *
    * @param pkg Exported package.
-   * @return PkgEntry that exports the package, null if no provider.
+   * @return ExportPkg that exports the package, null if no provider.
    */
-  synchronized PkgEntry getProvider(String pkg) {
+  synchronized ExportPkg getProvider(String pkg) {
     Pkg p = (Pkg)packages.get(pkg);
-    if (p != null) {
-      return p.provider;
+    if (p != null && !p.providers.isEmpty()) {
+      // Get highest version
+      return (ExportPkg)p.providers.get(0);
     } else {
       return null;
     }
@@ -311,24 +307,13 @@ class Packages {
     
     
   /**
-   * Check if PkgEntry is provider of a package.
+   * Check if ExportPkg is provider of a package.
    *
    * @param pe Exported package.
    * @return True if pkg exports the package.
    */
-  synchronized boolean isProvider(PkgEntry pe) {
-    return pe.pkg != null && pe.pkg.provider == pe;
-  }
-    
-    
-  /**
-   * Check if a package is in zombie state.
-   *
-   * @param pe Package to check.
-   * @return True if pkg is zombie exported.
-   */
-  synchronized boolean isZombiePackage(PkgEntry pe) {
-    return pe.pkg != null && pe.pkg.zombie;
+  synchronized boolean isProvider(ExportPkg pe) {
+    return pe.pkg != null && pe.pkg.providers.contains(pe);
   }
     
     
@@ -341,12 +326,14 @@ class Packages {
     StringBuffer res = new StringBuffer();
     for (Iterator i = packages.values().iterator(); i.hasNext();) {
       Pkg p = (Pkg)i.next();
-      PkgEntry pe = p.provider;
-      if (pe != null && framework.systemBundle == pe.bundle) {
-	if (res.length() > 0) {
-	  res.append(", ");
+      for (Iterator pi = p.providers.iterator(); pi.hasNext(); ) {
+	ExportPkg ep = (ExportPkg)pi.next();
+	if (framework.systemBundle == ep.bundle) {
+	  if (res.length() > 0) {
+	    res.append(", ");
+	  }
+	  res.append(ep.pkgString());
 	}
-	res.append(pe.pkgString());
       }
     }
     return res.toString();
@@ -359,12 +346,12 @@ class Packages {
    * @param pkg Exported package.
    * @param bundle Exporting bundle.
    * @return Version of package or null if unspecified.
-   */
   synchronized String getPackageVersion(String pkg) {
     Pkg p = (Pkg)packages.get(pkg);
-    PkgEntry pe = p.provider;
+    ExportPkg pe = p.provider;
     return pe != null && pe.version.isSpecified() ? pe.version.toString() : null;
   }
+   */
 
 
   /**
@@ -377,8 +364,17 @@ class Packages {
     ArrayList res = new ArrayList();
     for (Iterator i = packages.values().iterator(); i.hasNext();) {
       Pkg p = (Pkg) i.next();
-      if (p.provider != null && (b == null || b == p.provider.bundle)) {
-	res.add(p.provider);
+      if (!p.providers.isEmpty()) {
+	if (b == null) {
+	  res.addAll(p.providers);
+	} else {
+	  for (Iterator eps = p.providers.iterator(); eps.hasNext();) {
+	    ExportPkg ep = (ExportPkg)eps.next();
+	    if (b == ep.bundle) {
+	      res.add(ep);
+	    }
+	  }
+	}
       }
     }
     return res;
@@ -391,16 +387,12 @@ class Packages {
    * @param pkg Package.
    * @return List of bundles importering.
    */
-  synchronized Collection getPackageImporters(String pkg) {
-    Pkg p = (Pkg)packages.get(pkg);
+  synchronized Collection getPackageImporters(ExportPkg ep) {
     Set res = new HashSet();
-    if (p != null && p.provider != null) {
-      List i = p.importers;
-      for (int x =  0; x < i.size(); x++ ) {
-	PkgEntry pe = (PkgEntry)i.get(x);
-	if (pe.bundle.state != Bundle.INSTALLED) {
-	  res.add(pe.bundle);
-	}
+    for (Iterator i = ep.pkg.importers.iterator(); i.hasNext(); ) {
+      ImportPkg ip = (ImportPkg)i.next();
+      if (ip.provider == ep) {
+	res.add(ip.bundle);
       }
     }
     return res;
@@ -446,12 +438,14 @@ class Packages {
       }
       for (Iterator i = packages.values().iterator(); i.hasNext();) {
 	Pkg p = (Pkg)i.next();
-	PkgEntry pe = p.provider;
-	if (pe != null && p.zombie) {
-	  if (Debug.packages) {
-	    Debug.println("getZombieAffected: found zombie - " + pe.bundle);
+	for (Iterator ps = p.providers.iterator(); ps.hasNext(); ) {
+	  ExportPkg ep = (ExportPkg)ps.next();
+	  if (ep.zombie) {
+	    if (Debug.packages) {
+	      Debug.println("getZombieAffected: found zombie - " + ep.bundle);
+	    }
+	    affected.add(ep.bundle);
 	  }
-	  affected.add(pe.bundle);
 	}
       }
     } else {
@@ -468,9 +462,9 @@ class Packages {
     for (int i = 0; i < moreBundles.size(); i++) {
       BundleImpl b = (BundleImpl)moreBundles.get(i);
       for (Iterator j = b.getExports(); j.hasNext(); ) {
-	PkgEntry pe = (PkgEntry)j.next();
-	if (pe.pkg != null && pe.pkg.provider == pe) {
-	  for (Iterator k = getPackageImporters(pe.name).iterator(); k.hasNext(); ) {
+	ExportPkg ep = (ExportPkg)j.next();
+	if (ep.pkg != null && ep.pkg.providers.contains(ep)) {
+	  for (Iterator k = getPackageImporters(ep).iterator(); k.hasNext(); ) {
 	    Bundle ib = (Bundle)k.next();
 	    if (!affected.contains(ib)) {
 	      moreBundles.add(ib);
@@ -498,33 +492,56 @@ class Packages {
    */
   private List resolvePackages(Iterator pkgs) {
     ArrayList res = new ArrayList();
+  ploop:
     while (pkgs.hasNext()) {
-      PkgEntry pe = (PkgEntry)pkgs.next();
-      if (Debug.packages) {
-	Debug.println("resolvePackages: check - " + pe.pkgString());
+      ExportPkg provider = null;
+      ImportPkg ip = (ImportPkg)pkgs.next();
+      if (ip.provider != null) {
+	framework.listeners.frameworkError(ip.bundle,
+					   new Exception("resolvePackages: InternalError1!"));
       }
-      PkgEntry provider = pe.pkg.provider;
+      if (Debug.packages) {
+	Debug.println("resolvePackages: check - " + ip.pkgString());
+      }
+      for (Iterator i = ip.pkg.providers.iterator(); i.hasNext(); ) {
+	provider = (ExportPkg)i.next();
+	if (ip.okPackageVersion(provider.version)) {
+	  if (Debug.packages) {
+	    Debug.println("resolvePackages: " + ip.name + " - has provider - " + provider);
+	  }
+	  continue ploop;
+	}
+	// NYI, Handle multiple versions
+	if (Debug.packages) {
+	  Debug.println("resolvePackages: " + ip.name +
+			" - provider has wrong version - " + provider +
+			", need " + ip.packageRange + ", has " + provider.version);
+	}
+	res.add(ip);
+	continue ploop;
+      }
+      provider = (ExportPkg)tempProvider.get(ip.name);
       if (provider == null) {
-	provider = (PkgEntry)tempProvider.get(pe.name);
+	provider = pickProvider(ip);
 	if (provider == null) {
-	  provider = pickProvider(pe.pkg);
-	} else if (Debug.packages) {
-	  Debug.println("resolvePackages: " + pe.name + " - has temporay provider - "
+	  if (Debug.packages) {
+	    Debug.println("resolvePackages: " + ip.name + " - has no provider");
+	  }
+	  res.add(ip);
+	}      
+      } else {
+	if (Debug.packages) {
+	  Debug.println("resolvePackages: " + ip.name + " - has temporay provider - "
 			+ provider);
 	}
-      } else if (Debug.packages) {
-	Debug.println("resolvePackages: " + pe.name + " - has provider - " + provider);
-      }
-      if (provider == null) {
-	if (Debug.packages) {
-	  Debug.println("resolvePackages: " + pe.name + " - has no provider");
+	if (!ip.okPackageVersion(provider.version)) {
+	  if (Debug.packages) {
+	    Debug.println("resolvePackages: " + ip.name +
+			  " - provider has wrong version - " + provider +
+			  ", need " + ip.packageRange + ", has " + provider.version);
+	  }
+	  res.add(ip);
 	}
-	res.add(pe);
-      } else if (provider.compareVersion(pe) < 0) {
-	if (Debug.packages) {
-	  Debug.println("resolvePackages: " + pe.name + " - provider has wrong version - " + provider + ", need " + pe.version + ", has " + provider.version);
-	}
-	res.add(pe);
       }
     }
     return res;
@@ -537,28 +554,31 @@ class Packages {
    * @param pkg Package to find provider for.
    * @return Package entry that can provide.
    */
-  private PkgEntry pickProvider(Pkg p) {
+  private ExportPkg pickProvider(ImportPkg ip) {
     if (Debug.packages) {
-      Debug.println("pickProvider: for - " + p.pkg);
+      Debug.println("pickProvider: for - " + ip);
     }
-    PkgEntry provider = null;
-    for (Iterator i = p.exporters.iterator(); i.hasNext(); ) {
-      PkgEntry pe = (PkgEntry)i.next();
-      if ((pe.bundle.state & RESOLVED_FLAGS) != 0) {
-	provider = pe;
+    ExportPkg provider = null;
+    for (Iterator i = ip.pkg.exporters.iterator(); i.hasNext(); ) {
+      ExportPkg ep = (ExportPkg)i.next();
+      if (!ip.okPackageVersion(ep.version)) {
+	continue;
+      }
+      if ((ep.bundle.state & RESOLVED_FLAGS) != 0) {
+	provider = ep;
 	break;
       }
-      if (pe.bundle.state == Bundle.INSTALLED) {
-	if (tempResolved.contains(pe.bundle)) {
-	  provider = pe;
+      if (ep.bundle.state == Bundle.INSTALLED) {
+	if (tempResolved.contains(ep.bundle)) {
+	  provider = ep;
 	  break;
 	}
 	int oldTempStartSize = tempResolved.size();
 	HashMap oldTempProvider = (HashMap)tempProvider.clone();
-	tempResolved.add(pe.bundle);
-	List r = resolvePackages(pe.bundle.getImports());
+	tempResolved.add(ep.bundle);
+	List r = resolvePackages(ep.bundle.getImports());
 	if (r.size() == 0) {
-	  provider = pe;
+	  provider = ep;
 	  break;
 	} else {
 	  tempProvider = oldTempProvider;
@@ -570,9 +590,9 @@ class Packages {
     }
     if (provider != null) {
       if (Debug.packages) {
-	Debug.println("pickProvider: " + p.pkg + " - got provider - " + provider);
+	Debug.println("pickProvider: " + ip + " - got provider - " + provider);
       }
-      tempProvider.put(p.pkg, provider);
+      tempProvider.put(ip.pkg.pkg, provider);
     }
     return provider;
   }

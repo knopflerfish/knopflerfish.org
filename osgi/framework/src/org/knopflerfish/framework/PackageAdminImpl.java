@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,7 +120,7 @@ public class PackageAdminImpl implements PackageAdmin {
       ExportedPackage[] res = new ExportedPackage[size];
       Iterator i = pkgs.iterator();
       for (int pos = 0; pos < size;) {
-	res[pos++] = new ExportedPackageImpl((PkgEntry)i.next());
+	res[pos++] = new ExportedPackageImpl((ExportPkg)i.next());
       }
       return res;
     } else {
@@ -146,7 +146,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *         if no expored package with that name exists.
    */
   public ExportedPackage getExportedPackage(String name) {
-    PkgEntry provider = framework.packages.getProvider(name);
+    ExportPkg provider = framework.packages.getProvider(name);
     if (provider != null) {
       return new ExportedPackageImpl(provider);
     } else {
@@ -173,7 +173,8 @@ public class PackageAdminImpl implements PackageAdmin {
 		ArrayList startList = new ArrayList();
 		synchronized (framework.packages) {
 
-		  // Stop affected bundles and remove their classloaders		  // in reverse start order
+		  // Stop affected bundles and remove their classloaders
+		  // in reverse start order
 		  for (int bx = bi.length; bx-- > 0; ) {
 		    synchronized (bi[bx]) {
 		      if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
@@ -232,7 +233,7 @@ public class PackageAdminImpl implements PackageAdmin {
 		  framework.bundles.startBundles(startList);
 		  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
 		  return null;
-		}	      }
+		}	      }
 	    });
 	}
       };

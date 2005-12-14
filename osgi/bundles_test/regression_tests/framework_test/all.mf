@@ -1,3 +1,4 @@
+Bundle-ManifestVersion: 2
 Bundle-Name: framework_test
 Bundle-SymbolicName: framework_test
 Bundle-Version: 1.0.0

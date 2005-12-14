@@ -190,6 +190,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       info = (String) ai.get(k);
       assertEquals("bad Bundle-Version", "1.0.0", info);
       
+      k =  "Bundle-ManifestVersion";
+      info = (String) ai.get(k);
+      assertEquals("bad " + k, "2", info);
+      
       
       String version = props.getProperty("java.version");
       String vendor = props.getProperty("java.vendor");

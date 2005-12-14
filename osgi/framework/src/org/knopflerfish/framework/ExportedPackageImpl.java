@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,9 +70,9 @@ import org.osgi.service.packageadmin.ExportedPackage;
  */
 public class ExportedPackageImpl implements ExportedPackage {
 
-  final private PkgEntry pkg;
+  final private ExportPkg pkg;
 
-  ExportedPackageImpl(PkgEntry pkg) {
+  ExportedPackageImpl(ExportPkg pkg) {
     this.pkg = pkg;
   }
 
@@ -94,6 +94,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    *         has become stale.
    */
   public Bundle getExportingBundle() {
+    // TBD, is this correct
     if (pkg.bundle.framework.packages.isProvider(pkg)) {
       return pkg.bundle;
     } else {
@@ -118,7 +119,7 @@ public class ExportedPackageImpl implements ExportedPackage {
     Packages packages = pkg.bundle.framework.packages;
     synchronized (packages) {
       if (packages.isProvider(pkg)) {
-	Collection imps = packages.getPackageImporters(pkg.name);
+	Collection imps = packages.getPackageImporters(pkg);
 	Bundle[] res = new Bundle[imps.size()];
 	return (Bundle[])imps.toArray(res);
       } else {
@@ -152,17 +153,16 @@ public class ExportedPackageImpl implements ExportedPackage {
     Packages packages = pkg.bundle.framework.packages;
     synchronized (packages) {
       if (packages.isProvider(pkg)) {
-	return packages.isZombiePackage(pkg);
+	return pkg.zombie;
       } else {
-	return true;
+	return false;
       }
     }
   }
 
 
   public Version getVersion() {
-	// TODO Auto-generated method stub
-	return null;
+    return pkg.version;
   }
 
 }

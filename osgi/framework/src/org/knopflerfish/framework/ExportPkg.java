@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,72 +37,65 @@ package org.knopflerfish.framework;
 import java.util.*;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 
 /**
- * Data structure for saving package info. Contains package name,
- * current provider, list of possible exports and all bundles
- * importing this package.
+ * Data structure for export package definitions.
+ *
+ * @author Jan Stein
  */
-class PkgEntry {
+class ExportPkg {
   final String name;
   final BundleImpl bundle;
-  final VersionNumber version;
+  final String [] uses;
+  final String [] mandatory;
+  final String [] include;
+  final String [] exclude;
+  final Version version;
+  final Map attributes;
+  boolean zombie = false;
 
   // Link to pkg entry
   Pkg pkg = null;
 
   /**
-   * Create package entry.
+   * Create an export package entry.
    */
-  PkgEntry(String p, String v, BundleImpl b) {
-    this.name = p;
-    this.version = new VersionNumber(v);
+  ExportPkg(Map tokens, BundleImpl b) {
     this.bundle = b;
+    this.name = (String)tokens.remove("key");
+    this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE,
+				      (String)tokens.remove(Constants.USES_DIRECTIVE));
+    this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE,
+					   (String)tokens.remove(Constants.MANDATORY_DIRECTIVE));
+    this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
+					   (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
+    this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
+					   (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
+    String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
+    String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    if (specVersionStr != null) {
+      this.version = new Version(specVersionStr);
+    } else if (versionStr != null) {
+      this.version = new Version(versionStr);
+    } else {
+      this.version = Version.emptyVersion;
+    }
+    this.attributes = tokens;
   }
 
 
   /**
-   * Create package entry.
-   */
-  PkgEntry(String p, VersionNumber v, BundleImpl b) {
-    this.name = p;
-    this.version = v;
-    this.bundle = b;
-  }
-
-
-  /**
-   * Create package entry.
-   */
-  PkgEntry(PkgEntry pe) {
-    this.name = pe.name;
-    this.version = pe.version;
-    this.bundle = pe.bundle;
-  }
-
-
-  /**
-   * Package name equal.
-   *
-   * @param other Package entry to compare to.
-   * @return true if equal, otherwise false.
-   */
-  boolean packageEqual(PkgEntry other) {
-    return name.equals(other.name);
-  }
-
-
-  /**
-   * Version compare object to another PkgEntry.
+   * Version compare object to another ExportPkg.
    *
    * @param obj Version to compare to.
    * @return Return 0 if equals, negative if this object is less than obj
    *         and positive if this object is larger then obj.
-   * @exception ClassCastException if object is not a PkgEntry object.
+   * @exception ClassCastException if object is not a ExportPkg object.
    */
   public int compareVersion(Object obj) throws ClassCastException {
-    PkgEntry o = (PkgEntry)obj;
+    ExportPkg o = (ExportPkg)obj;
     return version.compareTo(o.version);
   }
 
@@ -113,7 +106,7 @@ class PkgEntry {
    * @return String.
    */
   public String pkgString() {
-    if (version.isSpecified()) {
+    if (version != Version.emptyVersion) {
       return name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION + "=" + version;
     } else {
       return name;
@@ -132,24 +125,13 @@ class PkgEntry {
 
 
   /**
-   * Check if object is equal to this object.
-   *
-   * @param obj Package entry to compare to.
-   * @return true if equal, otherwise false.
-   */
-  public boolean equals(Object obj) throws ClassCastException {
-    PkgEntry o = (PkgEntry)obj;
-    return name.equals(o.name) && bundle == o.bundle && version.equals(o.version);
-  }
-
-
-  /**
    * Hash code for this package entry.
    *
    * @return int value.
    */
   public int hashCode() {
-    return name.hashCode() + bundle.hashCode() + version.hashCode();
+    // TBD Do we need this?
+    return name.hashCode() + version.hashCode();
   }
 
 }
