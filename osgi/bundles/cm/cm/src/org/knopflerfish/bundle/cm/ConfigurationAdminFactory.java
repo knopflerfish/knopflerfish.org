@@ -641,7 +641,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             	return;
             }
 
-            
+            //TODO join this with the update call. no need for parallel async delivery 
             ConfigurationAdminFactory.this.sendEvent(new ConfigurationEvent(
             		                                                        reference,
             		                                                        ConfigurationEvent.CM_DELETED,
@@ -711,7 +711,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             	Activator.log.error("ConfigurationImpl.update: Could not get service reference");
             	return;
             }
-
+            //TODO join this with the update call. no need for parallel async delivery 
             ConfigurationAdminFactory.this.sendEvent(new ConfigurationEvent(
             																reference,
             																ConfigurationEvent.CM_UPDATED,
