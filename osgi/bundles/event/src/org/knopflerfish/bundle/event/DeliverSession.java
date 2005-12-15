@@ -94,6 +94,10 @@ public class DeliverSession {
      *  Initiates the delivery.
      */
     public void deliver() {
+      if (serviceReferences == null) {
+        return;
+      }
+
       /* method variable indicating that the topic mathces */
       boolean isSubscribed = false;
       /* method variable indicating that the filter matches */
@@ -161,7 +165,11 @@ public class DeliverSession {
           if (isSubscribed && filterMatch && !isBlacklisted
               && Activator.bundleContext.getService(serviceReferences[i]) != null) {
             if (timeout == 0) {
-              currentHandler.handleEvent(event);
+              try {
+                currentHandler.handleEvent(event);
+              } catch (Throwable e) {
+                Activator.log.error("Handler threw exception in handleEvent", e);
+              }
             } else { // use timeout
               try {
                 synchronized (this) {
@@ -295,18 +303,11 @@ public class DeliverSession {
         if (Activator.log.doDebug()) Activator.log.debug("TimeOutDeliver.run()");
         try {
           currentHandler.handleEvent(event);
-          /* tell the owner that notification is done */
-          owner.interrupt();
-        } catch (Exception e) {
-          if (Activator.log.doDebug()) {
-            Activator.log.debug("TimeOutDeliver.run() caught an Exception "
-                                + e.getMessage()
-                                + "while delivering event with topic "
-                                + event.getTopic());
-          }
-          /* interrupt the owner thread to avoid blacklist */
-          owner.interrupt();
+        } catch (Throwable e) {
+          Activator.log.error("Handler threw exception in handleEvent", e);
         }
+        /* tell the owner that notification is done */
+        owner.interrupt();
       }
     }
 
