@@ -84,6 +84,7 @@ public class EventAdminService implements EventAdmin {
       queueHandlerAsynch.start();
 
       new MultiListener(this, context);
+      new ConfigurationListenerImpl(this, context);
     }
   }
 
