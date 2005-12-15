@@ -79,20 +79,14 @@ public class MultiListener implements LogListener,
     this.bundleContext = bundleContext;
     log = new LogRef(bundleContext);
 
-    /* add this as a bundle listener */
     bundleContext.addBundleListener(this);
-    /* Gets the service reference of the log reader service*/
-    ServiceReference sr = bundleContext
-        .getServiceReference(LogReaderService.class.getName());
-    /* Claims the log reader service */
-    LogReaderService logReader = (LogReaderService) bundleContext
-        .getService(sr);
-    /* Adds this class as a listener of log events */
-    logReader.addLogListener(this);
-    /* Adds this class as a listener of service events */
     bundleContext.addServiceListener(this);
-    /* Adds this class as a listener of framework events */
     bundleContext.addFrameworkListener(this);
+
+    ServiceReference sr
+      = bundleContext.getServiceReference(LogReaderService.class.getName());
+    LogReaderService logReader = (LogReaderService) bundleContext.getService(sr);
+    logReader.addLogListener(this);
   }
 
   /**
@@ -244,14 +238,17 @@ public class MultiListener implements LogListener,
     case ServiceEvent.REGISTERED:
       topic += "REGISTERED";
       /* Fetches the service sending the event and determines whether its an eventHandler */
-      if (bundleContext.getService(serviceEvent.getServiceReference()) instanceof EventHandler) {
-
+      Object serviceObj = bundleContext.getService(serviceEvent.getServiceReference());
+      if (serviceObj instanceof EventHandler) {
         /* Adds the service reference as a key in the hashtable of handlers, and the timestamp as value */
         eventHandlers.put(serviceEvent.getServiceReference(), new Long(
             System.currentTimeMillis()));
+      } else if (serviceObj instanceof LogReaderService) {
+        ((LogReaderService) serviceObj).addLogListener(this);
+      } else {
+        // We're not actually using the service
+        bundleContext.ungetService(serviceEvent.getServiceReference());
       }
-      // We're not actually using the service
-      bundleContext.ungetService(serviceEvent.getServiceReference());
       break;
     case ServiceEvent.MODIFIED:
       topic += "MODIFIED";
