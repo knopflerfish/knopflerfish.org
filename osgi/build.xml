@@ -47,7 +47,8 @@
 />
 
   <!-- targets -->
-  <target name="all">
+  <target name="all"
+          description="Builds the framework and bundles in bundles-directory">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
@@ -129,8 +130,17 @@
  
  <target name="run">
   <java fork="true"
-        jar="out/framework/framework.jar"
->
+        jar="framework.jar"
+  >
+  </java>
+ </target>
+
+ <target name="run-osgi-test-target"
+         description="Start the framework in OSGi test target mode.">
+  <java fork="true"
+        jar="framework.jar"
+  >
+    <arg line="-xargs init-osgi-test-target.xargs"/>
   </java>
  </target>
 
