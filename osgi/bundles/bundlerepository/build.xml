@@ -33,7 +33,7 @@
     <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>  
     <pathelement location="resources/console_api-1.0.0.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
-    <pathelement location="resources/kxml-min.zip"/>
+    <pathelement location="resources/kxml-min.jar"/>
 <!--
     <pathelement location="resources/oscar-bundlerepository.jar"/>
 -->
@@ -48,7 +48,7 @@
   <property name="bundle.apivendor"      value="Oscar/Knopflerfish"/>
 
   <property name="bundle.activator"      value="org.knopflerfish.osgi.bundle.bundlerepository.Activator"/>
-  <property name="bundle.classpath"      value=".,console_api-1.0.0.jar,kxml-min.zip"/>
+  <property name="bundle.classpath"      value=".,console_api-1.0.0.jar,kxml-min.jar"/>
 
   <property name="export.package"  
             value="org.knopflerfish.service.console;specification-version=1.0.0,org.ungoverned.osgi.service.bundlerepository; specification-version=1.1.0"/>
