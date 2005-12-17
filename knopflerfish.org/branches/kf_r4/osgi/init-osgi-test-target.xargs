@@ -2,11 +2,7 @@
 # Startup file for executing the OSGi RI test suite
 #
 
-# Load the default configuration
--xargs init.xargs
-
 -Dapple.laf.useScreenMenuBar=true
-
 
 #
 # Act as an OSGi test director target
@@ -17,5 +13,13 @@
 #-Dorg.osgi.test.testcase.timeout=60000
 -Dorg.osgi.test.watchdog=120
 
+-install file:../../osgi.ri-tck/osgi.core.impls.jar
 -install file:../../osgi.ri-tck/testcond.jar
--istart  file:../../osgi.ri-tck/osgi.target.jar
+-install file:../../osgi.ri-tck/osgi.target.jar
+
+# Load the default configuration
+-xargs init.xargs
+
+-start  file:../../osgi.ri-tck/osgi.target.jar
+
+
