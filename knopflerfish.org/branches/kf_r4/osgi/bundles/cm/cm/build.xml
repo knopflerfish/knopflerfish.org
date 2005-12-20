@@ -24,7 +24,7 @@
 
   <property name="import.service"        value="org.knopflerfish.service.log.LogService,org.osgi.service.cm.ManagedService,org.osgi.service.cm.ManagedServiceFactory,org.osgi.service.cm.ConfigurationPlugin"/>
 
-  <property name="export.package"        value="org.osgi.service.cm;specification-version=1.0.0,org.knopflerfish.shared.cm;specification-version=1.0"/>
+  <property name="export.package"        value="org.osgi.service.cm;specification-version=1.2.0,org.knopflerfish.shared.cm;specification-version=1.0"/>
 
   <property name="export.service"        value="org.osgi.service.cm.ConfigurationAdmin"/>
 
