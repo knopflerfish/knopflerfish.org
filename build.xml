@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0-alfa"/>
+            value = "2.0-alpha"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -77,7 +77,7 @@
   <property name = "antclasses"       location = "${ant.dir}/classes"/>
 
 
-	    
+            
   <target name        = "all"
           description = "Builds entire platform, but not distribution file" >
     <delete file="htdocs/bundles.html"/>
@@ -147,10 +147,10 @@
 
     <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
                 baseDir            = "${release.dir}/jars"
-		javadocRelPath     = "../javadoc"
+                javadocRelPath     = "../javadoc"
     >
 
-      <fileset dir="${release.dir}/jars">	   
+      <fileset dir="${release.dir}/jars">           
         <include name = "**/*.jar"/>
       </fileset>
    </bundlehtml>
@@ -169,7 +169,7 @@
                 repoXSLURL   = "../htdocs/css/repository.xsl"
                 outFile      = "repo/repository.xml"
                 repoName     = "${obr.name}"
-		baseURL      = "${obr.baseurl}"
+                baseURL      = "${obr.baseurl}"
     >
 
       <fileset dir="${obr.basedir}">
@@ -260,19 +260,19 @@
             compress    = "true">
 
         <manifest>
-	  <attribute name  = "Main-class"   
+          <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-	  <attribute name  = "jarunpacker-destdir"
+          <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-	  <attribute name  = "jarunpacker-opendir"
+          <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
-	  <attribute name  = "knopflerfish-version"
+          <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
-	</manifest>
+        </manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
@@ -283,10 +283,10 @@
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-	   <exclude name = "**/*.jbf"/>
-	   <exclude name = "**/out/**"/>
-	   <exclude name = "**/*.class"/>
-	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+           <exclude name = "**/*.jbf"/>
+           <exclude name = "**/out/**"/>
+           <exclude name = "**/*.class"/>
+           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "htdocs/**"/>
@@ -373,7 +373,7 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-	   <include name = "**"/>
+           <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
@@ -405,31 +405,31 @@
             compress    = "true">
 
         <manifest>
-	  <attribute name  = "Main-class"   
+          <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-	  <attribute name  = "jarunpacker-destdir"
+          <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-	  <attribute name  = "jarunpacker-optbutton"
+          <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
-	  <attribute name  = "jarunpacker-opendir"
+          <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
-	  <attribute name  = "knopflerfish-version"
+          <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
 
-	</manifest>
+        </manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-	   <exclude name = "**/*.jbf"/>
-	   <exclude name = "**/out/**"/>
-	   <exclude name = "**/*.class"/>
-	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+           <exclude name = "**/*.jbf"/>
+           <exclude name = "**/out/**"/>
+           <exclude name = "**/*.class"/>
+           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "osgi/framework.jar"/>
@@ -489,7 +489,7 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-	   <include name = "**"/>
+           <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
@@ -521,30 +521,30 @@
             compress    = "true">
 
         <manifest>
-	  <attribute name  = "Main-class"   
+          <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-	  <attribute name  = "jarunpacker-destdir"
+          <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-	  <attribute name  = "jarunpacker-optbutton"
+          <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
-	  <attribute name  = "jarunpacker-opendir"
+          <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
-	  <attribute name  = "knopflerfish-version"
+          <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
-	</manifest>
+        </manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-	   <exclude name = "**/*.jbf"/>
-	   <exclude name = "**/out/**"/>
-	   <exclude name = "**/*.class"/>
-	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+           <exclude name = "**/*.jbf"/>
+           <exclude name = "**/out/**"/>
+           <exclude name = "**/*.class"/>
+           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "osgi/framework.jar"/>
@@ -568,7 +568,7 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-	   <include name = "**"/>
+           <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
@@ -698,34 +698,34 @@
             compress    = "true">
 
         <manifest>
-	  <attribute name  = "Main-class"   
+          <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-	  <attribute name  = "jarunpacker-destdir"
+          <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-	  <attribute name  = "jarunpacker-optbutton"
+          <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
-	  <attribute name  = "jarunpacker-opendir"
+          <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
 
-	  <attribute name  = "jarunpacker-windowtitle"
+          <attribute name  = "jarunpacker-windowtitle"
                      value = "Knopflerfish ${version} optional bundles"/>
 
-	  <attribute name  = "knopflerfish-version"
+          <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
-	</manifest>
+        </manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-	   <exclude name = "**/*.jbf"/>
-	   <exclude name = "**/out/**"/>
-	   <exclude name = "**/*.class"/>
-	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+           <exclude name = "**/*.jbf"/>
+           <exclude name = "**/out/**"/>
+           <exclude name = "**/*.class"/>
+           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "osgi/jars/axis-osgi/*.jar"/>
@@ -742,10 +742,10 @@
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
            <include name = "osgi/jars/dirdeployer/*.jar"/>
-	   <include name = "osgi/jars/jars/junit-example1/*.jar"/>
-	   <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
-	   <include name = "osgi/jars/jars/jinidriver/*.jar"/>
-	   
+           <include name = "osgi/jars/jars/junit-example1/*.jar"/>
+           <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
+           <include name = "osgi/jars/jars/jinidriver/*.jar"/>
+           
            <exclude name = "keystore"/>
 
            <include name = "osgi/bundles_opt/build.xml"/>
@@ -763,7 +763,7 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-	   <include name = "**"/>
+           <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
