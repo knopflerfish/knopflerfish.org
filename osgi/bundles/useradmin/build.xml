@@ -26,7 +26,7 @@
   <property name="bundle.name"           value="User Admin"/>
 
   <property name="export.package"
-            value="org.knopflerfish.service.um.ipam;specification-version=1.0,org.knopflerfish.service.um.useradmin;specification-version=1.0,org.osgi.service.useradmin;specification-version=1.0.0"/>
+            value="org.knopflerfish.service.um.ipam;specification-version=1.0,org.knopflerfish.service.um.useradmin;specification-version=1.0,org.osgi.service.useradmin;specification-version=1.1.0"/>
   &bundlebuild_include;
 
 </project>
