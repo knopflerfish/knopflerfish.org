@@ -2013,6 +2013,8 @@ public class Desktop
         } catch (Exception e) {
           showErr(null, e);
         }
+      } else {
+        new ErrorMessageDialog(frame, "The file is not a bundle.").show();
       }
     } catch (Exception e) {
       Activator.log.error("Failed to add file", e);
