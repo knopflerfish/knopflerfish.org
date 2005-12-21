@@ -198,6 +198,14 @@
       <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
     </antcall>
 
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/kf2_main.html"/>
+      <param name="tofile"   value="kf2.html"/>
+      <param name="title"    value="Knopflerfish 2"/>
+      <param name="desc"     value=""/>
+      <param name="CLASS_NAVIGATION_KF2" value="navigation_disabled"/>
+    </antcall>
+
   </target>
 
 
@@ -279,6 +287,9 @@
 
 	<replacefilter token="$(CLASS_NAVIGATION_PERF)" 
                        value="${CLASS_NAVIGATION_PERF}"/>
+
+	<replacefilter token="$(CLASS_NAVIGATION_KF2)" 
+                       value="${CLASS_NAVIGATION_KF2}"/>
 
     </replace>	       
   </target>

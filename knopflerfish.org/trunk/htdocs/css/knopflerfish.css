@@ -50,6 +50,10 @@ TD.newsdate {
  white-space:	nowrap;
 }  
 
+TD.nowrap {
+ white-space:	nowrap;
+}  
+
 .newsflash {
  font-style:italic;
 }
