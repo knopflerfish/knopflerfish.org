@@ -15,41 +15,30 @@ import org.knopflerfish.bundle.connectors.http.HttpConnectionFactory;
 import org.knopflerfish.bundle.connectors.socket.SocketConnectionFactory;
 import org.knopflerfish.bundle.connectors.datagram.DatagramConnectionFactory;
 
+
 /**
  * @author Kaspar Weilenmann 
  * @author Philippe Laporte
  */
 public class Activator implements BundleActivator {
+    
+    private BaseConnectionFactory[] factories;
 
-  // private methods
+    public void start(BundleContext context) {
+	
+	factories = 
+	    new BaseConnectionFactory[] { new DatagramConnectionFactory(),
+					  new HttpConnectionFactory(),
+					  new SocketConnectionFactory() };
+	
+	for (int i = 0; i < factories.length; i++)
+	    factories[i].registerFactory(context);
+    }
 
-  private static void registerSocketConnectionFactory(BundleContext context) {
-	Dictionary properties = new Hashtable();
-    properties.put(ConnectionFactory.IO_SCHEME, new String[] { "socket" });
-    context.registerService(ConnectionFactory.class.getName(), new SocketConnectionFactory(), properties);
-  }
-
-  private static void registerHttpConnectionFactory(BundleContext context) {
-    Dictionary properties = new Hashtable();
-    properties.put(ConnectionFactory.IO_SCHEME, new String[] { "http" });
-    context.registerService(ConnectionFactory.class.getName(), new HttpConnectionFactory(), properties);
-  }
-
-  private static void registerDatagramConnectionFactory(BundleContext context) {
-	Dictionary properties = new Hashtable();
-	properties.put(ConnectionFactory.IO_SCHEME, new String[] { "datagram" });
-	context.registerService(ConnectionFactory.class.getName(), new DatagramConnectionFactory(), properties);
-  }
-
-  // implements BundleActivator
-
-  public void start(BundleContext context) {
-    registerSocketConnectionFactory(context);
-    registerHttpConnectionFactory(context);
-    registerDatagramConnectionFactory(context);
-  }
-
-  //TODO handle unregistration according to specs
-  public void stop(BundleContext context) { }
+    // handle unregistration according to specs
+    public void stop(BundleContext context) { 
+	for (int i = 0; i < factories.length; i++)
+	    factories[i].unregisterFactory(context);
+    }
 
 } // Activator
