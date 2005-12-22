@@ -2,60 +2,47 @@
  * Copyright (c) 2005 Gatespace Telematics. All Rights Reserved.
  */
 
-
 /**
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
-
-//TODO only started, to complete
 
 package org.knopflerfish.bundle.connectors.datagram;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import java.net.DatagramSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.microedition.io.Connection;
+import javax.microedition.io.Connection; 
 
-import org.osgi.service.io.ConnectionFactory;
 import org.osgi.service.io.ConnectorService;
+import org.knopflerfish.bundle.connectors.BaseConnectionFactory;
 
+public class DatagramConnectionFactory extends BaseConnectionFactory {
 
-public class DatagramConnectionFactory implements ConnectionFactory {
-
-  // implements ConnectionFactory
-
-  public Connection createConnection(String name, int mode, boolean timeouts) throws IOException {
-   
-	try {
-      if (mode == ConnectorService.READ) {
-    	//this does not work: port not gotten  
-    	//URI uri = new URI(name);
-        //DatagramSocket socket = new DatagramSocket(uri.getPort());
-        
-    	//this does :-) TODO: make this clean ie better/investigate
-    	URI uri = new URI(name);
-    	int port = Integer.parseInt(uri.getAuthority().substring(1));
-        DatagramSocket socket = new DatagramSocket(port);  
-        if (!timeouts) socket.setSoTimeout(0);  
-        return new DatagramConnectionAdapter(socket);
-      } 
-      //TODOs
-      else if (mode == ConnectorService.WRITE) {
-    	  throw new UnsupportedOperationException();
-      } 
-      else if (mode == ConnectorService.READ_WRITE) {
-    	  throw new UnsupportedOperationException();
-      } 
-      else {
-        throw new IllegalArgumentException("Illegal value for mode: " + mode);
-      }
-    } 
-    catch (URISyntaxException urise) {
-      throw new IOException("Invalid URL syntax: " + urise.getMessage());
+    public String[] getSupportedSchemes() {
+	return new String[]{"datagram"};
     }
-  }
 
-} // DatagramConnectionFactory
+    public Connection createConnection(String address, int mode, boolean timeouts) throws IOException {
+	if (mode != ConnectorService.READ &&
+	    mode != ConnectorService.WRITE &&
+	    mode != ConnectorService.READ_WRITE) 
+	    throw new IOException("Invalid mode");
+	
+	try {
+	    
+	    Connection con = new DatagramConnectionAdapter(address, timeouts);
+	    addConnection(con);
+	    
+	    return con;
+
+	} catch (Exception e) {
+	    // if anything goes wrong it *should* throw IOException
+	    throw new IOException(e.getMessage());
+	}
+    }
+}
