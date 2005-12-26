@@ -16,18 +16,22 @@ import javax.microedition.io.StreamConnection;
 
 /**
  * @author Kaspar Weilenmann &lt;kaspar@gatespacetelematics.com&gt;
+ * @author Mats-Ola Persson
  */
 public class StreamConnectionAdapter implements StreamConnection {
 
   // private fields
 
   private Socket socket;
+  private SocketConnectionFactory factory;
 
 
   // constructors
 
-  public StreamConnectionAdapter(Socket socket) {
+  public StreamConnectionAdapter(SocketConnectionFactory factory, Socket socket) {
     this.socket = socket;
+	this.factory = factory;
+	factory.registerConnection(this);
   }
 
 
@@ -51,6 +55,7 @@ public class StreamConnectionAdapter implements StreamConnection {
 
   public void close() throws IOException {
     socket.close();
+  	factory.unregisterConnection(this);
   }
 
 } // StreamConnectionAdapter

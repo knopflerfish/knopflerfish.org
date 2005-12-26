@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Gatespace Telematics. All Rights Reserved.
+* Copyright (c) 2005 Gatespace Telematics. All Rights Reserved.
  */
 
 package org.knopflerfish.bundle.connectors;
@@ -17,28 +17,28 @@ import org.knopflerfish.bundle.connectors.datagram.DatagramConnectionFactory;
 
 
 /**
- * @author Kaspar Weilenmann 
- * @author Philippe Laporte
- */
+* @author Kaspar Weilenmann 
+* @author Philippe Laporte
+* @author Mats-Ola Persson
+*/
 public class Activator implements BundleActivator {
     
     private BaseConnectionFactory[] factories;
-
+	
     public void start(BundleContext context) {
-	
-	factories = 
-	    new BaseConnectionFactory[] { new DatagramConnectionFactory(),
-					  new HttpConnectionFactory(),
-					  new SocketConnectionFactory() };
-	
-	for (int i = 0; i < factories.length; i++)
-	    factories[i].registerFactory(context);
+		
+		factories = new BaseConnectionFactory[] { new DatagramConnectionFactory(),
+			new HttpConnectionFactory(),
+			new SocketConnectionFactory() };
+		
+		for (int i = 0; i < factories.length; i++)
+			factories[i].registerFactory(context);
     }
-
+	
     // handle unregistration according to specs
     public void stop(BundleContext context) { 
-	for (int i = 0; i < factories.length; i++)
-	    factories[i].unregisterFactory(context);
+		for (int i = 0; i < factories.length; i++)
+			factories[i].unregisterFactory(context);
     }
-
+	
 } // Activator

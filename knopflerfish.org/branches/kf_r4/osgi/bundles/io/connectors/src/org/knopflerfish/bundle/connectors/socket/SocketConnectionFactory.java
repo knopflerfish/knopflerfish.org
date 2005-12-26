@@ -34,16 +34,15 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
       Socket socket = new Socket(uri.getHost(), uri.getPort());
       if (!timeouts) socket.setSoTimeout(0);
       if (mode == ConnectorService.READ) {
-        retval = new InputConnectionAdapter(socket);
+        retval = new InputConnectionAdapter(this, socket);
       } else if (mode == ConnectorService.WRITE) {
-        retval = new OutputConnectionAdapter(socket);
+        retval = new OutputConnectionAdapter(this, socket);
       } else if (mode == ConnectorService.READ_WRITE) {
-        retval = new StreamConnectionAdapter(socket);
+        retval = new StreamConnectionAdapter(this, socket);
       } else {
         throw new IllegalArgumentException("Illegal value for mode: " + mode);
       }
 
-      addConnection(retval);
       return retval;
       
     } catch (URISyntaxException urise) {

@@ -37,8 +37,7 @@ public class HttpConnectionFactory extends BaseConnectionFactory {
       connection.setDoOutput(mode == ConnectorService.WRITE);
     }
     
-    Connection con = new HttpConnectionAdapter(connection);
-    addConnection(con);
+    Connection con = new HttpConnectionAdapter(this, connection);
     return con;
   }
 
