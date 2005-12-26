@@ -20,7 +20,7 @@
 
   <property name="bundle.description"    value="OSGi IO http, socket and datagram-receive Connectors"/>
   <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="Connectors"/>
+  <property name="bundle.name"           value="Connection Factories"/>
 
   &bundlebuild_include;
 

@@ -17,6 +17,7 @@ import javax.microedition.io.HttpConnection;
 
 /**
  * @author Kaspar Weilenmann &lt;kaspar@gatespacetelematics.com&gt;
+ * @author Mats-Ola Persson
  */
 public class HttpConnectionAdapter implements HttpConnection {
 
@@ -24,15 +25,16 @@ public class HttpConnectionAdapter implements HttpConnection {
 
   private HttpURLConnection connection;
   private URL url;
-
+  private HttpConnectionFactory factory;
 
   // constructors
 
-  public HttpConnectionAdapter(HttpURLConnection connection) {
+  public HttpConnectionAdapter(HttpConnectionFactory factory, HttpURLConnection connection) {
     this.connection = connection;
     this.url = connection.getURL();
+	this.factory = factory;
+	factory.registerConnection(this);
   }
-
 
   // implements HttpConnection
 
@@ -150,6 +152,7 @@ public class HttpConnectionAdapter implements HttpConnection {
 
   public void close() throws IOException {
     connection.disconnect();
+	factory.unregisterConnection(this);
   }
 
 } // HttpConnectionAdapter

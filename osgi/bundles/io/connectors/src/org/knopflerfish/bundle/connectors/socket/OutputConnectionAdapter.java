@@ -14,18 +14,21 @@ import javax.microedition.io.OutputConnection;
 
 /**
  * @author Kaspar Weilenmann &lt;kaspar@gatespacetelematics.com&gt;
+ * @author Mats-Ola Persson
  */
 public class OutputConnectionAdapter implements OutputConnection {
 
   // private fields
 
   private Socket socket;
-
+  private SocketConnectionFactory factory;
 
   // constructors
 
-  public OutputConnectionAdapter(Socket socket) {
+  public OutputConnectionAdapter(SocketConnectionFactory factory, Socket socket) {
     this.socket = socket;
+	this.factory = factory;
+	factory.registerConnection(this);
   }
 
 
@@ -40,7 +43,8 @@ public class OutputConnectionAdapter implements OutputConnection {
   }
 
   public void close() throws IOException {
-    socket.close();
+		socket.close();
+  		factory.unregisterConnection(this);
   }
 
 } // StreamConnectionAdapter

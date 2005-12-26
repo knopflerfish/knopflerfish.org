@@ -14,18 +14,21 @@ import javax.microedition.io.InputConnection;
 
 /**
  * @author Kaspar Weilenmann &lt;kaspar@gatespacetelematics.com&gt;
+ * @author Mats-Ola Persson
  */
 public class InputConnectionAdapter implements InputConnection {
 
   // private fields
 
   private Socket socket;
-
+  private SocketConnectionFactory factory;
 
   // constructors
 
-  public InputConnectionAdapter(Socket socket) {
+  public InputConnectionAdapter(SocketConnectionFactory factory, Socket socket) {
     this.socket = socket;
+	this.factory = factory;
+	factory.registerConnection(this);
   }
 
 
@@ -41,6 +44,7 @@ public class InputConnectionAdapter implements InputConnection {
 
   public void close() throws IOException {
     socket.close();
+  	factory.unregisterConnection(this);
   }
 
 } // InputConnectionAdapter

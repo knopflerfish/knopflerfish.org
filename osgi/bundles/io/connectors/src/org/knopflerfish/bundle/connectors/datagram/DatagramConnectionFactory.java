@@ -24,25 +24,25 @@ import org.knopflerfish.bundle.connectors.BaseConnectionFactory;
 public class DatagramConnectionFactory extends BaseConnectionFactory {
 
     public String[] getSupportedSchemes() {
-	return new String[]{"datagram"};
+		return new String[]{"datagram"};
     }
 
     public Connection createConnection(String address, int mode, boolean timeouts) throws IOException {
-	if (mode != ConnectorService.READ &&
-	    mode != ConnectorService.WRITE &&
-	    mode != ConnectorService.READ_WRITE) 
-	    throw new IOException("Invalid mode");
+		if (mode != ConnectorService.READ &&
+			mode != ConnectorService.WRITE &&
+			mode != ConnectorService.READ_WRITE) 
+				throw new IOException("Invalid mode");
 	
-	try {
+		try {
 	    
-	    Connection con = new DatagramConnectionAdapter(address, timeouts);
-	    addConnection(con);
-	    
-	    return con;
+			Connection con = 
+				new DatagramConnectionAdapter(this, address, timeouts);
 
-	} catch (Exception e) {
-	    // if anything goes wrong it *should* throw IOException
-	    throw new IOException(e.getMessage());
-	}
+			return con;
+
+		} catch (Exception e) {
+			// if anything goes wrong it *must* throw IOException
+			throw new IOException(e.getMessage());
+		}
     }
 }
