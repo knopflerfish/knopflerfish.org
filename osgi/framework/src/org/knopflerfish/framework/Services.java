@@ -95,14 +95,12 @@ class Services {
     ServiceRegistration res;
     synchronized (this) {
       // Check if service implements claimed classes and that they exist.
-      ClassLoader bcl = bundle.getClassLoader();
+      Class sc = service.getClass();
+      ClassLoader scl = sc.getClassLoader();
       for (int i = 0; i < classes.length; i++) {
 	if (classes[i] == null) {
 	  throw new IllegalArgumentException("Can't register as null class");
 	}
-
-	//	Debug.println("#" + bundle.getBundleId() + " registered " + i + ": " + classes[i] + " " + properties);
-
 	if (bundle.framework.permissions != null) {
 	  AccessController.checkPermission(new ServicePermission(classes[i], ServicePermission.REGISTER));
 	  if (bundle.id != 0 && classes[i].equals(PermissionAdmin.class.getName())) {
@@ -113,33 +111,37 @@ class Services {
 	if (bundle.id != 0 && classes[i].equals(PackageAdmin.class.getName())) {
 	  throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
 	}
-	Class c;
-	try {
-	  if (bcl != null) {
-	    c = bcl.loadClass(classes[i]);
-	  } else {
+	Class c = null;
+	Class tsc = sc;
+	for (ClassLoader cl = scl; cl != null; cl = tsc.getClassLoader()) {
+	  try {
+	    c = cl.loadClass(classes[i]);
+	    break;
+	  } catch (ClassNotFoundException e) { }
+	  tsc = tsc.getSuperclass();
+	}
+	if (c == null) {
+	  try {
 	    c = Class.forName(classes[i]);
+	  } catch (ClassNotFoundException e) {
+	    throw new IllegalArgumentException("Class does not exist: " + classes[i]);
 	  }
-	} catch (ClassNotFoundException e) {
-	  throw new IllegalArgumentException("Class does not exist: " + classes[i]);
 	}
 	if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
 	  throw new IllegalArgumentException("Object " + service + " is not an instance of " + classes[i]);
 	}
       }
       res = new ServiceRegistrationImpl(bundle, service,
-					                    new PropertiesDictionary(properties, classes, null));
-     
+					new PropertiesDictionary(properties, classes, null));
       services.put(res, classes);
       for (int i = 0; i < classes.length; i++) {
-    	  ArrayList s = (ArrayList) classServices.get(classes[i]);
-    	  if (s == null) {
-    		  s = new ArrayList(1);
-    		  classServices.put(classes[i], s);
-    	  }
-    	  s.add(res);
+	ArrayList s = (ArrayList) classServices.get(classes[i]);
+	if (s == null) {
+	  s = new ArrayList(1);
+	  classServices.put(classes[i], s);
+	}
+	s.add(res);
       }
-      
     }
     bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
     return res;
