@@ -39,7 +39,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.ArrayList;
 
 import javax.microedition.io.Connector;
@@ -58,17 +58,19 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.io.ConnectorService;
 import org.osgi.service.io.ConnectionFactory;
 
+import java.io.*;
+
 class ConnectorServiceImpl implements ConnectorService {
   
     public static BundleContext bc = null;
     
-    private HashMap table = null; /* maps schemes (Strings) to lists of ConnectionFactories */
-    private Object lock = null;   /* a lock for the structure (making table HashTable wouldn't suffice) */
+    private Hashtable table = null; /* maps schemes (Strings) to lists of ConnectionFactories */
+    private Object lock = null;   /* a lock for the structure, hashtable's own sync. doesn't suffice */
     private final String filter = "(objectClass="+ ConnectionFactory.class.getName() + ")";
-    
+
     public ConnectorServiceImpl(BundleContext bc) {
 	this.bc = bc;
-	table = new HashMap();
+	table = new Hashtable();
 	lock  = new Object();
 		
 	ServiceListener listener =  
@@ -152,7 +154,7 @@ class ConnectorServiceImpl implements ConnectorService {
     }
   
     public Connection open(String uri, int mode) throws IOException {
-	return open(uri, ConnectorService.READ_WRITE, false);
+	return open(uri, mode, false);
     }
   
     public Connection open(String uri, int mode, boolean timeouts) throws IOException {
@@ -163,9 +165,10 @@ class ConnectorServiceImpl implements ConnectorService {
 
 	int schemeSeparator = uri.indexOf(':');
 
-	if (schemeSeparator < 0)
+	if (schemeSeparator < 0) {
 	    throw new IllegalArgumentException("Not a valid URI");
-	
+	}
+
 	String scheme = uri.substring(0, schemeSeparator);
 
 	ConnectionFactory factory = getFactory(scheme);
@@ -240,21 +243,17 @@ class ConnectorServiceImpl implements ConnectorService {
     */
     private int getRanking(ServiceReference ref) {
 	
-	String strRank = 
-	    (String)ref.getProperty(Constants.SERVICE_RANKING);
+	Object rank = 
+	    (Object)ref.getProperty(Constants.SERVICE_RANKING);
 
-	if (strRank == null) 
+	if (rank == null) 
 	    return 0; 
 	
-	try {
-	    Integer retval = new Integer (strRank);
-	    
-	    return retval.intValue();
-	} catch (NumberFormatException e) {
-	    
-	}
+	if (rank instanceof Integer)
+	    return ((Integer)rank).intValue();
+	else 
+	    return 0;
 	
-	return 0;
     }    
  
     public DataInputStream openDataInputStream(String name) throws IOException {
