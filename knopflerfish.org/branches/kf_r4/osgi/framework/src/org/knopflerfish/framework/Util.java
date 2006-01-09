@@ -168,53 +168,51 @@ public class Util {
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-	ArrayList keys = new ArrayList();
-	HashMap params = new HashMap();
-	boolean doingKeys = true;
-	String key = at.getKey();
-	if (key == null) {
-	  throw new IllegalArgumentException("Attribute, " + a + ", expected key at: " + at.getRest());
-	}
-	if (!single) {
-	  keys.add(key);
-	  while ((key = at.getKey()) != null) {
-	    keys.add(key);
-	  }
-	}
-	String param;
-	while ((param = at.getParam()) != null) {
-	  List old = (List)params.get(param);
-	  if (old != null && single) {
-	    throw new IllegalArgumentException("Attribute, " + a + ", duplicate parameter: " + param);
-	  }
-	  boolean is_directive = at.isDirective();
-	  String value = at.getValue();
-	  if (value == null) {
-	    throw new IllegalArgumentException("Attribute, " + a + ", expected value at: " + at.getRest());
-	  }
-	  if (is_directive) {
-	    // NYI Handle directives and check them
-	  }
-	  if (single) {
-	    params.put(param, value);
-	  } else {
-	    if (old == null) {
-	      old = new ArrayList();
-	      params.put(param, old);
-	    }
-	    old.add(value);
-	  }
-	}
-	if (at.getEntryEnd()) {
-	  if (single) {
-	    params.put("key", key);
-	  } else {
-	    params.put("keys", keys);
-	  }
-	  result.add(params);
-	} else {
-	  throw new IllegalArgumentException("Attribute, " + a + ", expected end of entry at: " + at.getRest());
-	}
+    	  ArrayList keys = new ArrayList();
+    	  HashMap params = new HashMap();
+    	  String key = at.getKey();
+    	  if (key == null) {
+    		  throw new IllegalArgumentException("Attribute, " + a + ", expected key at: " + at.getRest());
+    	  }
+    	  if (!single) {
+    		  keys.add(key);
+    		  while ((key = at.getKey()) != null) {
+    			  keys.add(key);
+    		  }
+    	  }
+    	  String param;
+    	  while ((param = at.getParam()) != null) {
+    		  List old = (List)params.get(param);
+    		  if (old != null && single) {
+    			  throw new IllegalArgumentException("Attribute, " + a + ", duplicate parameter: " + param);
+    		  }
+    		  String value = at.getValue();
+    		  if (value == null) {
+    			  throw new IllegalArgumentException("Attribute, " + a + ", expected value at: " + at.getRest());
+    		  }
+    		  if (single) {
+    			  params.put(param, value);
+    		  } 
+    		  else {
+    			  if (old == null) {
+    				  old = new ArrayList();
+    				  params.put(param, old);
+    			  }
+    			  old.add(value);
+    		  }
+    	  }
+    	  if (at.getEntryEnd()) {
+    		  if (single) {
+    			  params.put("key", key);
+    		  } 
+    		  else {
+    			  params.put("keys", keys);
+    		  }
+    		  result.add(params);
+    	  } 
+    	  else {
+    		  throw new IllegalArgumentException("Attribute, " + a + ", expected end of entry at: " + at.getRest());
+    	  }
       } while (!at.getEnd());
     }
     return result.iterator();
