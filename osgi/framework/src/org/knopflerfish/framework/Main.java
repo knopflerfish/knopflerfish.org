@@ -114,9 +114,10 @@ public class Main {
 
     version = readVersion();
 
-    bootText =
-      "Knopflerfish OSGi framework, version " + version + "\n" +
-      "Copyright 2003-2005 Knopflerfish. All Rights Reserved.\n\n" +
+
+    bootText = 
+      "Knopflerfish OSGi framework, version " + version + "\n" + 
+      "Copyright 2003-2006 Knopflerfish. All Rights Reserved.\n\n" + 
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);
