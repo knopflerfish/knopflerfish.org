@@ -41,10 +41,12 @@ import java.util.ArrayList;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
-import org.osgi.framework.BundleEvent;
+import org.osgi.framework.Bundle;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+
+import org.osgi.service.log.LogService;
 
 /**
  * @author Martin Berg, Magnus Klack (refactoring by Björn Andersson)
@@ -93,71 +95,147 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 public class ComponentParser {
 
-  static String[] supportedTypes = {"String", "Long", "Double", "Float", "Integer", "Byte", "Char", "Boolean", "Short"};
+  static String[] supportedTypes = {"String", "Long", "Double", 
+				    "Float", "Integer", "Byte", 
+				    "Char", "Boolean", "Short"};
+  
   static String[] supportedCardniality = {"0..1", "0..n", "1..1", "1..n"};
+  static private String COMPONENT_NAMESPACE_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
 
-  private ComponentDeclaration compConf;
-
-  int serviceCount;
-
-  public ComponentParser() {
-    /* Store the values from the xml-file in this */
-    compConf = new ComponentDeclaration();
-    serviceCount = 0;
-  }
-
-  public ComponentDeclaration readXML(URL url) throws IllegalXMLException {
-
-    boolean foundImplementation = false;
+  public static ArrayList readXML(Bundle declaringBundle, URL url) throws IllegalXMLException {
 
     try {
       if (url == null) {
-        return compConf;
+        return null; // TODO: is this safe? was compConf.
       }
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
 
       XmlPullParser parser = factory.newPullParser();
-
       parser.setInput(url.openStream(), null);
-      parser.nextTag();
-      parser.require(XmlPullParser.START_TAG,
-                     "http://www.osgi.org/xmlns/scr/v1.0.0",
-                     "component");
-      setComponentInfo(parser);
-      while (parser.nextTag() != XmlPullParser.END_TAG) {
-        if (parser.getName().equals("implementation")) {
-          setImplementationInfo(parser);
-          foundImplementation = true;
-        } else if (parser.getName().equals("property")) {
-          setPropertyInfo(parser);
-        } else if (parser.getName().equals("properties")) {
-          setPropertiesInfo(parser);
-        } else if (parser.getName().equals("service")) {
-          setServiceInfo(parser);
-        } else if (parser.getName().equals("reference")) {
-          setReferenceInfo(parser);
-        } else {
-          ComponentActivator.debug("Unsupported tag");
-        }
-      }
-      parser.require(XmlPullParser.END_TAG,
-                     "http://www.osgi.org/xmlns/scr/v1.0.0",
-                     "component");
-      printComponentConfiguration();
+      return readDocument(declaringBundle, parser);
+
     } catch (IOException e) {
       throw new IllegalXMLException("Error getting xml file" + e,e.getCause());
     } catch (Exception e) {
-      e.printStackTrace();
       throw new IllegalXMLException("Error reading zipentry" + e,e.getCause());
     }
-
-    // Check that required tags has been found
-    if (!foundImplementation) {
-      throw new IllegalXMLException("No Implementations tag found:");
-    }
-    return compConf;
   }
+  
+  private static ArrayList readDocument(Bundle declaringBundle, XmlPullParser parser) {
+
+    ArrayList decls = new ArrayList();
+    boolean foundImplementation = false;
+    try {
+      while (parser.next() != XmlPullParser.END_DOCUMENT) {
+	
+	if (parser.getEventType() != XmlPullParser.START_TAG &&
+	    parser.getEventType() != XmlPullParser.END_TAG) {
+	  continue; // nothing of interest to us.
+	}
+	
+	if (parser.getName().equals("component") &&
+	    parser.getEventType() == XmlPullParser.START_TAG &&
+	    (parser.getDepth() == 1 || // assume scr here. The root is component
+	     COMPONENT_NAMESPACE_URI.equals(parser.getNamespace()))) {
+	  // we have found a proper component-tag here.
+	  
+	  try {
+	    ComponentDeclaration dec = readComponent(declaringBundle, parser);
+	    decls.add(dec);
+	    
+	  } catch (Exception e) {
+	    ComponentRuntimeImpl.log(LogService.LOG_ERROR, "Could not read component-tag. Got exception.", e);
+	  }
+	}
+      }
+    } catch (Exception e) {
+      ComponentRuntimeImpl.log(LogService.LOG_ERROR, "Could not read component-tag. Got exception.", e);
+    }
+
+    return decls;
+  }
+  
+  private static ComponentDeclaration readComponent(Bundle bundle, XmlPullParser parser) 
+    throws XmlPullParserException,
+	   IOException,
+	   IllegalXMLException {
+    
+    ComponentDeclaration curr = new ComponentDeclaration(bundle);
+    setComponentInfo(curr, parser); 
+
+    int event = parser.getEventType();
+    
+    boolean serviceVisited = false; // only one service-tag allowed.
+
+    while (event != XmlPullParser.END_TAG) {
+
+      if (event != XmlPullParser.START_TAG) { // nothing of interest.
+	event = parser.next();
+	continue;
+      }
+
+      if (parser.getName().equals("implementation")) {
+	setImplementationInfo(curr, parser);
+	
+      } else if (parser.getName().equals("property")) {
+	setPropertyInfo(curr, parser);
+	
+      } else if (parser.getName().equals("properties")) {
+	setPropertiesInfo(curr, parser);
+	
+      } else if (parser.getName().equals("service")) {
+
+	if (!serviceVisited) {
+	  setServiceInfo(curr, parser);
+	  parser.next();
+	} else 
+	  throw new 
+	    IllegalXMLException("More than one service-tag " +
+				"in component: \"" + curr.getComponentName()
+				+ "\"");
+	
+      } else if (parser.getName().equals("reference")) {
+	setReferenceInfo(curr, parser);
+	
+      } else {
+	skip(parser);
+      }
+      
+      event = parser.next();
+    }
+  
+    if (curr.getImplementation() == null) 
+      throw new IllegalXMLException("Component \"" + curr.getComponentName() + 
+				    "\" lacks implementation-tag");
+    
+    
+    return curr;
+  }
+
+  /* discard all unrecognized tags (and their children) */
+  private static void skip(XmlPullParser parser) throws XmlPullParserException,
+							IOException,
+							IllegalXMLException {
+    int level = 0;
+    int event = parser.getEventType();
+
+    while (true) {
+      
+      if (event == XmlPullParser.START_TAG) { 
+	level++;
+	
+      } else if (event == XmlPullParser.END_TAG) {
+	level--;
+	
+	if (level == 0)
+	  break;
+      } 
+      
+      event = parser.next();
+    }
+  }
+
 
   /**
    *
@@ -168,7 +246,10 @@ public class ComponentParser {
    * name (mandatory) -value = property value (otional) -type = property type
    * (optional, default "String")
    */
-  private void setPropertyInfo (XmlPullParser parser) throws IllegalXMLException {
+  private static void setPropertyInfo (ComponentDeclaration compConf, 
+				XmlPullParser parser) throws IllegalXMLException,
+							     XmlPullParserException,
+							     IOException {
     /* Required attributes in the component tag*/
     boolean nameFound = false;
 
@@ -211,22 +292,17 @@ public class ComponentParser {
      * need to do this because: 1: If no value was found in the attribute, they
      * should be here 2: If a value was found we needs to traverse through anyway
      */
-    try {
-      /* if no values was found read them between start and endtag */
-      if (compProp.getValue() == null) {
-        String text = parser.nextText();
-        String[] values = text.split("\n");
-        for (int i = 0; i < values.length; i++) {
-          compProp.addValue(values[i]);
-        }
-      } else {
-        parser.nextText();
+    /* if no values was found read them between start and endtag */
+    if (compProp.getValue() == null) {
+      String text = parser.nextText();
+      String[] values = text.split("\n");
+      for (int i = 0; i < values.length; i++) {
+	compProp.addValue(values[i]);
       }
-    } catch (XmlPullParserException e) {
-      ComponentActivator.error("Error Parsing property tag", e);
-    } catch (IOException e){
-      ComponentActivator.error("Error Parsing property tag", e);
+    } else {
+      parser.nextText();
     }
+
 
     /* Setting default values if no other has been sett*/
     if(compProp.getType() == null){
@@ -249,85 +325,81 @@ public class ComponentParser {
    * @param parser
    * @param compConf
    */
-  private void setServiceInfo(XmlPullParser parser)
-      throws IllegalXMLException {
+  private static void setServiceInfo(ComponentDeclaration compConf,
+				     XmlPullParser parser) throws IllegalXMLException,
+								  XmlPullParserException,
+								  IOException {
     /* Required attributes in the component tag*/
     boolean interfaceFound = false;
     boolean servicefactoryFound = false;
 
-    /* count the number of times the servicetag is found */
-    serviceCount++;
-
-    /* There may only be one occurance of the service tag*/
-    if(serviceCount > 1){
-      throw new IllegalXMLException(
-          "To many service tags found in the xml document:");
-    }
-
     ComponentServiceInfo compServ = compConf.getNewServiceIntance();
 
     /* If there is an attribute in the service tag */
-    if (parser.getAttributeCount() > 0) {
-      for (int i = 0; i < parser.getAttributeCount(); i++) {
-        if (parser.getAttributeName(i).equals("servicefactory")) {
-          if(compConf.getFactory() == null){
-            if (parser.getAttributeValue(i).equals("true")) {
-              compConf.setServiceFactory(true);
-              servicefactoryFound = true;
-            } else if (parser.getAttributeValue(i).equals("false")) {
-              compConf.setServiceFactory(false);
-              servicefactoryFound = true;
-            } else {
-              throw new IllegalXMLException("Unsupported value, attribute servicefactory:"
-                                            + parser.getAttributeValue(i));
-            }
-          } else {
-            throw new IllegalXMLException("Unsupported Attribute name:"
-                                          + parser.getAttributeName(i) +
-                                          " The component is a ComponentFactory");
-          }
-        } else {
-          throw new IllegalXMLException("Unsupported Attribute name:"
-                                        + parser.getAttributeName(i));
-        }
-      }
-
-      if (!servicefactoryFound) {
-        compConf.setServiceFactory(false); // default value
+    for (int i = 0; i < parser.getAttributeCount(); i++) {
+      if (parser.getAttributeName(i).equals("servicefactory")) {
+	if(compConf.getFactory() == null){
+	  if (parser.getAttributeValue(i).equals("true")) {
+	    compConf.setServiceFactory(true);
+	    servicefactoryFound = true;
+	  } else if (parser.getAttributeValue(i).equals("false")) {
+	    compConf.setServiceFactory(false);
+	    servicefactoryFound = true;
+	  } else {
+	    throw new IllegalXMLException("Unsupported value, attribute servicefactory:"
+					  + parser.getAttributeValue(i));
+	  }
+	} else {
+	  throw new IllegalXMLException("Unsupported Attribute name:"
+					+ parser.getAttributeName(i) +
+					" The component is a ComponentFactory");
+	}
+      } else {
+	throw new IllegalXMLException("Unsupported Attribute name:"
+				      + parser.getAttributeName(i));
       }
     }
 
+    if (!servicefactoryFound) {
+      compConf.setServiceFactory(false); // default value
+    }
+
     /* Get the interfaces */
-    try {
-      parser.require(XmlPullParser.START_TAG, "", "service");
-      while (parser.nextTag() != XmlPullParser.END_TAG) {
-        parser.require(XmlPullParser.START_TAG, null, null);
-        String name = parser.getName();
-        if (name.equals("provide")) {
-          parser.require(XmlPullParser.START_TAG, null, "provide");
-          for (int i = 0; i < parser.getAttributeCount(); i++) {
-            if (parser.getAttributeName(i).equals("interface")) {
-              compServ.instertInterface(parser.getAttributeValue(i));
-              interfaceFound = true;
-            } else {
-              throw new IllegalXMLException("Unsupported Attribute name:"
-                                            + parser.getAttributeName(i));
-            }
-          }
-          parser.next();
-        }
-        parser.require(XmlPullParser.END_TAG, null, name);
+    // parser.require(XmlPullParser.START_TAG, "", "service");
+    
+    int event = parser.next();
+
+    while (event != XmlPullParser.END_TAG) {
+
+      if (event != XmlPullParser.START_TAG) {
+	event = parser.next();
+	continue;
       }
-      parser.require(XmlPullParser.END_TAG, null, "service");
-    } catch (XmlPullParserException e) {
-      ComponentActivator.error("Error Parsing service tag", e);
-    } catch (IOException e){
-      ComponentActivator.error("Error Parsing service tag", e);
+      
+      if ("provide".equals(parser.getName())) {
+	for (int i = 0; i < parser.getAttributeCount(); i++) {
+	  if (parser.getAttributeName(i).equals("interface")) {
+	    compServ.instertInterface(parser.getAttributeValue(i));
+	    interfaceFound = true;
+	  } else {
+	    throw new IllegalXMLException("Unsupported attribute name:"
+					  + parser.getAttributeName(i));
+	  }
+	}
+
+	skip(parser);
+	
+      } else {
+	skip(parser);
+      }
+      
+      event = parser.next();
     }
 
     /* check if required attributes has been set */
     if (!interfaceFound) {
-      throw new IllegalXMLException("A required attribute in the tag:provide was not pressent");
+      throw new IllegalXMLException("Could not find a correct provide-tag in service-tag");
+
     }
 
     /* add the ComponentPropertyInfo to the ComponentConfiguration */
@@ -341,49 +413,46 @@ public class ComponentParser {
    * Parses out the following values from the reference tag -entry = bundle
    * entry name (mandatory)
    */
-  private void setComponentInfo(XmlPullParser parser) throws IllegalXMLException {
+  private static void setComponentInfo(ComponentDeclaration compConf,
+				       XmlPullParser parser) throws IllegalXMLException,
+								    XmlPullParserException,
+								    IOException {
     /* Required attributes in the component tag*/
     boolean nameFound = false;
 
     boolean autoEnableFound = false;
 
-    try {
-      for (int i = 0; i < parser.getAttributeCount(); i++) {
-        if (parser.getAttributeName(i).equals("name")) {
-          if (parser.getAttributeValue(i) == null) {
-            throw new IllegalXMLException("No value in mandatory attribute:"
-                                          + parser.getAttributeName(i)
-                                          + " in component tag");
-          }
-          compConf.setComponentName(parser.getAttributeValue(i));
-          nameFound = true;
-        } else if (parser.getAttributeName(i).equals("enabled")) {
-          if (parser.getAttributeValue(i) != null) {
-            /* optional attribute */
-            compConf.setAutoEnable(parser.getAttributeValue(i).equals("true"));
-            autoEnableFound = true;
-          }
-        } else if (parser.getAttributeName(i).equals("factory")) {
-          if (parser.getAttributeValue(i) != null) {
-            /*optional attribute */
-            compConf.setFactory(parser.getAttributeValue(i));
-          }
-        } else if (parser.getAttributeName(i).equals("immediate")) {
-          if (parser.getAttributeValue(i) != null) {
-            /*optional attribute */
-            compConf.setImmediate(parser.getAttributeValue(i).equals("true"));
-          }
-        } else {
-          throw new IllegalXMLException("Unsupported Attribute name:"
-                                        + parser.getAttributeName(i));
-        }
+    for (int i = 0; i < parser.getAttributeCount(); i++) {
+      if (parser.getAttributeName(i).equals("name")) {
+	if (parser.getAttributeValue(i) == null) {
+	  throw new IllegalXMLException("No value in mandatory attribute:"
+					+ parser.getAttributeName(i)
+					+ " in component tag");
+	}
+	compConf.setComponentName(parser.getAttributeValue(i));
+	nameFound = true;
+      } else if (parser.getAttributeName(i).equals("enabled")) {
+	if (parser.getAttributeValue(i) != null) {
+	  /* optional attribute */
+	  compConf.setAutoEnable(parser.getAttributeValue(i).equals("true"));
+	  autoEnableFound = true;
+	}
+      } else if (parser.getAttributeName(i).equals("factory")) {
+	if (parser.getAttributeValue(i) != null) {
+	  /*optional attribute */
+	  compConf.setFactory(parser.getAttributeValue(i));
+	}
+      } else if (parser.getAttributeName(i).equals("immediate")) {
+	if (parser.getAttributeValue(i) != null) {
+	  /*optional attribute */
+	  compConf.setImmediate(parser.getAttributeValue(i).equals("true"));
+	}
+      } else {
+	throw new IllegalXMLException("Unsupported Attribute name:"
+				      + parser.getAttributeName(i));
       }
-      parser.next();
-    } catch (XmlPullParserException e) {
-      ComponentActivator.error("Error Parsing component tag", e);
-    } catch (IOException e){
-      ComponentActivator.error("Error Parsing component tag", e);
     }
+    parser.next(); // can't use skip here since we are going to read the body.
 
     /* Setting default value if no other value was set*/
     if (!autoEnableFound) {
@@ -392,7 +461,7 @@ public class ComponentParser {
 
     /* check if required attributes has been set */
     if (!nameFound) {
-      throw new IllegalXMLException("A required attribute in the tag:component was not pressent");
+      throw new IllegalXMLException("Could not find \"name\" attribute in component-tag");
     }
   }
 
@@ -404,33 +473,31 @@ public class ComponentParser {
    * Parses out the following values from the reference tag -entry = bundle
    * entry name (mandatory)
    */
-  private void setPropertiesInfo(XmlPullParser parser) throws IllegalXMLException {
+  private static void setPropertiesInfo(ComponentDeclaration compConf,
+					XmlPullParser parser) throws IllegalXMLException,
+								     XmlPullParserException,
+								     IOException {
     /* Required attributes in the component tag*/
     boolean entryFound = false;
 
     ComponentPropertiesInfo compProps = compConf.getNewPropertiesIntance();
-    try {
-      for (int i = 0; i < parser.getAttributeCount(); i++) {
-        if (parser.getAttributeName(i).equals("entry")) {
-          if (parser.getAttributeValue(i) == null) {
-            throw new IllegalXMLException("No value in mandatory attribute:"
-                                          + parser.getAttributeName(i)
-                                          + " in properties tag");
-          } else {
-            compProps.setEntry(parser.getAttributeValue(i));
-            entryFound = true;
-          }
-        } else {
-          throw new IllegalXMLException("Unsupported Attribute name:"
-                                        + parser.getAttributeName(i));
-        }
+
+    for (int i = 0; i < parser.getAttributeCount(); i++) {
+      if (parser.getAttributeName(i).equals("entry")) {
+	if (parser.getAttributeValue(i) == null) {
+	  throw new IllegalXMLException("No value in mandatory attribute:"
+					+ parser.getAttributeName(i)
+					+ " in properties tag");
+	} else {
+	  compProps.setEntry(parser.getAttributeValue(i));
+	  entryFound = true;
+	}
+      } else {
+	throw new IllegalXMLException("Unsupported Attribute name:"
+				      + parser.getAttributeName(i));
       }
-      parser.next();
-    } catch (XmlPullParserException e) {
-      ComponentActivator.error("Error Parsing properties tag", e);
-    } catch (IOException e){
-      ComponentActivator.error("Error Parsing properties tag", e);
     }
+    skip(parser);
 
     /* check if required attributes has been set */
     if (!entryFound) {
@@ -448,39 +515,37 @@ public class ComponentParser {
    * @param parser
    * @param compConf
    */
-  private void setImplementationInfo(XmlPullParser parser) throws IllegalXMLException {
+  private static void setImplementationInfo(ComponentDeclaration compConf,
+					    XmlPullParser parser) throws IllegalXMLException,
+									 XmlPullParserException,
+									 IOException {
     /* Required attributes in the component tag*/
     boolean classFound = false;
 
     if (compConf.getImplementation() != null) {
       throw new IllegalXMLException("Only one implementation tag allowed");
     }
-    try {
-      for (int i = 0; i < parser.getAttributeCount(); i++) {
-        if (parser.getAttributeName(i).equals("class")) {
-          if (parser.getAttributeValue(i) == null) {
-            throw new IllegalXMLException("No value in mandatory attribute:"
-                                          + parser.getAttributeName(i)
-                                          + " in implementation tag");
-          } else {
-            compConf.setImplementation(parser.getAttributeValue(i));
-            classFound = true;
-          }
-        } else {
-          throw new IllegalXMLException("Unsupported Attribute name:"
-                                        + parser.getAttributeName(i));
-        }
+
+    for (int i = 0; i < parser.getAttributeCount(); i++) {
+      if (parser.getAttributeName(i).equals("class")) {
+	if (parser.getAttributeValue(i) == null) {
+	  throw new IllegalXMLException("No value in mandatory attribute:"
+					+ parser.getAttributeName(i)
+					+ " in implementation tag");
+	} else {
+	  compConf.setImplementation(parser.getAttributeValue(i));
+	  classFound = true;
+	}
+      } else {
+	throw new IllegalXMLException("Unsupported Attribute name:"
+				      + parser.getAttributeName(i));
       }
-      parser.next();
-    } catch (XmlPullParserException e) {
-      ComponentActivator.error("Error Parsing implementation tag", e);
-    } catch (IOException e){
-      ComponentActivator.error("Error Parsing implementation tag", e);
     }
+    skip(parser);
 
     /* check if required attributes has been set */
     if (!classFound) {
-      throw new IllegalXMLException("A required attribute in the tag:implementation was not pressent");
+      throw new IllegalXMLException("Could not find \"class\" attribute in implementation-tag");
     }
   }
 
@@ -496,7 +561,10 @@ public class ComponentParser {
    * target filter (if not specified "(objectClass="+ <interface-name>+")"
    * -bind = bind method (optional) -unbund = unbind method (optional)
    */
-  private void setReferenceInfo(XmlPullParser parser) throws IllegalXMLException {
+  private static void setReferenceInfo(ComponentDeclaration compConf,
+				       XmlPullParser parser) throws IllegalXMLException,
+								    XmlPullParserException,
+								    IOException {
     /* Required attributes in the component tag*/
     boolean nameFound = false;
     boolean interfaceFound = false;
@@ -504,88 +572,83 @@ public class ComponentParser {
     boolean policyFound = false;
 
     ComponentReferenceInfo compRef = compConf.getNewReferenceIntance();
-    try {
-      for (int i = 0; i < parser.getAttributeCount(); i++) {
-        if (parser.getAttributeName(i).equals("name")) {
-          if (parser.getAttributeValue(i) == null) {
-            throw new IllegalXMLException("No value in mandatory attribute:"
-                                          + parser.getAttributeName(i)
-                                          + " in reference tag");
-          } else {
-            if (checkNMToken(parser.getAttributeValue(i))) {
-              compRef.setReferenceName(parser.getAttributeValue(i));
-              nameFound = true;
-            } else {
-              throw new IllegalXMLException("Invalid value in mandatory attribute:"
-                                            + parser.getAttributeName(i)
-                                            + " in reference tag");
-            }
-          }
-        } else if (parser.getAttributeName(i).equals("interface")) {
-          if (parser.getAttributeValue(i) == null) {
-            throw new IllegalXMLException("No value in mandatory attribute:"
-                                          + parser.getAttributeName(i)
-                                          + " in reference tag");
-          } else {
-            if (checkToken(parser.getAttributeValue(i))) {
-              compRef.setInterfaceType(parser.getAttributeValue(i));
-              interfaceFound = true;
-            } else {
-              throw new IllegalXMLException("Invalid value in mandatory attribute:"
-                                            + parser.getAttributeName(i)
-                                            + " in reference tag");
-            }
-          }
-        } else if (parser.getAttributeName(i).equals("cardinality")) {
-          if (parser.getAttributeValue(i) == null) {
-            /* set default value if non pressent */
-            compRef.setCardinality("1..1");
-          } else {
-            for(int j = 0; j < supportedCardniality.length ; j++){
-              /* If the found attribute value equals one of the supported types*/
-              if (parser.getAttributeValue(i).equalsIgnoreCase(supportedCardniality[j])) {
-                compRef.setCardinality(supportedCardniality[j]);
-                cardinalityFound = true;
-              }
-            }
-            compRef.setCardinality(parser.getAttributeValue(i));
-          }
-        } else if (parser.getAttributeName(i).equals("policy")) {
-          if (parser.getAttributeValue(i) == null) {
-            compRef.setPolicy("static"); // default value
-          } else {
-            compRef.setPolicy(parser.getAttributeValue(i));
-            policyFound = true;
-          }
-        } else if (parser.getAttributeName(i).equals("target")) {
-          if (parser.getAttributeValue(i) == null) {
-            compRef.setTarget("(objectClass=" + compRef.getInterfaceType() + ")"); // default value
-          } else {
-            compRef.setTarget(parser.getAttributeValue(i));
-          }
-        } else if (parser.getAttributeName(i).equals("bind")) {
-          if (parser.getAttributeValue(i) == null) {
-            compRef.setBind(null); // default value
-          } else {
-            compRef.setBind(parser.getAttributeValue(i));
-          }
-        } else if (parser.getAttributeName(i).equals("unbind")) {
-          if (parser.getAttributeValue(i) == null) {
-            compRef.setUnbind(null); // default value
-          } else {
-            compRef.setUnbind(parser.getAttributeValue(i));
-          }
-        } else {
-          throw new IllegalXMLException("Unsupported Attribute name:"
-                                        + parser.getAttributeName(i));
-        }
+    for (int i = 0; i < parser.getAttributeCount(); i++) {
+      if (parser.getAttributeName(i).equals("name")) {
+	if (parser.getAttributeValue(i) == null) {
+	  throw new IllegalXMLException("No value in mandatory attribute:"
+					+ parser.getAttributeName(i)
+					+ " in reference tag");
+	} else {
+	  if (checkNMToken(parser.getAttributeValue(i))) {
+	    compRef.setReferenceName(parser.getAttributeValue(i));
+	    nameFound = true;
+	  } else {
+	    throw new IllegalXMLException("Invalid value in mandatory attribute:"
+					  + parser.getAttributeName(i)
+					  + " in reference tag");
+	  }
+	}
+      } else if (parser.getAttributeName(i).equals("interface")) {
+	if (parser.getAttributeValue(i) == null) {
+	  throw new IllegalXMLException("No value in mandatory attribute:"
+					+ parser.getAttributeName(i)
+					+ " in reference tag");
+	} else {
+	  if (checkToken(parser.getAttributeValue(i))) {
+	    compRef.setInterfaceType(parser.getAttributeValue(i));
+	    interfaceFound = true;
+	  } else {
+	    throw new IllegalXMLException("Invalid value in mandatory attribute:"
+					  + parser.getAttributeName(i)
+					  + " in reference tag");
+	  }
+	}
+      } else if (parser.getAttributeName(i).equals("cardinality")) {
+	if (parser.getAttributeValue(i) == null) {
+	  /* set default value if non pressent */
+	  compRef.setCardinality("1..1");
+	} else {
+	  for(int j = 0; j < supportedCardniality.length ; j++){
+	    /* If the found attribute value equals one of the supported types*/
+	    if (parser.getAttributeValue(i).equalsIgnoreCase(supportedCardniality[j])) {
+	      compRef.setCardinality(supportedCardniality[j]);
+	      cardinalityFound = true;
+	    }
+	  }
+	  compRef.setCardinality(parser.getAttributeValue(i));
+	}
+      } else if (parser.getAttributeName(i).equals("policy")) {
+	if (parser.getAttributeValue(i) == null) {
+	  compRef.setPolicy("static"); // default value
+	} else {
+	  compRef.setPolicy(parser.getAttributeValue(i));
+	  policyFound = true;
+	}
+      } else if (parser.getAttributeName(i).equals("target")) {
+	if (parser.getAttributeValue(i) == null) {
+	  compRef.setTarget("(objectClass=" + compRef.getInterfaceType() + ")"); // default value
+	} else {
+	  compRef.setTarget(parser.getAttributeValue(i));
+	}
+      } else if (parser.getAttributeName(i).equals("bind")) {
+	if (parser.getAttributeValue(i) == null) {
+	  compRef.setBind(null); // default value
+	} else {
+	  compRef.setBind(parser.getAttributeValue(i));
+	}
+      } else if (parser.getAttributeName(i).equals("unbind")) {
+	if (parser.getAttributeValue(i) == null) {
+	  compRef.setUnbind(null); // default value
+	} else {
+	  compRef.setUnbind(parser.getAttributeValue(i));
+	}
+      } else {
+	throw new IllegalXMLException("Unsupported Attribute name:"
+				      + parser.getAttributeName(i));
       }
-      parser.next();
-    } catch (XmlPullParserException e) {
-      ComponentActivator.error("Error Parsing reference tag", e);
-    } catch (IOException e){
-      ComponentActivator.error("Error Parsing reference tag", e);
     }
+    
+    skip(parser);
 
     /* Setting default values if no other has been sett*/
     if (compRef.getCardinality() == null) {
@@ -596,16 +659,18 @@ public class ComponentParser {
     }
 
     /* check if required attributes has been set */
-    if (!nameFound && !interfaceFound) {
-      throw new IllegalXMLException("A required attribute in the tag:reference was not pressent");
-    }
+    if (!nameFound)
+      throw new IllegalXMLException("Could not find \"name\" attribute in implementation-tag");
+
+    if (!interfaceFound) 
+      throw new IllegalXMLException("Could not find \"interface\" attribute in implementation-tag");
 
     /* add the ComponentReferenceInfo to the ComponentConfiguration */
     compConf.addReferenceInfo(compRef);
   }
 
   //TODO Check if the string follows the NMTOKEN in XML SCHEMA
-  private boolean checkNMToken(String text){
+  private static boolean checkNMToken(String text){
     return checkToken(text);
   }
 
@@ -613,7 +678,7 @@ public class ComponentParser {
    * A Function that test if no Line terminators and whitespaces is used
    * in a string
    */
-  private boolean checkToken(String text){
+  private static boolean checkToken(String text){
     String[] result = text.split(" |\\n|\\t|\\r|'\u0085'|'\u2028'|'\u2029'");
     return (result.length <= 1);
   }
@@ -621,20 +686,19 @@ public class ComponentParser {
 
 
   /* Test function that prints the contents of a component */
-  private void printComponentConfiguration() {
-    StringBuffer buf = new StringBuffer();
-    buf.append("THE RESULT FROM THE PARSING");
-    buf.append(toStringComponent());
-    buf.append(toStringImplementation());
-    buf.append(toStringProperty());
-    buf.append(toStringProperties());
-    buf.append(toStringService());
-    buf.append(toStringReference());
-    ComponentActivator.debug(buf.toString());
+  private static String printComponentConfiguration(ComponentDeclaration compConf) {
+     StringBuffer buf = new StringBuffer();
+     buf.append("THE RESULT FROM THE PARSING");
+     buf.append(toStringComponent(compConf));
+     buf.append(toStringImplementation(compConf));
+     buf.append(toStringProperties(compConf));
+     buf.append(toStringService(compConf));
+     buf.append(toStringReference(compConf));
+     return buf.toString();
   }
 
   /* Test function that prints a part of a component */
-  private String toStringComponent() {
+  private static String toStringComponent(ComponentDeclaration compConf) {
     /* <component> */
     StringBuffer buf = new StringBuffer();
     buf.append("------------Everything in the <component> tag------------");
@@ -646,7 +710,7 @@ public class ComponentParser {
   }
 
   /* Test function that prints a part of a component */
-  private String toStringImplementation() {
+  private static String toStringImplementation(ComponentDeclaration compConf) {
     /* <implementation> */
     StringBuffer buf = new StringBuffer();
     buf.append("------------Everything in the <implementation> tag------------");
@@ -655,40 +719,17 @@ public class ComponentParser {
   }
 
   /* Test function that prints a part of a component */
-  private String toStringProperty() {
-    /* <property> */
-    StringBuffer buf = new StringBuffer();
-    buf.append("------------Everything in the <property> tag------------");
-    ArrayList propertyInfo = compConf.getPropertyInfo();
-    buf.append("The number of property is:" + propertyInfo.size());
-    for (int i = 0; i < propertyInfo.size(); i++) {
-      ComponentPropertyInfo compProp = (ComponentPropertyInfo) propertyInfo.get(i);
-      buf.append("Name:" + compProp.getName());
-      ArrayList values = compProp.getValueList();
-      for (int j = 0; j < values.size(); j++) {
-        buf.append("Value:" + values.get(j));
-      }
-      buf.append("Type:" + compProp.getType());
-    }
-    return buf.toString();
-  }
-
-  /* Test function that prints a part of a component */
-  private String toStringProperties() {
+  private static String toStringProperties(ComponentDeclaration compConf) {
     /* <properties> */
     StringBuffer buf = new StringBuffer();
-    buf.append("------------Everything in the <properties> tag------------");
-    ArrayList propertiesInfo = compConf.getPropertiesInfo();
-    buf.append("The number of properties is:" + propertiesInfo.size());
-    for (int i = 0; i < propertiesInfo.size(); i++) {
-      ComponentPropertiesInfo compProps = (ComponentPropertiesInfo) propertiesInfo.get(i);
-      buf.append("Entry:" + compProps.getEntry());
-    }
+    buf.append("------------Everything in the <properties/property> tag(s)------------\n");
+    //buf.append(properties.toString() + "\n");
+
     return buf.toString();
   }
 
   /* Test function that prints a part of a component */
-  private String toStringService() {
+  private static String toStringService(ComponentDeclaration compConf) {
     /* <service> */
     StringBuffer buf = new StringBuffer();
     buf.append("------------Everything in the <service> tag------------");
@@ -707,7 +748,7 @@ public class ComponentParser {
   }
 
   /* Test function that prints a part of a component */
-  private String toStringReference() {
+  private static String toStringReference(ComponentDeclaration compConf) {
     /* <reference> */
     StringBuffer buf = new StringBuffer();
     buf.append("------------Everything in the <reference> tag------------");

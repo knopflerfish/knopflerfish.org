@@ -34,11 +34,14 @@
 
 package org.knopflerfish.framework;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -55,13 +58,22 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-//import org.osgi.service.cm.ConfigurationException;
-//import org.osgi.service.cm.ManagedService;
+
+import org.osgi.service.log.LogService;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationEvent;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ConfigurationListener;
+import org.osgi.service.cm.ManagedService;
+import org.osgi.service.cm.ManagedServiceFactory;
+
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * This class is the implementation of the declarative service feature. It will
@@ -76,18 +88,18 @@ import org.osgi.service.component.ComponentInstance;
  * @author Magnus Klack (refactoring by Björn Andersson)
  */
 public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
-
+  
   private static final String CARDINAL_0_1 = "0..1";
   private static final String CARDINAL_0_N = "0..n";
   private static final String CARDINAL_1_1 = "1..1";
   private static final String CARDINAL_1_N = "1..n";
-
+	 
   private static final String COMPONENT_FACTORY_SERVICE_PID = "org.osgi.service.component.ComponentFactory";
   private static final String COMPONENT_FACTORY_SERVICE_DESC = "Declarative component factory created by SCR";
   private static final String SERVICE_FACTORY_SERVICE_DESC = "Declarative service factory created by SCR";
   private static final String DELAYED_SERVICE_DESC = "Declarative delayed component service created by SCR";
 
-  private static final String   ACTIVATE_METHOD_NAME =   "activate";
+  private static final String ACTIVATE_METHOD_NAME = "activate";
   private static final String DEACTIVATE_METHOD_NAME = "deactivate";
 
   private static final String DYNAMIC_POLICY = "dynamic";
@@ -100,6 +112,8 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
   private Vector activeComponents = new Vector();
 
   private Vector inactiveComponents = new Vector();
+  
+  private static ServiceTracker logTracker;
 
   /**
    * Constructor for the SCR assigns local variable and if there are already
@@ -108,16 +122,31 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
    * @param context       the bundle context
    * @param alreadyActive an array with already active components
    */
-  public ComponentRuntimeImpl(BundleContext context, Vector alreadyActive) {
+  public ComponentRuntimeImpl(BundleContext context) {
     bundleContext = context;
+
+
+    /* MO: TODO: this isn't that nice, need to unregister 
+       this service sometime. Will do for now.
+     */
+    
+    bundleContext.registerService(ConfigurationListener.class.getName(),
+				  new ComponentConfigurationListener(), 
+				  new Hashtable());
+
+
+    Bundle[] bundles = context.getBundles();
+    
     bundleContext.addBundleListener(this);
     bundleContext.addServiceListener(this);
-    for (int i = 0; i < alreadyActive.size(); i++) {
-      ComponentDeclaration declaration = (ComponentDeclaration) alreadyActive.get(i);
-      evaluate(declaration, false);
+
+    logTracker = new ServiceTracker(context, LogService.class.getName(), null);
+    logTracker.open();
+
+    for(int i=0;i<bundles.length;i++){
+      bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
     }
   }
-
   /**
    * this method will be called when SCR is shutting down it will dispose all
    * active components handled by the SCR and return to the caller method
@@ -131,6 +160,56 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
       /* decrease one element is removed */
       i--;
     }
+    logTracker.close();
+  }
+
+  public static void log(int level, String msg) {
+    log(level, msg, (Throwable)null);
+  }
+
+  public static void log(int level, String msg, Throwable e) {
+    LogService service = (LogService) logTracker.getService();
+    
+    if (service == null) 
+      return ;
+    
+    if (e != null) {
+      service.log(level, msg, e);
+    } else {
+      service.log(level, msg);
+    }
+  }
+
+  // MO: TODO: can't one do this any nicer?
+  private Configuration getConfiguration(ComponentDeclaration cd) throws IOException {
+    BundleContext bc = cd.getDeclaringBundle().getBundleContext();
+    ServiceReference ref = bc.getServiceReference(ConfigurationAdmin.class.getName());
+    
+    if (ref == null)
+      return null;
+    
+    ConfigurationAdmin admin = (ConfigurationAdmin) bc.getService(ref);
+    
+    if (admin == null)
+      return null;
+
+    try {
+      Configuration[] confs = 
+	admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID + "=" + cd.getComponentName() + ")");
+      
+      if (confs != null && confs.length == 1) {
+	return confs[0];
+      } 
+      
+      confs = 
+	admin.listConfigurations("(" + Constants.SERVICE_PID + "=" + cd.getComponentName() + ")");
+      
+      if (confs != null && confs.length == 1) {
+	return confs[0];
+      }
+    } catch (InvalidSyntaxException e) {}
+
+      return null;
   }
 
   /**
@@ -185,16 +264,20 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
             // parse the document and retrieve a component declaration
             ComponentParser parser = new ComponentParser();
-            ComponentDeclaration componentDeclaration = parser.readXML(resourceURL);
-            componentDeclaration.setDeclaraingBundle(event.getBundle());
-            componentDeclaration.setXmlFile(manifestEntries[i]);
+	    ArrayList decls = parser.readXML(event.getBundle(), resourceURL);
+	    
+	    for (int o = 0; o < decls.size(); o++) {
+	      ComponentDeclaration componentDeclaration = (ComponentDeclaration)decls.get(o);
+	      componentDeclaration.setDeclaraingBundle(event.getBundle());
+	      componentDeclaration.setXmlFile(manifestEntries[i]);
 
-            try {
-              ComponentActivator.debug("Evaluate " + componentDeclaration.getComponentName());
-              evaluate(componentDeclaration, false);
-            } catch (ComponentException e) {
-              ComponentActivator.error("error when evaluating started bundle with component", e);
-            }
+		try {
+		  ComponentActivator.debug("Evaluate " + componentDeclaration.getComponentName());
+		  evaluate(componentDeclaration, false);
+		} catch (ComponentException e) {
+		  ComponentActivator.error("error when evaluating started bundle with component", e);
+		}
+	    }
           }
         }
 
@@ -307,10 +390,10 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                                             boolean isStopping) throws ComponentException {
     for (int i = 0; i < activeComponents.size(); i++) {
       Object object = activeComponents.get(i);
-
+      
       DeclarativeComponent component = (DeclarativeComponent) object;
       ComponentDeclaration componentDeclaration = component.getComponentDeclaration();
-
+      
       if (componentDeclaration.getComponentName().equals(componentName)) {
         disableComponent(component, requestBundle, isStopping);
       }
@@ -504,6 +587,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
       String filter = componentReference.getTarget();
 
       try {
+
         ServiceReference[] reference = bundleContext.getServiceReferences(interfaceName, filter);
         if (reference == null && (CARDINAL_1_1.equals(cardinality) || CARDINAL_1_N.equals(cardinality))) {
           return false;
@@ -525,13 +609,15 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
    */
   private CustomComponentFactory registerComponentFactory(ComponentDeclaration componentDeclaration)
       throws ComponentException {
-
+    
     Dictionary properties = new Hashtable();
     properties.put(ComponentConstants.COMPONENT_FACTORY, componentDeclaration.getFactory());
     properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
+    // is this stated somewhere??
     properties.put(Constants.SERVICE_DESCRIPTION, COMPONENT_FACTORY_SERVICE_DESC);
     properties.put(Constants.SERVICE_PID, COMPONENT_FACTORY_SERVICE_PID);
-
+    
+   
     CustomComponentFactory factory = new CustomComponentFactory(componentDeclaration);
 
     try {
@@ -540,6 +626,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
           .registerService(ComponentFactory.class.getName(), factory, properties);
       factory.setServiceReference(registration.getReference());
       factory.setServiceRegistration(registration);
+
       return factory;
     } catch (Exception e) {
       throw new ComponentException("Error registering component factory", e.getCause());
@@ -563,8 +650,10 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
     properties.put(Constants.SERVICE_DESCRIPTION, SERVICE_FACTORY_SERVICE_DESC);
 
+
     CustomComponentServiceFactory serviceFactory
       = new CustomComponentServiceFactory(interfaceNames, componentDeclaration);
+
 
     try {
       ServiceRegistration registration
@@ -587,33 +676,41 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
    * @return CustomDelayedService if managed to register else null
    * @throws ComponentException   if fails to register the services declared
    */
-  private CustomDelayedService registerDelayedComponent
-      (String[] interfaceNames, ComponentDeclaration componentDeclaration)
-       throws ComponentException {
+  private CustomDelayedService registerDelayedComponent (String[] interfaceNames, 
+							 ComponentDeclaration componentDeclaration, 
+							 Dictionary overriddenProps)
+    throws ComponentException {
 
-    Dictionary properties = new Hashtable();
+    /* Dictionary properties = new Hashtable();
 
-    ArrayList propertyInfo = componentDeclaration.getPropertyInfo();
-    for (Iterator iter = propertyInfo.iterator(); iter.hasNext();) {
-      ComponentPropertyInfo compProp = (ComponentPropertyInfo) iter.next();
-      properties.put(compProp.getName(), compProp.getValue());
-    }
-    properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
-    properties.put(Constants.SERVICE_DESCRIPTION, DELAYED_SERVICE_DESC);
-    properties.put(Constants.SERVICE_PID, componentDeclaration.getComponentName());
+       ArrayList propertyInfo = componentDeclaration.getPropertyInfo();
+
+       for (Iterator iter = propertyInfo.iterator(); iter.hasNext();) {
+        ComponentPropertyInfo compProp = (ComponentPropertyInfo) iter.next();
+        properties.put(compProp.getName(), compProp.getValue());
+       }
+    
+       properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName()); 
+       MO: where is this stated? Can't find it in the spec..
+       properties.put(Constants.SERVICE_DESCRIPTION, DELAYED_SERVICE_DESC); 
+       properties.put(Constants.SERVICE_PID, componentDeclaration.getComponentName()); 
+    */
 
     CustomDelayedService delayedService
-      = new CustomDelayedService(interfaceNames, componentDeclaration);
+      = new CustomDelayedService(interfaceNames, componentDeclaration, overriddenProps);
 
     try {
       ServiceRegistration registration
         = componentDeclaration.getDeclaringBundle().getBundleContext()
-          .registerService(interfaceNames, delayedService, properties);
+	.registerService(interfaceNames, delayedService, delayedService.getProperties());
+
+
       delayedService.setServiceRegistration(registration);
       delayedService.setServiceReference(registration.getReference());
+
       return delayedService;
     } catch (Exception e) {
-      ComponentActivator.error(e);
+      ComponentActivator.error(e); 
       throw new ComponentException("error registering delayed component service:" + e, e.getCause());
     }
   }
@@ -664,6 +761,82 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
       throw new ComponentException(e);
     }
   }
+
+  /* This function has been added by MO.
+     Will search for the <methodName>(<type>) in the given class.
+     By first looking in klass after 
+     <methodName>(ServiceReference) then
+     <methodName>(Interface of Service) then
+     
+     If no method is found it will then continue to the super class.
+     This is how it is described in the specification..
+
+  */
+
+  private void invokeEventMethod(DeclarativeComponent component,
+				 ComponentInstance instance,
+				 String methodName, 
+				 ServiceReference ref,
+				 String serviceInterface) {
+    Class klass = instance.getInstance().getClass();
+    Method method = null;
+    Object arg = null;
+
+    Object service = bundleContext.getService(ref); 
+    // service can be null if the service is unregistering.
+
+    Class serviceClass = null;
+	
+    try {
+      serviceClass = component.getComponentDeclaration().loadClass(serviceInterface);
+    } catch (ClassNotFoundException e) {
+      log(LogService.LOG_ERROR, "Could not load class " + serviceInterface);
+      return ;
+    }
+    
+    while (klass != null && method == null) {
+      Method[] ms = klass.getDeclaredMethods(); 
+
+      // searches this class for a suitable method.
+      for (int i = 0; i < ms.length; i++) {
+	if (methodName.equals(ms[i].getName()) &&
+	    (Modifier.isProtected(ms[i].getModifiers()) ||
+	     Modifier.isPublic(ms[i].getModifiers()))) {
+
+	  Class[] parms = ms[i].getParameterTypes();
+
+	  if (parms.length == 1) {
+	    
+	    try {
+	      if (ServiceReference.class.equals(parms[0])) {
+		
+		ms[i].setAccessible(true);
+		ms[i].invoke(instance.getInstance(), new Object[] { ref });
+		return ;
+		
+	      } else if (parms[0].isAssignableFrom(serviceClass)) {
+		ms[i].setAccessible(true);
+		ms[i].invoke(instance.getInstance(), new Object[] { service });
+
+		return ;
+	      }
+	      
+	    } catch (IllegalAccessException e) {
+	      log(LogService.LOG_ERROR, "Could not access the method: " + methodName + " got " + e);
+	    } catch (InvocationTargetException e) {
+	      log(LogService.LOG_ERROR, "Could not invoke the method: " + methodName + " got " + e);
+	    }
+	  }
+	}
+      }
+      
+      klass = klass.getSuperclass();
+    }
+    
+    // did not find any such method.
+    log(LogService.LOG_ERROR, "Could not find bind/unbind method \"" + methodName + "\"");
+  }
+
 
   /**
    * This method will track the dependencies and give them to the declarative
@@ -731,30 +904,18 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
         if (reference == null) {
           throw new ComponentException("error getting service " + interfaceName + " in invokeReferences() the service is null");
         }
-        try {
-          ComponentActivator.debug("Trying to invoke " + methodName + " in class:" + componentDeclaration.getImplementation());
+	ComponentActivator.debug("Trying to invoke " + methodName + " in class:" + componentDeclaration.getImplementation());
+	invokeEventMethod(component,
+			  componentInstance, 
+			  methodName, 
+			  serviceReferences[0],
+			  componentRef.getInterfaceType()); //MO: added this
 
-          //Method method = componentObject.getClass().getDeclaredMethod
-          //    (methodName, new Class[] { Class.forName(interfaceName) });
-          Method method = componentObject.getClass().getDeclaredMethod
-              (methodName, new Class[] { componentDeclaration.loadClass(interfaceName) });
-          method.setAccessible(true);
-          method.invoke(componentObject, new Object[] { reference });
-
-          if (bind) {
-            component.bindReference(serviceReferences[0]);
-          } else {
-            component.unBindReference(serviceReferences[0]);
-          }
-        } catch (NoSuchMethodException e) {
-          throw new ComponentException(e.getMessage(), e.getCause());
-        } catch (IllegalAccessException e) {
-          throw new ComponentException(e.getMessage(), e.getCause());
-        } catch (InvocationTargetException e) {
-          throw new ComponentException(e.getMessage(), e.getCause());
-        } catch (ClassNotFoundException e) {
-          throw new ComponentException(e.getMessage(), e.getCause());
-        }
+	if (bind) {
+	  component.bindReference(serviceReferences[0]);
+	} else {
+	  component.unBindReference(serviceReferences[0]);
+	}
 
       } else if (componentRef.getCardinality().equals(CARDINAL_0_N) ||
                  componentRef.getCardinality().equals(CARDINAL_1_N)) {
@@ -784,8 +945,11 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
             ComponentActivator.debug("methodName: " + methodName);
             ComponentActivator.debug("InterfaceName: " + interfaceName);
             ComponentActivator.debug("ServiceInstance: " + serviceInstance);
-            reinvoke(serviceInstance, componentObject, methodName, interfaceName);
-            // BA: This did not wait for the Reinvoker Thread
+	    
+	    // BA: This did not wait for the Reinvoker Thread
+	    invokeEventMethod(component, componentInstance, 
+			      methodName, serviceReferences[i],
+			      componentRef.getInterfaceType());
 
             if (bind) {
               component.bindReference(serviceReferences[i]);
@@ -805,36 +969,6 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
   }
 
   /**
-   * this method is used to reInvoke a specific instance object and a given
-   * method name
-   */
-  public synchronized void reinvoke(Object serviceObject,
-                                    Object instance,
-                                    String methodName,
-                                    String interfaceName) throws ComponentException {
-    if (serviceObject == null ||
-        instance == null ||
-        methodName == null ||
-        interfaceName == null) {
-      return;
-    }
-    try {
-      ComponentActivator.debug("reInvoking " + instance + "." + methodName +"(..)");
-      Method method = instance.getClass()
-        .getDeclaredMethod(methodName, new Class[] { Class.forName(interfaceName) });
-      method.setAccessible(true);
-      method.invoke(instance, new Object[] { serviceObject });
-    } catch (InvocationTargetException e) {
-      ComponentActivator.error("Warning InvocationTargetException occured!\n" +
-          "when invoking:\n" + instance+"."+ methodName+"()\n" +
-          "\nplease check your implementation", e);
-    } catch (Exception e) {
-      ComponentActivator.error(e);
-      throw new ComponentException("error in reinvokeReference due to:\n" + e.getMessage(), e.getCause());
-    }
-  }
-
-  /**
    * This method will evaluate a componentDeclaration and handle after the
    * component declaration
    *
@@ -844,47 +978,42 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     // variable representing if the component implements managed service
     boolean isManaged = false;
 
-    // variable representing if the component implements managed service factory
+    // Variable representing if the component implements managed service factory
     boolean isManagedFactory = false;
 
+
+    
+    // check if this depends on some configuration admin stuff.
+    /* MO: my code starts here */
+    Configuration config = null;
     try {
-      //Class implementationClass = Class.forName(componentDeclaration.getImplementation());
-      Class implementationClass = componentDeclaration.loadClass();
-      Class[] interfaces = implementationClass.getInterfaces();
-      for (int q=0; q<interfaces.length; q++) {
-        String interfaceName = interfaces[q].getName();
-        ComponentActivator.debug("Interface implemented on " + componentDeclaration.getImplementation() + ": " + interfaceName);
-        if (interfaceName.equals("org.osgi.service.cm.ManagedService")) {
-          ComponentActivator.debug("found managed component");
-          isManaged = true;
-        } else if (interfaceName.equals("org.osgi.service.cm.ManagedServiceFactory")) {
-          ComponentActivator.debug("found managed service factory");
-          isManagedFactory = true;
-        }
+      config = getConfiguration(componentDeclaration);
+
+      if (config != null) {
+
+	isManagedFactory = (config.getFactoryPid() != null);
+	
+	if (!isManagedFactory) {
+	  isManaged = true; /* because it can't be both right? */
+	}
       }
-    } catch (ClassNotFoundException e) {
-      ComponentActivator.error(e);
-      throw new ComponentException("Can't find class " + componentDeclaration.getImplementation() + " due to: " + e, e.getCause());
-    } catch (Exception e) {
-      ComponentActivator.error(e);
-      throw new ComponentException(e.getMessage(), e.getCause());
+	
+    } catch (IOException e) {
+      /* ignore */
     }
-
-    /* check if the component has properties */
-    ArrayList declaredProperties = componentDeclaration.getPropertyInfo();
-
-    /* check if the component has a property file */
-    ArrayList declaredPropertyFile = componentDeclaration.getPropertiesInfo();
-
+    
     if (componentDeclaration.isAutoEnable() || overideEnable) {
+
       /* if it is enable when the services have to be registered */
       if (componentDeclaration.getFactory() != null) {
         /* check if the component is satisfied and enabled */
         if (isSatisfied(componentDeclaration) && componentDeclaration.isAutoEnable()) {
           ComponentActivator.debug("register component factory for:" + componentDeclaration.getComponentName());
+
           CustomComponentFactory componentFactory = registerComponentFactory(componentDeclaration);
           activeComponents.add(componentFactory);
           inactiveComponents.remove(componentDeclaration);
+
         } else {
           synchronized (inactiveComponents) {
             ComponentActivator.debug(componentDeclaration.getComponentName() + " is not satisfied");
@@ -901,7 +1030,6 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
           if (componentDeclaration.getServiceInfo().size() > 0
               || isManaged
               || isManagedFactory) {
-
             handledServices = true;
 
             // the tricky thing is that we have to create one CustomComponent instance for MANY provided interface
@@ -916,24 +1044,10 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
               vectorInterfaces.addAll(interfaces);
             } // end while(serviceIterator.hasNext())
 
-            /* check if managed feature is implemented */
-            if (isManaged && isManagedFactory) {
-              ComponentActivator.error("Can't handle both managed service and factory in the same implementation class");
-            } else if (isManaged || isManagedFactory) {
-              allInterfaces = new String[vectorInterfaces.size() + 1];
-            } else {
-              allInterfaces = new String[vectorInterfaces.size()];
-            }
-
-            allInterfaces = (String[]) vectorInterfaces.toArray(allInterfaces);
-            // toArray will set the last element to null if isManaged*
-
-            if (isManaged) {
-              allInterfaces[allInterfaces.length - 1] = "org.osgi.service.cm.ManagedService";
-            } else if (isManagedFactory) {
-              allInterfaces[allInterfaces.length - 1] = "org.osgi.service.cm.ManagedServiceFactory";
-            }
-          }
+	    allInterfaces = new String[vectorInterfaces.size()];
+	    allInterfaces = (String[]) vectorInterfaces.toArray(allInterfaces);
+	    
+          } 
 
           if (componentDeclaration.isServiceFactory()) {
             ComponentActivator.debug("register component service factory for:" + componentDeclaration.getComponentName());
@@ -944,24 +1058,31 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
           } else if (!handledServices) {
             ComponentActivator.debug("register immediate component for:" + componentDeclaration.getComponentName());
-            ImmediateComponent immediateComponent = new ImmediateComponent(componentDeclaration);
+            ImmediateComponent immediateComponent = 
+	      new ImmediateComponent(componentDeclaration, 
+				     config == null ? null : config.getProperties());
             activeComponents.add(immediateComponent);
             immediateComponent.activate();
             inactiveComponents.remove(componentDeclaration);
 
           } else {
             ComponentActivator.debug("register delayed service for:" + componentDeclaration.getComponentName());
+
             CustomDelayedService delayedComponent
-              = registerDelayedComponent(allInterfaces, componentDeclaration);
+              = registerDelayedComponent(allInterfaces, componentDeclaration, 
+					 config == null ? null : config.getProperties());  // MO: test
+
             activeComponents.add(delayedComponent);
             if (componentDeclaration.isImmediate()) {
+	      
               // The delayed component is really an immediate component. Activate it by getting the service.
               Object obj = delayedComponent.getService(componentDeclaration.getDeclaringBundle(),
                                                        delayedComponent.getServiceRegistration());
+	      // MO: is this ok? Shouldn't this service be deactivated after the call to unget?
               delayedComponent.ungetService(componentDeclaration.getDeclaringBundle(),
                                             delayedComponent.getServiceRegistration(),
                                             obj);
-            }
+	    }
             inactiveComponents.remove(componentDeclaration);
           }
         } else {
@@ -1035,7 +1156,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     }
   }
 
-  // TODO: Understand the details of this method.
+  // TODO: Understand the details of this method. 
   public void maintain(ServiceEvent event) {
     ComponentActivator.debug("Maintainer process is started");
 
@@ -1070,6 +1191,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
               String filter = referenceInfo.getTarget();
               String eventTarget = (String) event.getServiceReference().getProperty("component.name");
 
+	      if (referenceInfo.getInterfaceType().equals(objectClass))
               /*
                * check if the names of the declared interface and the object class are
                * equal to each other and that the component declaration is auto
@@ -1136,14 +1258,16 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                             + "registered service of this type therefore an instance of\n"
                             + "this service will be passed to this components bind method\n");
 
-                    Object serviceObject = bundleContext.getService(event.getServiceReference());
-                    Object instance = component.getComponentContext().getComponentInstance().getInstance();
+
+		    ComponentInstance componentInstance = component.getComponentContext().getComponentInstance();
                     String methodName = referenceInfo.getBind();
 
                     if (methodName != null) {
                       String interfaceName = referenceInfo.getInterfaceType();
-                      reinvoke(serviceObject, instance, methodName, interfaceName);
-                    }
+		      invokeEventMethod(component, componentInstance,
+					methodName, event.getServiceReference(),
+					interfaceName);
+		    }
 
                     if (!component.isBoundedTo(event.getServiceReference())) {
                       activateContext(component.getComponentContext());
@@ -1161,16 +1285,17 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
                     for (int z = 0; z < contexts.size(); z++) {
                       ComponentContext currentContext = (ComponentContext) contexts.get(z);
-                      Object instance = currentContext.getComponentInstance().getInstance();
+		      ComponentInstance componentInstance = currentContext.getComponentInstance(); 
                       String methodName = referenceInfo.getBind();
 
                       if (methodName != null) {
-                        String interfaceName = referenceInfo.getInterfaceType();
-                        reinvoke(serviceObject, instance, methodName, interfaceName);
+			invokeEventMethod(component, componentInstance, 
+					  methodName, event.getServiceReference(),
+					  referenceInfo.getInterfaceType());
+
                       }
 
                       activateContext(currentContext);
-
                       component.bindReference(event.getServiceReference());
                     }
                   }
@@ -1198,7 +1323,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
               String cardinality = referenceInfo.getCardinality();
               String policy = referenceInfo.getPolicy();
-
+	      
               /*
                * check if it is a static policy. Static policy will not try to
                * dynamically rebind the component SCR will instead disable the
@@ -1231,6 +1356,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                 try {
                   if (componentDeclaration.getDeclaringBundle().getState() != Bundle.STOPPING) {
                     evaluate(componentDeclaration, false);
+
                   } else {
                     ComponentActivator.debug("This component's bundle is stopping ignore to restart");
                   }
@@ -1256,7 +1382,6 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                   && component.getComponentDeclaration().getDeclaringBundle().getState() != Bundle.STOPPING) {
 
                 ComponentActivator.debug("Found dynamic reference to:" + component.getComponentDeclaration().getComponentName());
-
                 /*
                  * if the cardinality is 1..1 or 0..1 when unbind the old
                  * service a try to locate a new service and bind it to the service
@@ -1302,27 +1427,19 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                       String bindMethod = referenceInfo.getBind();
 
                       if (unbindMethod != null) {
-                        try {
-                          /* unbind the old service */
-                          reinvoke(oldServiceObject,
-                                   componentContext.getComponentInstance().getInstance(),
-                                   unbindMethod,
-                                   referenceInfo.getInterfaceType());
-                        } catch (ComponentException e) {
-                          ComponentActivator.error(e);
-                        }
+			invokeEventMethod(component, componentContext.getComponentInstance(),
+					  unbindMethod, event.getServiceReference(),
+					  referenceInfo.getInterfaceType());
+			  
+
                       }
 
                       if (bindMethod != null) {
-                        try {
-                          /* bind the old service */
-                          reinvoke(serviceObject,
-                                   componentContext.getComponentInstance().getInstance(),
-                                   bindMethod,
-                                   referenceInfo.getInterfaceType());
-                        } catch (ComponentException e) {
-                          ComponentActivator.error(e);
-                        }
+			invokeEventMethod(component, componentContext.getComponentInstance(),
+					  bindMethod, event.getServiceReference(),
+					  referenceInfo.getInterfaceType());
+			  
+			
                       }
 
                       try {
@@ -1345,28 +1462,19 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                       ComponentContext componentContext = (ComponentContext) contexts.get(x);
 
                       if (unbindMethod != null) {
-                        try {
-                          /* unbind the old service */
-                          reinvoke(oldServiceObject,
-                                    componentContext.getComponentInstance().getInstance(),
-                                    unbindMethod,
-                                    referenceInfo.getInterfaceType());
-                        } catch (ComponentException e) {
-                          ComponentActivator.error(e);
-                        }
+		
+			invokeEventMethod(component, componentContext.getComponentInstance(),
+					  unbindMethod, event.getServiceReference(),
+					  referenceInfo.getInterfaceType());
+			
                       }
 
                       if (bindMethod != null) {
-                        try {
-                          /* bind the new service */
-                          reinvoke(serviceObject,
-                                    componentContext.getComponentInstance().getInstance(),
-                                    bindMethod,
-                                    referenceInfo.getInterfaceType());
-                        } catch (ComponentException e) {
-                          ComponentActivator.error(e);
-                        }
-                      }
+
+			invokeEventMethod(component, componentContext.getComponentInstance(),
+					  bindMethod, event.getServiceReference(),
+					  referenceInfo.getInterfaceType());
+		      }
 
                       try {
                         activateContext(componentContext);
@@ -1404,7 +1512,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                  */
                 if (cardinality.equals(CARDINAL_1_N) || cardinality.equals(CARDINAL_0_N)) {
                   ServiceReference[] newReferences = null;
-                  Object oldServiceObject = bundleContext.getService(event.getServiceReference());
+                  //Object oldServiceObject = bundleContext.getService(event.getServiceReference());
                   String unbindMethod = referenceInfo.getUnbind();
                   String bindMethod = referenceInfo.getBind();
 
@@ -1416,16 +1524,11 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                     ComponentContext componentContext = component.getComponentContext();
 
                     if (unbindMethod != null) {
-                      try {
-                        /* unbind the old service */
-                        reinvoke(oldServiceObject,
-                                 componentContext.getComponentInstance().getInstance(),
-                                 unbindMethod,
-                                 referenceInfo.getInterfaceType());
-                        component.unBindReference(event.getServiceReference());
-                      } catch (ComponentException e) {
-                        ComponentActivator.error(e);
-                      }
+		      invokeEventMethod(component, componentContext.getComponentInstance(),
+					unbindMethod, event.getServiceReference(),
+					referenceInfo.getInterfaceType());
+		      component.unBindReference(event.getServiceReference());
+		      
                     }
 
                     try {
@@ -1440,18 +1543,15 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
                       for (int x = 0; x < newReferences.length; x++) {
                         if (bindMethod != null) {
-                          try {
-                            if (!component.isBoundedTo(newReferences[x])) {
-                              Object serviceObject = bundleContext.getService(newReferences[x]);
-                              /* bind the old service */
-                               reinvoke(serviceObject,
-                                        componentContext.getComponentInstance().getInstance(),
-                                        bindMethod,
-                                        referenceInfo.getInterfaceType());
-                            }
-                          } catch (ComponentException e) {
-                            ComponentActivator.error(e);
-                          }
+                          // MO: I'm not entirely sure about these..
+
+			  if (!component.isBoundedTo(newReferences[x])) {
+			    invokeEventMethod(component, componentContext.getComponentInstance(),
+					      bindMethod, newReferences[x],
+					      referenceInfo.getInterfaceType());
+			    
+			  }
+
                         }
 
                         try {
@@ -1475,33 +1575,23 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
                       for (int m = 0; m < contexts.size(); m++) {
                         ComponentContext componentContext = (ComponentContext) contexts.get(m);
 
-                        if (unbindMethod != null) {
-                          try {
-                            /* unbind the old service */
-                            reinvoke(oldServiceObject,
-                                     componentContext.getComponentInstance().getInstance(),
-                                     unbindMethod,
-                                     referenceInfo.getInterfaceType());
-                            component.unBindReference(event.getServiceReference());
-                          } catch (ComponentException e) {
-                            ComponentActivator.error(e);
-                          }
+                        if (unbindMethod != null) { 
+			  
+			  invokeEventMethod(component, componentContext.getComponentInstance(),
+					    unbindMethod, event.getServiceReference(),
+					    referenceInfo.getInterfaceType());
+			  component.unBindReference(event.getServiceReference());
+
                         }
 
                         for (int x = 0; x < newReferences.length; x++) {
                           if (bindMethod != null) {
-                            try {
-                              if (!component.isBoundedTo(newReferences[x])) {
-                                Object serviceObject = bundleContext.getService(newReferences[x]);
-                                /* bind the old service */
-                                reinvoke(serviceObject,
-                                         componentContext.getComponentInstance().getInstance(),
-                                         bindMethod,
-                                         referenceInfo.getInterfaceType());
-                              }
-                            } catch (ComponentException e) {
-                              ComponentActivator.error(e);
-                            }
+			    if (!component.isBoundedTo(newReferences[x])) {
+
+			      invokeEventMethod(component, componentContext.getComponentInstance(),
+						bindMethod, newReferences[x],
+						referenceInfo.getInterfaceType());
+			    }
                           }
 
                           try {
@@ -1614,8 +1704,9 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
    *
    * @author Magnus Klack
    */
+  // MO: added overridenProps
   private class CustomDelayedService implements ServiceFactory,
-                                                //ManagedService,
+                                                // ManagedService,
                                                 DeclarativeComponent {
     private String[] interfaceNames;
     private ComponentContext componentContext;
@@ -1623,11 +1714,29 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     private ServiceReference serviceReference;
     private ServiceRegistration serviceRegistration;
     private List boundedReferences = new ArrayList();
+    private Dictionary properties;
 
     public CustomDelayedService(String[] serviceInterfaces,
-                                ComponentDeclaration declaration) {
+                                ComponentDeclaration declaration) { 
+      this(serviceInterfaces, declaration, null);
+    }
+
+    public CustomDelayedService(String[] serviceInterfaces,
+                                ComponentDeclaration declaration,
+				Dictionary overriddenProps) { 
+      
       interfaceNames = serviceInterfaces;
       componentDeclaration = declaration;
+      Dictionary props = componentDeclaration.getDeclaredProperties();
+
+      if (overriddenProps != null) {
+	for (Enumeration e = overriddenProps.keys(); e.hasMoreElements();) {
+	  Object key = e.nextElement();
+	  props.put(key, overriddenProps.get(key));
+	}
+      }
+      
+      properties = props;
     }
 
     public synchronized Object getService(Bundle bundle, ServiceRegistration registration) {
@@ -1635,7 +1744,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
       if (componentContext != null) {
         /* just return the instance here */
-        return componentContext.getComponentInstance().getInstance();
+	return componentContext.getComponentInstance().getInstance();
       }
 
       if (!isSatisfied(componentDeclaration)) {
@@ -1646,15 +1755,18 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
       try {
         componentCounter++;
 
-        Dictionary properties = componentDeclaration.getDeclaredProperties();
         properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
         properties.put(ComponentConstants.COMPONENT_ID, new Long(componentCounter));
+
+	/* MO: where is it stated that the component properties 
+	   should have ComponentConstants.SERVICE_COMPONENT set?
+	*/ 
         if (componentDeclaration.getXmlFile()!=null) {
           properties.put(ComponentConstants.SERVICE_COMPONENT, componentDeclaration.getXmlFile());
         } else {
           ComponentActivator.error("WARNING the property SERVICE_COMPONENT is missing for delayed component:\n"+
-                             componentDeclaration.getComponentName() +
-                             "\nthis may happen when a component is created by a component factory");
+				   componentDeclaration.getComponentName() +
+				   "\nthis may happen when a component is created by a component factory");
         }
 
         // create a context request will come from the same bundle declaring the the component
@@ -1691,8 +1803,10 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     }
 
     /**
-     * The ungetService does nothing.
+     * The ungetService does nothing. 
+     * MO: but shouldn't it? Shouldn't it remove the service if it isn't used longer? Or is done somewhere else?
      */
+
     public void ungetService(Bundle bundle, ServiceRegistration registration, Object service) {
       ComponentActivator.debug("ungetService is called in CustomDelayedService");
     }
@@ -1788,13 +1902,22 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     public void unBindReference(ServiceReference reference) {
       boundedReferences.remove(reference);
     }
+    
+
+    /**
+     * returns the dictionary for this component
+     */
+    public Dictionary getProperties() {
+      return properties;
+    }
 
     /**
      * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
-     *
-    public void updated(Dictionary arg0) throws ConfigurationException {
-      ComponentActivator.debug("Update is called in delayed component");
-    }*/
+     *     
+    public void updated(Dictionary dict) throws ConfigurationException {
+      //ComponentActivator.debug("Update is called in delayed component");
+    }
+    */
   }
 
   /**
@@ -1810,9 +1933,28 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     private ComponentContext componentContext;
     private ServiceReference serviceReference;
     private List boundedReferences = new ArrayList();
+    private Dictionary properties;
 
     public ImmediateComponent(ComponentDeclaration declaration) {
+      this(declaration, null);
+    }
+    
+    public ImmediateComponent(ComponentDeclaration declaration, 
+			      Dictionary overriddenProps) {
       componentDeclaration = declaration;
+      properties = declaration.getDeclaredProperties();
+      
+      if (overriddenProps != null) {
+	for (Enumeration e = overriddenProps.keys(); e.hasMoreElements();) {
+	  Object key = e.nextElement();
+	  properties.put(key, overriddenProps.get(key));
+	}
+      }
+
+      properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
+      properties.put(ComponentConstants.COMPONENT_ID, new Long(componentCounter));
+      // MO: where does it say that this should be included? 
+      properties.put(ComponentConstants.SERVICE_COMPONENT, componentDeclaration.getXmlFile());
     }
 
     /**
@@ -1821,12 +1963,6 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
     public void activate() {
       try {
         componentCounter++;
-
-        Dictionary properties = componentDeclaration.getDeclaredProperties();
-        properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
-        properties.put(ComponentConstants.COMPONENT_ID, new Long(componentCounter));
-        properties.put(ComponentConstants.SERVICE_COMPONENT, componentDeclaration.getXmlFile());
-
         // create the context in this case a request will come frome the bundle declaring the component
         componentContext = createComponentContext(componentDeclaration,
                                                   componentCounter,
@@ -1837,7 +1973,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
       } catch (ComponentException e) {
         ComponentActivator.error("error when creating ComponentContext in ImmediatComponent", e);
-      }
+      } 
 
       /*
        * this means that a component is not bounded to all
@@ -1901,13 +2037,6 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
      */
     public ServiceReference getServiceReference() {
       return null;
-    }
-
-    /**
-     * binds a reference/dependency to this component
-     */
-    public void binReference(ServiceReference reference) {
-      boundedReferences.add(reference);
     }
 
     /**
@@ -1989,12 +2118,12 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
      * @param registration the serviceRegistration
      */
     public synchronized Object getService(Bundle bundle, ServiceRegistration registration) {
-
       ComponentActivator.debug("getService() is called in CustomComponentServiceFactory");
 
       ComponentContext componentContext = (ComponentContext) configurations.get(bundle);
       if (componentContext == null) {
         try {
+
           Dictionary properties = componentDeclaration.getDeclaredProperties();
           properties.put(ComponentConstants.COMPONENT_NAME, componentDeclaration.getComponentName());
           properties.put(ComponentConstants.COMPONENT_ID, new Long(componentCounter));
@@ -2009,7 +2138,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
         } catch (ComponentException e) {
           ComponentActivator.error("error when creating component context in CustomComponentServiceFactory", e);
           return null;
-        }
+        } 
 
         try {
           invoke(this, componentContext.getComponentInstance(), true);
@@ -2026,6 +2155,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
         configurations.put(bundle, componentContext);
       }
+      
       return componentContext.getComponentInstance().getInstance();
     }
 
@@ -2183,6 +2313,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
      *
      * @param Dictionary the properties for the new component
      */
+
     public ComponentInstance newInstance(Dictionary properties) throws ComponentException {
       ComponentActivator.debug("newInstance() is called in CustomComponentFactory");
 
@@ -2195,6 +2326,7 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
       try {
         if (componentDeclaration.getServiceInfo().size() > 0) {
+
           // get all services
           Iterator iteratorServices = componentDeclaration.getServiceInfo().iterator();
           ArrayList vectorInterfaces = new ArrayList();
@@ -2214,20 +2346,20 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
 
           newDeclaration.setFactory(null); // this is not a factory
 
-          CustomDelayedService delayedService = registerDelayedComponent(allInterfaces, newDeclaration);
-
+          CustomDelayedService delayedService = registerDelayedComponent(allInterfaces, 
+									 newDeclaration, 
+									 properties);
           // Activate by getting the service:
           Object obj = delayedService.getService(componentDeclaration.getDeclaringBundle(),
                                                  delayedService.getServiceRegistration());
           delayedService.ungetService(componentDeclaration.getDeclaringBundle(),
                                       delayedService.getServiceRegistration(),
                                       obj);
-
           activeComponents.add(delayedService);
           return delayedService.getComponentContext().getComponentInstance();
 
         } else {
-          ImmediateComponent immediateComponent = new ImmediateComponent(componentDeclaration);
+	  ImmediateComponent immediateComponent = new ImmediateComponent(componentDeclaration, properties);
           activeComponents.add(immediateComponent);
           return immediateComponent.getComponentContext().getComponentInstance();
         }
@@ -2339,4 +2471,37 @@ public class ComponentRuntimeImpl implements BundleListener, ServiceListener {
       boundedReferences.remove(reference);
     }
   }
+
+  /*
+    This class awaits configuration event. Whenever it receives 
+    one of a currently registered component i will attempt to 
+    restart it. Confirming to 112.7 (r4-cmpn).
+
+    One could probably implement this as a component.
+   */
+
+  private class ComponentConfigurationListener 
+    implements ConfigurationListener {
+    
+    public void configurationEvent(ConfigurationEvent event) {
+      
+      for (int i = 0; i < activeComponents.size(); i++) {
+	DeclarativeComponent component = (DeclarativeComponent) activeComponents.get(i);
+	ComponentDeclaration decl = component.getComponentDeclaration();
+	
+	if (decl.getComponentName().equals(event.getPid())) {
+	  disableComponent(component, 
+			   decl.getDeclaringBundle(), 
+			   false);
+
+	  //MO: shouldn't this be like this? With it does not pass the tests.
+	  // if (event.getType() != ConfigurationEvent.CM_DELETED) {
+	  evaluate(component.getComponentDeclaration(), false);
+	    //}
+
+	}
+      }
+    }
+  }
 }
+ 

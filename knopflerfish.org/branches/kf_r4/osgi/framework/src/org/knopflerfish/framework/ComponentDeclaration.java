@@ -42,19 +42,18 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
+import java.net.URL;
 
 import org.osgi.framework.Bundle;
 
 /**
- * @author Martin Berg
+ * @author Martin Berg 
  *
  * This class is used to store information of a specific component
  * It has four helper classes that supply additional information
  * these are:
- * PropertiesInformation
- * PropertyInformation
  * ServiceInformation
  * ReferenceInformation
  */
@@ -79,40 +78,43 @@ public class ComponentDeclaration {
    * serviceInfo
    */
   private String implementation;
-  /** A list containing all properties for the component */
-  private ArrayList propertiesInfo;
-  /** A list containing all property for the component */
-  private ArrayList propertyInfo;
   /** A list containing all services for the component */
   private ArrayList serviceInfo;
   /** A list containing all references for the component */
   private ArrayList referenceInfo;
   /** A list containing all interfaces for the component */
   private ArrayList provideInfo;
+  private Dictionary properties;
 
 
-  ComponentDeclaration(){
-    propertiesInfo = new ArrayList();
-    propertyInfo = new ArrayList();
+  ComponentDeclaration(Bundle bundle ){
     serviceInfo = new ArrayList();
     referenceInfo = new ArrayList();
     provideInfo = new ArrayList();
+    properties = new Hashtable();
+    implementation = null;
+    declaringBundle = (BundleImpl)bundle;
   }
 
 
   public Object getClone()  {
-      ComponentDeclaration clone = new ComponentDeclaration();
+      ComponentDeclaration clone = new ComponentDeclaration(declaringBundle);
       clone.setAutoEnable(isAutoEnable());
       clone.setImmediate(isImmediate());
       clone.setComponentName(getComponentName());
       clone.setDeclaraingBundle(getDeclaringBundle());
       clone.setFactory(getFactory());
       clone.setImplementation(getImplementation());
-      clone.setPropertiesInfo(getPropertiesInfo());
       clone.setReferenceInfo(getReferenceInfo());
       clone.setServiceFactory(isServiceFactory());
       clone.setServiceInfo(getServiceInfo());
       clone.setXmlFile(this.xmlFile);
+
+      for (Enumeration e = properties.keys(); e.hasMoreElements();) {
+	Object key = e.nextElement();
+	clone.addProperty((String)key, properties.get(key));
+      }
+
       return clone;
   }
 
@@ -218,30 +220,7 @@ public class ComponentDeclaration {
   public void setImplementation(String implementation) {
     this.implementation = implementation;
   }
-  /**
-   * @return Returns the propertiesInfo.
-   */
-  public ArrayList getPropertiesInfo() {
-    return propertiesInfo;
-  }
-  /**
-   * @param propertiesInfo The propertiesInfo to set.
-   */
-  public void setPropertiesInfo(ArrayList propertiesInfo) {
-    this.propertiesInfo = propertiesInfo;
-  }
-  /**
-   * @return Returns the propertyInfo.
-   */
-  public ArrayList getPropertyInfo() {
-    return propertyInfo;
-  }
-  /**
-   * @param propertyInfo The propertyInfo to set.
-   */
-  public void setPropertyInfo(ArrayList propertyInfo) {
-    this.propertyInfo = propertyInfo;
-  }
+    
   /**
    * @return Returns the referenceInfo.
    */
@@ -285,6 +264,7 @@ public class ComponentDeclaration {
 
   /**
    * @return Returns an instance of ServiceInformation.
+   * MO: are these used?
    */
   public ComponentServiceInfo getNewServiceIntance(){
     ComponentServiceInfo serv = new ComponentServiceInfo();
@@ -300,18 +280,48 @@ public class ComponentDeclaration {
 
   /**
    * @param ComponentPropertiesInfo The ComponentPropertiesInfo to add.
+   * MO: are these used?
    */
-  public void addPropertiesInfo(ComponentPropertiesInfo propsInfo){
-    propertiesInfo.add(propsInfo);
+  public void addPropertiesInfo(ComponentPropertiesInfo propertyEntry) throws IOException {
+    Properties dict = new Properties();
+    
+    String propertyFile = propertyEntry.getEntry();
+    
+    ComponentActivator.debug("Reading property file:" + propertyFile);
+    String bundleLocation = declaringBundle.getLocation();
+    
+    JarInputStream jis = 
+      new JarInputStream(new URL(bundleLocation).openStream());
+    ZipEntry zipEntry;
+    
+    while ((zipEntry = jis.getNextEntry()) != null && 
+	   !zipEntry.getName().equals(propertyFile)) 
+      /* skip */ ; 
+    
+    if (zipEntry == null) {
+      ComponentActivator.error("Could not find propertyFile entry. Aborting.");
+      throw new IOException("Did not find requested entry " + propertyFile);
+    }
+    
+    dict.load(jis);
+    
+    for (Enumeration e = dict.keys(); e.hasMoreElements(); ) {
+      Object key = e.nextElement();
+      addProperty((String)key, dict.get(key));
+    }
   }
 
   /**
    * @param ComponentPropertyInfo The ComponentPropertyInfo to add.
    */
   public void addPropertyInfo(ComponentPropertyInfo propInfo){
-    propertyInfo.add(propInfo);
+    addProperty(propInfo.getName(), propInfo.getValue());
   }
 
+  public void addProperty(String key, Object val) { // make a bit nicer.
+    properties.put(key, val);
+  }
+  
   /**
    * @param ComponentServiceInfo The ComponentServiceInfo to add.
    */
@@ -335,35 +345,15 @@ public class ComponentDeclaration {
    * @return  Dictionary with properties
    */
   public Dictionary getDeclaredProperties() {
-    Dictionary properties = new Hashtable();
-
-    Iterator propsIterator = propertyInfo.iterator();
-
-    while(propsIterator.hasNext()){
-      ComponentPropertyInfo propertyInfo
-        = (ComponentPropertyInfo) propsIterator.next();
-      properties.put(propertyInfo.getName(), propertyInfo.getValue());
+    // we make a copy of it, since the component initiation may add/alter these
+    Dictionary ret = new Hashtable();
+    
+    for (Enumeration e = properties.keys(); e.hasMoreElements();) {
+      Object key = e.nextElement();
+      ret.put(key, properties.get(key));
     }
-    return mergeProperties(readPropertyFile(), properties);
-  }
-
-  /**
-   * this method overides values in one dictionary with values from
-   * another dictionary.
-   *
-   * @param overideTable the dictionary which overides other simular values
-   * @param mergeTable the dictionary to be modified
-   * @return Dictionary a modified table
-   */
-  public Dictionary mergeProperties(Dictionary overideTable, Dictionary mergeTable){
-    if (overideTable != null) {
-      Enumeration enumeration = overideTable.keys();
-      while(enumeration.hasMoreElements()){
-        String key = (String)enumeration.nextElement();
-        mergeTable.put(key, overideTable.get(key));
-      }
-    }
-    return mergeTable;
+    
+    return ret;
   }
 
   /**
@@ -378,42 +368,5 @@ public class ComponentDeclaration {
    */
   public void setXmlFile(String xml) {
     this.xmlFile = xml;
-  }
-
-  private Dictionary readPropertyFile() {
-    Iterator propsIterator = propertiesInfo.iterator();
-
-    Dictionary returnDictionary = new Hashtable();
-    while(propsIterator.hasNext()){
-      try {
-        /* get the information class */
-        ComponentPropertiesInfo propertyEntry = (ComponentPropertiesInfo)propsIterator.next();
-        /* get the string representing the file */
-        String propertyFile = propertyEntry.getEntry();
-
-        ComponentActivator.debug("Reading property file:" + propertyFile);
-
-        String bundleLocation = declaringBundle.getLocation();
-        String formattedLocation = bundleLocation.substring(5, bundleLocation.length());
-
-        /* get the jar file use the formatted location */
-        JarFile jarFile = new JarFile(formattedLocation);
-        ZipEntry zipEntry = jarFile.getEntry(propertyFile);
-
-        Properties properties = new Properties();
-        properties.load(jarFile.getInputStream(zipEntry));
-
-        Enumeration enumeration = properties.keys();
-
-        while(enumeration.hasMoreElements()){
-          String key = (String)enumeration.nextElement();
-          returnDictionary.put(key,properties.get(key));
-        }
-
-      } catch(Exception e){
-        ComponentActivator.error("error when reading property file", e);
-      }
-    }
-    return returnDictionary;
   }
 }
