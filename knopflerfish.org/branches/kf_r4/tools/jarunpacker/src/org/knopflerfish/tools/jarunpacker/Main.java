@@ -198,15 +198,6 @@ public class Main {
       } catch (Exception ignored) {      }
 
       destDir = new File(destdirname);
-
-      if(!destDir.exists()) {
-	destDir.mkdirs();
-      }
-      
-      if(!destDir.exists()) {
-	exit("failed to create destdir " + destDir.getAbsolutePath(), null);
-      }
-
       call(jarFile, destDir, preHookName);
 
       int nFiles = 0;
@@ -227,7 +218,7 @@ public class Main {
 	try {
 	  JUnpackWizard wizard = new JUnpackWizard(jarFile, destDir, nBytes, nFiles);
 	  ui = wizard;
-
+	  
 	  wizard.start();
 	  
 	  if(!wizard.isFinished()) {
@@ -242,7 +233,17 @@ public class Main {
 	  e.printStackTrace();
 	}
       }
+      
       if(ui == null) {
+
+	if(!destDir.exists()) {
+	  destDir.mkdirs();
+	}
+      
+	if(!destDir.exists()) {
+	  exit("failed to create destdir " + destDir.getAbsolutePath(), null);
+	} 
+
 	ui = new TextUI(jarFile, destDir);
       }
 
