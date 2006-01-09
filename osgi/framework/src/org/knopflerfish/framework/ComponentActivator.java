@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.net.URL;
 import java.util.Dictionary;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
@@ -44,11 +45,11 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.service.component.ComponentConstants;
 
-
 public class ComponentActivator implements BundleActivator {
 
   ComponentRuntimeImpl systemComponentRuntime;
   BundleContext bundleContext;
+
 
   /**
    * this is the main entry for the SCR it will check if any bundles declares
@@ -59,38 +60,7 @@ public class ComponentActivator implements BundleActivator {
    */
   public void start(BundleContext context) throws Exception {
     bundleContext = context;
-    Vector activeComponents = new Vector();
-    Bundle[] bundles = bundleContext.getBundles();
-
-    for(int i=0;i<bundles.length;i++){
-      Dictionary header = (Dictionary) bundles[i].getHeaders();
-      String entry = (String)header.get(ComponentConstants.SERVICE_COMPONENT);
-
-      if (entry != null && bundles[i].getState()== Bundle.ACTIVE) {
-        String[] entries = entry.split(",");
-
-        for (int j=0; j<entries.length; j++) {
-          URL resourceURL = bundles[i].getResource(entries[j]);
-
-          if (resourceURL != null) {
-            ComponentParser parser = new ComponentParser();
-
-            /* parse the document and retrieve a component declaration */
-            ComponentDeclaration componentDeclaration
-              = parser.readXML(resourceURL);
-
-            componentDeclaration.setDeclaraingBundle(bundles[i]);
-            componentDeclaration.setXmlFile(entries[j]);
-            activeComponents.add(componentDeclaration);
-          }
-        }
-      }
-    }
-
-    /* create a new SCR instance pass the already active components to it
-     * they will be evaluated and started if they are satisfied
-     */
-    systemComponentRuntime = new ComponentRuntimeImpl(context, activeComponents);
+    systemComponentRuntime = new ComponentRuntimeImpl(context);
   }
 
   /**
@@ -139,5 +109,4 @@ public class ComponentActivator implements BundleActivator {
       }
     } catch (Throwable ignore) {}
   }
-
 }
