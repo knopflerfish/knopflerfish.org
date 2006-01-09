@@ -124,7 +124,24 @@ class Services {
 	  try {
 	    c = Class.forName(classes[i]);
 	  } catch (ClassNotFoundException e) {
-	    throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+	    // <workaround> see http://intranet/bugzilla/show_bug.cgi?id=22
+	    try {
+	      ClassLoader bcl = bundle.getClassLoader();
+
+	      if (bcl != null) {
+		c = bcl.loadClass(classes[i]);
+	      } else {
+		c = Class.forName(classes[i]);
+	      }
+	    } catch (ClassNotFoundException exp) {
+	      
+	      throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+	      
+	    }
+	   // </workaround>
+
+	   // old: throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+
 	  }
 	}
 	if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
