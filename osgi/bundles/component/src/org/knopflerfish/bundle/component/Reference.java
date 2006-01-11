@@ -46,6 +46,8 @@ public class Reference extends ServiceTracker {
   private boolean multiple;
   private boolean dynamic;
 
+  private Object bound;
+  
   public Reference(String refName, Filter filter,
                    boolean optional, boolean multiple, boolean dynamic,
                    String bind, String unbind,
@@ -58,20 +60,56 @@ public class Reference extends ServiceTracker {
   }
 
   public Object addingService(ServiceReference ref, Object service) {
-    return super.addingService(ref);
-
+    boolean wasSatisfied = isSatisfied();
+    if (bound != null && multiple) {
+      // TODO: bind
+    }
+    Object obj = super.addingService(ref);
+    if (!wasSatisfied && isSatisfied()) {
+      // TODO: Report change
+    }
+    return obj;
   }
 
   /* public void modifiedService() */
 
   public void removedService(ServiceReference ref, Object service) {
+    boolean wasSatisfied = isSatisfied();
+    if (bound != null) {
+      // TODO: unbind
+    }
     super.removedService(ref, service);
     /* try to remove this service,
        possibly disabling the component */
+    if (wasSatisfied && !isSatisfied()) {
+      // TODO: Report change
+    }
   }
 
   public boolean isSatisfied() {
     return getTrackingCount() > 0 || optional;
+  }
+
+  public void bind() {
+    if (multiple) {
+      // TODO: bind all from getServiceReferences()/getServices()
+      // Is the order the same in getServiceReferences() and getServices()?
+      // TODO: set bound
+    } else { // unary
+      bound = getServiceReference(); // TODO: or corresponding object?
+      // TODO: bind bound or corresponding object
+    }
+  }
+
+  
+  public void unbind() {
+    if (bound == null) return;
+    if (multiple) {
+      // TODO: unbind all from getServiceReferences()/getServices() 
+    } else {
+      // TODO: unbind bound
+    }
+    bound = null;
   }
 
 }
