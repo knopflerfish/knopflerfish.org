@@ -105,7 +105,21 @@ public class Config {
   }
 
   public Dictionary getProperties() {
-    return properties;
+
+    // we make a copy of the all the properties
+    // since different components might have overridden
+    // different entries.
+    Hashtable copy = new Hashtable();
+
+    for (Enumeration e = properties.keys();
+	 e.hasMoreElements(); ) {
+      
+      Object key = e.nextElement();
+      copy.put(key, properties.get(key));
+
+    }
+
+    return copy;
   }
 
   public String getName() {
