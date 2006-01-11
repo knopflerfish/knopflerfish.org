@@ -603,8 +603,9 @@ public class Parser {
     String target = null;
     String bind = null;
     String unbind = null;
-    int cardinality = Reference.ONE_TO_ONE; // default value
-    int policy = Reference.STATIC_POLICY; // default value
+    boolean optional = false; // default value
+    boolean multiple = false; // default value
+    boolean dynamic = false; // default value
 
     for (int i = 0; i < parser.getAttributeCount(); i++) {
 
@@ -628,28 +629,32 @@ public class Parser {
       } else if (parser.getAttributeName(i).equals("cardinality")) {
         String val = parser.getAttributeValue(i);
 
-        if ("1..1".equals(val))
-          cardinality = Reference.ONE_TO_ONE;
-        else if ("0..1".equals(val))
-          cardinality = Reference.ZERO_TO_ONE;
-        else if ("1..N".equals(val))
-          cardinality = Reference.ONE_TO_MANY;
-        else if ("0..N".equals(val))
-          cardinality = Reference.ZERO_TO_MANY;
-        else
+        if ("1..1".equals(val)) {
+          multiple = optional = false;
+        } else if ("0..1".equals(val)) {
+          optional = true;
+          multiple = false;
+        } else if ("1..N".equals(val)) {
+          optional = false;
+          multiple = true;
+        } else if ("0..N".equals(val)) {
+          multiple = optional = true;
+        } else {
           invalidValue(parser,
                        new String[]{"1..1", "0..1",
                                     "1..N", "0..N"}, i);
+        }
 
       } else if (parser.getAttributeName(i).equals("policy")) {
         String val = parser.getAttributeValue(i);
 
-        if ("static".equals(val))
-          policy = Reference.STATIC_POLICY;
-        else if ("dynamic".equals(val))
-          policy = Reference.DYNAMIC_POLICY;
-        else
+        if ("static".equals(val)) {
+          dynamic = false;
+        } else if ("dynamic".equals(val)) {
+          dynamic = true;
+        } else {
           invalidValue(parser, new String[]{"static", "dynamic"}, i);
+        }
 
       } else if (parser.getAttributeName(i).equals("target")) {
         target = parser.getAttributeValue(i);
@@ -688,7 +693,7 @@ public class Parser {
       }
 
       Reference ref = new Reference(name, filter,
-                                    cardinality, policy,
+                                    optional, multiple, dynamic,
                                     bind, unbind, bc);
 
       compConf.addReference(ref);

@@ -42,46 +42,36 @@ import org.osgi.util.tracker.ServiceTracker;
 
 public class Reference extends ServiceTracker {
 
-  public static final int ONE_TO_ONE   = 0;
-  public static final int ZERO_TO_ONE  = 1;
-  public static final int ONE_TO_MANY  = 2;
-  public static final int ZERO_TO_MANY = 4;
-
-  public static final int STATIC_POLICY  = 0;
-  public static final int DYNAMIC_POLICY = 1;
-
-  private int cardinality;
-  private int policy;
+  private boolean optional;
+  private boolean multiple;
+  private boolean dynamic;
 
   public Reference(String refName, Filter filter,
-       int cardinality, int policy,
-       String bind, String unbind,
-       BundleContext bc) {
+                   boolean optional, boolean multiple, boolean dynamic,
+                   String bind, String unbind,
+                   BundleContext bc) {
 
     super(bc, filter, null);
-    this.cardinality = cardinality;
-    this.policy = policy;
+    this.optional = optional;
+    this.multiple = multiple;
+    this.dynamic = dynamic;
   }
 
-  public Object addingService(ServiceReference ref,
-            Object service) {
+  public Object addingService(ServiceReference ref, Object service) {
     return super.addingService(ref);
 
   }
 
   /* public void modifiedService() */
 
-  public void removedService(ServiceReference ref,
-           Object service) {
+  public void removedService(ServiceReference ref, Object service) {
     super.removedService(ref, service);
     /* try to remove this service,
        possibly disabling the component */
   }
 
   public boolean isSatisfied() {
-    return getTrackingCount() > 0 ||
-      cardinality == ZERO_TO_ONE ||
-      cardinality == ZERO_TO_MANY;
+    return getTrackingCount() > 0 || optional;
   }
 
 }
