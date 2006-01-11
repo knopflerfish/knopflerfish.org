@@ -52,7 +52,7 @@ public class Activator implements BundleActivator{
   }
 
   public void stop(BundleContext context) throws Exception {
-    //systemComponentRuntime.shutdown();
+    systemComponentRuntime.shutdown();
   }
 
 

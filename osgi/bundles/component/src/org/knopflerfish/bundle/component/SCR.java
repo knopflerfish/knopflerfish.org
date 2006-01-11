@@ -33,6 +33,12 @@
  */
 package org.knopflerfish.bundle.component;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.Iterator;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -47,20 +53,27 @@ public class SCR implements BundleListener {
 
   private BundleContext bc;
 
+  private Hashtable bundleConfigs = new Hashtable();
+
+
   public SCR(BundleContext bc) {
     this.bc = bc;
-
     Bundle[] bundles = bc.getBundles();
-
     bc.addBundleListener(this);
-
     for(int i=0;i<bundles.length;i++){
       bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
     }
   }
 
+  public void shutdown() {
+    for (Iterator iter = bundleConfigs.keySet().iterator(); iter.hasNext();) {
+      bundleChanged(new BundleEvent(BundleEvent.STOPPED, (Bundle) iter.next()));
+    }
+  }
+
   public void bundleChanged(BundleEvent event) {
-    String manifestEntry = (String) event.getBundle().getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
+    Bundle bundle = event.getBundle();
+    String manifestEntry = (String) bundle.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
     if (manifestEntry == null) {
       return;
     }
@@ -68,9 +81,32 @@ public class SCR implements BundleListener {
     switch (event.getType()) {
     case BundleEvent.STARTED:
       // Create components
+      Collection addedConfigs = new ArrayList();
+      String[] manifestEntries = manifestEntry.split(",");
+      for (int i = 0; i < manifestEntries.length; i++) {
+        URL resourceURL = bundle.getResource(manifestEntries[i]);
+        if (resourceURL == null) {
+          Activator.log.error("Resource not found:" + manifestEntries[i]);
+          continue;
+        }
+        try {
+          addedConfigs.addAll(Parser.readXML(bundle, resourceURL));
+        } catch (Throwable e) {
+          Activator.log.error("Failed to parse " + resourceURL);
+        }
+      }
+      bundleConfigs.put(bundle, addedConfigs);
+      // TODO: anything else needed?
       break;
     case BundleEvent.STOPPED:
-      // Create components
+      // Kill components
+      Collection removedConfigs = (Collection) bundleConfigs.remove(bundle);
+      if (removedConfigs != null) {
+        for (Iterator iter = removedConfigs.iterator(); iter.hasNext();) {
+          Config config = (Config) iter.next();
+          // TODO: kill config
+        }
+      }
       break;
     }
   }
