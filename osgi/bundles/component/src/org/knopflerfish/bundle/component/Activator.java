@@ -33,24 +33,17 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.net.URL;
-import java.util.Dictionary;
-import java.util.Vector;
-
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentConstants;
-
 
 public class Activator implements BundleActivator{
 
-  //SystemComponentRuntime systemComponentRuntime;
+  SystemComponentRuntime systemComponentRuntime;
   BundleContext bc;
 
   public void start(BundleContext bc) throws Exception {
     this.bc = bc;
-    //systemComponentRuntime = new SystemComponentRuntime(bc);
+    systemComponentRuntime = new SystemComponentRuntime(bc);
   }
 
   public void stop(BundleContext context) throws Exception {
