@@ -72,6 +72,20 @@ public class Config {
     services   = new ArrayList();
   }
 
+  public void enable() {
+    for (Iterator iter = references.iterator(); iter.hasNext();) {
+      ((Reference) iter.next()).open();
+    }
+    //TODO
+  }
+
+  public void disable() {
+    for (Iterator iter = references.iterator(); iter.hasNext();) {
+      ((Reference) iter.next()).close();
+    }
+    //TODO
+  }
+
   /*
   public Component createComponent() {
     Component retval;
@@ -111,9 +125,8 @@ public class Config {
     // different entries.
     Hashtable copy = new Hashtable();
 
-    for (Enumeration e = properties.keys();
-	 e.hasMoreElements(); ) {
-      
+    for (Enumeration e = properties.keys(); e.hasMoreElements(); ) {
+
       Object key = e.nextElement();
       copy.put(key, properties.get(key));
 
@@ -127,6 +140,11 @@ public class Config {
   }
 
   public boolean isEnabled() {
+    return enabled;
+  }
+
+  public boolean isAutoEnabled() {
+    //TODO?
     return enabled;
   }
 
