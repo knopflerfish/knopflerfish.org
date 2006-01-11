@@ -86,7 +86,7 @@ public class SCR implements BundleListener {
       for (int i = 0; i < manifestEntries.length; i++) {
         URL resourceURL = bundle.getResource(manifestEntries[i]);
         if (resourceURL == null) {
-          Activator.log.error("Resource not found:" + manifestEntries[i]);
+          Activator.log.error("Resource not found: " + manifestEntries[i]);
           continue;
         }
         try {
@@ -96,7 +96,12 @@ public class SCR implements BundleListener {
         }
       }
       bundleConfigs.put(bundle, addedConfigs);
-      // TODO: anything else needed?
+      for (Iterator iter = addedConfigs.iterator(); iter.hasNext();) {
+        Config config = (Config) iter.next();
+        if (config.isAutoEnabled()) {
+          config.enable();
+        }
+      }
       break;
     case BundleEvent.STOPPED:
       // Kill components
@@ -104,7 +109,7 @@ public class SCR implements BundleListener {
       if (removedConfigs != null) {
         for (Iterator iter = removedConfigs.iterator(); iter.hasNext();) {
           Config config = (Config) iter.next();
-          // TODO: kill config
+          config.disable();
         }
       }
       break;
