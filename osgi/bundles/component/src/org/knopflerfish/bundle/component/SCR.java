@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,53 +31,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.component;
 
-
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
+import org.osgi.service.component.ComponentFactory;
+import org.osgi.service.component.ComponentInstance;
 
-import org.osgi.service.log.LogService;
+public class SCR implements BundleListener {
 
-import org.osgi.util.tracker.ServiceTracker;
-
-public class SCR{
-
-  private static ServiceTracker logTracker;
-
+  private BundleContext bc;
 
   public SCR(BundleContext bc) {
-    logTracker = new ServiceTracker(bc,
-				    LogService.class.getName(), 
-				    null);
-    logTracker.open();
+    this.bc = bc;
 
-    
+    Bundle[] bundles = bc.getBundles();
+
+    bc.addBundleListener(this);
+
+    for(int i=0;i<bundles.length;i++){
+      bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
+    }
   }
 
-  public static void log(int level, String str) {
-    log(level, str, null);
-  }
-
-  public static void log(int level, String str, 
-			 Throwable throwable) {
-    
-    if (logTracker == null) {
-      // todo: this should be safe to remove.. 
-      // (was using it for testing the parser)
-      return ;
+  public void bundleChanged(BundleEvent event) {
+    String manifestEntry = (String) event.getBundle().getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
+    if (manifestEntry == null) {
+      return;
     }
 
-    LogService service = (LogService)logTracker.getService();
-
-    if (service == null)
-      return ;
-
-    service.log(level, str, throwable);
+    switch (event.getType()) {
+    case BundleEvent.STARTED:
+      // Create components
+      break;
+    case BundleEvent.STOPPED:
+      // Create components
+      break;
+    }
   }
 
-  
-
 }
+
