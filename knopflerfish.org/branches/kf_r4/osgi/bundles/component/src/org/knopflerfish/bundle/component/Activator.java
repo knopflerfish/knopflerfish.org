@@ -36,14 +36,19 @@ package org.knopflerfish.bundle.component;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import org.knopflerfish.service.log.LogRef;
+
 public class Activator implements BundleActivator{
 
-  SystemComponentRuntime systemComponentRuntime;
+  static LogRef log;
+
+  SCR systemComponentRuntime;
   BundleContext bc;
 
   public void start(BundleContext bc) throws Exception {
     this.bc = bc;
-    systemComponentRuntime = new SystemComponentRuntime(bc);
+    log = new LogRef(bc);
+    systemComponentRuntime = new SCR(bc);
   }
 
   public void stop(BundleContext context) throws Exception {
