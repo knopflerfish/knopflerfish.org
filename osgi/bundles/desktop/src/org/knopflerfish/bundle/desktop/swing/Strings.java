@@ -144,7 +144,7 @@ public class Strings {
 	  put("str_about", "About");
 	  put("str_abouttext", 
 	      "Knopflerfish OSGi desktop, version $(1)\n" + 
-	      "(c) 2004 Knopflerfish.\n\n" + 
+	      "(c) 2006 Knopflerfish.\n\n" + 
 	      "See\n" + 
 	      "  http://www.knopflerfish.org\n" + 
 	      "for more information" + 
