@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import java.util.zip.ZipEntry;
 import org.osgi.framework.Bundle;
 
 public class Config {
-    
+
   private String name;
   private String implementation;
   private String factory;
@@ -61,12 +61,12 @@ public class Config {
   private ArrayList references;
   private ArrayList services;
   private ArrayList components;
-  
+
   private Bundle bundle;
-  
+
   public Config(Bundle bundle) {
     this.bundle = bundle;
-    
+
     properties = new Hashtable();
     references = new ArrayList();
     services   = new ArrayList();
@@ -82,19 +82,19 @@ public class Config {
     } else {
       retval = new DelayedComponent(this);
     }
-    
+
     components.add(retval);
-  } 
+  }
   */
   public boolean isSatisfied() {
 
     for (int i = 0; i < references.size(); i++) {
       Reference ref = (Reference)references.get(i);
-      
+
       if (!ref.isSatisfied())
-	return false;
+  return false;
     }
-    
+
     return true;
   }
 
@@ -103,7 +103,7 @@ public class Config {
     services.toArray(ret);
     return ret;
   }
-  
+
   public Dictionary getProperties() {
     return properties;
   }
@@ -131,12 +131,12 @@ public class Config {
   public String getFactory() {
     return factory;
   }
-  
+
   /* this are only for the parser. */
   public void setProperty(String key, Object value) {
     properties.put(key, value);
   }
-  
+
   public void addReference(Reference ref) {
     references.add(ref);
   }
@@ -148,7 +148,7 @@ public class Config {
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
-  
+
   public void setImplementation(String impl) {
     implementation = impl;
   }
