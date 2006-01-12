@@ -134,13 +134,8 @@ public abstract class Component {
     }
     
     // 3. Bind the services. This should be sent to all the references.
-    try {
-      config.bindReferences(instance);
-      
-    } catch (Exception e) {
-      // log errors.
-    }
-
+    config.bindReferences(instance);
+    
     try {
 
       Method method = klass.getMethod("activate", 

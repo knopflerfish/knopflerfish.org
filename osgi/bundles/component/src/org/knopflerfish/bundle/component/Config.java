@@ -90,13 +90,22 @@ public class Config {
     //TODO
   }
 
-  /*
-  public Component createComponent() {
-    ...
 
-    components.add(retval);
+  public Component createComponent() {
+    Component component;
+
+    if (isImmediate() || 
+	getServices() == null) {
+      
+      component = new ImmediateComponent(this, null);
+      components.add(component);
+      return component;
+    } else {
+      // todo add more here.
+      return null;
+    }
   }
-  */
+
   
 
   public boolean isSatisfied() {
@@ -140,6 +149,9 @@ public class Config {
   }
 
   public String[] getServices() {
+    if (services.size() == 0)
+      return null;
+    
     String[] ret = new String[services.size()];
     services.toArray(ret);
     return ret;

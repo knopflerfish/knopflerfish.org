@@ -13,7 +13,6 @@
  */
 package org.knopflerfish.bundle.component;
 
-
 import java.util.Dictionary;
 
 public class ImmediateComponent extends Component {
@@ -21,7 +20,6 @@ public class ImmediateComponent extends Component {
   ImmediateComponent(Config config, Dictionary overriddenProps) {
     super(config, overriddenProps);
   }
-
 
   public void satisfied() {
       registerService();
