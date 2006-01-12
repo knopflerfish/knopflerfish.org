@@ -211,6 +211,19 @@ public class Config {
     return factory;
   }
 
+  public Reference getReference(String name) {
+
+    for (int i = 0; i < references.size(); i++) {
+      Reference ref = (Reference)references.get(i);
+      
+      if (name.equals(ref.getName())) {
+	return ref;
+      }
+    }
+
+    return null;
+  }
+
   /* this are only for the parser. */
   public void setProperty(String key, Object value) {
     properties.put(key, value);

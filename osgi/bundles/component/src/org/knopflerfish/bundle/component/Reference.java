@@ -56,6 +56,7 @@ public class Reference extends ServiceTracker {
 
   private String bindMethodName;
   private String unbindMethodName;
+  private String refName;
   private BundleContext bc;
   
   private ServiceReference bound;
@@ -69,6 +70,7 @@ public class Reference extends ServiceTracker {
                    BundleContext bc) {
 
     super(bc, filter, null);
+    this.refName = refName;
     this.optional = optional;
     this.multiple = multiple;
     this.dynamic = dynamic;
@@ -203,4 +205,7 @@ public class Reference extends ServiceTracker {
     Activator.log.error("Could not find bind/unbind method \"" + methodName + "\"");
   }
 
+  public String getName() {
+    return refName;
+  }
 }
