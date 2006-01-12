@@ -42,14 +42,14 @@ import java.util.Iterator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
+import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
 
-public class SCR implements BundleListener {
+public class SCR implements SynchronousBundleListener {
 
   private BundleContext bc;
 
@@ -69,7 +69,7 @@ public class SCR implements BundleListener {
 
   public void shutdown() {
     for (Iterator iter = bundleConfigs.keySet().iterator(); iter.hasNext();) {
-      bundleChanged(new BundleEvent(BundleEvent.STOPPED, (Bundle) iter.next()));
+      bundleChanged(new BundleEvent(BundleEvent.STOPPING, (Bundle) iter.next()));
     }
   }
 
@@ -105,8 +105,10 @@ public class SCR implements BundleListener {
         }
       }
       break;
-    case BundleEvent.STOPPED:
-      // Kill components
+    case BundleEvent.STOPPING:
+      if (Activator.log.doDebug()) {
+        Activator.log.debug("Bundle is STOPPING. Disable components.");
+      }
       Collection removedConfigs = (Collection) bundleConfigs.remove(bundle);
       if (removedConfigs != null) {
         for (Iterator iter = removedConfigs.iterator(); iter.hasNext();) {
