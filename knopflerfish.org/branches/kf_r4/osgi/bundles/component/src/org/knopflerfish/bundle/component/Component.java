@@ -285,12 +285,24 @@ public abstract class Component implements ServiceFactory {
       return properties; // TODO: wrap inside an immutable-dictionary class.
     }
     
+
+    
     public Object locateService(String name) {
-      throw new RuntimeException("not yet implemented");      
+      /* According to the specification this method 
+	 throws an ComponentException if 
+	 the SCR catches a run time expection while 
+	 activating the bound service.
+	 When can this happen?
+
+      */  
+
+      Reference ref = config.getReference(name);
+      return ref.getServiceReference();
     }
     
     public Object[] locateServices(String name) {
-      throw new RuntimeException("not yet implemented");
+      Reference ref = config.getReference(name);
+      return ref.getServiceReferences();
     }
    
     
