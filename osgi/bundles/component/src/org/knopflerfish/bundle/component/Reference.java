@@ -190,9 +190,11 @@ public class Reference extends ServiceTracker {
                 return ;
               }
             } catch (IllegalAccessException e) {
-              Activator.log.error("Could not access the method: " + methodName + " got " + e);
+              Activator.log.error("Declarative Services could not access the method \"" + methodName + 
+				  "\" used by component \"" + config.getName() + "\". Got exception.", e);
             } catch (InvocationTargetException e) {
-              Activator.log.error("Could not invoke the method: " + methodName + " got " + e);
+              Activator.log.error("Declarative Services got exception while invoking \"" + methodName 
+				  + "\" used by component \"" + config.getName() + "\". Got exception.", e);
             }
           }
         }
@@ -202,7 +204,8 @@ public class Reference extends ServiceTracker {
     }
     
     // did not find any such method.
-    Activator.log.error("Could not find bind/unbind method \"" + methodName + "\"");
+    Activator.log.error("Declarative Services could not find bind/unbind method \"" + methodName + 
+			"\" in class \"" + config.getImplementation() + "\" used by component " + config.getName() + "\".");
   }
 
   public String getName() {
