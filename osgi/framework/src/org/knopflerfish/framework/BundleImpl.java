@@ -1327,7 +1327,7 @@ public String getSymbolicName() {
 
 }
 
-BundleContext getBundleContext() {
+protected BundleContext getBundleContext() {
   return bundleContext;
 }
 
