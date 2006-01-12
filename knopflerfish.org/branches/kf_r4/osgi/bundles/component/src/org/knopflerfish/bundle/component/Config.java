@@ -55,6 +55,7 @@ public class Config {
   private String factory;
 
   boolean enabled;
+  boolean autoEnabled;
   boolean serviceFactory;
   boolean immediate;
 
@@ -78,6 +79,8 @@ public class Config {
       ((Reference) iter.next()).open();
     }
     //TODO
+    enabled = true;
+    referenceSatisfied();
   }
 
   public void disable() {
@@ -97,26 +100,42 @@ public class Config {
   
 
   public boolean isSatisfied() {
-
+    if (!isEnabled()) return false;
+    
     for (int i = 0; i < references.size(); i++) {
       Reference ref = (Reference)references.get(i);
 
-      if (!ref.isSatisfied())
-        return false;
+      if (!ref.isSatisfied()) return false;
     }
 
     return true;
   }
 
+  public void referenceSatisfied() {
+    if (isSatisfied()) {
+      for (Iterator iter = components.iterator(); iter.hasNext();) {
+        ((Component) iter.next()).satisfied();
+      }
+    }
+  }
+  
+  public void referenceUnsatisfied() {
+    if (!isSatisfied()) {
+      for (Iterator iter = components.iterator(); iter.hasNext();) {
+        ((Component) iter.next()).unsatisfied();
+      }
+    }
+  }
+  
   public void bindReferences(Object instance) {
     for (int i = 0; i < references.size(); i++) {
-      //((Reference)references.get(i)).bind(context, instance);
+      ((Reference) references.get(i)).bind(instance);
     }
   }
 
   public void unbindReferences(Object instance) {
     for (int i = references.size(); i > 0; --i) {
-      //((Reference)references.get(i)).unbind(context, instance);
+      ((Reference) references.get(i)).unbind(instance);
     }
   }
 
@@ -156,8 +175,7 @@ public class Config {
   }
 
   public boolean isAutoEnabled() {
-    //TODO?
-    return enabled;
+    return autoEnabled;
   }
 
   public String getImplementation() {
@@ -182,6 +200,7 @@ public class Config {
   }
 
   public void addReference(Reference ref) {
+    ref.setConfig(this);
     references.add(ref);
   }
 
@@ -189,8 +208,8 @@ public class Config {
     services.add(interfaceName);
   }
 
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
+  public void setAutoEnabled(boolean autoEnabled) {
+    this.autoEnabled = autoEnabled;
   }
 
   public void setImplementation(String impl) {

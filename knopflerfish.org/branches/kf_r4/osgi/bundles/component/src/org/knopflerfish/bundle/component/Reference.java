@@ -31,7 +31,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- package org.knopflerfish.bundle.component;
+package org.knopflerfish.bundle.component;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -42,48 +49,66 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class Reference extends ServiceTracker {
-
+  
   private boolean optional;
   private boolean multiple;
   private boolean dynamic;
 
-  private Object bound;
+  private String bindMethodName;
+  private String unbindMethodName;
+  private BundleContext bc;
+  
+  private ServiceReference bound;
+  private Collection instances = new ArrayList();
+  
+  private Config config;
   
   public Reference(String refName, Filter filter,
                    boolean optional, boolean multiple, boolean dynamic,
-                   String bind, String unbind,
+                   String bindMethodName, String unbindMethodName,
                    BundleContext bc) {
 
     super(bc, filter, null);
     this.optional = optional;
     this.multiple = multiple;
     this.dynamic = dynamic;
+    this.bindMethodName = bindMethodName;
+    this.unbindMethodName = unbindMethodName;
+    this.bc = bc;
   }
 
+  public void setConfig(Config config) {
+    this.config = config;
+  }
+  
   public Object addingService(ServiceReference ref, Object service) {
     boolean wasSatisfied = isSatisfied();
     if (bound != null && multiple) {
-      // TODO: bind
+      for (Iterator iter = instances.iterator(); iter.hasNext();) {
+        invokeEventMethod(iter.next(), bindMethodName, ref);
+      }
     }
     Object obj = super.addingService(ref);
-    if (!wasSatisfied && isSatisfied()) {
-      // TODO: Report change
+    if (!wasSatisfied && isSatisfied() && config != null) {
+      config.referenceSatisfied();
     }
     return obj;
   }
 
-  /* public void modifiedService() */
+  /* TODO? public void modifiedService() */
 
   public void removedService(ServiceReference ref, Object service) {
     boolean wasSatisfied = isSatisfied();
     if (bound != null) {
-      // TODO: unbind
+      for (Iterator iter = instances.iterator(); iter.hasNext();) {
+        invokeEventMethod(iter.next(), unbindMethodName, ref);
+      }
     }
     super.removedService(ref, service);
     /* try to remove this service,
        possibly disabling the component */
-    if (wasSatisfied && !isSatisfied()) {
-      // TODO: Report change
+    if (wasSatisfied && !isSatisfied() && config != null) {
+      config.referenceUnsatisfied();
     }
   }
 
@@ -91,26 +116,91 @@ public class Reference extends ServiceTracker {
     return getTrackingCount() > 0 || optional;
   }
 
-  public void bind() {
+  public void bind(Object instance) {
+    instances.add(instance);
     if (multiple) {
-      // TODO: bind all from getServiceReferences()/getServices()
-      // Is the order the same in getServiceReferences() and getServices()?
-      // TODO: set bound
+      ServiceReference[] serviceReferences = getServiceReferences();
+      for (int i=0; i<serviceReferences.length; i++) {
+        bound = serviceReferences[i];
+        invokeEventMethod(instance, bindMethodName, serviceReferences[i]);
+      }
     } else { // unary
-      bound = getServiceReference(); // TODO: or corresponding object?
-      // TODO: bind bound or corresponding object
+      bound = getServiceReference();
+      invokeEventMethod(instance, bindMethodName, bound);
     }
   }
 
   
-  public void unbind() {
+  public void unbind(Object instance) {
+    instances.remove(instance);
     if (bound == null) return;
     if (multiple) {
-      // TODO: unbind all from getServiceReferences()/getServices() 
-    } else {
-      // TODO: unbind bound
+      ServiceReference[] serviceReferences = getServiceReferences();
+      for (int i=0; i<serviceReferences.length; i++) {
+        invokeEventMethod(instance, unbindMethodName, serviceReferences[i]);
+      }
+    } else { // unary
+      invokeEventMethod(instance, unbindMethodName, bound);
     }
     bound = null;
+  }
+
+  /**
+   * Will search for the <methodName>(<type>) in the given class
+   * by first looking in class after 
+   * <methodName>(ServiceReference) then
+   * <methodName>(Interface of Service).
+   * 
+   * If no method is found it will then continue to the super class.
+   */
+  private void invokeEventMethod(Object instance,
+                                 String methodName, 
+                                 ServiceReference ref) {
+    Class instanceClass = instance.getClass();
+    Method method = null;
+    Object arg = null;
+
+    Object service = bc.getService(ref); 
+    // service can be null if the service is unregistering.
+
+    Class serviceClass = null;
+      
+    while (instanceClass != null && method == null) {
+      Method[] ms = instanceClass.getDeclaredMethods(); 
+
+      // searches this class for a suitable method.
+      for (int i = 0; i < ms.length; i++) {
+        if (methodName.equals(ms[i].getName()) &&
+            (Modifier.isProtected(ms[i].getModifiers()) ||
+             Modifier.isPublic(ms[i].getModifiers()))) {
+      
+          Class[] parms = ms[i].getParameterTypes();
+      
+          if (parms.length == 1) {
+            try {
+              if (ServiceReference.class.equals(parms[0])) {
+                ms[i].setAccessible(true);
+                ms[i].invoke(instance, new Object[] { ref });
+                return ;
+              } else if (parms[0].isAssignableFrom(serviceClass)) {
+                ms[i].setAccessible(true);
+                ms[i].invoke(instance, new Object[] { service });
+                return ;
+              }
+            } catch (IllegalAccessException e) {
+              Activator.log.error("Could not access the method: " + methodName + " got " + e);
+            } catch (InvocationTargetException e) {
+              Activator.log.error("Could not invoke the method: " + methodName + " got " + e);
+            }
+          }
+        }
+      }
+      
+      instanceClass = instanceClass.getSuperclass();
+    }
+    
+    // did not find any such method.
+    Activator.log.error("Could not find bind/unbind method \"" + methodName + "\"");
   }
 
 }
