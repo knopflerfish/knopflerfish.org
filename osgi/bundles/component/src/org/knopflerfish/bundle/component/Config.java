@@ -46,6 +46,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import org.osgi.framework.Bundle;
+import org.osgi.service.component.ComponentContext;
 
 public class Config {
 
@@ -88,28 +89,35 @@ public class Config {
 
   /*
   public Component createComponent() {
-    Component retval;
-    if (immediate) {
-      retval = new ImmediateComponent(this);
-    } else if (serviceFactory) {
-      retval = new FactoryComponent(this);
-    } else {
-      retval = new DelayedComponent(this);
-    }
+    ...
 
     components.add(retval);
   }
   */
+  
+
   public boolean isSatisfied() {
 
     for (int i = 0; i < references.size(); i++) {
       Reference ref = (Reference)references.get(i);
 
       if (!ref.isSatisfied())
-  return false;
+        return false;
     }
 
     return true;
+  }
+
+  public void bindReferences(Object instance) {
+    for (int i = 0; i < references.size(); i++) {
+      //((Reference)references.get(i)).bind(context, instance);
+    }
+  }
+
+  public void unbindReferences(Object instance) {
+    for (int i = references.size(); i > 0; --i) {
+      //((Reference)references.get(i)).unbind(context, instance);
+    }
   }
 
   public String[] getServices() {
@@ -133,6 +141,10 @@ public class Config {
     }
 
     return copy;
+  }
+
+  public Bundle getBundle() {
+    return bundle;
   }
 
   public String getName() {
