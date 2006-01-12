@@ -87,7 +87,8 @@ public class Config {
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).close();
     }
-    //TODO
+    enabled = false;
+    referenceUnsatisfied();
   }
 
 

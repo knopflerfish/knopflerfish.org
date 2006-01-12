@@ -26,8 +26,8 @@ public class ImmediateComponent extends Component {
   }
 
   public void satisfied() {
-      registerService();
-      activate();
+    registerService();
+    activate();
   }
 
   public void unsatisfied() {

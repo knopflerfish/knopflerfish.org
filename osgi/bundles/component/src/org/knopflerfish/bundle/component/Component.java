@@ -186,18 +186,20 @@ public abstract class Component implements ServiceFactory {
   public void deactivate() {
     // this method is described on page 432 r4
     
-    if (!isActivated())
-      return ;
+    if (!isActivated()) return ;
     
     try {
       Class klass = instance.getClass();
-      Method method = klass.getMethod("deactivate", 
-                                      new Class[]{ ComponentContext.class });
-      
+      Method method = klass.getDeclaredMethod("deactivate", 
+                                              new Class[]{ ComponentContext.class });
+      method.setAccessible(true);      
       method.invoke(instance, new Object[]{ componentContext });
 
     } catch (NoSuchMethodException e) {
-      // this instance does not have an deactivate method, (which is ok)
+      // this instance does not have a deactivate method, (which is ok)
+      if (Activator.log.doDebug()) {
+        Activator.log.debug("this instance does not have a deactivate method, (which is ok)");
+      }
     } catch (IllegalAccessException e) {
       Activator.log.error("Declarative Services could not invoke \"deactivate\"" + 
                           " method in component \""+ config.getName() + 
@@ -247,13 +249,13 @@ public abstract class Component implements ServiceFactory {
   
 
   public Object getService(Bundle usingBundle, 
-			   ServiceRegistration reg) {
+                           ServiceRegistration reg) {
     this.usingBundle = usingBundle;
     return getInstance();
   }
 
   public void ungetService(Bundle usingBundle, 
-			   ServiceRegistration reg, Object obj) {
+                           ServiceRegistration reg, Object obj) {
     this.usingBundle = null;
   }
 
@@ -316,29 +318,29 @@ public abstract class Component implements ServiceFactory {
 
     public ServiceReference getServiceReference() {
       /* 
-	 We need to do it like this since this function might
-	 be called before *we* even know what it is. However,
-	 this value is know by the framework, hence we can 
-	 actually retrieve it.
+         We need to do it like this since this function might
+         be called before *we* even know what it is. However,
+         this value is know by the framework, hence we can 
+         actually retrieve it.
       */
       
       if (serviceRegistration == null) {
 
-	Object thisComponentId = getProperties().get(ComponentConstants.COMPONENT_ID);
-	try {
-	  ServiceReference[] refs = 
-	    bundleContext.getServiceReferences(config.getImplementation(),
-					       "(" + ComponentConstants.COMPONENT_ID + "=" + thisComponentId + ")"); 
-	  if (refs == null) {
-	    Activator.log.debug("This is a bug. Variable refs should not be null.");
-	  }
+        Object thisComponentId = getProperties().get(ComponentConstants.COMPONENT_ID);
+        try {
+          ServiceReference[] refs = 
+            bundleContext.getServiceReferences(config.getImplementation(),
+                                               "(" + ComponentConstants.COMPONENT_ID + "=" + thisComponentId + ")"); 
+          if (refs == null) {
+            Activator.log.debug("This is a bug. Variable refs should not be null.");
+          }
 
-	  return refs[0];
-	    
-	} catch (Exception e) {
-	  Activator.log.debug("This is a bug.", e);
-	  return null;
-	}
+          return refs[0];
+            
+        } catch (Exception e) {
+          Activator.log.debug("This is a bug.", e);
+          return null;
+        }
       } else {
         return serviceRegistration.getReference();
       }
