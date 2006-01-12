@@ -96,7 +96,7 @@ public abstract class Component {
 
       Bundle bundle = config.getBundle();       
       ClassLoader loader = Backdoor.getClassLoader(bundle); 
-      loader.loadClass(config.getImplementation());
+      klass = loader.loadClass(config.getImplementation());
 
     } catch (ClassNotFoundException e) {
       if (Activator.log.doError())
@@ -134,7 +134,7 @@ public abstract class Component {
                             config.getImplementation() + 
                             " threw exception.", e);
       return false;
-	    
+      
     } catch (SecurityException e) {
       if (Activator.log.doError())
         Activator.log.error("Did not have permissions to create an instance of " + 
@@ -147,12 +147,16 @@ public abstract class Component {
     
     try {
 
-      Method method = klass.getMethod("activate", 
-                                      new Class[]{ ComponentContext.class });
+      Method method = klass.getDeclaredMethod("activate", 
+                                              new Class[]{ ComponentContext.class });
+      method.setAccessible(true);
       method.invoke(instance, new Object[]{ componentContext });
 
     } catch (NoSuchMethodException e) {
       // this instance does not have an activate method, (which is ok)
+      if (Activator.log.doDebug()) {
+        Activator.log.debug("this instance does not have an activate method, (which is ok)");
+      }
     } catch (IllegalAccessException e) {
       Activator.log.error("Declarative Services could not invoke \"deactivate\""  + 
                           " method in component \""+ config.getName() + 
@@ -235,7 +239,7 @@ public abstract class Component {
     }
 
     serviceRegistration = 
-      bc.registerService(interfaces, instance, properties);
+      bc.registerService(interfaces, this, properties);
         
   }
 
@@ -297,14 +301,14 @@ public abstract class Component {
 
     public ServiceReference getServiceReference() {
       /* 
-	 We need to do it like this since this function might
-	 be called before *we* even know what it is. However,
-	 this value is know by the framework.
+       We need to do it like this since this function might
+       be called before *we* even know what it is. However,
+       this value is know by the framework.
       */
       if (serviceRegistration == null) {
-	return null; // is being fixed atm.
+        return null; // is being fixed atm.
       } else {
-	return serviceRegistration.getReference();
+        return serviceRegistration.getReference();
       }
     }
   }
