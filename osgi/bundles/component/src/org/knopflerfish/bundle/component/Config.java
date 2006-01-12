@@ -62,7 +62,7 @@ public class Config {
   private Hashtable properties;
   private ArrayList references;
   private ArrayList services;
-  private ArrayList components;
+  private ArrayList components = new ArrayList();
 
   private Bundle bundle;
 
@@ -78,7 +78,7 @@ public class Config {
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).open();
     }
-    //TODO
+    createComponent();
     enabled = true;
     referenceSatisfied();
   }
@@ -94,8 +94,7 @@ public class Config {
   public Component createComponent() {
     Component component;
 
-    if (isImmediate() || 
-	getServices() == null) {
+    if (isImmediate() || getServices() == null) {
       
       component = new ImmediateComponent(this, null);
       components.add(component);
