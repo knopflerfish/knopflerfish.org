@@ -79,11 +79,15 @@ public abstract class Component {
     
   }
   
-  /** activates a component */
-  public void activate() {
+  /** activates a component, returns true if the registration succeeds (or already was activated) */
+  public boolean activate() {
     // this method is described on page 297 r4
-    if (!config.isEnabled() || !config.isSatisfied() || isActivated()) 
-      return ;
+    
+    if (!config.isEnabled() || !config.isSatisfied())
+      return false;
+
+    if(isActivated()) 
+      return true;
 
     // 1. load class
 
@@ -99,6 +103,7 @@ public abstract class Component {
         Activator.log.error("Could not find class " + 
                             config.getImplementation());
 
+      return false;
     }
 
     ComponentInstance cInstance = null;
@@ -114,23 +119,27 @@ public abstract class Component {
       if (Activator.log.doError())
         Activator.log.error("Could not access constructor of class " + 
                             config.getImplementation());
+      return false;
 
     } catch (InstantiationException e) {
       if (Activator.log.doError())
         Activator.log.error("Could not create instance of " + 
                             config.getImplementation() + 
                             " isn't a proper class.");
+      return false;
       
     } catch (ExceptionInInitializerError e) {
       if (Activator.log.doError())
         Activator.log.error("Constructor for " + 
                             config.getImplementation() + 
                             " threw exception.", e);
-
+      return false;
+	    
     } catch (SecurityException e) {
       if (Activator.log.doError())
         Activator.log.error("Did not have permissions to create an instance of " + 
                             config.getImplementation(), e);
+      return false;
     }
     
     // 3. Bind the services. This should be sent to all the references.
@@ -148,6 +157,7 @@ public abstract class Component {
       Activator.log.error("Declarative Services could not invoke \"deactivate\""  + 
                           " method in component \""+ config.getName() + 
                           "\". Got exception", e);
+      return false;
   
     } catch (InvocationTargetException e) {
       // the method threw an exception.
@@ -158,9 +168,12 @@ public abstract class Component {
       config.unbindReferences(instance);
       instance = null;
       componentContext = null;
+      
+      return false;
     }
 
     active = true;
+    return true;
   }
 
   /** deactivates a component */
@@ -199,6 +212,11 @@ public abstract class Component {
   public boolean isActivated() {
     return active;
   }
+
+  public Object getInstance() {
+    return instance;
+  }
+
 
   public void unregisterService() {
     serviceRegistration.unregister();    
@@ -289,9 +307,7 @@ public abstract class Component {
     }
 
     public Object getInstance() {
-      if (isActivated()) return instance;
-      
-      return null;
+      return instance; // will be null when the component is not activated.
     }
 
   }
