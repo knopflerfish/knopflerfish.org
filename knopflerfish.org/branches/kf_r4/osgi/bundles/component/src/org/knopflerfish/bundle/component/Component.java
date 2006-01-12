@@ -296,7 +296,16 @@ public abstract class Component {
     }
 
     public ServiceReference getServiceReference() {
-      throw new RuntimeException("not yet implemented");
+      /* 
+	 We need to do it like this since this function might
+	 be called before *we* even know what it is. However,
+	 this value is know by the framework.
+      */
+      if (serviceRegistration == null) {
+	return null; // is being fixed atm.
+      } else {
+	return serviceRegistration.getReference();
+      }
     }
   }
   
