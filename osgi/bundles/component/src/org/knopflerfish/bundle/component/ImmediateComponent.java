@@ -19,8 +19,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-public class ImmediateComponent extends Component
-  implements ServiceFactory {
+public class ImmediateComponent extends Component {
 
   public ImmediateComponent(Config config, Dictionary overriddenProps) {
     super(config, overriddenProps);

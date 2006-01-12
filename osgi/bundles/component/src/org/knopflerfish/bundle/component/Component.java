@@ -38,16 +38,17 @@ import java.lang.reflect.Method;
 import java.util.Dictionary;
 import java.util.Enumeration;
 
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
+import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
 
-public abstract class Component {
+public abstract class Component implements ServiceFactory {
 
   protected Config config; 
   private boolean enabled;
@@ -57,6 +58,7 @@ public abstract class Component {
   private BundleContext bundleContext;
   private ServiceRegistration serviceRegistration;
   private ComponentContext componentContext;
+  private Bundle usingBundle;
 
   public Component(Config config, Dictionary overriddenProps) {
 
@@ -242,6 +244,19 @@ public abstract class Component {
       bc.registerService(interfaces, this, properties);
         
   }
+  
+
+  public Object getService(Bundle usingBundle, 
+			   ServiceRegistration reg) {
+    this.usingBundle = usingBundle;
+    return getInstance();
+  }
+
+  public void ungetService(Bundle usingBundle, 
+			   ServiceRegistration reg, Object obj) {
+    this.usingBundle = null;
+  }
+
 
   /** 
       this method is called whenever this components configuration
@@ -287,7 +302,7 @@ public abstract class Component {
     }
 
     public Bundle getUsingBundle() {
-      throw new RuntimeException("not yet implemented");
+      return usingBundle;
     }
 
 
@@ -301,12 +316,29 @@ public abstract class Component {
 
     public ServiceReference getServiceReference() {
       /* 
-       We need to do it like this since this function might
-       be called before *we* even know what it is. However,
-       this value is know by the framework.
+	 We need to do it like this since this function might
+	 be called before *we* even know what it is. However,
+	 this value is know by the framework, hence we can 
+	 actually retrieve it.
       */
+      
       if (serviceRegistration == null) {
-        return null; // is being fixed atm.
+
+	Object thisComponentId = getProperties().get(ComponentConstants.COMPONENT_ID);
+	try {
+	  ServiceReference[] refs = 
+	    bundleContext.getServiceReferences(config.getImplementation(),
+					       "(" + ComponentConstants.COMPONENT_ID + "=" + thisComponentId + ")"); 
+	  if (refs == null) {
+	    Activator.log.debug("This is a bug. Variable refs should not be null.");
+	  }
+
+	  return refs[0];
+	    
+	} catch (Exception e) {
+	  Activator.log.debug("This is a bug.", e);
+	  return null;
+	}
       } else {
         return serviceRegistration.getReference();
       }

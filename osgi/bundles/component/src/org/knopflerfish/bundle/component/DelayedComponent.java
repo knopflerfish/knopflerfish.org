@@ -38,8 +38,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-public class DelayedComponent extends Component 
-  implements ServiceFactory {
+public class DelayedComponent extends Component {
 
   private int refCount;
 
@@ -57,8 +56,9 @@ public class DelayedComponent extends Component
     unregisterService();
   }
 
-  public Object getService(Bundle bundle, 
-			   ServiceRegistration reg) {
+  public Object getService(Bundle bundle, ServiceRegistration reg) {
+    super.getService(bundle, reg);
+    
     if (config.isServiceFactory()) {
       Component component =
 	config.createComponent();
@@ -80,6 +80,8 @@ public class DelayedComponent extends Component
   }
 
   public void ungetService(Bundle bundle, ServiceRegistration reg, Object instance) {
+    super.ungetService(bundle, reg, instance);
+    
     if (refCount == 0)
       return ;
 
