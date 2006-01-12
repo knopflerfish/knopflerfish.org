@@ -73,28 +73,11 @@ public abstract class Component {
     }
     
   }
-
-  /** enables this component */
-  public void enable() { 
-    enabled = true; 
-    /* Think about: if it was earlier satisfied then
-       we might have to activate this component */
-  }
-    
-  /** disables the component */
-  public void disable() {
-    enabled = false;
-  }
   
-  /** checks whether a component is enabled */
-  public boolean isEnabled() {
-    return enabled;
-  }
-
   /** activates a component */
   public void activate() {
     // this method is described on page 297 r4
-    if (!isEnabled() || config.isSatisfied() || isActivated()) 
+    if (!config.isEnabled() || !config.isSatisfied() || isActivated()) 
       return ;
 
     // 1. load class
@@ -217,11 +200,28 @@ public abstract class Component {
     return active;
   }
 
+  public void unregisterServices() {
+
+    
+  }
+
+  public void registerServices() {
+    
+    
+  }
+
   /** 
       this method is called whenever this components configuration
       becomes satisfied.
    */
-  public abstract void satisfied(boolean isSatisfied);
+  public abstract void satisfied();
+
+  /** 
+      this method is called whenever this components configuration
+      becomes unsatisfied.
+   */
+
+  public abstract void unsatisfied();
 
 
   // might want to refactor these.. maybe not.
