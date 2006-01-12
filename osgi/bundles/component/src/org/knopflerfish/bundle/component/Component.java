@@ -68,7 +68,7 @@ public abstract class Component {
     
     bundleContext = Backdoor.getBundleContext(config.getBundle());
 
-    if (overriddenProps == null) {
+    if (overriddenProps != null) {
 
       for (Enumeration e = overriddenProps.keys(); 
            e.hasMoreElements(); ) {
@@ -139,20 +139,20 @@ public abstract class Component {
     try {
 
       Method method = klass.getMethod("activate", 
-				      new Class[]{ ComponentContext.class });
+                                      new Class[]{ ComponentContext.class });
       method.invoke(instance, new Object[]{ componentContext });
 
     } catch (NoSuchMethodException e) {
       // this instance does not have an activate method, (which is ok)
     } catch (IllegalAccessException e) {
       Activator.log.error("Declarative Services could not invoke \"deactivate\""  + 
-			  " method in component \""+ config.getName() + 
-			  "\". Got exception", e);
+                          " method in component \""+ config.getName() + 
+                          "\". Got exception", e);
   
     } catch (InvocationTargetException e) {
       // the method threw an exception.
       Activator.log.error("Declarative Services got exception when invoking " + 
-			  "\"activate\" in component " + config.getName(), e); 
+                          "\"activate\" in component " + config.getName(), e); 
       
       // if this happens the component should not be activatated
       config.unbindReferences(instance);
@@ -173,7 +173,7 @@ public abstract class Component {
     try {
       Class klass = instance.getClass();
       Method method = klass.getMethod("deactivate", 
-				      new Class[]{ ComponentContext.class });
+                                      new Class[]{ ComponentContext.class });
       
       method.invoke(instance, new Object[]{ componentContext });
 
@@ -181,13 +181,13 @@ public abstract class Component {
       // this instance does not have an deactivate method, (which is ok)
     } catch (IllegalAccessException e) {
       Activator.log.error("Declarative Services could not invoke \"deactivate\"" + 
-			  " method in component \""+ config.getName() + 
-			  "\". Got exception", e);
+                          " method in component \""+ config.getName() + 
+                          "\". Got exception", e);
   
     } catch (InvocationTargetException e) {
       // the method threw an exception.
       Activator.log.error("Declarative Services got exception when invoking " + 
-			  "\"deactivate\" in component " + config.getName(), e); 
+                          "\"deactivate\" in component " + config.getName(), e); 
     }
     
     config.unbindReferences(instance);
@@ -207,6 +207,9 @@ public abstract class Component {
   public void registerService() {
     Bundle bundle = config.getBundle();
     BundleContext bc = Backdoor.getBundleContext(bundle);
+    if (Activator.log.doDebug()) {
+      Activator.log.debug("registerService() got BundleContext: " + bc);
+    }
     String[] interfaces = config.getServices();
     
     if (interfaces == null) {
@@ -214,7 +217,7 @@ public abstract class Component {
     }
 
     serviceRegistration = 
-      bc.registerService(interfaces, this, properties);
+      bc.registerService(interfaces, instance, properties);
         
   }
 
@@ -281,14 +284,12 @@ public abstract class Component {
   
   private class ComponentInstanceImpl implements ComponentInstance {
 
-
     public void dispose() {
       deactivate();
     }
 
     public Object getInstance() {
-      if (isActivated())
-	return instance;
+      if (isActivated()) return instance;
       
       return null;
     }
