@@ -61,7 +61,9 @@ public class SCR implements BundleListener {
     Bundle[] bundles = bc.getBundles();
     bc.addBundleListener(this);
     for(int i=0;i<bundles.length;i++){
-      bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
+      if (bundles[i].getState() == Bundle.ACTIVE) {
+        bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
+      }
     }
   }
 
