@@ -42,7 +42,7 @@ import org.osgi.framework.BundleContext;
 
 public class Backdoor {
   
-  public static BundleContext getContext(Bundle bundle) {
+  public static BundleContext getBundleContext(Bundle bundle) {
     try {
       Class klass = bundle.getClass();
       Method method = klass.getDeclaredMethod("getBundleContext", new Class[]{});

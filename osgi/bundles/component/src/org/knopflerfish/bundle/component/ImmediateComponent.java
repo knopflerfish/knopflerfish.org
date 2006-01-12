@@ -24,19 +24,13 @@ public class ImmediateComponent extends Component {
 
 
   public void satisfied() {
-      registerServices();
+      registerService();
       activate();
   }
 
   public void unsatisfied() {
-    unregisterServices();
+    unregisterService();
     deactivate();
   }
-
-
-
-
-
-
 
 }

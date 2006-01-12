@@ -42,6 +42,7 @@ import java.util.Enumeration;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
@@ -53,7 +54,9 @@ public abstract class Component {
   private boolean active;
   private Dictionary properties;
   private Object instance;
-  private ComponentContext context;
+  private BundleContext bundleContext;
+  private ServiceRegistration serviceRegistration;
+  private ComponentContext componentContext;
 
   public Component(Config config, Dictionary overriddenProps) {
 
@@ -61,7 +64,9 @@ public abstract class Component {
     properties = config.getProperties();
 
     instance = null;
-    context = null;
+    componentContext = null;
+    
+    bundleContext = Backdoor.getBundleContext(config.getBundle());
 
     if (overriddenProps == null) {
 
@@ -101,8 +106,8 @@ public abstract class Component {
     try {
       // 2. create ComponentContext and ComponentInstance
       instance = klass.newInstance();
-      cInstance = new ComponentInstanceImpl(this, instance);
-      context = new ComponentContextImpl(this, cInstance);
+      cInstance = new ComponentInstanceImpl();
+      componentContext = new ComponentContextImpl(cInstance);
             
       
     }  catch (IllegalAccessException e) {
@@ -140,7 +145,7 @@ public abstract class Component {
 
       Method method = klass.getMethod("activate", 
 				      new Class[]{ ComponentContext.class });
-      method.invoke(instance, new Object[]{ context });
+      method.invoke(instance, new Object[]{ componentContext });
 
     } catch (NoSuchMethodException e) {
       // this instance does not have an activate method, (which is ok)
@@ -157,7 +162,7 @@ public abstract class Component {
       // if this happens the component should not be activatated
       config.unbindReferences(instance);
       instance = null;
-      context = null;
+      componentContext = null;
     }
 
     active = true;
@@ -175,7 +180,7 @@ public abstract class Component {
       Method method = klass.getMethod("deactivate", 
 				      new Class[]{ ComponentContext.class });
       
-      method.invoke(instance, new Object[]{ context });
+      method.invoke(instance, new Object[]{ componentContext });
 
     } catch (NoSuchMethodException e) {
       // this instance does not have an deactivate method, (which is ok)
@@ -192,7 +197,7 @@ public abstract class Component {
     
     config.unbindReferences(instance);
     instance = null;
-    context = null;
+    componentContext = null;
     active = false;
   }
   
@@ -200,14 +205,22 @@ public abstract class Component {
     return active;
   }
 
-  public void unregisterServices() {
-
-    
+  public void unregisterService() {
+    serviceRegistration.unregister();    
   }
 
-  public void registerServices() {
+  public void registerService() {
+    Bundle bundle = config.getBundle();
+    BundleContext bc = Backdoor.getBundleContext(bundle);
+    String[] interfaces = config.getServices();
     
-    
+    if (interfaces == null) {
+      return ;
+    }
+
+    serviceRegistration = 
+      bc.registerService(interfaces, this, properties);
+        
   }
 
   /** 
@@ -223,62 +236,40 @@ public abstract class Component {
 
   public abstract void unsatisfied();
 
-
-  // might want to refactor these.. maybe not.
-  private class ComponentInstanceImpl implements ComponentInstance {
-    
-    private Component component;
-    private Object instance;
-
-    ComponentInstanceImpl(Component component, Object instance) {
-      this.component = component;
-      this.instance = instance;
-    }
-    
-    public void dispose() {
-      component.deactivate();
-    }
-
-    public Object getInstance() {
-      if (component.isActivated())
-        return instance;
-      
-      return null;
-    }
-    
-  }
-
+  // to provide compability with component context
   private class ComponentContextImpl implements ComponentContext {
-    private Component component;
-    private ComponentInstance instance;
-
-    ComponentContextImpl(Component component, ComponentInstance instance) {
-      this.component = component;
+    private ComponentInstance componentInstance;
+    
+    public ComponentContextImpl(ComponentInstance componentInstance) {
+      this.componentInstance = componentInstance;
     }
-
+   
     public Dictionary getProperties() {
-      return properties;
+      return properties; // TODO: wrap inside an immutable-dictionary class.
     }
-
+    
     public Object locateService(String name) {
-       throw new RuntimeException("not yet implemented");      
+      throw new RuntimeException("not yet implemented");      
     }
-
+    
     public Object[] locateServices(String name) {
       throw new RuntimeException("not yet implemented");
     }
-
+   
+    
     public BundleContext getBundleContext() {
-      throw new RuntimeException("not yet implemented");
+      // maybe keep this as an variable instead?
+      return bundleContext;
+    }
+    
+    public ComponentInstance getComponentInstance() {
+      return componentInstance;
     }
 
     public Bundle getUsingBundle() {
       throw new RuntimeException("not yet implemented");
     }
 
-    public ComponentInstance getComponentInstance() {
-      return instance;
-    }
 
     public void enableComponent(String name) {
       throw new RuntimeException("not yet implemented");
@@ -292,4 +283,21 @@ public abstract class Component {
       throw new RuntimeException("not yet implemented");
     }
   }
+  
+  private class ComponentInstanceImpl implements ComponentInstance {
+
+
+    public void dispose() {
+      deactivate();
+    }
+
+    public Object getInstance() {
+      if (isActivated())
+	return instance;
+      
+      return null;
+    }
+
+  }
+
 }
