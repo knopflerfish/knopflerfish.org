@@ -496,7 +496,7 @@ public class Parser {
       missingAttr(parser, "name"); // throws exception
     }
 
-    compConf.setEnabled(enabled);
+    compConf.setAutoEnabled(enabled);
     compConf.setName(name);
   }
 
