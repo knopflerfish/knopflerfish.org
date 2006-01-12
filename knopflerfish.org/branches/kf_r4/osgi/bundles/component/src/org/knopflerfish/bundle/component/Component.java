@@ -33,8 +33,11 @@
  */
 package org.knopflerfish.bundle.component;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Dictionary;
 import java.util.Enumeration;
+
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -49,11 +52,17 @@ public abstract class Component {
   private boolean enabled;
   private boolean active;
   private Dictionary properties;
-  
+  private Object instance;
+  private ComponentContext context;
+
   public Component(Config config, Dictionary overriddenProps) {
+
     this.config = config;
     properties = config.getProperties();
-    
+
+    instance = null;
+    context = null;
+
     if (overriddenProps == null) {
 
       for (Enumeration e = overriddenProps.keys(); 
@@ -85,7 +94,7 @@ public abstract class Component {
   /** activates a component */
   public void activate() {
     // this method is described on page 297 r4
-    if (!isEnabled() || !config.isSatisfied()) 
+    if (!isEnabled() || config.isSatisfied() || isActivated()) 
       return ;
 
     // 1. load class
@@ -93,8 +102,9 @@ public abstract class Component {
     Class klass = null;
     try {
 
-      ClassLoader loader = null; // TODO: need magic function here. Need to access bundle's ClassLoader
-      klass = loader.loadClass(config.getImplementation());
+      Bundle bundle = config.getBundle();       
+      ClassLoader loader = Backdoor.getClassLoader(bundle); 
+      loader.loadClass(config.getImplementation());
 
     } catch (ClassNotFoundException e) {
       if (Activator.log.doError())
@@ -103,8 +113,6 @@ public abstract class Component {
 
     }
 
-    ComponentContext context = null;
-    Object instance = null;
     ComponentInstance cInstance = null;
     
     try {
@@ -139,24 +147,70 @@ public abstract class Component {
     
     // 3. Bind the services. This should be sent to all the references.
     try {
-      // ...
+      config.bindReferences(instance);
+      
     } catch (Exception e) {
       // log errors.
     }
-
-    // 4. finally call the instance's activate methods
 
     try {
-      // .. 
-    } catch (Exception e) {
-      // log errors.
+
+      Method method = klass.getMethod("activate", 
+				      new Class[]{ ComponentContext.class });
+      method.invoke(instance, new Object[]{ context });
+
+    } catch (NoSuchMethodException e) {
+      // this instance does not have an activate method, (which is ok)
+    } catch (IllegalAccessException e) {
+      Activator.log.error("Declarative Services could not invoke \"deactivate\""  + 
+			  " method in component \""+ config.getName() + 
+			  "\". Got exception", e);
+  
+    } catch (InvocationTargetException e) {
+      // the method threw an exception.
+      Activator.log.error("Declarative Services got exception when invoking " + 
+			  "\"activate\" in component " + config.getName(), e); 
+      
+      // if this happens the component should not be activatated
+      config.unbindReferences(instance);
+      instance = null;
+      context = null;
     }
-    
+
+    active = true;
   }
 
   /** deactivates a component */
   public void deactivate() {
     // this method is described on page 432 r4
+    
+    if (!isActivated())
+      return ;
+    
+    try {
+      Class klass = instance.getClass();
+      Method method = klass.getMethod("deactivate", 
+				      new Class[]{ ComponentContext.class });
+      
+      method.invoke(instance, new Object[]{ context });
+
+    } catch (NoSuchMethodException e) {
+      // this instance does not have an deactivate method, (which is ok)
+    } catch (IllegalAccessException e) {
+      Activator.log.error("Declarative Services could not invoke \"deactivate\"" + 
+			  " method in component \""+ config.getName() + 
+			  "\". Got exception", e);
+  
+    } catch (InvocationTargetException e) {
+      // the method threw an exception.
+      Activator.log.error("Declarative Services got exception when invoking " + 
+			  "\"deactivate\" in component " + config.getName(), e); 
+    }
+    
+    config.unbindReferences(instance);
+    instance = null;
+    context = null;
+    active = false;
   }
   
   public boolean isActivated() {
@@ -194,7 +248,6 @@ public abstract class Component {
     
   }
 
-
   private class ComponentContextImpl implements ComponentContext {
     private Component component;
     private ComponentInstance instance;
@@ -208,7 +261,7 @@ public abstract class Component {
     }
 
     public Object locateService(String name) {
-      throw new RuntimeException("not yet implemented");
+       throw new RuntimeException("not yet implemented");      
     }
 
     public Object[] locateServices(String name) {
@@ -238,7 +291,5 @@ public abstract class Component {
     public ServiceReference getServiceReference() {
       throw new RuntimeException("not yet implemented");
     }
-
   }
-  
 }
