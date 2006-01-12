@@ -99,13 +99,18 @@ public class Config {
       component = new ImmediateComponent(this, null);
       components.add(component);
       return component;
-    } else {
-      // todo add more here.
-      return null;
-    }
-  }
+    } else if (!isImmediate() && getServices() != null){
+      component = new DelayedComponent(this, null);
+      components.add(component);
 
-  
+      return component;
+    } else {
+
+      return null; // todo add more.
+    }
+
+
+  }
 
   public boolean isSatisfied() {
     if (!isEnabled()) return false;

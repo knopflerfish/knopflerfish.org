@@ -15,9 +15,14 @@ package org.knopflerfish.bundle.component;
 
 import java.util.Dictionary;
 
-public class ImmediateComponent extends Component {
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceRegistration;
 
-  ImmediateComponent(Config config, Dictionary overriddenProps) {
+public class ImmediateComponent extends Component
+  implements ServiceFactory {
+
+  public ImmediateComponent(Config config, Dictionary overriddenProps) {
     super(config, overriddenProps);
   }
 
@@ -29,6 +34,20 @@ public class ImmediateComponent extends Component {
   public void unsatisfied() {
     unregisterService();
     deactivate();
+  }
+
+  
+  public Object getService(Bundle bundle, ServiceRegistration reg) {
+    if (!activate()) {
+      unregisterService();
+      return null;
+    }
+    
+    return getInstance();
+  }
+
+  public void ungetService(Bundle bundle, ServiceRegistration reg, Object o) {
+    // This does not do anything, nor should it.
   }
 
 }
