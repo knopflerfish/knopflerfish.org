@@ -33,6 +33,7 @@
  */
 package org.knopflerfish.bundle.component;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.osgi.framework.Bundle;
@@ -45,12 +46,11 @@ public class Backdoor {
   public static BundleContext getBundleContext(Bundle bundle) {
     try {
       Class klass = bundle.getClass();
-      Method method = klass.getDeclaredMethod("getBundleContext", new Class[]{});
-      
-      return (BundleContext)method.invoke(bundle, new Object[]{});
-      
+      Field field = klass.getDeclaredField("bundleContext");
+      field.setAccessible(true);
+      return (BundleContext) field.get(bundle);
     } catch (Exception e) {
-      // might want to log something here.
+      Activator.log.error("getBundleContext failed", e);
       return null;
     }
   }
@@ -59,12 +59,11 @@ public class Backdoor {
     try {
       Class klass = bundle.getClass();
       Method method = klass.getDeclaredMethod("getClassLoader", new Class[]{});
-      
-      
+      method.setAccessible(true);
       return (ClassLoader)method.invoke(bundle, new Object[]{});
       
     } catch (Exception e) {
-      // might want to log something here.
+      Activator.log.error("getBundleContext failed", e);
       return null;
     }
   }
