@@ -138,7 +138,7 @@ public class Reference extends ServiceTracker {
     if (bound == null) return;
     if (multiple) {
       ServiceReference[] serviceReferences = getServiceReferences();
-      for (int i=0; i<serviceReferences.length; i++) {
+      for (int i = serviceReferences.length - 1; i >= 0; i--) {
         invokeEventMethod(instance, unbindMethodName, serviceReferences[i]);
       }
     } else { // unary

@@ -148,7 +148,7 @@ public class Config {
   }
 
   public void unbindReferences(Object instance) {
-    for (int i = references.size(); i > 0; --i) {
+    for (int i = references.size() - 1; i >= 0; --i) {
       ((Reference) references.get(i)).unbind(instance);
     }
   }
