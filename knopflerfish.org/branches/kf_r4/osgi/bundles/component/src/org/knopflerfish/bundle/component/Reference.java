@@ -59,7 +59,9 @@ public class Reference extends ServiceTracker {
   private String refName;
   private BundleContext bc;
   
+  /* If multiple, this just indicates if we have started binding, else, this is the choosen one. */
   private ServiceReference bound;
+  
   private Collection instances = new ArrayList();
   
   private Config config;
@@ -101,11 +103,17 @@ public class Reference extends ServiceTracker {
 
   public void removedService(ServiceReference ref, Object service) {
     boolean wasSatisfied = isSatisfied();
-    if (bound != null) {
+    if (bound != null && multiple) {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
         invokeEventMethod(iter.next(), unbindMethodName, ref);
       }
+    } else if (ref.equals(bound)) {
+      for (Iterator iter = instances.iterator(); iter.hasNext();) {
+        invokeEventMethod(iter.next(), unbindMethodName, ref);
+      }
+      bound = null;
     }
+      
     super.removedService(ref, service);
     /* try to remove this service,
        possibly disabling the component */
@@ -138,8 +146,10 @@ public class Reference extends ServiceTracker {
     if (bound == null) return;
     if (multiple) {
       ServiceReference[] serviceReferences = getServiceReferences();
-      for (int i = serviceReferences.length - 1; i >= 0; i--) {
-        invokeEventMethod(instance, unbindMethodName, serviceReferences[i]);
+      if (serviceReferences != null) {
+        for (int i = serviceReferences.length - 1; i >= 0; i--) {
+          invokeEventMethod(instance, unbindMethodName, serviceReferences[i]);
+        }
       }
     } else { // unary
       invokeEventMethod(instance, unbindMethodName, bound);
@@ -170,7 +180,7 @@ public class Reference extends ServiceTracker {
     Object service = bc.getService(ref); 
     // service can be null if the service is unregistering.
 
-    Class serviceClass = null;
+    Class serviceClass = service.getClass();
       
     while (instanceClass != null && method == null) {
       Method[] ms = instanceClass.getDeclaredMethods(); 
