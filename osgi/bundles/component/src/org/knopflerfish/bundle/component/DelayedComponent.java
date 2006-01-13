@@ -42,13 +42,11 @@ import org.osgi.framework.ServiceRegistration;
 public class DelayedComponent extends Component {
 
   private int refCount;
-  private Dictionary services; // this is used iff the service is a service factory.
 
   public DelayedComponent(Config config, 
 			  Dictionary overriddenProps) {
     super(config, overriddenProps);
     refCount = 0;
-    services = null;
   }
 
   public void satisfied() {
@@ -67,28 +65,8 @@ public class DelayedComponent extends Component {
     }
     
     if (isActivated()) {
-
-      /*
-      if (config.isServiceFactory()) {
-	services = services == null ? new Hashtable() : services;
-	Object service = services.get(bundle);
-	
-	if (service == null) {
-	  Component comp = config.createComponent();
-	  comp.activate();
-	  service = comp.getService(bundle, reg);
-	  
-	  services.put(bundle, service);
-	}
-	
-	return service;
-	
-	} else { */
-      
       refCount++;
       return getInstance();
-	
-	//}
       
     } else {
       // getting here means that the activation failed.
@@ -108,7 +86,6 @@ public class DelayedComponent extends Component {
     
     if (refCount == 0) {
       deactivate();
-      services = null;
     }
   }
 }
