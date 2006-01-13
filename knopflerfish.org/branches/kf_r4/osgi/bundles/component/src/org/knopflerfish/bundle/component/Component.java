@@ -227,7 +227,8 @@ public abstract class Component implements ServiceFactory {
 
 
   public void unregisterService() {
-    serviceRegistration.unregister();    
+    if (serviceRegistration != null)
+      serviceRegistration.unregister();    
   }
 
   public void registerService() {

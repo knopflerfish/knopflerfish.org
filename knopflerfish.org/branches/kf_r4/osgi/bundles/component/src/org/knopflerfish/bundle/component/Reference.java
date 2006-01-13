@@ -158,6 +158,11 @@ public class Reference extends ServiceTracker {
   private void invokeEventMethod(Object instance,
                                  String methodName, 
                                  ServiceReference ref) {
+
+    if (methodName == null) {
+      return ;
+    }
+
     Class instanceClass = instance.getClass();
     Method method = null;
     Object arg = null;
@@ -191,10 +196,10 @@ public class Reference extends ServiceTracker {
               }
             } catch (IllegalAccessException e) {
               Activator.log.error("Declarative Services could not access the method \"" + methodName + 
-				  "\" used by component \"" + config.getName() + "\". Got exception.", e);
+                                  "\" used by component \"" + config.getName() + "\". Got exception.", e);
             } catch (InvocationTargetException e) {
               Activator.log.error("Declarative Services got exception while invoking \"" + methodName 
-				  + "\" used by component \"" + config.getName() + "\". Got exception.", e);
+                                  + "\" used by component \"" + config.getName() + "\". Got exception.", e);
             }
           }
         }
@@ -205,7 +210,7 @@ public class Reference extends ServiceTracker {
     
     // did not find any such method.
     Activator.log.error("Declarative Services could not find bind/unbind method \"" + methodName + 
-			"\" in class \"" + config.getImplementation() + "\" used by component " + config.getName() + "\".");
+                        "\" in class \"" + config.getImplementation() + "\" used by component " + config.getName() + "\".");
   }
 
   public String getName() {
