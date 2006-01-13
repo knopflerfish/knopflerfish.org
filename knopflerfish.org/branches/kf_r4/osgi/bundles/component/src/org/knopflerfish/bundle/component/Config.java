@@ -86,11 +86,11 @@ public class Config {
   }
 
   public void disable() {
+    enabled = false;
+    referenceUnsatisfied();
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).close();
     }
-    enabled = false;
-    referenceUnsatisfied();
   }
 
 
