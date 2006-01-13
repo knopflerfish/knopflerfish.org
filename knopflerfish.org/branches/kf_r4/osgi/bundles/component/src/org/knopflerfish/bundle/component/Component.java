@@ -48,18 +48,18 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
 
-public abstract class Component implements ServiceFactory {
+public abstract class Component implements ServiceFactory, ComponentInstance {
 
   protected Config config; 
   private boolean enabled;
   private boolean active;
-  private Dictionary properties;
+  protected Dictionary properties;
   private Object instance;
-  private BundleContext bundleContext;
-  private ServiceRegistration serviceRegistration;
-  private ComponentContext componentContext;
+  protected BundleContext bundleContext;
+  protected ServiceRegistration serviceRegistration;
+  protected ComponentContext componentContext;
   private Bundle usingBundle;
-
+  
   public Component(Config config, Dictionary overriddenProps) {
 
     this.config = config;
@@ -78,7 +78,6 @@ public abstract class Component implements ServiceFactory {
         properties.put(key, overriddenProps.get(key));
       }
     }
-    
   }
   
   /** Activates a component. 
@@ -116,8 +115,7 @@ public abstract class Component implements ServiceFactory {
     try {
       // 2. create ComponentContext and ComponentInstance
       instance = klass.newInstance();
-      cInstance = new ComponentInstanceImpl();
-      componentContext = new ComponentContextImpl(cInstance);
+      componentContext = new ComponentContextImpl(this); // TODO: think about this
             
       
     }  catch (IllegalAccessException e) {
@@ -224,11 +222,6 @@ public abstract class Component implements ServiceFactory {
     return active;
   }
 
-  public Object getInstance() {
-    return instance;
-  }
-
-
   public void unregisterService() {
     if (serviceRegistration != null) {
       try {
@@ -238,10 +231,8 @@ public abstract class Component implements ServiceFactory {
   }
 
   public void registerService() {
-    Bundle bundle = config.getBundle();
-    BundleContext bc = Backdoor.getBundleContext(bundle);
     if (Activator.log.doDebug()) {
-      Activator.log.debug("registerService() got BundleContext: " + bc);
+      Activator.log.debug("registerService() got BundleContext: " + bundleContext);
     }
     String[] interfaces = config.getServices();
     
@@ -250,22 +241,25 @@ public abstract class Component implements ServiceFactory {
     }
 
     serviceRegistration = 
-      bc.registerService(interfaces, this, properties);
-        
+      bundleContext.registerService(interfaces, this, properties);
   }
   
-
+  /**
+     This must be overridden
+  */
   public Object getService(Bundle usingBundle, 
                            ServiceRegistration reg) {
     this.usingBundle = usingBundle;
     return getInstance();
   }
 
-  public void ungetService(Bundle usingBundle, 
-                           ServiceRegistration reg, Object obj) {
+  /**
+     This must be overridden
+  */
+  public void ungetService(Bundle usingBundle, ServiceRegistration reg, 
+			   Object obj) {
     this.usingBundle = null;
   }
-
 
   /** 
       this method is called whenever this components configuration
@@ -279,6 +273,8 @@ public abstract class Component implements ServiceFactory {
    */
 
   public abstract void unsatisfied();
+
+
 
   // to provide compability with component context
   private class ComponentContextImpl implements ComponentContext {
@@ -365,7 +361,7 @@ public abstract class Component implements ServiceFactory {
     }
   }
   
-  private class ComponentInstanceImpl implements ComponentInstance {
+  //private class ComponentInstanceImpl implements ComponentInstance {
 
     public void dispose() {
       deactivate();
@@ -375,6 +371,6 @@ public abstract class Component implements ServiceFactory {
       return instance; // will be null when the component is not activated.
     }
 
-  }
+  //}
 
 }
