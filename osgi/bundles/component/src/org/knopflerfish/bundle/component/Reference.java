@@ -234,6 +234,11 @@ public class Reference extends ServiceTracker {
                         "\" in class \"" + config.getImplementation() + "\" used by component " + config.getName() + "\".");
   }
 
+  public Reference copy() {
+    return new Reference(refName, filter, optional, multiple, dynamic,
+                         bindMethodName, unbindMethodName, context);
+  }
+  
   public String getName() {
     return refName;
   }
