@@ -227,8 +227,11 @@ public abstract class Component implements ServiceFactory {
 
 
   public void unregisterService() {
-    if (serviceRegistration != null)
-      serviceRegistration.unregister();    
+    if (serviceRegistration != null) {
+      try {
+        serviceRegistration.unregister();    
+      } catch (IllegalStateException ignored) {}
+    }
   }
 
   public void registerService() {
@@ -290,11 +293,10 @@ public abstract class Component implements ServiceFactory {
     
     public Object locateService(String name) {
       /* According to the specification this method 
-	 throws an ComponentException if 
-	 the SCR catches a run time expection while 
-	 activating the bound service.
-	 When can this happen?
-
+         throws an ComponentException if 
+         the SCR catches a run time expection while 
+         activating the bound service.
+         When can this happen?
       */  
 
       Reference ref = config.getReference(name);
