@@ -58,7 +58,7 @@ public class Reference extends ServiceTracker {
   private String unbindMethodName;
   private String refName;
   
-  /* If multiple, this just indicates if we have started binding, else, this is the choosen one. */
+  /* If unary, this is the choosen one. */
   private ServiceReference bound;
   private boolean doneBound = false;
   
@@ -100,24 +100,45 @@ public class Reference extends ServiceTracker {
   /* TODO? public void modifiedService() */
 
   public void removingService(ServiceReference ref, Object service) {
-    if (!isSatisfied(1) && config != null) {
+    if (!isSatisfied(1)) { // Will be unsatisfied by this remove.
       overrideUnsatisfied = true;
       config.referenceUnsatisfied();
       overrideUnsatisfied = false;
-    } else {
+    } else { // Will continue to be satisfied.
       if (doneBound && multiple) {
         for (Iterator iter = instances.iterator(); iter.hasNext();) {
           invokeEventMethod(iter.next(), unbindMethodName, ref, service);
         }
-      } else if (ref.equals(bound)) {
-        for (Iterator iter = instances.iterator(); iter.hasNext();) {
-          invokeEventMethod(iter.next(), unbindMethodName, ref, service);
+      } else if (ref.equals(bound)) { // The bound one is removed.
+        if (dynamic) { // Unbind and let removedService bind the new one.
+          for (Iterator iter = instances.iterator(); iter.hasNext();) {
+            invokeEventMethod(iter.next(), unbindMethodName, ref, service);
+          }
+          bound = null;
+        } else { // Static. Deactivate and let removedService re-activate.
+          overrideUnsatisfied = true;
+          config.referenceUnsatisfied();
+          overrideUnsatisfied = false;
         }
-        bound = null;
       }
     }
   }
 
+  public void removedService(ServiceReference ref, Object service) {
+    if (multiple) return;
+    // See if we're inte the process of replacing a service.
+    if (dynamic && doneBound && bound == null && isSatisfied()) {
+      // Dynamic. Bind the new service.
+      bound = getServiceReference();
+      for (Iterator iter = instances.iterator(); iter.hasNext();) {
+        invokeEventMethod(iter.next(), bindMethodName, bound);
+      }
+    } else if (!dynamic && !doneBound && isSatisfied()) {
+      // Static. Try to activate.
+      config.referenceSatisfied();
+    }
+  }
+      
   public boolean isSatisfied() {
     if (overrideUnsatisfied) return false;
     return isSatisfied(0);
