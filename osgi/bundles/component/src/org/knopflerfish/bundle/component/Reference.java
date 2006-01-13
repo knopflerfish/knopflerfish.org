@@ -57,14 +57,16 @@ public class Reference extends ServiceTracker {
   private String bindMethodName;
   private String unbindMethodName;
   private String refName;
-  private BundleContext bc;
   
   /* If multiple, this just indicates if we have started binding, else, this is the choosen one. */
   private ServiceReference bound;
+  private boolean doneBound = false;
   
   private Collection instances = new ArrayList();
   
   private Config config;
+  
+  private boolean overrideUnsatisfied = false;
   
   public Reference(String refName, Filter filter,
                    boolean optional, boolean multiple, boolean dynamic,
@@ -78,15 +80,14 @@ public class Reference extends ServiceTracker {
     this.dynamic = dynamic;
     this.bindMethodName = bindMethodName;
     this.unbindMethodName = unbindMethodName;
-    this.bc = bc;
   }
 
   public void setConfig(Config config) {
     this.config = config;
   }
   
-  protected void addedService(ServiceReference ref, Object service) {
-    if (bound != null && multiple) {
+  public void addedService(ServiceReference ref, Object service) {
+    if (doneBound && multiple) {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
         invokeEventMethod(iter.next(), bindMethodName, ref, service);
       }
@@ -98,23 +99,27 @@ public class Reference extends ServiceTracker {
 
   /* TODO? public void modifiedService() */
 
-  protected void removingService(ServiceReference ref, Object service) {
-    if (bound != null && multiple) {
-      for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), unbindMethodName, ref, service);
-      }
-    } else if (ref.equals(bound)) {
-      for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), unbindMethodName, ref, service);
-      }
-      bound = null;
-    }
+  public void removingService(ServiceReference ref, Object service) {
     if (!isSatisfied(1) && config != null) {
+      overrideUnsatisfied = true;
       config.referenceUnsatisfied();
+      overrideUnsatisfied = false;
+    } else {
+      if (doneBound && multiple) {
+        for (Iterator iter = instances.iterator(); iter.hasNext();) {
+          invokeEventMethod(iter.next(), unbindMethodName, ref, service);
+        }
+      } else if (ref.equals(bound)) {
+        for (Iterator iter = instances.iterator(); iter.hasNext();) {
+          invokeEventMethod(iter.next(), unbindMethodName, ref, service);
+        }
+        bound = null;
+      }
     }
   }
 
   public boolean isSatisfied() {
+    if (overrideUnsatisfied) return false;
     return isSatisfied(0);
   }
   public boolean isSatisfied(int sizeLimit) {
@@ -123,12 +128,13 @@ public class Reference extends ServiceTracker {
 
   public void bind(Object instance) {
     instances.add(instance);
+    doneBound = true;
     if (multiple) {
       ServiceReference[] serviceReferences = getServiceReferences();
       if (serviceReferences != null) {
         for (int i=0; i<serviceReferences.length; i++) {
           bound = serviceReferences[i];
-          invokeEventMethod(instance, bindMethodName, serviceReferences[i]);
+          invokeEventMethod(instance, bindMethodName, bound);
         }
       }
     } else { // unary
@@ -140,7 +146,8 @@ public class Reference extends ServiceTracker {
   
   public void unbind(Object instance) {
     instances.remove(instance);
-    if (bound == null) return;
+    if (!doneBound) return;
+    doneBound = false;
     if (multiple) {
       ServiceReference[] serviceReferences = getServiceReferences();
       if (serviceReferences != null) {
@@ -181,7 +188,7 @@ public class Reference extends ServiceTracker {
     Object arg = null;
 
     if (service == null) {
-      service = bc.getService(ref);
+      service = getService(ref);
     }
 
     Class serviceClass = service.getClass();
