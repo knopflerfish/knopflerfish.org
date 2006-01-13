@@ -81,15 +81,18 @@ public abstract class Component implements ServiceFactory {
     
   }
   
-  /** activates a component, returns true if the registration succeeds (or already was activated) */
-  public boolean activate() {
+  /** Activates a component. 
+      If the component isn't enabled or satisfied, nothing will happen.
+      If the component is already activated nothing will happen.
+  */
+  public void activate() {
     // this method is described on page 297 r4
     
     if (!config.isEnabled() || !config.isSatisfied())
-      return false;
+      return ;
 
     if(isActivated()) 
-      return true;
+      return ;
 
     // 1. load class
 
@@ -105,7 +108,7 @@ public abstract class Component implements ServiceFactory {
         Activator.log.error("Could not find class " + 
                             config.getImplementation());
 
-      return false;
+      return ;
     }
 
     ComponentInstance cInstance = null;
@@ -121,27 +124,27 @@ public abstract class Component implements ServiceFactory {
       if (Activator.log.doError())
         Activator.log.error("Could not access constructor of class " + 
                             config.getImplementation());
-      return false;
+      return ;
 
     } catch (InstantiationException e) {
       if (Activator.log.doError())
         Activator.log.error("Could not create instance of " + 
                             config.getImplementation() + 
                             " isn't a proper class.");
-      return false;
+      return ;
       
     } catch (ExceptionInInitializerError e) {
       if (Activator.log.doError())
         Activator.log.error("Constructor for " + 
                             config.getImplementation() + 
                             " threw exception.", e);
-      return false;
+      return ;
       
     } catch (SecurityException e) {
       if (Activator.log.doError())
         Activator.log.error("Did not have permissions to create an instance of " + 
                             config.getImplementation(), e);
-      return false;
+      return ;
     }
     
     // 3. Bind the services. This should be sent to all the references.
@@ -163,7 +166,7 @@ public abstract class Component implements ServiceFactory {
       Activator.log.error("Declarative Services could not invoke \"deactivate\""  + 
                           " method in component \""+ config.getName() + 
                           "\". Got exception", e);
-      return false;
+      return ;
   
     } catch (InvocationTargetException e) {
       // the method threw an exception.
@@ -175,17 +178,17 @@ public abstract class Component implements ServiceFactory {
       instance = null;
       componentContext = null;
       
-      return false;
+      return ;
     }
 
     active = true;
-    return true;
+    return ;
   }
 
   /** deactivates a component */
   public void deactivate() {
     // this method is described on page 432 r4
-    
+
     if (!isActivated()) return ;
     
     try {

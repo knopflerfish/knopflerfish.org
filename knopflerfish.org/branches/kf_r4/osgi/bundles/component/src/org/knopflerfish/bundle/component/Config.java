@@ -78,7 +78,9 @@ public class Config {
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).open();
     }
-    createComponent();
+
+    Component component = createComponent();
+    components.add(component);
     enabled = true;
     referenceSatisfied();
   }
@@ -93,24 +95,16 @@ public class Config {
 
 
   public Component createComponent() {
-    Component component;
 
     if (isImmediate() || getServices() == null) {
-      component = new ImmediateComponent(this, null);
-      components.add(component);
+      return new ImmediateComponent(this, null);
 
-      return component;
     } else if (!isImmediate() && getServices() != null){
-      component = new DelayedComponent(this, null);
-      components.add(component);
+      return new DelayedComponent(this, null);
 
-      return component;
     } else {
-
       return null; // todo add more.
-    }
-
-
+    }   
   }
 
   public boolean isSatisfied() {
