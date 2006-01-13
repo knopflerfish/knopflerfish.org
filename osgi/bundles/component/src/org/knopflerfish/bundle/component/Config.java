@@ -217,7 +217,7 @@ public class Config {
       Reference ref = (Reference)references.get(i);
       
       if (name.equals(ref.getName())) {
-	return ref;
+        return ref;
       }
     }
 
