@@ -373,6 +373,10 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		return context.getService(reference);
 	}
 
+  // BA: Used by DS
+  protected void addedService(ServiceReference reference, Object service) {
+  }
+  
 	/**
 	 * Default implementation of the
 	 * <code>ServiceTrackerCustomizer.modifiedService</code> method.
@@ -417,6 +421,10 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		context.ungetService(reference);
 	}
 
+  // BA: Used by DS
+  protected void removingService(ServiceReference reference, Object service) {
+  }
+  
 	/**
 	 * Wait for at least one service to be tracked by this
 	 * <code>ServiceTracker</code> object.
@@ -920,6 +928,10 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				 * If the customizer throws an unchecked exception, it is safe
 				 * to let it propagate
 				 */
+      } else {
+        try { // BA: Used by DS
+          customizer.addedService(reference, object);
+        } catch (Throwable ignored) {}
 			}
 		}
 
@@ -954,6 +966,9 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				{
 					return;
 				}
+        try { // BA: Used by DS
+          removingService(reference, object);
+        } catch (Throwable ignored) {}
 				modified(); /* increment modification count */
 			}
 			if (DEBUG) {
