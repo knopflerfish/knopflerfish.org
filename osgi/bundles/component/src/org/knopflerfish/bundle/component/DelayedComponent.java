@@ -33,21 +33,22 @@
  */
 package org.knopflerfish.bundle.component;
 import java.util.Dictionary;
+import java.util.Hashtable;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-
 public class DelayedComponent extends Component {
 
   private int refCount;
+  private Dictionary services; // this is used iff the service is a service factory.
 
   public DelayedComponent(Config config, 
 			  Dictionary overriddenProps) {
     super(config, overriddenProps);
-
     refCount = 0;
+    services = null;
   }
 
   public void satisfied() {
@@ -59,36 +60,42 @@ public class DelayedComponent extends Component {
   }
 
   public Object getService(Bundle bundle, ServiceRegistration reg) {
-   
     super.getService(bundle, reg);
     
-    if (config.isServiceFactory()) {
-      Component component =
-	config.createComponent();
-
-      
-      // TODO: vad händer egentligen här? Är det bara att köra config.createComponent och sedan köra return componentgetService(bundle, reg) på den? Måste nog göra nåt mer annars kommer den loopa igen eftersom isServiceFactory == true.
-      
-
-      if (config.isSatisfied()) {
-	component.satisfied();
-	return component.getService(bundle, reg);
-      } else {
-	// throw new ComponentException("Could not satisfy blalba, TODO: read more on this.");
-      }
+    if (!isActivated()) {
+      activate();
     }
+    
+    if (isActivated()) {
 
-    if (activate()) {
-      
-	refCount++;
-	return getInstance();
+      /*
+      if (config.isServiceFactory()) {
+	services = services == null ? new Hashtable() : services;
+	Object service = services.get(bundle);
 	
-    } else {
+	if (service == null) {
+	  Component comp = config.createComponent();
+	  comp.activate();
+	  service = comp.getService(bundle, reg);
+	  
+	  services.put(bundle, service);
+	}
+	
+	return service;
+	
+	} else { */
       
+      refCount++;
+      return getInstance();
+	
+	//}
+      
+    } else {
+      // getting here means that the activation failed.
       unregisterService();
       return null;
-      
     } 
+  
   }
 
   public void ungetService(Bundle bundle, ServiceRegistration reg, Object instance) {
@@ -101,6 +108,7 @@ public class DelayedComponent extends Component {
     
     if (refCount == 0) {
       deactivate();
+      services = null;
     }
   }
 }
