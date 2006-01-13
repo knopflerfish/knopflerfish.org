@@ -255,4 +255,25 @@ public class Config {
   public void setImmediate(boolean isImmediate) {
     immediate = isImmediate;
   }
+  
+  public Config copy() {
+    Config config = new Config(bundle);
+    for (Enumeration e = properties.keys(); e.hasMoreElements();) {
+      String key = (String) e.nextElement();
+      config.setProperty(key, properties.get(key)); // TODO: Is this ok? Clone value?
+    }
+    for (Iterator iter = references.iterator(); iter.hasNext();) {
+      config.addReference(((Reference) iter.next()).copy());
+    }
+    for (Iterator iter = services.iterator(); iter.hasNext();) {
+      config.addService((String) iter.next());
+    }
+    config.setAutoEnabled(autoEnabled);
+    config.setImplementation(implementation);
+    config.setName(name);
+    config.setServiceFactory(serviceFactory);
+    config.setFactory(factory);
+    config.setImmediate(immediate);
+    return config;
+  }
 }
