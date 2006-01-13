@@ -930,7 +930,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				 */
       } else {
         try { // BA: Used by DS
-          customizer.addedService(reference, object);
+          addedService(reference, object);
         } catch (Throwable ignored) {}
 			}
 		}
@@ -957,6 +957,9 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 							 * process of adding
 							 */
 				}
+        try { // BA: Used by DS
+          removingService(reference, this.get(reference));
+        } catch (Throwable ignored) {}
 				object = this.remove(reference); /*
 													 * must remove from tracker
 													 * before calling customizer
@@ -966,9 +969,6 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				{
 					return;
 				}
-        try { // BA: Used by DS
-          removingService(reference, object);
-        } catch (Throwable ignored) {}
 				modified(); /* increment modification count */
 			}
 			if (DEBUG) {
