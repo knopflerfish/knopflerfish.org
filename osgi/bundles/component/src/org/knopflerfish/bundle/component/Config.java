@@ -96,9 +96,9 @@ public class Config {
     Component component;
 
     if (isImmediate() || getServices() == null) {
-      
       component = new ImmediateComponent(this, null);
       components.add(component);
+
       return component;
     } else if (!isImmediate() && getServices() != null){
       component = new DelayedComponent(this, null);

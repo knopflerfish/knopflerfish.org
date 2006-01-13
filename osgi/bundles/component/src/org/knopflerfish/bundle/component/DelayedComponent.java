@@ -38,6 +38,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
+
 public class DelayedComponent extends Component {
 
   private int refCount;
@@ -45,6 +46,7 @@ public class DelayedComponent extends Component {
   public DelayedComponent(Config config, 
 			  Dictionary overriddenProps) {
     super(config, overriddenProps);
+
     refCount = 0;
   }
 
@@ -57,13 +59,23 @@ public class DelayedComponent extends Component {
   }
 
   public Object getService(Bundle bundle, ServiceRegistration reg) {
+   
     super.getService(bundle, reg);
     
     if (config.isServiceFactory()) {
       Component component =
 	config.createComponent();
+
       
       // TODO: vad händer egentligen här? Är det bara att köra config.createComponent och sedan köra return componentgetService(bundle, reg) på den? Måste nog göra nåt mer annars kommer den loopa igen eftersom isServiceFactory == true.
+      
+
+      if (config.isSatisfied()) {
+	component.satisfied();
+	return component.getService(bundle, reg);
+      } else {
+	// throw new ComponentException("Could not satisfy blalba, TODO: read more on this.");
+      }
     }
 
     if (activate()) {

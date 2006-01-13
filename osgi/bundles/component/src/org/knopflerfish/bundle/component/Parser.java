@@ -679,7 +679,7 @@ public class Parser {
       missingAttr(parser, "interface");
 
 
-    BundleContext bc = null; // MO: call magic Bundle -> BundleContext function here.
+    BundleContext bc = Backdoor.getBundleContext(declaringBundle);
 
     try {
       Filter filter;
@@ -691,7 +691,7 @@ public class Parser {
         filter =
           bc.createFilter("(" + Constants.OBJECTCLASS + "=" + interfaceName +")");
       }
-
+      
       Reference ref = new Reference(name, filter,
                                     optional, multiple, dynamic,
                                     bind, unbind, bc);
