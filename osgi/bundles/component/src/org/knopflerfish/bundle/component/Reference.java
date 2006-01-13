@@ -85,54 +85,51 @@ public class Reference extends ServiceTracker {
     this.config = config;
   }
   
-  public Object addingService(ServiceReference ref, Object service) {
-    boolean wasSatisfied = isSatisfied();
+  protected void addedService(ServiceReference ref, Object service) {
     if (bound != null && multiple) {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), bindMethodName, ref);
+        invokeEventMethod(iter.next(), bindMethodName, ref, service);
       }
     }
-    Object obj = super.addingService(ref);
-    if (!wasSatisfied && isSatisfied() && config != null) {
+    if (!isSatisfied(1) && isSatisfied() && config != null) {
       config.referenceSatisfied();
     }
-    return obj;
   }
 
   /* TODO? public void modifiedService() */
 
-  public void removedService(ServiceReference ref, Object service) {
-    boolean wasSatisfied = isSatisfied();
+  protected void removingService(ServiceReference ref, Object service) {
     if (bound != null && multiple) {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), unbindMethodName, ref);
+        invokeEventMethod(iter.next(), unbindMethodName, ref, service);
       }
     } else if (ref.equals(bound)) {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), unbindMethodName, ref);
+        invokeEventMethod(iter.next(), unbindMethodName, ref, service);
       }
       bound = null;
     }
-      
-    super.removedService(ref, service);
-    /* try to remove this service,
-       possibly disabling the component */
-    if (wasSatisfied && !isSatisfied() && config != null) {
+    if (!isSatisfied(1) && config != null) {
       config.referenceUnsatisfied();
     }
   }
 
   public boolean isSatisfied() {
-    return getTrackingCount() > 0 || optional;
+    return isSatisfied(0);
+  }
+  public boolean isSatisfied(int sizeLimit) {
+    return size() > sizeLimit || optional;
   }
 
   public void bind(Object instance) {
     instances.add(instance);
     if (multiple) {
       ServiceReference[] serviceReferences = getServiceReferences();
-      for (int i=0; i<serviceReferences.length; i++) {
-        bound = serviceReferences[i];
-        invokeEventMethod(instance, bindMethodName, serviceReferences[i]);
+      if (serviceReferences != null) {
+        for (int i=0; i<serviceReferences.length; i++) {
+          bound = serviceReferences[i];
+          invokeEventMethod(instance, bindMethodName, serviceReferences[i]);
+        }
       }
     } else { // unary
       bound = getServiceReference();
@@ -168,6 +165,12 @@ public class Reference extends ServiceTracker {
   private void invokeEventMethod(Object instance,
                                  String methodName, 
                                  ServiceReference ref) {
+    invokeEventMethod(instance, methodName, ref, null);
+  }
+  private void invokeEventMethod(Object instance,
+                                 String methodName, 
+                                 ServiceReference ref,
+                                 Object service) {
 
     if (methodName == null) {
       return ;
@@ -177,8 +180,9 @@ public class Reference extends ServiceTracker {
     Method method = null;
     Object arg = null;
 
-    Object service = bc.getService(ref); 
-    // service can be null if the service is unregistering.
+    if (service == null) {
+      service = bc.getService(ref);
+    }
 
     Class serviceClass = service.getClass();
       
