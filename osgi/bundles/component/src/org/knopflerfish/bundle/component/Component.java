@@ -48,7 +48,8 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
 
-public abstract class Component implements ServiceFactory, ComponentInstance {
+public abstract class Component implements ServiceFactory, 
+                                           ComponentInstance {
 
   protected Config config; 
   private boolean enabled;
@@ -58,7 +59,7 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
   protected BundleContext bundleContext;
   protected ServiceRegistration serviceRegistration;
   protected ComponentContext componentContext;
-  private Bundle usingBundle;
+  protected Bundle usingBundle;
   
   public Component(Config config, Dictionary overriddenProps) {
 
@@ -86,7 +87,7 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
   */
   public void activate() {
     // this method is described on page 297 r4
-    
+
     if (!config.isEnabled() || !config.isSatisfied())
       return ;
 
@@ -94,7 +95,6 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
       return ;
 
     // 1. load class
-
     Class klass = null;
     try {
 
@@ -111,7 +111,6 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
     }
 
     ComponentInstance cInstance = null;
-    
     try {
       // 2. create ComponentContext and ComponentInstance
       instance = klass.newInstance();
@@ -144,7 +143,7 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
                             config.getImplementation(), e);
       return ;
     }
-    
+
     // 3. Bind the services. This should be sent to all the references.
     config.bindReferences(instance);
     
@@ -180,7 +179,6 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
     }
 
     active = true;
-    return ;
   }
 
   /** deactivates a component */
@@ -248,7 +246,7 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
      This must be overridden
   */
   public Object getService(Bundle usingBundle, 
-                           ServiceRegistration reg) {
+			   ServiceRegistration reg) {
     this.usingBundle = usingBundle;
     return getInstance();
   }
@@ -256,7 +254,8 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
   /**
      This must be overridden
   */
-  public void ungetService(Bundle usingBundle, ServiceRegistration reg, 
+  public void ungetService(Bundle usingBundle, 
+			   ServiceRegistration reg, 
 			   Object obj) {
     this.usingBundle = null;
   }
@@ -273,6 +272,10 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
    */
 
   public abstract void unsatisfied();
+
+  public void setProperty(String name, Object value) {
+    properties.put(name, value);
+  }
 
 
 
@@ -344,7 +347,8 @@ public abstract class Component implements ServiceFactory, ComponentInstance {
         try {
           ServiceReference[] refs = 
             bundleContext.getServiceReferences(config.getImplementation(),
-                                               "(" + ComponentConstants.COMPONENT_ID + "=" + thisComponentId + ")"); 
+                                               "(" + ComponentConstants.COMPONENT_ID + "=" + 
+					       thisComponentId + ")"); 
           if (refs == null) {
             Activator.log.debug("This is a bug. Variable refs should not be null.");
           }

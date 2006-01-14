@@ -59,17 +59,18 @@ public class DelayedComponent extends Component {
 
   public Object getService(Bundle bundle, ServiceRegistration reg) {
     super.getService(bundle, reg);
-    
+
     if (!isActivated()) {
       activate();
     }
-    
+
     if (isActivated()) {
       refCount++;
       return getInstance();
       
     } else {
       // getting here means that the activation failed.
+
       unregisterService();
       return null;
     } 
