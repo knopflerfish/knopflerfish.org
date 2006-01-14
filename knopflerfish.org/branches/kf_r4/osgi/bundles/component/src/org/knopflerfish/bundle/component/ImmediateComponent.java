@@ -48,7 +48,6 @@ public class ImmediateComponent extends Component {
 
   public void ungetService(Bundle bundle, ServiceRegistration reg, Object o) {
     super.ungetService(bundle, reg, o);
-    // This does not do anything, nor should it.
   }
 
 }

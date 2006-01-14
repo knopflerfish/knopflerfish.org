@@ -74,15 +74,16 @@ public class Config {
     services   = new ArrayList();
   }
 
-  public void enable() {
+  public Component enable() {
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).open();
     }
 
     Component component = createComponent();
-    components.add(component);
     enabled = true;
     referenceSatisfied();
+
+    return component;
   }
 
   public void disable() {
@@ -94,17 +95,25 @@ public class Config {
   }
 
 
-  public Component createComponent() {
+  private Component createComponent() {
+    Component component;
 
-    if (isImmediate() || getServices() == null) {
-      return new ImmediateComponent(this, null);
+    if (getFactory() != null) {
+      component = new FactoryComponent(this, null);
+
+    } else if (isImmediate() || getServices() == null) {
+      component = new ImmediateComponent(this, null);
 
     } else if (!isImmediate() && getServices() != null){
-      return new DelayedComponent(this, null);
+      component = new DelayedComponent(this, null);
 
     } else {
-      return null; // todo add more.
-    }   
+      throw new RuntimeException("This is a bug and should not be happening.");
+
+    }
+    
+    components.add(component);
+    return component;
   }
 
   public boolean isSatisfied() {
