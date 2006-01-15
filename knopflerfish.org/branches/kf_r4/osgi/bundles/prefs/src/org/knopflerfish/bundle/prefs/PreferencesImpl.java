@@ -184,11 +184,11 @@ public class PreferencesImpl implements Preferences {
   }
 
   public Preferences parent() {
+    assertValid();
+
     if(parentPath == null) {
       return null;
     }
-
-    assertValid();
 
     return storage.getNode(parentPath, false);
   }
