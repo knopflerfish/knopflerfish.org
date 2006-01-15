@@ -254,9 +254,6 @@ public class PreferencesImpl implements Preferences {
 
   public void removeNode() {
     assertValid();
-    if("".equals(path)) {
-      throw new RuntimeException("Cannot remove root node");
-    }
     storage.removeNode(path);
     bStale = true;
   }

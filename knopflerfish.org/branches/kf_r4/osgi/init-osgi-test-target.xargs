@@ -20,6 +20,9 @@
 # Load the default configuration
 -xargs init.xargs
 
+-Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
+-istart  prefs/prefs_all-1.1.0.jar
+
 -start  file:../../osgi.ri-tck/osgi.target.jar
 
 
