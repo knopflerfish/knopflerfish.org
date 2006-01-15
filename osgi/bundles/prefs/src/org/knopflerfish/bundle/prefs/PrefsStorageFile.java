@@ -64,6 +64,11 @@ public class  PrefsStorageFile implements PrefsStorage {
 
   Object lock = new Object();
 
+  /** Set to true when the entire pres tree repesented by this storage
+   ** have been removed.
+   **/
+  boolean bStale = false;
+
   boolean bDebug = false;
 
   PrefsStorageFile(String base) {
@@ -263,10 +268,14 @@ public class  PrefsStorageFile implements PrefsStorage {
   public void removeNode(String path) {
     synchronized(lock) {
       try {
+        if("".equals(path)) {
+          bStale = true;
+        }
+        
         for(Iterator it = prefs.keySet().iterator(); it.hasNext(); ) {
           String p = (String)it.next();
           PreferencesImpl pi = (PreferencesImpl)prefs.get(p);
-          if(p.startsWith(path + "/")) {
+          if(bStale || p.startsWith(path + "/")) {
             pi.bStale = true;
           }
         }
