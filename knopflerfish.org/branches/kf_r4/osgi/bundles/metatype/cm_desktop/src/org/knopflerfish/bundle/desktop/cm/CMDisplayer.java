@@ -149,11 +149,11 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
 
     public void setBundle(Bundle b) {
       try {
-	MTP mtp = Activator.getMTP(b);
-	jcmInfo.setProvider(mtp, mtp, b);
+	MetaTypeInformation mtp = Activator.getMTP(b);
+	jcmInfo.setProvider(mtp, b);
       } catch (Exception e) {
 	e.printStackTrace();
-	Activator.log.error("Failed to get MTP from bundle " + 
+	Activator.log.error("Failed to get MetaTypeInformation from bundle " + 
 			    b.getBundleId(), e);
       }
     }
