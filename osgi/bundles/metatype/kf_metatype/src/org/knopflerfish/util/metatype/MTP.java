@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @author Erik Wistrand
+ * @author Philippe Laporte
+ */
+
 package org.knopflerfish.util.metatype;
 
-import org.osgi.framework.*;
+
+import org.osgi.framework.Bundle;
 import org.osgi.service.metatype.*;
 
 import java.util.*;
@@ -42,7 +48,7 @@ import java.util.*;
 /**
  * Implementation of the <tt>MetaTypeProvider</tt> interface.
  */
-public class MTP implements MetaTypeProvider, PIDProvider {
+public class MTP implements MetaTypeInformation {
 
   Map ocdMap = new HashMap();
 
@@ -50,6 +56,9 @@ public class MTP implements MetaTypeProvider, PIDProvider {
   Set factories = new HashSet();
 
   String id;
+  
+  //when system bundle, not set
+  private Bundle bundle;
 
   public MTP(String id) {
     this.id = id;
@@ -74,6 +83,14 @@ public class MTP implements MetaTypeProvider, PIDProvider {
     }
     return sa;
   }
+  
+  void setBundle(Bundle bundle){
+	  this.bundle = bundle;
+  }
+  
+  public Bundle getBundle() {
+	  return bundle;
+  }
 
   public String[] getPids() {
     return toStringArray(services);
@@ -87,8 +104,7 @@ public class MTP implements MetaTypeProvider, PIDProvider {
     return null;
   }
 
-  public ObjectClassDefinition getObjectClassDefinition(String pid, 
-							String locale) {
+  public ObjectClassDefinition getObjectClassDefinition(String pid, String locale) {
 
     ObjectClassDefinition  ocd = (ObjectClassDefinition)ocdMap.get(pid);
 
@@ -142,5 +158,7 @@ public class MTP implements MetaTypeProvider, PIDProvider {
 
     return id.equals(((MTP)other).id);
   }
+
+
 }
  

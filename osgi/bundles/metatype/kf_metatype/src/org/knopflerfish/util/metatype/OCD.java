@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @author Erik Wistrand
+ * @author Philippe Laporte
+ */
+
 package org.knopflerfish.util.metatype;
 
 import org.osgi.framework.*;
+import org.osgi.service.cm.Configuration;
 import org.osgi.service.metatype.*;
 
 import org.osgi.service.metatype.*;
@@ -51,13 +57,20 @@ public class OCD implements ObjectClassDefinition {
 
   String id;
   String name;
+  String localized_name;
   String desc;
+  String localized_desc;
   List optAttrs;
   List reqAttrs;
+  List localized_optAttrs;
+  List localized_reqAttrs;
 
-  String      iconURL = null;
+  //String      iconURL = null;
+  Hashtable icons = new Hashtable();
 
   int  maxInstances = 1;
+  
+  
 
   /**
    * Create a new, empty ObjectClassDefinition.
@@ -135,6 +148,8 @@ public class OCD implements ObjectClassDefinition {
     }
 
   }
+  
+  
 
   /**
    * Add an attribute definition
@@ -143,7 +158,7 @@ public class OCD implements ObjectClassDefinition {
    * @param filter either OPTIONAL or REQUIRED
    * @throws Illegalargumentexception if filter is not OPTIONAL or REQUIRED
    */
-  public void add(AttributeDefinition attr, int filter) {
+  public void add(AD attr, int filter) {
     switch(filter) {
     case OPTIONAL:
       optAttrs.add(attr);
@@ -161,20 +176,36 @@ public class OCD implements ObjectClassDefinition {
     switch(filter) {
     case ALL: {
       ArrayList all = new ArrayList();
-      all.addAll(reqAttrs);
-      all.addAll(optAttrs);
+      if(localized_optAttrs == null){
+    	  all.addAll(reqAttrs);
+    	  all.addAll(optAttrs);
+      }
+      else{
+    	  all.addAll(localized_reqAttrs);
+    	  all.addAll(localized_optAttrs);
+      }
       AttributeDefinition[] ads = new AttributeDefinition[all.size()];
       all.toArray(ads);
       return ads;
     }
     case REQUIRED: {
       AttributeDefinition[] ads = new AttributeDefinition[reqAttrs.size()];
-      reqAttrs.toArray(ads);
+      if(localized_reqAttrs == null){
+    	  reqAttrs.toArray(ads);
+      }
+      else{
+    	  localized_reqAttrs.toArray(ads);
+      }
       return ads;
     }
     case OPTIONAL: {
       AttributeDefinition[] ads = new AttributeDefinition[optAttrs.size()];
-      optAttrs.toArray(ads);
+      if(localized_optAttrs == null){
+    	  optAttrs.toArray(ads);
+      }
+      else{
+    	  localized_optAttrs.toArray(ads);
+      }
       return ads;
     }
     default:
@@ -186,7 +217,12 @@ public class OCD implements ObjectClassDefinition {
    * Get description of OCD. 
    */
   public String getDescription() {
-    return desc;
+	  if(localized_desc != null){
+		  return localized_desc;
+	  }
+	  else{
+		  return desc;
+	  }
   }
   
   /**
@@ -195,13 +231,34 @@ public class OCD implements ObjectClassDefinition {
    * @param size icon size hint is ignored.
    */
   public InputStream getIcon(int size) throws IOException {
-    if(iconURL != null) {
+    /*if(iconURL != null) {
       URL url = new URL(iconURL);
       return url.openStream();
     } else {
       return null;
-    }
-
+    }*/
+	String url; 
+	InputStream is;
+	  
+	if((url = (String) icons.get(new Integer(size))) == null){
+		if((url = (String) icons.get(new Integer(Integer.MAX_VALUE))) == null){
+			Enumeration keys = icons.keys();
+			if(!keys.hasMoreElements()){
+				is = null;
+			}
+			else{
+				is = new URL((String)icons.get((Integer) keys.nextElement())).openStream();
+			}
+		}
+		else{
+			is = new URL(url).openStream();
+		}
+	}
+	else{
+		is = new URL(url).openStream();
+	}
+	
+    return is;
   }
 
   /**
@@ -215,14 +272,26 @@ public class OCD implements ObjectClassDefinition {
    * Set URL to icon
    */
   public void setIconURL(String url) {
-    iconURL = url;
+    //iconURL = url;
+	  icons.put(new Integer(Integer.MAX_VALUE), url);
+  }
+  
+  public void addIcon(int size, String url){
+	  icons.put(new Integer(size), url);
   }
 
   /**
    * Get URL to icon data
    */
   public String getIconURL() {
-    return iconURL;
+    //return iconURL;
+	Enumeration keys = icons.keys();
+	if(!keys.hasMoreElements()){
+		return null;
+	}
+	else{
+		return (String)icons.get((Integer) keys.nextElement());
+	}
   }
 
 
@@ -231,9 +300,49 @@ public class OCD implements ObjectClassDefinition {
   }
 
   public String getName() {
-    return name;
+	if(localized_name != null){
+		return localized_name;
+	}
+	else{
+		return name;
+	}
   }
-
+  
+  void localize(Dictionary dict){
+	  if(dict != null){
+		  localized_name = localizeName(name, dict); 
+		  localized_desc = localizeName(desc, dict); 
+		  
+		  localized_reqAttrs = new ArrayList();
+		  
+		  for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
+		      AD attr = (AD)it.next();
+		      localized_reqAttrs.add(attr.localize(dict));
+		  }
+		  
+		  localized_optAttrs = new ArrayList();
+		  for(Iterator it = optAttrs.iterator(); it.hasNext(); ) {
+		      AD attr = (AD)it.next();
+		      localized_optAttrs.add(attr.localize(dict));
+		  }   
+		     
+	  }
+  }
+  
+  String localizeName(String name, Dictionary dict){
+	  if(name.startsWith("%")){
+		  String sub;
+		  if((sub = (String) dict.get(name.substring(1))) != null){
+			  return sub;
+		  }
+		  else{
+			  return name;
+		  }
+	  }
+	  return name;
+  }
+  
+/*
   public String toString() {
     StringBuffer sb = new StringBuffer();
 
@@ -258,5 +367,5 @@ public class OCD implements ObjectClassDefinition {
     }
     sb.append("\n/OCD]");
     return sb.toString();
-  }
+  }*/
 }
