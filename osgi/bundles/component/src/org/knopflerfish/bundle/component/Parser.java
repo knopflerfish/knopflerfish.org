@@ -68,14 +68,14 @@ public class Parser {
                                     "Long", "Short", "String"};
 
   static private String SCR_NAMESPACE_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
-
+  private static boolean componentRoot = false;
+  
   public static Collection readXML(Bundle declaringBundle,
                                    URL url) throws IllegalXMLException {
 
     try {
       return readXML(declaringBundle, url.openStream());
     } catch (IOException e) {
-
       throw new IllegalXMLException("Could not open \"" + url +
                                     "\" got exception.", e);
     }
@@ -100,33 +100,54 @@ public class Parser {
     }
   }
 
+  private static boolean isInSCRNamespace(XmlPullParser parser, 
+                                          String tagName,
+                                          int level) {
+
+    return tagName.equals(parser.getName()) && 
+      (parser.getDepth() == level || 
+       SCR_NAMESPACE_URI.equals(parser.getNamespace()) ||
+       "".equals(parser.getNamespace())); 
+    /* 
+       the test parser.getNamespace() == null SHOULD not be
+       needed but was added since the osgi-tests actually
+       breaks the document specification.
+       
+    */
+    
+  }
+
   private static ArrayList readDocument(Bundle declaringBundle, XmlPullParser parser)
     throws XmlPullParserException, IOException {
 
     ArrayList decls = new ArrayList();
     boolean foundImplementation = false;
+    int event = parser.getEventType();
 
-    while (parser.next() != XmlPullParser.END_DOCUMENT) {
+    while (event != XmlPullParser.END_DOCUMENT) {
 
-      if (parser.getEventType() != XmlPullParser.START_TAG &&
-          parser.getEventType() != XmlPullParser.END_TAG) {
+      if (parser.getEventType() != XmlPullParser.START_TAG) {
+        event = parser.next();
         continue; // nothing of interest to us.
       }
 
-      if (parser.getName().equals("component") &&
-          parser.getEventType() == XmlPullParser.START_TAG &&
-          (parser.getDepth() == 1 || // assume scr here. The root is component
+      if (parser.getEventType() == XmlPullParser.START_TAG &&
+          "component".equals(parser.getName()) && 
+          (parser.getDepth() == 1 || 
            SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
-        // we have found a proper component-tag here.
-
+        
         try {
-          decls.add(readComponent(declaringBundle,
-                                  parser));
+          Config config = readComponent(declaringBundle, parser);
+          decls.add(config);
 
         } catch (Exception e) {
+
           Activator.log.error("Got exception when reading component-tag", e);
+          continue;
         }
       }
+      
+      event = parser.next();
     }
 
     return decls;
@@ -155,38 +176,31 @@ public class Parser {
 
       level = parser.getDepth();
 
-      if (parser.getName().equals("implementation") &&
-          (level == 2 && "".equals(parser.getNamespace())
-           || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
+
+      if (isInSCRNamespace(parser, "implementation", 2)) {
         setImplementation(curr, parser);
 
-      } else if (parser.getName().equals("property") &&
-                 (level == 2 && "".equals(parser.getNamespace())
-                  || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
+      } else if (isInSCRNamespace(parser, "property", 2)) {
         setProperty(curr, parser);
 
-      } else if (parser.getName().equals("properties") &&
-                 (level == 2 && "".equals(parser.getNamespace())
-                  || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
+      } else if (isInSCRNamespace(parser, "properties", 2)) {
         setProperties(curr, parser, bundle);
 
-      } else if (parser.getName().equals("service") &&
-                 (level == 2 && "".equals(parser.getNamespace())
-                  || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
+      } else if (isInSCRNamespace(parser, "service", 2)) {
 
         if (!serviceFound) {
           serviceFound = true;
           setService(curr, parser);
           parser.next();
-        } else
+        } else {
           throw new
             IllegalXMLException("More than one service-tag " +
                                 "in component: \"" + curr.getName()
                                 + "\"");
+        }
+        
+      } else if (isInSCRNamespace(parser, "reference", 2)) {
 
-      } else if (parser.getName().equals("reference") &&
-                 (level == 2 && "".equals(parser.getNamespace())
-                  || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
         setReference(curr, parser, bundle);
 
 
@@ -197,10 +211,10 @@ public class Parser {
       event = parser.getEventType();
     }
 
-    if (curr.getImplementation() == null)
+    if (curr.getImplementation() == null) {
       throw new IllegalXMLException("Component \"" + curr.getName() +
                                     "\" lacks implementation-tag");
-
+    }
 
     return curr;
   }
@@ -290,11 +304,18 @@ public class Parser {
     }
 
     if (isArray) {
-      String text = parser.nextText();
-      values = text.split("\n");
+
+      // TODO: I needed to add 'trim' order to make it pass the OSGi-test..
+      // Isn't that a bit strange? 
+
+      String text = parser.nextText().trim();
+      values = text.split("(\n|\r)");
+      for (int i = 0; i < values.length; i++)
+        values[i] = values[i].trim();
 
     }
 
+    
     if (type == null || // defaults to string
         "String".equals(type)) {
       retval = values;
@@ -394,10 +415,22 @@ public class Parser {
     /* If there is an attribute in the service tag */
     for (int i = 0; i < parser.getAttributeCount(); i++) {
 
-      if (parser.getAttributeName(i).equals("servicefactory") &&
-          (parser.getDepth() == 2 && "".equals(parser.getNamespace())
-           || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
-        compConf.setServiceFactory(parseBoolean(parser, i));
+      if (parser.getAttributeName(i).equals("servicefactory")) { // &&
+        
+        boolean isServiceFactory = parseBoolean(parser, i);
+          
+          if (isServiceFactory &&
+              (compConf.isImmediate() || 
+               compConf.getFactory() != null)) {
+            throw new IllegalXMLException("Attribute servicefactory in service-tag "+ 
+                                          "cannot be set to \"true\" when component "+
+                                          "is either an immediate component or " +
+                                          "a factory component.");
+          }
+
+
+          
+        compConf.setServiceFactory(isServiceFactory);
 
       } else {
         throw new IllegalXMLException("Unrecognized attribute \"" +
@@ -418,9 +451,7 @@ public class Parser {
 
       level = parser.getDepth();
 
-      if ("provide".equals(parser.getName()) &&
-          (level == 3 && parser.getNamespace().equals("")
-           || SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
+      if (isInSCRNamespace(parser, "provide", 3)) {
 
         String interfaceName = null;
         for (int i = 0; i < parser.getAttributeCount(); i++) {
@@ -489,12 +520,11 @@ public class Parser {
       }
     }
 
-    parser.next(); // can't use skip here since we are going to read the body.
-
-
     if (name == null) {
       missingAttr(parser, "name"); // throws exception
     }
+
+    parser.next(); // can't use skip here since we are going to read the body.
 
     compConf.setAutoEnabled(enabled);
     compConf.setName(name);
@@ -634,15 +664,15 @@ public class Parser {
         } else if ("0..1".equals(val)) {
           optional = true;
           multiple = false;
-        } else if ("1..N".equals(val)) {
+        } else if ("1..n".equals(val)) {
           optional = false;
           multiple = true;
-        } else if ("0..N".equals(val)) {
+        } else if ("0..n".equals(val)) {
           multiple = optional = true;
         } else {
           invalidValue(parser,
                        new String[]{"1..1", "0..1",
-                                    "1..N", "0..N"}, i);
+                                    "1..n", "0..n"}, i);
         }
 
       } else if (parser.getAttributeName(i).equals("policy")) {
@@ -743,7 +773,7 @@ public class Parser {
     for (int i = 0; i < expected.length - 1; i++)
       buf.append("\"" + expected[i] + "\"/");
 
-    buf.append(expected[expected.length - 1] +
+    buf.append("\"" + expected[expected.length - 1] + "\"" + 
                " but got \"" + parser.getAttributeValue(attr) + "\".");
 
 

@@ -38,7 +38,8 @@ public class ImmediateComponent extends Component {
   
   public Object getService(Bundle bundle, ServiceRegistration reg) {
     super.getService(bundle, reg);
-    if (!isActivated()) {
+    
+    if (!isActivated()) { // todo read spec.
       unregisterService();
       return null;
     }

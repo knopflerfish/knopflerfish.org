@@ -47,39 +47,46 @@ import java.util.zip.ZipEntry;
 
 import org.osgi.framework.Bundle;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentConstants;
 
-public class Config {
+// Björn should we merge this with Component?
+
+class Config {
 
   private String name;
   private String implementation;
   private String factory;
 
-  boolean enabled;
-  boolean autoEnabled;
-  boolean serviceFactory;
-  boolean immediate;
+  private boolean enabled;
+  private boolean autoEnabled;
+  private boolean serviceFactory;
+  private boolean immediate;
+  private boolean registerService;
 
   private Hashtable properties;
   private ArrayList references;
   private ArrayList services;
-  private ArrayList components = new ArrayList();
+  private Component component;
 
   private Bundle bundle;
 
   public Config(Bundle bundle) {
     this.bundle = bundle;
-
     properties = new Hashtable();
     references = new ArrayList();
     services   = new ArrayList();
+    registerService = true;
   }
 
   public Component enable() {
+
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).open();
     }
 
-    Component component = createComponent();
+    createComponent();
+    SCR.getInstance().initComponent(component);
+
     enabled = true;
     referenceSatisfied();
 
@@ -94,26 +101,23 @@ public class Config {
     }
   }
 
+  private void createComponent() {
 
-  private Component createComponent() {
-    Component component;
-
-    if (getFactory() != null) {
+    if (getFactory() != null) {      
       component = new FactoryComponent(this, null);
 
+    } else if (isServiceFactory()) {
+      component = new ServiceFactoryComponent(this, null);
+      
     } else if (isImmediate() || getServices() == null) {
       component = new ImmediateComponent(this, null);
 
     } else if (!isImmediate() && getServices() != null){
       component = new DelayedComponent(this, null);
-
     } else {
       throw new RuntimeException("This is a bug and should not be happening.");
 
     }
-    
-    components.add(component);
-    return component;
   }
 
   public boolean isSatisfied() {
@@ -121,26 +125,31 @@ public class Config {
     
     for (int i = 0; i < references.size(); i++) {
       Reference ref = (Reference)references.get(i);
-
       if (!ref.isSatisfied()) return false;
     }
 
     return true;
   }
 
+  public boolean getShouldRegisterService() {
+    return services.size() > 0 && registerService;
+  }
+  
+  public void setShouldRegisterService(boolean registerService) {
+    this.registerService = registerService;
+  }
+
+
   public void referenceSatisfied() {
-    if (isSatisfied()) {
-      for (Iterator iter = components.iterator(); iter.hasNext();) {
-        ((Component) iter.next()).satisfied();
-      }
+
+    if (isSatisfied() && component != null) {
+      component.satisfied();
     }
   }
   
   public void referenceUnsatisfied() {
-    if (!isSatisfied()) {
-      for (Iterator iter = components.iterator(); iter.hasNext();) {
-        ((Component) iter.next()).unsatisfied();
-      }
+    if (!isSatisfied() && component != null) {
+      component.unsatisfied();
     }
   }
   
@@ -166,20 +175,11 @@ public class Config {
   }
 
   public Dictionary getProperties() {
+    return properties;
+  }
 
-    // we make a copy of the all the properties
-    // since different components might have overridden
-    // different entries.
-    Hashtable copy = new Hashtable();
-
-    for (Enumeration e = properties.keys(); e.hasMoreElements(); ) {
-
-      Object key = e.nextElement();
-      copy.put(key, properties.get(key));
-
-    }
-
-    return copy;
+  public void setProperty(String key, Object value) {
+    properties.put(key, value);
   }
 
   public Bundle getBundle() {
@@ -228,8 +228,25 @@ public class Config {
   }
 
   /* this are only for the parser. */
-  public void setProperty(String key, Object value) {
-    properties.put(key, value);
+  /** 
+      Is this really safe? What should happen when
+      CM overrides a factory's properties? Should these
+      changes be "inherited" instances created by the factory?
+      
+      
+     Overrides properties according to 112.6 
+     i.e avoids changing component.name and component.id
+  */
+  public void overrideProperties(Dictionary overriddenProps) {
+    
+    for (Enumeration e = overriddenProps.keys();
+         e.hasMoreElements(); ) {
+      String key = (String)e.nextElement();
+      if (!key.equals(ComponentConstants.COMPONENT_NAME) &&
+          !key.equals(ComponentConstants.COMPONENT_ID)) {
+        setProperty(key, overriddenProps.get(key));
+      }
+    }  
   }
 
   public void addReference(Reference ref) {
