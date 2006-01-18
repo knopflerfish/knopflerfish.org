@@ -91,6 +91,23 @@ public class Reference extends ServiceTracker {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
         invokeEventMethod(iter.next(), bindMethodName, ref, service);
       }
+    } else if (bound != null && !multiple) {
+      ServiceReference newBound = getServiceReference();
+      if (!bound.equals(newBound)) {
+        if (dynamic) { // Bind new and unbind old
+          for (Iterator iter = instances.iterator(); iter.hasNext();) {
+            Object instance = iter.next();
+            invokeEventMethod(instance, unbindMethodName, bound);
+            invokeEventMethod(instance, bindMethodName, newBound, service);
+          }
+          bound = newBound;
+        } else { // Static: deactivate and reactivate
+          overrideUnsatisfied = true;
+          config.referenceUnsatisfied();
+          overrideUnsatisfied = false;
+          config.referenceSatisfied();
+        }
+      }
     }
     if (!isSatisfied(1) && isSatisfied() && config != null) {
       config.referenceSatisfied();
