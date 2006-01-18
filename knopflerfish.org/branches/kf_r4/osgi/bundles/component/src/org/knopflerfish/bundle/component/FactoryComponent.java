@@ -31,66 +31,69 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.knopflerfish.bundle.component;
 import java.util.Dictionary;
-import java.util.Hashtable;
-
 import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-class DelayedComponent extends Component {
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentFactory;
+import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.component.ComponentException;
 
-  private int refCount;
+class FactoryComponent extends Component 
+  implements ComponentFactory {
 
-  public DelayedComponent(Config config, 
+  public FactoryComponent(Config config, 
 			  Dictionary overriddenProps) {
     super(config, overriddenProps);
-    refCount = 0;
+    // where should this be done?
+    config.setProperty(ComponentConstants.COMPONENT_FACTORY, config.getFactory());
+  }
+
+  public void registerService() {
+
+    serviceRegistration = 
+      bundleContext.registerService(ComponentFactory.class.getName(), 
+				    this, config.getProperties());
   }
 
   public void satisfied() {
-    //System.out.println("DEBUG:: Satisfied: " + config.getName() + " " + config.getImplementation());  
     registerService();
   }
-
+  
   public void unsatisfied() {
-    //System.out.println("DEBUG:: UnSatisfied: " + config.getName() + " " + config.getImplementation());  
     unregisterService();
   }
 
   public Object getService(Bundle bundle, ServiceRegistration reg) {
     super.getService(bundle, reg);
-    //System.out.println("DEBUG:: Registering: " + config.getName() + " " + config.getImplementation());  
-    if (!isActivated()) {
-      activate();
-    }
-
-    //System.out.println("DEBUG:: activated: " + isActivated());  
-    if (isActivated()) {
-      refCount++;
-      return getInstance();
-      
-    } else {
-      // getting here means that the activation failed.
-
-      unregisterService();
-      return null;
-    } 
-  
+    
+    return this;
   }
 
-  public void ungetService(Bundle bundle, ServiceRegistration reg, Object instance) {
+  public void ungetService(Bundle bundle, ServiceRegistration reg, 
+			   Object instance) {
     super.ungetService(bundle, reg, instance);
-    
-    if (refCount == 0)
-      return ;
+  }
 
-    refCount--;
+  public ComponentInstance newInstance(Dictionary overriddenProps) {
+    Config copy = config.copy();
+    copy.setFactory(null); // treath as a regular component.
+    copy.overrideProperties(overriddenProps);
+    // hum.. shall one remove ComponentConstants.COMPONENT_FACTORY ?
+    Component component = copy.enable(); 
     
-    if (refCount == 0) {
-      deactivate();
+    
+    if (copy.isSatisfied()) {
+      component.getService(usingBundle, serviceRegistration);
+      return component.getComponentInstance(); 
+    } else {
+      throw new ComponentException("Declarative Services was not able " + 
+				   " to satisfy component instance");
+
     }
   }
 }
-				
+

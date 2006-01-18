@@ -41,19 +41,15 @@ import org.knopflerfish.service.log.LogRef;
 public class Activator implements BundleActivator{
 
   static LogRef log;
-
-  SCR systemComponentRuntime;
   BundleContext bc;
 
   public void start(BundleContext bc) throws Exception {
     this.bc = bc;
     log = new LogRef(bc);
-    systemComponentRuntime = new SCR(bc);
+    SCR.init(bc);
   }
 
   public void stop(BundleContext context) throws Exception {
-    systemComponentRuntime.shutdown();
+    SCR.getInstance().shutdown();
   }
-
-
 }

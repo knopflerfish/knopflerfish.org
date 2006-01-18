@@ -48,23 +48,21 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
 
-public abstract class Component implements ServiceFactory, 
-                                           ComponentInstance {
-
+abstract class Component implements ServiceFactory {
+  
   protected Config config; 
   private boolean enabled;
   private boolean active;
-  protected Dictionary properties;
   private Object instance;
   protected BundleContext bundleContext;
   protected ServiceRegistration serviceRegistration;
   protected ComponentContext componentContext;
+  protected ComponentInstance componentInstance;
   protected Bundle usingBundle;
   
   public Component(Config config, Dictionary overriddenProps) {
 
     this.config = config;
-    properties = config.getProperties();
 
     instance = null;
     componentContext = null;
@@ -72,13 +70,10 @@ public abstract class Component implements ServiceFactory,
     bundleContext = Backdoor.getBundleContext(config.getBundle());
 
     if (overriddenProps != null) {
-
-      for (Enumeration e = overriddenProps.keys(); 
-           e.hasMoreElements(); ) {
-        Object key = e.nextElement();
-        properties.put(key, overriddenProps.get(key));
-      }
+      config.overrideProperties(overriddenProps);
     }
+
+    config.setProperty(ComponentConstants.COMPONENT_NAME, config.getName()); 
   }
   
   /** Activates a component. 
@@ -110,12 +105,12 @@ public abstract class Component implements ServiceFactory,
       return ;
     }
 
-    ComponentInstance cInstance = null;
     try {
       // 2. create ComponentContext and ComponentInstance
       instance = klass.newInstance();
-      componentContext = new ComponentContextImpl(this); // TODO: think about this
-            
+      componentInstance = new ComponentInstanceImpl();
+      componentContext = new ComponentContextImpl(componentInstance);             
+
       
     }  catch (IllegalAccessException e) {
       if (Activator.log.doError())
@@ -211,8 +206,10 @@ public abstract class Component implements ServiceFactory,
     }
     
     config.unbindReferences(instance);
+    
     instance = null;
     componentContext = null;
+    componentInstance = null;
     active = false;
   }
   
@@ -232,6 +229,10 @@ public abstract class Component implements ServiceFactory,
     if (Activator.log.doDebug()) {
       Activator.log.debug("registerService() got BundleContext: " + bundleContext);
     }
+
+    if (!config.getShouldRegisterService())
+      return ;
+    
     String[] interfaces = config.getServices();
     
     if (interfaces == null) {
@@ -239,16 +240,16 @@ public abstract class Component implements ServiceFactory,
     }
 
     serviceRegistration = 
-      bundleContext.registerService(interfaces, this, properties);
+      bundleContext.registerService(interfaces, this, config.getProperties());
   }
-  
+
   /**
      This must be overridden
   */
   public Object getService(Bundle usingBundle, 
 			   ServiceRegistration reg) {
     this.usingBundle = usingBundle;
-    return getInstance();
+    return instance;
   }
 
   /**
@@ -273,25 +274,27 @@ public abstract class Component implements ServiceFactory,
 
   public abstract void unsatisfied();
 
-  public void setProperty(String name, Object value) {
-    properties.put(name, value);
+
+  public void setProperty(Object key, Object value) {
+    config.setProperty((String)key, value);
   }
-
-
 
   // to provide compability with component context
   private class ComponentContextImpl implements ComponentContext {
     private ComponentInstance componentInstance;
+    private Dictionary immutable;
     
     public ComponentContextImpl(ComponentInstance componentInstance) {
       this.componentInstance = componentInstance;
     }
    
     public Dictionary getProperties() {
-      return properties; // TODO: wrap inside an immutable-dictionary class.
+      if (immutable == null) {
+        immutable = new ImmutableDictionary(config.getProperties());
+      }
+      
+      return immutable ;
     }
-    
-
     
     public Object locateService(String name) {
       /* According to the specification this method 
@@ -302,7 +305,7 @@ public abstract class Component implements ServiceFactory,
       */  
 
       Reference ref = config.getReference(name);
-      return ref.getServiceReference();
+      return getBundleContext().getService(ref.getServiceReference());
     }
     
     public Object[] locateServices(String name) {
@@ -312,7 +315,6 @@ public abstract class Component implements ServiceFactory,
    
     
     public BundleContext getBundleContext() {
-      // maybe keep this as an variable instead?
       return bundleContext;
     }
     
@@ -323,8 +325,7 @@ public abstract class Component implements ServiceFactory,
     public Bundle getUsingBundle() {
       return usingBundle;
     }
-
-
+    
     public void enableComponent(String name) {
       throw new RuntimeException("not yet implemented");
     }
@@ -343,7 +344,7 @@ public abstract class Component implements ServiceFactory,
       
       if (serviceRegistration == null) {
 
-        Object thisComponentId = getProperties().get(ComponentConstants.COMPONENT_ID);
+        Object thisComponentId = config.getProperties().get(ComponentConstants.COMPONENT_ID);
         try {
           ServiceReference[] refs = 
             bundleContext.getServiceReferences(config.getImplementation(),
@@ -356,18 +357,19 @@ public abstract class Component implements ServiceFactory,
           return refs[0];
             
         } catch (Exception e) {
-          Activator.log.debug("This is a bug.", e);
-          return null;
+          throw new RuntimeException("This is a bug.", e);
         }
+        
       } else {
         return serviceRegistration.getReference();
       }
     }
   }
   
-  //private class ComponentInstanceImpl implements ComponentInstance {
+  private class ComponentInstanceImpl implements ComponentInstance {
 
     public void dispose() {
+      unregisterService();
       deactivate();
     }
 
@@ -375,6 +377,11 @@ public abstract class Component implements ServiceFactory,
       return instance; // will be null when the component is not activated.
     }
 
-  //}
 
+  }
+
+  public Config getConfig() { return config; }
+  public BundleContext getBundleContext() { return bundleContext; }
+  public Object getInstance() { return instance; }
+  public ComponentInstance getComponentInstance() { return componentInstance; }
 }

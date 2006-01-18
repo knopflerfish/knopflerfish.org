@@ -32,6 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.component;
+
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -39,58 +40,45 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
-class DelayedComponent extends Component {
 
-  private int refCount;
+class ServiceFactoryComponent extends DelayedComponent {
 
-  public DelayedComponent(Config config, 
-			  Dictionary overriddenProps) {
+  private Dictionary services;
+
+  public ServiceFactoryComponent(Config config, 
+				 Dictionary overriddenProps) {
     super(config, overriddenProps);
-    refCount = 0;
+    services = new Hashtable();
   }
 
   public void satisfied() {
-    //System.out.println("DEBUG:: Satisfied: " + config.getName() + " " + config.getImplementation());  
     registerService();
   }
-
+  
   public void unsatisfied() {
-    //System.out.println("DEBUG:: UnSatisfied: " + config.getName() + " " + config.getImplementation());  
     unregisterService();
   }
 
   public Object getService(Bundle bundle, ServiceRegistration reg) {
-    super.getService(bundle, reg);
-    //System.out.println("DEBUG:: Registering: " + config.getName() + " " + config.getImplementation());  
-    if (!isActivated()) {
-      activate();
-    }
+    Object service = services.get(bundle);
 
-    //System.out.println("DEBUG:: activated: " + isActivated());  
-    if (isActivated()) {
-      refCount++;
-      return getInstance();
+    if (service == null) {
+      Config copy = config.copy();
+      copy.setServiceFactory(false);
+      copy.setShouldRegisterService(false);
+      Component component = copy.enable();
       
-    } else {
-      // getting here means that the activation failed.
-
-      unregisterService();
-      return null;
-    } 
-  
+      service = component.getService(bundle, reg);
+      services.put(bundle, service);
+    }
+    
+    return service;
   }
 
-  public void ungetService(Bundle bundle, ServiceRegistration reg, Object instance) {
+  public void ungetService(Bundle bundle, ServiceRegistration reg, 
+                           Object instance) {
     super.ungetService(bundle, reg, instance);
-    
-    if (refCount == 0)
-      return ;
-
-    refCount--;
-    
-    if (refCount == 0) {
-      deactivate();
-    }
+    services.remove(bundle);
   }
 }
 				

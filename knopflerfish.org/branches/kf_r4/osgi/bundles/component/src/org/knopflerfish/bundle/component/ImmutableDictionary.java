@@ -32,65 +32,42 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.component;
+
 import java.util.Dictionary;
-import java.util.Hashtable;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceFactory;
-import org.osgi.framework.ServiceRegistration;
-
-class DelayedComponent extends Component {
-
-  private int refCount;
-
-  public DelayedComponent(Config config, 
-			  Dictionary overriddenProps) {
-    super(config, overriddenProps);
-    refCount = 0;
-  }
-
-  public void satisfied() {
-    //System.out.println("DEBUG:: Satisfied: " + config.getName() + " " + config.getImplementation());  
-    registerService();
-  }
-
-  public void unsatisfied() {
-    //System.out.println("DEBUG:: UnSatisfied: " + config.getName() + " " + config.getImplementation());  
-    unregisterService();
-  }
-
-  public Object getService(Bundle bundle, ServiceRegistration reg) {
-    super.getService(bundle, reg);
-    //System.out.println("DEBUG:: Registering: " + config.getName() + " " + config.getImplementation());  
-    if (!isActivated()) {
-      activate();
-    }
-
-    //System.out.println("DEBUG:: activated: " + isActivated());  
-    if (isActivated()) {
-      refCount++;
-      return getInstance();
-      
-    } else {
-      // getting here means that the activation failed.
-
-      unregisterService();
-      return null;
-    } 
+import java.util.Enumeration;
+ 
+class ImmutableDictionary extends Dictionary {
+  private Dictionary mutable;
   
+  ImmutableDictionary(Dictionary mutable) {
+    this.mutable = mutable;
   }
-
-  public void ungetService(Bundle bundle, ServiceRegistration reg, Object instance) {
-    super.ungetService(bundle, reg, instance);
-    
-    if (refCount == 0)
-      return ;
-
-    refCount--;
-    
-    if (refCount == 0) {
-      deactivate();
-    }
+  
+  public Enumeration elements() { 
+    return mutable.elements(); 
+  }
+  
+  public Object get(Object key) { 
+    return mutable.get(key); 
+  }
+  
+  public boolean isEmpty() { 
+    return mutable.isEmpty(); 
+  }
+  
+  public Enumeration keys() { 
+    return mutable.keys(); 
+  }
+  
+  public Object put(Object key, Object value) { 
+    throw new RuntimeException("Operation not supported."); 
+  }
+  
+  public Object remove(Object key) { 
+    throw new RuntimeException("Operation not supported.");
+  }
+  
+  public int size() { 
+    return mutable.size(); 
   }
 }
-				
