@@ -26,7 +26,8 @@
   <property name="bundle.version"        value="1.0.0"/>
 
 
-  <property name="export.package"        value="org.osgi.service.metatype;specification-version=1.0"/>
+  <property name="export.package"        
+value="org.osgi.service.metatype;specification-version=1.1"/>
 
   &bundlebuild_include;
 
