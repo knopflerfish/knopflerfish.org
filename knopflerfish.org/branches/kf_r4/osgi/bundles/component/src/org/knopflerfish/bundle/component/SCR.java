@@ -229,20 +229,20 @@ class SCR implements SynchronousBundleListener {
       return ;
 
     try {
-      Configuration [] conf = 
+      Configuration[] conf = 
         admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID + 
                                  "=" + name + ")");
-
+      
       if (conf != null) {
         Dictionary table = (Dictionary)factoryConfigs.get(name);
-        
+	
         if (table == null) {
           table = new Hashtable();
           factoryConfigs.put(name, table);
         }
 
         Collection configs = (Collection)bundleConfigs.get(config.getBundle());
-
+	
         if (conf.length > 1) {
 
           for (int i = 1; i < conf.length; i++) {
@@ -253,12 +253,11 @@ class SCR implements SynchronousBundleListener {
               Config copy = config.copy();
               instance = copy.createComponent();
               instance.cmUpdated(conf[i].getProperties());
-              instance.enable();
               table.put(pid, instance);
               configs.add(copy);
+              instance.enable();
             }
-            
-          }
+	  }
           
           if (table.get(conf[0]) == null) {
             component.cmUpdated(conf[0].getProperties());
@@ -314,7 +313,6 @@ class SCR implements SynchronousBundleListener {
       }
       
     }
-
 
     private void restart(Component component) {
       restart(component, null);
