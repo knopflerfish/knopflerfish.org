@@ -95,7 +95,7 @@ abstract class Component implements ServiceFactory {
       If the component isn't enabled or satisfied, nothing will happen.
       If the component is already activated nothing will happen.
   */
-  public void activate() {
+  public synchronized void activate() {
     // this method is described on page 297 r4
 
     if (!config.isEnabled() || !config.isSatisfied())

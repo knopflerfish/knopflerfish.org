@@ -27,7 +27,9 @@ public class ImmediateComponent extends Component {
 
   public void satisfied() {
     registerService();
-    activate();
+    if (!isActivated()) {
+      activate();
+    }
   }
 
   public void unsatisfied() {
@@ -38,6 +40,10 @@ public class ImmediateComponent extends Component {
   
   public Object getService(Bundle bundle, ServiceRegistration reg) {
     super.getService(bundle, reg);
+    
+    if (!isActivated()) {
+      activate();
+    }
     
     if (!isActivated()) { // todo read spec.
       unregisterService();
