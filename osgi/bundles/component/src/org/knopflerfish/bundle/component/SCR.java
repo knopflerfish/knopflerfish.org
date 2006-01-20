@@ -72,6 +72,8 @@ class SCR implements SynchronousBundleListener {
   private Hashtable factoryConfigs = new Hashtable();
   private Hashtable singleConfigs = new Hashtable();
   
+  private Hashtable serviceConfigs = new Hashtable();
+  
   private static long componentId = 0;
   private static SCR instance;
 
@@ -152,6 +154,32 @@ class SCR implements SynchronousBundleListener {
           component.enable();
           // WAS:config.enable();
         }
+        
+        // Add to cycle finder:
+        String[] services = config.getServices();
+        for (int i=0; i<services.length; i++) {
+          ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
+          if (existing == null) {
+            existing = new ArrayList();
+            serviceConfigs.put(services[i], existing);
+          }
+          existing.add(config);
+        }
+        // Find cycles:
+        ArrayList cycle = new ArrayList();
+        if (findCycle(config, cycle)) {
+          String message = "Possible cycle found in references of " + config.getName() + ": ";
+          Iterator citer = cycle.iterator();
+          if (citer.hasNext()) {
+            Config cycleItem = (Config) citer.next();
+            message += cycleItem.getName();
+            while (citer.hasNext()) {
+              cycleItem = (Config) citer.next();
+              message += " references " + cycleItem.getName();
+            }
+          }
+          Activator.log.error(message);
+        }
       }
       break;
     case BundleEvent.STOPPING:
@@ -163,12 +191,47 @@ class SCR implements SynchronousBundleListener {
         for (Iterator iter = removedConfigs.iterator(); iter.hasNext();) {
           Config config = (Config) iter.next();
           config.disable();
+          // Remove from cycle finder:
+          String[] services = config.getServices();
+          for (int i=0; i<services.length; i++) {
+            ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
+            if (existing == null) continue;
+            existing.remove(config);
+            if (existing.size() == 0) {
+              serviceConfigs.remove(services[i]);
+            }
+          }
         }
       }
       break;
     }
   }
 
+  private boolean findCycle(Config config, ArrayList visited) {
+    if (visited.contains(config)) {
+      visited.add(config);
+      return true;
+    }
+    visited.add(config);
+    ArrayList references = config.getReferences();
+    for (Iterator riter = references.iterator(); riter.hasNext();) {
+      Reference ref = (Reference) riter.next();
+      if (ref.isSatisfied()) continue;
+      String service = ref.getInterfaceName();
+      ArrayList providers = (ArrayList) serviceConfigs.get(service);
+      if (providers != null) {
+        for (Iterator piter = providers.iterator(); piter.hasNext();) {
+          Config provider = (Config) piter.next();
+          if (findCycle(provider, visited)) {
+            return true;
+          }
+        }
+      }
+    }
+    visited.remove(config);
+    return false;
+  }
+    
   public Collection getComponents(Bundle bundle) {
     return (Collection)bundleConfigs.get(bundle);
   }

@@ -227,6 +227,10 @@ class Config {
     return factory;
   }
 
+  protected ArrayList getReferences() {
+    return references;
+  }
+  
   public Reference getReference(String name) {
 
     for (int i = 0; i < references.size(); i++) {
