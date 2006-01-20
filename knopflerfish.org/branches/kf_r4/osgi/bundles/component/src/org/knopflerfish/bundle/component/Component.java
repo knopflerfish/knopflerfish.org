@@ -97,6 +97,10 @@ abstract class Component implements ServiceFactory {
   */
   public synchronized void activate() {
     // this method is described on page 297 r4
+    
+    // Synchronized because the service is registered before activation,
+    // enabling another thread to get the service and thereby trigger a
+    // second activate() call.
 
     if (!config.isEnabled() || !config.isSatisfied())
       return ;
