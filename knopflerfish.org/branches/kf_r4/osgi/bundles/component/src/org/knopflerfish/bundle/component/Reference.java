@@ -57,6 +57,7 @@ public class Reference extends ServiceTracker {
   private String bindMethodName;
   private String unbindMethodName;
   private String refName;
+  private String interfaceName;
   
   /* If unary, this is the choosen one. */
   private ServiceReference bound;
@@ -68,7 +69,7 @@ public class Reference extends ServiceTracker {
   
   private boolean overrideUnsatisfied = false;
   
-  public Reference(String refName, Filter filter,
+  public Reference(String refName, Filter filter, String interfaceName,
                    boolean optional, boolean multiple, boolean dynamic,
                    String bindMethodName, String unbindMethodName,
                    BundleContext bc) {
@@ -80,6 +81,7 @@ public class Reference extends ServiceTracker {
     this.dynamic = dynamic;
     this.bindMethodName = bindMethodName;
     this.unbindMethodName = unbindMethodName;
+    this.interfaceName = interfaceName;
   }
 
   public void setConfig(Config config) {
@@ -273,11 +275,15 @@ public class Reference extends ServiceTracker {
   }
 
   public Reference copy() {
-    return new Reference(refName, filter, optional, multiple, dynamic,
+    return new Reference(refName, filter, interfaceName, optional, multiple, dynamic,
                          bindMethodName, unbindMethodName, context);
   }
   
   public String getName() {
     return refName;
+  }
+  
+  public String getInterfaceName() {
+    return interfaceName;
   }
 }

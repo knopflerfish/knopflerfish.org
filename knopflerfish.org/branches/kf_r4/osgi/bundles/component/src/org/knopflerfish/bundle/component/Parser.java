@@ -722,7 +722,7 @@ public class Parser {
           bc.createFilter("(" + Constants.OBJECTCLASS + "=" + interfaceName +")");
       }
       
-      Reference ref = new Reference(name, filter,
+      Reference ref = new Reference(name, filter, interfaceName,
                                     optional, multiple, dynamic,
                                     bind, unbind, bc);
 
