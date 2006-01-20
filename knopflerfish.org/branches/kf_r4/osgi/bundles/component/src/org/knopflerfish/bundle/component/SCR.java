@@ -53,14 +53,9 @@ import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationEvent;
-import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ConfigurationListener;
 
 import org.osgi.service.component.ComponentConstants;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.ComponentException;
-import org.osgi.service.component.ComponentFactory;
-import org.osgi.service.component.ComponentInstance;
 
 class SCR implements SynchronousBundleListener {
 
@@ -111,8 +106,8 @@ class SCR implements SynchronousBundleListener {
 
   public void shutdown() {
     
-    for (Iterator iter = bundleConfigs.keySet().iterator(); iter.hasNext();) {
-      bundleChanged(new BundleEvent(BundleEvent.STOPPING, (Bundle) iter.next()));
+    for (Enumeration e = bundleConfigs.keys(); e.hasMoreElements();) {
+      bundleChanged(new BundleEvent(BundleEvent.STOPPING, (Bundle) e.nextElement()));
     }
     
     instance = null;
