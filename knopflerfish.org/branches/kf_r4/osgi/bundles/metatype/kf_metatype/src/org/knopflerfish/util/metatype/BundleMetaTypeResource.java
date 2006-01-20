@@ -36,11 +36,13 @@
  * @author Philippe Laporte
  */
 
+//TODO lots of optimization to be done, both in speed and storage
+
 package org.knopflerfish.util.metatype;
 
 import java.io.*;
+import java.net.URL;
 import java.util.Hashtable;
-import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
@@ -48,9 +50,9 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Enumeration;
 
-import org.osgi.framework.Bundle;
+
+import org.osgi.framework.*;
 import org.osgi.service.cm.Configuration;
-import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
@@ -80,29 +82,15 @@ public class BundleMetaTypeResource implements MetaTypeInformation{
 	}
 
 	public String[] getFactoryPids() {
-		String[] fpids;
 		Vector factoryPidsV = new Vector();
 		factoryPidsV.addAll(factoryPids.keySet());
-		fpids =  (String[]) factoryPidsV.toArray(new String[factoryPidsV.size()]);  
-		if(fpids.length == 0){
-	    	return null;
-	    }
-	    else{
-	    	return fpids;
-	    }
+		return  (String[]) factoryPidsV.toArray(new String[factoryPidsV.size()]);  
 	}
 
 	public String[] getPids() {
-	    String[] rpids;
 		Vector pidsV = new Vector();
 		pidsV.addAll(pids.keySet());
-		rpids = (String[]) pidsV.toArray(new String[pidsV.size()]);
-		if(rpids.length == 0){
-	    	return null;
-	    }
-	    else{
-	    	return rpids;
-	    }
+		return (String[]) pidsV.toArray(new String[pidsV.size()]);
 	}
 		
 	public void prepare(){
@@ -117,7 +105,16 @@ public class BundleMetaTypeResource implements MetaTypeInformation{
 			while(it.hasNext()){
 				factoryPids.put((String) it.next(), md);
 			}
-			//TODO get/set up locales
+			if(locales != null){
+				String[] newLocales = md.getLocales();
+				String[] temp = new String[locales.length + newLocales.length];
+				System.arraycopy(locales, 0, temp, 0, locales.length);
+				System.arraycopy(newLocales, 0, temp, locales.length, newLocales.length);
+				locales = temp;
+			}
+			else{
+				locales = md.getLocales();
+			}
 		}
 	}
 
@@ -132,7 +129,7 @@ public class BundleMetaTypeResource implements MetaTypeInformation{
 			md = (MetaData) factoryPids.get(id);
 		}
 		if(md == null){
-			throw new IllegalArgumentException("no information available for id");
+			throw new IllegalArgumentException("no information available for id " + id);
 		}
 		if(locale == null){
 			locale = Locale.getDefault().toString();
@@ -163,21 +160,30 @@ public class BundleMetaTypeResource implements MetaTypeInformation{
 
 class MetaData {
 	
-	private String localizationFile;
+	//private String NO_LOCALE = "none";
+	
+	private String localizationFileBaseName;
 	
 	private Hashtable pids = new Hashtable();
 	private Hashtable factoryPids = new Hashtable();
 	
 	private Hashtable OCDs = new Hashtable();
 	
-	private Hashtable locales = new Hashtable();
+	private String[] locales;
 	
-	public MetaData(String localizationFile){
-		this.localizationFile = localizationFile;
+	private Bundle bundle;
+	
+	
+	//TODO check for Attributes manifes's Constants.BUNDLE_LOCALIZATION
+	  
+	public MetaData(String localizationFile, Bundle bundle){
+		this.localizationFileBaseName =  localizationFile;
+	    this.bundle = bundle;
 	}	
 	
-	public MetaData(){
-		this.localizationFile = "bundle";
+	public MetaData(Bundle bundle){
+		this.localizationFileBaseName = "bundle";
+		this.bundle = bundle;	
 	}	
 	
 	public void prepare(){
@@ -185,12 +191,7 @@ class MetaData {
 	}
 	
 	public String[] getLocales(){
-		Enumeration enume = locales.keys();
-		Vector localesV = new Vector();
-		while(enume.hasMoreElements()){
-			localesV.add(enume.nextElement());
-		}
-		return (String[]) localesV.toArray(new String[localesV.size()]);
+		return locales;
 	}
 	
 	public Set getFactoryPids() {
@@ -205,13 +206,56 @@ class MetaData {
 		OCDs.put(ocd.getID(), ocd);
 	}
 	
+	//TODO locale finding rules not definite
+	
 	ObjectClassDefinition getOCD(String id, String locale){
 		OCD ocd = (OCD) pids.get(id);
 		if(ocd == null){
 			ocd = (OCD) factoryPids.get(id);
 		}
 		if(ocd == null) return null;
-		ocd.localize((Properties) locales.get(locale));
+		
+		URL url;
+		int underscore;
+	
+		url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+		if(url == null){
+			underscore = locale.lastIndexOf('_');
+			if(underscore > 0){
+				locale = locale.substring(0, underscore - 1);
+			}
+			url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+			if(url == null){
+				underscore = locale.lastIndexOf('_');
+				if(underscore > 0){
+					locale = locale.substring(0, underscore - 1);
+				}
+				url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+			}
+			locale = Locale.getDefault().toString();
+			url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+			if(url == null){
+				underscore = locale.lastIndexOf('_');
+				if(underscore > 0){
+					locale = locale.substring(0, underscore - 1);
+				}
+				url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+				if(url == null){
+					underscore = locale.lastIndexOf('_');
+					if(underscore > 0){
+						locale = locale.substring(0, underscore - 1);
+					}
+					url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+				}
+				//lastly
+				if(url == null){
+					url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + ".properties");
+				}
+			}	
+		}
+		
+		ocd.localize(loadLocaleEntries(url));
+		
 		return ocd;
 	}
 	
@@ -219,7 +263,7 @@ class MetaData {
 		ObjectClassDefinition ocd;
 		ocd = (ObjectClassDefinition) OCDs.get(ocdref);
 		
-		if(ocd != null){
+		if(ocd != null){/* Merge code. This causes several problems
 			if(conf != null){
 				Dictionary props = conf.getProperties();
 				AttributeDefinition[] attrDefs = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
@@ -235,6 +279,7 @@ class MetaData {
 						value = new Vector();
 					}
 					else {
+						//TODO finish up
 						switch(ad.getType()){
             				case AttributeDefinition.STRING:
             											if(card == 0){
@@ -283,7 +328,7 @@ class MetaData {
 				}
 				catch(IOException ioe){}
 			}
-			
+			*/
 			if(factoryPid != null){
 				factoryPids.put(factoryPid, ocd);
 			}
@@ -296,50 +341,54 @@ class MetaData {
 	}
 	
 	private void loadLocales(){
-		String fileName = localizationFile;
-	    /*
-    	localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
-    	
-    	if(!usingDefault){ //since otherwise will redo it right after
-    		StringTokenizer std = new StringTokenizer(Locale.getDefault().toString(), "_");
-  
-    		while(std.hasMoreTokens()){
-        		fileName += "_" + std.nextToken();
-        		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
-        	}
-  
-    		fileName = localizationFilesLocation;
-    	}
-    	
-    	StringTokenizer st = new StringTokenizer(locale, "_");
-    	while(st.hasMoreTokens()){
-    		fileName += "_" + st.nextToken();
-    		localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
-    	}*/
-		//locales.put(locale, loadLocaleEntries());
+		
+		String x = Locale.getDefault().toString();
+		Vector localesV = new Vector();
+	    
+		Enumeration localizationFiles = bundle.getEntryPaths(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14));
+		if(localizationFiles != null){
+	    	while(localizationFiles.hasMoreElements()){ 
+	    		URL url = bundle.getResource((String)localizationFiles.nextElement());
+		        String fileName = url.getFile().substring(15);
+		        if(!fileName.endsWith(".properties")){
+		        	continue;
+		        }
+		        else if(!fileName.startsWith(localizationFileBaseName)){
+		        	continue;
+		        }
+		        else if(fileName.length() == (localizationFileBaseName + ".properties").length()){
+		        	continue;
+		        }
+		        else{
+		        	int dot = fileName.lastIndexOf('.');
+		        	fileName= fileName.substring(0, dot);
+		        	int underscore = fileName.indexOf('_');
+		        	fileName = fileName.substring(underscore + 1);
+		        	localesV.add(fileName);
+		        }
+	    	}	
+	    	locales = (String[]) localesV.toArray(new String[localesV.size()]);
+		}
+
 	}
-	
-	
-//	TODO should this be done just before uninstalling? -> does DefaultLocale change?
-	  private Properties loadLocaleEntries(String fileName){
-		  Properties entries = new Properties();
+
+	private Properties loadLocaleEntries(URL url){
+		Properties entries = new Properties();
+		
+		if(url == null){
+			return null;
+		}
 		  
-		  try{
-			  InputStream is = new FileInputStream(new File(fileName));
-			  //Properties locale_entries = new Properties();
-			
-			  /*locale_*/entries.load(is);
-			  /*Iterator it = locale_entries.keySet().iterator();
-			  while(it.hasNext()){
-				  Object o = it.next();
-				  entries.put(o, locale_entries.get(o));
-			  }*/
-		  }
-		  catch(IOException e){ //includes FileNotFoundException
-			  return entries;
-		  }
-		  return entries;
-	  }
+		try{
+			InputStream is = url.openStream();
+			  
+			entries.load(is);
+		}
+		catch(IOException e){ 
+			return entries;
+		}
+		return entries;
+	}
 	
 }
 

@@ -1254,9 +1254,11 @@ public class Loader {
   
   //-----------------  R4 ----------------------------------------------------------
   
+  //TODO finish the impl
+  
   static final String METADATA               = "MetaData";
   static final String OCD                    = "OCD";
-  static final String AD_E                     = "AD";
+  static final String AD_E                   = "AD";
   static final String OBJECT                 = "Object";
   static final String ATTRIBUTE              = "Attribute";
   static final String DESIGNATE              = "Designate";
@@ -1312,6 +1314,8 @@ public class Loader {
   
   private static Configuration currentConf;
   
+  private static Bundle currentBundle;
+  
   public static BundleMetaTypeResource loadBMTIfromUrl(BundleContext bc, Bundle b, URL url) throws IOException {
 	  InputStream in = null;
 	  
@@ -1323,6 +1327,8 @@ public class Loader {
 	  }
 	  
 	  currentBMTR = new BundleMetaTypeResource(b);
+	  
+	  currentBundle = b;
 	  
 	  try {
 	      in = url.openStream();
@@ -1355,13 +1361,13 @@ public class Loader {
 				  startElement(xpp.getName());
 			  }
 			  catch(Exception e){
-				  System.out.println("Got exception:" + e);
+				  //System.out.println("Got exception:" + e);
 				  //e.printStackTrace(System.err);
 			  }
 			  //  System.out.println("Start element: " + name);
 		  } else if(eventType == XmlPullParser.END_TAG) {
 			  try{
-				  endElement(xpp.getName(), content);
+				  endElement(xpp.getName()/*, content*/);
 			  }
 			  catch(Exception e){
 				 // System.out.println("Got exception");
@@ -1369,7 +1375,7 @@ public class Loader {
 			  //  System.out.println("End element: " + name);
 		  } else if(eventType == XmlPullParser.TEXT) {   
 			  
-			  content = xpp.getText().trim(); 	
+			  //content = xpp.getText().trim(); 	
 			  //    System.out.println("Text: " + content);   
 		  } else{
 			  //	  System.out.println("Got something else");
@@ -1392,6 +1398,7 @@ public class Loader {
   } //method
   
   
+  //any missing attribute gets the element ignored
   protected static void startElement(String element) throws Exception {
 	  int n_attrs = xml_parser.getAttributeCount();
 	  HashMap attrs = new HashMap();
@@ -1399,13 +1406,13 @@ public class Loader {
 		  attrs.put(xml_parser.getAttributeName(i), xml_parser.getAttributeValue(i));
 	  }
 	  
-	  if (METADATA.equals(element)) {
+	  if (METADATA.equals(element) || element.endsWith(METADATA)) {
 		  String localization = (String) attrs.get(ATTR_LOCALIZATION);
 	      if(localization != null){
-	    	  currentMetaData = new MetaData(localization);
+	    	  currentMetaData = new MetaData(localization, currentBundle);
 	      }
 	      else{
-	    	  currentMetaData = new MetaData();
+	    	  currentMetaData = new MetaData(currentBundle);
 	      }
 	  } 
 	  else if (OCD.equals(element)) {
@@ -1486,11 +1493,13 @@ public class Loader {
 	      String[] defaults = null;
 	      if(default_attr != null){
 	    	  StringTokenizer st = new StringTokenizer(default_attr, ",");
-	    	  defaults = new String[st.countTokens()];
-	    	  for(int i = 0; i < defaults.length; i++){
-	    		  defaults[i] = st.nextToken();
+	    	  int number = st.countTokens(); 
+	    	  if(number > 0) {
+	    		  defaults = new String[number];
+	    		  for(int i = 0; i < defaults.length; i++){
+	    			  defaults[i] = st.nextToken();
+	    		  }
 	    	  }
-	    	  
 	      }
 	      
 	      String requiredS = (String) attrs.get(ATTR_REQUIRED);
@@ -1557,7 +1566,9 @@ public class Loader {
 	      }
 	      else{
 	    	  //TODO not valid: required attribute is missing
-	    	  return;
+	    	  //Can't pass TCK without this
+	    	  //This is http://membercvs.osgi.org/bugs/show_bug.cgi?id=186
+	    	  //return;
 	      }
 	      
 	      String optional = (String) attrs.get(ATTR_OPTIONAL);
@@ -1641,9 +1652,9 @@ public class Loader {
   
   
   
-  protected static void endElement(String element, String content) throws Exception {
+  protected static void endElement(String element/*, String content*/) throws Exception {
       
-	  if (METADATA.equals(element)) {
+	  if (METADATA.equals(element) || element.endsWith(METADATA)) {
 		  currentBMTR.addMetaData(currentMetaData);
 		  currentMetaData.prepare();
 		  currentMetaData = null;
@@ -1654,9 +1665,15 @@ public class Loader {
 	  }
 	  else if (AD_E.equals(element)) {
 		  currentOCD.add(currentAD, currentAD.getRequired());
-		  currentAD.setOptions((String[]) currentOptionValues.toArray(new String[currentOptionValues.size()]),
-				               (String[]) currentOptionLabels.toArray(new String[currentOptionLabels.size()])
-		                      );
+		  String[] optionValues = null;
+		  String[] optionLabels = null;
+		  int number;
+		  if((number = currentOptionValues.size()) > 0){
+			  optionValues = (String[]) currentOptionValues.toArray(new String[number]);
+			  //same number
+			  optionLabels = (String[]) currentOptionLabels.toArray(new String[number]);
+		  }
+		  currentAD.setOptions(optionValues, optionLabels);
 		  currentOptionValues.removeAllElements();
 		  currentOptionLabels.removeAllElements();
 		  currentAD = null;
