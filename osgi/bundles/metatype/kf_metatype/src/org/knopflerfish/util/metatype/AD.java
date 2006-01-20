@@ -177,23 +177,15 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
 	  this.required = required;
   }
 
-  private AD() {
-    throw new RuntimeException("Not supported");
-  }
   
   public Object clone(){
-	  AD newI = new AD();
-	  newI.id = id;
-	  newI.type = type;
-	  newI.card = card;
-	  newI.name = name;
-	  newI.desc = desc;
-	  newI.defValue = (String[]) defValue.clone();
-	  newI.min = min;
-	  newI.max = max;
-	  newI.required = required;
-	  newI.optLabels = (String[]) optLabels.clone();
-	  newI.optValues = (String[]) optValues.clone();
+	  AD newI = new AD(id, type, card, name, desc, (String[]) defValue.clone(), min, max, required);
+	  if(optLabels != null){
+		  newI.optLabels = (String[]) optLabels.clone();
+	  }
+	  if(optValues != null){
+		  newI.optValues = (String[]) optValues.clone();
+	  }
 	  return newI;
   }
 
@@ -213,27 +205,29 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
   AD localize(Dictionary dict){
 	  AD localized = (AD) this.clone();  
   
-	  if(name.startsWith("%")){
+	  if(name != null && name.startsWith("%")){
 		  String sub;
 		  if((sub = (String) dict.get(name.substring(1))) != null){
 			   localized.name = sub;
 		  }
 	  }
 	  
-	  if(desc.startsWith("%")){
+	  if(desc != null && desc.startsWith("%")){
 		  String sub;
 		  if((sub = (String) dict.get(desc.substring(1))) != null){
 			   localized.desc = sub;
 		  }
 	  } 
 	  
-	  for(int i = 0; i < optLabels.length; i++){
-		  if(optLabels[i].startsWith("%")){
-			  String sub;
-			  if((sub = (String) dict.get(optLabels[i].substring(1))) != null){
-				   localized.optLabels[i] = sub;
-			  }
-		  } 
+	  if(optLabels != null){
+		  for(int i = 0; i < optLabels.length; i++){
+			  if(optLabels[i].startsWith("%")){
+				  String sub;
+				  if((sub = (String) dict.get(optLabels[i].substring(1))) != null){
+					  localized.optLabels[i] = sub;
+				  }
+			  } 
+		  }
 	  }
 	
 	  return localized;
@@ -587,11 +581,26 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       switch(type) {
       	case STRING: 
       		try{
-      			if(valueS.compareTo(min) < 0){
-      				return "value out of range";
+      			if(min != null){
+      				if(valueS.compareTo(min) < 0){
+      					return "value out of range";
+      				}
+      		    }
+      			if(max != null){
+      				if(valueS.compareTo(max) > 0){
+      					return "value out of range";
+      				}
       			}
-      			if(valueS.compareTo(max) > 0){
-      				return "value out of range";
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(optValues[i].equals(valueS)){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
       			}
       		}
       		catch(ClassCastException cce){
@@ -613,6 +622,17 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       					return "value out of range";
       				}
       			}
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(Integer.parseInt(optValues[i]) == ivalue){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
+      			}
       		}
       		catch(NumberFormatException nfe){
       			
@@ -632,7 +652,18 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       				if( lvalue > maxV){
       					return "value out of range";
       				}
-      			}	
+      			}
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(Long.parseLong(optValues[i]) == lvalue){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
+      			}
       		}
       		catch(NumberFormatException nfe){
 			
@@ -653,6 +684,17 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       					return "value out of range";
       				}
       			}	
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(Byte.parseByte(optValues[i]) == bvalue){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
+      			}
       		}
       		catch(NumberFormatException nfe){
 			
@@ -672,7 +714,18 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       				if( svalue > maxV){
       					return "value out of range";
       				}
-      			}	
+      			}
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(Short.parseShort(optValues[i]) == svalue){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
+      			}
       		}
       		catch(NumberFormatException nfe){
 			
@@ -683,11 +736,26 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       			throw new IllegalArgumentException("Character strings must be of length 1");
       		}
       		try{
-      			if(valueS.compareTo(min) < 0){
-      				return "value out of range";
+      			if(min != null){
+      				if(valueS.compareTo(min) < 0){
+      					return "value out of range";
+      				}
       			}
-      			if(valueS.compareTo(max) > 0){
-      				return "value out of range";
+      			if(max != null){
+      				if(valueS.compareTo(max) > 0){
+      					return "value out of range";
+      				}
+      			}
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(optValues[i].equals(valueS)){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
       			}
       		}
       		catch(ClassCastException cce){
@@ -709,6 +777,17 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       					return "value out of range";
       				}
       			}	
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(Double.parseDouble(optValues[i]) == dvalue){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
+      			}
       		}
       		catch(NumberFormatException nfe){
 			
@@ -729,6 +808,17 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       					return "value out of range";
       				}
       			}	
+      			if(optValues != null){
+      				int i = 0;
+      				for(; i < optValues.length; i++){ 
+      					if(Float.parseFloat(optValues[i]) == fvalue){
+      						break;
+      					}
+      				}
+      				if(i == optValues.length){
+      					return "Value must be one of the options";
+      				}
+      			}
       		}
       		catch(NumberFormatException nfe){
       		}

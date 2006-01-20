@@ -149,7 +149,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     					} 
     					catch (Exception e) {
     						log.error("Failed to handle bundle " + ev.getBundle().getBundleId(), e);
-    					    e.printStackTrace(System.out);
+    					    //e.printStackTrace(System.out);
     					}
     				}
     				break;
@@ -270,8 +270,6 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     	bmtr.prepare();
     	
     	providers.put(b, bmtr);
-  
-		return;
     }
     else{
     	//proprietary legacy
@@ -468,8 +466,6 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     					MetaTypeProvider mt = (MetaTypeProvider)bc.getService(sr);
     					if(mt != SystemMetatypeProvider.this) {
     						mtMap.put(sr, mt);
-    						//TODO what do we do with pids?
-    						String[] pids = (String[])sr.getProperty("service.pids");
     					}
     					break;
     				case ServiceEvent.UNREGISTERING:
@@ -551,7 +547,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 			  if(sr.getBundle() == bundle){
 				  MetaTypeProvider mtp = (MetaTypeProvider)mtMap.get(sr);
 				  if(!(mtp instanceof MetaTypeInformation)){
-					  return null;
+					  return new BundleMetaTypeProvider(mtp, sr);
 				  }
 				  else{
 					  return (MetaTypeInformation) mtp;
@@ -563,3 +559,49 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
   }
 }
 
+class BundleMetaTypeProvider implements MetaTypeInformation{
+	
+	private MetaTypeProvider mtp;
+	private Bundle bundle;
+	
+	//id -> MetaData
+	private String[] pids;
+	private String[] factoryPids;
+	
+	public BundleMetaTypeProvider(MetaTypeProvider mtp, ServiceReference sr){
+		this.mtp = mtp;
+		this.bundle = sr.getBundle();
+		
+		if(mtp instanceof ManagedService){
+			pids = new String[1];
+			pids[0] = (String) sr.getProperty(Constants.SERVICE_PID);
+			factoryPids = new String[0];
+		}
+		else if(mtp instanceof ManagedServiceFactory){
+			factoryPids = new String[1];
+			factoryPids[0] = (String) sr.getProperty(Constants.SERVICE_PID);
+			pids = new String[0];
+		}
+	}
+
+	public Bundle getBundle() {
+		return bundle;
+	}
+	
+	public String[] getFactoryPids() {
+		return factoryPids;  
+	}
+
+	public String[] getPids() {
+		return pids;
+	}
+		
+	public String[] getLocales() {
+		return mtp.getLocales();
+	}
+
+	public ObjectClassDefinition getObjectClassDefinition(String id, String locale) {
+		return mtp.getObjectClassDefinition(id, locale);		
+	}
+	
+} //class
