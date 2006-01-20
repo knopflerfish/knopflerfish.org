@@ -76,6 +76,7 @@ class SCR implements SynchronousBundleListener {
      This might seem a bit strange, that we are not using 
      the constructor directly, but it's for convience. In the C 
      world I guess this would be called a global variable.
+     BA: Singleton?
   */ 
   
   public static void init(BundleContext bc) {
@@ -337,7 +338,7 @@ class SCR implements SynchronousBundleListener {
       }
 
     } catch (InvalidSyntaxException e) {
-      throw new RuntimeException("This is a bug.", e);
+      Activator.log.error("The name (" + name + ") must have screwed up the filter.", e);
     } catch (IOException e) {
       Activator.log.error("Declarative Services could not retrieve " + 
                           "the configuration for component " + name + 
@@ -362,7 +363,8 @@ class SCR implements SynchronousBundleListener {
 
         return conf == null ? null : conf[0];
       } catch (InvalidSyntaxException e) {
-        throw new RuntimeException("This is a bug", e);
+        Activator.log.error("The PID (" + pid + ") must have screwed up the filter.", e);
+        return null;
       } catch (IOException e) {
         Activator.log.error("Declarative Services could not retrieve " + 
                             "the configuration for component with pid " + pid + 
