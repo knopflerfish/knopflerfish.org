@@ -424,7 +424,6 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
   public ObjectClassDefinition getObjectClassDefinition(String pid, String locale) {
     
     synchronized(providers) {
-      //Set set = new HashSet();
       for(Iterator it = providers.keySet().iterator(); it.hasNext();) {
     	  Bundle b   = (Bundle)it.next();
     	  MetaTypeProvider    mtp = (MetaTypeProvider)providers.get(b);
