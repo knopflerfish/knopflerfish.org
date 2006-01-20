@@ -458,6 +458,8 @@ class BundleArchiveImpl implements BundleArchive
       (new File(bundleDir, LOCATION_FILE)).delete();
       (new File(bundleDir, STOP_FILE)).delete();
       (new File(bundleDir, REV_FILE)).delete();
+      (new File(bundleDir, STARTLEVEL_FILE)).delete();
+      (new File(bundleDir, PERSISTENT_FILE)).delete();
     }
     archive.purge();
     if (bundleDir.list().length == 0) {

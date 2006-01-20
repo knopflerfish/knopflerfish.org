@@ -620,16 +620,17 @@ class BundleImpl implements Bundle {
     case RESOLVED:
       framework.bundles.remove(location);
       if (bpkgs.unregisterPackages(false)) {
-	if (classLoader != null) {
+        if (classLoader != null) {
 	  AccessController.doPrivileged(new PrivilegedAction() {
-	      public Object run() {
-		classLoader.purge();
-		classLoader = null;
-		return null;
-	      }
-	    });
-	}
-	archive.close();
+              public Object run() {
+                classLoader.purge();
+	        classLoader = null;
+                return null;
+              }
+            });
+        } else {
+          archive.purge();
+        }
       } else {
 	saveZombiePackages();
 	classLoader = null;

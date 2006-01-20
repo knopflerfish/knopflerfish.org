@@ -150,7 +150,7 @@ class Archive {
 	}
       }
     }
-    file = new File(dir, ARCHIVE + rev);
+    file = new FileTree(dir, ARCHIVE + rev);
     if (doUnpack) {
       File f = new File(file, "META-INF");
       f.mkdirs();
@@ -216,7 +216,7 @@ class Archive {
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
-      file = new File(dir, ARCHIVE + rev);
+      file = new FileTree(dir, ARCHIVE + rev);
     } else {
       rev = Integer.MAX_VALUE;
       for (int i = 0; i < f.length; i++) {
@@ -225,7 +225,7 @@ class Archive {
 	    int c = Integer.parseInt(f[i].substring(ARCHIVE.length()));
 	    if (c < rev) {
 	      rev = c;
-	      file = new File(dir, f[i]);
+	      file = new FileTree(dir, f[i]);
 	    }
 	  } catch (NumberFormatException ignore) { }
 	}
@@ -236,7 +236,7 @@ class Archive {
 	try {
 	  int c = Integer.parseInt(f[i].substring(ARCHIVE.length()));
 	  if (c != rev) {
-	    (new File(dir, f[i])).delete();
+	    (new FileTree(dir, f[i])).delete();
 	  }
 	} catch (NumberFormatException ignore) { }
       }
