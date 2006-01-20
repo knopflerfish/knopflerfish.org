@@ -46,6 +46,8 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import org.osgi.framework.Bundle;
+
+import org.osgi.service.cm.Configuration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentConstants;
 
@@ -67,7 +69,6 @@ class Config {
   private ArrayList references;
   private ArrayList services;
   private Component component;
-
   private Bundle bundle;
 
   public Config(Bundle bundle) {
@@ -78,46 +79,58 @@ class Config {
     registerService = true;
   }
 
-  public Component enable() {
+  public void enable() {
+    enable(null);
+  }
 
+  public void enable(Dictionary overriddenProps) {
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).open();
     }
-
-    createComponent();
+    
+    if (component == null) // is this safe?
+      createComponent(overriddenProps);
+    
     SCR.getInstance().initComponent(component);
-
+    
     enabled = true;
     referenceSatisfied();
-
-    return component;
+    
   }
 
   public void disable() {
     enabled = false;
+    
+    SCR.getInstance().removeComponent(component);
+   
     referenceUnsatisfied();
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).close();
     }
   }
 
-  private void createComponent() {
+  public Component createComponent() {
+    return createComponent(null);
+  }
+
+  public Component createComponent(Dictionary overriddenProps) {
 
     if (getFactory() != null) {      
-      component = new FactoryComponent(this, null);
+      component = new FactoryComponent(this, overriddenProps);
 
     } else if (isServiceFactory()) {
-      component = new ServiceFactoryComponent(this, null);
+      component = new ServiceFactoryComponent(this, overriddenProps);
       
     } else if (isImmediate() || getServices() == null) {
-      component = new ImmediateComponent(this, null);
+      component = new ImmediateComponent(this, overriddenProps);
 
     } else if (!isImmediate() && getServices() != null){
-      component = new DelayedComponent(this, null);
+      component = new DelayedComponent(this, overriddenProps);
     } else {
       throw new RuntimeException("This is a bug and should not be happening.");
-
     }
+
+    return component;
   }
 
   public boolean isSatisfied() {
@@ -281,7 +294,7 @@ class Config {
   public void setImmediate(boolean isImmediate) {
     immediate = isImmediate;
   }
-  
+
   public Config copy() {
     Config config = new Config(bundle);
     for (Enumeration e = properties.keys(); e.hasMoreElements();) {

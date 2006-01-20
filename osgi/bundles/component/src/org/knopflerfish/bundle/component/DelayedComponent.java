@@ -50,29 +50,24 @@ class DelayedComponent extends Component {
   }
 
   public void satisfied() {
-    //System.out.println("DEBUG:: Satisfied: " + config.getName() + " " + config.getImplementation());  
     registerService();
   }
 
   public void unsatisfied() {
-    //System.out.println("DEBUG:: UnSatisfied: " + config.getName() + " " + config.getImplementation());  
     unregisterService();
   }
 
   public Object getService(Bundle bundle, ServiceRegistration reg) {
     super.getService(bundle, reg);
-    //System.out.println("DEBUG:: Registering: " + config.getName() + " " + config.getImplementation());  
     if (!isActivated()) {
       activate();
     }
 
-    //System.out.println("DEBUG:: activated: " + isActivated());  
     if (isActivated()) {
       refCount++;
       return getInstance();
       
     } else {
-      // getting here means that the activation failed.
 
       unregisterService();
       return null;
