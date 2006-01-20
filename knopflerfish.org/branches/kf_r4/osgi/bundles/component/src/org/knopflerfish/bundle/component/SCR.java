@@ -38,7 +38,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
-import java.util.Enumeration; // TODO: remove
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 
@@ -68,7 +68,9 @@ class SCR implements SynchronousBundleListener {
   
   private Hashtable bundleConfigs = new Hashtable();
   
-  private Hashtable components = new Hashtable();
+  private Collection components = new ArrayList();
+  private Hashtable factoryConfigs = new Hashtable();
+  private Hashtable singleConfigs = new Hashtable();
   
   private static long componentId = 0;
   private static SCR instance;
@@ -146,7 +148,9 @@ class SCR implements SynchronousBundleListener {
         Config config = (Config) iter.next();
        
         if (config.isAutoEnabled()) {
-          config.enable();
+          Component component = config.createComponent();
+          component.enable();
+          // WAS:config.enable();
         }
       }
       break;
@@ -165,24 +169,55 @@ class SCR implements SynchronousBundleListener {
     }
   }
 
-  public void initComponent(Component component) {
+  public Collection getComponents(Bundle bundle) {
+    return (Collection)bundleConfigs.get(bundle);
+  }
+
+  public void initComponent(Component component) { // synchronized?
+    Config config = component.getConfig();
     component.setProperty(ComponentConstants.COMPONENT_ID, 
                           new Long(++componentId));
     initConfig(component);
-      
+    components.add(component);
     // build graph here.
   }
 
+  public void removeComponent(Component component) { // synchronized?
+    removeConfig(component);
+    components.remove(component);
+  }
+
   private ConfigurationAdmin getCM(Component component) {
+
     BundleContext bc = component.getBundleContext();
     ServiceReference ref = bc.getServiceReference(ConfigurationAdmin.class.getName());
-
+    
     if (ref == null)
       return null;
 
     return (ConfigurationAdmin) bc.getService(ref);
   }
 
+  private void removeConfig(Component component) {
+    Config config = component.getConfig();
+    Dictionary dict = (Dictionary)factoryConfigs.get(config.getName());
+
+    if (dict != null) {
+      for (Enumeration e = dict.keys();
+           e.hasMoreElements();) {
+        Object key = e.nextElement();
+        
+        if (dict.get(key) == component) {
+          dict.remove(component);
+          break;
+        }
+      }
+      
+      if (dict.isEmpty()) {
+        factoryConfigs.remove(config.getName());
+      }
+    }
+  }
 
   private void initConfig(Component component) {
 
@@ -190,44 +225,60 @@ class SCR implements SynchronousBundleListener {
     ConfigurationAdmin admin = getCM(component);
     String name = config.getName();
 
-    components.put(name, component);
-
     if (admin == null)
       return ;
-    
+
     try {
-       
-      Configuration[] conf = 
-        admin.listConfigurations("(" + Constants.SERVICE_PID + "=" + name + ")");
-      
-      if (conf != null &&
-          conf.length == 1) {
-        config.overrideProperties(conf[0].getProperties());
+      Configuration [] conf = 
+        admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID + 
+                                 "=" + name + ")");
+
+      if (conf != null) {
+        Dictionary table = (Dictionary)factoryConfigs.get(name);
         
-      } else {
-        conf = 
-          admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID + 
-                                   "=" + name + ")");
-        
-        if (conf == null) {
-          return ;
-        }
-        
-        for (int i = 1; i < conf.length; i++) {
-          Config copy = config.copy();
-          bundleConfigs.put(config.getBundle(), copy);
-          copy.setName(conf[i].getPid());  
-          copy.enable();
+        if (table == null) {
+          table = new Hashtable();
+          factoryConfigs.put(name, table);
         }
 
-        Dictionary dict = conf[0].getProperties();
-        
-        if (dict != null) {
-          config.overrideProperties(dict);
+        Collection configs = (Collection)bundleConfigs.get(config.getBundle());
+
+        if (conf.length > 1) {
+
+          for (int i = 1; i < conf.length; i++) {
+            String pid = conf[i].getPid();
+            Component instance = (Component)table.get(pid);
+
+            if (instance == null) {
+              Config copy = config.copy();
+              instance = copy.createComponent();
+              instance.cmUpdated(conf[i].getProperties());
+              instance.enable();
+              table.put(pid, instance);
+              configs.add(copy);
+            }
+            
+          }
+          
+          if (table.get(conf[0]) == null) {
+            component.cmUpdated(conf[0].getProperties());
+            table.put(conf[0].getPid(), component);
+          }
         }
+
+        // end factory configuration
+      } else {
+
+        // regular single configuration
+        conf = 
+          admin.listConfigurations("(" + Constants.SERVICE_PID + "=" + name + ")");
         
-        components.put(conf[0].getPid(), component);
-      }   
+        if (conf != null &&
+            conf.length == 1) {
+          component.cmUpdated(conf[0].getProperties());
+        }
+      }
+
     } catch (InvalidSyntaxException e) {
       throw new RuntimeException("This is a bug.", e);
     } catch (IOException e) {
@@ -238,119 +289,157 @@ class SCR implements SynchronousBundleListener {
   }
 
   private class CMListener implements ConfigurationListener {
+
+
+    private Configuration getConfiguration(Component component, String pid) {
+
+      ConfigurationAdmin admin = getCM(component);
+
+      if (admin == null)
+        return null;
+
+      try {
+        Configuration[] conf = 
+          admin.listConfigurations("(" + Constants.SERVICE_PID + 
+                                   "=" + pid + ")");
+
+        return conf == null ? null : conf[0];
+      } catch (InvalidSyntaxException e) {
+        throw new RuntimeException("This is a bug", e);
+      } catch (IOException e) {
+        Activator.log.error("Declarative Services could not retrieve " + 
+                            "the configuration for component with pid " + pid + 
+                            ". Got IOException.", e);
+        return null;
+      }
+      
+    }
+
+
+    private void restart(Component component) {
+      restart(component, null);
+    }
     
-    // hideous, needs a rewrite.
+    private void restart(Component component, Configuration configuration) {
+      
+      component.deactivate();
+      component.unregisterService();
+
+      if (configuration != null) {
+        component.cmUpdated(configuration.getProperties());
+      } else {
+        component.cmDeleted();
+      }
+      
+      component.registerService();
+      component.activate();
+   
+    }
+    
     public void configurationEvent(ConfigurationEvent evt) {
-      Component component = (Component)components.get(evt.getPid());
 
-      if (component != null) {
-        component.unregisterService();
-        component.deactivate();
+      System.out.println("DEBUG ::: " + evt.getPid());
+      
+      String factoryPid = evt.getFactoryPid();
+      String pid = evt.getPid();
+
+      if (factoryPid != null) {
+        Dictionary table = (Dictionary) factoryConfigs.get(factoryPid);
         
-        try { 
-          Config config = component.getConfig();
+        if (table != null) {
+          Component component = (Component)table.get(pid);
+          if (component != null) {
+            if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+              restart(component);
+            }
 
-          if (evt.getType() != ConfigurationEvent.CM_DELETED) {
-            
-            ConfigurationAdmin admin = getCM(component);
-            
-            if (admin == null)
+            Configuration conf = getConfiguration(component, pid);
+            if (conf == null)
               return ;
             
-            Configuration[] conf = 
-              admin.listConfigurations("(" + Constants.SERVICE_PID + "=" + evt.getPid() + ")");
-          
-            
-            if (conf != null && conf.length == 1) {
-              
-              Dictionary dict = conf[0].getProperties();
-              if (dict != null) {
-                config.overrideProperties(dict);
-              }
-            }
-          }
-           
-          if (config.isSatisfied()) {
-            component.registerService();
-            component.activate();
-          }
-          
+            restart(component, conf);
 
-        } catch (IOException e) {
-          Activator.log.error("Declarative Services could not retrieve " + 
-                              "the configuration for component " + evt.getPid() + 
-                              ". Got IOException.", e);
-          
-        } catch (InvalidSyntaxException e) {
-          throw new RuntimeException("This is a bug.");
+            
+          } else { // we need to create a new component
+
+            Object key = table.keys().nextElement();
+            Component src = (Component)table.get(key);
+            Config config = src.getConfig();
+            Config copy = config.copy();
+            
+            Component instance = copy.createComponent();
+            Configuration conf = 
+              getConfiguration(instance, pid);
+
+            if (conf == null) 
+              return ;
+
+            instance.cmUpdated(conf.getProperties());
+            Collection collection = (Collection)bundleConfigs.get(copy.getBundle());
+            collection.add(copy);
+            instance.enable();
+
+          }
         }
 
-      } else {
-
-        component = 
-            (Component)components.get(evt.getFactoryPid());
-
-        if (component != null) {
-          component.unregisterService();
-          component.deactivate();
+        for (Iterator i = components.iterator();
+             i.hasNext(); ) { // start looking for a potential target.
           
-          try { 
-            Config config = component.getConfig();
-            
-            if (evt.getType() != ConfigurationEvent.CM_DELETED) {
-              
-              ConfigurationAdmin admin = getCM(component);
-              
-              if (admin == null)
-                return ;
-            
-              Configuration[] conf = 
-                admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID + 
-                                         "=" + evt.getFactoryPid() + ")");
-          
-            
-              if (conf != null) {
+          Component component = (Component)i.next();
+          Config config = component.getConfig();
 
-                for (int i = 1; i < conf.length; i++) {
-                  Config copy = config.copy();
-                  copy.setName(conf[i].getPid());
-                  Dictionary dict = conf[i].getProperties();
-                  
-                  if(dict != null) {
-                    copy.overrideProperties(dict);
-                  }
-                  
-                  copy.enable();
-                }
-              
-                Dictionary dict = conf[0].getProperties();
-                if (dict != null) {
-                  config.overrideProperties(dict);
-                }
+          if (factoryPid.equals(config.getName())) {
 
-                components.put(conf[0].getPid(), component); // TODO: this MUST be removed..
+            if (table == null) {
+
+              if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+                restart(component);
               }
+              // this is a new factory configuration (and has a corresponding component)
+              Configuration conf = 
+                getConfiguration(component, pid);
+
+              if (conf == null) 
+                continue; // does not have permission.
+              
+              table = new Hashtable();
+              factoryConfigs.put(factoryPid, table);
+              table.put(evt.getPid(), component);
+              restart(component, conf);
+              
+                
+              return ;
+            } 
+          }
+        }
+      } else { // just a regular Single Configuration.
+        
+        for (Iterator i = components.iterator();
+             i.hasNext(); ) { // start looking for a potential target.
+
+          Component component = (Component)i.next();
+          Config config = component.getConfig();
+          
+          if (pid.equals(config.getName())) {
+
+            if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+              restart(component);
             }
-           
-            if (config.isSatisfied()) {
-              component.registerService();
-              component.activate();
-            }
-          
-          
-          } catch (IOException e) {
-          
-            Activator.log.error("Declarative Services could not retrieve " + 
-                                "the configuration for component " + evt.getPid() + 
-                                ". Got IOException.", e);
 
 
-          } catch (InvalidSyntaxException e) {
-            throw new RuntimeException("This is a bug.");
+            Configuration conf =
+              getConfiguration(component, pid);
+            
+            if (conf == null) 
+              continue ; // might not have permission
+            
+            restart(component, conf);
+            // note that there might be other that matches as well..
           }
         }
       }
     }
   }
+
 }
 

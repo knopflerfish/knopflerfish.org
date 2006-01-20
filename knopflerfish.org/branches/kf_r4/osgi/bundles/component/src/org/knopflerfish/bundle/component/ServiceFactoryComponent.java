@@ -66,7 +66,9 @@ class ServiceFactoryComponent extends DelayedComponent {
       Config copy = config.copy();
       copy.setServiceFactory(false);
       copy.setShouldRegisterService(false);
-      Component component = copy.enable();
+      //WAS: Component component = copy.enable();
+      Component component = copy.createComponent();
+      component.enable();
       
       service = component.getService(bundle, reg);
       services.put(bundle, service);

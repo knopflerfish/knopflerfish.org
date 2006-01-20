@@ -35,8 +35,12 @@ package org.knopflerfish.bundle.component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Vector;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -59,6 +63,8 @@ abstract class Component implements ServiceFactory {
   protected ComponentContext componentContext;
   protected ComponentInstance componentInstance;
   protected Bundle usingBundle;
+
+  private Hashtable effectiveProperties; // Properties from cm. These can be discarded.
   
   public Component(Config config, Dictionary overriddenProps) {
 
@@ -73,9 +79,18 @@ abstract class Component implements ServiceFactory {
       config.overrideProperties(overriddenProps);
     }
 
-    config.setProperty(ComponentConstants.COMPONENT_NAME, config.getName()); 
+    config.setProperty(ComponentConstants.COMPONENT_NAME, config.getName());
+    cmDeleted();
   }
-  
+
+  public void enable() {
+    config.enable();
+  }
+
+  public void disable() {
+    config.disable();
+  }
+
   /** Activates a component. 
       If the component isn't enabled or satisfied, nothing will happen.
       If the component is already activated nothing will happen.
@@ -221,7 +236,9 @@ abstract class Component implements ServiceFactory {
     if (serviceRegistration != null) {
       try {
         serviceRegistration.unregister();    
-      } catch (IllegalStateException ignored) {}
+      } catch (IllegalStateException ignored) {
+        // Nevermind this, it might have been unregistered previously.
+      }
     }
   }
 
@@ -240,7 +257,7 @@ abstract class Component implements ServiceFactory {
     }
 
     serviceRegistration = 
-      bundleContext.registerService(interfaces, this, config.getProperties());
+      bundleContext.registerService(interfaces, this, effectiveProperties);
   }
 
   /**
@@ -290,7 +307,7 @@ abstract class Component implements ServiceFactory {
    
     public Dictionary getProperties() {
       if (immutable == null) {
-        immutable = new ImmutableDictionary(config.getProperties());
+        immutable = new ImmutableDictionary(effectiveProperties);
       }
       
       return immutable ;
@@ -327,11 +344,45 @@ abstract class Component implements ServiceFactory {
     }
     
     public void enableComponent(String name) {
-      throw new RuntimeException("not yet implemented");
+      Collection collection = 
+        SCR.getInstance().getComponents(config.getBundle());
+      
+      for (Iterator i = collection.iterator();
+           i.hasNext(); ) {
+        
+        Config config = (Config)i.next();
+
+        if (name == null || 
+            config.getName().equals(name)) {
+
+
+          if (!config.isEnabled()) {
+            Component component = config.createComponent();
+            component.enable();
+          }
+        }
+      }
     }
     
     public void disableComponent(String name) {
-      throw new RuntimeException("not yet implemented");
+      Collection collection = 
+        SCR.getInstance().getComponents(config.getBundle());
+      
+      for (Iterator i = collection.iterator();
+           i.hasNext(); ) {
+        
+        Config config = (Config)i.next();
+        
+        if (name == null || 
+            config.getName().equals(name)) {
+
+          if (config.isEnabled()) {
+            config.disable();
+          }
+        }
+      }
+
+      
     }
 
     public ServiceReference getServiceReference() {
@@ -384,4 +435,31 @@ abstract class Component implements ServiceFactory {
   public BundleContext getBundleContext() { return bundleContext; }
   public Object getInstance() { return instance; }
   public ComponentInstance getComponentInstance() { return componentInstance; }
+
+  /* 
+     We need to keep track of the entries that has been changed by CM
+     since these might have to be removed when a CM_DELETED event occurs..
+  */
+
+  public void cmUpdated(Dictionary dict) {
+    if (dict == null) return ;
+    
+    for (Enumeration e = dict.keys(); e.hasMoreElements();) {
+      Object key = e.nextElement();
+      if (!key.equals(ComponentConstants.COMPONENT_NAME) &&
+          !key.equals(ComponentConstants.COMPONENT_ID)) {
+        
+        effectiveProperties.put(key, dict.get(key));
+      }
+    }
+  }
+
+  public void cmDeleted() {
+    Dictionary dict = config.getProperties();
+    effectiveProperties = new Hashtable();
+    for (Enumeration e = dict.keys(); e.hasMoreElements();) {
+      Object key = e.nextElement();
+      effectiveProperties.put(key, dict.get(key));
+    }
+  }
 }
