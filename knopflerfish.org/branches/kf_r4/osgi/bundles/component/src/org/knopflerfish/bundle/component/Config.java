@@ -244,7 +244,6 @@ class Config {
     return null;
   }
 
-  /* this are only for the parser. */
   /** 
       Is this really safe? What should happen when
       CM overrides a factory's properties? Should these

@@ -44,7 +44,7 @@ class DelayedComponent extends Component {
   private int refCount;
 
   public DelayedComponent(Config config, 
-			  Dictionary overriddenProps) {
+                          Dictionary overriddenProps) {
     super(config, overriddenProps);
     refCount = 0;
   }
@@ -88,4 +88,4 @@ class DelayedComponent extends Component {
     }
   }
 }
-				
+                                

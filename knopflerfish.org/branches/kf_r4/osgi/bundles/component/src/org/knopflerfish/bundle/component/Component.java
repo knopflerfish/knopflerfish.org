@@ -268,7 +268,7 @@ abstract class Component implements ServiceFactory {
      This must be overridden
   */
   public Object getService(Bundle usingBundle, 
-			   ServiceRegistration reg) {
+                           ServiceRegistration reg) {
     this.usingBundle = usingBundle;
     return instance;
   }
@@ -277,8 +277,8 @@ abstract class Component implements ServiceFactory {
      This must be overridden
   */
   public void ungetService(Bundle usingBundle, 
-			   ServiceRegistration reg, 
-			   Object obj) {
+                           ServiceRegistration reg, 
+                           Object obj) {
     this.usingBundle = null;
   }
 
@@ -404,7 +404,7 @@ abstract class Component implements ServiceFactory {
           ServiceReference[] refs = 
             bundleContext.getServiceReferences(config.getImplementation(),
                                                "(" + ComponentConstants.COMPONENT_ID + "=" + 
-					       thisComponentId + ")"); 
+                                               thisComponentId + ")"); 
           if (refs == null) {
             Activator.log.debug("This is a bug. Variable refs should not be null.");
           }
