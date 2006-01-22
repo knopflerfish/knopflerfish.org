@@ -30,7 +30,7 @@
 ## More basic KF bundles
 -initlevel 3
 -install device/device_all-1.0.0.jar
--install useradmin/useradmin_all-1.0.0.jar
+-install useradmin/useradmin_all-1.1.0.jar
 
 -initlevel 4
 -install http/http_all-1.1.0.jar
@@ -65,7 +65,7 @@ $(WINDOWS_BUNDLES)
 -start cm/cm_all-1.0.1.jar
 -start console/console_all-1.0.0.jar
 -start device/device_all-1.0.0.jar
--start useradmin/useradmin_all-1.0.0.jar
+-start useradmin/useradmin_all-1.1.0.jar
 -start bundlerepository/bundlerepository_all-1.1.2.jar
 -start consoletty/consoletty-1.0.1.jar
 -start consoletelnet/consoletelnet-1.0.0.jar
