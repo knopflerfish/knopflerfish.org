@@ -41,6 +41,8 @@ import java.util.Vector;
 
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.um.useradmin.Condition;
+import org.knopflerfish.util.workerthread.Job;
+import org.knopflerfish.util.workerthread.WorkerThread;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -65,8 +67,6 @@ import org.osgi.service.useradmin.UserAdminPermission;
  */
 public class UserAdminImpl implements ServiceFactory, UserAdmin,
         ServiceListener {
-    static final String ANYONE = "user.anyone";
-
     static final boolean checkPermissions;
 
     static final UserAdminPermission adminPermission;
@@ -83,6 +83,10 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     LogRef log;
 
+    WorkerThread sendEventWorkerThread
+      = new WorkerThread("UserAdminEventSenderThread");
+
+
     static {
         // Use the same property that the framework uses to enable permission
         // checks
@@ -98,7 +102,8 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         log = new LogRef(bc);
 
         // create the special roles (no events for these)
-        roles.put(ANYONE, anyone = new RoleImpl(ANYONE, this));
+        roles.put(Role.USER_ANYONE,
+                  anyone = new RoleImpl(Role.USER_ANYONE, this));
     }
 
     /**
@@ -124,11 +129,21 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             }
         } catch (InvalidSyntaxException ex) {
         }
+        sendEventWorkerThread.start();
 
         if (log.doInfo())
             log.info("Service initialized", uasr);
     }
 
+  
+    /**
+     * The bundle owning this service is stopping; terminate the worker
+     * thread.
+     */
+    void stop() {
+        sendEventWorkerThread.shutdown();
+    }
+  
     /**
      * Sends an event to all user admin listeners.
      * 
@@ -142,14 +157,8 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         // dont send event if type = CHANGED and role has been removed
         if (!(type == UserAdminEvent.ROLE_CHANGED && roles.get(role.getName()) == null)) {
             UserAdminEvent event = new UserAdminEvent(uasr, type, role);
-            for (Enumeration en = listeners.elements(); en.hasMoreElements();) {
-                ServiceReference sr = (ServiceReference) en.nextElement();
-                UserAdminListener ual = (UserAdminListener) bc.getService(sr);
-                if (ual != null) {
-                    ual.roleChanged(event);
-                }
-                bc.ungetService(sr);
-            }
+            Job sendEventJob = new SendUserAdminEventJob(bc,event,listeners);
+            sendEventWorkerThread.addJob(sendEventJob);
             if (log.doDebug())
                 log.debug(event.toString(), uasr);
         } else {
@@ -217,7 +226,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             AccessController.checkPermission(adminPermission);
         }
 
-        if (ANYONE.equals(name)) {
+        if (Role.USER_ANYONE.equals(name)) {
             // not OK to remove the predefined role
             return false;
         }
@@ -303,6 +312,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     protected void zap() {
         roles = new Hashtable();
         // create the special roles (no events for these)
-        roles.put(ANYONE, anyone = new RoleImpl(ANYONE, this));
+        roles.put(Role.USER_ANYONE,
+                  anyone = new RoleImpl(Role.USER_ANYONE, this));
     }
 }

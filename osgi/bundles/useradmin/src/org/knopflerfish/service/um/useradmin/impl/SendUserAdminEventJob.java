@@ -34,31 +34,49 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.util.Hashtable;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.useradmin.UserAdmin;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.useradmin.UserAdminEvent;
+import org.osgi.service.useradmin.UserAdminListener;
+
+import org.knopflerfish.util.workerthread.Job;
 
 /**
- * Activator for stand alone service gateway UserAdmin service
+ * A job-object that sends a given UserAdminEvent to all registered listeners.
  * 
- * @author Gatespace AB
- * @version $Revision: 1.1.1.1 $
+ * @author Gunnar Ekolin
+ * @version 
  */
-public class Activator implements BundleActivator {
-    ServiceRegistration umsr;
-    UserAdminImpl ua;
+public class SendUserAdminEventJob extends Job {
+
+  BundleContext bc;
+  UserAdminEvent event;
+  Vector listeners;
   
-    public void start(BundleContext bc) {
-        ua = new UserAdminImpl(bc);
-        umsr = bc.registerService(UserAdmin.class.getName(), ua,
-                new Hashtable());
-    }
+  SendUserAdminEventJob( BundleContext bc,
+                         UserAdminEvent event,
+                         Vector listeners )
+  {
+    this.bc = bc;
+    this.event = event;
+    // Call only listeners that are present when the event happened.
+    this.listeners = (Vector) listeners.clone();
+  }
+  
 
-    public void stop(BundleContext bc) {
-        ua.stop();
+  public void run()
+  {
+    for (Enumeration en = listeners.elements(); en.hasMoreElements();) {
+      ServiceReference sr = (ServiceReference) en.nextElement();
+      UserAdminListener ual = (UserAdminListener) bc.getService(sr);
+      if (ual != null) {
+        ual.roleChanged(event);
+      }
+      bc.ungetService(sr);
     }
-
+  }
+  
 }

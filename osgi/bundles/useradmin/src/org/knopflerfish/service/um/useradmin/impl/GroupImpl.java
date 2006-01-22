@@ -65,8 +65,9 @@ public class GroupImpl extends UserImpl implements Group {
         // System.out.println( " visited: " + visited );
 
         if (visited.contains(this)) {
-            // with ANYONE, we get loops as sone as ANYONE is added to a group
-            // stop and return false
+            // with Role.USER_ANYONE, we get loops as sone as
+            // Role.USER_ANYONE is added to a group stop and return
+            // false
             return false;
         }
         visited.addElement(this);

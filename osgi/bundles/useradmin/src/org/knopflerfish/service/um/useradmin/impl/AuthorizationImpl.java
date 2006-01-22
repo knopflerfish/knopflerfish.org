@@ -83,7 +83,7 @@ public class AuthorizationImpl implements ContextualAuthorization {
     // - interface org.osgi.service.useradmin.Authorization
     // ---------------------
     public String getName() {
-        if (user.getName().equals(UserAdminImpl.ANYONE))
+        if (user.getName().equals(Role.USER_ANYONE))
             return null;
 
         return user.getName();
@@ -99,8 +99,9 @@ public class AuthorizationImpl implements ContextualAuthorization {
         try {
             Role[] roles = uai.getRoles(null);
             for (int i = 0; i < roles.length; i++) {
-                if (hasRole(roles[i].getName())) {
-                    result.addElement(roles[i].getName());
+                String roleName = roles[i].getName();
+                if (hasRole(roleName) && !Role.USER_ANYONE.equals(roleName)) {
+                    result.addElement(roleName);
                 }
             }
         } catch (InvalidSyntaxException ex) {
