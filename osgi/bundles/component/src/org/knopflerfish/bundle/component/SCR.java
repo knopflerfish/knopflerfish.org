@@ -71,13 +71,6 @@ class SCR implements SynchronousBundleListener {
   
   private static long componentId = 0;
   private static SCR instance;
-
-  /* 
-     This might seem a bit strange, that we are not using 
-     the constructor directly, but it's for convience. In the C 
-     world I guess this would be called a global variable.
-     BA: Singleton?
-  */ 
   
   public static void init(BundleContext bc) {
     if (instance == null) {
@@ -106,9 +99,13 @@ class SCR implements SynchronousBundleListener {
   }
 
   public void shutdown() {
-    
-    for (Enumeration e = bundleConfigs.keys(); e.hasMoreElements();) {
-      bundleChanged(new BundleEvent(BundleEvent.STOPPING, (Bundle) e.nextElement()));
+
+    for (Enumeration e = bundleConfigs.keys(); 
+         e.hasMoreElements();) {
+      
+      Bundle bundle = (Bundle) e.nextElement();
+      bundleChanged(new BundleEvent(BundleEvent.STOPPING, bundle));
+      
     }
     
     instance = null;
@@ -117,6 +114,7 @@ class SCR implements SynchronousBundleListener {
   public void bundleChanged(BundleEvent event) {
     Bundle bundle = event.getBundle();
     String manifestEntry = (String) bundle.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
+    
     if (manifestEntry == null) {
       return;
     }
@@ -141,14 +139,14 @@ class SCR implements SynchronousBundleListener {
           Activator.log.error("Failed to parse " + resourceURL);
         }
       }
-      bundleConfigs.put(bundle, addedConfigs);
+
+      bundleConfigs.put(bundle, new ArrayList());
       for (Iterator iter = addedConfigs.iterator(); iter.hasNext();) {
         Config config = (Config) iter.next();
        
         if (config.isAutoEnabled()) {
           Component component = config.createComponent();
           component.enable();
-          // WAS:config.enable();
         }
         
         // Add to cycle finder:
@@ -177,11 +175,17 @@ class SCR implements SynchronousBundleListener {
           Activator.log.error(message);
         }
       }
+      
+      Collection tmp = (Collection)bundleConfigs.get(bundle);
+      tmp.addAll(addedConfigs);
+      bundleConfigs.put(bundle, tmp);
+      //bundleConfigs.put(bundle, addedConfigs);
       break;
     case BundleEvent.STOPPING:
       if (Activator.log.doDebug()) {
         Activator.log.debug("Bundle is STOPPING. Disable components.");
       }
+
       Collection removedConfigs = (Collection) bundleConfigs.remove(bundle);
       if (removedConfigs != null) {
         for (Iterator iter = removedConfigs.iterator(); iter.hasNext();) {
@@ -232,7 +236,7 @@ class SCR implements SynchronousBundleListener {
     return (Collection)bundleConfigs.get(bundle);
   }
 
-  public void initComponent(Component component) { // synchronized?
+  public void initComponent(Component component) { 
     Config config = component.getConfig();
     component.setProperty(ComponentConstants.COMPONENT_ID, 
                           new Long(++componentId));
@@ -241,7 +245,7 @@ class SCR implements SynchronousBundleListener {
     // build graph here.
   }
 
-  public void removeComponent(Component component) { // synchronized?
+  public void removeComponent(Component component) { 
     removeConfig(component);
     components.remove(component);
   }
@@ -267,7 +271,7 @@ class SCR implements SynchronousBundleListener {
         Object key = e.nextElement();
         
         if (dict.get(key) == component) {
-          dict.remove(component);
+          dict.remove(key);
           break;
         }
       }
@@ -294,14 +298,14 @@ class SCR implements SynchronousBundleListener {
       
       if (conf != null) {
         Dictionary table = (Dictionary)factoryConfigs.get(name);
-	
+        
         if (table == null) {
           table = new Hashtable();
           factoryConfigs.put(name, table);
         }
 
         Collection configs = (Collection)bundleConfigs.get(config.getBundle());
-	
+        
         if (conf.length > 1) {
 
           for (int i = 1; i < conf.length; i++) {
@@ -316,14 +320,13 @@ class SCR implements SynchronousBundleListener {
               configs.add(copy);
               instance.enable();
             }
-	  }
-          
-          if (table.get(conf[0]) == null) {
-            component.cmUpdated(conf[0].getProperties());
-            table.put(conf[0].getPid(), component);
           }
         }
-
+          
+        if (table.get(conf[0]) == null) {
+          component.cmUpdated(conf[0].getProperties());
+          table.put(conf[0].getPid(), component);
+        }
         // end factory configuration
       } else {
 
@@ -387,6 +390,7 @@ class SCR implements SynchronousBundleListener {
         component.cmUpdated(configuration.getProperties());
       } else {
         component.cmDeleted();
+        removeConfig(component);        
       }
       
       component.registerService();
@@ -396,14 +400,12 @@ class SCR implements SynchronousBundleListener {
     
     public void configurationEvent(ConfigurationEvent evt) {
 
-      System.out.println("DEBUG ::: " + evt.getPid());
-      
       String factoryPid = evt.getFactoryPid();
       String pid = evt.getPid();
 
       if (factoryPid != null) {
         Dictionary table = (Dictionary) factoryConfigs.get(factoryPid);
-        
+               
         if (table != null) {
           Component component = (Component)table.get(pid);
           if (component != null) {
@@ -436,40 +438,40 @@ class SCR implements SynchronousBundleListener {
             Collection collection = (Collection)bundleConfigs.get(copy.getBundle());
             collection.add(copy);
             instance.enable();
-
+                 
           }
-        }
+        } else {
 
-        for (Iterator i = components.iterator();
-             i.hasNext(); ) { // start looking for a potential target.
-          
-          Component component = (Component)i.next();
-          Config config = component.getConfig();
-
-          if (factoryPid.equals(config.getName())) {
-
-            if (table == null) {
-
-              if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-                restart(component);
-              }
-              // this is a new factory configuration (and has a corresponding component)
-              Configuration conf = 
-                getConfiguration(component, pid);
-
-              if (conf == null) 
-                continue; // does not have permission.
+          for (Iterator i = components.iterator();
+               i.hasNext(); ) { // start looking for a potential target.
+            
+            Component component = (Component)i.next();
+            Config config = component.getConfig();
+            
+            if (factoryPid.equals(config.getName())) {
               
-              table = new Hashtable();
-              factoryConfigs.put(factoryPid, table);
-              table.put(evt.getPid(), component);
-              restart(component, conf);
-              
+              if (table == null) {
                 
-              return ;
-            } 
+                if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+                  restart(component);
+                }
+                // this is a new factory configuration (and has a corresponding component)
+                Configuration conf = 
+                  getConfiguration(component, pid);
+                
+                if (conf == null) 
+                  continue; // does not have permission.
+                
+                table = new Hashtable();
+                factoryConfigs.put(factoryPid, table);
+                table.put(evt.getPid(), component);
+                restart(component, conf);
+                
+              } 
+            }
           }
         }
+        
       } else { // just a regular Single Configuration.
         
         for (Iterator i = components.iterator();
@@ -484,7 +486,6 @@ class SCR implements SynchronousBundleListener {
               restart(component);
             }
 
-
             Configuration conf =
               getConfiguration(component, pid);
             
@@ -498,6 +499,5 @@ class SCR implements SynchronousBundleListener {
       }
     }
   }
-
 }
 
