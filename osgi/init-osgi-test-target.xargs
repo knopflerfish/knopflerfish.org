@@ -22,6 +22,7 @@
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
 -istart  prefs/prefs_all-1.1.0.jar
+-istart  event/event_all-1.0.0.jar
 
 -start  file:../../osgi.ri-tck/osgi.target.jar
 

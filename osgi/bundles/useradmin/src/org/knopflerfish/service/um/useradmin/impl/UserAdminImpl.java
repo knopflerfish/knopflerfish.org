@@ -51,6 +51,7 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.service.useradmin.Authorization;
 import org.osgi.service.useradmin.Role;
 import org.osgi.service.useradmin.User;
@@ -58,6 +59,8 @@ import org.osgi.service.useradmin.UserAdmin;
 import org.osgi.service.useradmin.UserAdminEvent;
 import org.osgi.service.useradmin.UserAdminListener;
 import org.osgi.service.useradmin.UserAdminPermission;
+import org.osgi.util.tracker.ServiceTracker;
+
 
 /**
  * Implementation of UserAdmin.
@@ -86,6 +89,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     WorkerThread sendEventWorkerThread
       = new WorkerThread("UserAdminEventSenderThread");
 
+    ServiceTracker eventAdminTracker;
 
     static {
         // Use the same property that the framework uses to enable permission
@@ -104,6 +108,9 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         // create the special roles (no events for these)
         roles.put(Role.USER_ANYONE,
                   anyone = new RoleImpl(Role.USER_ANYONE, this));
+
+        eventAdminTracker
+          = new ServiceTracker(this.bc, EventAdmin.class.getName(), null );
     }
 
     /**
@@ -129,6 +136,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             }
         } catch (InvalidSyntaxException ex) {
         }
+        eventAdminTracker.open();
         sendEventWorkerThread.start();
 
         if (log.doInfo())
@@ -157,7 +165,10 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         // dont send event if type = CHANGED and role has been removed
         if (!(type == UserAdminEvent.ROLE_CHANGED && roles.get(role.getName()) == null)) {
             UserAdminEvent event = new UserAdminEvent(uasr, type, role);
-            Job sendEventJob = new SendUserAdminEventJob(bc,event,listeners);
+            Job sendEventJob = new SendUserAdminEventJob(bc,
+                                                         eventAdminTracker,
+                                                         event,
+                                                         listeners);
             sendEventWorkerThread.addJob(sendEventJob);
             if (log.doDebug())
                 log.debug(event.toString(), uasr);
