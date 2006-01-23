@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Dictionary;
 
 import org.osgi.framework.*;
 import org.osgi.service.permissionadmin.PermissionAdmin;
@@ -610,12 +611,20 @@ public class Framework {
     } else if (Constants.FRAMEWORK_PROCESSOR.equals(key)) {
       // The name of the processor of the hosting computer. 
       return osArch;
-    } else if (Constants.FRAMEWORK_EXECUTIONENVIRONMENT.equals(key)) {
-      // The name of the fw execution environment
-      return System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
     } else {
       return System.getProperty(key);
     }
+  }
+  
+  public static Dictionary getProperties(){
+	  Dictionary props = System.getProperties();
+	  props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
+	  props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
+	  props.put(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
+	  props.put(Constants.FRAMEWORK_OS_NAME, osName);
+	  props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
+	  props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
+	  return props;
   }
 
   /**

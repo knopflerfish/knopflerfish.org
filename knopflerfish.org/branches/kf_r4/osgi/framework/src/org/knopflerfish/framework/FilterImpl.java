@@ -45,7 +45,7 @@ public class FilterImpl implements Filter {
   private LDAPExpr ldap;
 
 
-  protected FilterImpl(String filter) throws InvalidSyntaxException {
+  public FilterImpl(String filter) throws InvalidSyntaxException {
     ldap = new LDAPExpr(filter);
   }
 
