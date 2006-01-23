@@ -182,13 +182,6 @@ public class Main {
       error("New Framework failed!");
     }
 
-    try {
-      new ComponentActivator().start(new BundleContextImpl(framework.systemBundle));
-    } catch (Exception e) {
-      e.printStackTrace();
-      error("Declarative services activation failed!");
-    }
-
     // Save these for possible restart()
     initArgs    = args;
     initOffset  = 0;
