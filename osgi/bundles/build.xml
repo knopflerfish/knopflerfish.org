@@ -33,6 +33,7 @@
     <ant dir="util"              target="all"/>
     <ant dir="xml"               target="all"/>
     <ant dir="useradmin"         target="all"/>
+    <ant dir="component"         target="all"/>
     <ant dir="cm/cm_cmd"         target="all"/>
     <ant dir="console"           target="all"/>
     <ant dir="device"            target="all"/>
