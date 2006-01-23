@@ -1327,10 +1327,6 @@ public String getSymbolicName() {
 
 }
 
-protected BundleContext getBundleContext() {
-  return bundleContext;
-}
-
 public Class loadClass(final String name) throws ClassNotFoundException {
   try{
     checkClassAdminPerm();
