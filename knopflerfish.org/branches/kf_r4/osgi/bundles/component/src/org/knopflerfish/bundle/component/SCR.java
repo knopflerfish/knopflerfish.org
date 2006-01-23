@@ -303,30 +303,29 @@ class SCR implements SynchronousBundleListener {
           table = new Hashtable();
           factoryConfigs.put(name, table);
         }
-
+        
         Collection configs = (Collection)bundleConfigs.get(config.getBundle());
         
-        if (conf.length > 1) {
-
-          for (int i = 1; i < conf.length; i++) {
-            String pid = conf[i].getPid();
-            Component instance = (Component)table.get(pid);
-
-            if (instance == null) {
-              Config copy = config.copy();
-              instance = copy.createComponent();
-              instance.cmUpdated(conf[i].getProperties());
-              table.put(pid, instance);
-              configs.add(copy);
-              instance.enable();
-            }
-          }
-        }
-          
-        if (table.get(conf[0]) == null) {
+        if (table.get(conf[0].getPid()) == null) {
           component.cmUpdated(conf[0].getProperties());
           table.put(conf[0].getPid(), component);
         }
+        
+        
+        for (int i = conf.length - 1; i >= 0; i--) {
+          String pid = conf[i].getPid();
+          Component instance = (Component)table.get(pid);
+          
+          if (instance == null) {
+            Config copy = config.copy();
+            instance = copy.createComponent();
+            instance.cmUpdated(conf[i].getProperties());
+            table.put(pid, instance);
+            configs.add(copy);
+            instance.enable();
+          }
+        }
+
         // end factory configuration
       } else {
 
