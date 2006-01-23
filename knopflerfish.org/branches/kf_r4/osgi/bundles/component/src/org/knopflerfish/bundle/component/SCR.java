@@ -98,7 +98,7 @@ class SCR implements SynchronousBundleListener {
                        new Hashtable());
   }
 
-  public void shutdown() {
+  public synchronized void shutdown() {
 
     for (Enumeration e = bundleConfigs.keys(); 
          e.hasMoreElements();) {
@@ -111,7 +111,7 @@ class SCR implements SynchronousBundleListener {
     instance = null;
   }
 
-  public void bundleChanged(BundleEvent event) {
+  public synchronized void bundleChanged(BundleEvent event) {
     Bundle bundle = event.getBundle();
     String manifestEntry = (String) bundle.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
     
@@ -236,7 +236,7 @@ class SCR implements SynchronousBundleListener {
     return (Collection)bundleConfigs.get(bundle);
   }
 
-  public void initComponent(Component component) { 
+  public synchronized void initComponent(Component component) { 
     Config config = component.getConfig();
     component.setProperty(ComponentConstants.COMPONENT_ID, 
                           new Long(++componentId));
@@ -245,7 +245,7 @@ class SCR implements SynchronousBundleListener {
     // build graph here.
   }
 
-  public void removeComponent(Component component) { 
+  public synchronized void removeComponent(Component component) { 
     removeConfig(component);
     components.remove(component);
   }
@@ -261,7 +261,7 @@ class SCR implements SynchronousBundleListener {
     return (ConfigurationAdmin) bc.getService(ref);
   }
 
-  private void removeConfig(Component component) {
+  private synchronized void removeConfig(Component component) {
     Config config = component.getConfig();
     Dictionary dict = (Dictionary)factoryConfigs.get(config.getName());
 
@@ -282,7 +282,7 @@ class SCR implements SynchronousBundleListener {
     }
   }
 
-  private void initConfig(Component component) {
+  private synchronized void initConfig(Component component) {
 
     Config config = component.getConfig();
     ConfigurationAdmin admin = getCM(component);

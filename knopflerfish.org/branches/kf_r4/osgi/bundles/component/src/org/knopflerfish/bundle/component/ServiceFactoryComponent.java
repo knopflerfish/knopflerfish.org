@@ -59,14 +59,13 @@ class ServiceFactoryComponent extends DelayedComponent {
     unregisterService();
   }
 
-  public Object getService(Bundle bundle, ServiceRegistration reg) {
+  public synchronized Object getService(Bundle bundle, ServiceRegistration reg) {
     Object service = services.get(bundle);
 
     if (service == null) {
       Config copy = config.copy();
       copy.setServiceFactory(false);
       copy.setShouldRegisterService(false);
-      //WAS: Component component = copy.enable();
       Component component = copy.createComponent();
       component.enable();
       
