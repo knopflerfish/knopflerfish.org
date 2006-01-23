@@ -80,10 +80,8 @@ class FactoryComponent extends Component
 
   public ComponentInstance newInstance(Dictionary overriddenProps) {
     Config copy = config.copy();
-    copy.setFactory(null); // treath as a regular component.
-    // WAS: copy.overrideProperties(overriddenProps);
-    // hum.. shall one remove ComponentConstants.COMPONENT_FACTORY ?
-    // WAS: Component component = copy.enable(); 
+    copy.setFactory(null);
+    
     Component component = copy.createComponent(overriddenProps);
     component.enable();
     

@@ -83,7 +83,7 @@ class Config {
     enable(null);
   }
 
-  public void enable(Dictionary overriddenProps) {
+  public synchronized void enable(Dictionary overriddenProps) {
     for (Iterator iter = references.iterator(); iter.hasNext();) {
       ((Reference) iter.next()).open();
     }
@@ -98,7 +98,7 @@ class Config {
     
   }
 
-  public void disable() {
+  public synchronized void disable() {
     enabled = false;
     
     SCR.getInstance().removeComponent(component);

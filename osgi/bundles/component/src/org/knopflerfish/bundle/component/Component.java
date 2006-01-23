@@ -196,7 +196,7 @@ abstract class Component implements ServiceFactory {
   }
 
   /** deactivates a component */
-  public void deactivate() {
+  public synchronized void deactivate() {
     // this method is described on page 432 r4
 
     if (!isActivated()) return ;
@@ -355,11 +355,11 @@ abstract class Component implements ServiceFactory {
            i.hasNext(); ) {
         
         Config config = (Config)i.next();
-
+        
         if (name == null || 
             config.getName().equals(name)) {
-
-
+          
+          
           if (!config.isEnabled()) {
             Component component = config.createComponent();
             component.enable();
@@ -379,14 +379,12 @@ abstract class Component implements ServiceFactory {
         
         if (name == null || 
             config.getName().equals(name)) {
-
+          
           if (config.isEnabled()) {
             config.disable();
           }
         }
       }
-
-      
     }
 
     public ServiceReference getServiceReference() {
