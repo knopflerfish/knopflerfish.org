@@ -12,6 +12,7 @@
 #-Dorg.osgi.test.seewait=false
 #-Dorg.osgi.test.testcase.timeout=60000
 -Dorg.osgi.test.watchdog=120
+-Dscr.bundle.name=Declarative Services
 
 -install file:../../osgi.ri-tck/osgi.core.impls.jar
 -install file:../../osgi.ri-tck/testcond.jar
@@ -19,6 +20,8 @@
 
 # Load the default configuration
 -xargs init.xargs
+
+-stop httproot/httproot-1.0.0.jar
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
 -istart  prefs/prefs_all-1.1.0.jar
