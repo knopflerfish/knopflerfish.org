@@ -48,6 +48,7 @@ import org.osgi.service.useradmin.UserAdminEvent;
 import org.osgi.service.useradmin.UserAdminListener;
 import org.osgi.util.tracker.ServiceTracker;
 
+import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.util.workerthread.Job;
 
 /**
@@ -58,6 +59,7 @@ import org.knopflerfish.util.workerthread.Job;
  */
 public class SendUserAdminEventJob extends Job {
 
+  LogRef log;
   BundleContext  bc;
   ServiceTracker eventAdminTracker;
   UserAdminEvent event;
@@ -73,6 +75,7 @@ public class SendUserAdminEventJob extends Job {
     this.event = event;
     // Call only listeners that are present when the event happened.
     this.listeners = (Vector) listeners.clone();
+    this.log = new LogRef(bc);
   }
   
 
@@ -149,7 +152,12 @@ public class SendUserAdminEventJob extends Job {
       ServiceReference sr = (ServiceReference) en.nextElement();
       UserAdminListener ual = (UserAdminListener) bc.getService(sr);
       if (ual != null) {
-        ual.roleChanged(event);
+        try {
+          ual.roleChanged(event);
+        } catch (Throwable t) {
+          log.error("[UserAdmin] Error while sending roleChanged event to"+sr,
+                    t);
+        }
       }
       bc.ungetService(sr);
     }
