@@ -630,6 +630,18 @@ class BundleArchiveImpl implements BundleArchive
 		  List perfectVer = new ArrayList();
 		  List okVer = new ArrayList();
 		  List noVer = new ArrayList();
+		  //TODO take it into account. the R3 code is not spec-compliant anyways
+		  boolean optional = false;
+		  
+		  bnc.trim();
+		  if(bnc.endsWith("*")){
+			  //take away *
+			  bnc = bnc.substring(0, bnc.length());
+			  bnc = bnc.trim();
+			  //take away ,
+			  bnc = bnc.substring(0, bnc.length());
+			  optional = true;
+		  }
 		  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false); i.hasNext(); ) {
 			  Map params = (Map)i.next();
 			  String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
@@ -637,9 +649,12 @@ class BundleArchiveImpl implements BundleArchive
 			  String o =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
 			  List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
 			  if ((containsIgnoreCase(pl, p) || 
-				   containsIgnoreCase(pl, Alias.unifyProcessor(p))) &&
+				   containsIgnoreCase(pl, Alias.unifyProcessor(p))
+				  ) &&
 	               (containsIgnoreCase(ol, o) ||
-	            		   containsIgnoreCase(ol, Alias.unifyOsName(o)))) {
+	            	containsIgnoreCase(ol, Alias.unifyOsName(o))
+	               )
+	             ) {
 				  String fosVer = Framework.getProperty(Constants.FRAMEWORK_OS_VERSION);
 				  List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
 				  // Skip if we require a newer OS version.
@@ -663,7 +678,7 @@ class BundleArchiveImpl implements BundleArchive
 					  noVer.add(params);
 				  }
 			  }
-		  }
+		  } //for
 
 		  List langSearch = null;
 		  if (perfectVer.size() == 1) {
@@ -688,6 +703,17 @@ class BundleArchiveImpl implements BundleArchive
 			  String fosLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
 			  lloop: for (Iterator i = langSearch.iterator(); i.hasNext(); ) {
 				  Map params = (Map)i.next();
+				  
+				  List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
+				  if(sf != null){
+					  if(sf.size() == 1){
+						  FilterImpl filter = new FilterImpl((String)sf.get(0));
+					      if(!filter.match(Framework.getProperties())){
+							  continue;
+					      }
+					  }
+				  }
+				  
 				  List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
 				  if (lang != null) {
 					  for (Iterator l = lang.iterator(); l.hasNext(); ) {
@@ -704,8 +730,8 @@ class BundleArchiveImpl implements BundleArchive
 				  }
 			  }
 		  }
-		  if (best == null) {
-			  throw new Exception("Native-Code: No matching libraries found.");
+		  if (best == null/* && !optional*/) {
+			  throw new BundleException("Native-Code: No matching libraries found.");
 		  }
 //XXX - start L-3 modification
 		  renameLibs  = new HashMap();
