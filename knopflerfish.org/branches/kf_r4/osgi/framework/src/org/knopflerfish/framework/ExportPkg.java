@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,10 @@ import org.osgi.framework.Version;
 class ExportPkg {
   final String name;
   final BundleImpl bundle;
-  final String [] uses;
-  final String [] mandatory;
-  final String [] include;
-  final String [] exclude;
+  final ArrayList /* String */ uses;
+  final ArrayList /* String */ mandatory;
+  final ArrayList /* String */ include;
+  final ArrayList /* String */ exclude;
   final Version version;
   final Map attributes;
   boolean zombie = false;
@@ -65,14 +65,17 @@ class ExportPkg {
   ExportPkg(Map tokens, BundleImpl b) {
     this.bundle = b;
     this.name = (String)tokens.remove("key");
+    if (name.startsWith("java.")) {
+      throw new IllegalArgumentException("You can not export a java.* package");
+    }
     this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE,
 				      (String)tokens.remove(Constants.USES_DIRECTIVE));
     this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE,
 					   (String)tokens.remove(Constants.MANDATORY_DIRECTIVE));
     this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
-					   (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
+					 (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
     this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
-					   (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
+					 (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
     String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
     String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
@@ -82,23 +85,16 @@ class ExportPkg {
     } else {
       this.version = Version.emptyVersion;
     }
+    if (tokens.containsKey(Constants.BUNDLE_VERSION_ATTRIBUTE)) {
+      throw new IllegalArgumentException("Export definition illegally contains attribute, " +
+					 Constants.BUNDLE_VERSION_ATTRIBUTE);
+    }
+    if (tokens.containsKey(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE)) {
+      throw new IllegalArgumentException("Export definition illegally contains attribute, " +
+					 Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+    }
     this.attributes = tokens;
   }
-
-
-  /**
-   * Version compare object to another ExportPkg.
-   *
-   * @param obj Version to compare to.
-   * @return Return 0 if equals, negative if this object is less than obj
-   *         and positive if this object is larger then obj.
-   * @exception ClassCastException if object is not a ExportPkg object.
-   */
-  public int compareVersion(Object obj) throws ClassCastException {
-    ExportPkg o = (ExportPkg)obj;
-    return version.compareTo(o.version);
-  }
-
 
   /**
    * String describing package name and specification version, if specified.
@@ -121,17 +117,6 @@ class ExportPkg {
    */
   public String toString() {
     return pkgString() + "(" + bundle + ")";
-  }
-
-
-  /**
-   * Hash code for this package entry.
-   *
-   * @return int value.
-   */
-  public int hashCode() {
-    // TBD Do we need this?
-    return name.hashCode() + version.hashCode();
   }
 
 }

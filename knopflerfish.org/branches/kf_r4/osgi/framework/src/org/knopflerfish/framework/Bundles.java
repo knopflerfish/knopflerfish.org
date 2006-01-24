@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,63 +92,63 @@ class Bundles {
     synchronized (this) {
       b = (BundleImpl) bundles.get(location);
       if (b != null) {
-	return b;
+        return b;
       }
       try {
-	b = (BundleImpl) AccessController.doPrivileged( new PrivilegedExceptionAction() {
-	    public Object run() throws Exception {
-	      InputStream bin;
-	      if (in == null) {
-		// Do it the manual way to have a chance to 
-		// set request properties
-		URL           url  = new URL(location);
-		URLConnection conn = url.openConnection(); 
+        b = (BundleImpl) AccessController.doPrivileged( new PrivilegedExceptionAction() {
+            public Object run() throws Exception {
+              InputStream bin;
+              if (in == null) {
+                // Do it the manual way to have a chance to 
+                // set request properties
+                URL           url  = new URL(location);
+                URLConnection conn = url.openConnection(); 
 
-		// Support for http proxy authentication
-		//TODO put in update as well
-		String auth = System.getProperty("http.proxyAuth");
-		if(auth != null && !"".equals(auth)) {
-		  if("http".equals(url.getProtocol()) ||
-		     "https".equals(url.getProtocol())) {
-		    String base64 = Util.base64Encode(auth);
-		    conn.setRequestProperty("Proxy-Authorization", 
-					    "Basic " + base64);
-		  }
-		}
-		bin = conn.getInputStream();
-	      } else {
-		bin = in;
-	      }
-	      BundleImpl res = null;
-	      try {
-		BundleArchive ba = framework.storage.insertBundleJar(location, bin);
+                // Support for http proxy authentication
+                //TODO put in update as well
+                String auth = System.getProperty("http.proxyAuth");
+                if(auth != null && !"".equals(auth)) {
+                  if("http".equals(url.getProtocol()) ||
+                     "https".equals(url.getProtocol())) {
+                    String base64 = Util.base64Encode(auth);
+                    conn.setRequestProperty("Proxy-Authorization", 
+                                            "Basic " + base64);
+                  }
+                }
+                bin = conn.getInputStream();
+              } else {
+                bin = in;
+              }
+              BundleImpl res = null;
+              try {
+                BundleArchive ba = framework.storage.insertBundleJar(location, bin);
 
-		String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-		if(ee != null) {
-		  if(Debug.packages) {
-		    Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
-		  }
-		  if(!framework.isValidEE(ee)) {
-		    throw new RuntimeException("Execution environment '" + ee + "' is not supported");
-		  }
-		}
-		
-        ba.setLastModified(System.currentTimeMillis());
+                String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+                if(ee != null) {
+                  if(Debug.packages) {
+                    Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+                  }
+                  if(!framework.isValidEE(ee)) {
+                    throw new RuntimeException("Execution environment '" + ee + "' is not supported");
+                  }
+                }
+                
+                ba.setLastModified(System.currentTimeMillis());
         
-		res = new BundleImpl(framework, ba);
-	      } finally {
-		bin.close();
-	      }
-	      bundles.put(location, res);
-	      return res;
-	    }
-	  });
+                res = new BundleImpl(framework, ba);
+              } finally {
+                bin.close();
+              }
+              bundles.put(location, res);
+              return res;
+            }
+          });
       } catch (PrivilegedActionException e) {
-	//	e.printStackTrace();
-	throw new BundleException("Failed to install bundle: " + e.getException(), e.getException());
+        //      e.printStackTrace();
+        throw new BundleException("Failed to install bundle: " + e.getException(), e.getException());
       } catch (Exception e) {
-	//	e.printStackTrace();
-	throw new BundleException("Failed to install bundle: " + e, e);
+        //      e.printStackTrace();
+        throw new BundleException("Failed to install bundle: " + e, e);
       }
     }
     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
@@ -176,10 +176,10 @@ class Bundles {
   BundleImpl getBundle(long id) {
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-	BundleImpl b = (BundleImpl)e.nextElement();
-	if (b.id == id) {
-	  return b;
-	}
+        BundleImpl b = (BundleImpl)e.nextElement();
+        if (b.id == id) {
+          return b;
+        }
       }
     }
     return null;
@@ -194,10 +194,31 @@ class Bundles {
    *         if bundle was not found.
    */
   BundleImpl getBundle(String location) {
-	//pl: hashtable operations are already synchronized  
+        //pl: hashtable operations are already synchronized  
     //synchronized (bundles) {
       return (BundleImpl) bundles.get(location);
    // }
+  }
+
+
+  /**
+   * Get bundle that has specified bundle symbolic name and version.
+   *
+   * @param name The symbolic name of bundle to get.
+   * @param version The bundle version of bundle to get.
+   * @return BundleImpl for bundle or null.
+   */
+  BundleImpl getBundle(String name, Version version) {
+    synchronized (bundles) {
+      int i = 0;
+      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
+        BundleImpl b = (BundleImpl)e.nextElement();
+        if (name.equals(b.symbolicName) && version.equals(b.version)) {
+          return b;
+        }
+      }
+    }
+    return null;
   }
 
 
@@ -211,7 +232,7 @@ class Bundles {
       BundleImpl [] result = new BundleImpl[bundles.size()];
       int i = 0;
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-    	  result[i++] = (BundleImpl)e.nextElement();
+        result[i++] = (BundleImpl)e.nextElement();
       }
       return result;
     }
@@ -219,19 +240,41 @@ class Bundles {
 
 
   /**
+   * Get all bundles that has specified bundle symbolic name.
+   *
+   * @param name The symbolic name of bundles to get.
+   * @param range Version range of bundles to get, get all if null.
+   * @return A List of BundleImpl.
+   */
+  List getBundles(String name, VersionRange range) {
+    ArrayList res = new ArrayList();
+    synchronized (bundles) {
+      int i = 0;
+      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
+        BundleImpl b = (BundleImpl)e.nextElement();
+        if (name.equals(b.symbolicName) && (range == null || range.withinRange(b.version))) {
+          res.add(b);
+        }
+      }
+    }
+    return res;
+  }
+
+
+  /**
    * Get all bundles currently in bundle state ACTIVE.
    *
-   * @return A Bundle array with bundles.
+   * @return A List of BundleImpl.
    */
   List getActiveBundles() {
     ArrayList slist = new ArrayList();
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-	BundleImpl b = (BundleImpl)e.nextElement();
-	int s = b.getState();
-	if (s == Bundle.ACTIVE || s == Bundle.STARTING) {
-	  slist.add(b);
-	}
+        BundleImpl b = (BundleImpl)e.nextElement();
+        int s = b.getState();
+        if (s == Bundle.ACTIVE || s == Bundle.STARTING) {
+          slist.add(b);
+        }
       }
     }
     return slist;
@@ -264,11 +307,11 @@ class Bundles {
     for (Iterator i = slist.iterator(); i.hasNext();) {
       BundleImpl rb = (BundleImpl)i.next();
       if (rb.getUpdatedState() == Bundle.RESOLVED) {
-	try {
-	  rb.start();
-	} catch (BundleException be) {
-	  rb.framework.listeners.frameworkError(rb, be);
-	}
+        try {
+          rb.start();
+        } catch (BundleException be) {
+          rb.framework.listeners.frameworkError(rb, be);
+        }
       }
     }    
   }

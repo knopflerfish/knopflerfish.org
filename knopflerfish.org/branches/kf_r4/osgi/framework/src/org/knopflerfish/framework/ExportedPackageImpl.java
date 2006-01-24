@@ -94,8 +94,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    *         has become stale.
    */
   public Bundle getExportingBundle() {
-    // TBD, is this correct
-    if (pkg.bundle.framework.packages.isProvider(pkg)) {
+    if (pkg.pkg != null) {
       return pkg.bundle;
     } else {
       return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,93 +45,112 @@ import org.osgi.framework.*;
 
 /**
  * Class representing all packages imported and exported.
+ *
+ * @author Jan Stein
  */
 class BundlePackages {
 
   final BundleImpl bundle;
 
+  /* Sorted list of exports */
   private ArrayList /* ExportPkg */ exports = new ArrayList(1);
 
+  /* Sorted list of imports */
   private ArrayList /* ImportPkg */ imports = new ArrayList(1);
 
   private ArrayList /* String */ dImportPatterns = new ArrayList(1);
 
-  private HashMap /* String -> ImportPkg */ okImports = null;
+  /* Sorted list of active imports */
+  private ArrayList /* ImportPkg */ okImports = null;
 
   private String failReason = null;
+
+  final static String EMPTY_STRING = "";
 
   /**
    * Create package entry.
    */
   BundlePackages(BundleImpl b, 
-		 String exportStr, 
-		 String importStr, 
-		 String dimportStr,
-		 String manifestVer) {
+                 String exportStr, 
+                 String importStr, 
+                 String dimportStr) {
     this.bundle = b;
 
     if(b.getBundleArchive() != null) {
       String fakeString = b.getBundleArchive().getAttribute("fakeheader");
       if(fakeString != null) {
-	if(Debug.packages) {
-	  Debug.println(("Fake bundle #" + b.getBundleId() + ": " + fakeString));
-	}
+        if(Debug.packages) {
+          Debug.println(("Fake bundle #" + b.getBundleId() + ": " + fakeString));
+        }
       }
     }
     
     try {
-      int manver = manifestVer != null ? Integer.parseInt(manifestVer) : 0;
-      Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, true);
-      while (i.hasNext()) {
-	ExportPkg p = new ExportPkg((Map)i.next(), bundle);
-	exports.add(p);
-	if ( manver < 2 ) {
-	  imports.add(new ImportPkg(p));
-	}
-      }
-    } catch (IllegalArgumentException e) {
-      b.framework.listeners.frameworkError(b, e);
-    }
-    try {
-      Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, true);
-    wloop:
+      Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, true, false);
       while (i.hasNext()) {
 	ImportPkg p = new ImportPkg((Map)i.next(), bundle);
-	for (int x = imports.size() - 1; x >= 0; x--) {
-	  ImportPkg ip = (ImportPkg)imports.get(x);
-	  if (p.packageNameEqual(ip)) {
-	    if (p.compareVersion(ip) < 0) {
-	      imports.set(x, p);
-	    }
-	    continue wloop;
-	  }
+	int ii = Util.binarySearch(imports, ipComp, p);
+	if (ii < 0) {
+	  imports.add(-ii - 1, p);
+	} else {
+	  throw new IllegalArgumentException("Duplicate import definitions for - " + p.name);
 	}
-	imports.add(p);
       }
     } catch (IllegalArgumentException e) {
       b.framework.listeners.frameworkError(b, e);
     }
-    dImportPatterns.add("java.");
+
     try {
-      Iterator i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, true);
+      Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, true, false);
+      while (i.hasNext()) {
+	ExportPkg p = new ExportPkg((Map)i.next(), bundle);
+	int ei = Util.binarySearch(exports, epComp, p);
+	if (ei < 0) {
+	  exports.add(-ei - 1, p);
+	} else {
+	  throw new IllegalArgumentException("Duplicate export definitions for - " + p.name);
+	}
+	if (!b.v2Manifest) {
+	  ImportPkg ip = new ImportPkg(p);
+	  int ii = Util.binarySearch(imports, ipComp, ip);
+	  if (ii < 0) {
+	    imports.add(-ii - 1, ip);
+	  }
+	}
+      }
+    } catch (IllegalArgumentException e) {
+      b.framework.listeners.frameworkError(b, e);
+    }
+
+    try {
+      Iterator i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, true, false);
       while (i.hasNext()) {
 	Map e = (Map)i.next();
 	String key = (String)e.get("key");
 	if (key.equals("*")) {
-	  dImportPatterns = null;
-      //if funny one puts a * amongst other things
-	  break;
+	  e.put("key", EMPTY_STRING);
 	} else if (key.endsWith(".*")) {
-	  dImportPatterns.add(key.substring(0, key.length() - 1));
+	  e.put("key", key.substring(0, key.length() - 1));
 	} else if (key.endsWith(".")) {
-	  b.framework.listeners.frameworkError(b, new IllegalArgumentException(
-            Constants.DYNAMICIMPORT_PACKAGE + " entry ends with '.': " + key));
+	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+					     " entry ends with '.': " + key);
 	} else if (key.indexOf("*") != - 1) {
-	  b.framework.listeners.frameworkError(b, new IllegalArgumentException(
-            Constants.DYNAMICIMPORT_PACKAGE + " entry contains a '*': " + key));
-	} else {
-	  dImportPatterns.add(key);
+	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+					     " entry contains a '*': " + key);
 	}
+	if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
+	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+					     " entry illegal contains a " +
+					     Constants.RESOLUTION_DIRECTIVE +
+					     " directive.");
+	}
+	if (e.containsKey(Constants.PACKAGE_SPECIFICATION_VERSION)) {
+	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+					     " entry illegal contains a " +
+					     Constants.PACKAGE_SPECIFICATION_VERSION +
+					     " directive.");
+	}
+	dImportPatterns.add(new ImportPkg(e, bundle));
       }
     } catch (IllegalArgumentException e) {
       b.framework.listeners.frameworkError(b, e);
@@ -153,7 +172,7 @@ class BundlePackages {
    *
    */
   synchronized boolean unregisterPackages(boolean force) {
-    Iterator i = (okImports != null ? okImports.values() : imports).iterator();
+    Iterator i = (okImports != null ? okImports : imports).iterator();
     if (bundle.framework.packages.unregisterPackages(exports.iterator(), i, force)) {
       okImports = null;
       return true;
@@ -174,7 +193,7 @@ class BundlePackages {
     if (bundle.framework.permissions != null) {
       failReason = checkPackagePermissions();
       if (failReason != null) {
-	return false;
+        return false;
       }
     }
     List m = bundle.framework.packages.checkResolve(bundle, imports.iterator());
@@ -183,20 +202,14 @@ class BundlePackages {
       Iterator mi = m.iterator();
       r.append(((ImportPkg)mi.next()).pkgString());
       while (mi.hasNext()) {
-	r.append(", ");
-	r.append(((ImportPkg)mi.next()).pkgString());
+        r.append(", ");
+        r.append(((ImportPkg)mi.next()).pkgString());
       }
       failReason = r.toString();
       return false;
     } else {
       failReason = null;
-      okImports = new HashMap();
-      for (Iterator i = imports.iterator(); i.hasNext(); ) {
-	ImportPkg ip = (ImportPkg)i.next();
-	// NYI, fix multiple providers
-	ip.provider = bundle.framework.packages.getProvider(ip.name);
-	okImports.put(ip.name, ip);
-      }
+      okImports = (ArrayList)imports.clone();
       return true;
     }
   }
@@ -205,8 +218,6 @@ class BundlePackages {
   /**
    * If bundle package has been resolved look for a bundle
    * that provides the requested package.
-   * If found, check if we import it. If not imported, check
-   * if we can dynamically import the package.
    *
    * @param pkg Package name
    * @return Bundle exporting
@@ -215,32 +226,61 @@ class BundlePackages {
     if (okImports == null) {
       return null;
     }
-    ImportPkg ip = (ImportPkg)okImports.get(pkg);
-    if (ip != null) {
-      return ip.provider.bundle;
+    int ii = Util.binarySearch(okImports, ipFind, pkg);
+    if (ii >= 0) {
+      return ((ImportPkg)okImports.get(ii)).provider.bundle;
     }
-    boolean match = false;
-    if (dImportPatterns == null) {
-      match = true;
-    } else {
+    return null;
+  }
+
+
+  /**
+   * Check if we can dynamically import a package. Re-check
+   * that we haven't gotten a provider. (Do we need to do that?)
+   *
+   * @param pkg Package name
+   * @return Bundle exporting
+   */
+  synchronized BundleImpl getDynamicProviderBundle(String pkg) {
+    if (okImports == null) {
+      return null;
+    }
+    int ii = Util.binarySearch(okImports, ipFind, pkg);
+    if (ii >= 0) {
+      return ((ImportPkg)okImports.get(ii)).provider.bundle;
+    }
+    if (checkPackagePermission(pkg, PackagePermission.IMPORT)) {
       for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
-	String ps = (String)i.next();
-	if ((ps.endsWith(".") && pkg.startsWith(ps)) || pkg.equals(ps)) {
-	  match = true;
-	  break;
+	ImportPkg ip = (ImportPkg)i.next();
+        if (ip.name == EMPTY_STRING ||
+	    (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
+	    pkg.equals(ip.name)) {
+	  ImportPkg nip = new ImportPkg(ip, pkg);
+	  ExportPkg ep = bundle.framework.packages.registerDynamicImport(nip);
+	  if (ep != null) {
+	    nip.provider = ep;
+	    okImports.add(-ii - 1, nip);
+	    return ep.bundle;
+	  }
 	}
       }
     }
-    if (match && checkPackagePermission(pkg, PackagePermission.IMPORT)) {
-      ip = new ImportPkg(pkg, bundle);
-      ExportPkg ep = bundle.framework.packages.registerDynamicImport(ip);
-      if (ep != null) {
-	ip.provider = ep;
-	okImports.put(pkg, ip);
-	return ep.bundle;
-      }
-    }
     return null;
+  }
+
+
+  /**
+   * Get an iterator over all exported packages.
+   *
+   * @return An Iterator over ExportPkg.
+   */
+  ExportPkg getExport(String pkg) {
+    int i = Util.binarySearch(exports, epFind, pkg);
+    if (i >= 0) {
+      return (ExportPkg)exports.get(i);
+    } else {
+      return null;
+    }
   }
 
 
@@ -261,6 +301,16 @@ class BundlePackages {
    */
   Iterator getImports() {
     return imports.iterator();
+  }
+
+
+  /**
+   * Get an iterator over all active imported packages.
+   *
+   * @return An Iterator over ImportPkg.
+   */
+  Iterator getActiveImports() {
+    return okImports.iterator();
   }
 
 
@@ -288,30 +338,30 @@ class BundlePackages {
     for (Iterator i = exports.iterator(); i.hasNext();) {
       ExportPkg p = (ExportPkg)i.next();
       if (!checkPackagePermission(p.name, PackagePermission.EXPORT)) {
-	if (e_res != null) {
-	  e_res = e_res + ", " + p.name;
-	} else {
-	  e_res = "missing export permission for package(s): " + p.name;
-	  e_res = p.name;
-	}
+        if (e_res != null) {
+          e_res = e_res + ", " + p.name;
+        } else {
+          e_res = "missing export permission for package(s): " + p.name;
+          e_res = p.name;
+        }
       }
     }
     String i_res = null;
     for (Iterator i = imports.iterator(); i.hasNext();) {
       ImportPkg p = (ImportPkg)i.next();
       if (!checkPackagePermission(p.name, PackagePermission.IMPORT)) {
-	if (i_res != null) {
-	  i_res = i_res + ", " + p.name;
-	} else {
-	  i_res = "missing import permission for package(s): " + p.name;
-	}
+        if (i_res != null) {
+          i_res = i_res + ", " + p.name;
+        } else {
+          i_res = "missing import permission for package(s): " + p.name;
+        }
       }
     }
     if (e_res != null) {
       if (i_res != null) {
-	return e_res + "; " + i_res;
+        return e_res + "; " + i_res;
       } else {
-	return e_res;
+        return e_res;
       }
     } else {
       return i_res;
@@ -329,10 +379,79 @@ class BundlePackages {
   private boolean checkPackagePermission(String pkg, String perm) {
     if (bundle.framework.permissions != null) {
       return bundle.framework.permissions.getPermissionCollection(bundle)
-	.implies(new PackagePermission(pkg, perm));
+        .implies(new PackagePermission(pkg, perm));
     } else {
       return true;
     }
   }
+
+
+  static final Util.Comparator epComp = new Util.Comparator() {
+      /**
+       * Name compare two ExportPkg objects.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ExportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ExportPkg a = (ExportPkg)oa;
+        ExportPkg b = (ExportPkg)ob;
+        return a.name.compareTo(b.name);
+      }
+    };
+
+  static final Util.Comparator ipComp = new Util.Comparator() {
+      /**
+       * Name compare two ImportPkg objects.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ImportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ImportPkg a = (ImportPkg)oa;
+        ImportPkg b = (ImportPkg)ob;
+        return a.name.compareTo(b.name);
+      }
+    };
+
+  static final Util.Comparator ipFind = new Util.Comparator() {
+      /**
+       * Name compare ImportPkg object with String object.
+       *
+       * @param oa ImportPkg object to compare.
+       * @param ob String object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ImportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ImportPkg a = (ImportPkg)oa;
+        String b = (String)ob;
+        return a.name.compareTo(b);
+      }
+    };
+
+  static final Util.Comparator epFind = new Util.Comparator() {
+      /**
+       * Name compare ExportPkg object with String object.
+       *
+       * @param oa ExportPkg object to compare.
+       * @param ob String object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ExportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ExportPkg a = (ExportPkg)oa;
+        String b = (String)ob;
+        return a.name.compareTo(b);
+      }
+    };
 
 }
