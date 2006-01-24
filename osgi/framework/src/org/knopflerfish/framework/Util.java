@@ -124,10 +124,10 @@ public class Util {
    *
    * @param d Directive being parsed
    * @param s String to parse
-   * @return String array with enumeration or null if enumeration string was null.
+   * @return A sorted ArrayList with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static String [] parseEnumeration(String d, String s) {
+  public static ArrayList parseEnumeration(String d, String s) {
     ArrayList result = new ArrayList();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
@@ -141,8 +141,10 @@ public class Util {
 	  throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
 					     + at.getRest());
 	}
+	int i = Math.abs(Util.binarySearch(result, strComp, key) + 1);
+	result.add(i, key);
       } while (!at.getEnd());
-      return (String []) result.toArray(new String [result.size()]);
+      return result;
     } else {
       return null;
     }
@@ -160,59 +162,67 @@ public class Util {
    * @param s String to parse
    * @param single If true, only allow one key per ENTRY
    *        and only allow unique parameters for each ENTRY.
-   * @return Iterator(Map(param -> value)).
+   * @param single_enty If true, only allow one ENTRY is allowed.
+   * @return Iterator(Map(param -> value)) or null if input string is null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator parseEntries(String a, String s, boolean single) {
+  public static Iterator parseEntries(String a, String s, boolean single, boolean single_entry) {
     ArrayList result = new ArrayList();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-    	  ArrayList keys = new ArrayList();
-    	  HashMap params = new HashMap();
-    	  String key = at.getKey();
-    	  if (key == null) {
-    		  throw new IllegalArgumentException("Attribute, " + a + ", expected key at: " + at.getRest());
-    	  }
-    	  if (!single) {
-    		  keys.add(key);
-    		  while ((key = at.getKey()) != null) {
-    			  keys.add(key);
-    		  }
-    	  }
-    	  String param;
-    	  while ((param = at.getParam()) != null) {
-    		  List old = (List)params.get(param);
-    		  if (old != null && single) {
-    			  throw new IllegalArgumentException("Attribute, " + a + ", duplicate parameter: " + param);
-    		  }
-    		  String value = at.getValue();
-    		  if (value == null) {
-    			  throw new IllegalArgumentException("Attribute, " + a + ", expected value at: " + at.getRest());
-    		  }
-    		  if (single) {
-    			  params.put(param, value);
-    		  } 
-    		  else {
-    			  if (old == null) {
-    				  old = new ArrayList();
-    				  params.put(param, old);
-    			  }
-    			  old.add(value);
-    		  }
-    	  }
-    	  if (at.getEntryEnd()) {
-    		  if (single) {
-    			  params.put("key", key);
-    		  } 
-    		  else {
-    			  params.put("keys", keys);
-    		  }
-    		  result.add(params);
-    	  } 
-    	  else {
-    		  throw new IllegalArgumentException("Attribute, " + a + ", expected end of entry at: " + at.getRest());
-    	  }
+	ArrayList keys = new ArrayList();
+	HashMap params = new HashMap();
+	String key = at.getKey();
+	if (key == null) {
+	  throw new IllegalArgumentException("Definition, " + a + ", expected key at: " + at.getRest());
+	}
+	if (!single) {
+	  keys.add(key);
+	  while ((key = at.getKey()) != null) {
+	    keys.add(key);
+	  }
+	}
+	String param;
+	while ((param = at.getParam()) != null) {
+	  List old = (List)params.get(param);
+	  boolean is_directive = at.isDirective();
+	  if (old != null && single) {
+	    throw new IllegalArgumentException("Definition, " + a + ", duplicate " +
+					       (is_directive ? "directive" : "attribute") +
+					       ": " + param);
+	  }
+	  String value = at.getValue();
+	  if (value == null) {
+	    throw new IllegalArgumentException("Definition, " + a + ", expected value at: " + at.getRest());
+	  }
+	  if (is_directive) {
+	    // NYI Handle directives and check them
+	    // This method has become very ugly, please rewrite.
+	  }
+	  if (single) {
+	    params.put(param, value);
+	  } else {
+	    if (old == null) {
+	      old = new ArrayList();
+	      params.put(param, old);
+	    }
+	    old.add(value);
+	  }
+	}
+	if (at.getEntryEnd()) {
+	  if (single) {
+	    params.put("key", key);
+	  } else {
+	    params.put("keys", keys);
+	  }
+	  result.add(params);
+	} else {
+	  throw new IllegalArgumentException("Definition, " + a + ", expected end of entry at: " + at.getRest());
+	}
+        if (single_entry && !at.getEnd()) {
+	  throw new IllegalArgumentException("Definition, " + a + ", expected end of single entry at: " + at.getRest());
+	}
       } while (!at.getEnd());
     }
     return result.iterator();
@@ -456,28 +466,28 @@ public class Util {
    * @param a Vector to sort
    * @param cf comparison function
    */
-  static public void sort(Vector a, Comparator cf, boolean bReverse) {
+  static public void sort(List a, Comparator cf, boolean bReverse) {
     sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
   }
   
   /**
    * Vector QSort implementation.
    */
-  static void sort(Vector a, int lo0, int hi0, Comparator cf, int k) {
+  static void sort(List a, int lo0, int hi0, Comparator cf, int k) {
     int lo = lo0;
     int hi = hi0;
     Object mid;
     
     if ( hi0 > lo0) {
       
-      mid = a.elementAt( ( lo0 + hi0 ) / 2 );
+      mid = a.get( ( lo0 + hi0 ) / 2 );
       
       while( lo <= hi ) {
-	while( ( lo < hi0 ) && ( k * cf.compare(a.elementAt(lo), mid) < 0 )) {
+	while( ( lo < hi0 ) && ( k * cf.compare(a.get(lo), mid) < 0 )) {
 	  ++lo;
 	}
 	
-	while( ( hi > lo0 ) && ( k * cf.compare(a.elementAt(hi), mid ) > 0 )) {
+	while( ( hi > lo0 ) && ( k * cf.compare(a.get(hi), mid ) > 0 )) {
 	  --hi;
 	}
 	
@@ -498,12 +508,58 @@ public class Util {
     }
   }
   
-  private static void swap(Vector a, int i, int j) {
-    Object tmp  = a.elementAt(i); 
-    a.setElementAt(a.elementAt(j), i);
-    a.setElementAt(tmp,            j);
+  private static void swap(List a, int i, int j) {
+    Object tmp  = a.get(i); 
+    a.set(i, a.get(j));
+    a.set(j, tmp);
   }
 
+
+  /**
+   * Do binary search for a package entry in the list with the same
+   * version number add the specifies package entry.
+   *
+   * @param pl Sorted list of package entries to search.
+   * @param p Package entry to search for.
+   * @return index of the found entry. If no entry is found, return
+   *         <tt>(-(<i>insertion point</i>) - 1)</tt>.  The insertion
+   *         point</i> is defined as the point at which the
+   *         key would be inserted into the list.
+   */
+  public static int binarySearch(List pl, Comparator c, Object p) {
+    int l = 0;
+    int u = pl.size()-1;
+
+    while (l <= u) {
+      int m = (l + u)/2;
+      int v = c.compare(pl.get(m), p);
+      if (v > 0) {
+	l = m + 1;
+      } else if (v < 0) {
+	u = m - 1;
+      } else {
+	return m;
+      }
+    }
+    return -(l + 1);  // key not found.
+  }
+
+  static final Comparator strComp = new Comparator() {
+      /**
+       * String compare
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if objects are not a String objects.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+	String a = (String)oa;
+	String b = (String)ob;
+	return a.compareTo(b);
+      }
+    };
 
   private static final byte encTab[] = {
     0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,

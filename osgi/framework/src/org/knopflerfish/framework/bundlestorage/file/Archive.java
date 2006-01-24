@@ -90,7 +90,7 @@ class Archive {
   /**
    * File handle for file that contains current archive.
    */
-  private File file;
+  private FileTree file;
 
   /**
    * JAR file handle for file that contains current archive.
@@ -128,7 +128,7 @@ class Archive {
     this(dir, rev, is, null);
   }
 
-  File refFile = null;
+  FileTree refFile = null;
 
   Archive(File dir, int rev, InputStream is, URL source) throws IOException {
     BufferedInputStream bis = new BufferedInputStream(is, 8192);
@@ -169,7 +169,7 @@ class Archive {
     	  }
       }
     }
-    file = new File(dir, ARCHIVE + rev);
+    file = new FileTree(dir, ARCHIVE + rev);
   
     if (doUnpack) {
       File f = new File(file, "META-INF");
@@ -203,7 +203,7 @@ class Archive {
       // Only copy to storage when applicable, otherwise
       // use reference
       if(source != null && bReference && "file".equals(source.getProtocol())) {
-    	  refFile = new File(source.getFile());
+    	  refFile = new FileTree(source.getFile());
     	  jar = new ZipFile(refFile);
       } 
       else {
@@ -241,7 +241,7 @@ class Archive {
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
-      file = new File(dir, ARCHIVE + rev);
+      file = new FileTree(dir, ARCHIVE + rev);
     } else {
       rev = Integer.MAX_VALUE;
       for (int i = 0; i < f.length; i++) {
@@ -250,7 +250,7 @@ class Archive {
 	    int c = Integer.parseInt(f[i].substring(ARCHIVE.length()));
 	    if (c < rev) {
 	      rev = c;
-	      file = new File(dir, f[i]);
+	      file = new FileTree(dir, f[i]);
 	    }
 	  } catch (NumberFormatException ignore) { }
 	}
@@ -261,7 +261,7 @@ class Archive {
 	try {
 	  int c = Integer.parseInt(f[i].substring(ARCHIVE.length()));
 	  if (c != rev) {
-	    (new File(dir, f[i])).delete();
+	    (new FileTree(dir, f[i])).delete();
 	  }
 	} catch (NumberFormatException ignore) { }
       }
@@ -279,7 +279,7 @@ class Archive {
 	try {
 	  URL source = new URL(location);
 	  if("file".equals(source.getProtocol())) {
-	    refFile = file = new File(source.getFile());
+	    refFile = file = new FileTree(source.getFile());
 	  }
 	} catch (Exception e) {
 	  throw new IOException("Bad file URL stored in referenced jar in: " +
@@ -829,9 +829,9 @@ class Archive {
    */
   private boolean checkManifest() {
     Attributes a = manifest.getMainAttributes();
-    Util.parseEntries(Constants.EXPORT_PACKAGE, a.getValue(Constants.EXPORT_PACKAGE), true);
-    Util.parseEntries(Constants.IMPORT_PACKAGE, a.getValue(Constants.IMPORT_PACKAGE), true);
-    Iterator nc = Util.parseEntries(Constants.BUNDLE_NATIVECODE, a.getValue(Constants.BUNDLE_NATIVECODE), false);
+    Util.parseEntries(Constants.EXPORT_PACKAGE, a.getValue(Constants.EXPORT_PACKAGE), true, false);
+    Util.parseEntries(Constants.IMPORT_PACKAGE, a.getValue(Constants.IMPORT_PACKAGE), true, false);
+    Iterator nc = Util.parseEntries(Constants.BUNDLE_NATIVECODE, a.getValue(Constants.BUNDLE_NATIVECODE), false, false);
     String bc = a.getValue(Constants.BUNDLE_CLASSPATH);
     return (bc != null && !bc.trim().equals(".")) || nc.hasNext();
   }
@@ -846,8 +846,8 @@ class Archive {
    * @param path Path to file to find.
    * @return The File object for file <code>path</code>.
    */
-  private File findFile(File root, String path) {
-    return new File(root, path.replace('/', File.separatorChar));
+  private FileTree findFile(File root, String path) {
+    return new FileTree(root, path.replace('/', File.separatorChar));
   }
 
   /**

@@ -482,6 +482,9 @@ class BundleArchiveImpl implements BundleArchive
       (new File(bundleDir, LOCATION_FILE)).delete();
       (new File(bundleDir, STOP_FILE)).delete();
       (new File(bundleDir, REV_FILE)).delete();
+      (new File(bundleDir, STARTLEVEL_FILE)).delete();
+      (new File(bundleDir, PERSISTENT_FILE)).delete();
+      (new File(bundleDir, LAST_MODIFIED_FILE)).delete();
     }
     archive.purge();
     if (bundleDir.list().length == 0) {
@@ -642,7 +645,7 @@ class BundleArchiveImpl implements BundleArchive
 			  bnc = bnc.substring(0, bnc.length());
 			  optional = true;
 		  }
-		  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false); i.hasNext(); ) {
+		  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false); i.hasNext(); ) {
 			  Map params = (Map)i.next();
 			  String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
 			  List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);

@@ -1325,7 +1325,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       //existing directory
       Enumeration enume = bc.getBundle().getEntryPaths("/");
       if(enume == null ){
-      	  fail("GetEntryPaths did not retrieve the correct number of elements");
+      	  fail("GetEntryPaths did not retrieve the correct number of elements, /");
       }
       int i = 0;
       while(enume.hasMoreElements()){
@@ -1335,13 +1335,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       //investigate further why in memory bundle storage misses some. it seems some entries are not loaded from the file
       //this is super-flaky, revisit
       if(i != 34 && i != 31 && i != 37){
-    	  fail("GetEntryPaths did not retrieve the correct number of elements");
+    	  fail("GetEntryPaths did not retrieve the correct number of elements, 31,34,37 != "+ i);
       }
       
       //another existing directory
       enume = bc.getBundle().getEntryPaths("/org/knopflerfish/bundle/framework_test");
       if(enume == null ){
-    	  fail("GetEntryPaths did not retrieve the correct number of elements");
+    	  fail("GetEntryPaths did not retrieve the correct number of elements, framework_test");
       }
       i = 0;
       while(enume.hasMoreElements()){
@@ -1350,8 +1350,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
       //investigate further why in memory bundle storage misses some. it seems some entries are not loaded from the file
 //    //this is super-flaky, revisit
-      if(i != 87 && i != 94){
-    	  fail("GetEntryPaths did not retrieve the correct number of elements");
+      if(i != 87 && i != 94 && i != 95){
+    	  fail("GetEntryPaths did not retrieve the correct number of elements, 87,94,95 != " + i);
       }
       
      

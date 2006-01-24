@@ -74,7 +74,8 @@ public class SystemBundle extends BundleImpl {
    *
    */
   SystemBundle(Framework fw) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION);
+    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
+	  new Version(Main.readVersion()));
     state = STARTING;
     StringBuffer sp = new StringBuffer(System.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
 
@@ -90,7 +91,7 @@ public class SystemBundle extends BundleImpl {
 
     addSystemPackages(sp);
 
-    bpkgs = new BundlePackages(this, sp.toString(), null, null, "2");
+    bpkgs = new BundlePackages(this, sp.toString(), null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
   }
@@ -102,43 +103,43 @@ public class SystemBundle extends BundleImpl {
     // Set up org.osgi.framework package
     String name = Bundle.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append(name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" + Framework.SPEC_VERSION);
 
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  PackageAdminImpl.SPEC_VERSION);
 
     // Set up permissionadmin package
     name = PermissionAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  PermissionAdminImpl.SPEC_VERSION);
 
     // Set up startlevel package
     name = StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  StartLevelImpl.SPEC_VERSION);
 
     // Set up tracker package
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  "1.3");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  "1.0");
 
     // Set up component package
     name = org.osgi.service.component.ComponentConstants.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
         "=" +  "1.0");
   }
 

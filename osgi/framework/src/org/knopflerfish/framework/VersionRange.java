@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,11 @@ import org.osgi.framework.Version;
 import java.io.*;
 import java.util.StringTokenizer;
 
+/**
+ * Class representing OSGi version ranges.
+ *
+ * @author Jan Stein
+ */
 public class VersionRange implements Comparable
 {
   final private Version low;
@@ -62,8 +67,8 @@ public class VersionRange implements Comparable
 	int comma = vr.indexOf(',');
 
 	if (comma > 0 && (cp || cb)) {
-	  low = new Version(vr.substring(1, comma));
-	  high = new Version(vr.substring(comma + 1, vr.length() - 1));
+	  low = new Version(vr.substring(1, comma).trim());
+	  high = new Version(vr.substring(comma + 1, vr.length() - 1).trim());
 	  lowIncluded = ob;
 	  highIncluded = cb;
 	} else  {

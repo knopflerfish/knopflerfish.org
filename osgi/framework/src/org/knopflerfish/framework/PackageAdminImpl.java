@@ -77,21 +77,22 @@ public class PackageAdminImpl implements PackageAdmin {
   private AdminPermission RESOLVE_ADMIN_PERM;
    
   private void initPerm(){
-	 if(framework.permissions != null){
-		 RESOLVE_ADMIN_PERM = new AdminPermission(framework.systemBundle, AdminPermission.RESOLVE);
-	 }
+         if(framework.permissions != null){
+                 RESOLVE_ADMIN_PERM = new AdminPermission(framework.systemBundle, AdminPermission.RESOLVE);
+         }
   }
   
   private void checkResolveAdminPerm(){
-	  if(RESOLVE_ADMIN_PERM != null){
-		  AccessController.checkPermission(RESOLVE_ADMIN_PERM);
-	  }
+          if(RESOLVE_ADMIN_PERM != null){
+                  AccessController.checkPermission(RESOLVE_ADMIN_PERM);
+          }
   }
 
   PackageAdminImpl(Framework fw) {
     framework = fw;
     initPerm();
   }
+
 
   /**
    * Gets the packages exported by the specified bundle.
@@ -113,19 +114,45 @@ public class PackageAdminImpl implements PackageAdmin {
    * or <tt>null</tt> if the specified bundle has not exported any packages.
    */
   public ExportedPackage[] getExportedPackages(Bundle bundle) {
-    final Packages packages = framework.packages;
-    Collection pkgs = packages.getPackagesProvidedBy(bundle);
+    Collection pkgs = framework.packages.getPackagesExportedBy(bundle);
     int size = pkgs.size();
     if (size > 0) {
       ExportedPackage[] res = new ExportedPackage[size];
       Iterator i = pkgs.iterator();
       for (int pos = 0; pos < size;) {
-	res[pos++] = new ExportedPackageImpl((ExportPkg)i.next());
+        res[pos++] = new ExportedPackageImpl((ExportPkg)i.next());
       }
       return res;
     } else {
       return null;
     }
+  }
+
+
+  /**
+   * Gets the exported packages for the specified package name.
+   * 
+   * @param name The name of the exported packages to be returned.
+   * 
+   * @return An array of the exported packages, or <code>null</code> if no
+   *         exported packages with the specified name exists.
+   */
+  public ExportedPackage[] getExportedPackages(String name) {
+    Pkg pkg = framework.packages.getPkg(name);
+    ExportedPackage[] res = null;
+    if (pkg != null) {
+      synchronized (pkg) {
+        int size = pkg.exporters.size();
+        if (size > 0) {
+          res = new ExportedPackage[size];
+          Iterator i = pkg.exporters.iterator();
+          for (int pos = 0; pos < size;) {
+            res[pos++] = new ExportedPackageImpl((ExportPkg)i.next());
+          }
+        }
+      }
+    }
+    return res;
   }
 
   
@@ -146,9 +173,10 @@ public class PackageAdminImpl implements PackageAdmin {
    *         if no expored package with that name exists.
    */
   public ExportedPackage getExportedPackage(String name) {
-    ExportPkg provider = framework.packages.getProvider(name);
-    if (provider != null) {
-      return new ExportedPackageImpl(provider);
+    ExportPkg ep = framework.packages.getPackageProvider(name);
+System.out.println("GETEXPORT: " + ep);
+    if (ep != null) {
+      return new ExportedPackageImpl(ep);
     } else {
       return null;
     }
@@ -162,133 +190,171 @@ public class PackageAdminImpl implements PackageAdmin {
    * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
-	checkResolveAdminPerm();
+        checkResolveAdminPerm();
 //XXX - begin L-3 modification
     Thread t = new Thread() {
-	public void run() {
-	  final BundleImpl bi[] = (BundleImpl[])framework.packages
-	    .getZombieAffected(bundles).toArray(new BundleImpl[0]);
-	  AccessController.doPrivileged(new PrivilegedAction() {
-	      public Object run() {
-		ArrayList startList = new ArrayList();
-		synchronized (framework.packages) {
+        public void run() {
+          final BundleImpl bi[] = (BundleImpl[])framework.packages
+            .getZombieAffected(bundles).toArray(new BundleImpl[0]);
+          AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                ArrayList startList = new ArrayList();
+                synchronized (framework.packages) {
 
-		  // Stop affected bundles and remove their classloaders
-		  // in reverse start order
-		  for (int bx = bi.length; bx-- > 0; ) {
-		    synchronized (bi[bx]) {
-		      if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
-			try {
-			  int ix = 0;
-			  if(Framework.R3_TESTCOMPLIANT) {
-			    // Make sure start list is in original bundle
-			    // start order by using insertion sort
-			    Iterator it = startList.iterator();
-			    while(it.hasNext()) {
-			      BundleImpl bi = (BundleImpl)it.next();
-			      if(bi.getBundleId() < bi.getBundleId()) {
-				break;
-			      }
-			      ix++;
-			    }
-			  }
-			  startList.add(ix,bi[bx]);
-			  bi[bx].stop();
-			} catch(BundleException be) {
-			  framework.listeners.frameworkError(bi[bx], be);
-			}
-		      }
-		    }
-		  }
+                  // Stop affected bundles and remove their classloaders
+                  // in reverse start order
+                  for (int bx = bi.length; bx-- > 0; ) {
+                    synchronized (bi[bx]) {
+                      if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
+                        try {
+                          int ix = 0;
+                          if(Framework.R3_TESTCOMPLIANT) {
+                            // Make sure start list is in original bundle
+                            // start order by using insertion sort
+                            Iterator it = startList.iterator();
+                            while(it.hasNext()) {
+                              BundleImpl bi = (BundleImpl)it.next();
+                              if(bi.getBundleId() < bi.getBundleId()) {
+                                break;
+                              }
+                              ix++;
+                            }
+                          }
+                          startList.add(ix,bi[bx]);
+                          bi[bx].stop();
+                        } catch(BundleException be) {
+                          framework.listeners.frameworkError(bi[bx], be);
+                        }
+                      }
+                    }
+                  }
 
-		  // Update the affected bundle states in normal start order
-		  for (int bx = 0; bx < bi.length; bx++) {
-		    synchronized (bi[bx]) {
-		      switch (bi[bx].state) {
-		      case Bundle.STARTING:
-		      case Bundle.ACTIVE:
-		    	  //TODO did we not stop it above?
-			try {
-			  bi[bx].stop();
-			} catch(BundleException be) {
-			  framework.listeners.frameworkError(bi[bx], be);
-			}
-		      case Bundle.STOPPING:
-		      case Bundle.RESOLVED:
-			bi[bx].setStateInstalled();
-		      case Bundle.INSTALLED:
-		      case Bundle.UNINSTALLED:
-			break;
-		      }
-		      bi[bx].purge();
-		    }
-		  }
-		  
-		  //TODO integrate with previous loops? must be done after all are stopped and before any are restarted
-		  for (int bx = 0; bx < bi.length; bx++) {
-			  framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
-		  }
+                  // Update the affected bundle states in normal start order
+                  for (int bx = 0; bx < bi.length; bx++) {
+                    synchronized (bi[bx]) {
+                      switch (bi[bx].state) {
+                      case Bundle.STARTING:
+                      case Bundle.ACTIVE:
+                          //TODO did we not stop it above?
+                        try {
+                          bi[bx].stop();
+                        } catch(BundleException be) {
+                          framework.listeners.frameworkError(bi[bx], be);
+                        }
+                      case Bundle.STOPPING:
+                      case Bundle.RESOLVED:
+                        bi[bx].setStateInstalled();
+                      case Bundle.INSTALLED:
+                      case Bundle.UNINSTALLED:
+                        break;
+                      }
+                      bi[bx].purge();
+                    }
+                  }
+                  
+                  //TODO integrate with previous loops? must be done after all are stopped and before any are restarted
+                  for (int bx = 0; bx < bi.length; bx++) {
+                          framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
+                  }
 
-		  // Restart previously active bundles in normal start order
-		  framework.bundles.startBundles(startList);
-		  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
-		  return null;
-		}	      }
-	    });
-	}
+                  // Restart previously active bundles in normal start order
+                  framework.bundles.startBundles(startList);
+                  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
+                  return null;
+                }             }
+            });
+        }
       };
 //XXX - end L-3 modification
     t.setDaemon(false);
     t.start();
   }
 
-  Util.Comparator BSComparator = new Util.Comparator() {
-      public int compare(Object o1, Object o2) {
-	BundleImpl b1 = (BundleImpl)o1;
-	BundleImpl b2 = (BundleImpl)o2;
-	
-	return (int)(b1.getBundleId() - b2.getBundleId());
+  public boolean resolveBundles(Bundle[] bundles) {
+    checkResolveAdminPerm();
+    if (bundles == null) {
+      bundles = framework.bundles.getBundles();
+    }
+    boolean res = true;
+    for (int bx = bundles.length; bx-- > 0; ) {
+      if (((BundleImpl)bundles[bx]).getUpdatedState() == Bundle.INSTALLED) {
+        res = false;
+      }
+    }
+    return res;
+  }
+
+
+  public RequiredBundle[] getRequiredBundles(String symbolicName) {
+    // NYI! Require
+    return null;
+  }
+
+
+  public Bundle[] getBundles(String symbolicName, String versionRange) {
+    VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) : null;
+    List bs = framework.bundles.getBundles(symbolicName, vr);
+    int size = bs.size();
+    if (size > 0) {
+      Bundle[] res = new Bundle[size];
+      Util.sort(bs, bvComp, true);
+      Iterator i = bs.iterator();
+      for (int pos = 0; pos < size;) {
+        res[pos++] = (Bundle)i.next();
+      }
+      return res;
+    } else {
+      return null;
+    }
+  }
+
+
+  public Bundle[] getFragments(Bundle bundle) {
+    // NYI! Fragments
+    return null;
+  }
+
+
+  public Bundle[] getHosts(Bundle bundle) {
+    // NYI! Fragments
+    return null;
+  }
+
+
+  public Bundle getBundle(Class clazz) {
+    ClassLoader cl = clazz.getClassLoader();
+    if (cl instanceof BundleClassLoader) {
+      return ((BundleClassLoader)cl).getBundle();
+    } else {
+      return null;
+    }
+  }
+
+
+  public int getBundleType(Bundle bundle) {
+    // NYI! Fragments
+    return 0;
+  }
+
+  //
+  // Private
+  //
+
+  static final Util.Comparator bvComp = new Util.Comparator() {
+      /**
+       * Version compare two BundleImpl objects based on version.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a BundleImpl object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+	BundleImpl a = (BundleImpl)oa;
+	BundleImpl b = (BundleImpl)ob;
+	return a.version.compareTo(b.version);
       }
     };
 
-public Bundle getBundle(Class clazz) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public Bundle[] getBundles(String symbolicName, String versionRange) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public int getBundleType(Bundle bundle) {
-	// TODO Auto-generated method stub
-	return 0;
-}
-
-public ExportedPackage[] getExportedPackages(String name) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public Bundle[] getFragments(Bundle bundle) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public Bundle[] getHosts(Bundle bundle) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public RequiredBundle[] getRequiredBundles(String symbolicName) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public boolean resolveBundles(Bundle[] bundles) {
-	// TODO Auto-generated method stub
-	checkResolveAdminPerm();
-	return false;
-}
 }

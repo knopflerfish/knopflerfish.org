@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,9 @@ class ImportPkg {
   ImportPkg(Map tokens, BundleImpl b) {
     this.bundle = b;
     this.name = (String)tokens.remove("key");
+    if (name.startsWith("java.")) {
+      throw new IllegalArgumentException("You can not import a java.* package");
+    }
     String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
     if (res != null) {
       if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
@@ -93,16 +96,16 @@ class ImportPkg {
 
 
   /**
-   * Create an import package entry.
+   * Create an import package entry from a dynamic import template.
    */
-  ImportPkg(String name, BundleImpl b) {
+  ImportPkg(ImportPkg ip, String name) {
     this.name = name;
-    this.bundle = b;
+    this.bundle = ip.bundle;
     this.resolution = Constants.RESOLUTION_MANDATORY;
-    this.bundleSymbolicName = null;
-    this.packageRange = new VersionRange(null);
-    this.bundleRange = new VersionRange(null);
-    this.attributes = null;
+    this.bundleSymbolicName = ip.bundleSymbolicName;
+    this.packageRange = ip.packageRange;
+    this.bundleRange = ip.bundleRange;
+    this.attributes = ip.attributes;
   }
 
 
@@ -117,31 +120,6 @@ class ImportPkg {
     this.packageRange = new VersionRange(p.version.toString());
     this.bundleRange = new VersionRange(null);
     this.attributes = p.attributes;
-  }
-
-
-  /**
-   * Package name equal.
-   *
-   * @param other Package entry to compare to.
-   * @return true if equal, otherwise false.
-   */
-  boolean packageNameEqual(ImportPkg other) {
-    return name.equals(other.name);
-  }
-
-
-  /**
-   * Version compare object to another ImportPkg.
-   *
-   * @param obj Version to compare to.
-   * @return Return 0 if equals, negative if this object is less than obj
-   *         and positive if this object is larger then obj.
-   * @exception ClassCastException if object is not a ImportPkg object.
-   */
-  public int compareVersion(Object obj) throws ClassCastException {
-    ImportPkg o = (ImportPkg)obj;
-    return packageRange.compareTo(o.packageRange);
   }
 
 
@@ -180,27 +158,6 @@ class ImportPkg {
    */
   public String toString() {
     return pkgString() + "(" + bundle + ")";
-  }
-
-
-  /**
-   * Check if object is equal to this object.
-   *
-   * @param obj Package entry to compare to.
-   * @return true if equal, otherwise false.
-   */
-  public boolean equals(Object obj) throws ClassCastException {
-    throw new RuntimeException("NYI");
-  }
-
-
-  /**
-   * Hash code for this package entry.
-   *
-   * @return int value.
-   */
-  public int hashCode() {
-    return name.hashCode() + bundle.hashCode();
   }
 
 }
