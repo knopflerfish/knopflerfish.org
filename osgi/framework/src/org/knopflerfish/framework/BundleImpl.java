@@ -1331,7 +1331,6 @@ public URL getEntry(String name) {
   return null;
 }
 
-//TODO this is not complete
 public Enumeration getEntryPaths(String path) {
   try{
     checkResourceAdminPerm();
@@ -1357,7 +1356,7 @@ public Dictionary getHeaders(String locale) {
 
 private void modified(){
   lastModified = System.currentTimeMillis();
-  //make it persistent
+  //TODO make sure it is persistent
   if(archive != null){
     try{
       archive.setLastModified(lastModified);
