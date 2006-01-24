@@ -44,7 +44,7 @@ public class FilterImpl implements Filter {
   private String filter = null;
   private LDAPExpr ldap;
 
-
+  //not meant to be used publicly. Just by a subpackage...
   public FilterImpl(String filter) throws InvalidSyntaxException {
     ldap = new LDAPExpr(filter);
   }
