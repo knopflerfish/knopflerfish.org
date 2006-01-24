@@ -174,7 +174,6 @@ public class PackageAdminImpl implements PackageAdmin {
    */
   public ExportedPackage getExportedPackage(String name) {
     ExportPkg ep = framework.packages.getPackageProvider(name);
-System.out.println("GETEXPORT: " + ep);
     if (ep != null) {
       return new ExportedPackageImpl(ep);
     } else {
