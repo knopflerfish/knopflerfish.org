@@ -17,6 +17,7 @@
 -install cm/cm_all-1.0.1.jar
 -install console/console_all-1.0.0.jar
 -install component/component_all-1.0.0.jar
+-install event/event_all-1.0.0.jar
 
 
 ## Some library bundles
@@ -66,6 +67,7 @@ $(WINDOWS_BUNDLES)
 -start cm/cm_all-1.0.1.jar
 -start console/console_all-1.0.0.jar
 -start component/component_all-1.0.0.jar
+-start event/event_all-1.0.0.jar
 -start device/device_all-1.0.0.jar
 -start useradmin/useradmin_all-1.1.0.jar
 -start bundlerepository/bundlerepository_all-1.1.2.jar
