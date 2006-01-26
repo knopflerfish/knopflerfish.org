@@ -189,6 +189,7 @@ public class Listeners
     serviceListeners.removeAll(b);
   }
 
+
   /**
    * Convenience method for throwing framework error event.
    *
@@ -197,6 +198,17 @@ public class Listeners
    */
   void frameworkError(Bundle b, Throwable t) {
     frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t));
+  }
+
+
+  /**
+   * Convenience method for throwing framework info event.
+   *
+   * @param b Bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  void frameworkInfo(Bundle b, Throwable t) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t));
   }
 
   //

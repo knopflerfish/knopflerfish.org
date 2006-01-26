@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, Knopflerfish project
+ * Copyright (c) 2003-2006, Knopflerfish project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import java.util.Vector;
 import java.util.Dictionary;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
+import java.util.List;
 
 
 
@@ -73,14 +74,16 @@ class BundleArchiveImpl implements BundleArchive
   private boolean bPersistent = false;
   private long lastModified;
 
+  private ArrayList failedPath = null;
+
   /**
    * Construct new bundle archive.
    *
    */
   BundleArchiveImpl(BundleStorageImpl bundleStorage, 
-		    InputStream       is,
-		    String            bundleLocation, 
-		    long bundleId)
+                    InputStream       is,
+                    String            bundleLocation, 
+                    long bundleId)
     throws Exception
   {
     archive       = new Archive(is);
@@ -118,7 +121,7 @@ class BundleArchiveImpl implements BundleArchive
     if(Framework.R3_TESTCOMPLIANT) {
       String fake = getAttribute("fakeheader");
       if(fake != null) {
-	return true;
+        return true;
       }
     }
     return false;
@@ -176,11 +179,11 @@ class BundleArchiveImpl implements BundleArchive
   }
   
   public long getLastModified() {
-	  return lastModified;
+          return lastModified;
   }
 
   public void setLastModified(long timemillisecs) throws IOException{
-	  lastModified = timemillisecs;
+          lastModified = timemillisecs;
   }
   
   /**
@@ -196,7 +199,7 @@ class BundleArchiveImpl implements BundleArchive
     for (int i = 0; i < archives.length; i++) {
       byte [] res = archives[i].getClassBytes(cp);
       if (res != null) {
-	return res;
+        return res;
       }
     }
     return null;
@@ -218,13 +221,13 @@ class BundleArchiveImpl implements BundleArchive
     for (int i = 0; i < archives.length; i++) {
       InputStream is = archives[i].getInputStream(component);
       if (is != null) {
-	if(v == null) {
-	  v = new Vector();
-	}
-	v.addElement(new Integer(i));
-	try {
-	    is.close();
-	} catch (IOException ignore) { }
+        if(v == null) {
+          v = new Vector();
+        }
+        v.addElement(new Integer(i));
+        try {
+            is.close();
+        } catch (IOException ignore) { }
       }
     }
     return v;
@@ -314,6 +317,16 @@ class BundleArchiveImpl implements BundleArchive
   public void close() {
   }
 
+
+  /**
+   * Get a list with all classpath entries we failed to locate.
+   *
+   * @return A List with all failed classpath entries, null if no failures.
+   */
+  public List getFailedClassPathEntries() {
+    return failedPath;
+  }
+
   //
   // Private methods
   //
@@ -325,19 +338,27 @@ class BundleArchiveImpl implements BundleArchive
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {
-	String path = st.nextToken().trim();
-	if (".".equals(path)) {
-		  a.add(archive);
-	  } 
-	  else if (path.endsWith(".jar")){
-		  a.add(archive.getSubArchive(path));
-	  }
-	  else{
-		  if(archive.subDirs == null){
-			  archive.subDirs = new ArrayList(1);
-		  }
-		  archive.subDirs.add(path);
-	  }
+        String path = st.nextToken().trim();
+        if (".".equals(path)) {
+                  a.add(archive);
+          } 
+          else if (path.endsWith(".jar")){
+            try {
+              a.add(archive.getSubArchive(path));
+            } catch (IOException ioe) {
+              if (failedPath == null) {
+                failedPath = new ArrayList(1);
+              }
+              failedPath.add(path);
+            }
+          }
+          else{
+            if(archive.subDirs == null){
+              archive.subDirs = new ArrayList(1);
+            }
+          // NYI Check that it exists!
+            archive.subDirs.add(path);
+          }
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
     } else {
@@ -347,10 +368,7 @@ class BundleArchiveImpl implements BundleArchive
 
   
   public Enumeration findResourcesPath(String path) {
-	  return archive.findResourcesPath(path);
+    return archive.findResourcesPath(path);
   }
-
-
-
 
 }

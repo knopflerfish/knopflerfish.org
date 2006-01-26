@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,36 +77,36 @@ public class BundleStorageImpl implements BundleStorage {
     for (int i = 0; list != null & i < list.length; i++) {
       long id;
       try {
-	id = Long.parseLong(list[i]);
+        id = Long.parseLong(list[i]);
       } catch (NumberFormatException e) {
-	continue;
+        continue;
       }
       if (id == 0) {
-	System.err.println("Saved bundle with illegal id 0 is ignored.");
+        System.err.println("Saved bundle with illegal id 0 is ignored.");
       }
       int pos = find(id);
       if (pos < archives.size() && ((BundleArchive)archives.get(pos)).getBundleId() == id) {
-	System.err.println("There are two bundle directories with id: " + id);
-	break;
+        System.err.println("There are two bundle directories with id: " + id);
+        break;
       }
       FileTree dir = new FileTree(bundlesDir, list[i]);
       if (dir.isDirectory()) {
-	try {
-	  boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
-	  if(bUninstalled) {
-	    // silently remove any bundle marked as uninstalled
-	    dir.delete();
-	  } else {
-	    BundleArchive ba = new BundleArchiveImpl(this, dir, id);
-	    archives.add(pos, ba);
-	  }
-	  if (id >= nextFreeId) {
-	    nextFreeId = id + 1;
-	  }
-	} catch (Exception e) {
-	  dir.delete();
-	  System.err.println("Removed corrupt bundle dir (" + e.getMessage() + "): " + dir);
-	}
+        try {
+          boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
+          if(bUninstalled) {
+            // silently remove any bundle marked as uninstalled
+            dir.delete();
+          } else {
+            BundleArchive ba = new BundleArchiveImpl(this, dir, id);
+            archives.add(pos, ba);
+          }
+          if (id >= nextFreeId) {
+            nextFreeId = id + 1;
+          }
+        } catch (Exception e) {
+          dir.delete();
+          System.err.println("Removed corrupt bundle dir (" + e.getMessage() + "): " + dir);
+        }
       }
     }
   }
@@ -153,16 +153,16 @@ public class BundleStorageImpl implements BundleStorage {
     synchronized (archives) {
       pos = find(id);
       if (pos >= archives.size() || archives.get(pos) != old) {
-	throw new Exception("No such bundle archive exists");
+        throw new Exception("No such bundle archive exists");
       }
     }
     BundleArchive ba = new BundleArchiveImpl((BundleArchiveImpl)old, is);
     synchronized (archives) {
       if (archives.get(pos) != old) {
-	pos = find(id);
-	if (pos >= archives.size() || archives.get(pos) != old) {
-	  throw new Exception("Bundle removed during update");
-	}
+        pos = find(id);
+        if (pos >= archives.size() || archives.get(pos) != old) {
+          throw new Exception("Bundle removed during update");
+        }
       }
       archives.set(pos, ba);
     }
@@ -191,7 +191,7 @@ public class BundleStorageImpl implements BundleStorage {
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
       if (ba.getStartOnLaunchFlag()) {
-	res.add(ba.getBundleLocation());
+        res.add(ba.getBundleLocation());
       }
     }
     return res;
@@ -211,10 +211,10 @@ public class BundleStorageImpl implements BundleStorage {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
       if (archives.get(pos) == ba) {
-	archives.remove(pos);
-	return true;
+        archives.remove(pos);
+        return true;
       } else {
-	return false;
+        return false;
       }
     }
   }
@@ -238,9 +238,9 @@ public class BundleStorageImpl implements BundleStorage {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
       if (id <= xid) {
-	ub = x;
+        ub = x;
       } else {
-	lb = x+1;
+        lb = x+1;
       }
     }
     return lb;
