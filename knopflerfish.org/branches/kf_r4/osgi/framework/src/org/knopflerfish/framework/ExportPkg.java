@@ -62,9 +62,9 @@ class ExportPkg {
   /**
    * Create an export package entry.
    */
-  ExportPkg(Map tokens, BundleImpl b) {
+  ExportPkg(String name, Map tokens, BundleImpl b) {
     this.bundle = b;
-    this.name = (String)tokens.remove("key");
+    this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not export a java.* package");
     }
@@ -80,6 +80,11 @@ class ExportPkg {
     String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
+      if (versionStr != null && !this.version.equals(new Version(versionStr))) {
+	throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
+                                           "and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+					   "are specified, and differs");
+      }
     } else if (versionStr != null) {
       this.version = new Version(versionStr);
     } else {
@@ -95,6 +100,22 @@ class ExportPkg {
     }
     this.attributes = tokens;
   }
+
+
+  /**
+   * Create an export package entry with a new name from an export template.
+   */
+  ExportPkg(ExportPkg ep, String name) {
+    this.name = name;
+    this.bundle = ep.bundle;
+    this.uses = ep.uses;
+    this.mandatory = ep.mandatory;
+    this.include = ep.include;
+    this.exclude = ep.exclude;
+    this.version = ep.version;
+    this.attributes = ep.attributes;
+  }
+
 
   /**
    * String describing package name and specification version, if specified.

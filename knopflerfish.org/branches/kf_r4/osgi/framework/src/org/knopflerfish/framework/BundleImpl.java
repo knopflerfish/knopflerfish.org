@@ -253,7 +253,7 @@ class BundleImpl implements Bundle {
     if (v2Manifest) {
       Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
                                      ba.getAttribute(Constants.BUNDLE_SYMBOLICNAME),
-                                     true, true);
+                                     true, true, true);
       Map e;
       if (i.hasNext()) {
         e = (Map)i.next();
@@ -267,14 +267,14 @@ class BundleImpl implements Bundle {
       } else {
         version = Version.emptyVersion;
       }
-      singleton = "true".equals((String)e.get("singleton"));
+      singleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
       if (framework.bundles.getBundle(symbolicName, version) != null) {
         throw new IllegalArgumentException("Bundle with same symbolic name and version " +
                                            "is already installed");
       }
       i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
                             ba.getAttribute(Constants.REQUIRE_BUNDLE),
-                            true, false);
+                            true, true, false);
       if (i.hasNext()) {
         require = new ArrayList();
         do {
@@ -1459,7 +1459,7 @@ public Class loadClass(final String name) throws ClassNotFoundException {
       if (range != null) {
         this.bundleRange = new VersionRange(range);
       } else {
-        this.bundleRange = new VersionRange(null);
+        this.bundleRange = VersionRange.defaultVersionRange;
       }
     }
   }

@@ -325,30 +325,35 @@ public class ServiceReferenceImpl implements ServiceReference
   }
 
   public boolean isAssignableTo(Bundle bundle, String className) {
-	// TODO 
-	
-	/*int pos = className.lastIndexOf('.');
-	if (pos != -1) {
-		String classPackage = className.substring(0, pos);  
-		BundleImpl exportingBundleReg = ((BundleClassLoader) 
-				                     registration.bundle.getClassLoader()).getBpkgs()
-				                     .getProviderBundle(classPackage);
-		if(exportingBundleReg == null){
-			if(registration.bundle == (BundleImpl)bundle){
-				return true;
-			}
-			else{
-				return false;
-			}
-		}
-		else{
-			if
-		}
-	} 
-	else{
-		return false;
-	}*/
-	return true;
+    int pos = className.lastIndexOf('.');
+    if (pos != -1) {
+      String name = className.substring(0, pos);
+      Pkg p = registration.bundle.framework.packages.getPkg(name);
+      if (p != null) {
+        if (p.providers.size() > 1) {
+          Bundle pkgExporter = registration.bundle.bpkgs.getProviderBundle(name);
+          Bundle bb = ((BundleImpl)bundle).bpkgs.getProviderBundle(name);
+          // TBD Should we fail if bundle doesn't have an import?
+          System.out.println("ISASSIGNABLE1: " + pkgExporter + " == " +  bb + " pkg=" + name);
+          return bb == null || pkgExporter == bb;
+        } else {
+          // Since we do not have multiple providers its no problem
+          System.out.println("ISASSIGNABLE2: single provider for " + name);
+          return true;
+        }
+      } else {
+        // Not a package under package control. System package?
+        if (name.startsWith("java.")) {
+          System.out.println("ISASSIGNABLE3: is java.*");
+          return true;
+        } else {
+          System.out.println("ISASSIGNABLE4: " + registration.bundle + " == " +  bundle);
+          return registration.bundle == bundle;
+        }
+      }
+    }
+    System.out.println("ISASSIGNABLE5: no package.");
+    return false;
   }
 
 }

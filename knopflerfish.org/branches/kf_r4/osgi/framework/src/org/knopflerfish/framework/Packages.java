@@ -233,9 +233,10 @@ class Packages {
    *
    * @param bundle Bundle owning packages.
    * @param pkgs List of packages to be resolved.
-   * @return List of packages not resolvable or null if all were resolved.
+   * @return String with reason for failure or null if all were resolved.
    */
-  synchronized List checkResolve(BundleImpl bundle, Iterator pkgs) {
+  synchronized String checkResolve(BundleImpl bundle, Iterator pkgs) {
+    String res;
     if (Debug.packages) {
       Debug.println("checkResolve: " + bundle);
     }
@@ -248,20 +249,37 @@ class Packages {
       }
       return null;
     }
+
+    tempResolved = new HashSet();
+    BundleImpl sb = checkBundleSingleton(bundle);
+    if (sb != null) {
+      tempResolved = null;
+      return "Singleton bundle failed to resolve because " + sb + " is already resolved";
+    }
+
     // Return fast if we have no imported packages
     if (!pkgs.hasNext()) {
+      tempResolved = null;
       return null;
     }
 
-    tempResolved = new HashSet();
     tempProvider = new HashMap();
     tempBlackList = new HashSet();
     tempResolved.add(bundle);
-    List res = resolvePackages(pkgs);
+    List failed = resolvePackages(pkgs);
     tempBlackList = null;
-    if (res.size() == 0) {
+    if (failed.size() == 0) {
       registerNewProviders(bundle);
       res = null;
+    } else {
+      StringBuffer r = new StringBuffer("missing package(s) or can not resolve all of the them: ");
+      Iterator mi = failed.iterator();
+      r.append(((ImportPkg)mi.next()).pkgString());
+      while (mi.hasNext()) {
+        r.append(", ");
+        r.append(((ImportPkg)mi.next()).pkgString());
+      }
+      res = r.toString();
     }
     tempProvider = null;
     tempResolved = null;
@@ -674,7 +692,7 @@ class Packages {
           continue;
         }
       }
-      if (ep.bundle.state == Bundle.INSTALLED && checkBundleSingleton(ep.bundle)) { 
+      if (ep.bundle.state == Bundle.INSTALLED && checkBundleSingleton(ep.bundle) == null) { 
         HashSet oldTempResolved = (HashSet)tempResolved.clone();
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
         HashSet oldTempBlackList = (HashSet)tempBlackList.clone();
@@ -713,10 +731,19 @@ class Packages {
     if (ep.mandatory != null) {
       for (Iterator i = ep.mandatory.iterator(); i.hasNext(); ) {
         String a = (String)i.next();
-        if (!ip.attributes.containsKey(a) ||
-            !Constants.VERSION_ATTRIBUTE.equals(a) ||
-            !Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a) ||
-            !Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
+        if (Constants.VERSION_ATTRIBUTE.equals(a)) {
+          if (!ip.packageRange.isSpecified()) {
+            return false;
+          }
+        } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
+          if (ip.bundleSymbolicName == null) {
+            return false;
+          }
+        } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
+          if (!ip.bundleRange.isSpecified()) {
+            return false;
+          }
+        } else if (!ip.attributes.containsKey(a)) {
           return false;
         }
       }
@@ -804,25 +831,28 @@ class Packages {
    * singleton requirements.
    *
    * @param b Bundle to check, must be in INSTALLED state
-   * @return True if okay, otherwise false.
+   * @return Bundle blocking resolve, otherwise null.
    */
-  private boolean checkBundleSingleton(BundleImpl b) {
-    if (b.symbolicName != null) {
+  private BundleImpl checkBundleSingleton(BundleImpl b) {
+    // NYI! More speed?
+    if (b.symbolicName != null && b.singleton) {
+      if (Debug.packages) {
+        Debug.println("checkBundleSingleton: check singleton bundle " + b);
+      }
       List bl = framework.bundles.getBundles(b.symbolicName, null);
       if (bl.size() > 1) {
-        int singletons = b.singleton ? 1 : 0;
-        // NYI! More speed?
         for (Iterator i = bl.iterator(); i.hasNext(); ) {
           BundleImpl b2 = (BundleImpl)i.next();
           if (b2.singleton && ((b2.state & RESOLVED_FLAGS) != 0 || tempResolved.contains(b2))) {
-            if (++singletons > 1) {
-              return false;
+            if (Debug.packages) {
+              Debug.println("checkBundleSingleton: Reject resolve because of bundle: " + b2);
             }
+            return b2;
           }
         }
       }
     }
-    return true;
+    return null;
   }
 
 

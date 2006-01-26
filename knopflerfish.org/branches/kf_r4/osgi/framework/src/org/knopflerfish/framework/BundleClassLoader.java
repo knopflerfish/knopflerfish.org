@@ -101,7 +101,7 @@ final public class BundleClassLoader extends ClassLoader {
     try {
       Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION, 
 				     bootDelegationString,
-				     true, false);
+				     true, true, false);
 
       while (i.hasNext()) {
 	Map e = (Map)i.next();

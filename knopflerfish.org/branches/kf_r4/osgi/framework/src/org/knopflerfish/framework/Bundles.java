@@ -120,34 +120,34 @@ class Bundles {
                 bin = in;
               }
               BundleImpl res = null;
+              BundleArchive ba;
               try {
-                BundleArchive ba = framework.storage.insertBundleJar(location, bin);
-
-                String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-                if(ee != null) {
-                  if(Debug.packages) {
-                    Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
-                  }
-                  if(!framework.isValidEE(ee)) {
-                    throw new RuntimeException("Execution environment '" + ee + "' is not supported");
-                  }
-                }
-                
-                ba.setLastModified(System.currentTimeMillis());
-        
-                res = new BundleImpl(framework, ba);
+                ba = framework.storage.insertBundleJar(location, bin);
               } finally {
                 bin.close();
               }
+              String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+              if(ee != null) {
+                if(Debug.packages) {
+                  Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+                }
+                if(!framework.isValidEE(ee)) {
+                  throw new RuntimeException("Execution environment '" + ee +
+                                             "' is not supported");
+                }
+              }
+
+              ba.setLastModified(System.currentTimeMillis());
+
+              res = new BundleImpl(framework, ba);
               bundles.put(location, res);
               return res;
             }
           });
       } catch (PrivilegedActionException e) {
-        //      e.printStackTrace();
-        throw new BundleException("Failed to install bundle: " + e.getException(), e.getException());
+        throw new BundleException("Failed to install bundle: " + e.getException(),
+                                  e.getException());
       } catch (Exception e) {
-        //      e.printStackTrace();
         throw new BundleException("Failed to install bundle: " + e, e);
       }
     }
