@@ -237,17 +237,25 @@ public class MultiListener implements LogListener,
     switch (serviceEvent.getType()) {
     case ServiceEvent.REGISTERED:
       topic += "REGISTERED";
-      /* Fetches the service sending the event and determines whether its an eventHandler */
-      Object serviceObj = bundleContext.getService(serviceEvent.getServiceReference());
-      if (serviceObj instanceof EventHandler) {
+      /* Look at the service sending the event and determine whether its an eventHandler */
+      String[] objectClass = (String[]) serviceEvent.getServiceReference().getProperty(Constants.OBJECTCLASS);
+      boolean isEventHandler = false;
+      boolean isLogReaderService = false;
+      if (objectClass != null) {
+        for (int i=0; i<objectClass.length; i++) {
+          if (EventHandler.class.getName().equals(objectClass[i])) {
+            isEventHandler = true;
+          } else if (LogReaderService.class.getName().equals(objectClass[i])) {
+            isLogReaderService = true;
+          }
+        }
+      }
+      if (isEventHandler) {
         /* Adds the service reference as a key in the hashtable of handlers, and the timestamp as value */
-        eventHandlers.put(serviceEvent.getServiceReference(), new Long(
-            System.currentTimeMillis()));
-      } else if (serviceObj instanceof LogReaderService) {
-        ((LogReaderService) serviceObj).addLogListener(this);
-      } else {
-        // We're not actually using the service
-        bundleContext.ungetService(serviceEvent.getServiceReference());
+        eventHandlers.put(serviceEvent.getServiceReference(), new Long(System.currentTimeMillis()));
+      }
+      if (isLogReaderService) {
+        ((LogReaderService) bundleContext.getService(serviceEvent.getServiceReference())).addLogListener(this);
       }
       break;
     case ServiceEvent.MODIFIED:
