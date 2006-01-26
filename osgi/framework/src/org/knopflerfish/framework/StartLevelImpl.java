@@ -297,10 +297,11 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
         try {
           bs.stop();
-          bs.bDelayedStart = true;
-          bs.setPersistent(true);
         } catch (Exception e) {
           framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
+        } finally {
+          bs.bDelayedStart = true;
+          bs.setPersistent(true);
         }
       }
 
