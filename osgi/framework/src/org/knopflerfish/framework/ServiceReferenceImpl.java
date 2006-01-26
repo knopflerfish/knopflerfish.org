@@ -334,25 +334,20 @@ public class ServiceReferenceImpl implements ServiceReference
           Bundle pkgExporter = registration.bundle.bpkgs.getProviderBundle(name);
           Bundle bb = ((BundleImpl)bundle).bpkgs.getProviderBundle(name);
           // TBD Should we fail if bundle doesn't have an import?
-          System.out.println("ISASSIGNABLE1: " + pkgExporter + " == " +  bb + " pkg=" + name);
           return bb == null || pkgExporter == bb;
         } else {
           // Since we do not have multiple providers its no problem
-          System.out.println("ISASSIGNABLE2: single provider for " + name);
           return true;
         }
       } else {
         // Not a package under package control. System package?
         if (name.startsWith("java.")) {
-          System.out.println("ISASSIGNABLE3: is java.*");
           return true;
         } else {
-          System.out.println("ISASSIGNABLE4: " + registration.bundle + " == " +  bundle);
           return registration.bundle == bundle;
         }
       }
     }
-    System.out.println("ISASSIGNABLE5: no package.");
     return false;
   }
 
