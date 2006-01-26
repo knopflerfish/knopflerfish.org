@@ -360,7 +360,7 @@ class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#start
    */
   synchronized public void start() throws BundleException {
-  checkExecuteAdminPerm();
+    checkExecuteAdminPerm();
 
     int updState = getUpdatedState();
 
@@ -372,95 +372,95 @@ class BundleImpl implements Bundle {
         return;
       }
     }
-
+    
 
     switch (updState) {
     case INSTALLED:
       throw new BundleException("Failed, " + bpkgs.getResolveFailReason());
     case RESOLVED:
       if (framework.active) {
-  state = STARTING;
-  framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING, this));
-  bundleContext = new BundleContextImpl(this);
-  try {
-    AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws BundleException {
-    final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
-    boolean bStarted = false;
+        state = STARTING;
+        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING, this));
+        bundleContext = new BundleContextImpl(this);
+        try {
+          AccessController.doPrivileged(new PrivilegedExceptionAction() {
+              public Object run() throws BundleException {
+                final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
+                boolean bStarted = false;
 
-    ClassLoader oldLoader = null;
+                ClassLoader oldLoader = null;
 
-    if(Framework.SETCONTEXTCLASSLOADER) {
-      oldLoader = Thread.currentThread().getContextClassLoader();
-    }
+                if(Framework.SETCONTEXTCLASSLOADER) {
+                  oldLoader = Thread.currentThread().getContextClassLoader();
+                }
 
-    try {
+                try {
 
-      // If SETCONTEXTCLASSLOADER, set the thread's context
-      // class loader to the bundle class loader. This
-      // is useful for debugging external libs using
-      // the context class loader.
-      if(Framework.SETCONTEXTCLASSLOADER) {
-        Thread.currentThread().setContextClassLoader(getClassLoader());
-      }
+                  // If SETCONTEXTCLASSLOADER, set the thread's context
+                  // class loader to the bundle class loader. This
+                  // is useful for debugging external libs using
+                  // the context class loader.
+                  if(Framework.SETCONTEXTCLASSLOADER) {
+                    Thread.currentThread().setContextClassLoader(getClassLoader());
+                  }
 
-      if (ba != null) {
+                  if (ba != null) {
 
-        Class c = getClassLoader().loadClass(ba.trim());
-        bactivator = (BundleActivator)c.newInstance();
+                    Class c = getClassLoader().loadClass(ba.trim());
+                    bactivator = (BundleActivator)c.newInstance();
 
-        bactivator.start(bundleContext);
-        bStarted = true;
-      } else {
-        // Check if we have a standard Main-class attribute as
-        // in normal executable jar files. This is a slight
-        // extension to the OSGi spec.
-        final String mc = archive.getAttribute("Main-class");
+                    bactivator.start(bundleContext);
+                    bStarted = true;
+                  } else {
+                    // Check if we have a standard Main-class attribute as
+                    // in normal executable jar files. This is a slight
+                    // extension to the OSGi spec.
+                    final String mc = archive.getAttribute("Main-class");
 
-        if (mc != null) {
-          if(Debug.packages) {
-      Debug.println("starting main class " + mc);
-          }
-          Class mainClass = getClassLoader().loadClass(mc.trim());
+                    if (mc != null) {
+                      if(Debug.packages) {
+                        Debug.println("starting main class " + mc);
+                      }
+                      Class mainClass = getClassLoader().loadClass(mc.trim());
 
-          bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
-          bactivator.start(bundleContext);
-          bStarted = true;
+                      bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
+                      bactivator.start(bundleContext);
+                      bStarted = true;
+                    }
+                  }
+
+                  if(!bStarted) {
+                    // Even bundles without an activator are marked as
+                    // ACTIVE.
+
+                    // Should we possible log an information message to
+                    // make sure users are aware of the missing activator?
+                  }
+
+                  state = ACTIVE;
+                  startOnLaunch(true);
+
+                } catch (Throwable t) {
+                  throw new BundleException("BundleActivator start failed", t);
+                } finally {
+                  if(Framework.SETCONTEXTCLASSLOADER) {
+                    Thread.currentThread().setContextClassLoader(oldLoader);
+                  }
+                }
+                return null;
+              }
+            });
+        } catch (PrivilegedActionException e) {
+          removeBundleResources();
+          bundleContext.invalidate();
+          bundleContext = null;
+          state = RESOLVED;
+          throw (BundleException) e.getException();
         }
-      }
-
-      if(!bStarted) {
-        // Even bundles without an activator are marked as
-        // ACTIVE.
-
-        // Should we possible log an information message to
-        // make sure users are aware of the missing activator?
-      }
-
-      state = ACTIVE;
-      startOnLaunch(true);
-
-    } catch (Throwable t) {
-      throw new BundleException("BundleActivator start failed", t);
-    } finally {
-      if(Framework.SETCONTEXTCLASSLOADER) {
-        Thread.currentThread().setContextClassLoader(oldLoader);
-      }
-    }
-    return null;
-        }
-      });
-  } catch (PrivilegedActionException e) {
-    removeBundleResources();
-    bundleContext.invalidate();
-    bundleContext = null;
-    state = RESOLVED;
-    throw (BundleException) e.getException();
-  }
-  framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
-  break;
+        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
+        break;
       } else {
-  startOnLaunch(true);
+        startOnLaunch(true);
       }
     case ACTIVE:
       return;
@@ -482,22 +482,22 @@ class BundleImpl implements Bundle {
    * Check if setStartOnLaunch(false) is allowed.
    */
   boolean allowSetStartOnLaunchFalse() {
-   /* boolean bCompat =
-      framework.startLevelService == null ||
-      framework.startLevelService.bCompat;
+    /* boolean bCompat =
+       framework.startLevelService == null ||
+       framework.startLevelService.bCompat;
     */
     return
       // never never touch on FW shutdown
       !framework.shuttingdown && !archive.isPersistent();
 
-      /*
-  &&
+    /*
+      &&
 
       // allow touch if in startlevel compatibility mode
       (bCompat ||
-       // ...also allow touch if not marked as persistant startlevel active
-       !isPersistent());
-      */
+      // ...also allow touch if not marked as persistant startlevel active
+      !isPersistent());
+    */
   }
 
   /**
@@ -506,7 +506,7 @@ class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#stop
    */
   synchronized public void stop() throws BundleException {
-  checkExecuteAdminPerm();
+    checkExecuteAdminPerm();
 
     bDelayedStart = false;
 
@@ -539,28 +539,28 @@ class BundleImpl implements Bundle {
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
 
       Throwable savedException =
-  (Throwable) AccessController.doPrivileged(new PrivilegedAction() {
-    public Object run() {
-      Throwable res = null;
-      if (allowSetStartOnLaunchFalse()) {
-        startOnLaunch(false);
-      }
-      if (bactivator != null) {
-        try {
-    bactivator.stop(bundleContext);
-        } catch (Throwable e) {
-    res = e;
-        }
-        bactivator = null;
-      }
+        (Throwable) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              Throwable res = null;
+              if (allowSetStartOnLaunchFalse()) {
+                startOnLaunch(false);
+              }
+              if (bactivator != null) {
+                try {
+                  bactivator.stop(bundleContext);
+                } catch (Throwable e) {
+                  res = e;
+                }
+                bactivator = null;
+              }
 
-      bundleContext.invalidate();
-      bundleContext = null;
-      removeBundleResources();
-      state = RESOLVED;
-      return res;
-    }
-  });
+              bundleContext.invalidate();
+              bundleContext = null;
+              removeBundleResources();
+              state = RESOLVED;
+              return res;
+            }
+          });
 
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
 
