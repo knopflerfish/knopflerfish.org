@@ -344,7 +344,8 @@ public class ServiceReferenceImpl implements ServiceReference
         if (name.startsWith("java.")) {
           return true;
         } else {
-          return registration.bundle == bundle;
+          return true;
+          // return registration.bundle == bundle;
         }
       }
     }

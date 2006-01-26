@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,16 +95,16 @@ public class BundleStorageImpl implements BundleStorage {
     synchronized (archives) {
       pos = find(id);
       if (pos >= archives.size() || archives.get(pos) != old) {
-	throw new Exception("No such bundle archive exists");
+        throw new Exception("No such bundle archive exists");
       }
     }
     BundleArchive ba = new BundleArchiveImpl((BundleArchiveImpl)old, is);
     synchronized (archives) {
       if (archives.get(pos) != old) {
-	pos = find(id);
-	if (pos >= archives.size() || archives.get(pos) != old) {
-	  throw new Exception("Bundle removed during update");
-	}
+        pos = find(id);
+        if (pos >= archives.size() || archives.get(pos) != old) {
+          throw new Exception("Bundle removed during update");
+        }
       }
       archives.set(pos, ba);
     }
@@ -133,7 +133,7 @@ public class BundleStorageImpl implements BundleStorage {
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
       if (ba.getStartOnLaunchFlag()) {
-	res.add(ba.getBundleLocation());
+        res.add(ba.getBundleLocation());
       }
     }
     return res;
@@ -153,10 +153,10 @@ public class BundleStorageImpl implements BundleStorage {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
       if (archives.get(pos) == ba) {
-	archives.remove(pos);
-	return true;
+        archives.remove(pos);
+        return true;
       } else {
-	return false;
+        return false;
       }
     }
   }
@@ -180,9 +180,9 @@ public class BundleStorageImpl implements BundleStorage {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
       if (id <= xid) {
-	ub = x;
+        ub = x;
       } else {
-	lb = x+1;
+        lb = x+1;
       }
     }
     return lb;

@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.osgi.framework.*;
 import org.osgi.framework.AdminPermission;
@@ -952,6 +953,13 @@ class BundleImpl implements Bundle {
         if (state == INSTALLED && bpkgs.resolvePackages()) {
           state = RESOLVED;
           framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
+          List fe = archive.getFailedClassPathEntries();
+          if (fe != null) {
+            for (Iterator i = fe.iterator(); i.hasNext(); ) {
+              Exception e = new IOException("Failed to classpath entry: " + i.next());
+              framework.listeners.frameworkInfo(this, e);
+            }
+          }
         }
       }
     }

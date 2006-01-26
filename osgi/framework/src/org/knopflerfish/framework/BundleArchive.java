@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.List;
 
 /**
  * Interface for managing bundle data.
@@ -167,6 +168,15 @@ public interface BundleArchive {
    * Close archive and all its open files.
    */
   void close();
+
+
+  /**
+   * Get a list with all classpath entries we failed to locate.
+   *
+   * @return A List with all failed classpath entries, null if no failures.
+   */
+  List getFailedClassPathEntries();
+
   
   /**
    * Returns an Enumeration of all the paths (<code>String</code> objects)
