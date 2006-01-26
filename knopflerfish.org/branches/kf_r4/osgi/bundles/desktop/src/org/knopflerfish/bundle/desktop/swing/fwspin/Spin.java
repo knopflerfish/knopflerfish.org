@@ -496,15 +496,24 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   public void serviceChanged(ServiceEvent ev) {
     synchronized(services) {
       ServiceReference sr       = ev.getServiceReference();
-      Object           obj      = Activator.getTargetBC().getService(sr);
+      String[]         objClass = (String[]) sr.getProperty(Constants.OBJECTCLASS);
       boolean          bRelease = true;
       SX               sx       = (SX)services.get(sr);
+     
+      boolean          isPAdmin = false;
+      if (objClass !=  null) {
+        for (int i=0; i<objClass.length; i++) {
+          if (PackageAdmin.class.getName().equals(objClass[i])) {
+            isPAdmin = true;
+          }
+        }
+      }
       
       switch(ev.getType()) {
       case ServiceEvent.REGISTERED:
-        if(obj instanceof PackageAdmin) {
+        if(isPAdmin) {
           if(pkgAdmin == null) {
-            pkgAdmin = (PackageAdmin)obj;
+            pkgAdmin = (PackageAdmin) Activator.getTargetBC().getService(sr);
             bRelease = false;
           }
         }
@@ -515,7 +524,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         }
         break;
       case ServiceEvent.UNREGISTERING:
-        if(obj instanceof PackageAdmin) {
+        if(isPAdmin) {
           if(pkgAdmin != null) {
             pkgAdmin = null;
             bRelease = true;
@@ -1135,26 +1144,14 @@ class SX extends SpinItem {
 
     bid = new Long(sr.getBundle().getBundleId());
 
-    Object obj = Activator.getTargetBC().getService(sr);
-
-    if(obj == null) {
-      className = "null";
-    } else {
-      className = obj.getClass().getName();
-      if(className.equals("java.lang.Object")) {
-        className = ((String[])sr.getProperty("objectclass"))[0];
-      }
-    }
+    className = ((String[])sr.getProperty(Constants.OBJECTCLASS))[0]; // TODO: Display all objectclasses?
  
     if(className.startsWith(ignorePrefix)) {
       className = className.substring(ignorePrefix.length());
     }
 
-    name = className + "/" + sr.getProperty("service.id");
+    name = className + "/" + sr.getProperty(Constants.SERVICE_ID);
 
-    if(obj != null) {
-      Activator.getTargetBC().ungetService(sr);
-    }
   }
 
   public void paint(Graphics g) {
