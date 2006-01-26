@@ -161,12 +161,12 @@ public class Util {
    * @param a Attribute being parsed
    * @param s String to parse
    * @param single If true, only allow one key per ENTRY
-   *        and only allow unique parameters for each ENTRY.
-   * @param single_enty If true, only allow one ENTRY is allowed.
+   * @param unique Only allow unique parameters for each ENTRY.
+   * @param single_entry If true, only allow one ENTRY is allowed.
    * @return Iterator(Map(param -> value)) or null if input string is null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator parseEntries(String a, String s, boolean single, boolean single_entry) {
+  public static Iterator parseEntries(String a, String s, boolean single, boolean unique, boolean single_entry) {
     ArrayList result = new ArrayList();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
@@ -187,7 +187,7 @@ public class Util {
 	while ((param = at.getParam()) != null) {
 	  List old = (List)params.get(param);
 	  boolean is_directive = at.isDirective();
-	  if (old != null && single) {
+	  if (old != null && unique) {
 	    throw new IllegalArgumentException("Definition, " + a + ", duplicate " +
 					       (is_directive ? "directive" : "attribute") +
 					       ": " + param);
@@ -200,7 +200,7 @@ public class Util {
 	    // NYI Handle directives and check them
 	    // This method has become very ugly, please rewrite.
 	  }
-	  if (single) {
+	  if (unique) {
 	    params.put(param, value);
 	  } else {
 	    if (old == null) {

@@ -645,7 +645,7 @@ class BundleArchiveImpl implements BundleArchive
 			  bnc = bnc.substring(0, bnc.length());
 			  optional = true;
 		  }
-		  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false); i.hasNext(); ) {
+		  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
 			  Map params = (Map)i.next();
 			  String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
 			  List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);

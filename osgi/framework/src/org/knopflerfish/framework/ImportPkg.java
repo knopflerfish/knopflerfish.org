@@ -63,9 +63,9 @@ class ImportPkg {
   /**
    * Create an import package entry.
    */
-  ImportPkg(Map tokens, BundleImpl b) {
+  ImportPkg(String name, Map tokens, BundleImpl b) {
     this.bundle = b;
-    this.name = (String)tokens.remove("key");
+    this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
@@ -87,21 +87,33 @@ class ImportPkg {
     String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
-    } else {
+      if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
+	throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
+                                           "and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+					   "are specified, and differs");
+      }
+    } else if (versionStr != null) {
       this.packageRange = new VersionRange(versionStr);
+    } else {
+      this.packageRange = VersionRange.defaultVersionRange;
     }
-    this.bundleRange = new VersionRange((String)tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE));
+    String rangeStr = (String)tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    if (rangeStr != null) {
+      this.bundleRange = new VersionRange(rangeStr);
+    } else {
+      this.bundleRange = VersionRange.defaultVersionRange;
+    }
     this.attributes = tokens;
   }
 
 
   /**
-   * Create an import package entry from a dynamic import template.
+   * Create an import package entry with a new name from an import template.
    */
   ImportPkg(ImportPkg ip, String name) {
     this.name = name;
     this.bundle = ip.bundle;
-    this.resolution = Constants.RESOLUTION_MANDATORY;
+    this.resolution = ip.resolution;
     this.bundleSymbolicName = ip.bundleSymbolicName;
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
@@ -117,8 +129,12 @@ class ImportPkg {
     this.bundle = p.bundle;
     this.resolution = Constants.RESOLUTION_MANDATORY;;
     this.bundleSymbolicName = null;
-    this.packageRange = new VersionRange(p.version.toString());
-    this.bundleRange = new VersionRange(null);
+    if (p.version == Version.emptyVersion) {
+      this.packageRange = VersionRange.defaultVersionRange;
+    } else {
+      this.packageRange = new VersionRange(p.version.toString());
+    }
+    this.bundleRange = VersionRange.defaultVersionRange;
     this.attributes = p.attributes;
   }
 

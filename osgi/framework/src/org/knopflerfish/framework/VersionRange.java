@@ -52,36 +52,38 @@ public class VersionRange implements Comparable
   final private boolean highIncluded;
 
   /**
-   * Construct a VersionRanger object
+   * The empty version range "[0.0.0,inf)".
+   */
+  public static final VersionRange defaultVersionRange = new VersionRange();
+
+  /**
+   * Construct a VersionRange object.
+   * Format for a range:
+   *   ( "(" | "[" ) LOW_VERSION ","  HIGH_VERSION ( ")" | "]" )
+   * Format for at least a version:
+   *   VERSION
    *
-   * @param vr string in "X.Y.Z" format.
+   * @param vr Input string.
    */
   public VersionRange(String vr) throws NumberFormatException {
-    if (vr != null) {
-      boolean op = vr.startsWith("(");
-      boolean ob = vr.startsWith("[");
+    boolean op = vr.startsWith("(");
+    boolean ob = vr.startsWith("[");
 
-      if (op || ob) {
-	boolean cp = vr.endsWith(")");
-	boolean cb = vr.endsWith("]");
-	int comma = vr.indexOf(',');
+    if (op || ob) {
+      boolean cp = vr.endsWith(")");
+      boolean cb = vr.endsWith("]");
+      int comma = vr.indexOf(',');
 
-	if (comma > 0 && (cp || cb)) {
-	  low = new Version(vr.substring(1, comma).trim());
-	  high = new Version(vr.substring(comma + 1, vr.length() - 1).trim());
-	  lowIncluded = ob;
-	  highIncluded = cb;
-	} else  {
-	  throw new NumberFormatException("Illegal version range: " + vr);
-	}
-      } else {
-	low = new Version(vr);
-	high = null;
-	lowIncluded = true;
-	highIncluded = false;
+      if (comma > 0 && (cp || cb)) {
+        low = new Version(vr.substring(1, comma).trim());
+        high = new Version(vr.substring(comma + 1, vr.length() - 1).trim());
+        lowIncluded = ob;
+        highIncluded = cb;
+      } else  {
+        throw new NumberFormatException("Illegal version range: " + vr);
       }
     } else {
-      low = Version.emptyVersion;
+      low = new Version(vr);
       high = null;
       lowIncluded = true;
       highIncluded = false;
@@ -89,8 +91,20 @@ public class VersionRange implements Comparable
   }
 
 
+  /**
+   * Construct the default VersionRange object.
+   *
+   */
+  protected VersionRange() {
+    low = Version.emptyVersion;
+    high = null;
+    lowIncluded = true;
+    highIncluded = false;
+  }
+
+
   public boolean isSpecified() {
-    return lowIncluded && high == null && low == Version.emptyVersion;
+    return this != defaultVersionRange;
   }
 
 
@@ -129,16 +143,6 @@ public class VersionRange implements Comparable
     return low.compareTo(o.low);
   }
 
-  /*
-  public int compareToFuzzy(Object obj) throws ClassCastException {
-    throw new RuntimeException("NYI");
-  }
-
-  public int compareToStrict(Object obj) throws ClassCastException {
-    throw new RuntimeException("NYI");
-  }
-  */
-
 
   /**
    * String with version number. If version is not specified return
@@ -176,7 +180,17 @@ public class VersionRange implements Comparable
    * @return true if equal, otherwise false.
    */
   public boolean equals(Object obj) throws ClassCastException {
-    throw new RuntimeException("NYI");
+    VersionRange o = (VersionRange)obj;
+    if (low.equals(o.low)) {
+      if (high != null) {
+        return high.equals(o.high)  &&
+          lowIncluded == o.lowIncluded &&
+          highIncluded == o.highIncluded;
+      } else {
+        return true;
+      }
+    }
+    return false;
   }
 
 

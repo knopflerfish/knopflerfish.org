@@ -85,75 +85,79 @@ class BundlePackages {
       }
     }
     
-    try {
-      Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, true, false);
-      while (i.hasNext()) {
-	ImportPkg p = new ImportPkg((Map)i.next(), bundle);
-	int ii = Util.binarySearch(imports, ipComp, p);
-	if (ii < 0) {
-	  imports.add(-ii - 1, p);
-	} else {
-	  throw new IllegalArgumentException("Duplicate import definitions for - " + p.name);
-	}
+    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, false, true, false);
+    while (i.hasNext()) {
+      Map e = (Map)i.next();
+      Iterator pi = ((List)e.remove("keys")).iterator();
+      ImportPkg ip = new ImportPkg((String)pi.next(), e, bundle);
+      for (;;) {
+        int ii = Util.binarySearch(imports, ipComp, ip);
+        if (ii < 0) {
+          imports.add(-ii - 1, ip);
+        } else {
+          throw new IllegalArgumentException("Duplicate import definitions for - " + ip.name);
+        }
+        if (pi.hasNext()) {
+          ip = new ImportPkg(ip, (String)pi.next());
+        } else {
+          break;
+        }
       }
-    } catch (IllegalArgumentException e) {
-      b.framework.listeners.frameworkError(b, e);
     }
 
-    try {
-      Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, true, false);
-      while (i.hasNext()) {
-	ExportPkg p = new ExportPkg((Map)i.next(), bundle);
-	int ei = Util.binarySearch(exports, epComp, p);
-	if (ei < 0) {
-	  exports.add(-ei - 1, p);
-	} else {
-	  throw new IllegalArgumentException("Duplicate export definitions for - " + p.name);
-	}
-	if (!b.v2Manifest) {
-	  ImportPkg ip = new ImportPkg(p);
-	  int ii = Util.binarySearch(imports, ipComp, ip);
-	  if (ii < 0) {
-	    imports.add(-ii - 1, ip);
-	  }
-	}
+    i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, false, true, false);
+    while (i.hasNext()) {
+      Map e = (Map)i.next();
+      Iterator pi = ((List)e.remove("keys")).iterator();
+      ExportPkg ep = new ExportPkg((String)pi.next(), e, bundle);
+      for (;;) {
+        int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
+        exports.add(ei, ep);
+        if (!b.v2Manifest) {
+          ImportPkg ip = new ImportPkg(ep);
+          int ii = Util.binarySearch(imports, ipComp, ip);
+          if (ii < 0) {
+            imports.add(-ii - 1, ip);
+          }
+        }
+        if (pi.hasNext()) {
+          ep = new ExportPkg(ep, (String)pi.next());
+        } else {
+          break;
+        }
       }
-    } catch (IllegalArgumentException e) {
-      b.framework.listeners.frameworkError(b, e);
     }
 
-    try {
-      Iterator i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, true, false);
-      while (i.hasNext()) {
-	Map e = (Map)i.next();
-	String key = (String)e.get("key");
-	if (key.equals("*")) {
-	  e.put("key", EMPTY_STRING);
-	} else if (key.endsWith(".*")) {
-	  e.put("key", key.substring(0, key.length() - 1));
-	} else if (key.endsWith(".")) {
-	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-					     " entry ends with '.': " + key);
-	} else if (key.indexOf("*") != - 1) {
-	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-					     " entry contains a '*': " + key);
-	}
-	if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
-	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-					     " entry illegal contains a " +
-					     Constants.RESOLUTION_DIRECTIVE +
-					     " directive.");
-	}
-	if (e.containsKey(Constants.PACKAGE_SPECIFICATION_VERSION)) {
-	  throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-					     " entry illegal contains a " +
-					     Constants.PACKAGE_SPECIFICATION_VERSION +
-					     " directive.");
-	}
-	dImportPatterns.add(new ImportPkg(e, bundle));
+    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, false, true, false);
+    while (i.hasNext()) {
+      Map e = (Map)i.next();
+      if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
+        throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+                                           " entry illegal contains a " +
+                                           Constants.RESOLUTION_DIRECTIVE +
+                                           " directive.");
       }
-    } catch (IllegalArgumentException e) {
-      b.framework.listeners.frameworkError(b, e);
+      ImportPkg tmpl = null;
+      for (Iterator pi = ((List)e.remove("keys")).iterator(); pi.hasNext(); ) {
+        String key = (String)pi.next();
+        if (key.equals("*")) {
+          key = EMPTY_STRING;
+        } else if (key.endsWith(".*")) {
+          key = key.substring(0, key.length() - 1);
+        } else if (key.endsWith(".")) {
+          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+                                             " entry ends with '.': " + key);
+        } else if (key.indexOf("*") != - 1) {
+          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+                                           " entry contains a '*': " + key);
+        }
+        if (tmpl != null) {
+          dImportPatterns.add(new ImportPkg(tmpl, key));
+        } else {
+          tmpl = new ImportPkg(key, e, bundle);
+          dImportPatterns.add(tmpl);
+        }
+      }
     }
   }
 
@@ -196,21 +200,12 @@ class BundlePackages {
         return false;
       }
     }
-    List m = bundle.framework.packages.checkResolve(bundle, imports.iterator());
-    if (m != null) {
-      StringBuffer r = new StringBuffer("missing package(s) or can not resolve all of the them: ");
-      Iterator mi = m.iterator();
-      r.append(((ImportPkg)mi.next()).pkgString());
-      while (mi.hasNext()) {
-        r.append(", ");
-        r.append(((ImportPkg)mi.next()).pkgString());
-      }
-      failReason = r.toString();
-      return false;
-    } else {
-      failReason = null;
+    failReason = bundle.framework.packages.checkResolve(bundle, imports.iterator());
+    if (failReason == null) {
       okImports = (ArrayList)imports.clone();
       return true;
+    } else {
+      return false;
     }
   }
 
