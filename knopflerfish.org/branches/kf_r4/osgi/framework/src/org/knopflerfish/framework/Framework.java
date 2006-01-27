@@ -218,8 +218,8 @@ public class Framework {
       int dots = 0;
       boolean skipDelim = false;
       int i = 0;
-      while (i < ver.length()) {
-        char c = ver.charAt(i++);
+      for ( ; i < ver.length(); i++) {
+        char c = ver.charAt(i);
         if (Character.isDigit(c)) {
           continue;
         } else if (c == '.') {
@@ -229,7 +229,7 @@ public class Framework {
         }
         break;
       }
-      osVersion = ver.substring(0, i - 1);
+      osVersion = ver.substring(0, i);
     }
         
 
