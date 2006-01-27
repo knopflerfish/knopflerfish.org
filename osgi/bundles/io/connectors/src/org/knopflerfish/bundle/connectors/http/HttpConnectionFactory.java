@@ -48,7 +48,7 @@ import org.knopflerfish.bundle.connectors.BaseConnectionFactory;
  * @author Kaspar Weilenmann &lt;kaspar@gatespacetelematics.com&gt;
  * @author Philippe Laporte
  */
-class HttpConnectionFactory extends BaseConnectionFactory {
+public class HttpConnectionFactory extends BaseConnectionFactory {
         
   static{
     //comply with javax.microedition.io.HttpConnection
