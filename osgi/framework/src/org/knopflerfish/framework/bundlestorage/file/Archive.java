@@ -778,7 +778,7 @@ class Archive {
           }
         });
         if (list.length > 0) {
-          lib = list[0];
+          list[0].renameTo(lib);
         }
       }
 //XXX - end L-3 modification
@@ -835,7 +835,7 @@ class Archive {
                       false, true, false);
     Iterator nc = Util.parseEntries(Constants.BUNDLE_NATIVECODE,
                                     a.getValue(Constants.BUNDLE_NATIVECODE),
-                                    false, true, false);
+                                    false, false, false);
     String bc = a.getValue(Constants.BUNDLE_CLASSPATH);
     return (bc != null && !bc.trim().equals(".")) || nc.hasNext();
   }

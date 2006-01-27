@@ -644,134 +644,140 @@ class BundleArchiveImpl implements BundleArchive
    * @exception Exception If can not find an entry that match this JVM.
    */
   private Map getNativeCode() throws Exception {
-          String bnc = getAttribute(Constants.BUNDLE_NATIVECODE);
-          if (bnc != null) {
-                  if (mapLibraryName == null) {
-                          throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
-                  }
-                  Map best = null;
-                  List perfectVer = new ArrayList();
-                  List okVer = new ArrayList();
-                  List noVer = new ArrayList();
-                  //TODO take it into account. the R3 code is not spec-compliant anyways
-                  boolean optional = false;
-                  
-                  bnc.trim();
-                  if(bnc.endsWith("*")){
-                          //take away *
-                          bnc = bnc.substring(0, bnc.length());
-                          bnc = bnc.trim();
-                          //take away ,
-                          bnc = bnc.substring(0, bnc.length());
-                          optional = true;
-                  }
-                  for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
-                          Map params = (Map)i.next();
-                          String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
-                          List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
-                          String o =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
-                          List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
-                          if ((containsIgnoreCase(pl, p) || 
-                                   containsIgnoreCase(pl, Alias.unifyProcessor(p))
-                                  ) &&
-                       (containsIgnoreCase(ol, o) ||
-                        containsIgnoreCase(ol, Alias.unifyOsName(o))
-                       )
-                     ) {
-                                  String fosVer = Framework.getProperty(Constants.FRAMEWORK_OS_VERSION);
-                                  List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
-                                  // Skip if we require a newer OS version.
-                                  if (ver != null) {
-                                          for (Iterator v = ver.iterator(); v.hasNext(); ) {
-                                                  String nov = (String)v.next();
-                                                  int cmp = Util.compareStringVersion(nov, fosVer);
-                                                  if (cmp == 0) {
-                                                          // Found perfect OS version
-                                                          perfectVer.add(params);
-                                                          break;
-                                                  }
-                                                  if (cmp < 0 && !okVer.contains(params)) {
-                                                          // Found lower OS version
-                                                          okVer.add(params);
-                                                  }
-                                          }
-                                  } 
-                                  else {
-                                          // Found unspecfied OS version
-                                          noVer.add(params);
-                                  }
-                          }
-                  } //for
+    String bnc = getAttribute(Constants.BUNDLE_NATIVECODE);
+    if (bnc != null) {
+      if (mapLibraryName == null) {
+        throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
+      }
+      String proc = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      String os =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
+      Version osVer = new Version(Framework.getProperty(Constants.FRAMEWORK_OS_VERSION));
+      String osLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
+      boolean optional = false;
+      List best = null;
+      VersionRange bestVer = null;
+      boolean bestLang = false;
 
-                  List langSearch = null;
-                  if (perfectVer.size() == 1) {
-                          best = (Map)perfectVer.get(0);
-                  } 
-                  else if (perfectVer.size() > 1) {
-                          langSearch = perfectVer;
-                  } 
-                  else if (okVer.size() == 1) {
-                          best = (Map)okVer.get(0);
-                  } 
-                  else if (okVer.size() > 1) {
-                          langSearch = okVer;
-                  } 
-                  else if (noVer.size() == 1) {
-                          best = (Map)noVer.get(0);
-                  } 
-                  else if (noVer.size() > 1) {
-                          langSearch = noVer;
-                  }
-                  if (langSearch != null) {
-                          String fosLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
-                          lloop: for (Iterator i = langSearch.iterator(); i.hasNext(); ) {
-                                  Map params = (Map)i.next();
-                                  
-                                  List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
-                                  if(sf != null){
-                                          if(sf.size() == 1){
-                                                  FilterImpl filter = new FilterImpl((String)sf.get(0));
-                                              if(!filter.match(Framework.getProperties())){
-                                                          continue;
-                                              }
-                                          }
-                                  }
-                                  
-                                  List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
-                                  if (lang != null) {
-                                          for (Iterator l = lang.iterator(); l.hasNext(); ) {
-                                                  if (fosLang.equalsIgnoreCase((String)l.next())) {
-                                                          // Found specfied language version, search no more
-                                                          best = params;
-                                                          break lloop;
-                                                  }
-                                          }
-                                  } 
-                                  else {
-                                          // Found unspecfied language version
-                                          best = params;
-                                  }
-                          }
-                  }
-                  if (best == null/* && !optional*/) {
-                          throw new BundleException("Native-Code: No matching libraries found.");
-                  }
-//XXX - start L-3 modification
-                  renameLibs  = new HashMap();
-//XXX - end L-3 modification
-                  HashMap res = new HashMap();
-                  for (Iterator p = ((List)best.get("keys")).iterator(); p.hasNext();) {
-                          String name = (String)p.next();
-                          int sp = name.lastIndexOf('/');
-                          String key = (sp != -1) ? name.substring(sp+1) : name;
-                          res.put(key, archive.getNativeLibrary(name));
-                  }
-                  return res;
-          } 
-          else {
-                  // No native code in this bundle
-                  return null;
+      for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
+        VersionRange matchVer = null;
+        boolean matchLang = false;
+        Map params = (Map)i.next();
+
+        List keys = (List)params.get("keys");
+        if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
+          optional = true;
+          break;
+        }
+
+        List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
+        if (pl != null) {
+          if (!containsIgnoreCase(pl, proc) &&
+              !containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
+            continue;
           }
+        } else {
+          // NYI! Handle null
+          continue;
+        }
+
+        List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
+        if (ol != null) {
+          if (!containsIgnoreCase(ol, os) && !containsIgnoreCase(ol, Alias.unifyOsName(os))) {
+            continue;
+          }
+        } else {
+          // NYI! Handle null
+          continue;
+        }
+
+        List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+        if (ver != null) {
+          boolean okVer = false;
+          for (Iterator v = ver.iterator(); v.hasNext(); ) {
+            // NYI! Handle format Exception
+            matchVer = new VersionRange((String)v.next());
+            if (matchVer.withinRange(osVer)) {
+              okVer = true;
+              break;
+            }
+          }
+          if (!okVer) {
+            continue;
+          }
+        }
+
+        List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+        if (lang != null) {
+          for (Iterator l = lang.iterator(); l.hasNext(); ) {
+            if (osLang.equalsIgnoreCase((String)l.next())) {
+              // Found specfied language version, search no more
+              matchLang = true;
+              break;
+            }
+          }
+          if (!matchLang) {
+            continue;
+          }
+        } 
+
+        List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
+        if (sf != null) {
+          if (sf.size() == 1) {
+            FilterImpl filter = new FilterImpl((String)sf.get(0));
+            if (!filter.match(Framework.getProperties())) {
+              continue;
+            }
+          } else {
+            //NYI! complain about faulty selection
+          }
+        }
+
+        // Compare to previous best
+        if (best != null) {
+          boolean verEqual = false;
+          if (bestVer != null) {
+            if (matchVer == null) {
+              continue;
+            }
+            int d = bestVer.compareTo(matchVer);
+            if (d == 0) {
+              verEqual = true;
+            } else if (d > 0) {
+              continue;
+            }
+          } else if (matchVer == null) {
+            verEqual = true;
+          }
+          if (verEqual && (!matchLang || bestLang)) {
+            continue;
+          }
+        }
+        best = keys;
+        bestVer = matchVer;
+        bestLang = matchLang;
+      }
+      if (best == null) {
+        if (optional) {
+          return null;
+        } else {
+          throw new BundleException("Native-Code: No matching libraries found.");
+        }
+      }
+      //XXX - start L-3 modification
+      renameLibs  = new HashMap();
+      //XXX - end L-3 modification
+      HashMap res = new HashMap();
+      for (Iterator p = best.iterator(); p.hasNext();) {
+        String name = (String)p.next();
+        int sp = name.lastIndexOf('/');
+        String key = (sp != -1) ? name.substring(sp+1) : name;
+        res.put(key, archive.getNativeLibrary(name));
+      }
+      return res;
+    }  else {
+      // No native code in this bundle
+      return null;
+    }
   }
 
   /**
