@@ -149,7 +149,7 @@ public class Framework {
    */
   final static String osArch    = System.getProperty("os.arch");
   final static String osName    = System.getProperty("os.name");
-  final static String osVersion = System.getProperty("os.version");
+  static String osVersion;
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -212,6 +212,26 @@ public class Framework {
       throw new RuntimeException("Memory bundle storage is not compatible " + 
 				                 "with R3 compliance");
     }
+
+    String ver = System.getProperty("os.version");
+    if (ver != null) {
+      int dots = 0;
+      boolean skipDelim = false;
+      int i = 0;
+      while (i < ver.length()) {
+        char c = ver.charAt(i++);
+        if (Character.isDigit(c)) {
+          continue;
+        } else if (c == '.') {
+          if (++dots < 3) {
+            continue;
+          }
+        }
+        break;
+      }
+      osVersion = ver.substring(0, i - 1);
+    }
+        
 
     Class storageImpl = Class.forName(whichStorageImpl);
     storage           = (BundleStorage)storageImpl.newInstance();

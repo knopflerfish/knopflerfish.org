@@ -253,10 +253,10 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected String findLibrary(String name) {
     String res = archive.getNativeLibrary(name);
-    /*if (debug) {
+    if (debug) {
       Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find library: " + name
                     + (res != null ? " OK" : " FAIL"));
-    }*/
+    }
     return res;
   }
 
