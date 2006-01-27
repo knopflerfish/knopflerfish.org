@@ -246,8 +246,10 @@ class SCR implements SynchronousBundleListener {
   }
 
   public synchronized void removeComponent(Component component) { 
-    removeConfig(component);
-    components.remove(component);
+    if (component != null) {
+      removeConfig(component);
+      components.remove(component);
+    }
   }
 
   private ConfigurationAdmin getCM(Component component) {
@@ -398,101 +400,116 @@ class SCR implements SynchronousBundleListener {
     }
     
     public void configurationEvent(ConfigurationEvent evt) {
-
+      
       String factoryPid = evt.getFactoryPid();
       String pid = evt.getPid();
 
-      if (factoryPid != null) {
-        Dictionary table = (Dictionary) factoryConfigs.get(factoryPid);
+      synchronized(SCR.getInstance()){      
+        if (factoryPid != null) {
+          
+          Dictionary table = (Dictionary) factoryConfigs.get(factoryPid);
+          
+          if (table != null) {
+            Component component = (Component)table.get(pid);
+            if (component != null) {
+              if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+                table.remove(pid);
+                
+                if (table.isEmpty()) {
+                  
+                  factoryConfigs.remove(factoryPid);
+                  restart(component);
+                  
+                } else {
+                  
+                  component.disable();
+                  
+                }
                
-        if (table != null) {
-          Component component = (Component)table.get(pid);
-          if (component != null) {
-            if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-              restart(component);
+              } else {
+                
+                Configuration conf = getConfiguration(component, pid);
+                if (conf == null)
+                  return ;
+                
+                restart(component, conf);
+              }
+              
+            
+            } else { // we need to create a new component
+              
+              Object key = table.keys().nextElement();
+              Component src = (Component)table.get(key);
+              Config config = src.getConfig();
+              Config copy = config.copy();
+              
+              Component instance = copy.createComponent();
+              Configuration conf = 
+                getConfiguration(instance, pid);
+              
+              if (conf == null) 
+                return ;
+              
+              instance.cmUpdated(conf.getProperties());
+              Collection collection = (Collection)bundleConfigs.get(copy.getBundle());
+              collection.add(copy);
+              instance.enable();
+              
             }
-
-            Configuration conf = getConfiguration(component, pid);
-            if (conf == null)
-              return ;
+          } else {
             
-            restart(component, conf);
-
-            
-          } else { // we need to create a new component
-
-            Object key = table.keys().nextElement();
-            Component src = (Component)table.get(key);
-            Config config = src.getConfig();
-            Config copy = config.copy();
-            
-            Component instance = copy.createComponent();
-            Configuration conf = 
-              getConfiguration(instance, pid);
-
-            if (conf == null) 
-              return ;
-
-            instance.cmUpdated(conf.getProperties());
-            Collection collection = (Collection)bundleConfigs.get(copy.getBundle());
-            collection.add(copy);
-            instance.enable();
-                 
+            for (Iterator i = components.iterator();
+                 i.hasNext(); ) { // start looking for a potential target.
+              
+              Component component = (Component)i.next();
+              Config config = component.getConfig();
+              
+              if (factoryPid.equals(config.getName())) {
+                
+//                 if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+//                   restart(component);
+                  
+//                 } else {
+                  // this is a new factory configuration (and has a corresponding component)
+                  Configuration conf = 
+                    getConfiguration(component, pid);
+                  
+                  if (conf == null) 
+                    continue; // does not have permission.
+                  
+                  table = new Hashtable();
+                  factoryConfigs.put(factoryPid, table);
+                  table.put(evt.getPid(), component);
+                  restart(component, conf);
+                  
+//                } 
+              }
+            }
           }
-        } else {
-
+        
+        } else { // just a regular Single Configuration.
+          
           for (Iterator i = components.iterator();
-               i.hasNext(); ) { // start looking for a potential target.
+             i.hasNext(); ) { // start looking for a potential target.
             
             Component component = (Component)i.next();
             Config config = component.getConfig();
             
-            if (factoryPid.equals(config.getName())) {
+            if (pid.equals(config.getName())) {
               
-              if (table == null) {
-                
-                if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-                  restart(component);
-                }
-                // this is a new factory configuration (and has a corresponding component)
-                Configuration conf = 
-                  getConfiguration(component, pid);
-                
-                if (conf == null) 
-                  continue; // does not have permission.
-                
-                table = new Hashtable();
-                factoryConfigs.put(factoryPid, table);
-                table.put(evt.getPid(), component);
-                restart(component, conf);
-                
-              } 
-            }
-          }
-        }
-        
-      } else { // just a regular Single Configuration.
-        
-        for (Iterator i = components.iterator();
-             i.hasNext(); ) { // start looking for a potential target.
-
-          Component component = (Component)i.next();
-          Config config = component.getConfig();
-          
-          if (pid.equals(config.getName())) {
-
-            if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-              restart(component);
-            }
-
-            Configuration conf =
-              getConfiguration(component, pid);
+              if (evt.getType() == ConfigurationEvent.CM_DELETED) {
+                restart(component);
+              }
+              
+              Configuration conf =
+                getConfiguration(component, pid);
+              
+              if (conf == null) 
+                continue ; // might not have permission
             
-            if (conf == null) 
-              continue ; // might not have permission
-            
-            restart(component, conf);
-            // note that there might be other that matches as well..
+              restart(component, conf);
+              // note that there might be other that matches as well..
+            }
           }
         }
       }
