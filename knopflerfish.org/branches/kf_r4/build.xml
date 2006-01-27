@@ -380,6 +380,11 @@
            <include name = "**"/>
         </zipfileset>
 
+        <zipfileset dir    = "htdocs"
+                    prefix = "">
+           <include name = "readme.txt"/>
+        </zipfileset>
+
     </jar>
 
     <copy file="${distribfile}"        todir="${release.dir}"/>
@@ -475,6 +480,8 @@
            <include name = "osgi/jars/trayicon_fw/**/*.jar"/>
            <include name = "osgi/jars/remotefw/*.jar"/>
            <include name = "osgi/jars/bundlerepository/*.jar"/>
+           <include name = "osgi/jars/component/*.jar"/>
+           <include name = "osgi/jars/event/*.jar"/>
 
            <include name = "changelog.html"/>
 
@@ -494,6 +501,11 @@
 
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
+        </zipfileset>
+
+        <zipfileset dir    = "htdocs"
+                    prefix = "">
+           <include name = "readme.txt"/>
         </zipfileset>
 
     </jar>
@@ -575,6 +587,11 @@
            <include name = "**"/>
         </zipfileset>
 
+        <zipfileset dir    = "htdocs"
+                    prefix = "">
+           <include name = "readme.txt"/>
+        </zipfileset>
+
     </jar>
 
     <copy file="${distribfile_fullbin}"        todir="${release.dir}"/>
@@ -615,6 +632,11 @@
                     prefix = "knopflerfish_osgi_${version}">
            <include name = "license.txt"/>
            <include name = "osgi_copyright.txt"/>
+        </zipfileset>
+
+        <zipfileset dir    = "htdocs"
+                    prefix = "">
+           <include name = "readme.txt"/>
         </zipfileset>
 
     </zip>
@@ -768,6 +790,11 @@
 
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
+        </zipfileset>
+
+        <zipfileset dir    = "htdocs"
+                    prefix = "">
+           <include name = "readme.txt"/>
         </zipfileset>
 
     </jar>
