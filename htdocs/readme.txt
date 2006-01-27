@@ -1,11 +1,11 @@
-Knopflerfish 2.0 ALPHA
+Knopflerfish 2.0 BETA
 ----------------------
 
   This is a pre release of Knopflerfish 2.0 with part of the OSGi R4
   specification implemented.
 
-  The framework will run and handles bundles with the new manifest format.
-  However, everything is not implemented yet.
+  Some of the optional features are not yet implemented and there are 
+  some known bugs.
 
   Here follows a breakdown of what has been changed and what is still
   pending.
@@ -19,21 +19,15 @@ Knopflerfish 2.0 ALPHA
 
   --- Module Layer ---
 
-    Module layer now has support for the new manifest format. It will handle
-    the new version range directive and select appropriate packages. The
-    following are not supported yet:
-
-    * New package attribute matching.
-
-    * Class filtering on export and import.
-
-    * Multiple exports of same package.
-
-    * Extension and fragment bundles.
-
-    * Package linking on bundle level.
-
-    * New bundle permission and signing of bundles.
+    Module layer now has support for all the required features in R4. 
+    The following optional features are not supported yet:
+    * Requring bundles
+    * Extensiont bundles
+    * Fragment bundles
+    * Permissions
+    
+    There are known bugs in the native code selection, the selection 
+    of native code doesn't follow the specification 100%.
 
   --- Life Cycle Layer ---
 
@@ -45,52 +39,45 @@ Knopflerfish 2.0 ALPHA
 
   --- Framework Services ---
 
-    Start Level, Permission Admin and URL Handler services have been updated
-    to conform to R4. The following are not finished yet:
-
-    * Package Admin
-
-    * Conditional Permission Admin
+    Start Level, Permission Admin and URL Handler services have been 
+    updated to conform to R4. The Conditional Permission Admin is not 
+    yet included. Package Admin handles all things except those that 
+    have to do with optional features.
 
 
 === Services (r4.cmpn) ===
 
   --- Log ---
 
-    Done. New events added.
+    Done.
 
   --- HTTP ---
 
-    Done. Minor API change.
+    Done.
 
   --- Configuration Admin ---
 
-    Done. ConfigurationListener, ConfigurationPermission and Event Admin
-    mapping added.
+    Done.
 
   --- Preferences ---
 
-    Not yet updated.
+    Done.
 
   --- Metatype  ---
 
-    Not yet updated.
+    Done.
 
   --- User Admin ---
 
-    Not yet updated.
+    Done.
 
   --- IO Connector ---
 
-    Done, but datagram is not yet supported.
+    Done.
 
   --- Declarative Services ---
 
-    Done. New service. There is a known bug in the parsing of the XML file.
-    The component tag has to look like
-    <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0"...
-    and not just
-    <component...
+    Done. New service. New implementation since the alpha release.
 
   --- Event Admin ---
 
@@ -98,12 +85,13 @@ Knopflerfish 2.0 ALPHA
 
   --- Service Tracker ---
 
-    Not yet updated.
+    Done.
 
 
 === Knopflerfish Extras ===
 
-  The extra tools provided by Knopflerfish (e.g. the desktop and console
-  command groups) have not yet been updated to reflect new features in K4.
+  The extra tools provided by Knopflerfish (e.g. the desktop and 
+  console command groups) have not yet been updated to reflect new 
+  features in K4.
 
 
