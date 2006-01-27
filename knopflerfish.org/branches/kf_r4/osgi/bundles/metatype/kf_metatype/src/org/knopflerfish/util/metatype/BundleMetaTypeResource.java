@@ -49,12 +49,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 import java.util.Enumeration;
-
+import java.util.Dictionary;
 
 import org.osgi.framework.*;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.ObjectClassDefinition;
+import org.osgi.service.metatype.AttributeDefinition;
 
 public class BundleMetaTypeResource implements MetaTypeInformation{
 	
@@ -259,23 +260,33 @@ class MetaData {
 		return ocd;
 	}
 	
-	public void designate(String factoryPid, String pid, String ocdref, Configuration conf){
+	public void designate(String factoryPid, String pid, String ocdref, 
+			              Configuration conf, Vector currentAttributes){
 		ObjectClassDefinition ocd;
 		ocd = (ObjectClassDefinition) OCDs.get(ocdref);
 		
-		if(ocd != null){/* Merge code. This causes several problems
-			if(conf != null){
-				Dictionary props = conf.getProperties();
+		if(ocd != null){ 
+			if(conf != null && currentAttributes.size() > 0){
 				AttributeDefinition[] attrDefs = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
+				Hashtable ADs = new Hashtable(); //id is key
 				for(int i = 0; i < attrDefs.length; i++){
 					AttributeDefinition ad = attrDefs[i];
+					ADs.put(ad.getID(), ad);
+				}
+				
+				Dictionary props = conf.getProperties();
+				
+				Enumeration attrsAssigns = currentAttributes.elements();
+				while(attrsAssigns.hasMoreElements()){
+					AttributeDefinition ad = (AttributeDefinition) ADs.get(((AE) attrsAssigns.nextElement()).adref);
+				
 					Object value;
 					int card = ad.getCardinality();
 					if(card == Integer.MIN_VALUE || card < 0){
 						value = new Vector();
 					}
 					else if(card == Integer.MAX_VALUE){
-						//array?
+						//TODO array?
 						value = new Vector();
 					}
 					else {
@@ -321,14 +332,16 @@ class MetaData {
             	
 					props.put(ad.getName(), value);
             	
-				} //for
+				} //while
 			
 				try{
 					conf.update(props);
 				}
 				catch(IOException ioe){}
-			}
-			*/
+				
+			} //if
+				
+			
 			if(factoryPid != null){
 				factoryPids.put(factoryPid, ocd);
 			}
