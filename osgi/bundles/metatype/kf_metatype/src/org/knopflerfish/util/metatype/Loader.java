@@ -1264,7 +1264,7 @@ public class Loader {
   static final String DESIGNATE              = "Designate";
   static final String OPTION                 = "Option";
   static final String ICON                   = "Icon";
-  
+  static final String VALUE                  = "Value";
   
   static final String ATTR_LOCALIZATION      = "localization";
   
@@ -1311,8 +1311,9 @@ public class Loader {
   private static String currentObjectOCDref;
   
   private static ServiceTracker confAdminTracker;
-  
   private static Configuration currentConf;
+  private static Vector currentAttributes;
+  private static AE currentAE;
   
   private static Bundle currentBundle;
   
@@ -1367,7 +1368,7 @@ public class Loader {
 			  //  System.out.println("Start element: " + name);
 		  } else if(eventType == XmlPullParser.END_TAG) {
 			  try{
-				  endElement(xpp.getName()/*, content*/);
+				  endElement(xpp.getName(), content);
 			  }
 			  catch(Exception e){
 				 // System.out.println("Got exception");
@@ -1375,7 +1376,7 @@ public class Loader {
 			  //  System.out.println("End element: " + name);
 		  } else if(eventType == XmlPullParser.TEXT) {   
 			  
-			  //content = xpp.getText().trim(); 	
+			  content = xpp.getText().trim(); 	
 			  //    System.out.println("Text: " + content);   
 		  } else{
 			  //	  System.out.println("Got something else");
@@ -1513,8 +1514,7 @@ public class Loader {
 	      
 	      currentAD = new AD(id, type, cardinality, name, desc, defaults, min, max, required);     
 	  }
-	  else if (OBJECT.equals(element)) {
-		 // currentOBJECT = 
+	  else if (OBJECT.equals(element)) { 
 		  String ocdref = (String) attrs.get(ATTR_OCDREF);
 	      if(ocdref != null){
 	    	  currentObjectOCDref = ocdref;
@@ -1528,7 +1528,7 @@ public class Loader {
 	  else if (ATTRIBUTE.equals(element)) { 
 		  String adref = (String) attrs.get(ATTR_ADREF);
 	      if(adref != null){
-	    	  
+	    	  currentAE = new AE(adref);
 	      }
 	      else{
 	    	  //TODO not valid: required attribute is missing
@@ -1537,20 +1537,34 @@ public class Loader {
 	      
 	      String content = (String) attrs.get(ATTR_CONTENT);
 	      if(content != null){
-	    	  
+	    	  StringTokenizer st = new StringTokenizer(content, ",");
+		      while(st.hasMoreTokens()){
+		    	  currentAE.addValue(st.nextToken());
+		      }
 	      }
-	
-	      
+	     
+	      currentAttributes.add(currentAE);
 	  }
 	  else if (DESIGNATE.equals(element)) {
-		//  currentDesignate = 
+		  //SPCES what do we mean by optional exactly?
+		  boolean optionalB;
+		  String optional = (String) attrs.get(ATTR_OPTIONAL);
+	      if(optional != null){
+	    	  optionalB = Boolean.valueOf(optional).booleanValue();
+	      }
+	      else{
+	    	  optionalB = false;
+	      }
+	      
 		  String pid = (String) attrs.get(ATTR_PID);
 	      if(pid != null){
 	    	  currentDesignatePid = pid;
 	      }
 	      else{
 	    	  //TODO not valid: required attribute is missing
-	    	  return;
+	    	  if(!optionalB){
+	    		  return;
+	    	  }
 	      }
 	      
 	      String factoryPid = (String) attrs.get(ATTR_FACTORYPID);
@@ -1571,14 +1585,6 @@ public class Loader {
 	    	  //return;
 	      }
 	      
-	      String optional = (String) attrs.get(ATTR_OPTIONAL);
-	      if(optional != null){
-	    	  
-	      }
-	      else{
-	    	  //=false
-	      }
-	      
 	      
 	      if(currentDesignatePid != null){
 	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
@@ -1586,18 +1592,15 @@ public class Loader {
 	    		  currentConf = ca.getConfiguration(currentDesignatePid, bundle);
 	      
 	    		  String merge = (String) attrs.get(ATTR_MERGE);
-	    		  if(merge != null){
-	    			  if(!Boolean.valueOf(merge).booleanValue()){
+	    		  
+	    		  if(merge == null || !Boolean.valueOf(merge).booleanValue()){
 	    				  currentConf.delete();
 	    				  currentConf = ca.getConfiguration(currentDesignatePid, bundle);
-	    			  }
-	    		  }
-	    		  else{
-	    			  currentConf.delete();
-	    			  currentConf = ca.getConfiguration(currentDesignatePid, bundle);
 	    		  }
 	    	  }
 	      }
+	      
+	      currentAttributes = new Vector();
 	 
 	  }
 	  
@@ -1652,7 +1655,7 @@ public class Loader {
   
   
   
-  protected static void endElement(String element/*, String content*/) throws Exception {
+  protected static void endElement(String element, String content) throws Exception {
       
 	  if (METADATA.equals(element) || element.endsWith(METADATA)) {
 		  currentBMTR.addMetaData(currentMetaData);
@@ -1689,11 +1692,17 @@ public class Loader {
 	  else if (DESIGNATE.equals(element)) {
 		  //MetaInfo
 		  currentMetaData.designate(currentDesignateFactoryPid, currentDesignatePid,
-				                    currentObjectOCDref, currentConf);
+				                    currentObjectOCDref, currentConf, currentAttributes);
 	      
 		  currentDesignatePid = null;
 		  currentDesignateFactoryPid = null;
+		  currentAttributes = null;
+		  currentObjectOCDref = null;
+		  currentConf = null;
 	  }
+	  else if (VALUE.equals(element)) {
+		  currentAE.addValue(content);
+	  }  
 	  /* nothing to do for these
 	  else if (OPTION.equals(element)) {
 	      
