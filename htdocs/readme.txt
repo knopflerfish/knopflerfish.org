@@ -25,9 +25,6 @@ Knopflerfish 2.0 BETA
     * Extensiont bundles
     * Fragment bundles
     * Permissions
-    
-    There are known bugs in the native code selection, the selection 
-    of native code doesn't follow the specification 100%.
 
   --- Life Cycle Layer ---
 
