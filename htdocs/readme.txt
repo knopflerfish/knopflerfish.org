@@ -62,7 +62,8 @@ Knopflerfish 2.0 BETA
 
   --- Metatype  ---
 
-    Done.
+    Mostly done. Some things pending spec clarifications and issues 
+    resolution.
 
   --- User Admin ---
 
