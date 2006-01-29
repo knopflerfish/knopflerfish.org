@@ -9,138 +9,159 @@ fully. This includes the:
 <li>Mobile Specification, MEG - Not released yet.
 </ul>
 
-An alpha-1 version has been released and is available for 
-<a href="download.html">download</a>
+A beta-1 version has been released and is available for 
+<a href="download.html">download</a>.<p>
 
 <h3>Release Schedule</h3>
 The release schedule for KF 2 is as follows:
 <ul>
-<li>Dec 2005, Alpha version 
-<li>End Jan 2006, Beta version
+<li>Dec 2005, Alpha version (alpha-1 relased 21 Dec 2005)
+<li>End Jan 2006, Beta version (beta-1 released 27 Jan 2005)
 <li>End Mar 2006, 2.0 release
 </ul>
 <p>
 The 2.0 release will most likely not include the MEG specification due
 to the relase schedule of the the OSGi MEG specifications.
 
-<h3>Status KF 2, KF 2.0-alpha-1 release</h3>
+<h3>Status KF 2, KF 2.0-beta-1 release</h3>
+With this beta release, KF 2 is feauture complete for all mandatory parts
+of the OSGi release 4 framework. The release is also feature complete
+for all vital parts of OSGi release 4 Service Compendium.
+
 The table below describes what parts have been implemented and what parts
-are still pending in the KF 2.0 alpha 1 release.
+are still pending in the KF 2.0 beta 1 release.
 <p>
 <table border="0" cellpadding="4" cellspacing="2">
- <tr colspan="3"> <td bgcolor="#cccccc" colspan="3"><b>Core Specification - OSGi framework</b></td></tr>
+ <tr> <td bgcolor="#cccccc" colspan="4"><b>Core Specification - OSGi framework</b></td></tr>
  <tr>
   <td><b>Module</b></td>
   <td><b>Status</b></td>  
+  <td><b>R4 support</b></td>  
   <td><b>Desription</b></td>
  </tr>
 
  <tr>
   <td class="nowrap">Security Layer  </td>
   <td class="nowrap">In Progress  </td>
+  <td class="nowrap">Not Yet  </td>
   <td>Signed bundles are not supported yet  </td>
  </tr>
 
  <tr>
   <td class="nowrap">Module Layer  </td>
   <td> In Progress </td>
-  <td>Module layer now has support for the new manifest format. It will handle
-    the new version range directive and select appropriate packages. The
-    following are not supported yet:<br>
-    <ul>
-    <li>New package attribute matching.
-    <li>Class filtering on export and import.
-    <li> Multiple exports of same package.
-    <li> Extension and fragment bundles.
-    <li> Package linking on bundle level.
-    <li> New bundle permission and signing of bundles.
-    </ul>
+  <td> Partly </td>
+
+  <td>Module layer now has support for all the required features in R4. The 
+      following optional features are not supported yet:<br>
+      <ul>
+      <li>Requring bundles
+      <li>Extensiont bundles
+      <li>Fragment bundles*
+      <li>Permissions
+      </ul>
+      Note: there are minor bugs in the native code selection.      
   </td>
  </tr>
 
  <tr>
   <td> Life Cycle Layer </td>
   <td> In Progress </td>
+  <td> Not yet </td>
   <td> Minor changes still pending </td>
  </tr>
 
  <tr>
   <td> Service Layer </td>
   <td> In Progress </td>
+  <td> Not yet </td>
   <td> Minor changes still pending </td>
  </tr>
 
  <tr>
   <td class="nowrap"> Framework Services </td>
   <td class="nowrap"> In Progress </td>
+  <td> Partly </td>
   <td> Start Level, Permission Admin and URL Handler services have been updated
     to conform to R4. <p>
-    Package Admin and Conditional Permission Admin are not yet updated
-    to R4,
+    Package Admin handles everything except for optional feautures in
+    the framework not yet implemented.
+    <p>
+    Conditional Permission Admin is not yet updated to R4.
  </tr>
 
  <tr>
-  <td colspan="3" bgcolor="#cccccc"> <b>Service Compendium</b> </td>
+  <td colspan="4" bgcolor="#cccccc"> <b>Service Compendium</b> </td>
  </tr>
 
  <tr>
   <td><b>Module</b></td>
   <td><b>Status</b></td>  
+  <td class="nowrap"><b>R4 support</b></td>  
   <td><b>Desription</b></td>
  </tr>
 
  <tr>
   <td> Log </td>
   <td> Done </td>
+  <td> Full</td>
   <td> New events added. </td>
  </tr>
 
  <tr>
   <td> HTTP </td>
   <td> Done </td>
+  <td> Full</td>
   <td> Minor API change </td>
  </tr>
 
  <tr>
   <td class="nowrap"> Configuration Admin </td>
   <td> Done </td>
+  <td> Full</td>
   <td> ConfigurationListener, ConfigurationPermission and Event Admin
     mapping added. </td>
  </tr>
 
  <tr>
   <td> Preferences </td>
-  <td> NYI </td>
+  <td> Done</td>
+  <td> Full</td>
   <td> &nbsp; </td>
  </tr>
 
  <tr>
   <td> User Admin </td>
-  <td> NYI </td>
-  <td> &nbsp;</td>
+  <td> Done</td>
+  <td> Full</td>
+  <td> &nbsp; </td>
  </tr>
 
  <tr>
   <td> IO Connector </td>
   <td> Done </td>
-  <td> Datagram not yet supported</td>
+  <td> Full</td>
+  <td> &nbsp; </td>
  </tr>
 
  <tr>
   <td> Declarative Services </td>
   <td> Done </td>
-  <td> New in R4;</td>
+  <td> Full</td>
+  <td> New in R4</td>
  </tr>
 
  <tr>
   <td> Event Admin </td>
   <td> Done </td>
+  <td> Full</td>
   <td> New in R4</td>
  </tr>
 
  <tr>
   <td> Service Tracker </td>
-  <td> NYI </td>
+  <td> Done </td>
+  <td> Full</td>
   <td> &nbsp;</td>
  </tr>
 </table>
