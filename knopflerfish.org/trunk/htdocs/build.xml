@@ -234,6 +234,7 @@
      <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_BUNDLES"   value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_PERF"      value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_KF2"	 value="navigation_enabled"/>
 
     <replace file="${tofile}">
       <replacefilter token="$(TITLE)"
