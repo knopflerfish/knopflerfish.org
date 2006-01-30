@@ -225,7 +225,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
           Bundle[] hostBundles = pkgAdmin.getHosts(targets[i]);
           if (hostBundles != null) {
             for (int b = 0; b < hostBundles.length; b++) {
-              fragments.add(hostBundles[b]);
+              hosts.add(hostBundles[b]);
             }
           }
         }
@@ -245,8 +245,9 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         
         Set required = new TreeSet(Util.bundleIdComparator);
         Set requiredBy = new TreeSet(Util.bundleIdComparator);
+        
+try { // untested code
         RequiredBundle[] requiredBundles = pkgAdmin.getRequiredBundles(null);
-
         if (requiredBundles != null) {
           for (int rb = 0; rb < requiredBundles.length; rb++) {
             for (int t = 0; t < targets.length; t++) {
@@ -267,6 +268,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
             }
           }
         }
+} catch (Throwable ignored) {}
         if (required.size() == 0) {
           sb.append("No required bundles");
         } else {
