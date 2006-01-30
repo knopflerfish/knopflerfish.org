@@ -573,25 +573,29 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     // Headers command
     //
 
-    public final static String USAGE_HEADERS = "[-i] <bundle> ...";
+    public final static String USAGE_HEADERS = "[-i] [-l #locale#] <bundle> ...";
 
     public final static String[] HELP_HEADERS = new String[] {
-            "Show bundle header values", "-i       Sort on bundle id",
-            "<bundle> Name or id of bundle" };
+            "Show bundle header values", 
+            "-i           Sort on bundle id",
+            "-l #locale#  Get localized headers for a given locale",
+            "<bundle>     Name or id of bundle" };
 
     public int cmdHeaders(Dictionary opts, Reader in, PrintWriter out,
             Session session) {
         Bundle[] b = getBundles((String[]) opts.get("bundle"),
                 opts.get("-i") != null);
+        String locale = (String) opts.get("-l");
         boolean found = false;
         for (int i = 0; i < b.length; i++) {
             if (b[i] != null) {
                 out.println("Bundle: " + showBundle(b[i]));
-                Dictionary d = b[i].getHeaders();
+                Dictionary d = (locale == null ? b[i].getHeaders() 
+                                               : b[i].getHeaders(locale));
                 for (Enumeration e = d.keys(); e.hasMoreElements();) {
                     String key = (String) e.nextElement();
                     out.println("  " + key + " = "
-                            + Util.showObject(d.get(key)));
+                                + Util.showObject(d.get(key)));
                 }
                 found = true;
             }
@@ -713,15 +717,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                 if (verbose) {
                     out.println();
                     out.println("   specification version: "
-                            + epkgs[i].getSpecificationVersion());
+                            + epkgs[i].getVersion());
                     out.println("   removal pending: "
                             + epkgs[i].isRemovalPending());
                     out.println("   exporting bundle: " + showBundle(b));
                     Bundle[] ib = epkgs[i].getImportingBundles();
-                    if (ib.length > 0) {
-                        out
-                                .println("   importing bundle: "
-                                        + showBundle(ib[0]));
+                    if (ib != null && ib.length > 0) {
+                        out.println("   importing bundle: " 
+                                    + showBundle(ib[0]));
                         for (int j = 1; j < ib.length; j++) {
                             out.println("                     "
                                     + showBundle(ib[j]));
