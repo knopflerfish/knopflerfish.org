@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -521,7 +521,7 @@ class Archive {
 	  }
 	});
 	if (list.length > 0) {
-	  lib = list[0];
+	  list[0].renameTo(lib);
 	}
       }
 //XXX - end L-3 modification
