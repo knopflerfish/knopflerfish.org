@@ -34,21 +34,17 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-import org.osgi.service.startlevel.*;
+import java.text.SimpleDateFormat;
+import java.util.Iterator;
+import java.util.Dictionary;
+import java.util.Date;
+import java.util.Enumeration;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.JComponent;
 
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-
-import java.util.*;
-
-
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.startlevel.StartLevel;
 
 public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
@@ -82,6 +78,10 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
       appendRow(sb, "Location", "" + b.getLocation());
       appendRow(sb, "State",    Util.stateName(b.getState()));
+      if (b.getSymbolicName() != null) {
+        appendRow(sb, "Symbolic name", b.getSymbolicName());
+      }
+      appendRow(sb, "Last modified", "" + new SimpleDateFormat().format(new Date(b.getLastModified())));
       
       StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
       if(sls != null) {
