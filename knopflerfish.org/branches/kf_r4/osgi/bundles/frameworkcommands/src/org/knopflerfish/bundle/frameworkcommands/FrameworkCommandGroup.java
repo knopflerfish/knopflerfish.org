@@ -47,6 +47,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -257,25 +259,47 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     // Bundles command
     //
 
-    public final static String USAGE_BUNDLES = "[-1] [-i] [-l] [-s] [<bundle>] ...";
+    public final static String USAGE_BUNDLES = "[-1] [-i] [-l] [-s] [-t] [<bundle>] ...";
 
     public final static String[] HELP_BUNDLES = new String[] { "List bundles",
-            "-1       One column output", "-i       Sort on bundle id",
-            "-s       Sort on bundle start level", "-l       Verbose output",
+            "-1       One column output", 
+            "-i       Sort on bundle id",
+            "-s       Sort on bundle start level", 
+            "-t       Sort on last modified time", 
+            "-l       Verbose output",
             "<bundle> Name or id of bundle" };
 
     public int cmdBundles(Dictionary opts, Reader in, PrintWriter out,
             Session session) {
         Bundle[] b = getBundles((String[]) opts.get("bundle"),
-                opts.get("-i") != null, opts.get("-s") != null);
+                                opts.get("-i") != null, 
+                                opts.get("-s") != null, 
+                                opts.get("-t") != null);
         boolean needNl = false;
+        boolean verbose = (opts.get("-l") != null);
         // .println("12 5/active CM Commands 2 1/active CM Service");
-        if (opts.get("-l") != null) {
-            out.println("   id  level/state location");
+        String[] lastModified = null;
+        if (verbose) {
+            lastModified = new String[b.length];
+            int longestLM = 0;
+            SimpleDateFormat dateFormat = new SimpleDateFormat();
+            for (int i = 0; i < b.length; i++) { // Or just look at the first one...
+                lastModified[i] = dateFormat.format(new Date(b[i].getLastModified()));
+                if (lastModified[i].length() > longestLM) {
+                    longestLM = lastModified[i].length();
+                }
+            }
+            String lmHeader = "modified";
+            if (longestLM > lmHeader.length()) {
+                String blank = "                                    ";
+                lmHeader += blank.substring(blank.length() - (longestLM - lmHeader.length()));
+            }
+            out.println("   id  level/state  " + lmHeader + "  location");
+            out.println("   ----------------------------------------------");
         } else {
             out.println("   id  level/state name");
+            out.println("   --------------------");
         }
-        out.println("   --------------------");
         for (int i = 0; i < b.length; i++) {
             String level = null;
             try {
@@ -290,9 +314,10 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
             if (b[i] == null) {
                 break;
             }
-            if (opts.get("-l") != null) {
+            if (verbose) {
                 out.println(Util.showId(b[i]) + showState(b[i])
-                        + b[i].getLocation());
+                            + " " + lastModified[i] 
+                            + "  " + b[i].getLocation());
             } else {
                 if ((i & 1) == 0 && opts.get("-1") == null) {
                     String s = Util.showId(b[i]) + showState(b[i])
@@ -306,7 +331,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                     needNl = true;
                 } else {
                     out.println(Util.showId(b[i]) + showState(b[i])
-                            + Util.shortName(b[i]));
+                                + Util.shortName(b[i]));
                     needNl = false;
                 }
             }
@@ -878,10 +903,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                                         out.print("\n    ");
                                         showLongService(s[j], "    ", out);
                                     } else {
-                                        out
-                                                .print(" "
-                                                        + Util
-                                                                .showServiceClasses(s[j]));
+                                        out.print(" "+ Util.showServiceClasses(s[j]));
                                     }
                                 }
                                 out.println("");
@@ -896,10 +918,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                                         out.print("\n    ");
                                         showLongService(s[j], "    ", out);
                                     } else {
-                                        out
-                                                .print(" "
-                                                        + Util
-                                                                .showServiceClasses(s[j]));
+                                        out.print(" "+ Util.showServiceClasses(s[j]));
                                     }
                                 }
                             }
@@ -1243,11 +1262,19 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     }
 
     private Bundle[] getBundles(String[] selection, boolean sortNumeric) {
-        return getBundles(selection, sortNumeric, false);
+        return getBundles(selection, sortNumeric, false, false);
     }
 
-    private Bundle[] getBundles(String[] selection, boolean sortNumeric,
-            boolean sortStartLevel) {
+    private Bundle[] getBundles(String[] selection, 
+                                boolean sortNumeric,
+                                boolean sortStartLevel) {
+        return getBundles(selection, sortNumeric, sortStartLevel, false);
+    }
+              
+    private Bundle[] getBundles(String[] selection, 
+                                boolean sortNumeric,
+                                boolean sortStartLevel, 
+                                boolean sortTime) {
         Bundle[] b = bc.getBundles();
         Util.selectBundles(b, selection);
         if (sortNumeric) {
@@ -1257,6 +1284,9 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         }
         if (sortStartLevel) {
             sortBundlesStartLevel(b);
+        }
+        if (sortTime) {
+            Util.sortBundlesTime(b);
         }
 
         return b;
