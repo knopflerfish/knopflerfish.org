@@ -1,6 +1,7 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -47,10 +48,19 @@ public class ErrorMessageDialog extends JDialog {
   }
 
   public ErrorMessageDialog(Frame owner, String title, String friendlyMessage, String moreInfo, Throwable t) {
-    super(owner, (title == null ? "Error" : title), true);
+    super(owner, (title == null || title.length() == 0 ? "Error" : title), true);
     getContentPane().setLayout(new BorderLayout());
 
-    friendLabel = new JLabel(friendlyMessage);
+    if ((moreInfo == null || moreInfo.length() == 0) && t != null) {
+      moreInfo = t.getMessage();
+    }
+
+    if (friendlyMessage == null || friendlyMessage.length() == 0) {
+      friendlyMessage = moreInfo;
+      moreInfo = null;
+    }
+    
+    friendLabel = new JLabel(friendlyMessage == null ? "Unknown error" : friendlyMessage);
     friendPanel = new JPanel(new BorderLayout());
     friendPanel.add(friendLabel, BorderLayout.CENTER);
     getContentPane().add(friendPanel, BorderLayout.NORTH);
@@ -64,10 +74,6 @@ public class ErrorMessageDialog extends JDialog {
     JPanel okPanel = new JPanel(new FlowLayout());
     okPanel.add(okButton);
     getContentPane().add(okPanel, BorderLayout.SOUTH);
-
-    if (moreInfo == null && t != null) {
-      moreInfo = t.getMessage();
-    }
 
     if (moreInfo != null) {
       moreButton = new JButton("More info");
@@ -93,12 +99,17 @@ public class ErrorMessageDialog extends JDialog {
       advancedButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           showAdvanced = !showAdvanced;
+          if (morePanel == null) showMore = showAdvanced;
           advancedButton.setLabel(showAdvanced ? "Simple" : "Advanced");
           arrange();
         }
       });
 
-      morePanel.add(advancedButton, BorderLayout.EAST);
+      if (morePanel == null) {
+        friendPanel.add(advancedButton, BorderLayout.EAST);
+      } else {
+        morePanel.add(advancedButton, BorderLayout.EAST);
+      }
 
       StringBuffer buf = new StringBuffer(t.toString());
       StackTraceElement[] elements = t.getStackTrace();
@@ -106,6 +117,8 @@ public class ErrorMessageDialog extends JDialog {
         buf.append("\n  at ").append(elements[i].toString());
       }
       advancedLabel = new JTextArea(buf.toString());
+      Font oldFont = advancedLabel.getFont();
+      advancedLabel.setFont(new Font(oldFont.getName(), oldFont.getStyle(), 10));
     }
 
     arrange();
@@ -114,14 +127,20 @@ public class ErrorMessageDialog extends JDialog {
 
   private void arrange() {
     if (showMore) {
-      getContentPane().add(extraPanel, BorderLayout.CENTER);
-      if (showAdvanced) {
-        extraPanel.add(advancedLabel, BorderLayout.SOUTH);
-      } else if (advancedLabel != null) {
-        extraPanel.remove(advancedLabel);
+      if (extraPanel == null) {
+        getContentPane().add(advancedLabel, BorderLayout.CENTER);
+      } else {
+        getContentPane().add(extraPanel, BorderLayout.CENTER);
+        if (showAdvanced) {
+          extraPanel.add(advancedLabel, BorderLayout.SOUTH);
+        } else if (advancedLabel != null) {
+          extraPanel.remove(advancedLabel);
+        }
       }
     } else if (extraPanel != null) {
       getContentPane().remove(extraPanel);
+    } else if (advancedLabel != null) {
+      getContentPane().remove(advancedLabel);
     }
 
     pack();
