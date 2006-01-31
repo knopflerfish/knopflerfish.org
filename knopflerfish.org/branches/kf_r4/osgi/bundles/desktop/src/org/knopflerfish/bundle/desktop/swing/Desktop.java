@@ -2005,24 +2005,19 @@ public class Desktop
 
 
   void addFile(File file) {
-
     try {
-      if(file.getName().toUpperCase().endsWith(".JAR")) {
-        try {
-          String location = "file:" + file.getAbsolutePath();
-          Bundle b = Activator.getTargetBC().installBundle(location);
-          Dictionary headers = b.getHeaders();
-          if(Util.canBeStarted(b)) {
-            startBundle(b);
-          }
-        } catch (Exception e) {
-          showErr(null, e);
-        }
-      } else {
-        new ErrorMessageDialog(frame, "The file is not a bundle.").show();
+      String location = "file:" + file.getAbsolutePath();
+      Bundle b = Activator.getTargetBC().installBundle(location);
+      Dictionary headers = b.getHeaders();
+      if(Util.canBeStarted(b)) {
+        startBundle(b);
       }
     } catch (Exception e) {
-      Activator.log.error("Failed to add file", e);
+      if(file.getName().toUpperCase().endsWith(".JAR")) {
+        showErr("Failed to open bundle.", e);
+      } else {
+        showErr("The file is not a bundle.", e);
+      }
     }
   }
 
