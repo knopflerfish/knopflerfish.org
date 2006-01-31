@@ -73,7 +73,7 @@ public class PreferencesServiceImpl implements PreferencesService {
     synchronized(userStorage) {
       PrefsStorageFile storage = (PrefsStorageFile)userStorage.get(name);
       if(storage == null || storage.bStale) {
-	storage   = new PrefsStorageFile(userBase + "/" + name);
+	storage   = new PrefsStorageFile(userBase, name);
 	userStorage.put(name, storage);
       }
       return storage.getNode("", true);

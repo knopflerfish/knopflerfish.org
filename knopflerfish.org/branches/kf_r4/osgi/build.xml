@@ -144,6 +144,16 @@
   </java>
  </target>
 
+ <target name="run-osgi-test-target-secure"
+         description="Start the framework with security enabled in OSGi test target mode.">
+  <java fork="true"
+        jar="framework.jar"
+  >
+    <jvmarg value="-Djava.security.manager"/>
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
+
 
  <target name="clean" description="removes all generated files">
   <delete file="framework.jar"/>
