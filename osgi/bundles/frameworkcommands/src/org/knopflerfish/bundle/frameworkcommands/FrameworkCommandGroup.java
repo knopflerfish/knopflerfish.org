@@ -275,8 +275,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                                 opts.get("-i") != null, 
                                 opts.get("-s") != null, 
                                 opts.get("-t") != null);
-        boolean needNl = false;
         boolean verbose = (opts.get("-l") != null);
+        boolean oneColumn = (opts.get("-1") != null);
+        printBundles(out, b, verbose, oneColumn);
+        return 0;
+    }
+
+    private void printBundles(PrintWriter out, Bundle[] b, boolean verbose, boolean oneColumn) {
+        boolean needNl = false;
         // .println("12 5/active CM Commands 2 1/active CM Service");
         String[] lastModified = null;
         if (verbose) {
@@ -317,11 +323,12 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
             if (verbose) {
                 out.println(Util.showId(b[i]) + showState(b[i])
                             + " " + lastModified[i] 
-                            + "  " + b[i].getLocation());
+                            + "  " + b[i].getLocation()
+                            + getBundleSpeciality(b[i]));
             } else {
-                if ((i & 1) == 0 && opts.get("-1") == null) {
-                    String s = Util.showId(b[i]) + showState(b[i])
-                            + Util.shortName(b[i]);
+                String s = Util.showId(b[i]) + showState(b[i])
+                         + Util.shortName(b[i]) + getBundleSpeciality(b[i]);
+                if ((i & 1) == 0 && !oneColumn) {
                     out.print(s);
                     int l = 40 - s.length();
                     if (l > 0) {
@@ -330,8 +337,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                     }
                     needNl = true;
                 } else {
-                    out.println(Util.showId(b[i]) + showState(b[i])
-                                + Util.shortName(b[i]));
+                    out.println(s);
                     needNl = false;
                 }
             }
@@ -339,9 +345,28 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         if (needNl) {
             out.println("");
         }
-        return 0;
     }
-
+    
+    private String getBundleSpeciality(Bundle bundle) {
+      if (packageAdmin == null) {
+        return "";
+      }
+      String retVal = "";
+      Bundle[] fragments = packageAdmin.getFragments(bundle);
+      if (fragments != null && fragments.length > 0) {
+        retVal += "h"; // host
+      }
+      Bundle[] hosts = packageAdmin.getHosts(bundle);
+      if (hosts != null && hosts.length > 0) {
+        retVal += "f"; // fragment
+      }
+      if (retVal.length() > 0) {
+        retVal = " (" + retVal + ")";
+      }
+      return retVal;
+    }
+      
+    
     //
     // Call command
     //
@@ -594,6 +619,32 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         return 0;
     }
 
+    //
+    // Findbundles command
+    //
+    
+    public final static String USAGE_FINDBUNDLES = "<symbolic name>";
+
+    public final static String[] HELP_FINDBUNDLES = new String[] {
+            "Find bundles with a given symbolic name", 
+            "<symbolic name>  Symbolic name" };
+
+    public int cmdFindbundles(Dictionary opts, Reader in, PrintWriter out,
+            Session session) {
+        if (packageAdmin == null) {
+            out.println("Package Admin service is not available");
+            return 1;
+        }
+        String symbolicName = (String) opts.get("symbolic name"); 
+        Bundle[] bundles = packageAdmin.getBundles(symbolicName, null);
+        if (bundles == null) {
+          out.println("No bundles found.");
+        } else {
+          printBundles(out, bundles, true, true);
+        }
+        return 0;
+    }
+              
     //
     // Headers command
     //
