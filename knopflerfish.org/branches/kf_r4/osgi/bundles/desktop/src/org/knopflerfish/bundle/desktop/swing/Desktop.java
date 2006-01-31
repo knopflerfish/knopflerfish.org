@@ -1267,6 +1267,7 @@ public class Desktop
                 addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent ev) {
                       contentPane.invalidate();
+                      new ErrorMessageDialog(frame, "Not implemented", Strings.get("item_selectall") + " is not implemented.", null, null).show();
                     }
                   });
               }
@@ -1345,7 +1346,7 @@ public class Desktop
         Bundle sysBundle = Activator.getBC().getBundle((long)0);
         sysBundle.stop();
       } catch (Exception e) {
-        e.printStackTrace();
+        showErr("Failed to stop bundle.", e);
       }
     }
   }
@@ -1749,7 +1750,7 @@ public class Desktop
       // end of jarunpacker copy
 
     } catch (Exception e) {
-      e.printStackTrace();
+      showErr("Failed to write to " + file, e);
       Activator.log.error("Failed to write to " + file, e);
     } finally {
       try { out.close(); } catch (Exception ignored) { }
@@ -1930,15 +1931,19 @@ public class Desktop
 
 
   void showErr(String msg, Exception e) {
-    if(msg != null && !"".equals(msg)) {
-      System.out.println(msg);
-    }
     Throwable t = e;
     while(t instanceof BundleException &&
           ((BundleException) t).getNestedException() != null) {
       t = ((BundleException) t).getNestedException();
     }
-    t.printStackTrace();
+    if ("true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false"))) {
+      if(msg != null && !"".equals(msg)) {
+        System.out.println(msg);
+      }
+      t.printStackTrace();
+    } else {
+      new ErrorMessageDialog(frame, null, msg, null, t).show();
+    }
   }
 
 
