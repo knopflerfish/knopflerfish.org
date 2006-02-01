@@ -122,15 +122,16 @@ final public class BundleClassLoader extends ClassLoader {
       Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find class: " + name);
     }
     Class c = null;
+    String pkg = null;
     int pos = name.lastIndexOf('.');
     if (pos != -1) {
-      String pkg = name.substring(0, pos);
+      pkg = name.substring(0, pos);
       BundleImpl p = bpkgs.getProviderBundle(pkg);
       if (p != null) {
 	if (p.getBundleId() != 0) {
 	  BundleClassLoader cl = p.getExporterClassLoader(pkg);
 	  if (cl != null) {
-	    c = cl.loadOwnClass(name);
+	    c = cl.loadOwnClass(name, pkg);
 	    if (debug) {
 	      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported: " + name +
 			    " from #" + p.getBundleId());
@@ -144,7 +145,7 @@ final public class BundleClassLoader extends ClassLoader {
 	throw new ClassNotFoundException(name);
       }
     }
-    c = loadOwnClass(name);
+    c = loadOwnClass(name, pkg);
     if (debug) {
       Debug.println("classLoader(#" + bpkgs.bundle.id + ") - loaded: " + name);
     }
@@ -292,7 +293,7 @@ final public class BundleClassLoader extends ClassLoader {
    * First check if it is already loaded. Then try all archives in this
    * bundles classpath.
    */
-  synchronized Class loadOwnClass(String name) throws ClassNotFoundException {
+  synchronized Class loadOwnClass(String name, String pkg) throws ClassNotFoundException {
     Class c = findLoadedClass(name);
     if (c == null) {
       if (debug) {
@@ -304,6 +305,11 @@ final public class BundleClassLoader extends ClassLoader {
 	  if (debug) {
 	    Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " + name);
 	  }
+          if (pkg != null) {
+            if (getPackage(pkg) == null) {
+              definePackage(pkg, null, null, null, null, null, null, null);
+            }
+          }
 	  if(bpkgs.bundle.protectionDomain == null) {
 	    // Kaffe can't handle null protectiondomain
 	    return defineClass(name, bytes, 0, bytes.length);
