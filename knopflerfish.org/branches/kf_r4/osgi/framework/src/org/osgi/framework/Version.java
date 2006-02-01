@@ -131,14 +131,14 @@ public class Version implements Comparable {
 						qualifier = st.nextToken();
 
 						if (st.hasMoreTokens()) {
-							throw new IllegalArgumentException("invalid format"); //$NON-NLS-1$
+							throw new IllegalArgumentException("invalid format (" + version + ")"); //$NON-NLS-1$
 						}
 					}
 				}
 			}
 		}
 		catch (NoSuchElementException e) {
-			throw new IllegalArgumentException("invalid format"); //$NON-NLS-1$
+			throw new IllegalArgumentException("invalid format (" + version + ")"); //$NON-NLS-1$
 		}
 
 		this.major = major;
