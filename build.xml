@@ -351,9 +351,9 @@
            <include name = "osgi/bundles/measurement/**"/>
            <include name = "osgi/bundles/metatype/**"/>
 
-           <include name = "osgi/bundles/prefs/**"/>
-           <include name = "osgi/bundles/upnp/**"/>
-           <include name = "osgi/bundles/provisioning/**"/>
+           <include name = "osgi/bundles/component/**"/>
+           <include name = "osgi/bundles/event/**"/>
+           <include name = "osgi/bundles/io/**"/>
 
            <include name = "osgi/bundles/prefs/**"/>
            <include name = "osgi/bundles/upnp/**"/>
