@@ -44,7 +44,7 @@
 -->
 
   <property name="import.package"
-            value="org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.osgi.framework,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel,org.osgi.service.packageadmin,org.osgi.service.startlevel,org.osgi.service.packageadmin,org.osgi.util.tracker,org.knopflerfish.util,org.knopflerfish.service.remotefw,org.knopflerfish.service.console"/>
+            value="org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.osgi.framework,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel,org.osgi.service.packageadmin,org.osgi.util.tracker,org.knopflerfish.util,org.knopflerfish.service.remotefw,org.knopflerfish.service.console"/>
 
   &bundlebuild_include;
 
