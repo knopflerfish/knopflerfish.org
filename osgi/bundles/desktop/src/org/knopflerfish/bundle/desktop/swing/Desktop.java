@@ -1258,7 +1258,7 @@ public class Desktop
   JMenu makeEditMenu() {
     return new JMenu(Strings.get("menu_edit")) {
         {
-          add(new JMenuItem(Strings.get("item_selectall")) {
+          /*add(new JMenuItem(Strings.get("item_selectall")) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
                                                       ActionEvent.CTRL_MASK));
@@ -1271,7 +1271,7 @@ public class Desktop
                     }
                   });
               }
-            });
+            });*/
           add(new JMenuItem(Strings.get("item_unselectall")) {
               {
                 addActionListener(new ActionListener() {
