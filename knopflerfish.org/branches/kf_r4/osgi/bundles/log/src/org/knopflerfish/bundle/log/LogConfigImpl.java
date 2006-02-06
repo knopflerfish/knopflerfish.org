@@ -561,30 +561,37 @@ class LogConfigImpl implements ManagedService, LogConfig {
     void updateGrabIO() {
         boolean bDebugClass = "true".equals(System.getProperty(
                 "org.knopflerfish.framework.debug.classloader", "false"));
-
         if (!bDebugClass) {
             if (getGrabIO()) {
-                if (!getOut()) {
-                    if (!bGrabbed) {
-                        origOut = System.out;
-                        origErr = System.err;
-
-                        System.setOut(new WrapStream("[stdout] ", System.out,
-                                org.osgi.service.log.LogService.LOG_INFO));
-                        System.setErr(new WrapStream("[stderr] ", System.out,
-                                org.osgi.service.log.LogService.LOG_ERROR));
-                    }
-                }
+                grabIO();
             } else {
-                if (bGrabbed) {
-                    System.setOut(origOut);
-                    System.setErr(origErr);
-                    bGrabbed = false;
-                }
+                ungrabIO();
             }
         }
     }
 
+    void grabIO() {
+        if (!getOut()) {
+            if (!bGrabbed) {
+                origOut = System.out;
+                origErr = System.err;
+                System.setOut(new WrapStream("[stdout] ", System.out,
+                              org.osgi.service.log.LogService.LOG_INFO));
+                System.setErr(new WrapStream("[stderr] ", System.out,
+                              org.osgi.service.log.LogService.LOG_ERROR));
+                bGrabbed = true;
+            }
+        }
+    }
+
+    void ungrabIO() {
+        if (bGrabbed) {
+            System.setOut(origOut);
+            System.setErr(origErr);
+            bGrabbed = false;
+        }
+    }
+            
     class WrapStream extends PrintStream {
         String prefix;
 
