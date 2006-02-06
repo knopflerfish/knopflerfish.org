@@ -24,6 +24,7 @@
   <property name="bundle.description"    value="Preferences"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.symbolicname"   value="org.knopflerfish.bundle.${ant.project.name}"/>
   <property name="bundle.version"        value="1.1.0"/>
   <property name="bundle.apivendor"      value="OSGi"/>
 
