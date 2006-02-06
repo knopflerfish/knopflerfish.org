@@ -43,7 +43,7 @@ import org.apache.tools.ant.taskdefs.ManifestException;
  * with special empty values.
  *
  * <p>
- * Any attrubute with the value
+ * Any attribute with the value
  * <pre>
  * [bundle.emptystring]
  * </pre>
