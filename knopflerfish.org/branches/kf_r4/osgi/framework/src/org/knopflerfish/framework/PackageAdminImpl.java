@@ -271,12 +271,18 @@ public class PackageAdminImpl implements PackageAdmin {
 
   public boolean resolveBundles(Bundle[] bundles) {
     checkResolveAdminPerm();
-    if (bundles == null) {
-      bundles = framework.bundles.getBundles();
+    List bl;
+    if (bundles != null) {
+      bl =  new ArrayList();
+      for (int bx = 0 ; bx < bundles.length; bx++ ) {
+        bl.add(bundles[bx]);
+      }
+    } else {
+      bl = framework.bundles.getBundles();
     }
     boolean res = true;
-    for (int bx = bundles.length; bx-- > 0; ) {
-      if (((BundleImpl)bundles[bx]).getUpdatedState() == Bundle.INSTALLED) {
+    for (Iterator i = bl.iterator(); i.hasNext(); ) {
+      if (((BundleImpl)i.next()).getUpdatedState() == Bundle.INSTALLED) {
         res = false;
       }
     }
@@ -285,18 +291,35 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   public RequiredBundle[] getRequiredBundles(String symbolicName) {
-    // NYI! Require
-    return null;
+    List bs;
+    ArrayList res = new ArrayList();
+    if (symbolicName != null) {
+      bs = framework.bundles.getBundles(symbolicName);
+    } else {
+      bs = framework.bundles.getBundles();
+    }
+    for (Iterator i = bs.iterator(); i.hasNext(); ) {
+      BundleImpl b = (BundleImpl)i.next();
+      if (b.requiredBy != null) {
+        res.add(new RequiredBundleImpl(b));
+      }
+    }
+    int s = res.size();
+    if (s > 0) {
+      return (RequiredBundle [])res.toArray(new RequiredBundle[s]);
+    } else {
+      return null;
+    }
   }
 
 
   public Bundle[] getBundles(String symbolicName, String versionRange) {
-    VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) : null;
+    VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
+      VersionRange.defaultVersionRange;
     List bs = framework.bundles.getBundles(symbolicName, vr);
     int size = bs.size();
     if (size > 0) {
       Bundle[] res = new Bundle[size];
-      Util.sort(bs, bvComp, true);
       Iterator i = bs.iterator();
       for (int pos = 0; pos < size;) {
         res[pos++] = (Bundle)i.next();
@@ -334,26 +357,5 @@ public class PackageAdminImpl implements PackageAdmin {
     // NYI! Fragments
     return 0;
   }
-
-  //
-  // Private
-  //
-
-  static final Util.Comparator bvComp = new Util.Comparator() {
-      /**
-       * Version compare two BundleImpl objects based on version.
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a BundleImpl object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-	BundleImpl a = (BundleImpl)oa;
-	BundleImpl b = (BundleImpl)ob;
-	return a.version.compareTo(b.version);
-      }
-    };
 
 }

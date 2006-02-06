@@ -90,7 +90,7 @@ class Bundles {
   BundleImpl install(final String location, final InputStream in) throws BundleException {
     BundleImpl b;
     synchronized (this) {
-      b = (BundleImpl) bundles.get(location);
+      b = getBundle(location);
       if (b != null) {
         return b;
       }
@@ -194,10 +194,7 @@ class Bundles {
    *         if bundle was not found.
    */
   BundleImpl getBundle(String location) {
-        //pl: hashtable operations are already synchronized  
-    //synchronized (bundles) {
-      return (BundleImpl) bundles.get(location);
-   // }
+    return (BundleImpl) bundles.get(location);
   }
 
 
@@ -227,15 +224,12 @@ class Bundles {
    *
    * @return A Bundle array with bundles.
    */
-  BundleImpl[] getBundles() {
+  List getBundles() {
+    ArrayList res = new ArrayList(bundles.size());
     synchronized (bundles) {
-      BundleImpl [] result = new BundleImpl[bundles.size()];
-      int i = 0;
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        result[i++] = (BundleImpl)e.nextElement();
-      }
-      return result;
+      res.addAll(bundles.values());
     }
+    return res;
   }
 
 
@@ -243,18 +237,43 @@ class Bundles {
    * Get all bundles that has specified bundle symbolic name.
    *
    * @param name The symbolic name of bundles to get.
-   * @param range Version range of bundles to get, get all if null.
+   * @return A List of BundleImpl.
+   */
+  List getBundles(String name) {
+    ArrayList res = new ArrayList();
+    synchronized (bundles) {
+      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
+        BundleImpl b = (BundleImpl)e.nextElement();
+        if (name.equals(b.symbolicName)) {
+          res.add(b);
+        }
+      }
+    }
+    return res;
+  }
+
+
+  /**
+   * Get all bundles that has specified bundle symbolic name and
+   * version range. Result is sorted in decreasing version order.
+   *
+   * @param name The symbolic name of bundles to get.
+   * @param range Version range of bundles to get.
    * @return A List of BundleImpl.
    */
   List getBundles(String name, VersionRange range) {
-    ArrayList res = new ArrayList();
-    synchronized (bundles) {
-      int i = 0;
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        BundleImpl b = (BundleImpl)e.nextElement();
-        if (name.equals(b.symbolicName) && (range == null || range.withinRange(b.version))) {
-          res.add(b);
+    List res = getBundles(name);
+    for (int i = 0; i < res.size(); ) {
+      BundleImpl b = (BundleImpl)res.remove(i);
+      if (range.withinRange(b.version)) {
+        int j = i;
+        while (--j >= 0) {
+          if (b.version.compareTo(((BundleImpl)res.get(j)).version) <= 0) {
+            break;
+          }
         }
+        res.add(j + 1, b);
+        i++;
       }
     }
     return res;

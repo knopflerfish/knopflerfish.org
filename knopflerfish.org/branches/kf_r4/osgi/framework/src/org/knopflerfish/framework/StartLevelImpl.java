@@ -38,6 +38,8 @@ import org.osgi.framework.*;
 import org.osgi.framework.AdminPermission;
 import org.osgi.service.startlevel.*;
 import java.util.Vector;
+import java.util.List;
+import java.util.Iterator;
 
 import java.io.File;
 
@@ -229,10 +231,10 @@ public class StartLevelImpl implements StartLevel, Runnable {
       }
       Vector set = new Vector();
 
-      BundleImpl[] bundles = framework.bundles.getBundles();
+      List bundles = framework.bundles.getBundles();
 
-      for(int i = 0; i < bundles.length; i++) {
-	BundleImpl bs  = bundles[i];
+      for(Iterator i = bundles.iterator(); i.hasNext(); ) {
+	BundleImpl bs  = (BundleImpl)i.next();
 
 	if(canStart(bs)) {
 	  if(bs.getStartLevel() == currentLevel) {
@@ -270,11 +272,11 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       Vector set = new Vector();
       
-      BundleImpl[] bundles = framework.bundles.getBundles();
+      List bundles = framework.bundles.getBundles();
 
-      for(int i = 0; i < bundles.length; i++) {
-	BundleImpl bs  = bundles[i];
-	
+      for(Iterator i = bundles.iterator(); i.hasNext(); ) {
+	BundleImpl bs  = (BundleImpl)i.next();
+
 	if(bs.getState() == Bundle.ACTIVE) {
 	  if(bs.getStartLevel() == currentLevel + 1) {
 	    set.addElement(bs);

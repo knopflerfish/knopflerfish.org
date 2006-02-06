@@ -81,22 +81,22 @@ class BundleImpl implements Bundle {
   /**
    * Does bundle have a version 2 manifest.
    */
-  final boolean v2Manifest;
+  boolean v2Manifest;
 
   /**
    * Bundle symbolic name.
    */
-  final String symbolicName;
+  String symbolicName;
 
   /**
    * Bundle is a singleton.
    */
-  final boolean singleton;
+  boolean singleton;
 
   /**
    * Bundle version.
    */
-  final Version version;
+  Version version;
 
   /**
    * State of bundle.
@@ -114,19 +114,24 @@ class BundleImpl implements Bundle {
   BundleArchive archive;
 
   /**
+   * List of Required bundles.
+   */
+  ArrayList /* BundleImpl.Require */ require;
+
+  /**
+   * List of bundles that require us.
+   */
+  ArrayList /* BundleImpl */ requiredBy = null;
+
+  /**
    * Classloader for bundle.
    */
   private BundleClassLoader classLoader = null;
 
   /**
-   * Zombie classloaders for bundle.
+   * Zombie packages for bundle.
    */
   private HashMap /* String -> BundleClassLoader */ oldClassLoaders = null;
-
-  /**
-   * List of Required bundles.
-   */
-  private ArrayList /* Bundle.Require */ require;
 
   /**
    * Directory for bundle data.
@@ -144,12 +149,9 @@ class BundleImpl implements Bundle {
   protected BundleActivator bactivator = null;
 
   /**
-   * List of all nativeLibs that can be used in this bundle.
+   * Time when bundle was last modifed.
    *
-   * pl: unused
    */
-  //protected List nativeLibs = null;
-
   protected long lastModified;
 
   /**
@@ -250,51 +252,7 @@ class BundleImpl implements Bundle {
     archive = ba;
 
     state = INSTALLED;
-    v2Manifest = "2".equals(ba.getAttribute(Constants.BUNDLE_MANIFESTVERSION));
-    if (v2Manifest) {
-      Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
-                                     ba.getAttribute(Constants.BUNDLE_SYMBOLICNAME),
-                                     true, true, true);
-      Map e;
-      if (i.hasNext()) {
-        e = (Map)i.next();
-        symbolicName = (String)e.get("key");
-      } else {
-        throw new IllegalArgumentException("Bundle has no symbolic name");
-      }
-      String mbv = ba.getAttribute(Constants.BUNDLE_VERSION);
-      if (mbv != null) {
-        version = new Version(mbv);
-      } else {
-        version = Version.emptyVersion;
-      }
-      singleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
-      if (framework.bundles.getBundle(symbolicName, version) != null) {
-        throw new IllegalArgumentException("Bundle with same symbolic name and version " +
-                                           "is already installed");
-      }
-      i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
-                            ba.getAttribute(Constants.REQUIRE_BUNDLE),
-                            true, true, false);
-      if (i.hasNext()) {
-        require = new ArrayList();
-        do {
-          e = (Map)i.next();
-          require.add(new Require((String)e.get("key"),
-                                  (String)e.get(Constants.VISIBILITY_DIRECTIVE),
-                                  (String)e.get(Constants.RESOLUTION_DIRECTIVE),
-                                  (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
-	  // NYI warn about unknown directives?
-        } while (i.hasNext());
-      } else {
-        require = null;
-      }
-    } else {
-      symbolicName = null;
-      singleton = false;
-      version = Version.emptyVersion;
-      require = null;
-    }
+    cacheManifestHeaders();
     doExportImport();
     FileTree dataRoot = fw.getDataStorage();
     if (dataRoot != null) {
@@ -605,95 +563,100 @@ class BundleImpl implements Bundle {
 
       switch (getUpdatedState()) {
       case ACTIVE:
-  stop();
+        stop();
   // Fall through
       case RESOLVED:
         framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
       case INSTALLED:
   // Load new bundle
-  try {
-    final BundleImpl thisBundle = this;
-    final int oldStartLevel = getStartLevel();
-    AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws BundleException {
-    BundleArchive newArchive = null;
-    //HeaderDictionary newHeaders;
-    try {
-      // New bundle as stream supplied?
-      InputStream bin;
-      if (in == null) {
-        // Try Bundle-UpdateLocation
-        String update = archive.getAttribute(Constants.BUNDLE_UPDATELOCATION);
-        if (update == null) {
-          // Take original location
-          update = location;
-        }
-        bin = (new URL(update)).openStream();
-      } else {
-        bin = in;
-      }
-      newArchive = framework.storage.replaceBundleJar(archive, bin);
-      newArchive.setStartLevel(oldStartLevel);
-    } catch (Exception e) {
-      if (newArchive != null) {
-        newArchive.purge();
-      }
-
-      if (wasActive) {
         try {
-          start();
-        } catch (BundleException be) {
-          framework.listeners.frameworkError(thisBundle, be);
+          final int oldStartLevel = getStartLevel();
+          final BundleImpl thisBundle = this;
+          AccessController.doPrivileged(new PrivilegedExceptionAction() {
+              public Object run() throws BundleException {
+                BundleArchive newArchive = null;
+                //HeaderDictionary newHeaders;
+                try {
+                  // New bundle as stream supplied?
+                  InputStream bin;
+                  if (in == null) {
+                    // Try Bundle-UpdateLocation
+                    String update = archive.getAttribute(Constants.BUNDLE_UPDATELOCATION);
+                    if (update == null) {
+                      // Take original location
+                      update = location;
+                    }
+                    bin = (new URL(update)).openStream();
+                  } else {
+                    bin = in;
+                  }
+                  newArchive = framework.storage.replaceBundleJar(archive, bin);
+                  checkEE(newArchive);
+                  cacheManifestHeaders();
+                  newArchive.setStartLevel(oldStartLevel);
+                } catch (Exception e) {
+                  if (newArchive != null) {
+                    newArchive.purge();
+                  }
+                  
+                  if (wasActive) {
+                    try {
+                      start();
+                    } catch (BundleException be) {
+                      framework.listeners.frameworkError(thisBundle, be);
+                    }
+                  }
+                  if (e instanceof BundleException) {
+                    throw (BundleException)e;
+                  } else {
+                    throw new BundleException("Failed to get update bundle", e);
+                  }
+                }
+
+                // Remove this bundle's packages
+                boolean allRemoved = bpkgs.unregisterPackages(false);
+
+                // Loose old bundle if no exporting packages left
+                if (classLoader != null) {
+                  if (allRemoved) {
+                    classLoader.purge();
+                  } else {
+                    saveZombiePackages();
+                  }
+                  classLoader = null;
+                }
+
+
+                // Activate new bundle
+                state = INSTALLED;
+                BundleArchive oldArchive = archive;
+                archive = newArchive;
+                doExportImport();
+
+                // Purge old archive
+                if (allRemoved) {
+                  oldArchive.purge();
+                }
+
+                // Broadcast updated event
+                framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED,
+                                                                  thisBundle));
+
+                // Restart bundles previously stopped in the operation
+                if (wasActive) {
+                  try {
+                    thisBundle.start();
+                  } catch (BundleException be) {
+                    framework.listeners.frameworkError(thisBundle, be);
+                  }
+                }
+                return null;
+              }
+            });
+        } catch (PrivilegedActionException e) {
+          throw (BundleException) e.getException();
         }
-      }
-      throw new BundleException("Failed to get update bundle", e);
-    }
-
-    // Remove this bundle's packages
-    boolean allRemoved = bpkgs.unregisterPackages(false);
-
-    // Loose old bundle if no exporting packages left
-    if (classLoader != null) {
-      if (allRemoved) {
-        classLoader.purge();
-      } else {
-        saveZombiePackages();
-      }
-      classLoader = null;
-    }
-
-
-    // Activate new bundle
-    state = INSTALLED;
-    BundleArchive oldArchive = archive;
-    archive = newArchive;
-    doExportImport();
-
-    // Purge old archive
-    if (allRemoved) {
-      oldArchive.purge();
-    }
-
-    checkEE(newArchive);
-
-    // Broadcast updated event
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, thisBundle));
-
-    // Restart bundles previously stopped in the operation
-    if (wasActive) {
-      try {
-        thisBundle.start();
-      } catch (BundleException be) {
-        framework.listeners.frameworkError(thisBundle, be);
-      }
-    }
-    return null;
-        }
-      });
-  } catch (PrivilegedActionException e) {
-    throw (BundleException) e.getException();
-  }
-  break;
+        break;
       case STARTING:
         // Wait for RUNNING state, this doesn't happen now
         // since we are synchronized.
@@ -796,6 +759,7 @@ class BundleImpl implements Bundle {
       // id, location and headers survices after uninstall.
       state = UNINSTALLED;
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
+      modified();
       break;
     case STARTING:
       // Wait for RUNNING state, this doesn't happen now
@@ -808,8 +772,6 @@ class BundleImpl implements Bundle {
     case UNINSTALLED:
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
-    //only when complete success
-    modified();
   }
 
 
@@ -1028,7 +990,36 @@ class BundleImpl implements Bundle {
           return cl;
         }
       }
-      return (BundleClassLoader)getClassLoader();
+      if (bpkgs.getExport(pkg) != null) {
+        return (BundleClassLoader)getClassLoader();
+      } else {
+        return null;
+      }
+  }
+
+
+  /**
+   * Get a list of all bundles that exports package <code>pkg</code> that we
+   * have required in correct order. Correct order is a depth first
+   * search order.
+   *
+   * @param pkg String with package name we are searching for.
+   * @return List of required bundles or null we don't require any bundles.
+   */
+  ArrayList getRequiredBundles(String pkg) {
+    if (require != null) {
+      ArrayList res = new ArrayList();
+      for (Iterator i = require.iterator(); i.hasNext(); ) {
+        BundleImpl.Require br = (BundleImpl.Require)i.next();
+        if (br.bundle != null) {
+          res.add(br.bundle);
+        }
+      }
+      if (!res.isEmpty()) {
+        return res;
+      }
+    }
+    return null;
   }
 
 
@@ -1115,6 +1106,64 @@ class BundleImpl implements Bundle {
   //
   // Private methods
   //
+
+  /**
+   * Cache certain manifest headers as variables.
+   */
+  private void cacheManifestHeaders() {
+    // TBD, v2Manifest unnecessary to cache?
+    v2Manifest = "2".equals(archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION));
+    Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
+                                   archive.getAttribute(Constants.BUNDLE_SYMBOLICNAME),
+                                   true, true, true);
+    Map e = null;
+    if (i.hasNext()) {
+      e = (Map)i.next();
+      symbolicName = (String)e.get("key");
+    } else {
+      if (v2Manifest) {
+        throw new IllegalArgumentException("Bundle has no symbolic name");
+      } else {
+        symbolicName = null;
+      }
+    }
+    String mbv = archive.getAttribute(Constants.BUNDLE_VERSION);
+    if (mbv != null) {
+      version = new Version(mbv);
+    } else {
+      version = Version.emptyVersion;
+    }
+    if (e != null) {
+      singleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
+      BundleImpl snb = framework.bundles.getBundle(symbolicName, version);
+      // TBD! Should we allow update to same version?
+      if (snb != null && snb != this) {
+        throw new IllegalArgumentException("Bundle with same symbolic name and version " +
+                                           "is already installed (" + symbolicName + ", " +
+                                           version);
+      }
+    } else {
+      singleton = false;
+    }
+    i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
+                          archive.getAttribute(Constants.REQUIRE_BUNDLE),
+                          true, true, false);
+    if (i.hasNext()) {
+      require = new ArrayList();
+      do {
+        e = (Map)i.next();
+        require.add(new Require(this,
+                                (String)e.get("key"),
+                                (String)e.get(Constants.VISIBILITY_DIRECTIVE),
+                                (String)e.get(Constants.RESOLUTION_DIRECTIVE),
+                                (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
+        // NYI warn about unknown directives?
+      } while (i.hasNext());
+    } else {
+      require = null;
+    }
+  }
+
 
   /**
    * Save the start on launch flag to the persistent bundle storage.
@@ -1220,7 +1269,9 @@ class BundleImpl implements Bundle {
     Iterator i = bpkgs.getExports();
     while (i.hasNext()) {
       ExportPkg pkg = (ExportPkg)i.next();
-      oldClassLoaders.put(pkg.name, getClassLoader());
+      if (oldClassLoaders.put(pkg.name, getClassLoader()) != null) {
+        // throw new RuntimeException("NYI, handling of multiple zombie packages");
+      }
     }
   }
 
@@ -1331,7 +1382,7 @@ public URL getEntry(String name) {
   //not REALLY using class loader, just don't want to duplicate functionality
   BundleClassLoader cl = (BundleClassLoader) getClassLoader();
     if (cl != null) {
-      Enumeration e =  cl.findBundleResources(name);
+      Enumeration e =  cl.getBundleResources(name, true);
       if (e != null && e.hasMoreElements()) {
         return (URL)e.nextElement();
       }
@@ -1394,7 +1445,7 @@ public Enumeration getResources(String name) throws IOException {
     checkResourceAdminPerm();
       BundleClassLoader cl = (BundleClassLoader)getClassLoader();
       if (cl != null) {
-        return cl.getBundleResources(name);
+        return cl.getBundleResources(name, false);
       }
   } catch (SecurityException e) {
     //return null; done below
@@ -1444,13 +1495,18 @@ public Class loadClass(final String name) throws ClassNotFoundException {
   return clazz;*/
   }//method
 
+  
   class Require {
+    BundleImpl requestor;
     final String name;
     final String visibility;
     final String resolution;
     final VersionRange bundleRange;
+    BundleImpl bundle = null;
 
-    Require(String name, String visibility, String resolution, String range) {
+    Require(BundleImpl requestor, String name, String visibility,
+            String resolution, String range) {
+      this.requestor = requestor;
       this.name = name;
       if (visibility != null) {
         this.visibility = visibility;

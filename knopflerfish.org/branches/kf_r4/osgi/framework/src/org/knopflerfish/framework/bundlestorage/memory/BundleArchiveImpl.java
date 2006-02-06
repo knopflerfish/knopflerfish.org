@@ -190,19 +190,13 @@ class BundleArchiveImpl implements BundleArchive
    * Get a byte array containg the contents of named file from a bundle
    * archive.
    *
-   * @param clazz Class to get.
+   * @param sub index of jar, 0 means the top level.
+   * @param path Path to class file.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  public byte[] getClassBytes(String clazz) throws IOException {
-    String cp = clazz.replace('.', '/') + ".class";
-    for (int i = 0; i < archives.length; i++) {
-      byte [] res = archives[i].getClassBytes(cp);
-      if (res != null) {
-        return res;
-      }
-    }
-    return null;
+  public byte[] getClassBytes(Integer sub, String path) throws IOException {
+    return archives[sub.intValue()].getClassBytes(path);
   }
 
 
@@ -211,9 +205,10 @@ class BundleArchiveImpl implements BundleArchive
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
+   * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  public Vector componentExists(String component) {
+  public Vector componentExists(String component, boolean onlyFirst) {
     Vector v = null;
     if (component.startsWith("/")) {
       component = component.substring(1);
@@ -228,6 +223,9 @@ class BundleArchiveImpl implements BundleArchive
         try {
             is.close();
         } catch (IOException ignore) { }
+        if (onlyFirst) {
+          break;
+        }
       }
     }
     return v;

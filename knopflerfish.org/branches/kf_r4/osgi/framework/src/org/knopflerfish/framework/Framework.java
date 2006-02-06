@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -435,9 +435,9 @@ public class Framework {
       }
       shuttingdown = false; 
       // Purge any unrefreshed bundles
-      BundleImpl [] all = bundles.getBundles();
-      for (int i = 0; i < all.length; i++) {
-	all[i].purge();
+      List all = bundles.getBundles();
+      for (Iterator i = all.iterator(); i.hasNext(); ) {
+	((BundleImpl)i.next()).purge();
       }
     }
   }

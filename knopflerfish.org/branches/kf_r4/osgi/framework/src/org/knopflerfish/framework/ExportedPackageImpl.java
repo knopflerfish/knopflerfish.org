@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,12 +150,10 @@ public class ExportedPackageImpl implements ExportedPackage {
    */
   public boolean isRemovalPending() {
     Packages packages = pkg.bundle.framework.packages;
-    synchronized (packages) {
-      if (packages.isProvider(pkg)) {
-	return pkg.zombie;
-      } else {
-	return false;
-      }
+    if (packages.isProvider(pkg)) {
+      return pkg.zombie;
+    } else {
+      return false;
     }
   }
 

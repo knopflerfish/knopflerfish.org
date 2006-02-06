@@ -657,11 +657,13 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	  //out.println("Got exported package " + exp2[i].getName() + " spev ver. " + exp2[i].getSpecificationVersion() + " in FRAME215A");
 	  if (version.equals(exp2[i].getSpecificationVersion()) && packName.equals(exp2[i].getName())) {
 	    Bundle [] ib = exp2[i].getImportingBundles();
-	    for (int j = 0; j < ib.length ; j++ ) {
-	      //out.println("   Importing bundle: " + ib[j].getBundleId());
-	      if (ib[j].getBundleId() ==  impId) {
-		// out.println ("MATCH p2 p2 hurrah");
-		teststatus = true;
+            if (ib != null) {
+              for (int j = 0; j < ib.length ; j++ ) {
+                //out.println("   Importing bundle: " + ib[j].getBundleId());
+                if (ib[j].getBundleId() ==  impId) {
+                  // out.println ("MATCH p2 p2 hurrah");
+                  teststatus = true;
+                }
 	      }
 	    }
 	  }

@@ -487,8 +487,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       //Localization tests
       Dictionary dict = buA.getHeaders();
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleA_test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have default-localized value:FRAME020A:FAIL");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleA_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME020A:FAIL");
       }
       
       
@@ -927,8 +927,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
      
       Dictionary dict = buC.getHeaders();
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleC_test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have default-localized value:FRAME020A:FAIL");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleC_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME055A:FAIL");
       }
       
       
@@ -1264,8 +1264,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       
       Dictionary dict = buE.getHeaders();
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleE_test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have default-localized value:FRAME020A:FAIL");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleE_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME065A:FAIL");
       }
       
       if (teststatus == true && lStat == true && lStatSync == true) {
@@ -1742,16 +1742,16 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
       
       Dictionary dict = buF.getHeaders("fr_CA");
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleF_test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have correct localized value:FRAME020A:FAIL");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleF_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have correct value:FRAME080A:FAIL");
       }
       if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("Test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have correct localized value:FRAME020A:FAIL");
+    	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have correct localized value:FRAME080A:FAIL");
       }
       
       dict = buF.getHeaders("fr");
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleF_test_stillnotthisone")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have correct localized value:FRAME020A:FAIL");
+      if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("Tezt")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have correct localized value:FRAME080A:FAIL");
       }
       
       
@@ -1852,20 +1852,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       
       Dictionary dict = buH.getHeaders("en_US");
       
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleH_test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have rightt value:FRAME020A:FAIL");
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleH_test")){
+    	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have rightt value:FRAME085A:FAIL");
       }
       
       if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("Test bundle for framework, bundleH_test")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have rightt value:FRAME020A:FAIL");
+    	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have rightt value:FRAME085A:FAIL");
       }
       
       if(!dict.get(Constants.BUNDLE_NAME).equals("bundle_H")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_NAME + " header does not have rightt value:FRAME020A:FAIL");
+    	  fail("framework test bundle, " +  Constants.BUNDLE_NAME + " header does not have rightt value:FRAME085A:FAIL");
       }
       
       if(!dict.get(Constants.BUNDLE_VERSION).equals("2.0.0")){
-    	  fail("framework test bundle, " +  Constants.BUNDLE_VERSION + " header does not have rightt value:FRAME020A:FAIL");
+    	  fail("framework test bundle, " +  Constants.BUNDLE_VERSION + " header does not have right value:FRAME085A:FAIL");
       }
       
       
@@ -3537,15 +3537,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 	    	}
   
 	        Dictionary dict = buF.getHeaders();
-	        if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("bundleF_test")){
-	      	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have rightt value:FRAME020A:FAIL");
+	        if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleF_test")){
+	      	  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME211A:FAIL");
 	        }
 	        
 	        
   
-	        dict = buF.getHeaders();
+	        dict = buF.getHeaders("");
 	        if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("%description")){
-	      	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have raw value:FRAME020A:FAIL");
+	      	  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have raw value, " + dict.get(Constants.BUNDLE_DESCRIPTION) + ":FRAME211A:FAIL");
 	        }
 	        
 	        

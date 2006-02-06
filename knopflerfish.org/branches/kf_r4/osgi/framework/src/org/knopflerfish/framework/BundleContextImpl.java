@@ -39,8 +39,8 @@ import java.security.*;
 
 //import java.util.Set;
 import java.util.Dictionary;
-/*
 import java.util.List;
+/*
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
@@ -194,7 +194,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundles
    */
   public Bundle[] getBundles() {
-    return framework.bundles.getBundles();
+    List bl = framework.bundles.getBundles();
+    return (Bundle[])bl.toArray(new Bundle [bl.size()]);
   }
 
 
