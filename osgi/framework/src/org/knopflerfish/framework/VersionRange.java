@@ -117,6 +117,9 @@ public class VersionRange implements Comparable
    * @exception ClassCastException if object is not a Version object.
    */
   public boolean withinRange(Version ver) {
+    if (this == defaultVersionRange) {
+      return true;
+    }
     int c = low.compareTo(ver);
 
     if (c < 0 || (c == 0 && lowIncluded)) {

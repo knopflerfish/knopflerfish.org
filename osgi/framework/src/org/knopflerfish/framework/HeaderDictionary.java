@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,11 @@
 
 package org.knopflerfish.framework;
 
-/*
-import java.io.*;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;*/
 import java.util.Map;
-/*
-import java.util.HashSet;
-import java.util.HashMap;
-*/
 import java.util.Iterator;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
-//import java.util.Vector;
 
 import java.util.jar.*;
 
@@ -61,10 +49,7 @@ import java.util.jar.*;
  */
 public class HeaderDictionary extends Dictionary
 {
-
   private Hashtable headers;
-
-
 
   /**
    * Create a dictionary from manifest attributes.
@@ -79,7 +64,7 @@ public class HeaderDictionary extends Dictionary
 
 
   /**
-   * Create a clone of an existing HeaderDictionary
+   * Create a dictionary of an existing Hashtable.
    */
   public HeaderDictionary(Hashtable t) {
     headers = t;

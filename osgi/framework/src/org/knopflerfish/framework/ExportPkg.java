@@ -118,6 +118,91 @@ class ExportPkg {
 
 
   /**
+   * Create a re-export package entry with a new bundle owner from an existing export.
+   */
+  ExportPkg(ExportPkg ep, BundleImpl b) {
+    this.name = ep.name;
+    this.bundle = b;
+    this.uses = ep.uses;
+    this.mandatory = ep.mandatory;
+    this.include = ep.include;
+    this.exclude = ep.exclude;
+    this.version = ep.version;
+    this.attributes = ep.attributes;
+  }
+
+
+  /**
+   * Checks if we are allowed to export this class according to
+   * the filter rules.
+   */
+  boolean checkFilter(String fullClassName) {
+    String clazz = null;
+    boolean ok = true;
+    if (fullClassName != null) {
+      if (include != null) {
+        // assert fullClassName.startsWith(name)
+        clazz = fullClassName.substring(name.length() + 1);
+        for (Iterator i = include.iterator(); i.hasNext(); ) {
+          if (filterMatch((String)i.next(), clazz)) {
+            break;
+          }
+          if (!i.hasNext()) {
+            ok = false;
+          }
+        }
+      }
+      if (ok && exclude != null) {
+        if (clazz == null) {
+          // assert fullClassName.startsWith(name)
+          clazz = fullClassName.substring(name.length() + 1);
+        }
+        for (Iterator i = exclude.iterator(); i.hasNext(); ) {
+          if (filterMatch((String)i.next(), clazz)) {
+            ok = false;
+            break;
+          }
+        }
+      }
+    }
+    return ok;
+  }
+
+
+  /**
+   */
+  private  boolean filterMatch(String filter, String s) {
+    return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);
+  }
+
+
+  /**
+   */
+  private boolean patSubstr(char[] s, int si, char[] pat, int pi) {
+    if (pat.length-pi == 0) 
+      return s.length-si == 0;
+    if (pat[pi] == '*') {
+      pi++;
+      for (;;) {
+        if (patSubstr( s, si, pat, pi))
+          return true;
+        if (s.length-si == 0)
+          return false;
+        si++;
+      }
+    } else {
+      if (s.length-si==0){
+        return false;
+      }
+      if(s[si]!=pat[pi]){
+        return false;
+      }
+      return patSubstr( s, ++si, pat, ++pi);
+    }
+  }
+
+
+  /**
    * String describing package name and specification version, if specified.
    *
    * @return String.

@@ -104,12 +104,12 @@ public interface BundleArchive {
    * Get a byte array containg the contents of named file from a bundle
    * archive.
    *
+   * @param Integer From which sub archive to get.
    * @param component File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getClassBytes(String component) throws IOException;
-
+  byte[] getClassBytes(Integer sub, String component) throws IOException;
 
 
   /**
@@ -117,9 +117,10 @@ public interface BundleArchive {
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
+   * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector of entry numbers, or null if it doesn't exist.
    */
-  Vector componentExists(String component);
+  Vector componentExists(String component, boolean onlyFirst);
 
 
   /**

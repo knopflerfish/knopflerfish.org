@@ -56,7 +56,7 @@
  <property name = "bundle.name"           value = "${ant.project.name}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
  <property name = "bundle.uuid"           value = "org.knopflerfish:${bundle.name}:${bundle.version}"/>
- <property name = "bundle.symbolicname"   value = "${bundle.uuid}"/>
+ <property name = "bundle.symbolicname"   value = "${bundle.emptystring}"/>
  <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
  <property name = "bundle.description"    value = "${bundle.emptystring}"/>

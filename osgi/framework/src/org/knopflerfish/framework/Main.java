@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -332,10 +333,10 @@ public class Main {
           if (i+1 < args.length) {
             long[] ids = null;
             if("ALL".equals(args[i+1])) {
-              Bundle[] bl = framework.getSystemBundleContext().getBundles();
-              ids = new long[bl.length];
-              for(int n = 0; n < bl.length; n++) {
-                ids[n] = bl[n].getBundleId();
+              List bl = framework.bundles.getBundles();
+              ids = new long[bl.size()];
+              for(int n = bl.size() - 1; n >= 0; n--) {
+                ids[n] = ((BundleImpl)bl.get(n)).getBundleId();
               }
             } else {
               ids = new long[] { getBundleID(base,args[i+1]) };

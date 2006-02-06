@@ -200,7 +200,7 @@ class BundlePackages {
         return false;
       }
     }
-    failReason = bundle.framework.packages.checkResolve(bundle, imports.iterator());
+    failReason = bundle.framework.packages.resolve(bundle, imports.iterator());
     if (failReason == null) {
       okImports = (ArrayList)imports.clone();
       return true;
@@ -265,9 +265,25 @@ class BundlePackages {
 
 
   /**
-   * Get an iterator over all exported packages.
+   * Check if package needs to be added as re-exported package.
    *
-   * @return An Iterator over ExportPkg.
+   * @param ep ExportPkg to re-export.
+   */
+  void checkReExport(ExportPkg ep) {
+    int i = Util.binarySearch(exports, epFind, ep.name);
+    if (i < 0) {
+      ExportPkg nep = new ExportPkg(ep, bundle);
+      exports.add(-i - 1, nep);
+      // Perhaps we should avoid this shortcut and go through Packages.
+      ep.pkg.addExporter(nep);
+    }
+  }
+
+
+  /**
+   * Get ExportPkg for exported package.
+   *
+   * @return ExportPkg entry or null if package is not exported.
    */
   ExportPkg getExport(String pkg) {
     int i = Util.binarySearch(exports, epFind, pkg);
@@ -314,9 +330,10 @@ class BundlePackages {
    *
    * @return A error message string.
    */
-  synchronized String getResolveFailReason() {
+  String getResolveFailReason() {
     return failReason;
   }
+
 
   //
   // Private methods

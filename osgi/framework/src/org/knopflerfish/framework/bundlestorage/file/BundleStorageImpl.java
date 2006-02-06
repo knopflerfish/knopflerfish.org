@@ -232,9 +232,9 @@ public class BundleStorageImpl implements BundleStorage {
    */
   private int find(long id) {
     int lb = 0;
-    int ub = archives.size();
+    int ub = archives.size() - 1;
     int x = 0;
-    while (lb != ub) {
+    while (lb < ub) {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
       if (id <= xid) {

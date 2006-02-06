@@ -1,5 +1,5 @@
 Bundle-Name: bundleF_test
-Bundle-SymbolicName: %symName
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleF_test
 Bundle-Version: 1.0.0
 Bundle-Description: %description
 Bundle-Vendor: Knopflerfish/Gatespace Telematics

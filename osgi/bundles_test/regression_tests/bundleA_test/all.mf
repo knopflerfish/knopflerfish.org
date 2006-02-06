@@ -1,6 +1,6 @@
 Bundle-ManifestVersion: 2
 Bundle-Name: bundleA_test
-Bundle-SymbolicName: %symName
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleA_test
 Bundle-Version: 1.0.0
 Bundle-Description: %description
 Bundle-Vendor: Knopflerfish/Gatespace Telematics
