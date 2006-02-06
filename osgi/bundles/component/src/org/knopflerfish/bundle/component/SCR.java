@@ -151,28 +151,30 @@ class SCR implements SynchronousBundleListener {
         
         // Add to cycle finder:
         String[] services = config.getServices();
-        for (int i=0; i<services.length; i++) {
-          ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
-          if (existing == null) {
-            existing = new ArrayList();
-            serviceConfigs.put(services[i], existing);
-          }
-          existing.add(config);
-        }
-        // Find cycles:
-        ArrayList cycle = new ArrayList();
-        if (findCycle(config, cycle)) {
-          String message = "Possible cycle found in references of " + config.getName() + ": ";
-          Iterator citer = cycle.iterator();
-          if (citer.hasNext()) {
-            Config cycleItem = (Config) citer.next();
-            message += cycleItem.getName();
-            while (citer.hasNext()) {
-              cycleItem = (Config) citer.next();
-              message += " references " + cycleItem.getName();
+        if (services != null) {
+          for (int i=0; i<services.length; i++) {
+            ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
+            if (existing == null) {
+              existing = new ArrayList();
+              serviceConfigs.put(services[i], existing);
             }
+            existing.add(config);
           }
-          Activator.log.error(message);
+          // Find cycles:
+          ArrayList cycle = new ArrayList();
+          if (findCycle(config, cycle)) {
+            String message = "Possible cycle found in references of " + config.getName() + ": ";
+            Iterator citer = cycle.iterator();
+            if (citer.hasNext()) {
+              Config cycleItem = (Config) citer.next();
+              message += cycleItem.getName();
+              while (citer.hasNext()) {
+                cycleItem = (Config) citer.next();
+                message += " references " + cycleItem.getName();
+              }
+            }
+            Activator.log.error(message);
+          }
         }
       }
       
