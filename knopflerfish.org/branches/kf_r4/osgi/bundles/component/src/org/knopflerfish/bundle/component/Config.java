@@ -101,7 +101,9 @@ class Config {
   public synchronized void disable() {
     enabled = false;
     
-    SCR.getInstance().removeComponent(component);
+    if (component != null) {
+      SCR.getInstance().removeComponent(component);
+    }
    
     referenceUnsatisfied();
     for (Iterator iter = references.iterator(); iter.hasNext();) {
