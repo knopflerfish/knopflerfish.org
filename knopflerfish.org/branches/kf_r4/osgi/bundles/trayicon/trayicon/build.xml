@@ -32,7 +32,7 @@
 
 
   <property name="bundle.description"   value="Windows Tray Icon manager. Uses code written by Jan Struyf, jan.struyf@cs.kuleuven.ac.be, http://jeans.studentenweb.org/java/trayicon/trayicon.html"/>
-  <property name="bundle.name"          value="Tray Icon Manager"/>
+  <property name="bundle.name"          value="Tray-Icon-Manager"/>
   <property name="bundle.category"      value="service"/>
   <property name="bundle.version"       value="1.0.0"/>
   <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/readme.txt"/>

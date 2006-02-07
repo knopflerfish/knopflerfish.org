@@ -18,7 +18,6 @@
   <property name="bundle.description"    value="Configuration management service"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.1"/>
-  <property name="bundle.name"           value="CM Service"/>
   <property name="bundle.apivendor"      value="OSGi"/>
   <property name="bundle.vendor"         value="Knopflerfish"/>
 

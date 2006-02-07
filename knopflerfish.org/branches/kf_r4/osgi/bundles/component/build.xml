@@ -24,7 +24,7 @@
     <pathelement location="resources/kxml2.jar"/>
   </path>
 
-  <property name="bundle.name"           value="Declarative Services"/>
+  <property name="bundle.name"           value="Declarative-Services"/>
   <property name="bundle.description"    value="Declarative Services"/>
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>

@@ -33,6 +33,13 @@
   <!-- but can be specified explicitly. See bundlebuild_include.xml  -->
   <!-- for details                                                   -->
 
+  <!-- The bundle name (property "bundle.name") will be: -->
+  <!--   ${ant.project.name}                             -->
+  <!-- The bundle symbolic name (property "bundle.symbolic.name") will be: -->
+  <!--   ${domain.reverse}.bundle.${ant.project.name}    -->
+
+  <property name="domain.reverse"        value="org.knopflerfish"/>
+
   <property name="bundle.description"    value="HTTP test servlet"/>
   <property name="bundle.vendor"         value="knopflerfish"/>
 

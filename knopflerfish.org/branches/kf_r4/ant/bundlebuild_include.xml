@@ -53,10 +53,12 @@
  <property name = "ee.check.foundation"   value = "false"/>
 
  <property name = "xinclude.source"       value = "true"/>
+ <property name = "domain.reverse"        value = "org.knopflerfish"/>
+ <property name = "bundle.manifest.version" value = "${bundle.emptystring}"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
+ <property name = "bundle.symbolicname"   value = "${domain.reverse}.bundle.${ant.project.name}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
- <property name = "bundle.uuid"           value = "org.knopflerfish:${bundle.name}:${bundle.version}"/>
- <property name = "bundle.symbolicname"   value = "${bundle.emptystring}"/>
+ <property name = "bundle.uuid"           value = "${domain.reverse}:${ant.project.name}:${bundle.version}"/>
  <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.vendor"         value = "Knopflerfish"/>
  <property name = "bundle.description"    value = "${bundle.emptystring}"/>
@@ -376,6 +378,7 @@
   <antcall target="make_resource_dir"/>
 
   <bundlemanifest file="${outdir}/impl.mf">
+    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
@@ -470,6 +473,7 @@
   <mkdir dir = "${jardir}"/>
 
   <bundlemanifest file = "${outdir}/api.mf">
+    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
     <attribute name = "Bundle-Name"           value = "${bundle.name}-API"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}-API"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
@@ -520,6 +524,7 @@
   <antcall target="make_resource_dir"/>
 
   <bundlemanifest file="${outdir}/impl.mf">
+    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
@@ -588,6 +593,7 @@
   <antcall target="make_resource_dir"/>
 
   <bundlemanifest file="${outdir}/all.mf">
+    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
@@ -658,6 +664,7 @@
   <antcall target="make_resource_dir"/>
 
   <bundlemanifest file="${outdir}/all.mf">
+    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
     <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
     <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>

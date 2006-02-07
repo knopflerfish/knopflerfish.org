@@ -34,7 +34,7 @@
   <property name="bundle.vendor"          value="Knopflerfish/Nico Goeminne"/>
   <property name="bundle.description"    value="Jini Driver (experimental implementation)"/>
 
-  <property name="bundle.name"           value="Jini Driver"/>
+  <property name="bundle.name"           value="Jini-Driver"/>
   <property name="bundle.classpath"      value=".,lib/jini-core.jar,lib/jini-ext.jar"/>
   <property name="bundle.apivendor"      value="OSGi"/>
 

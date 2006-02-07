@@ -22,7 +22,7 @@
   <property name="bundle.description"   value="Framework tray icon. Allows basic control of the framework using the windows system tray."/>
   <property name="bundle.category"      value="service"/>
   <property name="bundle.version"       value="1.0.0"/>
-  <property name="bundle.name"          value="FW Tray"/>
+  <property name="bundle.name"          value="FW-Tray"/>
 
  <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/readme.txt"/>
 

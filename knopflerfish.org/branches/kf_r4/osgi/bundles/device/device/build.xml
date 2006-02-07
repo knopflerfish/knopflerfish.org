@@ -22,7 +22,7 @@
   <property name="bundle.category"       value="service"/>
   <property name="bundle.version"        value="1.0.0"/>
   <property name="export.package"        value="org.osgi.service.device;specification-version=1.1.0"/>
-  <property name="bundle.name"           value="Device Manager"/>
+  <property name="bundle.name"           value="Device-Manager"/>
   <property name="bundle.apivendor"      value="OSGi"/>
   <property name="bundle.vendor"         value="Knopflerfish"/>
 
