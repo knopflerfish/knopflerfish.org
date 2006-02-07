@@ -28,7 +28,7 @@
   <property name="bundle.vendor"         value="Apache/Knopflerfish"/>
   <property name="bundle.classpath"      value=".,crimson.jar"/>
   <property name="bundle.docurl"         value="http://xml.apache.org/crimson"/>
-  <property name="bundle.name"           value="Crimson XML lib"/>
+  <property name="bundle.name"           value="Crimson-XML-lib"/>
 
   <property name="import.package"        value="org.osgi.framework"/>
 

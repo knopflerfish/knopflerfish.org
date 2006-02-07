@@ -30,7 +30,7 @@
   </path>
   
   
-  <property name="bundle.name"           value="KF XML Metatype"/>
+  <property name="bundle.name"           value="KF-XML-Metatype"/>
   <property name="bundle.description"    value="XML format support for CM and Metatype"/>
   <property name="bundle.vendor"         value="Knopflerfish/nanoxml"/>
   <property name="bundle.apivendor"      value="Knopflerfish"/>

@@ -25,7 +25,7 @@
   <property name="bundle.vendor"         value="Knopflerfish"/>
   <property name="bundle.apivendor"      value="Knopflerfish"/>
   <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="Telnet Console"/>
+  <property name="bundle.name"           value="Telnet-Console"/>
 
   <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/readme.txt"/>
 

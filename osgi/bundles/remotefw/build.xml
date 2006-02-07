@@ -18,10 +18,10 @@
   <path id="bundle.compile.path">
   </path>
 
-  <property name="bundle.description"    value="Remote Framework API"/>
+  <property name="bundle.description"    value="Remote Framework"/>
   <property name="bundle.category"       value="api"/>
   <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="RemoteFWAPI"/>
+  <property name="bundle.name"           value="RemoteFW"/>
   <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/remotefw/readme.txt"/>
   
   &bundlebuild_include;
