@@ -1265,6 +1265,7 @@ public class Loader {
   static final String OPTION                 = "Option";
   static final String ICON                   = "Icon";
   static final String VALUE                  = "Value";
+  static final String CONTENT                = "Content";
   
   static final String ATTR_LOCALIZATION      = "localization";
   
@@ -1699,18 +1700,10 @@ public class Loader {
 		  currentAttributes = null;
 		  currentObjectOCDref = null;
 		  currentConf = null;
-	  }
-	  else if (VALUE.equals(element)) {
+	  } //seems like not sure yet see: http://membercvs.osgi.org/bugs/show_bug.cgi?id=129
+	  else if (VALUE.equals(element) || CONTENT.equals(element)) {
 		  currentAE.addValue(content);
 	  }  
-	  /* nothing to do for these
-	  else if (OPTION.equals(element)) {
-	      
-	  }
-      else if (ICON.equals(element)) {
-		  
-	  }  
-	  */
   }
   
   static int getType(String strType) {

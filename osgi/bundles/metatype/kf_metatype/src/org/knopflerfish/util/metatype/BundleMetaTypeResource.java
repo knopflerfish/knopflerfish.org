@@ -57,6 +57,8 @@ import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.ObjectClassDefinition;
 import org.osgi.service.metatype.AttributeDefinition;
 
+//TODO lots of optimization
+
 public class BundleMetaTypeResource implements MetaTypeInformation{
 	
 	private Bundle bundle;
@@ -158,10 +160,9 @@ public class BundleMetaTypeResource implements MetaTypeInformation{
 	
 }
 
+//TODO localization specs not definite yet
 
 class MetaData {
-	
-	//private String NO_LOCALE = "none";
 	
 	private String localizationFileBaseName;
 	
@@ -173,9 +174,8 @@ class MetaData {
 	private String[] locales;
 	
 	private Bundle bundle;
-	
-	
-	//TODO check for Attributes manifes's Constants.BUNDLE_LOCALIZATION
+
+	//TODO check for Attributes manifest's Constants.BUNDLE_LOCALIZATION
 	  
 	public MetaData(String localizationFile, Bundle bundle){
 		this.localizationFileBaseName =  localizationFile;
@@ -287,182 +287,173 @@ class MetaData {
 						int card = ad.getCardinality();
 						switch(ad.getType()){
             				case AttributeDefinition.STRING:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(values.nextElement());
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new String[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((String[])value)[i] = (String) values.nextElement();
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = ae.values.elementAt(0);
             					}
             					break;
             				case AttributeDefinition.BOOLEAN:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Boolean.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Boolean[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Boolean[])value)[i] = Boolean.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Boolean.valueOf((String) ae.values.elementAt(0));
             					}
             					break;						
             				case AttributeDefinition.BYTE:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Byte.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Byte[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Byte[])value)[i] = Byte.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Byte.valueOf((String) ae.values.elementAt(0));
             					}
             					break;	
             				case AttributeDefinition.DOUBLE:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Double.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Double[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Double[])value)[i] = Double.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Double.valueOf((String) ae.values.elementAt(0));
             					}
             					break;	
             				case AttributeDefinition.FLOAT:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Float.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Float[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Float[])value)[i] = Float.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Float.valueOf((String) ae.values.elementAt(0));
             					}
             					break;	
             				case AttributeDefinition.INTEGER:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Integer.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Integer[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Integer[])value)[i] = Integer.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Integer.valueOf((String) ae.values.elementAt(0));
             					}
             					break;	
             				case AttributeDefinition.LONG:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Long.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
-            						value = new Integer[card];
+            					else if(card > 0){
+            						value = new Long[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Long[])value)[i] = Long.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Long.valueOf((String) ae.values.elementAt(0));
             					}
             					break;	
             				case AttributeDefinition.SHORT:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(Short.valueOf((String)values.nextElement()));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Integer[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Short[])value)[i] = Short.valueOf((String) values.nextElement());
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = Short.valueOf((String) ae.values.elementAt(0));
             					}
             					break;	
             				case AttributeDefinition.CHARACTER:
-            					if(card == Integer.MIN_VALUE || card < 0){
+            					if(card < 0){
             						value = new Vector(-1 * card);
             						Enumeration values = ae.values.elements();
             						while(values.hasMoreElements()){
             							((Vector)value).add(new Character(((String)values.nextElement()).charAt(0)));
             						}
             					}
-            					else if(card == Integer.MAX_VALUE || card > 0){
-            						//TODO array?
+            					else if(card > 0){
             						value = new Character[card];
             						Enumeration values = ae.values.elements();
             						for(int i = 0; values.hasMoreElements(); i++){
             							((Character[])value)[i] = new Character(((String)values.nextElement()).charAt(0));
             						}
             					}
-            					else{ // card == 0
+            					else{ 
             						value = new Character(((String) ae.values.elementAt(0)).charAt(0));
             					}
             					break;								
