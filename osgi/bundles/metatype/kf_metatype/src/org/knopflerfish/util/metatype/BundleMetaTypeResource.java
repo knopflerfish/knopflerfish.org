@@ -57,6 +57,8 @@ import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.ObjectClassDefinition;
 import org.osgi.service.metatype.AttributeDefinition;
 
+import java.lang.reflect.*;
+
 //TODO lots of optimization
 
 public class BundleMetaTypeResource implements MetaTypeInformation{
@@ -285,6 +287,7 @@ class MetaData {
 					if(ad != null){
 						Object value = null;
 						int card = ad.getCardinality();
+						
 						switch(ad.getType()){
             				case AttributeDefinition.STRING:
             					if(card < 0){
@@ -459,6 +462,64 @@ class MetaData {
             					break;								
 						}
             	
+					/*TODO  code along these lines would be less repetitive
+					Class clazz = null;
+						
+					switch(ad.getType()){
+        				case AttributeDefinition.STRING:
+        					clazz = null;
+        					break;
+        				case AttributeDefinition.BOOLEAN:
+        					clazz = Boolean.class;
+        					break;						
+        				case AttributeDefinition.BYTE:
+        					clazz = Byte.class;
+        					break;	
+        				case AttributeDefinition.DOUBLE:
+        					clazz = Double.class;
+        					break;	
+        				case AttributeDefinition.FLOAT:
+        					clazz = Float.class;
+        					break;	
+        				case AttributeDefinition.INTEGER:
+        					clazz = Integer.class;
+        					break;	
+        				case AttributeDefinition.LONG:
+        					clazz = Long.class;
+        					break;	
+        				case AttributeDefinition.SHORT:
+        					clazz = Short.class;
+        					break;	
+        				case AttributeDefinition.CHARACTER:
+        					clazz = Character.class;
+        					
+        					break;
+        					
+					}	
+					
+					Method method = null;
+					try{
+						method = clazz.getMethod("valueOf", new Class[]{String.class});
+					}
+					catch(NoSuchMethodException e){
+						
+					}
+					
+					
+					
+					
+					Boolean val = null;
+					
+					try{
+						val = (Boolean) method.invoke(null, new Object[]{"true"});
+					}
+					catch(IllegalAccessException e){
+						
+					}
+			        catch(InvocationTargetException e){
+						
+					}	
+        			*/		
 						if(value != null){
 							props.put(ad.getName(), value);
 						}
