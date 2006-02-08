@@ -54,7 +54,7 @@
 
  <property name = "xinclude.source"       value = "true"/>
  <property name = "domain.reverse"        value = "org.knopflerfish"/>
- <property name = "bundle.manifest.version" value = "${bundle.emptystring}"/>
+ <property name = "bundle.manifest.version" value = "2"/>
  <property name = "bundle.name"           value = "${ant.project.name}"/>
  <property name = "bundle.symbolicname"   value = "${domain.reverse}.bundle.${ant.project.name}"/>
  <property name = "bundle.version"        value = "${bundle.emptystring}"/>
@@ -113,6 +113,14 @@
  <property name = "bundle.build.impl"   value = "true"/>
  <property name = "bundle.build.all"    value = "true"/>
  <property name = "bundle.build.decl"   value = "false"/>
+
+ <!-- Bundles that both export packages and provides implementations -->
+ <!-- shall have the implicitImport flag set in the bundleinfo task. -->
+ <property name = "bundle.implicit.imports.lib"   value = "false"/>
+ <property name = "bundle.implicit.imports.api"   value = "false"/>
+ <property name = "bundle.implicit.imports.impl"  value = "false"/>
+ <property name = "bundle.implicit.imports.all"   value = "true"/>
+ <property name = "bundle.implicit.imports.decl"  value = "true"/>
 
  
  <property name     = "all.suffix" value="_all-${bundle.version}"/>
@@ -360,6 +368,7 @@
 
   <bundleinfo activator = "bundle.activator" 
               imports   = "import.package"
+	      implicitImports   = "${bundle.implicit.imports.impl}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -459,6 +468,7 @@
 
   <bundleinfo exports = "export.package" 
               imports = "import.package"
+	      implicitImports   = "${bundle.implicit.imports.api}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -509,6 +519,7 @@
 
   <bundleinfo exports = "export.package" 
               imports = "import.package"
+	      implicitImports   = "${bundle.implicit.imports.lib}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -577,8 +588,10 @@
 
   <bundleinfo activator = "bundle.activator" 
               imports   = "import.package"
+	      exports   = "export.package"
+	      implicitImports   = "${bundle.implicit.imports.decl}"
               checkFoundationEE = "${ee.check.foundation}"
->
+  >
    <fileset dir      = "${classes.out.dir}" 
             includes = "${impl.pattern}">
    </fileset>
@@ -648,8 +661,10 @@
 
   <bundleinfo activator = "bundle.activator" 
               imports   = "import.package"
+	      exports   = "export.package"
+	      implicitImports   = "${bundle.implicit.imports.all}"
               checkFoundationEE = "${ee.check.foundation}"
->
+  >
    <fileset dir      = "${classes.out.dir}" 
             includes = "${impl.pattern}">
    </fileset>
