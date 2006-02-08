@@ -36,6 +36,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -178,6 +179,53 @@ import org.apache.tools.ant.util.StringUtils;
  *   </td>
  *  </tr>
  *
+ *  <tr>
+ *   <td valign=top>checkMinimumEE</td>
+ *   <td valign=top>
+ *       Flag for testing for the Minum Execution Environment
+ *       <p>
+ *       If set to "true", the task will check if all used classes
+ *       is in the set of the Minimum Execution Environment.
+ *       </p>
+ *   </td>
+ *   <td valign=top>
+ *     No.<br> 
+ *     Default value is "false"
+ *   </td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>checkSMFEE</td>
+ *   <td valign=top>
+ *       Flag for testing for the SMF Execution Environment
+ *       <p>
+ *       If set to "true", the task will check if all used classes
+ *       is in the set of the SMF profile Execution Environment.
+ *       </p>
+ *   </td>
+ *   <td valign=top>
+ *     No.<br> 
+ *     Default value is "false"
+ *   </td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>implicitImports</td>
+ *   <td valign=top>
+ *       Flag for adding all exported packages to the import list.
+ *       <p>
+ *       If set to "true", the task will add all packages mentioned in
+ *       the property named by <code>exports</code> to the list of
+ *       imported packages in the property named by <code>imports</code>.
+ *       This emulates the implicit import behaviour present in OSG R1-3.
+ *       </p>
+ *   </td>
+ *   <td valign=top>
+ *     No.<br> 
+ *     Default value is "true"
+ *   </td>
+ *  </tr>
+ *
  * <h3>Parameters specified as nested elements</h3>
  * <h4>fileset</h4>
  *
@@ -241,6 +289,7 @@ public class BundleInfoTask extends Task {
   private boolean bCheckFoundationEE = false;
   private boolean bCheckMinimumEE    = false;
   private boolean bCheckSMFEE        = false;
+  private boolean bImplicitImports   = true;
 
   private Set importSet            = new TreeSet();
   private Set exportSet            = new TreeSet();
@@ -276,6 +325,10 @@ public class BundleInfoTask extends Task {
 
   public void setCheckSMFEE(String s) {
     this.bCheckSMFEE = "true".equals(s);
+  }
+
+  public void setImplicitImports(String s) {
+    this.bImplicitImports = "true".equals(s);
   }
 
   /**
@@ -477,6 +530,50 @@ public class BundleInfoTask extends Task {
       for(Iterator it = smfMissing.iterator(); it.hasNext();) {
 	String s = (String)it.next();
 	System.out.println("Not in SMF: " + s);
+      }
+    }
+
+    /* Handle the implicitImport flag. */
+    if(bImplicitImports
+       && !"".equals(importsProperty)
+       && !"".equals(exportsProperty) ) {
+      String importsSpec = proj.getProperty(importsProperty);
+      if (bDebug) {
+        System.out.println("implicitImport: Original import.package: "
+                           +importsSpec);
+      }
+      importSet.clear();
+      if (isPropertySet(importsSpec)) {
+        Iterator impIt = Util.parseEntries("import.package",importsSpec,
+                                           true, true, false );
+        while (impIt.hasNext()) {
+          Map impEntry = (Map) impIt.next();
+          importSet.add( impEntry.get("key") );
+        }
+      }
+
+      String exportsSpec = proj.getProperty(exportsProperty);
+      if (isPropertySet(exportsSpec)) {
+        Iterator expIt = Util.parseEntries("export.package",exportsSpec,
+                                           true, true, false );
+        while (expIt.hasNext()) {
+          Map expEntry = (Map) expIt.next();
+          String pkg = (String) expEntry.get("key");
+          if (!importSet.contains(pkg)) {
+            String ver = (String) expEntry.get("version");
+            String sver = (String) expEntry.get("specification-version");
+            if (null!=ver) {
+              pkg += ";version="+ver;
+            } else if (null!=sver) {
+              pkg += ";specification-version="+sver;
+            }
+            if (bDebug) {
+              System.out.println("implicitImport: adding import: " +pkg );
+            }
+            importsSpec += "," +pkg;
+          }
+        }
+        proj.setProperty(importsProperty, importsSpec );
       }
     }
   }
@@ -720,4 +817,22 @@ public class BundleInfoTask extends Task {
     }
     return sb.toString();
   }
+
+  /**
+   * Check if a property value is empty or not.
+   * The value is empty if it is <code>null</code>, the empty string
+   * or the special value, "[bundle.emptystring]", used by the
+   * BundleManifestTask as the value for a manifest property that it
+   * shall skip.
+   *  
+   * @param pval The property value to check.
+   * @return <code>true</code> if the value is non-empty.
+   */
+  static protected boolean isPropertySet( String pval ) {
+     return null!=pval
+       && !"".equals(pval)
+       && !"[bundle.emptystring]".equals(pval);
+  }
+  
+
 }
