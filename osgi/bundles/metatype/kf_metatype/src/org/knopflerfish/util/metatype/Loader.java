@@ -1586,8 +1586,7 @@ public class Loader {
 	    	  //return;
 	      }
 	      
-	      
-	      
+	     
 	      if(currentDesignatePid != null){
 	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
 	    	  if(ca != null){
