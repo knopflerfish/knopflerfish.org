@@ -147,33 +147,36 @@ public class Framework {
   /**
    * Property constants for the framework.
    */
-  final static String osArch    = System.getProperty("os.arch");
-  final static String osName    = System.getProperty("os.name");
+  final static String TRUE   = "true";
+  final static String FALSE  = "false";
+
+  final static String osArch = System.getProperty("os.arch");
+  final static String osName = System.getProperty("os.name");
   static String osVersion;
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
   public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
-	  "true".equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
-				     "false"));
+	  TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
+				     FALSE));
 
   // Some tests conflict with the R3 spec. If testcompliant=true
   // prefer the tests, not the spec
   public final static boolean R3_TESTCOMPLIANT =
-    "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
-				     "false"));
+    TRUE.equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
+				     FALSE));
 
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests
   // but shouldn't really be used in production.
   final static boolean SETCONTEXTCLASSLOADER =
-    "true".equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", "false"));
+    TRUE.equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
 
   final static boolean REGISTERBUNDLEURLHANDLER =
-    "true".equals(System.getProperty("org.knopflerfish.osgi.registerbundleurlhandler", "false"));
+    TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerbundleurlhandler", FALSE));
 
   final static boolean REGISTERSERVICEURLHANDLER =
-    "true".equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", "true"));
+    TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
 
 
   // Accepted execution environments. 
@@ -306,9 +309,9 @@ public class Framework {
 //#ifdef USESTARTLEVEL
 
   private void registerStartLevel(){
-	  String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, "true");
+	  String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, TRUE);
       
-	  if("true".equals(useStartLevel)) {
+	  if(TRUE.equals(useStartLevel)) {
 		  if(Debug.startlevel) {
 			  Debug.println("[using startlevel service]");
 	      }
@@ -631,6 +634,14 @@ public class Framework {
     } else if (Constants.FRAMEWORK_PROCESSOR.equals(key)) {
       // The name of the processor of the hosting computer. 
       return osArch;
+    } else if (Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE.equals(key)) {
+      return TRUE;
+    } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
+      return FALSE;
+    } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
+      return FALSE;
+    } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
+      return TRUE;
     } else {
       return System.getProperty(key);
     }
@@ -644,6 +655,10 @@ public class Framework {
 	  props.put(Constants.FRAMEWORK_OS_NAME, osName);
 	  props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
 	  props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
+          props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
+          props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, FALSE);
+          props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
+          props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, TRUE);
 	  return props;
   }
 

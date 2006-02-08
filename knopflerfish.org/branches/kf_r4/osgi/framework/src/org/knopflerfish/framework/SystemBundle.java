@@ -91,7 +91,7 @@ public class SystemBundle extends BundleImpl {
 
     addSystemPackages(sp);
 
-    bpkgs = new BundlePackages(this, sp.toString(), null, null);
+    bpkgs = new BundlePackages(this, 0, sp.toString(), null, null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
   }

@@ -70,7 +70,7 @@ class Packages {
   /**
    * Temporary map of required bundle connections done during a resolve operation.
    */
-  private HashMap /* BundleImpl.Require->BundleImpl */ tempRequired = null;
+  private HashMap /* RequireBundle->BundlePackages */ tempRequired = null;
 
   /**
    * Temporary set of package providers that are black listed in the resolve operation.
@@ -166,7 +166,7 @@ class Packages {
       List r = resolvePackages(pkgs.iterator());
       tempBlackList = null;
       if (r.size() == 0) {
-	registerNewProviders(ip.bundle);
+	registerNewProviders(ip.bpkgs.bundle);
 	res = (ExportPkg)tempProvider.get(ip.name);
       } else {
 	p.removeImporter(ip);
@@ -268,7 +268,7 @@ class Packages {
     tempRequired = new HashMap();
     tempBlackList = new HashSet();
     tempResolved.add(bundle);
-    BundleImpl.Require br = checkRequireBundle(bundle);
+    RequireBundle br = checkRequireBundle(bundle);
     if (br == null) {
       List failed = resolvePackages(pkgs);
       if (failed.size() == 0) {
@@ -348,7 +348,7 @@ class Packages {
       Pkg p = (Pkg)i.next();
       for (Iterator pi = p.providers.iterator(); pi.hasNext(); ) {
         ExportPkg ep = (ExportPkg)pi.next();
-        if (framework.systemBundle == ep.bundle) {
+        if (framework.systemBundle == ep.bpkgs.bundle) {
           if (res.length() > 0) {
             res.append(", ");
           }
@@ -391,7 +391,7 @@ class Packages {
         } else {
           for (Iterator eps = p.exporters.iterator(); eps.hasNext();) {
             ExportPkg ep = (ExportPkg)eps.next();
-            if (b == ep.bundle) {
+            if (b == ep.bpkgs.bundle) {
               res.add(ep);
             }
           }
@@ -413,7 +413,7 @@ class Packages {
     for (Iterator i = ep.pkg.importers.iterator(); i.hasNext(); ) {
       ImportPkg ip = (ImportPkg)i.next();
       if (ip.provider == ep) {
-        res.add(ip.bundle);
+        res.add(ip.bpkgs.bundle);
       }
     }
     return res;
@@ -463,9 +463,9 @@ class Packages {
           ExportPkg ep = (ExportPkg)ps.next();
           if (ep.zombie) {
             if (Debug.packages) {
-              Debug.println("getZombieAffected: found zombie - " + ep.bundle);
+              Debug.println("getZombieAffected: found zombie - " + ep.bpkgs.bundle);
             }
-            affected.add(ep.bundle);
+            affected.add(ep.bpkgs.bundle);
           }
         }
       }
@@ -518,11 +518,11 @@ class Packages {
     if (Debug.packages) {
       Debug.println("backTrackUses: check - " + ip.pkgString());
     }
-    if (tempBackTracked.contains(ip.bundle)) {
+    if (tempBackTracked.contains(ip.bpkgs)) {
       return false;
     }
-    tempBackTracked.add(ip.bundle);
-    Iterator i = getPackagesProvidedBy(ip.bundle).iterator();
+    tempBackTracked.add(ip.bpkgs);
+    Iterator i = getPackagesProvidedBy(ip.bpkgs).iterator();
     if (i.hasNext()) {
       do {
 	ExportPkg ep = (ExportPkg)i.next();
@@ -547,27 +547,18 @@ class Packages {
 
 
   /**
-   * Get packages provide by bundle. If bundle is null, get all.
+   * Get packages provide by specified BundlePackages.
    *
-   * @param b Bundle exporting packages.
-   * @return List of packages exported by bundle.
+   * @param b BundlePackages exporting packages.
+   * @return List of packages exported by BundlePackages.
    */
-  private Collection getPackagesProvidedBy(Bundle b) {
+  private Collection getPackagesProvidedBy(BundlePackages bpkgs) {
     ArrayList res = new ArrayList();
     // NYI Improve the speed here!
-    for (Iterator i = packages.values().iterator(); i.hasNext();) {
-      Pkg p = (Pkg) i.next();
-      if (!p.providers.isEmpty()) {
-        if (b == null) {
-          res.addAll(p.providers);
-        } else {
-          for (Iterator eps = p.providers.iterator(); eps.hasNext();) {
-            ExportPkg ep = (ExportPkg)eps.next();
-            if (b == ep.bundle) {
-              res.add(ep);
-            }
-          }
-        }
+    for (Iterator i = bpkgs.getExports(); i.hasNext();) {
+      ExportPkg ep = (ExportPkg) i.next();
+      if (ep.pkg.providers.contains(ep)) {
+        res.add(ep);
       }
     }
     return res;
@@ -587,7 +578,7 @@ class Packages {
       ExportPkg provider = null;
       ImportPkg ip = (ImportPkg)pkgs.next();
       if (ip.provider != null) {
-        framework.listeners.frameworkError(ip.bundle,
+        framework.listeners.frameworkError(ip.bpkgs.bundle,
                                            new Exception("resolvePackages: InternalError1!"));
       }
       if (Debug.packages) {
@@ -599,10 +590,11 @@ class Packages {
           Debug.println("resolvePackages: " + ip.name + " - has temporary provider - "
                         + provider);
         }
-        if (provider.zombie) {
+        if (provider.zombie && provider.bpkgs.bundle.state == Bundle.UNINSTALLED) {
           if (Debug.packages) {
             Debug.println("resolvePackages: " + ip.name +
-                          " - provider is a zombie - " + provider);
+                          " - provider not used since it is an uninstalled zombie - "
+                          + provider);
           }
           provider = null;
         } else if (!ip.okPackageVersion(provider.version)) {
@@ -623,6 +615,7 @@ class Packages {
             continue;
           }
 	  if (ep.zombie) {
+            // TBD! Should we refrain from using a zombie package and try a new provider instead?
             continue;
           }
           if (ip.okPackageVersion(ep.version)) {
@@ -686,11 +679,11 @@ class Packages {
         }
         continue;
       }
-      if (tempResolved.contains(ep.bundle)) {
+      if (tempResolved.contains(ep.bpkgs.bundle)) {
         provider = ep;
         break;
       }
-      if ((ep.bundle.state & RESOLVED_FLAGS) != 0) {
+      if ((ep.bpkgs.bundle.state & RESOLVED_FLAGS) != 0) {
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
         if (checkUses(ep)) {
           provider = ep;
@@ -701,7 +694,7 @@ class Packages {
           continue;
         }
       }
-      if (ep.bundle.state == Bundle.INSTALLED && checkResolve(ep.bundle)) { 
+      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle)) { 
         provider = ep;
         break;
       }
@@ -749,8 +742,8 @@ class Packages {
     /* Predefined attributes */
     if (!ip.okPackageVersion(ep.version) ||
         (ip.bundleSymbolicName != null &&
-         !ip.bundleSymbolicName.equals(ep.bundle.symbolicName)) ||
-        !ip.bundleRange.withinRange(ep.bundle.version)) {
+         !ip.bundleSymbolicName.equals(ep.bpkgs.bundle.symbolicName)) ||
+        !ip.bundleRange.withinRange(ep.bpkgs.bundle.version)) {
       return false;
     }
     /* Other attributes */
@@ -815,10 +808,10 @@ class Packages {
       }
     }
     if (Debug.packages) {
-      Debug.println("checkUses: provider " + pkg.bundle +
-		    " with bpkgs=" + pkg.bundle.bpkgs);
+      Debug.println("checkUses: provider " + pkg.bpkgs.bundle +
+		    " with bpkgs=" + pkg.bpkgs);
     }
-    for (Iterator i = pkg.bundle.bpkgs.getActiveImports(); i.hasNext(); ) {
+    for (Iterator i = pkg.bpkgs.getActiveImports(); i.hasNext(); ) {
       ImportPkg ip = (ImportPkg)i.next();
       if (ui != null) {
         if (next_uses == null || !ip.pkg.pkg.equals(next_uses)) {
@@ -887,17 +880,17 @@ class Packages {
    * Check that the bundle specified can resolve all its Require-Bundle constraints.
    *
    * @param b Bundle to check, must be in INSTALLED state
-   * @return Bundle blocking resolve, otherwise null.
+   * @return RequireBundle blocking resolve, otherwise null.
    */
-  private BundleImpl.Require checkRequireBundle(BundleImpl b) {
+  private RequireBundle checkRequireBundle(BundleImpl b) {
     // NYI! More speed?
-    if (b.require != null) {
+    if (b.bpkgs.require != null) {
       if (Debug.packages) {
         Debug.println("checkRequireBundle: check requiring bundle " + b);
       }
       HashMap res = new HashMap();
-      for (Iterator i = b.require.iterator(); i.hasNext(); ) {
-        BundleImpl.Require br = (BundleImpl.Require)i.next();
+      for (Iterator i = b.bpkgs.require.iterator(); i.hasNext(); ) {
+        RequireBundle br = (RequireBundle)i.next();
         List bl = framework.bundles.getBundles(br.name, br.bundleRange);
         BundleImpl ok = null;
         for (Iterator bci = bl.iterator(); bci.hasNext() && ok == null; ) {
@@ -923,7 +916,7 @@ class Packages {
           if (Debug.packages) {
             Debug.println("checkRequireBundle: added required bundle " + ok);
           }
-          res.put(br, ok);
+          res.put(br, ok.bpkgs);
         } else if (br.resolution == Constants.RESOLUTION_MANDATORY) {
           if (Debug.packages) {
             Debug.println("checkRequireBundle: failed to satisfy: " + br.name);
@@ -947,17 +940,17 @@ class Packages {
     }
     for (Iterator i = tempRequired.entrySet().iterator(); i.hasNext();) {
       Map.Entry e = (Map.Entry)i.next();
-      BundleImpl b = (BundleImpl)e.getValue();
-      BundleImpl.Require br = (BundleImpl.Require)e.getKey();
-      br.bundle = b;
-      if (b.requiredBy == null) {
-        b.requiredBy = new ArrayList(1);
+      BundlePackages bpkgs = (BundlePackages)e.getValue();
+      RequireBundle br = (RequireBundle)e.getKey();
+      br.bpkgs = bpkgs;
+      if (bpkgs.requiredBy == null) {
+        bpkgs.requiredBy = new ArrayList(1);
       }
-      b.requiredBy.add(br.requestor);
+      bpkgs.requiredBy.add(br.requestor);
       if (br.visibility == Constants.VISIBILITY_REEXPORT) {
         // Create necessary re-export entries
-        for (Iterator be = b.bpkgs.getExports(); be.hasNext(); ) {
-          br.requestor.bpkgs.checkReExport((ExportPkg)be.next());
+        for (Iterator be = bpkgs.getExports(); be.hasNext(); ) {
+          br.requestor.checkReExport((ExportPkg)be.next());
         }
       }
     }

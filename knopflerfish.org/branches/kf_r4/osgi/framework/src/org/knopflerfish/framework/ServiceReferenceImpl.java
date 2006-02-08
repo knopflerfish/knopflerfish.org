@@ -331,8 +331,8 @@ public class ServiceReferenceImpl implements ServiceReference
       Pkg p = registration.bundle.framework.packages.getPkg(name);
       if (p != null) {
         if (p.providers.size() > 1) {
-          Bundle pkgExporter = registration.bundle.bpkgs.getProviderBundle(name);
-          Bundle bb = ((BundleImpl)bundle).bpkgs.getProviderBundle(name);
+          BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);
+          BundlePackages bb = ((BundleImpl)bundle).bpkgs.getProviderBundlePackages(name);
           // TBD Should we fail if bundle doesn't have an import?
           return bb == null || pkgExporter == bb;
         } else {

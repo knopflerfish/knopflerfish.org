@@ -114,14 +114,9 @@ class BundleImpl implements Bundle {
   BundleArchive archive;
 
   /**
-   * List of Required bundles.
+   * Generation of BundlePackages.
    */
-  ArrayList /* BundleImpl.Require */ require;
-
-  /**
-   * List of bundles that require us.
-   */
-  ArrayList /* BundleImpl */ requiredBy = null;
+  private int generation = 0;
 
   /**
    * Classloader for bundle.
@@ -131,7 +126,7 @@ class BundleImpl implements Bundle {
   /**
    * Zombie packages for bundle.
    */
-  private HashMap /* String -> BundleClassLoader */ oldClassLoaders = null;
+  private HashMap /* BundlePackages -> BundleClassLoader */ oldClassLoaders = null;
 
   /**
    * Directory for bundle data.
@@ -617,15 +612,14 @@ class BundleImpl implements Bundle {
                 boolean allRemoved = bpkgs.unregisterPackages(false);
 
                 // Loose old bundle if no exporting packages left
-                if (classLoader != null) {
-                  if (allRemoved) {
-                    classLoader.purge();
-                  } else {
-                    saveZombiePackages();
+                if (allRemoved) {
+                  if (classLoader != null) {
+                    classLoader.close();
+                    classLoader = null;
                   }
-                  classLoader = null;
+                } else {
+                  saveZombiePackages();
                 }
-
 
                 // Activate new bundle
                 state = INSTALLED;
@@ -732,7 +726,6 @@ class BundleImpl implements Bundle {
         }
       } else {
         saveZombiePackages();
-        classLoader = null;
       }
       bpkgs = null;
       bactivator = null;
@@ -977,47 +970,16 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Get a Classloader object that we export from our bundle.
+   * Get the BundleClassLoader object for one of our BundlePackages.
    *
-   * @param pkg Name of java package to get from.
+   * @param ebpkgs BundlePackages to get class loader for.
    * @return BundleClassLoader object for specified pkg, null if no classloader.
    */
-  BundleClassLoader getExporterClassLoader(String pkg) {
-      BundleClassLoader cl;
-      if (oldClassLoaders != null) {
-        cl = (BundleClassLoader)oldClassLoaders.get(pkg);
-        if (cl != null) {
-          return cl;
-        }
-      }
-      if (bpkgs.getExport(pkg) != null) {
-        return (BundleClassLoader)getClassLoader();
-      } else {
-        return null;
-      }
-  }
-
-
-  /**
-   * Get a list of all bundles that exports package <code>pkg</code> that we
-   * have required in correct order. Correct order is a depth first
-   * search order.
-   *
-   * @param pkg String with package name we are searching for.
-   * @return List of required bundles or null we don't require any bundles.
-   */
-  ArrayList getRequiredBundles(String pkg) {
-    if (require != null) {
-      ArrayList res = new ArrayList();
-      for (Iterator i = require.iterator(); i.hasNext(); ) {
-        BundleImpl.Require br = (BundleImpl.Require)i.next();
-        if (br.bundle != null) {
-          res.add(br.bundle);
-        }
-      }
-      if (!res.isEmpty()) {
-        return res;
-      }
+  BundleClassLoader getClassLoader(BundlePackages ebpkgs) {
+    if (bpkgs == ebpkgs) {
+      return (BundleClassLoader)getClassLoader();
+    } else if (oldClassLoaders != null) {
+      return (BundleClassLoader)oldClassLoaders.get(ebpkgs);
     }
     return null;
   }
@@ -1145,23 +1107,6 @@ class BundleImpl implements Bundle {
     } else {
       singleton = false;
     }
-    i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
-                          archive.getAttribute(Constants.REQUIRE_BUNDLE),
-                          true, true, false);
-    if (i.hasNext()) {
-      require = new ArrayList();
-      do {
-        e = (Map)i.next();
-        require.add(new Require(this,
-                                (String)e.get("key"),
-                                (String)e.get(Constants.VISIBILITY_DIRECTIVE),
-                                (String)e.get(Constants.RESOLUTION_DIRECTIVE),
-                                (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
-        // NYI warn about unknown directives?
-      } while (i.hasNext());
-    } else {
-      require = null;
-    }
   }
 
 
@@ -1225,9 +1170,11 @@ class BundleImpl implements Bundle {
    */
   private void doExportImport() {
     bpkgs = new BundlePackages(this,
+                               generation++,
                                archive.getAttribute(Constants.EXPORT_PACKAGE),
                                archive.getAttribute(Constants.IMPORT_PACKAGE),
-                               archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE));
+                               archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
+                               archive.getAttribute(Constants.REQUIRE_BUNDLE));
     bpkgs.registerPackages();
   }
 
@@ -1266,17 +1213,12 @@ class BundleImpl implements Bundle {
     if (oldClassLoaders == null) {
       oldClassLoaders = new HashMap();
     }
-    Iterator i = bpkgs.getExports();
-    while (i.hasNext()) {
-      ExportPkg pkg = (ExportPkg)i.next();
-      if (oldClassLoaders.put(pkg.name, getClassLoader()) != null) {
-        // throw new RuntimeException("NYI, handling of multiple zombie packages");
-      }
-    }
+    oldClassLoaders.put(bpkgs, getClassLoader());
+    classLoader = null;
   }
 
 
- // Start level related
+  // Start level related
 
   boolean isPersistent() {
     boolean b = archive.isPersistent();
@@ -1494,38 +1436,4 @@ public Class loadClass(final String name) throws ClassNotFoundException {
   }
   return clazz;*/
   }//method
-
-  
-  class Require {
-    BundleImpl requestor;
-    final String name;
-    final String visibility;
-    final String resolution;
-    final VersionRange bundleRange;
-    BundleImpl bundle = null;
-
-    Require(BundleImpl requestor, String name, String visibility,
-            String resolution, String range) {
-      this.requestor = requestor;
-      this.name = name;
-      if (visibility != null) {
-        this.visibility = visibility;
-        // NYI warn if not a known value;
-      } else {
-        this.visibility = Constants.VISIBILITY_PRIVATE;
-      }
-      if (resolution != null) {
-        this.resolution = resolution;
-      } else {
-        this.resolution = Constants.RESOLUTION_MANDATORY;
-        // NYI warn if not a known value;
-      }
-      if (range != null) {
-        this.bundleRange = new VersionRange(range);
-      } else {
-        this.bundleRange = VersionRange.defaultVersionRange;
-      }
-    }
-  }
-
 }//class
