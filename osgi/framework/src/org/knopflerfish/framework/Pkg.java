@@ -82,17 +82,26 @@ class Pkg {
    */
   synchronized boolean removeExporter(ExportPkg p, boolean force) {
     if (providers.contains(p)) {
-      if (force) {
-	providers.remove(p);
+      if (!force) {
+        // Check if we only provide to ourselves.
+        force = true;
 	for (Iterator i = importers.iterator(); i.hasNext(); ) {
 	  ImportPkg ip = (ImportPkg) i.next();
-	  
-	  if (p == ip.provider) {
-	    ip.provider = null;
+	  if (p == ip.provider && p.bpkgs != ip.bpkgs) {
+	    force = false;
 	  }
 	}
-      } else {
-	return false;
+        if (!force) {
+          return false;
+        }
+      }
+      providers.remove(p);
+      for (Iterator i = importers.iterator(); i.hasNext(); ) {
+        ImportPkg ip = (ImportPkg) i.next();
+	  
+        if (p == ip.provider) {
+          ip.provider = null;
+	}
       }
     }
     exporters.remove(p);
@@ -203,7 +212,7 @@ class Pkg {
 	ExportPkg b = (ExportPkg)ob;
 	int d = a.version.compareTo(b.version);
 	if (d == 0) {
-	  long ld = b.bundle.id - a.bundle.id;
+	  long ld = b.bpkgs.bundle.id - a.bpkgs.bundle.id;
 	  if (ld < 0)
 	    d = -1;
 	  else if (ld > 0)
@@ -229,7 +238,7 @@ class Pkg {
 	ImportPkg b = (ImportPkg)ob;
 	int d = a.packageRange.compareTo(b.packageRange);
 	if (d == 0) {
-	  long ld = b.bundle.id - a.bundle.id;
+	  long ld = b.bpkgs.bundle.id - a.bpkgs.bundle.id;
 	  if (ld < 0)
 	    d = -1;
 	  else if (ld > 0)

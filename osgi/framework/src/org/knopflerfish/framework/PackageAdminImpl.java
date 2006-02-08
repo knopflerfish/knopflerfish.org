@@ -300,8 +300,8 @@ public class PackageAdminImpl implements PackageAdmin {
     }
     for (Iterator i = bs.iterator(); i.hasNext(); ) {
       BundleImpl b = (BundleImpl)i.next();
-      if (b.requiredBy != null) {
-        res.add(new RequiredBundleImpl(b));
+      if (b.bpkgs.requiredBy != null) {
+        res.add(new RequiredBundleImpl(b.bpkgs));
       }
     }
     int s = res.size();

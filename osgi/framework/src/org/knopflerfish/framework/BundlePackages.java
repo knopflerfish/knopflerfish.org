@@ -52,6 +52,10 @@ class BundlePackages {
 
   final BundleImpl bundle;
 
+  final int generation;
+
+  private BundleClassLoader classLoader = null;
+
   /* Sorted list of exports */
   private ArrayList /* ExportPkg */ exports = new ArrayList(1);
 
@@ -59,6 +63,12 @@ class BundlePackages {
   private ArrayList /* ImportPkg */ imports = new ArrayList(1);
 
   private ArrayList /* String */ dImportPatterns = new ArrayList(1);
+
+  /* List of RequireBundle entries. */
+  ArrayList /* RequireBundle */ require;
+
+  /* List of BundlePackages that require us. */
+  ArrayList /* BundlePackages */ requiredBy = null;
 
   /* Sorted list of active imports */
   private ArrayList /* ImportPkg */ okImports = null;
@@ -71,10 +81,13 @@ class BundlePackages {
    * Create package entry.
    */
   BundlePackages(BundleImpl b, 
+                 int gen,
                  String exportStr, 
                  String importStr, 
-                 String dimportStr) {
+                 String dimportStr,
+                 String requireStr) {
     this.bundle = b;
+    this.generation = gen;
 
     if(b.getBundleArchive() != null) {
       String fakeString = b.getBundleArchive().getAttribute("fakeheader");
@@ -89,7 +102,7 @@ class BundlePackages {
     while (i.hasNext()) {
       Map e = (Map)i.next();
       Iterator pi = ((List)e.remove("keys")).iterator();
-      ImportPkg ip = new ImportPkg((String)pi.next(), e, bundle);
+      ImportPkg ip = new ImportPkg((String)pi.next(), e, this);
       for (;;) {
         int ii = Util.binarySearch(imports, ipComp, ip);
         if (ii < 0) {
@@ -109,7 +122,7 @@ class BundlePackages {
     while (i.hasNext()) {
       Map e = (Map)i.next();
       Iterator pi = ((List)e.remove("keys")).iterator();
-      ExportPkg ep = new ExportPkg((String)pi.next(), e, bundle);
+      ExportPkg ep = new ExportPkg((String)pi.next(), e, this);
       for (;;) {
         int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
         exports.add(ei, ep);
@@ -154,11 +167,27 @@ class BundlePackages {
         if (tmpl != null) {
           dImportPatterns.add(new ImportPkg(tmpl, key));
         } else {
-          tmpl = new ImportPkg(key, e, bundle);
+          tmpl = new ImportPkg(key, e, this);
           dImportPatterns.add(tmpl);
         }
       }
     }
+    i = Util.parseEntries(Constants.REQUIRE_BUNDLE, requireStr, true, true, false);
+    if (i.hasNext()) {
+      require = new ArrayList();
+      do {
+        Map e = (Map)i.next();
+        require.add(new RequireBundle(this,
+                                      (String)e.get("key"),
+                                      (String)e.get(Constants.VISIBILITY_DIRECTIVE),
+                                      (String)e.get(Constants.RESOLUTION_DIRECTIVE),
+                                      (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
+        // NYI warn about unknown directives?
+      } while (i.hasNext());
+    } else {
+      require = null;
+    }
+
   }
 
 
@@ -211,19 +240,19 @@ class BundlePackages {
 
 
   /**
-   * If bundle package has been resolved look for a bundle
+   * If bundle package has been resolved look for a BundlePackages
    * that provides the requested package.
    *
    * @param pkg Package name
-   * @return Bundle exporting
+   * @return BundlePackages exporting the pkg.
    */
-  synchronized BundleImpl getProviderBundle(String pkg) {
+  synchronized BundlePackages getProviderBundlePackages(String pkg) {
     if (okImports == null) {
       return null;
     }
     int ii = Util.binarySearch(okImports, ipFind, pkg);
     if (ii >= 0) {
-      return ((ImportPkg)okImports.get(ii)).provider.bundle;
+      return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
     }
     return null;
   }
@@ -236,13 +265,13 @@ class BundlePackages {
    * @param pkg Package name
    * @return Bundle exporting
    */
-  synchronized BundleImpl getDynamicProviderBundle(String pkg) {
+  synchronized BundlePackages getDynamicProviderBundlePackages(String pkg) {
     if (okImports == null) {
       return null;
     }
     int ii = Util.binarySearch(okImports, ipFind, pkg);
     if (ii >= 0) {
-      return ((ImportPkg)okImports.get(ii)).provider.bundle;
+      return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
     }
     if (checkPackagePermission(pkg, PackagePermission.IMPORT)) {
       for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
@@ -255,9 +284,34 @@ class BundlePackages {
 	  if (ep != null) {
 	    nip.provider = ep;
 	    okImports.add(-ii - 1, nip);
-	    return ep.bundle;
+	    return ep.bpkgs;
 	  }
 	}
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Get a list of all BundlePackages that exports package <code>pkg</code>
+   * that comes from bundles that we have required, in correct order.
+   * Correct order is a depth first search order.
+   *
+   * @param pkg String with package name we are searching for.
+   * @return List of required BundlePackages or null we don't require any bundles.
+   */
+  ArrayList getRequiredBundlePackages(String pkg) {
+    if (require != null) {
+      ArrayList res = new ArrayList();
+      for (Iterator i = require.iterator(); i.hasNext(); ) {
+        RequireBundle rb = (RequireBundle)i.next();
+        if (rb.bpkgs != null) {
+          res.add(rb.bpkgs);
+        }
+      }
+      if (!res.isEmpty()) {
+        return res;
       }
     }
     return null;
@@ -272,7 +326,7 @@ class BundlePackages {
   void checkReExport(ExportPkg ep) {
     int i = Util.binarySearch(exports, epFind, ep.name);
     if (i < 0) {
-      ExportPkg nep = new ExportPkg(ep, bundle);
+      ExportPkg nep = new ExportPkg(ep, this);
       exports.add(-i - 1, nep);
       // Perhaps we should avoid this shortcut and go through Packages.
       ep.pkg.addExporter(nep);
@@ -326,6 +380,18 @@ class BundlePackages {
 
 
   /**
+   * Get class loader for these packages.
+   *
+   */
+  BundleClassLoader getClassLoader() {
+    if (classLoader == null) {
+      classLoader = bundle.getClassLoader(this);
+    }
+    return classLoader;
+  }
+
+
+  /**
    * Return a string with a reason for why resolve failed.
    *
    * @return A error message string.
@@ -334,6 +400,15 @@ class BundlePackages {
     return failReason;
   }
 
+
+  /**
+   * Return a string representing this objet
+   *
+   * @return A message string.
+   */
+  public String toString() {
+    return "BundlePackages(id=" + bundle.id + ",gen=" + generation + ")";
+  }
 
   //
   // Private methods
@@ -397,7 +472,7 @@ class BundlePackages {
     }
   }
 
-
+  
   static final Util.Comparator epComp = new Util.Comparator() {
       /**
        * Name compare two ExportPkg objects.

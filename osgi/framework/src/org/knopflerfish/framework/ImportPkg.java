@@ -47,7 +47,7 @@ import org.osgi.framework.Version;
  */
 class ImportPkg {
   final String name;
-  final BundleImpl bundle;
+  final BundlePackages bpkgs;
   final String resolution;
   final String bundleSymbolicName;
   final VersionRange packageRange;
@@ -63,8 +63,8 @@ class ImportPkg {
   /**
    * Create an import package entry.
    */
-  ImportPkg(String name, Map tokens, BundleImpl b) {
-    this.bundle = b;
+  ImportPkg(String name, Map tokens, BundlePackages b) {
+    this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
@@ -89,8 +89,8 @@ class ImportPkg {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
 	throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
-                                           "and " + Constants.PACKAGE_SPECIFICATION_VERSION +
-					   "are specified, and differs");
+                                           " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+					   "are specified, but differs");
       }
     } else if (versionStr != null) {
       this.packageRange = new VersionRange(versionStr);
@@ -112,7 +112,7 @@ class ImportPkg {
    */
   ImportPkg(ImportPkg ip, String name) {
     this.name = name;
-    this.bundle = ip.bundle;
+    this.bpkgs = ip.bpkgs;
     this.resolution = ip.resolution;
     this.bundleSymbolicName = ip.bundleSymbolicName;
     this.packageRange = ip.packageRange;
@@ -126,7 +126,7 @@ class ImportPkg {
    */
   ImportPkg(ExportPkg p) {
     this.name = p.name;
-    this.bundle = p.bundle;
+    this.bpkgs = p.bpkgs;
     this.resolution = Constants.RESOLUTION_MANDATORY;;
     this.bundleSymbolicName = null;
     if (p.version == Version.emptyVersion) {
@@ -173,7 +173,7 @@ class ImportPkg {
    * @return String.
    */
   public String toString() {
-    return pkgString() + "(" + bundle + ")";
+    return pkgString() + "(" + bpkgs.bundle + ")";
   }
 
 }

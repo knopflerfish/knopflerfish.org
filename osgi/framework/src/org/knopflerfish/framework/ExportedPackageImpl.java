@@ -95,7 +95,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    */
   public Bundle getExportingBundle() {
     if (pkg.pkg != null) {
-      return pkg.bundle;
+      return pkg.bpkgs.bundle;
     } else {
       return null;
     }
@@ -115,7 +115,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    Packages packages = pkg.bundle.framework.packages;
+    Packages packages = pkg.bpkgs.bundle.framework.packages;
     synchronized (packages) {
       if (packages.isProvider(pkg)) {
 	Collection imps = packages.getPackageImporters(pkg);
@@ -149,7 +149,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    * <tt>false</tt> otherwise.
    */
   public boolean isRemovalPending() {
-    Packages packages = pkg.bundle.framework.packages;
+    Packages packages = pkg.bpkgs.bundle.framework.packages;
     if (packages.isProvider(pkg)) {
       return pkg.zombie;
     } else {

@@ -47,16 +47,13 @@ public class RequiredBundleImpl implements RequiredBundle
 
   /**
    */
-  private BundleImpl bundle;
-
-  private long lastModified;
+  private BundlePackages bpkgs;
 
   /**
    *
    */
-  RequiredBundleImpl(BundleImpl b) {
-    bundle = b;
-    lastModified = b.lastModified;
+  RequiredBundleImpl(BundlePackages b) {
+    bpkgs = b;
   }
 
 
@@ -66,7 +63,7 @@ public class RequiredBundleImpl implements RequiredBundle
    * @return The symbolic name of this required bundle.
    */
   public String getSymbolicName() {
-    return bundle.symbolicName;
+    return bpkgs.bundle.symbolicName;
   }
 
 
@@ -78,7 +75,7 @@ public class RequiredBundleImpl implements RequiredBundle
    */
   public Bundle getBundle() {
     if (isRemovalPending()) {
-      return (Bundle)bundle;
+      return (Bundle)bpkgs.bundle;
     } else {
       return null;
     }
@@ -99,9 +96,12 @@ public class RequiredBundleImpl implements RequiredBundle
    */
   public Bundle[] getRequiringBundles() {
     if (isRemovalPending()) {
-      int size = bundle.requiredBy.size();
+      int size = bpkgs.requiredBy.size();
       if (size > 0) {
-        return (Bundle[])bundle.requiredBy.toArray(new Bundle[size]);
+        Bundle[] res = new Bundle[size];
+        for (int i = 0; i < size; i++) {
+          res[i] = ((BundlePackages)bpkgs.requiredBy.get(i)).bundle;
+        }
       }
     }
     return null;
@@ -116,7 +116,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         available.
    */
   public Version getVersion() {
-    return bundle.version;
+    return bpkgs.bundle.version;
   }
 
 
@@ -129,8 +129,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         become stale; <code>false</code> otherwise.
    */
   public boolean isRemovalPending() {
-    // NYI! Fix a more stable version.
-    return bundle.lastModified != lastModified;
+    return bpkgs.bundle.bpkgs != bpkgs;
   }
 
 }

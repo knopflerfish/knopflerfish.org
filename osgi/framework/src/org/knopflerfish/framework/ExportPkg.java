@@ -47,7 +47,7 @@ import org.osgi.framework.Version;
  */
 class ExportPkg {
   final String name;
-  final BundleImpl bundle;
+  final BundlePackages bpkgs;
   final ArrayList /* String */ uses;
   final ArrayList /* String */ mandatory;
   final ArrayList /* String */ include;
@@ -62,8 +62,8 @@ class ExportPkg {
   /**
    * Create an export package entry.
    */
-  ExportPkg(String name, Map tokens, BundleImpl b) {
-    this.bundle = b;
+  ExportPkg(String name, Map tokens, BundlePackages b) {
+    this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not export a java.* package");
@@ -107,7 +107,7 @@ class ExportPkg {
    */
   ExportPkg(ExportPkg ep, String name) {
     this.name = name;
-    this.bundle = ep.bundle;
+    this.bpkgs = ep.bpkgs;
     this.uses = ep.uses;
     this.mandatory = ep.mandatory;
     this.include = ep.include;
@@ -120,9 +120,9 @@ class ExportPkg {
   /**
    * Create a re-export package entry with a new bundle owner from an existing export.
    */
-  ExportPkg(ExportPkg ep, BundleImpl b) {
+  ExportPkg(ExportPkg ep, BundlePackages b) {
     this.name = ep.name;
-    this.bundle = b;
+    this.bpkgs = b;
     this.uses = ep.uses;
     this.mandatory = ep.mandatory;
     this.include = ep.include;
@@ -222,7 +222,7 @@ class ExportPkg {
    * @return String.
    */
   public String toString() {
-    return pkgString() + "(" + bundle + ")";
+    return pkgString() + "(" + bpkgs.bundle + ")";
   }
 
 }

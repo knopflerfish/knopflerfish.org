@@ -163,6 +163,7 @@ final public class BundleClassLoader extends ClassLoader {
     return false;
   }
   
+
   /**
    * Create class loader for specified bundle.
    */
@@ -171,7 +172,7 @@ final public class BundleClassLoader extends ClassLoader {
     this.bpkgs = bpkgs;
     archive = ba;
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - created new classloader");
+      Debug.println(this + " Created new classloader");
     }
   }
 
@@ -222,8 +223,7 @@ final public class BundleClassLoader extends ClassLoader {
   protected String findLibrary(String name) {
     String res = archive.getNativeLibrary(name);
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find library: " + name
-                    + (res != null ? " OK" : " FAIL"));
+      Debug.println(this + " Find library: " + name + (res != null ? " OK" : " FAIL"));
     }
     return res;
   }
@@ -295,7 +295,7 @@ final public class BundleClassLoader extends ClassLoader {
    */
   public URL getResource(String name) {
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") getResource: " + name);
+      Debug.println(this + " getResource: " + name);
     }
     URL res = super.getResource(name);
     if (res == null && !isJava2) {
@@ -325,11 +325,19 @@ final public class BundleClassLoader extends ClassLoader {
     return null;
   }
 
+
+  /**
+   * Return a string representing this objet
+   *
+   * @return A message string.
+   */
+  public String toString() {
+    return "BundleClassLoader(id=" + bpkgs.bundle.id + ",gen=" + bpkgs.generation + ")";
+  }
+
   //
   // BundleClassLoader specific
   //
-
-
 
   /**
    * Get bundle owning this class loader.
@@ -347,7 +355,7 @@ final public class BundleClassLoader extends ClassLoader {
   void close() {
     archive = null;
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - cleared archives");
+      Debug.println(this + " Cleared archives");
     }
   }
 
@@ -384,8 +392,7 @@ final public class BundleClassLoader extends ClassLoader {
    */
   Enumeration getBundleResources(String name, boolean onlyFirst) {
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") Find bundle resource" +
-                    (onlyFirst ? "" : "s") + ": " + name);
+      Debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s") + ": " + name);
     }
     String pkg = null;
     int pos = name.lastIndexOf('/');
@@ -397,6 +404,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
     return (Enumeration)searchFor(null, pkg, name, resourceSearch, onlyFirst, this, null);
   }
+
 
   /**
    * Get bundle package handler.
@@ -465,7 +473,7 @@ final public class BundleClassLoader extends ClassLoader {
    * @return Object returned from action class.
    */
   protected Object searchFor(String name, String pkg, String path, SearchAction action, boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
-    BundleImpl pb;
+    BundlePackages pbp;
     ExportPkg ep;
 
     // TBD! Should this be an action method
@@ -477,42 +485,42 @@ final public class BundleClassLoader extends ClassLoader {
     }
 
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") Search for: " + path);
+      Debug.println(this + " Search for: " + path);
     }
     /* 3 */
     if (pkg != null) {
-      pb = bpkgs.getProviderBundle(pkg);
-      if (pb != null) {
-        if (pb != bpkgs.bundle) {
-          BundleClassLoader cl = pb.getExporterClassLoader(pkg);
+      pbp = bpkgs.getProviderBundlePackages(pkg);
+      if (pbp != null) {
+        BundleClassLoader cl = pbp.getClassLoader();
+        if (cl != this) {
           if (cl != null) {
             if (debug) {
-              Debug.println("classLoader(#" + bpkgs.bundle.id + ") Import search: " + path +
-                            " from #" + pb.getBundleId());
+              Debug.println(this + " Import search: " + path +
+                            " from #" + pbp.bundle.id);
             }
             return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
           }
           if (debug) {
-            Debug.println("classLoader(#" + bpkgs.bundle.id + ") - no import found: " + path);
+            Debug.println(this + " No import found: " + path);
           }
           return null;
         }
       } else {
         /* 4 */
-        ArrayList pl = bpkgs.bundle.getRequiredBundles(pkg);
+        ArrayList pl = bpkgs.getRequiredBundlePackages(pkg);
         if (pl != null) {
           if (visited == null) {
             visited = new HashSet();
           }
           visited.add(this);
           for (Iterator pi = pl.iterator(); pi.hasNext(); ) {
-            pb = (BundleImpl)pi.next();
-            if (pb != null) {
-              BundleClassLoader cl = pb.getExporterClassLoader(pkg);
+            pbp = (BundlePackages)pi.next();
+            if (pbp != null) {
+              BundleClassLoader cl = pbp.getClassLoader();
               if (cl != null && !visited.contains(cl)) {
                 if (debug) {
-                  Debug.println("classLoader(#" + bpkgs.bundle.id + ") Required bundle search: " +
-                                path + " from #" + pb.getBundleId());
+                  Debug.println(this + " Required bundle search: " +
+                                path + " from #" + pbp.bundle.id);
                 }
                 Object res = cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
                 if (res != null) {
@@ -548,20 +556,20 @@ final public class BundleClassLoader extends ClassLoader {
     }
     /* 8 */
     if (pkg != null) {
-      pb = bpkgs.getDynamicProviderBundle(pkg);
-      if (pb != null) {
+      pbp = bpkgs.getDynamicProviderBundlePackages(pkg);
+      if (pbp != null) {
         /* 9 */
-        BundleClassLoader cl = pb.getExporterClassLoader(pkg);
+        BundleClassLoader cl = pbp.getClassLoader();
         if (cl != null) {
           if (debug) {
-            Debug.println("classLoader(#" + bpkgs.bundle.id + ") Dynamic import search: " +
-                          path + " from #" + pb.getBundleId());
+            Debug.println(this + " Dynamic import search: " +
+                          path + " from #" + pbp.bundle.id);
           }
           return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
         }
       }
       if (debug) {
-        Debug.println("classLoader(#" + bpkgs.bundle.id + ") No dynamic import: " + path);
+        Debug.println(this + " No dynamic import: " + path);
       }
     }
     return null;
