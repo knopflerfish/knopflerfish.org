@@ -924,6 +924,44 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     }
 
     //
+    // Resolve command
+    //
+
+    public final static String USAGE_RESOLVE = "[<bundle>] ...";
+
+    public final static String[] HELP_RESOLVE = new String[] {
+            "Resolve one or more bundles", 
+            "If no bundle is specified resolve all bundles",
+            "<bundle> Name or id of bundle" };
+
+    public int cmdResolve(Dictionary opts, Reader in, PrintWriter out,
+            Session session) {
+        if (packageAdmin == null) {
+            out.println("Package Admin service is not available");
+            return 1;
+        }
+        String[] bs = (String[]) opts.get("bundle");
+        Bundle[] b = null;
+        if (bs != null) {
+            b = getBundles(bs, true);
+            for (int i = 0; i < b.length; i++) {
+                if (b[i] == null) {
+                    Bundle[] nb = new Bundle[i];
+                    System.arraycopy(b, 0, nb, 0, nb.length);
+                    b = nb;
+                    break;
+                }
+            }
+            if (b.length == 0) {
+                out.println("ERROR! No matching bundle");
+                return 1;
+            }
+        }
+        packageAdmin.resolveBundles(b);
+        return 0;
+    }
+
+    //
     // Services command
     //
 
