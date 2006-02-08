@@ -1575,8 +1575,8 @@ public class Loader {
 	      }
 	      
 	      
-	      String bundle = (String) attrs.get(ATTR_BUNDLE);
-	      if(bundle != null){
+	      String bundle_location = (String) attrs.get(ATTR_BUNDLE);
+	      if(bundle_location != null){
 	    	  
 	      }
 	      else{
@@ -1591,34 +1591,32 @@ public class Loader {
 	      if(currentDesignatePid != null){
 	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
 	    	  if(ca != null){
-	    		  currentConf = ca.getConfiguration(currentDesignatePid, bundle);
+	    		  currentConf = ca.getConfiguration(currentDesignatePid, bundle_location);
 	      
 	    		  String merge = (String) attrs.get(ATTR_MERGE);
 	    		  
 	    		  if(merge == null || !Boolean.valueOf(merge).booleanValue()){
 	    				  currentConf.delete();
-	    				  currentConf = ca.getConfiguration(currentDesignatePid, bundle);
+	    				  currentConf = ca.getConfiguration(currentDesignatePid, bundle_location);
 	    		  }
 	    		  
 	    		  String location = currentConf.getBundleLocation();
-	    		  if(location != null && !location.equals(bundle)){
+	    		  if(location != null && !location.equals(bundle_location)){
 	    			  //currentConf = null; //will prevent processing
-	    			  currentConf.setBundleLocation(location);
+	    			  currentConf.setBundleLocation(bundle_location);
 	    		  } 
 	    	  }
 	      }
 	      else if (currentDesignateFactoryPid != null){
 	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
 	    	  if(ca != null){
-	    		  currentConf = ca.createFactoryConfiguration(currentDesignateFactoryPid, bundle);
+	    		  currentConf = ca.createFactoryConfiguration(currentDesignateFactoryPid, bundle_location);
 	    		  //merge is meaningless
 	    	  }
 	      }
 	      
 	      currentAttributes = new Vector();
-	 
 	  }
-	  
 	  else if (OPTION.equals(element)) {
 		  
 		  String label = (String) attrs.get(ATTR_LABEL);
