@@ -306,7 +306,7 @@ class BundlePackages {
       ArrayList res = new ArrayList();
       for (Iterator i = require.iterator(); i.hasNext(); ) {
         RequireBundle rb = (RequireBundle)i.next();
-        if (rb.bpkgs != null) {
+        if (rb.bpkgs != null && rb.bpkgs.getExport(pkg) != null) {
           res.add(rb.bpkgs);
         }
       }
