@@ -1569,7 +1569,7 @@ public class Loader {
 	      }
 	      
 	      String factoryPid = (String) attrs.get(ATTR_FACTORYPID);
-	      if(factoryPid != null){
+	      if(factoryPid != null && !factoryPid.equals("")){
 	    	  currentDesignateFactoryPid = factoryPid;
 	    	  currentDesignatePid = null;
 	      }
@@ -1587,6 +1587,7 @@ public class Loader {
 	      }
 	      
 	      
+	      
 	      if(currentDesignatePid != null){
 	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
 	    	  if(ca != null){
@@ -1598,6 +1599,19 @@ public class Loader {
 	    				  currentConf.delete();
 	    				  currentConf = ca.getConfiguration(currentDesignatePid, bundle);
 	    		  }
+	    		  
+	    		  String location = currentConf.getBundleLocation();
+	    		  if(location != null && !location.equals(bundle)){
+	    			  //currentConf = null; //will prevent processing
+	    			  currentConf.setBundleLocation(location);
+	    		  } 
+	    	  }
+	      }
+	      else if (currentDesignateFactoryPid != null){
+	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
+	    	  if(ca != null){
+	    		  currentConf = ca.createFactoryConfiguration(currentDesignateFactoryPid, bundle);
+	    		  //merge is meaningless
 	    	  }
 	      }
 	      
