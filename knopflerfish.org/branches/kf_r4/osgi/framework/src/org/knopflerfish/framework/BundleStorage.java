@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,13 +56,26 @@ public interface BundleStorage {
     throws Exception;
 
   /**
-   * Replace jar content for bundle in persistent storage.
+   * Insert a new jar file into persistent storagedata as an update
+   * to an existing bundle archive. To commit this data a call to
+   * <code>replaceBundleArchive</code> is needed.
    *
    * @param old BundleArchive to be replaced.
    * @param is Inputstrem with bundle content.
+   * @return Bundle archive object.
+   */
+  BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
+    throws Exception;
+
+  /**
+   * Replace old bundle archive with a new updated bundle archive, that
+   * was created with updateBundleArchive.
+   *
+   * @param oldBA BundleArchive to be replaced.
+   * @param newBA Inputstrem with bundle content.
    * @return New bundle archive object.
    */
-  BundleArchive replaceBundleJar(BundleArchive old, InputStream is)
+  void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
     throws Exception;
 
   /**
