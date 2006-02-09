@@ -258,8 +258,6 @@ public abstract class JHTMLBundle extends JPanel  {
     sb.append(formatServiceObject(srl[0]).toString());
 	} catch (Exception e) {
 	  sb.append("Failed to format service object: " + e);
-	} finally {
-	  Activator.getTargetBC().ungetService(srl[0]);
 	}
 
 
