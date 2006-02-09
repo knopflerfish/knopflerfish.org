@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -341,16 +341,18 @@ class BundleArchiveImpl implements BundleArchive
    */
   public Vector componentExists(String component, boolean onlyFirst) {
     Vector v = null;
-
+    if (component.startsWith("/")) {
+      component = component.substring(1);
+    }
     for (int i = 0; i < archives.length; i++) {
-      InputStream is = archives[i].getInputStream(component);
-      if (is != null) {
+      Archive.InputFlow aif = archives[i].getInputFlow(component);
+      if (aif != null) {
         if(v == null) {
           v = new Vector();
         }
         v.addElement(new Integer(i));
         try {
-          is.close();
+          aif.is.close();
         } 
         catch (IOException ignore) { }
         if (onlyFirst) {
@@ -381,18 +383,18 @@ class BundleArchiveImpl implements BundleArchive
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-
     if(ix == -1) {
       for (int i = 0; i < archives.length; i++) {
-        InputStream res = archives[i].getInputStream(component);
-        if (res != null) {
-          return res;
+        Archive.InputFlow aif = archives[i].getInputFlow(component);
+        if (aif != null) {
+          return aif.is;
         }
       }
       return null;
     } 
     else {
-      return archives[ix].getInputStream(component);
+      Archive.InputFlow aif = archives[ix].getInputFlow(component);
+      return aif != null ? aif.is : null;
     }
   }
 
@@ -601,8 +603,7 @@ class BundleArchiveImpl implements BundleArchive
         String path = st.nextToken().trim();
         if (".".equals(path)) {
           a.add(archive);
-        } 
-        else if (path.endsWith(".jar")) {
+        } else {
           try {
             a.add(archive.getSubArchive(path));
           } catch (IOException ioe) {
@@ -611,13 +612,6 @@ class BundleArchiveImpl implements BundleArchive
             }
             failedPath.add(path);
           }
-        }
-        else {
-          if (archive.subDirs == null) {
-            archive.subDirs = new ArrayList(1);
-          }
-          // NYI Check that it exists!
-          archive.subDirs.add(path);
         }
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
