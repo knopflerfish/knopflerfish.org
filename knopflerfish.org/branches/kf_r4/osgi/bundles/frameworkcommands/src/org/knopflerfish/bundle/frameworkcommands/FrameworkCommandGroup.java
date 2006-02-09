@@ -63,6 +63,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.osgi.service.startlevel.StartLevel;
@@ -529,6 +530,141 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
             throw new IllegalArgumentException("makeObject(" + val + ", "
                     + className + "): " + e);
         }
+    }
+
+    //
+    // Closure command
+    //
+    
+    public final static String USAGE_CLOSURE = "<bundle>";
+
+    public final static String[] HELP_CLOSURE = new String[] {
+            "Display the closure for a bundle",
+            "<bundle> - Name or id of bundle" };
+
+    public int cmdClosure(Dictionary opts, Reader in, PrintWriter out,
+            Session session) {
+                
+        if (packageAdmin == null) {
+            out.println("Package Admin service is not available");
+            return 1;
+        }
+        
+        String bname = (String) opts.get("bundle");
+        Bundle[] bl = getBundles(new String[] { bname }, true);
+        Bundle bundle = bl[0];
+        if (bundle == null) {
+            out.println("ERROR! No matching bundle for '" + bname + "'");
+            return 1;
+        }
+
+        bl = getBundles(null, false, false, false);
+        
+        // Package
+        
+        Vector pkgClosure = new Vector();
+        // This is O(n2) at least, possibly O(n3). Should be improved
+        for(int b = 0; b < bl.length; b++) {
+          ExportedPackage[] pkgs = packageAdmin.getExportedPackages(bl[b]);
+          if (pkgs == null) continue;
+          for(int p = 0; p < pkgs.length; p++) {
+            Bundle[] bl2 = pkgs[p].getImportingBundles();
+            if (bl2 == null) continue;
+            for(int ib = 0; ib < bl2.length;  ib++) {
+              if(bl2[ib].getBundleId() == bundle.getBundleId() && !pkgClosure.contains(bl[b])) {
+                pkgClosure.add(bl[b]);
+              }
+            }
+          }
+        }
+        pkgClosure.remove(bundle);
+        if (pkgClosure.size() == 0) {
+          out.println("No package dependencies");
+        } else {
+          out.println("Static dependencies via packages:");
+          Bundle[] bundles = (Bundle[]) pkgClosure.toArray(new Bundle[pkgClosure.size()]);
+          printBundles(out, bundles, false, true);
+        }
+
+        // Service
+        
+        Vector serviceClosure = new Vector();
+        ServiceReference[] srl = bundle.getServicesInUse();
+        for (int i = 0; srl != null && i < srl.length; i++) {
+          if (!serviceClosure.contains(srl[i].getBundle())) {
+            serviceClosure.add(srl[i].getBundle());
+          }
+        }
+        serviceClosure.remove(bundle);
+        if(serviceClosure.size() == 0) {
+          out.println("No service dependencies");
+        } else {
+          out.println("Runtime dependencies via services:");
+          Bundle[] bundles = (Bundle[]) serviceClosure.toArray(new Bundle[serviceClosure.size()]);
+          printBundles(out, bundles, false, true);
+        }
+
+        // Fragment
+        
+        Bundle[] fragmentBundles = packageAdmin.getFragments(bundle);
+        if (fragmentBundles == null) {
+          out.println("No fragments");
+        } else {
+          out.println("Fragments:");
+          printBundles(out, fragmentBundles, false, true);
+        }
+        
+        // Host
+        
+        Bundle[] hostBundles = packageAdmin.getHosts(bundle);
+        if (hostBundles == null) {
+          out.println("No hosts");
+        } else {
+          out.println("Hosts:");
+          printBundles(out, hostBundles, false, true);
+        }
+
+        // Required
+        
+        Vector required = new Vector();
+        Vector requiredBy = new Vector();
+        
+try { // untested code
+        RequiredBundle[] requiredBundles = packageAdmin.getRequiredBundles(null);
+        if (requiredBundles != null) {
+          for (int reqd = 0; reqd < requiredBundles.length; reqd++) {
+            Bundle[] requiringBundles = requiredBundles[reqd].getRequiringBundles();
+            if (requiringBundles == null) continue;
+            if (requiredBundles[reqd].getBundle().equals(bundle)) {
+              for (int ring = 0; ring < requiringBundles.length; ring++) {
+                requiredBy.add(requiringBundles[ring]);
+              }
+            } else {
+              for (int ring = 0; ring < requiringBundles.length; ring++) {
+                if (requiringBundles[ring].equals(bundle)) {
+                  required.add(requiredBundles[reqd].getBundle());
+                }
+              }
+            }
+          }
+        }
+} catch (Throwable ignored) {}
+        if (required.size() == 0) {
+          out.println("No required bundles");
+        } else {
+          out.println("Required bundles:");
+          Bundle[] bundles = (Bundle[]) required.toArray(new Bundle[required.size()]);
+          printBundles(out, bundles, false, true);
+        }
+        if (requiredBy.size() == 0) {
+          out.println("No requiring bundles");
+        } else {
+          out.println("Requiring bundles:");
+          Bundle[] bundles = (Bundle[]) requiredBy.toArray(new Bundle[requiredBy.size()]);
+          printBundles(out, bundles, false, true);
+        }
+        
+        return 0;
     }
 
     //
