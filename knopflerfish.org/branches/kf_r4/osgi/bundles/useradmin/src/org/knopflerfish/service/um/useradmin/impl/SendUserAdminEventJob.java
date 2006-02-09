@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,15 +49,14 @@ import org.osgi.service.useradmin.UserAdminListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.util.workerthread.Job;
 
 /**
- * A job-object that sends a given UserAdminEvent to all registered listeners.
+ * An object that sends a given UserAdminEvent to all registered listeners.
  * 
  * @author Gunnar Ekolin
  * @version 
  */
-public class SendUserAdminEventJob extends Job {
+final public class SendUserAdminEventJob implements Runnable {
 
   LogRef log;
   BundleContext  bc;
