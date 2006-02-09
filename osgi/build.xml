@@ -169,4 +169,14 @@
   <delete dir="jars"/>
  </target>
 
+
+ <target name="rebuild"
+         description="Same as &quot;ant clean all opt-test&quot;">
+    <antcall target="clean"/>
+    <ant dir="bundles_test" target="clean"
+         inheritAll="false" inheritRefs="false"/>
+    <antcall target="all"/>
+    <antcall target="opt-test"/>
+ </target>
+
 </project>

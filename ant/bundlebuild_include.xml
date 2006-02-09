@@ -54,24 +54,48 @@
 
  <property name = "xinclude.source"       value = "true"/>
  <property name = "domain.reverse"        value = "org.knopflerfish"/>
- <property name = "bundle.manifest.version" value = "2"/>
- <property name = "bundle.name"           value = "${ant.project.name}"/>
- <property name = "bundle.symbolicname"   value = "${domain.reverse}.bundle.${ant.project.name}"/>
- <property name = "bundle.version"        value = "${bundle.emptystring}"/>
- <property name = "bundle.uuid"           value = "${domain.reverse}:${ant.project.name}:${bundle.version}"/>
- <property name = "bundle.config"         value = "${bundle.emptystring}"/>
- <property name = "bundle.vendor"         value = "Knopflerfish"/>
+
+
+ <!-- Properties used as value for bundle manifest headers.            -->
+ <!-- To override the default values below, set them in your build.xml -->
+ <!-- before including this file.                                      --> 
+ <!-- If bundle.activator, import.package or export.package is not set -->
+ <!-- they will be derived by the bundleinfo task during the build.    -->
+ <!-- A manifest property with the value "${bundle.emptystring}" will  -->
+ <!-- not be included in the generated manifest.                       -->
+
+ <!--  <property name = "bundle.activator"  value = ""/> -->
+ <property name = "bundle.category"       value = "${bundle.emptystring}"/>
+ <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
+ <property name = "bundle.contactaddress" value = "http://www.knopflerfish.org"/>
+ <property name = "bundle.copyright"      value = "${bundle.emptystring}"/>
  <property name = "bundle.description"    value = "${bundle.emptystring}"/>
  <property name = "bundle.docurl"         value = "http://www.knopflerfish.org"/>
- <property name = "bundle.contactaddress" value = "http://www.knopflerfish.org"/>
- <property name = "bundle.category"       value = "${bundle.emptystring}"/>
- <property name = "export.service"        value = "${bundle.emptystring}"/>
- <property name = "import.service"        value = "${bundle.emptystring}"/>
- <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
- <property name = "dynamicimport.package"  value = "${bundle.emptystring}"/>
+ <property name = "bundle.localization"   value = "${bundle.emptystring}"/>
+ <property name = "bundle.manifest.version" value = "2"/>
+ <property name = "bundle.name"           value = "${ant.project.name}"/>
  <property name = "bundle.nativecode"     value = "${bundle.emptystring}"/>
+ <property name = "bundle.requiredEE"     value = "${bundle.emptystring}"/>
+ <property name = "bundle.symbolicname"   value = "${domain.reverse}.bundle.${ant.project.name}"/>
+ <property name = "bundle.update.location" value = "${bundle.emptystring}"/>
+ <property name = "bundle.vendor"         value = "Knopflerfish"/>
+ <property name = "bundle.version"        value = "${bundle.emptystring}"/>
+ <property name = "dynamicimport.package" value = "${bundle.emptystring}"/>
+ <!--  <property name = "export.package"  value = ""/> -->
+ <property name = "export.service"        value = "${bundle.emptystring}"/>
+ <property name = "fragment.host"         value = "${bundle.emptystring}"/>
+ <!--  <property name = "import.package"  value = ""/> -->
+ <property name = "import.service"        value = "${bundle.emptystring}"/>
+ <property name = "require.bundle"        value = "${bundle.emptystring}"/>
 
+ <property name = "bundle.uuid"           value = "${domain.reverse}:${ant.project.name}:${bundle.version}"/>
+ <property name = "bundle.config"         value = "${bundle.emptystring}"/>
  <property name = "bundle.icon"           value = "${bundle.emptystring}"/>
+ <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
+ <property name = "bundle.apivendor"  value = "${bundle.emptystring}"/>
+ <!-- End of properties used as value for bundle manifest headers.     -->
+
+
 
  <property name = "console.host"        value = "localhost"/>
  <property name = "console.port"        value = "23"/>
@@ -79,9 +103,6 @@
  <property name = "console.pwd"         value = "admin"/>
  <property name = "console.welcome"     value = "Knopflerfish OSGi console"/>
  <property name = "console.loginok"     value = "'quit' to end session"/>
-
- <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
- <property name = "bundle.apivendor"  value = "${bundle.emptystring}"/>
 
 
  <property name = "bundle.uuid.impl"          value = "${bundle.uuid}:impl"/>
@@ -393,8 +414,11 @@
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
+    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
     <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
     <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
     <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
@@ -405,12 +429,15 @@
 <!--
     <attribute name = "Export-Package"        value = "${export.package}"/>
 -->
+    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
+    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
     <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
     <attribute name = "Bundle-APIVendor"      value = "${bundle.apivendor}"/>
     
@@ -489,16 +516,22 @@
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
+    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
     <attribute name = "Bundle-Category"       value = "API"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
+    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
     <attribute name = "Bundle-UUID"           value = "${bundle.uuid.api}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
     <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
   </bundlemanifest>
 
@@ -541,18 +574,24 @@
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
+    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
     <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
     <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
+    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
     <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
     <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
   </bundlemanifest>
 
@@ -612,8 +651,11 @@
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
+    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
     <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
     <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
     <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
@@ -621,12 +663,15 @@
     <attribute name = "Import-Service"        value = "${import.service}"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
+    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
     <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
     <attribute name = "Bundle-APIVendor"      value = "${bundle.apivendor}"/>
     <attribute name = "Service-Component"     value = "${service.component}"/>
@@ -685,8 +730,11 @@
     <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
     <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
     <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
     <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
     <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
+    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
     <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
     <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
     <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
@@ -695,12 +743,15 @@
     <attribute name = "Import-Service"        value = "${import.service}"/>
     <attribute name = "Export-Package"        value = "${export.package}"/>
     <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
+    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
     <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
     <attribute name = "Built-From"            value = "${proj.dir}"/>
     <attribute name = "Build-Date"            value = "${bundle.date}"/>
     <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
     <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
     <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
     <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
     <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
   </bundlemanifest>

@@ -41,8 +41,6 @@ import java.util.Vector;
 
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.um.useradmin.Condition;
-import org.knopflerfish.util.workerthread.Job;
-import org.knopflerfish.util.workerthread.WorkerThread;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -86,8 +84,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     LogRef log;
 
-    WorkerThread sendEventWorkerThread
-      = new WorkerThread("UserAdminEventSenderThread");
+    EventQueue eventQueue;
 
     ServiceTracker eventAdminTracker;
 
@@ -111,6 +108,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
         eventAdminTracker
           = new ServiceTracker(this.bc, EventAdmin.class.getName(), null );
+        eventQueue = new EventQueue(this.bc);
     }
 
     /**
@@ -137,7 +135,6 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         } catch (InvalidSyntaxException ex) {
         }
         eventAdminTracker.open();
-        sendEventWorkerThread.start();
 
         if (log.doInfo())
             log.info("Service initialized", uasr);
@@ -149,7 +146,6 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
      * thread.
      */
     void stop() {
-        sendEventWorkerThread.shutdown();
     }
   
     /**
@@ -163,13 +159,13 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
      */
     void sendEvent(int type, Role role) {
         // dont send event if type = CHANGED and role has been removed
-        if (!(type == UserAdminEvent.ROLE_CHANGED && roles.get(role.getName()) == null)) {
+        if (!(type == UserAdminEvent.ROLE_CHANGED
+              && roles.get(role.getName()) == null)) {
             UserAdminEvent event = new UserAdminEvent(uasr, type, role);
-            Job sendEventJob = new SendUserAdminEventJob(bc,
-                                                         eventAdminTracker,
-                                                         event,
-                                                         listeners);
-            sendEventWorkerThread.addJob(sendEventJob);
+            eventQueue.enqueue( new SendUserAdminEventJob(bc,
+                                                          eventAdminTracker,
+                                                          event,
+                                                          listeners) );
             if (log.doDebug())
                 log.debug(event.toString(), uasr);
         } else {
