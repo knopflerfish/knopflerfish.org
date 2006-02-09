@@ -108,8 +108,6 @@ class Archive {
    */
   private ZipEntry subJar /*= null*/;
   
-  ArrayList subDirs/*= null*/;
-  
   private Hashtable defaultLocaleEntries;
   
   private String localizationFilesLocation;
@@ -323,7 +321,11 @@ class Archive {
       file = a.file;
     } else {
       file = findFile(a.file, path);
-      jar = new ZipFile(file);
+      if (file.isDirectory()) {
+        jar = null;
+      } else {
+        jar = new ZipFile(file);
+      }
     }
   }
 
@@ -513,6 +515,7 @@ class Archive {
 
   }
 
+
   /**
    * Get a byte array containg the contents of named class file from
    * the archive.
@@ -525,138 +528,82 @@ class Archive {
     if(bClosed) {
         return null;
     }
-
-    ZipEntry ze;
-    InputStream is;
-    int len;
-    if (jar != null) {
-      if (subJar != null) {
-        JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-        do {
-          ze = ji.getNextJarEntry();
-          if (ze == null) {
-            ji.close();
-            return null;
+    InputFlow cif = getInputFlow(classFile);
+    if (cif != null) {
+      byte[] bytes;
+      if (cif.length >= 0) {
+        bytes = new byte[(int)cif.length];
+        DataInputStream dis = new DataInputStream(cif.is);
+        dis.readFully(bytes);
+      } else {
+        bytes = new byte[0];
+        byte[] tmp = new byte[8192];
+        try {
+          int len;
+          while ((len = cif.is.read(tmp)) > 0) {
+            byte[] oldbytes = bytes;
+            bytes = new byte[oldbytes.length + len];
+            System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
+            System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
           }
-        } while (!classFile.equals(ze.getName()));
-        is = (InputStream)ji;
-      } 
-      else {
-        ze = jar.getEntry(classFile);
-        if (ze == null) {
-          if(subDirs == null){
-            return null;
-          }
-          Iterator it = subDirs.iterator();
-          boolean found = false;
-          while(it.hasNext()){
-            String subDir = (String) it.next();
-            ze = jar.getEntry(subDir + "/" + classFile);
-            if(ze != null){
-              found = true;
-              break;
-            }
-          }
-          if(!found){
-            return null;
-          }
+        } 
+        catch (EOFException ignore) {
+          // On Pjava we somtimes get a mysterious EOF excpetion,
+          // but everything seems okey. (SUN Bug 4040920)
         }
-        is = jar.getInputStream(ze);
       }
-      len = (int)ze.getSize();
+      cif.is.close();
+      return bytes;
+    } else {
+      return null;
     }
-    else {
-      File f = findFile(file, classFile);
-      if(!f.exists()) {
-        if(subDirs == null){
-          return null;
-        }
-        Iterator it = subDirs.iterator();
-        boolean found = false;
-        while(it.hasNext()){
-          String subDir = (String) it.next();
-          f = findFile(file,subDir + "/" + classFile);
-          if(f.exists()){
-            found = true;
-            break;
-          }
-        }
-        if(!found){
-          return null;
-        }
-      }       
-      is = new FileInputStream(f);
-      len = is.available();
-    }
-    byte[] bytes;
-    if (len >= 0) {
-      bytes = new byte[len];
-      DataInputStream dis = new DataInputStream(is);
-      dis.readFully(bytes);
-    }
-    else {
-      bytes = new byte[0];
-      byte[] tmp = new byte[8192];
-      try {
-        while ((len = is.read(tmp)) > 0) {
-          byte[] oldbytes = bytes;
-          bytes = new byte[oldbytes.length + len];
-          System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
-          System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
-        }
-      } 
-      catch (EOFException ignore) {
-        // On Pjava we somtimes get a mysterious EOF excpetion,
-        // but everything seems okey. (SUN Bug 4040920)
-      }
-    }
-    is.close();
-    return bytes;
   }
 
 
   /**
-   * Get an InputStream to named entry inside an Archive.
+   * Get an InputFlow to named entry inside an Archive.
    *
    * @param component Entry to get reference to.
-   * @return InputStream to entry or null if it doesn't exist.
+   * @return InputFlow to entry or null if it doesn't exist.
    */
-  InputStream getInputStream(String component) {
+  InputFlow getInputFlow(String component) {
     if(bClosed) {
       return null;
     }
     if (component.startsWith("/")) {
-      component = component.substring(1);
+      throw new RuntimeException("Assert! Path should never start with / here");
     }
     ZipEntry ze;
     InputStream is;
     try {
-        if (jar != null) {
-                if (subJar != null) {
-                        JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-                        do {
-                                ze = ji.getNextJarEntry();
-                                if (ze == null) {
-                                        ji.close();
-                                        return null;
-                                }
-                        } while (!component.equals(ze.getName()));
-                        is = (InputStream)ji;
-                } 
-                else {
-                        ze = jar.getEntry(component);
-                        is = (ze != null) ? jar.getInputStream(ze) : null;
-                }
-        } 
-        else {
-                File f = findFile(file, component);
-                is = f.exists() ? new FileInputStream(f) : null;
+      if (jar != null) {
+        if (subJar != null) {
+          if (subJar.isDirectory()) {
+            ze = jar.getEntry(subJar.getName() + "/" + component);
+          } else {
+            JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+            do {
+              ze = ji.getNextJarEntry();
+              if (ze == null) {
+                ji.close();
+                return null;
+              }
+            } while (!component.equals(ze.getName()));
+            return new InputFlow((InputStream)ji, ze.getSize());
+          }
+        } else {
+          ze = jar.getEntry(component);
         }
-        return is;
+        return ze != null ? new InputFlow(jar.getInputStream(ze), ze.getSize()) : null;
+      } else {
+        File f = findFile(file, component);
+        return f.exists() ? new InputFlow(new FileInputStream(f), f.length()) : null;
+      }
     } catch (IOException ignore) {
       return null;
     }
   }
+
 
   //TODO not extensively tested
   Enumeration findResourcesPath(String path) {
@@ -872,9 +819,9 @@ class Archive {
    */
   private Manifest getManifest() throws IOException {
     // TBD: Should recognize entry with lower case?
-    InputStream is = getInputStream("META-INF/MANIFEST.MF");
-    if (is != null) {
-      return new Manifest(is);
+    InputFlow mif = getInputFlow("META-INF/MANIFEST.MF");
+    if (mif != null) {
+      return new Manifest(mif.is);
     } else {
       throw new IOException("Manifest is missing");
     }
@@ -936,4 +883,16 @@ class Archive {
     }
   }
 
+  /**
+   * InputFlow represents an InputStream with a known length
+   */
+  class InputFlow {
+    final InputStream is;
+    final long length;
+
+    InputFlow(InputStream is, long length) {
+      this.is = is;
+      this.length = length;
+    }
+  }
 }
