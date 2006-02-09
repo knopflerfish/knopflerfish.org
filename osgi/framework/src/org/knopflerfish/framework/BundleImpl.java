@@ -585,10 +585,11 @@ class BundleImpl implements Bundle {
                   } else {
                     bin = in;
                   }
-                  newArchive = framework.storage.replaceBundleJar(archive, bin);
+                  newArchive = framework.storage.updateBundleArchive(archive, bin);
                   checkEE(newArchive);
                   cacheManifestHeaders();
                   newArchive.setStartLevel(oldStartLevel);
+                  framework.storage.replaceBundleArchive(archive, newArchive);
                 } catch (Exception e) {
                   if (newArchive != null) {
                     newArchive.purge();

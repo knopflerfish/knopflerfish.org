@@ -138,36 +138,45 @@ public class BundleStorageImpl implements BundleStorage {
     }
   }
 
+
   /**
-   * Replace jar content for bundle in persistent storage.
+   * Insert a new jar file into persistent storagedata as an update
+   * to an existing bundle archive. To commit this data a call to
+   * <code>replaceBundleArchive</code> is needed.
    *
    * @param old BundleArchive to be replaced.
    * @param is Inputstrem with bundle content.
    * @return Bundle archive object.
    */
-  public BundleArchive replaceBundleJar(BundleArchive old, InputStream is)
+  public BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
+    throws Exception
+  {
+    return new BundleArchiveImpl((BundleArchiveImpl)old, is);
+  }
+
+
+  /**
+   * Replace old bundle archive with a new updated bundle archive, that
+   * was created with updateBundleArchive.
+   *
+   * @param oldBA BundleArchive to be replaced.
+   * @param newBA Inputstrem with bundle content.
+   * @return New bundle archive object.
+   */
+  public void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
     throws Exception
   {
     int pos;
-    long id = old.getBundleId();
+    long id = oldBA.getBundleId();
     synchronized (archives) {
       pos = find(id);
-      if (pos >= archives.size() || archives.get(pos) != old) {
-        throw new Exception("No such bundle archive exists");
+      if (pos >= archives.size() || archives.get(pos) != oldBA) {
+        throw new Exception("replaceBundleJar: Old bundle archive not found, pos=" + pos);
       }
+      archives.set(pos, newBA);
     }
-    BundleArchive ba = new BundleArchiveImpl((BundleArchiveImpl)old, is);
-    synchronized (archives) {
-      if (archives.get(pos) != old) {
-        pos = find(id);
-        if (pos >= archives.size() || archives.get(pos) != old) {
-          throw new Exception("Bundle removed during update");
-        }
-      }
-      archives.set(pos, ba);
-    }
-    return ba;
   }
+
 
   /**
    * Get all bundle archive objects.
