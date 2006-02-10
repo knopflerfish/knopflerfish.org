@@ -48,6 +48,9 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.StringTokenizer;
 
 import org.osgi.framework.*;
 import org.osgi.framework.AdminPermission;
@@ -59,6 +62,7 @@ import org.osgi.framework.AdminPermission;
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 
 class BundleImpl implements Bundle {
@@ -155,6 +159,24 @@ class BundleImpl implements Bundle {
    */
   boolean bDelayedStart = false;
 
+  /**
+   * All fragment bundles this bundle hosts.
+   */
+  ArrayList fragments = null;
+ 
+  /**
+   * This bundle's fragment attach policy.
+   */
+  String attachPolicy;
+  
+  /**
+   * Fragment description. This is null when the bundle isn't
+   * a fragment bundle.
+   */
+  Fragment fragment = null;
+
+  
+
   private AdminPermission CLASS_ADMIN_PERM;
   private AdminPermission EXECUTE_ADMIN_PERM;
   private AdminPermission EXTENSIONLIFECYCLE_ADMIN_PERM;
@@ -224,6 +246,7 @@ class BundleImpl implements Bundle {
     this.singleton = false;
     this.version = ver;
     this.v2Manifest = true;
+    this.attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
     initPerms();
     modified();
   }
@@ -314,6 +337,10 @@ class BundleImpl implements Bundle {
    */
   synchronized public void start() throws BundleException {
     checkExecuteAdminPerm();
+
+    if (isFragment()) {
+      throw new BundleException("Cannot start a fragment bundle");
+    }
 
     int updState = getUpdatedState();
 
@@ -461,6 +488,10 @@ class BundleImpl implements Bundle {
   synchronized public void stop() throws BundleException {
     checkExecuteAdminPerm();
 
+    if (isFragment()) {
+      throw new BundleException("Cannot stop a fragment bundle");
+    }
+
     bDelayedStart = false;
 
     setPersistent(false);
@@ -561,7 +592,9 @@ class BundleImpl implements Bundle {
         stop();
   // Fall through
       case RESOLVED:
-        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+        if (!isFragment()) {
+          framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+        }
       case INSTALLED:
   // Load new bundle
         try {
@@ -585,11 +618,26 @@ class BundleImpl implements Bundle {
                   } else {
                     bin = in;
                   }
-                  newArchive = framework.storage.updateBundleArchive(archive, bin);
+                  
+                  if (isFragment() && fragment.pendingUpdate != null) {
+                    newArchive = framework.storage.updateBundleArchive(fragment.pendingUpdate, bin);
+                    
+                  } else {
+                    newArchive = framework.storage.updateBundleArchive(archive, bin);
+                  }
+
                   checkEE(newArchive);
                   cacheManifestHeaders();
                   newArchive.setStartLevel(oldStartLevel);
-                  framework.storage.replaceBundleArchive(archive, newArchive);
+
+                  if (isFragment() && fragment.pendingUpdate != null) {
+                    framework.storage.replaceBundleArchive(fragment.pendingUpdate, newArchive);
+                  } else {
+                    framework.storage.replaceBundleArchive(archive, newArchive);
+                  }
+
+                  
+
                 } catch (Exception e) {
                   if (newArchive != null) {
                     newArchive.purge();
@@ -607,6 +655,15 @@ class BundleImpl implements Bundle {
                   } else {
                     throw new BundleException("Failed to get update bundle", e);
                   }
+                }
+
+                if (isFragment()) {
+                  if (fragment.pendingUpdate != null) {
+                    fragment.pendingUpdate.purge();
+                  }
+
+                  fragment.pendingUpdate = newArchive;
+                  return null;
                 }
 
                 // Remove this bundle's packages
@@ -712,22 +769,43 @@ class BundleImpl implements Bundle {
       // Fall through
     case INSTALLED:
     case RESOLVED:
-      framework.bundles.remove(location);
-      if (bpkgs.unregisterPackages(false)) {
-        if (classLoader != null) {
-          AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                classLoader.purge();
-                classLoader = null;
-                return null;
-              }
-            });
+
+      if (isFragment()) {
+        if (isAttached()) {
+          state = UNINSTALLED; // no problem right?
+          getFragmentHost().detachFragment(this, true);
         } else {
-          archive.purge();
+          framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+        }
+       }
+
+       if (isFragmentHost()) {
+         detachFragments(false);
+       }
+
+      framework.bundles.remove(location);
+
+      if (!isFragment()) {
+        if (bpkgs.unregisterPackages(false)) {
+          if (classLoader != null) {
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                  classLoader.purge();
+                  classLoader = null;
+                  return null;
+                }
+              });
+          } else {
+            archive.purge();
+          }
+        } else {
+          saveZombiePackages();
+          classLoader = null;
         }
       } else {
-        saveZombiePackages();
+        archive.purge();
       }
+      
       bpkgs = null;
       bactivator = null;
       if (bundleDir != null) {
@@ -753,6 +831,7 @@ class BundleImpl implements Bundle {
       // id, location and headers survices after uninstall.
       state = UNINSTALLED;
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
+      
       modified();
       break;
     case STARTING:
@@ -871,7 +950,12 @@ class BundleImpl implements Bundle {
     if (state == UNINSTALLED) {
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
-    //  TODO check not fragment
+
+    //  TODO check not fragment. Is this really what is stated?
+    if (isFragment()) {
+      return null;
+    }
+        
     try {
       checkResourceAdminPerm();
       BundleClassLoader cl = (BundleClassLoader)getClassLoader();
@@ -906,16 +990,33 @@ class BundleImpl implements Bundle {
   int getUpdatedState() {
     if (state == INSTALLED) {
       synchronized (this) {
-        if (state == INSTALLED && bpkgs.resolvePackages()) {
-          state = RESOLVED;
-          framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
-          List fe = archive.getFailedClassPathEntries();
-          if (fe != null) {
-            for (Iterator i = fe.iterator(); i.hasNext(); ) {
-              Exception e = new IOException("Failed to classpath entry: " + i.next());
-              framework.listeners.frameworkInfo(this, e);
+        if (state == INSTALLED) {
+          if (isFragment()) {
+            if (isExtension()) {
+              // we attach extension bundles when we like to.                
+              return state;
             }
+            
+            BundleImpl host = getFragmentHost();
+            if (host != null &&
+                host.state != UNINSTALLED && 
+                host.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_ALWAYS)) {
+              host.attachFragment(this);
+            }
+            return state;
           }
+          
+          if (bpkgs.resolvePackages()) {
+            state = RESOLVED;
+            framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
+            List fe = archive.getFailedClassPathEntries();
+            if (fe != null) {
+              for (Iterator i = fe.iterator(); i.hasNext(); ) {
+                Exception e = new IOException("Failed to classpath entry: " + i.next());
+                framework.listeners.frameworkInfo(this, e);
+              }
+            }
+          } 
         }
       }
     }
@@ -944,6 +1045,15 @@ class BundleImpl implements Bundle {
           classLoader = (BundleClassLoader)
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
+
+                  if (isFragment()) {
+                    if (isAttached()) {
+                      return getFragmentHost().getClassLoader();
+                    }
+
+                    return null;
+                  }
+
                   return new BundleClassLoader(bpkgs, archive);
                 }
               });
@@ -960,12 +1070,21 @@ class BundleImpl implements Bundle {
    *
    */
   synchronized void setStateInstalled() {
-    if (classLoader != null) {
-      classLoader.close();
+    if (isFragment()) {
       classLoader = null;
+      setFragmentHost(null);
+    } else {
+
+      if (classLoader != null) {
+        classLoader.close();
+        classLoader = null;
+      }
+      
+      bpkgs.unregisterPackages(true);
+      bpkgs.registerPackages();
+      
     }
-    bpkgs.unregisterPackages(true);
-    bpkgs.registerPackages();
+    
     state = INSTALLED;
   }
 
@@ -976,11 +1095,11 @@ class BundleImpl implements Bundle {
    * @param ebpkgs BundlePackages to get class loader for.
    * @return BundleClassLoader object for specified pkg, null if no classloader.
    */
-  BundleClassLoader getClassLoader(BundlePackages ebpkgs) {
+  ClassLoader getClassLoader(BundlePackages ebpkgs) {
     if (bpkgs == ebpkgs) {
-      return (BundleClassLoader)getClassLoader();
+      return getClassLoader();
     } else if (oldClassLoaders != null) {
-      return (BundleClassLoader)oldClassLoaders.get(ebpkgs);
+      return (ClassLoader)oldClassLoaders.get(ebpkgs);
     }
     return null;
   }
@@ -1096,9 +1215,13 @@ class BundleImpl implements Bundle {
     } else {
       version = Version.emptyVersion;
     }
+
+    attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
     if (e != null) {
       singleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
       BundleImpl snb = framework.bundles.getBundle(symbolicName, version);
+      String tmp = (String)e.get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
+      attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
       // TBD! Should we allow update to same version?
       if (snb != null && snb != this) {
         throw new IllegalArgumentException("Bundle with same symbolic name and version " +
@@ -1107,6 +1230,60 @@ class BundleImpl implements Bundle {
       }
     } else {
       singleton = false;
+    }
+
+    i = Util.parseEntries(Constants.FRAGMENT_HOST,
+                          archive.getAttribute(Constants.FRAGMENT_HOST),
+                          true, true, true);
+    
+    if (i.hasNext()) {
+      
+      if (archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
+        throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
+      }
+      
+      e = (Map)i.next();
+      String extension = (String)e.get(Constants.EXTENSION_DIRECTIVE);
+      String key = (String)e.get("key");
+      
+      if (Constants.EXTENSION_FRAMEWORK.equals(extension) ||
+          Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
+        
+        // an extension bundle must target the system bundle.  
+        if (!key.equals(Constants.SYSTEM_BUNDLE_SYMBOLICNAME) && 
+            !"org.knopflerfish.framework".equals(key)) {
+          throw new IllegalArgumentException("An extension bundle must target " +
+                                             "the system bundle(=" +
+                                             Constants.SYSTEM_BUNDLE_SYMBOLICNAME + ")");
+        }
+        
+        if (archive.getAttribute(Constants.IMPORT_PACKAGE) != null ||
+            archive.getAttribute(Constants.REQUIRE_BUNDLE) != null ||
+            archive.getAttribute(Constants.BUNDLE_NATIVECODE) != null ||
+            archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE) != null ||
+            archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
+          throw new IllegalArgumentException("An extension bundle cannot specify: " +
+                                             Constants.IMPORT_PACKAGE + ", " +
+                                             Constants.REQUIRE_BUNDLE + ", " +
+                                             Constants.BUNDLE_NATIVECODE + ", " +
+                                             Constants.DYNAMICIMPORT_PACKAGE + " or " +
+                                             Constants.BUNDLE_ACTIVATOR);
+        }
+      } else {
+        if (extension != null) {
+          throw new IllegalArgumentException("Did not recognize directive " + 
+                                             Constants.EXTENSION_DIRECTIVE
+                                             + ":=" + extension + "." );
+        }
+      }
+      
+      fragment = new Fragment(key,
+                              extension,
+                              (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
+      
+      if (extension != null) {
+        fragment.setHost(framework.systemBundle);
+      }
     }
   }
 
@@ -1176,7 +1353,10 @@ class BundleImpl implements Bundle {
                                archive.getAttribute(Constants.IMPORT_PACKAGE),
                                archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
                                archive.getAttribute(Constants.REQUIRE_BUNDLE));
-    bpkgs.registerPackages();
+    if (!isFragment()) {
+      // fragments don't export anything themselves. We export things when they are getting resolved.
+      bpkgs.registerPackages();
+    }
   }
 
 
@@ -1347,13 +1527,135 @@ public Enumeration getEntryPaths(String path) {
   return archive.findResourcesPath(path);
 }
 
+
+
+  /**
+   * "Localizes" this bundle's headers
+   * @param localization_entries A mapping of localization variables to values.
+   * @returns the updated dictionary.
+   */
+  private Dictionary localize(Dictionary localization_entries) {
+    Dictionary localized = archive.getUnlocalizedAttributes();
+    
+    for (Enumeration e = localized.keys();
+         e.hasMoreElements(); ) {
+      String key = (String)e.nextElement();
+      String unlocalizedEntry = (String)localized.get(key);
+      
+      if (unlocalizedEntry.startsWith("%")) {
+        String k = unlocalizedEntry.substring(1);
+        String val = (String)localization_entries.get(k);
+        
+        if (val == null) {
+          localized.put(key, k);
+        } else {
+          localized.put(key, val);
+        }
+      }
+    }
+
+    return localized;
+  }
+
+  /**
+   * Reads all localization entries that affects this bundle 
+   * (including its host/fragments)
+   */
+  void readLocalization(String locale, 
+                        Dictionary localization_entries) {
+    String[] parts = locale.split("_");
+    String tmploc = parts[0];
+    int o = 0;
+    
+    do {
+      if (isFragmentHost()) {
+        for (int i = fragments.size() - 1; i >= 0; i--) {
+          BundleImpl fb = (BundleImpl)fragments.get(i);
+          Dictionary tmp = fb.archive.getLocalizationEntries(tmploc, state);
+          if (tmp != null) {
+            for (Enumeration e = tmp.keys();
+                 e.hasMoreElements();) {
+              Object key = e.nextElement();
+              localization_entries.put(key, tmp.get(key));
+            }
+          }
+        }
+      }
+      
+      Dictionary tmp = archive.getLocalizationEntries(tmploc, state);
+      if (tmp != null) {
+        for (Enumeration e = tmp.keys();
+             e.hasMoreElements();) {
+          Object key = e.nextElement();
+          localization_entries.put(key, tmp.get(key));
+        }
+      }
+      
+      if (++o >= parts.length) {
+        break;
+      }
+      tmploc = tmploc + "_" + parts[o];
+      
+    } while (true);
+  }
+
+
 /**
  * @see org.osgi.framework.Bundle#getHeaders(String locale)
  */
 public Dictionary getHeaders(String locale) {
-  //TODO look in fragments
   checkMetadataAdminPerm();
-  return archive.getAttributes(locale, state);
+
+  /*
+    We should remove the getAttributes(locale, state) thing
+    and do it in a way that supports fragments.
+    I've kept the old way of retrieving information, since 
+    the "new way" does not support UNINSTALLED bundles... yet.
+  */
+
+  if ((!isFragmentHost() && !isFragment()) || state == UNINSTALLED) {
+    return archive.getAttributes(locale, state);
+  }
+
+  if (locale == null) {
+    locale = Locale.getDefault().toString();
+  } else if (locale != null && locale.equals("")) {
+    return localize(new Hashtable());
+  }
+
+  if (isFragment()) {
+    /* Whouldn't it be more natural
+       require the bundle to be attached to
+       a host? But according to testGetHeaders010
+       in div this is not required.
+       
+       This code snippet resolves the fragment,
+       i.e attaches it to it.
+    */
+    
+    
+    if (getUpdatedState() == RESOLVED) {
+      BundleImpl host = getFragmentHost();
+      Dictionary localize_entries = new Hashtable();
+      
+      if (host != null) {
+        host.readLocalization(locale, localize_entries);
+        return localize(localize_entries);
+      } 
+    }
+   
+    return localize(new Hashtable());
+  }
+
+
+  Hashtable localization_entries = new Hashtable();
+  readLocalization("", localization_entries);
+  readLocalization(Locale.getDefault().toString(), localization_entries);
+  readLocalization(locale, localization_entries);
+  
+
+  return localize(localization_entries);
+  //return archive.getAttributes(locale, state);
 }
 
 private void modified(){
@@ -1383,7 +1685,7 @@ public Enumeration getResources(String name) throws IOException {
   if (state == UNINSTALLED) {
     throw new IllegalStateException("Bundle is in UNINSTALLED state");
   }
-    //  TODO check not fragment
+    //  TODO check not fragment 
   try {
     checkResourceAdminPerm();
       BundleClassLoader cl = (BundleClassLoader)getClassLoader();
@@ -1412,6 +1714,11 @@ public Class loadClass(final String name) throws ClassNotFoundException {
       throw new ClassNotFoundException("Unable to resolve bundle");
     }
   }
+
+  if (isFragment() && !isAttached()) {
+    throw new ClassNotFoundException("The fragment bundle not attached to host bundle.");
+  }
+
   //TODO check not fragment
   /*Class clazz = null;
   try{
@@ -1437,4 +1744,332 @@ public Class loadClass(final String name) throws ClassNotFoundException {
   }
   return clazz;*/
   }//method
+
+  // fragment bundle stuff.
+  boolean isFragment() {
+    return fragment != null;
+  }
+
+  boolean isExtension() {
+    return isFragment() &&
+      fragment.extension != null;      
+  }
+
+  boolean isBootClassPathExtension() {
+    return isExtension() &&
+      fragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH);
+  }
+
+  boolean isFragmentExtension() {
+    return isExtension() &&
+      fragment.extension.equals(Constants.EXTENSION_FRAMEWORK);
+  }
+
+  boolean isAttached() {
+    return isFragment() &&
+      fragment.host != null;
+  }
+
+  String getFragmentHostName() {
+    if (isFragment()) {
+      return fragment.name;
+    } else {
+      return null;
+    }
+  }
+
+  BundleImpl getFragmentHost() {
+    return isFragment() ? fragment.targets() : null;
+  }
+
+  boolean isFragmentHost() {
+    return fragments != null && fragments.size() > 0;
+  }
+
+  private static boolean helpChecker(Object o1, Object o2) {
+    return o1 == null ? o2 == null : o1.equals(o2);
+  }
+
+  void attachFragment(BundleImpl fragmentBundle) {
+    if (fragments == null) {
+      fragments = new ArrayList(1);
+    }
+    if (fragments.contains(fragmentBundle)) {
+      return ;
+    }
+    /* make sure that the fragment's bundle does not
+       conflict with this bundle's (see 3.1.4 r4-core) */
+    for (Iterator iiter = fragmentBundle.bpkgs.getImports();
+         iiter.hasNext(); ) {
+
+      ImportPkg fragmentImportPkg = (ImportPkg)iiter.next();
+      if (fragmentImportPkg.name.equals("org.osgi.framework")) {
+        // this one I guess is ok if it clashes
+        continue;
+      }
+
+      ImportPkg importPkg = bpkgs.getImport(fragmentImportPkg.name);
+      if (importPkg == null && state != INSTALLED) {
+        return ;
+      }
+      
+      if (importPkg != null &&
+          !(helpChecker(importPkg.attributes, fragmentImportPkg.attributes) &&
+            helpChecker(importPkg.resolution, fragmentImportPkg.resolution) &&
+            helpChecker(importPkg.bundleSymbolicName, fragmentImportPkg.bundleSymbolicName) &&
+            helpChecker(importPkg.packageRange, fragmentImportPkg.packageRange) &&
+            helpChecker(importPkg.bundleRange, fragmentImportPkg.bundleRange))) {
+        return ; // conflicts, should not be added
+      }
+    }
+    // add all required bundles... properly. TODO: This is not done.
+    if (fragmentBundle.bpkgs.require != null) {
+      if (bpkgs.require != null) {
+        ArrayList newRequired = new ArrayList();
+        
+        // check for conflicts
+        for (Iterator iter = fragmentBundle.bpkgs.require.iterator();
+             iter.hasNext(); ) {
+          RequireBundle fragReq = (RequireBundle)iter.next();
+          boolean found = false;
+          
+          for (Iterator iter2 = bpkgs.require.iterator();
+               iter2.hasNext(); ) {
+            RequireBundle req = (RequireBundle)iter2.next();
+            
+            if (fragReq.name.equals(req.name)) {
+              if (!fragReq.bundleRange.equals(req.bundleRange)) {
+                // conflicts! Should not be attached.
+                return ;
+              } else {
+                found = true;
+                break ;
+              }
+            }
+          }
+
+          if (found == false) {
+            if (state != INSTALLED) {
+              // can attach a fragment with new required bundles to a started host
+              return ;
+            } else {
+              newRequired.add(fragReq);
+            }
+          }
+        }
+
+
+        /* TODO:
+           Code for adding the required bundles (this should be the newRequired)
+           Something along the lines "bpkgs.require.addAll(newRequired)"?
+        */
+        
+      } else {
+        if (state != INSTALLED) {
+          // can attach a fragment with new required bundles to a started host
+          return ;          
+        } else {
+          /* TODO: 
+             Code for adding a required bundle.. this should be the bundles that
+             are defined in fragmentBundle.bpkgs.require i guess
+
+             Something like:
+             bpkgs.require = new ArrayList(fragmentBundle.bpkgs.require.size());
+             bpkgs.require.addAll(fragmentBundle.bpkgs.require); ?
+
+          */
+        }
+      }
+    }
+    ArrayList newImports = new ArrayList();
+    // add all imports.
+  
+    for (Iterator iiter = fragmentBundle.bpkgs.getImports();
+         iiter.hasNext(); ) {
+      ImportPkg fragmentImportPkg = (ImportPkg)iiter.next();;
+      ImportPkg importPkg = bpkgs.getImport(fragmentImportPkg.name);
+      
+      if (importPkg == null) {
+        ImportPkg tmp = new ImportPkg(fragmentImportPkg, bpkgs);
+        bpkgs.addImport(tmp);
+        newImports.add(tmp);
+      }
+    }
+
+    ArrayList newExports = new ArrayList();
+    for (Iterator eiter = fragmentBundle.bpkgs.getExports();
+         eiter.hasNext();) {
+
+      ExportPkg fragmentExportPkg = (ExportPkg) eiter.next();
+      ExportPkg exportPkg = bpkgs.getExport(fragmentExportPkg.name);
+
+      if (exportPkg == null || 
+          !exportPkg.name.equals(fragmentExportPkg.name)) {
+        ExportPkg tmp = new ExportPkg(fragmentExportPkg, bpkgs);
+        bpkgs.addExport(tmp);
+        newExports.add(tmp);
+      }
+    }
+    int i = 0;
+    for (; i < fragments.size(); i++) {
+      BundleImpl b = (BundleImpl)fragments.get(i);
+      if (b.id > fragmentBundle.id) {
+        break;
+      }
+    }
+
+    fragments.add(i, fragmentBundle);
+    fragmentBundle.setFragmentHost(this);
+    // register packages on behalf of host...
+    framework.packages.registerPackages(newExports.iterator(), newImports.iterator()); 
+    fragmentBundle.fragment.exports = newExports;
+    fragmentBundle.fragment.imports = newImports;
+    fragmentBundle.state = RESOLVED;
+    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, fragmentBundle));
+  }
+
+  Iterator getFragments() {
+    return fragments == null ? 
+      new ArrayList(0).iterator() : fragments.iterator();
+  }
+
+  void detachFragments(boolean refresh) {
+    for (int i = 0, n = fragments.size(); i < n; i++) {
+      detachFragment((BundleImpl)fragments.get(0), refresh);
+    }
+  }
+
+  void detachFragment(BundleImpl fb, boolean refresh) {
+    if (!isFragmentHost() || 
+        !fb.isFragment() || 
+        fb.getFragmentHost() != this) {
+      return ;
+    }
+
+    fragments.remove(fb);
+    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, fb));
+    fb.setFragmentHost(null);    
+    
+    if (fb.isExtension()) {
+      //      framework.systemBundle.detachBundle(this);
+      return ;
+    }
+    Collection affected = null;
+    if (state != UNINSTALLED && refresh) {
+      affected = framework.packages.getZombieAffected(new Bundle[]{ this });
+
+      // Update the affected bundle states in normal start order
+      for (Iterator iter = affected.iterator();
+           iter.hasNext();) {
+        
+        BundleImpl bx = (BundleImpl)iter.next();
+        
+        synchronized (bx) {
+          switch (bx.state) {
+          case Bundle.STARTING:
+          case Bundle.ACTIVE:
+            try {
+              bx.stop();
+            } catch(BundleException be) {
+              framework.listeners.frameworkError(bx, be);
+            }
+          case Bundle.STOPPING:
+          case Bundle.RESOLVED:
+            bx.setStateInstalled();
+          case Bundle.INSTALLED:
+          case Bundle.UNINSTALLED:
+            break;
+          }
+          bx.purge();          
+        }
+        // if a bundle "A" imports from "this" then we need to remove "A's" import.
+
+        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bx));
+      }
+    }
+
+    // remove registered packages from host
+    for (Iterator iter = fb.fragment.exports.iterator();
+         iter.hasNext(); ) {
+      ExportPkg epgk = (ExportPkg)iter.next();
+      bpkgs.removeExport(epgk);
+    }
+    
+    for (Iterator iter = fb.fragment.imports.iterator();
+         iter.hasNext(); ) {
+      bpkgs.removeImport((ImportPkg)iter.next());
+    }
+    
+    framework.packages.unregisterPackages(fb.fragment.exports.iterator(),
+                                          fb.fragment.imports.iterator(), 
+                                          true);
+
+    if (fb.fragment.pendingUpdate != null) {
+      fb.archive = fb.fragment.pendingUpdate;
+      fb.fragment.pendingUpdate = null;
+    }
+
+    if (affected != null) {
+      framework.bundles.startBundles(new ArrayList(affected)); // DOH, silly
+    }
+  }
+
+  void setFragmentHost(BundleImpl bundle) {
+    if (isFragment()) {
+      fragment.setHost(bundle);
+    }
+  }
+
+  class Fragment {
+    final String name;
+    final String extension;
+    final VersionRange versionRange;
+    BundleImpl host;
+    BundleArchive pendingUpdate;
+    ArrayList exports = new ArrayList(0); // FIX ME.
+    ArrayList imports = new ArrayList(0);
+    
+    Fragment(String name, String extension, String range) {
+      this.name = name;
+      this.extension = extension;
+      this.versionRange = range == null ?
+        VersionRange.defaultVersionRange :     
+        new VersionRange(range);
+    }
+    
+    void setHost(BundleImpl host) {
+      this.host = host;
+    }
+
+    BundleImpl targets() {
+      if (host != null) {
+	return host;
+      }
+
+      List bundles = framework.bundles.getBundles(name, versionRange);
+
+      if (bundles.isEmpty()) {
+        return null;
+      }
+
+      BundleImpl best = null;
+
+      for (Iterator iter = bundles.iterator(); iter.hasNext(); ) {
+        BundleImpl challenger = (BundleImpl)iter.next();
+
+        if (challenger.v2Manifest &&
+            !challenger.attachPolicy.
+            equals(Constants.FRAGMENT_ATTACHMENT_NEVER) &&
+            (best == null ||
+             challenger.version.compareTo(best.version) > 0)) {
+
+          best = challenger;
+        }
+      }
+
+      return best;
+    }
+  }
+
+
 }//class

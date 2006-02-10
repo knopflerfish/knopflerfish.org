@@ -819,6 +819,18 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 					}
 					else { // user supplied filter
 						if (filter.match(reference)) {
+                                                  /* KF-specific bug-fix: clears cache since we might have updated
+                                                     the SERVICE_RANKING.. 
+                                                     
+                                                     Would it suffice to check if SERVICE_RANKING has changed?
+                                                  */
+                                                        if (event.getType() == ServiceEvent.MODIFIED) {
+                                                                cachedReference = null; 
+                                                                cachedService = null;
+
+                                                        }
+
+
 							track(reference);
 							/*
 							 * If the customizer throws an unchecked exception,

@@ -54,7 +54,7 @@ import org.osgi.service.startlevel.StartLevel;
  * This class contains references to all common data structures
  * inside the framework.
  *
- * @author Jan Stein, Erik Wistrand, Philippe Laporte
+ * @author Jan Stein, Erik Wistrand, Philippe Laporte, Mats-Ola Persson
  */
 public class Framework {
 
@@ -179,6 +179,8 @@ public class Framework {
     TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
 
 
+  static boolean SUPPORTEXTENSIONBUNDLES;
+
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
@@ -207,6 +209,19 @@ public class Framework {
       ".BundleStorageImpl";
 
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
+
+    if (bIsMemoryStorage) {
+      System.setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
+      System.setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
+      SUPPORTEXTENSIONBUNDLES = false;
+      
+      // we can not support this in this mode.
+    } else {
+      //TODO!
+      SUPPORTEXTENSIONBUNDLES = false;
+      System.setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
+      System.setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
+    }
     
     // We just happens to know that the memory storage impl isn't R3
     // compatible. And it never will be since it isn't persistent
@@ -637,11 +652,11 @@ public class Framework {
     } else if (Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE.equals(key)) {
       return TRUE;
     } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
-      return FALSE;
-    } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
-      return FALSE;
-    } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
       return TRUE;
+    } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
+      return FALSE; // TODO
+    } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
+      return FALSE; // TODO
     } else {
       return System.getProperty(key);
     }

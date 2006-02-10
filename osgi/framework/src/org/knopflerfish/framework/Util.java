@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.Iterator;
+import java.util.Dictionary;
+import java.util.Enumeration;
 
 public class Util {
   /**
@@ -445,10 +447,18 @@ public class Util {
   }
 
   public static void putContent(File f, String content) throws IOException {
+    putContent(f, content, true);
+  }
+  
+  public static void putContent(File f, String content, boolean useUTF8) throws IOException {
     DataOutputStream out = null;
     try {
       out = new DataOutputStream(new FileOutputStream(f));
-      out.writeUTF(content);
+      if (useUTF8) {
+        out.writeUTF(content);
+      } else {
+        out.writeChars(content);
+      }
     } finally {
       if (out != null) {
 	out.close();
@@ -662,6 +672,22 @@ public class Util {
       }
       out.write(0x0d);
       out.write(0x0a);
+    }
+  }
+
+
+  /**
+   * Merges target with the entires in extra. 
+   * After this method has returned target will contain all
+   * entires in extra that did not exist in target.
+   */
+  static void mergeDictionaries(Dictionary target, Dictionary extra) {
+    for (Enumeration e = extra.keys();
+         e.hasMoreElements(); ) {
+      Object key = e.nextElement();
+      if (target.get(key) == null) {
+        target.put(key, extra.get(key));
+      }
     }
   }
 

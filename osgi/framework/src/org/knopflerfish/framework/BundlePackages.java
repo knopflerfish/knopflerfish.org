@@ -54,7 +54,7 @@ class BundlePackages {
 
   final int generation;
 
-  private BundleClassLoader classLoader = null;
+  private ClassLoader classLoader = null;
 
   /* Sorted list of exports */
   private ArrayList /* ExportPkg */ exports = new ArrayList(1);
@@ -196,6 +196,7 @@ class BundlePackages {
    *
    */
   void registerPackages() {
+
     bundle.framework.packages.registerPackages(exports.iterator(), imports.iterator());
   }
 
@@ -216,19 +217,40 @@ class BundlePackages {
 
 
   /**
-   * Resolve all the bundles' packages.
+   * Resolve all the bundles' packages. 
    *
    * @return true if we resolved all packages. If we failed
    *         return false. Reason for fail can be fetched with
    *         getResolveFailReason().
    */
   boolean resolvePackages() {
+
     if (bundle.framework.permissions != null) {
       failReason = checkPackagePermissions();
       if (failReason != null) {
         return false;
       }
     }
+   
+    if (bundle.id != 0 &&  // skip the system bundle...
+        bundle.attachPolicy != null && 
+        (bundle.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_ALWAYS) ||
+         bundle.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME))) {
+      
+      // retrieve all fragments this bundle host
+      List hosting = 
+        bundle.framework.bundles.getFragmentBundles(bundle);
+      for (Iterator iter = hosting.iterator();
+           iter.hasNext(); ) {
+        
+        BundleImpl fb = (BundleImpl)iter.next();
+        if (fb.state != Bundle.UNINSTALLED) {
+          System.out.println("attaching " + fb + " to " + bundle);
+          bundle.attachFragment(fb);
+        }	      
+      }
+    }
+
     failReason = bundle.framework.packages.resolve(bundle, imports.iterator());
     if (failReason == null) {
       okImports = (ArrayList)imports.clone();
@@ -357,6 +379,69 @@ class BundlePackages {
   Iterator getExports() {
     return exports.iterator();
   }
+  
+  /**
+   * Adds an export package
+   * @param pkg export to be included
+   */
+  void addExport(ExportPkg pkg) {
+    int ei = Math.abs(Util.binarySearch(exports, epComp, pkg) + 1);
+    exports.add(ei, pkg);
+    if (!bundle.v2Manifest) {
+      ImportPkg ip = new ImportPkg(pkg);
+      int ii = Util.binarySearch(imports, ipComp, ip);
+      if (ii < 0) {
+        imports.add(-ii - 1, ip);
+      }
+    }
+  }
+  
+
+  /**
+   * Removes an export package
+   * @param pkg export to be removed.
+   */
+  void removeExport(ExportPkg pkg) {
+    int ei = Util.binarySearch(exports, epComp, pkg);
+    exports.remove(ei);
+  }
+
+  
+  /** 
+   * Get a specific import
+   * @return an import
+   */
+  ImportPkg getImport(String pkg) {
+    int i = Util.binarySearch(imports, ipFind, pkg);
+    if (i >= 0) {
+      return (ImportPkg)imports.get(i);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Adds an imported package
+   * @param pkg import to be included
+   */ 
+  void addImport(ImportPkg pkg) {
+    int ii = Util.binarySearch(imports, ipComp, pkg);
+    if (ii < 0) {
+      imports.add(-ii - 1, pkg);
+    } else {
+      throw new IllegalArgumentException("Duplicate import definitions for - " + pkg.name);
+    }
+  }
+
+  /**
+   * Removes an imported package
+   * @param pkg import to be removed
+   */ 
+  void removeImport(ImportPkg pkg) {
+    int ii = Util.binarySearch(imports, ipComp, pkg);
+    imports.remove(ii);
+  }
+
 
 
   /**
@@ -383,7 +468,7 @@ class BundlePackages {
    * Get class loader for these packages.
    *
    */
-  BundleClassLoader getClassLoader() {
+  ClassLoader getClassLoader() {
     if (classLoader == null) {
       classLoader = bundle.getClassLoader(this);
     }

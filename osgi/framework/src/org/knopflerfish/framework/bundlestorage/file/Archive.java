@@ -409,13 +409,12 @@ class Archive {
 
     if (bundle_state != Bundle.UNINSTALLED) {
       String fileName = localizationFilesLocation;
- 
       localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX,
                                                localization_entries);
 
       if (!usingDefault) { //since otherwise will redo it right after
         StringTokenizer std = new StringTokenizer(Locale.getDefault().toString(), "_");
-
+        
         while (std.hasMoreTokens()) {
           fileName += "_" + std.nextToken();
           localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
@@ -429,6 +428,7 @@ class Archive {
         fileName += "_" + st.nextToken();
         localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
       }
+
     }
 
     Hashtable localized_headers = new Hashtable(); 
@@ -453,6 +453,56 @@ class Archive {
     //TODO cache localized headers?
     return new HeaderDictionary(localized_headers);
   }
+  
+
+  /**
+   * Returns the contents of a specific localization file.
+   * @return null if no such file found. O/w a mapping of the entries.
+   */
+  Hashtable getLocalizationEntries(String locale, int bundle_state) {
+
+    
+    /* if (bundle_state == Bundle.UNINSTALLED 
+        Locale.getDefault().toString().equals(locale)) {
+        return defaultLocaleEntries;
+      } 
+      UHM..
+    */
+
+    String fileName = "".equals(locale) ? 
+      localizationFilesLocation + LOCALIZATION_FILE_SUFFIX : 
+      localizationFilesLocation + "_" + locale + LOCALIZATION_FILE_SUFFIX;
+
+    try {
+      InputStream is = null;
+      Properties locale_entries = new Properties();
+      if(jar != null){
+        ZipEntry ze = jar.getEntry(fileName);
+        if(ze != null){
+          is = jar.getInputStream(ze);
+        }
+        else{
+          return null;
+        }
+      }
+      else{
+        File f = findFile(file, fileName);
+        if(f.exists()) {
+          is = new FileInputStream(f);
+        }
+        else{
+          return null;
+        }
+      }
+  
+      locale_entries.load(is);
+      return locale_entries;
+    }
+    catch(IOException e){ //includes FileNotFoundException
+      return null;
+    }
+  }
+
   
   //TODO should this be done just before uninstalling? -> does DefaultLocale change?
   private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries){
@@ -884,6 +934,13 @@ class Archive {
   }
 
   /**
+   * Returns the path to this bundle.
+   */
+  String getPath() {
+    return file.getAbsolutePath();    
+  }
+
+  /**
    * InputFlow represents an InputStream with a known length
    */
   class InputFlow {
@@ -895,4 +952,5 @@ class Archive {
       this.length = length;
     }
   }
+
 }

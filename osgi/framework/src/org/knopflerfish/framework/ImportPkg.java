@@ -122,6 +122,19 @@ class ImportPkg {
 
 
   /**
+   * Creates an import package entry with a new host bundle.
+   */
+  ImportPkg(ImportPkg ip, BundlePackages bpkgs) {
+    this.name = ip.name;
+    this.bpkgs = bpkgs;
+    this.resolution = ip.resolution;
+    this.bundleSymbolicName = ip.bundleSymbolicName;
+    this.packageRange = ip.packageRange;
+    this.bundleRange = ip.bundleRange;
+    this.attributes = ip.attributes;
+  }
+
+  /**
    * Create an import package entry.
    */
   ImportPkg(ExportPkg p) {

@@ -267,6 +267,20 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   /**
+   * returns the localization entries of this archive.
+   */
+  public Dictionary getLocalizationEntries(String locale, int bundle_state) {
+    return archive.getLocalizationEntries(locale, bundle_state);
+  }
+
+  /**
+   * returns the raw unlocalized entries of this archive.
+   */
+  public Dictionary getUnlocalizedAttributes() {
+    return new HeaderDictionary(archive.manifest.getMainAttributes());
+  }
+
+  /**
    * Get bundle identifier for this bundle archive.
    *
    * @return Bundle identifier.
@@ -782,6 +796,10 @@ class BundleArchiveImpl implements BundleArchive
 
   public Enumeration findResourcesPath(String path) {
     return archive.findResourcesPath(path);
+  }
+
+  public String getJarLocation() {
+    return archive.getPath();
   }
   
 }//class

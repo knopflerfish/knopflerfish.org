@@ -67,6 +67,7 @@ import org.osgi.service.packageadmin.*;
  * @author Erik Wistrand
  * @author Robert Shelley
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 public class PackageAdminImpl implements PackageAdmin {
 
@@ -250,11 +251,28 @@ public class PackageAdminImpl implements PackageAdmin {
                       bi[bx].purge();
                     }
                   }
-                  
+
                   //TODO integrate with previous loops? must be done after all are stopped and before any are restarted
                   for (int bx = 0; bx < bi.length; bx++) {
-                          framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
-                  }
+
+                    if (bi[bx].isExtension()) {
+                      try {
+                        framework.systemBundle.stop(200);
+                      } catch (BundleException be) {
+                        framework.listeners.frameworkError(framework.systemBundle, be);
+                      }
+                    }
+
+		    if (bi[bx].isFragmentHost()) {
+                      bi[bx].detachFragments(false);
+                      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
+		    } else if (bi[bx].isFragment() && bi[bx].isAttached()) {
+                      BundleImpl host = bi[bx].getFragmentHost();
+                      host.detachFragment(bi[bx], true);
+                    } else {
+                      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
+                    }
+		  }
 
                   // Restart previously active bundles in normal start order
                   framework.bundles.startBundles(startList);
@@ -332,13 +350,35 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   public Bundle[] getFragments(Bundle bundle) {
-    // NYI! Fragments
-    return null;
+    if (bundle == null) {
+      return null;
+    }
+
+    BundleImpl b = (BundleImpl)bundle;
+
+    if (b.isFragment()) {
+      return null;
+    }
+
+    if (b.isFragmentHost()) {
+      return (Bundle[])b.fragments.toArray(new Bundle[0]);
+    } else {
+      return null;
+    }
   }
 
 
   public Bundle[] getHosts(Bundle bundle) {
-    // NYI! Fragments
+    if (bundle == null) {
+      return null;
+    }
+
+    BundleImpl b = (BundleImpl)bundle;
+    if (b.isFragment() && 
+        b.isAttached()) {
+      return new Bundle[]{b.getFragmentHost()};
+    }
+
     return null;
   }
 
@@ -354,7 +394,12 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   public int getBundleType(Bundle bundle) {
-    // NYI! Fragments
+    BundleImpl b = (BundleImpl)bundle;
+
+    if (b.isFragment()) {
+      return BUNDLE_TYPE_FRAGMENT;
+    }
+
     return 0;
   }
 

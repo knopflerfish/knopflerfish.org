@@ -222,6 +222,17 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected String findLibrary(String name) {
     String res = archive.getNativeLibrary(name);
+    if (res == null && bpkgs.bundle.isFragmentHost()) {
+      for (Iterator iter = bpkgs.bundle.getFragments();
+           iter.hasNext(); ) {
+        BundleImpl fb = (BundleImpl)iter.next();
+        res = fb.archive.getNativeLibrary(name);
+
+        if (res != null) {
+          break ;
+        }
+      }
+    }
     if (debug) {
       Debug.println(this + " Find library: " + name + (res != null ? " OK" : " FAIL"));
     }
@@ -491,7 +502,7 @@ final public class BundleClassLoader extends ClassLoader {
     if (pkg != null) {
       pbp = bpkgs.getProviderBundlePackages(pkg);
       if (pbp != null) {
-        BundleClassLoader cl = pbp.getClassLoader();
+        BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
         if (cl != this) {
           if (cl != null) {
             if (debug) {
@@ -516,7 +527,7 @@ final public class BundleClassLoader extends ClassLoader {
           for (Iterator pi = pl.iterator(); pi.hasNext(); ) {
             pbp = (BundlePackages)pi.next();
             if (pbp != null) {
-              BundleClassLoader cl = pbp.getClassLoader();
+              BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
               if (cl != null && !visited.contains(cl)) {
                 if (debug) {
                   Debug.println(this + " Required bundle search: " +
@@ -542,14 +553,27 @@ final public class BundleClassLoader extends ClassLoader {
     Vector av = archive.componentExists(path, onlyFirst);
     if (av != null) {
       try {
-        return action.get(av, path, name, pkg, this);
+        return action.get(av, path, name, pkg, this, archive);
       } catch (IOException ioe) {
         bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
         return null;
       }
     }
     /* 6 */
-    // Do fragments
+    for (Iterator iter = bpkgs.bundle.getFragments();
+         iter.hasNext(); ) {
+      BundleImpl b = (BundleImpl)iter.next();
+      Vector vec = b.archive.componentExists(path, onlyFirst);
+      if (vec != null) {
+        try {
+          return action.get(vec, path, name, pkg, this, b.archive);
+        } catch (IOException ioe) {
+          bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
+          return null;
+        }
+      }
+    }
+    
     /* 7 */
     if (ep != null) {
       return null;
@@ -559,7 +583,7 @@ final public class BundleClassLoader extends ClassLoader {
       pbp = bpkgs.getDynamicProviderBundlePackages(pkg);
       if (pbp != null) {
         /* 9 */
-        BundleClassLoader cl = pbp.getClassLoader();
+        BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
         if (cl != null) {
           if (debug) {
             Debug.println(this + " Dynamic import search: " +
@@ -580,7 +604,7 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action
    */
   interface SearchAction {
-    public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl) throws IOException ;
+    public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl, BundleArchive ba) throws IOException ;
   }
 
 
@@ -588,8 +612,8 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action for class searching
    */
   static final SearchAction classSearch = new SearchAction() {
-      public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl) throws IOException {
-        byte[] bytes = cl.archive.getClassBytes((Integer)items.get(0), path);
+      public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl, BundleArchive ba) throws IOException {
+        byte[] bytes = ba.getClassBytes((Integer)items.get(0), path);
         if (bytes != null) {
           if (Debug.classLoader) {
             Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - load class: " + name);
@@ -610,7 +634,7 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action for resource searching
    */
   static final SearchAction resourceSearch = new SearchAction() {
-      public Object get(Vector items, String path, String _name, String _pkg, BundleClassLoader cl) {
+      public Object get(Vector items, String path, String name, String _pkg, BundleClassLoader cl, BundleArchive ba) {
         Vector answer = new Vector(items.size());
         for(int i = 0; i < items.size(); i++) {
           int jarId = ((Integer)items.elementAt(i)).intValue();
@@ -627,13 +651,13 @@ final public class BundleClassLoader extends ClassLoader {
             URL url;
             if (Framework.REGISTERBUNDLEURLHANDLER) {
               url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                            Long.toString(cl.bpkgs.bundle.id),
+                            Long.toString(ba.getBundleId()),
                             jarId,
                             path.startsWith("/") ? path : ("/" + path));
             } else {
               URLStreamHandler handler = cl.bpkgs.bundle.framework.bundleURLStreamhandler;
               url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                            Long.toString(cl.bpkgs.bundle.id),
+                            Long.toString(ba.getBundleId()),
                             jarId,
                             path.startsWith("/") ? path : ("/" + path),
                             handler);

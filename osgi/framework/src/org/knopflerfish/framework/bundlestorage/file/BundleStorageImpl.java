@@ -42,6 +42,7 @@ import java.util.*;
  * Storage of all bundles jar content.
  *
  * @author Jan Stein
+ * @author Mats-Ola Persson
  * @version $Revision: 1.1.1.1 $
  */
 public class BundleStorageImpl implements BundleStorage {

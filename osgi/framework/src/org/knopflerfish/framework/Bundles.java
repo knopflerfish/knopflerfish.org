@@ -58,6 +58,7 @@ import org.osgi.framework.*;
  * can restart the platform.
  *
  * @author Jan Stein
+ * @author Mats-Ola Persson
  */
 class Bundles {
 
@@ -140,7 +141,39 @@ class Bundles {
               ba.setLastModified(System.currentTimeMillis());
 
               res = new BundleImpl(framework, ba);
+
+              if (res.isExtension()) {
+                /*
+                  TODO:
+                  This is a bit ackward. 
+
+                  If one does not support extension bundles then one should throw 
+                  exceptions saying this. 
+                  
+                  However, when one start the OSGi test-suite there is one 
+                  of the installed bundles that is an extension bundle. In order
+                  to follow the spec one should throw exception, but throwing an 
+                  exception at this stage will terminate KF.
+
+                  As a workaround for this, I've commented out this code, but doing 
+                  this will makes us fail two of the OSGi test suites tests :)
+                  
+                  Should be:
+
+                if (!Framework.SUPPORTEXTENSIONBUNDLES) {
+                  if (!Framework.bIsMemoryStorage) {
+                    throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
+                  } else {
+                    throw new UnsupportedOperationException("Extension bundles are not yet supported.");
+                  }
+                  } 
+
+                  systemBundle.addExtension(res);
+                */
+              }
+              
               bundles.put(location, res);
+              
               return res;
             }
           });
@@ -151,6 +184,7 @@ class Bundles {
         throw new BundleException("Failed to install bundle: " + e, e);
       }
     }
+                  
     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
     return b;
   }
@@ -331,8 +365,25 @@ class Bundles {
         } catch (BundleException be) {
           rb.framework.listeners.frameworkError(rb, be);
         }
-      }
+      } 
     }    
   }
-
+  /**
+   * Returns all fragment bundles that is 
+   * already attached and targets given bundle.
+   * @param target the targetted bundle
+   * @return a list of all matching fragment bundles.
+   */
+  List getFragmentBundles(BundleImpl target) {
+    ArrayList retval = new ArrayList();
+    for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
+      BundleImpl b = (BundleImpl)e.nextElement();
+      if (b.isFragment() &&
+	  b.state != Bundle.UNINSTALLED &&
+	  b.getFragmentHost() == target) {
+	retval.add(b);
+      }
+    }
+    return retval;
+  }
 }
