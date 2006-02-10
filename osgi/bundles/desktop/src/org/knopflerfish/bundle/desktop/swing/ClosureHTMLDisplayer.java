@@ -36,7 +36,8 @@ package org.knopflerfish.bundle.desktop.swing;
 
 import org.osgi.framework.*;
 import org.osgi.service.startlevel.*;
-import org.osgi.service.packageadmin.*;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.util.tracker.*;
 
 import org.knopflerfish.util.Text;
@@ -230,9 +231,9 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
           }
         }
         if(hosts.size() == 0) {
-          sb.append("No hosts");
+          sb.append("No host");
         } else {
-          sb.append("<b>Hosts</b><br>");
+          sb.append("<b>Host</b><br>");
           for(Iterator it = hosts.iterator(); it.hasNext();) {
             Bundle depB = (Bundle)it.next();
             sb.append("&nbsp;&nbsp;");
