@@ -358,7 +358,6 @@
            <include name = "osgi/bundles/prefs/**"/>
            <include name = "osgi/bundles/upnp/**"/>
            <include name = "osgi/bundles/provisioning/**"/>
-           <include name = "osgi/bundles/wireadmin/**"/>
 
            <include name = "osgi/bundles/demos/**"/>
 
@@ -460,7 +459,7 @@
            <include name = "osgi/jars/cm_desktop/cm_desktop-1.0.0.jar"/>
 
            <include name = "osgi/jars/upnp/upnp_api-1.0.0.jar"/>
-           <include name = "osgi/jars/prefs/prefs_all-1.0.0.jar"/>
+           <include name = "osgi/jars/prefs/**"/>
            <include name = "osgi/jars/provisioning/provisioning_api-1.0.0.jar"/>
 
            <include name = "osgi/jars/useradmin/**"/>
@@ -482,6 +481,8 @@
            <include name = "osgi/jars/bundlerepository/*.jar"/>
            <include name = "osgi/jars/component/*.jar"/>
            <include name = "osgi/jars/event/*.jar"/>
+           <include name = "osgi/jars/io/*.jar"/>
+           <include name = "osgi/jars/wireadmin/*.jar"/>
 
            <include name = "changelog.html"/>
 
