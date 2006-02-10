@@ -951,7 +951,6 @@ class BundleImpl implements Bundle {
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
 
-    //  TODO check not fragment. Is this really what is stated?
     if (isFragment()) {
       return null;
     }
@@ -1484,48 +1483,49 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
   catch(AccessControlException e){
     return null;
   }
-  if(this.state == INSTALLED){
-    getUpdatedState();
-  }
-    //TODO
-  //look in fragments etc
-  return null;
+  throw new RuntimeException("Not yet implemented.");
+
+//   if(this.state == INSTALLED){
+//     getUpdatedState();
+//   }
+
+
 }
 
-public URL getEntry(String name) {
-  try{
-    checkResourceAdminPerm();
-  }
-  catch(AccessControlException e){
-    return null;
-  }
-  if(state == UNINSTALLED){
-    throw new IllegalStateException("state is uninstalled");
-  }
-  //not REALLY using class loader, just don't want to duplicate functionality
-  BundleClassLoader cl = (BundleClassLoader) getClassLoader();
+  public URL getEntry(String name) {
+    try{
+      checkResourceAdminPerm();
+    }
+    catch(AccessControlException e){
+      return null;
+    }
+    if(state == UNINSTALLED){
+      throw new IllegalStateException("state is uninstalled");
+    }
+    //not REALLY using class loader, just don't want to duplicate functionality
+    BundleClassLoader cl = (BundleClassLoader) getClassLoader();
     if (cl != null) {
       Enumeration e =  cl.getBundleResources(name, true);
       if (e != null && e.hasMoreElements()) {
         return (URL)e.nextElement();
       }
     }
-  return null;
-}
-
-public Enumeration getEntryPaths(String path) {
-  try{
-    checkResourceAdminPerm();
-  }
-  catch(AccessControlException e){
     return null;
   }
-  if(state == UNINSTALLED){
-    throw new IllegalStateException("state is uninstalled");
-  }
 
-  return archive.findResourcesPath(path);
-}
+  public Enumeration getEntryPaths(String path) {
+    try{
+      checkResourceAdminPerm();
+    }
+    catch(AccessControlException e){
+      return null;
+    }
+    if(state == UNINSTALLED){
+      throw new IllegalStateException("state is uninstalled");
+    }
+
+    return archive.findResourcesPath(path);
+  }
 
 
 
@@ -1603,146 +1603,130 @@ public Enumeration getEntryPaths(String path) {
 /**
  * @see org.osgi.framework.Bundle#getHeaders(String locale)
  */
-public Dictionary getHeaders(String locale) {
-  checkMetadataAdminPerm();
+  public Dictionary getHeaders(String locale) {
+    checkMetadataAdminPerm();
 
-  /*
-    We should remove the getAttributes(locale, state) thing
-    and do it in a way that supports fragments.
-    I've kept the old way of retrieving information, since 
-    the "new way" does not support UNINSTALLED bundles... yet.
-  */
-
-  if ((!isFragmentHost() && !isFragment()) || state == UNINSTALLED) {
-    return archive.getAttributes(locale, state);
-  }
-
-  if (locale == null) {
-    locale = Locale.getDefault().toString();
-  } else if (locale != null && locale.equals("")) {
-    return localize(new Hashtable());
-  }
-
-  if (isFragment()) {
-    /* Whouldn't it be more natural
-       require the bundle to be attached to
-       a host? But according to testGetHeaders010
-       in div this is not required.
-       
-       This code snippet resolves the fragment,
-       i.e attaches it to it.
+    /*
+      We should remove the getAttributes(locale, state) thing
+      and do it in a way that supports fragments.
+      I've kept the old way of retrieving information, since 
+      the "new way" does not support UNINSTALLED bundles... yet.
     */
-    
-    
-    if (getUpdatedState() == RESOLVED) {
-      BundleImpl host = getFragmentHost();
-      Dictionary localize_entries = new Hashtable();
-      
-      if (host != null) {
-        host.readLocalization(locale, localize_entries);
-        return localize(localize_entries);
-      } 
+
+    if ((!isFragmentHost() && !isFragment()) || state == UNINSTALLED) {
+      return archive.getAttributes(locale, state);
     }
+
+    if (locale == null) {
+      locale = Locale.getDefault().toString();
+    } else if (locale != null && locale.equals("")) {
+      return localize(new Hashtable());
+    }
+
+    if (isFragment()) {
+      /* Whouldn't it be more natural
+         require the bundle to be attached to
+         a host? But according to testGetHeaders010
+         in div this is not required.
+       
+         This code snippet resolves the fragment,
+         i.e attaches it to it.
+      */
+    
+    
+      if (getUpdatedState() == RESOLVED) {
+        BundleImpl host = getFragmentHost();
+        Dictionary localize_entries = new Hashtable();
+      
+        if (host != null) {
+          host.readLocalization(locale, localize_entries);
+          return localize(localize_entries);
+        } 
+      }
    
-    return localize(new Hashtable());
-  }
+      return localize(new Hashtable());
+    }
 
 
-  Hashtable localization_entries = new Hashtable();
-  readLocalization("", localization_entries);
-  readLocalization(Locale.getDefault().toString(), localization_entries);
-  readLocalization(locale, localization_entries);
+    Hashtable localization_entries = new Hashtable();
+    readLocalization("", localization_entries);
+    readLocalization(Locale.getDefault().toString(), localization_entries);
+    readLocalization(locale, localization_entries);
   
 
-  return localize(localization_entries);
-  //return archive.getAttributes(locale, state);
-}
+    return localize(localization_entries);
+    //return archive.getAttributes(locale, state);
+  }
 
-private void modified(){
-  lastModified = System.currentTimeMillis();
-  //TODO make sure it is persistent
-  if(archive != null){
-    try{
-      archive.setLastModified(lastModified);
+  private void modified(){
+    lastModified = System.currentTimeMillis();
+    //TODO make sure it is persistent
+    if(archive != null){
+      try{
+        archive.setLastModified(lastModified);
+      }
+      catch(IOException e){}
     }
-    catch(IOException e){}
   }
-}
 
-/**
-*
-* @see org.osgi.framework.Bundle#getLastModified()
-*/
-public long getLastModified() {
-  return lastModified;
-}
-
-
-/**
- * @see org.osgi.framework.Bundle#getResources(String name)
- */
-public Enumeration getResources(String name) throws IOException {
-  if (state == UNINSTALLED) {
-    throw new IllegalStateException("Bundle is in UNINSTALLED state");
+  /**
+   *
+   * @see org.osgi.framework.Bundle#getLastModified()
+   */
+  public long getLastModified() {
+    return lastModified;
   }
-    //  TODO check not fragment 
-  try {
-    checkResourceAdminPerm();
+
+
+  /**
+   * @see org.osgi.framework.Bundle#getResources(String name)
+   */
+  public Enumeration getResources(String name) throws IOException {
+    if (state == UNINSTALLED) {
+      throw new IllegalStateException("Bundle is in UNINSTALLED state");
+    }
+    if (isFragment()) {
+      return null;
+    }
+    try {
+      checkResourceAdminPerm();
       BundleClassLoader cl = (BundleClassLoader)getClassLoader();
       if (cl != null) {
         return cl.getBundleResources(name, false);
       }
-  } catch (SecurityException e) {
-    //return null; done below
+    } catch (SecurityException e) {
+      //return null; done below
+    }
+    return null;
   }
-  return null;
-}
 
-public Class loadClass(final String name) throws ClassNotFoundException {
-  try{
-    checkClassAdminPerm();
-  }
-  catch(AccessControlException e){
-    throw new ClassNotFoundException(e.getMessage(), e);
-  }
-  if(this.state == UNINSTALLED){
-    throw new IllegalStateException("state is uninstalled");
-  }
-  if(this.state == INSTALLED){
-    if(getUpdatedState() != RESOLVED){
+  public Class loadClass(final String name) throws ClassNotFoundException {
+    try{
+      checkClassAdminPerm();
+    }
+    catch(AccessControlException e){
+      throw new ClassNotFoundException(e.getMessage(), e);
+    }
+    if(this.state == UNINSTALLED){
+      throw new IllegalStateException("state is uninstalled");
+    }
+    if(this.state == INSTALLED){
+      if(getUpdatedState() != RESOLVED){
         framework.listeners.frameworkError(this, new BundleException("Unable to resolve bundle: " + bpkgs.getResolveFailReason()));
-      throw new ClassNotFoundException("Unable to resolve bundle");
+        throw new ClassNotFoundException("Unable to resolve bundle");
+      }
     }
-  }
 
-  if (isFragment() && !isAttached()) {
-    throw new ClassNotFoundException("The fragment bundle not attached to host bundle.");
-  }
-
-  //TODO check not fragment
-  /*Class clazz = null;
-  try{
-    clazz = (Class) AccessController.doPrivileged(new PrivilegedExceptionAction(){
-
-      public Object run() throws ClassNotFoundException{
-  */
-            BundleClassLoader cl = (BundleClassLoader) getClassLoader();
-
-          if (cl != null) {
-            return cl.loadClass(name);
-          }
-              return null;
-  /*    }
-  }
-  );
-  }
-  catch(PrivilegedActionException e){
-    Exception ee;
-    if((ee = e.getException()) instanceof ClassNotFoundException){
-      throw (ClassNotFoundException) ee;
+    if (isFragment()) {
+      throw new ClassNotFoundException("The fragment bundle not attached to host bundle.");
     }
-  }
-  return clazz;*/
+    BundleClassLoader cl = (BundleClassLoader) getClassLoader();
+  
+    if (cl != null) {
+      return cl.loadClass(name);
+    }
+    return null;
+
   }//method
 
   // fragment bundle stuff.
