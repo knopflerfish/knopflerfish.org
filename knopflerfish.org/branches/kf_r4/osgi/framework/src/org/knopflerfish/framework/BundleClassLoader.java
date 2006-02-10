@@ -451,7 +451,7 @@ final public class BundleClassLoader extends ClassLoader {
    *   class or resource is not found, then the search continues with
    *   the next step.
    *
-   * 6 Each attached fragment’s internal bundle class path is searched.
+   * 6 Each attached fragment's internal bundle class path is searched.
    *   The fragments are searched in ascending bundle ID order. If the
    *   class or resource is not found, then the search continues with
    *    the next step.
@@ -470,7 +470,7 @@ final public class BundleClassLoader extends ClassLoader {
    *   established, then the request fails.
    *
    * 9 If the dynamic import of the package is established, the
-   *   request is delegated to the exporting bundle’s class loader.
+   *   request is delegated to the exporting bundle's class loader.
    *   If the request is delegated to an exporting class loader and
    *   the class or resource is not found, then the search
    *   terminates and the request fails.
