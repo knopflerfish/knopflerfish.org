@@ -782,6 +782,8 @@
            <include name = "osgi/bundles_opt/serial/**"/>
            <include name = "osgi/bundles_opt/desktop_displayers/**"/>
 
+           <include name = "osgi/bundles_opt/kxml/**"/>
+
            <exclude name = "**/CVS"/>
         </zipfileset>
 
