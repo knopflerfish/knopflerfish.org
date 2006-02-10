@@ -26,7 +26,8 @@
    <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
    <pathelement location="${topdir}/jars/metatype/metatype-1.0.0.jar"/>
    <pathelement location="resources/nanoxml-2.2.1.jar"/>
-   <pathelement location="resources/kxml2.jar"/>
+   <pathelement location="${topdir}/bundles_opt/kxml/resources/kxml2.jar"/> 
+   <!-- <pathelement location="resources/kxml2.jar"/> -->
   </path>
   
   
@@ -41,7 +42,8 @@
   <property name="bundle.classpath"      value=".,/kxml2.jar"/>
 
   <property name="export.package"        value="org.knopflerfish.util.metatype,net.n3.nanoxml;specification-version=2.2.1"/>
-  <property name="import.package" value="org.osgi.service.cm,org.knopflerfish.util,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype"/>
+  <property name="import.package"    
+  value="org.osgi.service.cm,org.knopflerfish.util,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype,org.xmlpull.v1,org.kxml2.io"/>
   &bundlebuild_include;
 
 </project>
