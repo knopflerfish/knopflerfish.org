@@ -21,26 +21,27 @@ Knopflerfish 2.0 BETA 2
 
     Module layer now has support for all the required features in R4. 
     The following optional features are not supported yet:
-    * Extensiont bundles
+    * Extension bundles
     * Permissions
     
     The fragment bundles implementation is still experimental and does 
-    not work together with requring bundles.
+    not work together with requring bundles. There are also some
+    problems when updating fragements.
 
   --- Life Cycle Layer ---
 
-    Some changes are still pending.
+    The following method is not implemented yet:
+    * Bundle.findEntries(String, String, boolean)
 
   --- Service Layer ---
 
-    Some changes are still pending.
+    Done.
 
   --- Framework Services ---
 
-    Start Level, Permission Admin and URL Handler services have been 
+    Start Level, Package Admin, Permission Admin and URL Handler services have been 
     updated to conform to R4. The Conditional Permission Admin is not 
-    yet included. Package Admin handles all things except those that 
-    have to do with the unimplemented optional features.
+    yet included.
 
 
 === Services (r4.cmpn) ===
