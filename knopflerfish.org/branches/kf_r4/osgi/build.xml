@@ -163,7 +163,7 @@
 
 
  <target name="rebuild"
-         description="Cleans builds all and bundles_opt and bundles_test">
+         description="Cleans then build build (including optional and test bundles">
     <antcall target="clean"/>
     <ant dir="bundles_test" target="clean"
          inheritAll="false" inheritRefs="false"/>
