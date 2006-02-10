@@ -1419,48 +1419,29 @@ public class Loader {
 	  } 
 	  else if (OCD.equals(element)) {
 		  String id = (String) attrs.get(ATTR_ID);
-	      if(id != null){
-	    	  
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
+	      if(id == null){
+	    	  return;//TODO not valid: required attribute is missing
 	      }
 	      
 	      String name = (String) attrs.get(ATTR_NAME);
-	      if(name != null){
-	    	  
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
+	      if(name == null){
+              //TODO not valid: required attribute is missing
 	    	  return;
 	      }
+	      
 	      String desc = (String) attrs.get(ATTR_DESCRIPTION);
-	      if(desc != null){
-	    	  
-	      }
 	      
 	      currentOCD = new OCD(id, name, desc);
 	  }
 	  else if (AD_E.equals(element)) { 
 		  String id = (String) attrs.get(ATTR_ID);
-	      if(id != null){
-	    	  
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
+	      if(id == null){
+              //TODO not valid: required attribute is missing
 	    	  return;
 	      }
 	      
 	      String name = (String) attrs.get(ATTR_NAME);
-	      if(name != null){
-	    	  
-	      }
-	      
 	      String desc = (String) attrs.get(ATTR_DESCRIPTION);
-	      if(desc != null){
-	    	  
-	      }
 	      
 	      String typeS = (String) attrs.get(ATTR_TYPE);
 	      int type;
@@ -1482,14 +1463,7 @@ public class Loader {
 	      }
 	      
 	      String min = (String) attrs.get(ATTR_MIN);
-	      if(min != null){
-	    	  
-	      }
-	      
 	      String max = (String) attrs.get(ATTR_MAX);
-	      if(max != null){
-	    	  
-	      }
 	      
 	      String default_attr = (String) attrs.get(ATTR_DEFAULT);
 	      String[] defaults = null;
@@ -1523,8 +1497,7 @@ public class Loader {
 	      else{
 	    	  //TODO not valid: required attribute is missing
 	    	  return;
-	      }
-	      
+	      }      
 	  }
 	  else if (ATTRIBUTE.equals(element)) { 
 		  String adref = (String) attrs.get(ATTR_ADREF);
@@ -1573,19 +1546,8 @@ public class Loader {
 	    	  currentDesignateFactoryPid = factoryPid;
 	    	  currentDesignatePid = null;
 	      }
-	      
-	      
+	       
 	      String bundle_location = (String) attrs.get(ATTR_BUNDLE);
-	      if(bundle_location != null){
-	    	  
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  //Can't pass TCK without this
-	    	  //This is http://membercvs.osgi.org/bugs/show_bug.cgi?id=186
-	    	  //return;
-	      }
-	      
 	     
 	      if(currentDesignatePid != null){
 	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
@@ -1641,14 +1603,11 @@ public class Loader {
       else if (ICON.equals(element)) {
 		  
 		  String resource = (String) attrs.get(ATTR_RESOURCE);
-	      if(resource != null){
-	    	  
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
+	      if(resource == null){
+              //TODO not valid: required attribute is missing
 	    	  return;
 	      }
- 
+	      
 	      String sizeS = (String) attrs.get(ATTR_SIZE);
 	      int size;
 	      if(sizeS != null){
@@ -1692,14 +1651,6 @@ public class Loader {
 		  currentOptionValues.removeAllElements();
 		  currentOptionLabels.removeAllElements();
 		  currentAD = null;
-	  }
-	  else if (OBJECT.equals(element)) {
-		
-	      
-	  }
-	  else if (ATTRIBUTE.equals(element)) { 
-		
-	      
 	  }
 	  else if (DESIGNATE.equals(element)) {
 		  //MetaInfo
