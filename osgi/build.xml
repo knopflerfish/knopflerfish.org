@@ -54,14 +54,6 @@
     <ant dir="bundles"      target="all"/>
   </target>
 
-  <target name="opt-test"
-          description="Extension of all that also builds the bundles in bundles_opt and bundles_test directories">
-    <antcall target="all"/>
-    <ant dir="bundles_opt"  target="all"/>
-    <ant dir="bundles_test" target="all"
-         inheritAll="false" inheritRefs="false"/>
-  </target>
-
   <target name="xargs">
    <antcall target="init_xargs"/>
    <antcall target="remote_xargs"/>
@@ -171,12 +163,14 @@
 
 
  <target name="rebuild"
-         description="Same as &quot;ant clean all opt-test&quot;">
+         description="Cleans builds all and bundles_opt and bundles_test">
     <antcall target="clean"/>
     <ant dir="bundles_test" target="clean"
          inheritAll="false" inheritRefs="false"/>
     <antcall target="all"/>
-    <antcall target="opt-test"/>
+    <ant dir="bundles_opt"  target="all"/>
+    <ant dir="bundles_test" target="all"
+         inheritAll="false" inheritRefs="false"/>
  </target>
 
 </project>
