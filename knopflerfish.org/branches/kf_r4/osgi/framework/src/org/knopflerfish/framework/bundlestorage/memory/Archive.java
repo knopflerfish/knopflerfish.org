@@ -233,6 +233,40 @@ class Archive {
 	  }
 	  return current_entries;
   }
+
+  /**
+   * Returns the contents of a specific localization file.
+   * @return null if no such file found. O/w a mapping of the entries.
+   */
+  Hashtable getLocalizationEntries(String locale, int bundle_state) {
+
+    
+    /* if (bundle_state == Bundle.UNINSTALLED 
+        Locale.getDefault().toString().equals(locale)) {
+        return defaultLocaleEntries;
+      } 
+      UHM..
+    */
+
+    String fileName = "".equals(locale) ? 
+      localizationFilesLocation + LOCALIZATION_FILE_SUFFIX : 
+      localizationFilesLocation + "_" + locale + LOCALIZATION_FILE_SUFFIX;
+
+    try {
+      InputStream is = getInputStream(fileName);
+      if (is == null) {
+        return null;
+      }
+      
+      Properties locale_entries = new Properties();
+      locale_entries.load(is);
+      return locale_entries;
+
+    }
+    catch(IOException e){ //includes FileNotFoundException
+      return null;
+    }
+  }
   
   private void loadDefaultLocaleEntries(){
 	  defaultLocaleEntries = new Hashtable();

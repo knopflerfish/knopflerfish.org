@@ -475,7 +475,15 @@ class Packages {
           if (Debug.packages) {
             Debug.println("getZombieAffected: check - " + bundles[i]);
           }
-          affected.add(bundles[i]);
+          BundleImpl tmp = (BundleImpl)bundles[i];
+
+          if (tmp.isFragment() &&
+              tmp.isAttached() && 
+              !affected.contains(tmp.getFragmentHost())) {
+            affected.add(tmp.getFragmentHost());
+          } else {
+            affected.add(bundles[i]);
+          }
         }
       }
     }

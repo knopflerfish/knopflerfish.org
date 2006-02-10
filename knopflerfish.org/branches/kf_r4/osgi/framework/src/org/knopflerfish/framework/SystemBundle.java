@@ -35,8 +35,10 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -51,6 +53,7 @@ import org.osgi.service.startlevel.StartLevel;
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 public class SystemBundle extends BundleImpl {
 
@@ -205,10 +208,17 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#stop
    */
-  synchronized public void stop() throws BundleException
+  public void stop() throws BundleException {
+    stop(0);    
+  }
+
+  /**
+   * Stop this bundle and possibly exit the VM (with given exitcode)
+   */
+  synchronized public void stop(int exitcode) throws BundleException
   {
     checkExecuteAdminPerm();
-    Main.shutdown(0);
+    Main.shutdown(exitcode);
   }
 
 
@@ -287,5 +297,4 @@ public class SystemBundle extends BundleImpl {
   void systemShuttingdown() {
     state = STOPPING;
   }
-
 }

@@ -134,4 +134,7 @@ public class HeaderDictionary extends Dictionary
     return headers.size();
   }
 
+  public String toString() {
+    return headers.toString();
+  }
 }

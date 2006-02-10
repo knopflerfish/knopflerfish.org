@@ -46,6 +46,7 @@ import java.util.List;
  *
  * @author Jan Stein
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 public interface BundleArchive {
 
@@ -67,6 +68,9 @@ public interface BundleArchive {
    * @return All attributes, null if bundle doesn't exist.
    */
   Dictionary getAttributes(String locale, int bundle_state);
+  
+  Dictionary getLocalizationEntries(String locale, int bundle_state);
+  Dictionary getUnlocalizedAttributes();
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -187,6 +191,12 @@ public interface BundleArchive {
    * @return
    */
   Enumeration findResourcesPath(String path);
+  
+
+  /**
+   * @return the location of the cached bundle.
+   */
+  String getJarLocation();
 
 
 }
