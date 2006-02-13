@@ -705,7 +705,7 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-        String osName = Alias.unifyOsName(System.getProperty("os.name"));
+        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();

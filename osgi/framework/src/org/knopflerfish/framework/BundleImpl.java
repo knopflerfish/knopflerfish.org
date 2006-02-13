@@ -630,14 +630,9 @@ class BundleImpl implements Bundle {
                   cacheManifestHeaders();
                   newArchive.setStartLevel(oldStartLevel);
 
-                  if (isFragment() && fragment.pendingUpdate != null) {
-                    framework.storage.replaceBundleArchive(fragment.pendingUpdate, newArchive);
-                  } else {
+                  if (!isFragment()) {
                     framework.storage.replaceBundleArchive(archive, newArchive);
                   }
-
-                  
-
                 } catch (Exception e) {
                   if (newArchive != null) {
                     newArchive.purge();
@@ -1116,8 +1111,8 @@ class BundleImpl implements Bundle {
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
         ((BundleClassLoader)i.next()).purge();
       }
+      oldClassLoaders = null;
     }
-    oldClassLoaders = null;
   }
 
 
@@ -1700,59 +1695,65 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     return null;
   }
 
+
   public Class loadClass(final String name) throws ClassNotFoundException {
     try{
       checkClassAdminPerm();
     }
-    catch(AccessControlException e){
+    catch(AccessControlException e) {
       throw new ClassNotFoundException(e.getMessage(), e);
     }
-    if(this.state == UNINSTALLED){
+    if (this.state == UNINSTALLED) {
       throw new IllegalStateException("state is uninstalled");
     }
-    if(this.state == INSTALLED){
-      if(getUpdatedState() != RESOLVED){
+    if (this.state == INSTALLED) {
+      if (getUpdatedState() != RESOLVED) {
         framework.listeners.frameworkError(this, new BundleException("Unable to resolve bundle: " + bpkgs.getResolveFailReason()));
         throw new ClassNotFoundException("Unable to resolve bundle");
       }
     }
 
     if (isFragment()) {
-      throw new ClassNotFoundException("The fragment bundle not attached to host bundle.");
+      throw new ClassNotFoundException("Can not load from fragment bundle, " + name);
     }
-    BundleClassLoader cl = (BundleClassLoader) getClassLoader();
-  
-    if (cl != null) {
-      return cl.loadClass(name);
-    }
-    return null;
 
-  }//method
+    ClassLoader cl = getClassLoader();
+    if (cl == null) {
+      throw new IllegalStateException("state is uninstalled?");
+    }
+    return cl.loadClass(name);
+  }
+
 
   // fragment bundle stuff.
   boolean isFragment() {
     return fragment != null;
   }
 
+
   boolean isExtension() {
     return isFragment() &&
       fragment.extension != null;      
   }
+
 
   boolean isBootClassPathExtension() {
     return isExtension() &&
       fragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH);
   }
 
+
   boolean isFragmentExtension() {
     return isExtension() &&
       fragment.extension.equals(Constants.EXTENSION_FRAMEWORK);
   }
 
+
   boolean isAttached() {
     return isFragment() &&
       fragment.host != null;
   }
+
 
   String getFragmentHostName() {
     if (isFragment()) {
@@ -1762,17 +1763,21 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     }
   }
 
+
   BundleImpl getFragmentHost() {
     return isFragment() ? fragment.targets() : null;
   }
+
 
   boolean isFragmentHost() {
     return fragments != null && fragments.size() > 0;
   }
 
+
   private static boolean helpChecker(Object o1, Object o2) {
     return o1 == null ? o2 == null : o1.equals(o2);
   }
+
 
   void attachFragment(BundleImpl fragmentBundle) {
     if (fragments == null) {
@@ -1964,7 +1969,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
           case Bundle.UNINSTALLED:
             break;
           }
-          bx.purge();          
+          bx.purge();
         }
         // if a bundle "A" imports from "this" then we need to remove "A's" import.
 
@@ -1989,6 +1994,9 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
                                           true);
 
     if (fb.fragment.pendingUpdate != null) {
+      try {
+        framework.storage.replaceBundleArchive(fb.archive, fb.fragment.pendingUpdate);
+      } catch (Exception _e) { /* TBD! What to do */ }
       fb.archive = fb.fragment.pendingUpdate;
       fb.fragment.pendingUpdate = null;
     }

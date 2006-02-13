@@ -387,13 +387,6 @@ class BundlePackages {
   void addExport(ExportPkg pkg) {
     int ei = Math.abs(Util.binarySearch(exports, epComp, pkg) + 1);
     exports.add(ei, pkg);
-    if (!bundle.v2Manifest) {
-      ImportPkg ip = new ImportPkg(pkg);
-      int ii = Util.binarySearch(imports, ipComp, ip);
-      if (ii < 0) {
-        imports.add(-ii - 1, ip);
-      }
-    }
   }
   
 

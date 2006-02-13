@@ -673,8 +673,7 @@ class BundleArchiveImpl implements BundleArchive
 
         List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
         if (pl != null) {
-          if (!containsIgnoreCase(pl, proc) &&
-              !containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
+          if (!containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
             continue;
           }
         } else {
@@ -684,7 +683,7 @@ class BundleArchiveImpl implements BundleArchive
 
         List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
         if (ol != null) {
-          if (!containsIgnoreCase(ol, os) && !containsIgnoreCase(ol, Alias.unifyOsName(os))) {
+          if (!containsIgnoreCase(ol, Alias.unifyOsName(os))) {
             continue;
           }
         } else {
@@ -785,10 +784,13 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  private boolean containsIgnoreCase(List l, String s) {
+  private boolean containsIgnoreCase(List l, List l2) {
     for (Iterator i = l.iterator(); i.hasNext(); ) {
-      if (s.equalsIgnoreCase((String)i.next())) {
+      String s = (String)i.next();
+      for (Iterator j = l2.iterator(); j.hasNext(); ) {
+        if (s.equalsIgnoreCase((String)j.next())) {
           return true;
+        }
       }
     }
     return false;
