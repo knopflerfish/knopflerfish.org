@@ -60,7 +60,6 @@ public class URLStreamHandlerWrapper
   String                 filter;
   
   private ServiceReference best;
-  private int 		   bestRanking;
 
   URLStreamHandlerWrapper(Framework  fw,
 			  String     proto) {
@@ -103,13 +102,13 @@ public class URLStreamHandlerWrapper
             }
           }
           }
+        }
       };
     
     try {
       framework.systemBC.addServiceListener(serviceListener, filter);
-
+      
     } catch (Exception e) {
-      e.printStackTrace();
       throw new IllegalArgumentException("Could not register service listener for url handler: " + e);
     }
     
@@ -137,7 +136,8 @@ public class URLStreamHandlerWrapper
   private void updateBest() {
     try {
       ServiceReference[] refs =
-        framework.systemBC.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
+        framework.systemBC.getServiceReferences(URLStreamHandlerService.class.getName(), 
+                                                filter);
       if (refs != null) {
         best = refs[0];
       } 
@@ -149,6 +149,7 @@ public class URLStreamHandlerWrapper
       }
 
     } catch (Exception e) {
+      // this should not happen.
       throw new IllegalArgumentException("Could not register url handler: " + e);
     }
   }
