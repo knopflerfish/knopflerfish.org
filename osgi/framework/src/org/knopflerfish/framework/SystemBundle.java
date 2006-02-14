@@ -69,7 +69,10 @@ public class SystemBundle extends BundleImpl {
   private final static String EXPORT13 =
     "org.knopflerfish.framework.system.export.all_13";
 
-  private Hashtable headers = null;
+  /**
+   * Export-Package string for system packages
+   */
+  private final String exportPackageString;
 
 
   /**
@@ -94,7 +97,8 @@ public class SystemBundle extends BundleImpl {
 
     addSystemPackages(sp);
 
-    bpkgs = new BundlePackages(this, 0, sp.toString(), null, null, null);
+    exportPackageString = sp.toString();
+    bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
   }
@@ -259,11 +263,9 @@ public class SystemBundle extends BundleImpl {
 
   public Dictionary getHeaders(String locale) {
     checkMetadataAdminPerm();
-    if (headers == null) {
-      headers = new Hashtable();
-      headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
-      headers.put(Constants.EXPORT_PACKAGE, framework.packages.systemPackages());
-    }
+    Hashtable headers = new Hashtable();
+    headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
+    headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     return headers;
   }
 

@@ -117,8 +117,8 @@ public class ExportedPackageImpl implements ExportedPackage {
   public Bundle[] getImportingBundles() {
     Packages packages = pkg.bpkgs.bundle.framework.packages;
     synchronized (packages) {
-      if (packages.isProvider(pkg)) {
-	Collection imps = packages.getPackageImporters(pkg);
+      if (pkg.isProvider()) {
+	Collection imps = pkg.getPackageImporters();
 	Bundle[] res = new Bundle[imps.size()];
 	return (Bundle[])imps.toArray(res);
       } else {
@@ -150,7 +150,8 @@ public class ExportedPackageImpl implements ExportedPackage {
    */
   public boolean isRemovalPending() {
     Packages packages = pkg.bpkgs.bundle.framework.packages;
-    if (packages.isProvider(pkg)) {
+    // TBD, check this
+    if (pkg.isProvider()) {
       return pkg.zombie;
     } else {
       return false;

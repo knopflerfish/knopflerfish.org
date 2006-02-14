@@ -170,6 +170,45 @@ class ExportPkg {
 
 
   /**
+   * Check if ExportPkg is provider of a package.
+   *
+   * @return True if pkg exports the package.
+   */
+  boolean isProvider() {
+    if (pkg != null) {
+      synchronized (pkg) {
+        return pkg.providers.contains(this);
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Get active importers of a package.
+   *
+   * @param pkg Package.
+   * @return List of bundles importering.
+   */
+  Collection getPackageImporters() {
+    Set res = new HashSet();
+    synchronized (pkg) {
+      for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
+        ImportPkg ip = (ImportPkg)i.next();
+        if (ip.provider == this) {
+          res.add(ip.bpkgs.bundle);
+        }
+      }
+    }
+    return res;
+  }
+
+  //
+  // Private
+  //    
+
+  /**
    */
   private  boolean filterMatch(String filter, String s) {
     return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);

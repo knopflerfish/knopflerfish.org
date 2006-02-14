@@ -115,15 +115,21 @@ public class PackageAdminImpl implements PackageAdmin {
    * or <tt>null</tt> if the specified bundle has not exported any packages.
    */
   public ExportedPackage[] getExportedPackages(Bundle bundle) {
-    Collection pkgs = framework.packages.getPackagesExportedBy(bundle);
+    ArrayList pkgs = new ArrayList();
+    if (bundle != null) {
+      for (Iterator i = ((BundleImpl)bundle).getExports(); i.hasNext(); ) {
+        pkgs.add(new ExportedPackageImpl((ExportPkg)i.next()));
+      }
+    } else {
+      for (Iterator bi = framework.bundles.getBundles().iterator(); bi.hasNext(); ) {
+        for (Iterator i = ((BundleImpl)bi.next()).getExports(); i.hasNext(); ) {
+          pkgs.add(new ExportedPackageImpl((ExportPkg)i.next()));
+        }
+      }
+    }
     int size = pkgs.size();
     if (size > 0) {
-      ExportedPackage[] res = new ExportedPackage[size];
-      Iterator i = pkgs.iterator();
-      for (int pos = 0; pos < size;) {
-        res[pos++] = new ExportedPackageImpl((ExportPkg)i.next());
-      }
-      return res;
+      return (ExportedPackage [])pkgs.toArray(new ExportedPackage[size]);
     } else {
       return null;
     }
@@ -174,12 +180,14 @@ public class PackageAdminImpl implements PackageAdmin {
    *         if no expored package with that name exists.
    */
   public ExportedPackage getExportedPackage(String name) {
-    ExportPkg ep = framework.packages.getPackageProvider(name);
-    if (ep != null) {
-      return new ExportedPackageImpl(ep);
-    } else {
-      return null;
+    Pkg p = (Pkg)framework.packages.getPkg(name);
+    if (p != null) {
+      ExportPkg ep = p.getBestProvider();
+      if (ep != null) {
+        return new ExportedPackageImpl(ep);
+      }
     }
+    return null;
   }
   
 

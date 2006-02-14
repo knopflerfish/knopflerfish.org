@@ -55,7 +55,7 @@ class Packages {
   /**
    * All exported and imported packages.
    */
-  private HashMap /* String->Pkg */ packages = new HashMap();
+  private Hashtable /* String->Pkg */ packages = new Hashtable();
 
   /**
    * Temporary set of resolved bundles during a resolve operation.
@@ -194,44 +194,52 @@ class Packages {
    * @return True if all packages were succesfully unregistered,
    *         otherwise false.
    */
-  synchronized boolean unregisterPackages(Iterator exports, Iterator imports, boolean force) {
-    boolean allRemoved = true;
-    while (exports.hasNext()) {
-      ExportPkg pe = (ExportPkg)exports.next();
-      Pkg p = pe.pkg;
-      if (p != null) {
-        if (Debug.packages) {
-          Debug.println("unregisterPackages: unregister export - " + pe);
-        }
-        if (!p.removeExporter(pe, force)) {
-          allRemoved = false;
-          pe.zombie = true;
-          if (Debug.packages) {
-              Debug.println("unregisterPackages: failed to unregister - " + pe);
+  synchronized boolean unregisterPackages(List exports, List imports, boolean force) {
+    // Check if somebody other than ourselves use our exports
+    if (!force) {
+      for (Iterator i = exports.iterator(); i.hasNext(); ) {
+        ExportPkg ep = (ExportPkg)i.next();
+        Pkg p = ep.pkg;
+        if (p.providers.contains(ep)) {
+          for (Iterator ii = p.importers.iterator(); ii.hasNext(); ) {
+            ImportPkg ip = (ImportPkg) ii.next();
+            if (ep == ip.provider && ep.bpkgs != ip.bpkgs) {
+              if (Debug.packages) {
+                Debug.println("unregisterPackages: Failed to unregister, " + ep +
+                              " is still in use.");
+              }
+              markAsZombies(exports);
+              return false;
+            }
           }
-          continue;
-        }
-        if (p.isEmpty()) {
-          packages.remove(pe.name);
-        }
+	}
       }
     }
-    if (allRemoved) {
-      while (imports.hasNext()) {
-        ImportPkg pe = (ImportPkg)imports.next();
-        Pkg p = pe.pkg;
-        if (p != null) {
-          if (Debug.packages) {
-            Debug.println("unregisterPackages: unregister import - " + pe.pkgString());
-          }
-          p.removeImporter(pe);
-          if (p.isEmpty()) {
-            packages.remove(pe.name);
-          }
-        }
+
+    for (Iterator i = exports.iterator(); i.hasNext(); ) {
+      ExportPkg ep = (ExportPkg)i.next();
+      Pkg p = ep.pkg;
+      if (Debug.packages) {
+        Debug.println("unregisterPackages: unregister export - " + ep);
+      }
+      p.removeExporter(ep);
+      if (p.isEmpty()) {
+        packages.remove(ep.name);
       }
     }
-    return allRemoved;
+
+    for (Iterator i = imports.iterator(); i.hasNext(); ) {
+      ImportPkg ip = (ImportPkg)i.next();
+      Pkg p = ip.pkg;
+      if (Debug.packages) {
+        Debug.println("unregisterPackages: unregister import - " + ip.pkgString());
+      }
+      p.removeImporter(ip);
+      if (p.isEmpty()) {
+        packages.remove(ip.name);
+      }
+    }
+    return true;
   }
 
 
@@ -304,122 +312,11 @@ class Packages {
    * @param pkg Package name.
    * @return Pkg that represents the package, null if no such package.
    */
-  synchronized Pkg getPkg(String pkg) {
+  Pkg getPkg(String pkg) {
     return (Pkg)packages.get(pkg);
   }
     
     
-  /**
-   * Get provider of a package. If several, get the one with the highest version.
-   *
-   * @param pkg Exported package.
-   * @return ExportPkg that exports the package, null if no provider.
-   */
-  synchronized ExportPkg getPackageProvider(String pkg) {
-    Pkg p = (Pkg)packages.get(pkg);
-    if (p != null && !p.providers.isEmpty()) {
-      // Get highest version
-      return (ExportPkg)p.providers.get(0);
-    } else {
-      return null;
-    }
-  }
-    
-    
-  /**
-   * Check if ExportPkg is provider of a package.
-   *
-   * @param pe Exported package.
-   * @return True if pkg exports the package.
-   */
-  synchronized boolean isProvider(ExportPkg pe) {
-    return pe.pkg != null && pe.pkg.providers.contains(pe);
-  }
-    
-    
-  /**
-   * Get all packages exported by the system.
-   *
-   * @return Export-package string for system bundle.
-   */
-  synchronized String systemPackages() {
-    StringBuffer res = new StringBuffer();
-    for (Iterator i = packages.values().iterator(); i.hasNext();) {
-      Pkg p = (Pkg)i.next();
-      for (Iterator pi = p.providers.iterator(); pi.hasNext(); ) {
-        ExportPkg ep = (ExportPkg)pi.next();
-        if (framework.systemBundle == ep.bpkgs.bundle) {
-          if (res.length() > 0) {
-            res.append(", ");
-          }
-          res.append(ep.pkgString());
-        }
-      }
-    }
-    return res.toString();
-  }
-
-
-  /**
-   * Get specification version of an exported package.
-   *
-   * @param pkg Exported package.
-   * @param bundle Exporting bundle.
-   * @return Version of package or null if unspecified.
-  synchronized String getPackageVersion(String pkg) {
-    Pkg p = (Pkg)packages.get(pkg);
-    ExportPkg pe = p.provider;
-    return pe != null && pe.version.isSpecified() ? pe.version.toString() : null;
-  }
-   */
-
-
-  /**
-   * Get packages exported by bundle. If bundle is null, get all.
-   *
-   * @param b Bundle exporting packages.
-   * @return List of packages exported by bundle.
-   */
-  synchronized Collection getPackagesExportedBy(Bundle b) {
-    ArrayList res = new ArrayList();
-    // NYI Improve the speed here!
-    for (Iterator i = packages.values().iterator(); i.hasNext();) {
-      Pkg p = (Pkg) i.next();
-      if (!p.exporters.isEmpty()) {
-        if (b == null) {
-          res.addAll(p.exporters);
-        } else {
-          for (Iterator eps = p.exporters.iterator(); eps.hasNext();) {
-            ExportPkg ep = (ExportPkg)eps.next();
-            if (b == ep.bpkgs.bundle) {
-              res.add(ep);
-            }
-          }
-        }
-      }
-    }
-    return res;
-  }
-
-
-  /**
-   * Get active importers of a package.
-   *
-   * @param pkg Package.
-   * @return List of bundles importering.
-   */
-  synchronized Collection getPackageImporters(ExportPkg ep) {
-    Set res = new HashSet();
-    for (Iterator i = ep.pkg.importers.iterator(); i.hasNext(); ) {
-      ImportPkg ip = (ImportPkg)i.next();
-      if (ip.provider == ep) {
-        res.add(ip.bpkgs.bundle);
-      }
-    }
-    return res;
-  }
-
-
   /**
    * Get bundles affected by zombie packages.
    * Compute a graph of bundles starting with the specified bundles.
@@ -493,7 +390,7 @@ class Packages {
       for (Iterator j = b.getExports(); j.hasNext(); ) {
         ExportPkg ep = (ExportPkg)j.next();
         if (ep.pkg != null && ep.pkg.providers.contains(ep)) {
-          for (Iterator k = getPackageImporters(ep).iterator(); k.hasNext(); ) {
+          for (Iterator k = ep.getPackageImporters().iterator(); k.hasNext(); ) {
             Bundle ib = (Bundle)k.next();
             if (!affected.contains(ib)) {
               moreBundles.add(ib);
@@ -550,6 +447,18 @@ class Packages {
       return true;
     } else {
       return false;
+    }
+  }
+
+
+  /**
+   * Mark list of exporters as zombie packages.
+   *
+   * @param exporters List of ExportPkg.
+   */
+  private void markAsZombies(List exports) {
+    for (Iterator i = exports.iterator(); i.hasNext();) {
+      ((ExportPkg)i.next()).zombie = true;
     }
   }
 
@@ -819,6 +728,7 @@ class Packages {
       Debug.println("checkUses: provider " + pkg.bpkgs.bundle +
 		    " with bpkgs=" + pkg.bpkgs);
     }
+    ArrayList checkList = new ArrayList();
     for (Iterator i = pkg.bpkgs.getActiveImports(); i.hasNext(); ) {
       ImportPkg ip = (ImportPkg)i.next();
       if (ui != null) {
@@ -838,12 +748,17 @@ class Packages {
       }
       if (ep == null) {
         tempProvider.put(ip.pkg.pkg, ip.provider);
-        checkUses(ip.provider);
+        checkList.add(ip.provider);
       } else if (ep != ip.provider) {
         if (Debug.packages) {
           Debug.println("checkUses: mismatch in providers for, " +
                         ip.pkg.pkg);
         }
+        return false;
+      }
+    }
+    for (Iterator i = checkList.iterator(); i.hasNext(); ) {
+      if (!checkUses((ExportPkg)i.next())) {
         return false;
       }
     }

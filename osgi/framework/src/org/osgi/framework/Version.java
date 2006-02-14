@@ -116,33 +116,29 @@ public class Version implements Comparable {
 
 		try {
 			StringTokenizer st = new StringTokenizer(version, SEPARATOR, true);
+			major = Integer.parseInt(st.nextToken());
+
 			if (st.hasMoreTokens()) {
-				major = Integer.parseInt(st.nextToken());
+				st.nextToken(); // consume delimiter
+				minor = Integer.parseInt(st.nextToken());
 
 				if (st.hasMoreTokens()) {
 					st.nextToken(); // consume delimiter
-					minor = Integer.parseInt(st.nextToken());
+					micro = Integer.parseInt(st.nextToken());
 
 					if (st.hasMoreTokens()) {
 						st.nextToken(); // consume delimiter
-						micro = Integer.parseInt(st.nextToken());
+						qualifier = st.nextToken();
 
 						if (st.hasMoreTokens()) {
-							st.nextToken(); // consume delimiter
-							qualifier = st.nextToken();
-
-							if (st.hasMoreTokens()) {
-								throw new IllegalArgumentException("invalid format (" + version + ")"); //$NON-NLS-1$
-							}
+							throw new IllegalArgumentException("invalid format"); //$NON-NLS-1$
 						}
 					}
-				}	
+				}
 			}
 		}
 		catch (NoSuchElementException e) {
-			throw new IllegalArgumentException("invalid format (" + version + ")"); //$NON-NLS-1$
-		}
-		catch (NumberFormatException e) {
+			throw new IllegalArgumentException("invalid format"); //$NON-NLS-1$
 		}
 
 		this.major = major;
