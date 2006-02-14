@@ -73,6 +73,10 @@ class BundlePackages {
   /* Sorted list of active imports */
   private ArrayList /* ImportPkg */ okImports = null;
 
+  /* Is our packages registered */
+  private boolean registered = false;
+
+  /* Reason we failed to resolve */
   private String failReason = null;
 
   final static String EMPTY_STRING = "";
@@ -196,8 +200,8 @@ class BundlePackages {
    *
    */
   void registerPackages() {
-
     bundle.framework.packages.registerPackages(exports.iterator(), imports.iterator());
+    registered = true;
   }
 
 
@@ -206,13 +210,16 @@ class BundlePackages {
    *
    */
   synchronized boolean unregisterPackages(boolean force) {
-    Iterator i = (okImports != null ? okImports : imports).iterator();
-    if (bundle.framework.packages.unregisterPackages(exports.iterator(), i, force)) {
-      okImports = null;
-      return true;
-    } else {
-      return false;
+    if (registered) {
+      List i = okImports != null ? okImports : imports;
+      if (bundle.framework.packages.unregisterPackages(exports, i, force)) {
+        okImports = null;
+        registered = false;
+      } else {
+        return false;
+      }
     }
+    return true;
   }
 
 

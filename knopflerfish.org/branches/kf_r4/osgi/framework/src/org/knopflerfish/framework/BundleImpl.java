@@ -1989,8 +1989,8 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       bpkgs.removeImport((ImportPkg)iter.next());
     }
     
-    framework.packages.unregisterPackages(fb.fragment.exports.iterator(),
-                                          fb.fragment.imports.iterator(), 
+    framework.packages.unregisterPackages(fb.fragment.exports,
+                                          fb.fragment.imports, 
                                           true);
 
     if (fb.fragment.pendingUpdate != null) {

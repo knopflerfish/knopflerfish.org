@@ -75,35 +75,12 @@ class Pkg {
 
   /**
    * Remove an exporter entry from this package.
-   * Fail if exporter is provider.
    *
    * @param p ExportPkg to remove.
    * @return false if package is provider otherwise true.
    */
-  synchronized boolean removeExporter(ExportPkg p, boolean force) {
-    if (providers.contains(p)) {
-      if (!force) {
-        // Check if we only provide to ourselves.
-        force = true;
-	for (Iterator i = importers.iterator(); i.hasNext(); ) {
-	  ImportPkg ip = (ImportPkg) i.next();
-	  if (p == ip.provider && p.bpkgs != ip.bpkgs) {
-	    force = false;
-	  }
-	}
-        if (!force) {
-          return false;
-        }
-      }
-      providers.remove(p);
-      for (Iterator i = importers.iterator(); i.hasNext(); ) {
-        ImportPkg ip = (ImportPkg) i.next();
-	  
-        if (p == ip.provider) {
-          ip.provider = null;
-	}
-      }
-    }
+  synchronized boolean removeExporter(ExportPkg p) {
+    providers.remove(p);
     exporters.remove(p);
     p.pkg = null;
     p.zombie = false;
@@ -128,16 +105,12 @@ class Pkg {
    *
    * @param p ImportPkg to remove.
    */
-  synchronized void removeImporter(ImportPkg p) {
-    for (int i = importers.size() - 1; i >= 0; i--) {
-      if (p == importers.get(i)) {
-	importers.remove(i);
-	p.pkg = null;
-	break;
-      }
-    }
-    p.provider = null;
+  synchronized void removeImporter(ImportPkg ip) {
+    importers.remove(ip);
+    ip.pkg = null;
+    ip.provider = null;
   }
+
 
   /**
    * Add an exporter entry as a provider for this package.
@@ -150,6 +123,21 @@ class Pkg {
     if (i < 0) {
       providers.add(-i - 1, ep);
     }
+  }
+
+
+
+  /**
+   * Get best provider. Best provider is provider
+   * with highest version number.
+   *
+   * @return Provider ExportPkg or null if none..
+   */
+  synchronized ExportPkg getBestProvider() {
+    if (!providers.isEmpty()) {
+      return (ExportPkg)providers.get(0);
+    }
+    return null;
   }
 
 
