@@ -56,7 +56,6 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Debug
    */
-  //TODO have option to remove all such from production builds
   final private boolean debug = Debug.classLoader;
 
   /**
@@ -77,7 +76,7 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Imported and Exported java packages.
    */
-  private BundlePackages bpkgs /*= null*/;
+  private BundlePackages bpkgs;
   
   private static ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
   private static boolean bootDelegationUsed /*= false*/;
@@ -365,6 +364,7 @@ final public class BundleClassLoader extends ClassLoader {
    */
   void close() {
     archive = null;
+    bpkgs.invalidateClassLoader();
     if (debug) {
       Debug.println(this + " Cleared archives");
     }
