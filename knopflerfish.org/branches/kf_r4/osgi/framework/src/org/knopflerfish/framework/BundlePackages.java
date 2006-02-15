@@ -477,6 +477,15 @@ class BundlePackages {
 
 
   /**
+   * Invalidate class loader for these packages.
+   *
+   */
+  void invalidateClassLoader() {
+    classLoader = null;
+  }
+
+
+  /**
    * Return a string with a reason for why resolve failed.
    *
    * @return A error message string.
