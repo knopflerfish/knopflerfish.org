@@ -54,7 +54,7 @@ import java.lang.reflect.Constructor;
  * basic operations as install, start, stop, uninstall
  * and update.
  *
- * @author Jan Stein, Erik Wistrand
+ * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
  */
 public class Main {
 
@@ -104,6 +104,8 @@ public class Main {
   static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
   static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
+  static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+    
   /**
    * Help class for starting the OSGi framework.
    */

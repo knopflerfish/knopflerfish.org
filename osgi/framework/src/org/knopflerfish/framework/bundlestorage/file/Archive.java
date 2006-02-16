@@ -466,13 +466,12 @@ class Archive {
         Locale.getDefault().toString().equals(locale)) {
         return defaultLocaleEntries;
       } 
-      UHM..
     */
 
     String fileName = "".equals(locale) ? 
       localizationFilesLocation + LOCALIZATION_FILE_SUFFIX : 
       localizationFilesLocation + "_" + locale + LOCALIZATION_FILE_SUFFIX;
-
+    
     try {
       InputStream is = null;
       Properties locale_entries = new Properties();

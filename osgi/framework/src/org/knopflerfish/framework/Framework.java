@@ -179,7 +179,6 @@ public class Framework {
     TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
 
 
-  static boolean SUPPORTEXTENSIONBUNDLES;
 
   // Accepted execution environments. 
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
@@ -187,7 +186,19 @@ public class Framework {
   static boolean bIsMemoryStorage /*= false*/;
   
   private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
-  
+
+
+  /**
+   * Whether the framework supports extension bundles or not.
+   * This will be false if bIsMemoryStorage is false.
+   */
+  static boolean SUPPORTS_EXTENSION_BUNDLES;
+  final static boolean EXIT_ON_SHUTDOWN = "true".equals(System.getProperty(Main.EXITONSHUTDOWN_PROP, "true"));
+
+  final static int EXIT_CODE_NORMAL  = 0;
+  final static int EXIT_CODE_RESTART = 200;
+
+  final static boolean USING_WRAPPER_SCRIPT = "true".equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, "false"));
 
   /**
    * Contruct a framework.
@@ -209,18 +220,13 @@ public class Framework {
       ".BundleStorageImpl";
 
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
-
-    if (bIsMemoryStorage) {
-      System.setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
-      System.setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
-      SUPPORTEXTENSIONBUNDLES = false;
-      
+    if (bIsMemoryStorage ||
+        !EXIT_ON_SHUTDOWN ||
+        !USING_WRAPPER_SCRIPT) {
+      SUPPORTS_EXTENSION_BUNDLES = false;
       // we can not support this in this mode.
     } else {
-      //TODO!
-      SUPPORTEXTENSIONBUNDLES = false;
-      System.setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
-      System.setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
+      SUPPORTS_EXTENSION_BUNDLES = true;
     }
     
     // We just happens to know that the memory storage impl isn't R3
@@ -654,9 +660,11 @@ public class Framework {
     } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
       return TRUE;
     } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
-      return FALSE; // TODO
+      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
+
     } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
-      return FALSE; // TODO
+      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
+
     } else {
       return System.getProperty(key);
     }

@@ -47,6 +47,7 @@ import org.osgi.framework.*;
  * Class representing all packages imported and exported.
  *
  * @author Jan Stein
+ * @author Mats-Ola Persson
  */
 class BundlePackages {
 
@@ -252,7 +253,6 @@ class BundlePackages {
         
         BundleImpl fb = (BundleImpl)iter.next();
         if (fb.state != Bundle.UNINSTALLED) {
-          System.out.println("attaching " + fb + " to " + bundle);
           bundle.attachFragment(fb);
         }	      
       }

@@ -313,6 +313,10 @@ class BundleImpl implements Bundle {
     }
     initPerms();
     lastModified = archive.getLastModified();
+
+    if (isExtension()) {
+      framework.systemBundle.addExtension(this);
+    }
   }
 
 
@@ -621,11 +625,10 @@ class BundleImpl implements Bundle {
                   
                   if (isFragment() && fragment.pendingUpdate != null) {
                     newArchive = framework.storage.updateBundleArchive(fragment.pendingUpdate, bin);
-                    
                   } else {
                     newArchive = framework.storage.updateBundleArchive(archive, bin);
                   }
-
+                  
                   checkEE(newArchive);
                   cacheManifestHeaders();
                   newArchive.setStartLevel(oldStartLevel);
@@ -653,11 +656,22 @@ class BundleImpl implements Bundle {
                 }
 
                 if (isFragment()) {
+                  
                   if (fragment.pendingUpdate != null) {
                     fragment.pendingUpdate.purge();
                   }
 
                   fragment.pendingUpdate = newArchive;
+
+                  if (isExtension()) {
+                    // TODO: add code for removing exports from extension bundles.
+                    
+                    state = INSTALLED;
+                    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED,
+                                                                      thisBundle));
+                  }
+
+
                   return null;
                 }
 
@@ -766,17 +780,15 @@ class BundleImpl implements Bundle {
     case RESOLVED:
 
       if (isFragment()) {
-        if (isAttached()) {
-          state = UNINSTALLED; // no problem right?
-          getFragmentHost().detachFragment(this, true);
-        } else {
-          framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
-        }
-       }
+        if (isExtension()) {
+          // TODO: add code for removing exports from systemBundle.
+          state = UNINSTALLED;
+        } else if (isAttached()) {
+            state = UNINSTALLED; // no problem right?
+            getFragmentHost().detachFragment(this, true);
+        } 
+      }
 
-       if (isFragmentHost()) {
-         detachFragments(false);
-       }
 
       framework.bundles.remove(location);
 
@@ -800,6 +812,7 @@ class BundleImpl implements Bundle {
       } else {
         archive.purge();
       }
+
       
       bpkgs = null;
       bactivator = null;
@@ -823,8 +836,12 @@ class BundleImpl implements Bundle {
           });
       }
 
-      // id, location and headers survices after uninstall.
       state = UNINSTALLED;
+      if (isFragmentHost()) {
+        detachFragments(true);
+      }
+
+      // id, location and headers survices after uninstall.
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
       
       modified();
@@ -1042,7 +1059,19 @@ class BundleImpl implements Bundle {
 
                   if (isFragment()) {
                     if (isAttached()) {
-                      return getFragmentHost().getClassLoader();
+                      if (isBootClassPathExtension()) {
+                        ClassLoader root = ClassLoader.getSystemClassLoader();
+                        while (root.getParent() != null) {
+                          root = root.getParent();
+                        }
+                        return root;
+                        
+                      } else if (isFrameworkExtension()) {
+                        return framework.systemBundle.getClassLoader();
+                        
+                      } else if (isAttached()) {
+                        return getFragmentHost().getClassLoader();
+                      }
                     }
 
                     return null;
@@ -1271,12 +1300,15 @@ class BundleImpl implements Bundle {
         }
       }
       
-      fragment = new Fragment(key,
-                              extension,
-                              (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
-      
-      if (extension != null) {
-        fragment.setHost(framework.systemBundle);
+      if (fragment == null) {
+        fragment = new Fragment(key,
+                                extension,
+                                (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
+        
+        
+        if (extension != null) {
+          fragment.setHost(framework.systemBundle);
+        }
       }
     }
   }
@@ -1340,13 +1372,33 @@ class BundleImpl implements Bundle {
    * packages.
    *
    */
-  private void doExportImport() {
+  void doExportImport() {
     bpkgs = new BundlePackages(this,
                                generation++,
                                archive.getAttribute(Constants.EXPORT_PACKAGE),
                                archive.getAttribute(Constants.IMPORT_PACKAGE),
                                archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
                                archive.getAttribute(Constants.REQUIRE_BUNDLE));
+
+    if (isFragmentHost()) {
+      for (Iterator iter = getFragments();
+           iter.hasNext(); ) {
+        BundleImpl fb = (BundleImpl)iter.next();
+        for (Iterator eiter = fb.fragment.exports.iterator();
+             eiter.hasNext();) {
+          bpkgs.addExport((ExportPkg)eiter.next());
+        }
+
+
+        for (Iterator iiter = fb.fragment.imports.iterator();
+             iiter.hasNext();) {
+          bpkgs.addImport((ImportPkg)iiter.next());
+        }
+
+        // TODO: add required bundles
+      }
+    }
+
     if (!isFragment()) {
       // fragments don't export anything themselves. We export things when they are getting resolved.
       bpkgs.registerPackages();
@@ -1558,6 +1610,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
    */
   void readLocalization(String locale, 
                         Dictionary localization_entries) {
+
     String[] parts = locale.split("_");
     String tmploc = parts[0];
     int o = 0;
@@ -1577,12 +1630,14 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
         }
       }
       
-      Dictionary tmp = archive.getLocalizationEntries(tmploc, state);
-      if (tmp != null) {
-        for (Enumeration e = tmp.keys();
-             e.hasMoreElements();) {
-          Object key = e.nextElement();
-          localization_entries.put(key, tmp.get(key));
+      if (archive != null) { // archive == null if this == systemBundle
+        Dictionary tmp = archive.getLocalizationEntries(tmploc, state);
+        if (tmp != null) {
+          for (Enumeration e = tmp.keys();
+               e.hasMoreElements();) {
+            Object key = e.nextElement();
+            localization_entries.put(key, tmp.get(key));
+          }
         }
       }
       
@@ -1600,14 +1655,13 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
  */
   public Dictionary getHeaders(String locale) {
     checkMetadataAdminPerm();
-
     /*
       We should remove the getAttributes(locale, state) thing
       and do it in a way that supports fragments.
       I've kept the old way of retrieving information, since 
       the "new way" does not support UNINSTALLED bundles... yet.
     */
-
+    
     if ((!isFragmentHost() && !isFragment()) || state == UNINSTALLED) {
       return archive.getAttributes(locale, state);
     }
@@ -1629,7 +1683,9 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       */
     
     
-      if (getUpdatedState() == RESOLVED) {
+      // to pass the test: if (getUpdatedState() == RESOLVED) {
+      
+      if (state == RESOLVED) {
         BundleImpl host = getFragmentHost();
         Dictionary localize_entries = new Hashtable();
       
@@ -1647,8 +1703,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     readLocalization("", localization_entries);
     readLocalization(Locale.getDefault().toString(), localization_entries);
     readLocalization(locale, localization_entries);
-  
-
+    
     return localize(localization_entries);
     //return archive.getAttributes(locale, state);
   }
@@ -1743,7 +1798,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
   }
 
 
-  boolean isFragmentExtension() {
+  boolean isFrameworkExtension() {
     return isExtension() &&
       fragment.extension.equals(Constants.EXTENSION_FRAMEWORK);
   }
@@ -1781,16 +1836,18 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
 
   void attachFragment(BundleImpl fragmentBundle) {
     if (fragments == null) {
-      fragments = new ArrayList(1);
+      fragments = new ArrayList();
     }
+    
     if (fragments.contains(fragmentBundle)) {
       return ;
     }
+
     /* make sure that the fragment's bundle does not
        conflict with this bundle's (see 3.1.4 r4-core) */
     for (Iterator iiter = fragmentBundle.bpkgs.getImports();
          iiter.hasNext(); ) {
-
+      
       ImportPkg fragmentImportPkg = (ImportPkg)iiter.next();
       if (fragmentImportPkg.name.equals("org.osgi.framework")) {
         // this one I guess is ok if it clashes
@@ -1870,6 +1927,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
         }
       }
     }
+
     ArrayList newImports = new ArrayList();
     // add all imports.
   
@@ -1892,13 +1950,13 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       ExportPkg fragmentExportPkg = (ExportPkg) eiter.next();
       ExportPkg exportPkg = bpkgs.getExport(fragmentExportPkg.name);
 
-      if (exportPkg == null || 
-          !exportPkg.name.equals(fragmentExportPkg.name)) {
+      if (exportPkg == null) {
         ExportPkg tmp = new ExportPkg(fragmentExportPkg, bpkgs);
         bpkgs.addExport(tmp);
         newExports.add(tmp);
       }
     }
+    
     int i = 0;
     for (; i < fragments.size(); i++) {
       BundleImpl b = (BundleImpl)fragments.get(i);
@@ -1923,9 +1981,13 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
   }
 
   void detachFragments(boolean refresh) {
-    for (int i = 0, n = fragments.size(); i < n; i++) {
-      detachFragment((BundleImpl)fragments.get(0), refresh);
+    // first remove all fragments
+    for (int i = 1, n = fragments.size(); i < n; i++) {
+      detachFragment((BundleImpl)fragments.get(1), false);
     }
+    
+    // then remove the last and if refresh == true re-resolve the host.
+    detachFragment((BundleImpl)fragments.get(0), refresh == true);
   }
 
   void detachFragment(BundleImpl fb, boolean refresh) {
@@ -1936,15 +1998,24 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     }
 
     fragments.remove(fb);
+    fb.state = INSTALLED;
     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, fb));
-    fb.setFragmentHost(null);    
+    fb.setFragmentHost(null);
+
+    framework.packages.unregisterPackages(fb.fragment.exports,
+                                          fb.fragment.imports, 
+                                          true);
     
     if (fb.isExtension()) {
       //      framework.systemBundle.detachBundle(this);
       return ;
     }
+
+    fb.fragment.exports = new ArrayList();
+    fb.fragment.imports = new ArrayList();
+    
     Collection affected = null;
-    if (state != UNINSTALLED && refresh) {
+    if (refresh) {
       affected = framework.packages.getZombieAffected(new Bundle[]{ this });
 
       // Update the affected bundle states in normal start order
@@ -1971,34 +2042,20 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
           }
           bx.purge();
         }
-        // if a bundle "A" imports from "this" then we need to remove "A's" import.
 
         framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bx));
+        bx.doExportImport();
       }
     }
-
-    // remove registered packages from host
-    for (Iterator iter = fb.fragment.exports.iterator();
-         iter.hasNext(); ) {
-      ExportPkg epgk = (ExportPkg)iter.next();
-      bpkgs.removeExport(epgk);
-    }
-    
-    for (Iterator iter = fb.fragment.imports.iterator();
-         iter.hasNext(); ) {
-      bpkgs.removeImport((ImportPkg)iter.next());
-    }
-    
-    framework.packages.unregisterPackages(fb.fragment.exports,
-                                          fb.fragment.imports, 
-                                          true);
 
     if (fb.fragment.pendingUpdate != null) {
       try {
         framework.storage.replaceBundleArchive(fb.archive, fb.fragment.pendingUpdate);
+        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, fb));
       } catch (Exception _e) { /* TBD! What to do */ }
       fb.archive = fb.fragment.pendingUpdate;
       fb.fragment.pendingUpdate = null;
+
     }
 
     if (affected != null) {

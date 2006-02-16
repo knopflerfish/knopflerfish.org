@@ -198,7 +198,41 @@ public class PackageAdminImpl implements PackageAdmin {
    * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
-        checkResolveAdminPerm();
+    checkResolveAdminPerm();
+    
+    boolean restart = false;
+    if (bundles != null) {
+      
+      for (int i = 0; i < bundles.length; i++) {
+        if (((BundleImpl)bundles[i]).isExtension()) {
+          restart = true;
+          break;
+        }
+      }
+
+    } else {
+
+      for (Iterator iter = framework.bundles.getBundles().iterator();
+           iter.hasNext(); ) {
+        if (((BundleImpl)iter.next()).isExtension()) {
+          restart = true;
+          break;
+        }
+
+      }
+    }
+
+    if (restart) {
+      try {
+        // will restart the framework.
+        framework.systemBundle.stop(Framework.EXIT_CODE_RESTART);
+      } catch (BundleException ignored) {
+        /* this can't be happening. */
+      }
+      
+      return ;
+    }
+
 //XXX - begin L-3 modification
     Thread t = new Thread() {
         public void run() {
@@ -262,24 +296,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
                   //TODO integrate with previous loops? must be done after all are stopped and before any are restarted
                   for (int bx = 0; bx < bi.length; bx++) {
-
-                    if (bi[bx].isExtension()) {
-                      try {
-                        framework.systemBundle.stop(200);
-                      } catch (BundleException be) {
-                        framework.listeners.frameworkError(framework.systemBundle, be);
-                      }
-                    }
-
 		    if (bi[bx].isFragmentHost()) {
                       bi[bx].detachFragments(false);
-                      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
-		    } else if (bi[bx].isFragment() && bi[bx].isAttached()) {
-                      BundleImpl host = bi[bx].getFragmentHost();
-                      host.detachFragment(bi[bx], true);
-                    } else {
-                      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
-                    }
+		    } 
+                    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
 		  }
 
                   // Restart previously active bundles in normal start order
