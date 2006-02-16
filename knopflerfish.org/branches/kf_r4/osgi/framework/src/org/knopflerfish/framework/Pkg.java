@@ -69,7 +69,7 @@ class Pkg {
   synchronized void addExporter(ExportPkg ep) {
     int i = Math.abs(Util.binarySearch(exporters, epComp, ep) + 1);
     exporters.add(i, ep);
-    ep.pkg = this;
+    ep.attachPkg(this);
   }
 
 
@@ -82,8 +82,7 @@ class Pkg {
   synchronized boolean removeExporter(ExportPkg p) {
     providers.remove(p);
     exporters.remove(p);
-    p.pkg = null;
-    p.zombie = false;
+    p.detachPkg();
     return true;
   }
 
@@ -96,7 +95,7 @@ class Pkg {
   synchronized void addImporter(ImportPkg ip) {
     int i = Math.abs(Util.binarySearch(importers, ipComp, ip) + 1);
     importers.add(i, ip);
-    ip.pkg = this;
+    ip.attachPkg(this);
   }
 
 
@@ -107,8 +106,7 @@ class Pkg {
    */
   synchronized void removeImporter(ImportPkg ip) {
     importers.remove(ip);
-    ip.pkg = null;
-    ip.provider = null;
+    ip.detachPkg();
   }
 
 

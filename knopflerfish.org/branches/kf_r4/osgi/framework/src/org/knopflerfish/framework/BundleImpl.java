@@ -68,6 +68,14 @@ import org.osgi.framework.AdminPermission;
 class BundleImpl implements Bundle {
 
   /**
+   * Union of flags allowing bundle package access.
+   * <p>
+   * Value is <tt>Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING</tt>
+   * </p>
+   */
+  static int RESOLVED_FLAGS = RESOLVED | STARTING | ACTIVE | STOPPING;
+
+  /**
    * Framework for bundle.
    */
   final Framework framework;
@@ -176,6 +184,7 @@ class BundleImpl implements Bundle {
   Fragment fragment = null;
 
   
+
 
   private AdminPermission CLASS_ADMIN_PERM;
   private AdminPermission EXECUTE_ADMIN_PERM;
