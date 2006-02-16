@@ -1,5 +1,6 @@
  Usage:  java [properties] org.knopflerfish.framework.Main [-init] [options]
       or java [properties] -jar framework.jar [-init] [options]
+      or ./kf2 [-init] [options] [-- [properties]] (*)
 
  Options:
    -exit          Exit the JVM process
@@ -23,6 +24,8 @@
 
 
  The default directory used for storing bundle data is  "fwdir".
+
+ (*) Fully R4 compatible, enables support for extension bundles. (Shell script)
 
  For extended help and list of all available system properties, see
 
