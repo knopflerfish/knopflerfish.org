@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,18 @@ public class SystemBundle extends BundleImpl {
    * Export-Package string for system packages
    */
   private final String exportPackageString;
+
+  /**
+   * The file where we store the class path
+   */
+  private final static String CLASSPATH_FILE = "system.classpath";
+
+
+  /**
+   * All current extensions
+   */
+  private ArrayList extensions = new ArrayList();
+
 
 
   /**
@@ -216,13 +228,53 @@ public class SystemBundle extends BundleImpl {
     stop(0);    
   }
 
-  /**
-   * Stop this bundle and possibly exit the VM (with given exitcode)
-   */
+
   synchronized public void stop(int exitcode) throws BundleException
   {
     checkExecuteAdminPerm();
-    Main.shutdown(exitcode);
+
+    StringBuffer classpath = new StringBuffer();
+    for (Iterator iter = extensions.iterator(); iter.hasNext(); ) {
+      BundleImpl eb = (BundleImpl)iter.next();
+
+      // write pending updates.. TODO: refactor.
+      if (eb.fragment.pendingUpdate != null) {
+        try {
+          framework.storage.replaceBundleArchive(eb.archive, eb.fragment.pendingUpdate);
+          // framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, eb));
+        } catch (Exception _e) { /* TBD! What to do */ }
+        eb.archive = eb.fragment.pendingUpdate;
+        eb.fragment.pendingUpdate = null;
+      }
+      // end refactor
+
+      String path = eb.archive.getJarLocation();
+      
+      classpath.append(path);
+      if (iter.hasNext()) {
+        classpath.append(":");
+      }
+    }
+
+    classpath.append("\n");
+
+    try {
+      FileTree storage = Util.getFileStorage("classpath");
+      Util.putContent(new File(storage, CLASSPATH_FILE), classpath.toString(), false);
+    } catch (IOException e) {
+      throw new BundleException("Could not save classpath " + e);
+    } finally {
+      // probably need to add security here.
+      if (Main.bootMgr != 0) {
+        try {
+          framework.stopBundle(Main.bootMgr);
+        } catch (BundleException e) {
+          System.err.println("Stop of BootManager failed, " +
+                             e.getNestedException());
+        }
+      }
+      Main.shutdown(exitcode);
+    }
   }
 
 
@@ -299,4 +351,67 @@ public class SystemBundle extends BundleImpl {
   void systemShuttingdown() {
     state = STOPPING;
   }
+
+    /**
+   * Checks whether a path is included in the path.
+   */
+  private boolean isInClassPath(String path) {
+    String cp = System.getProperty("java.class.path");
+    String[] cps = cp.split(":");
+    
+    for (int i = 0; i < cps.length; i++) {
+      if (cps[i].equals(path)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Adds an bundle as an extension that will be included
+   * in the boot class path on restart.
+   */
+  void addExtension(BundleImpl extension) {
+
+    if (!Framework.SUPPORTS_EXTENSION_BUNDLES) {
+      if (Framework.bIsMemoryStorage) {
+        throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
+      } else if (!Framework.EXIT_ON_SHUTDOWN) {
+        throw new UnsupportedOperationException("Extension bundles require that the property " +
+                                                Main.EXITONSHUTDOWN_PROP + " is set to \"true\"");
+        
+      } else if (!Framework.USING_WRAPPER_SCRIPT) {
+        throw new UnsupportedOperationException("Extension bundles require the use of a wrapper script. " +
+                                                "Consult the documentation");
+        
+      } else {
+        throw new UnsupportedOperationException("Extension bundles are not supported.");
+      }
+    }  
+    
+
+    int i = 0;
+    for (int n = extensions.size(); i < n; i++) {
+      BundleImpl tmp = (BundleImpl)extensions.get(i);
+      if (tmp.id > extension.id) {
+        break;
+      }
+    }
+        
+    extensions.add(i, extension);
+    if (isInClassPath(extension.archive.getJarLocation())) {
+      extension.state = RESOLVED;
+      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, extension));
+    }
+  }
+
+  /**
+   * Removes an extension. This bundle will not be in the
+   * framework's class path on next start up.
+   */
+  void removeExtension(BundleImpl extension) {
+    extensions.remove(extension);
+  }
+
 }

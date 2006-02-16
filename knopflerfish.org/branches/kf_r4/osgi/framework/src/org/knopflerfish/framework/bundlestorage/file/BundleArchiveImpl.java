@@ -56,6 +56,7 @@ import java.net.URL;
  * @author Erik Wistrand
  * @author Robert Shelley
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 class BundleArchiveImpl implements BundleArchive
 {
