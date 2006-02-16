@@ -182,7 +182,7 @@ class Config {
 
   public String[] getServices() {
     if (services.size() == 0)
-      return null;
+      return new String[0];
     
     String[] ret = new String[services.size()];
     services.toArray(ret);
