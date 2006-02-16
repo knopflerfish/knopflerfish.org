@@ -133,6 +133,23 @@ class ExportPkg {
 
 
   /**
+   * Attach this to a Pkg object which indicate that it is exported.
+   */
+  synchronized void attachPkg(Pkg p) {
+    pkg = p;
+  }
+
+
+  /**
+   * Detach this from a Pkg object which indicate that it is no longer exported.
+   */
+  synchronized void detachPkg() {
+    pkg = null;
+    zombie = false;
+  }
+
+
+  /**
    * Checks if we are allowed to export this class according to
    * the filter rules.
    */
@@ -174,7 +191,7 @@ class ExportPkg {
    *
    * @return True if pkg exports the package.
    */
-  boolean isProvider() {
+  synchronized boolean isProvider() {
     if (pkg != null) {
       synchronized (pkg) {
         return pkg.providers.contains(this);
@@ -189,19 +206,22 @@ class ExportPkg {
    * Get active importers of a package.
    *
    * @param pkg Package.
-   * @return List of bundles importering.
+   * @return List of bundles importering, null export is not active.
    */
-  Collection getPackageImporters() {
-    Set res = new HashSet();
-    synchronized (pkg) {
-      for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
-        ImportPkg ip = (ImportPkg)i.next();
-        if (ip.provider == this) {
-          res.add(ip.bpkgs.bundle);
+  synchronized Collection getPackageImporters() {
+    if (pkg != null) {
+      Set res = new HashSet();
+      synchronized (pkg) {
+        for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
+          ImportPkg ip = (ImportPkg)i.next();
+          if (ip.provider == this) {
+            res.add(ip.bpkgs.bundle);
+          }
         }
       }
+      return res;
     }
-    return res;
+    return null;
   }
 
   //

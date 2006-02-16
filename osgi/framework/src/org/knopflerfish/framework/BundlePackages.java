@@ -348,6 +348,20 @@ class BundlePackages {
 
 
   /**
+   * Get a list of all BundlePackages that requirer the exported packages
+   * that comes from the bundle owning this object.
+   *
+   * @return List of required BundlePackages
+   */
+  List getRequiredBy() {
+    if (requiredBy != null) {
+      return (List)requiredBy.clone();
+    }
+    return new ArrayList(0);
+  }
+
+
+  /**
    * Check if package needs to be added as re-exported package.
    *
    * @param ep ExportPkg to re-export.
@@ -482,6 +496,11 @@ class BundlePackages {
    */
   void invalidateClassLoader() {
     classLoader = null;
+  }
+
+
+  boolean isRegistered() {
+    return registered;
   }
 
 

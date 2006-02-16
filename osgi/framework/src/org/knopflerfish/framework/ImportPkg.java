@@ -153,6 +153,23 @@ class ImportPkg {
 
 
   /**
+   * Attach this to a Pkg object which indicate that it is a valid importer.
+   */
+  synchronized void attachPkg(Pkg p) {
+    pkg = p;
+  }
+
+
+  /**
+   * Detach this from a Pkg object which indicate that it is no longer valid.
+   */
+  synchronized void detachPkg() {
+    pkg = null;
+    provider = null;
+  }
+
+
+  /**
    * Check if version fullfills import package constraints.
    *
    * @param ver Version to compare to.

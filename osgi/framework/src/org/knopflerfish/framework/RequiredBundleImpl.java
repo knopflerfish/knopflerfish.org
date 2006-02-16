@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import org.osgi.framework.Bundle;
 import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.framework.Version;
+import java.util.List;
 
 /**
  * Implementation for required bundle interface.
@@ -74,7 +75,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         <code>RequiredBundle</code> object has become stale.
    */
   public Bundle getBundle() {
-    if (isRemovalPending()) {
+    if (bpkgs.isRegistered()) {
       return (Bundle)bpkgs.bundle;
     } else {
       return null;
@@ -95,14 +96,13 @@ public class RequiredBundleImpl implements RequiredBundle
    *         has become stale.
    */
   public Bundle[] getRequiringBundles() {
-    if (isRemovalPending()) {
-      int size = bpkgs.requiredBy.size();
-      if (size > 0) {
-        Bundle[] res = new Bundle[size];
-        for (int i = 0; i < size; i++) {
-          res[i] = ((BundlePackages)bpkgs.requiredBy.get(i)).bundle;
-        }
+    if (bpkgs.isRegistered()) {
+      List rl = bpkgs.getRequiredBy();
+      Bundle[] res = new Bundle[rl.size()];
+      for (int i = rl.size() - 1; i >= 0; i--) {
+        res[i] = ((BundlePackages)rl.get(i)).bundle;
       }
+      return res;
     }
     return null;
   }

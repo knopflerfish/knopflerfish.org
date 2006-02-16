@@ -115,15 +115,19 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    Packages packages = pkg.bpkgs.bundle.framework.packages;
-    synchronized (packages) {
-      if (pkg.isProvider()) {
-	Collection imps = pkg.getPackageImporters();
-	Bundle[] res = new Bundle[imps.size()];
-	return (Bundle[])imps.toArray(res);
-      } else {
-	return null;
+    Collection imps = pkg.getPackageImporters();
+    if (imps != null) {
+      int size = imps.size();
+      List rl = pkg.bpkgs.getRequiredBy(); 
+      int rsize = rl.size() ;
+      Bundle[] res = new Bundle[size + rsize];
+      imps.toArray(res);
+      for (int i = 0; i < rsize; i++) {
+        res[size + i] = ((BundlePackages)rl.get(i)).bundle;
       }
+      return res;
+    } else {
+      return null;
     }
   }
 

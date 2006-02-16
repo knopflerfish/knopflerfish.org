@@ -86,15 +86,6 @@ class Packages {
   int tempBlackListChecks = 0;
   int tempBlackListHits = 0;
 
-  /**
-   * Union of flags allowing bundle package access.
-   * <p>
-   * Value is <tt>Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING</tt>
-   * </p>
-   */
-  public static int RESOLVED_FLAGS = 
-    Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING;
-
 
   /**
    * Construct Packages object.
@@ -600,7 +591,7 @@ class Packages {
         provider = ep;
         break;
       }
-      if ((ep.bpkgs.bundle.state & RESOLVED_FLAGS) != 0) {
+      if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
         if (checkUses(ep)) {
           provider = ep;
@@ -786,7 +777,8 @@ class Packages {
       if (bl.size() > 1) {
         for (Iterator i = bl.iterator(); i.hasNext(); ) {
           BundleImpl b2 = (BundleImpl)i.next();
-          if (b2.singleton && ((b2.state & RESOLVED_FLAGS) != 0 || tempResolved.contains(b2))) {
+          if (b2.singleton && ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0 ||
+                               tempResolved.contains(b2))) {
             if (Debug.packages) {
               Debug.println("checkBundleSingleton: Reject resolve because of bundle: " + b2);
             }
@@ -820,7 +812,7 @@ class Packages {
           BundleImpl b2 = (BundleImpl)bci.next();
           if (tempResolved.contains(b2)) {
             ok = b2;
-          } else if ((b2.state & RESOLVED_FLAGS) != 0) {
+          } else if ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0) {
             HashMap oldTempProvider = (HashMap)tempProvider.clone();
             ok = b2;
             for (Iterator epi = b2.bpkgs.getExports(); epi.hasNext(); ) {
