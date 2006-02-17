@@ -793,8 +793,8 @@ class BundleImpl implements Bundle {
           // TODO: add code for removing exports from systemBundle.
           state = UNINSTALLED;
         } else if (isAttached()) {
-            state = UNINSTALLED; // no problem right?
-            getFragmentHost().detachFragment(this, true);
+          state = UNINSTALLED; // no problem right?
+          getFragmentHost().detachFragment(this, true);
         } 
       }
 
@@ -1587,7 +1587,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
 
   /**
    * "Localizes" this bundle's headers
-   * @param localization_entries A mapping of localization variables to values.
+   * @param localization_entries A mapping of localization variables to values. 
    * @returns the updated dictionary.
    */
   private Dictionary localize(Dictionary localization_entries) {
@@ -1678,23 +1678,11 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     if (locale == null) {
       locale = Locale.getDefault().toString();
     } else if (locale != null && locale.equals("")) {
-      return localize(new Hashtable());
+      return archive.getUnlocalizedAttributes();
     }
 
     if (isFragment()) {
-      /* Whouldn't it be more natural
-         require the bundle to be attached to
-         a host? But according to testGetHeaders010
-         in div this is not required.
-       
-         This code snippet resolves the fragment,
-         i.e attaches it to it.
-      */
-    
-    
-      // to pass the test: if (getUpdatedState() == RESOLVED) {
-      
-      if (state == RESOLVED) {
+      if (getUpdatedState() == RESOLVED) {
         BundleImpl host = getFragmentHost();
         Dictionary localize_entries = new Hashtable();
       
@@ -1702,8 +1690,8 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
           host.readLocalization(locale, localize_entries);
           return localize(localize_entries);
         } 
-      }
-   
+      } 
+      
       return localize(new Hashtable());
     }
 
@@ -1770,15 +1758,15 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     if (this.state == UNINSTALLED) {
       throw new IllegalStateException("state is uninstalled");
     }
+    if (isFragment()) {
+      throw new ClassNotFoundException("Can not load classes from fragment bundles");
+    }
+
     if (this.state == INSTALLED) {
       if (getUpdatedState() != RESOLVED) {
         framework.listeners.frameworkError(this, new BundleException("Unable to resolve bundle: " + bpkgs.getResolveFailReason()));
         throw new ClassNotFoundException("Unable to resolve bundle");
       }
-    }
-
-    if (isFragment()) {
-      throw new ClassNotFoundException("Can not load from fragment bundle, " + name);
     }
 
     ClassLoader cl = getClassLoader();
@@ -2007,10 +1995,14 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     }
 
     fragments.remove(fb);
-    fb.state = INSTALLED;
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, fb));
     fb.setFragmentHost(null);
 
+    if (fb.state != UNINSTALLED) {
+      // don't allow it to re-enter installed if the bundle was uninstalled.
+      fb.state = INSTALLED;
+    }
+
+    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, fb));
     framework.packages.unregisterPackages(fb.fragment.exports,
                                           fb.fragment.imports, 
                                           true);
@@ -2032,6 +2024,10 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
            iter.hasNext();) {
         
         BundleImpl bx = (BundleImpl)iter.next();
+
+        if (bx == this && state == UNINSTALLED) {
+          continue ;
+        }
         
         synchronized (bx) {
           switch (bx.state) {
@@ -2115,7 +2111,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       for (Iterator iter = bundles.iterator(); iter.hasNext(); ) {
         BundleImpl challenger = (BundleImpl)iter.next();
 
-        if (challenger.v2Manifest &&
+        if (challenger.state != UNINSTALLED &&
             !challenger.attachPolicy.
             equals(Constants.FRAGMENT_ATTACHMENT_NEVER) &&
             (best == null ||

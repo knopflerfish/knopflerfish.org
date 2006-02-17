@@ -660,9 +660,15 @@ public class Framework {
     } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
       return TRUE;
     } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
+
+      /* System.out.println("TODO!");
+
+      return FALSE; */
       return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
 
     } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
+      /* System.out.println("TODO!");
+         return FALSE; */
       return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
 
     } else {
@@ -671,18 +677,21 @@ public class Framework {
   }
   
   public static Dictionary getProperties(){
-	  Dictionary props = System.getProperties();
-	  props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
-	  props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
-	  props.put(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
-	  props.put(Constants.FRAMEWORK_OS_NAME, osName);
-	  props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
-	  props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
-          props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
-          props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, FALSE);
-          props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
-          props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, TRUE);
-	  return props;
+    Dictionary props = System.getProperties();
+    props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
+    props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
+    props.put(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
+    props.put(Constants.FRAMEWORK_OS_NAME, osName);
+    props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
+    props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
+    props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
+    props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
+    /* System.out.println("TODO! Change to TRUE");
+    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
+    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE); */
+    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, TRUE);
+    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, TRUE);
+    return props;
   }
 
   /**
