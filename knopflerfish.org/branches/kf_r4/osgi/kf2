@@ -8,7 +8,7 @@ KF_MAIN_CLASS=org.knopflerfish.framework.Main			   # path to main class
 KF_CLASSPATH=framework.jar:$CLASSPATH				   # the class path to use 
 
 # args always sent to the JRE
-KF_JRE_ARGS="-Dorg.knopflerfish.framework.usingwrapperscript=true -Dorg.knopflerfish.framework.exitonshutdown=true -Dorg.osgi.supports.framework.extension=true -Dorg.osgi.supports.bootclasspath.extension=true"
+KF_JRE_ARGS="-Dorg.knopflerfish.framework.usingwrapperscript=true -Dorg.knopflerfish.framework.exitonshutdown=true"
 
 EXIT_CODE_RESTART=200				
 
