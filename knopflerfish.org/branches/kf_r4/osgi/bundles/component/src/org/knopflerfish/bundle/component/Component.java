@@ -328,6 +328,10 @@ abstract class Component implements ServiceFactory {
       Reference ref = config.getReference(name);
       return getBundleContext().getService(ref.getServiceReference());
     }
+
+    public Object locateService(String name, ServiceReference sRef) {
+      throw new RuntimeException("Not yet implemented.");
+    }
     
     public Object[] locateServices(String name) {
       Reference ref = config.getReference(name);
