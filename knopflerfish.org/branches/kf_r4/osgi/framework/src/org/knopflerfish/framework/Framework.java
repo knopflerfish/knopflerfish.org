@@ -660,16 +660,12 @@ public class Framework {
     } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
       return TRUE;
     } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
-
-      /* System.out.println("TODO!");
-
-      return FALSE; */
-      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
+      return FALSE; // TODO: for now
+      //return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
 
     } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
-      /* System.out.println("TODO!");
-         return FALSE; */
-      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
+      return FALSE; // TODO: for now
+      //return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
 
     } else {
       return System.getProperty(key);
@@ -686,11 +682,11 @@ public class Framework {
     props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
     props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    /* System.out.println("TODO! Change to TRUE");
+    // TODO: for now
     props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
-    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE); */
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, TRUE);
-    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, TRUE);
+    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE); 
+//     props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+//     props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
     return props;
   }
 

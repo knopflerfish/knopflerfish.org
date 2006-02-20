@@ -60,16 +60,18 @@ public interface BundleArchive {
    */
   String getAttribute(String key);
 
+
   /**
-   * Get all attributes from the manifest of a bundle.
-   * @param locale, the locale to be used, null means use java.util.Locale.getDefault
-   * empty string means get raw (unlocalized) manifest headers
-   *
-   * @return All attributes, null if bundle doesn't exist.
+   * Gets all localization entries from this bundle. Will typically
+   * read the file OSGI-INF/bundle_&lt;locale&gt;.properties. This
+   * behaviour is overridden by the Bundle-Localization manifest entry.
+   * @returns null or a mapping of the entries.
    */
-  Dictionary getAttributes(String locale, int bundle_state);
-  
-  Dictionary getLocalizationEntries(String locale, int bundle_state);
+  Dictionary getLocalizationEntries(String locale);
+
+  /**
+   * @returns the (raw/unlocalized) attributes
+   */
   Dictionary getUnlocalizedAttributes();
 
   /**
