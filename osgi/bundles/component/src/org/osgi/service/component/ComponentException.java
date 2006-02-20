@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.component/src/org/osgi/service/component/ComponentException.java,v 1.8 2005/07/09 04:00:25 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.component/src/org/osgi/service/component/ComponentException.java,v 1.10 2005/08/11 03:07:46 hargrave Exp $
  * 
  * Copyright (c) OSGi Alliance (2004, 2005). All Rights Reserved.
  * 
@@ -7,12 +7,13 @@
  * terms of the Eclipse Public License v1.0 which accompanies this 
  * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
  */
+
 package org.osgi.service.component;
 
 /**
  * Unchecked exception which may be thrown by the Service Component Runtime.
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.10 $
  */
 public class ComponentException extends RuntimeException {
 	static final long	serialVersionUID	= -7438212656298726924L;
@@ -66,6 +67,8 @@ public class ComponentException extends RuntimeException {
 	/**
 	 * The cause of this exception can only be set when constructed.
 	 * 
+	 * @param cause Cause of the exception.
+	 * @return This object.
 	 * @throws java.lang.IllegalStateException This method will always throw an
 	 *         <code>IllegalStateException</code> since the cause of this
 	 *         exception can only be set when constructed.

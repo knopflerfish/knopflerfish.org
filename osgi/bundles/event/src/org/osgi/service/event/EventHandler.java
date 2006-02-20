@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventHandler.java,v 1.5 2005/07/08 02:27:42 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventHandler.java,v 1.7 2005/08/05 03:22:03 hargrave Exp $
  * 
  * Copyright (c) OSGi Alliance (2005). All Rights Reserved.
  * 
@@ -16,7 +16,7 @@ package org.osgi.service.event;
  * <p>
  * <code>EventHandler</code> objects are registered with the Framework service
  * registry and are notified with an <code>Event</code> object when an
- * event is broadcast.
+ * event is sent or posted.
  * <p>
  * <code>EventHandler</code> objects can inspect the received
  * <code>Event</code> object to determine its topic and properties.
@@ -34,7 +34,10 @@ package org.osgi.service.event;
  * ht.put(EVENT_TOPIC, topics);
  * context.registerService(EventHandler.class.getName(), this, ht);
  * </pre>
- * 
+ * Event Handler services can also be registered with an @link EventConstants#EVENT_FILTER}
+ * service propery to further filter the events. If the syntax of this filter is invalid,
+ * then the Event Handler must be ignored by the Event Admin service. The Event Admin
+ * service should log a warning.
  * <p>
  * Security Considerations. Bundles wishing to monitor <code>Event</code>
  * objects will require <code>ServicePermission[EventHandler,REGISTER]</code>
@@ -44,7 +47,7 @@ package org.osgi.service.event;
  * 
  * @see Event
  * 
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.7 $
  */
 public interface EventHandler {
 	/**
