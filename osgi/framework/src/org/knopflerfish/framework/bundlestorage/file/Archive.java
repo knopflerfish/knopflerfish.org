@@ -58,6 +58,7 @@ import java.util.Locale;
  *
  * @author Jan Stein
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 class Archive {
 
@@ -215,8 +216,13 @@ class Archive {
       }
       
     }
-    
-    loadDefaultLocaleEntries();
+
+    Attributes attr = manifest.getMainAttributes();
+    localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
+    if(localizationFilesLocation == null){
+      localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+    }     
+
   }
 
 
@@ -296,8 +302,12 @@ class Archive {
       jar = new ZipFile(file);
     }
     manifest = getManifest();
-    
-    loadDefaultLocaleEntries();
+
+    Attributes attr = manifest.getMainAttributes();
+    localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
+    if(localizationFilesLocation == null){
+      localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+    }     
   }
 
 
@@ -375,99 +385,13 @@ class Archive {
   
 
   private static final String LOCALIZATION_FILE_SUFFIX = ".properties";
-  
-  /**
-   * Get all attributes from the manifest of the archive.
-   * @param locale, the locale to be used, null means use java.util.Locale.getDefault
-   * empty string means get raw (unlocalized) manifest headers
-   *
-   * @return All attributes.
-   */
-  
-  Dictionary getAttributes(String locale, int bundle_state) {
-    Attributes attr = manifest.getMainAttributes();
-    Hashtable localization_entries = null;
-    boolean usingDefault = false;
-
-    if (attr == null) {
-      return null;
-    }
-    if (locale != null && locale.equals("")) {
-      return new HeaderDictionary(attr);
-    }
-    else if (locale == null) {
-      locale = Locale.getDefault().toString();
-      usingDefault = true;
-    }
-    
-    if (bundle_state == Bundle.UNINSTALLED && locale.equals(Locale.getDefault().toString())) {
-      localization_entries = defaultLocaleEntries;
-    }
-    else{
-      localization_entries = new Hashtable();
-    }
-
-    if (bundle_state != Bundle.UNINSTALLED) {
-      String fileName = localizationFilesLocation;
-      localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX,
-                                               localization_entries);
-
-      if (!usingDefault) { //since otherwise will redo it right after
-        StringTokenizer std = new StringTokenizer(Locale.getDefault().toString(), "_");
-        
-        while (std.hasMoreTokens()) {
-          fileName += "_" + std.nextToken();
-          localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
-        }
- 
-        fileName = localizationFilesLocation;
-      }
-        
-      StringTokenizer st = new StringTokenizer(locale, "_");
-      while(st.hasMoreTokens()){
-        fileName += "_" + st.nextToken();
-        localization_entries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX, localization_entries);
-      }
-
-    }
-
-    Hashtable localized_headers = new Hashtable(); 
-    Iterator i = attr.entrySet().iterator();
-    while(i.hasNext()){
-      Map.Entry e = (Map.Entry)i.next();
-      String value = (String) e.getValue();
-      if(value.startsWith("%")){
-        String v = value.substring(1);
-        Object o = localization_entries.get(v);
-        if(o != null){
-          localized_headers.put(e.getKey(), o);
-        }
-        else{
-          localized_headers.put(e.getKey(), v);
-        }
-      }
-      else{
-        localized_headers.put(e.getKey(), value);
-      }
-    }
-    //TODO cache localized headers?
-    return new HeaderDictionary(localized_headers);
-  }
-  
 
   /**
    * Returns the contents of a specific localization file.
    * @return null if no such file found. O/w a mapping of the entries.
    */
-  Hashtable getLocalizationEntries(String locale, int bundle_state) {
-
+  Hashtable getLocalizationEntries(String locale) {
     
-    /* if (bundle_state == Bundle.UNINSTALLED 
-        Locale.getDefault().toString().equals(locale)) {
-        return defaultLocaleEntries;
-      } 
-    */
-
     String fileName = "".equals(locale) ? 
       localizationFilesLocation + LOCALIZATION_FILE_SUFFIX : 
       localizationFilesLocation + "_" + locale + LOCALIZATION_FILE_SUFFIX;
@@ -543,28 +467,6 @@ class Archive {
     return current_entries;
   }
   
-  private void loadDefaultLocaleEntries(){
-    defaultLocaleEntries = new Hashtable();
-    Attributes attr = manifest.getMainAttributes();
-    localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    if(localizationFilesLocation == null){
-      localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    }     
-
-    defaultLocaleEntries = loadLocaleEntries(localizationFilesLocation +
-                                             LOCALIZATION_FILE_SUFFIX,
-                                             defaultLocaleEntries);
-    StringTokenizer st = new StringTokenizer(Locale.getDefault().toString(), "_");
-    String fileName = localizationFilesLocation;
-    while(st.hasMoreTokens()){
-      fileName += "_" + st.nextToken();
-      defaultLocaleEntries = loadLocaleEntries(fileName + LOCALIZATION_FILE_SUFFIX,
-                                               defaultLocaleEntries);
-    }
-
-  }
-
-
   /**
    * Get a byte array containg the contents of named class file from
    * the archive.

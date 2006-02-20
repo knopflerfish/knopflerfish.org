@@ -183,8 +183,10 @@ class BundleImpl implements Bundle {
    */
   Fragment fragment = null;
 
-  
-
+  /**
+   * Stores the default locale entries when uninstalled.
+   */
+  private Dictionary defaultHeaders = null;
 
   private AdminPermission CLASS_ADMIN_PERM;
   private AdminPermission EXECUTE_ADMIN_PERM;
@@ -679,8 +681,8 @@ class BundleImpl implements Bundle {
                     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED,
                                                                       thisBundle));
                   }
-
-
+                  
+                  
                   return null;
                 }
 
@@ -788,6 +790,8 @@ class BundleImpl implements Bundle {
     case INSTALLED:
     case RESOLVED:
 
+      defaultHeaders = getHeaders(Locale.getDefault().toString());
+      
       if (isFragment()) {
         if (isExtension()) {
           // TODO: add code for removing exports from systemBundle.
@@ -1616,6 +1620,9 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
   /**
    * Reads all localization entries that affects this bundle 
    * (including its host/fragments)
+   * @param locale locale == "" the bundle.properties will be read
+   *               o/w it will read the files as described in the spec.
+   * @param localization_entries will append the new entries to this dictionary
    */
   void readLocalization(String locale, 
                         Dictionary localization_entries) {
@@ -1628,7 +1635,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       if (isFragmentHost()) {
         for (int i = fragments.size() - 1; i >= 0; i--) {
           BundleImpl fb = (BundleImpl)fragments.get(i);
-          Dictionary tmp = fb.archive.getLocalizationEntries(tmploc, state);
+          Dictionary tmp = fb.archive.getLocalizationEntries(tmploc);
           if (tmp != null) {
             for (Enumeration e = tmp.keys();
                  e.hasMoreElements();) {
@@ -1640,7 +1647,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       }
       
       if (archive != null) { // archive == null if this == systemBundle
-        Dictionary tmp = archive.getLocalizationEntries(tmploc, state);
+        Dictionary tmp = archive.getLocalizationEntries(tmploc);
         if (tmp != null) {
           for (Enumeration e = tmp.keys();
                e.hasMoreElements();) {
@@ -1659,50 +1666,55 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
   }
 
 
-/**
- * @see org.osgi.framework.Bundle#getHeaders(String locale)
- */
+  /**
+   * @see org.osgi.framework.Bundle#getHeaders(String locale)
+   */
   public Dictionary getHeaders(String locale) {
     checkMetadataAdminPerm();
-    /*
-      We should remove the getAttributes(locale, state) thing
-      and do it in a way that supports fragments.
-      I've kept the old way of retrieving information, since 
-      the "new way" does not support UNINSTALLED bundles... yet.
-    */
     
-    if ((!isFragmentHost() && !isFragment()) || state == UNINSTALLED) {
-      return archive.getAttributes(locale, state);
-    }
+    String defaultLocale = Locale.getDefault().toString();
 
-    if (locale == null) {
-      locale = Locale.getDefault().toString();
+    if (state == UNINSTALLED) {
+      return defaultHeaders;
+    } 
+    
+    if (locale == null || locale.equals(defaultLocale)) {
+      locale = defaultLocale;
     } else if (locale != null && locale.equals("")) {
       return archive.getUnlocalizedAttributes();
-    }
+    } 
 
     if (isFragment()) {
-      if (getUpdatedState() == RESOLVED) {
-        BundleImpl host = getFragmentHost();
-        Dictionary localize_entries = new Hashtable();
+      Dictionary localize_entries = new Hashtable();
+      BundleImpl host = getFragmentHost(); 
+      // This is wrong. Should be the host with the lowest id. 
+      // Regardless of whether the fragment is attached or not. Bug in spec?
       
-        if (host != null) {
-          host.readLocalization(locale, localize_entries);
-          return localize(localize_entries);
-        } 
-      } 
-      
+      if (host != null && !isAttached()) { 
+        if (getUpdatedState() != RESOLVED) {
+          return localize(new Hashtable());
+        }
+      }
+        
+      if (host != null) {
+        host.readLocalization(locale, localize_entries);
+        Dictionary localized = localize(localize_entries);
+        return localized;
+      }
+
       return localize(new Hashtable());
     }
-
-
+    
     Hashtable localization_entries = new Hashtable();
     readLocalization("", localization_entries);
     readLocalization(Locale.getDefault().toString(), localization_entries);
-    readLocalization(locale, localization_entries);
+
+    if (!locale.equals(defaultLocale)) {
+      readLocalization(locale, localization_entries);
+    } 
     
-    return localize(localization_entries);
-    //return archive.getAttributes(locale, state);
+    Dictionary localized = localize(localization_entries);
+    return localized;
   }
 
   private void modified(){
@@ -1778,35 +1790,52 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
 
 
   // fragment bundle stuff.
+  /**
+   * Checks if this bundle is a fragment
+   */
   boolean isFragment() {
     return fragment != null;
   }
 
 
+  /**
+   * Checks if this bundle is an extension bundle
+   */
   boolean isExtension() {
     return isFragment() &&
       fragment.extension != null;      
   }
 
-
+  /**
+   * Checks if this bundle is a boot class path extension bundle
+   */
   boolean isBootClassPathExtension() {
     return isExtension() &&
       fragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH);
   }
 
-
+  /**
+   * Checks if this bundle is a framework extension bundle
+   */
   boolean isFrameworkExtension() {
     return isExtension() &&
       fragment.extension.equals(Constants.EXTENSION_FRAMEWORK);
   }
 
 
+  /**
+   * Checks if this bundle is attached to a fragment host.
+   */
   boolean isAttached() {
     return isFragment() &&
       fragment.host != null;
   }
 
 
+  /**
+   * Returns the name of the bundle's fragment host.
+   * Returns null if this is not a fragment.
+   */
   String getFragmentHostName() {
     if (isFragment()) {
       return fragment.name;
@@ -1816,21 +1845,29 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
   }
 
 
+  /**
+   * Returns the attached fragment host OR 
+   * the most suitable.
+   */
   BundleImpl getFragmentHost() {
     return isFragment() ? fragment.targets() : null;
   }
 
-
+  /**
+   * Determines whether this bundle is a fragment host 
+   * or not.
+   */
   boolean isFragmentHost() {
     return fragments != null && fragments.size() > 0;
   }
-
 
   private static boolean helpChecker(Object o1, Object o2) {
     return o1 == null ? o2 == null : o1.equals(o2);
   }
 
-
+  /**
+   * Attaches a fragment to this bundle.
+   */
   void attachFragment(BundleImpl fragmentBundle) {
     if (fragments == null) {
       fragments = new ArrayList();
@@ -1893,7 +1930,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
 
           if (found == false) {
             if (state != INSTALLED) {
-              // can attach a fragment with new required bundles to a started host
+              // can not attach a fragment with new required bundles to a started host
               return ;
             } else {
               newRequired.add(fragReq);
@@ -1972,11 +2009,19 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, fragmentBundle));
   }
 
+  /**
+   * Returns a iterator over all attached fragments.
+   */
   Iterator getFragments() {
     return fragments == null ? 
       new ArrayList(0).iterator() : fragments.iterator();
   }
 
+  /**
+   * Detaches all fragments from this bundle.
+   * @param refresh Indicates whether the affected bundle should be
+   * refreshed or not.
+   */
   void detachFragments(boolean refresh) {
     // first remove all fragments
     for (int i = 1, n = fragments.size(); i < n; i++) {
@@ -2003,9 +2048,12 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
     }
 
     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, fb));
-    framework.packages.unregisterPackages(fb.fragment.exports,
-                                          fb.fragment.imports, 
-                                          true);
+    
+
+    //TODO: uncomment and make work
+    //     framework.packages.unregisterPackages(fb.fragment.exports,
+    //                                           fb.fragment.imports, 
+    //                                           true);
     
     if (fb.isExtension()) {
       //      framework.systemBundle.detachBundle(this);
@@ -2060,8 +2108,8 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
       } catch (Exception _e) { /* TBD! What to do */ }
       fb.archive = fb.fragment.pendingUpdate;
       fb.fragment.pendingUpdate = null;
-
     }
+
 
     if (affected != null) {
       framework.bundles.startBundles(new ArrayList(affected)); // DOH, silly
@@ -2097,7 +2145,7 @@ public Enumeration findEntries(String path, String filePattern, boolean recurse)
 
     BundleImpl targets() {
       if (host != null) {
-	return host;
+        return host;
       }
 
       List bundles = framework.bundles.getBundles(name, versionRange);

@@ -138,18 +138,10 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   /**
-   * @see org.knopflerfish.framework.BundleArchive#getAttributes
-   */
-  public Dictionary getAttributes(String locale, int bundle_state) {
-    return archive.getAttributes(locale, bundle_state);
-  }
-  
-
-  /**
    * returns the localization entries of this archive.
    */
-  public Dictionary getLocalizationEntries(String locale, int bundle_state) {
-    return archive.getLocalizationEntries(locale, bundle_state);
+  public Dictionary getLocalizationEntries(String locale) {
+    return archive.getLocalizationEntries(locale);
   }
 
   /**
