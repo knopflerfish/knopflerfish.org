@@ -154,12 +154,6 @@ public class SystemBundle extends BundleImpl {
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  "1.0");
-
-    // Set up component package
-    name = org.osgi.service.component.ComponentConstants.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-        "=" +  "1.0");
   }
 
 
