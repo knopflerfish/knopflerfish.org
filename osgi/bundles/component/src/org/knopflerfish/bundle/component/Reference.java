@@ -40,15 +40,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 
-import org.osgi.service.component.ComponentContext;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class Reference extends ServiceTracker {
+public class Reference extends ExtendedServiceTracker {
   
   private boolean optional;
   private boolean multiple;
@@ -74,7 +71,7 @@ public class Reference extends ServiceTracker {
                    String bindMethodName, String unbindMethodName,
                    BundleContext bc) {
 
-    super(bc, filter, null);
+    super(bc, filter);
     this.refName = refName;
     this.optional = optional;
     this.multiple = multiple;
@@ -225,7 +222,6 @@ public class Reference extends ServiceTracker {
 
     Class instanceClass = instance.getClass();
     Method method = null;
-    Object arg = null;
 
     if (service == null) {
       service = getService(ref);

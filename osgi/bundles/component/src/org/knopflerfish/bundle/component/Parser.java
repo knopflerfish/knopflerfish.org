@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
-import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.jar.JarInputStream;
 
@@ -55,7 +54,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import org.knopflerfish.framework.*;
+
 
 
 /**
@@ -68,7 +67,6 @@ public class Parser {
                                     "Long", "Short", "String"};
 
   static private String SCR_NAMESPACE_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
-  private static boolean componentRoot = false;
   
   public static Collection readXML(Bundle declaringBundle,
                                    URL url) throws IllegalXMLException {
@@ -121,7 +119,6 @@ public class Parser {
     throws XmlPullParserException, IOException {
 
     ArrayList decls = new ArrayList();
-    boolean foundImplementation = false;
     int event = parser.getEventType();
 
     while (event != XmlPullParser.END_DOCUMENT) {
@@ -305,8 +302,8 @@ public class Parser {
 
     if (isArray) {
 
-      // TODO: I needed to add 'trim' order to make it pass the OSGi-test..
-      // Isn't that a bit strange? 
+      /*I needed to add 'trim' order to make it pass the OSGi-test..
+       Isn't that a bit strange? */ 
 
       String text = parser.nextText().trim();
       values = text.split("(\n|\r)");

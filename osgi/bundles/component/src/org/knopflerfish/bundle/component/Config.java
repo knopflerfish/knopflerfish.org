@@ -34,21 +34,15 @@
 package org.knopflerfish.bundle.component;
 
 
-import java.io.FileInputStream;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Properties;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 
 import org.osgi.framework.Bundle;
 
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentConstants;
 
 // Björn should we merge this with Component?

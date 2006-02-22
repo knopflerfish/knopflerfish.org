@@ -59,13 +59,11 @@ import org.osgi.service.component.ComponentConstants;
 
 class SCR implements SynchronousBundleListener {
 
-  private BundleContext bc;
-  
   private Hashtable bundleConfigs = new Hashtable();
   
   private Collection components = new ArrayList();
   private Hashtable factoryConfigs = new Hashtable();
-  private Hashtable singleConfigs = new Hashtable();
+
   
   private Hashtable serviceConfigs = new Hashtable();
   
@@ -89,9 +87,7 @@ class SCR implements SynchronousBundleListener {
     return instance;
   }
   
-  private SCR(BundleContext bc) {
-    this.bc = bc;
-    
+  private SCR(BundleContext bc) {    
     bc.addBundleListener(this);
     bc.registerService(ConfigurationListener.class.getName(),
                        new CMListener(),
@@ -239,7 +235,6 @@ class SCR implements SynchronousBundleListener {
   }
 
   public synchronized void initComponent(Component component) { 
-    Config config = component.getConfig();
     component.setProperty(ComponentConstants.COMPONENT_ID, 
                           new Long(++componentId));
     initConfig(component);
@@ -467,11 +462,6 @@ class SCR implements SynchronousBundleListener {
               Config config = component.getConfig();
               
               if (factoryPid.equals(config.getName())) {
-                
-//                 if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-//                   restart(component);
-                  
-//                 } else {
                   // this is a new factory configuration (and has a corresponding component)
                   Configuration conf = 
                     getConfiguration(component, pid);
