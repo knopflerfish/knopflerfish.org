@@ -16,7 +16,6 @@ package org.knopflerfish.bundle.component;
 import java.util.Dictionary;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
 public class ImmediateComponent extends Component {

@@ -35,7 +35,7 @@ package org.knopflerfish.bundle.component;
 
 
 /**
- * @author Martin (refactoring by Björn Andersson)
+ * @author Martin (refactoring by Bjï¿½rn Andersson)
  *
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates

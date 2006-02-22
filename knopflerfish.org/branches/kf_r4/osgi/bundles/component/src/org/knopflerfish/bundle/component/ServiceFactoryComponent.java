@@ -37,7 +37,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
 

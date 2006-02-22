@@ -40,7 +40,6 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Vector;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -55,7 +54,6 @@ import org.osgi.service.component.ComponentInstance;
 abstract class Component implements ServiceFactory {
   
   protected Config config; 
-  private boolean enabled;
   private boolean active;
   private Object instance;
   protected BundleContext bundleContext;
