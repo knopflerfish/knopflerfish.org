@@ -122,9 +122,10 @@ class ExtendedServiceTracker implements ServiceListener {
         includeService(ref, cache);
       }
       
-      try {
-        addedService(ref, cache);
-      } catch (Throwable e) {}
+      addedService(ref, cache);
+    // Should be safe to throw the exception 
+     
+
     }; break;
     
     case ServiceEvent.UNREGISTERING: {
@@ -140,7 +141,7 @@ class ExtendedServiceTracker implements ServiceListener {
       
       excludeService(ref);
       
-     removedService(ref, object);
+      removedService(ref, object);
       
     }
     }
@@ -174,7 +175,7 @@ class ExtendedServiceTracker implements ServiceListener {
     synchronized(tracking) {
       if (tracking.isEmpty()) {
         tracking.add(0, ref);
-        objects.put(ref, context.getService(ref));
+        objects.put(ref, cached);
         return ;
       }
       
@@ -198,7 +199,7 @@ class ExtendedServiceTracker implements ServiceListener {
         } 
       }
       tracking.add(i, ref);
-      objects.put(ref, context.getService(ref));
+      objects.put(ref, cached);
     }
   }
   
@@ -224,6 +225,18 @@ class ExtendedServiceTracker implements ServiceListener {
       }
       
       return refs;
+    }   
+  }
+  
+  Object[] getServices() {
+    synchronized(tracking) {
+      Object[] ret = new Object[objects.size()];
+      int i = 0;
+      for (Iterator iter = objects.values().iterator();
+           iter.hasNext(); i++) {
+        ret[i] = iter.next();
+      }
+      return ret;
     }   
   }
   
