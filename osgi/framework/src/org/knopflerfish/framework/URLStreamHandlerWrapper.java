@@ -39,7 +39,6 @@ import java.net.*;
 
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
-import org.osgi.util.tracker.*;
 
 /**
  * Wrapper which delegates an URL protocol to 
@@ -118,17 +117,19 @@ public class URLStreamHandlerWrapper
   }
 
   private int compare(ServiceReference ref1, ServiceReference ref2) {
-    Integer r1 = (Integer)ref1.getProperty(Constants.SERVICE_RANKING);
-    Integer r2 = (Integer)ref2.getProperty(Constants.SERVICE_RANKING);
-    int tmp = r2.compareTo(r1);
+    Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
+    Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
+    
+    int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
+    int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
 
-    if (tmp == 0) {
+    if (r2 == r1) {
       Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);      
       Long i2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
       return i1.compareTo(i2);
 
     } else {
-      return tmp;
+      return r2 -r1;
     }
   }
 
@@ -235,8 +236,8 @@ public class URLStreamHandlerWrapper
 
       int ix = host.lastIndexOf('@');
       if (ix != -1) {
-	userInfo = host.substring(0, ix);
-	host     = host.substring(ix+1);
+        userInfo = host.substring(0, ix);
+        host     = host.substring(ix+1);
       }
     }
         
@@ -248,10 +249,10 @@ public class URLStreamHandlerWrapper
     if (file != null) {
       int ix = file.lastIndexOf('?');
       if (ix != -1) {
-	query = file.substring(ix + 1);
-	path  = file.substring(0, ix);
+        query = file.substring(ix + 1);
+        path  = file.substring(0, ix);
       } else {
-	path = file;
+        path = file;
       }
     }
     setURL(u, protocol, host, port, authority, userInfo, path, query, ref);
