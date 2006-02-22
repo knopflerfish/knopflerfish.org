@@ -158,7 +158,6 @@ abstract class Component implements ServiceFactory {
 
     // 3. Bind the services. This should be sent to all the references.
     config.bindReferences(instance);
-    
     try {
 
       Method method = klass.getDeclaredMethod("activate", 
@@ -285,7 +284,6 @@ abstract class Component implements ServiceFactory {
       becomes satisfied.
    */
   public abstract void satisfied();
-
   /** 
       this method is called whenever this components configuration
       becomes unsatisfied.
@@ -328,7 +326,8 @@ abstract class Component implements ServiceFactory {
     }
 
     public Object locateService(String name, ServiceReference sRef) {
-      throw new RuntimeException("Not yet implemented.");
+      Reference ref = config.getReference(name);
+      return ref.getService(sRef);
     }
     
     public Object[] locateServices(String name) {

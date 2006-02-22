@@ -117,10 +117,10 @@ class Config {
     } else if (isServiceFactory()) {
       component = new ServiceFactoryComponent(this, overriddenProps);
       
-    } else if (isImmediate() || getServices() == null) {
+    } else if (isImmediate() || services.isEmpty()) {
       component = new ImmediateComponent(this, overriddenProps);
 
-    } else if (!isImmediate() && getServices() != null){
+    } else if (!isImmediate() && !services.isEmpty()){
       component = new DelayedComponent(this, overriddenProps);
     } else {
       throw new RuntimeException("This is a bug and should not be happening.");
@@ -176,7 +176,7 @@ class Config {
 
   public String[] getServices() {
     if (services.size() == 0)
-      return new String[0];
+      return null; // HEY, this might be dangerous
     
     String[] ret = new String[services.size()];
     services.toArray(ret);

@@ -117,7 +117,7 @@ class SCR implements SynchronousBundleListener {
 
     switch (event.getType()) {
     case BundleEvent.STARTED:
-
+    
       // Create components
       Collection addedConfigs = new ArrayList();
       String[] manifestEntries = manifestEntry.split(",");

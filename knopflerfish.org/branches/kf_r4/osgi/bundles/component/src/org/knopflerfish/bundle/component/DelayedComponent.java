@@ -60,7 +60,7 @@ class DelayedComponent extends Component {
     if (!isActivated()) {
       activate();
     }
-
+ 
     if (isActivated()) {
       refCount++;
       return getInstance();
