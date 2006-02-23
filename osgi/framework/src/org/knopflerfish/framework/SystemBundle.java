@@ -231,16 +231,16 @@ public class SystemBundle extends BundleImpl {
     for (Iterator iter = extensions.iterator(); iter.hasNext(); ) {
       BundleImpl eb = (BundleImpl)iter.next();
 
-      // write pending updates.. TODO: refactor.
-      if (eb.fragment.pendingUpdate != null) {
-        try {
-          framework.storage.replaceBundleArchive(eb.archive, eb.fragment.pendingUpdate);
-          // framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, eb));
-        } catch (Exception _e) { /* TBD! What to do */ }
-        eb.archive = eb.fragment.pendingUpdate;
-        eb.fragment.pendingUpdate = null;
-      }
-      // end refactor
+//       // write pending updates.. TODO: refactor.
+//       if (eb.fragment.pendingUpdate != null) {
+//         try {
+//           framework.storage.replaceBundleArchive(eb.archive, eb.fragment.pendingUpdate);
+//           // framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, eb));
+//         } catch (Exception _e) { /* TBD! What to do */ }
+//         eb.archive = eb.fragment.pendingUpdate;
+//         eb.fragment.pendingUpdate = null;
+//       }
+//       // end refactor
 
       String path = eb.archive.getJarLocation();
       

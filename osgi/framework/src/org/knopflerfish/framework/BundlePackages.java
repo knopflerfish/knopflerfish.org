@@ -65,6 +65,8 @@ class BundlePackages {
 
   private ArrayList /* String */ dImportPatterns = new ArrayList(1);
 
+  private HashMap /* BundlePackages -> [List(ExportPkg),List(ImportPkg)] */ fragments = null;
+
   /* List of RequireBundle entries. */
   ArrayList /* RequireBundle */ require;
 
@@ -239,25 +241,6 @@ class BundlePackages {
         return false;
       }
     }
-   
-    if (bundle.id != 0 &&  // skip the system bundle...
-        bundle.attachPolicy != null && 
-        (bundle.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_ALWAYS) ||
-         bundle.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME))) {
-      
-      // retrieve all fragments this bundle host
-      List hosting = 
-        bundle.framework.bundles.getFragmentBundles(bundle);
-      for (Iterator iter = hosting.iterator();
-           iter.hasNext(); ) {
-        
-        BundleImpl fb = (BundleImpl)iter.next();
-        if (fb.state != Bundle.UNINSTALLED) {
-          bundle.attachFragment(fb);
-        }	      
-      }
-    }
-
     failReason = bundle.framework.packages.resolve(bundle, imports.iterator());
     if (failReason == null) {
       okImports = (ArrayList)imports.clone();
@@ -265,6 +248,16 @@ class BundlePackages {
     } else {
       return false;
     }
+  }
+
+
+  /**
+   * Return a string with a reason for why resolve failed.
+   *
+   * @return A error message string.
+   */
+  String getResolveFailReason() {
+    return failReason;
   }
 
 
@@ -434,29 +427,6 @@ class BundlePackages {
     }
   }
 
-  /**
-   * Adds an imported package
-   * @param pkg import to be included
-   */ 
-  void addImport(ImportPkg pkg) {
-    int ii = Util.binarySearch(imports, ipComp, pkg);
-    if (ii < 0) {
-      imports.add(-ii - 1, pkg);
-    } else {
-      throw new IllegalArgumentException("Duplicate import definitions for - " + pkg.name);
-    }
-  }
-
-  /**
-   * Removes an imported package
-   * @param pkg import to be removed
-   */ 
-  void removeImport(ImportPkg pkg) {
-    int ii = Util.binarySearch(imports, ipComp, pkg);
-    imports.remove(ii);
-  }
-
-
 
   /**
    * Get an iterator over all static imported packages.
@@ -481,6 +451,7 @@ class BundlePackages {
   /**
    * Get class loader for these packages.
    *
+   * @return ClassLoader handling these packages.
    */
   ClassLoader getClassLoader() {
     if (classLoader == null) {
@@ -499,18 +470,127 @@ class BundlePackages {
   }
 
 
+  /**
+   * Is these packages registered in the Packages object.
+   *
+   * @return True if packages are registered otherwise false.
+   */
   boolean isRegistered() {
     return registered;
   }
 
 
   /**
-   * Return a string with a reason for why resolve failed.
+   * Attach a fragment bundle packages.
    *
-   * @return A error message string.
+   * @return null if okay, otherwise a String with fail reason.
    */
-  String getResolveFailReason() {
-    return failReason;
+  String attachFragment(BundlePackages fbpkgs) {
+
+    if (fragments == null) {
+      fragments = new HashMap();
+    } else if (fragments.containsKey(fbpkgs)) {
+      throw new RuntimeException("Fragments packages already attached: " + fbpkgs);
+    }
+
+    /* make sure that the fragment's bundle does not
+       conflict with this bundle's (see 3.1.4 r4-core) */
+    for (Iterator iiter = fbpkgs.getImports(); iiter.hasNext(); ) {
+      ImportPkg fip = (ImportPkg)iiter.next();
+      ImportPkg ip = getImport(fip.name);
+
+      if (ip == null && bundle.state != Bundle.INSTALLED) {
+        return "Can not dynamicly attach, because host has no import for: " + fip;
+      }
+      
+      if (ip != null) {
+        if (!fip.overlap(ip)) {
+          return "Host bundle import package constraints need to be stricter" +
+            "then the import package contraints in the attaching fragment.";
+        }
+      }
+    }
+
+    ArrayList newRequired = new ArrayList();
+    if (fbpkgs.require != null) {
+      for (Iterator iter = fbpkgs.require.iterator(); iter.hasNext(); ) {
+        RequireBundle fragReq = (RequireBundle)iter.next();
+        boolean match = false;
+
+        if (require != null) {
+          // check for conflicts
+          for (Iterator iter2 = require.iterator(); iter2.hasNext(); ) {
+            RequireBundle req = (RequireBundle)iter2.next();
+            if (fragReq.name.equals(req.name)) {
+              if (fragReq.overlap(req)) {
+                match = true;
+              } else {
+                return "Fragment bundle required bundle does not completely overlap " +
+                  "required bundle in host bundle.";
+              }
+            }
+          }
+        }
+        if (!match) {
+          if (bundle.state != Bundle.INSTALLED) {
+            return "Can not attach a fragment with new required bundles to a resolved host";
+          }
+          newRequired.add(fragReq);
+        }
+      }
+    }
+    for (Iterator riter = newRequired.iterator(); riter.hasNext(); ) {
+      RequireBundle rb = (RequireBundle) riter.next();
+      // NYI! Should be added in bundle id order!
+      require.add(rb);
+    }
+
+    ArrayList newExports = new ArrayList();
+    for (Iterator eiter = fbpkgs.getExports(); eiter.hasNext(); ) {
+      ExportPkg fep = (ExportPkg) eiter.next();
+      int ei = Util.binarySearch(exports, epComp, fep);
+      if (ei < 0) {
+        ExportPkg tmp = new ExportPkg(fep, this);
+        exports.add(-ei - 1, tmp);
+        newExports.add(tmp);
+      }
+    }
+    
+    ArrayList newImports = new ArrayList();
+    for (Iterator iiter = fbpkgs.getImports(); iiter.hasNext(); ) {
+      ImportPkg fip = (ImportPkg)iiter.next();;
+      int ii = Util.binarySearch(imports, ipComp, fip);
+      if (ii < 0) {
+        ImportPkg tmp = new ImportPkg(fip, this);
+        imports.add(-ii - 1, tmp);
+        newImports.add(tmp);
+      }
+    }
+
+    bundle.framework.packages.registerPackages(newExports.iterator(), newImports.iterator()); 
+    fragments.put(fbpkgs, new ArrayList [] { newRequired, newExports, newImports });
+    return null;
+  }
+
+
+  /**
+   * Attach a fragment bundle packages.
+   */
+  void detachFragment(BundlePackages fbpkgs) {
+    if (registered) {
+      throw new RuntimeException("NYI, detach when bpkgs are registered");
+    }
+
+    List [] added = (List [])fragments.remove(fbpkgs);
+    for (Iterator riter = added[0].iterator(); riter.hasNext(); ) {
+      require.remove(riter.next());
+    }
+    for (Iterator eiter = added[1].iterator(); eiter.hasNext(); ) {
+      exports.remove(eiter.next());
+    }
+    for (Iterator iiter = added[2].iterator(); iiter.hasNext(); ) {
+      imports.remove(iiter.next());
+    }
   }
 
 
@@ -584,6 +664,26 @@ class BundlePackages {
       return true;
     }
   }
+
+
+  /**
+   * Adds an imported package
+   *
+   * @param pkg import to be included
+   */ 
+  private void addImport(ImportPkg pkg) {
+  }
+
+  /**
+   * Removes an imported package
+   *
+   * @param pkg import to be removed
+   */ 
+  private void removeImport(ImportPkg pkg) {
+    int ii = Util.binarySearch(imports, ipComp, pkg);
+    imports.remove(ii);
+  }
+
 
   
   static final Util.Comparator epComp = new Util.Comparator() {

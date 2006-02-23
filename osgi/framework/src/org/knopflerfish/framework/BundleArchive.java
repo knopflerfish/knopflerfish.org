@@ -134,6 +134,7 @@ public interface BundleArchive {
    */
   InputStream getInputStream(String component);
 
+
   /**
    * Get an specific InputStream to named entry inside a bundle.
    * Leading '/' is stripped.
@@ -144,6 +145,7 @@ public interface BundleArchive {
    */
   InputStream getInputStream(String component, int ix);
 
+
   /**
    * Extract native library from JAR.
    *
@@ -152,12 +154,14 @@ public interface BundleArchive {
    */
   String getNativeLibrary(String libName);
 
+
   /**
    * Get state of start-on-launch flag.
    *
    * @return Boolean value for start on launch flag.
    */
   boolean getStartOnLaunchFlag();
+
 
   /**
    * Set state of start-on-launch flag.
@@ -166,10 +170,12 @@ public interface BundleArchive {
    */
   void setStartOnLaunchFlag(boolean value) throws IOException;
 
+
   /**
    * Remove bundle archive from persistent storage.
    */
   void purge();
+
 
   /**
    * Close archive and all its open files.

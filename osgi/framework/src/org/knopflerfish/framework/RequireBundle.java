@@ -68,4 +68,23 @@ class RequireBundle {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
   }
+
+
+  /**
+   * Check if this object completly overlap specified RequireBundle.
+   *
+   * @return True if we overlap, otherwise false.
+   */
+  boolean overlap(RequireBundle rb) {
+    if (visibility.equals(Constants.VISIBILITY_REEXPORT) &&
+        !rb.visibility.equals(Constants.VISIBILITY_REEXPORT)) {
+      return false;
+    }
+    if (resolution.equals(Constants.RESOLUTION_MANDATORY) &&
+        !rb.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
+      return false;
+    }
+    return bundleRange.withinRange(rb.bundleRange);
+  }
+
 }
