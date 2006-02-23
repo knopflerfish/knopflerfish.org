@@ -109,12 +109,10 @@ public class VersionRange implements Comparable
 
 
   /**
-   * Compare object to another VersionRange.
+   * Check if specified version is within our range.
    *
-   * @param obj Version to compare to.
-   * @return Return 0 if equals, negative if this object is less than obj
-   *         and positive if this object is larger then obj.
-   * @exception ClassCastException if object is not a Version object.
+   * @param ver Version to compare to.
+   * @return Return true if within range, otherwise false.
    */
   public boolean withinRange(Version ver) {
     if (this == defaultVersionRange) {
@@ -131,6 +129,30 @@ public class VersionRange implements Comparable
     }
     return false;
   }
+
+
+  /**
+   * Check if objects range is within another VersionRange.
+   *
+   * @param range VersionRange to compare to.
+   * @return Return true if within range, otherwise false.
+   */
+  public boolean withinRange(VersionRange range) {
+    if (this == range) {
+      return true;
+    }
+    int c = low.compareTo(range.low);
+
+    if (c < 0 || (c == 0 && lowIncluded == range.lowIncluded)) {
+      if (high == null) {
+	return true;
+      }
+      c = high.compareTo(range.high);
+      return c > 0 || (c == 0 && highIncluded == range.highIncluded);
+    }
+    return false;
+  }
+
 
   /**
    * Compare object to another VersionRange. VersionRanges are compared on the

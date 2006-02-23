@@ -368,9 +368,12 @@ class Bundles {
       } 
     }    
   }
+
+
   /**
    * Returns all fragment bundles that is 
    * already attached and targets given bundle.
+   *
    * @param target the targetted bundle
    * @return a list of all matching fragment bundles.
    */

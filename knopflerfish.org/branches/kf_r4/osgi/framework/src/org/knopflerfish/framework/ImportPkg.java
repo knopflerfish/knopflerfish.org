@@ -175,10 +175,72 @@ class ImportPkg {
    * @param ver Version to compare to.
    * @return Return 0 if equals, negative if this object is less than obj
    *         and positive if this object is larger then obj.
-   * @exception ClassCastException if object is not a ImportPkg object.
    */
   public boolean okPackageVersion(Version ver) {
     return packageRange.withinRange(ver);
+  }
+
+
+  /**
+   * Check that we have all mandatory attributes.
+   *
+   * @param mandatory List of mandatory attribute.
+   * @return Return true if we have all mandatory attributes, otherwise false.
+   */
+  boolean checkMandatory(List mandatory) {
+    if (mandatory != null) {
+      for (Iterator i = mandatory.iterator(); i.hasNext(); ) {
+        String a = (String)i.next();
+        if (Constants.VERSION_ATTRIBUTE.equals(a)) {
+          if (!packageRange.isSpecified()) {
+            return false;
+          }
+        } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
+          if (bundleSymbolicName == null) {
+            return false;
+          }
+        } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
+          if (!bundleRange.isSpecified()) {
+            return false;
+          }
+        } else if (!attributes.containsKey(a)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+
+  /**
+   * Check that we completly overlap specifed ImportPkg.
+   *
+   * @param ip ImportPkg to check.
+   * @return True if we overlap, otherwise false.
+   */
+  boolean overlap(ImportPkg ip) {
+    if (ip.bundleSymbolicName == null ? bundleSymbolicName != null :
+        !ip.bundleSymbolicName.equals(bundleSymbolicName)) {
+      return false;
+    }
+
+    // Check that all other attributes match
+    for (Iterator i = attributes.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry e = (Map.Entry)i.next();
+      String a = (String)ip.attributes.get(e.getKey());
+      if (a == null || !a.equals(e.getValue())) {
+        return false;
+      }
+    }
+
+    if (resolution.equals(Constants.RESOLUTION_MANDATORY) &&
+        !ip.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
+      return false;
+    }
+    if (!packageRange.withinRange(ip.packageRange)) {
+      return false;
+    }
+    return bundleRange.withinRange(ip.bundleRange);
   }
 
 

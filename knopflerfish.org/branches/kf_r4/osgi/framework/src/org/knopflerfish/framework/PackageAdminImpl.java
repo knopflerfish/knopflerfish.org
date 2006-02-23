@@ -294,19 +294,12 @@ public class PackageAdminImpl implements PackageAdmin {
                     }
                   }
 
-                  //TODO integrate with previous loops? must be done after all are stopped and before any are restarted
-                  for (int bx = 0; bx < bi.length; bx++) {
-		    if (bi[bx].isFragmentHost()) {
-                      bi[bx].detachFragments(false);
-		    } 
-                    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, bi[bx]));
-		  }
-
                   // Restart previously active bundles in normal start order
                   framework.bundles.startBundles(startList);
                   framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
                   return null;
-                }             }
+                }
+              }
             });
         }
       };

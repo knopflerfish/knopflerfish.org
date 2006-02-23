@@ -130,7 +130,6 @@ class Packages {
   }
 
 
-
   /**
    * Dynamically check and register a dynamic package import.
    *
@@ -159,6 +158,7 @@ class Packages {
       if (r.size() == 0) {
 	registerNewProviders(ip.bpkgs.bundle);
 	res = (ExportPkg)tempProvider.get(ip.name);
+        ip.provider = res;
       } else {
 	p.removeImporter(ip);
       }
@@ -627,25 +627,8 @@ class Packages {
    */
   private boolean checkAttributes(ExportPkg ep, ImportPkg ip) {
     /* Mandatory attributes */
-    if (ep.mandatory != null) {
-      for (Iterator i = ep.mandatory.iterator(); i.hasNext(); ) {
-        String a = (String)i.next();
-        if (Constants.VERSION_ATTRIBUTE.equals(a)) {
-          if (!ip.packageRange.isSpecified()) {
-            return false;
-          }
-        } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
-          if (ip.bundleSymbolicName == null) {
-            return false;
-          }
-        } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
-          if (!ip.bundleRange.isSpecified()) {
-            return false;
-          }
-        } else if (!ip.attributes.containsKey(a)) {
-          return false;
-        }
-      }
+    if (!ip.checkMandatory(ep.mandatory)) {
+      return false;
     }
     /* Predefined attributes */
     if (!ip.okPackageVersion(ep.version) ||
@@ -716,8 +699,7 @@ class Packages {
       }
     }
     if (Debug.packages) {
-      Debug.println("checkUses: provider " + pkg.bpkgs.bundle +
-		    " with bpkgs=" + pkg.bpkgs);
+      Debug.println("checkUses: provider with bpkgs=" + pkg.bpkgs);
     }
     ArrayList checkList = new ArrayList();
     for (Iterator i = pkg.bpkgs.getActiveImports(); i.hasNext(); ) {

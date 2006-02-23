@@ -74,6 +74,11 @@ final public class BundleClassLoader extends ClassLoader {
   private BundleArchive archive;
 
   /**
+   * Fragment archives that we load code from.
+   */
+  private ArrayList /* BundleArchive */ fragments;
+
+  /**
    * Imported and Exported java packages.
    */
   private BundlePackages bpkgs;
@@ -166,10 +171,11 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Create class loader for specified bundle.
    */
-  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba) {
+  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags) {
     super(parent); //otherwise getResource will bypass OUR parent
     this.bpkgs = bpkgs;
     archive = ba;
+    fragments = frags;
     if (debug) {
       Debug.println(this + " Created new classloader");
     }
@@ -221,14 +227,11 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected String findLibrary(String name) {
     String res = archive.getNativeLibrary(name);
-    if (res == null && bpkgs.bundle.isFragmentHost()) {
-      for (Iterator iter = bpkgs.bundle.getFragments();
-           iter.hasNext(); ) {
-        BundleImpl fb = (BundleImpl)iter.next();
-        res = fb.archive.getNativeLibrary(name);
-
+    if (res == null && fragments != null) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        res = ((BundleArchive)i.next()).getNativeLibrary(name);
         if (res != null) {
-          break ;
+          break;
         }
       }
     }
@@ -378,11 +381,22 @@ final public class BundleClassLoader extends ClassLoader {
    */
   void purge() {
     bpkgs.unregisterPackages(true);
-    if(archive != null) {
+    if (archive != null) {
       archive.purge();
+    }
+    if (fragments != null) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        // NYI improve this solution
+        BundleArchive ba = (BundleArchive)i.next();
+        BundleImpl b = bpkgs.bundle.framework.bundles.getBundle(ba.getBundleLocation());
+        if (b == null || b.archive != ba) {
+          ba.purge();
+        }
+      }
     }
     close();
   }
+
 
   /**
    * Get the resource with the given name in this bundle.
@@ -396,6 +410,7 @@ final public class BundleClassLoader extends ClassLoader {
       return null;
     }
   }
+
   
   /**
    * Get all the resources with the given name in this bundle.
@@ -560,20 +575,20 @@ final public class BundleClassLoader extends ClassLoader {
       }
     }
     /* 6 */
-    for (Iterator iter = bpkgs.bundle.getFragments();
-         iter.hasNext(); ) {
-      BundleImpl b = (BundleImpl)iter.next();
-      Vector vec = b.archive.componentExists(path, onlyFirst);
-      if (vec != null) {
-        try {
-          return action.get(vec, path, name, pkg, this, b.archive);
-        } catch (IOException ioe) {
-          bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
-          return null;
+    if (fragments != null) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        BundleArchive ba = (BundleArchive)i.next();
+        Vector vec = ba.componentExists(path, onlyFirst);
+        if (vec != null) {
+          try {
+            return action.get(vec, path, name, pkg, this, ba);
+          } catch (IOException ioe) {
+            bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
+            return null;
+          }
         }
       }
     }
-    
     /* 7 */
     if (ep != null) {
       return null;
