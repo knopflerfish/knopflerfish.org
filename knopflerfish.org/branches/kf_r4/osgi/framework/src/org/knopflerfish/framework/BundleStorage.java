@@ -35,8 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.io.IOException;
-import java.util.Dictionary;
 import java.util.List;
 
 /**

@@ -109,8 +109,6 @@ class Archive {
    */
   private ZipEntry subJar /*= null*/;
   
-  private Hashtable defaultLocaleEntries;
-  
   private String localizationFilesLocation;
 
   /**
@@ -424,47 +422,6 @@ class Archive {
     catch(IOException e){ //includes FileNotFoundException
       return null;
     }
-  }
-
-  
-  //TODO should this be done just before uninstalling? -> does DefaultLocale change?
-  private Hashtable loadLocaleEntries(String fileName, Hashtable current_entries){
-    /*if(bClosed) {
-      return current_entries;
-      }*/
-    try {
-      InputStream is = null;
-      Properties locale_entries = new Properties();
-      if(jar != null){
-        ZipEntry ze = jar.getEntry(fileName);
-        if(ze != null){
-          is = jar.getInputStream(ze);
-        }
-        else{
-          return current_entries;
-        }
-      }
-      else{
-        File f = findFile(file, fileName);
-        if(f.exists()) {
-          is = new FileInputStream(f);
-        }
-        else{
-          return current_entries;
-        }
-      }
-  
-      locale_entries.load(is);
-      Iterator it = locale_entries.keySet().iterator();
-      while(it.hasNext()){
-        Object o = it.next();
-        current_entries.put(o, locale_entries.get(o));
-      }
-    }
-    catch(IOException e){ //includes FileNotFoundException
-      return current_entries;
-    }
-    return current_entries;
   }
   
   /**
