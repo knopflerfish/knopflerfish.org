@@ -186,7 +186,12 @@ class BundleImpl implements Bundle {
   /**
    * Stores the default locale entries when uninstalled.
    */
-  private Dictionary defaultHeaders = null;
+  private Dictionary cachedHeaders = null;
+  
+  /**
+   * Stores the raw headers when uninstalled. 
+   */
+  private Dictionary cachedRawHeaders = null;
 
   private AdminPermission CLASS_ADMIN_PERM;
   private AdminPermission EXECUTE_ADMIN_PERM;
@@ -783,7 +788,8 @@ class BundleImpl implements Bundle {
       // Fall through
     case INSTALLED:
 
-      defaultHeaders = getHeaders(Locale.getDefault().toString());
+      cachedHeaders = getHeaders(Locale.getDefault().toString());
+      cachedRawHeaders = getHeaders("");
 
       framework.bundles.remove(location);
 
@@ -1680,11 +1686,15 @@ class BundleImpl implements Bundle {
   public Dictionary getHeaders(String locale) {
     checkMetadataAdminPerm();
     
-    String defaultLocale = Locale.getDefault().toString();
-
     if (state == UNINSTALLED) {
-      return defaultHeaders;
+      if (locale != null && locale.equals("")) {
+        return cachedRawHeaders;
+      } else {
+        return cachedHeaders;       
+      }
     } 
+    
+    String defaultLocale = Locale.getDefault().toString();
     
     if (locale == null || locale.equals(defaultLocale)) {
       locale = defaultLocale;
