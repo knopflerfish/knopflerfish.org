@@ -77,8 +77,6 @@ class Archive {
   
   ArrayList subDirs/*= null*/;
   
-  private Hashtable defaultLocaleEntries;
-  
   private String localizationFilesLocation;
 
   /**

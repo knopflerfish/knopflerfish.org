@@ -38,16 +38,11 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 
-import java.util.Set;
-import java.util.Dictionary;
+
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.Hashtable;
 
 import org.osgi.framework.*;
@@ -160,14 +155,6 @@ class Bundles {
                   
                   Should be:
 
-                if (!Framework.SUPPORTEXTENSIONBUNDLES) {
-                  if (!Framework.bIsMemoryStorage) {
-                    throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
-                  } else {
-                    throw new UnsupportedOperationException("Extension bundles are not yet supported.");
-                  }
-                  } 
-
                   systemBundle.addExtension(res);
                 */
               }
@@ -241,7 +228,6 @@ class Bundles {
    */
   BundleImpl getBundle(String name, Version version) {
     synchronized (bundles) {
-      int i = 0;
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
         if (name.equals(b.symbolicName) && version.equals(b.version)) {
@@ -382,9 +368,9 @@ class Bundles {
     for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
       BundleImpl b = (BundleImpl)e.nextElement();
       if (b.isFragment() &&
-	  b.state != Bundle.UNINSTALLED &&
-	  b.getFragmentHost() == target) {
-	retval.add(b);
+          b.state != Bundle.UNINSTALLED &&
+          b.getFragmentHost() == target) {
+        retval.add(b);
       }
     }
     return retval;
