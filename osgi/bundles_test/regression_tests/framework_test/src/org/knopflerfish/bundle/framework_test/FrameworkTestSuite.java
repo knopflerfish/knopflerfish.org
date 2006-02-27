@@ -71,7 +71,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   Bundle buP1;
   Bundle buP2;
   Bundle buP3;
-  
 
   // the three event listeners
   FrameworkListener fListen;
@@ -143,6 +142,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame190a());
     addTest(new Frame210a());
     addTest(new Frame211a());
+
     addTest(new Cleanup());
   }
  
