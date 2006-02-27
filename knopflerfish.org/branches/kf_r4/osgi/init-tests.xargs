@@ -59,14 +59,16 @@
 -istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/eventadmin_test-1.0.0.jar
 
+# packages required by component_test
+-istart log/log_all-1.0.1.jar
+-istart cm/cm_all-1.0.1.jar
+-istart component/component_all-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/component_test-1.0.0.jar
+
 # the test case runner bundle.
 -istart junit_runner/junit_runner_all-1.0.0.jar
 
 -startlevel 2
 
 -launch
-
-
-
-
 

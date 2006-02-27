@@ -45,6 +45,9 @@
     <ant dir="restart_test"             target="all"/>
     <ant dir="eventadmin_test"          target="all"/>
     <ant dir="connectorservice_test"    target="all"/>
+    <ant dir="component-api_test"       target="all"/>
+    <ant dir="componentA_test"          target="all"/>
+    <ant dir="component_test"           target="all"/>
   </target>
 
    <target name="clean">
@@ -90,6 +93,9 @@
     <ant dir="restart_test"             target="clean"/>
     <ant dir="eventadmin_test"          target="clean"/>
     <ant dir="connectorservice_test"    target="clean"/>
+    <ant dir="component-api_test"       target="clean"/>
+    <ant dir="componentA_test"          target="clean"/>
+    <ant dir="component_test"           target="clean"/>
   </target>
 
 </project>
