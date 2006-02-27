@@ -75,7 +75,6 @@ class ExtendedServiceTracker implements ServiceListener {
       ServiceReference[] refs = 
         context.getServiceReferences(null, filter.toString());      
       context.addServiceListener(this, filter.toString());
-      
       if (refs == null) {
         return ;
       }
@@ -94,18 +93,14 @@ class ExtendedServiceTracker implements ServiceListener {
     context.removeServiceListener(this);
     try{
       synchronized (tracking) {
-        for (Iterator iter = tracking.iterator(); iter.hasNext(); ) {
+        for (Iterator iter = objects.keySet().iterator(); iter.hasNext(); ) {
           context.ungetService((ServiceReference)iter.next());
         }
-        
-        tracking = new ArrayList();
-        objects = new HashMap();
       }
-    } catch (IllegalStateException e) {
-      tracking = null;
-      objects = null;
-    }
+    } catch (IllegalStateException e) { /* ignored. */}
     
+    tracking = new ArrayList();
+    objects = new HashMap();
   }
 
   public void serviceChanged(ServiceEvent event) {
@@ -118,29 +113,28 @@ class ExtendedServiceTracker implements ServiceListener {
         cache = addingService(ref);
       } catch(Throwable e) {}
       
-      if (cache != null) {
-        includeService(ref, cache);
-      }
-      
+      includeService(ref, cache);
       addedService(ref, cache);
-    // Should be safe to throw the exception 
+      // Should be safe to throw the exception 
      
 
     }; break;
     
     case ServiceEvent.UNREGISTERING: {
-      Object object = objects.get(ref);
-      if (object == null) {
-        // in this case we have removed this reference from the tracker.
-        return ;
+      synchronized(tracking) {
+        if (!tracking.contains(ref)) {
+          // in this case we have removed this reference from the tracker.
+          return ;
+        }
       }
+      
+      Object object = objects.get(ref);
       
       try {
         removingService(ref, object);
       } catch (Throwable ignored) { }
       
       excludeService(ref);
-      
       removedService(ref, object);
       
     }
@@ -149,7 +143,8 @@ class ExtendedServiceTracker implements ServiceListener {
 
   
   protected Object addingService(ServiceReference ref) {
-    return context.getService(ref);    
+    //return context.getService(ref);    
+    return null;
   }
   
   protected void addedService(ServiceReference ref, Object service) {
@@ -161,13 +156,14 @@ class ExtendedServiceTracker implements ServiceListener {
   }
   
   protected void removedService(ServiceReference ref, Object object) {
-    context.ungetService(ref);
+
   }
   
   private void excludeService(ServiceReference ref) {
     synchronized (tracking) {
-      tracking.remove(ref);
-      objects.remove(ref);
+      if (tracking.remove(ref)) {
+        objects.remove(ref);
+      }
     }
   }
   
@@ -175,7 +171,9 @@ class ExtendedServiceTracker implements ServiceListener {
     synchronized(tracking) {
       if (tracking.isEmpty()) {
         tracking.add(0, ref);
-        objects.put(ref, cached);
+        if (cached != null) {
+          objects.put(ref, cached);
+        }
         return ;
       }
       
@@ -202,17 +200,43 @@ class ExtendedServiceTracker implements ServiceListener {
       objects.put(ref, cached);
     }
   }
+
+  void ungetService(ServiceReference ref) {
+    synchronized(tracking) {
+      objects.remove(ref);
+      context.ungetService(ref);
+    }
+  }
   
   Object getService() {
-    return tracking.isEmpty() ? null : objects.get(tracking.get(0));    
+    synchronized(tracking) {
+      if (tracking.isEmpty()) {
+        return null;
+      }
+
+      return getService((ServiceReference)tracking.get(0));
+    }
   }
   
   Object getService(ServiceReference ref) {
-    return objects.get(ref);
+    synchronized(tracking) {
+      if (objects.containsKey(ref)) {
+        return objects.get(ref);
+      } else {
+        Object o = context.getService(ref);
+        if (o != null) {
+          objects.put(ref, o);
+          return o;
+        }
+      }
+    }
+    return null;
   }
   
   ServiceReference getServiceReference() {
-    return (ServiceReference) (tracking.isEmpty() ? null : tracking.get(0));
+    synchronized(tracking) {
+      return (ServiceReference) (tracking.isEmpty() ? null : tracking.get(0));
+    }
   }
   
   ServiceReference[] getServiceReferences() {
@@ -230,13 +254,30 @@ class ExtendedServiceTracker implements ServiceListener {
   
   Object[] getServices() {
     synchronized(tracking) {
-      Object[] ret = new Object[objects.size()];
-      int i = 0;
-      for (Iterator iter = objects.values().iterator();
-           iter.hasNext(); i++) {
-        ret[i] = iter.next();
+      if (tracking.isEmpty()) {
+        return null;
       }
-      return ret;
+      
+      ArrayList retval = new ArrayList();
+      
+      int i = 0;
+      for (Iterator iter = tracking.iterator();
+           iter.hasNext(); i++) {
+        ServiceReference ref = (ServiceReference)iter.next();
+        if (!objects.containsKey(ref)) {
+          retval.add(i,objects.get(ref));
+          
+        } else {
+          Object o = context.getService(ref);
+          
+          if (o != null) {
+            objects.put(ref, o);
+            retval.add(i, o);
+          }
+        }
+      }
+      
+      return retval.toArray(new Object[0]);
     }   
   }
   

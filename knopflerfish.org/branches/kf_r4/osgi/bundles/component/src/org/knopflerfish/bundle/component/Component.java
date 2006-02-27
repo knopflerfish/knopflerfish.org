@@ -256,7 +256,6 @@ abstract class Component implements ServiceFactory {
     if (interfaces == null) {
       return ;
     }
-
     serviceRegistration = 
       bundleContext.registerService(interfaces, this, effectiveProperties);
   }
@@ -314,15 +313,8 @@ abstract class Component implements ServiceFactory {
     }
     
     public Object locateService(String name) {
-      /* According to the specification this method 
-         throws an ComponentException if 
-         the SCR catches a run time expection while 
-         activating the bound service.
-         When can this happen?
-      */  
-
       Reference ref = config.getReference(name);
-      return getBundleContext().getService(ref.getServiceReference());
+      return ref.getService();
     }
 
     public Object locateService(String name, ServiceReference sRef) {
@@ -334,7 +326,6 @@ abstract class Component implements ServiceFactory {
       Reference ref = config.getReference(name);
       return ref.getServiceReferences();
     }
-   
     
     public BundleContext getBundleContext() {
       return bundleContext;
@@ -399,13 +390,14 @@ abstract class Component implements ServiceFactory {
       if (serviceRegistration == null) {
 
         Object thisComponentId = config.getProperties().get(ComponentConstants.COMPONENT_ID);
+
         try {
           ServiceReference[] refs = 
             bundleContext.getServiceReferences(config.getImplementation(),
                                                "(" + ComponentConstants.COMPONENT_ID + "=" + 
                                                thisComponentId + ")"); 
           if (refs == null) {
-            Activator.log.debug("This is a bug. Variable refs should not be null.");
+            return null;
           }
 
           return refs[0];

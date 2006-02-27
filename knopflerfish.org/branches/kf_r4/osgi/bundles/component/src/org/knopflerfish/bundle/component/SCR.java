@@ -110,7 +110,6 @@ class SCR implements SynchronousBundleListener {
   public synchronized void bundleChanged(BundleEvent event) {
     Bundle bundle = event.getBundle();
     String manifestEntry = (String) bundle.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
-    
     if (manifestEntry == null) {
       return;
     }
@@ -129,10 +128,15 @@ class SCR implements SynchronousBundleListener {
         }
         try {
           Collection configs = Parser.readXML(bundle, resourceURL);
+          if (configs.isEmpty()) {
+            System.err.println("Declarative Services: Warning: xml-file did not contain any valid component declarations");
+
+          }
           addedConfigs.addAll(configs);
 
         } catch (Throwable e) {
-          Activator.log.error("Failed to parse " + resourceURL);
+          Activator.log.error("Failed to parse " + resourceURL +": " + e.getCause());
+          e.printStackTrace();
         }
       }
 
@@ -191,12 +195,14 @@ class SCR implements SynchronousBundleListener {
           config.disable();
           // Remove from cycle finder:
           String[] services = config.getServices();
-          for (int i=0; i<services.length; i++) {
-            ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
-            if (existing == null) continue;
-            existing.remove(config);
-            if (existing.size() == 0) {
-              serviceConfigs.remove(services[i]);
+          if (services != null) { 
+            for (int i=0; i<services.length; i++) {
+              ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
+              if (existing == null) continue;
+              existing.remove(config);
+              if (existing.size() == 0) {
+                serviceConfigs.remove(services[i]);
+              }
             }
           }
         }
@@ -234,7 +240,7 @@ class SCR implements SynchronousBundleListener {
     return (Collection)bundleConfigs.get(bundle);
   }
 
-  public synchronized void initComponent(Component component) { 
+  public synchronized void initComponent(Component component) {
     component.setProperty(ComponentConstants.COMPONENT_ID, 
                           new Long(++componentId));
     initConfig(component);

@@ -110,7 +110,6 @@ class Config {
   }
 
   public Component createComponent(Dictionary overriddenProps) {
-
     if (getFactory() != null) {      
       component = new FactoryComponent(this, overriddenProps);
 
@@ -121,7 +120,7 @@ class Config {
       component = new ImmediateComponent(this, overriddenProps);
 
     } else if (!isImmediate() && !services.isEmpty()){
-      component = new DelayedComponent(this, overriddenProps);
+      component = new DelayedComponent(this, overriddenProps);    
     } else {
       throw new RuntimeException("This is a bug and should not be happening.");
     }
@@ -169,7 +168,7 @@ class Config {
   }
 
   public void unbindReferences(Object instance) {
-    for (int i = references.size() - 1; i >= 0; --i) {
+    for (int i = references.size() - 1; i >= 0; i--) {
       ((Reference) references.get(i)).unbind(instance);
     }
   }

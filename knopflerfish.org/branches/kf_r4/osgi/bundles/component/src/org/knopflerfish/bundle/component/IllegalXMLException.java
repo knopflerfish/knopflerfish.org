@@ -42,6 +42,11 @@ package org.knopflerfish.bundle.component;
  */
 public class IllegalXMLException extends Exception {
 
+  /**
+   * eclipse magic.
+   */
+  private static final long serialVersionUID = 1L;
+
   public IllegalXMLException(String msg){
     super(msg);
   }
