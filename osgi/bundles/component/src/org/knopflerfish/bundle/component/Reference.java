@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
@@ -88,7 +89,7 @@ public class Reference extends ExtendedServiceTracker {
   public void addedService(ServiceReference ref, Object service) {
     if (doneBound && multiple) {
       for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), bindMethodName, ref, service);
+        invokeEventMethod(iter.next(), bindMethodName, ref);
       }
     } else if (bound != null && !multiple) {
       ServiceReference newBound = getServiceReference();
@@ -97,7 +98,8 @@ public class Reference extends ExtendedServiceTracker {
           for (Iterator iter = instances.iterator(); iter.hasNext();) {
             Object instance = iter.next();
             invokeEventMethod(instance, unbindMethodName, bound);
-            invokeEventMethod(instance, bindMethodName, newBound, service);
+            invokeEventMethod(instance, bindMethodName, newBound);
+            ungetService(bound); // this is new.
           }
           bound = newBound;
         } else { // Static: deactivate and reactivate
@@ -108,6 +110,7 @@ public class Reference extends ExtendedServiceTracker {
         }
       }
     }
+    
     if (!isSatisfied(1) && isSatisfied() && config != null) {
       config.referenceSatisfied();
     }
@@ -123,13 +126,15 @@ public class Reference extends ExtendedServiceTracker {
     } else { // Will continue to be satisfied.
       if (doneBound && multiple) {
         for (Iterator iter = instances.iterator(); iter.hasNext();) {
-          invokeEventMethod(iter.next(), unbindMethodName, ref, service);
+          invokeEventMethod(iter.next(), unbindMethodName, ref);
         }
+        ungetService(ref);
       } else if (ref.equals(bound)) { // The bound one is removed.
         if (dynamic) { // Unbind and let removedService bind the new one.
           for (Iterator iter = instances.iterator(); iter.hasNext();) {
-            invokeEventMethod(iter.next(), unbindMethodName, ref, service);
+            invokeEventMethod(iter.next(), unbindMethodName, ref);
           }
+          ungetService(ref);
           bound = null;
         } else { // Static. Deactivate and let removedService re-activate.
           overrideUnsatisfied = true;
@@ -190,10 +195,12 @@ public class Reference extends ExtendedServiceTracker {
       if (serviceReferences != null) {
         for (int i = serviceReferences.length - 1; i >= 0; i--) {
           invokeEventMethod(instance, unbindMethodName, serviceReferences[i]);
+          ungetService(serviceReferences[i]);
         }
       }
     } else { // unary
       invokeEventMethod(instance, unbindMethodName, bound);
+      ungetService(bound);
     }
     bound = null;
   }
@@ -209,13 +216,6 @@ public class Reference extends ExtendedServiceTracker {
   private void invokeEventMethod(Object instance,
                                  String methodName, 
                                  ServiceReference ref) {
-    invokeEventMethod(instance, methodName, ref, null);
-  }
-  private void invokeEventMethod(Object instance,
-                                 String methodName, 
-                                 ServiceReference ref,
-                                 Object service) {
-
     if (methodName == null) {
       return ;
     }
@@ -223,12 +223,16 @@ public class Reference extends ExtendedServiceTracker {
     Class instanceClass = instance.getClass();
     Method method = null;
 
-    if (service == null) {
-      service = getService(ref);
+    Bundle bundle = ref.getBundle(); // the bundle where the service is located
+    Class serviceClass = null;
+
+    try {
+      serviceClass = bundle.loadClass(getInterfaceName());
+    } catch (ClassNotFoundException e) {
+      Activator.log.error("Declarative Services could not load class", e);
+      return ;
     }
 
-    Class serviceClass = service.getClass();
-      
     while (instanceClass != null && method == null) {
       Method[] ms = instanceClass.getDeclaredMethods(); 
 
@@ -247,6 +251,7 @@ public class Reference extends ExtendedServiceTracker {
                 ms[i].invoke(instance, new Object[] { ref });
                 return ;
               } else if (parms[0].isAssignableFrom(serviceClass)) {
+                Object service = getService(ref);
                 ms[i].setAccessible(true);
                 ms[i].invoke(instance, new Object[] { service });
                 return ;

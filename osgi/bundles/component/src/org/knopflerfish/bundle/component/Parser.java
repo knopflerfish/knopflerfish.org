@@ -74,6 +74,7 @@ public class Parser {
     try {
       return readXML(declaringBundle, url.openStream());
     } catch (IOException e) {
+
       throw new IllegalXMLException("Could not open \"" + url +
                                     "\" got exception.", e);
     }
@@ -107,7 +108,7 @@ public class Parser {
        SCR_NAMESPACE_URI.equals(parser.getNamespace()) ||
        "".equals(parser.getNamespace())); 
     /* 
-       the test parser.getNamespace() == null SHOULD not be
+       the test "".equals(parser.getNamespace()) SHOULD not be
        needed but was added since the osgi-tests actually
        breaks the document specification.
        
@@ -161,7 +162,6 @@ public class Parser {
     setComponent(curr, parser);
 
     int event = parser.getEventType();
-    int level;
 
     while (event != XmlPullParser.END_TAG) {
 
@@ -170,9 +170,6 @@ public class Parser {
         event = parser.next();
         continue;
       }
-
-      level = parser.getDepth();
-
 
       if (isInSCRNamespace(parser, "implementation", 2)) {
         setImplementation(curr, parser);
@@ -382,7 +379,7 @@ public class Parser {
 
       retval = array;
     } else {
-      throw new IllegalXMLException("This is a bug. Did not recognize \"" + type +
+      throw new IllegalXMLException("Did not recognize \"" + type +
                                     "\" in property-tag.");
 
     }
@@ -437,7 +434,6 @@ public class Parser {
     }
 
     int event = parser.next();
-    int level;
 
     while (event != XmlPullParser.END_TAG) {
 
@@ -445,8 +441,6 @@ public class Parser {
         event = parser.next();
         continue;
       }
-
-      level = parser.getDepth();
 
       if (isInSCRNamespace(parser, "provide", 3)) {
 
