@@ -397,11 +397,6 @@ class LogConfigImpl implements ManagedService, LogConfig {
         Integer level;
         synchronized (blFilters) {
             level = (Integer) blFilters.get(bundle.getLocation());
-            if (level == null) {
-                level = (Integer) blFilters.get(((String) (bundle.getHeaders())
-                        .get("Bundle-Name"))
-                        + ".jar");
-            }
         }
         return (level != null) ? level.intValue() : getFilter();
     }

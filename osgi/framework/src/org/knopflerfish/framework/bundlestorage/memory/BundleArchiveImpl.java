@@ -39,7 +39,7 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -140,14 +140,14 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * returns the localization entries of this archive.
    */
-  public Dictionary getLocalizationEntries(String locale) {
+  public Hashtable getLocalizationEntries(String locale) {
     return archive.getLocalizationEntries(locale);
   }
 
   /**
    * returns the raw unlocalized entries of this archive.
    */
-  public Dictionary getUnlocalizedAttributes() {
+  public HeaderDictionary getUnlocalizedAttributes() {
     return new HeaderDictionary(archive.manifest.getMainAttributes());
   }
   

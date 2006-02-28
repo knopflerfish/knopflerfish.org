@@ -47,7 +47,7 @@ import java.util.jar.*;
  *
  * @author Jan Stein
  */
-public class HeaderDictionary extends Dictionary
+public class HeaderDictionary extends Dictionary implements Cloneable
 {
   private Hashtable headers;
 
@@ -133,6 +133,14 @@ public class HeaderDictionary extends Dictionary
   public int size() {
     return headers.size();
   }
+
+  /**
+   * Clone
+   */
+  public Object clone() {
+    return new HeaderDictionary((Hashtable)headers.clone());
+  }
+
 
   public String toString() {
     return headers.toString();

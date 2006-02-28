@@ -39,6 +39,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -429,6 +430,37 @@ final public class BundleClassLoader extends ClassLoader {
       pkg = null;
     }
     return (Enumeration)searchFor(null, pkg, name, resourceSearch, onlyFirst, this, null);
+  }
+
+
+  /**
+   * Find localization files and load.
+   *
+   */
+  Hashtable getLocalizationEntries(String name) {
+    Hashtable localization_entries = null;
+    if (fragments != null) {
+      for (int i = fragments.size() - 1; i >= 0; i--) {
+        BundleArchive ba = (BundleArchive)fragments.get(i);
+        Hashtable tmp = ba.getLocalizationEntries(name);
+        if (tmp != null) {
+          if (localization_entries != null) {
+            localization_entries.putAll(tmp);
+          } else {
+            localization_entries = tmp;
+          }
+        }
+      }
+    }
+    Hashtable tmp = archive.getLocalizationEntries(name);
+    if (tmp != null) {
+      if (localization_entries != null) {
+        localization_entries.putAll(tmp);
+      } else {
+        localization_entries = tmp;
+      }
+    }
+    return localization_entries;
   }
 
 

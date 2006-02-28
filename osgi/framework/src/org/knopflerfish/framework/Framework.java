@@ -664,9 +664,7 @@ public class Framework {
       //return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
 
     } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
-      return FALSE; // TODO: for now
-      //return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
-
+      return TRUE;
     } else {
       return System.getProperty(key);
     }

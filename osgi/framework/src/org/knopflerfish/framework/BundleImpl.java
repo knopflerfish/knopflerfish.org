@@ -184,12 +184,12 @@ class BundleImpl implements Bundle {
   /**
    * Stores the default locale entries when uninstalled.
    */
-  private Dictionary cachedHeaders = null;
+  private HeaderDictionary cachedHeaders = null;
   
   /**
-   * Stores the raw headers when uninstalled. 
+   * Stores the raw manifest headers.
    */
-  private Dictionary cachedRawHeaders = null;
+  private HeaderDictionary cachedRawHeaders = null;
 
   private AdminPermission CLASS_ADMIN_PERM;
   private AdminPermission EXECUTE_ADMIN_PERM;
@@ -692,7 +692,8 @@ class BundleImpl implements Bundle {
                 // Activate new bundle
                 BundleArchive oldArchive = archive;
                 archive = newArchive;
-                state = INSTALLED;
+                cachedRawHeaders = null;
+                  state = INSTALLED;
                 doExportImport();
 
                 // Purge old archive
@@ -767,12 +768,17 @@ class BundleImpl implements Bundle {
   synchronized public void uninstall() throws BundleException {
     checkLifecycleAdminPerm();
     boolean wasResolved = false;
+
+    if (cachedHeaders == null ) {
+      cachedHeaders = (HeaderDictionary)getHeaders(null);
+    }
+
     try {
       archive.setStartLevel(-2); // Mark as uninstalled
     } catch (Exception ignored) {   }
 
     bDelayedStart = false;
-
+  
     switch (state) {
     case ACTIVE:
       try {
@@ -786,12 +792,8 @@ class BundleImpl implements Bundle {
       // Fall through
     case INSTALLED:
 
-      cachedHeaders = getHeaders(Locale.getDefault().toString());
-      cachedRawHeaders = getHeaders("");
-
       framework.bundles.remove(location);
 
-      
       if (isFragment()) {
         if (isExtension()) {
           // TODO: add code for removing exports from systemBundle.
@@ -821,7 +823,7 @@ class BundleImpl implements Bundle {
           classLoader = null;
         }
         if (isFragmentHost()) {
-          detachFragments();
+          detachFragments(true);
         }
       }
 
@@ -1019,20 +1021,30 @@ class BundleImpl implements Bundle {
             }
             BundleImpl host = getFragmentHost();
             if (host != null) {
-              try {
-                host.attachFragment(this);
-                fragment.setHost(host);
-                state = RESOLVED;
-                framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
-              } catch (IllegalStateException ise) {
-                // TODO, Log this?
+              if (host.state == INSTALLED) {
+                // Try resolve our host
+                host.getUpdatedState();
+              } else {
+                // NYI! dynamic attach?
               }
             }
           } else {
             // TODO, should we do this as a part of package resolving.
             attachFragments();
             if (bpkgs.resolvePackages()) {
+              if (fragments != null) {
+                for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+                  BundleImpl b = (BundleImpl)i.next();
+                  b.state = RESOLVED;
+                }
+              }
               state = RESOLVED;
+              if (fragments != null) {
+                for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+                  BundleImpl b = (BundleImpl)i.next();
+                  framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, b));
+                }
+              }
               framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
               List fe = archive.getFailedClassPathEntries();
               if (fe != null) {
@@ -1041,12 +1053,29 @@ class BundleImpl implements Bundle {
                   framework.listeners.frameworkInfo(this, e);
                 }
               }
+            } else {
+              detachFragments(false);
             }
           } 
         }
       }
     }
     return state;
+  }
+
+
+  /**
+   * Resolve fragment
+   */
+  void resolveFragment(BundleImpl host) {
+    if (host == getFragmentHost()) {
+      try {
+        host.attachFragment(this);
+        fragment.setHost(host);
+      } catch (IllegalStateException ise) {
+        // TODO, Log this?
+      }
+    }
   }
 
 
@@ -1116,7 +1145,7 @@ class BundleImpl implements Bundle {
    * Reset all package registration.
    * We assume that the bundle is resolved when entering this method.
    */
-  synchronized void setStateInstalled() {
+  synchronized void setStateInstalled(boolean sendEvent) {
     if (isFragment()) {
       classLoader = null;
       fragment.setHost(null);
@@ -1127,13 +1156,15 @@ class BundleImpl implements Bundle {
       }
       bpkgs.unregisterPackages(true);
       if (isFragmentHost()) {
-        detachFragments();
+        detachFragments(true);
       }
       bpkgs.registerPackages();
     }
     
     state = INSTALLED;
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+    if (sendEvent) {
+      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+    }
   }
 
 
@@ -1600,6 +1631,28 @@ class BundleImpl implements Bundle {
   }
 
 
+  /**
+   * Get locale dictionary for this bundle.
+   */
+  private Dictionary getLocaleDictionary(String locale) {
+    String defaultLocale = Locale.getDefault().toString();
+
+    if (locale == null) {
+      locale = defaultLocale;
+    } else if (locale.equals("")) {
+      return null;
+    } 
+
+    Hashtable localization_entries = new Hashtable();
+    readLocalization("", localization_entries);
+    readLocalization(Locale.getDefault().toString(), localization_entries);
+    if (!locale.equals(defaultLocale)) {
+      readLocalization(locale, localization_entries);
+    } 
+    
+    return localization_entries;
+  }
+
 
   /**
    * "Localizes" this bundle's headers
@@ -1607,21 +1660,23 @@ class BundleImpl implements Bundle {
    * @returns the updated dictionary.
    */
   private Dictionary localize(Dictionary localization_entries) {
-    Dictionary localized = archive.getUnlocalizedAttributes();
+    Dictionary localized = (Dictionary)cachedRawHeaders.clone();
     
-    for (Enumeration e = localized.keys();
-         e.hasMoreElements(); ) {
-      String key = (String)e.nextElement();
-      String unlocalizedEntry = (String)localized.get(key);
-      
-      if (unlocalizedEntry.startsWith("%")) {
-        String k = unlocalizedEntry.substring(1);
-        String val = (String)localization_entries.get(k);
-        
-        if (val == null) {
-          localized.put(key, k);
-        } else {
-          localized.put(key, val);
+    if (localization_entries != null) {
+      for (Enumeration e = localized.keys();
+           e.hasMoreElements(); ) {
+        String key = (String)e.nextElement();
+        String unlocalizedEntry = (String)localized.get(key);
+
+        if (unlocalizedEntry.startsWith("%")) {
+          String k = unlocalizedEntry.substring(1);
+          String val = (String)localization_entries.get(k);
+
+          if (val == null) {
+            localized.put(key, k);
+          } else {
+            localized.put(key, val);
+          }
         }
       }
     }
@@ -1636,37 +1691,25 @@ class BundleImpl implements Bundle {
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
    */
-  void readLocalization(String locale, 
-                        Dictionary localization_entries) {
+  private void readLocalization(String locale, 
+                                Hashtable localization_entries) {
 
     String[] parts = locale.split("_");
     String tmploc = parts[0];
     int o = 0;
     
     do {
-      if (isFragmentHost()) {
-        for (int i = fragments.size() - 1; i >= 0; i--) {
-          BundleImpl fb = (BundleImpl)fragments.get(i);
-          Dictionary tmp = fb.archive.getLocalizationEntries(tmploc);
-          if (tmp != null) {
-            for (Enumeration e = tmp.keys();
-                 e.hasMoreElements();) {
-              Object key = e.nextElement();
-              localization_entries.put(key, tmp.get(key));
-            }
-          }
-        }
+      Hashtable tmp;
+      if (classLoader != null) {
+        tmp = classLoader.getLocalizationEntries(tmploc);
+      } else if (archive != null) { // archive == null if this == systemBundle
+        tmp = archive.getLocalizationEntries(tmploc);
+      } else {
+        // No where to search, return.
+        return;
       }
-      
-      if (archive != null) { // archive == null if this == systemBundle
-        Dictionary tmp = archive.getLocalizationEntries(tmploc);
-        if (tmp != null) {
-          for (Enumeration e = tmp.keys();
-               e.hasMoreElements();) {
-            Object key = e.nextElement();
-            localization_entries.put(key, tmp.get(key));
-          }
-        }
+      if (tmp != null) {
+        localization_entries.putAll(tmp);
       }
       
       if (++o >= parts.length) {
@@ -1683,56 +1726,40 @@ class BundleImpl implements Bundle {
    */
   public Dictionary getHeaders(String locale) {
     checkMetadataAdminPerm();
-    
-    if (state == UNINSTALLED) {
-      if (locale != null && locale.equals("")) {
-        return cachedRawHeaders;
-      } else {
-        return cachedHeaders;       
-      }
-    } 
-    
-    String defaultLocale = Locale.getDefault().toString();
-    
-    if (locale == null || locale.equals(defaultLocale)) {
-      locale = defaultLocale;
-    } else if (locale != null && locale.equals("")) {
-      return archive.getUnlocalizedAttributes();
-    } 
 
-    if (isFragment()) {
-      Dictionary localize_entries = new Hashtable();
-      BundleImpl host = getFragmentHost(); 
-      // This is wrong. Should be the host with the lowest id. 
-      // Regardless of whether the fragment is attached or not. Bug in spec?
-      
-      if (host != null && !isAttached()) { 
-        if (getUpdatedState() != RESOLVED) {
-          return localize(new Hashtable());
-        }
-      }
-        
-      if (host != null) {
-        host.readLocalization(locale, localize_entries);
-        Dictionary localized = localize(localize_entries);
-        return localized;
-      }
+    if (cachedRawHeaders == null) {
+      cachedRawHeaders = archive.getUnlocalizedAttributes();
+    }
 
-      return localize(new Hashtable());
+    if ("".equals(locale)) {
+      return (Dictionary)cachedRawHeaders.clone();
     }
     
-    Hashtable localization_entries = new Hashtable();
-    readLocalization("", localization_entries);
-    readLocalization(Locale.getDefault().toString(), localization_entries);
-
-    if (!locale.equals(defaultLocale)) {
-      readLocalization(locale, localization_entries);
+    if (state == UNINSTALLED) {
+      return (Dictionary)cachedHeaders.clone();
     } 
-    
-    Dictionary localized = localize(localization_entries);
-    return localized;
+
+    if (state == INSTALLED) {
+      // We need to resolve if there are fragments involved
+      if (isFragment() || !framework.bundles.getFragmentBundles(this).isEmpty()) {
+        getUpdatedState();
+      }
+    }
+
+    if (isFragment()) {
+      if (fragment.host != null) {
+        return localize(fragment.host.getLocaleDictionary(locale));
+      } else {
+        return localize(new Hashtable());
+      }
+    }
+    return localize(getLocaleDictionary(locale));
   }
 
+
+  /**
+   *
+   */
   private void modified(){
     lastModified = System.currentTimeMillis();
     //TODO make sure it is persistent
@@ -1790,11 +1817,9 @@ class BundleImpl implements Bundle {
       throw new ClassNotFoundException("Can not load classes from fragment bundles");
     }
 
-    if (this.state == INSTALLED) {
-      if (getUpdatedState() != RESOLVED) {
-        framework.listeners.frameworkError(this, new BundleException("Unable to resolve bundle: " + bpkgs.getResolveFailReason()));
-        throw new ClassNotFoundException("Unable to resolve bundle");
-      }
+    if (getUpdatedState() == INSTALLED) {
+      framework.listeners.frameworkError(this, new BundleException("Unable to resolve bundle: " + bpkgs.getResolveFailReason()));
+      throw new ClassNotFoundException("Unable to resolve bundle");
     }
 
     ClassLoader cl = getClassLoader();
@@ -1888,7 +1913,9 @@ class BundleImpl implements Bundle {
       List hosting = framework.bundles.getFragmentBundles(this);
       for (Iterator iter = hosting.iterator(); iter.hasNext(); ) {
         BundleImpl fb = (BundleImpl)iter.next();
-        fb.getUpdatedState();
+        if (fb.state == INSTALLED) {
+          fb.resolveFragment(this);
+        }
       }
     }
   }
@@ -1940,9 +1967,11 @@ class BundleImpl implements Bundle {
   /**
    * Detach all fragments from this bundle.
    */
-  private void detachFragments() {
-    while (fragments.size() > 0) {
-      detachFragment((BundleImpl)fragments.get(0));
+  private void detachFragments(boolean sendEvent) {
+    if (fragments != null) {
+      while (fragments.size() > 0) {
+        detachFragment((BundleImpl)fragments.get(0), sendEvent);
+      }
     }
   }
 
@@ -1950,13 +1979,13 @@ class BundleImpl implements Bundle {
   /**
    * Detach fragment from this bundle.
    */
-  private void detachFragment(BundleImpl fb) {
+  private void detachFragment(BundleImpl fb, boolean sendEvent) {
     // NYI! extensions
     fragments.remove(fb);
     if (fb.getFragmentHost() == this) {
       // NYI purge control
       bpkgs.detachFragment(fb.bpkgs);
-      fb.setStateInstalled();
+      fb.setStateInstalled(sendEvent);
     }
   }
 
