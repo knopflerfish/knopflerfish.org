@@ -36,7 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.List;
@@ -67,12 +67,12 @@ public interface BundleArchive {
    * behaviour is overridden by the Bundle-Localization manifest entry.
    * @returns null or a mapping of the entries.
    */
-  Dictionary getLocalizationEntries(String locale);
+  Hashtable getLocalizationEntries(String locale);
 
   /**
    * @returns the (raw/unlocalized) attributes
    */
-  Dictionary getUnlocalizedAttributes();
+  HeaderDictionary getUnlocalizedAttributes();
 
   /**
    * Get bundle identifier for this bundle archive.

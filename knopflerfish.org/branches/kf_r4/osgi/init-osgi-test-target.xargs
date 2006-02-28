@@ -15,7 +15,7 @@
 -Dscr.bundle.name=Declarative-Services
 
 -install file:../../osgi.ri-tck/osgi.core.impls.jar
--install file:../../osgi.ri-tck/testcond.jar
+#-install file:../../osgi.ri-tck/testcond.jar
 -install file:../../osgi.ri-tck/osgi.target.jar
 
 # Load the default configuration

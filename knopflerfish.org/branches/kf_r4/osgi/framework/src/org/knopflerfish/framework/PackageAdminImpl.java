@@ -285,7 +285,7 @@ public class PackageAdminImpl implements PackageAdmin {
                         }
                       case Bundle.STOPPING:
                       case Bundle.RESOLVED:
-                        bi[bx].setStateInstalled();
+                        bi[bx].setStateInstalled(true);
                       case Bundle.INSTALLED:
                       case Bundle.UNINSTALLED:
                         break;
