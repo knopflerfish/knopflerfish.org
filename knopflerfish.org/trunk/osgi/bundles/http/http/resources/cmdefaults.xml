@@ -5,7 +5,7 @@
 
  <org.knopflerfish.bundle.http.factory.HttpServer>
 
-   <port>8080</port>
+   <port.http>8080</port.http>
    <host></host>
    <session.timeout.default>1200</session.timeout.default>
    <connection.timeout>30</connection.timeout>
