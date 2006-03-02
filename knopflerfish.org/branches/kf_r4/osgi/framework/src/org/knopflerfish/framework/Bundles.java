@@ -122,43 +122,24 @@ class Bundles {
               } finally {
                 bin.close();
               }
-              String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-              if(ee != null) {
-                if(Debug.packages) {
-                  Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+              try {
+                String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+                if(ee != null) {
+                  if(Debug.packages) {
+                    Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+                  }
+                  if(!framework.isValidEE(ee)) {
+                    throw new RuntimeException("Execution environment '" + ee +
+                                               "' is not supported");
+                  }
                 }
-                if(!framework.isValidEE(ee)) {
-                  throw new RuntimeException("Execution environment '" + ee +
-                                             "' is not supported");
-                }
+                res = new BundleImpl(framework, ba);
+                ba.setLastModified(System.currentTimeMillis());
+              } catch (Exception e) {
+                ba.purge();
+                throw e;
               }
 
-              ba.setLastModified(System.currentTimeMillis());
-
-              res = new BundleImpl(framework, ba);
-
-              if (res.isExtension()) {
-                /*
-                  TODO:
-                  This is a bit ackward. 
-
-                  If one does not support extension bundles then one should throw 
-                  exceptions saying this. 
-                  
-                  However, when one start the OSGi test-suite there is one 
-                  of the installed bundles that is an extension bundle. In order
-                  to follow the spec one should throw exception, but throwing an 
-                  exception at this stage will terminate KF.
-
-                  As a workaround for this, I've commented out this code, but doing 
-                  this will makes us fail two of the OSGi test suites tests :)
-                  
-                  Should be:
-
-                  systemBundle.addExtension(res);
-                */
-              }
-              
               bundles.put(location, res);
               
               return res;

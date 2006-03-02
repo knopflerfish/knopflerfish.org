@@ -193,12 +193,14 @@ public class Framework {
    * This will be false if bIsMemoryStorage is false.
    */
   static boolean SUPPORTS_EXTENSION_BUNDLES;
-  final static boolean EXIT_ON_SHUTDOWN = "true".equals(System.getProperty(Main.EXITONSHUTDOWN_PROP, "true"));
+
+  final static boolean EXIT_ON_SHUTDOWN =
+    TRUE.equals(System.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
 
   final static int EXIT_CODE_NORMAL  = 0;
   final static int EXIT_CODE_RESTART = 200;
 
-  final static boolean USING_WRAPPER_SCRIPT = "true".equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, "false"));
+  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
 
   /**
    * Contruct a framework.
@@ -660,11 +662,9 @@ public class Framework {
     } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
       return TRUE;
     } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
-      return FALSE; // TODO: for now
-      //return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
-
+      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
     } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
-      return TRUE;
+      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
     } else {
       return System.getProperty(key);
     }
@@ -680,11 +680,8 @@ public class Framework {
     props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
     props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    // TODO: for now
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, FALSE);
-    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE); 
-//     props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-//     props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
     return props;
   }
 

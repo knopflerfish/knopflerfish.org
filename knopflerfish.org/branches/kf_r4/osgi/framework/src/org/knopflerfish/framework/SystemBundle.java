@@ -77,14 +77,9 @@ public class SystemBundle extends BundleImpl {
   /**
    * The file where we store the class path
    */
-  private final static String CLASSPATH_FILE = "system.classpath";
-
-
-  /**
-   * All current extensions
-   */
-  private ArrayList extensions = new ArrayList();
-
+  private final static String CLASSPATH_DIR = "classpath";
+  private final static String BOOT_CLASSPATH_FILE = "boot";
+  private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
 
 
   /**
@@ -114,6 +109,7 @@ public class SystemBundle extends BundleImpl {
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
   }
+
 
   /**
    * Add all built-in system packages to a stringbuffer.
@@ -227,34 +223,33 @@ public class SystemBundle extends BundleImpl {
   {
     checkExecuteAdminPerm();
 
-    StringBuffer classpath = new StringBuffer();
-    for (Iterator iter = extensions.iterator(); iter.hasNext(); ) {
+    StringBuffer bootClasspath = new StringBuffer();
+    StringBuffer frameworkClasspath = new StringBuffer();
+    for (Iterator iter = framework.bundles.getFragmentBundles(this).iterator();
+         iter.hasNext(); ) {
       BundleImpl eb = (BundleImpl)iter.next();
-
-//       // write pending updates.. TODO: refactor.
-//       if (eb.fragment.pendingUpdate != null) {
-//         try {
-//           framework.storage.replaceBundleArchive(eb.archive, eb.fragment.pendingUpdate);
-//           // framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, eb));
-//         } catch (Exception _e) { /* TBD! What to do */ }
-//         eb.archive = eb.fragment.pendingUpdate;
-//         eb.fragment.pendingUpdate = null;
-//       }
-//       // end refactor
-
       String path = eb.archive.getJarLocation();
-      
-      classpath.append(path);
+      StringBuffer sb = eb.isBootClassPathExtension() ? bootClasspath : frameworkClasspath;
+      sb.append(path);
       if (iter.hasNext()) {
-        classpath.append(":");
+        sb.append(File.pathSeparator);
       }
     }
 
-    classpath.append("\n");
-
     try {
-      FileTree storage = Util.getFileStorage("classpath");
-      Util.putContent(new File(storage, CLASSPATH_FILE), classpath.toString(), false);
+      FileTree storage = Util.getFileStorage(CLASSPATH_DIR);
+      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
+      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
+      if (bootClasspath.length() > 0) {
+        saveStringBuffer(bcpf, bootClasspath);
+      } else {
+        bcpf.delete();
+      }
+      if (frameworkClasspath.length() > 0) {
+        saveStringBuffer(fcpf, frameworkClasspath);
+      } else {
+        fcpf.delete();
+      }
     } catch (IOException e) {
       throw new BundleException("Could not save classpath " + e);
     } finally {
@@ -346,15 +341,19 @@ public class SystemBundle extends BundleImpl {
     state = STOPPING;
   }
 
-    /**
+
+  /**
    * Checks whether a path is included in the path.
    */
-  private boolean isInClassPath(String path) {
-    String cp = System.getProperty("java.class.path");
-    String[] cps = cp.split(":");
-    
-    for (int i = 0; i < cps.length; i++) {
-      if (cps[i].equals(path)) {
+  private boolean isInClassPath(BundleImpl extension) {
+    String cps = extension.isBootClassPathExtension() ? 
+      "sun.boot.class.path" : "java.class.path";
+    String cp = System.getProperty(cps);
+    String[] scp = cp.split(":");
+    String path = extension.archive.getJarLocation();
+
+    for (int i = 0; i < scp.length; i++) {
+      if (scp[i].equals(path)) {
         return true;
       }
     }
@@ -362,50 +361,65 @@ public class SystemBundle extends BundleImpl {
     return false;
   }
 
+
   /**
    * Adds an bundle as an extension that will be included
    * in the boot class path on restart.
    */
-  void addExtension(BundleImpl extension) {
-
-    if (!Framework.SUPPORTS_EXTENSION_BUNDLES) {
-      if (Framework.bIsMemoryStorage) {
-        throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
-      } else if (!Framework.EXIT_ON_SHUTDOWN) {
-        throw new UnsupportedOperationException("Extension bundles require that the property " +
-                                                Main.EXITONSHUTDOWN_PROP + " is set to \"true\"");
-        
-      } else if (!Framework.USING_WRAPPER_SCRIPT) {
-        throw new UnsupportedOperationException("Extension bundles require the use of a wrapper script. " +
-                                                "Consult the documentation");
-        
-      } else {
-        throw new UnsupportedOperationException("Extension bundles are not supported.");
-      }
-    }  
-    
-
-    int i = 0;
-    for (int n = extensions.size(); i < n; i++) {
-      BundleImpl tmp = (BundleImpl)extensions.get(i);
-      if (tmp.id > extension.id) {
-        break;
-      }
-    }
-        
-    extensions.add(i, extension);
-    if (isInClassPath(extension.archive.getJarLocation())) {
-      extension.state = RESOLVED;
-      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, extension));
+  void attachFragment(BundleImpl extension) {
+    // NYI! Collect VM specific functionality, dynamic classpath additions
+    if (isInClassPath(extension)) {
+      super.attachFragment(extension);
+    } else {
+      throw new UnsupportedOperationException("Extension can not be dynamicly activated");
     }
   }
 
+
   /**
-   * Removes an extension. This bundle will not be in the
-   * framework's class path on next start up.
+   * Reads all localization entries that affects this bundle 
+   * (including its host/fragments)
+   * @param locale locale == "" the bundle.properties will be read
+   *               o/w it will read the files as described in the spec.
+   * @param localization_entries will append the new entries to this dictionary
    */
-  void removeExtension(BundleImpl extension) {
-    extensions.remove(extension);
+  protected void readLocalization(String locale, Hashtable localization_entries) {
+
+    String[] parts = locale.split("_");
+    String tmploc = parts[0];
+    int o = 0;
+    
+    do {
+      if (fragments != null) {
+        for (int i = fragments.size() - 1; i >= 0; i--) {
+          BundleImpl b = (BundleImpl)fragments.get(i);
+          // NYI! Get correct archive
+          Hashtable tmp = b.archive.getLocalizationEntries(tmploc);
+          if (tmp != null) {
+            localization_entries.putAll(tmp);
+          }
+        }
+      }
+      // NYI! read localization from framework?
+      
+      if (++o >= parts.length) {
+        break;
+      }
+      tmploc = tmploc + "_" + parts[o];
+      
+    } while (true);
+  }
+
+  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
+    PrintStream out = null;
+    try {
+      out = new PrintStream(new FileOutputStream(f));
+      out.println(content.toString());
+    } finally {
+      if (out != null) {
+	out.close();
+      }
+    }
   }
 
 }

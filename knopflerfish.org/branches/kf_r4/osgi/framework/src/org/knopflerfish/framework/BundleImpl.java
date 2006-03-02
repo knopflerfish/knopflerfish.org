@@ -131,7 +131,7 @@ class BundleImpl implements Bundle {
   /**
    * Classloader for bundle.
    */
-  private BundleClassLoader classLoader = null;
+  private ClassLoader classLoader = null;
 
   /**
    * Zombie packages for bundle.
@@ -284,7 +284,7 @@ class BundleImpl implements Bundle {
     archive = ba;
 
     state = INSTALLED;
-    cacheManifestHeaders();
+    checkManifestHeaders();
     doExportImport();
     FileTree dataRoot = fw.getDataStorage();
     if (dataRoot != null) {
@@ -326,10 +326,13 @@ class BundleImpl implements Bundle {
       Debug.println("Failed to set start level on #" + getBundleId() + ": " + e);
     }
     initPerms();
+
     lastModified = archive.getLastModified();
 
-    if (isExtension()) {
-      framework.systemBundle.addExtension(this);
+    // Activate extension as soon as they are installed so that
+    // they get added in bundle id order.
+    if (isExtension() && resolveFragment(framework.systemBundle)) {
+      state = RESOLVED;
     }
   }
 
@@ -637,7 +640,7 @@ class BundleImpl implements Bundle {
 
                   newArchive = framework.storage.updateBundleArchive(archive, bin);
                   checkEE(newArchive);
-                  cacheManifestHeaders();
+                  checkManifestHeaders();
                   newArchive.setStartLevel(oldStartLevel);
                   framework.storage.replaceBundleArchive(archive, newArchive);
                 } catch (Exception e) {
@@ -662,10 +665,6 @@ class BundleImpl implements Bundle {
                 boolean purgeOld;
 
                 if (isFragment()) {
-                  if (isExtension()) {
-                    // TODO: add code for removing exports from extension bundles.
-                  }
-                  
                   if (isAttached()) {
                     fragment.setHost(null);
                     purgeOld = false;
@@ -679,7 +678,7 @@ class BundleImpl implements Bundle {
                   // Loose old bundle if no exporting packages left
                   if (allRemoved) {
                     if (classLoader != null) {
-                      classLoader.close();
+                      ((BundleClassLoader)classLoader).close();
                       classLoader = null;
                     }
                     purgeOld = true;
@@ -693,7 +692,7 @@ class BundleImpl implements Bundle {
                 BundleArchive oldArchive = archive;
                 archive = newArchive;
                 cachedRawHeaders = null;
-                  state = INSTALLED;
+                state = INSTALLED;
                 doExportImport();
 
                 // Purge old archive
@@ -795,10 +794,6 @@ class BundleImpl implements Bundle {
       framework.bundles.remove(location);
 
       if (isFragment()) {
-        if (isExtension()) {
-          // TODO: add code for removing exports from systemBundle.
-          //  state = UNINSTALLED;
-        }
         if (isAttached()) {
           classLoader = null;
           fragment.setHost(null);
@@ -810,7 +805,7 @@ class BundleImpl implements Bundle {
           if (classLoader != null) {
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
-                  classLoader.purge();
+                  ((BundleClassLoader)classLoader).purge();
                   classLoader = null;
                   return null;
                 }
@@ -1015,10 +1010,6 @@ class BundleImpl implements Bundle {
       synchronized (this) {
         if (state == INSTALLED) {
           if (isFragment()) {
-            if (isExtension()) {
-              // we attach extension bundles when we like to.                
-              return state;
-            }
             BundleImpl host = getFragmentHost();
             if (host != null) {
               if (host.state == INSTALLED) {
@@ -1067,15 +1058,17 @@ class BundleImpl implements Bundle {
   /**
    * Resolve fragment
    */
-  void resolveFragment(BundleImpl host) {
+  boolean  resolveFragment(BundleImpl host) {
     if (host == getFragmentHost()) {
       try {
         host.attachFragment(this);
         fragment.setHost(host);
+        return true;
       } catch (IllegalStateException ise) {
         // TODO, Log this?
       }
     }
+    return false;
   }
 
 
@@ -1097,7 +1090,7 @@ class BundleImpl implements Bundle {
     if (classLoader == null) {
       synchronized (this) {
         if (classLoader == null) {
-          classLoader = (BundleClassLoader)
+          classLoader = (ClassLoader)
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
 
@@ -1109,15 +1102,10 @@ class BundleImpl implements Bundle {
                           root = root.getParent();
                         }
                         return root;
-                        
-                      } else if (isFrameworkExtension()) {
-                        return framework.systemBundle.getClassLoader();
-                        
-                      } else if (isAttached()) {
+                      } else {
                         return getFragmentHost().getClassLoader();
                       }
                     }
-
                     return null;
                   } else {
                     ArrayList frags;
@@ -1151,7 +1139,7 @@ class BundleImpl implements Bundle {
       fragment.setHost(null);
     } else {
       if (classLoader != null) {
-        classLoader.close();
+        ((BundleClassLoader)classLoader).close();
         classLoader = null;
       }
       bpkgs.unregisterPackages(true);
@@ -1272,7 +1260,7 @@ class BundleImpl implements Bundle {
   /**
    * Cache certain manifest headers as variables.
    */
-  private void cacheManifestHeaders() {
+  private void checkManifestHeaders() {
     // TBD, v2Manifest unnecessary to cache?
     v2Manifest = "2".equals(archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION));
     Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
@@ -1284,7 +1272,8 @@ class BundleImpl implements Bundle {
       symbolicName = (String)e.get("key");
     } else {
       if (v2Manifest) {
-        throw new IllegalArgumentException("Bundle has no symbolic name");
+        throw new IllegalArgumentException("Bundle has no symbolic name, location=" +
+                                           location);
       } else {
         symbolicName = null;
       }
@@ -1349,6 +1338,19 @@ class BundleImpl implements Bundle {
                                              Constants.DYNAMICIMPORT_PACKAGE + " or " +
                                              Constants.BUNDLE_ACTIVATOR);
         }
+        if (!Framework.SUPPORTS_EXTENSION_BUNDLES) {
+          if (Framework.bIsMemoryStorage) {
+            throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
+          } else if (!Framework.EXIT_ON_SHUTDOWN) {
+            throw new UnsupportedOperationException("Extension bundles require that the property " +
+                                                    Main.EXITONSHUTDOWN_PROP + " is set to \"true\"");
+          } else if (!Framework.USING_WRAPPER_SCRIPT) {
+            throw new UnsupportedOperationException("Extension bundles require the use of a wrapper script. " +
+                                                    "Consult the documentation");
+          } else {
+            throw new UnsupportedOperationException("Extension bundles are not supported.");
+          }
+        }
       } else {
         if (extension != null) {
           throw new IllegalArgumentException("Did not recognize directive " + 
@@ -1361,11 +1363,6 @@ class BundleImpl implements Bundle {
         fragment = new Fragment(key,
                                 extension,
                                 (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
-        
-        
-        if (extension != null) {
-          fragment.setHost(framework.systemBundle);
-        }
       }
     }
   }
@@ -1680,7 +1677,6 @@ class BundleImpl implements Bundle {
         }
       }
     }
-
     return localized;
   }
 
@@ -1691,7 +1687,7 @@ class BundleImpl implements Bundle {
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
    */
-  private void readLocalization(String locale, 
+  protected void readLocalization(String locale, 
                                 Hashtable localization_entries) {
 
     String[] parts = locale.split("_");
@@ -1700,8 +1696,8 @@ class BundleImpl implements Bundle {
     
     do {
       Hashtable tmp;
-      if (classLoader != null) {
-        tmp = classLoader.getLocalizationEntries(tmploc);
+      if ((state & RESOLVED_FLAGS) != 0) {
+        tmp = ((BundleClassLoader)getClassLoader()).getLocalizationEntries(tmploc);
       } else if (archive != null) { // archive == null if this == systemBundle
         tmp = archive.getLocalizationEntries(tmploc);
       } else {
@@ -1813,7 +1809,7 @@ class BundleImpl implements Bundle {
     if (this.state == UNINSTALLED) {
       throw new IllegalStateException("state is uninstalled");
     }
-    if (isFragment()) {
+    if (isFragment() && !isExtension()) {
       throw new ClassNotFoundException("Can not load classes from fragment bundles");
     }
 
@@ -1845,6 +1841,17 @@ class BundleImpl implements Bundle {
   boolean isExtension() {
     return isFragment() &&
       fragment.extension != null;      
+  }
+
+  /**
+   * Checks if this bundle is an extension bundle that
+   * is updated/uninstalled and needs to be restarted.
+   */
+  boolean extensionNeedsRestart() {
+    return isExtension() &&
+      (state & (INSTALLED|UNINSTALLED)) != 0 &&
+      framework.systemBundle.fragments != null &&
+      framework.systemBundle.fragments.contains(this);
   }
 
   /**
@@ -1907,7 +1914,7 @@ class BundleImpl implements Bundle {
   /**
    * Attaches all relevant fragments to this bundle.
    */
-  private void attachFragments() {
+  void attachFragments() {
     if (attachPolicy != null && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       // retrieve all fragments this bundle host
       List hosting = framework.bundles.getFragmentBundles(this);
@@ -1931,7 +1938,7 @@ class BundleImpl implements Bundle {
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       throw new IllegalStateException("Bundle does not allow fragments to attach");
     }
-    if (/* attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME) &&  NYI */
+    if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME) &&
         (state & RESOLVED_FLAGS) != 0) {
       throw new IllegalStateException("Bundle does not allow fragments to attach dynamicly");
     }
@@ -1996,7 +2003,7 @@ class BundleImpl implements Bundle {
     final String name;
     final String extension;
     final VersionRange versionRange;
-    BundleImpl host;
+    BundleImpl host = null;
     
     Fragment(String name, String extension, String range) {
       this.name = name;
@@ -2039,6 +2046,5 @@ class BundleImpl implements Bundle {
       return best;
     }
   }
-
 
 }//class
