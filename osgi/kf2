@@ -1,7 +1,8 @@
 #!/bin/sh
 
 JAVA=java 					# the JRE to use
-CLASSPATH_FLAG=-classpath			# the class path flag for the specific
+BOOTCLASSPATH_FLAG="-Xbootclasspath/a:"		# the bootclass path flag for the specific
+CLASSPATH_FLAG="-classpath "			# the class path flag for the specific
 
 # constants
 KF_MAIN_CLASS=org.knopflerfish.framework.Main			   # path to main class
@@ -41,17 +42,21 @@ do
   shift
 done
 
-# start kf
-$JAVA $jre_args $KF_JRE_ARGS $CLASSPATH_FLAG $KF_CLASSPATH $KF_MAIN_CLASS $args $args_orig
-retval=$?
-
-#init-osgi-test-target.xargs
+retval=$EXIT_CODE_RESTART
 while [ "$retval" -eq $EXIT_CODE_RESTART ]
 do
-  # restart kf
-  newclasspath=$KF_CLASSPATH:`cat $fwdir/classpath/system.classpath`
-  $JAVA $jre_args $KF_JRE_ARGS $CLASSPATH_FLAG $newclasspath $KF_MAIN_CLASS $args 
+  if [ -r $fwdir/classpath/boot ] ; then
+      bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/classpath/boot`
+  fi
+  if [ -r $fwdir/classpath/framework ] ; then
+      classpath=$CLASSPATH_FLAG$CLASSPATH_FLAG:`cat $fwdir/classpath/framework`
+  else
+      classpath=$CLASSPATH_FLAG$KF_CLASSPATH
+  fi
+  $JAVA $bootclasspath $jre_args $KF_JRE_ARGS $classpath $KF_MAIN_CLASS $args_orig $args
   retval=$?
+  # only use args_orig the first time
+  args_orig=
 done
 
 exit $retval

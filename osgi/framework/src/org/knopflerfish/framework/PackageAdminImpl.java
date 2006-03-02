@@ -202,26 +202,21 @@ public class PackageAdminImpl implements PackageAdmin {
     
     boolean restart = false;
     if (bundles != null) {
-      
       for (int i = 0; i < bundles.length; i++) {
-        if (((BundleImpl)bundles[i]).isExtension()) {
+        if (((BundleImpl)bundles[i]).extensionNeedsRestart()) {
           restart = true;
           break;
         }
       }
-
     } else {
-
       for (Iterator iter = framework.bundles.getBundles().iterator();
            iter.hasNext(); ) {
-        if (((BundleImpl)iter.next()).isExtension()) {
+        if (((BundleImpl)iter.next()).extensionNeedsRestart()) {
           restart = true;
           break;
         }
-
       }
     }
-
     if (restart) {
       try {
         // will restart the framework.
@@ -229,7 +224,6 @@ public class PackageAdminImpl implements PackageAdmin {
       } catch (BundleException ignored) {
         /* this can't be happening. */
       }
-      
       return ;
     }
 
@@ -321,7 +315,8 @@ public class PackageAdminImpl implements PackageAdmin {
     }
     boolean res = true;
     for (Iterator i = bl.iterator(); i.hasNext(); ) {
-      if (((BundleImpl)i.next()).getUpdatedState() == Bundle.INSTALLED) {
+      BundleImpl b = (BundleImpl)i.next();
+      if (b.getUpdatedState() == Bundle.INSTALLED) {
         res = false;
       }
     }
@@ -417,7 +412,7 @@ public class PackageAdminImpl implements PackageAdmin {
   public int getBundleType(Bundle bundle) {
     BundleImpl b = (BundleImpl)bundle;
 
-    if (b.isFragment()) {
+    if (b.isFragment() && !b.isExtension()) {
       return BUNDLE_TYPE_FRAGMENT;
     }
 
