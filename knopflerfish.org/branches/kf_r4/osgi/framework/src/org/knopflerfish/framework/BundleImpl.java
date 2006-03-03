@@ -327,12 +327,15 @@ class BundleImpl implements Bundle {
     }
     initPerms();
 
-    lastModified = archive.getLastModified();
-
     // Activate extension as soon as they are installed so that
     // they get added in bundle id order.
     if (isExtension() && resolveFragment(framework.systemBundle)) {
       state = RESOLVED;
+    }
+
+    lastModified = archive.getLastModified();
+    if (lastModified == 0) {
+      modified();
     }
   }
 
