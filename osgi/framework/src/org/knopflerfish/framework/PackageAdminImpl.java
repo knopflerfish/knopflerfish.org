@@ -227,43 +227,47 @@ public class PackageAdminImpl implements PackageAdmin {
       return ;
     }
 
-//XXX - begin L-3 modification
     Thread t = new Thread() {
         public void run() {
-          final BundleImpl bi[] = (BundleImpl[])framework.packages
-            .getZombieAffected(bundles).toArray(new BundleImpl[0]);
           AccessController.doPrivileged(new PrivilegedAction() {
               public Object run() {
+                BundleImpl bi[] = (BundleImpl[])framework.packages
+                  .getZombieAffected(bundles).toArray(new BundleImpl[0]);
                 ArrayList startList = new ArrayList();
-                synchronized (framework.packages) {
 
-                  // Stop affected bundles and remove their classloaders
-                  // in reverse start order
-                  for (int bx = bi.length; bx-- > 0; ) {
-                    synchronized (bi[bx]) {
-                      if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
-                        try {
-                          int ix = 0;
-                          if(Framework.R3_TESTCOMPLIANT) {
-                            // Make sure start list is in original bundle
-                            // start order by using insertion sort
-                            Iterator it = startList.iterator();
-                            while(it.hasNext()) {
-                              BundleImpl bi = (BundleImpl)it.next();
-                              if(bi.getBundleId() < bi.getBundleId()) {
-                                break;
-                              }
-                              ix++;
+                // Stop affected bundles and remove their classloaders
+                // in reverse start order
+                for (int bx = bi.length; bx-- > 0; ) {
+                  synchronized (bi[bx]) {
+                    if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
+                      try {
+                        int ix = 0;
+                        if (Framework.R3_TESTCOMPLIANT) {
+                          // Make sure start list is in original bundle
+                          // start order by using insertion sort
+                          Iterator it = startList.iterator();
+                          while (it.hasNext()) {
+                            BundleImpl b = (BundleImpl)it.next();
+                            if(b.getBundleId() < b.getBundleId()) {
+                              break;
                             }
+                            ix++;
                           }
-                          startList.add(ix,bi[bx]);
-                          bi[bx].stop();
-                        } catch(BundleException be) {
-                          framework.listeners.frameworkError(bi[bx], be);
                         }
+                        startList.add(ix,bi[bx]);
+                        bi[bx].stop();
+                      } catch(BundleException be) {
+                        framework.listeners.frameworkError(bi[bx], be);
                       }
                     }
                   }
+                }
+
+                synchronized (framework.packages) {
+                  // Do this again in case something changed during the stop
+                  // phase, this time synchronized
+                  bi = (BundleImpl[])framework.packages
+                    .getZombieAffected(bundles).toArray(new BundleImpl[0]);
 
                   // Update the affected bundle states in normal start order
                   for (int bx = 0; bx < bi.length; bx++) {
@@ -271,9 +275,12 @@ public class PackageAdminImpl implements PackageAdmin {
                       switch (bi[bx].state) {
                       case Bundle.STARTING:
                       case Bundle.ACTIVE:
-                          //TODO did we not stop it above?
                         try {
                           bi[bx].stop();
+                          if (!startList.contains(bi[bx])) {
+                            // NYI! sorting
+                            startList.add(bi[bx]);
+                          }
                         } catch(BundleException be) {
                           framework.listeners.frameworkError(bi[bx], be);
                         }
@@ -287,12 +294,12 @@ public class PackageAdminImpl implements PackageAdmin {
                       bi[bx].purge();
                     }
                   }
-
-                  // Restart previously active bundles in normal start order
-                  framework.bundles.startBundles(startList);
-                  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
-                  return null;
                 }
+
+                // Restart previously active bundles in normal start order
+                framework.bundles.startBundles(startList);
+                framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
+                return null;
               }
             });
         }
