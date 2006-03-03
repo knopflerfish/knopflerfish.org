@@ -1,4 +1,4 @@
-Knopflerfish 2.0 BETA 2
+Knopflerfish 2.0 BETA 3
 -----------------------
 
   This is a pre release of Knopflerfish 2.0 with part of the OSGi R4
@@ -20,13 +20,12 @@ Knopflerfish 2.0 BETA 2
   --- Module Layer ---
 
     Module layer now has support for all the required features in R4. 
-    The following optional features are not supported yet:
-    * Extension bundles
+    The following optional feature is not supported yet:
     * Permissions
     
-    The fragment bundles implementation is still experimental and does 
-    not work together with requring bundles. There are also some
-    problems when updating fragements.
+    To use the extension bundle support you need to use a wrapper script
+    that will restart framework when needed. An example shell-script is
+    included (osgi/kf2).
 
   --- Life Cycle Layer ---
 
@@ -64,8 +63,7 @@ Knopflerfish 2.0 BETA 2
 
   --- Metatype  ---
 
-    Mostly done. Some things pending spec clarifications and issues 
-    resolution.
+    Done.
 
   --- User Admin ---
 
@@ -85,7 +83,7 @@ Knopflerfish 2.0 BETA 2
 
   --- Service Tracker ---
 
-    Done.
+    Done. Updated to version 1.3.1.
 
 
 === Knopflerfish Extras ===
