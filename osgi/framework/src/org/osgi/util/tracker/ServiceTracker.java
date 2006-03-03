@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.util.tracker/src/org/osgi/util/tracker/ServiceTracker.java,v 1.14 2005/08/11 03:08:56 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.util.tracker/src/org/osgi/util/tracker/ServiceTracker.java,v 1.17 2005/11/15 22:05:30 hargrave Exp $
  * 
  * Copyright (c) OSGi Alliance (2000, 2005). All Rights Reserved.
  * 
@@ -33,63 +33,66 @@ import org.osgi.framework.*;
  * <code>getServices</code> methods can be called to get the service objects
  * for the tracked service.
  * 
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.17 $
  */
 public class ServiceTracker implements ServiceTrackerCustomizer {
 	/* set this to true to compile in debug messages */
-	static final boolean					DEBUG			= false;
+	static final boolean				DEBUG			= false;
 	/**
 	 * Bundle context this <code>ServiceTracker</code> object is tracking
 	 * against.
 	 */
-	protected final BundleContext			context;
+	protected final BundleContext		context;
 	/**
 	 * Filter specifying search criteria for the services to track.
 	 * 
 	 * @since 1.1
 	 */
-	protected final Filter					filter;
+	protected final Filter				filter;
 	/**
 	 * <code>ServiceTrackerCustomizer</code> object for this tracker.
 	 */
-	private final ServiceTrackerCustomizer	customizer;
+	final ServiceTrackerCustomizer		customizer;
 	/**
 	 * Filter string for use when adding the ServiceListener. If this field is
 	 * set, then certain optimizations can be taken since we don't have a user
 	 * supplied filter.
 	 */
-	private final String					listenerFilter;
+	final String						listenerFilter;
 	/**
 	 * Class name to be tracked. If this field is set, then we are tracking by
 	 * class name.
 	 */
-	private final String					trackClass;
+	private final String				trackClass;
 	/**
 	 * Reference to be tracked. If this field is set, then we are tracking a
 	 * single ServiceReference.
 	 */
-	private final ServiceReference			trackReference;
+	private final ServiceReference		trackReference;
 	/**
 	 * Tracked services: <code>ServiceReference</code> object -> customized
 	 * Object and <code>ServiceListener</code> object
 	 */
-	private Tracked							tracked;
+	private Tracked						tracked;
 	/**
 	 * Modification count. This field is initialized to zero by open, set to -1
-	 * by close and incremented by modified. This field is volatile since it is
-	 * accessed by multiple threads.
+	 * by close and incremented by modified.
+	 * 
+	 * This field is volatile since it is accessed by multiple threads.
 	 */
-	private volatile int					trackingCount	= -1;
+	private volatile int				trackingCount	= -1;
 	/**
-	 * Cached ServiceReference for getServiceReference. This field is volatile
-	 * since it is accessed by multiple threads.
+	 * Cached ServiceReference for getServiceReference.
+	 * 
+	 * This field is volatile since it is accessed by multiple threads.
 	 */
-	private volatile ServiceReference		cachedReference;
+	private volatile ServiceReference	cachedReference;
 	/**
-	 * Cached service object for getService. This field is volatile since it is
-	 * accessed by multiple threads.
+	 * Cached service object for getService.
+	 * 
+	 * This field is volatile since it is accessed by multiple threads.
 	 */
-	private volatile Object					cachedService;
+	private volatile Object				cachedService;
 
 	/**
 	 * Create a <code>ServiceTracker</code> object on the specified
@@ -248,10 +251,10 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		}
 		tracked = trackAllServices ? new AllTracked() : new Tracked();
 		trackingCount = 0;
-		ServiceReference[] references;
 		synchronized (tracked) {
 			try {
 				context.addServiceListener(tracked, listenerFilter);
+				ServiceReference[] references;
 				if (listenerFilter == null) { // user supplied filter
 					references = getInitialReferences(trackAllServices, null,
 							filter.toString());
@@ -265,6 +268,10 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 								trackClass, null);
 					}
 				}
+
+				tracked.setInitialServices(references); // set tracked with
+				// the initial
+				// references
 			}
 			catch (InvalidSyntaxException e) {
 				throw new RuntimeException(
@@ -272,16 +279,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 			}
 		}
 		/* Call tracked outside of synchronized region */
-		if (references != null) {
-			int length = references.length;
-			for (int i = 0; i < length; i++) {
-				ServiceReference reference = references[i];
-				/* if the service is still registered */
-				if (reference.getBundle() != null) {
-					tracked.track(reference);
-				}
-			}
-		}
+		tracked.trackInitialServices(); // process the initial references
 	}
 
 	/**
@@ -373,10 +371,6 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		return context.getService(reference);
 	}
 
-  // BA: Used by DS
-  protected void addedService(ServiceReference reference, Object service) {
-  }
-  
 	/**
 	 * Default implementation of the
 	 * <code>ServiceTrackerCustomizer.modifiedService</code> method.
@@ -421,10 +415,6 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		context.ungetService(reference);
 	}
 
-  // BA: Used by DS
-  protected void removingService(ServiceReference reference, Object service) {
-  }
-  
 	/**
 	 * Wait for at least one service to be tracked by this
 	 * <code>ServiceTracker</code> object.
@@ -437,7 +427,8 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 	 * @param timeout time interval in milliseconds to wait. If zero, the method
 	 *        will wait indefinately.
 	 * @return Returns the result of <code>getService()</code>.
-	 * @throws InterruptedException If another thread has interrupted the current thread.
+	 * @throws InterruptedException If another thread has interrupted the
+	 *         current thread.
 	 * @throws IllegalArgumentException If the value of timeout is negative.
 	 */
 	public Object waitForService(long timeout) throws InterruptedException {
@@ -450,8 +441,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 											 * use local var since we are not
 											 * synchronized
 											 */
-			if (tracked == null) /* if ServiceTracker is not open */
-			{
+			if (tracked == null) { /* if ServiceTracker is not open */
 				return null;
 			}
 			synchronized (tracked) {
@@ -479,8 +469,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 										 * use local var since we are not
 										 * synchronized
 										 */
-		if (tracked == null) /* if ServiceTracker is not open */
-		{
+		if (tracked == null) { /* if ServiceTracker is not open */
 			return null;
 		}
 		synchronized (tracked) {
@@ -594,8 +583,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 										 * use local var since we are not
 										 * synchronized
 										 */
-		if (tracked == null) /* if ServiceTracker is not open */
-		{
+		if (tracked == null) { /* if ServiceTracker is not open */
 			return null;
 		}
 		synchronized (tracked) {
@@ -615,8 +603,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 										 * use local var since we are not
 										 * synchronized
 										 */
-		if (tracked == null) /* if ServiceTracker is not open */
-		{
+		if (tracked == null) { /* if ServiceTracker is not open */
 			return null;
 		}
 		synchronized (tracked) {
@@ -678,8 +665,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 										 * use local var since we are not
 										 * synchronized
 										 */
-		if (tracked == null) /* if ServiceTracker is not open */
-		{
+		if (tracked == null) { /* if ServiceTracker is not open */
 			return;
 		}
 		tracked.untrack(reference);
@@ -696,8 +682,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 										 * use local var since we are not
 										 * synchronized
 										 */
-		if (tracked == null) /* if ServiceTracker is not open */
-		{
+		if (tracked == null) { /* if ServiceTracker is not open */
 			return 0;
 		}
 		return tracked.size();
@@ -736,7 +721,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 	 * Tracked is synchronized. We don't want synchronization interactions
 	 * between the ServiceListener thread and the user thread.
 	 */
-	private void modified() {
+	void modified() {
 		trackingCount++; /* increment modification count */
 		cachedReference = null; /* clear cached value */
 		cachedService = null; /* clear cached value */
@@ -745,11 +730,12 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		}
 	}
 
-    /**
-	 * Finalize. This method no longer performs any function but it kept
-	 * to maintain binary compatibility with prior versions of this class.
+	/**
+	 * Finalize. This method no longer performs any function but it kept to
+	 * maintain binary compatibility with prior versions of this class.
 	 */
-    protected void finalize() throws Throwable { }
+	protected void finalize() throws Throwable {
+	}
 
 	/**
 	 * Inner class to track services. If a <code>ServiceTracker</code> object
@@ -764,14 +750,45 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 	class Tracked extends Hashtable implements ServiceListener {
 		static final long			serialVersionUID	= -7420065199791006079L;
 		/**
-		 * List of ServiceReferences in the process of being added.
+		 * List of ServiceReferences in the process of being added. This is used
+		 * to deal with nesting of ServiceEvents. Since ServiceEvents are
+		 * synchronously delivered, ServiceEvents can be nested. For example,
+		 * when processing the adding of a service and the customizer causes the
+		 * service to be unregistered, notification to the nested call to
+		 * untrack that the service was unregistered can be made to the track
+		 * method.
+		 * 
+		 * Since the ArrayList implementation is not synchronized, all access to
+		 * this list must be protected by the same synchronized object for
+		 * thread safety.
 		 */
 		private ArrayList			adding;
+
 		/**
-		 * true if the tracked object is closed. This field is volatile because
-		 * it is set by one thread and read by another.
+		 * true if the tracked object is closed.
+		 * 
+		 * This field is volatile because it is set by one thread and read by
+		 * another.
 		 */
 		private volatile boolean	closed;
+
+		/**
+		 * Initial list of ServiceReferences for the tracker. This is used to
+		 * correctly process the initial services which could become
+		 * unregistered before they are tracked. This is necessary since the
+		 * initial set of tracked services are not "announced" by ServiceEvents
+		 * and therefore the ServiceEvent for unregistration could be delivered
+		 * before we track the service.
+		 * 
+		 * A service must not be in both the initial and adding lists at the
+		 * same time. A service must be moved from the initial list to the
+		 * adding list "atomically" before we begin tracking it.
+		 * 
+		 * Since the LinkedList implementation is not synchronized, all access
+		 * to this list must be protected by the same synchronized object for
+		 * thread safety.
+		 */
+		private LinkedList			initial;
 
 		/**
 		 * Tracked constructor.
@@ -780,6 +797,87 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 			super();
 			closed = false;
 			adding = new ArrayList(6);
+			initial = new LinkedList();
+		}
+
+		/**
+		 * Set initial list of services into tracker before ServiceEvents begin
+		 * to be received.
+		 * 
+		 * This method must be called from ServiceTracker.open while
+		 * synchronized on this object in the same synchronized block as the
+		 * addServiceListener call.
+		 * 
+		 * @param references The initial list of services to be tracked.
+		 */
+		protected void setInitialServices(ServiceReference[] references) {
+			if (references == null) {
+				return;
+			}
+			int size = references.length;
+			for (int i = 0; i < size; i++) {
+				if (DEBUG) {
+					System.out
+							.println("ServiceTracker.Tracked.setInitialServices: " + references[i]); //$NON-NLS-1$
+				}
+				initial.add(references[i]);
+			}
+		}
+
+		/**
+		 * Track the initial list of services. This is called after
+		 * ServiceEvents can begin to be received.
+		 * 
+		 * This method must be called from ServiceTracker.open while not
+		 * synchronized on this object after the addServiceListener call.
+		 * 
+		 */
+		protected void trackInitialServices() {
+			while (true) {
+				ServiceReference reference;
+				synchronized (this) {
+					if (initial.size() == 0) {
+						/*
+						 * if there are no more inital services
+						 */
+						return; /* we are done */
+					}
+					/*
+					 * move the first service from the initial list to the
+					 * adding list within this synchronized block.
+					 */
+					reference = (ServiceReference) initial.removeFirst();
+					if (this.get(reference) != null) {
+						/* if we are already tracking this service */
+						if (DEBUG) {
+							System.out
+									.println("ServiceTracker.Tracked.trackInitialServices[already tracked]: " + reference); //$NON-NLS-1$
+						}
+						continue; /* skip this service */
+					}
+					if (adding.contains(reference)) {
+						/*
+						 * if this service is already in the process of being
+						 * added.
+						 */
+						if (DEBUG) {
+							System.out
+									.println("ServiceTracker.Tracked.trackInitialServices[already adding]: " + reference); //$NON-NLS-1$
+						}
+						continue; /* skip this service */
+					}
+					adding.add(reference);
+				}
+				if (DEBUG) {
+					System.out
+							.println("ServiceTracker.Tracked.trackInitialServices: " + reference); //$NON-NLS-1$
+				}
+				trackAdding(reference); /*
+										 * Begin tracking it. We call
+										 * trackAdding since we have already put
+										 * the reference in the adding list.
+										 */
+			}
 		}
 
 		/**
@@ -806,11 +904,16 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				return;
 			}
 			ServiceReference reference = event.getServiceReference();
+			if (DEBUG) {
+				System.out
+						.println("ServiceTracker.Tracked.serviceChanged[" + event.getType() + "]: " + reference); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+
 			switch (event.getType()) {
 				case ServiceEvent.REGISTERED :
 				case ServiceEvent.MODIFIED :
 					if (listenerFilter != null) { // constructor supplied
-						// filter
+													// filter
 						track(reference);
 						/*
 						 * If the customizer throws an unchecked exception, it
@@ -819,18 +922,6 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 					}
 					else { // user supplied filter
 						if (filter.match(reference)) {
-                                                  /* KF-specific bug-fix: clears cache since we might have updated
-                                                     the SERVICE_RANKING.. 
-                                                     
-                                                     Would it suffice to check if SERVICE_RANKING has changed?
-                                                  */
-                                                        if (event.getType() == ServiceEvent.MODIFIED) {
-                                                                cachedReference = null; 
-                                                                cachedService = null;
-
-                                                        }
-
-
 							track(reference);
 							/*
 							 * If the customizer throws an unchecked exception,
@@ -881,11 +972,11 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				return;
 			}
 			synchronized (this) {
-				if (adding.contains(reference)) /*
-												 * if this service is already in
-												 * the process of being added.
-												 */
-				{
+				if (adding.contains(reference)) { /*
+													 * if this service is
+													 * already in the process of
+													 * being added.
+													 */
 					if (DEBUG) {
 						System.out
 								.println("ServiceTracker.Tracked.track[already adding]: " + reference); //$NON-NLS-1$
@@ -894,10 +985,26 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 				}
 				adding.add(reference); /* mark this service is being added */
 			}
+
+			trackAdding(reference); /*
+									 * call trackAdding now that we have put the
+									 * reference in the adding list
+									 */
+		}
+
+		/**
+		 * Common logic to add a service to the tracker used by track and
+		 * trackInitialServices. The specified reference must have been placed
+		 * in the adding list before calling this method.
+		 * 
+		 * @param reference Reference to a service to be tracked.
+		 */
+		private void trackAdding(ServiceReference reference) {
 			if (DEBUG) {
 				System.out
-						.println("ServiceTracker.Tracked.track[adding]: " + reference); //$NON-NLS-1$
+						.println("ServiceTracker.Tracked.trackAdding: " + reference); //$NON-NLS-1$
 			}
+			Object object = null;
 			boolean becameUntracked = false;
 			/* Call customizer outside of synchronized region */
 			try {
@@ -909,19 +1016,18 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 			}
 			finally {
 				synchronized (this) {
-					if (adding.remove(reference)) /*
+					if (adding.remove(reference)) { /*
 													 * if the service was not
 													 * untracked during the
 													 * customizer callback
 													 */
-					{
 						if (object != null) {
 							this.put(reference, object);
 							modified(); /* increment modification count */
-							notifyAll();
-              try { // BA: Used by DS
-                addedService(reference, object);
-              } catch (Throwable ignored) {}
+							notifyAll(); /*
+											 * notify any waiters in
+											 * waitForService
+											 */
 						}
 					}
 					else {
@@ -935,7 +1041,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 			if (becameUntracked) {
 				if (DEBUG) {
 					System.out
-							.println("ServiceTracker.Tracked.track[removed]: " + reference); //$NON-NLS-1$
+							.println("ServiceTracker.Tracked.trackAdding[removed]: " + reference); //$NON-NLS-1$
 				}
 				/* Call customizer outside of synchronized region */
 				customizer.removedService(reference, object);
@@ -954,11 +1060,26 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		protected void untrack(ServiceReference reference) {
 			Object object;
 			synchronized (this) {
-				if (adding.remove(reference)) /*
+				if (initial.remove(reference)) { /*
+													 * if this service is
+													 * already in the list of
+													 * initial references to
+													 * process
+													 */
+					if (DEBUG) {
+						System.out
+								.println("ServiceTracker.Tracked.untrack[removed from initial]: " + reference); //$NON-NLS-1$
+					}
+					return; /*
+							 * we have removed it from the list and it will not
+							 * be processed
+							 */
+				}
+
+				if (adding.remove(reference)) { /*
 												 * if the service is in the
 												 * process of being added
 												 */
-				{
 					if (DEBUG) {
 						System.out
 								.println("ServiceTracker.Tracked.untrack[being added]: " + reference); //$NON-NLS-1$
@@ -968,18 +1089,12 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 							 * process of adding
 							 */
 				}
-        try { // BA: Used by DS
-          if (this.get(reference) != null) {
-            removingService(reference, this.get(reference));
-          }
-        } catch (Throwable ignored) {}
 				object = this.remove(reference); /*
 													 * must remove from tracker
 													 * before calling customizer
 													 * callback
 													 */
-				if (object == null) /* are we actually tracking the service */
-				{
+				if (object == null) { /* are we actually tracking the service */
 					return;
 				}
 				modified(); /* increment modification count */
@@ -999,8 +1114,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 
 	/**
 	 * Subclass of Tracked which implements the AllServiceListener interface.
-	 * This class is used by the ServiceTracker if isAllServiceTracker returns
-	 * true.
+	 * This class is used by the ServiceTracker if open is called with true.
 	 * 
 	 * @since 1.3
 	 */
@@ -1008,7 +1122,7 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		static final long	serialVersionUID	= 4050764875305137716L;
 
 		/**
-		 * Tracked constructor.
+		 * AllTracked constructor.
 		 */
 		protected AllTracked() {
 			super();
