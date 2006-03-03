@@ -143,7 +143,7 @@ public class SystemBundle extends BundleImpl {
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  "1.3");
+          "=" +  "1.3.1");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
