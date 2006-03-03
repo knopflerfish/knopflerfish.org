@@ -40,6 +40,8 @@ import java.net.*;
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
 
+import org.osgi.framework.Constants;
+
 /**
  * Wrapper which delegates an URL protocol to 
  * OSGi URLStreamHandlerServices.
@@ -89,7 +91,6 @@ public class URLStreamHandlerWrapper
               updateBest();
               return ;
             }
-
             if (compare(best, ref) > 0) {
               best = ref;
             }
@@ -133,7 +134,6 @@ public class URLStreamHandlerWrapper
     }
   }
 
-
   private void updateBest() {
     try {
       ServiceReference[] refs =
@@ -168,7 +168,6 @@ public class URLStreamHandlerWrapper
       if (best == null) {
         throw new IllegalStateException("null: Lost service for protocol="+ protocol);
       }
-
       obj = (URLStreamHandlerService)framework.systemBC.getService(best);
 
       if (obj == null) {
