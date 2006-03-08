@@ -519,54 +519,40 @@ class Archive {
     if (jar != null) { 
       ZipEntry entry; 
       //"normalize" + erroneous path check: be generous
-      if(path.startsWith("/") || path.startsWith("\\")){
+      path.replace('\\', '/');
+      if (path.startsWith("/")){
         path =  path.substring(1);   
       }  
-      if(!path.endsWith("/") && !path.endsWith("\\")/*in case bad argument*/){
-        if(path.length() > 1){
+      if (!path.endsWith("/")/*in case bad argument*/){
+        if (path.length() > 1){
           path += "/";
         }       
       } 
-      path.replace('\\', '/');
                 
-      /* for some reason this does not work and always returns null
-         if((entry = jar.getEntry(path)) == null){
-         return null;
-         }
-         if(!entry.isDirectory()){
-         return null;
-         }
-      */
-
       Enumeration entries = jar.entries();
-      while(entries.hasMoreElements()){
+      while (entries.hasMoreElements()){
         entry = (ZipEntry) entries.nextElement();
         String name = entry.getName();
-        if(name.equals(path) && !entry.isDirectory()){
-          return null;
-        }
-        if(name.startsWith(path)){
+        if (name.startsWith(path)){
           int idx = name.lastIndexOf('/');
-          if(entry.isDirectory()){
+          if (entry.isDirectory()){
             idx = name.substring(0, idx).lastIndexOf('/');
           }
-          if(idx > 0){
-            if(name.substring(0, idx + 1).equals(path)){
+          if (idx > 0){
+            if (name.substring(0, idx + 1).equals(path)){
               answer.add(name);
             }
-          }
-          else if(path.equals("")){
+          } else if (path.equals("")){
             answer.add(name);
           }
         }       
       }
-    } 
-    else {
+    } else {
       File f = findFile(file, path);
-      if(!f.exists()){
+      if (!f.exists()) {
         return null;
       }
-      if(!f.isDirectory()){
+      if (!f.isDirectory()) {
         return null;
       }
       File[] files = f.listFiles();

@@ -691,6 +691,42 @@ public class Util {
     }
   }
 
+
+  /**
+   * Check wildcard filter matches the string
+   */
+  public static boolean filterMatch(String filter, String s) {
+    return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);
+  }
+
+
+  /**
+   */
+  private static boolean patSubstr(char[] s, int si, char[] pat, int pi) {
+    if (pat.length-pi == 0) 
+      return s.length-si == 0;
+    if (pat[pi] == '*') {
+      pi++;
+      for (;;) {
+        if (patSubstr( s, si, pat, pi))
+          return true;
+        if (s.length-si == 0)
+          return false;
+        si++;
+      }
+    } else {
+      if (s.length-si==0){
+        return false;
+      }
+      if(s[si]!=pat[pi]){
+        return false;
+      }
+      return patSubstr( s, ++si, pat, ++pi);
+    }
+  }
+
+
+
 }
 
 

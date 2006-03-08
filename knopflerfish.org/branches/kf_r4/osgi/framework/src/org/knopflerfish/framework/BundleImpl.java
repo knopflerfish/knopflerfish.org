@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Vector;
 
 import org.osgi.framework.*;
 import org.osgi.framework.AdminPermission;
@@ -1580,15 +1581,45 @@ class BundleImpl implements Bundle {
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
     try {
       checkResourceAdminPerm();
-    }
-    catch(AccessControlException e){
+    } catch(AccessControlException e){
       return null;
     }
-    throw new RuntimeException("Not yet implemented.");
+    Vector res = new Vector();
+    if (isFragmentHost()) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        BundleImpl fb = (BundleImpl)i.next();
+        fb.addResourceEntries(res, path, filePattern, recurse);
+      }
+    }
+    addResourceEntries(res, path, filePattern, recurse);
+    return res.size() != 0 ? res.elements() : null;
+  }
 
-//   if(this.state == INSTALLED){
-//     getUpdatedState();
-//   }
+
+  /**
+   *
+   */
+  protected void addResourceEntries(Vector res, String path, String pattern, boolean recurse) {
+    for (Enumeration e = getEntryPaths(path); e.hasMoreElements(); ) {
+      String fp = (String)e.nextElement();
+      if (fp.endsWith("/")) {
+        if (recurse) {
+          addResourceEntries(res, fp, pattern, recurse);
+        }
+      } else {
+        int l = fp.lastIndexOf('/');
+        if (pattern == null || Util.filterMatch(pattern, fp.substring(l + 1))) {
+          try {
+            URL url = new URL(BundleURLStreamHandler.PROTOCOL, 
+                              Long.toString(id),
+                              -1,
+                              "/" + fp,
+                              framework.bundleURLStreamhandler);
+            res.add(url);
+          } catch (MalformedURLException _ignore) { }
+        }
+      }
+    }
   }
 
 
@@ -1605,17 +1636,25 @@ class BundleImpl implements Bundle {
     if(state == UNINSTALLED){
       throw new IllegalStateException("state is uninstalled");
     }
-    //not REALLY using class loader, just don't want to duplicate functionality
-    BundleClassLoader cl = (BundleClassLoader) getClassLoader();
-    if (cl != null) {
-      Enumeration e =  cl.getBundleResources(name, true);
-      if (e != null && e.hasMoreElements()) {
-        return (URL)e.nextElement();
-      }
+    InputStream is = archive.getInputStream(name, 0);
+    if (is != null) {
+      try {
+        is.close();
+        return new URL(BundleURLStreamHandler.PROTOCOL, 
+                       Long.toString(id),
+                       -1,
+                       name.startsWith("/") ? name : "/" + name,
+                       framework.bundleURLStreamhandler);
+      } 
+      catch (Exception _ignore) { }
     }
     return null;
   }
 
+
+  /**
+   *
+   */
   public Enumeration getEntryPaths(String path) {
     try{
       checkResourceAdminPerm();
