@@ -209,7 +209,7 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
-   * Check if named entry exist in bundles archive.
+   * Check if named entry exist in bundles classpath.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
@@ -241,18 +241,12 @@ class BundleArchiveImpl implements BundleArchive
     
 
   /**
-   * Same as getInputStream(component, -1)
-   */
-  public InputStream getInputStream(String component) {
-    return getInputStream(component, -1);
-  }
-
-  /**
    * Get an specific InputStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param ix index of jar. 0 means the top level. -1 means any
+   * @param ix index of sub archives. A postive number is the classpath entry
+   *            index. -1 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
   public InputStream getInputStream(String component, int ix) {
@@ -261,13 +255,7 @@ class BundleArchiveImpl implements BundleArchive
     }
 
     if(ix == -1) {
-      for (int i = 0; i < archives.length; i++) {
-        InputStream res = archives[i].getInputStream(component);
-        if (res != null) {
-          return res;
-        }
-      }
-      return null;
+      return archive.getInputStream(component);
     } else {
       return archives[ix].getInputStream(component);
     }

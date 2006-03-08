@@ -684,7 +684,7 @@ final public class BundleClassLoader extends ClassLoader {
       public Object get(Vector items, String path, String name, String _pkg, BundleClassLoader cl, BundleArchive ba) {
         Vector answer = new Vector(items.size());
         for(int i = 0; i < items.size(); i++) {
-          int jarId = ((Integer)items.elementAt(i)).intValue();
+          int subId = ((Integer)items.elementAt(i)).intValue();
           try {
             /*
              * Fix for Java profiles which do not support 
@@ -695,20 +695,12 @@ final public class BundleClassLoader extends ClassLoader {
              * to 'true' so the BundleURLStreamHandler is added
              * to the Framework urlStreamHandlerFactory
              */
-            URL url;
-            if (Framework.REGISTERBUNDLEURLHANDLER) {
-              url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                            Long.toString(ba.getBundleId()),
-                            jarId,
-                            path.startsWith("/") ? path : ("/" + path));
-            } else {
-              URLStreamHandler handler = cl.bpkgs.bundle.framework.bundleURLStreamhandler;
-              url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                            Long.toString(ba.getBundleId()),
-                            jarId,
-                            path.startsWith("/") ? path : ("/" + path),
-                            handler);
-            }
+            URLStreamHandler handler = cl.bpkgs.bundle.framework.bundleURLStreamhandler;
+            URL url = new URL(BundleURLStreamHandler.PROTOCOL, 
+                              Long.toString(ba.getBundleId()),
+                              subId,
+                              path.startsWith("/") ? path : "/" + path,
+                              handler);
             if (Debug.classLoader) {
               Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - found: " + path + " -> " + url);
             }

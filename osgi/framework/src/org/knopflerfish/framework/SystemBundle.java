@@ -35,8 +35,10 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 
@@ -308,6 +310,29 @@ public class SystemBundle extends BundleImpl {
     headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     return headers;
+  }
+
+  /**
+   *
+   */
+  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+    return null;
+  }
+
+
+  /**
+   *
+   */
+  public URL getEntry(String name) {
+    return null;
+  }
+
+
+  /**
+   *
+   */
+  public Enumeration getEntryPaths(String path) {
+    return null;
   }
 
 

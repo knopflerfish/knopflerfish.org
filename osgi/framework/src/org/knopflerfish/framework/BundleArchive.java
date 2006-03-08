@@ -119,20 +119,14 @@ public interface BundleArchive {
 
 
   /**
-   * Check if named entry exists in the bundle's archive.
+   * Check if named entry exists in the bundle's classpath.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
    * @param onlyFirst End search when we find first entry if this is true.
-   * @return Vector of entry numbers, or null if it doesn't exist.
+   * @return Vector of classpath entry numbers, or null if it doesn't exist.
    */
   Vector componentExists(String component, boolean onlyFirst);
-
-
-  /**
-   * Same as getInputStream(component, -1)
-   */
-  InputStream getInputStream(String component);
 
 
   /**
@@ -140,7 +134,8 @@ public interface BundleArchive {
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param ix index of jar. 0 means the top level. -1 means any archive.
+   * @param ix index of sub archives. A postive number is the classpath entry
+   *            index. -1 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
   InputStream getInputStream(String component, int ix);
@@ -205,6 +200,5 @@ public interface BundleArchive {
    * @return the location of the cached bundle.
    */
   String getJarLocation();
-
 
 }

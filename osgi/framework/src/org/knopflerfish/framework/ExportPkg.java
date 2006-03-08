@@ -161,7 +161,7 @@ class ExportPkg {
         // assert fullClassName.startsWith(name)
         clazz = fullClassName.substring(name.length() + 1);
         for (Iterator i = include.iterator(); i.hasNext(); ) {
-          if (filterMatch((String)i.next(), clazz)) {
+          if (Util.filterMatch((String)i.next(), clazz)) {
             break;
           }
           if (!i.hasNext()) {
@@ -175,7 +175,7 @@ class ExportPkg {
           clazz = fullClassName.substring(name.length() + 1);
         }
         for (Iterator i = exclude.iterator(); i.hasNext(); ) {
-          if (filterMatch((String)i.next(), clazz)) {
+          if (Util.filterMatch((String)i.next(), clazz)) {
             ok = false;
             break;
           }
@@ -227,39 +227,6 @@ class ExportPkg {
   //
   // Private
   //    
-
-  /**
-   */
-  private  boolean filterMatch(String filter, String s) {
-    return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);
-  }
-
-
-  /**
-   */
-  private boolean patSubstr(char[] s, int si, char[] pat, int pi) {
-    if (pat.length-pi == 0) 
-      return s.length-si == 0;
-    if (pat[pi] == '*') {
-      pi++;
-      for (;;) {
-        if (patSubstr( s, si, pat, pi))
-          return true;
-        if (s.length-si == 0)
-          return false;
-        si++;
-      }
-    } else {
-      if (s.length-si==0){
-        return false;
-      }
-      if(s[si]!=pat[pi]){
-        return false;
-      }
-      return patSubstr( s, ++si, pat, ++pi);
-    }
-  }
-
 
   /**
    * String describing package name and specification version, if specified.
