@@ -40,6 +40,7 @@ import java.io.PrintStream;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 
 public class Activator implements BundleActivator {
@@ -151,6 +152,18 @@ public class Activator implements BundleActivator {
         out.println();
         
         tests[i].cleanup();
+      }
+      
+      if (System.getProperty("org.knopflerfish.bundle.endurance_test.halt_after_test", 
+          "false").equals("true")) {
+        try {
+          System.out.println("Shutting down framework.");
+          bc.getBundle(0).stop();
+          
+        } catch (BundleException e) {
+          e.printStackTrace();
+          System.exit(0);
+        }    
       }
     }
   }
