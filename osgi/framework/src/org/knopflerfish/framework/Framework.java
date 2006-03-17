@@ -45,6 +45,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Dictionary;
 
+import org.knopflerfish.framework.permissions.PermissionsHandle;
 import org.osgi.framework.*;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -76,12 +77,12 @@ public class Framework {
   /**
    * All bundle in this framework.
    */
-  protected Bundles bundles;
+  public Bundles bundles;
 
   /**
    * All listeners in this framework.
    */
-  Listeners listeners = new Listeners();
+  Listeners listeners;
 
   /**
    * All exported and imported packages in this framework.
@@ -91,12 +92,12 @@ public class Framework {
   /**
    * All registered services in this framework.
    */
-  Services services = new Services();
+  Services services;
 
   /**
-   * PermissionAdmin service
+   * PermissionOps handle.
    */
-  PermissionAdminImpl permissions /*= null*/;
+  PermissionOps perm;
 
 
   /**
@@ -242,7 +243,6 @@ public class Framework {
     String ver = System.getProperty("os.version");
     if (ver != null) {
       int dots = 0;
-      boolean skipDelim = false;
       int i = 0;
       for ( ; i < ver.length(); i++) {
         char c = ver.charAt(i);
@@ -258,6 +258,20 @@ public class Framework {
       osVersion = ver.substring(0, i);
     }
         
+    ProtectionDomain pd = null;
+    if (System.getSecurityManager() != null) {
+      try {
+        pd = getClass().getProtectionDomain();
+      } catch (Throwable t) {
+        if(Debug.classLoader) {
+          Debug.println("Failed to get protection domain: " + t);
+        }
+      }
+      perm = new SecurePermissionOps(this);
+    } else {
+      perm = new PermissionOps();
+    }
+
 
     Class storageImpl = Class.forName(whichStorageImpl);
     storage           = (BundleStorage)storageImpl.newInstance();
@@ -265,24 +279,16 @@ public class Framework {
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
     
+    listeners         = new Listeners(perm);
+    services          = new Services(perm);
 
-    systemBundle      = new SystemBundle(this);
-
+    systemBundle      = new SystemBundle(this, pd);
     systemBC          = new BundleContextImpl(systemBundle);
     bundles           = new Bundles(this);
 
     systemBundle.setBundleContext(systemBC);
 
-    if (System.getSecurityManager() != null) { 	
-      permissions       = new PermissionAdminImpl(this);
-      String [] classes = new String [] { PermissionAdmin.class.getName() };
-      services.register(systemBundle,
-			classes,
-			permissions,
-			null);
-
-      Policy.setPolicy(new FrameworkPolicy(permissions));
-    }
+    perm.registerService();
     /* for testing
     permissions.setPermissions("file:///C:\\devel\\ubicore2\\out\\dmt_gst_plugin.jar",
     		                   new PermissionInfo[]{new PermissionInfo("org.knopflerfish.framework.AdminPermission", null, AdminPermission.STARTLEVEL)})
@@ -489,7 +495,7 @@ public class Framework {
    * @exception BundleException If start failed.
    */
   public void startBundle(long id) throws BundleException {
-    BundleImpl b = bundles.getBundle(id);
+    Bundle b = bundles.getBundle(id);
     if (b != null) {
       b.start();
     } else {
@@ -505,7 +511,7 @@ public class Framework {
    * @exception BundleException If stop failed.
    */
   public void stopBundle(long id) throws BundleException {
-    BundleImpl b = bundles.getBundle(id);
+    Bundle b = bundles.getBundle(id);
     if (b != null) {
       b.stop();
     } else {
@@ -521,7 +527,7 @@ public class Framework {
    * @exception BundleException If uninstall failed.
    */
   public void uninstallBundle(long id) throws BundleException {
-    BundleImpl b = bundles.getBundle(id);
+    Bundle b = bundles.getBundle(id);
     if (b != null) {
       b.uninstall();
     } else {
@@ -537,7 +543,7 @@ public class Framework {
    * @exception BundleException If update failed.
    */
   public void updateBundle(long id) throws BundleException {
-    BundleImpl b = bundles.getBundle(id);
+    Bundle b = bundles.getBundle(id);
     if (b != null) {
       b.update();
     } else {
@@ -555,9 +561,9 @@ public class Framework {
    * if the identifier doesn't match any installed bundle.
    */
   public String getBundleLocation(long id) {
-    BundleImpl b = bundles.getBundle(id);
+    Bundle b = bundles.getBundle(id);
     if (b != null) {
-      return b.location;
+      return b.getLocation();
     } else {
       return null;
     }
@@ -572,9 +578,9 @@ public class Framework {
    * if the location doesn't match any installed bundle.
    */
   public long getBundleId(String location) {
-    BundleImpl b = bundles.getBundle(location);
+    Bundle b = bundles.getBundle(location);
     if (b != null) {
-      return b.id;
+      return b.getBundleId();
     } else {
       return -1;
     }
@@ -583,8 +589,11 @@ public class Framework {
   /**
    * Get private bundle data storage file handle.
    */
-  FileTree getDataStorage() {
-    return dataStorage;
+  public FileTree getDataStorage(long id) {
+	if (dataStorage != null) {
+	  return new FileTree(dataStorage, Long.toString(id));
+	}
+	return null;
   }
 
   /**
@@ -689,10 +698,6 @@ public class Framework {
    * Get the bundle context used by the system bundle.
    */
   public BundleContext getSystemBundleContext() {
-    return (BundleContext)
-      AccessController.doPrivileged(new  PrivilegedAction() {
-	  public Object run() {
-	    return systemBC;
-	  }});
+    return systemBC;
   }
 }

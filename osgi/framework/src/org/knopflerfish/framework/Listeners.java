@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.framework;
 
 import java.security.*;
 
-//import java.util.Collection;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -44,10 +43,6 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
-/*import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Hashtable;*/
 import java.util.EventListener;
 
 import org.osgi.framework.*;
@@ -77,6 +72,16 @@ public class Listeners
    */
   private ServiceListenerState serviceListeners = new ServiceListenerState();
 
+  /**
+   * Handle to secure call class.
+   */
+  private PermissionOps secure;
+
+
+  Listeners(PermissionOps perm) {
+    secure = perm;
+  }
+
 
   /**
    * Add a bundle listener to the current framework.
@@ -87,6 +92,7 @@ public class Listeners
   void addBundleListener(Bundle bundle, BundleListener listener) {
     ListenerEntry le = new ListenerEntry(bundle, listener);
     if (listener instanceof SynchronousBundleListener) {
+      secure.checkListenerAdminPerm(bundle);
       synchronized (syncBundleListeners) {
     	  syncBundleListeners.add(le);
       }
@@ -111,6 +117,7 @@ public class Listeners
     ListenerEntry le = new ListenerEntry(bundle, listener);
     if (listener instanceof SynchronousBundleListener) {
       synchronized (syncBundleListeners) {
+        secure.checkListenerAdminPerm(bundle);
 	syncBundleListeners.remove(le);
       }
     } else {
@@ -244,12 +251,7 @@ public class Listeners
     for (int i = 0; i < bl.length; i++) {
       final ListenerEntry l = bl[i];
       try {
-	AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-	      ((BundleListener)l.listener).bundleChanged(evt);
-	      return null;
-	    }
-	  });
+        secure.callBundleChanged((BundleListener)l.listener, evt);
       } catch (Throwable pe) {
 	frameworkError(l.bundle, pe);
       }
@@ -280,12 +282,7 @@ public class Listeners
     for (int i = 0; i < fl.length; i++) {
       final ListenerEntry l = fl[i];
       try {
-	AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-	      ((FrameworkListener)l.listener).frameworkEvent(evt);
-	      return null;
-	    }
-	  });
+        secure.callFrameworkEvent((FrameworkListener)l.listener, evt);
       } catch (Throwable pe) {
 	// Don't report Error events again, since probably would go into an infinite loop.
 	if (evt.getType() != FrameworkEvent.ERROR) {
@@ -310,35 +307,30 @@ public class Listeners
     Set sl = serviceListeners.getMatchingListeners(sr);
     int n = 0;
     for (Iterator it = sl.iterator(); it.hasNext(); n++) {
-    	final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
-    	boolean testAssignable = false;
-    	if(!(l.listener instanceof AllServiceListener)){
-    		testAssignable = true;
-    	}
-    	try {
-    		int length = classes.length;
-    		for (int i = 0; i < length; i++) {
-    			if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
-    				continue;
-    			}
-    			if (l.bundle.hasPermission(new ServicePermission(classes[i], 
-    					                                         ServicePermission.GET))) {
-    				try {
-    					AccessController.doPrivileged(new PrivilegedAction() {
-    						public Object run() {
-    							((ServiceListener)l.listener).serviceChanged(evt);
-    							return null;
-    						}
-    					});
-    				} catch (Throwable pe) {
-    					frameworkError(l.bundle, pe);
-    				}
-    				break;
-    			}
-    		}//for
-    	} catch (Exception le) {
-    		frameworkError(l.bundle, le);
-    	}
+      final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
+      boolean testAssignable = false;
+      if(!(l.listener instanceof AllServiceListener)){
+        testAssignable = true;
+      }
+      try {
+        int length = classes.length;
+        for (int i = 0; i < length; i++) {
+          if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
+            continue;
+          }
+          if (l.bundle.hasPermission(new ServicePermission(classes[i], 
+                                                           ServicePermission.GET))) {
+            try {
+              secure.callServiceChanged((ServiceListener)l.listener, evt);
+            } catch (Throwable pe) {
+              frameworkError(l.bundle, pe);
+            }
+            break;
+          }
+        }//for
+      } catch (Exception le) {
+        frameworkError(l.bundle, le);
+      }
     }//for
     if (Debug.ldap) {
       Debug.println("Notified " + n + " listeners");

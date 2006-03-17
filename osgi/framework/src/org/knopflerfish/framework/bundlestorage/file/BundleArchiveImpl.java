@@ -539,11 +539,16 @@ class BundleArchiveImpl implements BundleArchive
    * is uninstalled.
    *
    * <p>
-   * Uninstalled is marked via a startlevel of -2
+   * Uninstalled is marked via a startlevel of -2. If last modified
+   * file is not available then the bundle is not complete.
    * </p>
    */
   static boolean isUninstalled(File dir) {
-    String s = getContent(dir, STARTLEVEL_FILE);
+    String s = getContent(dir, LAST_MODIFIED_FILE);
+    if (s == null || s.length() == 0) {
+      return true;
+    }
+    s = getContent(dir, STARTLEVEL_FILE);
     int n = -1;
     try {
       n = Integer.parseInt(s);

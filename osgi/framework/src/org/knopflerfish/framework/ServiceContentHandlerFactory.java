@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
 import java.net.*;
 import org.osgi.service.url.*;
 import java.util.Map;
@@ -109,7 +108,7 @@ public class ServiceContentHandlerFactory
       String filter = "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype + ")";
       //TODO true or false?
       ServiceReference[] srl = framework.services
-	.get(ContentHandler.class.getName(), filter, null, false, false);
+	.get(ContentHandler.class.getName(), filter, null, false);
       
       if(srl != null && srl.length > 0) {
 	ContentHandlerWrapper wrapper = 

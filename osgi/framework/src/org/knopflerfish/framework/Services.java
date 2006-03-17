@@ -35,8 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.security.*;
-import java.util.Map;
-import java.util.List;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -61,13 +59,22 @@ class Services {
    * All registered services in the current framework.
    * Mapping of registered service to class names under which service is registerd.
    */
-	private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
+  private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
 
   /**
    * Mapping of classname to registered service.
    */
   private HashMap /* String->ServiceRegistration */ classServices = new HashMap();
   
+  /**
+   * Handle to secure call class.
+   */
+  private PermissionOps secure;
+
+
+  Services(PermissionOps perm) {
+    secure = perm;
+  }
 
   /**
    * Register a service in the framework wide register.
@@ -101,16 +108,15 @@ class Services {
 	if (classes[i] == null) {
 	  throw new IllegalArgumentException("Can't register as null class");
 	}
-	if (bundle.framework.permissions != null) {
-	  AccessController.checkPermission(new ServicePermission(classes[i], ServicePermission.REGISTER));
-	  if (bundle.id != 0 && classes[i].equals(PermissionAdmin.class.getName())) {
-	    throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
-	  }
-	    
-	}
-	if (bundle.id != 0 && classes[i].equals(PackageAdmin.class.getName())) {
-	  throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
-	}
+	secure.checkRegisterServicePerm(classes[i]);
+	if (bundle.id != 0) {
+          if (classes[i].equals(PackageAdmin.class.getName())) {
+            throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
+          }
+          if (classes[i].equals(PermissionAdmin.class.getName())) {
+            throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
+          }
+        }
 	Class c = null;
 	Class tsc = sc;
 	for (ClassLoader cl = scl; cl != null; cl = tsc.getClassLoader()) {
@@ -219,11 +225,10 @@ class Services {
    * @param isAssignableToTest whether to if the bundle that registered the service 
    * referenced by this ServiceReference and the specified bundle are both wired to 
    * same source for the registration class.
-   * @param checkSecurity whether to check security as specified in specs
    * @return An array of {@link ServiceReference} object.
    */
   synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle,
-		                              boolean doAssignableToTest, boolean checkSecurity)
+		                              boolean doAssignableToTest)
     throws InvalidSyntaxException {
     Iterator s;
     if (clazz == null) {
@@ -243,43 +248,28 @@ class Services {
     while (s.hasNext()) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
       String[] classes = (String[]) services.get(sr);
-	  //should never happen
-	  if(classes == null){
-		  return null;
-	  }
-	  if (checkSecurity) {
-		  int failures = 0;
-		  int length = classes.length; //loop invariant. help the compiler
-		  for (int i = 0; i < length; i++) {
-			  try {
-				  AccessController.checkPermission(new ServicePermission(classes[i], 
-					                               ServicePermission.GET));
-			  } 
-			  catch (AccessControlException e) {
-				  failures++;
-			  }
-		  }
-		  if(failures == length){
-			  continue; //sr not part of returned set
-		  }
-	  }
-      
+      //should never happen?
+      if (classes == null) {
+        return null;
+      }
+      if (!secure.okGetServicePerms(classes)) {
+        continue; //sr not part of returned set
+      }
       if (filter == null || LDAPExpr.query(filter, sr.properties)) {
-    	  if(doAssignableToTest){
-    		  int i;
-    		  int length = classes.length;
-    	      for (i = 0; i < length; i++) {
-    	    	  if(!sr.getReference().isAssignableTo(bundle, classes[i])){
-    	    		  break;
-    			  }
-    		  }
-    	      if(i == length){
-    		      res.add(sr.getReference());
-    		  }
-    	  }
-    	  else{
-    		  res.add(sr.getReference());
-    	  }
+        if (doAssignableToTest) {
+          int i;
+          int length = classes.length;
+          for (i = 0; i < length; i++) {
+            if(!sr.getReference().isAssignableTo(bundle, classes[i])){
+              break;
+            }
+          }
+          if (i == length) {
+            res.add(sr.getReference());
+          }
+        } else {
+          res.add(sr.getReference());
+        }
       }
     }
     if (res.isEmpty()) {

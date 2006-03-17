@@ -39,10 +39,8 @@ import java.util.Properties;
 import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
-import java.util.StringTokenizer;
 import java.security.*;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import org.osgi.framework.*;
@@ -191,7 +189,6 @@ public class Main {
     initBase    = base;
 
     handleArgs(args, initOffset, base);
-
   }
 
   static String[] initArgs   = null;
@@ -503,20 +500,6 @@ public class Main {
     return location;
   }
 
-  //is this ever used??
-  public static void frameworkEvent(final FrameworkEvent evt) {
-    //framework.checkAdminPermission();
-
-    final FrameworkEvent e2 = new FrameworkEvent(evt.getType(),
-                                                 evt.getBundle(),
-                                                 evt.getThrowable());
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          framework.listeners.frameworkEvent(e2);
-          return null;
-        }
-      });
-  }
 
   /**
    * Shutdown framework.
@@ -527,32 +510,28 @@ public class Main {
    * </p>
    */
   static public void shutdown(final int exitcode) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          Thread t = new Thread() {
-              public void run() {
-                if (bootMgr != 0) {
-                  try {
-                    framework.stopBundle(bootMgr);
-                  } catch (BundleException e) {
-                    System.err.println("Stop of BootManager failed, " +
-                                       e.getNestedException());
-                  }
-                }
-                framework.shutdown();
-                if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
-                  System.exit(exitcode);
-                } else {
-                  println("Framework shutdown, skipped System.exit()", 0);
-                }
-              }
-            };
-          t.setDaemon(false);
-          t.start();
-          return null;
+    Thread t = new Thread() {
+        public void run() {
+          if (bootMgr != 0) {
+            try {
+              framework.stopBundle(bootMgr);
+            } catch (BundleException e) {
+              System.err.println("Stop of BootManager failed, " +
+                                 e.getNestedException());
+            }
+          }
+          framework.shutdown();
+          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+            System.exit(exitcode);
+          } else {
+            println("Framework shutdown, skipped System.exit()", 0);
+          }
         }
-      });
+      };
+    t.setDaemon(false);
+    t.start();
   }
+
 
   /**
    * Restart framework.
@@ -561,36 +540,31 @@ public class Main {
    * </p>
    */
   static public void restart() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          Thread t = new Thread() {
-              public void run() {
-                if (bootMgr != 0) {
-                  try {
-                    framework.stopBundle(bootMgr);
-                  } catch (BundleException e) {
-                    System.err.println("Stop of BootManager failed, " +
-                                       e.getNestedException());
-                  }
-                }
-                framework.shutdown();
+    Thread t = new Thread() {
+        public void run() {
+          if (bootMgr != 0) {
+            try {
+              framework.stopBundle(bootMgr);
+            } catch (BundleException e) {
+              System.err.println("Stop of BootManager failed, " +
+                                 e.getNestedException());
+            }
+          }
+          framework.shutdown();
 
-                try {
-                  if (bootMgr != 0) {
-                    framework.launch(bootMgr);
-                  } else {
-                    framework.launch(0);
-                  }
-                } catch (Exception e) {
-                  println("Failed to restart framework", 0);
-                }
-              }
-            };
-          t.setDaemon(false);
-          t.start();
-          return null;
+          try {
+            if (bootMgr != 0) {
+              framework.launch(bootMgr);
+            } else {
+              framework.launch(0);
+            }
+          } catch (Exception e) {
+            println("Failed to restart framework", 0);
+          }
         }
-      });
+      };
+    t.setDaemon(false);
+    t.start();
   }
 
   /**

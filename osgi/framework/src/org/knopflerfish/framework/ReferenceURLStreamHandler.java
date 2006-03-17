@@ -36,9 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.security.*;
-import java.util.jar.*;
-import java.util.zip.*;
+
 
 /**
  * Reference URL handling, used for accepting file: references.

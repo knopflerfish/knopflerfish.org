@@ -173,27 +173,10 @@ public class ServiceReferenceImpl implements ServiceReference
 	Integer ref = (Integer)registration.dependents.get(bundle);
 	if (ref == null) {
 	  String[] classes = (String[])registration.properties.get(Constants.OBJECTCLASS);
-	  if (bundle.framework.permissions != null) {
-	    boolean perm = false;
-	    AccessControlContext acc = AccessController.getContext();
-	    for (int i = 0; i < classes.length; i++) {
-	      try { 
-		acc.checkPermission(new ServicePermission(classes[i], ServicePermission.GET));
-		perm = true;
-		break;
-	      } catch (AccessControlException ignore) { }
-	    }
-	    if (!perm) {
-	      throw new SecurityException("Bundle does not have permission to get the service.");
-	    }
-	  }
+	  bundle.framework.perm.checkGetServicePerms(classes);
 	  if (registration.service instanceof ServiceFactory) {
 	    try {
-	      s = AccessController.doPrivileged(new PrivilegedAction() {
-		  public Object run() {
-		    return ((ServiceFactory)registration.service).getService(bundle, registration);
-		  }
-		});
+              s = bundle.framework.perm.callGetService((ServiceFactory)registration.service, bundle, registration);
 	    } catch (Throwable pe) {
 	      bundle.framework.listeners.frameworkError(registration.bundle, pe);
 	      return null;

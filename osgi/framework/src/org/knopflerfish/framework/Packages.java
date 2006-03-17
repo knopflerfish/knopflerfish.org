@@ -267,7 +267,7 @@ class Packages {
     tempRequired = new HashMap();
     tempBlackList = new HashSet();
     tempResolved.add(bundle);
-    RequireBundle br = checkRequireBundle(bundle);
+    String br = checkRequireBundle(bundle);
     if (br == null) {
       List failed = resolvePackages(pkgs);
       if (failed.size() == 0) {
@@ -284,7 +284,7 @@ class Packages {
         res = r.toString();
       }
     } else {
-      res = "Failed to find required bundle: " + br.name;
+      res = "Failed to resolve required bundle or host: " + br;
     } 
     tempResolved = null;
     tempProvider = null;
@@ -652,19 +652,22 @@ class Packages {
   /**
    * Check if a bundle can be resolved. If resolvable, then the
    * objects tempResolved, tempProvider and tempBlackList are updated.
+   * Bundle must be in installed state.
    *
    * @param b Bundle to be checked.
-   * @return true
+   * @return true if resolvable otherwise false.
    */
   private boolean checkResolve(BundleImpl b) {
-    if (checkBundleSingleton(b) == null) {
+    ArrayList okImports = new ArrayList();
+    if (framework.perm.missingMandatoryPackagePermissions(b.bpkgs, okImports) == null &&
+        checkBundleSingleton(b) == null) {
       HashSet oldTempResolved = (HashSet)tempResolved.clone();
       HashMap oldTempProvider = (HashMap)tempProvider.clone();
       HashMap oldTempRequired = (HashMap)tempRequired.clone();
       HashSet oldTempBlackList = (HashSet)tempBlackList.clone();
       tempResolved.add(b);
-      if (checkRequireBundle(b) == null) { 
-        List r = resolvePackages(b.getImports());
+      if (checkRequireBundle(b) == null) {
+        List r = resolvePackages(okImports.iterator());
         if (r.size() == 0) {
           return true;
         }
@@ -777,13 +780,16 @@ class Packages {
    * Check that the bundle specified can resolve all its Require-Bundle constraints.
    *
    * @param b Bundle to check, must be in INSTALLED state
-   * @return RequireBundle blocking resolve, otherwise null.
+   * @return Symbolic name of bundle blocking resolve, otherwise null.
    */
-  private RequireBundle checkRequireBundle(BundleImpl b) {
+  private String checkRequireBundle(BundleImpl b) {
     // NYI! More speed?
     if (b.bpkgs.require != null) {
       if (Debug.packages) {
         Debug.println("checkRequireBundle: check requiring bundle " + b);
+      }
+      if (!framework.perm.okRequireBundlePerm(b)) {
+        return b.symbolicName;
       }
       HashMap res = new HashMap();
       for (Iterator i = b.bpkgs.require.iterator(); i.hasNext(); ) {
@@ -805,7 +811,9 @@ class Packages {
                 ok = null;
               }
             }
-          } else if (b2.state == Bundle.INSTALLED && checkResolve(b2)) {
+          } else if (b2.state == Bundle.INSTALLED &&
+                     framework.perm.okProvideBundlePerm(b2) &&
+                     checkResolve(b2)) {
             ok = b2;
           }
         }
@@ -818,7 +826,7 @@ class Packages {
           if (Debug.packages) {
             Debug.println("checkRequireBundle: failed to satisfy: " + br.name);
           }
-          return br;
+          return br.name;
         }
       }
       tempRequired.putAll(res);

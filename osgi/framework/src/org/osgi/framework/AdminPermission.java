@@ -34,6 +34,7 @@
 
 /**
  * @author Philippe Laporte
+ * @author Jan Stein
  */
 
 /* 
@@ -234,6 +235,7 @@ public final class AdminPermission extends Permission {
 			//SPECS what to do?
 		}
 		parseActions(actions);
+                bundle = null;
 	}
 
 	/**
@@ -249,32 +251,25 @@ public final class AdminPermission extends Permission {
 	 * @since 1.3
 	 */
 	public AdminPermission(Bundle bundle, String actions) {
-		super("irrelevant");
-		setBundle(bundle);
-	    parseActions(actions);
+		super("BID#" + bundle.getBundleId());
+		this.bundle = bundle;
+                parseActions(actions);
 	}
 	
 	//package only
 	AdminPermission(String filter, int actionMask){
 		super(filter);
 		this.actionMask = actionMask;
+                bundle = null;
 	}
 	
     //package only
 	AdminPermission(Bundle bundle, int actionMask){
-		super("irrelevant");
-		setBundle(bundle);
+		super("BID#" + bundle.getBundleId());
 		this.actionMask = actionMask;
 	}
-	
-	private void setBundle(Bundle bundle){
-		this.bundle = bundle;
-		id = bundle.getBundleId();
-		location = bundle.getLocation();
-		
-		symbName = bundle.getSymbolicName();
-	}
-	
+
+
 	private void parseActions(String actions){
 		StringTokenizer st = new StringTokenizer(actions, ",");
 		while(st.hasMoreTokens()){
@@ -337,11 +332,7 @@ public final class AdminPermission extends Permission {
 			return ((actionMask == ap.actionMask) && getName().equals(ap.getName()));
 		}
 		else{
-			return (actionMask == ap.actionMask  && 
-					id == ap.id                  &&
-					location.equals(ap.location) &&
-					symbName.equals(ap.symbName)
-					);
+			return (actionMask == ap.actionMask  && bundle == ap.bundle);
 		}
 	}
 
@@ -354,9 +345,8 @@ public final class AdminPermission extends Permission {
 		if(bundle == null){
 			return getName().hashCode() ^ actionMask;
 		}
-		else{//TODO is this right?
-			return (int)id ^ location.hashCode() ^ 
-			       symbName.hashCode() ^ actionMask;
+		else{
+			return (int)id ^ actionMask;
 		}	
 	}
 
@@ -421,20 +411,17 @@ public final class AdminPermission extends Permission {
 		return sb.toString();
 	}
 
-	private boolean match(AdminPermission ap){
-		if(ap.bundle == null){
-			return false;
-		}
-	    Hashtable t = new Hashtable();
-	    if(ap.id != -1){
-	    	t.put("id", new Long(ap.id));	
-	    }
-	    if(ap.location != null){
-	    	t.put("location", ap.location);
-	    }
-	    if(ap.symbName != null){
-	    	t.put("name", ap.symbName);
-	    }
+	private boolean match(final AdminPermission ap){
+            // TODO, more efficient impl?
+            final Hashtable t = new Hashtable();
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                  t.put("id", new Long(ap.bundle.getBundleId()));	
+                  t.put("location", ap.bundle.getLocation());
+                  t.put("name", ap.bundle.getSymbolicName());
+                  return null;
+                }
+              });
 	    //SPECS should it be case sensitive or not?
 	    return ldap.evaluate(t, false);
 	}
@@ -473,26 +460,17 @@ public final class AdminPermission extends Permission {
 			return false;
 		}
 		AdminPermission ap = (AdminPermission) p;
-		
 		if(ap.bundle == null && !ap.getName().equals(WILDCARD)){
 			throw new RuntimeException("permission not contructed with bundle or *");
 		}
-		
-		if((getName().equals(WILDCARD) || match(ap))		
-			&&  
-		   ((actionMask | ap.actionMask) == actionMask)
-		   ){
-			return true;
+
+		if (bundle != null) { 
+                        return (bundle == ap.bundle || ap.getName().equals(WILDCARD)) &&
+                               (actionMask | ap.actionMask) == actionMask;
+		} else {
+        		return (getName().equals(WILDCARD) || match(ap)) &&  
+                               (actionMask | ap.actionMask) == actionMask;
 		}
-		
-		if(ap.getName().equals(WILDCARD)   && 
-		   (getName().equals(WILDCARD) &&  
-		   (actionMask | ap.actionMask) == actionMask)
-		   ){
-			return true;
-		}	
-		
-		return false;
 	}
 
 	/**

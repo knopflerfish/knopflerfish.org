@@ -43,8 +43,6 @@ import java.util.Iterator;
 
 import java.io.File;
 
-import java.security.AccessController;
-
 
 /**
  * StartLevel service implementation.
@@ -75,26 +73,15 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   public static final String SPEC_VERSION = "1.0";
   
-  private AdminPermission SYSTEM_ADMIN_STARTLEVEL_PERM;
 
   public StartLevelImpl(Framework framework) {
     this.framework = framework;
     
-    if(framework.permissions != null){
-    	SYSTEM_ADMIN_STARTLEVEL_PERM = new AdminPermission(framework.systemBundle, AdminPermission.STARTLEVEL);
-    }
-    
     storage = Util.getFileStorage("startlevel");
 
-    setStartLevel(1);
+    setStartLevel0(1);
   }
   
-  private void checkStartLevelAdminSystem(){
-	  if(SYSTEM_ADMIN_STARTLEVEL_PERM != null){  
-			AccessController.checkPermission(SYSTEM_ADMIN_STARTLEVEL_PERM);  
-	  } 
-  }
-
   void open() {
     
     if(Debug.startlevel) {
@@ -175,15 +162,15 @@ public class StartLevelImpl implements StartLevel, Runnable {
   
 
   public void setStartLevel(final int startLevel) {
-	    
-	checkStartLevelAdminSystem();
-	
+    framework.perm.checkStartLevelAdminPerm();
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
+    setStartLevel0(startLevel);
+  }
 
-
-    if(Debug.startlevel) {
+  void setStartLevel0(final int startLevel) {
+    if (Debug.startlevel) {
       Debug.println("startlevel: setStartLevel " + startLevel);
     }
 
@@ -295,10 +282,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	} catch (Exception e) {
 	  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
 	} finally {
-
           bs.bDelayedStart = true;
-          bs.setPersistent(true);
-          
+          framework.perm.callSetPersistent(bs, true);
         }
       }
     }
@@ -329,10 +314,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   }
   
   public void setBundleStartLevel(Bundle bundle, final int startLevel) {
-
-	if(framework.permissions != null){  
-		AccessController.checkPermission(new AdminPermission(bundle, AdminPermission.EXECUTE));  
-	} 
+    framework.perm.checkExecuteAdminPerm(bundle);
 	  
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
@@ -394,7 +376,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   }
   
   public void setInitialBundleStartLevel(int startLevel) {
-	checkStartLevelAdminSystem();  
+    framework.perm.checkStartLevelAdminPerm();  
 	  
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
