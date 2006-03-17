@@ -58,7 +58,7 @@ class PermissionInfoStorage {
 
   private PermissionInfo[] defaultPermissions;
 
-  private ArrayList defaultInvalidateCallbacks = new ArrayList();
+  private HashMap defaultInvalidateCallbacks = new HashMap();
 
 
   public PermissionInfoStorage() {
@@ -103,7 +103,7 @@ class PermissionInfoStorage {
    */
   synchronized PermissionInfo[] getDefault(PermissionsWrapper callInvalidate) {
     if (callInvalidate != null) {
-      defaultInvalidateCallbacks.add(callInvalidate);
+      defaultInvalidateCallbacks.put(callInvalidate.location, callInvalidate);
     }
     return defaultPermissions;
   }
@@ -143,7 +143,12 @@ class PermissionInfoStorage {
   synchronized void put(String location, PermissionInfo[] perms) {
     Element old = (Element)permissions.put(location, new Element(perms));
     save(location, perms);
-    if (old != null && old.invalidateCallback != null) {
+    if (old == null) {
+        PermissionsWrapper pw = (PermissionsWrapper)defaultInvalidateCallbacks.remove(location);
+        if (pw != null) {
+            pw.invalidate();
+        }
+    } else if (old.invalidateCallback != null) {
       old.invalidateCallback.invalidate();
     }
   }
@@ -168,7 +173,7 @@ class PermissionInfoStorage {
       defaultPermissions = initialDefault;
     }
     save(null, defaultPermissions);
-    for (Iterator i = defaultInvalidateCallbacks.iterator(); i.hasNext(); ) {
+    for (Iterator i = defaultInvalidateCallbacks.values().iterator(); i.hasNext(); ) {
       ((PermissionsWrapper)i.next()).invalidate();
     }
     defaultInvalidateCallbacks.clear();

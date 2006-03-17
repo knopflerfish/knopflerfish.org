@@ -163,13 +163,7 @@ public final class AdminPermission extends Permission {
 	
 	Bundle bundle;
 	
-	private long id = -1; // bundle ID
-	
-	private String location;
-	
-	private String symbName;
-	
-	int actionMask /*= 0*/;
+        int actionMask /*= 0*/;
 	
 	private static final String WILDCARD = "*";
 	
@@ -464,12 +458,13 @@ public final class AdminPermission extends Permission {
 			throw new RuntimeException("permission not contructed with bundle or *");
 		}
 
+                if ((actionMask & ap.actionMask) != ap.actionMask) {
+                    return false;
+                }
 		if (bundle != null) { 
-                        return (bundle == ap.bundle || ap.getName().equals(WILDCARD)) &&
-                               (actionMask | ap.actionMask) == actionMask;
+                        return bundle == ap.bundle || ap.getName().equals(WILDCARD);
 		} else {
-        		return (getName().equals(WILDCARD) || match(ap)) &&  
-                               (actionMask | ap.actionMask) == actionMask;
+                        return getName().equals(WILDCARD) || match(ap);
 		}
 	}
 
@@ -548,7 +543,7 @@ final class AdminPermissionCollection extends PermissionCollection {
 
 		AdminPermission ap = (AdminPermission)permission;
 		if (addedAll && ((allMask | ap.actionMask) == allMask)){
-            return true;
+                    return true;
 		}
 		if(ap.bundle != null){
 			Permission inTable = (Permission) permissions.get(ap.bundle);

@@ -691,29 +691,25 @@ final public class BundleClassLoader extends ClassLoader {
         Vector answer = new Vector(items.size());
         for(int i = 0; i < items.size(); i++) {
           int subId = ((Integer)items.elementAt(i)).intValue();
-          try {
-            /*
-             * Fix for Java profiles which do not support 
-             * URL(String, String,int,String,URLStreamHandler).
-             *  
-             * These profiles must set the 
-             * org.knopflerfish.osgi.registerbundleurlhandler property 
-             * to 'true' so the BundleURLStreamHandler is added
-             * to the Framework urlStreamHandlerFactory
-             */
-            URLStreamHandler handler = cl.bpkgs.bundle.framework.bundleURLStreamhandler;
-            URL url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                              Long.toString(ba.getBundleId()),
-                              subId,
-                              path.startsWith("/") ? path : "/" + path,
-                              handler);
+          /*
+           * Fix for Java profiles which do not support 
+           * URL(String, String,int,String,URLStreamHandler).
+           *  
+           * These profiles must set the 
+           * org.knopflerfish.osgi.registerbundleurlhandler property 
+           * to 'true' so the BundleURLStreamHandler is added
+           * to the Framework urlStreamHandlerFactory
+           */
+          URL url = cl.bpkgs.bundle.framework.perm.getBundleURL(ba.getBundleId(),
+                                                                subId,
+                                                                path,
+                                                                cl.bpkgs.bundle.framework.bundleURLStreamhandler);
+          if (url != null) {
             if (Debug.classLoader) {
               Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - found: " + path + " -> " + url);
             }
             answer.addElement(url);
-          } catch (MalformedURLException ignore) {
-            ignore.printStackTrace();
-            //Return null since we couldn't construct a valid url.
+          } else {
             return null;   
             // TODO: Rewrite URL if we have special characters.
           }

@@ -586,9 +586,8 @@ class BundleImpl implements Bundle {
           in.close();
         } catch (IOException ignore) {}
       }
+
     }
-    //only when complete success
-    modified();
   }
 
 
@@ -690,6 +689,8 @@ class BundleImpl implements Bundle {
         framework.listeners.frameworkError(this, be);
       }
     }
+    //only when complete success
+    modified();
   }
 
 
@@ -1514,14 +1515,13 @@ class BundleImpl implements Bundle {
       } else {
         int l = fp.lastIndexOf('/');
         if (pattern == null || Util.filterMatch(pattern, fp.substring(l + 1))) {
-          try {
-            URL url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                              Long.toString(id),
-                              -1,
-                              "/" + fp,
-                              framework.bundleURLStreamhandler);
+          URL url = secure.getBundleURL(id,
+                                        -1,
+                                        fp,
+                                        framework.bundleURLStreamhandler);
+          if (url != null) {
             res.add(url);
-          } catch (MalformedURLException _ignore) { }
+          }
         }
       }
     }
@@ -1540,11 +1540,10 @@ class BundleImpl implements Bundle {
         InputStream is = archive.getInputStream(name, 0);
         if (is != null) {
           is.close();
-          return new URL(BundleURLStreamHandler.PROTOCOL, 
-                         Long.toString(id),
-                         -1,
-                         name.startsWith("/") ? name : "/" + name,
-                         framework.bundleURLStreamhandler);
+          return secure.getBundleURL(id,
+                                     -1,
+                                     name,
+                                     framework.bundleURLStreamhandler);
         }
       } catch (IOException _ignore) { }
     }
