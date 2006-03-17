@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,9 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
 import java.net.*;
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
-import org.osgi.util.tracker.*;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -139,7 +137,7 @@ public class ServiceURLStreamHandlerFactory
 	")";
 //    TODO true or false?
       ServiceReference[] srl = framework.services
-	.get(URLStreamHandlerService.class.getName(), filter, null, false, false);
+	.get(URLStreamHandlerService.class.getName(), filter, null, false);
       
       if(srl != null && srl.length > 0) {
 	URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)

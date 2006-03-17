@@ -74,24 +74,10 @@ public class PackageAdminImpl implements PackageAdmin {
   final static String SPEC_VERSION = "1.2";
 
   private Framework framework;
-  
-  private AdminPermission RESOLVE_ADMIN_PERM;
-   
-  private void initPerm(){
-         if(framework.permissions != null){
-                 RESOLVE_ADMIN_PERM = new AdminPermission(framework.systemBundle, AdminPermission.RESOLVE);
-         }
-  }
-  
-  private void checkResolveAdminPerm(){
-          if(RESOLVE_ADMIN_PERM != null){
-                  AccessController.checkPermission(RESOLVE_ADMIN_PERM);
-          }
-  }
 
+  
   PackageAdminImpl(Framework fw) {
     framework = fw;
-    initPerm();
   }
 
 
@@ -198,7 +184,7 @@ public class PackageAdminImpl implements PackageAdmin {
    * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
-    checkResolveAdminPerm();
+    framework.perm.checkResolveAdminPerm();
     
     boolean restart = false;
     if (bundles != null) {
@@ -227,90 +213,90 @@ public class PackageAdminImpl implements PackageAdmin {
       return ;
     }
 
+    final PackageAdminImpl thisClass = this;
     Thread t = new Thread() {
         public void run() {
-          AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                BundleImpl bi[] = (BundleImpl[])framework.packages
-                  .getZombieAffected(bundles).toArray(new BundleImpl[0]);
-                ArrayList startList = new ArrayList();
-
-                // Stop affected bundles and remove their classloaders
-                // in reverse start order
-                for (int bx = bi.length; bx-- > 0; ) {
-                  synchronized (bi[bx]) {
-                    if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
-                      try {
-                        int ix = 0;
-                        if (Framework.R3_TESTCOMPLIANT) {
-                          // Make sure start list is in original bundle
-                          // start order by using insertion sort
-                          Iterator it = startList.iterator();
-                          while (it.hasNext()) {
-                            BundleImpl b = (BundleImpl)it.next();
-                            if(b.getBundleId() < b.getBundleId()) {
-                              break;
-                            }
-                            ix++;
-                          }
-                        }
-                        startList.add(ix,bi[bx]);
-                        bi[bx].stop();
-                      } catch(BundleException be) {
-                        framework.listeners.frameworkError(bi[bx], be);
-                      }
-                    }
-                  }
-                }
-
-                synchronized (framework.packages) {
-                  // Do this again in case something changed during the stop
-                  // phase, this time synchronized
-                  bi = (BundleImpl[])framework.packages
-                    .getZombieAffected(bundles).toArray(new BundleImpl[0]);
-
-                  // Update the affected bundle states in normal start order
-                  for (int bx = 0; bx < bi.length; bx++) {
-                    synchronized (bi[bx]) {
-                      switch (bi[bx].state) {
-                      case Bundle.STARTING:
-                      case Bundle.ACTIVE:
-                        try {
-                          bi[bx].stop();
-                          if (!startList.contains(bi[bx])) {
-                            // NYI! sorting
-                            startList.add(bi[bx]);
-                          }
-                        } catch(BundleException be) {
-                          framework.listeners.frameworkError(bi[bx], be);
-                        }
-                      case Bundle.STOPPING:
-                      case Bundle.RESOLVED:
-                        bi[bx].setStateInstalled(true);
-                      case Bundle.INSTALLED:
-                      case Bundle.UNINSTALLED:
-                        break;
-                      }
-                      bi[bx].purge();
-                    }
-                  }
-                }
-
-                // Restart previously active bundles in normal start order
-                framework.bundles.startBundles(startList);
-                framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
-                return null;
-              }
-            });
+           framework.perm.callRefreshPackages0(thisClass, bundles);
         }
       };
-//XXX - end L-3 modification
     t.setDaemon(false);
     t.start();
   }
 
+
+  void refreshPackages0(final Bundle[] bundles) {
+    BundleImpl bi[] = (BundleImpl[])framework.packages
+      .getZombieAffected(bundles).toArray(new BundleImpl[0]);
+    ArrayList startList = new ArrayList();
+
+    // Stop affected bundles and remove their classloaders
+    // in reverse start order
+    for (int bx = bi.length; bx-- > 0; ) {
+      synchronized (bi[bx]) {
+        if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
+          try {
+            int ix = 0;
+            if (Framework.R3_TESTCOMPLIANT) {
+              // Make sure start list is in original bundle
+              // start order by using insertion sort
+              Iterator it = startList.iterator();
+              while (it.hasNext()) {
+                BundleImpl b = (BundleImpl)it.next();
+                if(b.getBundleId() < b.getBundleId()) {
+                  break;
+                }
+                ix++;
+              }
+            }
+            startList.add(ix,bi[bx]);
+            bi[bx].stop();
+          } catch(BundleException be) {
+            framework.listeners.frameworkError(bi[bx], be);
+          }
+        }
+      }
+    }
+
+    synchronized (framework.packages) {
+      // Do this again in case something changed during the stop
+      // phase, this time synchronized
+      bi = (BundleImpl[])framework.packages
+        .getZombieAffected(bundles).toArray(new BundleImpl[0]);
+
+      // Update the affected bundle states in normal start order
+      for (int bx = 0; bx < bi.length; bx++) {
+        synchronized (bi[bx]) {
+          switch (bi[bx].state) {
+          case Bundle.STARTING:
+          case Bundle.ACTIVE:
+            try {
+              bi[bx].stop();
+              if (!startList.contains(bi[bx])) {
+                // NYI! sorting
+                startList.add(bi[bx]);
+              }
+            } catch(BundleException be) {
+              framework.listeners.frameworkError(bi[bx], be);
+            }
+          case Bundle.STOPPING:
+          case Bundle.RESOLVED:
+            bi[bx].setStateInstalled(true);
+          case Bundle.INSTALLED:
+          case Bundle.UNINSTALLED:
+            break;
+          }
+          bi[bx].purge();
+        }
+      }
+    }
+
+    // Restart previously active bundles in normal start order
+    framework.bundles.startBundles(startList);
+    framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
+  }
+
   public boolean resolveBundles(Bundle[] bundles) {
-    checkResolveAdminPerm();
+    framework.perm.checkResolveAdminPerm();
     List bl;
     if (bundles != null) {
       bl =  new ArrayList();

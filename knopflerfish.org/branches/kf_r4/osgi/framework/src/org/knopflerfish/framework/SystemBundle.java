@@ -36,12 +36,13 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
+import java.security.ProtectionDomain;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
@@ -88,12 +89,11 @@ public class SystemBundle extends BundleImpl {
    * Construct the System Bundle handle.
    *
    */
-  SystemBundle(Framework fw) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
-	  new Version(Main.readVersion()));
+  SystemBundle(Framework fw, ProtectionDomain pd) {
+    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
+          Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
     state = STARTING;
     StringBuffer sp = new StringBuffer(System.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
-
     if (sp.length() > 0) {
       sp.append(",");
     }
@@ -207,7 +207,7 @@ public class SystemBundle extends BundleImpl {
    */
   synchronized public void start() throws BundleException
   {
-    checkExecuteAdminPerm();
+    secure.checkExecuteAdminPerm(this);
   }
 
 
@@ -221,9 +221,8 @@ public class SystemBundle extends BundleImpl {
   }
 
 
-  synchronized public void stop(int exitcode) throws BundleException
-  {
-    checkExecuteAdminPerm();
+  synchronized public void stop(int exitcode) throws BundleException {
+    secure.checkExecuteAdminPerm(this);
 
     StringBuffer bootClasspath = new StringBuffer();
     StringBuffer frameworkClasspath = new StringBuffer();
@@ -264,7 +263,7 @@ public class SystemBundle extends BundleImpl {
                              e.getNestedException());
         }
       }
-      Main.shutdown(exitcode);
+      secure.callMainShutdown(exitcode);
     }
   }
 
@@ -275,12 +274,8 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#update
    */
   synchronized public void update(InputStream in) throws BundleException {
-    checkLifecycleAdminPerm();
-    if(Framework.R3_TESTCOMPLIANT || "true".equals(System.getProperty("org.knopflerfish.framework.restart.allow", "true"))) {
-      Main.restart();
-    } else {
-      Main.shutdown(2);
-    }
+    secure.checkLifecycleAdminPerm(this);
+    secure.callMainRestart();
   }
 
 
@@ -290,7 +285,7 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#uninstall
    */
   synchronized public void uninstall() throws BundleException {
-    checkLifecycleAdminPerm();
+    secure.checkLifecycleAdminPerm(this);
     throw new BundleException("uninstall of System bundle is not allowed");
   }
 
@@ -305,15 +300,18 @@ public class SystemBundle extends BundleImpl {
   }
 
   public Dictionary getHeaders(String locale) {
-    checkMetadataAdminPerm();
+    secure.checkMetadataAdminPerm(this);
     Hashtable headers = new Hashtable();
     headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     return headers;
   }
 
+
   /**
+   * Get bundle data. Get resources from bundle or fragment jars.
    *
+   * @see org.osgi.framework.Bundle#findEntries
    */
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
     return null;

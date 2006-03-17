@@ -58,6 +58,7 @@ public class Alias {
    * All aliases must be in lowercase.
    */
   final public static String[][] osNameAliases = {
+    { "MacOSX", "Mac OS X" },
     { "OS2", "os/2" },
     { "QNX", "procnto" },
     { "windows95", "windows 95", "win95" },

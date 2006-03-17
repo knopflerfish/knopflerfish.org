@@ -40,18 +40,13 @@ import java.io.*;
 import java.net.*;
 //import java.security.*;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.Vector;
 import java.util.jar.*;
 import java.util.zip.*;
 import java.util.Properties;
-import java.util.Dictionary;
 import java.util.Hashtable;
-
-import java.util.Locale;
 
 /**
  * JAR file handling.
@@ -482,7 +477,6 @@ class Archive {
       throw new RuntimeException("Assert! Path should never start with / here");
     }
     ZipEntry ze;
-    InputStream is;
     try {
       if (jar != null) {
         if (subJar != null) {

@@ -234,16 +234,14 @@ class BundlePackages {
    *         getResolveFailReason().
    */
   boolean resolvePackages() {
-
-    if (bundle.framework.permissions != null) {
-      failReason = checkPackagePermissions();
-      if (failReason != null) {
-        return false;
-      }
+    ArrayList permImports = new ArrayList(imports.size());
+    failReason = bundle.framework.perm.missingMandatoryPackagePermissions(this, permImports);
+    if (failReason != null) {
+      return false;
     }
-    failReason = bundle.framework.packages.resolve(bundle, imports.iterator());
+    failReason = bundle.framework.packages.resolve(bundle, permImports.iterator());
     if (failReason == null) {
-      okImports = (ArrayList)imports.clone();
+      okImports = permImports;
       return true;
     } else {
       return false;
@@ -295,7 +293,7 @@ class BundlePackages {
     if (ii >= 0) {
       return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
     }
-    if (checkPackagePermission(pkg, PackagePermission.IMPORT)) {
+    if (bundle.framework.perm.hasImportPackagePermission(bundle, pkg)) {
       for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
 	ImportPkg ip = (ImportPkg)i.next();
         if (ip.name == EMPTY_STRING ||
@@ -606,65 +604,6 @@ class BundlePackages {
   //
   // Private methods
   //
-
-  /**
-   * Check that we have right export and import package permission for the bundle.
-   *
-   * @return Returns null if we have correct permission for listed package.
-   *         Otherwise a string of failed entries.
-   */
-  private String checkPackagePermissions() {
-    String e_res = null;
-    for (Iterator i = exports.iterator(); i.hasNext();) {
-      ExportPkg p = (ExportPkg)i.next();
-      if (!checkPackagePermission(p.name, PackagePermission.EXPORT)) {
-        if (e_res != null) {
-          e_res = e_res + ", " + p.name;
-        } else {
-          e_res = "missing export permission for package(s): " + p.name;
-          e_res = p.name;
-        }
-      }
-    }
-    String i_res = null;
-    for (Iterator i = imports.iterator(); i.hasNext();) {
-      ImportPkg p = (ImportPkg)i.next();
-      if (!checkPackagePermission(p.name, PackagePermission.IMPORT)) {
-        if (i_res != null) {
-          i_res = i_res + ", " + p.name;
-        } else {
-          i_res = "missing import permission for package(s): " + p.name;
-        }
-      }
-    }
-    if (e_res != null) {
-      if (i_res != null) {
-        return e_res + "; " + i_res;
-      } else {
-        return e_res;
-      }
-    } else {
-      return i_res;
-    }
-  }
-
-
-  /**
-   * Check that we have right package permission for a package.
-   *
-   * @param pkg Packages to check. 
-   * @param perm Package permission action to check against.
-   * @return Returns true if we have permission.
-   */
-  private boolean checkPackagePermission(String pkg, String perm) {
-    if (bundle.framework.permissions != null) {
-      return bundle.framework.permissions.getPermissionCollection(bundle)
-        .implies(new PackagePermission(pkg, perm));
-    } else {
-      return true;
-    }
-  }
-
 
   /**
    * Adds an imported package

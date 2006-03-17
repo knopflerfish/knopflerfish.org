@@ -35,8 +35,6 @@
 package org.knopflerfish.framework.bundlestorage.memory;
 
 
-import org.knopflerfish.framework.HeaderDictionary;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import java.io.*;
 
@@ -45,15 +43,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.NoSuchElementException;
-
 import java.util.jar.*;
-import java.util.Dictionary;
 
 /**
  * JAR file handling.
@@ -99,9 +92,9 @@ class Archive {
 
     Attributes attr = manifest.getMainAttributes();
     localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    if(localizationFilesLocation == null){
+    if (localizationFilesLocation == null) {
       localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    }	
+    }
   }
 
 
@@ -174,26 +167,26 @@ class Archive {
    * @exception IOException if failed to read jar entry.
    */
   byte[] getClassBytes(String classFile) throws IOException {
-	byte[] bytes;
-	if((bytes = (byte [])content.remove(classFile)) == null){
-		if(subDirs == null){
-			return null;
-		}
-		Iterator it = subDirs.iterator();
-		boolean found = false;
-		while(it.hasNext()){
-			String subDir = (String) it.next();
-			bytes = (byte [])content.remove(subDir + "/" + classFile);
-			if(bytes != null){
-				found = true;
-				break;
-			}
-		}
-		if(!found){
-			return null;
-		}	
-	}
-	return bytes;		
+    byte[] bytes;
+    if ((bytes = (byte[]) content.remove(classFile)) == null) {
+      if (subDirs == null) {
+        return null;
+      }
+      Iterator it = subDirs.iterator();
+      boolean found = false;
+      while (it.hasNext()) {
+        String subDir = (String) it.next();
+        bytes = (byte[]) content.remove(subDir + "/" + classFile);
+        if (bytes != null) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return null;
+      }
+    }
+    return bytes;
   }
 
 
@@ -207,7 +200,7 @@ class Archive {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    byte [] b = (byte [])content.get(component);
+    byte[] b = (byte[]) content.get(component);
     if (b != null) {
       return new ByteArrayInputStream(b);
     } else {
@@ -219,41 +212,40 @@ class Archive {
   //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
   //investigate further later
   Enumeration findResourcesPath(String path) {
-	  Vector answer = new Vector();
-      //"normalize" + erroneous path check: be generous
-	  if(path.startsWith("/") || path.startsWith("\\")){
-		  path =  path.substring(1);   
-	  }  
-	  if(!path.endsWith("/") && !path.endsWith("\\")/*in case bad argument*/){
-		  if(path.length() > 1){
-			  path += "/";
-		  }	
-	  } 
-	  path.replace('\\', '/');
-		
-	  Iterator it = content.keySet().iterator();
-	  while(it.hasNext()){
-		  String entry = (String) it.next();
-		  if(entry.startsWith(path)){
-			  String terminal = entry.substring(path.length());
-			  StringTokenizer st = new StringTokenizer(terminal, "/");
-			  String entryPath;  
-			  if(st.hasMoreTokens()){
-				  entryPath = path + st.nextToken();
-			  }
-		  	  else{//this should not happen even for "", or?
-				  entryPath = path;
-			  }
-              if(!answer.contains(entryPath)){
-				  answer.add(entryPath);
-              }	  
-		  }
-	  } 
-	  
-	  if(answer.size() == 0){
-		  return null;
-	  }
-	  return answer.elements();
+    Vector answer = new Vector();
+    // "normalize" + erroneous path check: be generous
+    path.replace('\\', '/');
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+    if (!path.endsWith("/") /* in case bad argument */) {
+      if (path.length() > 1) {
+        path += "/";
+      }
+    }
+
+    Iterator it = content.keySet().iterator();
+    while (it.hasNext()) {
+      String entry = (String) it.next();
+      if (entry.startsWith(path)) {
+        String terminal = entry.substring(path.length());
+        StringTokenizer st = new StringTokenizer(terminal, "/");
+        String entryPath;
+        if (st.hasMoreTokens()) {
+          entryPath = path + st.nextToken();
+        } else {// this should not happen even for "", or?
+          entryPath = path;
+        }
+        if (!answer.contains(entryPath)) {
+          answer.add(entryPath);
+        }
+      }
+    }
+
+    if (answer.size() == 0) {
+      return null;
+    }
+    return answer.elements();
   }
 
 
@@ -283,32 +275,32 @@ class Archive {
     HashMap files = new HashMap();
     JarEntry je;
     while ((je = ji.getNextJarEntry()) != null) {
-    	if (!je.isDirectory()) {
-    		int len = (int)je.getSize();
-    		if (len == -1) {
-    			len = 8192;
-    		}
-    		byte [] b = new byte[len];
-    		int pos = 0;
-    		do {
-    			if (pos == len) {
-    				len *= 2;
-    				byte[] oldb = b;
-    				b = new byte[len];
-    				System.arraycopy(oldb, 0, b, 0, oldb.length);
-    			}
-    			int n;
-    			while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
-    				pos += n;
-    			}
-    		} while (ji.available() > 0);
-    		if (pos != b.length) {
-    			byte[] oldb = b;
-    			b = new byte[pos];
-    			System.arraycopy(oldb, 0, b, 0, pos);
-    		}
-    		files.put(je.getName(), b);
-    	}
+      if (!je.isDirectory()) {
+        int len = (int) je.getSize();
+        if (len == -1) {
+          len = 8192;
+        }
+        byte[] b = new byte[len];
+        int pos = 0;
+        do {
+          if (pos == len) {
+            len *= 2;
+            byte[] oldb = b;
+            b = new byte[len];
+            System.arraycopy(oldb, 0, b, 0, oldb.length);
+          }
+          int n;
+          while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
+            pos += n;
+          }
+        } while (ji.available() > 0);
+        if (pos != b.length) {
+          byte[] oldb = b;
+          b = new byte[pos];
+          System.arraycopy(oldb, 0, b, 0, pos);
+        }
+        files.put(je.getName(), b);
+      }
     }
     return files;
   }

@@ -55,7 +55,7 @@ import org.osgi.framework.*;
  * @author Jan Stein
  * @author Mats-Ola Persson
  */
-class Bundles {
+public class Bundles {
 
   /**
    * Table of all installed bundles in this framework.
@@ -74,7 +74,7 @@ class Bundles {
    */
   Bundles(Framework fw) {
     framework = fw;
-    bundles.put(fw.systemBundle.getLocation(), fw.systemBundle);
+    bundles.put(fw.systemBundle.location, fw.systemBundle);
   }
 
 
@@ -86,77 +86,84 @@ class Bundles {
   BundleImpl install(final String location, final InputStream in) throws BundleException {
     BundleImpl b;
     synchronized (this) {
-      b = getBundle(location);
+      b = (BundleImpl)bundles.get(location);
       if (b != null) {
         return b;
       }
-      try {
-        b = (BundleImpl) AccessController.doPrivileged( new PrivilegedExceptionAction() {
-            public Object run() throws Exception {
-              InputStream bin;
-              if (in == null) {
-                // Do it the manual way to have a chance to 
-                // set request properties
-                URL           url  = new URL(location);
-                URLConnection conn = url.openConnection(); 
-
-                // Support for http proxy authentication
-                //TODO put in update as well
-                String auth = System.getProperty("http.proxyAuth");
-                if(auth != null && !"".equals(auth)) {
-                  if("http".equals(url.getProtocol()) ||
-                     "https".equals(url.getProtocol())) {
-                    String base64 = Util.base64Encode(auth);
-                    conn.setRequestProperty("Proxy-Authorization", 
-                                            "Basic " + base64);
-                  }
-                }
-                bin = conn.getInputStream();
-              } else {
-                bin = in;
-              }
-              BundleImpl res = null;
-              BundleArchive ba;
-              try {
-                ba = framework.storage.insertBundleJar(location, bin);
-              } finally {
-                bin.close();
-              }
-              try {
-                String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-                if(ee != null) {
-                  if(Debug.packages) {
-                    Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
-                  }
-                  if(!framework.isValidEE(ee)) {
-                    throw new RuntimeException("Execution environment '" + ee +
-                                               "' is not supported");
-                  }
-                }
-                res = new BundleImpl(framework, ba);
-                ba.setLastModified(System.currentTimeMillis());
-              } catch (Exception e) {
-                ba.purge();
-                throw e;
-              }
-
-              bundles.put(location, res);
-              
-              return res;
-            }
-          });
-      } catch (PrivilegedActionException e) {
-        throw new BundleException("Failed to install bundle: " + e.getException(),
-                                  e.getException());
-      } catch (Exception e) {
-        throw new BundleException("Failed to install bundle: " + e, e);
-      }
+      b = framework.perm.callInstall0(this, location, in);
     }
-                  
     framework.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
     return b;
   }
 
+
+  BundleImpl install0(String location, InputStream in, Object checkContext)
+    throws BundleException {
+    InputStream bin;
+    BundleArchive ba = null;
+    try {
+      if (in == null) {
+        // Do it the manual way to have a chance to 
+        // set request properties
+        URL url  = new URL(location);
+        URLConnection conn = url.openConnection(); 
+
+        // Support for http proxy authentication
+        //TODO put in update as well
+        String auth = System.getProperty("http.proxyAuth");
+        if(auth != null && !"".equals(auth)) {
+          if("http".equals(url.getProtocol()) ||
+             "https".equals(url.getProtocol())) {
+            String base64 = Util.base64Encode(auth);
+            conn.setRequestProperty("Proxy-Authorization", 
+                                    "Basic " + base64);
+          }
+        }
+        bin = conn.getInputStream();
+      } else {
+        bin = in;
+      }
+      BundleImpl res = null;
+      try {
+        ba = framework.storage.insertBundleJar(location, bin);
+      } finally {
+        bin.close();
+      }
+
+      String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+      if(ee != null) {
+        if(Debug.packages) {
+          Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+        }
+        if(!framework.isValidEE(ee)) {
+          throw new RuntimeException("Execution environment '" + ee +
+                                     "' is not supported");
+        }
+      }
+      res = new BundleImpl(framework, ba);
+
+      framework.perm.checkLifecycleAdminPerm(res, checkContext);
+      if (res.isExtension()) {
+        framework.perm.checkExtensionLifecycleAdminPerm(res, checkContext);
+        if (!res.hasPermission(new AllPermission())) {
+          throw new SecurityException();
+        }
+      }
+
+      /* Commit bundle to storage */
+      ba.setLastModified(System.currentTimeMillis());
+
+      bundles.put(location, res);
+              
+      return res;
+    } catch (Exception e) {
+      if (ba != null) {
+        ba.purge();
+      }
+      throw new BundleException("Failed to install bundle: " + e, e);
+    }
+  }
+    
 
   /**
    * Remove bundle registration.
@@ -175,7 +182,7 @@ class Bundles {
    * @return BundleImpl representing bundle or null
    *         if bundle was not found.
    */
-  BundleImpl getBundle(long id) {
+  public Bundle getBundle(long id) {
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
@@ -195,8 +202,8 @@ class Bundles {
    * @return BundleImpl representing bundle or null
    *         if bundle was not found.
    */
-  BundleImpl getBundle(String location) {
-    return (BundleImpl) bundles.get(location);
+  public Bundle getBundle(String location) {
+    return (Bundle) bundles.get(location);
   }
 
 

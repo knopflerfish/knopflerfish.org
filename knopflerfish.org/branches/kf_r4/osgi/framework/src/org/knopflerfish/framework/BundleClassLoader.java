@@ -389,7 +389,7 @@ final public class BundleClassLoader extends ClassLoader {
       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
         // NYI improve this solution
         BundleArchive ba = (BundleArchive)i.next();
-        BundleImpl b = bpkgs.bundle.framework.bundles.getBundle(ba.getBundleLocation());
+        BundleImpl b = (BundleImpl)bpkgs.bundle.framework.bundles.getBundle(ba.getBundleLocation());
         if (b == null || b.archive != ba) {
           ba.purge();
         }
@@ -670,7 +670,13 @@ final public class BundleClassLoader extends ClassLoader {
               cl.definePackage(pkg, null, null, null, null, null, null, null);
             }
           }
-          return cl.defineClass(name, bytes, 0, bytes.length);
+	  if (cl.bpkgs.bundle.protectionDomain == null) {
+	    // Kaffe can't handle null protectiondomain
+	    return cl.defineClass(name, bytes, 0, bytes.length);
+	  } else {
+	    return cl.defineClass(name, bytes, 0, bytes.length,
+                                  cl.bpkgs.bundle.protectionDomain);
+	  }
         }
         return null;
       }

@@ -172,26 +172,24 @@ public class ServiceRegistrationImpl implements ServiceRegistration
 		    unregister_removeService();
 	    }
     }
-    final ServiceRegistration sr = this;
-    AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
-	    Map.Entry e = (Map.Entry)i.next();
-	    try {
-	      ((ServiceFactory)service).ungetService((Bundle)e.getKey(), sr, e.getValue());
-	    } catch (Throwable ue) {
-	      bundle.framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
-	    }
-	  }
-	  return null;
-	}
-      });
+    bundle.framework.perm.callUnregister0(this);
     synchronized (properties) {
       bundle = null;
       dependents = null;
       reference = null;
       service = null;
       serviceInstances = null;
+    }
+  }
+
+  void unregister0() {
+    for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
+      Map.Entry e = (Map.Entry)i.next();
+      try {
+        ((ServiceFactory)service).ungetService((Bundle)e.getKey(), this, e.getValue());
+      } catch (Throwable ue) {
+        bundle.framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
+      }
     }
   }
 

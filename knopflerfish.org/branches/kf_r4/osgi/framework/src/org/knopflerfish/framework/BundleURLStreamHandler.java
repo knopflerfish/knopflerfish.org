@@ -36,21 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.security.*;
 
-import java.util.Set;
-import java.util.Dictionary;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Enumeration;
-import java.util.Vector;
-
-import java.util.jar.*;
-import java.util.zip.*;
 
 /**
  * Bundle URL handling.
@@ -80,28 +66,29 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
     public void connect() throws IOException {
       if (!connected) {
-	BundleImpl b = null;
-	try {
-	  b = bundles.getBundle(Long.parseLong(url.getHost()));
-	} catch (NumberFormatException ignore) { }
-	if (b != null) {
-	  BundleArchive a = b.getBundleArchive();
-	  if (a != null) {
-	    is = a.getInputStream(url.getFile(), url.getPort());
-	  }
-	}
-	if (is != null) {
-	  connected = true;
-	} else {
-	  throw new IOException("URL not found");
-	}
+        BundleImpl b = null;
+        try {
+          b = (BundleImpl)bundles.getBundle(Long.parseLong(url.getHost()));
+        } catch (NumberFormatException _ignore) { }
+        if (b != null) {
+          BundleArchive a = b.getBundleArchive();
+          if (a != null) {
+            is = a.getInputStream(url.getFile(), url.getPort());
+          }
+        }
+        if (is != null) {
+          connected = true;
+        } else {
+          throw new IOException("URL not found");
+        }
       }
     }
 
     public InputStream getInputStream() {
       try {
-	connect();
-      } catch (IOException ignore) { }
+        connect();
+      } catch (IOException ignore) {
+      }
       return is;
     }
   }

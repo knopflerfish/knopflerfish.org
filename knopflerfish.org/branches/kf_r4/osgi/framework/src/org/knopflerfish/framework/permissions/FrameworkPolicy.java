@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework;
+package org.knopflerfish.framework.permissions;
 
 import java.net.*;
 import java.security.*;
+
+import org.knopflerfish.framework.BundleURLStreamHandler;
 
 
 
@@ -53,12 +55,12 @@ class FrameworkPolicy extends Policy {
   //must not cache
   //private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
 
-  private PermissionAdminImpl permissionAdmin;
+  private PermissionsHandle ph;
 
-  FrameworkPolicy(PermissionAdminImpl pa) {
+  FrameworkPolicy(PermissionsHandle ph) {
     all.add(new AllPermission());
     all.setReadOnly();
-    permissionAdmin = pa;
+    this.ph = ph;
   }
 
   //
@@ -75,7 +77,7 @@ class FrameworkPolicy extends Policy {
       try {
         Long id = new Long(u.getHost());
         //return getPermissions(id);
-        return permissionAdmin.getPermissionCollection(id);
+        return ph.getPermissionCollection(id);
       } catch (NumberFormatException ignore) {
         return null;
       }
