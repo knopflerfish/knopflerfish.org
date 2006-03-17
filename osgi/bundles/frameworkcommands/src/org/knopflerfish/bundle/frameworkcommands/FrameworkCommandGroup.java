@@ -1121,7 +1121,7 @@ try { // untested code
                         out.println("Bundle: " + showBundle(b[i]));
                         if (opts.get("-r") != null || opts.get("-u") == null) {
                             ServiceReference[] s = b[i].getRegisteredServices();
-                            if (s.length > 0) {
+                            if (s != null && s.length > 0) {
                                 out.print("  registered:");
                                 for (int j = 0; j < s.length; j++) {
                                     if (opts.get("-l") != null) {
@@ -1136,7 +1136,7 @@ try { // untested code
                         }
                         if (opts.get("-u") != null) {
                             ServiceReference[] s = b[i].getServicesInUse();
-                            if (s.length > 0) {
+                            if (s != null && s.length > 0) {
                                 out.print("  uses:");
                                 for (int j = 0; j < s.length; j++) {
                                     if (opts.get("-l") != null) {
@@ -1255,13 +1255,6 @@ try { // untested code
         try {
             if (pids != null && pids.length > 0) {
                 for (int i = 0; i < pids.length; i++) {
-                	try { 
-                		Integer.parseInt(pids[i]); 
-                	} 
-                	catch (NumberFormatException e) {
-                		out.println("Illegal pid: must be an integer"); 
-                		return 1; 
-                	} 
                     showstate(out, bc.getServiceReferences(null, "(service.id="
                             + pids[i] + ")"));
                 }
