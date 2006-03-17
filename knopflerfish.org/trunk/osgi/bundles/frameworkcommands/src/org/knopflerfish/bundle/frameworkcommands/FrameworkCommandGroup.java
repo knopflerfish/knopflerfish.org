@@ -719,9 +719,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                     out.println("   exporting bundle: " + showBundle(b));
                     Bundle[] ib = epkgs[i].getImportingBundles();
                     if (ib.length > 0) {
-                        out
-                                .println("   importing bundle: "
-                                        + showBundle(ib[0]));
+                        out.println("   importing bundle: "
+                                    + showBundle(ib[0]));
                         for (int j = 1; j < ib.length; j++) {
                             out.println("                     "
                                     + showBundle(ib[j]));
@@ -868,17 +867,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                         out.println("Bundle: " + showBundle(b[i]));
                         if (opts.get("-r") != null || opts.get("-u") == null) {
                             ServiceReference[] s = b[i].getRegisteredServices();
-                            if (s.length > 0) {
+                            if (s != null && s.length > 0) {
                                 out.print("  registered:");
                                 for (int j = 0; j < s.length; j++) {
                                     if (opts.get("-l") != null) {
                                         out.print("\n    ");
                                         showLongService(s[j], "    ", out);
                                     } else {
-                                        out
-                                                .print(" "
-                                                        + Util
-                                                                .showServiceClasses(s[j]));
+                                        out.print(" "+ Util.showServiceClasses(s[j]));
                                     }
                                 }
                                 out.println("");
@@ -886,17 +882,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                         }
                         if (opts.get("-u") != null) {
                             ServiceReference[] s = b[i].getServicesInUse();
-                            if (s.length > 0) {
+                            if (s != null && s.length > 0) {
                                 out.print("  uses:");
                                 for (int j = 0; j < s.length; j++) {
                                     if (opts.get("-l") != null) {
                                         out.print("\n    ");
                                         showLongService(s[j], "    ", out);
                                     } else {
-                                        out
-                                                .print(" "
-                                                        + Util
-                                                                .showServiceClasses(s[j]));
+                                        out.print(" "+ Util.showServiceClasses(s[j]));
                                     }
                                 }
                             }
@@ -1008,20 +1001,12 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         try {
             if (pids != null && pids.length > 0) {
                 for (int i = 0; i < pids.length; i++) {
-                	try { 
-                		Integer.parseInt(pids[i]); 
-                	} 
-                	catch (NumberFormatException e) {
-                		out.println("Illegal pid: must be an integer"); 
-                		return 1; 
-                	} 
                     showstate(out, bc.getServiceReferences(null, "(service.id="
                             + pids[i] + ")"));
                 }
             } else
                 showstate(out, bc.getServiceReferences(null, "(state=*)"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             out.println("Error: " + e);
         }
         return 0;
