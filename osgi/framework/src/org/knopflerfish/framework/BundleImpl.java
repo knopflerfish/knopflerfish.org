@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.net.*;
 import java.security.*;
+import java.security.cert.Certificate;
 
 import java.util.Enumeration;
 import java.util.Set;
@@ -52,7 +53,6 @@ import java.util.Locale;
 import java.util.Vector;
 
 import org.osgi.framework.*;
-import org.osgi.framework.AdminPermission;
 
 
 /**
@@ -261,7 +261,7 @@ class BundleImpl implements Bundle {
                                 handler);
 
         PermissionCollection pc = secure.createPermissionCollection(this);
-        pd = new ProtectionDomain(new CodeSource(bundleUrl, null), pc);
+        pd = new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
       } catch (MalformedURLException e) {
         e.printStackTrace();
       }
