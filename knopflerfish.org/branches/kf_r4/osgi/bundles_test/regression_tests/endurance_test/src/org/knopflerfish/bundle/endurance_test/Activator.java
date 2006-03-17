@@ -83,14 +83,14 @@ public class Activator implements BundleActivator {
           new Test6(bc),
           new Test7(bc),
           new Test8(bc),
-          new Test9(bc, 100, 1, new String[] { "sv" }, "Localization test many getHeaders/install"),
-          new Test9(bc, 1, 100, new String[] { "sv" }, "Localization test few getHeaders/install"),
-          new Test9(bc, 100, 1, new String[] { "" }, "Raw localization test many getHeaders/install"),
-          new Test9(bc, 1, 100, new String[] { "" }, "Raw localization test few getHeaders/install"),
-          new Test10(bc, 100, 1, new String[] { "sv" }, "Localization test with fragments many getHeaders/install"),
-          new Test10(bc, 1, 100, new String[] { "sv" }, "Localization test with fragments few getHeaders/install"),
-          new Test10(bc, 100, 1, new String[] { "" }, "Raw localization test with fragments many getHeaders/install"),
-          new Test10(bc, 1, 100, new String[] { "" }, "Raw localization test with fragments few getHeaders/install"),
+          new Test9(bc, 500, 1, new String[] { "sv" }, "Localization test many getHeaders/install"),
+          new Test9(bc, 1, 500, new String[] { "sv" }, "Localization test few getHeaders/install"),
+          new Test9(bc, 500, 1, new String[] { "" }, "Raw localization test many getHeaders/install"),
+          new Test9(bc, 1, 500, new String[] { "" }, "Raw localization test few getHeaders/install"),
+          new Test10(bc, 500, 1, new String[] { "sv" }, "Localization test with fragments many getHeaders/install"),
+          new Test10(bc, 1, 500, new String[] { "sv" }, "Localization test with fragments few getHeaders/install"),
+          new Test10(bc, 500, 1, new String[] { "" }, "Raw localization test with fragments many getHeaders/install"),
+          new Test10(bc, 1, 500, new String[] { "" }, "Raw localization test with fragments few getHeaders/install"),
           
           // add new tests here.
       };
@@ -116,7 +116,7 @@ public class Activator implements BundleActivator {
           long tmp = System.currentTimeMillis();
           
           if (!tests[i].runTest()) {
-            out.println("Failed to run " + tests[i].getClass().getName());
+            out.println("FAILED TO RUN TEST " + tests[i].getClass().getName());
             break;
           }
           
