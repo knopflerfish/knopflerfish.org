@@ -340,7 +340,7 @@ public final class AdminPermission extends Permission {
 			return getName().hashCode() ^ actionMask;
 		}
 		else{
-			return (int)id ^ actionMask;
+			return bundle.hashCode() ^ actionMask;
 		}	
 	}
 
