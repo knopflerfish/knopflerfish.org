@@ -56,8 +56,9 @@ import org.knopflerfish.framework.Framework;
 public class PermissionsWrapper extends PermissionCollection {
   private static final long serialVersionUID = 1L;
   
-  PermissionInfoStorage pinfos;
-  private String location;
+  String location;
+
+  private PermissionInfoStorage pinfos;
   private PermissionCollection runtimePermissions;
   private PermissionCollection implicitPermissions;
   private PermissionCollection localPermissions;
@@ -96,17 +97,15 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   public boolean implies(Permission permission) {
-    // TODO improve this
-    if (localPermissions != null && !localPermissions.implies(permission)) {
-      return false;
-    }
     if (runtimePermissions != null && runtimePermissions.implies(permission)) {
       return true;
-    }
-    if (implicitPermissions.implies(permission)) {
+    } else if (implicitPermissions.implies(permission)) {
       return true;
+    } else if (localPermissions != null && !localPermissions.implies(permission)) {
+      return false;
+    } else {
+      return getPerms().implies(permission);
     }
-    return getPerms().implies(permission);
   }
 
 
