@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="osgi" default="all">
+<project name="osgi" default="default">
 
   <!-- build properties -->
 
@@ -47,11 +47,19 @@
 />
 
   <!-- targets -->
-  <target name="all"
+  <target name="default"
           description="Builds the framework and bundles in bundles-directory">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
+  </target>
+
+  <target name="all"
+          description="Builds the framework and all bundles including optional and test bundles">
+    <antcall target="default"/>
+    <ant dir="bundles_opt"  target="all"/>
+    <ant dir="bundles_test" target="all"
+         inheritAll="false" inheritRefs="false"/>
   </target>
 
   <target name="xargs">
@@ -163,14 +171,11 @@
 
 
  <target name="rebuild"
-         description="Cleans then build build (including optional and test bundles">
+         description="Cleans then build build all">
     <antcall target="clean"/>
     <ant dir="bundles_test" target="clean"
          inheritAll="false" inheritRefs="false"/>
     <antcall target="all"/>
-    <ant dir="bundles_opt"  target="all"/>
-    <ant dir="bundles_test" target="all"
-         inheritAll="false" inheritRefs="false"/>
  </target>
 
 </project>
