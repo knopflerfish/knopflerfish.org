@@ -35,7 +35,7 @@
   -->
 
 
-<project name="knopflerfish" default="all">
+<project name="knopflerfish" default="default">
 
 
   <property name  = "version" 
@@ -78,8 +78,16 @@
 
 
             
+  <target name        = "default"
+          description = "Builds entire platform except optional and test bundels" >
+    <delete file="htdocs/bundles.html"/>
+    <ant dir = "ant"                 target = "all" />
+    <ant dir = "tools/jarunpacker"   target = "jar"/>
+    <ant dir = "osgi"                target = "default" />
+  </target>
+
   <target name        = "all"
-          description = "Builds entire platform, but not distribution file" >
+          description = "Builds entire platform including optional and test bundles" >
     <delete file="htdocs/bundles.html"/>
     <ant dir = "ant"                 target = "all" />
     <ant dir = "tools/jarunpacker"   target = "jar"/>
@@ -221,7 +229,7 @@
  
 
   <target   name        = "distrib" 
-            description = "Builds alls distribution files">
+            description = "Builds all distribution files">
     <antcall target     = "xargs"/>
     <antcall target     = "distrib_complete"/>
     <antcall target     = "distrib_fullbin"/>
