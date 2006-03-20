@@ -17,13 +17,14 @@ EXIT_CODE_RESTART=200
 args_orig="" 		# all -xargs and -init args
 args=""     		# like args excepts for -xargs and -init args
 jre_args="" 		# arguments for the jre
-fwdir=fwdir 		# default framework dir
+fwdir="`pwd`/fwdir"	# default framework dir
+init=0			# whether the -init flag has been given or not.
 
 # read the arguments
 while [ -n "$1" ] 
 do
   case "$1" in
-      "-init"  ) args_orig=$args_orig" "$1;;
+      "-init"  ) init=1; args_orig=$args_orig" "$1;;
       "-xargs" ) shift; args_orig=$args_orig" -xargs "$1;;
       "--" ) shift; break;;
       "---" ) break;;
@@ -47,6 +48,7 @@ while [ -n "$1" ]
 do
   case "$1" in
       "-java" )  shift; JAVA="$1" ;;
+      "-clean" ) shift; CLEAN_FWDIR=1 ;;
       "-classpathflag" ) shift; CLASSPATH_FLAG="$1" ;; 	# *	
       "-bootclasspathflag" ) shift ; BOOTCLASSPATH_FLAG="$1" ;;
       * ) echo "Error: unknown option: $1"
@@ -57,6 +59,21 @@ do
 done
 # *: are these needed? or are they standard?
 
+
+if [ $init == 1 ] ; then
+
+    if [ -d $fwdir ] ; then
+        rm -rf $fwdir 
+        
+        if [ $? == 0 ] ; then
+            echo "Removed existing fwdir $fwdir"
+        else 
+            echo "Failed to remove existing fwdir $fwdir"
+        fi
+    fi
+        
+fi
+
 retval=$EXIT_CODE_RESTART
 while [ "$retval" -eq $EXIT_CODE_RESTART ]
 do
@@ -64,7 +81,7 @@ do
       bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/classpath/boot`
   fi
   if [ -r $fwdir/classpath/framework ] ; then
-      classpath=$CLASSPATH_FLAG`cat $fwdir/classpath/framework`
+      classpath=$CLASSPATH_FLAG$KF_CLASSPATH:`cat $fwdir/classpath/framework`
   else
       classpath=$CLASSPATH_FLAG$KF_CLASSPATH
   fi
