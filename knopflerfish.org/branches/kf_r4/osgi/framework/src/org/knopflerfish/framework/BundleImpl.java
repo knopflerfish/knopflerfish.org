@@ -975,11 +975,14 @@ class BundleImpl implements Bundle {
                 }
               }
               framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
-              List fe = archive.getFailedClassPathEntries();
-              if (fe != null) {
-                for (Iterator i = fe.iterator(); i.hasNext(); ) {
-                  Exception e = new IOException("Failed to classpath entry: " + i.next());
-                  framework.listeners.frameworkInfo(this, e);
+
+              if (id != 0) { // this is not applicable to system bundle.
+                List fe = archive.getFailedClassPathEntries();
+                if (fe != null) {
+                  for (Iterator i = fe.iterator(); i.hasNext(); ) {
+                    Exception e = new IOException("Failed to classpath entry: " + i.next());
+                    framework.listeners.frameworkInfo(this, e);
+                  }
                 }
               }
             } else {
@@ -1255,7 +1258,7 @@ class BundleImpl implements Bundle {
           Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
         
         // an extension bundle must target the system bundle.  
-        if (!key.equals(Constants.SYSTEM_BUNDLE_SYMBOLICNAME) && 
+        if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(key) && 
             !"org.knopflerfish.framework".equals(key)) {
           throw new IllegalArgumentException("An extension bundle must target " +
                                              "the system bundle(=" +
@@ -1783,9 +1786,10 @@ class BundleImpl implements Bundle {
    */
   boolean extensionNeedsRestart() {
     return isExtension() &&
-      (state & (INSTALLED|UNINSTALLED)) != 0 &&
-      framework.systemBundle.fragments != null &&
-      framework.systemBundle.fragments.contains(this);
+      (state & (INSTALLED|UNINSTALLED)) != 0;
+    // &&
+//      framework.systemBundle.fragments != null &&
+//      framework.systemBundle.fragments.contains(this);
   }
 
   /**

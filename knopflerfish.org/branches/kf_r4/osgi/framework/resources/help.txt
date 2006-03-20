@@ -1,6 +1,6 @@
  Usage:  java [properties] org.knopflerfish.framework.Main [-init] [options]
       or java [properties] -jar framework.jar [-init] [options]
-      or ./kf2 [-init] [options] [-- [properties]] (*)
+      or ./kf2 [-init] [options] [-- [properties]]  [--- [extra]] (*)
 
  Options:
    -exit          Exit the JVM process
@@ -21,6 +21,9 @@
    -update ID     Update a bundle
    -initlevel N   Set initial start level for installed bundles
    -startlevel N  Set start level of Start Level service
+
+ Extra: (Only applicable when using ./kf2)
+   -java PATH	  Use this JVM (Default=java)
 
 
  The default directory used for storing bundle data is  "fwdir".
