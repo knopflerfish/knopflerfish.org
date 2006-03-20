@@ -1,6 +1,6 @@
 #!/bin/sh
 
-JAVA=java 					# the JRE to use
+JAVA=java 					# the default java command
 BOOTCLASSPATH_FLAG="-Xbootclasspath/a:"		# the bootclass path flag for the specific
 CLASSPATH_FLAG="-classpath "			# the class path flag for the specific
 
@@ -25,22 +25,37 @@ do
   case "$1" in
       "-init"  ) args_orig=$args_orig" "$1;;
       "-xargs" ) shift; args_orig=$args_orig" -xargs "$1;;
-#      "-D"* ) jre_args=$jre_args" "$1;;
       "--" ) shift; break;;
+      "---" ) break;;
       * ) args=$args" "$1;;
   esac
   shift
 done
-
 # the rest is jre-specific args
 while [ -n "$1" ]
 do
   case "$1" in
       "-Dorg.osgi.framework.dir="* ) fwdir=`echo $1 | cut -c26-`;; # store fwdir.
+      "---" ) shift; break ;;
   esac
   jre_args=$jre_args" "$1
   shift
 done
+
+# command line options
+while [ -n "$1" ] 
+do
+  case "$1" in
+      "-java" )  shift; JAVA="$1" ;;
+      "-classpathflag" ) shift; CLASSPATH_FLAG="$1" ;; 	# *	
+      "-bootclasspathflag" ) shift ; BOOTCLASSPATH_FLAG="$1" ;;
+      * ) echo "Error: unknown option: $1"
+          echo "Use option -help to see all options"
+          exit 1 ;;
+  esac
+  shift 
+done
+# *: are these needed? or are they standard?
 
 retval=$EXIT_CODE_RESTART
 while [ "$retval" -eq $EXIT_CODE_RESTART ]
@@ -49,7 +64,7 @@ do
       bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/classpath/boot`
   fi
   if [ -r $fwdir/classpath/framework ] ; then
-      classpath=$CLASSPATH_FLAG$CLASSPATH_FLAG:`cat $fwdir/classpath/framework`
+      classpath=$CLASSPATH_FLAG`cat $fwdir/classpath/framework`
   else
       classpath=$CLASSPATH_FLAG$KF_CLASSPATH
   fi
