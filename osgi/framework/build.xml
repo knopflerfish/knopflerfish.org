@@ -170,12 +170,12 @@
      <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
    </javac>
 
-   <taskdef name      = "bundleinfo" 
-            classpath = "${antclasses}" 
+   <taskdef name         = "bundleinfo" 
+            classpathref = "ant.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
 
-   <taskdef name      = "bundlehtml" 
-            classpath = "${antclasses}" 
+   <taskdef name         = "bundlehtml" 
+            classpathref = "ant.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
      
  </target>
