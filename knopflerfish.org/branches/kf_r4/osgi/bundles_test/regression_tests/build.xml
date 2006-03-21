@@ -55,9 +55,10 @@
     <ant dir="bundleEnd102_test"	target="all"/>
     <ant dir="bundleEnd151_test"	target="all"/>
     <ant dir="bundleEnd152_test"	target="all"/>
+    <ant dir="endurance_test"		target="all"/>
     <ant dir="bundleExt1_test"		target="all"/>
     <ant dir="bundleExt2_test"		target="all"/>
-    <ant dir="endurance_test"		target="all"/>
+    <ant dir="extension_test"		target="all"/>
   </target>
 
    <target name="clean">
@@ -113,9 +114,10 @@
     <ant dir="bundleEnd102_test"	target="clean"/>
     <ant dir="bundleEnd151_test"	target="clean"/>
     <ant dir="bundleEnd152_test"	target="clean"/>
+    <ant dir="endurance_test"		target="clean"/>
     <ant dir="bundleExt1_test"		target="clean"/>
     <ant dir="bundleExt2_test"		target="clean"/>
-    <ant dir="endurance_test"		target="clean"/>
+    <ant dir="extension_test"		target="clean"/>
   </target>
 
 </project>
