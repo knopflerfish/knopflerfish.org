@@ -13,7 +13,10 @@
 
 
   <property name = "ant.dir"         location = "${topdir}/../ant"/>
+  <property name = "ant.lib"         location = "${ant.dir}/lib"/>
   <property name = "antclasses"      location = "${ant.dir}/classes"/>
+  <property name = "bcel.version"    value    = "5.1"/> 
+
   <property name = "javac.target"    value="1.1"/>
   <property name = "javac.source"    value="1.2"/>
 
@@ -112,7 +115,50 @@
   <delete file = "${jarfile}"/>
  </target>
 
+ <path id = "bcel.path">
+  <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
+ </path>
+
+ <path id = "ant.path">
+   <path refid = "bcel.path"/>
+   <pathelement location = "${antclasses}"/>
+ </path>
+
+ <target name="bcel_check">
+   <available classname    = "org.apache.bcel.classfile.JavaClass"
+              classpathref = "bcel.path"
+              property     = "bcel.available"/>
+   <fail unless  = "bcel.available" 
+         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in $$ANT_HOME/lib or ${ant.lib}. You can also try  'ant install_bcel' which will download bcel and then install it in ${ant.lib}"/>
+ </target>
+
+ <target name="install_bcel">
+   <antcall target="download_bcel" />
+   <antcall target="unpack_bcel"   />
+ </target>
+
+ <target name="download_bcel">
+   <mkdir dir = "${ant.lib}"/>
+   <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
+        dest = "${ant.lib}/bcel-${bcel.version}.zip"/>
+ </target>
+
+ <target name="unpack_bcel">
+   <unzip src = "${ant.lib}/bcel-${bcel.version}.zip"
+         dest = "${ant.lib}">
+    <patternset>
+     <include name="bcel-${bcel.version}/bcel-${bcel.version}.jar"/>
+    </patternset>
+   </unzip>
+
+   <move file   = "${ant.lib}/bcel-${bcel.version}/bcel-${bcel.version}.jar" 
+         tofile = "${ant.lib}/bcel-${bcel.version}.jar"/>
+   <delete dir  = "${ant.lib}/bcel-${bcel.version}"/>
+   <delete file = "${ant.lib}/bcel-${bcel.version}.zip"/>
+ </target>
+
  <target name        = "compile_ant" 
+         depends     = "bcel_check"
          description = "Compile and link the custom bundleinfo task">
 
    <mkdir dir = "${antclasses}"/>
