@@ -1,5 +1,5 @@
 <!--
-  ** Copyright (c) 2003-2004, KNOPFLERFISH project
+  ** Copyright (c) 2003-2006, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -41,13 +41,8 @@
 
  <property environment="sysprops"/>
 
- <property name = "bcel.version"        value    = "5.1"/> 
-
  <property name = "javac.target"        value    = "1.2"/>
  <property name = "javac.source"        value="1.2"/>
- <property name = "ant.dir"             location = "${topdir}/../ant"/>
- <property name = "ant.lib"             location = "${ant.dir}/lib"/>
- <property name = "antclasses"          location = "${ant.dir}/classes"/>
 
  <property environment = "env"/>
 
@@ -188,54 +183,14 @@
    <path refid = "bundle.compile.path"/>
  </path>
 
- <path id = "bcel.path">
-  <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
- </path>
+ <import file="${topdir}/../ant/bundletasks.xml"/>
 
- <path id = "ant.path">
-   <path refid = "bcel.path"/>
-   <pathelement location = "${antclasses}"/>
- </path>
-
- <target name="init" depends="setup_build">
+ <target name="init" depends="setup_build,check_bcel">
    <tstamp>
     <format property = "bundle.date" 
             pattern  = "EE MMMM d yyyy, HH:mm:ss"
             locale   = "en"/>
    </tstamp>
-
-   <available classname    = "org.apache.bcel.classfile.JavaClass"
-              classpathref = "bcel.path"
-              property     = "bcel.available"/>
-
-   <fail unless  = "bcel.available" 
-         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in $$ANT_HOME/lib or ${ant.lib}. You can also try  'ant install_bcel' which will download bcel and then install it in ${ant.lib}"/>
-
- </target>
-
- <target name="install_bcel">
-   <antcall target="download_bcel" />
-   <antcall target="unpack_bcel"   />
- </target>
-
- <target name="download_bcel">
-   <mkdir dir = "${ant.lib}"/>
-   <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
-        dest = "${ant.lib}/bcel-${bcel.version}.zip"/>
- </target>
-
- <target name="unpack_bcel">
-   <unzip src = "${ant.lib}/bcel-${bcel.version}.zip"
-         dest = "${ant.lib}">
-    <patternset>
-     <include name="bcel-${bcel.version}/bcel-${bcel.version}.jar"/>
-    </patternset>
-   </unzip>
-
-   <move file   = "${ant.lib}/bcel-${bcel.version}/bcel-${bcel.version}.jar" 
-         tofile = "${ant.lib}/bcel-${bcel.version}.jar"/>
-   <delete dir  = "${ant.lib}/bcel-${bcel.version}"/>
-   <delete file = "${ant.lib}/bcel-${bcel.version}.zip"/>
  </target>
 
  <target name="install_netcomponents">
@@ -262,7 +217,7 @@
  </target>
 
 
- <target name = "all" depends = "init,compile_ant">
+ <target name = "all" depends = "init,bundle_tasks">
    <antcall target = "try_bundle.custom.pre"/>
    <antcall target = "jars"/>
    <antcall target = "try_bundle.custom.post"/>
@@ -278,38 +233,6 @@
          if          = "do.bundle.custom.post">
    <antcall target = "bundle.custom.post"/>
  </target>
-
- <target name        = "compile_ant" 
-         description = "Compile and link the custom bundleinfo task">
-
-   <mkdir dir = "${antclasses}"/>
-
-   <javac destdir      = "${antclasses}"
-          srcdir       = "${ant.dir}/src"
-	  classpathref = "ant.path"
-          debug        = "on">
-     <!-- Bundle.java requires Ant 1.6+ -->
-     <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
-   </javac>
-
-   <taskdef name         = "bundleinfo" 
-            classpathref = "ant.path"
-     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
-
-   <taskdef name         = "bundlemanifest" 
-            classpathref = "ant.path"
-     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
-
-   <taskdef name         = "bundlehtml" 
-            classpathref = "ant.path"
-     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
-
-   <taskdef name        = "bundleobr" 
-            classpathref = "ant.path"
-     classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
-     
- </target>
-
 
  <target name        = "compile" 
          description = "compiles all java sources">
@@ -462,12 +385,8 @@
        excludes = "**/pspbrwse.jbf"
        manifest = "${outdir}/impl.mf"
     >
-
      <fileset dir = "${resources.dir}"/>
-
-    </jar>  
-
-
+  </jar>  
  </target>
 
  <target name    = "add_src_all"
@@ -501,7 +420,7 @@
  </target>
 
  <target name    = "jar_api" 
-         depends = "init,compile_ant" 
+         depends = "init,bundle_tasks" 
 	 if      = "do_build_api">
 
   <antcall target = "compile_api"/>
@@ -558,7 +477,7 @@
  </target>
 
  <target name    = "jar_lib" 
-         depends = "init,compile_ant" 
+         depends = "init,bundle_tasks" 
 	 if      = "do_build_lib">
 
   <antcall target = "compile_api"/>
@@ -625,7 +544,7 @@
  </target>
 
  <target name    = "jar_decl" 
-         depends = "init,compile_ant" 
+         depends = "init,bundle_tasks" 
 	 if      = "do_build_decl">
 
   <antcall target = "compile"/>
@@ -704,7 +623,7 @@
  </target>
 
  <target name    = "jar_all" 
-         depends = "init,compile_ant" 
+         depends = "init,bundle_tasks" 
 	 if      = "do_build_all">
 
   <antcall target = "compile"/>
