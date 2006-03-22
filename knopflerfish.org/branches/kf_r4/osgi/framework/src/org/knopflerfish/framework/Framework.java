@@ -141,11 +141,6 @@ public class Framework {
   ServiceContentHandlerFactory   contentHandlerFactory;
 
   /**
-   * Magic handler for "bundle:" URLs
-   */
-  URLStreamHandler bundleURLStreamhandler;
-
-  /**
    * Property constants for the framework.
    */
   final static String TRUE   = "true";
@@ -304,16 +299,10 @@ public class Framework {
 //#endif
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
     contentHandlerFactory   = new ServiceContentHandlerFactory(this);
-    bundleURLStreamhandler  = new BundleURLStreamHandler(bundles);
 
-    // Only register bundle: URLs publicly if explicitly told so
-    // Note: registering bundle: URLs exports way to much. 
-    if(REGISTERBUNDLEURLHANDLER) {
-      urlStreamHandlerFactory
-        .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
-                             bundleURLStreamhandler);
-    }
-
+    urlStreamHandlerFactory
+      .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
+                           new BundleURLStreamHandler(bundles, perm));
     urlStreamHandlerFactory
       .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
 			   new ReferenceURLStreamHandler());

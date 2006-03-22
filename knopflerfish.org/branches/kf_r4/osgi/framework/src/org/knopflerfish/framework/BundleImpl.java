@@ -251,20 +251,10 @@ class BundleImpl implements Bundle {
     ProtectionDomain pd = null;
     if (secure.checkPermissions()) {
       try {
-        URLStreamHandler handler
-          = bpkgs.bundle.framework.bundleURLStreamhandler;
-
-        URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
-                                Long.toString(id),
-                                -1,
-                                "",
-                                handler);
-
+        URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, Long.toString(id), "");
         PermissionCollection pc = secure.createPermissionCollection(this);
         pd = new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
-      } catch (MalformedURLException e) {
-        e.printStackTrace();
-      }
+      } catch (MalformedURLException _ignore) { }
     }
     protectionDomain = pd;
 
@@ -1133,8 +1123,23 @@ class BundleImpl implements Bundle {
    *
    * @return BundleArchive object.
    */
-  BundleArchive getBundleArchive() {
-    return archive;
+  BundleArchive getBundleArchive(long gen, long frag) {
+    // TODO, maybe we should always specify generation and return null if they don't match
+    if (gen == -1 || (bpkgs != null && bpkgs.generation == gen)) {
+      if (frag == -1) {
+        return archive;
+      } else {
+        return ((BundleClassLoader)getClassLoader()).getBundleArchive(frag);
+      }
+    } else {
+      for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
+        BundleClassLoader cl = (BundleClassLoader)i.next();
+        if (cl.getBpkgs().generation == gen) {
+          return cl.getBundleArchive(frag);
+        }
+      }
+      return null;
+    }
   }
 
 
@@ -1188,6 +1193,34 @@ class BundleImpl implements Bundle {
       return bpkgs.getImports();
     } else {
       return (new ArrayList(0)).iterator();
+    }
+  }
+
+
+  /**
+   * Construct URL to bundle resource
+   */
+  URL getURL(long gen, long frag, int bcpElem, String path) {
+    try {
+      StringBuffer u = new StringBuffer(BundleURLStreamHandler.PROTOCOL);
+      u.append("://");
+      u.append(id);
+      if (gen != -1) {
+        u.append('.').append(gen);
+      }
+      if (frag != -1 && frag != id) {
+        u.append('_').append(frag);
+      }
+      if (bcpElem >= 0) {
+        u.append(':').append(bcpElem);
+      }
+      if (!path.startsWith("/")) {
+        u.append('/');
+      }
+      u.append(path);
+      return new URL(u.toString());
+    } catch (MalformedURLException e) {
+      return null;
     }
   }
 
@@ -1490,6 +1523,12 @@ class BundleImpl implements Bundle {
    */
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
     if (secure.okResourceAdminPerm(this)) {
+      if (state == INSTALLED) {
+        // We need to resolve if there are fragments involved
+        if (!framework.bundles.getFragmentBundles(this).isEmpty()) {
+          getUpdatedState();
+        }
+      }
       Vector res = new Vector();
       if (isFragmentHost()) {
         for (Iterator i = fragments.iterator(); i.hasNext(); ) {
@@ -1518,10 +1557,7 @@ class BundleImpl implements Bundle {
       } else {
         int l = fp.lastIndexOf('/');
         if (pattern == null || Util.filterMatch(pattern, fp.substring(l + 1))) {
-          URL url = secure.getBundleURL(id,
-                                        -1,
-                                        fp,
-                                        framework.bundleURLStreamhandler);
+          URL url = getURL(-1, -1, -1, fp);
           if (url != null) {
             res.add(url);
           }
@@ -1543,10 +1579,7 @@ class BundleImpl implements Bundle {
         InputStream is = archive.getInputStream(name, 0);
         if (is != null) {
           is.close();
-          return secure.getBundleURL(id,
-                                     -1,
-                                     name,
-                                     framework.bundleURLStreamhandler);
+          return getURL(-1, -1, -1, name);
         }
       } catch (IOException _ignore) { }
     }
@@ -1928,11 +1961,12 @@ class BundleImpl implements Bundle {
    */
   private void detachFragment(BundleImpl fb, boolean sendEvent) {
     // NYI! extensions
-    fragments.remove(fb);
-    if (fb.getFragmentHost() == this) {
+    if (fragments.remove(fb)) {
       // NYI purge control
-      bpkgs.detachFragment(fb.bpkgs);
-      fb.setStateInstalled(sendEvent);
+      bpkgs.detachFragment(fb);
+      if (fb.state != UNINSTALLED) {
+        fb.setStateInstalled(sendEvent);
+      }
     }
   }
 

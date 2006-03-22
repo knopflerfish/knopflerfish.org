@@ -362,6 +362,27 @@ final public class BundleClassLoader extends ClassLoader {
 
 
   /**
+   * Get bundle archive belonging to this class loader.
+   */
+  BundleArchive getBundleArchive(long frag) {
+    if (frag >= 0) {
+      if (fragments != null) {
+        for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+          // NYI improve this solution
+          BundleArchive ba = (BundleArchive)i.next();
+          if (ba.getBundleId() == frag) {
+            return ba;
+          }
+        }
+      }
+      return null;
+    } else {
+      return archive;
+    }
+  }
+      
+
+  /**
    * Close down this classloader.
    * We don't give out any new classes. Perhaps we should
    * block all classloads.
@@ -689,21 +710,13 @@ final public class BundleClassLoader extends ClassLoader {
   static final SearchAction resourceSearch = new SearchAction() {
       public Object get(Vector items, String path, String name, String _pkg, BundleClassLoader cl, BundleArchive ba) {
         Vector answer = new Vector(items.size());
+        BundlePackages bp = cl.bpkgs;
         for(int i = 0; i < items.size(); i++) {
           int subId = ((Integer)items.elementAt(i)).intValue();
-          /*
-           * Fix for Java profiles which do not support 
-           * URL(String, String,int,String,URLStreamHandler).
-           *  
-           * These profiles must set the 
-           * org.knopflerfish.osgi.registerbundleurlhandler property 
-           * to 'true' so the BundleURLStreamHandler is added
-           * to the Framework urlStreamHandlerFactory
-           */
-          URL url = cl.bpkgs.bundle.framework.perm.getBundleURL(ba.getBundleId(),
-                                                                subId,
-                                                                path,
-                                                                cl.bpkgs.bundle.framework.bundleURLStreamhandler);
+          URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
+                                           ba.getBundleId(),
+                                           subId,
+                                           path);
           if (url != null) {
             if (Debug.classLoader) {
               Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - found: " + path + " -> " + url);

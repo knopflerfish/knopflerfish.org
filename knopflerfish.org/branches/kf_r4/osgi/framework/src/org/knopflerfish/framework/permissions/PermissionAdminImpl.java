@@ -34,8 +34,8 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.security.*;
-import java.util.*;
+import java.security.AccessController;
+import java.security.AllPermission;
 
 import org.osgi.service.permissionadmin.*;
 
@@ -53,13 +53,12 @@ public class PermissionAdminImpl implements PermissionAdmin {
 
   public final static String SPEC_VERSION = "1.2";
 
-  
   /**
    * AllPermission used for permission check.
    */
-  private AllPermission ALL_PERMISSION = new AllPermission();
+  final private AllPermission ALL_PERMISSION = new AllPermission();
   
-  private PermissionInfoStorage pinfos;
+  final private PermissionInfoStorage pinfos;
   
 
   public PermissionAdminImpl(PermissionInfoStorage pis) {
@@ -67,16 +66,6 @@ public class PermissionAdminImpl implements PermissionAdmin {
   }
   
   
-  /**
-   * Check that we have all permission.
-   *
-   * @exception SecurityException if we don't have all permission.
-   */
-  void checkAllPermission() { 
-    AccessController.checkPermission(ALL_PERMISSION);
-  }
-
-
   //
   // Interface PermissionAdmin
   //
@@ -110,7 +99,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
    *            <code>AllPermission</code>.
    */
   public synchronized void setPermissions(String location, PermissionInfo[] perms) {
-    checkAllPermission();
+    AccessController.checkPermission(ALL_PERMISSION);
     if (perms != null) {
       pinfos.put(location, (PermissionInfo[])perms.clone());
     } else {
@@ -159,7 +148,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
    *            <code>AllPermission</code>.
    */
   public synchronized void setDefaultPermissions(PermissionInfo[] perms) {
-    checkAllPermission();
+    AccessController.checkPermission(ALL_PERMISSION);
     if (perms != null) {
       perms = (PermissionInfo[])perms.clone();
     }
