@@ -35,9 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLStreamHandler;
 import java.security.*;
 import java.util.*;
 
@@ -146,9 +143,13 @@ class SecurePermissionOps extends PermissionOps {
     AccessController.checkPermission(ap_resolve_perm);
   }
   
+  void checkResourceAdminPerm(Bundle b) {
+    AccessController.checkPermission(getAdminPermission(b, AP_RESOURCE));
+  }
+
   boolean okResourceAdminPerm(Bundle b) {
     try {
-      AccessController.checkPermission(getAdminPermission(b, AP_RESOURCE));
+      checkResourceAdminPerm(b);
       return true;
     } catch (AccessControlException _ignore) {
       return false;
@@ -304,27 +305,6 @@ class SecurePermissionOps extends PermissionOps {
         i.remove();
       }
     }
-  }
-
-
-  //
-  // BundleClassLoader Secure operations
-  //
-
-  URL getBundleURL(final long bid, final int subId, final String path, final URLStreamHandler handler) {
-    return (URL) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-              try {
-                return new URL(BundleURLStreamHandler.PROTOCOL, 
-                               Long.toString(bid),
-                               subId,
-                               path.startsWith("/") ? path : "/" + path,
-                               handler);
-              } catch (MalformedURLException _ignore) {
-                return null;
-              }
-            }
-          });
   }
 
 

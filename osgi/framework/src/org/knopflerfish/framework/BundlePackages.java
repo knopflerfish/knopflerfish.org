@@ -65,7 +65,7 @@ class BundlePackages {
 
   private ArrayList /* String */ dImportPatterns = new ArrayList(1);
 
-  private HashMap /* BundlePackages -> [List(ExportPkg),List(ImportPkg)] */ fragments = null;
+  private HashMap /* BundlePackages -> {List(Required),List(ExportPkg),List(ImportPkg)} */ fragments = null;
 
   /* List of RequireBundle entries. */
   ArrayList /* RequireBundle */ require;
@@ -96,15 +96,6 @@ class BundlePackages {
     this.bundle = b;
     this.generation = gen;
 
-    if(b.getBundleArchive() != null) {
-      String fakeString = b.getBundleArchive().getAttribute("fakeheader");
-      if(fakeString != null) {
-        if(Debug.packages) {
-          Debug.println(("Fake bundle #" + b.getBundleId() + ": " + fakeString));
-        }
-      }
-    }
-    
     Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
@@ -487,7 +478,7 @@ class BundlePackages {
 
     if (fragments == null) {
       fragments = new HashMap();
-    } else if (fragments.containsKey(fbpkgs)) {
+    } else if (fragments.containsKey(fbpkgs.bundle)) {
       throw new RuntimeException("Fragments packages already attached: " + fbpkgs);
     }
 
@@ -566,7 +557,7 @@ class BundlePackages {
     }
 
     bundle.framework.packages.registerPackages(newExports.iterator(), newImports.iterator()); 
-    fragments.put(fbpkgs, new ArrayList [] { newRequired, newExports, newImports });
+    fragments.put(fbpkgs.bundle, new ArrayList [] { newRequired, newExports, newImports });
     return null;
   }
 
@@ -574,12 +565,11 @@ class BundlePackages {
   /**
    * Attach a fragment bundle packages.
    */
-  void detachFragment(BundlePackages fbpkgs) {
+  void detachFragment(BundleImpl fb) {
     if (registered) {
       throw new RuntimeException("NYI, detach when bpkgs are registered");
     }
-
-    List [] added = (List [])fragments.remove(fbpkgs);
+    List [] added = (List [])fragments.remove(fb);
     for (Iterator riter = added[0].iterator(); riter.hasNext(); ) {
       require.remove(riter.next());
     }

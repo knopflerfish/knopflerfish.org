@@ -76,6 +76,7 @@ public class PermissionsHandle {
        for (Enumeration e = pc.elements(); e.hasMoreElements();) {
         Permission p = (Permission) e.nextElement();
         if (!(p instanceof AllPermission)) {
+System.out.println("ADD RUNTIME: " + p);
           runtimePermissions.add(p);
         }
        }

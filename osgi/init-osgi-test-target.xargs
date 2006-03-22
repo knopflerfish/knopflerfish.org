@@ -14,6 +14,10 @@
 -Dorg.osgi.test.watchdog=120
 -Dscr.bundle.name=Declarative-Services
 
+# Run with security
+-Djava.security.manager=
+-Djava.security.policy=file:framework.policy
+
 -install file:../../osgi.ri-tck/osgi.core.impls.jar
 #-install file:../../osgi.ri-tck/testcond.jar
 -install file:../../osgi.ri-tck/osgi.target.jar
