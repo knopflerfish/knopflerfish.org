@@ -170,8 +170,8 @@ class PermissionOps {
   }
 
 
-  Throwable callStop0(final BundleImpl b)  {
-    return b.stop0();
+  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
+    return b.stop0(resetPersistent);
   }
 
 

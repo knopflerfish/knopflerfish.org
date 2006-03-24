@@ -551,12 +551,13 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @return Object returned from action class.
    */
-  protected Object searchFor(String name, String pkg, String path, SearchAction action, boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
+  protected Object searchFor(String name, String pkg, String path, SearchAction action,
+                             boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
     BundlePackages pbp;
     ExportPkg ep;
 
     // TBD! Should this be an action method
-    if (name != null && requestor != this) {
+    if (action == classSearch && requestor != this) {
       Class c = findLoadedClass(name);
       if (c != null) {
         return c;
@@ -601,7 +602,8 @@ final public class BundleClassLoader extends ClassLoader {
                   Debug.println(this + " Required bundle search: " +
                                 path + " from #" + pbp.bundle.id);
                 }
-                Object res = cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+                Object res = cl.searchFor(name, pkg, path, action, onlyFirst,
+                                          requestor, visited);
                 if (res != null) {
                   return res;
                 }
@@ -672,7 +674,8 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action
    */
   interface SearchAction {
-    public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl, BundleArchive ba) throws IOException ;
+    public Object get(Vector items, String path, String name, String pkg,
+                      BundleClassLoader cl, BundleArchive ba) throws IOException ;
   }
 
 
@@ -680,24 +683,31 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action for class searching
    */
   static final SearchAction classSearch = new SearchAction() {
-      public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl, BundleArchive ba) throws IOException {
+      public Object get(Vector items, String path, String name, String pkg,
+                        BundleClassLoader cl, BundleArchive ba) throws IOException {
         byte[] bytes = ba.getClassBytes((Integer)items.get(0), path);
         if (bytes != null) {
           if (Debug.classLoader) {
             Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - load class: " + name);
           }
-          if (pkg != null) {
-            if (cl.getPackage(pkg) == null) {
-              cl.definePackage(pkg, null, null, null, null, null, null, null);
+          synchronized (cl) {
+            Class c = cl.findLoadedClass(name);
+            if (c == null) {
+              if (pkg != null) {
+                if (cl.getPackage(pkg) == null) {
+                  cl.definePackage(pkg, null, null, null, null, null, null, null);
+                }
+              }
+              if (cl.bpkgs.bundle.protectionDomain == null) {
+                // Kaffe can't handle null protectiondomain
+                c = cl.defineClass(name, bytes, 0, bytes.length);
+              } else {
+                c = cl.defineClass(name, bytes, 0, bytes.length,
+                                   cl.bpkgs.bundle.protectionDomain);
+              }
             }
+            return c;
           }
-	  if (cl.bpkgs.bundle.protectionDomain == null) {
-	    // Kaffe can't handle null protectiondomain
-	    return cl.defineClass(name, bytes, 0, bytes.length);
-	  } else {
-	    return cl.defineClass(name, bytes, 0, bytes.length,
-                                  cl.bpkgs.bundle.protectionDomain);
-	  }
         }
         return null;
       }
@@ -708,7 +718,8 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action for resource searching
    */
   static final SearchAction resourceSearch = new SearchAction() {
-      public Object get(Vector items, String path, String name, String _pkg, BundleClassLoader cl, BundleArchive ba) {
+      public Object get(Vector items, String path, String name, String _pkg,
+                        BundleClassLoader cl, BundleArchive ba) {
         Vector answer = new Vector(items.size());
         BundlePackages bp = cl.bpkgs;
         for(int i = 0; i < items.size(); i++) {
@@ -719,12 +730,12 @@ final public class BundleClassLoader extends ClassLoader {
                                            path);
           if (url != null) {
             if (Debug.classLoader) {
-              Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - found: " + path + " -> " + url);
+              Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - found: " +
+                            path + " -> " + url);
             }
             answer.addElement(url);
           } else {
             return null;   
-            // TODO: Rewrite URL if we have special characters.
           }
         }
         return answer.elements();

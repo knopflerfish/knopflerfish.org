@@ -461,19 +461,10 @@ class BundleImpl implements Bundle {
 
     bDelayedStart = false;
 
-    secure.callSetPersistent(this, false);
-
-    if(framework.startLevelService != null) {
-      if(getStartLevel() <= framework.startLevelService.getStartLevel()) {
-        if(state == ACTIVE) {
-          bDelayedStart = true;
-        }
-      }
-    }
-
     switch (state) {
     case INSTALLED:
     case RESOLVED:
+      secure.callSetPersistent(this, false);
       // We don't want this bundle to start on launch after it has been
       // stopped. (Don't apply during shutdown
       if (allowSetStartOnLaunchFalse()) {
@@ -481,15 +472,9 @@ class BundleImpl implements Bundle {
       }
       break;
     case ACTIVE:
-      state = STOPPING;
-      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
-
-      Throwable savedException = secure.callStop0(this);
-
-      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
+      BundleException savedException = secure.callStop0(this, true);
       if (savedException != null) {
-        throw new BundleException("Bundle.stop: BundleActivator stop failed",
-                                  savedException);
+        throw savedException;
       }
       break;
     case STARTING:
@@ -505,8 +490,16 @@ class BundleImpl implements Bundle {
     }
   }
 
-  Throwable stop0() {
-    Throwable res = null;
+  synchronized BundleException stop0(boolean resetPersistent) {
+    BundleException res = null;
+
+    state = STOPPING;
+    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+
+    if (resetPersistent) {
+      setPersistent(false);
+    }
+
     if (allowSetStartOnLaunchFalse()) {
       startOnLaunch(false);
     }
@@ -514,7 +507,7 @@ class BundleImpl implements Bundle {
       try {
         bactivator.stop(bundleContext);
       } catch (Throwable e) {
-        res = e;
+        res = new BundleException("Bundle.stop: BundleActivator stop failed", e);
       }
       bactivator = null;
     }
@@ -523,6 +516,7 @@ class BundleImpl implements Bundle {
     bundleContext = null;
     removeBundleResources();
     state = RESOLVED;
+    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
     return res;
   }
 
