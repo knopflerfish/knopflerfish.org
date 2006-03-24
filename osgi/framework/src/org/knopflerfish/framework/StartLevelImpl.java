@@ -206,14 +206,14 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 
   Object lock = new Object();
-  
+
 
   void increaseStartLevel() {
     synchronized(lock) {
 
       currentLevel++;
 
-      if(Debug.startlevel) {
+      if (Debug.startlevel) {
 	Debug.println("startlevel: increaseStartLevel currentLevel=" + currentLevel);
       }
       Vector set = new Vector();
@@ -223,9 +223,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
       for(Iterator i = bundles.iterator(); i.hasNext(); ) {
 	BundleImpl bs  = (BundleImpl)i.next();
 
-	if(canStart(bs)) {
-	  if(bs.getStartLevel() == currentLevel) {
-	    if(bs.archive.isPersistent()) {
+	if (canStart(bs)) {
+	  if (bs.getStartLevel() == currentLevel) {
+	    if (bs.archive.isPersistent()) {
 	      set.addElement(bs);
 	    }
 	  }
@@ -239,14 +239,14 @@ public class StartLevelImpl implements StartLevel, Runnable {
       for(int i = 0; i < set.size(); i++) {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
 	try {
-	  if(bs.archive.isPersistent()) {
-	    if(Debug.startlevel) {
+	  if (bs.archive.isPersistent()) {
+	    if (Debug.startlevel) {
 	      Debug.println("startlevel: start " + bs);
 	    }
 	    bs.start();
 	  }
 	} catch (Exception e) {
-	  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
+	  framework.listeners.frameworkError(bs, e);
 	}
       }
     }
@@ -275,15 +275,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       for(int i = 0; i < set.size(); i++) {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
-
-	try {
-	  bs.stop();
-          
-	} catch (Exception e) {
-	  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
-	} finally {
-          bs.bDelayedStart = true;
-          framework.perm.callSetPersistent(bs, true);
+        BundleException saved = bs.stop0(false);
+        if (saved != null) {
+	  framework.listeners.frameworkError(bs, saved);
         }
       }
     }
@@ -345,25 +339,23 @@ public class StartLevelImpl implements StartLevel, Runnable {
   void syncStartLevel(BundleImpl bs) {
     synchronized(lock) {
 
-      if(bs.getStartLevel() <= currentLevel) {
-	if(canStart(bs)) {
-	  if(bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
+      if (bs.getStartLevel() <= currentLevel) {
+	if (canStart(bs)) {
+	  if (bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
 	    try {
 	      bs.start();
 	    } catch (Exception e) {
-	      framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
+	      framework.listeners.frameworkError(bs, e);
 	    }
 	  } else {
 	    bs.bDelayedStart = true;
 	  }
 	}
-      } else if(bs.getStartLevel() > currentLevel) {
-	if(bs.getState() == Bundle.ACTIVE) {
-	  try {
-	    bs.stop();
-	    bs.bDelayedStart = true; // Reset this since stop sets to false
-	  } catch (Exception e) {
-	    framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bs, e));
+      } else if (bs.getStartLevel() > currentLevel) {
+	if (bs.getState() == Bundle.ACTIVE) {
+	  BundleException saved = bs.stop0(false);
+          if (saved != null) {
+	    framework.listeners.frameworkError(bs, saved);
 	  }
 	}
       }
@@ -375,6 +367,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
     return initStartLevel;
   }
   
+
   public void setInitialBundleStartLevel(int startLevel) {
     framework.perm.checkStartLevelAdminPerm();  
 	  

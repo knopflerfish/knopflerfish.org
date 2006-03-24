@@ -326,11 +326,11 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  Throwable callStop0(final BundleImpl b)  {
-    return (Throwable)
+  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
+    return (BundleException)
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-            return b.stop0();
+            return b.stop0(resetPersistent);
           }
         });
   }

@@ -292,9 +292,11 @@ class BundleArchiveImpl implements BundleArchive
     return location;
   }
 
+
   public int getStartLevel() {
     return startLevel;
   }
+
   
   public void setStartLevel(int level) throws IOException {
     if (startLevel != level) {
@@ -302,6 +304,7 @@ class BundleArchiveImpl implements BundleArchive
       putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
     }
   }
+
 
   public void setPersistent(boolean b) throws IOException {
     if (bPersistent != b) {
@@ -315,9 +318,11 @@ class BundleArchiveImpl implements BundleArchive
     return bPersistent;
   }
 
+
   public long getLastModified() {
                 return lastModified;
   }
+
   
   public void setLastModified(long timemillisecs) throws IOException{
           lastModified = timemillisecs;
@@ -783,9 +788,11 @@ class BundleArchiveImpl implements BundleArchive
     return false;
   }
 
+
   public Enumeration findResourcesPath(String path) {
     return archive.findResourcesPath(path);
   }
+
 
   public String getJarLocation() {
     return archive.getPath();
