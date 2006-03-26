@@ -90,38 +90,6 @@ public class LDAPExpr {
 
   public LDAPExpr(String filter) throws InvalidSyntaxException {
 
-
-
-    if(Framework.R3_TESTCOMPLIANT) {
-      // Workaround for bug in R3 test suite which incorrectly thinks
-      // spaces inside of names are legal
-      // fix by saving the "incorrect but expected" filter string
-      // and return that in toString()
-      
-      String zz  = " \n(& ( \tn ame = TestService1 ) ( ma ne = ServiceTest1 ) ) \r ";
-      String zz2 = " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
-      String zz3  = "(&(n ame= TestService1 )(ma ne= ServiceTest1 ))";
-      if(filter.equals(zz)) {
-	System.out.println("*** Gah! This string is incorrectly expected to parse by the R3 test case:\n" + zz);
-	filter = zz2;
-	bug = zz3;
-      }
-
-      // The UPnP reference implementation uses 
-      // Filter.toString().indexOf("UPnP....")
-      // to look for properties. Since the filter is 
-      // normalized to lower case, indexOf never matches
-      // and the UPnP event mechanism fails.
-      // Fix by saving the original filter string
-      // and return that in toString()
-      if(-1 != filter.indexOf("UPnP.device.") ||
-	 -1 != filter.indexOf("UPnP.service.")) {
-	System.out.println("UPnP: saving original filter case: " + filter);
-	bug = filter;
-      }
-
-    }
-
     ParseState ps = new ParseState(filter);
     LDAPExpr expr = null;
     try {
@@ -537,12 +505,6 @@ public class LDAPExpr {
   }
 
   public String toString() {
-    if(Framework.R3_TESTCOMPLIANT) {
-      if(bug != null) {
-	return bug;
-      }
-    }
-
     StringBuffer res = new StringBuffer();
     res.append("(");
     if ((operator & SIMPLE) != 0) { 

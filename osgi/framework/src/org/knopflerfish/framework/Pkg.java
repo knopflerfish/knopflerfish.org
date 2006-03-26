@@ -124,7 +124,6 @@ class Pkg {
   }
 
 
-
   /**
    * Get best provider. Best provider is provider
    * with highest version number.
@@ -148,10 +147,6 @@ class Pkg {
     return exporters.size() == 0 && importers.size() == 0;
   }
 
-  //
-  // Private methods.
-  //
-
 
   public String toString() {
     return toString(2);
@@ -166,14 +161,9 @@ class Pkg {
       sb.append("pkg=" + pkg);
     }
     if(level > 1) {
-      sb.append(", provider=" + providers);
+      sb.append(", providers=" + providers);
     }
     if(level > 2) {
-      // NYI iterate
-      sb.append(", zombie=" + (providers.isEmpty() ? false :
-			       ((ExportPkg)providers.get(0)).zombie));
-    } 
-    if(level > 3) {
       sb.append(", exporters=" + exporters);
     }
     sb.append("]");

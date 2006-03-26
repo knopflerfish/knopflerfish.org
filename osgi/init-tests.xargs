@@ -57,7 +57,7 @@
 -istart file:bundles_test/regression_tests/jars/servicetracker_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/constants_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/eventadmin_test-1.0.0.jar
+#-istart file:bundles_test/regression_tests/jars/eventadmin_test-1.0.0.jar
 
 # packages required by component_test
 -istart log/log_all-1.0.1.jar

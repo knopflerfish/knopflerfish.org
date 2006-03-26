@@ -68,8 +68,6 @@ class BundleArchiveImpl implements BundleArchive
 
   private Archive [] archives;
 
-  private boolean bFake;
-
   private int startLevel = -1;
   private boolean bPersistent = false;
   private long lastModified;
@@ -91,9 +89,6 @@ class BundleArchiveImpl implements BundleArchive
     id            = bundleId;
     location      = bundleLocation;
     startOnLaunch = false;
-
-    bFake = isFake();
-
     setClassPath();
   }
 
@@ -110,22 +105,9 @@ class BundleArchiveImpl implements BundleArchive
     id = old.id;
     startOnLaunch = old.startOnLaunch;
     archive = new Archive(is);
-
-    bFake = isFake();
-
     setClassPath();
   }
 
-  boolean isFake() {
-    // What the f**k is this? R3 rest case seem to require it!
-    if(Framework.R3_TESTCOMPLIANT) {
-      String fake = getAttribute("fakeheader");
-      if(fake != null) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   /**
    * Get an attribute from the manifest of a bundle.
@@ -137,12 +119,14 @@ class BundleArchiveImpl implements BundleArchive
     return archive.getAttribute(key);
   }
 
+
   /**
    * returns the localization entries of this archive.
    */
   public Hashtable getLocalizationEntries(String locale) {
     return archive.getLocalizationEntries(locale);
   }
+
 
   /**
    * returns the raw unlocalized entries of this archive.
@@ -170,29 +154,36 @@ class BundleArchiveImpl implements BundleArchive
     return location;
   }
 
+
   public int getStartLevel() {
     return startLevel;
   }
+
   
   public void setStartLevel(int level) {
     startLevel = level;
   }
 
+
   public void setPersistent(boolean b) {
     bPersistent = b;
   }
 
+
   public boolean isPersistent() {
     return bPersistent;
   }
+
   
   public long getLastModified() {
-          return lastModified;
+    return lastModified;
   }
+
 
   public void setLastModified(long timemillisecs) throws IOException{
           lastModified = timemillisecs;
   }
+
   
   /**
    * Get a byte array containg the contents of named file from a bundle
@@ -324,11 +315,11 @@ class BundleArchiveImpl implements BundleArchive
   //
   // Private methods
   //
-  //
+
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
     
-    if (!bFake && (bcp != null)) {
+    if (bcp != null) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {

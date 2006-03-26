@@ -59,7 +59,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   final static String LEVEL_FILE = "currentlevel";
 
-  int currentLevel   /*  = 0*/;
+  int currentLevel     = 0;
   int initStartLevel   = 1;
   int targetStartLevel = currentLevel;
 
@@ -78,8 +78,6 @@ public class StartLevelImpl implements StartLevel, Runnable {
     this.framework = framework;
     
     storage = Util.getFileStorage("startlevel");
-
-    setStartLevel0(1);
   }
   
   void open() {
@@ -88,10 +86,19 @@ public class StartLevelImpl implements StartLevel, Runnable {
       Debug.println("startlevel: open");
     }
 
+    if (jobQueue.isEmpty()) {
+      setStartLevel0(1, false);
+    }
+    Runnable firstJob = (Runnable)jobQueue.firstElement();
     wc   = new Thread(this, "startlevel job thread");
-    bRun = true;
-    wc.start();
-
+    synchronized (firstJob) {
+      bRun = true;
+      wc.start();
+      // Wait for first job to complete before return
+      try {
+        firstJob.wait();
+      } catch (InterruptedException _ignore) { }
+    }
   }
 
   /**
@@ -107,28 +114,27 @@ public class StartLevelImpl implements StartLevel, Runnable {
    * </p>
    */
   void restoreState() {
-    if(Debug.startlevel) {
+    if (Debug.startlevel) {
       Debug.println("startlevel: restoreState");
     }
     // Skip level load in mem storage since bundle levels
     // isn't saved anyway
-    if(!Framework.bIsMemoryStorage) 
-      {
-	try {
-	  String s = Util.getContent(new File(storage, LEVEL_FILE));
-	  if(s != null) {
-	    int oldStartLevel = Integer.parseInt(s);
-	    if(oldStartLevel != -1) {
-	      setStartLevel(oldStartLevel);
-	    }
-	  }
-	} catch (Exception ignored) {
-	}
-      }
+    if (!Framework.bIsMemoryStorage) {
+      try {
+        String s = Util.getContent(new File(storage, LEVEL_FILE));
+        if (s != null) {
+          int oldStartLevel = Integer.parseInt(s);
+          if (oldStartLevel != -1) {
+            setStartLevel0(oldStartLevel, false);
+          }
+        }
+      } catch (Exception _ignored) { }
+    }
   }
-  
+
+
   void close() {
-    if(Debug.startlevel) {
+    if (Debug.startlevel) {
       Debug.println("*** closing startlevel service");
     }
 
@@ -146,8 +152,11 @@ public class StartLevelImpl implements StartLevel, Runnable {
     while(bRun) {
       try {
 	Runnable job = (Runnable)jobQueue.removeWait((float)(wcDelay / 1000.0));	
-	if(job != null) {
+	if (job != null) {
 	  job.run();
+          synchronized (job) {
+            job.notify();
+          }
 	}
       } catch (Exception ignored) { 
 	ignored.printStackTrace();
@@ -155,10 +164,10 @@ public class StartLevelImpl implements StartLevel, Runnable {
     }
   }
 
+  
   public int getStartLevel() {
     return currentLevel;
   }
-  
   
 
   public void setStartLevel(final int startLevel) {
@@ -166,10 +175,11 @@ public class StartLevelImpl implements StartLevel, Runnable {
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
-    setStartLevel0(startLevel);
+    setStartLevel0(startLevel, true);
   }
 
-  void setStartLevel0(final int startLevel) {
+
+  private void setStartLevel0(final int startLevel, final boolean notifyFw) {
     if (Debug.startlevel) {
       Debug.println("startlevel: setStartLevel " + startLevel);
     }
@@ -179,27 +189,27 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	  int sl = bCompat ? 1 : startLevel;
 	  targetStartLevel = sl;
 
-	  while(targetStartLevel > currentLevel) {
+	  while (targetStartLevel > currentLevel) {
 	    increaseStartLevel();
 	  }
 
-	  while(targetStartLevel < currentLevel) {
+	  while (targetStartLevel < currentLevel) {
 	    decreaseStartLevel();
 	  }
 
-
 	  // Skip level save in mem storage since bundle levels
 	  // won't be saved anyway
-	  if(!Framework.bIsMemoryStorage) 
-	    {
-	      try {
-		Util.putContent(new File(storage, LEVEL_FILE), 
-				Integer.toString(currentLevel));
-	      } catch (Exception e) {
-		e.printStackTrace();
-	      }
-	    }
-	  notifyFramework();
+	  if (!Framework.bIsMemoryStorage) {
+            try {
+              Util.putContent(new File(storage, LEVEL_FILE), 
+                              Integer.toString(currentLevel));
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+          if (notifyFw) {
+            notifyFramework();
+          }
 	}
       });
   }
@@ -220,7 +230,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       List bundles = framework.bundles.getBundles();
 
-      for(Iterator i = bundles.iterator(); i.hasNext(); ) {
+      for (Iterator i = bundles.iterator(); i.hasNext(); ) {
 	BundleImpl bs  = (BundleImpl)i.next();
 
 	if (canStart(bs)) {
@@ -261,11 +271,11 @@ public class StartLevelImpl implements StartLevel, Runnable {
       
       List bundles = framework.bundles.getBundles();
 
-      for(Iterator i = bundles.iterator(); i.hasNext(); ) {
+      for (Iterator i = bundles.iterator(); i.hasNext(); ) {
 	BundleImpl bs  = (BundleImpl)i.next();
 
-	if(bs.getState() == Bundle.ACTIVE) {
-	  if(bs.getStartLevel() == currentLevel + 1) {
+	if (bs.getState() == Bundle.ACTIVE) {
+	  if (bs.getStartLevel() == currentLevel + 1) {
 	    set.addElement(bs);
 	  }
 	}
@@ -273,28 +283,37 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       Util.sort(set, BSComparator, true);
 
-      for(int i = 0; i < set.size(); i++) {
+      for (int i = 0; i < set.size(); i++) {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
-        BundleException saved = bs.stop0(false);
+        BundleException saved = null;
+        synchronized (bs) {
+          if (bs.getState() == Bundle.ACTIVE) {
+            saved = bs.stop0(false);
+          }
+        }
         if (saved != null) {
-	  framework.listeners.frameworkError(bs, saved);
+          framework.listeners.frameworkError(bs, saved);
         }
       }
     }
   }
 
+
   boolean canStart(BundleImpl b) {
-    return 
-      b.getState() != Bundle.UNINSTALLED;
-    //      b.getState() != Bundle.ACTIVE;
+    return b.getState() != Bundle.UNINSTALLED;
   }
-  
-  Util.Comparator BSComparator = new Util.Comparator() {
+
+
+  static final Util.Comparator BSComparator = new Util.Comparator() {
       public int compare(Object o1, Object o2) {
 	BundleImpl b1 = (BundleImpl)o1;
 	BundleImpl b2 = (BundleImpl)o2;
 	
-	return (int)(b1.getBundleId() - b2.getBundleId());
+        int res = b1.getStartLevel() - b2.getStartLevel();
+        if (res == 0) {
+          res = (int)(b1.getBundleId() - b2.getBundleId());
+        }
+        return res;
       }
     };
 
@@ -306,7 +325,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
     BundleImpl bs = (BundleImpl)bundle;
     return bs.getStartLevel();
   }
-  
+
+
   public void setBundleStartLevel(Bundle bundle, final int startLevel) {
     framework.perm.checkExecuteAdminPerm(bundle);
 	  
@@ -352,12 +372,15 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	  }
 	}
       } else if (bs.getStartLevel() > currentLevel) {
-	if (bs.getState() == Bundle.ACTIVE) {
-	  BundleException saved = bs.stop0(false);
-          if (saved != null) {
-	    framework.listeners.frameworkError(bs, saved);
+        BundleException saved = null;
+        synchronized (bs) {
+          if (bs.getState() == Bundle.ACTIVE) {
+            saved = bs.stop0(false);
 	  }
 	}
+        if (saved != null) {
+          framework.listeners.frameworkError(bs, saved);
+        }
       }
     }
   }

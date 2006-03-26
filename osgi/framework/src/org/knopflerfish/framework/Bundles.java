@@ -111,9 +111,9 @@ public class Bundles {
         // Support for http proxy authentication
         //TODO put in update as well
         String auth = System.getProperty("http.proxyAuth");
-        if(auth != null && !"".equals(auth)) {
-          if("http".equals(url.getProtocol()) ||
-             "https".equals(url.getProtocol())) {
+        if (auth != null && !"".equals(auth)) {
+          if ("http".equals(url.getProtocol()) ||
+              "https".equals(url.getProtocol())) {
             String base64 = Util.base64Encode(auth);
             conn.setRequestProperty("Proxy-Authorization", 
                                     "Basic " + base64);
@@ -131,11 +131,11 @@ public class Bundles {
       }
 
       String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-      if(ee != null) {
-        if(Debug.packages) {
+      if (ee != null) {
+        if (Debug.packages) {
           Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
         }
-        if(!framework.isValidEE(ee)) {
+        if (!framework.isValidEE(ee)) {
           throw new RuntimeException("Execution environment '" + ee +
                                      "' is not supported");
         }

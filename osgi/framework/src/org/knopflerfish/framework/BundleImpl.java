@@ -312,19 +312,16 @@ class BundleImpl implements Bundle {
       throw new BundleException("Cannot start a fragment bundle");
     }
 
-    int updState = getUpdatedState();
-
-    secure.callSetPersistent(this, true);
-
-    if(framework.startLevelService != null) {
-      if(getStartLevel() > framework.startLevelService.getStartLevel()) {
+    if (framework.startLevelService != null) {
+      if (state != UNINSTALLED &&
+         getStartLevel() > framework.startLevelService.getStartLevel()) {
+        secure.callSetPersistent(this, true);
         bDelayedStart = true;
         return;
       }
     }
-    
 
-    switch (updState) {
+    switch (getUpdatedState()) {
     case INSTALLED:
       throw new BundleException("Failed, " + bpkgs.getResolveFailReason());
     case RESOLVED:
@@ -342,12 +339,13 @@ class BundleImpl implements Bundle {
           throw e;
         }
         framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
-        break;
       } else {
+        secure.callSetPersistent(this, true);
         startOnLaunch(true);
       }
+      break;
     case ACTIVE:
-      return;
+      break;
     case STARTING:
       // This happens if call start from inside the BundleActivator.start method.
       // Don't allow it.
@@ -368,7 +366,7 @@ class BundleImpl implements Bundle {
 
     ClassLoader oldLoader = null;
 
-    if(Framework.SETCONTEXTCLASSLOADER) {
+    if (Framework.SETCONTEXTCLASSLOADER) {
       oldLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -377,7 +375,7 @@ class BundleImpl implements Bundle {
       // class loader to the bundle class loader. This
       // is useful for debugging external libs using
       // the context class loader.
-      if(Framework.SETCONTEXTCLASSLOADER) {
+      if (Framework.SETCONTEXTCLASSLOADER) {
         Thread.currentThread().setContextClassLoader(getClassLoader());
       }
 
@@ -405,7 +403,7 @@ class BundleImpl implements Bundle {
         }
       }
 
-      if(!bStarted) {
+      if (!bStarted) {
         // Even bundles without an activator are marked as
         // ACTIVE.
         // Should we possible log an information message to
@@ -413,12 +411,12 @@ class BundleImpl implements Bundle {
       }
 
       state = ACTIVE;
+      setPersistent(true);
       startOnLaunch(true);
-
     } catch (Throwable t) {
       throw new BundleException("BundleActivator start failed", t);
     } finally {
-      if(Framework.SETCONTEXTCLASSLOADER) {
+      if (Framework.SETCONTEXTCLASSLOADER) {
         Thread.currentThread().setContextClassLoader(oldLoader);
       }
     }
@@ -1422,12 +1420,7 @@ class BundleImpl implements Bundle {
    *
    */
   boolean isPersistent() {
-    boolean b = archive.isPersistent();
-
-    // yup.
-    b |= bDelayedStart;
-
-    return b;
+    return bDelayedStart || archive.isPersistent();
   }
 
 
@@ -1435,7 +1428,7 @@ class BundleImpl implements Bundle {
    *
    */
   int getStartLevel() {
-    if(archive != null) {
+    if (archive != null) {
       return archive.getStartLevel();
     } else {
       return 0;

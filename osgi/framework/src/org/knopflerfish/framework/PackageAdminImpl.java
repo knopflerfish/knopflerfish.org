@@ -232,60 +232,56 @@ public class PackageAdminImpl implements PackageAdmin {
     // Stop affected bundles and remove their classloaders
     // in reverse start order
     for (int bx = bi.length; bx-- > 0; ) {
+      BundleException be = null;
       synchronized (bi[bx]) {
-        if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
-          try {
-            int ix = 0;
-            if (Framework.R3_TESTCOMPLIANT) {
-              // Make sure start list is in original bundle
-              // start order by using insertion sort
-              Iterator it = startList.iterator();
-              while (it.hasNext()) {
-                BundleImpl b = (BundleImpl)it.next();
-                if(b.getBundleId() < b.getBundleId()) {
-                  break;
-                }
-                ix++;
-              }
-            }
-            startList.add(ix,bi[bx]);
-            bi[bx].stop();
-          } catch(BundleException be) {
-            framework.listeners.frameworkError(bi[bx], be);
-          }
+        if (bi[bx].state == Bundle.ACTIVE) {
+          startList.add(0, bi[bx]);
+          be = bi[bx].stop0(false);
         }
+      }
+      if (be != null) {
+        framework.listeners.frameworkError(bi[bx], be);
       }
     }
 
     synchronized (framework.packages) {
       // Do this again in case something changed during the stop
-      // phase, this time synchronized
+      // phase, this time synchronized with packages to prevent
+      // resolving of bundles.
       bi = (BundleImpl[])framework.packages
         .getZombieAffected(bundles).toArray(new BundleImpl[0]);
 
       // Update the affected bundle states in normal start order
-      for (int bx = 0; bx < bi.length; bx++) {
+      int startPos = startList.size() - 1;
+      BundleImpl nextStart =  startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
+      for (int bx = bi.length; bx-- > 0; ) {
+        BundleException be = null;
         synchronized (bi[bx]) {
           switch (bi[bx].state) {
           case Bundle.STARTING:
           case Bundle.ACTIVE:
-            try {
-              bi[bx].stop();
-              if (!startList.contains(bi[bx])) {
-                // NYI! sorting
-                startList.add(bi[bx]);
+            synchronized (bi[bx]) {
+              if (bi[bx].state == Bundle.ACTIVE) {
+                be = bi[bx].stop0(false);
+                if (nextStart != bi[bx]) {
+                  startList.add(startPos + 1, bi[bx]);
+                }
               }
-            } catch(BundleException be) {
-              framework.listeners.frameworkError(bi[bx], be);
             }
           case Bundle.STOPPING:
           case Bundle.RESOLVED:
             bi[bx].setStateInstalled(true);
+            if (bi[bx] == nextStart) {
+              nextStart = --startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
+            }
           case Bundle.INSTALLED:
           case Bundle.UNINSTALLED:
             break;
           }
           bi[bx].purge();
+        }
+        if (be != null) {
+          framework.listeners.frameworkError(bi[bx], be);
         }
       }
     }
