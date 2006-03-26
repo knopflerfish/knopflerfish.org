@@ -324,7 +324,6 @@ class Packages {
    * @return List of bundles affected.
    */
   synchronized Collection getZombieAffected(Bundle [] bundles) {
-//XXX - begin L-3 modification
     // set of affected bundles will be in start-level/bundle-id order  
     TreeSet affected = new TreeSet(new Comparator() {
       public int compare(Object o1, Object o2) {
@@ -340,7 +339,6 @@ class Packages {
         return ((o != null) && getClass().equals(o.getClass()));
       }
     });
-//XXX - end L-3 modification
     if (bundles == null) {
       if (Debug.packages) {
         Debug.println("getZombieAffected: check - null");
@@ -573,7 +571,6 @@ class Packages {
     }
     ExportPkg provider = null;
     for (Iterator i = ip.pkg.exporters.iterator(); i.hasNext(); ) {
-      // NYI Permission check!?
       ExportPkg ep = (ExportPkg)i.next();
       tempBlackListChecks++;
       if (tempBlackList.contains(ep)) {

@@ -248,7 +248,14 @@ class ExportPkg {
    * @return String.
    */
   public String toString() {
-    return pkgString() + "(" + bpkgs.bundle + ")";
+    StringBuffer sb = new StringBuffer(pkgString());
+    sb.append('(');
+    if (zombie) {
+      sb.append("zombie, ");
+    }
+    sb.append(bpkgs.toString());
+    sb.append(')');
+    return sb.toString();
   }
 
 }

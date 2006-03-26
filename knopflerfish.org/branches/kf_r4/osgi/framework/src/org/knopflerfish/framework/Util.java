@@ -143,7 +143,7 @@ public class Util {
 	  throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
 					     + at.getRest());
 	}
-	int i = Math.abs(Util.binarySearch(result, strComp, key) + 1);
+	int i = Math.abs(binarySearch(result, strComp, key) + 1);
 	result.add(i, key);
       } while (!at.getEnd());
       return result;

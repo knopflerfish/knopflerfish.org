@@ -97,8 +97,6 @@ class BundleArchiveImpl implements BundleArchive
   private Map renameLibs;
   //XXX - end L-3 modification
 
-  private boolean bFake = false;
-
   private int startLevel = -1;
 
   private boolean bPersistent = false;
@@ -139,11 +137,7 @@ class BundleArchiveImpl implements BundleArchive
     location        = bundleLocation;
     startOnLaunch   = false;
     nativeLibs      = getNativeCode();
-
-    bFake           = isFake();
-
     setClassPath();
-
     putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
@@ -194,9 +188,6 @@ class BundleArchiveImpl implements BundleArchive
     storage       = bundleStorage;
     startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();
     nativeLibs    = getNativeCode();
-
-    bFake         = isFake();
-
     setClassPath();
   }
 
@@ -215,40 +206,10 @@ class BundleArchiveImpl implements BundleArchive
     int rev = old.archive.getRevision() + 1;
     archive = new Archive(bundleDir, rev, is);
     nativeLibs = getNativeCode();
-
-    bFake = isFake();
-
     setClassPath();
     putContent(REV_FILE, Integer.toString(rev));
   }
 
-  boolean isFake() {
-    // Test cases require this
-    // 
-    // OK. Some background story might me good here:
-    //
-    // The R3 tests are not compatible with the R3 spec (sic)
-    // 
-    // However to be R3, you have to pass the tests.
-    // Thus, KF uses a system property to determine if
-    // it should be compartible with the spec or the tests.
-    // Framework.R3_TESTCOMPLIANT reflects this state.
-    // 
-    // One such difference is the "fakeheader" manifest
-    // (another on is the buggy filter test, see LDAPEpr.java)
-    // attribute that the test suite at one stage uses
-    // to read a "bad" manifest, but still pass the
-    // installBundle stage. When this header is present
-    // AND we run in test compliant mode, we skip some
-    // sanity checks on manifests
-    if(Framework.R3_TESTCOMPLIANT) {
-      String fake = getAttribute("fakeheader");
-      if(fake != null) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   /**
    * Get an attribute from the manifest of a bundle.
@@ -267,12 +228,14 @@ class BundleArchiveImpl implements BundleArchive
     return archive.getLocalizationEntries(locale);
   }
 
+
   /**
    * returns the raw unlocalized entries of this archive.
    */
   public HeaderDictionary getUnlocalizedAttributes() {
     return new HeaderDictionary(archive.manifest.getMainAttributes());
   }
+
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -282,6 +245,7 @@ class BundleArchiveImpl implements BundleArchive
   public long getBundleId() {
     return id;
   }
+
 
   /**
    * Get bundle location for this bundle archive.
@@ -602,7 +566,7 @@ class BundleArchiveImpl implements BundleArchive
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
     
-    if (!bFake && (bcp != null)) {
+    if (bcp != null) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {

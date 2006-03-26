@@ -125,9 +125,7 @@ public class Framework {
   /**
    * The start level service.
    */
-//#ifdef USESTARTLEVEL
-  StartLevelImpl                 startLevelService;
-//#endif  
+  StartLevelImpl startLevelService;
  
 
   /**
@@ -156,20 +154,11 @@ public class Framework {
 	  TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
 				     FALSE));
 
-  // Some tests conflict with the R3 spec. If testcompliant=true
-  // prefer the tests, not the spec
-  public final static boolean R3_TESTCOMPLIANT =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
-				     FALSE));
-
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests
   // but shouldn't really be used in production.
   final static boolean SETCONTEXTCLASSLOADER =
     TRUE.equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
-
-  final static boolean REGISTERBUNDLEURLHANDLER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerbundleurlhandler", FALSE));
 
   final static boolean REGISTERSERVICEURLHANDLER =
     TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
@@ -227,14 +216,6 @@ public class Framework {
       SUPPORTS_EXTENSION_BUNDLES = true;
     }
     
-    // We just happens to know that the memory storage impl isn't R3
-    // compatible. And it never will be since it isn't persistent
-    // by design.
-    if(R3_TESTCOMPLIANT && bIsMemoryStorage) {
-      throw new RuntimeException("Memory bundle storage is not compatible " + 
-				                 "with R3 compliance");
-    }
-
     String ver = System.getProperty("os.version");
     if (ver != null) {
       int dots = 0;
@@ -284,19 +265,15 @@ public class Framework {
     systemBundle.setBundleContext(systemBC);
 
     perm.registerService();
-    /* for testing
-    permissions.setPermissions("file:///C:\\devel\\ubicore2\\out\\dmt_gst_plugin.jar",
-    		                   new PermissionInfo[]{new PermissionInfo("org.knopflerfish.framework.AdminPermission", null, AdminPermission.STARTLEVEL)})
-*/
+
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
 		      classes,
 		      new PackageAdminImpl(this),
 		      null);
     
-//#ifdef USESTARTLEVEL
     registerStartLevel();
-//#endif
+
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
     contentHandlerFactory   = new ServiceContentHandlerFactory(this);
 
@@ -324,31 +301,28 @@ public class Framework {
     mainHandle = m;
   }
 
-//#ifdef USESTARTLEVEL
 
   private void registerStartLevel(){
-	  String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, TRUE);
-      
-	  if(TRUE.equals(useStartLevel)) {
-		  if(Debug.startlevel) {
-			  Debug.println("[using startlevel service]");
-	      }
-		  		  
-	      startLevelService = new StartLevelImpl(this);
+    String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, TRUE);
 
-	      // restoreState just reads from persistent storage
-	      // open() needs to be called to actually do the work
-	      // This is done after framework has been launched.
-	      startLevelService.restoreState();
-	      
-	      services.register(systemBundle,
-				new String [] { StartLevel.class.getName() },
-				startLevelService,
-				null);
-	  } 
+    if(TRUE.equals(useStartLevel)) {
+      if(Debug.startlevel) {
+        Debug.println("[using startlevel service]");
+      }
+      startLevelService = new StartLevelImpl(this);
+
+      // restoreState just reads from persistent storage
+      // open() needs to be called to actually do the work
+      // This is done after framework has been launched.
+      startLevelService.restoreState();
+
+      services.register(systemBundle,
+                        new String [] { StartLevel.class.getName() },
+                        startLevelService,
+                        null);
+    }
   }
 
-//#endif
   
   /**
    * Start this Framework.
@@ -397,11 +371,9 @@ public class Framework {
 
       // start level open is delayed to this point to 
       // correctly work at restart
-//#ifdef USESTARTLEVEL      
-      if(startLevelService != null) {
+      if (startLevelService != null) {
         startLevelService.open();
       }
-//#endif      
 
       listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, systemBundle, null));
     }
@@ -433,11 +405,9 @@ public class Framework {
       active = false;
       List slist = storage.getStartOnLaunchBundles();
       shuttingdown = true;
-//    #ifdef USESTARTLEVEL      
-      if(startLevelService != null) {
-    	  startLevelService.close();
+      if (startLevelService != null) {
+        startLevelService.close();
       }
-//#endif      
       systemBundle.systemShuttingdown();
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
