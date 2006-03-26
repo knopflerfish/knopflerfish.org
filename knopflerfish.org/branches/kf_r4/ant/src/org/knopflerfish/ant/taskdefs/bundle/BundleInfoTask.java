@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -45,7 +45,12 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
+import org.apache.bcel.classfile.DescendingVisitor;
+import org.apache.bcel.classfile.EmptyVisitor;
+import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
@@ -626,6 +631,18 @@ public class BundleInfoTask extends Task {
   }
 
   /**
+   * Add package names of all types in <code>ts</code> to the list of
+   * imported packages. 
+   *
+   * @param ts Array with Type objects.
+   */
+  protected void addImportedType(Type[] ts) {
+    for (int i = ts.length-1; i>-1; i-- ) {
+      addImportedType(ts[i]);
+    }
+  }
+
+  /**
    * Add a class' package name to the list of imported packages.
    *
    * @param className Class name of an object. The class name is stripped
@@ -698,8 +715,8 @@ public class BundleInfoTask extends Task {
 
     try {
       ClassParser        parser   = new ClassParser(file.getAbsolutePath());
-      JavaClass          clazz    = parser.parse();
-      ConstantPool  constant_pool = clazz.getConstantPool();
+      final JavaClass    clazz    = parser.parse();
+      final ConstantPool constant_pool = clazz.getConstantPool();
 
       ownClasses.add(clazz.getClassName());
       addExportedPackageString(clazz.getPackageName());
@@ -715,20 +732,92 @@ public class BundleInfoTask extends Task {
         }
       }
 
-      Constant[] constants = constant_pool.getConstantPool();
-      for (int i = 0; i < constants.length; i++) {
-        Constant constant = constants[i];
-        if (constant instanceof ConstantClass) {
-          ConstantClass constantClass = (ConstantClass) constant;
-          String referencedClass = constantClass.getBytes(constant_pool);
-          if (referencedClass.charAt(0) == '[') {
-            referencedClass = Utility.signatureToString(referencedClass, false);
-          } else {
-            referencedClass = Utility.compactClassName(referencedClass, false);
+      /**
+       * Use a descending visitor to find all classes that the given
+       * clazz refers to and add them to the set of imported classes.
+       */
+      DescendingVisitor v = new DescendingVisitor(clazz, new EmptyVisitor() {
+          /**
+           * Keep track of the signatures visited to avoid processing
+           * them more than once. The same signature may apply to
+           * many methods or fields.
+           */
+          boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
+
+          /**
+           * Add the class that the given ConstantClass object
+           * represents to the set of imported classes.
+           *
+           * @param obj The ConstantClass object
+           */
+          public void visitConstantClass( ConstantClass obj ) {
+            String referencedClass = obj.getBytes(constant_pool);
+            referencedClass = referencedClass.charAt(0) == '['
+              ? Utility.signatureToString(referencedClass, false)
+              : Utility.compactClassName(referencedClass,  false);
+            addImportedString(referencedClass);
           }
-          addImportedString(referencedClass);
-        }
-      }
+
+          /**
+           * Add the class used as types for the given field.
+           * This is necessary since if no method is applied to an
+           * object valued field there will be no ConstantClass object
+           * in the ConstantPool for the class that is the type of the
+           * field.
+           *
+           * @param obj A Field object
+           */
+          public void visitField( Field obj ) {
+            if (!visitedSignatures[obj.getSignatureIndex()]) {
+              visitedSignatures[obj.getSignatureIndex()] = true;
+              String signature = obj.getSignature();
+              Type type = Type.getType(signature);
+              addImportedType(type);
+            }
+          }
+
+          /**
+           * Add all classes used as types for a local variable in the
+           * class we are analyzing. This is necessary since if no
+           * method is applied to an object valued local variable
+           * there will be no ConstantClass object in the ConstantPool
+           * for the class that is the type of the local variable.
+           *
+           * @param obj A LocalVariable object
+           */
+          public void visitLocalVariable( LocalVariable obj ) {
+            if (!visitedSignatures[obj.getSignatureIndex()]) {
+              visitedSignatures[obj.getSignatureIndex()] = true;
+              String signature = obj.getSignature();
+              Type type = Type.getType(signature);
+              addImportedType(type);
+            }
+          }
+          
+          /**
+           * Add all classes mentioned in the signature of the given
+           * method. This is necessary since if no method is applied
+           * to a parameter (return type) there will be no
+           * ConstantClass object in the ConstantPool for the class
+           * that is the type of that parameter (return type).
+           *
+           * @param obj A Method object
+           */
+          public void visitMethod( Method obj ) {
+            if (!visitedSignatures[obj.getSignatureIndex()]) {
+              visitedSignatures[obj.getSignatureIndex()] = true;
+              String signature = obj.getSignature();
+              Type returnType = Type.getReturnType(signature);
+              Type[] argTypes = Type.getArgumentTypes(signature);
+              addImportedType(returnType);
+              addImportedType(argTypes);
+            }
+          }
+          
+        } );
+      // Run the scanner on the loaded class
+      v.visit();
+
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to parse .class file " + 
