@@ -1,4 +1,4 @@
-Knopflerfish 2.0 BETA 3
+Knopflerfish 2.0 BETA 4
 -----------------------
 
   This is a pre release of Knopflerfish 2.0 with part of the OSGi R4
@@ -19,9 +19,7 @@ Knopflerfish 2.0 BETA 3
 
   --- Module Layer ---
 
-    Module layer now has support for all the required features in R4. 
-    The following optional feature is not supported yet:
-    * Permissions
+    Done.
     
     To use the extension bundle support you need to use a wrapper script
     that will restart framework when needed. An example shell-script is
@@ -29,8 +27,7 @@ Knopflerfish 2.0 BETA 3
 
   --- Life Cycle Layer ---
 
-    The following method is not implemented yet:
-    * Bundle.findEntries(String, String, boolean)
+    Done.
 
   --- Service Layer ---
 
@@ -38,9 +35,9 @@ Knopflerfish 2.0 BETA 3
 
   --- Framework Services ---
 
-    Start Level, Package Admin, Permission Admin and URL Handler services have been 
-    updated to conform to R4. The Conditional Permission Admin is not 
-    yet included.
+    Start Level, Package Admin, Permission Admin and URL Handler services
+    have been updated to conform to R4. The Conditional Permission Admin is
+    not yet included.
 
 
 === Services (r4.cmpn) ===
