@@ -273,7 +273,6 @@ final public class BundleClassLoader extends ClassLoader {
    * Find Class and load it. This function is abstract in PJava 1.2
    * so we define it here to work as closely as it can to Java 2.
    * Should work okey if we don't use the Java 2 stuff.
-   * TODO: Make sure this is true!
    *
    * @param name the name of the class
    * @param resolve if <code>true</code> then resolve the class

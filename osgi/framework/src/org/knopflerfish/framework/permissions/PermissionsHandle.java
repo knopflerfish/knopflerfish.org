@@ -58,45 +58,46 @@ public class PermissionsHandle {
   Framework framework;
 
   private PermissionInfoStorage pinfos;
-
   private Hashtable /* Long -> PermissionCollection */ pcCache = new Hashtable();
-
   private PermissionAdminImpl pa;
 
 
   public PermissionsHandle(Framework fw) {
-     framework = fw;
+    framework = fw;
 
-     // Get system default permissions
-     PermissionCollection pc = 
-       Policy.getPolicy().getPermissions(new CodeSource((URL)null, (Certificate[])null));
-     // Remove AllPermission
-     if (pc != null && pc.implies(new AllPermission())) {
-       runtimePermissions = new Permissions();
-       for (Enumeration e = pc.elements(); e.hasMoreElements();) {
+    // Get system default permissions
+    PermissionCollection pc = 
+      Policy.getPolicy().getPermissions(new CodeSource((URL)null, (Certificate[])null));
+    // Remove AllPermission
+    if (pc != null && pc.implies(new AllPermission())) {
+      runtimePermissions = new Permissions();
+      for (Enumeration e = pc.elements(); e.hasMoreElements();) {
         Permission p = (Permission) e.nextElement();
         if (!(p instanceof AllPermission)) {
 System.out.println("ADD RUNTIME: " + p);
           runtimePermissions.add(p);
         }
-       }
-     } else {
-       runtimePermissions = pc;
-     }
+      }
+    } else {
+      runtimePermissions = pc;
+    }
      
-     pinfos = new PermissionInfoStorage();
-
-     pa = new PermissionAdminImpl(pinfos);
-     
-     Policy.setPolicy(new FrameworkPolicy(this));
-   }
+    pinfos = new PermissionInfoStorage();
+    pa = new PermissionAdminImpl(pinfos);     
+    Policy.setPolicy(new FrameworkPolicy(this));
+  }
 
 
-   public PermissionAdminImpl getPermissionAdminService() {
-     return pa;
-   }
+  /**
+   * Get PermissionAdmin service.
+   *
+   * @return PermissionAdmin service object.
+   */
+  public PermissionAdminImpl getPermissionAdminService() {
+    return pa;
+  }
 
-  
+
   /**
    * Gets the permissionCollection assigned to the bundle with the specified id.
    * The collection contains the configured permissions for the bundle location
@@ -136,10 +137,13 @@ System.out.println("ADD RUNTIME: " + p);
   }
 
 
+  /**
+   * Remove cached information about specified bundle.
+   *
+   * @param bid Bundle ID for bundle to be purged.
+   */
   public void purgePermissionCollection(Long bid) {
     pcCache.remove(bid);
   }
-
-  
 
 }

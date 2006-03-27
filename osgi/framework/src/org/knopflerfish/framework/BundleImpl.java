@@ -261,16 +261,15 @@ class BundleImpl implements Bundle {
     int oldStartLevel = archive.getStartLevel();
 
     try {
-      if(framework.startLevelService == null) {
+      if (framework.startLevelService == null) {
         archive.setStartLevel(0);
       } else {
-        if(oldStartLevel == -1) {
+        if (oldStartLevel == -1) {
           archive.setStartLevel(framework.startLevelService.getInitialBundleStartLevel());
-        } else {
         }
       }
     } catch (Exception e) {
-      Debug.println("Failed to set start level on #" + getBundleId() + ": " + e);
+      Debug.println("Failed to set start level on #" + id + ": " + e);
     }
 
     // Activate extension as soon as they are installed so that
@@ -678,11 +677,11 @@ class BundleImpl implements Bundle {
 
   void checkEE(BundleArchive ba) throws BundleException {
     String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-    if(ee != null) {
-      if(Debug.packages) {
+    if (ee != null) {
+      if (Debug.packages) {
         Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
       }
-      if(!framework.isValidEE(ee)) {
+      if (!framework.isValidEE(ee)) {
         throw new BundleException("Execution environment '" + ee + "' is not supported");
       }
     }
@@ -870,9 +869,7 @@ class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#hasPermission
    */
   public boolean hasPermission(Object permission) {
-    if(state == UNINSTALLED){
-      throw new IllegalStateException("bundle is uninstalled");
-    }
+    checkUninstalled();
     if (permission instanceof Permission) {
       if (secure.checkPermissions()) {
         //get the current status from permission admin
@@ -892,9 +889,7 @@ class BundleImpl implements Bundle {
    */
   public URL getResource(String name) {
     if (secure.okResourceAdminPerm(this)) {
-      if (state == UNINSTALLED) {
-        throw new IllegalStateException("Bundle is in UNINSTALLED state");
-      }
+      checkUninstalled();
       if (isFragment()) {
         return null;
       }
@@ -1559,9 +1554,7 @@ class BundleImpl implements Bundle {
    */
   public URL getEntry(String name) {
     if (secure.okResourceAdminPerm(this)) {
-      if (state == UNINSTALLED){
-        throw new IllegalStateException("state is uninstalled");
-      }
+      checkUninstalled();
       try {
         InputStream is = archive.getInputStream(name, 0);
         if (is != null) {
@@ -1579,9 +1572,7 @@ class BundleImpl implements Bundle {
    */
   public Enumeration getEntryPaths(String path) {
     if (secure.okResourceAdminPerm(this)) {
-      if (state == UNINSTALLED) {
-        throw new IllegalStateException("state is uninstalled");
-      }
+      checkUninstalled();
       return archive.findResourcesPath(path);
     } else {
       return null;
@@ -1745,9 +1736,7 @@ class BundleImpl implements Bundle {
    */
   public Enumeration getResources(String name) throws IOException {
     if (secure.okResourceAdminPerm(this)) {
-      if (state == UNINSTALLED) {
-        throw new IllegalStateException("Bundle is in UNINSTALLED state");
-      }
+      checkUninstalled();
       if (isFragment()) {
         return null;
       }
@@ -1760,11 +1749,13 @@ class BundleImpl implements Bundle {
   }
 
 
+  /**
+   *
+   * @see org.osgi.framework.Bundle#loadClass()
+   */
   public Class loadClass(final String name) throws ClassNotFoundException {
     if (secure.okClassAdminPerm(this)) {
-      if (this.state == UNINSTALLED) {
-        throw new IllegalStateException("state is uninstalled");
-      }
+      checkUninstalled();
       if (isFragment() && !isExtension()) {
         throw new ClassNotFoundException("Can not load classes from fragment bundles");
       }
@@ -1892,9 +1883,7 @@ class BundleImpl implements Bundle {
    * Attaches a fragment to this bundle.
    */
   void attachFragment(BundleImpl fragmentBundle) {
-    if (state == UNINSTALLED) {
-      throw new IllegalStateException("Bundle is in UNINSTALLED state");
-    }
+    checkUninstalled();
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       throw new IllegalStateException("Bundle does not allow fragments to attach");
     }
@@ -1954,6 +1943,15 @@ class BundleImpl implements Bundle {
       if (fb.state != UNINSTALLED) {
         fb.setStateInstalled(sendEvent);
       }
+    }
+  }
+
+  /**
+   * Check if bundle is in state UNINSTALLED. If so, throw exception.
+   */
+  private void checkUninstalled() {
+    if (state == UNINSTALLED) {
+      throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
   }
 
