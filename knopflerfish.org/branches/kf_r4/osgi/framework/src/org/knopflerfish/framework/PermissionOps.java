@@ -35,7 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.security.PermissionCollection;
+import java.security.ProtectionDomain;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -272,7 +272,7 @@ class PermissionOps {
   // Permissions package functionality
   //
 
-  PermissionCollection createPermissionCollection(BundleImpl b) {
+  ProtectionDomain getProtectionDomain(BundleImpl b) {
     return null;
   }
 
@@ -283,6 +283,7 @@ class PermissionOps {
   /**
    * Purge all cached information for specified bundle.
    */
-  void purge(BundleImpl b) {
+  void purge(BundleImpl b, ProtectionDomain pc) {
   }
+
 }

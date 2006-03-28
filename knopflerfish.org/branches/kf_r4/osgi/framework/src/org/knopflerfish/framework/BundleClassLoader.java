@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -68,6 +69,11 @@ final public class BundleClassLoader extends ClassLoader {
    * Whether we run in a Java 2 environment.
    */
   private static boolean isJava2;
+
+  /**
+   * Bundle classloader protect domain.
+   */
+  final ProtectionDomain protectionDomain;
 
   /**
    * Archive that we load code from.
@@ -172,8 +178,9 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Create class loader for specified bundle.
    */
-  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags) {
+  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags, ProtectionDomain pd) {
     super(parent); //otherwise getResource will bypass OUR parent
+    protectionDomain = pd;
     this.bpkgs = bpkgs;
     archive = ba;
     fragments = frags;
@@ -402,6 +409,9 @@ final public class BundleClassLoader extends ClassLoader {
    */
   void purge() {
     bpkgs.unregisterPackages(true);
+    if (protectionDomain != null) {
+      bpkgs.bundle.framework.perm.purge(bpkgs.bundle, protectionDomain);
+    }
     if (archive != null) {
       archive.purge();
     }
@@ -697,12 +707,11 @@ final public class BundleClassLoader extends ClassLoader {
                   cl.definePackage(pkg, null, null, null, null, null, null, null);
                 }
               }
-              if (cl.bpkgs.bundle.protectionDomain == null) {
+              if (cl.protectionDomain == null) {
                 // Kaffe can't handle null protectiondomain
                 c = cl.defineClass(name, bytes, 0, bytes.length);
               } else {
-                c = cl.defineClass(name, bytes, 0, bytes.length,
-                                   cl.bpkgs.bundle.protectionDomain);
+                c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
               }
             }
             return c;

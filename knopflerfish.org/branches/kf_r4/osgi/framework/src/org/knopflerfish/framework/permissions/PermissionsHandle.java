@@ -74,7 +74,6 @@ public class PermissionsHandle {
       for (Enumeration e = pc.elements(); e.hasMoreElements();) {
         Permission p = (Permission) e.nextElement();
         if (!(p instanceof AllPermission)) {
-System.out.println("ADD RUNTIME: " + p);
           runtimePermissions.add(p);
         }
       }
@@ -115,10 +114,12 @@ System.out.println("ADD RUNTIME: " + p);
 
   
   /**
-   * Gets the permissionCollection assigned to the bundle.
+   * Create the permissionCollection assigned to the bundle.
    * We return a permission wrapper so that we can change it dynamically.
    *
-   * @param bundle The bundle whose permissions are to be returned.
+   * @param loc Location of bundle whose permissions are to be created.
+   * @param b Bundle whose permissions are to be created.
+   * @param localPerms New local permissions for the bundle.
    *
    * @return The permissions assigned to the bundle with the specified
    * location
@@ -127,9 +128,6 @@ System.out.println("ADD RUNTIME: " + p);
                                                           Bundle b,
                                                           InputStream localPerms) {
     Long bid = new Long(b.getBundleId());
-    if (pcCache.get(bid) != null) {
-      throw new RuntimeException("NYI! update!?");
-    }
     PermissionCollection pc = new PermissionsWrapper(framework, pinfos, runtimePermissions,
                                                      loc, b, localPerms);
     pcCache.put(bid, pc);
@@ -141,9 +139,17 @@ System.out.println("ADD RUNTIME: " + p);
    * Remove cached information about specified bundle.
    *
    * @param bid Bundle ID for bundle to be purged.
+   *
+   * @return True if we purged something, which means that we purged the last
+   *         permissionCollection not a zombie.
    */
-  public void purgePermissionCollection(Long bid) {
-    pcCache.remove(bid);
+  public boolean purgePermissionCollection(Long bid, PermissionCollection pc) {
+    pinfos.purgeCallback(pc);
+    if (pcCache.get(bid) == pc) {
+      pcCache.remove(bid);
+      return true;
+    }
+    return false;
   }
 
 }

@@ -85,7 +85,10 @@ class PermissionInfoStorage {
     Element res = (Element) permissions.get(location);
     if (res != null) {
       if (callInvalidate != null) {
-        res.invalidateCallback = callInvalidate;
+        if (res.invalidateCallback == null) {
+          res.invalidateCallback = new ArrayList(2);
+        }
+        res.invalidateCallback.add(callInvalidate);
       }
       return res.pi;
     }
@@ -103,7 +106,12 @@ class PermissionInfoStorage {
    */
   synchronized PermissionInfo[] getDefault(PermissionsWrapper callInvalidate) {
     if (callInvalidate != null) {
-      defaultInvalidateCallbacks.put(callInvalidate.location, callInvalidate);
+      ArrayList cil = (ArrayList)defaultInvalidateCallbacks.get(callInvalidate.location);
+      if (cil == null) {
+        cil = new ArrayList(2);
+        defaultInvalidateCallbacks.put(callInvalidate.location, cil);
+      }
+      cil.add(callInvalidate);
     }
     return defaultPermissions;
   }
@@ -143,13 +151,12 @@ class PermissionInfoStorage {
   synchronized void put(String location, PermissionInfo[] perms) {
     Element old = (Element)permissions.put(location, new Element(perms));
     save(location, perms);
-    if (old == null) {
-        PermissionsWrapper pw = (PermissionsWrapper)defaultInvalidateCallbacks.remove(location);
-        if (pw != null) {
-            pw.invalidate();
-        }
-    } else if (old.invalidateCallback != null) {
-      old.invalidateCallback.invalidate();
+    ArrayList vpw = old != null ? old.invalidateCallback :
+      (ArrayList)defaultInvalidateCallbacks.remove(location);
+    if (vpw != null) {
+      for (Iterator i = vpw.iterator(); i.hasNext(); ) {
+        ((PermissionsWrapper)i.next()).invalidate();
+      }
     }
   }
 
@@ -174,7 +181,9 @@ class PermissionInfoStorage {
     }
     save(null, defaultPermissions);
     for (Iterator i = defaultInvalidateCallbacks.values().iterator(); i.hasNext(); ) {
-      ((PermissionsWrapper)i.next()).invalidate();
+      for (Iterator j = ((ArrayList)i.next()).iterator(); j.hasNext(); ) {
+        ((PermissionsWrapper)j.next()).invalidate();
+      }
     }
     defaultInvalidateCallbacks.clear();
   }
@@ -190,7 +199,33 @@ class PermissionInfoStorage {
     Element old = (Element)permissions.remove(location);
     save(location, null);
     if (old != null && old.invalidateCallback != null) {
-      old.invalidateCallback.invalidate();
+      for (Iterator i = old.invalidateCallback.iterator(); i.hasNext(); ) {
+        ((PermissionsWrapper)i.next()).invalidate();
+      }
+    }
+  }
+
+
+  /**
+   * Remove any reference to specified permission collection in the
+   * callback tables.
+   * 
+   * @param pc The permission collection to purge.
+   */
+  synchronized void purgeCallback(PermissionCollection pc) {
+    PermissionsWrapper pw = (PermissionsWrapper)pc;
+    Element e = (Element)permissions.get(pw.location);
+    if (e != null && e.invalidateCallback != null && e.invalidateCallback.remove(pw)) {
+      if (e.invalidateCallback.isEmpty()) {
+        e.invalidateCallback = null;
+      }
+    } else {
+      ArrayList cil = (ArrayList)defaultInvalidateCallbacks.get(pw.location);
+      if (cil != null && cil.remove(pw)) {
+        if (cil.isEmpty()) {
+          defaultInvalidateCallbacks.remove(pw);
+        }
+      }
     }
   }
 
@@ -420,7 +455,7 @@ class PermissionInfoStorage {
 
   class Element {
     PermissionInfo[] pi;
-    PermissionsWrapper invalidateCallback = null;
+    ArrayList /* PermissionsWrapper */ invalidateCallback = null;
 
     Element(PermissionInfo[] pi) {
       this.pi = pi;
