@@ -37,7 +37,6 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.net.*;
 import java.security.*;
-import java.security.cert.Certificate;
 
 import java.util.Enumeration;
 import java.util.Set;
@@ -95,11 +94,6 @@ class BundleImpl implements Bundle {
   final String location;
 
   /**
-   * Bundle protect domain.
-   */
-  final ProtectionDomain protectionDomain;
-
-  /**
    * Does bundle have a version 2 manifest.
    */
   boolean v2Manifest;
@@ -137,7 +131,12 @@ class BundleImpl implements Bundle {
   /**
    * Generation of BundlePackages.
    */
-  private int generation = 0;
+  int generation = 0;
+
+  /**
+   * Bundle protect domain.
+   */
+  private ProtectionDomain protectionDomain;
 
   /**
    * Classloader for bundle.
@@ -242,24 +241,13 @@ class BundleImpl implements Bundle {
     id = ba.getBundleId();
     location = ba.getBundleLocation();
     archive = ba;
-
     state = INSTALLED;
     checkManifestHeaders();
+    protectionDomain = secure.getProtectionDomain(this);
     doExportImport();
     bundleDir = fw.getDataStorage(id);
 
-    ProtectionDomain pd = null;
-    if (secure.checkPermissions()) {
-      try {
-        URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, Long.toString(id), "");
-        PermissionCollection pc = secure.createPermissionCollection(this);
-        pd = new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
-      } catch (MalformedURLException _ignore) { }
-    }
-    protectionDomain = pd;
-
     int oldStartLevel = archive.getStartLevel();
-
     try {
       if (framework.startLevelService == null) {
         archive.setStartLevel(0);
@@ -647,10 +635,13 @@ class BundleImpl implements Bundle {
     archive = newArchive;
     cachedRawHeaders = null;
     state = INSTALLED;
+    ProtectionDomain oldProtectionDomain = protectionDomain;
+    protectionDomain = secure.getProtectionDomain(this);
     doExportImport();
 
     // Purge old archive
     if (purgeOld) {
+      secure.purge(this, oldProtectionDomain);
       oldArchive.purge();
     }
 
@@ -728,6 +719,7 @@ class BundleImpl implements Bundle {
           classLoader = null;
           fragment.setHost(null);
         } else {
+          secure.purge(this, protectionDomain);
           archive.purge();
         }
       } else {
@@ -735,6 +727,7 @@ class BundleImpl implements Bundle {
           if (classLoader != null) {
             secure.callUninstall0(this);
           } else {
+            secure.purge(this, protectionDomain);
             archive.purge();
           }
         } else {
@@ -1039,7 +1032,7 @@ class BundleImpl implements Bundle {
       } else {
         frags = null;
       }
-      return new BundleClassLoader(bpkgs, archive, frags);
+      return new BundleClassLoader(bpkgs, archive, frags, protectionDomain);
     }
   }
 

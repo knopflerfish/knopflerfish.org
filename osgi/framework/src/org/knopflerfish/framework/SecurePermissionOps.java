@@ -35,7 +35,10 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.security.*;
+import java.security.cert.Certificate;
 import java.util.*;
 
 import org.osgi.framework.*;
@@ -520,9 +523,18 @@ class SecurePermissionOps extends PermissionOps {
   // Permissions package functionality
   //
 
-  PermissionCollection createPermissionCollection(BundleImpl b) {
-    InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
-    return ph.createPermissionCollection(b.location, b, pis);
+  /**
+   * Get protection domain for bundle
+   */
+  ProtectionDomain getProtectionDomain(BundleImpl b) {
+    try {
+      String h = Long.toString(b.id) + "." + Long.toString(b.generation);
+      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, h, "");
+      InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
+      PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
+      return new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
+    } catch (MalformedURLException _ignore) { }
+    return null;
   }
 
   //
@@ -532,9 +544,10 @@ class SecurePermissionOps extends PermissionOps {
   /**
    * Purge all cached information for specified bundle.
    */
-  void purge(BundleImpl b) {
-    adminPerms.remove(b);
-    ph.purgePermissionCollection(new Long(b.id));
+  void purge(BundleImpl b, ProtectionDomain pd) {
+    if (ph.purgePermissionCollection(new Long(b.id), pd.getPermissions())) {
+      adminPerms.remove(b);
+    }
   }
 
   //

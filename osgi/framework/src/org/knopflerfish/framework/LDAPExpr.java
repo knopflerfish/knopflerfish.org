@@ -83,10 +83,6 @@ public class LDAPExpr {
   public String attrName;
   public String attrValue;
 
-  // If set to non-null, return this in toString() instead
-  // of correct, normalized form. Required to pass some
-  // incorrect R3 tests
-  String bug = null;
 
   public LDAPExpr(String filter) throws InvalidSyntaxException {
 

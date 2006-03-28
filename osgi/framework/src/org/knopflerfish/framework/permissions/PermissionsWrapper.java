@@ -75,12 +75,12 @@ public class PermissionsWrapper extends PermissionCollection {
     pinfos = pis;
     location = loc;
     runtimePermissions = runtime;
-    implicitPermissions = makeImplicitPermissionCollection(fw, b);
     if (localPerms != null) {
       localPermissions = makeLocalPermissionCollection(localPerms);
     } else {
       localPermissions = null;
     }
+    implicitPermissions = makeImplicitPermissionCollection(fw, b);
     systemPermissions = makePermissionCollection();
   }
 
@@ -121,9 +121,20 @@ public class PermissionsWrapper extends PermissionCollection {
     }
   }
 
+
   synchronized void invalidate() {
     systemPermissions = null;
   }
+
+
+  synchronized void updateLocalPermissions(InputStream localPerms) {
+    if (localPerms != null) {
+      localPermissions = makeLocalPermissionCollection(localPerms);
+    } else {
+      localPermissions = null;
+    }
+  }
+
 
   private PermissionCollection getPerms() {
     PermissionCollection p = systemPermissions;
@@ -143,7 +154,6 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
-  
   private PermissionCollection makeLocalPermissionCollection(InputStream localPerms) {
     try {
       DataInputStream dis = new DataInputStream(localPerms);
@@ -167,6 +177,10 @@ public class PermissionsWrapper extends PermissionCollection {
     } catch (IOException e) {
       // TODO, handle this error
       return null;
+    } finally {
+      try {
+        localPerms.close();
+      } catch (IOException _ignore) { }
     }
   }
 
