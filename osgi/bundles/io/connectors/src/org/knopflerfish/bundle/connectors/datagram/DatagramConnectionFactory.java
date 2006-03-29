@@ -43,7 +43,7 @@ import java.util.ArrayList;
 
 import java.net.DatagramSocket;
 import java.net.URI;
-import java.net.URISyntaxException;
+//import java.net.URISyntaxException;
 
 import javax.microedition.io.Connection; 
 
