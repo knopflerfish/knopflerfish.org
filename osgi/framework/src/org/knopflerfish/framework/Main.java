@@ -214,7 +214,7 @@ public class Main {
   static String[] getJarBase() {
     String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
-    String[] base = Util.splitwords(jars, ";", '\"');
+    String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
       try {
         base[i] = new URL(base[i]).toString();

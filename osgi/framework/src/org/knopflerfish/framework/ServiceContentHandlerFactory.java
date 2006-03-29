@@ -61,7 +61,7 @@ public class ServiceContentHandlerFactory
     // Initialize JVM classpath handlers
     String s = System.getProperty("java.content.handler.pkgs", "");
     
-    jvmPkgs = Util.splitwords(s, "|", '\"');
+    jvmPkgs = Util.splitwords(s, "|");
     for(int i = 0; i < jvmPkgs.length; i++) {
       jvmPkgs[i] = jvmPkgs[i].trim();
       if(Debug.url) {

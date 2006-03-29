@@ -1633,9 +1633,9 @@ class BundleImpl implements Bundle {
    * @param localization_entries will append the new entries to this dictionary
    */
   protected void readLocalization(String locale, 
-                                Hashtable localization_entries) {
+                                  Hashtable localization_entries) {
 
-    String[] parts = locale.split("_");
+    String[] parts = Util.splitwords(locale, "_");
     String tmploc = parts[0];
     int o = 0;
     

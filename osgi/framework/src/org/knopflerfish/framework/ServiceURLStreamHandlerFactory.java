@@ -73,7 +73,7 @@ public class ServiceURLStreamHandlerFactory
     // Initialize JVM classpath packages
     String s = System.getProperty("java.protocol.handler.pkgs", "");
     
-    jvmPkgs = Util.splitwords(s, "|", '\"');
+    jvmPkgs = Util.splitwords(s, "|");
 
     for(int i = 0; i < jvmPkgs.length; i++) {
       jvmPkgs[i] = jvmPkgs[i].trim();

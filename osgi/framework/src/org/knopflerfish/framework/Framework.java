@@ -572,7 +572,7 @@ public class Framework {
       if(!fwEE.equals(eeCache)) {
 	eeCacheSet.clear();
 
-	String[] l = Util.splitwords(fwEE, ",", '\"');
+	String[] l = Util.splitwords(fwEE, ",");
 	for(int i = 0 ; i < l.length; i++) {
 	  eeCacheSet.add(l[i]);
 	}
@@ -580,7 +580,7 @@ public class Framework {
     }
     eeCache = fwEE;
 
-    String[] eel   = Util.splitwords(ee, ",", '\"');
+    String[] eel   = Util.splitwords(ee, ",");
     
     for(int i = 0 ; i < eel.length; i++) {
       if(eeCacheSet.contains(eel[i])) {
