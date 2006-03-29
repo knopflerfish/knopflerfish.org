@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0-beta-3"/>
+            value = "2.0-beta-4"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -304,6 +304,7 @@
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
 
+           <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
            <include name = "osgi/kf2"/>
@@ -448,6 +449,7 @@
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
 
+           <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
            <include name = "osgi/kf2"/>
@@ -573,6 +575,7 @@
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
 
+           <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
            <include name = "osgi/kf2"/>
@@ -631,6 +634,7 @@
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
 
+           <include name = "osgi/framework.policy"/>
            <include name = "osgi/kf2"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
