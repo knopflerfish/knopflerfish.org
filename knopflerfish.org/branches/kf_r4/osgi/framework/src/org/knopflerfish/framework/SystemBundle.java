@@ -372,7 +372,7 @@ public class SystemBundle extends BundleImpl {
     String cps = extension.isBootClassPathExtension() ? 
       "sun.boot.class.path" : "java.class.path";
     String cp = System.getProperty(cps);
-    String[] scp = cp.split(":");
+    String[] scp = Util.splitwords(cp, ":");
     String path = extension.archive.getJarLocation();
 
     for (int i = 0; i < scp.length; i++) {
@@ -408,7 +408,7 @@ public class SystemBundle extends BundleImpl {
    */
   protected void readLocalization(String locale, Hashtable localization_entries) {
 
-    String[] parts = locale.split("_");
+    String[] parts = Util.splitwords(locale, "_");
     String tmploc = parts[0];
     int o = 0;
     

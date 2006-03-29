@@ -282,7 +282,7 @@ public class Util {
    * </p>
    */
   public static String [] splitwords(String s, String whiteSpace) {
-    return splitwords(s, WHITESPACE, CITCHAR);
+    return splitwords(s, whiteSpace, CITCHAR);
   }
 
   
@@ -307,7 +307,7 @@ public class Util {
 				     char   citChar) {
     boolean       bCit  = false;        // true when inside citation chars.
     Vector        v     = new Vector(); // (String) individual words after splitting
-    StringBuffer  buf   = null; 
+    StringBuffer  buf   = new StringBuffer(); 
     int           i     = 0; 
     
     while(i < s.length()) {
