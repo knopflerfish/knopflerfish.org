@@ -37,7 +37,7 @@ package org.knopflerfish.bundle.connectors.socket;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URISyntaxException;
+//import java.net.URISyntaxException;
 
 import javax.microedition.io.Connection;
 
@@ -75,7 +75,7 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
 
       return retval;
       
-    } catch (URISyntaxException urise) {
+    } catch (Exception urise) { // was URISyntaxException
       throw new IOException("Invalid URL syntax: " + urise.getMessage());
     }
 
