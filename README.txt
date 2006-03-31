@@ -12,7 +12,7 @@
  Prerequisites
 
    - JDK 1.3 or later, available from java.sun.com 
-   - Ant, available from ant.apache.org 
+   - Ant 1.6 or later, available from ant.apache.org 
    - BCEL, available from jakarta.apache.org/bcel 
      install in $ANTHOME/lib
 
