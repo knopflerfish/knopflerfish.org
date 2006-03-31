@@ -288,6 +288,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
         BundleException saved = null;
         synchronized (bs) {
           if (bs.getState() == Bundle.ACTIVE) {
+	    if (Debug.startlevel) {
+	      Debug.println("startlevel: stop " + bs);
+	    }
             saved = bs.stop0(false);
           }
         }
@@ -350,7 +353,6 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 	  bs.setStartLevel(sl);
 	  syncStartLevel(bs);
-	  notifyFramework();
 	}
       });
   }
@@ -363,6 +365,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	if (canStart(bs)) {
 	  if (bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
 	    try {
+              if (Debug.startlevel) {
+                Debug.println("startlevel: start " + bs);
+              }
 	      bs.start();
 	    } catch (Exception e) {
 	      framework.listeners.frameworkError(bs, e);
@@ -375,6 +380,9 @@ public class StartLevelImpl implements StartLevel, Runnable {
         BundleException saved = null;
         synchronized (bs) {
           if (bs.getState() == Bundle.ACTIVE) {
+	    if (Debug.startlevel) {
+	      Debug.println("startlevel: stop " + bs);
+	    }
             saved = bs.stop0(false);
 	  }
 	}
