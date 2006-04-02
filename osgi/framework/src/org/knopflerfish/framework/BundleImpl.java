@@ -164,7 +164,7 @@ class BundleImpl implements Bundle {
   protected BundleActivator bactivator = null;
 
   /**
-   * Time when bundle was last modifed.
+   * Time when bundle was last modified.
    *
    */
   protected long lastModified;
