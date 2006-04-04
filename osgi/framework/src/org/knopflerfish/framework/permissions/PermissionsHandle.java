@@ -53,8 +53,6 @@ import org.knopflerfish.framework.Util;
 
 public class PermissionsHandle {
 
-  PermissionCollection runtimePermissions;
-
   Framework framework;
 
   private PermissionInfoStorage pinfos;
@@ -64,23 +62,6 @@ public class PermissionsHandle {
 
   public PermissionsHandle(Framework fw) {
     framework = fw;
-
-    // Get system default permissions
-    PermissionCollection pc = 
-      Policy.getPolicy().getPermissions(new CodeSource((URL)null, (Certificate[])null));
-    // Remove AllPermission
-    if (pc != null && pc.implies(new AllPermission())) {
-      runtimePermissions = new Permissions();
-      for (Enumeration e = pc.elements(); e.hasMoreElements();) {
-        Permission p = (Permission) e.nextElement();
-        if (!(p instanceof AllPermission)) {
-          runtimePermissions.add(p);
-        }
-      }
-    } else {
-      runtimePermissions = pc;
-    }
-     
     pinfos = new PermissionInfoStorage();
     pa = new PermissionAdminImpl(pinfos);     
     Policy.setPolicy(new FrameworkPolicy(this));
@@ -128,8 +109,7 @@ public class PermissionsHandle {
                                                           Bundle b,
                                                           InputStream localPerms) {
     Long bid = new Long(b.getBundleId());
-    PermissionCollection pc = new PermissionsWrapper(framework, pinfos, runtimePermissions,
-                                                     loc, b, localPerms);
+    PermissionCollection pc = new PermissionsWrapper(framework, pinfos, loc, b, localPerms);
     pcCache.put(bid, pc);
     return pc;
   }

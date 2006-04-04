@@ -56,7 +56,7 @@ public class Util {
     if (fwdir == null) {
       return null;
     }
-    FileTree dir = new FileTree(fwdir, name);
+    FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
     if (dir != null) {
       if (dir.exists()) {
 	if (!dir.isDirectory()) {

@@ -59,22 +59,21 @@ public class PermissionsWrapper extends PermissionCollection {
   String location;
 
   private PermissionInfoStorage pinfos;
-  private PermissionCollection runtimePermissions;
   private PermissionCollection implicitPermissions;
   private PermissionCollection localPermissions;
   private PermissionCollection systemPermissions;
+  private File dataRoot;
   private boolean readOnly = false;
   
 
   PermissionsWrapper(Framework fw,
                      PermissionInfoStorage pis,
-                     PermissionCollection runtime,
                      String loc,
                      Bundle b,
                      InputStream localPerms) {
     pinfos = pis;
     location = loc;
-    runtimePermissions = runtime;
+    dataRoot = fw.getDataStorage(b.getBundleId());
     if (localPerms != null) {
       localPermissions = makeLocalPermissionCollection(localPerms);
     } else {
@@ -91,15 +90,36 @@ public class PermissionsWrapper extends PermissionCollection {
 
     
   public Enumeration elements() {
-    // TODO! return complete enumeration!?
-    return getPerms().elements();
+    return new Enumeration() {
+        private Enumeration implicitElements = implicitPermissions.elements();
+        private Enumeration systemElements = getPerms().elements();
+
+        public boolean hasMoreElements() {
+          if (implicitElements != null) {
+            if (implicitElements.hasMoreElements()) {
+              return true;
+            }
+            implicitElements = null;
+          }
+          return systemElements.hasMoreElements();
+        }
+            
+
+        public Object nextElement() {
+          if (implicitElements != null) {
+            try {
+              return implicitElements.nextElement();
+            } catch (NoSuchElementException _ignore) { }
+            implicitElements = null;
+          }
+          return systemElements.nextElement();
+        }
+      };
   }
 
 
   public boolean implies(Permission permission) {
-    if (runtimePermissions != null && runtimePermissions.implies(permission)) {
-      return true;
-    } else if (implicitPermissions.implies(permission)) {
+    if (implicitPermissions.implies(permission)) {
       return true;
     } else if (localPermissions != null && !localPermissions.implies(permission)) {
       return false;
@@ -165,7 +185,7 @@ public class PermissionsWrapper extends PermissionCollection {
           continue;
         }
         try {
-          Permission p = makePermission(new PermissionInfo(l));
+          Permission p = makePermission(new PermissionInfo(l), false);
           if (p != null) {
             res.add(p);
           }
@@ -187,10 +207,10 @@ public class PermissionsWrapper extends PermissionCollection {
 
   private PermissionCollection makeImplicitPermissionCollection(Framework fw, Bundle b) {
     Permissions pc = new Permissions();
-    File root = fw.getDataStorage(b.getBundleId());
-    if (root != null) {
-      pc.add(new FilePermission(root.getPath(), "read,write"));
-      pc.add(new FilePermission((new File(root, "-")).getPath(), "read,write,execute,delete"));
+    if (dataRoot != null) {
+      pc.add(new FilePermission(dataRoot.getPath(), "read,write"));
+      pc.add(new FilePermission((new File(dataRoot, "-")).getPath(),
+                                "read,write,delete"));
     }
     pc.add(new AdminPermission(b,
                                AdminPermission.RESOURCE + "," +
@@ -202,9 +222,10 @@ public class PermissionsWrapper extends PermissionCollection {
 
   /**
    * Create the permissionCollection assigned to the bundle.
-   * The collection contains the configured permissions for the bundle location
-   * plus implicitly granted permissions (FilePermission for the data area,
-   * java runtime permissions, and AdminPermissions.
+   * The collection contains the configured permissions for the bundle location.
+   * Build the permissionCollection based on a set PermissionInfo objects. All the
+   * permissions that are available in the CLASSPATH are constructed and all the
+   * bundle based permissions are constructed as UnresolvedPermissions.
    *
    * @param bundle The bundle whose permissions are to be created.
    *
@@ -213,29 +234,17 @@ public class PermissionsWrapper extends PermissionCollection {
    * any permissions.
    */
   private PermissionCollection makePermissionCollection() {
-    PermissionCollection pc;
     PermissionInfo[] pi = pinfos.get(location, this);
+    boolean usingDefault;
     if (pi == null) {
       pi = pinfos.getDefault(this);
+      usingDefault = true;
+    } else {
+      usingDefault = false;
     }
-    pc = makePermissionCollection(pi);
-    return pc;
-  }
-
-
-  /**
-   * Build a permissionCollection based on a set PermissionInfo objects. All the
-   * permissions that are available in the CLASSPATH are constructed and all the
-   * bundle based permissions are constructed as UnresolvedPermissions.
-   * 
-   * @param pi
-   *          Array of PermissionInfo to enter into the PermissionCollection.
-   * 
-   */
-  private PermissionCollection makePermissionCollection(PermissionInfo[] pi) {
     Permissions res = new Permissions();
     for (int i = pi.length - 1; i >= 0; i--) {
-      Permission p = makePermission(pi[i]);
+      Permission p = makePermission(pi[i], usingDefault);
       if (p != null) {
         res.add(p);
       }
@@ -244,13 +253,30 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
-  private Permission makePermission(PermissionInfo pi) {
+  /**
+   * 
+   * @param pi PermissionInfo to enter into the PermissionCollection.
+   *
+   * @return 
+   */
+  private Permission makePermission(PermissionInfo pi, boolean usingDefault) {
     String a = pi.getActions();
     String n = pi.getName();
     String t = pi.getType();
     try {
       Class pc = Class.forName(t);
       Constructor c = pc.getConstructor(new Class[] { String.class, String.class });
+      if (FilePermission.class.equals(pc)) {
+        File f = new File(n);
+        // NYI! How should we handle different seperator chars.
+        if (!f.isAbsolute()) {
+          if (usingDefault) {
+            return null;
+          }
+          f = new File(dataRoot, n);
+        }
+        n = f.getPath();
+      }
       return (Permission) c.newInstance(new Object[] { n, a });
     } catch (ClassNotFoundException e) {
       return new UnresolvedPermission(t, n, a, null);
