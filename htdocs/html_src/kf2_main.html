@@ -9,7 +9,7 @@ fully. This includes the:
 <li>Mobile Specification, MEG - Not released yet.
 </ul>
 
-A beta-2 version has been released and is available for 
+A beta-3 version has been released and is available for 
 <a href="download.html">download</a>.<p>
 
 <h3>Release Schedule</h3>
@@ -34,12 +34,11 @@ The 2.0 release will  not include the MEG parts due
 to the release schedule of the OSGi MEG specifications.
 </p>
 
-<h3>Status KF 2, KF 2.0-beta-2 release</h3>
+<h3>Status KF 2, KF 2.0-beta-3 release</h3>
 
 With this second beta release, the KF 2 framework is feature complete
-in all mandatory parts. Of the optional parts extension bundles and
-permissions are not yet supported. The fragment bundle feature is
-included, but is more of an alpha than a beta at this stage. 
+in all mandatory parts. Of the optional parts only permissions
+remain. All other parts are implemented and fully functional. 
 <p>
 The Service Compendium was already in the beta-1 release feature
 complete. Minor fixes has been added in this release. 
@@ -76,12 +75,11 @@ are still pending in the KF 2.0 beta 2 release.
   <td>Module layer now has support for all the required features in R4. The 
       following optional features are not supported yet:<br>
       <ul>
-      <li>Extension bundles
       <li>Permissions
       </ul>
-    The fragment bundles implementation is still experimental and does 
-    not work together with requiring bundles. There are also some
-    known problems when updating fragments.
+      To use the extension bundle support you need to use a wrapper script
+      that will restart framework when needed. An example shell-script is
+      included (osgi/kf2).
   </td>
  </tr>
 
