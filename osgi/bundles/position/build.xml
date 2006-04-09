@@ -20,15 +20,6 @@
     <pathelement location="${topdir}/jars/measurement/measurement-1.0.0.jar"/>
   </path>
 
-  <property name="bundle.description"    value="Position API"/>
-  <property name="bundle.category"       value="API"/>
-  <property name="bundle.vendor"         value="OSGi"/>
-  <property name="bundle.apivendor"      value="OSGi"/>
-  <property name="bundle.version"        value="1.0.0"/>
-
-
-  <property name="export.package"        value="org.osgi.util.position;specification-version=1.0"/>
-
   &bundlebuild_include;
 
 </project>

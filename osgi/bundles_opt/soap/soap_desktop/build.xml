@@ -28,15 +28,6 @@
    <pathelement location="../axis-osgi/resources/jaxrpc.jar"/>
   </path>
 
-
-  <property name="bundle.description"    value="SOAP Services desktop plugin"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="SOAP-desktop"/>
-
-  <property name="import.package"
-            value="org.knopflerfish.service.desktop,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client,org.osgi.framework,org.w3c.dom"/>
-
   &bundlebuild_include;
 
   <target name="run">

@@ -16,14 +16,6 @@
    <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
   </path>
 
-
-  <property name="bundle.description"    value="Simple HTTP/HTML console allowing framework management"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-  <property name="bundle.category"       value="example"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="HTTP-console"/>
-  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/readme.html"/>
-
   &bundlebuild_include;
 
 </project>

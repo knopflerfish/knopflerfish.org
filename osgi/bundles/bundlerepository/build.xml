@@ -21,7 +21,6 @@
   <property name="api.pattern"
             value=""/>
 
-
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
@@ -38,29 +37,6 @@
     <pathelement location="resources/oscar-bundlerepository.jar"/>
 -->
   </path>
-
-
-  <property name="bundle.description"    value="OBR bundle repository using the KF console and desktop"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.1.2"/>
-  <property name="bundle.vendor"         value="Oscar/Knopflerfish"/>
-
-  <property name="bundle.apivendor"      value="Oscar/Knopflerfish"/>
-
-  <property name="bundle.activator"      value="org.knopflerfish.osgi.bundle.bundlerepository.Activator"/>
-  <property name="bundle.classpath"      value=".,console_api-1.0.0.jar,kxml-min.jar"/>
-
-  <property name="export.package"  
-            value="org.knopflerfish.service.console;specification-version=1.0.0,org.ungoverned.osgi.service.bundlerepository; specification-version=1.1.0"/>
-
-  <!-- dynamic import to optionally register command/shell/desktop services -->
-  <property name="dynamicimport.package" value="*"/>
-
-  <!-- set explicitly to avoid havin build system sniffing out the imports -->
-  <property name="import.package"  
-            value="org.osgi.framework"/>
-
-   <property name = "bundle.docurl"      value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/bundlerepository/readme.txt"/>
 
   &bundlebuild_include;
 

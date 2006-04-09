@@ -11,7 +11,6 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/desktop/**"/>
 
-
 <!--
   <property name = "bundle.icon" value="boing32x32.png"/>
 -->
@@ -25,19 +24,6 @@
    <pathelement location="${topdir}/jars/kf_metatype/kf_metatype-1.0.0.jar"/>
   </path>
   
-  
-  <property name="bundle.description"    value="CM desktop plugin"/>
-  <property name="bundle.name"           value="CM-Desktop"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
-
- <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/readme.html"/>
-
-  <property name="bundle.subversionurl" 
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/"/>
-
-  <property name="import.package" value="org.osgi.service.cm,org.knopflerfish.service.desktop,org.knopflerfish.util,org.knopflerfish.util.metatype,org.knopflerfish.service.log,org.osgi.framework,org.osgi.util.tracker,org.osgi.service.metatype"/>
   &bundlebuild_include;
 
 </project>

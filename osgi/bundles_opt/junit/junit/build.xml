@@ -30,28 +30,6 @@
    <pathelement location="resources/junit.jar"/>
   </path>
 
-
-  <property name="bundle.description"    value="JUnit support"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="JUnit"/>
-  <property name="bundle.classpath"      value=".,junit.jar"/>
-  <property name="dynamicimport.package" value="org.knopflerfish.service.console,javax.servlet,javax.servlet.http,org.osgi.service.http"/>
-
-  <property name="bundle.docurl" 
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt"/>
-
-  <property name="bundle.subversionurl" 
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/"/>
-
-  <property name="bundle.vendor"         value="JUnit/Knopflerfish"/>
-  <property name="bundle.apivendor"      value="JUnit"/>
-
-  <property name="export.package" 
-            value="org.knopflerfish.service.junit;specification-version=1.0.0,junit.framework;specification-version=3.8.1"/>
-
-  <property name="import.package" value="org.osgi.framework,org.osgi.util.tracker"/>
-
   &bundlebuild_include;
 
 </project>

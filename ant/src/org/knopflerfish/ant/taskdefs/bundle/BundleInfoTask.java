@@ -250,12 +250,12 @@ import org.apache.tools.ant.util.StringUtils;
  * </p>
  *
  * <pre>
- *  &lt;bundleinfo  activator = "bundle.activator" 
+ *  &lt;bundleinfo  activator = "bmfa.Bundle-Activator" 
  *               imports   = "impl.import.package"&gt;
  *   &lt;fileset dir="classes" includes="test/impl/&#042;"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports   = ${impl.import.package}"/&gt;
- *  &lt;echo message="activator = ${bundle.activator}"/&gt;
+ *  &lt;echo message="activator = ${bmfa.Bundle-Activator}"/&gt;
  * </pre> 
  *
  *
@@ -420,48 +420,62 @@ public class BundleInfoTask extends Task {
     importSet.removeAll(exportSet);
 
     if(!"".equals(importsProperty)) {
-      proj.setNewProperty(importsProperty,   toString(importSet, ","));
+      String importsVal = proj.getProperty(importsProperty);
+      if (BundleManifestTask.isPropertyValueEmpty(importsVal)) {
+        importsVal = toString(importSet, ",");
+        log("Setting \"" +importsProperty +"\" to \""+importsVal +"\"",
+            Project.MSG_VERBOSE);
+        proj.setProperty(importsProperty, importsVal);
+      }
     }
 
     if(!"".equals(exportsProperty)) {
-      proj.setNewProperty(exportsProperty,  toString(exportSet, ","));
+      String exportsVal = proj.getProperty(exportsProperty);
+      if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
+        exportsVal = toString(exportSet, ",");
+        log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
+            Project.MSG_VERBOSE);
+        proj.setProperty(exportsProperty, exportsVal);
+      }
     }
 
     // Try to be a bit clever when writing back bundle activator
     if(!"".equals(activatorProperty)) {
       switch(activatorSet.size()) {
       case 0:
-	System.out.println("info - no class implementing " + 
-			   "BundleActivator found");
+        log("No class implementing BundleActivator found", Project.MSG_INFO);
 	break;
       case 1:
 	{
 	  String clazz = (String)activatorSet.iterator().next();
 	  String clazz0 = proj.getProperty(activatorProperty);
 	  if(clazz0 == null || "".equals(clazz0)) {
-	    // System.out.println("set activator " + activatorProperty + "=" + clazz);
+	    // No or empty value property value; ok to set.
+	  } else if (BundleManifestTask.BUNDLE_EMPTY_STRING.equals(clazz0)) {
+            // Current value is the default empty value, overwite it.
+            proj.setProperty(activatorProperty, clazz);
 	  } else {
 	    if(!clazz.equals(clazz0)) {
-	      System.out.println("*** Warning - the class found implementing " + 
-				 " BundleActivator '" + clazz + "' " + 
-				 " does not match the one set as " + 
-				 activatorProperty + "=" + clazz0);
+	      log("The class found implementing BundleActivator '" +clazz
+                  +"' does not match the one set in ${" +activatorProperty
+                  +"} =" +clazz0,
+                  Project.MSG_WARN);
 	    } else {
-	      if(bDebug) {
-		System.out.println("correct activator " + 
-				   activatorProperty + "=" + clazz0);
-	      }
+              log("correct activator " + activatorProperty + "=" + clazz0,
+                  Project.MSG_VERBOSE);
 	    }
 	  }
 	  proj.setNewProperty(activatorProperty, clazz);
 	}
 	break;
       default:
-	System.out.println("*** Warning - more than one class " + 
-			   "implementing BundleActivator found:");
-	for(Iterator it = activatorSet.iterator(); it.hasNext();) {
-	  System.out.println(" " + it.next());
+        StringBuffer sb = new StringBuffer();
+        for(Iterator it = activatorSet.iterator(); it.hasNext();) {
+          sb.append(" ");
+          sb.append(it.next());
 	}
+	log("More than one class implementing BundleActivator found:\n"+sb,
+            Project.MSG_WARN );
 	break;
 	
       }
@@ -548,7 +562,7 @@ public class BundleInfoTask extends Task {
                            +importsSpec);
       }
       importSet.clear();
-      if (isPropertySet(importsSpec)) {
+      if (!BundleManifestTask.isPropertyValueEmpty(importsSpec)) {
         Iterator impIt = Util.parseEntries("import.package",importsSpec,
                                            true, true, false );
         while (impIt.hasNext()) {
@@ -558,7 +572,7 @@ public class BundleInfoTask extends Task {
       }
 
       String exportsSpec = proj.getProperty(exportsProperty);
-      if (isPropertySet(exportsSpec)) {
+      if (!BundleManifestTask.isPropertyValueEmpty(exportsSpec)) {
         Iterator expIt = Util.parseEntries("export.package",exportsSpec,
                                            true, true, false );
         while (expIt.hasNext()) {
@@ -907,21 +921,5 @@ public class BundleInfoTask extends Task {
     return sb.toString();
   }
 
-  /**
-   * Check if a property value is empty or not.
-   * The value is empty if it is <code>null</code>, the empty string
-   * or the special value, "[bundle.emptystring]", used by the
-   * BundleManifestTask as the value for a manifest property that it
-   * shall skip.
-   *  
-   * @param pval The property value to check.
-   * @return <code>true</code> if the value is non-empty.
-   */
-  static protected boolean isPropertySet( String pval ) {
-     return null!=pval
-       && !"".equals(pval)
-       && !"[bundle.emptystring]".equals(pval);
-  }
-  
 
 }

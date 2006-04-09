@@ -21,12 +21,6 @@
    <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
   </path>
 
-  <property name="bundle.description"    value="Commands for the CM service"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.1"/>
-  <property name="bundle.name"           value="CM-Commands"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-
   &bundlebuild_include;
 
 </project>

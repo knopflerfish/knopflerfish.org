@@ -33,77 +33,129 @@
   -->
 
  <property name = "topdir"   location = "."/>
-
  <property name = "proj.dir" location = "."/>
 
- <property name  = "bundle.emptystring" 
-           value = "[bundle.emptystring]"/>
+ <!-- Special value to be used as the value for a bundle manifest    -->
+ <!-- property that shall not be included in the generated manifest. -->
+ <!-- DO NOT CHANGE THIS VALUE.                                      -->
+ <property name="bundle.emptystring" value="[bundle.emptystring]"/>
 
+ <!-- Map environment variables to properties starting with "sysprops."-->
  <property environment="sysprops"/>
 
- <property name = "javac.target"        value    = "1.2"/>
- <property name = "javac.source"        value="1.2"/>
+ <property name="javac.target"        value="1.2"/>
+ <property name="javac.source"        value="1.2"/>
 
- <property environment = "env"/>
+ <!-- If set to "true" check that the bundle does not use any classes -->
+ <!-- outside the specified Execution Environment.                    -->
+ <property name="ee.check.foundation" value="false"/>
 
- <property name = "ee.check.foundation"   value = "false"/>
+ <!-- Shall source code be included into the bundle jar or not. -->
+ <property name="xinclude.source"      value="true"/>
 
- <property name = "xinclude.source"       value = "true"/>
- <property name = "domain.reverse"        value = "org.knopflerfish"/>
+ <!-- The reverse domain name of the bundle vendor.              -->
+ <!-- Used in the default definition of the bundle symbolic name -->
+ <!-- and the bundle UUID.                                       -->
+ <property name="domain.reverse"      value="org.knopflerfish"/>
 
 
- <!-- Properties used as value for bundle manifest headers.            -->
- <!-- To override the default values below, set them in your build.xml -->
- <!-- before including this file.                                      --> 
- <!-- If bundle.activator, import.package or export.package is not set -->
- <!-- they will be derived by the bundleinfo task during the build.    -->
- <!-- A manifest property with the value "${bundle.emptystring}" will  -->
- <!-- not be included in the generated manifest.                       -->
+ <!-- Bundle manifest attributes corresponds to ant properties with  -->
+ <!-- names starting with "bmfa." (BundleManiFestAttribute) followed -->
+ <!-- by the manifest attribute name.                                -->
+ <property name="bundle.mf.attr.prefix"   value="bmfa."/>
+ <!-- Bundle manifest attribute properties can either be specified in -->
+ <!-- the build.xml before including this file, or creating a template-->
+ <!-- manifest file, named bundle.manifest, in the same directory as  -->
+ <!-- the build.xml. Such template manifest files are typically       -->
+ <!-- created by the Knopflefish eclipse plugin.                      --> 
+ <property name="bundlemanifest.template"
+           location="${proj.dir}/bundle.manifest"/>
 
- <!--  <property name = "bundle.activator"  value = ""/> -->
- <property name = "bundle.category"       value = "${bundle.emptystring}"/>
- <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
- <property name = "bundle.contactaddress" value = "http://www.knopflerfish.org"/>
- <property name = "bundle.copyright"      value = "${bundle.emptystring}"/>
- <property name = "bundle.description"    value = "${bundle.emptystring}"/>
- <property name = "bundle.docurl"         value = "http://www.knopflerfish.org"/>
- <property name = "bundle.localization"   value = "${bundle.emptystring}"/>
- <property name = "bundle.manifest.version" value = "2"/>
- <property name = "bundle.name"           value = "${ant.project.name}"/>
- <property name = "bundle.nativecode"     value = "${bundle.emptystring}"/>
- <property name = "bundle.requiredEE"     value = "${bundle.emptystring}"/>
- <property name = "bundle.symbolicname"   value = "${domain.reverse}.bundle.${ant.project.name}"/>
- <property name = "bundle.update.location" value = "${bundle.emptystring}"/>
- <property name = "bundle.vendor"         value = "Knopflerfish"/>
- <property name = "bundle.version"        value = "${bundle.emptystring}"/>
- <property name = "dynamicimport.package" value = "${bundle.emptystring}"/>
- <!--  <property name = "export.package"  value = ""/> -->
- <property name = "export.service"        value = "${bundle.emptystring}"/>
- <property name = "fragment.host"         value = "${bundle.emptystring}"/>
- <!--  <property name = "import.package"  value = ""/> -->
- <property name = "import.service"        value = "${bundle.emptystring}"/>
- <property name = "require.bundle"        value = "${bundle.emptystring}"/>
+ <!-- A manifest attribute with the special value                      -->
+ <!-- "${bundle.emptystring}" will not be included in the generated    -->
+ <!--  manifest.                                                       -->
+ <property name="bmfa.Application-Icon"   value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Activator"   value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-APIVendor"   value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Category"    value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Classpath"   value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Config"      value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-ContactAddress"
+                                          value="http://www.knopflerfish.org"/>
+ <property name="bmfa.Bundle-Copyright"   value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Description" value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-DocURL"      value="http://www.knopflerfish.org"/>
+ <property name="bmfa.Bundle-Localization"    value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-ManifestVersion" value = "2"/>
+ <property name="bmfa.Bundle-Name"        value="${ant.project.name}"/>
+ <property name="bmfa.Bundle-NativeCode"  value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-RequiredExecutionEnvironment"
+           value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-SubversionURL"
+           value="https://www.knopflerfish.org/svn/"/>
+ <property name="bmfa.Bundle-SymbolicName"
+           value="${domain.reverse}.bundle.${ant.project.name}"/>
+ <property name="bmfa.Bundle-UUID"
+           value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
+ <property name="bmfa.Bundle-UpdateLocation"  value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Vendor"      value="Knopflerfish"/>
+ <property name="bmfa.Bundle-Version"     value="${bundle.emptystring}"/>
+ <property name="bmfa.DynamicImport-Package"  value="${bundle.emptystring}"/>
+ <property name="bmfa.Export-Package"     value="${bundle.emptystring}"/>
+ <property name="bmfa.Export-Service"     value="${bundle.emptystring}"/>
+ <property name="bmfa.Fragment-Host"      value="${bundle.emptystring}"/>
+ <property name="bmfa.Import-Package"     value="${bundle.emptystring}"/>
+ <property name="bmfa.Import-Service"     value="${bundle.emptystring}"/>
+ <property name="bmfa.Require-Bundle"     value="${bundle.emptystring}"/>
+ <property name="bmfa.Service-Component"  value="${bundle.emptystring}"/>
 
- <property name = "bundle.uuid"           value = "${domain.reverse}:${ant.project.name}:${bundle.version}"/>
- <property name = "bundle.config"         value = "${bundle.emptystring}"/>
- <property name = "bundle.icon"           value = "${bundle.emptystring}"/>
- <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
- <property name = "bundle.apivendor"  value = "${bundle.emptystring}"/>
+
+ <!-- Old obsolete bundel manifest properties, renamed to bmfa.XXX -->
+ <!--
+ <property name="bundle.category"       value="${bundle.emptystring}"/>
+ <property name="bundle.name"           value="${ant.project.name}"/>
+ <property name="bundle.version"        value="${bundle.emptystring}"/>
+ <property name="bundle.manifest.version" value="2"/>
+ <property name="bundle.classpath"      value="${bundle.emptystring}"/>
+ <property name="bundle.contactaddress" value="http://www.knopflerfish.org"/>
+ <property name="bundle.copyright"      value="${bundle.emptystring}"/>
+ <property name="bundle.description"    value="${bundle.emptystring}"/>
+ <property name="bundle.docurl"         value="http://www.knopflerfish.org"/>
+ <property name="bundle.localization"   value="${bundle.emptystring}"/>
+ <property name="bundle.nativecode"     value="${bundle.emptystring}"/>
+ <property name="bundle.requiredEE"     value="${bundle.emptystring}"/>
+ <property name="bundle.symbolicname"   value="${domain.reverse}.bundle.${ant.project.name}"/>
+ <property name="bundle.update.location" value="${bundle.emptystring}"/>
+ <property name="bundle.vendor"         value="Knopflerfish"/>
+ <property name="dynamicimport.package" value="${bundle.emptystring}"/>
+ <property name="export.service"        value="${bundle.emptystring}"/>
+ <property name="import.service"        value="${bundle.emptystring}"/>
+ <property name="export.package"        value=""/>
+ <property name="import.package"        value=""/>
+ <property name="fragment.host"         value="${bundle.emptystring}"/>
+ <property name="require.bundle"        value="${bundle.emptystring}"/>
+ <property name="bundle.uuid"           value="${domain.reverse}:${ant.project.name}:${bundle.version}"/>
+ <property name="bundle.config"         value="${bundle.emptystring}"/>
+ <property name="bundle.icon"           value="${bundle.emptystring}"/>
+ <property name="bundle.subversionurl"  value="https://www.knopflerfish.org/svn/"/>
+ <property name="bundle.apivendor"      value="${bundle.emptystring}"/>
+ <property name="service.component"     value="${bundle.emptystring}"/>
+ -->
+
+ <!--   -->
+ <!--   -->
+
  <!-- End of properties used as value for bundle manifest headers.     -->
 
 
 
- <property name = "console.host"        value = "localhost"/>
- <property name = "console.port"        value = "23"/>
- <property name = "console.user"        value = "admin"/>
- <property name = "console.pwd"         value = "admin"/>
- <property name = "console.welcome"     value = "Knopflerfish OSGi console"/>
- <property name = "console.loginok"     value = "'quit' to end session"/>
+ <property name="console.host"        value="localhost"/>
+ <property name="console.port"        value="23"/>
+ <property name="console.user"        value="admin"/>
+ <property name="console.pwd"         value="admin"/>
+ <property name="console.welcome"     value="Knopflerfish OSGi console"/>
+ <property name="console.loginok"     value="'quit' to end session"/>
 
-
- <property name = "bundle.uuid.impl"          value = "${bundle.uuid}:impl"/>
- <property name = "bundle.uuid.api"           value = "${bundle.uuid}:api"/>
- <property name = "bundle.uuid.all"           value = "${bundle.uuid}:all"/>
 
  <property name="http.host"          value="localhost"/>
  <property name="http.port"          value="8080"/>
@@ -129,7 +181,6 @@
  <property name = "bundle.build.api"    value = "true"/>
  <property name = "bundle.build.impl"   value = "true"/>
  <property name = "bundle.build.all"    value = "true"/>
- <property name = "bundle.build.decl"   value = "false"/>
 
  <!-- Bundles that both export packages and provides implementations -->
  <!-- shall have the implicitImport flag set in the bundleinfo task. -->
@@ -137,45 +188,33 @@
  <property name = "bundle.implicit.imports.api"   value = "false"/>
  <property name = "bundle.implicit.imports.impl"  value = "false"/>
  <property name = "bundle.implicit.imports.all"   value = "true"/>
- <property name = "bundle.implicit.imports.decl"  value = "true"/>
 
+ <!-- First part of the suffix to inser right before "-jar" in the -->
+ <!-- name of jar files to create.                                 -->
+ <!-- E.g. The full name of the impl-jar will be on the form:      -->
+ <!--${jardir}/${ant.project.name}${impl.suffix.name}-${bmfa.Bundle-Version}-->
+ <property name="lib.suffix.name" value=""/>
+ <property name="api.suffix.name" value="_api"/>
+ <property name="impl.suffix.name" value=""/>
+ <property name="all.suffix.name" value="_all"/>
+
+ <!-- Manifest attributes that shall not be present in the manifest -->
+ <!-- of the named bundle kind. The value is a comma separated list -->
+ <!-- of manifest attibute names to weed out from the generated manifest. -->
+ <property name="attrs.to.skip.lib"
+   value="Bundle-Activator,Export-Service,Import-Service,Bundle-Config"/>
+ <property name="attrs.to.skip.api"
+   value="Bundle-Activator,Export-Service,Import-Service,Bundle-Config"/>
+ <property name="attrs.to.skip.impl" value="Export-Package"/>
+ <property name="attrs.to.skip.all"  value=""/>
  
- <property name     = "all.suffix" value="_all-${bundle.version}"/>
-
- <property name     = "decl.suffix" value="_decl-${bundle.version}"/>
-
- <property name     = "api.jar"  
-           location = "${jardir}/${ant.project.name}_api-${bundle.version}.jar"/>
-
- <property name     = "api_noversion.jar"  
-           location = "${jardir}/${ant.project.name}_api.jar"/>
-
- <property name     = "impl.jar"     
-           location = "${jardir}/${ant.project.name}-${bundle.version}.jar"/>
-
- <property name     = "impl_noversion.jar"     
-           location = "${jardir}/${ant.project.name}.jar"/>
-
- <property name     = "all.jar"
-           location = "${jardir}/${ant.project.name}${all.suffix}.jar"/>
-
- <property name     = "decl.jar"
-           location = "${jardir}/${ant.project.name}${decl.suffix}.jar"/>
-
- <property name     = "all_noversion.jar"
-           location = "${jardir}/${ant.project.name}_all.jar"/>
-
-
- 
+ <!-- Let the bundlemanifest task print the name of the activator -->
+ <!-- and the exported and imported packages on the console.      -->
+ <property name="bundlemanifest.verbose" value="true"/>
 
  <path id = "framework.path">
   <pathelement location = "${topdir}/framework.jar"/>
  </path>
-
- <path id = "bundle.api.path">
-  <pathelement location = "${api.jar}"/>
- </path>
-
 
  <path id = "bundle.path">
    <path refid = "framework.path"/>
@@ -185,12 +224,89 @@
 
  <import file="${topdir}/../ant/bundletasks.xml"/>
 
- <target name="init" depends="setup_build,check_bcel">
+ <target name="init"
+         depends="setup_build,check_bcel,bundle_tasks,setup_manifest_props">
    <tstamp>
     <format property = "bundle.date" 
             pattern  = "EE MMMM d yyyy, HH:mm:ss"
             locale   = "en"/>
    </tstamp>
+ </target>
+
+ <!-- This target must be called before using any of the bmfa.* properties.-->
+ <target name="setup_manifest_props">
+   <!-- If old bundle manifest property names are in use fail! -->
+   <fail if="bundle.category" message="bundle.category->bmfa.Bundle-Category"/>
+   <fail if="bundle.name" message="bundle.name->bmfa.Bundle-Name"/>
+   <fail if="bundle.version" message="bundle.version->bmfa.Bundle-Version"/>
+   <fail if="bundle.manifest.version"
+         message="bundle.manifest.version->bmfa.Bundle-ManifestVersion"/>
+   <fail if="bundle.classpath"
+         message="bundle.classpath->bmfa.Bundle-Classpath"/>
+   <fail if="bundle.contactaddress"
+         message="bundle.contactaddress->bmfa.Bundle-ContactAddress"/>
+   <fail if="bundle.copyright"
+         message="bundle.copyright->bmfa.Bundle-Copyright"/>
+   <fail if="bundle.description"
+         message="bundle.description->bmfa.Bundle-Description"/>
+   <fail if="bundle.docurl" message="bundle.docurl->bmfa.Bundle-DocURL"/>
+   <fail if="bundle.localization"
+         message="bundle.localization->bmfa.Bundle-Localization"/>
+   <fail if="bundle.nativecode"
+         message="bundle.nativecode->bmfa.Bundle-NativeCode"/>
+   <fail if="bundle.requiredEE"
+         message="bundle.requiredEE->bmfa.Bundle-RequiredExecutionEnvironment"/>
+   <fail if="bundle.symbolicname"
+         message="bundle.symbolicname->bmfa.Bundle-SymbolicName"/>
+   <fail if="bundle.update.location"
+         message="bundle.update.location->bmfa.Bundle-UpdateLocation"/>
+   <fail if="bundle.vendor" message="bundle.vendor->bmfa.Bundle-Vendor"/>
+   <fail if="dynamicimport.package"
+         message="bundle.dynamicimport.package->bmfa.DynamicImport-Package"/>
+   <fail if="export.service" message="export.service->bmfa.Export-Service"/>
+   <fail if="import.service" message="import.service->bmfa.Import-Service"/>
+   <fail if="export.package" message="export.package->bmfa.Export-Package"/>
+   <fail if="import.package" message="import.package->bmfa.Import-Package"/>
+   <fail if="fragment.host"  message="fragment.host->bmfa.Fragment-Host"/>
+   <fail if="require.bundle" message="require.bundle->bmfa.Require-Bundle"/>
+   <fail if="bundle.uuid"    message="bundle.uuid->bmfa.Bundle-UUID"/>
+   <fail if="bundle.config"  message="bundle.config->bmfa.Bundle-Config"/>
+   <fail if="bundle.icon"    message="bundle.icon->bmfa.Application-Icon"/>
+   <fail if="bundle.subversionurl"
+         message="bundle.subversionurl->bmfa.Bundle-SubversionURL"/>
+   <fail if="bundle.apivendor"
+         message="bundle.apivendor->bmfa.Bundle-APIVendor"/>
+   <fail if="service.component"
+         message="service.component->bmfa.Service-Component"/>
+
+   <!-- Update value of all bundle manifest properties (bmfa.*) based  -->
+   <!-- on their values in the manifest template file (if present). -->
+   <bundlemanifest mode="${bundlemanifest.mode}"
+                   attributePropertyPrefix = "${bundle.mf.attr.prefix}"
+                   templateFile="${bundlemanifest.template}">
+   </bundlemanifest>
+
+   <!-- Defines properties that depends on bundle manifest header values. -->
+   <property name="impl.suffix"
+             value="${impl.suffix.name}-${bmfa.Bundle-Version}"/>
+   <property name="impl.jar"     
+             location="${jardir}/${ant.project.name}${impl.suffix}.jar"/>
+   <property name="api.suffix"
+             value="${api.suffix.name}-${bmfa.Bundle-Version}"/>
+   <property name="api.jar"
+             location="${jardir}/${ant.project.name}${api.suffix}.jar"/>
+   <property name="lib.suffix"
+             value="${lib.suffix.name}-${bmfa.Bundle-Version}"/>
+   <property name="lib.jar"     
+             location="${jardir}/${ant.project.name}${lib.suffix}.jar"/>
+   <property name="all.suffix"
+             value="${all.suffix.name}-${bmfa.Bundle-Version}"/>
+   <property name="all.jar"
+             location = "${jardir}/${ant.project.name}${all.suffix}.jar"/>
+
+   <path id = "bundle.api.path">
+     <pathelement location = "${api.jar}"/>
+   </path>
  </target>
 
  <target name="install_netcomponents">
@@ -217,7 +333,7 @@
  </target>
 
 
- <target name = "all" depends = "init,bundle_tasks">
+ <target name = "all" depends = "init">
    <antcall target = "try_bundle.custom.pre"/>
    <antcall target = "jars"/>
    <antcall target = "try_bundle.custom.post"/>
@@ -267,22 +383,19 @@
 
  <target name        = "jars"
          description = "compile all jars">
-
   <antcall target = "jar_api0"/>
   <antcall target = "jar_lib"/>
   <antcall target = "jar_impl"/>
   <antcall target = "jar_all0"/>
-  <antcall target = "jar_decl"/>
-
  </target>
 
  <target name    = "jar_api0" 
-	 if      = "api.pattern">
+         if      = "api.pattern">
    <antcall target = "jar_api"/>
  </target>
 
  <target name    = "jar_all0" 
-	 if      = "api.pattern">
+         if      = "api.pattern">
    <antcall target = "jar_all"/>
  </target>
 
@@ -305,27 +418,34 @@
    <equals arg1="${bundle.build.all}" arg2="true"/>
   </condition>
 
-  <condition property="do_build_decl">
-   <equals arg1="${bundle.build.decl}" arg2="true"/>
-  </condition>
-
 <!--
   <echo message="do_build_lib  = ${do_build_lib}"/>
   <echo message="do_build_api  = ${do_build_api}"/>
   <echo message="do_build_impl = ${do_build_impl}"/>
   <echo message="do_build_all  = ${do_build_all}"/>
-  <echo message="do_build_decl = ${do_build_decl}"/>
 -->
+
+  <!-- If a template manifest file exists use it and ignore       -->
+  <!-- manifest headers defined via properties in the build file. -->
+  <condition property="bundlemanifest.mode" value="template">
+    <and>
+      <not><isset property="bundlemanifest.mode"/></not>
+      <available type="file" file="${bundlemanifest.template}"/>
+    </and>
+  </condition>
+  <property name = "bundlemanifest.mode" value="update"/>
+
  </target>
 
  <target name    = "jar_impl" 
          if      = "do_build_impl">
+  <echo message = "${impl.jar}"/>
 
   <antcall target = "compile"/>
 
-  <bundleinfo activator = "bundle.activator" 
-              imports   = "import.package"
-	      implicitImports   = "${bundle.implicit.imports.impl}"
+  <bundleinfo activator = "bmfa.Bundle-Activator" 
+              imports   = "bmfa.Import-Package"
+              implicitImports   = "${bundle.implicit.imports.impl}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -333,50 +453,18 @@
    </fileset>
   </bundleinfo>
 
-  <property name="export.package" value=""/>
-
-  <echo message = "${impl.jar}"/>
-  <echo message = " imports   = ${import.package}"/>
-  <echo message = " exports   = ${export.package}"/>
-  <echo message = " activator = ${bundle.activator}"/>
-
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
-  <bundlemanifest file="${outdir}/impl.mf">
-    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
-    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
-    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
-    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
-    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
-    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
-    <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
-    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
-    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-    <attribute name = "Export-Service"        value = "${export.service}"/>
-    <attribute name = "Import-Service"        value = "${import.service}"/>
-    <attribute name = "Import-Package"        value = "${import.package}"/>
-<!--
-    <attribute name = "Export-Package"        value = "${export.package}"/>
--->
-    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
-    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
-    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
-    <attribute name = "Built-From"            value = "${proj.dir}"/>
-    <attribute name = "Build-Date"            value = "${bundle.date}"/>
-    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
-    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
-    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
-    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
-    <attribute name = "Bundle-APIVendor"      value = "${bundle.apivendor}"/>
-    
+  <bundlemanifest mode="${bundlemanifest.mode}"
+                  kind="impl"
+                  mainAttributesToSkip="${attrs.to.skip.impl}"
+                  attributePropertyPrefix="${bundle.mf.attr.prefix}"
+                  templateFile="${bundlemanifest.template}"
+                  verbose="${bundlemanifest.verbose}"
+                  file="${outdir}/impl.mf">
+    <attribute name="Build-Date"       value="${bundle.date}"/>
+    <attribute name="Built-From"       value="${proj.dir}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
@@ -421,13 +509,16 @@
 
  <target name    = "jar_api" 
          depends = "init,bundle_tasks" 
-	 if      = "do_build_api">
+         if      = "do_build_api">
+  <echo message = "${api.jar}"/>
 
   <antcall target = "compile_api"/>
 
-  <bundleinfo exports = "export.package" 
-              imports = "import.package"
-	      implicitImports   = "${bundle.implicit.imports.api}"
+  <!-- Avoid importing packages only required by the implementation.-->
+  <property name="import.package.api" value="${bundle.emptystring}"/>
+  <bundleinfo exports = "bmfa.Export-Package" 
+              imports = "import.package.api"
+              implicitImports   = "${bundle.implicit.imports.api}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -435,36 +526,18 @@
    </fileset>
   </bundleinfo>
 
-  <echo message = "${api.jar}"/>
-  <echo message = " exports = ${export.package}"/>
-  <echo message = " imports = ${import.package}"/>
-
   <mkdir dir = "${jardir}"/>
 
-  <bundlemanifest file = "${outdir}/api.mf">
-    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
-    <attribute name = "Bundle-Name"           value = "${bundle.name}-API"/>
-    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}-API"/>
-    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
-    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
-    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
-    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
-    <attribute name = "Bundle-Category"       value = "API"/>
-    <attribute name = "Export-Package"        value = "${export.package}"/>
-    <attribute name = "Import-Package"        value = "${import.package}"/>
-    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
-    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
-    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.api}"/>
-    <attribute name = "Built-From"            value = "${proj.dir}"/>
-    <attribute name = "Build-Date"            value = "${bundle.date}"/>
-    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
-    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
-    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+  <bundlemanifest mode="${bundlemanifest.mode}"
+                  kind="api"
+                  mainAttributesToSkip = "${attrs.to.skip.api}"
+                  attributePropertyPrefix = "${bundle.mf.attr.prefix}"
+                  templateFile="${bundlemanifest.template}"
+                  verbose="${bundlemanifest.verbose}"
+                  file="${outdir}/api.mf">
+    <attribute name="Build-Date"       value="${bundle.date}"/>
+    <attribute name="Built-From"       value="${proj.dir}"/>
+    <attribute name="Import-Package"   value="${import.package.api}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
@@ -478,13 +551,14 @@
 
  <target name    = "jar_lib" 
          depends = "init,bundle_tasks" 
-	 if      = "do_build_lib">
+         if      = "do_build_lib">
+  <echo message = "${lib.jar}"/>
 
   <antcall target = "compile_api"/>
 
-  <bundleinfo exports = "export.package" 
-              imports = "import.package"
-	      implicitImports   = "${bundle.implicit.imports.lib}"
+  <bundleinfo exports = "bmfa.Export-Package" 
+              imports = "bmfa.Import-Package"
+              implicitImports   = "${bundle.implicit.imports.lib}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -492,45 +566,25 @@
    </fileset>
   </bundleinfo>
 
-  <echo message = "${impl.jar}"/>
-  <echo message = " exports = ${export.package}"/>
-  <echo message = " imports = ${import.package}"/>
-
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
-  <bundlemanifest file="${outdir}/impl.mf">
-    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
-    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
-    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
-    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
-    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
-    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
-    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-    <attribute name = "Export-Package"        value = "${export.package}"/>
-    <attribute name = "Import-Package"        value = "${import.package}"/>
-    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
-    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
-    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
-    <attribute name = "Built-From"            value = "${proj.dir}"/>
-    <attribute name = "Build-Date"            value = "${bundle.date}"/>
-    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
-    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
-    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
-    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+  <bundlemanifest mode="${bundlemanifest.mode}"
+                  kind="lib"
+                  mainAttributesToSkip = "${attrs.to.skip.lib}"
+                  attributePropertyPrefix = "${bundle.mf.attr.prefix}"
+                  templateFile="${bundlemanifest.template}"
+                  verbose="${bundlemanifest.verbose}"
+                  file="${outdir}/lib.mf">
+    <attribute name="Build-Date"     value="${bundle.date}"/>
+    <attribute name="Built-From"     value="${proj.dir}"/>
+    <attribute name="Export-Package" value="${bmfa.Export-Package}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${impl.jar}"
+       jarfile  = "${lib.jar}"
        includes = "${api.pattern}"
-       manifest = "${outdir}/impl.mf"
+       manifest = "${outdir}/lib.mf"
     >
      <fileset dir = "${resources.dir}"/>
   </jar>  
@@ -543,92 +597,14 @@
    <mkdir dir = "${resources.dir}"/>
  </target>
 
- <target name    = "jar_decl" 
-         depends = "init,bundle_tasks" 
-	 if      = "do_build_decl">
-
-  <antcall target = "compile"/>
-
-  <bundleinfo exports   = "export.package"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${api.pattern}">
-   </fileset>
-  </bundleinfo>
-
-  <bundleinfo activator = "bundle.activator" 
-              imports   = "import.package"
-	      exports   = "export.package"
-	      implicitImports   = "${bundle.implicit.imports.decl}"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${impl.pattern}">
-   </fileset>
-  </bundleinfo>
-
-  <echo message = "${decl.jar}"/>
-  <echo message = " imports   = ${import.package}"/>
-  <echo message = " exports   = ${export.package}"/>
-  <echo message = " activator = ${bundle.activator}"/>
-
-  <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir"/>
-
-  <bundlemanifest file="${outdir}/all.mf">
-    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
-    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
-    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
-    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
-    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
-    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
-    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
-    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-    <attribute name = "Export-Service"        value = "${export.service}"/>
-    <attribute name = "Import-Service"        value = "${import.service}"/>
-    <attribute name = "Export-Package"        value = "${export.package}"/>
-    <attribute name = "Import-Package"        value = "${import.package}"/>
-    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
-    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
-    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
-    <attribute name = "Built-From"            value = "${proj.dir}"/>
-    <attribute name = "Build-Date"            value = "${bundle.date}"/>
-    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
-    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
-    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
-    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
-    <attribute name = "Bundle-APIVendor"      value = "${bundle.apivendor}"/>
-    <attribute name = "Service-Component"     value = "${service.component}"/>
-  </bundlemanifest>
-
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${decl.jar}"
-       compress = "true"
-       includes = "${api.pattern},${impl.pattern}"
-       excludes = "**/pspbrwse.jbf"
-       manifest = "${outdir}/all.mf"
-    >
-     <fileset dir = "${resources.dir}"/>
-    </jar>
-    
-   <antcall target = "add_src_all"/>
- </target>
-
  <target name    = "jar_all" 
          depends = "init,bundle_tasks" 
-	 if      = "do_build_all">
+         if      = "do_build_all">
+  <echo message = "${all.jar}"/>
 
   <antcall target = "compile"/>
 
-  <bundleinfo exports   = "export.package"
+  <bundleinfo exports   = "bmfa.Export-Package"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -636,10 +612,10 @@
    </fileset>
   </bundleinfo>
 
-  <bundleinfo activator = "bundle.activator" 
-              imports   = "import.package"
-	      exports   = "export.package"
-	      implicitImports   = "${bundle.implicit.imports.all}"
+  <bundleinfo activator = "bmfa.Bundle-Activator" 
+              imports   = "bmfa.Import-Package"
+              exports   = "bmfa.Export-Package"
+              implicitImports   = "${bundle.implicit.imports.all}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -647,45 +623,18 @@
    </fileset>
   </bundleinfo>
 
-  <echo message = "${all.jar}"/>
-  <echo message = " imports   = ${import.package}"/>
-  <echo message = " exports   = ${export.package}"/>
-  <echo message = " activator = ${bundle.activator}"/>
-
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
-  <bundlemanifest file="${outdir}/all.mf">
-    <attribute name = "Bundle-ManifestVersion" value = "${bundle.manifest.version}"/>
-    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
-    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
-    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
-    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
-    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
-    <attribute name = "Bundle-Copyright"      value = "${bundle.copyright}"/>
-    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
-    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
-    <attribute name = "Bundle-UpdateLocation" value = "${bundle.update.location}"/>
-    <attribute name = "Bundle-Localization"   value = "${bundle.localization}"/>
-    <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
-    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
-    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
-    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
-    <attribute name = "Export-Service"        value = "${export.service}"/>
-    <attribute name = "Import-Service"        value = "${import.service}"/>
-    <attribute name = "Export-Package"        value = "${export.package}"/>
-    <attribute name = "Import-Package"        value = "${import.package}"/>
-    <attribute name = "Fragment-Host"         value = "${fragment.host}"/>
-    <attribute name = "Require-Bundle"        value = "${require.bundle}"/>
-    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
-    <attribute name = "Built-From"            value = "${proj.dir}"/>
-    <attribute name = "Build-Date"            value = "${bundle.date}"/>
-    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
-    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
-    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
-    <attribute name = "Bundle-RequiredExecutionEnvironment" value = "${bundle.requiredEE}"/>
-    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
-    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+  <bundlemanifest mode="${bundlemanifest.mode}"
+                  kind=""
+                  mainAttributesToSkip = "${attrs.to.skip.all}"
+                  attributePropertyPrefix = "${bundle.mf.attr.prefix}"
+                  templateFile="${bundlemanifest.template}"
+                  verbose="${bundlemanifest.verbose}"
+                  file="${outdir}/all.mf">
+    <attribute name="Build-Date"       value="${bundle.date}"/>
+    <attribute name="Built-From"       value="${proj.dir}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
@@ -710,6 +659,7 @@
  </target>
 
  <target name="install"
+         depends="init"
          description="Install all.jar using telnet console">
    <antcall target="send_console_cmd">
     <param name  = "cmd"
@@ -721,6 +671,7 @@
  </target>
 
  <target name="install_impl"
+         depends="init"
          description="Install impl.jar using telnet console">
    <antcall target="send_console_cmd">
     <param name  = "cmd"
@@ -732,34 +683,38 @@
  </target>
 
  <target name="stop" 
-         description="Stop bundle.name using telnet console">
+         depends="init"
+         description="Stop bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
     <param name  = "cmd"
-           value = "/fr stop &#34;${bundle.name}&#34;"/>
+           value = "/fr stop &#34;${bmfa.Bundle-Name}&#34;"/>
    </antcall>
  </target>
 
  <target name="start" 
-         description="Start bundle.name using telnet console">
+         depends="init"
+         description="Start bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
     <param name  = "cmd"
-           value = "/fr start &#34;${bundle.name}&#34;"/>
+           value = "/fr start &#34;${bmfa.Bundle-Name}&#34;"/>
    </antcall>
  </target>
 
  <target name="update" 
-         description="Update bundle.name using telnet console">
+         depends="init"
+         description="Update bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
     <param name  = "cmd"
-           value = "/fr update &#34;${bundle.name}&#34;"/>
+           value = "/fr update &#34;${bmfa.Bundle-Name}&#34;"/>
    </antcall>
  </target>
 
  <target name="uninstall" 
-         description="Uninstall bundle.name using telnet console">
+         depends="init"
+         description="Uninstall bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
     <param name  = "cmd"
-           value = "/fr uninstall &#34;${bundle.name}&#34;"/>
+           value = "/fr uninstall &#34;${bmfa.Bundle-Name}&#34;"/>
    </antcall>
  </target>
 
@@ -829,10 +784,3 @@
   <delete dir = "${outdir}"/>
   <delete dir = "${jardir}"/>
  </target>
-
-
-
-
-
-
-
