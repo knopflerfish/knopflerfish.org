@@ -24,18 +24,6 @@
     <pathelement location="resources/kxml2.jar"/>
   </path>
 
-  <property name="bundle.name"           value="Declarative-Services"/>
-  <property name="bundle.description"    value="Declarative Services"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.apivendor"      value="OSGi"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-  <property name="bundle.classpath"      value=".,kxml2.jar"/>
-  <property name="dynamicimport.package" value="*"/>
-
-  <property name="export.package"        value="org.osgi.service.component;specification-version=1.0"/>
-  <property name="import.package"        value="org.osgi.framework,org.osgi.service.cm,org.osgi.service.component"/>
-
   &bundlebuild_include;
 
 </project>

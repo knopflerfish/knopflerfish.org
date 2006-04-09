@@ -38,10 +38,10 @@
   <!-- The bundle symbolic name (property "bundle.symbolic.name") will be: -->
   <!--   ${domain.reverse}.bundle.${ant.project.name}    -->
 
-  <property name="domain.reverse"        value="org.knopflerfish"/>
+  <property name="domain.reverse"          value="org.knopflerfish"/>
 
-  <property name="bundle.description"    value="HTTP test servlet"/>
-  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bmfa.Bundle-Description" value="HTTP test servlet"/>
+  <property name="bmfa.Bundle-Vendor"      value="knopflerfish"/>
 
   &bundlebuild_include;
 

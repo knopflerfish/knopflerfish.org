@@ -20,11 +20,6 @@
    <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
   </path>
 
-  <property name="bundle.description"    value="Log commands"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.1"/>
-  <property name="bundle.name"           value="Log-Commands"/>
-
   &bundlebuild_include;
 
 </project>

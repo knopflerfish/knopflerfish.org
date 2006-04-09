@@ -29,23 +29,6 @@
    <pathelement location="../ksoap-osgi/resources/ksoap2-j2me-full.jar"/>
   </path>
 
-
-  <property name="bundle.description"    value="kSOAP remote framework"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.docurl"         value="http://www.knopflerfish.org/remote_howto.html"/>
-  <property name="bundle.name"           value="kSOAP-FW"/>
-
-  <property name="bundle.apivendor"      value="Knopflerfish"/>
-
-<!--
-  <property name="export.package"
-            value="org.knopflerfish.service.soap.remotefw"/>
--->
-
-  <property name="import.package"
-            value="org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.osgi.framework,org.knopflerfish.service.log,org.osgi.service.log,org.osgi.service.startlevel,org.osgi.service.packageadmin,org.osgi.util.tracker,org.knopflerfish.util,org.knopflerfish.service.remotefw,org.knopflerfish.service.console"/>
-
   &bundlebuild_include;
 
 </project>

@@ -30,10 +30,10 @@
   </path>
 
 
-  <property name="bundle.description"    value="JUnit example1"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="import.package"
+  <property name="bmfa.Bundle-Description"    value="JUnit example1"/>
+  <property name="bmfa.Bundle-Category"       value="service"/>
+  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
+  <property name="bmfa.Import-Package"
             value="junit.framework,org.osgi.framework,org.knopflerfish.service.demo1"/>
 
   &bundlebuild_include;

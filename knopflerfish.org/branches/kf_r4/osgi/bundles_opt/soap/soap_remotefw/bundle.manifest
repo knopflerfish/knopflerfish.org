@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.6.2
+Created-By: 1.4.2-54 ("Apple Computer, Inc.")
+Bundle-ManifestVersion: 2
+Bundle-Name: SOAP-FW
+Bundle-SymbolicName: org.knopflerfish.bundle.soap_remotefw
+Bundle-Version: 1.0.0
+Bundle-Description: SOAP remote framework
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.soap.remotefw.Activator
+Bundle-Category: service
+Export-Package: org.knopflerfish.service.soap.remotefw
+Import-Package: javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,ja
+ vax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client
+ ,org.osgi.framework,org.w3c.dom,org.knopflerfish.service.log,org.osgi
+ .service.log,org.osgi.service.startlevel,org.osgi.service.packageadmi
+ n,org.osgi.service.startlevel,org.osgi.service.packageadmin,org.osgi.
+ util.tracker,org.knopflerfish.util,org.knopflerfish.service.remotefw,
+ org.knopflerfish.service.soap.remotefw
+Bundle-UUID: org.knopflerfish:soap_remotefw:1.0.0:all
+Built-From: /Users/ekolin/kf/kf_r4/osgi/bundles_opt/soap/soap_remotefw
+Build-Date: Mon March 27 2006, 19:18:54
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+

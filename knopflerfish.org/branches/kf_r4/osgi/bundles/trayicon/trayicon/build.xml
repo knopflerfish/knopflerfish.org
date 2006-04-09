@@ -30,26 +30,6 @@
 -->
   </path>
 
-
-  <property name="bundle.description"   value="Windows Tray Icon manager. Uses code written by Jan Struyf, jan.struyf@cs.kuleuven.ac.be, http://jeans.studentenweb.org/java/trayicon/trayicon.html"/>
-  <property name="bundle.name"          value="Tray-Icon-Manager"/>
-  <property name="bundle.category"      value="service"/>
-  <property name="bundle.version"       value="1.0.0"/>
-  <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/readme.txt"/>
-
-  <property name="bundle.subversionurl" 
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/"/>
-
-  <property name="bundle.apivendor"      value="Knopflerfish"/>
-
-  <property name="bundle.classpath"     value="."/>
-  <property name="export.package"       value="org.knopflerfish.service.trayicon"/>
-  <property name="import.package"       value="org.osgi.framework,org.knopflerfish.service.log"/>
-
-  <property name="bundle.nativecode" 
-            value="TrayIcon12.dll;osname=WindowsXP;processor=x86,TrayIcon12.dll;osname=Windows2000;processor=x86,TrayIcon12.dll;osname=Windows98;processor=x86,TrayIcon12.dll;osname=Windows95;processor=x86"/>
-
-
   &bundlebuild_include;
 
 </project>
