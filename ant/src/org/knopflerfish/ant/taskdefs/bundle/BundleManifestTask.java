@@ -450,8 +450,7 @@ public class BundleManifestTask extends Task {
               Manifest.Attribute attr = new Manifest.Attribute(attrName,
                                                                attrValue);
               mf.addConfiguredAttribute(attr);
-              log("Creating bundle manifets attribute from property '"
-                  +key +"' with value '"+attrValue+"'.",
+              log("from propety '" +attrName +": "+attrValue+"'.",
                   Project.MSG_VERBOSE);
             } catch (ManifestException me) {
               throw new BuildException
@@ -483,10 +482,8 @@ public class BundleManifestTask extends Task {
         Manifest.Attribute attr = mainS.getAttribute(key);
         String propKey = attributePropertyPrefix + attr.getName();
         String propVal = attr.getValue();
+        log("setting '" +propKey +"'='"+propVal+"'.", Project.MSG_VERBOSE);
         project.setProperty(propKey,propVal);
-        log("Updating property from bundle manifest attribute '"
-            +propKey +"' with value '"+propVal+"'.",
-            Project.MSG_VERBOSE);
       }
     }
   }
@@ -595,7 +592,9 @@ public class BundleManifestTask extends Task {
 
 
     Manifest manifestProps = new Manifest();
-    addAttributesFromProperties(manifestProps);
+    if (!mode.getValue().equals("templateOnly")) {
+      addAttributesFromProperties(manifestProps);
+    }
     
     Manifest manifestToWrite  = Manifest.getDefaultManifest();
     Manifest manifestTemplate = null;
@@ -684,8 +683,7 @@ public class BundleManifestTask extends Task {
       StringTokenizer st = new StringTokenizer(mainAttributesToSkip,",");
       while(st.hasMoreTokens()) {
         String attrName = st.nextToken();
-        log("Removing attribute named '"+attrName+"' from main section",
-            Project.MSG_VERBOSE);
+        log("Weeding out '"+attrName+"'.", Project.MSG_VERBOSE);
         manifestToWrite.getMainSection().removeAttribute(attrName);
       }
     }
