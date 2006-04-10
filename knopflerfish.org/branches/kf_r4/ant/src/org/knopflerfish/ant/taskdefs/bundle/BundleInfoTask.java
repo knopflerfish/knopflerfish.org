@@ -557,10 +557,7 @@ public class BundleInfoTask extends Task {
        && !"".equals(importsProperty)
        && !"".equals(exportsProperty) ) {
       String importsSpec = proj.getProperty(importsProperty);
-      if (bDebug) {
-        System.out.println("implicitImport: Original import.package: "
-                           +importsSpec);
-      }
+      log("implicitImport - before: "+importsSpec, Project.MSG_VERBOSE);
       importSet.clear();
       if (!BundleManifestTask.isPropertyValueEmpty(importsSpec)) {
         Iterator impIt = Util.parseEntries("import.package",importsSpec,
@@ -586,12 +583,11 @@ public class BundleInfoTask extends Task {
             } else if (null!=sver) {
               pkg += ";specification-version="+sver;
             }
-            if (bDebug) {
-              System.out.println("implicitImport: adding import: " +pkg );
-            }
+            log("implicitImport - adding: "+pkg, Project.MSG_DEBUG);
             importsSpec += "," +pkg;
           }
         }
+        log("implicitImport - after: "+importsSpec, Project.MSG_VERBOSE);
         proj.setProperty(importsProperty, importsSpec );
       }
     }

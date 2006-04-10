@@ -281,7 +281,7 @@
 
    <!-- Update value of all bundle manifest properties (bmfa.*) based  -->
    <!-- on their values in the manifest template file (if present). -->
-   <bundlemanifest mode="${bundlemanifest.mode}"
+   <bundlemanifest mode="templateOnly"
                    attributePropertyPrefix = "${bundle.mf.attr.prefix}"
                    templateFile="${bundlemanifest.template}">
    </bundlemanifest>
@@ -427,15 +427,15 @@
 
   <!-- If a template manifest file exists use it and ignore       -->
   <!-- manifest headers defined via properties in the build file. -->
-  <condition property="bundlemanifest.mode" value="template">
+  <condition property="bundlemanifest.mode" value="update">
     <and>
       <not><isset property="bundlemanifest.mode"/></not>
       <available type="file" file="${bundlemanifest.template}"/>
     </and>
   </condition>
-  <property name = "bundlemanifest.mode" value="update"/>
-
+  <property name = "bundlemanifest.mode" value="replace"/>
  </target>
+
 
  <target name    = "jar_impl" 
          if      = "do_build_impl">
