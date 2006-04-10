@@ -16,5 +16,5 @@ Export-Package: org.knopflerfish.bundle.ssl.j2sp
 Import-Package: org.osgi.framework,
  org.osgi.service.log,
  org.osgi.service.cm,
- org.knopflerfish.bundle.ssl.j2sp
-
+ org.knopflerfish.bundle.ssl.j2sp,
+ javax.net.ssl
