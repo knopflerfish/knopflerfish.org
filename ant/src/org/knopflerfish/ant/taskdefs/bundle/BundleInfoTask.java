@@ -417,18 +417,6 @@ public class BundleInfoTask extends Task {
 
     Project proj = getProject();
 
-    importSet.removeAll(exportSet);
-
-    if(!"".equals(importsProperty)) {
-      String importsVal = proj.getProperty(importsProperty);
-      if (BundleManifestTask.isPropertyValueEmpty(importsVal)) {
-        importsVal = toString(importSet, ",");
-        log("Setting \"" +importsProperty +"\" to \""+importsVal +"\"",
-            Project.MSG_VERBOSE);
-        proj.setProperty(importsProperty, importsVal);
-      }
-    }
-
     if(!"".equals(exportsProperty)) {
       String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
@@ -436,6 +424,55 @@ public class BundleInfoTask extends Task {
         log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
             Project.MSG_VERBOSE);
         proj.setProperty(exportsProperty, exportsVal);
+      } else {
+        // Export-Package given; add all packages to exportSet
+        Iterator expIt = Util.parseEntries("export.package",exportsVal,
+                                           true, true, false );
+        while (expIt.hasNext()) {
+          Map expEntry = (Map) expIt.next();
+          exportSet.add( expEntry.get("key") );
+        }
+      }
+    }
+
+    importSet.removeAll(exportSet);
+
+    if(!"".equals(importsProperty)) {
+      String importsVal = proj.getProperty(importsProperty);
+      if (BundleManifestTask.isPropertyValueEmpty(importsVal)) {
+        // No Import-Package given; use derived value.
+        importsVal = toString(importSet, ",");
+        log("Setting \"" +importsProperty +"\" to \""+importsVal +"\"",
+            Project.MSG_VERBOSE);
+        proj.setProperty(importsProperty, importsVal);
+      } else {
+        // Import-Package given; check that all derived packages are present.
+        TreeSet givenImportSet = new TreeSet();
+        Iterator impIt = Util.parseEntries("import.package",importsVal,
+                                           true, true, false );
+        while (impIt.hasNext()) {
+          Map impEntry = (Map) impIt.next();
+          givenImportSet.add( impEntry.get("key") );
+        }
+        givenImportSet.removeAll(exportSet);
+        TreeSet missingImports = new TreeSet(importSet);
+        missingImports.removeAll(givenImportSet);
+        if (0<missingImports.size()) {
+          log("Used packages:     "+importSet, Project.MSG_ERR);
+          log("Imported packages: "+givenImportSet, Project.MSG_ERR);
+          log("Exported packages: "+exportSet, Project.MSG_ERR);
+
+          log("The following packages are used by the bundle but note "
+             +"mentioned in the Import-Package manifest header: "
+             +missingImports, Project.MSG_ERR );
+          /* Must implement parsing of jars on the Bundle-Classpath first.
+          throw new BuildException
+            ("The following packages are used by the bundle but note "
+             +"mentioned in the Import-Package manifest header: "
+             +missingImports,
+             getLocation() );
+          */
+        }
       }
     }
 

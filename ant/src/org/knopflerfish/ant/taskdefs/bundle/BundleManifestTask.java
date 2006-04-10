@@ -598,7 +598,6 @@ public class BundleManifestTask extends Task {
     
     Manifest manifestToWrite  = Manifest.getDefaultManifest();
     Manifest manifestTemplate = null;
-    BuildException error = null;
 
     if (null!=manifestTemplateFile && manifestTemplateFile.exists()) {
       FileInputStream   is = null;
@@ -612,11 +611,11 @@ public class BundleManifestTask extends Task {
         }
         manifestTemplate = new Manifest(ir);
       } catch (ManifestException me) {
-        error = new BuildException("Template manifest " + manifestTemplateFile
-                                   + " is invalid", me, getLocation());
+        throw new BuildException("Template manifest " + manifestTemplateFile
+                                 + " is invalid", me, getLocation());
       } catch (IOException ioe) {
-        error = new BuildException("Failed to read " + manifestTemplateFile,
-                                   ioe, getLocation());
+        throw new BuildException("Failed to read " + manifestTemplateFile,
+                                 ioe, getLocation());
       } finally {
         if (ir != null) {
           try {
@@ -632,10 +631,8 @@ public class BundleManifestTask extends Task {
       if (mode.getValue().equals("update")) {
         // resutling manifest based on data from
         // template file + manifest properties + nested data
-        if (manifestTemplateFile.exists() && manifestTemplate != null) {
+        if (manifestTemplate != null) {
           manifestToWrite.merge(manifestTemplate);
-        } else if (error != null) {
-          throw error;
         }
         manifestToWrite.merge(manifestProps);
         manifestToWrite.merge(manifestNested);
@@ -655,14 +652,8 @@ public class BundleManifestTask extends Task {
       }      
       if (mode.getValue().startsWith("template")) {
         // resutling manifest based on template and nested data.
-        if (manifestTemplateFile.exists() && manifestTemplate != null) {
+        if (manifestTemplate != null) {
           manifestToWrite.merge(manifestTemplate);
-        } else if (error != null) {
-          throw error;
-        } else {
-          throw new BuildException("Template manifest file, "
-                                   +manifestTemplateFile +" not found.",
-                                   getLocation());
         }
         if (!mode.getValue().equals("templateOnly")) {
           manifestToWrite.merge(manifestNested);
