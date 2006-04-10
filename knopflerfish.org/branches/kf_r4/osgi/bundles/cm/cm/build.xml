@@ -15,9 +15,6 @@
    <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
   </path>
 
-  <property name="bmfa.Export-Package"
-            value="org.osgi.service.cm;specification-version=1.2.0,org.knopflerfish.shared.cm;specification-version=1.0"/>
-
   &bundlebuild_include;
 
 </project>
