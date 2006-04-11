@@ -9,6 +9,8 @@
   <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
+  <property name="bundle.stdimports"
+            value="java.,javax.swing,javax.accessibility"/>
 
   <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 

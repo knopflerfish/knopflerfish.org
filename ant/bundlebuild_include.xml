@@ -108,45 +108,7 @@
  <property name="bmfa.Import-Service"     value="${bundle.emptystring}"/>
  <property name="bmfa.Require-Bundle"     value="${bundle.emptystring}"/>
  <property name="bmfa.Service-Component"  value="${bundle.emptystring}"/>
-
-
- <!-- Old obsolete bundel manifest properties, renamed to bmfa.XXX -->
- <!--
- <property name="bundle.category"       value="${bundle.emptystring}"/>
- <property name="bundle.name"           value="${ant.project.name}"/>
- <property name="bundle.version"        value="${bundle.emptystring}"/>
- <property name="bundle.manifest.version" value="2"/>
- <property name="bundle.classpath"      value="${bundle.emptystring}"/>
- <property name="bundle.contactaddress" value="http://www.knopflerfish.org"/>
- <property name="bundle.copyright"      value="${bundle.emptystring}"/>
- <property name="bundle.description"    value="${bundle.emptystring}"/>
- <property name="bundle.docurl"         value="http://www.knopflerfish.org"/>
- <property name="bundle.localization"   value="${bundle.emptystring}"/>
- <property name="bundle.nativecode"     value="${bundle.emptystring}"/>
- <property name="bundle.requiredEE"     value="${bundle.emptystring}"/>
- <property name="bundle.symbolicname"   value="${domain.reverse}.bundle.${ant.project.name}"/>
- <property name="bundle.update.location" value="${bundle.emptystring}"/>
- <property name="bundle.vendor"         value="Knopflerfish"/>
- <property name="dynamicimport.package" value="${bundle.emptystring}"/>
- <property name="export.service"        value="${bundle.emptystring}"/>
- <property name="import.service"        value="${bundle.emptystring}"/>
- <property name="export.package"        value=""/>
- <property name="import.package"        value=""/>
- <property name="fragment.host"         value="${bundle.emptystring}"/>
- <property name="require.bundle"        value="${bundle.emptystring}"/>
- <property name="bundle.uuid"           value="${domain.reverse}:${ant.project.name}:${bundle.version}"/>
- <property name="bundle.config"         value="${bundle.emptystring}"/>
- <property name="bundle.icon"           value="${bundle.emptystring}"/>
- <property name="bundle.subversionurl"  value="https://www.knopflerfish.org/svn/"/>
- <property name="bundle.apivendor"      value="${bundle.emptystring}"/>
- <property name="service.component"     value="${bundle.emptystring}"/>
- -->
-
- <!--   -->
- <!--   -->
-
  <!-- End of properties used as value for bundle manifest headers.     -->
-
 
 
  <property name="console.host"        value="localhost"/>
@@ -189,6 +151,10 @@
  <property name = "bundle.implicit.imports.impl"  value = "false"/>
  <property name = "bundle.implicit.imports.all"   value = "true"/>
 
+ <!-- A comma separated list of packages that does not need to be imported. -->
+ <!-- I.e., packages that are made available throug the system classloader.-->
+ <property name = "bundle.stdimports"   value = "java."/>
+ 
  <!-- First part of the suffix to inser right before "-jar" in the -->
  <!-- name of jar files to create.                                 -->
  <!-- E.g. The full name of the impl-jar will be on the form:      -->
@@ -211,6 +177,7 @@
  <!-- Let the bundlemanifest task print the name of the activator -->
  <!-- and the exported and imported packages on the console.      -->
  <property name="bundlemanifest.verbose" value="true"/>
+
 
  <path id = "framework.path">
   <pathelement location = "${topdir}/framework.jar"/>
@@ -361,7 +328,7 @@
            target        = "${javac.target}"
            source        = "${javac.source}"
            classpathref  = "bundle.path"
-           includes      = "${impl.pattern},${api.pattern}"
+           includes      = "${impl.pattern},${impl-api.pattern},${api.pattern}"
     >
    </javac>
   </target>
@@ -434,6 +401,10 @@
     </and>
   </condition>
   <property name = "bundlemanifest.mode" value="replace"/>
+
+  <!-- Ensure that the resources dir exists (required since -->
+  <!-- it is used as the "dir"-attribute in a <fileset>.    -->
+  <mkdir dir = "${resources.dir}"/>
  </target>
 
 
@@ -446,10 +417,14 @@
   <bundleinfo activator = "bmfa.Bundle-Activator" 
               imports   = "bmfa.Import-Package"
               implicitImports   = "${bundle.implicit.imports.impl}"
+              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
-            includes = "${impl.pattern}">
+            includes = "${impl.pattern},${impl-api.pattern}">
+   </fileset>
+   <fileset dir = "${resources.dir}"
+            includes = "${bmfa.Bundle-Classpath}">
    </fileset>
   </bundleinfo>
 
@@ -469,7 +444,7 @@
 
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${impl.jar}"
-       includes = "${impl.pattern}"
+       includes = "${impl.pattern},${impl-api.pattern}"
        excludes = "**/pspbrwse.jbf"
        manifest = "${outdir}/impl.mf"
     >
@@ -482,7 +457,7 @@
 
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${all.jar}"
-       includes = "${api.pattern},${impl.pattern}"
+       includes = "${api.pattern},${impl-api.pattern},${impl.pattern}"
        update   = "true">
 
      <zipfileset dir      = "${src.dir}"
@@ -519,10 +494,15 @@
   <bundleinfo exports = "bmfa.Export-Package" 
               imports = "import.package.api"
               implicitImports   = "${bundle.implicit.imports.api}"
+              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
+
   >
    <fileset dir      = "${classes.out.dir}" 
             includes = "${api.pattern}">
+   </fileset>
+   <fileset dir = "${resources.dir}"
+            includes = "${bmfa.Bundle-Classpath}">
    </fileset>
   </bundleinfo>
 
@@ -559,10 +539,14 @@
   <bundleinfo exports = "bmfa.Export-Package" 
               imports = "bmfa.Import-Package"
               implicitImports   = "${bundle.implicit.imports.lib}"
+              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
             includes = "${api.pattern}">
+   </fileset>
+   <fileset dir = "${resources.dir}"
+            includes = "${bmfa.Bundle-Classpath}">
    </fileset>
   </bundleinfo>
 
@@ -608,7 +592,10 @@
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
-            includes = "${api.pattern}">
+            includes = "${api.pattern},${impl-api.pattern}">
+   </fileset>
+   <fileset dir = "${resources.dir}"
+            includes = "${bmfa.Bundle-Classpath}">
    </fileset>
   </bundleinfo>
 
@@ -616,10 +603,14 @@
               imports   = "bmfa.Import-Package"
               exports   = "bmfa.Export-Package"
               implicitImports   = "${bundle.implicit.imports.all}"
+              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
-            includes = "${impl.pattern}">
+            includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
+   </fileset>
+   <fileset dir = "${resources.dir}"
+            includes = "${bmfa.Bundle-Classpath}">
    </fileset>
   </bundleinfo>
 
@@ -640,7 +631,7 @@
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${all.jar}"
        compress = "true"
-       includes = "${api.pattern},${impl.pattern}"
+       includes = "${api.pattern},${impl-api.pattern},${impl.pattern}"
        excludes = "**/pspbrwse.jbf"
        manifest = "${outdir}/all.mf"
     >

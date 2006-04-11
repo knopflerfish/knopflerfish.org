@@ -17,8 +17,12 @@ Bundle-Classpath: .,console_api-1.0.0.jar,kxml-min.jar
 DynamicImport-Package: *
 Bundle-Activator: org.knopflerfish.osgi.bundle.bundlerepository.Activator
 Export-Package: org.knopflerfish.service.console;specification-version=1.0.0,
- org.ungoverned.osgi.service.bundlerepository; specification-version=1.1.0
+ org.ungoverned.osgi.service.bundlerepository;specification-version=1.1.0
 Import-Package: org.osgi.framework,
+ org.knopflerfish.service.desktop,
+ org.osgi.service.packageadmin,
+ org.osgi.util.tracker,
+ org.ungoverned.osgi.service.shell,
  org.knopflerfish.service.console;specification-version=1.0.0,
  org.ungoverned.osgi.service.bundlerepository;specification-version=1.1.0
 
