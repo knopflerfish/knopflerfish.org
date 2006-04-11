@@ -24,5 +24,6 @@ Export-Package: org.osgi.service.log;specification-version=1.2,
 Import-Package: org.osgi.framework;specification-version=1.2,
  org.osgi.service.packageadmin;specification-version=1.1,
  org.osgi.service.startlevel;specification-version=1.0,
+ org.knopflerfish.service.desktop;specification-version=1.0,
  org.osgi.util.tracker,
  org.knopflerfish.util

@@ -8,7 +8,9 @@
 
   <property name="topdir"       location="../.."/>
 
-  <property name = "ee.check.foundation"   value = "true"/>
+  <property name = "ee.check.foundation"   value = "false"/>
+  <property name="bundle.stdimports"
+            value="java.,javax.swing,javax.accessibility"/>
 
   <property name = "bundle.build.api"      value = "false"/>
   <property name = "bundle.build.impl"     value = "false"/>
@@ -19,7 +21,7 @@
             value="org/knopflerfish/**/*,org/**,fr/**,kxml/**"/>
 
   <property name="api.pattern"
-            value=""/>
+            value="org/ungoverned/osgi/service/bundlerepository/**"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
 

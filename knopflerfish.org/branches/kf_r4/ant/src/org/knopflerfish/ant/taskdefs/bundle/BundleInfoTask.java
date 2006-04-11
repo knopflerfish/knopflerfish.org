@@ -35,11 +35,15 @@ package org.knopflerfish.ant.taskdefs.bundle;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
@@ -296,9 +300,15 @@ public class BundleInfoTask extends Task {
   private boolean bCheckSMFEE        = false;
   private boolean bImplicitImports   = true;
 
-  private Set importSet            = new TreeSet();
-  private Set exportSet            = new TreeSet();
+  /** The set of packages that are provided by the inlcuded classes. */
+  private Set providedSet          = new TreeSet();
+  /** The sub set of the included classes that implements BundleActivator. */
   private Set activatorSet         = new TreeSet();
+  /**
+   * The set of packages referenced by the included classes but not
+   * provided by them.
+   */
+  private Set importSet            = new TreeSet();
 
   private Set classSet             = new TreeSet();
   private Set ownClasses           = new TreeSet();
@@ -420,22 +430,28 @@ public class BundleInfoTask extends Task {
     if(!"".equals(exportsProperty)) {
       String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
-        exportsVal = toString(exportSet, ",");
+        exportsVal = toString(providedSet, ",");
         log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
             Project.MSG_VERBOSE);
         proj.setProperty(exportsProperty, exportsVal);
       } else {
-        // Export-Package given; add all packages to exportSet
+        // Export-Package given; check that they are provided.
         Iterator expIt = Util.parseEntries("export.package",exportsVal,
                                            true, true, false );
         while (expIt.hasNext()) {
           Map expEntry = (Map) expIt.next();
-          exportSet.add( expEntry.get("key") );
+          String exPkg = (String) expEntry.get("key");
+          if (!providedSet.contains(exPkg)) {
+            log("The package '"+exPkg +"' is in the Export-Package"
+                +" manifest header, but there is no class belonging to it."
+                +" The following packages are provided: "+providedSet,
+                Project.MSG_ERR );
+          }
         }
       }
     }
 
-    importSet.removeAll(exportSet);
+    importSet.removeAll(providedSet);
 
     if(!"".equals(importsProperty)) {
       String importsVal = proj.getProperty(importsProperty);
@@ -454,18 +470,18 @@ public class BundleInfoTask extends Task {
           Map impEntry = (Map) impIt.next();
           givenImportSet.add( impEntry.get("key") );
         }
-        givenImportSet.removeAll(exportSet);
+        givenImportSet.removeAll(providedSet);
         TreeSet missingImports = new TreeSet(importSet);
         missingImports.removeAll(givenImportSet);
         if (0<missingImports.size()) {
-          log("Used packages:     "+importSet, Project.MSG_ERR);
+          log("External packages: "+importSet, Project.MSG_ERR);
           log("Imported packages: "+givenImportSet, Project.MSG_ERR);
-          log("Exported packages: "+exportSet, Project.MSG_ERR);
+          log("Provided packages: "+providedSet, Project.MSG_ERR);
 
-          log("The following packages are used by the bundle but note "
-             +"mentioned in the Import-Package manifest header: "
+          log("The following external packages are used by the bundle "
+             +"but not mentioned in the Import-Package manifest header: "
              +missingImports, Project.MSG_ERR );
-          /* Must implement parsing of jars on the Bundle-Classpath first.
+          /* Should make this configurable.
           throw new BuildException
             ("The following packages are used by the bundle but note "
              +"mentioned in the Import-Package manifest header: "
@@ -473,48 +489,63 @@ public class BundleInfoTask extends Task {
              getLocation() );
           */
         }
+        TreeSet extraImports = new TreeSet(givenImportSet);
+        extraImports.removeAll(importSet);
+        if (0<extraImports.size()) {
+          log("External packages: "+importSet, Project.MSG_ERR);
+          log("Imported packages: "+givenImportSet, Project.MSG_ERR);
+
+          log("The following packages are mentioned in the Import-Package"
+              +" manifest header but not used by the included classes: "
+             +extraImports, Project.MSG_WARN );
+        }
       }
     }
 
     // Try to be a bit clever when writing back bundle activator
     if(!"".equals(activatorProperty)) {
-      switch(activatorSet.size()) {
-      case 0:
-        log("No class implementing BundleActivator found", Project.MSG_INFO);
-	break;
-      case 1:
-	{
-	  String clazz = (String)activatorSet.iterator().next();
-	  String clazz0 = proj.getProperty(activatorProperty);
-	  if(clazz0 == null || "".equals(clazz0)) {
-	    // No or empty value property value; ok to set.
-	  } else if (BundleManifestTask.BUNDLE_EMPTY_STRING.equals(clazz0)) {
-            // Current value is the default empty value, overwite it.
-            proj.setProperty(activatorProperty, clazz);
-	  } else {
-	    if(!clazz.equals(clazz0)) {
-	      log("The class found implementing BundleActivator '" +clazz
-                  +"' does not match the one set in ${" +activatorProperty
-                  +"} =" +clazz0,
-                  Project.MSG_WARN);
-	    } else {
-              log("correct activator " + activatorProperty + "=" + clazz0,
-                  Project.MSG_VERBOSE);
-	    }
-	  }
-	  proj.setNewProperty(activatorProperty, clazz);
-	}
-	break;
-      default:
-        StringBuffer sb = new StringBuffer();
-        for(Iterator it = activatorSet.iterator(); it.hasNext();) {
-          sb.append(" ");
-          sb.append(it.next());
-	}
-	log("More than one class implementing BundleActivator found:\n"+sb,
-            Project.MSG_WARN );
-	break;
-	
+      String activatorVal = proj.getProperty(activatorProperty);
+      if (BundleManifestTask.isPropertyValueEmpty(activatorVal)) {
+        // No Bundle-Activator given; use derived value if possible.
+        switch(activatorSet.size()) {
+        case 0:
+          log("No class implementing BundleActivator found", Project.MSG_ERR);
+          throw new BuildException
+            ("Requested to derive Bundle-Activator but there is "
+             +"no class implementing BundleActivator.",
+             getLocation() );
+        case 1:
+          String clazz = (String)activatorSet.iterator().next();
+          proj.setProperty(activatorProperty, clazz);
+          break;
+        default:
+          log("Manual selectio if Bundle-Activator is needed since"
+              +" the set of included classes contains more than one"
+              +" candidate: "+activatorSet,
+              Project.MSG_ERR);
+          throw new BuildException
+            ("Requested to derive Bundle-Activator but there are "
+             +"more than one class implementing BundleActivator.",
+             getLocation() );
+        }
+      } else {
+        // Bundle-Activator given; check that it is correct.
+        if (0==activatorSet.size()) {
+          log("No class implementing BundleActivator found", Project.MSG_ERR);
+        } else {
+          String givenClazz = proj.getProperty(activatorProperty).trim();
+          if (!activatorSet.contains(givenClazz)) {
+            log("The specified BundleActivator '" +givenClazz
+                +"' is not a member of the set of included classes that"
+                +"  implements BundleActivator: " +activatorSet,
+                Project.MSG_WARN);
+            throw new BuildException
+              ("The specified BundleActivator '" +givenClazz
+                +"' is not a member of the set of included classes that"
+                +"  implements BundleActivator: " +activatorSet,
+               getLocation() );
+          }
+        }
       }
     }
 
@@ -640,6 +671,8 @@ public class BundleInfoTask extends Task {
   protected void analyze(File file) throws BuildException {
     if(file.getName().endsWith(".class")) {
       analyzeClass(file);
+    } else if(file.getName().endsWith(".jar")) {
+      analyzeJar(file);
     } else if(file.getName().endsWith(".java")) {
       analyzeJava(file);
     } else {
@@ -648,15 +681,12 @@ public class BundleInfoTask extends Task {
   }
 
 
-  protected void addExportedPackageString(String name) {
+  protected void addProvidedPackageString(String name) {
     if(name == null || "".equals(name)) {
       return;
     }
-
-    if(bDebug) {
-      System.out.println(" package " + name);
-    }
-    exportSet.add(name);
+    log("Provides package: " + name, Project.MSG_DEBUG);
+    providedSet.add(name);
   }
 
 
@@ -710,7 +740,7 @@ public class BundleInfoTask extends Task {
     }
 
     // only add packages defined outside this set of files
-    if(!exportSet.contains(name)) {
+    if(!providedSet.contains(name)) {
 
       // ...and only add non-std packages
       if(!isStdImport(name)) {
@@ -752,124 +782,143 @@ public class BundleInfoTask extends Task {
 
 
   protected void analyzeJar(File file) throws BuildException {
-    throw new BuildException("Jar file analyzing not yet supported");
+    log("Analyze jar file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
+
+    try {
+      JarFile jarFile = new JarFile(file);
+
+      for (Enumeration entries = jarFile.entries();
+           entries.hasMoreElements(); ) {
+        ZipEntry     ze = (ZipEntry) entries.nextElement();
+        String fileName = ze.getName();
+        if (fileName.endsWith(".class")) {
+          log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
+          InputStream  is = jarFile.getInputStream(ze);
+          analyzeClass( new ClassParser(is, fileName ) );
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new BuildException("Failed to analyze class-file " + 
+			       file + ", exception=" + e);
+    }
   }
 
   protected void analyzeClass(File file) throws BuildException {
-    if(bDebug) {
-      System.out.println("Analyze class file " + file.getAbsolutePath());
-    }
+    log("Analyze class file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
 
     try {
-      ClassParser        parser   = new ClassParser(file.getAbsolutePath());
-      final JavaClass    clazz    = parser.parse();
-      final ConstantPool constant_pool = clazz.getConstantPool();
-
-      ownClasses.add(clazz.getClassName());
-      addExportedPackageString(clazz.getPackageName());
-
-      // Scan all implemented interfaces to find
-      // candidates for the activator AND to find
-      // all referenced packages.
-      String[] interfaces = clazz.getInterfaceNames();
-      for(int i = 0; i < interfaces.length; i++) {
-        if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
-          addActivatorString(clazz.getClassName());
-          break;
-        }
-      }
-
-      /**
-       * Use a descending visitor to find all classes that the given
-       * clazz refers to and add them to the set of imported classes.
-       */
-      DescendingVisitor v = new DescendingVisitor(clazz, new EmptyVisitor() {
-          /**
-           * Keep track of the signatures visited to avoid processing
-           * them more than once. The same signature may apply to
-           * many methods or fields.
-           */
-          boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
-
-          /**
-           * Add the class that the given ConstantClass object
-           * represents to the set of imported classes.
-           *
-           * @param obj The ConstantClass object
-           */
-          public void visitConstantClass( ConstantClass obj ) {
-            String referencedClass = obj.getBytes(constant_pool);
-            referencedClass = referencedClass.charAt(0) == '['
-              ? Utility.signatureToString(referencedClass, false)
-              : Utility.compactClassName(referencedClass,  false);
-            addImportedString(referencedClass);
-          }
-
-          /**
-           * Add the class used as types for the given field.
-           * This is necessary since if no method is applied to an
-           * object valued field there will be no ConstantClass object
-           * in the ConstantPool for the class that is the type of the
-           * field.
-           *
-           * @param obj A Field object
-           */
-          public void visitField( Field obj ) {
-            if (!visitedSignatures[obj.getSignatureIndex()]) {
-              visitedSignatures[obj.getSignatureIndex()] = true;
-              String signature = obj.getSignature();
-              Type type = Type.getType(signature);
-              addImportedType(type);
-            }
-          }
-
-          /**
-           * Add all classes used as types for a local variable in the
-           * class we are analyzing. This is necessary since if no
-           * method is applied to an object valued local variable
-           * there will be no ConstantClass object in the ConstantPool
-           * for the class that is the type of the local variable.
-           *
-           * @param obj A LocalVariable object
-           */
-          public void visitLocalVariable( LocalVariable obj ) {
-            if (!visitedSignatures[obj.getSignatureIndex()]) {
-              visitedSignatures[obj.getSignatureIndex()] = true;
-              String signature = obj.getSignature();
-              Type type = Type.getType(signature);
-              addImportedType(type);
-            }
-          }
-          
-          /**
-           * Add all classes mentioned in the signature of the given
-           * method. This is necessary since if no method is applied
-           * to a parameter (return type) there will be no
-           * ConstantClass object in the ConstantPool for the class
-           * that is the type of that parameter (return type).
-           *
-           * @param obj A Method object
-           */
-          public void visitMethod( Method obj ) {
-            if (!visitedSignatures[obj.getSignatureIndex()]) {
-              visitedSignatures[obj.getSignatureIndex()] = true;
-              String signature = obj.getSignature();
-              Type returnType = Type.getReturnType(signature);
-              Type[] argTypes = Type.getArgumentTypes(signature);
-              addImportedType(returnType);
-              addImportedType(argTypes);
-            }
-          }
-          
-        } );
-      // Run the scanner on the loaded class
-      v.visit();
-
+      analyzeClass( new ClassParser(file.getAbsolutePath()) );
     } catch (Exception e) {
       e.printStackTrace();
-      throw new BuildException("Failed to parse .class file " + 
+      throw new BuildException("Failed to analyze class-file " + 
 			       file + ", exception=" + e);
     }
+  }
+
+  protected void analyzeClass(ClassParser parser) throws Exception {
+    final JavaClass    clazz         = parser.parse();
+    final ConstantPool constant_pool = clazz.getConstantPool();
+
+    ownClasses.add(clazz.getClassName());
+    addProvidedPackageString(clazz.getPackageName());
+
+    // Scan all implemented interfaces to find
+    // candidates for the activator AND to find
+    // all referenced packages.
+    String[] interfaces = clazz.getInterfaceNames();
+    for(int i = 0; i < interfaces.length; i++) {
+      if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
+        addActivatorString(clazz.getClassName());
+        break;
+      }
+    }
+
+    /**
+     * Use a descending visitor to find all classes that the given
+     * clazz refers to and add them to the set of imported classes.
+     */
+    DescendingVisitor v = new DescendingVisitor(clazz, new EmptyVisitor() {
+        /**
+         * Keep track of the signatures visited to avoid processing
+         * them more than once. The same signature may apply to
+         * many methods or fields.
+         */
+        boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
+
+        /**
+         * Add the class that the given ConstantClass object
+         * represents to the set of imported classes.
+         *
+         * @param obj The ConstantClass object
+         */
+        public void visitConstantClass( ConstantClass obj ) {
+          String referencedClass = obj.getBytes(constant_pool);
+          referencedClass = referencedClass.charAt(0) == '['
+            ? Utility.signatureToString(referencedClass, false)
+            : Utility.compactClassName(referencedClass,  false);
+          addImportedString(referencedClass);
+        }
+
+        /**
+         * Add the class used as types for the given field.
+         * This is necessary since if no method is applied to an
+         * object valued field there will be no ConstantClass object
+         * in the ConstantPool for the class that is the type of the
+         * field.
+         *
+         * @param obj A Field object
+         */
+        public void visitField( Field obj ) {
+          if (!visitedSignatures[obj.getSignatureIndex()]) {
+            visitedSignatures[obj.getSignatureIndex()] = true;
+            String signature = obj.getSignature();
+            Type type = Type.getType(signature);
+            addImportedType(type);
+          }
+        }
+
+        /**
+         * Add all classes used as types for a local variable in the
+         * class we are analyzing. This is necessary since if no
+         * method is applied to an object valued local variable
+         * there will be no ConstantClass object in the ConstantPool
+         * for the class that is the type of the local variable.
+         *
+         * @param obj A LocalVariable object
+         */
+        public void visitLocalVariable( LocalVariable obj ) {
+          if (!visitedSignatures[obj.getSignatureIndex()]) {
+            visitedSignatures[obj.getSignatureIndex()] = true;
+            String signature = obj.getSignature();
+            Type type = Type.getType(signature);
+            addImportedType(type);
+          }
+        }
+          
+        /**
+         * Add all classes mentioned in the signature of the given
+         * method. This is necessary since if no method is applied
+         * to a parameter (return type) there will be no
+         * ConstantClass object in the ConstantPool for the class
+         * that is the type of that parameter (return type).
+         *
+         * @param obj A Method object
+         */
+        public void visitMethod( Method obj ) {
+          if (!visitedSignatures[obj.getSignatureIndex()]) {
+            visitedSignatures[obj.getSignatureIndex()] = true;
+            String signature = obj.getSignature();
+            Type returnType = Type.getReturnType(signature);
+            Type[] argTypes = Type.getArgumentTypes(signature);
+            addImportedType(returnType);
+            addImportedType(argTypes);
+          }
+        }
+          
+      } );
+    // Run the scanner on the loaded class
+    v.visit();
   }
 
   /**
@@ -902,7 +951,7 @@ public class BundleInfoTask extends Task {
 	  Vector v = StringUtils.split(line, ' ');
 	  if(v.size() > 1 && "package".equals(v.elementAt(0))) {
 	    String name = (String)v.elementAt(1);
-	    addExportedPackageString(name);
+	    addProvidedPackageString(name);
 	  }
 	}
 	if(line.startsWith("import")) {

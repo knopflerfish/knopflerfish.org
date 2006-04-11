@@ -12,9 +12,7 @@ Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.ssl.j2sp.Activator
-Export-Package: org.knopflerfish.bundle.ssl.j2sp
 Import-Package: org.osgi.framework,
  org.osgi.service.log,
  org.osgi.service.cm,
- org.knopflerfish.bundle.ssl.j2sp,
- javax.net.ssl
+ org.knopflerfish.bundle.ssl.j2sp
