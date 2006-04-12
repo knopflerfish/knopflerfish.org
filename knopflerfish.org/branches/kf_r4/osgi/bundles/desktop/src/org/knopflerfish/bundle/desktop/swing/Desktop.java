@@ -39,25 +39,19 @@ import org.osgi.service.packageadmin.*;
 import org.osgi.service.startlevel.*;
 import org.osgi.util.tracker.*;
 
-import javax.swing.table.*;
 import javax.swing.*;
-import javax.swing.event.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.io.*;
 import java.net.URL;
@@ -68,10 +62,6 @@ import java.util.zip.*;
 import org.knopflerfish.bundle.desktop.swing.console.*;
 
 import org.knopflerfish.service.desktop.*;
-import org.knopflerfish.bundle.log.window.impl.*;
-import org.knopflerfish.util.*;
-
-import javax.swing.plaf.ComponentUI;
 
 /**
  * The big one. This class displays the main desktop frame, menues, console
@@ -164,7 +154,22 @@ public class Desktop
   public Desktop() {
   }
 
-  Map displayMap = new HashMap();
+  /* We use a comparator to make sure that the ordering of
+   * the different displays is constant. O/w we would end
+   * up with a UI where menu item changes place from time
+   * to time.
+   */
+  private Comparator referenceComparator = new Comparator() {
+	public int compare(Object obj1, Object obj2) {
+		ServiceReference ref1 = (ServiceReference)obj1;
+		ServiceReference ref2 = (ServiceReference)obj2;
+		Long l1 = (Long)ref1.getProperty(Constants.SERVICE_ID);
+		Long l2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
+		return l1.compareTo(l2);
+	}
+  };
+  
+  Map displayMap = new TreeMap(referenceComparator);
   Map detailMap  = new HashMap();
 
   public void start() {
