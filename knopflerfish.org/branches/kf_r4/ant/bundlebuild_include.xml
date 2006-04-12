@@ -74,21 +74,21 @@
  <!-- A manifest attribute with the special value                      -->
  <!-- "${bundle.emptystring}" will not be included in the generated    -->
  <!--  manifest.                                                       -->
- <property name="bmfa.Application-Icon"   value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Activator"   value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-APIVendor"   value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Category"    value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Classpath"   value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Config"      value="${bundle.emptystring}"/>
+ <property name="bmfa.Application-Icon"       value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Activator"       value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-APIVendor"       value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Category"        value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Classpath"       value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Config"          value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-ContactAddress"
-                                          value="http://www.knopflerfish.org"/>
- <property name="bmfa.Bundle-Copyright"   value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Description" value="${bundle.emptystring}"/>
+           value="http://www.knopflerfish.org"/>
+ <property name="bmfa.Bundle-Copyright"       value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Description"     value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-DocURL"      value="http://www.knopflerfish.org"/>
  <property name="bmfa.Bundle-Localization"    value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-ManifestVersion" value = "2"/>
- <property name="bmfa.Bundle-Name"        value="${ant.project.name}"/>
- <property name="bmfa.Bundle-NativeCode"  value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Name"            value="${ant.project.name}"/>
+ <property name="bmfa.Bundle-NativeCode"      value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-RequiredExecutionEnvironment"
            value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-SubversionURL"
@@ -98,18 +98,23 @@
  <property name="bmfa.Bundle-UUID"
            value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
  <property name="bmfa.Bundle-UpdateLocation"  value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Vendor"      value="Knopflerfish"/>
- <property name="bmfa.Bundle-Version"     value="${bundle.emptystring}"/>
+ <property name="bmfa.Bundle-Vendor"          value="Knopflerfish"/>
+ <property name="bmfa.Bundle-Version"         value="${bundle.emptystring}"/>
  <property name="bmfa.DynamicImport-Package"  value="${bundle.emptystring}"/>
- <property name="bmfa.Export-Package"     value="${bundle.emptystring}"/>
- <property name="bmfa.Export-Service"     value="${bundle.emptystring}"/>
- <property name="bmfa.Fragment-Host"      value="${bundle.emptystring}"/>
- <property name="bmfa.Import-Package"     value="${bundle.emptystring}"/>
- <property name="bmfa.Import-Service"     value="${bundle.emptystring}"/>
- <property name="bmfa.Require-Bundle"     value="${bundle.emptystring}"/>
- <property name="bmfa.Service-Component"  value="${bundle.emptystring}"/>
+ <property name="bmfa.Export-Package"         value="${bundle.emptystring}"/>
+ <property name="bmfa.Export-Service"         value="${bundle.emptystring}"/>
+ <property name="bmfa.Fragment-Host"          value="${bundle.emptystring}"/>
+ <property name="bmfa.Import-Package"         value="${bundle.emptystring}"/>
+ <property name="bmfa.Import-Service"         value="${bundle.emptystring}"/>
+ <property name="bmfa.Require-Bundle"         value="${bundle.emptystring}"/>
+ <property name="bmfa.Service-Component"      value="${bundle.emptystring}"/>
  <!-- End of properties used as value for bundle manifest headers.     -->
-
+ 
+ <!-- Special values for manifest headers of the api-bundle can be set -->
+ <!-- by defining properties with the prefix "bmfa.api." E.g.          -->
+ <!-- <property name="bmfa.api.Export-Package" value="org.kf.xx.yy"/>-->
+ <!-- Prefixing with "api." may also be used in the manifest template.-->
+ <!-- Same for lib- and impl-bundles. -->
 
  <property name="console.host"        value="localhost"/>
  <property name="console.port"        value="23"/>
@@ -414,10 +419,14 @@
 
   <antcall target = "compile"/>
 
-  <bundleinfo activator = "bmfa.Bundle-Activator" 
-              imports   = "bmfa.Import-Package"
+  <!-- Use the impl version of manifest properties, define it if needed. -->
+  <property name="bmfa.impl.Import-Package"   value="${bmfa.Import-Package}"/>
+  <property name="bmfa.impl.Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
+
+  <bundleinfo activator = "bmfa.impl.Bundle-Activator" 
+              imports   = "bmfa.impl.Import-Package"
+              stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.impl}"
-              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -431,8 +440,8 @@
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
-  <bundlemanifest mode="${bundlemanifest.mode}"
-                  kind="impl"
+  <bundlemanifest kind="impl"
+                  mode="${bundlemanifest.mode}"
                   mainAttributesToSkip="${attrs.to.skip.impl}"
                   attributePropertyPrefix="${bundle.mf.attr.prefix}"
                   templateFile="${bundlemanifest.template}"
@@ -489,14 +498,17 @@
 
   <antcall target = "compile_api"/>
 
-  <!-- Avoid importing packages only required by the implementation.-->
-  <property name="import.package.api" value="${bundle.emptystring}"/>
-  <bundleinfo exports = "bmfa.Export-Package" 
-              imports = "import.package.api"
+  <!-- If api-variant unspecified use the standard def. -->
+  <property name="bmfa.api.Export-Package" value="${bmfa.Export-Package}"/>
+  <!-- Note that bmfa.api.Import-Package must not inherit from   -->
+  <!-- bmfa.Import-Package since we want to avoid importing      -->
+  <!-- packages only required by the implementation.             -->
+  <property name="bmfa.api.Import-Package" value="${bundle.emptystring}"/>
+  <bundleinfo exports = "bmfa.api.Export-Package" 
+              imports = "bmfa.api.Import-Package"
+              stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.api}"
-              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
-
   >
    <fileset dir      = "${classes.out.dir}" 
             includes = "${api.pattern}">
@@ -508,16 +520,15 @@
 
   <mkdir dir = "${jardir}"/>
 
-  <bundlemanifest mode="${bundlemanifest.mode}"
-                  kind="api"
-                  mainAttributesToSkip = "${attrs.to.skip.api}"
-                  attributePropertyPrefix = "${bundle.mf.attr.prefix}"
-                  templateFile="${bundlemanifest.template}"
-                  verbose="${bundlemanifest.verbose}"
-                  file="${outdir}/api.mf">
+  <bundlemanifest      mode ="${bundlemanifest.mode}"
+                       kind ="api"
+       mainAttributesToSkip ="${attrs.to.skip.api}"
+    attributePropertyPrefix ="${bundle.mf.attr.prefix}"
+               templateFile ="${bundlemanifest.template}"
+                    verbose ="${bundlemanifest.verbose}"
+                       file ="${outdir}/api.mf">
     <attribute name="Build-Date"       value="${bundle.date}"/>
     <attribute name="Built-From"       value="${proj.dir}"/>
-    <attribute name="Import-Package"   value="${import.package.api}"/>
   </bundlemanifest>
 
   <jar basedir  = "${classes.out.dir}"
@@ -536,10 +547,14 @@
 
   <antcall target = "compile_api"/>
 
-  <bundleinfo exports = "bmfa.Export-Package" 
-              imports = "bmfa.Import-Package"
+  <!-- Use the api version of manifest properties, define if needed. -->
+  <property name="bmfa.lib.Import-Package" value="${bmfa.Import-Package}"/>
+  <property name="bmfa.lib.Export-Package" value="${bmfa.Export-Package}"/>
+
+  <bundleinfo exports = "bmfa.lib.Export-Package" 
+              imports = "bmfa.lib.Import-Package"
+              stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.lib}"
-              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -553,8 +568,8 @@
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
-  <bundlemanifest mode="${bundlemanifest.mode}"
-                  kind="lib"
+  <bundlemanifest kind="lib"
+                  mode="${bundlemanifest.mode}"
                   mainAttributesToSkip = "${attrs.to.skip.lib}"
                   attributePropertyPrefix = "${bundle.mf.attr.prefix}"
                   templateFile="${bundlemanifest.template}"
@@ -602,8 +617,8 @@
   <bundleinfo activator = "bmfa.Bundle-Activator" 
               imports   = "bmfa.Import-Package"
               exports   = "bmfa.Export-Package"
+              stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.all}"
-              stdimports = "${bundle.stdimports}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -617,8 +632,8 @@
   <mkdir dir = "${jardir}"/>
   <antcall target="make_resource_dir"/>
 
-  <bundlemanifest mode="${bundlemanifest.mode}"
-                  kind=""
+  <bundlemanifest kind=""
+                  mode="${bundlemanifest.mode}"
                   mainAttributesToSkip = "${attrs.to.skip.all}"
                   attributePropertyPrefix = "${bundle.mf.attr.prefix}"
                   templateFile="${bundlemanifest.template}"

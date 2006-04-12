@@ -42,6 +42,7 @@ import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+import java.util.Vector;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -138,6 +139,12 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *                       <li>Bundle-Description
  *                       <li>Bundle-Category  (only for kind="api").
  *                    </ul>
+ *                    All main section manifest attribute starting
+ *                    with "kind." will be replaced with a main section
+ *                    attribute without the prefix. E.g., if kind="api"
+ *                    and there is an attribute named "api.Export-Package"
+ *                    then it will be renamed to "Export-Package", overriding
+ *                    any previous definition of "Export-Package".
  *    </td>
  *    <td valign="top" align="center">No.</td>
  *  </tr>
@@ -489,6 +496,51 @@ public class BundleManifestTask extends Task {
   }
   
   /**
+   * Replace all main section attributes that starts with the
+   * specified prefix with an attribute without that prefix,
+   * overriding any old definition.
+   * @param mf     The manifest to update
+   * @param prefix The prefix to match on.
+   */
+  private void overrideAttributes(Manifest mf, String prefix)
+  {
+    if (null!=prefix && 0<prefix.length()) {
+      int       prefixLength = prefix.length();
+      Manifest.Section mainS = mf.getMainSection();
+      Vector attrNames = new Vector();
+      for (Enumeration ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
+        String key = (String) ae.nextElement();
+        Manifest.Attribute attr = mainS.getAttribute(key);
+        String attrName = attr.getName();
+        if (attrName.startsWith(prefix)) {
+          attrNames.add(attrName);
+        }
+      }
+      /* Must do the modification in a separate loop since it modifies
+       * the object that the enumeration above iterates over. */
+      for (Enumeration ane = attrNames.elements(); ane.hasMoreElements();) {
+        String attrName = (String) ane.nextElement();
+        Manifest.Attribute attr = mainS.getAttribute(attrName);
+        String attrVal = attr.getValue();
+        mainS.removeAttribute(attrName);
+        String newAttrName = attrName.substring(prefixLength);
+        mainS.removeAttribute(newAttrName);
+        try {
+          Manifest.Attribute newAttr
+            = new Manifest.Attribute(newAttrName,attrVal);
+          mainS.addConfiguredAttribute(newAttr);
+          log("Overriding '" +newAttrName +"' with value of '"+attrName+"'.",
+              Project.MSG_VERBOSE);
+        } catch (ManifestException me) {
+          throw new BuildException("overriding of '" +newAttrName
+                                   +"' failed: "+me,
+                                   me, getLocation());
+        }
+      }
+    }
+  }
+  
+  /**
    * Add a section to the manifest.
    *
    * @param section the manifest section to be added.
@@ -688,13 +740,15 @@ public class BundleManifestTask extends Task {
       ensureAttrEndsWith( manifestToWrite, "Bundle-UUID", ":"+kindLC );
       ensureAttrEndsWith( manifestToWrite,
                           "Bundle-Description"," ("+kindUC+")" );
-      if ("API".equals(kindUC))
+      if ("API".equals(kindUC)) {
         ensureAttrValue(manifestToWrite, "Bundle-Category", kindUC );
+      }
+      overrideAttributes(manifestToWrite, bundleKind+".");
     }
     
-    updatePropertiesFromMainSectionAttributeValues(manifestToWrite);
-
-    if (null!=manifestFile) {
+    if (null==manifestFile) {
+      updatePropertiesFromMainSectionAttributeValues(manifestToWrite);
+    } else {
       PrintWriter pw = null;
       try {
         FileOutputStream   os = new FileOutputStream(manifestFile);
