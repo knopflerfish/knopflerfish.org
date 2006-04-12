@@ -41,25 +41,10 @@ import javax.swing.table.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
-import java.awt.event.*;
-import java.awt.Container;
-import java.awt.GridLayout;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
 import java.awt.Color;
-
-import java.util.List;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.Iterator;
-import java.io.*;
-import java.net.URL;
 
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
@@ -114,7 +99,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 	};
 
       table.setModel(model);
-
+      table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       
       //      Dimension size = new Dimension(500, 300);
       
