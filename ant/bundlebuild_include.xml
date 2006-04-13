@@ -111,9 +111,9 @@
  <!-- End of properties used as value for bundle manifest headers.     -->
  
  <!-- Special values for manifest headers of the api-bundle can be set -->
- <!-- by defining properties with the prefix "bmfa.api." E.g.          -->
- <!-- <property name="bmfa.api.Export-Package" value="org.kf.xx.yy"/>-->
- <!-- Prefixing with "api." may also be used in the manifest template.-->
+ <!-- by defining properties with the prefix "bmfa.api-" E.g.          -->
+ <!-- <property name="bmfa.api-Export-Package" value="org.kf.xx.yy"/>-->
+ <!-- Prefixing with "api-" may also be used in the manifest template.-->
  <!-- Same for lib- and impl-bundles. -->
 
  <property name="console.host"        value="localhost"/>
@@ -420,11 +420,11 @@
   <antcall target = "compile"/>
 
   <!-- Use the impl version of manifest properties, define it if needed. -->
-  <property name="bmfa.impl.Import-Package"   value="${bmfa.Import-Package}"/>
-  <property name="bmfa.impl.Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
+  <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
+  <property name="bmfa.impl-Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
 
-  <bundleinfo activator = "bmfa.impl.Bundle-Activator" 
-              imports   = "bmfa.impl.Import-Package"
+  <bundleinfo activator = "bmfa.impl-Bundle-Activator" 
+              imports   = "bmfa.impl-Import-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.impl}"
               checkFoundationEE = "${ee.check.foundation}"
@@ -499,13 +499,13 @@
   <antcall target = "compile_api"/>
 
   <!-- If api-variant unspecified use the standard def. -->
-  <property name="bmfa.api.Export-Package" value="${bmfa.Export-Package}"/>
-  <!-- Note that bmfa.api.Import-Package must not inherit from   -->
+  <property name="bmfa.api-Export-Package" value="${bmfa.Export-Package}"/>
+  <!-- Note that bmfa.api-Import-Package must not inherit from   -->
   <!-- bmfa.Import-Package since we want to avoid importing      -->
   <!-- packages only required by the implementation.             -->
-  <property name="bmfa.api.Import-Package" value="${bundle.emptystring}"/>
-  <bundleinfo exports = "bmfa.api.Export-Package" 
-              imports = "bmfa.api.Import-Package"
+  <property name="bmfa.api-Import-Package" value="${bundle.emptystring}"/>
+  <bundleinfo exports = "bmfa.api-Export-Package" 
+              imports = "bmfa.api-Import-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.api}"
               checkFoundationEE = "${ee.check.foundation}"
@@ -548,11 +548,11 @@
   <antcall target = "compile_api"/>
 
   <!-- Use the api version of manifest properties, define if needed. -->
-  <property name="bmfa.lib.Import-Package" value="${bmfa.Import-Package}"/>
-  <property name="bmfa.lib.Export-Package" value="${bmfa.Export-Package}"/>
+  <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
+  <property name="bmfa.lib-Export-Package" value="${bmfa.Export-Package}"/>
 
-  <bundleinfo exports = "bmfa.lib.Export-Package" 
-              imports = "bmfa.lib.Import-Package"
+  <bundleinfo exports = "bmfa.lib-Export-Package" 
+              imports = "bmfa.lib-Import-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.lib}"
               checkFoundationEE = "${ee.check.foundation}"
