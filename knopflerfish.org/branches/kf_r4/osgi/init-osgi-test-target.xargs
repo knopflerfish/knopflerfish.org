@@ -25,12 +25,16 @@
 # Load the default configuration
 -xargs init.xargs
 
+# These bundles intefere with testing
+-stop desktop/desktop_all-1.1.0.jar
 -stop httproot/httproot-1.0.0.jar
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
 -istart  prefs/prefs_all-1.1.0.jar
 -istart  event/event_all-1.0.0.jar
--istart  metatype/metatype-1.0.0.jar
+-install kxml/kxml-1.0.jar
+-install metatype/metatype-1.0.0.jar
+-istart  kf_metatype/kf_metatype_all-1.0.0.jar
 -istart  measurement/measurement-1.0.0.jar
 -istart  io/io_all-1.0.0.jar
 -istart  position/position-1.0.0.jar

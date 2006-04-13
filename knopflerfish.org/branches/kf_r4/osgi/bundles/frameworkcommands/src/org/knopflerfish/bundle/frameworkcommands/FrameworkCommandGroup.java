@@ -187,7 +187,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     // Addpermission command
     //
 
-    public final static String USAGE_ADDPERMISSION = "-b #bundle# | -d | -l #location# <type> <name> <actions>";
+    public final static String USAGE_ADDPERMISSION = "-b #bundle# | -d | -l #location# <type> [<name> [<actions>]]";
 
     public final static String[] HELP_ADDPERMISSION = new String[] {
             "Add permissions to bundle",
@@ -230,14 +230,16 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
             loc = (String) opts.get("-l");
             pi = permissionAdmin.getPermissions(loc);
         }
-        String perm = "(" + opts.get("type") + " \"" + opts.get("name")
-                + "\" \"" + opts.get("actions") + "\")";
         PermissionInfo pia;
         try {
-            pia = new PermissionInfo(perm);
+            pia = new PermissionInfo((String)opts.get("type"),
+                                     (String)opts.get("name"),
+                                     (String)opts.get("actions"));
         } catch (IllegalArgumentException e) {
             out.println("ERROR! " + e.getMessage());
-            out.println("PermissionInfo string = " + perm);
+            out.println("PermissionInfo type = " + opts.get("type"));
+            out.println("PermissionInfo name = " + opts.get("name"));
+            out.println("PermissionInfo actions = " + opts.get("actions"));
             return 1;
         }
         if (pi != null) {

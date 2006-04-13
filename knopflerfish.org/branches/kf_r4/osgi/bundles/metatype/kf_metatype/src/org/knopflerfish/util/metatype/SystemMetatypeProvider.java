@@ -258,12 +258,12 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     URL url;
     
     //try R4 first
-    Enumeration metaTypeFiles = b.getEntryPaths(MetaTypeService.METATYPE_DOCUMENTS_LOCATION);
+    Enumeration metaTypeFiles = b.findEntries(MetaTypeService.METATYPE_DOCUMENTS_LOCATION, "*", false);
     if(metaTypeFiles != null){
     	BundleMetaTypeResource bmtr = new BundleMetaTypeResource(b);
     	
     	while(metaTypeFiles.hasMoreElements()){ 
-    		url = b.getResource((String)metaTypeFiles.nextElement());
+    		url = (URL)metaTypeFiles.nextElement();
     		bmtr.mergeWith(Loader.loadBMTIfromUrl(bc, b, url));	
     	}
     	

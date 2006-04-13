@@ -22,7 +22,7 @@ Import-Package: org.osgi.framework,
  org.knopflerfish.service.desktop,
  org.osgi.service.packageadmin,
  org.osgi.util.tracker,
- org.ungoverned.osgi.service.shell,
+ org.ungoverned.osgi.service.shell;resolution:=optional,
  org.knopflerfish.service.console;specification-version=1.0.0,
  org.ungoverned.osgi.service.bundlerepository;specification-version=1.1.0
 

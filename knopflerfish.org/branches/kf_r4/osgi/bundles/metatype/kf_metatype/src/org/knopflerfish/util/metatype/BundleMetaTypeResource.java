@@ -177,16 +177,19 @@ class MetaData {
 	
 	private Bundle bundle;
 
+        final static private String locBaseDir =
+           Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14);
+
 	//TODO check for Attributes manifest's Constants.BUNDLE_LOCALIZATION
 	  
 	public MetaData(String localizationFile, Bundle bundle){
-		this.localizationFileBaseName =  localizationFile;
+            this.localizationFileBaseName =  localizationFile;
 	    this.bundle = bundle;
 	}	
 	
 	public MetaData(Bundle bundle){
-		this.localizationFileBaseName = "bundle";
-		this.bundle = bundle;	
+          this.localizationFileBaseName = "bundle";
+            this.bundle = bundle;	
 	}	
 	
 	public void prepare(){
@@ -218,46 +221,48 @@ class MetaData {
 		}
 		if(ocd == null) return null;
 		
-		URL url;
+		Enumeration url;
 		int underscore;
 	
-		url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+		url = bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale + ".properties", false);
 		if(url == null){
 			underscore = locale.lastIndexOf('_');
 			if(underscore > 0){
 				locale = locale.substring(0, underscore - 1);
 			}
-			url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+			url = bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale + ".properties", false);
 			if(url == null){
 				underscore = locale.lastIndexOf('_');
 				if(underscore > 0){
 					locale = locale.substring(0, underscore - 1);
 				}
-				url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+				url = bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale + ".properties", false);
 			}
 			locale = Locale.getDefault().toString();
-			url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+			url = bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale + ".properties", false);
 			if(url == null){
 				underscore = locale.lastIndexOf('_');
 				if(underscore > 0){
 					locale = locale.substring(0, underscore - 1);
 				}
-				url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+				url = bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale + ".properties", false);
 				if(url == null){
 					underscore = locale.lastIndexOf('_');
 					if(underscore > 0){
 						locale = locale.substring(0, underscore - 1);
 					}
-					url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + "_" + locale + ".properties");
+					url = bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale + ".properties", false);
 				}
 				//lastly
 				if(url == null){
-					url = bundle.getResource(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14) + localizationFileBaseName + ".properties");
+					url = bundle.findEntries(locBaseDir, localizationFileBaseName + ".properties", false);
 				}
 			}	
 		}
 		
-		ocd.localize(loadLocaleEntries(url));
+                if (url != null) {
+                    ocd.localize(loadLocaleEntries((URL)url.nextElement()));
+                }
 		
 		return ocd;
 	}
@@ -547,44 +552,32 @@ class MetaData {
 	}
 	
 	private void loadLocales(){
-		
-		String x = Locale.getDefault().toString();
-		Vector localesV = new Vector();
+            String x = Locale.getDefault().toString();
+            Vector localesV = new Vector();
 	    
-		Enumeration localizationFiles = bundle.getEntryPaths(Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME.substring(0, 14));
-		if(localizationFiles != null){
+            Enumeration localizationFiles = bundle.findEntries(locBaseDir, localizationFileBaseName + "*.properties", false);
+            if(localizationFiles != null){
 	    	while(localizationFiles.hasMoreElements()){ 
-	    		URL url = bundle.getResource((String)localizationFiles.nextElement());
-		        String fileName = url.getFile().substring(15);
-		        if(!fileName.endsWith(".properties")){
-		        	continue;
-		        }
-		        else if(!fileName.startsWith(localizationFileBaseName)){
-		        	continue;
-		        }
-		        else if(fileName.length() == (localizationFileBaseName + ".properties").length()){
-		        	continue;
-		        }
-		        else{
-		        	int dot = fileName.lastIndexOf('.');
-		        	fileName= fileName.substring(0, dot);
-		        	int underscore = fileName.indexOf('_');
-		        	fileName = fileName.substring(underscore + 1);
-		        	localesV.add(fileName);
-		        }
+	    	    URL url = (URL)localizationFiles.nextElement();
+                    String fileName = url.getFile().substring(15);
+                    if(fileName.length() == (localizationFileBaseName + ".properties").length()){
+		       	continue;
+                    }
+                    else {
+                        int dot = fileName.lastIndexOf('.');
+                        fileName= fileName.substring(0, dot);
+                        int underscore = fileName.indexOf('_');
+                        fileName = fileName.substring(underscore + 1);
+                        localesV.add(fileName);
+                    }
 	    	}	
 	    	locales = (String[]) localesV.toArray(new String[localesV.size()]);
-		}
-
+            }
 	}
 
 	private Properties loadLocaleEntries(URL url){
 		Properties entries = new Properties();
 		
-		if(url == null){
-			return null;
-		}
-		  
 		try{
 			InputStream is = url.openStream();
 			  

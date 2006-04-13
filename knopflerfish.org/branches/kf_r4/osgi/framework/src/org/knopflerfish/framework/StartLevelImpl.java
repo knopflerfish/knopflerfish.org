@@ -175,7 +175,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
-    setStartLevel0(startLevel, true);
+    setStartLevel0(startLevel, framework.active);
   }
 
 

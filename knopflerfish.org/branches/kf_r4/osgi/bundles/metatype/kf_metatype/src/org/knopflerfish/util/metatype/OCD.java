@@ -54,7 +54,7 @@ import java.net.URL;
  */
 public class OCD implements ObjectClassDefinition {
 
-
+  URL sourceURL;
   String id;
   String name;
   String localized_name;
@@ -64,12 +64,9 @@ public class OCD implements ObjectClassDefinition {
   List reqAttrs;
   List localized_optAttrs;
   List localized_reqAttrs;
-
-  //String      iconURL = null;
   Hashtable icons = new Hashtable();
-
+  Hashtable localized_icons = null;
   int  maxInstances = 1;
-  
   
 
   /**
@@ -84,7 +81,8 @@ public class OCD implements ObjectClassDefinition {
    */
   public OCD(String id, 
 	     String name, 
-	     String desc) {
+	     String desc,
+             URL sourceURL) {
 
     if(id == null || "".equals(id)) {
       throw new IllegalArgumentException("Id must not be null or empty");
@@ -95,6 +93,7 @@ public class OCD implements ObjectClassDefinition {
     this.desc  = desc;
     this.optAttrs = new ArrayList();
     this.reqAttrs = new ArrayList();
+    this.sourceURL  = sourceURL;
   }
 
   /**
@@ -115,7 +114,7 @@ public class OCD implements ObjectClassDefinition {
 	     String name, 
 	     String desc,
 	     Dictionary props) {
-    this(id, name, desc);
+    this(id, name, desc, (URL)null);
 
     //    System.out.println("OCD " + id + ", props=" + props);
     for(Enumeration e = props.keys(); e.hasMoreElements();) {
@@ -225,40 +224,44 @@ public class OCD implements ObjectClassDefinition {
 	  }
   }
   
+
   /**
-   * Get icon stream using the <code>getIconURL</code> URL.
+   * This code is handles multiple icon sizes but the spec. currently
+   * only allows on size.
    *
-   * @param size icon size hint is ignored.
+   * @param size Size of icon requested, if size is 0 return largest icon.
+   */
+  String getIconURL(int size) {
+    Hashtable itab = (localized_icons != null) ? localized_icons : icons;
+    if (size == 0) {
+      for (Enumeration keys = itab.keys(); keys.hasMoreElements(); ) {
+        int i = ((Integer)keys.nextElement()).intValue();
+        if (size < i) {
+          size = i;
+        }
+      }
+    }
+    return (String) itab.get(new Integer(size));
+  }
+
+
+  /**
+   * This code is handles multiple icon sizes but the spec. currently
+   * only allows on size.
+   *
+   * @param size Size of icon requested, if size is 0 return largest icon.
    */
   public InputStream getIcon(int size) throws IOException {
-    /*if(iconURL != null) {
-      URL url = new URL(iconURL);
-      return url.openStream();
-    } else {
-      return null;
-    }*/
-	String url; 
-	InputStream is;
-	  
-	if((url = (String) icons.get(new Integer(size))) == null){
-		if((url = (String) icons.get(new Integer(Integer.MAX_VALUE))) == null){
-			Enumeration keys = icons.keys();
-			if(!keys.hasMoreElements()){
-				is = null;
-			}
-			else{
-				is = new URL((String)icons.get((Integer) keys.nextElement())).openStream();
-			}
-		}
-		else{
-			is = new URL(url).openStream();
-		}
-	}
-	else{
-		is = new URL(url).openStream();
-	}
-	
-    return is;
+    String url = getIconURL(size);
+    if (url != null) {
+      if (sourceURL != null) {
+        return new URL(new URL(sourceURL, "/"), url).openStream();
+      }
+      else {
+        return new URL(url).openStream();
+      }
+    }
+    return null;
   }
 
   /**
@@ -268,30 +271,16 @@ public class OCD implements ObjectClassDefinition {
   public int getMaxInstances() {
     return maxInstances;
   }
+
   /**
    * Set URL to icon
    */
   public void setIconURL(String url) {
-    //iconURL = url;
-	  icons.put(new Integer(Integer.MAX_VALUE), url);
+    icons.put(new Integer(Integer.MAX_VALUE), url);
   }
   
   public void addIcon(int size, String url){
-	  icons.put(new Integer(size), url);
-  }
-
-  /**
-   * Get URL to icon data
-   */
-  public String getIconURL() {
-    //return iconURL;
-	Enumeration keys = icons.keys();
-	if(!keys.hasMoreElements()){
-		return null;
-	}
-	else{
-		return (String)icons.get((Integer) keys.nextElement());
-	}
+    icons.put(new Integer(size), url);
   }
 
 
@@ -313,8 +302,13 @@ public class OCD implements ObjectClassDefinition {
 		  localized_name = localizeName(name, dict); 
 		  localized_desc = localizeName(desc, dict); 
 		  
+		  localized_icons = (Hashtable)icons.clone();
+		  for(Iterator it = localized_icons.entrySet().iterator(); it.hasNext(); ) {
+                      Map.Entry e = (Map.Entry)it.next();
+		      e.setValue(localizeName((String)e.getValue(), dict));
+		  }
+
 		  localized_reqAttrs = new ArrayList();
-		  
 		  for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
 		      AD attr = (AD)it.next();
 		      localized_reqAttrs.add(attr.localize(dict));
@@ -325,7 +319,7 @@ public class OCD implements ObjectClassDefinition {
 		      AD attr = (AD)it.next();
 		      localized_optAttrs.add(attr.localize(dict));
 		  }   
-		     
+                  
 	  }
   }
   

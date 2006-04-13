@@ -1733,9 +1733,11 @@ class BundleImpl implements Bundle {
       if (isFragment()) {
         return null;
       }
-      BundleClassLoader cl = (BundleClassLoader)getClassLoader();
-      if (cl != null) {
-        return cl.getBundleResources(name, false);
+      if (getUpdatedState() != INSTALLED) {
+        BundleClassLoader cl = (BundleClassLoader)getClassLoader();
+        if (cl != null) {
+          return cl.getBundleResources(name, false);
+        }
       }
     }
     return null;

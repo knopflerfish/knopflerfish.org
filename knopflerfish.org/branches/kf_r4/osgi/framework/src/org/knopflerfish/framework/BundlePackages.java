@@ -475,7 +475,6 @@ class BundlePackages {
    * @return null if okay, otherwise a String with fail reason.
    */
   String attachFragment(BundlePackages fbpkgs) {
-
     if (fragments == null) {
       fragments = new HashMap();
     } else if (fragments.containsKey(fbpkgs.bundle)) {
@@ -528,10 +527,27 @@ class BundlePackages {
         }
       }
     }
-    for (Iterator riter = newRequired.iterator(); riter.hasNext(); ) {
-      RequireBundle rb = (RequireBundle) riter.next();
-      // NYI! Should be added in bundle id order!
-      require.add(rb);
+    Iterator riter = newRequired.iterator();
+    if (riter.hasNext()) {
+      int rpos;
+      if (require == null) {
+        require = new ArrayList();
+        rpos = 0;
+      } else {
+        rpos = require.size();
+        for (; rpos > 0; rpos--) {
+          RequireBundle rb = (RequireBundle)require.get(rpos - 1);
+          if (this == rb.bpkgs) {
+            break;
+          }
+          if (rb.bpkgs.bundle.id < fbpkgs.bundle.id) {
+            break;
+          }
+        }
+      }
+      do {
+        require.add(rpos++, (RequireBundle)riter.next());
+      } while (riter.hasNext());
     }
 
     ArrayList newExports = new ArrayList();
@@ -632,6 +648,23 @@ class BundlePackages {
       }
     };
 
+  static final Util.Comparator epFind = new Util.Comparator() {
+      /**
+       * Name compare ExportPkg object with String object.
+       *
+       * @param oa ExportPkg object to compare.
+       * @param ob String object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ExportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ExportPkg a = (ExportPkg)oa;
+        String b = (String)ob;
+        return a.name.compareTo(b);
+      }
+    };
+
   static final Util.Comparator ipComp = new Util.Comparator() {
       /**
        * Name compare two ImportPkg objects.
@@ -661,23 +694,6 @@ class BundlePackages {
        */
       public int compare(Object oa, Object ob) throws ClassCastException {
         ImportPkg a = (ImportPkg)oa;
-        String b = (String)ob;
-        return a.name.compareTo(b);
-      }
-    };
-
-  static final Util.Comparator epFind = new Util.Comparator() {
-      /**
-       * Name compare ExportPkg object with String object.
-       *
-       * @param oa ExportPkg object to compare.
-       * @param ob String object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ExportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        ExportPkg a = (ExportPkg)oa;
         String b = (String)ob;
         return a.name.compareTo(b);
       }
