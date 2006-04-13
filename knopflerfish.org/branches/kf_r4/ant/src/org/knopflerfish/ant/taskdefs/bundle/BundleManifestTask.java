@@ -140,9 +140,9 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *                       <li>Bundle-Category  (only for kind="api").
  *                    </ul>
  *                    All main section manifest attribute starting
- *                    with "kind." will be replaced with a main section
+ *                    with "kind-" will be replaced with a main section
  *                    attribute without the prefix. E.g., if kind="api"
- *                    and there is an attribute named "api.Export-Package"
+ *                    and there is an attribute named "api-Export-Package"
  *                    then it will be renamed to "Export-Package", overriding
  *                    any previous definition of "Export-Package".
  *    </td>
@@ -743,7 +743,7 @@ public class BundleManifestTask extends Task {
       if ("API".equals(kindUC)) {
         ensureAttrValue(manifestToWrite, "Bundle-Category", kindUC );
       }
-      overrideAttributes(manifestToWrite, bundleKind+".");
+      overrideAttributes(manifestToWrite, bundleKind+"-");
     }
     
     if (null==manifestFile) {
