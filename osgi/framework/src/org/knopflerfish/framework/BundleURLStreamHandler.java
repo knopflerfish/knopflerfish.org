@@ -80,7 +80,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
       char [] sc = new char[len];
       s.getChars(start, limit, sc, 0);
       int pos = 0;
-      if (sc[0] == '/' && sc[1] == '/') {
+      if (len >= 2 && sc[0] == '/' && sc[1] == '/') {
         for (pos = 2; pos < len; pos++) {
           if (sc[pos] == ':' || sc[pos] == '/') {
             break;
@@ -109,7 +109,6 @@ public class BundleURLStreamHandler extends URLStreamHandler {
         }
       }
       if (pos < len) {
-        String newpath = new String(sc, pos, len - pos);
         int pstart;
         if (sc[pos] != '/') {
           if (path != null) { 
@@ -125,7 +124,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
               } else if (pos != dirend) {
                 System.arraycopy(sc, pos, sc, dirend + pstart, plen);
               }
-              path.getChars(1 - pstart, dirend - 1 + pstart, sc, 1);
+              path.getChars(1 - pstart, dirend, sc, 1);
             } else {
               len = 1;
             }
@@ -194,15 +193,11 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * considered equal, ie. they refer to the same 
    * fragment in the same file.
    *
-   * NYI! a complete check!
    */
   protected boolean equals(URL u1, URL u2) {
-    String ref1 = u1.getRef();
-    String ref2 = u2.getRef();
-    return sameFile(u1, u2) && 
-      (ref1 == ref2 ||
-       (ref1 != null && ref1.equals(ref2)));
+    return sameFile(u1, u2);
   }
+
 
   /**
    * Provides the hash calculation
@@ -220,10 +215,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
       if (file != null)
 	h += file.hashCode();
 
-      String ref = u.getRef();
-      if (ref != null)
-	h += ref.hashCode();
-
+      h += u.getPort();
     } else {
       h = u.hashCode();
     }

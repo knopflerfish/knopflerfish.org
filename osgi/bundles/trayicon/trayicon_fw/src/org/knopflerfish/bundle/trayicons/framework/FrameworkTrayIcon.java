@@ -80,7 +80,8 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
 
     Activator.bc.addFrameworkListener(new FrameworkListener() {
 	public void frameworkEvent(FrameworkEvent ev) {
-	  if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType()) {
+	  if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
+             FrameworkEvent.STARTED  == ev.getType()) {
 	    updateStartLevelItems();
 	  }
 	}

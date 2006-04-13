@@ -250,7 +250,7 @@ class ImportPkg {
    * @return String.
    */
   public String pkgString() {
-    // NYI
+    // NYI! More info?
     if (packageRange.isSpecified()) {
       return name + ";" + Constants.VERSION_ATTRIBUTE + "=" + packageRange;
     } else {

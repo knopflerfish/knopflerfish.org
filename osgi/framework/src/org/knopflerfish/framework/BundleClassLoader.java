@@ -642,6 +642,10 @@ final public class BundleClassLoader extends ClassLoader {
     if (fragments != null) {
       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
         BundleArchive ba = (BundleArchive)i.next();
+        if (debug) {
+          Debug.println(this + " Fragment bundle search: " +
+                        path + " from #" + ba.getBundleId());
+        }
         Vector vec = ba.componentExists(path, onlyFirst);
         if (vec != null) {
           try {

@@ -390,7 +390,7 @@ public class SystemBundle extends BundleImpl {
    * in the boot class path on restart.
    */
   void attachFragment(BundleImpl extension) {
-    // NYI! Collect VM specific functionality, dynamic classpath additions
+    // NYI! Plugin VM specific functionality, dynamic classpath additions
     if (isInClassPath(extension)) {
       super.attachFragment(extension);
     } else {

@@ -132,7 +132,7 @@ public class Loader {
       IXMLReader reader = new StdXMLReader(in);
       parser.setReader(reader);
       XMLElement el  = (XMLElement) parser.parse();
-      return loadMTP(bundle, url.toString(), el);
+      return loadMTP(bundle, url, el);
     } catch (Exception e) {
       e.printStackTrace();
       throw new IOException("Failed to load " + url + " " + e);
@@ -196,7 +196,7 @@ public class Loader {
    * </ol>
    *
    */
-  public static MTP loadMTP(Bundle bundle, String sourceName, XMLElement el) {
+  public static MTP loadMTP(Bundle bundle, URL sourceURL, XMLElement el) {
     
     assertTagName(el, METATYPE_NS, METATYPE);
 
@@ -238,13 +238,13 @@ public class Loader {
       }
     }
 
-    MTP mtp = new MTP(sourceName);
+    MTP mtp = new MTP(sourceURL.toString());
     mtp.setBundle(bundle);
 
     // Insert services and factory definition into MTP
     // default values will be default values defined by AD
     for(int i = 0; services != null && i < services.length; i++) {
-      OCD ocd = new OCD(services[i].pid, services[i].pid, services[i].desc);
+      OCD ocd = new OCD(services[i].pid, services[i].pid, services[i].desc, sourceURL);
       ocd.maxInstances = 1;
       String iconURL = services[i].iconURL;
       if(iconURL != null) {
@@ -271,7 +271,7 @@ public class Loader {
     }
     
     for(int i = 0; factories != null && i < factories.length; i++) {
-      OCD ocd = new OCD(factories[i].pid, factories[i].pid, factories[i].desc);
+      OCD ocd = new OCD(factories[i].pid, factories[i].pid, factories[i].desc, sourceURL);
       ocd.maxInstances = factories[i].maxInstances;
       if(factories[i].iconURL != null) {
     	  try {
@@ -1044,14 +1044,8 @@ public class Loader {
       
       if(ocd instanceof OCD) {
 	OCD o2 = (OCD)ocd;
-	String urlStr = o2.getIconURL();
+	String urlStr = o2.getIconURL(0);
 	if(urlStr != null) {
-	  if(urlStr.startsWith(BUNDLE_PROTO)) {
-	    int ix = urlStr.indexOf("/", BUNDLE_PROTO.length());
-	    if(ix != -1) {
-	      urlStr = urlStr.substring(ix);
-	    }
-	  }
 	  out.print(" " + ATTR_ICONURL + "=\"" + urlStr + "\"");
 	}
       }
@@ -1333,75 +1327,81 @@ public class Loader {
 	  currentBundle = b;
 	  
 	  try {
-	      in = url.openStream();
-	      processDocument(xml_parser, in);
+	      processDocument(xml_parser, url);
 	      return currentBMTR;
 	  } 
 	  catch (Exception e) {
 	      throw new IOException("Failed to load " + url + " " + e);
 	  } 
-	  finally {
-	      try { in.close(); } catch (Exception ignored) { }
-	  }
 
   } //method
   
-  private static void processDocument(XmlPullParser xpp, InputStream in) 
+  private static void processDocument(XmlPullParser xpp, URL url) 
   	throws XmlPullParserException, IOException {  
+    InputStream in = null;
+    try {
+      in = url.openStream();
 
-	  xpp.setInput(in, CHARACTER_ENCODING);
+      xpp.setInput(in, CHARACTER_ENCODING);
 
-	  int eventType = xpp.getEventType();
+      int eventType = xpp.getEventType();
 
-	  do {
-		  if(eventType == XmlPullParser.START_DOCUMENT) {
-			  //   System.out.println("Start document");
-		  } else if(eventType == XmlPullParser.END_DOCUMENT) {
-			  //   System.out.println("End document");
-		  } else if(eventType == XmlPullParser.START_TAG) {
-			  try{
-				  startElement(xpp.getName());
-			  }
-			  catch(Exception e){
-				  //System.out.println("Got exception:" + e);
-				  //e.printStackTrace(System.err);
-			  }
-			  //  System.out.println("Start element: " + name);
-		  } else if(eventType == XmlPullParser.END_TAG) {
-			  try{
-				  endElement(xpp.getName(), content);
-			  }
-			  catch(Exception e){
-				 // System.out.println("Got exception");
-			  }
-			  //  System.out.println("End element: " + name);
-		  } else if(eventType == XmlPullParser.TEXT) {   
-			  
-			  content = xpp.getText().trim(); 	
-			  //    System.out.println("Text: " + content);   
-		  } else{
-			  //	  System.out.println("Got something else");
-		  }
-		  try{
-			  eventType = xpp.next();
-		  }
-		  catch(java.io.IOException ex){
-
-			  //System.out.println(ex); //stream closed for example
-			  return; //TODO proper handling
-		  }
-		  catch(XmlPullParserException e){ //catch also initial call upstairs
-			  //System.out.println(e); 
-			  return; //TODO proper handling
-		  }
-	  } while (eventType != XmlPullParser.END_DOCUMENT);
-	  //  System.out.println("End document");
-	  //  System.out.flush();
+      do {
+        if(eventType == XmlPullParser.START_DOCUMENT) {
+          //   System.out.println("Start document");
+        } else if(eventType == XmlPullParser.END_DOCUMENT) {
+          //   System.out.println("End document");
+        } else if(eventType == XmlPullParser.START_TAG) {
+          try{
+            startElement(xpp.getName(), url);
+          }
+          catch(Exception e){
+            //System.out.println("Got exception:" + e);
+            //e.printStackTrace(System.err);
+          }
+          //  System.out.println("Start element: " + name);
+        } else if(eventType == XmlPullParser.END_TAG) {
+          try{
+            endElement(xpp.getName(), content);
+          }
+          catch(Exception e){
+            // System.out.println("Got exception");
+          }
+          //  System.out.println("End element: " + name);
+        } else if(eventType == XmlPullParser.TEXT) {   
+          
+          content = xpp.getText().trim(); 	
+          //    System.out.println("Text: " + content);   
+        } else{
+          //	  System.out.println("Got something else");
+        }
+        try{
+          eventType = xpp.next();
+        }
+        catch(java.io.IOException ex){
+          
+          //System.out.println(ex); //stream closed for example
+          return; //TODO proper handling
+        }
+        catch(XmlPullParserException e){ //catch also initial call upstairs
+          //System.out.println(e); 
+          return; //TODO proper handling
+        }
+      } while (eventType != XmlPullParser.END_DOCUMENT);
+      //  System.out.println("End document");
+      //  System.out.flush();
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (IOException _ignore) { }
+      }
+    }
   } //method
   
   
   //any missing attribute gets the element ignored
-  protected static void startElement(String element) throws Exception {
+  protected static void startElement(String element, URL sourceURL) throws Exception {
 	  int n_attrs = xml_parser.getAttributeCount();
 	  HashMap attrs = new HashMap();
 	  for(int i = 0; i < n_attrs; i++){
@@ -1431,7 +1431,7 @@ public class Loader {
 	      
 	      String desc = (String) attrs.get(ATTR_DESCRIPTION);
 	      
-	      currentOCD = new OCD(id, name, desc);
+	      currentOCD = new OCD(id, name, desc, sourceURL);
 	  }
 	  else if (AD_E.equals(element)) { 
 		  String id = (String) attrs.get(ATTR_ID);
@@ -1600,7 +1600,7 @@ public class Loader {
 	      }
 	      
 	  }
-      else if (ICON.equals(element)) {
+          else if (ICON.equals(element)) {
 		  
 		  String resource = (String) attrs.get(ATTR_RESOURCE);
 	      if(resource == null){
