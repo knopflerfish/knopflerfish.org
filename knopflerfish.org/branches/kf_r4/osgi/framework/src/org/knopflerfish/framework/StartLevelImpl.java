@@ -62,6 +62,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   int currentLevel     = 0;
   int initStartLevel   = 1;
   int targetStartLevel = currentLevel;
+  boolean acceptChanges = true;
 
   Framework framework;
 
@@ -87,13 +88,17 @@ public class StartLevelImpl implements StartLevel, Runnable {
     }
 
     if (jobQueue.isEmpty()) {
-      setStartLevel0(1, false);
+      setStartLevel0(1, false, false, true);
     }
     Runnable firstJob = (Runnable)jobQueue.firstElement();
     wc   = new Thread(this, "startlevel job thread");
     synchronized (firstJob) {
       bRun = true;
       wc.start();
+      if (!acceptChanges) {
+        acceptChanges = true;
+        restoreState();
+      }
       // Wait for first job to complete before return
       try {
         firstJob.wait();
@@ -125,7 +130,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
         if (s != null) {
           int oldStartLevel = Integer.parseInt(s);
           if (oldStartLevel != -1) {
-            setStartLevel0(oldStartLevel, false);
+            setStartLevel0(oldStartLevel, false, false, true);
           }
         }
       } catch (Exception _ignored) { }
@@ -146,6 +151,17 @@ public class StartLevelImpl implements StartLevel, Runnable {
       }
       wc = null;
     }
+  }
+
+  void shutdown() {
+    acceptChanges = false;
+    setStartLevel0(0, false, true, false);
+    while (currentLevel > 1) {
+      synchronized (wc) {
+        try { wc.wait(); } catch (Exception e) {}
+      }
+    }
+    close();
   }
 
   public void run() {
@@ -175,11 +191,13 @@ public class StartLevelImpl implements StartLevel, Runnable {
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
-    setStartLevel0(startLevel, framework.active);
+    if (acceptChanges) {
+      setStartLevel0(startLevel, framework.active, false, true);
+    }
   }
 
 
-  private void setStartLevel0(final int startLevel, final boolean notifyFw) {
+  private void setStartLevel0(final int startLevel, final boolean notifyFw, final boolean notifyWC, final boolean storeLevel) {
     if (Debug.startlevel) {
       Debug.println("startlevel: setStartLevel " + startLevel);
     }
@@ -199,7 +217,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 	  // Skip level save in mem storage since bundle levels
 	  // won't be saved anyway
-	  if (!Framework.bIsMemoryStorage) {
+	  if (storeLevel && !Framework.bIsMemoryStorage) {
             try {
               Util.putContent(new File(storage, LEVEL_FILE), 
                               Integer.toString(currentLevel));
@@ -209,6 +227,11 @@ public class StartLevelImpl implements StartLevel, Runnable {
           }
           if (notifyFw) {
             notifyFramework();
+          }
+          if (notifyWC) {
+            synchronized (wc) {
+              wc.notifyAll();
+            }
           }
 	}
       });
