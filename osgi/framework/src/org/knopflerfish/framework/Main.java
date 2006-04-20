@@ -103,6 +103,8 @@ public class Main {
   static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
   static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+
+  static boolean restarting = false;
     
   /**
    * Help class for starting the OSGi framework.
@@ -235,6 +237,8 @@ public class Main {
   private static void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
+    boolean hasBeenShutdown = false;
+
     for (int i = startOffset; i < args.length; i++) {
       try {
         if ("-exit".equals(args[i])) {
@@ -285,13 +289,14 @@ public class Main {
           }
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
+          hasBeenShutdown = true;
           framework.shutdown();
           println("Framework shutdown", 0);
         } else if ("-sleep".equals(args[i])) {
           if (i+1 < args.length) {
             long t = Long.parseLong(args[i+1]);
             try {
-              println("Sleeping...", 0);
+              println("Sleeping " + t + " seconds...", 0);
               Thread.sleep(t * 1000);
             } catch (InterruptedException e) {
               error("Sleep interrupted.");
@@ -408,7 +413,7 @@ public class Main {
       }
     }
 
-    if (!framework.active) {
+    if (!framework.active && !hasBeenShutdown) {
       try {
         framework.launch(0);
         println("Framework launched", 0);
@@ -510,6 +515,7 @@ public class Main {
    * </p>
    */
   static public void shutdown(final int exitcode) {
+    if (restarting) return;
     Thread t = new Thread() {
         public void run() {
           if (bootMgr != 0) {
@@ -540,26 +546,31 @@ public class Main {
    * </p>
    */
   static public void restart() {
+    restarting = true;
     Thread t = new Thread() {
         public void run() {
-          if (bootMgr != 0) {
-            try {
-              framework.stopBundle(bootMgr);
-            } catch (BundleException e) {
-              System.err.println("Stop of BootManager failed, " +
-                                 e.getNestedException());
-            }
-          }
-          framework.shutdown();
-
           try {
             if (bootMgr != 0) {
-              framework.launch(bootMgr);
-            } else {
-              framework.launch(0);
+              try {
+                framework.stopBundle(bootMgr);
+              } catch (BundleException e) {
+                System.err.println("Stop of BootManager failed, " +
+                                   e.getNestedException());
+              }
             }
-          } catch (Exception e) {
-            println("Failed to restart framework", 0);
+            framework.shutdown();
+  
+            try {
+              if (bootMgr != 0) {
+                framework.launch(bootMgr);
+              } else {
+                framework.launch(0);
+              }
+            } catch (Exception e) {
+              println("Failed to restart framework", 0);
+            }
+          } finally {
+            restarting = false;
           }
         }
       };

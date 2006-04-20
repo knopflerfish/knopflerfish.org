@@ -222,6 +222,7 @@ public class SystemBundle extends BundleImpl {
 
 
   synchronized public void stop(int exitcode) throws BundleException {
+    if (Main.restarting) return;
     secure.checkExecuteAdminPerm(this);
 
     StringBuffer bootClasspath = new StringBuffer();
