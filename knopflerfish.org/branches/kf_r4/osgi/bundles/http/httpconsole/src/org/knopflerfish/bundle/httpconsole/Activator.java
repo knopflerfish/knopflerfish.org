@@ -57,9 +57,8 @@ public class Activator implements BundleActivator {
 
   Hashtable registrations = new Hashtable();
 
-
-
   static LogRef log;
+  
   public void start(BundleContext bc) throws BundleException {
     this.bc  = bc;
     this.log = new LogRef();
@@ -84,20 +83,8 @@ public class Activator implements BundleActivator {
 
     // Wrap the Http service into something more
     // white-board-like
-    HttpWrapper wrapper = new HttpWrapper(bc);
+    HttpWrapper wrapper = new HttpWrapper(bc, servlet, context);
     wrapper.open();
-
-    // By registering the servlet and the context
-    // they will be picked up by the wrapper and installed
-    // in the http service
-    Hashtable props1 = new Hashtable();
-    props1.put(HttpWrapper.PROP_ALIAS, SERVLET_ALIAS);
-    bc.registerService(HttpServlet.class.getName(), servlet, props1);
-
-    Hashtable props2 = new Hashtable();
-    props2.put(HttpWrapper.PROP_ALIAS, RES_ALIAS);
-    props2.put(HttpWrapper.PROP_DIR,   RES_DIR);
-    bc.registerService(HttpContext.class.getName(), context, props2);
   }
 
   public void stop(BundleContext bc) throws BundleException {
