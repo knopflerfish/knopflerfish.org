@@ -253,6 +253,9 @@ public class BundleStorageImpl implements BundleStorage {
         lb = x+1;
       }
     }
+    if (lb < archives.size() && ((BundleArchive)archives.get(lb)).getBundleId() < id) {
+      return lb + 1;
+    }
     return lb;
   }
 
