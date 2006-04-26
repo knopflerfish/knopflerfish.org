@@ -27,7 +27,7 @@
   <property name="bmfa.Bundle-Description"    value="JVM info desktop plugin"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle.Version"        value="1.0.0"/>
+  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
 
   <property name="bmfa.Import-Package" value="org.knopflerfish.service.desktop,org.knopflerfish.service.log,org.osgi.framework"/>
 
