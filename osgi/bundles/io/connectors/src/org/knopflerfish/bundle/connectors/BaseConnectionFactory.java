@@ -53,43 +53,53 @@ package org.knopflerfish.bundle.connectors;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.microedition.io.Connection;
-import org.osgi.framework.BundleContext;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.io.ConnectionFactory;
 
-public abstract class BaseConnectionFactory implements ConnectionFactory 
+public abstract class BaseConnectionFactory implements ConnectionFactory
 {
-  private ArrayList list = new ArrayList();
+  private final List list = new ArrayList();
 
   // something like new String[]{"datagram", ..}
   public abstract String[] getSupportedSchemes();
-    
+
   public void registerFactory(BundleContext bc) {
     Hashtable properties = new Hashtable();
     properties.put(ConnectionFactory.IO_SCHEME, getSupportedSchemes());
-    bc.registerService(ConnectionFactory.class.getName(), this, properties);    
+    bc.registerService(ConnectionFactory.class.getName(), this, properties);
   }
 
-  public synchronized void registerConnection(Connection con) {
-    list.add(con);
-  }
-        
-  public synchronized void unregisterConnection(Connection con) {
-    list.remove(con);
+  public void registerConnection(Connection con) {
+    synchronized (list) {
+      list.add(con);
+    }
   }
 
-  public synchronized void unregisterFactory(BundleContext bc) {
-    int size = list.size();
-        
-    for (int i = 0; i < size; i++) {
+  public void unregisterConnection(Connection con) {
+    synchronized (list) {
+      list.remove(con);
+    }
+  }
+
+  public void unregisterFactory(BundleContext bc) {
+    Iterator copyIterator;
+    synchronized (list) {
+      // Copy list to avoid race condition
+      copyIterator = new ArrayList(list).iterator();
+
+      // Just a precaution, if this factory is used again.
+      list.clear();
+    }
+
+    while (copyIterator.hasNext()) {
       try {
-        ((Connection)list.get(i)).close();
+        ((Connection) copyIterator.next()).close();
       } catch (IOException e) { /* ignore */ }
     }
-                
-    // Just a precaution, if this factory is used again.
-    list = new ArrayList(); 
   }
 }
