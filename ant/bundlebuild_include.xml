@@ -74,32 +74,38 @@
  <!-- A manifest attribute with the special value                      -->
  <!-- "${bundle.emptystring}" will not be included in the generated    -->
  <!--  manifest.                                                       -->
+
+ <!-- Bundle manifest attribute properties with a default value.       -->
+ <property name="bmfa.Bundle-ManifestVersion" value = "2"/>
+ <property name="bmfa.Bundle-Name"            value="${ant.project.name}"/>
+ <property name="bmfa.Bundle-Version"         value="0.0.0"/>
+ <property name="bmfa.Bundle-SymbolicName"
+           value="${domain.reverse}.bundle.${ant.project.name}"/>
+ <property name="bmfa.Bundle-Vendor"          value="Knopflerfish"/>
+ <property name="bmfa.Bundle-ContactAddress"
+           value="http://www.knopflerfish.org"/>
+ <property name="bmfa.Bundle-DocURL"
+           value="http://www.knopflerfish.org"/>
+ <property name="bmfa.Bundle-SubversionURL"
+           value="https://www.knopflerfish.org/svn/"/>
+ <property name="bmfa.Bundle-UUID"
+           value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
+
+ <!-- Bundle manifest attribute properties without default value.      -->
+ <!--
  <property name="bmfa.Application-Icon"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Activator"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-APIVendor"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Category"        value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Classpath"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Config"          value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-ContactAddress"
-           value="http://www.knopflerfish.org"/>
  <property name="bmfa.Bundle-Copyright"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Description"     value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-DocURL"      value="http://www.knopflerfish.org"/>
  <property name="bmfa.Bundle-Localization"    value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-ManifestVersion" value = "2"/>
- <property name="bmfa.Bundle-Name"            value="${ant.project.name}"/>
  <property name="bmfa.Bundle-NativeCode"      value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-RequiredExecutionEnvironment"
            value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-SubversionURL"
-           value="https://www.knopflerfish.org/svn/"/>
- <property name="bmfa.Bundle-SymbolicName"
-           value="${domain.reverse}.bundle.${ant.project.name}"/>
- <property name="bmfa.Bundle-UUID"
-           value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
  <property name="bmfa.Bundle-UpdateLocation"  value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Vendor"          value="Knopflerfish"/>
- <property name="bmfa.Bundle-Version"         value="${bundle.emptystring}"/>
  <property name="bmfa.DynamicImport-Package"  value="${bundle.emptystring}"/>
  <property name="bmfa.Export-Package"         value="${bundle.emptystring}"/>
  <property name="bmfa.Export-Service"         value="${bundle.emptystring}"/>
@@ -108,8 +114,10 @@
  <property name="bmfa.Import-Service"         value="${bundle.emptystring}"/>
  <property name="bmfa.Require-Bundle"         value="${bundle.emptystring}"/>
  <property name="bmfa.Service-Component"      value="${bundle.emptystring}"/>
+  -->
  <!-- End of properties used as value for bundle manifest headers.     -->
  
+
  <!-- Special values for manifest headers of the api-bundle can be set -->
  <!-- by defining properties with the prefix "bmfa.api-" E.g.          -->
  <!-- <property name="bmfa.api-Export-Package" value="org.kf.xx.yy"/>-->
