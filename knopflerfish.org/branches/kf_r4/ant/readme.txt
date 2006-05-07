@@ -20,7 +20,7 @@ major advantages:
 
 1 The properties can now be specified in a bundle manifest template
   file, named bundle.manifest, that may be created using the
-  Knopflerfish Eclipse plugin while their values are still available
+  Knopflerfish Eclipse plug in while their values are still available
   for use in the ant build script.
 
 2 You can now add any manifest header you like to the generated bundle
@@ -71,7 +71,7 @@ the same directory as the build.xml file that shall use it.
 
 
 The format of the manifest template file is that of a normal manifest
-file with one exception: Line lenght must not obey the 72 characters
+file with one exception: Line length must not obey the 72 characters
 per line requirement. The character encoding of the template manifest
 file expected to be UTF-8, but you may specify another encoding in the
 build.xml file.
