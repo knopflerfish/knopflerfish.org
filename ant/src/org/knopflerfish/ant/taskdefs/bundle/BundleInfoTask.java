@@ -2,20 +2,20 @@
  * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- * - Redistributions of source code must retain the above copyright notice, 
- *   this list of conditions and the following disclaimer. 
- * 
- * - Redistributions in binary form must reproduce the above copyright notice, 
- *   this list of conditions and the following disclaimer in the documentation 
- *   and/or other materials provided with the distribution. 
- * 
- * - Neither the name of the KNOPFLERFISH project nor the names of its 
- *   contributors may be used to endorse or promote products derived 
- *   from this software without specific prior written permission. 
- * 
+ *
+ * - Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -84,12 +84,12 @@ import org.apache.tools.ant.util.StringUtils;
  *
  * <li><b>Source code</b>
  * <p>
- * Java source code is analyzed using very simple line-based scanning of 
+ * Java source code is analyzed using very simple line-based scanning of
  * files. <br>
  * <b>Note</b>: Source code analysis does not attempt to find any
  * <tt>BundleActivator</tt>
  * </p>
- * 
+ *
  * <li><b>Jar files</b>
  * <p>
  * Jar file analysis is not yet implemented
@@ -107,13 +107,13 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *  <tr>
  *   <td valign=top>imports</td>
- *   <td valign=top>Name of property that will receive a comma-separated list 
- *       of all used packages. 
+ *   <td valign=top>Name of property that will receive a comma-separated list
+ *       of all used packages.
  *       <p>
  *       If set to empty string, no property will be set.
  *       </p>
  *       <p>
- *       <b>Note</b>: Some default packages are always added. These 
+ *       <b>Note</b>: Some default packages are always added. These
  *       defaults can be set using the <tt>defaultimports</tt> parameter.
  *       </p>
  *   </td>
@@ -121,8 +121,8 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *  <tr>
  *   <td valign=top>exports</td>
- *   <td valign=top>Name of property that will receive a comma-separated 
- *       list of all defined packages. 
+ *   <td valign=top>Name of property that will receive a comma-separated
+ *       list of all defined packages.
  *       <p>
  *       If set to empty string, no property will be set.
  *       </p>
@@ -131,7 +131,7 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *   <td valign=top>activator</td>
  *   <td valign=top>
- *       Name of property that will receive name of class which implements 
+ *       Name of property that will receive name of class which implements
  *       <tt>org.osgi.framework.BundleActivator</tt>
  *       <p>
  *       If set to empty string, no property will be set.
@@ -147,7 +147,7 @@ import org.apache.tools.ant.util.StringUtils;
  *  <tr>
  *   <td valign=top>stdimports</td>
  *   <td valign=top>
- *       Comma-separated list of all prefixes to standard packages that 
+ *       Comma-separated list of all prefixes to standard packages that
  *       should be ignored in exports list.
  *   </td>
  *   <td valign=top>
@@ -159,16 +159,16 @@ import org.apache.tools.ant.util.StringUtils;
  *  <tr>
  *   <td valign=top>defaultimports</td>
  *   <td valign=top>
- *       Comma-separated list of all default imported packages. 
+ *       Comma-separated list of all default imported packages.
  *       <p>
- *       <b>Note</b>: Do not set <tt>defaultimports</tt> to the empty 
- *       string, since that might 
- *       cause an later illegal bundle manifest file if <i>no</i> imported 
+ *       <b>Note</b>: Do not set <tt>defaultimports</tt> to the empty
+ *       string, since that might
+ *       cause an later illegal bundle manifest file if <i>no</i> imported
  *       packages are found.
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br> 
+ *     No.<br>
  *     Default value is "org.osgi.framework"
  *   </td>
  *  </tr>
@@ -183,7 +183,7 @@ import org.apache.tools.ant.util.StringUtils;
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br> 
+ *     No.<br>
  *     Default value is "false"
  *   </td>
  *  </tr>
@@ -198,7 +198,7 @@ import org.apache.tools.ant.util.StringUtils;
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br> 
+ *     No.<br>
  *     Default value is "false"
  *   </td>
  *  </tr>
@@ -213,7 +213,7 @@ import org.apache.tools.ant.util.StringUtils;
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br> 
+ *     No.<br>
  *     Default value is "false"
  *   </td>
  *  </tr>
@@ -230,7 +230,7 @@ import org.apache.tools.ant.util.StringUtils;
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br> 
+ *     No.<br>
  *     Default value is "true"
  *   </td>
  *  </tr>
@@ -240,8 +240,8 @@ import org.apache.tools.ant.util.StringUtils;
  *
  * (required)<br>
  * <p>
- * All files must be specified as a fileset. Unsupported file types 
- * are ignored. 
+ * All files must be specified as a fileset. Unsupported file types
+ * are ignored.
  * </p>
  *
  * <h3>Examples</h3>
@@ -254,13 +254,13 @@ import org.apache.tools.ant.util.StringUtils;
  * </p>
  *
  * <pre>
- *  &lt;bundleinfo  activator = "bmfa.Bundle-Activator" 
+ *  &lt;bundleinfo  activator = "bmfa.Bundle-Activator"
  *               imports   = "impl.import.package"&gt;
  *   &lt;fileset dir="classes" includes="test/impl/&#042;"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports   = ${impl.import.package}"/&gt;
  *  &lt;echo message="activator = ${bmfa.Bundle-Activator}"/&gt;
- * </pre> 
+ * </pre>
  *
  *
  * <h4>Check all imports and exports in API classes</h4>
@@ -271,25 +271,25 @@ import org.apache.tools.ant.util.StringUtils;
  * </p>
  *
  * <pre>
- *  &lt;bundleinfo  exports  = "api.export.package" 
+ *  &lt;bundleinfo  exports  = "api.export.package"
  *               imports  = "api.import.package"&gt;
  *   &lt;fileset dir="classes" includes="test/&#042;"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports  = ${api.import.package}"/&gt;
  *  &lt;echo message="exports  = ${api.export.package}"/&gt;
- * </pre> 
- * 
+ * </pre>
+ *
  */
 public class BundleInfoTask extends Task {
-  
+
   private Vector    filesets = new Vector();
   private FileUtils fileUtils;
-  
+
   private String importsProperty   = "";
   private String exportsProperty   = "";
   private String activatorProperty = "";
   private String mainProperty      = "";
-  
+
   private Set     stdImports       = new TreeSet();
   private boolean bDebug           = false;
 
@@ -312,13 +312,13 @@ public class BundleInfoTask extends Task {
 
   private Set classSet             = new TreeSet();
   private Set ownClasses           = new TreeSet();
-  
+
   public BundleInfoTask() {
     fileUtils = FileUtils.newFileUtils();
     setDefaultImports("org.osgi.framework");
     setStdImports("java.");
   }
-  
+
   /**
    * Set property receiving list of imported packages.
    */
@@ -352,7 +352,7 @@ public class BundleInfoTask extends Task {
    * @param packageList Comma-separated list of package names.
    */
   public void setDefaultImports(String packageList) {
-    Vector v = StringUtils.split(packageList.trim(),',');  
+    Vector v = StringUtils.split(packageList.trim(),',');
     importSet.clear();
     importSet.addAll(v);
   }
@@ -392,32 +392,32 @@ public class BundleInfoTask extends Task {
     stdImports.clear();
     stdImports.addAll(StringUtils.split(packageList.trim(),','));
   }
-  
+
   public void addFileset(FileSet set) {
     filesets.addElement(set);
   }
-  
+
   // Implements Task
-  // 
+  //
   // Scan all files in fileset and delegate to analyze()
   // then write back values to properties.
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
-    
+
     for (int i = 0; i < filesets.size(); i++) {
       FileSet fs = (FileSet) filesets.elementAt(i);
       DirectoryScanner ds = fs.getDirectoryScanner(project);
       File fromDir = fs.getDir(project);
-      
+
       String[] srcFiles = ds.getIncludedFiles();
       String[] srcDirs = ds.getIncludedDirectories();
-      
+
       for (int j = 0; j < srcFiles.length ; j++) {
 	analyze(new File(fromDir, srcFiles[j]));
       }
-      
+
       for (int j = 0; j < srcDirs.length ; j++) {
 	analyze(new File(fromDir, srcDirs[j]));
       }
@@ -561,7 +561,7 @@ public class BundleInfoTask extends Task {
 	if(!ownClasses.contains(s)) {
 	  if(bPrintClasses) {
 	    System.out.println(s);
-	  } 
+	  }
 	  if(!EE.isFoundation(s)) {
 	    if(!isImported(s)) {
 	      foundationMissing.add(s);
@@ -583,7 +583,7 @@ public class BundleInfoTask extends Task {
 
     if(bCheckFoundationEE) {
       if(foundationMissing.size() > 0) {
-	System.out.println("Missing " + foundationMissing.size() + 
+	System.out.println("Missing " + foundationMissing.size() +
 			   " classes from foundation profile");
       } else {
 	System.out.println("Passes foundation EE");
@@ -596,7 +596,7 @@ public class BundleInfoTask extends Task {
 
     if(bCheckMinimumEE) {
       if(minimumMissing.size() > 0) {
-	System.out.println("Missing " + minimumMissing.size() + 
+	System.out.println("Missing " + minimumMissing.size() +
 			   " classes from minimum profile");
       } else {
 	System.out.println("Passes minimum EE");
@@ -609,7 +609,7 @@ public class BundleInfoTask extends Task {
 
     if(bCheckSMFEE) {
       if(smfMissing.size() > 0) {
-	System.out.println("Missing " + smfMissing.size() + 
+	System.out.println("Missing " + smfMissing.size() +
 			   " classes from SMF profile");
       } else {
 	System.out.println("Passes SMF EE");
@@ -661,11 +661,11 @@ public class BundleInfoTask extends Task {
     }
   }
 
-  
+
 
 
   /**
-   * Analyze a file by checking its suffix and delegate to 
+   * Analyze a file by checking its suffix and delegate to
    * <tt>analyzeClass</tt>, <tt>analyzeJava</tt> etc
    */
   protected void analyze(File file) throws BuildException {
@@ -709,7 +709,7 @@ public class BundleInfoTask extends Task {
 
   /**
    * Add package names of all types in <code>ts</code> to the list of
-   * imported packages. 
+   * imported packages.
    *
    * @param ts Array with Type objects.
    */
@@ -725,7 +725,7 @@ public class BundleInfoTask extends Task {
    * @param className Class name of an object. The class name is stripped
    *                  from the part after the last '.' and added to set
    *                  of imported packages, if its not one of the standard
-   *                  packages. Primitive class names are ignore. 
+   *                  packages. Primitive class names are ignore.
    */
   protected void addImportedString(String className) {
 
@@ -799,7 +799,7 @@ public class BundleInfoTask extends Task {
       }
     } catch (Exception e) {
       e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " + 
+      throw new BuildException("Failed to analyze class-file " +
 			       file + ", exception=" + e);
     }
   }
@@ -811,7 +811,7 @@ public class BundleInfoTask extends Task {
       analyzeClass( new ClassParser(file.getAbsolutePath()) );
     } catch (Exception e) {
       e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " + 
+      throw new BuildException("Failed to analyze class-file " +
 			       file + ", exception=" + e);
     }
   }
@@ -895,7 +895,7 @@ public class BundleInfoTask extends Task {
             addImportedType(type);
           }
         }
-          
+
         /**
          * Add all classes mentioned in the signature of the given
          * method. This is necessary since if no method is applied
@@ -915,7 +915,7 @@ public class BundleInfoTask extends Task {
             addImportedType(argTypes);
           }
         }
-          
+
       } );
     // Run the scanner on the loaded class
     v.visit();

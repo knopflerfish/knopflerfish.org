@@ -102,6 +102,10 @@
             classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
 
+   <taskdef name         = "bundleClasspathUtil" 
+            classpathref = "bundle_tasks.path"
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleClasspathTask"/>
+
    <taskdef name         = "bundlehtml" 
             classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>

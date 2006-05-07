@@ -81,6 +81,7 @@
  <property name="bmfa.Bundle-Version"         value="0.0.0"/>
  <property name="bmfa.Bundle-SymbolicName"
            value="${domain.reverse}.bundle.${ant.project.name}"/>
+ <property name="bmfa.Bundle-Classpath"       value="."/>
  <property name="bmfa.Bundle-Vendor"          value="Knopflerfish"/>
  <property name="bmfa.Bundle-ContactAddress"
            value="http://www.knopflerfish.org"/>
@@ -91,13 +92,15 @@
  <property name="bmfa.Bundle-UUID"
            value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
 
- <!-- Bundle manifest attribute properties without default value.      -->
- <!--
+ <!-- Bundle manifest attribute properties empty default values.       -->
+ <!-- Must define them with the special empty value as value to avoid  -->
+ <!-- getting headers like                                             -->
+ <!-- Import-Package: ${bmfa.Import-Package}                           -->
+ <!-- in the generated manifest file.                                  -->
  <property name="bmfa.Application-Icon"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Activator"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-APIVendor"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Category"        value="${bundle.emptystring}"/>
- <property name="bmfa.Bundle-Classpath"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Config"          value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Copyright"       value="${bundle.emptystring}"/>
  <property name="bmfa.Bundle-Description"     value="${bundle.emptystring}"/>
@@ -114,7 +117,6 @@
  <property name="bmfa.Import-Service"         value="${bundle.emptystring}"/>
  <property name="bmfa.Require-Bundle"         value="${bundle.emptystring}"/>
  <property name="bmfa.Service-Component"      value="${bundle.emptystring}"/>
-  -->
  <!-- End of properties used as value for bundle manifest headers.     -->
  
 
@@ -430,6 +432,9 @@
   <!-- Use the impl version of manifest properties, define it if needed. -->
   <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
   <property name="bmfa.impl-Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
+  <!-- Create a file set include pattern for the Bundle-Classpath -->
+  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+                       propertyName   ="impl.Bundle-Classpath.pattern" />
 
   <bundleinfo activator = "bmfa.impl-Bundle-Activator" 
               imports   = "bmfa.impl-Import-Package"
@@ -441,7 +446,7 @@
             includes = "${impl.pattern},${impl-api.pattern}">
    </fileset>
    <fileset dir = "${resources.dir}"
-            includes = "${bmfa.Bundle-Classpath}">
+            includes = "${impl.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
 
@@ -512,6 +517,10 @@
   <!-- bmfa.Import-Package since we want to avoid importing      -->
   <!-- packages only required by the implementation.             -->
   <property name="bmfa.api-Import-Package" value="${bundle.emptystring}"/>
+  <!-- Create a file set include pattern for the Bundle-Classpath -->
+  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+                       propertyName   ="api.Bundle-Classpath.pattern" />
+
   <bundleinfo exports = "bmfa.api-Export-Package" 
               imports = "bmfa.api-Import-Package"
               stdimports        = "${bundle.stdimports}"
@@ -522,7 +531,7 @@
             includes = "${api.pattern}">
    </fileset>
    <fileset dir = "${resources.dir}"
-            includes = "${bmfa.Bundle-Classpath}">
+            includes = "${api.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
 
@@ -558,6 +567,9 @@
   <!-- Use the api version of manifest properties, define if needed. -->
   <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
   <property name="bmfa.lib-Export-Package" value="${bmfa.Export-Package}"/>
+  <!-- Create a file set include pattern for the Bundle-Classpath -->
+  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+                       propertyName   ="lib.Bundle-Classpath.pattern" />
 
   <bundleinfo exports = "bmfa.lib-Export-Package" 
               imports = "bmfa.lib-Import-Package"
@@ -569,7 +581,7 @@
             includes = "${api.pattern}">
    </fileset>
    <fileset dir = "${resources.dir}"
-            includes = "${bmfa.Bundle-Classpath}">
+            includes = "${lib.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
 
@@ -611,6 +623,10 @@
 
   <antcall target = "compile"/>
 
+  <!-- Create a file set include pattern for the Bundle-Classpath -->
+  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+                       propertyName   ="all.Bundle-Classpath.pattern" />
+
   <bundleinfo exports   = "bmfa.Export-Package"
               checkFoundationEE = "${ee.check.foundation}"
   >
@@ -618,7 +634,7 @@
             includes = "${api.pattern},${impl-api.pattern}">
    </fileset>
    <fileset dir = "${resources.dir}"
-            includes = "${bmfa.Bundle-Classpath}">
+            includes = "${all.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
 
@@ -633,7 +649,7 @@
             includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
    </fileset>
    <fileset dir = "${resources.dir}"
-            includes = "${bmfa.Bundle-Classpath}">
+            includes = "${all.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
 

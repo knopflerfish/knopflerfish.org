@@ -2,20 +2,20 @@
  * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- * - Redistributions of source code must retain the above copyright notice, 
- *   this list of conditions and the following disclaimer. 
- * 
- * - Redistributions in binary form must reproduce the above copyright notice, 
- *   this list of conditions and the following disclaimer in the documentation 
- *   and/or other materials provided with the distribution. 
- * 
- * - Neither the name of the KNOPFLERFISH project nor the names of its 
- *   contributors may be used to endorse or promote products derived 
- *   from this software without specific prior written permission. 
- * 
+ *
+ * - Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -97,7 +97,7 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *       <dt><code>template</code><dd>Use template and nested data.
  *       <dt><code>templateOnly</code><dd>Use template.
  *      </dl>
- *    </td> 
+ *    </td>
  *    <td valign="top" align="center">No.</td>
  *  </tr>
  *  <tr>
@@ -222,7 +222,7 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *     &lt;attribute name="Build-Date"       value="${bundle.date}"/&gt;
  *     &lt;attribute name="Built-From"       value="${proj.dir}"/&gt;
  *   &lt;/bundlemanifest&gt;
- * </pre> 
+ * </pre>
  *
  *
  * <h4>Create properties for main section attributes in the template
@@ -233,8 +233,8 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *                   attributePropertyPrefix = "bmfa."
  *                   templateFile="bundle.manifest"&gt;
  *   &lt;/bundlemanifest&gt;
- * </pre> 
- * 
+ * </pre>
+ *
  */
 public class BundleManifestTask extends Task {
   /**
@@ -275,7 +275,7 @@ public class BundleManifestTask extends Task {
    * present in the main section of the resulting manifest.
    */
   private String mainAttributesToSkip;
-  
+
   /**
    * The kind of bundle to generate manifest for.
    * If given this string will be appended to the following manifest
@@ -290,7 +290,7 @@ public class BundleManifestTask extends Task {
 
   /**
    * Prefix of project properties to add main section attributes for.
-   * 
+   *
    * For each property in the project with a name that starts with this
    * prefix a manifest attribute in the main section will be created.
    * The attribute name will be the property name without the prefix
@@ -326,7 +326,7 @@ public class BundleManifestTask extends Task {
 
   /**
    * The name of the template manifest file.
-   * 
+   *
    * @param f the template manifest file to load.
    */
   public void setTemplateFile(File f) {
@@ -335,7 +335,7 @@ public class BundleManifestTask extends Task {
 
   /**
    * The name of the manifest file to create.
-   * 
+   *
    * @param f the manifest file to write.
    */
   public void setFile(File f) {
@@ -352,7 +352,7 @@ public class BundleManifestTask extends Task {
    * </dl>
    * @param m the mode value one of - <code>update</code>,
    *          <code>replace</code>, <code>template</code> and
-   *          <code>templateOnly</code>. 
+   *          <code>templateOnly</code>.
    */
   public void setMode(Mode m) {
     mode = m;
@@ -365,7 +365,7 @@ public class BundleManifestTask extends Task {
   public void setMainAttributesToSkip(String s) {
     mainAttributesToSkip = s.trim();
   }
-  
+
   /**
    * Bundle kind, will be appended to some of the bundle specific
    * attributes in the main section.
@@ -374,7 +374,7 @@ public class BundleManifestTask extends Task {
   public void setKind(String s) {
     bundleKind = s.trim();
   }
-  
+
 
   /**
    * If set to true the bundle activator, export package and import
@@ -394,7 +394,7 @@ public class BundleManifestTask extends Task {
     verbose = b;
   }
 
-  private void doVerbose(Manifest mf) 
+  private void doVerbose(Manifest mf)
   {
     if (verbose) {
       Manifest.Section   ms = mf.getMainSection();
@@ -418,8 +418,8 @@ public class BundleManifestTask extends Task {
 
   /**
    * Set the prefix of project properties to add main section
-   * attributes for. 
-   * 
+   * attributes for.
+   *
    * For each property in the project with a name that starts with this
    * prefix a manifest attribute in the main section will be created.
    * The attribute name will be the property name without the prefix
@@ -430,7 +430,7 @@ public class BundleManifestTask extends Task {
   public void setAttributePropertyPrefix( String s) {
     attributePropertyPrefix = s;
   }
-  
+
   /**
    * If <code>attributePropertyPrefix</code> is set then iterate over
    * all properties and add attributes to the main section of
@@ -469,7 +469,7 @@ public class BundleManifestTask extends Task {
       }
     }
   }
-  
+
   /**
    * If <code>attributePropertyPrefix</code> is set then iterate over
    * all attributes in the main section and set the value for
@@ -494,7 +494,7 @@ public class BundleManifestTask extends Task {
       }
     }
   }
-  
+
   /**
    * Replace all main section attributes that starts with the
    * specified prefix with an attribute without that prefix,
@@ -539,7 +539,7 @@ public class BundleManifestTask extends Task {
       }
     }
   }
-  
+
   /**
    * Add a section to the manifest.
    *
@@ -559,20 +559,20 @@ public class BundleManifestTask extends Task {
    * to bundle manifest attributes via the attributePropertyPrefix.
    */
   static protected final String BUNDLE_EMPTY_STRING = "[bundle.emptystring]";
-  
+
   /**
    * Check if a property value is empty or not.
    *
    * The value is empty if it is <code>null</code>, the empty string
    * or the special value BundleManifestTask.BUNDLE_EMPTY_STRING.
-   *  
+   *
    * @param pval The property value to check.
    * @return <code>true</code> if the value is empty.
    */
   static protected boolean isPropertyValueEmpty( String pval ) {
      return null==pval || "".equals(pval) || BUNDLE_EMPTY_STRING.equals(pval);
   }
-  
+
 
   /**
    * Add an attribute to the main section of the manifest.
@@ -589,7 +589,7 @@ public class BundleManifestTask extends Task {
     }
     manifestNested.addConfiguredAttribute(attribute);
   }
-  
+
   /**
    * Ensure that the named main section attribute ends with the
    * specified suffix.
@@ -602,7 +602,7 @@ public class BundleManifestTask extends Task {
     if (null!=attr && !attr.getValue().endsWith(suffix))
       attr.setValue( attr.getValue() +suffix );
   }
-  
+
   /**
    * Ensure that the named main section attribute have the given
    * value.
@@ -625,7 +625,7 @@ public class BundleManifestTask extends Task {
       ma.setValue(value);
     }
   }
-  
+
 
   /**
    * Create or update the Manifest when used as a task.
@@ -647,7 +647,7 @@ public class BundleManifestTask extends Task {
     if (!mode.getValue().equals("templateOnly")) {
       addAttributesFromProperties(manifestProps);
     }
-    
+
     Manifest manifestToWrite  = Manifest.getDefaultManifest();
     Manifest manifestTemplate = null;
 
@@ -678,7 +678,7 @@ public class BundleManifestTask extends Task {
         }
       }
     }
-    
+
     try {
       if (mode.getValue().equals("update")) {
         // resutling manifest based on data from
@@ -701,7 +701,7 @@ public class BundleManifestTask extends Task {
         log("Creating bundle manifets based on data from"
             +" properties and nested elements.",
             manifestFile==null ? Project.MSG_DEBUG: Project.MSG_VERBOSE);
-      }      
+      }
       if (mode.getValue().startsWith("template")) {
         // resutling manifest based on template and nested data.
         if (manifestTemplate != null) {
@@ -717,7 +717,7 @@ public class BundleManifestTask extends Task {
               +"'.",
               manifestFile==null ? Project.MSG_DEBUG: Project.MSG_VERBOSE);
         }
-      }      
+      }
     } catch (ManifestException me) {
       throw new BuildException("Manifest is invalid", me, getLocation());
     }
@@ -745,7 +745,7 @@ public class BundleManifestTask extends Task {
       }
       overrideAttributes(manifestToWrite, bundleKind+"-");
     }
-    
+
     if (null==manifestFile) {
       updatePropertiesFromMainSectionAttributeValues(manifestToWrite);
     } else {
