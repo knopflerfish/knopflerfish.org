@@ -146,7 +146,7 @@ public class BundleClasspathTask extends Task {
     proj.setProperty(propertyName, sb.toString());
     log("Converted \"" +bundleClasspath +"\" to pattern \""
         +sb.toString() +"\"",
-        Project.MSG_INFO);
+        Project.MSG_VERBOSE);
   }
 
 
