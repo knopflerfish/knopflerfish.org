@@ -63,11 +63,12 @@ public interface BundleArchive {
 
   /**
    * Gets all localization entries from this bundle. Will typically
-   * read the file OSGI-INF/bundle_&lt;locale&gt;.properties. This
-   * behaviour is overridden by the Bundle-Localization manifest entry.
-   * @returns null or a mapping of the entries.
+   * read the file OSGI-INF/bundle_&lt;locale&gt;.properties.
+   *
+   * @param localeFile Filename within archive for localization properties.
+   * @return null or a mapping of the entries.
    */
-  Hashtable getLocalizationEntries(String locale);
+  Hashtable getLocalizationEntries(String localeFile);
 
   /**
    * @returns the (raw/unlocalized) attributes

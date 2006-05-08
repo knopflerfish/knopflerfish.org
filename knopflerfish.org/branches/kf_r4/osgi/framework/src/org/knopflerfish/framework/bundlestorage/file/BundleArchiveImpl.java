@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.net.URL;
 
 /**
@@ -224,8 +225,20 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * returns the localization entries of this archive.
    */
-  public Hashtable getLocalizationEntries(String locale) {
-    return archive.getLocalizationEntries(locale);
+  public Hashtable getLocalizationEntries(String localeFile) {
+    Archive.InputFlow aif = archive.getInputFlow(localeFile);
+    if (aif != null) {
+      Properties l = new Properties();
+      try {
+        l.load(aif.is);
+      } catch (IOException _ignore) { }
+      try {
+        aif.is.close();
+      } catch (IOException _ignore) { }
+      return l;
+    } else {
+      return null;
+    }
   }
 
 
@@ -324,7 +337,7 @@ class BundleArchiveImpl implements BundleArchive
     for (int i = 0; i < archives.length; i++) {
       Archive.InputFlow aif = archives[i].getInputFlow(component);
       if (aif != null) {
-        if(v == null) {
+        if (v == null) {
           v = new Vector();
         }
         v.addElement(new Integer(i));

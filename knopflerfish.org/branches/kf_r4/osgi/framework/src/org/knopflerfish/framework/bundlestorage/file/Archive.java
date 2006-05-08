@@ -45,7 +45,6 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.jar.*;
 import java.util.zip.*;
-import java.util.Properties;
 import java.util.Hashtable;
 
 /**
@@ -104,8 +103,6 @@ class Archive {
    */
   private ZipEntry subJar /*= null*/;
   
-  private String localizationFilesLocation;
-
   /**
    * Create an Archive based on contents of an InputStream,
    * the archive is saved as local copy in the specified
@@ -209,13 +206,6 @@ class Archive {
       }
       
     }
-
-    Attributes attr = manifest.getMainAttributes();
-    localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    if(localizationFilesLocation == null){
-      localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    }     
-
   }
 
 
@@ -295,12 +285,6 @@ class Archive {
       jar = new ZipFile(file);
     }
     manifest = getManifest();
-
-    Attributes attr = manifest.getMainAttributes();
-    localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    if(localizationFilesLocation == null){
-      localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    }     
   }
 
 
@@ -376,48 +360,6 @@ class Archive {
     return null;
   }
   
-
-  private static final String LOCALIZATION_FILE_SUFFIX = ".properties";
-
-  /**
-   * Returns the contents of a specific localization file.
-   * @return null if no such file found. O/w a mapping of the entries.
-   */
-  Hashtable getLocalizationEntries(String locale) {
-    
-    String fileName = "".equals(locale) ? 
-      localizationFilesLocation + LOCALIZATION_FILE_SUFFIX : 
-      localizationFilesLocation + "_" + locale + LOCALIZATION_FILE_SUFFIX;
-    
-    try {
-      InputStream is = null;
-      Properties locale_entries = new Properties();
-      if(jar != null){
-        ZipEntry ze = jar.getEntry(fileName);
-        if(ze != null){
-          is = jar.getInputStream(ze);
-        }
-        else{
-          return null;
-        }
-      }
-      else{
-        File f = findFile(file, fileName);
-        if(f.exists()) {
-          is = new FileInputStream(f);
-        }
-        else{
-          return null;
-        }
-      }
-  
-      locale_entries.load(is);
-      return locale_entries;
-    }
-    catch(IOException e){ //includes FileNotFoundException
-      return null;
-    }
-  }
   
   /**
    * Get a byte array containg the contents of named class file from
