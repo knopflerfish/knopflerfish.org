@@ -43,6 +43,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 
 
@@ -123,8 +124,20 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * returns the localization entries of this archive.
    */
-  public Hashtable getLocalizationEntries(String locale) {
-    return archive.getLocalizationEntries(locale);
+  public Hashtable getLocalizationEntries(String localeFile) {
+    InputStream is = archive.getInputStream(localeFile);
+    if (is != null) {
+      Properties l = new Properties();
+      try {
+        l.load(is);
+      } catch (IOException _ignore) { }
+      try {
+        is.close();
+      } catch (IOException _ignore) { }
+      return l;
+    } else {
+      return null;
+    }
   }
 
 

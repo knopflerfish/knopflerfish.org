@@ -43,7 +43,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.*;
@@ -70,8 +69,6 @@ class Archive {
   
   ArrayList subDirs/*= null*/;
   
-  private String localizationFilesLocation;
-
   /**
    * Create an Archive based on contents of an InputStream,
    * get file object for the stream and use it. Native code
@@ -89,12 +86,6 @@ class Archive {
       throw new IOException("Native code not allowed by memory storage");
     }
     content = loadJarStream(ji);
-
-    Attributes attr = manifest.getMainAttributes();
-    localizationFilesLocation = attr.getValue(Constants.BUNDLE_LOCALIZATION);
-    if (localizationFilesLocation == null) {
-      localizationFilesLocation = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
-    }
   }
 
 
@@ -129,35 +120,7 @@ class Archive {
     return manifest.getMainAttributes().getValue(key);
   }
   
-  private static final String LOCALIZATION_FILE_SUFFIX = ".properties";
-  
 
-  /**
-   * Returns the contents of a specific localization file.
-   * @return null if no such file found. O/w a mapping of the entries.
-   */
-  Hashtable getLocalizationEntries(String locale) {
-
-    String fileName = "".equals(locale) ? 
-      localizationFilesLocation + LOCALIZATION_FILE_SUFFIX : 
-      localizationFilesLocation + "_" + locale + LOCALIZATION_FILE_SUFFIX;
-
-    try {
-      InputStream is = getInputStream(fileName);
-      if (is == null) {
-        return null;
-      }
-      
-      Properties locale_entries = new Properties();
-      locale_entries.load(is);
-      return locale_entries;
-
-    }
-    catch(IOException e){ //includes FileNotFoundException
-      return null;
-    }
-  }
-  
   /**
    * Get a byte array containg the contents of named file from
    * the archive.

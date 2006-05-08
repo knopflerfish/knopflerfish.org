@@ -1576,7 +1576,7 @@ class BundleImpl implements Bundle {
   /**
    * Get locale dictionary for this bundle.
    */
-  private Dictionary getLocaleDictionary(String locale) {
+  private Dictionary getLocaleDictionary(String locale, String baseName) {
     String defaultLocale = Locale.getDefault().toString();
 
     if (locale == null) {
@@ -1586,10 +1586,10 @@ class BundleImpl implements Bundle {
     } 
 
     Hashtable localization_entries = new Hashtable();
-    readLocalization("", localization_entries);
-    readLocalization(Locale.getDefault().toString(), localization_entries);
+    readLocalization("", localization_entries, baseName);
+    readLocalization(Locale.getDefault().toString(), localization_entries, baseName);
     if (!locale.equals(defaultLocale)) {
-      readLocalization(locale, localization_entries);
+      readLocalization(locale, localization_entries, baseName);
     } 
     
     return localization_entries;
@@ -1633,18 +1633,26 @@ class BundleImpl implements Bundle {
    * @param localization_entries will append the new entries to this dictionary
    */
   protected void readLocalization(String locale, 
-                                  Hashtable localization_entries) {
-
-    String[] parts = Util.splitwords(locale, "_");
-    String tmploc = parts[0];
+                                  Hashtable localization_entries,
+                                  String baseName) {
+    if (baseName == null) {
+      baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+    }
     int o = 0;
-    
+    String[] parts = Util.splitwords(locale, "_");
+    String tmploc;
+    if ("".equals(parts[0])) {
+      tmploc = baseName;
+    } else {
+      tmploc = baseName + "_" + parts[0];
+    }
     do {
       Hashtable tmp;
       if ((state & RESOLVED_FLAGS) != 0) {
-        tmp = ((BundleClassLoader)getClassLoader()).getLocalizationEntries(tmploc);
+        tmp = ((BundleClassLoader)getClassLoader()).getLocalizationEntries(tmploc +
+                                                                           ".properties");
       } else if (archive != null) { // archive == null if this == systemBundle
-        tmp = archive.getLocalizationEntries(tmploc);
+        tmp = archive.getLocalizationEntries(tmploc  + ".properties");
       } else {
         // No where to search, return.
         return;
@@ -1683,21 +1691,14 @@ class BundleImpl implements Bundle {
       return (HeaderDictionary)cachedHeaders.clone();
     } 
 
-    if (state == INSTALLED) {
-      // We need to resolve if there are fragments involved
-      if (isFragment() || !framework.bundles.getFragmentBundles(this).isEmpty()) {
-        getUpdatedState();
-      }
+    String base = (String)cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
+    Dictionary d;
+    if (isFragment() && fragment.host != null) {
+      d = fragment.host.getLocaleDictionary(locale, base);
+    } else {
+      d = getLocaleDictionary(locale, base);
     }
-
-    if (isFragment()) {
-      if (fragment.host != null) {
-        return localize(fragment.host.getLocaleDictionary(locale));
-      } else {
-        return localize(new Hashtable());
-      }
-    }
-    return localize(getLocaleDictionary(locale));
+    return localize(d);
   }
 
 
