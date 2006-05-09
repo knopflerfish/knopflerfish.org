@@ -100,7 +100,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private int startLevel = -1;
 
-  private boolean bPersistent = false;
+  private boolean bPersistent;
   
   private long lastModified = 0;
 
@@ -171,10 +171,7 @@ class BundleArchiveImpl implements BundleArchive
       } catch (NumberFormatException e) { }
     }
 
-    s = getContent(PERSISTENT_FILE);
-    if (s != null) {
-      bPersistent = "true".equals(s);
-    }
+    bPersistent = "true".equals(getContent(PERSISTENT_FILE));
     
     s = getContent(LAST_MODIFIED_FILE);
     if (s != null) {
@@ -204,6 +201,7 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     startOnLaunch = old.startOnLaunch;
+    bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
     archive = new Archive(bundleDir, rev, is);
     nativeLibs = getNativeCode();
