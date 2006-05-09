@@ -105,6 +105,7 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     startOnLaunch = old.startOnLaunch;
+    bPersistent = old.bPersistent;
     archive = new Archive(is);
     setClassPath();
   }
