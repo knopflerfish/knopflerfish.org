@@ -172,6 +172,13 @@ public class Framework {
   
   private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
+  /**
+   * The file where we store the class path
+   */
+  private final static String CLASSPATH_DIR = "classpath";
+  private final static String BOOT_CLASSPATH_FILE = "boot";
+  private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
+
 
   /**
    * Whether the framework supports extension bundles or not.
@@ -405,13 +412,10 @@ public class Framework {
       active = false;
       List slist = storage.getStartOnLaunchBundles();
       shuttingdown = true;
+      systemBundle.systemShuttingdown();
       if (startLevelService != null) {
         startLevelService.shutdown();
       }
-      systemBundle.systemShuttingdown();
-      try {
-        systemBundle.stop();
-      } catch (BundleException ignore) {}
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
 	Bundle b = bundles.getBundle((String)slist.get(i));
@@ -432,6 +436,49 @@ public class Framework {
       List all = bundles.getBundles();
       for (Iterator i = all.iterator(); i.hasNext(); ) {
 	((BundleImpl)i.next()).purge();
+      }
+    }
+
+    StringBuffer bootClasspath = new StringBuffer();
+    StringBuffer frameworkClasspath = new StringBuffer();
+    for (Iterator i = bundles.getFragmentBundles(systemBundle).iterator(); i.hasNext(); ) {
+      BundleImpl eb = (BundleImpl)i.next();
+      String path = eb.archive.getJarLocation();
+      StringBuffer sb = eb.isBootClassPathExtension() ? bootClasspath : frameworkClasspath;
+      sb.append(path);
+      if (i.hasNext()) {
+        sb.append(File.pathSeparator);
+      }
+    }
+
+    try {
+      FileTree storage = Util.getFileStorage(CLASSPATH_DIR);
+      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
+      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
+      if (bootClasspath.length() > 0) {
+        saveStringBuffer(bcpf, bootClasspath);
+      } else {
+        bcpf.delete();
+      }
+      if (frameworkClasspath.length() > 0) {
+        saveStringBuffer(fcpf, frameworkClasspath);
+      } else {
+        fcpf.delete();
+      }
+    } catch (IOException e) {
+      System.err.println("Could not save classpath " + e);
+    }
+  }
+
+
+  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
+    PrintStream out = null;
+    try {
+      out = new PrintStream(new FileOutputStream(f));
+      out.println(content.toString());
+    } finally {
+      if (out != null) {
+	out.close();
       }
     }
   }
