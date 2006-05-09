@@ -77,13 +77,6 @@ public class SystemBundle extends BundleImpl {
    */
   private final String exportPackageString;
 
-  /**
-   * The file where we store the class path
-   */
-  private final static String CLASSPATH_DIR = "classpath";
-  private final static String BOOT_CLASSPATH_FILE = "boot";
-  private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
-
 
   /**
    * Construct the System Bundle handle.
@@ -222,50 +215,8 @@ public class SystemBundle extends BundleImpl {
 
 
   synchronized public void stop(int exitcode) throws BundleException {
-    if (Main.restarting) return;
     secure.checkExecuteAdminPerm(this);
-
-    StringBuffer bootClasspath = new StringBuffer();
-    StringBuffer frameworkClasspath = new StringBuffer();
-    for (Iterator iter = framework.bundles.getFragmentBundles(this).iterator();
-         iter.hasNext(); ) {
-      BundleImpl eb = (BundleImpl)iter.next();
-      String path = eb.archive.getJarLocation();
-      StringBuffer sb = eb.isBootClassPathExtension() ? bootClasspath : frameworkClasspath;
-      sb.append(path);
-      if (iter.hasNext()) {
-        sb.append(File.pathSeparator);
-      }
-    }
-
-    try {
-      FileTree storage = Util.getFileStorage(CLASSPATH_DIR);
-      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
-      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
-      if (bootClasspath.length() > 0) {
-        saveStringBuffer(bcpf, bootClasspath);
-      } else {
-        bcpf.delete();
-      }
-      if (frameworkClasspath.length() > 0) {
-        saveStringBuffer(fcpf, frameworkClasspath);
-      } else {
-        fcpf.delete();
-      }
-    } catch (IOException e) {
-      throw new BundleException("Could not save classpath " + e);
-    } finally {
-      // probably need to add security here.
-      if (Main.bootMgr != 0) {
-        try {
-          framework.stopBundle(Main.bootMgr);
-        } catch (BundleException e) {
-          System.err.println("Stop of BootManager failed, " +
-                             e.getNestedException());
-        }
-      }
-      secure.callMainShutdown(exitcode);
-    }
+    secure.callMainShutdown(exitcode);
   }
 
 
@@ -433,17 +384,4 @@ public class SystemBundle extends BundleImpl {
       
     } while (true);
   }
-
-  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
-    PrintStream out = null;
-    try {
-      out = new PrintStream(new FileOutputStream(f));
-      out.println(content.toString());
-    } finally {
-      if (out != null) {
-	out.close();
-      }
-    }
-  }
-
 }

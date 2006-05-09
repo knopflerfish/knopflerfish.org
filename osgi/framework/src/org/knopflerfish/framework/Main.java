@@ -237,7 +237,7 @@ public class Main {
   private static void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
-    boolean hasBeenShutdown = false;
+    boolean doNotLaunch = false;
 
     for (int i = startOffset; i < args.length; i++) {
       try {
@@ -287,9 +287,10 @@ public class Main {
           } else {
             framework.launch(0);
           }
+          doNotLaunch = true;
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
-          hasBeenShutdown = true;
+          doNotLaunch = true;
           framework.shutdown();
           println("Framework shutdown", 0);
         } else if ("-sleep".equals(args[i])) {
@@ -413,7 +414,7 @@ public class Main {
       }
     }
 
-    if (!framework.active && !hasBeenShutdown) {
+    if (!framework.active && !doNotLaunch) {
       try {
         framework.launch(0);
         println("Framework launched", 0);
