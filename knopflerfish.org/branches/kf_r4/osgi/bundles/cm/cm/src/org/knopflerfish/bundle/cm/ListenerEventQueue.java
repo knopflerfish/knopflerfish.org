@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,110 +44,123 @@ import org.osgi.framework.BundleContext;
  */
 final public class ListenerEventQueue implements Runnable {
 
-	/**
-	 ** The thread running this object.
-	 **/
+  /**
+   ** The thread running this object.
+   **/
+  private Thread thread;
 
-	private Thread thread;
+  private final Object threadLock = new Object();
 
-	private final Object threadLock = new Object();
+  /**
+   ** The queue of events.
+   **/
+  private Vector queue = new Vector();
 
-	/**
-	 ** The queue of events.
-	 **/
+  /**
+   * The bundle context
+   */
+  private BundleContext bc;
 
-	private Vector queue = new Vector();
+  /**
+   * The queue has been stopped.
+   */
+  private boolean quit = false;
 
-	/**
-	 * The bundle context
-	 */
-	private BundleContext bc;
+  /**
+   ** Construct an UpdateQueue given a  
+   ** BundleContext.
+   **
+   ** @param bc The BundleContext to use.
+   **/
+  ListenerEventQueue(BundleContext bc) {
+    this.bc = bc;
+  }
 
-	/**
-	 ** Construct an UpdateQueue given a  
-	 ** BundleContext.
-	 **
-	 ** @param bc The BundleContext to use.
-	 **/
-	ListenerEventQueue(BundleContext bc) {
-		this.bc = bc;
-	}
-
-	/**
-	 ** Overide of Thread.run().
-	 **/
-
-	public void run() {
-		while (true) {
-			ListenerEvent update = dequeue();
-			if (update == null) {
-				return;
-			} 
-			else {
-				try {
-					update.sendEvent(bc);
+  /**
+   ** Overide of Thread.run().
+   **/
+  public void run() {
+    while (true) {
+      ListenerEvent update = dequeue();
+      if (update == null) {
+        return;
+      } 
+      else {
+        try {
+          update.sendEvent(bc);
 					
-				} catch (Throwable t) {
-					Activator.log.error("[CM] Error while sending event", t);
-				}
-			}
-		}
-	}
+        } catch (Throwable t) {
+          Activator.log.error("[CM] Error while sending event", t);
+        }
+      }
+    }
+  }
 
-	/**
-	 ** Add an entry to the end of the queue.
-	 **
-	 ** @param update The Update to add to the queue.
-	 **
-	 **/
-	public synchronized void enqueue(ListenerEvent update) {
-		if (update == null) {
-			return;
-		}	
-		queue.addElement(update);
-		attachNewThreadIfNeccesary();
-		notifyAll();
-	}
+  /**
+   ** Add an entry to the end of the queue.
+   **
+   ** @param update The Update to add to the queue.
+   **
+   **/
+  public synchronized void enqueue(ListenerEvent update) {
+    if (update == null || quit) {
+      return;
+    }	
+    queue.addElement(update);
+    attachNewThreadIfNeccesary();
+    notifyAll();
+  }
 
-	/**
-	 ** Get and remove the next entry from the queue.
-	 ** 
-	 ** If the queue is empty this method waits until an
-	 ** entry is available.
-	 **
-	 ** @return The Hashtable entry removed from the queue.
-	 **/
-	
-	private synchronized ListenerEvent dequeue() {
-		if (queue.isEmpty()) {
-			try {
-				wait(5000);
-			} catch (InterruptedException ignored) {
-			}
-		}
-		if (queue.isEmpty()) {
-			detachCurrentThread();
-			return null;
-		} else {
-			ListenerEvent u = (ListenerEvent) queue.elementAt(0);
-			queue.removeElementAt(0);
-			return u;
-		}
-	}
+  /**
+   ** Get and remove the next entry from the queue.
+   ** 
+   ** If the queue is empty this method waits until an
+   ** entry is available.
+   **
+   ** @return The Hashtable entry removed from the queue.
+   **/
+  private synchronized ListenerEvent dequeue() {
+    if (!quit && queue.isEmpty()) {
+      try {
+        wait(5000);
+      } catch (InterruptedException ignored) {
+      }
+    }
+    if (queue.isEmpty()) {
+      detachCurrentThread();
+      return null;
+    } else {
+      ListenerEvent u = (ListenerEvent) queue.elementAt(0);
+      queue.removeElementAt(0);
+      return u;
+    }
+  }
 
-	void attachNewThreadIfNeccesary() {
-		synchronized (threadLock) {
-			if (thread == null) {
-				thread = new Thread(this);
-				thread.setDaemon(true);
-				thread.start();
-			}
-		}
-	}
+  void attachNewThreadIfNeccesary() {
+    synchronized (threadLock) {
+      if (thread == null && !quit) {
+        thread = new Thread(this);
+        thread.setDaemon(true);
+        thread.start();
+      }
+    }
+  }
 
-	void detachCurrentThread() {
-		synchronized (threadLock) {
-			thread = null;
-		}
-	}	
+  void detachCurrentThread() {
+    synchronized (threadLock) {
+      thread = null;
+    }
+  }
+
+  synchronized void stop() {
+    quit = true;
+    notifyAll();
+    synchronized (threadLock) {
+      if (thread != null) {
+        try {
+          thread.join(3000);
+        } catch (InterruptedException _ignore) { }
+      }
+    }
+  }
 }

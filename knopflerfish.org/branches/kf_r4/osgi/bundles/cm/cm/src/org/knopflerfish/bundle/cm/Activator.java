@@ -60,7 +60,10 @@ public class Activator implements BundleActivator {
 
     static ServiceRegistration serviceRegistration;
 
+    static ConfigurationAdminFactory configAdminFactory = null;
+
     static boolean R3_TESTCOMPLIANT = false;
+
 
     public void start(BundleContext bc) {
         Activator.bc = bc;
@@ -93,15 +96,18 @@ public class Activator implements BundleActivator {
 
     private void createAndRegisterConfigurationAdminFactory() {
         throwIfBundleContextIsNull();
-        File storeDir = getStoreDir();
-        serviceRegistration = bc.registerService(ConfigurationAdmin.class
-                .getName(), new ConfigurationAdminFactory(storeDir), null);
+        configAdminFactory = new ConfigurationAdminFactory(getStoreDir());
+        serviceRegistration = bc.registerService(ConfigurationAdmin.class.getName(),
+                                                 configAdminFactory, null);
     }
 
     private void unregisterConfigurationAdminFactory() {
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
             serviceRegistration = null;
+        }
+        if (configAdminFactory != null) {
+          configAdminFactory.stop();
         }
     }
 

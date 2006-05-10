@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
         pluginManager = new PluginManager();
 
-	    listenerEventQueue = new ListenerEventQueue(Activator.bc);
+        listenerEventQueue = new ListenerEventQueue(Activator.bc);
 
         configurationDispatcher = new ConfigurationDispatcher(pluginManager);
 
@@ -145,6 +145,15 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
         lookForAlreadyRegisteredServices();
     }
+
+
+    /**
+     *
+     */
+    void stop() {
+      listenerEventQueue.stop();
+    }
+
 
     private void lookForAlreadyRegisteredServices() {
         lookForAlreadyRegisteredServices(ConfigurationPlugin.class);
