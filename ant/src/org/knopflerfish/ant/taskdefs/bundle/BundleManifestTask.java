@@ -462,7 +462,7 @@ public class BundleManifestTask extends Task {
             } catch (ManifestException me) {
               throw new BuildException
                 ( "Failed to add main section attribute for property '"
-                  +key+"' with value '"+attrValue+".", me, getLocation());
+                  +key+"' with value '"+attrValue+"'.", me, getLocation());
             }
           }
         }
