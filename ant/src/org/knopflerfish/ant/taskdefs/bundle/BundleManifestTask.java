@@ -446,6 +446,7 @@ public class BundleManifestTask extends Task {
     if (null!=attributePropertyPrefix) {
       int       prefixLength = attributePropertyPrefix.length();
       Project   project      = getProject();
+      Manifest.Section mainS = mf.getMainSection();
       Hashtable properties   = project.getProperties();
       for (Enumeration pe = properties.keys(); pe.hasMoreElements();) {
         String key = (String) pe.nextElement();
@@ -453,22 +454,87 @@ public class BundleManifestTask extends Task {
           String attrName  = key.substring(prefixLength);
           String attrValue = (String) properties.get(key);
           if(!BUNDLE_EMPTY_STRING.equals(attrValue)) {
+            Manifest.Attribute attr = mainS.getAttribute(attrName);
+            if (null!=attr) {
+              throw new BuildException
+                ( "Can not add main section attribute for property '"
+                  +key+"' with value '"+attrValue+"' since a "
+                  +"main section attribute with that name exists: '"
+                  +attr.getName() +": "+attr.getValue() +"'.",
+                  getLocation());
+            }
             try {
-              Manifest.Attribute attr = new Manifest.Attribute(attrName,
-                                                               attrValue);
+              attr = new Manifest.Attribute(attrName, attrValue);
               mf.addConfiguredAttribute(attr);
               log("from propety '" +attrName +": "+attrValue+"'.",
                   Project.MSG_VERBOSE);
             } catch (ManifestException me) {
               throw new BuildException
                 ( "Failed to add main section attribute for property '"
-                  +key+"' with value '"+attrValue+"'.", me, getLocation());
+                  +key+"' with value '"+attrValue+"'.\n"+me.getMessage(),
+                  me, getLocation());
             }
           }
         }
       }
     }
   }
+
+  /**
+   * We must ensure that the case used in attribute names when they
+   * are mapped to properties by
+   * <code>updatePropertiesFromMainSectionAttributeValues()</code> are
+   * the same as the one used in the build files, i.e., the one used
+   * in the OSGi specification. If not it may happen that a we get two
+   * propreties defined for the same attribute (with different cases)
+   * if this happens there will be an error when adding back the
+   * properties to the generated manifest.  Thus we need a list of all
+   * OSGi specified attribute names in the case used in the
+   * specification.
+   */
+  private static final String[] osgiAttrNames = new String[]{
+    "Application-Icon",
+    "Bundle-APIVendor",
+    "Bundle-Activator",
+    "Bundle-Category",
+    "Bundle-Classpath",
+    "Bundle-Config",
+    "Bundle-ContactAddress",
+    "Bundle-Copyright",
+    "Bundle-Description",
+    "Bundle-DocURL",
+    "Bundle-Localization",
+    "Bundle-ManifestVersion",
+    "Bundle-Name",
+    "Bundle-NativeCode",
+    "Bundle-RequiredExecutionEnvironment",
+    "Bundle-SubversionURL",
+    "Bundle-SymbolicName",
+    "Bundle-UUID",
+    "Bundle-UpdateLocation",
+    "Bundle-Vendor",
+    "Bundle-Version",
+    "DynamicImport-Package",
+    "Export-Package",
+    "Export-Service",
+    "Fragment-Host",
+    "Import-Package",
+    "Import-Service",
+    "Require-Bundle",
+    "Service-Component",
+    };
+
+  /**
+   * Mapping from attribute key, all lowercase, to attribute name
+   * with case according to the OSGi specification.
+   */
+  private static final Hashtable osgiAttrNamesMap = new Hashtable();
+  static {
+    for (int i=0; i<osgiAttrNames.length; i++) {
+      osgiAttrNamesMap.put(osgiAttrNames[i].toLowerCase(), osgiAttrNames[i]);
+    }
+  }
+
 
   /**
    * If <code>attributePropertyPrefix</code> is set then iterate over
@@ -487,7 +553,10 @@ public class BundleManifestTask extends Task {
       for (Enumeration ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
         String key = (String) ae.nextElement();
         Manifest.Attribute attr = mainS.getAttribute(key);
-        String propKey = attributePropertyPrefix + attr.getName();
+        // Ensure that the default case is used for OSGi specified attributes
+        String propKey = attributePropertyPrefix
+          + (osgiAttrNamesMap.containsKey(key)
+             ? osgiAttrNamesMap.get(key) : attr.getName() );
         String propVal = attr.getValue();
         log("setting '" +propKey +"'='"+propVal+"'.", Project.MSG_VERBOSE);
         project.setProperty(propKey,propVal);
