@@ -50,6 +50,7 @@ public class Alias {
     { "Ignite", "psc1k" },
     { "PowerPC", "power", "ppc", "ppcbe" },
     { "x86", "pentium", "i386", "i486", "i586", "i686" },
+    { "x86-64", "amd64" }
   };
 
 
