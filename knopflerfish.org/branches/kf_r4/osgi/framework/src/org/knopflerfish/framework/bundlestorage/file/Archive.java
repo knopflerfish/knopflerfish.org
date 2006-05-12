@@ -305,6 +305,10 @@ class Archive {
       if (subJar == null) {
           throw new IOException("No such JAR component: " + path);
       }
+      // If directory make sure that it ends with "/"
+      if (subJar.isDirectory() && !path.endsWith("/")) {
+        subJar = jar.getEntry(path + "/");
+      }
       file = a.file;
     } else {
       file = findFile(a.file, path);
@@ -423,7 +427,7 @@ class Archive {
       if (jar != null) {
         if (subJar != null) {
           if (subJar.isDirectory()) {
-            ze = jar.getEntry(subJar.getName() + "/" + component);
+            ze = jar.getEntry(subJar.getName() + component);
           } else {
             JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
             do {
