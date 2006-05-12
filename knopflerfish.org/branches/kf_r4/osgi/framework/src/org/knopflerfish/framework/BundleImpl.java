@@ -1523,18 +1523,21 @@ class BundleImpl implements Bundle {
    *
    */
   void addResourceEntries(Vector res, String path, String pattern, boolean recurse) {
-    for (Enumeration e = getEntryPaths(path); e.hasMoreElements(); ) {
-      String fp = (String)e.nextElement();
-      if (fp.endsWith("/")) {
-        if (recurse) {
-          addResourceEntries(res, fp, pattern, recurse);
-        }
-      } else {
-        int l = fp.lastIndexOf('/');
-        if (pattern == null || Util.filterMatch(pattern, fp.substring(l + 1))) {
-          URL url = getURL(-1, -1, -1, fp);
-          if (url != null) {
-            res.add(url);
+    Enumeration e = archive.findResourcesPath(path);
+    if (e != null) {
+      while (e.hasMoreElements()) {
+        String fp = (String)e.nextElement();
+        if (fp.endsWith("/")) {
+          if (recurse) {
+            addResourceEntries(res, fp, pattern, recurse);
+          }
+        } else {
+          int l = fp.lastIndexOf('/');
+          if (pattern == null || Util.filterMatch(pattern, fp.substring(l + 1))) {
+            URL url = getURL(-1, -1, -1, fp);
+            if (url != null) {
+              res.add(url);
+            }
           }
         }
       }
