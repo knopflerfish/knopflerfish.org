@@ -36,9 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.InputStream;
 import java.security.ProtectionDomain;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -162,6 +160,37 @@ class PermissionOps {
   }
 
   //
+  // BundleArchive secure operations
+  //
+
+  InputStream callGetInputStream(final BundleArchive archive,
+                                 final String name,
+                                 final int ix) {
+    return archive.getInputStream(name, ix);
+  }
+
+
+  Enumeration callFindResourcesPath(final BundleArchive archive,
+                                    final String path) {
+    return archive.findResourcesPath(path);
+  }
+
+  //
+  // BundleClassLoader secure operations
+  //
+
+  Object callSearchFor(final BundleClassLoader cl,
+                       final String name,
+                       final String pkg,
+                       final String path,
+                       final BundleClassLoader.SearchAction action,
+                       final boolean onlyFirst,
+                       final BundleClassLoader requestor,
+                       final HashSet visited) {
+    return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+  }
+
+  //
   // BundleImpl Secure operations
   //
 
@@ -186,11 +215,6 @@ class PermissionOps {
   }
 
 
-  void callUninstall1(final BundleImpl b) {
-    b.uninstall1();
-  }
-
-
   void callStartOnLaunch(final BundleImpl b, final boolean flag) {
     b.startOnLaunch(flag);
   }
@@ -203,6 +227,17 @@ class PermissionOps {
 
   ClassLoader callGetClassLoader0(final BundleImpl b) {
     return b.getClassLoader0();
+  }
+
+
+  HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
+    return b.getHeaders0(locale);
+  }
+
+
+  Enumeration callFindEntries0(final BundleImpl b, final String path,
+                               final String filePattern, final boolean recurse) {
+    return b.findEntries0(path, filePattern, recurse);
   }
 
   //

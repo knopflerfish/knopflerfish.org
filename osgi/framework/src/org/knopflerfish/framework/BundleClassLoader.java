@@ -71,6 +71,11 @@ final public class BundleClassLoader extends ClassLoader {
   private static boolean isJava2;
 
   /**
+   * Handle to secure operations.
+   */
+  final PermissionOps secure;
+
+  /**
    * Bundle classloader protect domain.
    */
   final ProtectionDomain protectionDomain;
@@ -178,8 +183,10 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Create class loader for specified bundle.
    */
-  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags, ProtectionDomain pd) {
+  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags,
+                    ProtectionDomain pd, PermissionOps secure) {
     super(parent); //otherwise getResource will bypass OUR parent
+    this.secure = secure;
     protectionDomain = pd;
     this.bpkgs = bpkgs;
     archive = ba;
@@ -209,22 +216,24 @@ final public class BundleClassLoader extends ClassLoader {
         return parent.loadClass(name);
       } catch (ClassNotFoundException e) { }
     }
-    String path;
-    String pkg;
-    int pos = name.lastIndexOf('.');
-    if (pos != -1) {
-      path = name.replace('.', '/');
-      pkg = name.substring(0, pos);
-    } else {
-      path = name;
-      pkg = null;
+    if (secure.okClassAdminPerm(bpkgs.bundle)) {
+      String path;
+      String pkg;
+      int pos = name.lastIndexOf('.');
+      if (pos != -1) {
+        path = name.replace('.', '/');
+        pkg = name.substring(0, pos);
+      } else {
+        path = name;
+        pkg = null;
+      }
+      Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class",
+                                              classSearch, true, this, null);
+      if (res != null) {
+        return res;
+      }
     }
-    Class res = (Class)searchFor(name, pkg, path + ".class", classSearch, true, this, null);
-    if (res != null) {
-      return res;
-    } else {
-      throw new ClassNotFoundException(name);
-    }
+    throw new ClassNotFoundException(name);
   }
 
 
@@ -430,36 +439,27 @@ final public class BundleClassLoader extends ClassLoader {
 
 
   /**
-   * Get the resource with the given name in this bundle.
-   *
-   */
-  URL getBundleResource(String name) {
-    Enumeration res = getBundleResources(name, true);
-    if (res != null) {
-      return (URL)res.nextElement();
-    } else {
-      return null;
-    }
-  }
-
-  
-  /**
    * Get all the resources with the given name in this bundle.
    *
    */
   Enumeration getBundleResources(String name, boolean onlyFirst) {
-    if (debug) {
-      Debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s") + ": " + name);
-    }
-    String pkg = null;
-    int pos = name.lastIndexOf('/');
-    if (pos > 0) {
-      int start = name.startsWith("/") ? 1 : 0;
-      pkg = name.substring(start, pos).replace('/', '.');
+    if (secure.okResourceAdminPerm(bpkgs.bundle)) {
+      if (debug) {
+        Debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s") + ": " + name);
+      }
+      String pkg = null;
+      int pos = name.lastIndexOf('/');
+      if (pos > 0) {
+        int start = name.startsWith("/") ? 1 : 0;
+        pkg = name.substring(start, pos).replace('/', '.');
+      } else {
+        pkg = null;
+      }
+      return (Enumeration)secure.callSearchFor(this, null, pkg, name, resourceSearch,
+                                               onlyFirst, this, null);
     } else {
-      pkg = null;
+      return null;
     }
-    return (Enumeration)searchFor(null, pkg, name, resourceSearch, onlyFirst, this, null);
   }
 
 
@@ -560,8 +560,8 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @return Object returned from action class.
    */
-  protected Object searchFor(String name, String pkg, String path, SearchAction action,
-                             boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
+  Object searchFor(String name, String pkg, String path, SearchAction action,
+                   boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
     BundlePackages pbp;
     ExportPkg ep;
 
@@ -587,7 +587,8 @@ final public class BundleClassLoader extends ClassLoader {
               Debug.println(this + " Import search: " + path +
                             " from #" + pbp.bundle.id);
             }
-            return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+            return secure.callSearchFor(cl, name, pkg, path, action,
+                                        onlyFirst, requestor, visited);
           }
           if (debug) {
             Debug.println(this + " No import found: " + path);
@@ -611,8 +612,8 @@ final public class BundleClassLoader extends ClassLoader {
                   Debug.println(this + " Required bundle search: " +
                                 path + " from #" + pbp.bundle.id);
                 }
-                Object res = cl.searchFor(name, pkg, path, action, onlyFirst,
-                                          requestor, visited);
+                Object res = secure.callSearchFor(cl, name, pkg, path, action,
+                                                  onlyFirst, requestor, visited);
                 if (res != null) {
                   return res;
                 }
@@ -672,7 +673,8 @@ final public class BundleClassLoader extends ClassLoader {
             Debug.println(this + " Dynamic import search: " +
                           path + " from #" + pbp.bundle.id);
           }
-          return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+          return secure.callSearchFor(cl, name, pkg, path, action,
+                                      onlyFirst, requestor, visited);
         }
       }
       if (debug) {

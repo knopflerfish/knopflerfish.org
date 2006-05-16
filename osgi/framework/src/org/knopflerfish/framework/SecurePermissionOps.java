@@ -310,9 +310,52 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
+  //
+  // BundleArchive secure operations
+  //
+
+  InputStream callGetInputStream(final BundleArchive archive,
+                                 final String name,
+                                 final int ix) {
+    return (InputStream)AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          return archive.getInputStream(name, ix);
+        }
+      });
+  }
+
+
+  Enumeration callFindResourcesPath(final BundleArchive archive,
+                                   final String path) {
+    return (Enumeration)AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          return archive.findResourcesPath(path);
+        }
+      });
+  }
 
   //
-  // BundleImpl Secure operations
+  // BundleClassLoader secure operations
+  //
+
+  Object callSearchFor(final BundleClassLoader cl,
+                       final String name,
+                       final String pkg,
+                       final String path,
+                       final BundleClassLoader.SearchAction action,
+                       final boolean onlyFirst,
+                       final BundleClassLoader requestor,
+                       final HashSet visited) {
+    return AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+        }
+      });
+  }
+
+
+  //
+  // BundleImpl secure operations
   //
 
   void callStart0(final BundleImpl b) throws BundleException {
@@ -364,16 +407,6 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  void callUninstall1(final BundleImpl b) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          b.uninstall1();
-          return null;
-        }
-      });
-  }
-
-
   void callStartOnLaunch(final BundleImpl b, final boolean flag) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
@@ -403,6 +436,26 @@ class SecurePermissionOps extends PermissionOps {
         });
   }
 
+
+  HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
+    return (HeaderDictionary)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return b.getHeaders0(locale);
+          }
+        });
+  }
+
+
+  Enumeration callFindEntries0(final BundleImpl b, final String path,
+                               final String filePattern, final boolean recurse) {
+    return (Enumeration)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return b.findEntries0(path, filePattern, recurse);
+          }
+        });
+  }
 
   //
   // Bundles Secure operation

@@ -689,6 +689,10 @@ class BundleImpl implements Bundle {
     if (isExtension()) {
       secure.checkExtensionLifecycleAdminPerm(this);
     }
+    secure.callUninstall0(this);
+  }
+
+  void uninstall0() {
     boolean wasResolved = false;
 
     try {
@@ -725,7 +729,8 @@ class BundleImpl implements Bundle {
       } else {
         if (bpkgs.unregisterPackages(false)) {
           if (classLoader != null) {
-            secure.callUninstall0(this);
+            ((BundleClassLoader)classLoader).purge();
+            classLoader = null;
           } else {
             secure.purge(this, protectionDomain);
             archive.purge();
@@ -742,7 +747,18 @@ class BundleImpl implements Bundle {
       bpkgs = null;
       bactivator = null;
       if (bundleDir != null) {
-        secure.callUninstall1(this);
+        if (!bundleDir.delete()) {
+          // Bundle dir is not deleted completely, make sure we mark
+          // it as uninstalled for next framework restart
+          try {
+            archive.setStartLevel(-2); // Mark as uninstalled
+          } catch (Exception e) {
+            Debug.println("Failed to mark bundle " + id +
+                          " as uninstalled, " + bundleDir +
+                          " must be deleted manually: " + e);
+          }
+        }
+        bundleDir = null;
       }
 
       // id, location and headers survices after uninstall.
@@ -765,28 +781,6 @@ class BundleImpl implements Bundle {
     case UNINSTALLED:
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
-  }
-
-
-  void uninstall0() {
-    ((BundleClassLoader)classLoader).purge();
-    classLoader = null;
-  }
-
-
-  void uninstall1() {
-    if (!bundleDir.delete()) {
-      // Bundle dir is not deleted completely, make sure we mark
-      // it as uninstalled for next framework restart
-      try {
-        archive.setStartLevel(-2); // Mark as uninstalled
-      } catch (Exception e) {
-        Debug.println("Failed to mark bundle " + id +
-                      " as uninstalled, " + bundleDir +
-                      " must be deleted manually: " + e);
-      }
-    }
-    bundleDir = null;
   }
 
 
@@ -881,14 +875,22 @@ class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#getResource(String name)
    */
   public URL getResource(String name) {
-    if (secure.okResourceAdminPerm(this)) {
-      checkUninstalled();
-      if (isFragment()) {
-        return null;
-      }
+    // ResourceAdminPermission checked in the classloader.
+    checkUninstalled();
+    if (isFragment()) {
+      return null;
+    }
+    if (state == INSTALLED && !secure.okResourceAdminPerm(this)) {
+      // We don't want to create a classloader unless we have permission to.
+      return null;
+    }
+    if (getUpdatedState() != INSTALLED) {
       BundleClassLoader cl = (BundleClassLoader)getClassLoader();
       if (cl != null) {
-        return cl.getBundleResource(name);
+        Enumeration res = cl.getBundleResources(name, true);
+        if (res != null) {
+          return (URL)res.nextElement();
+        }
       }
     }
     return null;
@@ -1032,7 +1034,7 @@ class BundleImpl implements Bundle {
       } else {
         frags = null;
       }
-      return new BundleClassLoader(bpkgs, archive, frags, protectionDomain);
+      return new BundleClassLoader(bpkgs, archive, frags, protectionDomain, secure);
     }
   }
 
@@ -1504,7 +1506,18 @@ class BundleImpl implements Bundle {
           getUpdatedState();
         }
       }
-      Vector res = new Vector();
+      return secure.callFindEntries0(this, path, filePattern, recurse);
+    } else {
+      return null;
+    }
+  }
+
+
+  /**
+   *
+   */
+  Enumeration findEntries0(String path, String filePattern, boolean recurse) {
+    Vector res = new Vector();
       if (isFragmentHost()) {
         for (Iterator i = fragments.iterator(); i.hasNext(); ) {
           BundleImpl fb = (BundleImpl)i.next();
@@ -1513,9 +1526,6 @@ class BundleImpl implements Bundle {
       }
       addResourceEntries(res, path, filePattern, recurse);
       return res.size() != 0 ? res.elements() : null;
-    } else {
-      return null;
-    }
   }
 
 
@@ -1552,7 +1562,7 @@ class BundleImpl implements Bundle {
     if (secure.okResourceAdminPerm(this)) {
       checkUninstalled();
       try {
-        InputStream is = archive.getInputStream(name, 0);
+        InputStream is = secure.callGetInputStream(archive, name, 0);
         if (is != null) {
           is.close();
           return getURL(-1, -1, -1, name);
@@ -1569,7 +1579,7 @@ class BundleImpl implements Bundle {
   public Enumeration getEntryPaths(String path) {
     if (secure.okResourceAdminPerm(this)) {
       checkUninstalled();
-      return archive.findResourcesPath(path);
+      return secure.callFindResourcesPath(archive, path);
     } else {
       return null;
     }
@@ -1678,10 +1688,10 @@ class BundleImpl implements Bundle {
    */
   public Dictionary getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
-    return getHeaders0(locale);
+    return secure.callGetHeaders0(this, locale);
   }
 
-  private HeaderDictionary getHeaders0(String locale) {
+  HeaderDictionary getHeaders0(String locale) {
     if (cachedRawHeaders == null) {
       cachedRawHeaders = archive.getUnlocalizedAttributes();
     }
@@ -1732,16 +1742,19 @@ class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#getResources(String name)
    */
   public Enumeration getResources(String name) throws IOException {
-    if (secure.okResourceAdminPerm(this)) {
-      checkUninstalled();
-      if (isFragment()) {
-        return null;
-      }
-      if (getUpdatedState() != INSTALLED) {
-        BundleClassLoader cl = (BundleClassLoader)getClassLoader();
-        if (cl != null) {
-          return cl.getBundleResources(name, false);
-        }
+    // ResourceAdminPermission checked in the classloader.
+    checkUninstalled();
+    if (isFragment()) {
+      return null;
+    }
+    if (state == INSTALLED && !secure.okResourceAdminPerm(this)) {
+      // We don't want to create a classloader unless we have permission to.
+      return null;
+    }
+    if (getUpdatedState() != INSTALLED) {
+      BundleClassLoader cl = (BundleClassLoader)getClassLoader();
+      if (cl != null) {
+        return cl.getBundleResources(name, false);
       }
     }
     return null;

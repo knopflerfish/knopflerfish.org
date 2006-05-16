@@ -77,6 +77,12 @@ class Archive {
   final private static boolean unpack = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
 
   /**
+   * Controls if we should try to unpack bundles with sub-jars and
+   * native code.
+   */
+  final private static boolean alwaysUnpack = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
+
+  /**
    * Controls if file: URLs should be referenced only, not copied
    * to bundle storage dir
    */
@@ -121,90 +127,79 @@ class Archive {
 
   Archive(File dir, int rev, InputStream is, URL source) throws IOException {
     BufferedInputStream bis = new BufferedInputStream(is, 8192);
-    JarInputStream ji = null;
-    boolean doUnpack = false;
-
-
+    ZipInputStream zi = null;
 
     // Handle reference: URLs by overriding global flag
     if(source != null && "reference".equals(source.getProtocol())) {
       bReference = true;
     }
 
-    if (unpack) {
-      bis.mark(8192);
-      ji = new JarInputStream(bis);
+    if (alwaysUnpack) {
+      zi = new ZipInputStream(bis);
+    } else if (unpack) {
+      // Is 16000 enough?
+      bis.mark(16000);
+      JarInputStream ji = new JarInputStream(bis);
       manifest = ji.getManifest();
       if (manifest != null) {
-          if (checkManifest()) {
-                  doUnpack = true;
-          } 
-          else {
-                  try {
-                          bis.reset();
-                  } 
-                  catch (IOException fail) {
-                          doUnpack = true;
-                  }
-          }
-      } 
-      else {
-        // The manifest is probably not first in the file. We do not
-        // unpack to minimize disk footprint. Should we warn?
-          try {
-                  bis.reset();
-          } catch (IOException fail) {
-                  doUnpack = true;
-          }
+        if (checkManifest()) {
+          zi = ji;
+        } else {
+          bis.reset();
+        }
+      } else {
+        // Manifest probably not first in JAR, should we complain?
+        // Now, try to use the jar anyway. Maybe the manifest is there.
+        bis.reset();
       }
     }
     file = new FileTree(dir, ARCHIVE + rev);
   
-    if (doUnpack) {
-      File f = new File(file, "META-INF");
-      f.mkdirs();
-      BufferedOutputStream o = new BufferedOutputStream(new FileOutputStream(new File(f, "MANIFEST.MF")));
-      try {
+  
+    if (zi != null) {
+      File f;
+      file.mkdirs();
+      if (manifest != null) {
+        f = new File(file, "META-INF");
+        f.mkdir();
+        BufferedOutputStream o = new BufferedOutputStream(new FileOutputStream(new File(f, "MANIFEST.MF")));
+        try {
           manifest.write(o);
-      } finally {
+        } finally {
           o.close();
+        }
       }
       ZipEntry ze;
-      while ((ze = ji.getNextJarEntry()) != null) {
-          if (!ze.isDirectory()) {
-                  if(isSkipped(ze.getName())) {
-                          // Optional files are not copied to disk
-                  } 
-                  else {
-                          StringTokenizer st = new StringTokenizer(ze.getName(), "/");
-                          f = new File(file, st.nextToken());
-                          while (st.hasMoreTokens()) {
-                                  f.mkdir();
-                                  f = new File(f, st.nextToken());
-                          }
-                          loadFile(f, ji, true);
-                  }
+      while ((ze = zi.getNextEntry()) != null) {
+        if (!ze.isDirectory()) {
+          if (isSkipped(ze.getName())) {
+            // Optional files are not copied to disk
+          } else {
+            StringTokenizer st = new StringTokenizer(ze.getName(), "/");
+            f = new File(file, st.nextToken());
+            while (st.hasMoreTokens()) {
+              f.mkdir();
+              f = new File(f, st.nextToken());
+            }
+            loadFile(f, zi, true);
           }
+        }
       }
       jar = null;
-    } 
-    else {
+    } else {
       // Only copy to storage when applicable, otherwise
       // use reference
-      if(source != null && bReference && "file".equals(source.getProtocol())) {
-          refFile = new FileTree(source.getFile());
-          jar = new ZipFile(refFile);
-      } 
-      else {
-          loadFile(file, bis, true);
-          jar = new ZipFile(file);
+      if (source != null && bReference && "file".equals(source.getProtocol())) {
+        refFile = new FileTree(source.getFile());
+        jar = new ZipFile(refFile);
+      } else {
+        loadFile(file, bis, true);
+        jar = new ZipFile(file);
       }
-      if (manifest == null) {
-          manifest = getManifest();
-          //TODO something more here?
-          checkManifest();
-      }
-      
+    }
+    if (manifest == null) {
+      manifest = getManifest();
+      checkManifest();
     }
   }
 
