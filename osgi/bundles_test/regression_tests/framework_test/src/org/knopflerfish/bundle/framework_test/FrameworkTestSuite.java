@@ -3154,7 +3154,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       InputStream is1 = null ;
 
       try {
-	URL u1 = buR4.getResource("/A");
+	URL u1 = buR4.getEntry("/A");
 	is1 = u1.openStream();
 	a_cnt1 = is1.read(a1);
       }
@@ -3225,7 +3225,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       InputStream is1 = null ;
       
       try {
-	URL u1 = buR4.getResource("A");
+	URL u1 = buR4.getEntry("A");
 	is1 = u1.openStream();
 	a_cnt1 = is1.read(a1);
       }
