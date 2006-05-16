@@ -24,6 +24,7 @@
 #-Dorg.knopflerfish.framework.debug.classloader=true
 -Dorg.knopflerfish.framework.debug.startlevel=false
 -Dorg.knopflerfish.framework.debug.ldap=false
+#-Dorg.knopflerfish.framework.bundlestorage.file.always_unpack=true
 
 # Comma-separated list of packges exported by system classloader
 -Dorg.osgi.framework.system.packages=
