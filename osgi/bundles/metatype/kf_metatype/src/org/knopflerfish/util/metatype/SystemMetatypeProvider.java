@@ -283,10 +283,10 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     	}
 
     	if(defStr.startsWith("!")) {
-    		url = b.getResource(defStr.substring(1));
+    		url = b.getEntry(defStr.substring(1));
     	} 
     	else if(defStr.startsWith("/")) {
-    		url = b.getResource(defStr);
+    		url = b.getEntry(defStr);
     	} 
     	else {
     		url = new URL(defStr);
@@ -312,10 +312,10 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     	}
 
     	if(valStr.startsWith("!")) {
-    		url = b.getResource(valStr.substring(1));
+    		url = b.getEntry(valStr.substring(1));
     	} 
     	else if(valStr.startsWith("/")) {
-    		url = b.getResource(valStr);
+    		url = b.getEntry(valStr);
     	} 
     	else {
     		url = new URL(valStr);
