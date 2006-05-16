@@ -129,7 +129,6 @@ import java.util.Hashtable;
  * </pre>
  * 
  * @author Gatespace AB
- * @version $Revision: 1.1.1.1 $
  */
 
 public abstract class CommandGroupAdapter implements CommandGroup {
@@ -464,18 +463,18 @@ class DynamicCmd {
             String hname = "HELP_" + name.toUpperCase();
             Field[] f = cls.getFields();
             int match = -1;
+            boolean multiple = false;
             for (int i = 0; i < f.length; i++) {
                 String fname = f[i].getName();
                 if (fname.equals(hname)) {
-                    if (match != -1) {
-                        name = fname.substring(5);
-                    }
                     match = i;
+                    name = fname.substring(5);
+                    multiple = false;
                     break;
                 } else if (fname.startsWith(hname)) {
                     if (match != -1) {
-                        throw new Exception("Multiple matching commands for: "
-                                + hname.substring(5));
+                        multiple = true;
+                        continue;
                     }
                     match = i;
                     name = fname.substring(5);
@@ -483,6 +482,10 @@ class DynamicCmd {
             }
             if (match == -1) {
                 throw new Exception("No such command: " + name);
+            }
+            if (multiple) {
+                throw new Exception("Multiple matching commands for: "
+                                    + hname.substring(5));
             }
             help = (String[]) f[match].get(cg);
             usage = (String) cls.getField("USAGE_" + name.toUpperCase())
