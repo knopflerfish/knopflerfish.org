@@ -73,6 +73,18 @@ public class SystemBundle extends BundleImpl {
     "org.knopflerfish.framework.system.export.all_13";
 
   /**
+   * Name of system property for exporting all J2SE 1.4 packages.
+   */
+  private final static String EXPORT14 =
+    "org.knopflerfish.framework.system.export.all_14";
+
+  /**
+   * Name of system property for exporting all J2SE 1.5 packages.
+   */
+  private final static String EXPORT15 =
+    "org.knopflerfish.framework.system.export.all_15";
+
+  /**
    * Export-Package string for system packages
    */
   private final String exportPackageString;
@@ -93,6 +105,14 @@ public class SystemBundle extends BundleImpl {
 
     if("true".equals(System.getProperty(EXPORT13, "").trim())) {
       addSysPackagesFromFile(sp, "packages1.3.txt");
+    }
+
+    if("true".equals(System.getProperty(EXPORT14, "").trim())) {
+      addSysPackagesFromFile(sp, "packages1.4.txt");
+    }
+
+    if("true".equals(System.getProperty(EXPORT15, "").trim())) {
+      addSysPackagesFromFile(sp, "packages1.5.txt");
     }
 
     addSysPackagesFromFile(sp, System.getProperty(SYSPKG_FILE, null));
