@@ -997,11 +997,14 @@ class BundleImpl implements Bundle {
   /**
    * Get class loader for this bundle.
    * Create the classloader if we haven't done this previously.
+   * This method can only be called when the bundle is resolved.
+   *
+   * @return Bundles classloader.
    */
   ClassLoader getClassLoader() {
     if (classLoader == null) {
       synchronized (this) {
-        if (classLoader == null) {
+        if (classLoader == null && (state & RESOLVED_FLAGS) != 0) {
           classLoader = secure.callGetClassLoader0(this);
         }
       }
