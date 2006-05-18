@@ -117,42 +117,28 @@ class Services {
             throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
           }
         }
-	Class c = null;
-	Class tsc = sc;
-	for (ClassLoader cl = scl; cl != null; cl = tsc.getClassLoader()) {
-	  try {
-	    c = cl.loadClass(classes[i]);
-	    break;
-	  } catch (ClassNotFoundException e) { }
-	  tsc = tsc.getSuperclass();
-	}
-	if (c == null) {
-	  try {
-	    c = Class.forName(classes[i]);
-	  } catch (ClassNotFoundException e) {
-	    // <workaround> see http://intranet/bugzilla/show_bug.cgi?id=22
-	    try {
-	      ClassLoader bcl = bundle.getClassLoader();
-
-	      if (bcl != null) {
-		c = bcl.loadClass(classes[i]);
-	      } else {
-		c = Class.forName(classes[i]);
-	      }
-	    } catch (ClassNotFoundException exp) {
-	      
-	      throw new IllegalArgumentException("Class does not exist: " + classes[i]);
-	      
-	    }
-	   // </workaround>
-
-	   // old: throw new IllegalArgumentException("Class does not exist: " + classes[i]);
-
-	  }
-	}
-	if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
-	  throw new IllegalArgumentException("Object " + service + " is not an instance of " + classes[i]);
-	}
+	if (!(service instanceof ServiceFactory)) {
+          Class c = null;
+          Class tsc = sc;
+          for (ClassLoader cl = scl; cl != null; cl = tsc.getClassLoader()) {
+            try {
+              c = cl.loadClass(classes[i]);
+              break;
+            } catch (ClassNotFoundException e) { }
+            tsc = tsc.getSuperclass();
+          }
+          if (c == null) {
+            try {
+              c = Class.forName(classes[i]);
+            } catch (ClassNotFoundException e) {
+              throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+            }
+          }
+          if (!c.isInstance(service)) {
+            throw new IllegalArgumentException("Service object is not an instance of " +
+                                               classes[i]);
+          }
+        }
       }
       res = new ServiceRegistrationImpl(bundle, service,
 					new PropertiesDictionary(properties, classes, null));

@@ -63,7 +63,7 @@ public class Backdoor {
       return (ClassLoader)method.invoke(bundle, new Object[]{});
       
     } catch (Exception e) {
-      Activator.log.error("getBundleContext failed", e);
+      Activator.log.error("getClassLoader failed", e);
       return null;
     }
   }
