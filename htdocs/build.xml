@@ -34,7 +34,7 @@
     </tstamp>	     
 
     <property name     = "version"
-              value    = "unknown-version"/>
+              value    = "UNDEF"/>
 
     <property name     = "template.html" 
               location = "html_templates/template.html"/>
@@ -71,6 +71,13 @@
       <param name="title"    value="Download Knopflerfish OSGi"/>
       <param name="desc"     value=""/>
       <param name="CLASS_NAVIGATION_DOWNLOAD" value="navigation_disabled"/>
+    </antcall>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="html_src/license.html"/>
+      <param name="tofile"   value="license.html"/>
+      <param name="desc"     value=""/>
+      <param name="CLASS_NAVIGATION_LICENSE" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -111,14 +118,6 @@
       <param name="title"    value="Knopflerfish contents"/>
       <param name="desc"     value="The contents of the Knopflerfish distribution"/>
       <param name="CLASS_NAVIGATION_COMP" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/contacts_main.html"/>
-      <param name="tofile"   value="contacts.html"/>
-      <param name="title"    value="Knopflerfish contacts"/>
-      <param name="desc"     value="Contact information for the Knopflerfish project"/>
-      <param name="CLASS_NAVIGATION_CONTACTS" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -216,11 +215,10 @@
      <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_COMP"      value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_LICENSE"   value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_DOWNLOAD"  value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_LINKS"     value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_DESKTOP"   value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_HISTORY"   value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_CHANGELOG" value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
      <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
@@ -268,8 +266,8 @@
 	<replacefilter token="$(CLASS_NAVIGATION_LINKS)" 
                        value="${CLASS_NAVIGATION_LINKS}"/>
 
-	<replacefilter token="$(CLASS_NAVIGATION_HISTORY)" 
-                       value="${CLASS_NAVIGATION_HISTORY}"/>
+	<replacefilter token="$(CLASS_NAVIGATION_LICENSE)" 
+                       value="${CLASS_NAVIGATION_LICENSE}"/>
 
 	<replacefilter token="$(CLASS_NAVIGATION_SVN)" 
                        value="${CLASS_NAVIGATION_SVN}"/>
