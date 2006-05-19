@@ -1,4 +1,4 @@
-Knopflerfish 2.0 BETA 4
+Knopflerfish 2.0 RC1
 -----------------------
 
   This is a pre release of Knopflerfish 2.0 with part of the OSGi R4
@@ -72,7 +72,7 @@ Knopflerfish 2.0 BETA 4
 
   --- Declarative Services ---
 
-    Done. New service. New implementation since the alpha release.
+    Done. New service.
 
   --- Event Admin ---
 
@@ -100,5 +100,4 @@ Knopflerfish 2.0 BETA 4
     Fragments, hosts and required bundles are listed on the Closure tab.
     Symbolic name and last modified information is displayed on the 
     Manifest tab.
-
 

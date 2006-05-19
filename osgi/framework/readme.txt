@@ -238,6 +238,16 @@ Framework System Properties
      packages as javax.swing.*
      Default: false
 
+   org.knopflerfish.framework.system.export.all_14
+     Make system classloader export all standard JVM 1.4
+     packages as javax.swing.*
+     Default: false
+
+   org.knopflerfish.framework.system.export.all_15
+     Make system classloader export all standard JVM 1.5
+     packages as javax.swing.*
+     Default: false
+
    org.knopflerfish.verbosity
      Framework verbosity level. 0 means few messages
      Default: 0

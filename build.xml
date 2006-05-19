@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ** Copyright (c) 2004, KNOPFLERFISH project
+  ** Copyright (c) 2004-2006, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0-beta-4"/>
+            value = "2.0-RC1a"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -302,7 +302,7 @@
            <include name = "htdocs/images/*.psp"/>
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
@@ -331,7 +331,7 @@
            <include name = "osgi/build.xml"/>
 
            <include name = "osgi/framework/**"/>
-           <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/bundles/build.xml"/>
 
@@ -447,7 +447,7 @@
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
@@ -573,7 +573,7 @@
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
@@ -632,7 +632,7 @@
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/kf2"/>
