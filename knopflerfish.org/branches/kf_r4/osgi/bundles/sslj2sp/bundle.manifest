@@ -14,5 +14,4 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.ssl.j2sp.Activator
 Import-Package: org.osgi.framework,
  org.osgi.service.log,
- org.osgi.service.cm,
- org.knopflerfish.bundle.ssl.j2sp
+ org.osgi.service.cm
