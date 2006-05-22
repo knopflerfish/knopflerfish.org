@@ -120,17 +120,19 @@ public class Main {
       i++;
     }
 
-    
-
     try {
-      verbosity = Integer.parseInt(System.getProperty("org.knopflerfish.tools.jarunpacker.verbosity"));
+      verbosity = Integer.parseInt(System.getProperty
+                      ("org.knopflerfish.tools.jarunpacker.verbosity"));
     } catch (Exception ignored) {
     }
 
 
     log("unpacking", 2);
 
-    String jarfilename = System.getProperty("java.class.path");
+    String classPath = System.getProperty("java.class.path");
+    StringTokenizer st = new StringTokenizer(classPath,
+                                             java.io.File.pathSeparator);
+    String jarfilename = st.nextToken();
     if(jarfilename == null || !jarfilename.endsWith(".jar")) {
       exit("No valid jar file to unpack on classpath", null);
       System.exit(0);
@@ -147,7 +149,7 @@ public class Main {
       if(!file.exists()) {
 	exit("Cannot find '" + jarfilename + "'", null);
       }
-      
+
       JarFile jarFile = new JarFile(file);
 
       Manifest mf = jarFile.getManifest();
