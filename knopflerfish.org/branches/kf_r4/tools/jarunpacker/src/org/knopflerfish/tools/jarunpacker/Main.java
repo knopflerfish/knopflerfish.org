@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003, 2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ public class Main {
   String  destdirname   = "";
   String  postHookName = null;
   String  preHookName  = null;
+  String  iconLeft     = null;
   String  iconPath     = null;
   String  licenseResName = null;
   String  licenseTitle   = null;
@@ -76,6 +77,7 @@ public class Main {
     "ant.gif",
     "fish32x32.gif",
     "fish200x300.gif",
+    "knopflerfish_red400pxl.gif",
     "license.txt",
     "org",
     "pspbrwse.jbf",
@@ -171,6 +173,10 @@ public class Main {
 	opendirname = mf.getMainAttributes().getValue("jarunpacker-opendir");
       } catch (Exception ignored) {     }
       //      if(opendirname == null) { opendirname = ".";   }
+
+      try {
+	iconLeft = mf.getMainAttributes().getValue("jarunpacker-iconleft");
+      } catch (Exception ignored) {     }
 
       try {
 	iconPath = mf.getMainAttributes().getValue("jarunpacker-iconpath");

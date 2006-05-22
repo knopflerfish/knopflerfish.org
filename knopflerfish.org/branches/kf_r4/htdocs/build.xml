@@ -39,7 +39,20 @@
     <property name     = "template.html" 
               location = "html_templates/template.html"/>
 
+    <property name     = "formatted.html" 
+              location = "html_templates/formatted.html"/>
+
     <antcall target="bundle_docs"/>
+
+    <antcall target="txt2html">
+      <param name="fromfile" value="../changelog.txt"/>
+      <param name="tofile"   value="../changelog.html"/>
+    </antcall>
+
+    <antcall target="txt2html">
+      <param name="fromfile" value="../release_notes.txt"/>
+      <param name="tofile"   value="../release_notes.html"/>
+    </antcall>
 
     <antcall target="makehtml">
       <param name="fromfile" value="html_src/index_main.html"/>
@@ -86,6 +99,14 @@
       <param name="title"    value="Knopflerfish Changelog"/>
       <param name="desc"     value="List of changes in the Knopflerfish OSGi"/>
       <param name="CLASS_NAVIGATION_CHANGELOG" value="navigation_disabled"/>
+    </antcall>
+
+    <antcall target="makehtml">
+      <param name="fromfile" value="../release_notes.html"/>
+      <param name="tofile"   value="release_notes.html"/>
+      <param name="title"    value="Knopflerfish Release Notes"/>
+      <param name="desc"     value="Release note for this release of Knopflerfish OSGi"/>
+      <param name="CLASS_NAVIGATION_RELEASE_NOTES" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
@@ -212,18 +233,19 @@
      <property name="JAVADOC"  
                value="http://www.knopflerfish.org/releases/${version}/javadoc"/>
 
-     <property name="CLASS_NAVIGATION_INDEX"     value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_PROG"      value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_COMP"      value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_LICENSE"   value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_DOWNLOAD"  value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_LINKS"     value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_DESKTOP"   value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_CHANGELOG" value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_CONTACTS"  value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_SVN"       value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_BUNDLES"   value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_PERF"      value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_INDEX"         value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_PROG"          value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_COMP"          value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_LICENSE"       value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_DOWNLOAD"      value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_LINKS"         value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_DESKTOP"       value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_RELEASE_NOTES" value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_CHANGELOG"     value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_CONTACTS"      value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_SVN"           value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_BUNDLES"       value="navigation_enabled"/>
+     <property name="CLASS_NAVIGATION_PERF"          value="navigation_enabled"/>
 
     <replace file="${tofile}">
       <replacefilter token="$(TITLE)"
@@ -281,6 +303,21 @@
     </replace>	       
   </target>
 
+  <target name="txt2html">
+    <loadfile property = "main" 
+              srcfile  = "${fromfile}"/>
+
+    <echo message="create ${tofile}"/>
+    <copy file      = "${formatted.html}" 
+          tofile    = "${tofile}" 
+          overwrite = "true"/>
+
+    <replace file="${tofile}">
+	<replacefilter token="$(MAIN)"
+		       value="${main}"/>		       
+    </replace>
+  </target>
+
   <!-- bundle doc generation  -->
   <target name="bundle_docs">
 
@@ -326,6 +363,8 @@
   <target name="clean">
    <delete dir="releases"    />
    <delete dir="bundles" />
+   <delete file="../changelog.html" />
+   <delete file="../release_notes.html" />
   </target>
 </project>
 

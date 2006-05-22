@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0-RC1a"/>
+            value = "2.0.0-RC1c"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -318,7 +318,8 @@
            <include name = "tools/**"/>
            <include name = "osgi/jars/**"/>
 
-           <include name = "changelog.html"/>
+           <include name = "changelog.txt"/>
+           <include name = "release_notes.txt"/>
 
            <include name = "README.txt"/>
 
@@ -391,7 +392,7 @@
 
         <zipfileset dir    = "htdocs"
                     prefix = "">
-           <include name = "readme.txt"/>
+           <include name = "release_notes.txt"/>
         </zipfileset>
 
     </jar>
@@ -496,7 +497,8 @@
            <include name = "osgi/jars/io/*.jar"/>
            <include name = "osgi/jars/wireadmin/*.jar"/>
 
-           <include name = "changelog.html"/>
+           <include name = "changelog.txt"/>
+           <include name = "release_notes.txt"/>
 
            <include name = "htdocs/images/direstraits.jpg"/>
            <include name = "htdocs/images/*.psp"/>
@@ -514,11 +516,6 @@
 
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
-        </zipfileset>
-
-        <zipfileset dir    = "htdocs"
-                    prefix = "">
-           <include name = "readme.txt"/>
         </zipfileset>
 
     </jar>
@@ -586,7 +583,8 @@
 
            <include name = "osgi/jars/**"/>
 
-           <include name = "changelog.html"/>
+           <include name = "changelog.txt"/>
+           <include name = "release_notes.txt"/>
 
            <exclude name = "keystore"/>
 
@@ -600,11 +598,6 @@
 
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
-        </zipfileset>
-
-        <zipfileset dir    = "htdocs"
-                    prefix = "">
-           <include name = "readme.txt"/>
         </zipfileset>
 
     </jar>
@@ -630,6 +623,7 @@
         <zipfileset dir    = "."
                     prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
 
+           <include name = "release_notes.txt"/>
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.*.txt"/>
@@ -649,11 +643,6 @@
                     prefix = "knopflerfish_osgi_${version}">
            <include name = "license.txt"/>
            <include name = "osgi_copyright.txt"/>
-        </zipfileset>
-
-        <zipfileset dir    = "htdocs"
-                    prefix = "">
-           <include name = "readme.txt"/>
         </zipfileset>
 
     </zip>
@@ -766,7 +755,6 @@
            <exclude name = "**/*.class"/>
            <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
-
            <include name = "osgi/jars/axis-osgi/*.jar"/>
            <include name = "osgi/jars/commons-logging/*.jar"/>
            <include name = "osgi/jars/soap_desktop/*.jar"/>
@@ -809,11 +797,6 @@
 
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
-        </zipfileset>
-
-        <zipfileset dir    = "htdocs"
-                    prefix = "">
-           <include name = "readme.txt"/>
         </zipfileset>
 
     </jar>

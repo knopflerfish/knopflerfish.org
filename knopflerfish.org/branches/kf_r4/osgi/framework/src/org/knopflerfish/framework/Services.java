@@ -105,41 +105,52 @@ class Services {
       Class sc = service.getClass();
       ClassLoader scl = sc.getClassLoader();
       for (int i = 0; i < classes.length; i++) {
-	if (classes[i] == null) {
+        String cls = classes[i];
+	if (cls == null) {
 	  throw new IllegalArgumentException("Can't register as null class");
 	}
-	secure.checkRegisterServicePerm(classes[i]);
+	secure.checkRegisterServicePerm(cls);
 	if (bundle.id != 0) {
-          if (classes[i].equals(PackageAdmin.class.getName())) {
+          if (cls.equals(PackageAdmin.class.getName())) {
             throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
           }
-          if (classes[i].equals(PermissionAdmin.class.getName())) {
+          if (cls.equals(PermissionAdmin.class.getName())) {
             throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
           }
         }
 	if (!(service instanceof ServiceFactory)) {
+          ClassLoader cl = sc.getClassLoader();
           Class c = null;
-          Class tsc = sc;
-          for (ClassLoader cl = scl; cl != null; cl = tsc.getClassLoader()) {
-            try {
-              c = cl.loadClass(classes[i]);
-              break;
-            } catch (ClassNotFoundException e) { }
-            tsc = tsc.getSuperclass();
-          }
-          if (c == null) {
-            try {
-              c = Class.forName(classes[i]);
-            } catch (ClassNotFoundException e) {
-              throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+          boolean ok = false;
+          try {
+            if (cl != null) {
+              c = cl.loadClass(cls);
+            } else {
+              c = Class.forName(cls);
+            }
+            ok = c.isInstance(service);
+          } catch (ClassNotFoundException e) {
+            for (Class csc = sc; csc != null; csc = csc.getSuperclass()) {
+              if (cls.equals(csc.getName())) {
+                ok = true;
+                break;
+              } else {
+                Class [] ic = csc.getInterfaces();
+                for (int iic = ic.length - 1; iic >= 0; iic--) {
+                  if (cls.equals(ic[iic].getName())) {
+                    ok = true;
+                    break;
+                  }
+                }
+              }
             }
           }
-          if (!c.isInstance(service)) {
-            throw new IllegalArgumentException("Service object is not an instance of " +
-                                               classes[i]);
+          if (!ok) {
+            throw new IllegalArgumentException("Service object is not an instance of " + cls);
           }
         }
       }
+
       res = new ServiceRegistrationImpl(bundle, service,
 					new PropertiesDictionary(properties, classes, null));
       services.put(res, classes);
