@@ -1,0 +1,8 @@
+
+All changes apply to "trunk", if not otherwise stated. Builds from
+trunk are available each night at
+
+   http://www.knopflerfish.org/snapshots/trunk/
+
+2006-XX-XX:
+             2.0.0 Release

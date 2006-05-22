@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003, 2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ package org.knopflerfish.tools.jarunpacker;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
 import java.util.*;
 import java.net.URL;
 import java.io.*;
@@ -87,14 +88,18 @@ public class JWizard extends JFrame implements InstallUI {
     init();
   }
 
-  String defIconPath = "/fish200x300.gif";
+  //  String defIconPath = "/fish200x300.gif";
+  String defIconPath = "/knopflerfish_red400pxl.gif";
 
   public void init() {
-
+    
     String iconPath = Main.theMain.iconPath;
     if(iconPath == null) {
       iconPath = defIconPath;
     }
+
+    boolean iconLeft = "true".equalsIgnoreCase(Main.theMain.iconLeft);
+
     URL url = getClass().getResource(iconPath);
     Icon  leftIcon = null;
     if(url != null) {
@@ -130,6 +135,7 @@ public class JWizard extends JFrame implements InstallUI {
       pageIcon.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
     } catch (Throwable t) {
     }
+
     pagePanel = new JPanel(pageCards = new CardLayout());
     pageDescription = new JLabel();
 
@@ -194,16 +200,32 @@ public class JWizard extends JFrame implements InstallUI {
     wizardPanel.add(pageMain,     BorderLayout.CENTER);
     wizardPanel.add(commandPanel, BorderLayout.SOUTH);
 
-    container.add(pageIcon,    BorderLayout.WEST);
+    container.add(pageIcon,    iconLeft ? BorderLayout.WEST : BorderLayout.NORTH);
     container.add(wizardPanel, BorderLayout.CENTER);
     container.add(statusBar,   BorderLayout.SOUTH);
+    if (defaultIcon instanceof ImageIcon) {
+      container.setBackground(getBgColor(((ImageIcon)defaultIcon).getImage()));
+    }
 
-    Dimension size = new Dimension(450, 300);
-    setSize(size);
+    Dimension size = new Dimension(350, 200);
+    pageMain.setPreferredSize(size);
     setIcon(this, "/fish");
     pack();
   }
 
+  Color getBgColor(Image img) {
+    int[] pixel = new int[1];
+    PixelGrabber pg = new PixelGrabber(img, 1, 1, 1, 1, pixel, 0, 1);
+    try {
+      pg.grabPixels();
+    } catch (InterruptedException e) {
+      return null;
+    }
+    if ((pg.getStatus() & ImageObserver.ABORT) != 0) {
+      return null;
+    }
+    return new Color(pixel[0]);
+  }
 
   public void updateProgress(String msg, int perc) {
     statusBar.updateProgress(msg, perc);
