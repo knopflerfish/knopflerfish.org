@@ -21,20 +21,15 @@ H3  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:13px;
  font-weight:bold;
-# background:          #eeeeee;
- background:          #ff0000;
+ background:          #838383;  
  color:		      #ffffff;
-# border-color:        #00ff00 #ff0000 #ff0000 #ff0000;
-# border-color:        #ffffee #999999 #999999 #ffffee;
  border-style:        solid;
-# border-left-width:   10px;
-# border-right-width:  2px;
-# border-top-width:    10px;
-# border-bottom-width: 2px;
- border-left:    solid 3px #ff0000;
- border-right:    solid 3px #ff0000;
- border-top:    solid 2px #ff0000;
- border-bottom:    solid 2px #ff0000;
+ border-style: solid;
+ border-color: #000000;
+ border-width: 1px;
+ padding-top:         2px;
+ padding-bottom:      2px;
+ padding-left:        8px;
 }
 
 H4  {
@@ -42,16 +37,14 @@ H4  {
  font-size:11px;
  font-weight:bold;
  color:		      #ffffff;
- background:          #ff0000;
- border-color:        #ffffee #999999 #999999 #ffffee;
+ background:          #838383;  
  border-style:        solid;
- border-left-width:   1px;
- border-right-width:  1px;
- border-top-width:    1px;
- border-bottom-width: 1px;
+ border-style: solid;
+ border-color: #000000;
+ border-width: 1px;
  padding-top:         2px;
  padding-bottom:      2px;
- padding-left:        4px;
+ padding-left:        8px;
 }
 
 TD  {
@@ -87,7 +80,7 @@ TD.menu {
  font-size:           14px;
  font-weight:         bold;
  color:               #ffffff;
- background:          #ff0000;
+ background:          #fb0b0c;
  border-color:        #000000 #000000 #000000 #000000;
  border-style:        solid;
  border-left-width:   1px;
@@ -96,7 +89,7 @@ TD.menu {
  border-bottom-width: 1px;
  padding-top:         15px;
  padding-bottom:      15px;
- padding-left:        25px;
+ padding-left:        60px;
  vertical-align:      middle;
  align:               right;
  horizontal-align:    middle;
