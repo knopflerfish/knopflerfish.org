@@ -26,7 +26,7 @@
 -xargs init.xargs
 
 # These bundles intefere with testing
--stop desktop/desktop_all-1.1.0.jar
+-stop desktop/desktop_all-1.2.0.jar
 -stop httproot/httproot-1.0.0.jar
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir

@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0.0-RC1c"/>
+            value = "2.0.0-RC1d"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -459,7 +459,7 @@
            <include name = "osgi/restart.xargs"/>
            <include name = "osgi/props.xargs"/>
 
-           <include name = "osgi/jars/desktop/desktop_all-1.1.0.jar"/>
+           <include name = "osgi/jars/desktop/desktop_all-1.2.0.jar"/>
            <include name = "osgi/jars/consoletelnet/consoletelnet-1.0.0.jar"/>
            <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
            <include name = "osgi/jars/logcommands/logcommands-1.0.1.jar"/>

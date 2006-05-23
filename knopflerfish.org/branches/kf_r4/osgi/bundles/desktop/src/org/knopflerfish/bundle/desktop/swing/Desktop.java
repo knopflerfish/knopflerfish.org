@@ -321,7 +321,7 @@ public class Desktop
 
     setRemote(Activator.remoteTracker.getService() != null);
 
-    setIcon(frame, "/fish");
+    setIcon(frame, "/kf_");
 
     frame.pack();
     frame.show();
@@ -2146,11 +2146,12 @@ public class Desktop
   }
 
   void showVersion() {
-    String version = "1.1.1";
+    BundleContext bc = Activator.getBC();
+    String version = (String)bc.getBundle().getHeaders().get("Bundle-Version");
     String txt = Strings.fmt("str_abouttext", version);
 
     ImageIcon icon =
-      new ImageIcon(getClass().getResource("/fish150x225.gif"));
+      new ImageIcon(getClass().getResource("/kf_200x21.gif"));
 
     JOptionPane.showMessageDialog(frame,
                                   txt,

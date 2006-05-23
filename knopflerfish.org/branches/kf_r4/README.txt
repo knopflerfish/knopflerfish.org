@@ -1,5 +1,5 @@
 *******************************************
-** Knopflerfish OSGi README
+** Knopflerfish Release 2.0.0 RC1
 **
 ** For more information, please visit 
 **   http://www.knopflerfish.org
