@@ -73,7 +73,7 @@
     <antcall target="makehtml">
       <param name="fromfile" value="html_src/desktop_main.html"/>
       <param name="tofile"   value="desktop.html"/>
-      <param name="title"    value="The Knopflerfish OSGi Desktop"/>
+      <param name="title"    value="Running Knopflerfish"/>
       <param name="desc"     value="The Knopflerfish Desktop displays a graphic view of a running OSGi framework where bundles can be installed/started/stopped etc."/>
       <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
     </antcall>
@@ -90,6 +90,7 @@
       <param name="fromfile" value="html_src/license.html"/>
       <param name="tofile"   value="license.html"/>
       <param name="desc"     value=""/>
+      <param name="title"    value="Knopflerfish License"/>
       <param name="CLASS_NAVIGATION_LICENSE" value="navigation_disabled"/>
     </antcall>
 
