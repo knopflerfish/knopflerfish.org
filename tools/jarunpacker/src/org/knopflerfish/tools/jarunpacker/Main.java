@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,10 +130,17 @@ public class Main {
     log("unpacking", 2);
 
     String classPath = System.getProperty("java.class.path");
+    if(classPath == null) {
+      exit("No valid jar file to unpack on classpath", null);
+      System.exit(0);
+    }
+    String jarfilename = "";
     StringTokenizer st = new StringTokenizer(classPath,
                                              java.io.File.pathSeparator);
-    String jarfilename = st.nextToken();
-    if(jarfilename == null || !jarfilename.endsWith(".jar")) {
+    while ( st.hasMoreTokens() && !jarfilename.endsWith(".jar")) {
+      jarfilename = st.nextToken();
+    }
+    if(!jarfilename.endsWith(".jar")) {
       exit("No valid jar file to unpack on classpath", null);
       System.exit(0);
     }
