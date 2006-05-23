@@ -48,7 +48,7 @@
 -install consoletelnet/consoletelnet-1.0.0.jar
 
 -initlevel 6
--install desktop/desktop_all-1.1.0.jar
+-install desktop/desktop_all-1.2.0.jar
 
 
 -initlevel 7
@@ -76,7 +76,7 @@ $(WINDOWS_BUNDLES)
 -start frameworkcommands/frameworkcommands-1.0.0.jar
 -start logcommands/logcommands-1.0.1.jar
 -start cm_cmd/cm_cmd-1.0.1.jar
--start desktop/desktop_all-1.1.0.jar
+-start desktop/desktop_all-1.2.0.jar
 -start http/http_all-1.1.0.jar
 -start httproot/httproot-1.0.0.jar
 

@@ -146,7 +146,7 @@ public class JFloatable extends JPanel {
   synchronized public void doFloat() {
     if(frame == null) {
       frame = new JFrame(title);
-      Activator.desktop.setIcon(frame, "/fish");
+      Activator.desktop.setIcon(frame, "/kf_");
       frame.getContentPane().setLayout(new BorderLayout());
       frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       frame.addWindowListener(new WindowAdapter() {
