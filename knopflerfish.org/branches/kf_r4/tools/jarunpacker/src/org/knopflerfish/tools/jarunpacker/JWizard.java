@@ -209,7 +209,7 @@ public class JWizard extends JFrame implements InstallUI {
 
     Dimension size = new Dimension(400, 250);
     pageMain.setPreferredSize(size);
-    setIcon(this, "/fish");
+    setIcon(this, "/kf_");
     pack();
   }
 

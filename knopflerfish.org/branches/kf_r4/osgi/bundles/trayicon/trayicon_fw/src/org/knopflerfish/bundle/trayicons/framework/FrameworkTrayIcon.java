@@ -66,7 +66,7 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
 	  FrameworkTrayIcon.class.getName(),
 	  System.getProperty("org.knopflerfish.service.trayicon.fw.title",
 			     "Knopflerfish OSGi"),
-	  FrameworkTrayIcon.class.getResource("/kf16x16.gif"));
+	  FrameworkTrayIcon.class.getResource("/kf_16x16.gif"));
   }
   
   void open() {
