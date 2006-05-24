@@ -77,6 +77,8 @@ public class Main {
     "ant.gif",
     "fish32x32.gif",
     "fish200x300.gif",
+    "kf_16x16.gif",
+    "kf_32x32.gif",
     "knopflerfish_red400pxl.gif",
     "license.txt",
     "org",
