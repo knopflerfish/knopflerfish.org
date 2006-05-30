@@ -1913,7 +1913,7 @@ public class Desktop
       .showOptionDialog(frame,
                         Strings.fmt("q_uninstallbundle",
                                      Util.getBundleName(b)),
-                        Strings.get("msg_uniunstallbundle"),
+                        Strings.get("msg_uninstallbundle"),
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
