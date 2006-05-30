@@ -1924,6 +1924,12 @@ public class Desktop
     if(n == 0) {
       try {
         b.uninstall();
+        try { // Try to unselect uninstalled bundle
+          if (isSelected(b)) {
+            toggleSelected(b);
+            contentPane.invalidate();
+          }
+        } catch (Throwable ignore) {}
         return true;
       } catch (Exception e) {
         showErr("failed to uninstall bundle " + Util.getBundleName(b), e);
