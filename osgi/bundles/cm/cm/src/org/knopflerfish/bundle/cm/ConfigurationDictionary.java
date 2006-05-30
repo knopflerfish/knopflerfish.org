@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -303,33 +303,7 @@ final class ConfigurationDictionary extends Dictionary {
         Enumeration keys = in.keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
-            Object origVal = in.get(key);
-            Object val = copyValue(origVal);
-
-            // The R3 tests prefers keys with different case to be
-            // silently unified. We really prefer IllegalArgumentException
-            String s = (String) key;
-            String lower = s.toLowerCase();
-            if (!s.equals(lower)) {
-                Object lowerVal = in.get(lower);
-                if (null != lowerVal) {
-                    if (Activator.r3TestCompliant()) {
-                        key = lower;
-                    } else {
-                        // Accept different case when actual value id
-                        // reference-equal
-                        // This solves problem when incoming dictionary has
-                        // case-insensitive get/lookup
-                        // If not reference-equal, throw
-                        // IllegalArgumentException
-                        if (lowerVal != origVal) {
-                            throw new IllegalArgumentException(
-                                    "same key exists with different case: "
-                                            + key + "/" + lower);
-                        }
-                    }
-                }
-            }
+            Object val = copyValue(in.get(key));
             out.put(key, val);
         }
         return out;
@@ -373,7 +347,6 @@ final class ConfigurationDictionary extends Dictionary {
         return out;
     }
 
-    //TODO see http://membercvs.osgi.org/bugs/show_bug.cgi?id=89
     static void validateDictionary(Dictionary dictionary)
             throws IllegalArgumentException {
         if (dictionary == null) {
@@ -387,8 +360,9 @@ final class ConfigurationDictionary extends Dictionary {
                 throw new IllegalArgumentException("The key " + key
                         + " is not of type java.lang.String.");
             }
+            Object val = dictionary.get(key);
             try {
-                validateValue(dictionary.get(key));
+                validateValue(val);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("The value for key " + key
                         + " is not of correct type: " + e.getMessage());
@@ -396,13 +370,13 @@ final class ConfigurationDictionary extends Dictionary {
 
             String s = (String)key; 
             String lower = s.toLowerCase(); 
-            if(!s.equals(lower)) { 
-            	if(null != dictionary.get(lower)) { 
-            		throw new IllegalArgumentException("key '" + s + "'" + " also appears with different " + "case '" + lower + "'"); 
+            if (!s.equals(lower)) { 
+                Object val2 = dictionary.get(lower);
+            	if (null != val2 && val != val2) { 
+            	    throw new IllegalArgumentException("key '" + s + "'" + " also appears with different " + "case '" + lower + "'"); 
                 } 
             } 
         }
-
     }
 
     static private void validateValue(Object value)
