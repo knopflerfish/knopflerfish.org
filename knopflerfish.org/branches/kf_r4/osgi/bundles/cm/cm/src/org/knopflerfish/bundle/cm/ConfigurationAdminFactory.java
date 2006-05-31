@@ -834,8 +834,6 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }	
             ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, factoryPid,
                     ConfigurationAdminFactory.this.generatePid(factoryPid));
-            if (Activator.r3TestCompliant())
-                c.update();
             return c;
         }
        
@@ -844,8 +842,6 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         	checkConfigPerm();
             ConfigurationImpl c = new ConfigurationImpl(location, factoryPid,
                     ConfigurationAdminFactory.this.generatePid(factoryPid));
-            if (Activator.r3TestCompliant())
-                c.update();
             return c;
         }
 
