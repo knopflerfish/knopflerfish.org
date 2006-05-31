@@ -91,11 +91,7 @@ final class Update {
         if (configuration == null) {
             targetService.deleted(pid);
         } else if (processedConfiguration == null) {
-            if (Activator.r3TestCompliant()) {
-                targetService.updated(pid, null);
-            } else {
-                targetService.deleted(pid);
-            }
+            targetService.deleted(pid);
         } else {
             targetService.updated(pid, configuration);
         }
