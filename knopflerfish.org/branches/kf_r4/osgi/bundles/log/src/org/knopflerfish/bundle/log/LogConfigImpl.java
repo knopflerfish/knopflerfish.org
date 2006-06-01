@@ -629,7 +629,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
         }
 
         void log(String s) {
-            if (-1 != s.indexOf(prefix)) {
+            if (s != null && -1 != s.indexOf(prefix)) {
                 return;
             }
 
