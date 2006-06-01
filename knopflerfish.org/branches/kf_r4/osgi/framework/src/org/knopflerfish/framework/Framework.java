@@ -165,9 +165,6 @@ public class Framework {
 
 
 
-  // Accepted execution environments. 
-  static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
-
   static boolean bIsMemoryStorage /*= false*/;
   
   private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
@@ -179,6 +176,12 @@ public class Framework {
   private final static String BOOT_CLASSPATH_FILE = "boot";
   private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
 
+  /** Cached value of 
+   * System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+   * Used and updated by isValidEE()
+   */
+  private Set    eeCacheSet = new HashSet();
+  private String eeCache = null;
 
   /**
    * Whether the framework supports extension bundles or not.
@@ -199,15 +202,6 @@ public class Framework {
    *
    */
   public Framework(Object m) throws Exception {
-
-    // guard this for profiles without System.setProperty 
-    try {
-      System.setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, defaultEE);
-    } catch (Throwable e) {
-      if(Debug.packages) {
-	Debug.println("Failed to set execution environment: " + e);
-      }
-    }
 
     String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." + 
       System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
@@ -609,7 +603,7 @@ public class Framework {
    * Check if an execution environment string is accepted
    */
   boolean isValidEE(String ee) {
-
+    ee = ee.trim();
     if(ee == null || "".equals(ee)) {
       return true;
     }
@@ -617,36 +611,26 @@ public class Framework {
     String fwEE = System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
+      // If EE is not set, allow everything
+      return true;
+    } else if (!fwEE.equals(eeCache)) {
       eeCacheSet.clear();
-    } else {
-      if(!fwEE.equals(eeCache)) {
-	eeCacheSet.clear();
 
-	String[] l = Util.splitwords(fwEE, ",");
-	for(int i = 0 ; i < l.length; i++) {
-	  eeCacheSet.add(l[i]);
-	}
+      String[] l = Util.splitwords(fwEE, ",");
+      for(int i = 0 ; i < l.length; i++) {
+        eeCacheSet.add(l[i]);
       }
+      eeCache = fwEE;
     }
-    eeCache = fwEE;
 
     String[] eel   = Util.splitwords(ee, ",");
-    
     for(int i = 0 ; i < eel.length; i++) {
       if(eeCacheSet.contains(eel[i])) {
 	return true;
       }
     }
-
     return false;
   }
-
-
-  // Cached value of 
-  // System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
-  // Used and updated by isValidEE()
-  Set    eeCacheSet = new HashSet();
-  String eeCache = null;
 
   //
   // Static package methods
