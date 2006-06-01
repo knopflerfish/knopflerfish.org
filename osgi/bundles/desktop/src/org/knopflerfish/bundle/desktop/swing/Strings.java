@@ -79,6 +79,12 @@ public class Strings {
 	  put("menu_view_statusbar", "Statusbar");
 	  put("menu_view_log",       "Log window");
 	  put("menu_lookandfeel",    "Look and Feel");
+	  put("menu_errordialog",     "Error Dialog");
+	  put("menu_errordialog_use", "Use Error Dialog");
+	  put("menu_errordialoglevel",          "Default Display");
+	  put("menu_errordialoglevel_normal",   "Normal");
+	  put("menu_errordialoglevel_more",     "More");
+	  put("menu_errordialoglevel_advanced", "Advanced");
 	  put("tt_html_back",        "Back to previous bundle");
 	  put("tt_html_fwd",         "Forward to next bundle");
 	  put("tt_stopbundle",       "Stop Bundle");
