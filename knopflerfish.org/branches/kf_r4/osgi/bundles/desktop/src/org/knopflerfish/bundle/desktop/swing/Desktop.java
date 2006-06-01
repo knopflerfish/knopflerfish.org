@@ -1215,7 +1215,75 @@ public class Desktop
     menu.add(new JSeparator());
     menu.add(lfMenu);
 
+    menu.add(makeErrorDialogMenu());
+
     return menu;
+  }
+
+
+  JMenu edlMenu = null;
+
+  JMenu makeErrorDialogMenu() {
+    return new JMenu(Strings.get("menu_errordialog")) {
+      {
+        add(new JCheckBoxMenuItem(Strings.get("menu_errordialog_use")) {
+          {
+            addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                System.setProperty("org.knopflerfish.desktop.dontuseerrordialog", String.valueOf(!getState()));
+                edlMenu.setEnabled(getState());
+              }
+            });
+            setState(!"true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false")));
+          }
+        });
+        edlMenu = new JMenu(Strings.get("menu_errordialoglevel")) {
+          {
+            ButtonGroup group = new ButtonGroup();
+
+            AbstractButton jrbn = new JRadioButtonMenuItem(Strings.get("menu_errordialoglevel_normal"));
+            group.add(jrbn);
+            add(jrbn);
+            jrbn.addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                System.setProperty("org.knopflerfish.desktop.errordialogfriendliness", "normal");
+              }
+            });
+
+            AbstractButton jrbm = new JRadioButtonMenuItem(Strings.get("menu_errordialoglevel_more"));
+            group.add(jrbm);
+            add(jrbm);
+            jrbm.addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                System.setProperty("org.knopflerfish.desktop.errordialogfriendliness", "more");
+              }
+            });
+
+            AbstractButton jrba = new JRadioButtonMenuItem(Strings.get("menu_errordialoglevel_advanced"));
+            group.add(jrba);
+            add(jrba);
+            jrba.addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                System.setProperty("org.knopflerfish.desktop.errordialogfriendliness", "advanced");
+              }
+            });
+
+            String curr = System.getProperty("org.knopflerfish.desktop.errordialogfriendliness", null);
+            if ("more".equals(curr)) {
+              group.setSelected(jrbm.getModel(), true);
+            } else if ("advanced".equals(curr)) {
+              group.setSelected(jrba.getModel(), true);
+            } else {
+              group.setSelected(jrbn.getModel(), true);
+            }
+
+            setEnabled(!"true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false")));
+
+          }
+        };
+        add(edlMenu);
+      }
+    };
   }
 
 

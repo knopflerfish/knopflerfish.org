@@ -123,6 +123,15 @@ public class ErrorMessageDialog extends JDialog {
 
     arrange();
     setLocation((getOwner().getWidth() - getWidth()) / 2, (getOwner().getHeight() - getHeight()) / 2);
+    String friendliness = System.getProperty("org.knopflerfish.desktop.errordialogfriendliness", null);
+    if (friendliness != null) {
+      if ("more".equals(friendliness)) {
+        moreButton.doClick();
+      } else if ("advanced".equals(friendliness)) {
+        moreButton.doClick();
+        advancedButton.doClick();
+      }
+    }
   }
 
   private void arrange() {
