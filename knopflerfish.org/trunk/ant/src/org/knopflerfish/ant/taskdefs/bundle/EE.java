@@ -1144,8 +1144,8 @@ public class EE {
     for(int i = 0; i < EE_MINIMUM.length; i++) {
       minimumMap.put(EE_MINIMUM[i], "");
     }
-    for(int i = 0; i < EE_MINIMUM.length; i++) {
-      smfMap.put(EE_MINIMUM[i], "");
+    for(int i = 0; i < EE_SMF.length; i++) {
+      smfMap.put(EE_SMF[i], "");
     }
   }
 
