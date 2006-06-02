@@ -1949,9 +1949,11 @@ public class Desktop
 
   void updateBundle(Bundle b) {
     try {
+      boolean wasSelected = isSelected(b);
       boolean bUpdateIsUpdate = "true".equals(System.getProperty("org.knopflerfish.desktop.updateisupdate", "true"));
       if(bUpdateIsUpdate || b == Activator.getBC().getBundle()) {
         b.update();
+        if (wasSelected) setSelected(b);
       } else {
         String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
         if(location == null || "".equals(location)) {
@@ -1964,6 +1966,7 @@ public class Desktop
           if(Util.canBeStarted(newBundle)) {
             startBundle(newBundle);
           }
+          if (wasSelected) setSelected(newBundle);
         }
       }
     } catch (Exception e) {
