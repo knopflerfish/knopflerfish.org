@@ -18,6 +18,9 @@
 -Djava.security.manager=
 -Djava.security.policy=file:framework.policy
 
+# EE used for testing
+-Dorg.osgi.framework.executionenvironment=J2SE-1.4
+
 -install file:../../osgi.ri-tck/osgi.core.impls.jar
 #-install file:../../osgi.ri-tck/testcond.jar
 -install file:../../osgi.ri-tck/osgi.target.jar
@@ -41,6 +44,9 @@
 -istart  provisioning/provisioning_api-1.0.0.jar
 -istart  upnp/upnp_api-1.0.0.jar
 -istart  wireadmin/wireadmin_api-1.0.0.jar
+-istart org.osgi.impl.service.upnp.cd.jar
+-istart org.osgi.impl.service.upnp.cp.jar
+-istart org.osgi.impl.service.wireadmin.jar
 
 -start  file:../../osgi.ri-tck/osgi.target.jar
 
