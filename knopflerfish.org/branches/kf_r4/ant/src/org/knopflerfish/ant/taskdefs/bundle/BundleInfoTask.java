@@ -462,13 +462,22 @@ public class BundleInfoTask extends Task {
             Project.MSG_VERBOSE);
         proj.setProperty(importsProperty, importsVal);
       } else {
-        // Import-Package given; check that all derived packages are present.
+        // Import-Package given; check that all derived packages are
+        // present and that there are no dupplicated packages.
         TreeSet givenImportSet = new TreeSet();
         Iterator impIt = Util.parseEntries("import.package",importsVal,
                                            true, true, false );
         while (impIt.hasNext()) {
           Map impEntry = (Map) impIt.next();
-          givenImportSet.add( impEntry.get("key") );
+          String pkgName = (String) impEntry.get("key");
+          if (!givenImportSet.add( pkgName )) {
+            log("The package '" +pkgName +"' is mentioned twice in the"
+                +" given 'Import-Package' manifest header: '"
+                +importsVal +"'.",
+                Project.MSG_ERR);
+            throw new BuildException("The package '" +pkgName
+                                     +"' is imported twice.");
+          }
         }
         givenImportSet.removeAll(providedSet);
         TreeSet missingImports = new TreeSet(importSet);
