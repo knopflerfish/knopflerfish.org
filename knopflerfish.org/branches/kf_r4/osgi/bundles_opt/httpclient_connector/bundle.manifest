@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-Name: httpclient_connector
+Bundle-Activator: org.knopflerfish.bundle.httpclient_connector.Activat
+ or
+Import-Package: org.osgi.framework, org.osgi.service.io, javax.microed
+ ition.io
+Bundle-SymbolicName: httpclient_connector
+Bundle-Version: 1.0.0
+Bundle-ClassPath: ., resources/httpclient/commons-httpclient-3.0.1.jar
+ , resources/logging/commons-logging-1.1.jar, resources/codec/commons-
+ codec-1.3.jar
+
