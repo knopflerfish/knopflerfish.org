@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundlejar>
+<resource dst="" pattern=".*\.class" src="/httpclient_connector/out" type="0"/>
+<resource dst="resources/codec/commons-codec-1.3.jar" src="/httpclient_connector/resources/codec/commons-codec-1.3.jar" type="1"/>
+<resource dst="resources/httpclient/commons-httpclient-3.0.1.jar" src="/httpclient_connector/resources/httpclient/commons-httpclient-3.0.1.jar" type="1"/>
+<resource dst="resources/logging/commons-logging-1.1.jar" src="/httpclient_connector/resources/logging/commons-logging-1.1.jar" type="1"/>
+</bundlejar>
