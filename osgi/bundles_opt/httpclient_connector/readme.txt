@@ -8,7 +8,7 @@ two connectors *should* be more or less equivalent, except for that
 this ConnectionFactory can be configured to work with proxies. If your
 application is to run in an environment where you do not need this 
 functionality you may want to use other connector. This to avoid
-unnecessary dependices. 
+unnecessary dependencies.
 
 This bundle introduces three properties:
 
