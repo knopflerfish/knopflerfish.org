@@ -16,6 +16,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -31,14 +33,18 @@ import javax.microedition.io.HttpConnection;
  * TODO: 
  * - is uri.getEscapedURIReference() correct?
  * - shouldn't the getHeaderField(int nth) throw an IOException?
- * - TEST it in an environment that uses a proxy
  */
 
 class HttpClientConnection implements HttpConnection {
 	
-	public final static String PROXY_HOST = "org.knopflerfish.httpclient.proxy.server";
-	public final static String PROXY_PORT = "org.knopflerfish.httpclient.proxy.port";
-	public final static String TIMEOUT    = "org.knopflerfish.httpclient.so_timeout";
+	public final static String PROXY_SERVER = "org.knopflerfish.httpclient_connector.proxy.server";
+	public final static String PROXY_PORT   = "org.knopflerfish.httpclient_connector.proxy.port";
+	public final static String TIMEOUT      = "org.knopflerfish.httpclient_connector.so_timeout";
+	public final static String REALM        = "org.knopflerfish.httpclient_connector.realm";
+	public final static String USERNAME     = "org.knopflerfish.httpclient_connector.username";
+	public final static String PASSWORD     = "org.knopflerfish.httpclient_connector.password";
+	public final static String SCHEME       = "org.knopflerfish.httpclient_connector.scheme";
+	public final static String ENABLE_HTTPS = "org.knopflerfish.httpclient_connector.enable_https";
 	
 	private final static int STATE_SETUP     = 0;
 	private final static int STATE_CONNECTED = 1;
@@ -60,24 +66,32 @@ class HttpClientConnection implements HttpConnection {
 	
 	HttpClientConnection(String url, int mode, boolean timeouts) throws URIException {
 		uri = new URI(url, false); // assume not escaped URIs
-		
 		HostConfiguration conf = client.getHostConfiguration();
 		
-		if (System.getProperty(PROXY_HOST) != null) {
+		if (System.getProperty(PROXY_SERVER) != null) {
+			int portNo = -1;
+			
 			try {
-				int portNo = Integer.parseInt(System.getProperty(PROXY_PORT));
-				conf.setProxy(System.getProperty(PROXY_HOST), portNo);
+				portNo = Integer.parseInt(System.getProperty(PROXY_PORT));
+				conf.setProxy(System.getProperty(PROXY_SERVER), portNo);
 			} catch (NumberFormatException e) {
 				throw new RuntimeException("Invalid proxy host/port " + 
-						System.getProperty(PROXY_HOST) + 
+						System.getProperty(PROXY_SERVER) + 
 						":" + System.getProperty(PROXY_PORT));
+			}
+			
+			if (System.getProperty(USERNAME) != null) {
+				client.getState().setProxyCredentials(
+						new AuthScope(System.getProperty(PROXY_SERVER), portNo,
+								System.getProperty(REALM), System.getProperty(SCHEME)),
+								new UsernamePasswordCredentials(System.getProperty(USERNAME), 
+										System.getProperty(PASSWORD)));
 			}
 		}
 		
-		if (timeouts && System.getProperty(TIMEOUT) != null) {
+		if (System.getProperty(TIMEOUT) != null) {
 			try {
 				client.getParams().setSoTimeout(Integer.parseInt(System.getProperty(TIMEOUT)));
-				
 			} catch (NumberFormatException e) {
 				throw new RuntimeException("Invalid timeout " +	System.getProperty(TIMEOUT)); 
 			}

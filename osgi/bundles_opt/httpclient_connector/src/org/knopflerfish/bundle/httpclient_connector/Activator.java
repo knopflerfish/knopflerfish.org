@@ -15,7 +15,13 @@ public class Activator implements BundleActivator {
 
   public void start(BundleContext bc) throws Exception {
 	  Hashtable properties = new Hashtable();
-	  properties.put(ConnectionFactory.IO_SCHEME, new String[] {"http"});
+	  
+	  if ("false".equals(System.getProperty(HttpClientConnection.ENABLE_HTTPS))) {
+		  properties.put(ConnectionFactory.IO_SCHEME, new String[] {"http"});
+	  } else {
+		  properties.put(ConnectionFactory.IO_SCHEME, new String[] {"http", "https"});
+	  }
+	  
 	  reg = bc.registerService(ConnectionFactory.class.getName(), new HttpClientFactory(), properties);
 	  
   }
