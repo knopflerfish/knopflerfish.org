@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.jar.JarInputStream;
 
@@ -303,7 +304,7 @@ public class Parser {
        Isn't that a bit strange? */ 
 
       String text = parser.nextText().trim();
-      values = text.split("(\n|\r)");
+      values = splitwords(text, "\n\r");
       for (int i = 0; i < values.length; i++)
         values[i] = values[i].trim();
 
@@ -735,7 +736,7 @@ public class Parser {
    * in a string
    */
   private static boolean checkToken(String text){
-    String[] result = text.split(" |\\n|\\t|\\r|'\u0085'|'\u2028'|'\u2029'");
+    String[] result = splitwords(text, " \n\t\r\u0085\u2028\u2029");
     return (result.length <= 1);
   }
 
@@ -772,7 +773,6 @@ public class Parser {
   }
 
 
-
   private static boolean parseBoolean(XmlPullParser parser, int attr)
     throws IllegalXMLException {
     String val = parser.getAttributeValue(attr);
@@ -788,4 +788,56 @@ public class Parser {
     }
 
   }
+
+
+  /**
+   * Split a string into words separated by specified characters.
+   *
+   * @param s          String to split.
+   * @param whiteSpace whitespace to use for splitting. Any of the
+   *                   characters in the whiteSpace string are considered
+   *                   whitespace between words and will be removed
+   *                   from the result. If no words are found, return an
+   *                   array of length zero.
+   */
+  public static String [] splitwords(String s, String whiteSpace) {
+    Vector        v     = new Vector(); // (String) individual words after splitting
+    StringBuffer  buf   = new StringBuffer(); 
+    int           i     = 0; 
+    
+    while (i < s.length()) {
+      char c = s.charAt(i);
+
+      if(whiteSpace.indexOf(c) == -1) {
+        if(buf == null) {
+          buf = new StringBuffer();
+        }
+        buf.append(c);
+	i++;
+      } else {	
+	// found whitespace or end of citation, append word if we have one
+	if(buf != null) {
+	  v.addElement(buf.toString());
+	  buf = null;
+	}
+
+	// and skip whitespace so we start clean on a word or citation char
+	while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
+	  i++;
+	}
+      }
+    }
+
+    // Add possible remaining word
+    if(buf != null) {
+      v.addElement(buf.toString());
+    }
+    
+    // Copy back into an array
+    String [] r = new String[v.size()];
+    v.copyInto(r);
+    
+    return r;
+  }
+
 }
