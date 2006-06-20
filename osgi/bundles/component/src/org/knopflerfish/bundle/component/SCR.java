@@ -119,7 +119,8 @@ class SCR implements SynchronousBundleListener {
     
       // Create components
       Collection addedConfigs = new ArrayList();
-      String[] manifestEntries = manifestEntry.split(",");
+      String[] manifestEntries = Parser.splitwords(manifestEntry, ",");
+      
       for (int i = 0; i < manifestEntries.length; i++) {
         URL resourceURL = bundle.getResource(manifestEntries[i]);
         if (resourceURL == null) {
