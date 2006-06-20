@@ -44,9 +44,6 @@
 -istart  provisioning/provisioning_api-1.0.0.jar
 -istart  upnp/upnp_api-1.0.0.jar
 -istart  wireadmin/wireadmin_api-1.0.0.jar
--istart org.osgi.impl.service.upnp.cd.jar
--istart org.osgi.impl.service.upnp.cp.jar
--istart org.osgi.impl.service.wireadmin.jar
 
 -start  file:../../osgi.ri-tck/osgi.target.jar
 
