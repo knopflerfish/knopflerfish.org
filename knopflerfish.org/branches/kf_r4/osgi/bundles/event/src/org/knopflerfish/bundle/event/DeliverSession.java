@@ -246,9 +246,9 @@ public class DeliverSession {
      */
     private synchronized boolean topicMatch(Event event, String topic) {
         /* Split the event topic into an string array */
-        String[] eventTopic = event.getTopic().split("/");
+        String[] eventTopic = splitPath(event.getTopic());
         /* Split the desired topic into a string array */
-        String[] desiredTopic = topic.split("/");
+        String[] desiredTopic = splitPath(topic);
 
         /* iterator value */
         int i = 0;
@@ -312,6 +312,31 @@ public class DeliverSession {
     }
 
 
+    /**
+     * Split a string into words separated by "/".
+     *
+     * @param s  String to split.
+     * @return   String array of path components.
+     */
+    public static String [] splitPath(String s) {
+      Vector        v    = new Vector();
+      int           si   = 0; 
+      int           ei   = s.indexOf('/');
+
+      while (ei != -1) {
+        v.addElement(s.substring(si, ei));
+        si = ei + 1;
+        ei = s.indexOf('/', si);
+      }
+      if (si < s.length()) {
+        v.addElement(s.substring(si));
+      }
+      String [] r = new String[v.size()];
+      v.copyInto(r);
+
+      return r;
+    }
+
 
   // The following class is not used. It's a nice class, though, isn't it?
 
@@ -334,4 +359,5 @@ public class DeliverSession {
       Activator.log.debug(message);
     }
   }
+
 }
