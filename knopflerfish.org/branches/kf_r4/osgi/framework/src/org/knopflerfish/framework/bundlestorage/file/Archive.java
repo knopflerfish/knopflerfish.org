@@ -536,6 +536,9 @@ class Archive {
     if(bClosed) {
       throw new IOException("Archive is closed");
     }
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
     File lib;
     if (jar != null) {
       lib = getSubFile(this, path);
