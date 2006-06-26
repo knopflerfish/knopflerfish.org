@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ public class FilterImpl implements Filter {
   private String filter = null;
   private LDAPExpr ldap;
 
-  //not meant to be used publicly. Just by a subpackage...
+
   public FilterImpl(String filter) throws InvalidSyntaxException {
     ldap = new LDAPExpr(filter);
   }
@@ -70,6 +70,7 @@ public class FilterImpl implements Filter {
   public boolean match(Dictionary dictionary) {
     return ldap.evaluate(new PropertiesDictionary(dictionary), false);
   }
+
   
   public boolean matchCase(Dictionary dictionary) {
 	  return ldap.evaluate(new PropertiesDictionary(dictionary), true);

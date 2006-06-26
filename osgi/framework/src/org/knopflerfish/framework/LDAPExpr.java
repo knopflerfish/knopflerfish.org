@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -557,7 +557,7 @@ public class LDAPExpr {
 
     public ParseState(String str) throws InvalidSyntaxException {
       this.str = str;
-      if (str == null || str.length() == 0)
+      if (str.length() == 0)
         error(NULL);
       pos = 0;
     }
