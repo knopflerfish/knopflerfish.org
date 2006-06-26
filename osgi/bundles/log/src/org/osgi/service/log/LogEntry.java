@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.log/src/org/osgi/service/log/LogEntry.java,v 1.7 2005/08/10 01:07:54 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.log/src/org/osgi/service/log/LogEntry.java,v 1.9 2006/06/16 16:31:49 hargrave Exp $
  *
- * Copyright (c) OSGi Alliance (2000, 2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
  *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.osgi.service.log;
 
@@ -21,7 +29,7 @@ import org.osgi.framework.ServiceReference;
  * <code>LogReaderService.getLog</code> method or by registering a
  * <code>LogListener</code> object.
  * 
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.9 $
  * @see LogReaderService#getLog
  * @see LogListener
  */

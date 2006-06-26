@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventAdmin.java,v 1.3 2005/05/13 20:33:29 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventAdmin.java,v 1.6 2006/06/16 16:31:48 hargrave Exp $
  * 
- * Copyright (c) OSGi Alliance (2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2006). All Rights Reserved.
  * 
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.osgi.service.event;
@@ -14,7 +22,7 @@ package org.osgi.service.event;
  * The Event Admin service. Bundles wishing to publish events must obtain the
  * Event Admin service and call one of the event delivery methods.
  * 
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.6 $
  */
 public interface EventAdmin {
 	/**
@@ -24,7 +32,7 @@ public interface EventAdmin {
 	 * @param event The event to send to all listeners which subscribe
 	 *        to the topic of the event.
 	 * 
-	 * @exception SecurityException If the caller does not have
+	 * @throws SecurityException If the caller does not have
 	 *            <code>TopicPermission[topic,PUBLISH]</code> for the topic
 	 *            specified in the event.
 	 */
@@ -37,7 +45,7 @@ public interface EventAdmin {
 	 * @param event The event to send to all listeners which subscribe
 	 *        to the topic of the event.
 	 * 
-	 * @exception SecurityException If the caller does not have
+	 * @throws SecurityException If the caller does not have
 	 *            <code>TopicPermission[topic,PUBLISH]</code> for the topic
 	 *            specified in the event.
 	 */
