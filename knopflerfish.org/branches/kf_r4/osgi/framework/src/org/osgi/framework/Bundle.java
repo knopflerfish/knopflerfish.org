@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/Bundle.java,v 1.33 2005/12/09 18:53:11 twatson Exp $
+ * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/Bundle.java,v 1.36 2006/06/16 16:31:18 hargrave Exp $
  * 
- * Copyright (c) OSGi Alliance (2000, 2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
  * 
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.osgi.framework;
@@ -56,7 +64,7 @@ import java.util.Enumeration;
  * <code>Bundle</code> objects, and these objects are only valid within the
  * Framework that created them.
  * 
- * @version $Revision: 1.33 $
+ * @version $Revision: 1.36 $
  */
 public interface Bundle {
 	/**
@@ -667,8 +675,10 @@ public interface Bundle {
 	/**
 	 * Find the specified resource from this bundle.
 	 * 
-	 * This bundle's class loader is called to search for the named resource. If
-	 * this bundle's state is <code>INSTALLED</code>, then only this bundle
+	 * This bundle's class loader is called to search for the specified resource. 
+	 * If this bundle's state is <code>INSTALLED</code>, this method must
+	 * attempt to resolve the bundle before attempting to get the specified resource.
+	 * If this bundle cannot be resolved, then only this bundle
 	 * must be searched for the specified resource. Imported packages cannot be
 	 * searched when a bundle has not been resolved. If this bundle is a
 	 * fragment bundle then <code>null</code> is returned.
@@ -800,9 +810,11 @@ public interface Bundle {
 	/**
 	 * Find the specified resources from this bundle.
 	 * 
-	 * This bundle's class loader is called to search for the named resource. If
-	 * this bundle's state is <code>INSTALLED</code>, then only this bundle
-	 * must be searched for the specified resource. Imported packages cannot be
+	 * This bundle's class loader is called to search for the specified resources. 
+	 * If this bundle's state is <code>INSTALLED</code>, this method must
+	 * attempt to resolve the bundle before attempting to get the specified resources.
+	 * If this bundle cannot be resolved, then only this bundle
+	 * must be searched for the specified resources. Imported packages cannot be
 	 * searched when a bundle has not been resolved. If this bundle is a
 	 * fragment bundle then <code>null</code> is returned.
 	 * 

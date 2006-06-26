@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.util.xml/src/org/osgi/util/xml/XMLParserActivator.java,v 1.7 2005/07/30 02:11:34 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.util.xml/src/org/osgi/util/xml/XMLParserActivator.java,v 1.10 2006/06/21 17:41:20 hargrave Exp $
  * 
- * Copyright (c) OSGi Alliance (2002, 2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
  * 
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.osgi.util.xml;
@@ -292,13 +300,12 @@ public class XMLParserActivator implements BundleActivator, ServiceFactory {
 	 * @param properties - the properties object for the service
 	 */
 	public void setSAXProperties(SAXParserFactory factory, Hashtable properties) {
-		SAXParser parser = null;
 		// check if this parser can be configured to validate
 		boolean validating = true;
 		factory.setValidating(true);
 		factory.setNamespaceAware(false);
 		try {
-			parser = factory.newSAXParser();
+			factory.newSAXParser();
 		}
 		catch (Exception pce_val) {
 			validating = false;
@@ -308,7 +315,7 @@ public class XMLParserActivator implements BundleActivator, ServiceFactory {
 		factory.setValidating(false);
 		factory.setNamespaceAware(true);
 		try {
-			parser = factory.newSAXParser();
+			factory.newSAXParser();
 		}
 		catch (Exception pce_nsa) {
 			namespaceaware = false;
@@ -401,13 +408,12 @@ public class XMLParserActivator implements BundleActivator, ServiceFactory {
 	 * @param props - Hashtable of service properties.
 	 */
 	public void setDOMProperties(DocumentBuilderFactory factory, Hashtable props) {
-		DocumentBuilder parser = null;
 		// check if this parser can be configured to validate
 		boolean validating = true;
 		factory.setValidating(true);
 		factory.setNamespaceAware(false);
 		try {
-			parser = factory.newDocumentBuilder();
+			factory.newDocumentBuilder();
 		}
 		catch (Exception pce_val) {
 			validating = false;
@@ -417,7 +423,7 @@ public class XMLParserActivator implements BundleActivator, ServiceFactory {
 		factory.setValidating(false);
 		factory.setNamespaceAware(true);
 		try {
-			parser = factory.newDocumentBuilder();
+			factory.newDocumentBuilder();
 		}
 		catch (Exception pce_nsa) {
 			namespaceaware = false;

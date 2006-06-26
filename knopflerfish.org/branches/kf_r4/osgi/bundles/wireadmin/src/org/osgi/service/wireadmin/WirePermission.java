@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.wireadmin/src/org/osgi/service/wireadmin/WirePermission.java,v 1.10 2005/08/11 03:07:31 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.wireadmin/src/org/osgi/service/wireadmin/WirePermission.java,v 1.12 2006/06/16 16:31:43 hargrave Exp $
  *
- * Copyright (c) OSGi Alliance (2002, 2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
  *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.osgi.service.wireadmin;
 
@@ -29,7 +37,7 @@ import java.security.PermissionCollection;
  * scope names starting with the string "Door". The last period is required due
  * to the implementations of the <code>BasicPermission</code> class.
  * 
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.12 $
  */
 final public class WirePermission extends BasicPermission {
     static final long serialVersionUID = -5583709391516569321L;

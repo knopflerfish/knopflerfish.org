@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.device/src/org/osgi/service/device/Driver.java,v 1.8 2005/08/10 01:07:55 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.device/src/org/osgi/service/device/Driver.java,v 1.10 2006/06/16 16:31:29 hargrave Exp $
  *
- * Copyright (c) OSGi Alliance (2000, 2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
  *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.osgi.service.device;
 
@@ -19,7 +27,7 @@ import org.osgi.framework.ServiceReference;
  * highest for a particular <code>Device</code> object will be instructed by the
  * device manager to attach to the <code>Device</code> object.
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.10 $
  * @see Device
  * @see DriverLocator
  */

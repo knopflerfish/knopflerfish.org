@@ -1,11 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/TopicPermission.java,v 1.7 2005/06/16 14:31:07 hargrave Exp $
+ * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/TopicPermission.java,v 1.11 2006/06/16 16:31:48 hargrave Exp $
  * 
- * Copyright (c) OSGi Alliance (2005). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2006). All Rights Reserved.
  * 
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.osgi.service.event;
@@ -29,10 +37,10 @@ import java.util.Hashtable;
  * </pre>
  * 
  * <p>
- * <code>TopicPermission</code> has two actions: <code>PUBLISH</code> and
- * <code>SUBSCRIBE</code>.
+ * <code>TopicPermission</code> has two actions: <code>publish</code> and
+ * <code>subscribe</code>.
  * 
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.11 $
  */
 public final class TopicPermission extends Permission {
 	static final long			serialVersionUID	= -5855563886961618300L;
@@ -87,7 +95,7 @@ public final class TopicPermission extends Permission {
 	 * <p>
 	 * 
 	 * @param name Topic name.
-	 * @param actions <code>PUBLISH</code>,<code>SUBSCRIBE</code>
+	 * @param actions <code>publish</code>,<code>subscribe</code>
 	 *        (canonical order).
 	 */
 	public TopicPermission(String name, String actions) {
@@ -255,7 +263,7 @@ public final class TopicPermission extends Permission {
 	 * 
 	 * <p>
 	 * Always returns present <code>TopicPermission</code> actions in the
-	 * following order: <code>PUBLISH</code>,<code>SUBSCRIBE</code>.
+	 * following order: <code>publish</code>,<code>subscribe</code>.
 	 * 
 	 * @return Canonical string representation of the
 	 *         <code>TopicPermission</code> actions.
@@ -396,10 +404,10 @@ final class TopicPermissionCollection extends PermissionCollection {
 	 * 
 	 * @param permission The <code>TopicPermission</code> object to add.
 	 * 
-	 * @exception IllegalArgumentException If the permission is not a
+	 * @throws IllegalArgumentException If the permission is not a
 	 *            <code>TopicPermission</code> instance.
 	 * 
-	 * @exception SecurityException If this
+	 * @throws SecurityException If this
 	 *            <code>TopicPermissionCollection</code> object has been
 	 *            marked read-only.
 	 */
