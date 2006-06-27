@@ -11,10 +11,10 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/httpconsole/**"/>
 
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
+  <property name="bmfa.Bundle-Version"        value="2.0.0"/>
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api-2.0.0.jar"/>
    <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
   </path>
 

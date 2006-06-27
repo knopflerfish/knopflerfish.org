@@ -17,7 +17,7 @@
   <property name = "bundle.build.all"   value = "false"/>
 
   <path id="bundle.compile.path">
-    <pathelement location="${topdir}/jars/measurement/measurement-1.0.0.jar"/>
+    <pathelement location="${topdir}/jars/measurement/measurement-2.0.0.jar"/>
   </path>
 
   &bundlebuild_include;

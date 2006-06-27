@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Console
 Bundle-SymbolicName: org.knopflerfish.bundle.console
-Bundle-Version: 1.0.0
+Bundle-Version: 2.0.0
 Bundle-Description: Service system console
 Bundle-Vendor: Knopflerfish
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk

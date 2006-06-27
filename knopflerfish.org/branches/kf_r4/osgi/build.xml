@@ -112,8 +112,8 @@
      <replacevalue><![CDATA[
 ## Windows platforms are likely to support tray icons
 -initlevel 1
--istart trayicon/trayicon_all-1.0.0.jar
--istart trayicon_fw/trayicon_fw-1.0.0.jar
+-istart trayicon/trayicon_all-2.0.0.jar
+-istart trayicon_fw/trayicon_fw-2.0.0.jar
 ]]></replacevalue>
 
    </replace>	  

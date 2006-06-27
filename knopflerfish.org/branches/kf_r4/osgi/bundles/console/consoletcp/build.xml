@@ -12,10 +12,10 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/consoletcp/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/useradmin/useradmin_api-1.1.0.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/useradmin/useradmin_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
   </path>
 
   &bundlebuild_include;

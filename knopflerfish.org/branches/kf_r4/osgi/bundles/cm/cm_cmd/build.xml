@@ -15,10 +15,10 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/cm/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_all-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_all-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
   </path>
 
   &bundlebuild_include;
