@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Directory-Deployer
 Bundle-SymbolicName: org.knopflerfish.bundle.dirdeployer
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:dirdeployer:1.0.0
+Bundle-UUID: org.knopflerfish:dirdeployer:2.0.0
 Bundle-Category: example
 Bundle-Description: Monitors a file system directory for bundles to de
  ploy

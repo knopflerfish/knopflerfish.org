@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: measurement
 Bundle-SymbolicName: org.knopflerfish.bundle.measurement
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:measurement:1.0.0
+Bundle-UUID: org.knopflerfish:measurement:2.0.0
 Bundle-Category: API
 Bundle-Description: Measurement API
 Bundle-Vendor: OSGi
