@@ -85,8 +85,12 @@ public class MultiListener implements LogListener,
 
     ServiceReference sr
       = bundleContext.getServiceReference(LogReaderService.class.getName());
-    LogReaderService logReader = (LogReaderService) bundleContext.getService(sr);
-    logReader.addLogListener(this);
+    if (sr != null) {
+      LogReaderService logReader = (LogReaderService) bundleContext.getService(sr);
+      if (logReader != null) {
+        logReader.addLogListener(this);
+      }
+    }
   }
 
   /**
@@ -255,7 +259,11 @@ public class MultiListener implements LogListener,
         eventHandlers.put(serviceEvent.getServiceReference(), new Long(System.currentTimeMillis()));
       }
       if (isLogReaderService) {
-        ((LogReaderService) bundleContext.getService(serviceEvent.getServiceReference())).addLogListener(this);
+        LogReaderService logReader = (LogReaderService)
+          bundleContext.getService(serviceEvent.getServiceReference());
+        if (logReader != null) {
+          logReader.addLogListener(this);
+        }
       }
       break;
     case ServiceEvent.MODIFIED:
