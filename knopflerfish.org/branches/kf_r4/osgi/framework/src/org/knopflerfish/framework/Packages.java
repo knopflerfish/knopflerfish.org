@@ -517,7 +517,6 @@ class Packages {
           tempBlackListChecks++;
           if (tempBlackList.contains(ep)) {
             tempBlackListHits++;
-            System.err.println("BlackList " + tempBlackListHits + "/" + tempBlackListChecks);
             continue;
           }
 	  if (ep.zombie) {
@@ -575,7 +574,6 @@ class Packages {
       tempBlackListChecks++;
       if (tempBlackList.contains(ep)) {
         tempBlackListHits++;
-        System.err.println("BlackList " + tempBlackListHits + "/" + tempBlackListChecks);
         continue;
       }
       if (!checkAttributes(ep, ip)) {
