@@ -299,6 +299,8 @@
 
            <include name = "htdocs/**"/>
            <exclude name = "htdocs/releases/**"/>
+           <exclude name = "htdocs/html_src/**"/>
+           <exclude name = "htdocs/html_templates/**"/>
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.*.txt"/>
