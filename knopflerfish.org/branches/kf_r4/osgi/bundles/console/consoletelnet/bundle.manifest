@@ -14,7 +14,7 @@ Bundle-Category: console
 Import-Package: org.knopflerfish.service.console,org.knopflerfish.serv
  ice.log,org.knopflerfish.service.um.useradmin,org.osgi.framework,org.
  osgi.service.cm,org.osgi.service.useradmin
-Bundle-UUID: org.knopflerfish:consoletelnet:1.0.0
+Bundle-UUID: org.knopflerfish:consoletelnet:2.0.0
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles/console/consoletelnet/
 

@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.knopflerfish.bundle.httpclient_connector.Activat
  or
-Bundle-UUID: org.knopflerfish:httpclient_connector:1.0.0
+Bundle-UUID: org.knopflerfish:httpclient_connector:2.0.0
 Import-Package: org.osgi.framework,org.osgi.service.io, javax.microedi
  tion.io, org.apache.commons.logging
 Export-Package: org.apache.commons.httpclient, 

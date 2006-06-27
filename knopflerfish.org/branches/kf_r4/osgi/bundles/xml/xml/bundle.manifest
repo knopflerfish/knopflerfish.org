@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: xml
 Bundle-SymbolicName: org.knopflerfish.bundle.xml
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:xml:1.0.0
+Bundle-UUID: org.knopflerfish:xml:2.0.0
 Bundle-Category: API
 Bundle-Description: XML
 Bundle-Vendor: OSGi

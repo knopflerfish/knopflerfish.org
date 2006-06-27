@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: comm-linux
 Bundle-SymbolicName: org.knopflerfish.bundle.comm-linux
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:comm-linux:1.1.0
+Bundle-UUID: org.knopflerfish:comm-linux:2.0.0
 Bundle-Category: service
 Bundle-Description: Native driver for linux javax.comm using the RXTX 
  library. Note that this bundle is LGPL and contains full source to rxtx

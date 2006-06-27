@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: JUnit
 Bundle-SymbolicName: org.knopflerfish.bundle.junit
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:junit:1.0.0
+Bundle-UUID: org.knopflerfish:junit:2.0.0
 Bundle-Category: service
 Bundle-Description: JUnit support
 Bundle-Vendor: JUnit/Knopflerfish

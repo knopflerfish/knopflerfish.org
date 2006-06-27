@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: position
 Bundle-SymbolicName: org.knopflerfish.bundle.position
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:position:1.0.0
+Bundle-UUID: org.knopflerfish:position:2.0.0
 Bundle-Description: Position API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi

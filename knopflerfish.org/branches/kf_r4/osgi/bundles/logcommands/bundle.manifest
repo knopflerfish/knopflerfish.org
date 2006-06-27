@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: LogCommands
 Bundle-SymbolicName: org.knopflerfish.bundle.logcommands
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:logcommands:1.0.1
+Bundle-UUID: org.knopflerfish:logcommands:2.0.0
 Bundle-Description: Log commands
 Bundle-Vendor: Knopflerfish
 Bundle-DocURL: http://www.knopflerfish.org

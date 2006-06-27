@@ -17,7 +17,7 @@ Import-Package: org.knopflerfish.service.console,org.osgi.framework,or
  g.osgi.service.log
 Export-Package: org.knopflerfish.service.console;specification-version
  =1.0.0
-Bundle-UUID: org.knopflerfish:console:1.0.0
+Bundle-UUID: org.knopflerfish:console:2.0.0
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-APIVendor: Knopflerfish
 

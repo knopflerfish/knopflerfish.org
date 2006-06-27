@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: io
 Bundle-SymbolicName: org.knopflerfish.bundle.io
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:io:1.0.0
+Bundle-UUID: org.knopflerfish:io:2.0.0
 Bundle-Description: IO
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org

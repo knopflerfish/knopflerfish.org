@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: provisioning
 Bundle-SymbolicName: org.knopflerfish.bundle.provisioning
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:provisioning:1.0.0
+Bundle-UUID: org.knopflerfish:provisioning:2.0.0
 Bundle-Category: API
 Bundle-Description: Initial Provisioning
 Bundle-Vendor: OSGi
