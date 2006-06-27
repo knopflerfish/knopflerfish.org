@@ -18,13 +18,10 @@
 
 # Various debug flags
 -Dorg.knopflerfish.framework.debug.packages=false
-#-Dorg.knopflerfish.framework.debug.packages=true
 -Dorg.knopflerfish.framework.debug.errors=true
 -Dorg.knopflerfish.framework.debug.classloader=false
-#-Dorg.knopflerfish.framework.debug.classloader=true
 -Dorg.knopflerfish.framework.debug.startlevel=false
 -Dorg.knopflerfish.framework.debug.ldap=false
-#-Dorg.knopflerfish.framework.bundlestorage.file.always_unpack=true
 
 # Comma-separated list of packges exported by system classloader
 -Dorg.osgi.framework.system.packages=
@@ -44,5 +41,5 @@
 #consoletelnet properties
 -Dorg.knopflerfish.consoletelnet.user=admin
 -Dorg.knopflerfish.consoletelnet.pwd=admin
--Dorg.knopflerfish.consoletelnet.port=23
+-Dorg.knopflerfish.consoletelnet.port=2323
 
