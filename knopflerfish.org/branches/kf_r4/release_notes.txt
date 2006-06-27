@@ -1,4 +1,4 @@
-Release Notes Knopflerfish 2.0 RC1
+Release Notes Knopflerfish 2.0
 ------------------------------
 
   This is the first release of Knopflerfish 2.0 with almost all of the

@@ -6,5 +6,5 @@ trunk are available each night at
 
    http://www.knopflerfish.org/snapshots/trunk/
 
-2006-XX-XX:
+2006-06-28:
              2.0.0 Released
