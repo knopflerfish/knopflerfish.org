@@ -22,9 +22,9 @@
             value="org/knopflerfish/service/soap/**"/>
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/remotefw/remotefw_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/remotefw/remotefw_api-2.0.0.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
    <pathelement location="../axis-osgi/resources/wsdl4j.jar"/>
    <pathelement location="../axis-osgi/resources/qname.jar"/>

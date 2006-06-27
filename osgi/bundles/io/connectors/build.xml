@@ -14,7 +14,7 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/framework.jar"/>
-   <pathelement location="${topdir}/jars/io/io_all-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/io/io_all-2.0.0.jar"/>
    <pathelement location="${topdir}/bundles/io/io/resources/javax.microedition.io.jar"/>
   </path>
 

@@ -25,8 +25,8 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
    <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
    <pathelement location="resources/junit.jar"/>

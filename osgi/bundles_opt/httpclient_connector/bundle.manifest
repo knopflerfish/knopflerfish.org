@@ -13,7 +13,7 @@ Export-Package: org.apache.commons.httpclient,
                 org.apache.commons.httpclient.cookie,
                 org.apache.commons.httpclient.protocol,
                 org.apache.commons.codec
-Bundle-Version: 1.0.0
+Bundle-Version: 2.0.0
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Name: httpclient_connector
 Bundle-Description: A HTTP IO-Connector with proxy support.

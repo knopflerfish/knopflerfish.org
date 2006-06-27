@@ -26,13 +26,13 @@
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/console/console_api-1.0.0.jar"  
+   <copy file  = "${topdir}/jars/console/console_api-2.0.0.jar"  
          todir = "resources"/>
   </target>
 
   <path id="bundle.compile.path">
-    <pathelement location="${topdir}/jars/desktop/desktop_api-1.2.0.jar"/>  
-    <pathelement location="resources/console_api-1.0.0.jar"/>
+    <pathelement location="${topdir}/jars/desktop/desktop_api-2.0.0.jar"/>  
+    <pathelement location="resources/console_api-2.0.0.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
     <pathelement location="resources/kxml-min.jar"/>
 <!--

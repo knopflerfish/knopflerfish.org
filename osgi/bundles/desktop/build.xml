@@ -20,22 +20,22 @@
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/log/log_api-1.0.1.jar"         
+   <copy file  = "${topdir}/jars/log/log_api-2.0.0.jar"         
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/console/console_api-1.0.0.jar"  
+   <copy file  = "${topdir}/jars/console/console_api-2.0.0.jar"  
          todir = "resources"/>
-   <copy file  = "${topdir}/jars/remotefw/remotefw_api-1.0.0.jar"  
+   <copy file  = "${topdir}/jars/remotefw/remotefw_api-2.0.0.jar"  
          todir = "resources"/>
    <copy file  = "${topdir}/../tools/jarunpacker/out/jarunpacker/jarunpacker.jar"  
          todir = "resources"/>
   </target>
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/remotefw/remotefw_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/remotefw/remotefw_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
   </path>
 
   &bundlebuild_include;

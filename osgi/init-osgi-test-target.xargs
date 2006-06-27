@@ -29,21 +29,21 @@
 -xargs init.xargs
 
 # These bundles intefere with testing
--stop desktop/desktop_all-1.2.0.jar
--stop httproot/httproot-1.0.0.jar
+-stop desktop/desktop_all-2.0.0.jar
+-stop httproot/httproot-2.0.0.jar
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
--istart  prefs/prefs_all-1.1.0.jar
--istart  event/event_all-1.0.0.jar
+-istart  prefs/prefs_all-2.0.0.jar
+-istart  event/event_all-2.0.0.jar
 -install kxml/kxml-1.0.jar
--install metatype/metatype-1.0.0.jar
--istart  kf_metatype/kf_metatype_all-1.0.0.jar
--istart  measurement/measurement-1.0.0.jar
--istart  io/io_all-1.0.0.jar
--istart  position/position-1.0.0.jar
--istart  provisioning/provisioning_api-1.0.0.jar
--istart  upnp/upnp_api-1.0.0.jar
--istart  wireadmin/wireadmin_api-1.0.0.jar
+-install metatype/metatype-2.0.0.jar
+-istart  kf_metatype/kf_metatype_all-2.0.0.jar
+-istart  measurement/measurement-2.0.0.jar
+-istart  io/io_all-2.0.0.jar
+-istart  position/position-2.0.0.jar
+-istart  provisioning/provisioning_api-2.0.0.jar
+-istart  upnp/upnp_api-2.0.0.jar
+-istart  wireadmin/wireadmin_api-2.0.0.jar
 
 -start  file:../../osgi.ri-tck/osgi.target.jar
 

@@ -11,7 +11,7 @@
   <property name="bundle.version" value="1.0.1"/>
 
   <path id = "bundle.compile.path">
-    <pathelement location="${topdir}/lib/component_api-1.0.0.jar"/>
+    <pathelement location="${topdir}/lib/component_api-2.0.0.jar"/>
     <pathelement location="${topdir}/jars/component-api_test-1.0.0.jar"/>
   </path>
 

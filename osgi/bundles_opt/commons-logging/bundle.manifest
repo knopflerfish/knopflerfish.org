@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Commons-Logging
 Bundle-SymbolicName: org.knopflerfish.bundle.commons-logging
-Bundle-Version: 1.0.0
+Bundle-Version: 2.0.0
 Bundle-UUID: org.knopflerfish:commons-logging:1.0.0
 Bundle-Category: lib
 Bundle-Description: Apache Commons logging. Publishced under Apache Li

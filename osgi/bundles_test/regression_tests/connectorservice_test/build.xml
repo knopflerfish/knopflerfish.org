@@ -12,7 +12,7 @@
 
   <path id = "bundle.compile.path">
 <!-- is this ok? -->
-    <pathelement location="${topdir}/lib/io_api-1.0.0.jar"/>
+    <pathelement location="${topdir}/lib/io_api-2.0.0.jar"/>
     <pathelement location="${topdir}/lib/javax.microedition.io.jar"/>
   </path>
 
