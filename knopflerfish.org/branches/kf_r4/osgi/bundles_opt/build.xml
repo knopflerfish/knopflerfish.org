@@ -4,7 +4,6 @@
 
   <target name="all">
     <ant dir="commons-logging"    target="all"/>
-    <ant dir="httpclient_connector" target="all"/>
     <ant dir="soap"               target="all"/>
     <ant dir="junit"              target="all"/>
     <ant dir="serial"             target="all"/>
@@ -18,7 +17,6 @@
 
   <target name="clean">
     <ant dir="commons-logging"    target="clean"/>
-    <ant dir="httpclient_connector" target="all"/>
     <ant dir="soap"               target="clean"/>
     <ant dir="junit"              target="clean"/>
     <ant dir="serial"             target="clean"/>
