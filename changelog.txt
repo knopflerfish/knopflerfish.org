@@ -7,10 +7,4 @@ trunk are available each night at
    http://www.knopflerfish.org/snapshots/trunk/
 
 2006-06-28:
-    Merged KF 2.0.0 branch with trunk. The following changes from the trunk
-    were applied:
-    * ant/src/org/knopflerfish/ant/taskdefs/bundle/EE.java: Typo with SMF EE.
-    * htdocs/html_src/contacts_main.html: Updated maintainer list
-
-2006-06-28:
-    2.0.0 Released
+             2.0.0 Released
