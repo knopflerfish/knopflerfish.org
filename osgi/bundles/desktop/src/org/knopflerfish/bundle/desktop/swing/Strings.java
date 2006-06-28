@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,7 +150,7 @@ public class Strings {
 	  put("str_about", "About");
 	  put("str_abouttext", 
 	      "Knopflerfish OSGi desktop, version $(1)\n" + 
-	      "Knopflerfish Release 2.0.0 RC1\n" + 
+	      "Knopflerfish Release 2.0.0\n" + 
 	      "(c) 2003-2006 Knopflerfish.\n\n" + 
 	      "See\n" + 
 	      "  http://www.knopflerfish.org\n" + 
