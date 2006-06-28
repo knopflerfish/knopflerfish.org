@@ -1,0 +1,105 @@
+<html>
+<head>
+<title>Bundle info: ${FILE}</title>
+
+<LINK href="${relpath}style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<h2>${FILE}</a></h2>
+
+<p>
+<a href="${FILE}">download</a> (${FILEINFO})
+</p>
+
+<table width="100%">
+ <tr>
+  <td class="mfheader" colspan=2>OSGi manifest attributes</td>
+ </tr>
+
+ <tr>
+  <td>Bundle-Name</td>
+  <td>${Bundle-Name}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Description</td>
+  <td>${Bundle-Description}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Version</td>
+  <td>${Bundle-Version}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Vendor</td>
+  <td>${Bundle-Vendor}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Activator</td>
+  <td>${Bundle-Activator}</td>
+ </tr>
+
+
+ <tr>
+  <td>Bundle-DocURL</td>
+  <td><a href="${Bundle-DocURL}">${Bundle-DocURL}</a></td>
+ </tr>
+
+ <tr>
+  <td>Bundle-ContactAddress</td>
+  <td>${Bundle-ContactAddress}</td>
+ </tr>
+
+ <tr>
+  <td>Bundle-Classpath</td>
+  <td>${Bundle-Classpath}</td>
+ </tr>
+
+ <tr>
+  <td>Export-Package</td>
+  <td>${Export-Package}</td>
+ </tr>
+ <tr>
+  <td>Import-Package</td>
+  <td>${Import-Package}</td>
+ </tr>
+ <tr>
+  <td>Export-Service</td>
+  <td>${Export-Service}</td>
+ </tr>
+ <tr>
+  <td>Import-Service</td>
+  <td>${Import-Service}</td>
+ </tr>
+
+
+
+ <tr>
+  <td  class="mfheader" colspan=2>Other manifest attributes</td>
+ </tr>
+
+ ${MF.UNHANDLED}
+
+</table>
+
+
+<h4>Depends on</h4>
+<table>
+${depends.list}
+</table>
+
+<h4>Other bundles depending on this bundle</h4>
+<table>
+${depending.list}
+</table>
+
+
+<a name="source"></a>
+<h4>Bundle source</h4>
+${sources.list}
+
+</body>
+</html>
+
+

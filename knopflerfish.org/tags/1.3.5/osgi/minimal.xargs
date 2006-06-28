@@ -1,0 +1,23 @@
+-Dorg.knopflerfish.verbosity=0
+-Dorg.knopflerfish.gosg.jars=file:jars/
+-Dorg.knopflerfish.framework.debug.packages=false
+-Dorg.knopflerfish.framework.debug.errors=true
+-Dorg.knopflerfish.framework.debug.classloader=false
+-Dorg.knopflerfish.framework.system.export.all_13=false
+-Dorg.osgi.framework.system.packages=
+
+-Dorg.knopflerfish.startlevel.use=true
+
+-init
+
+-install log/log_api-1.0.1.jar
+-install console/console_api-1.0.0.jar
+-istart  cm/cm_api-1.0.1.jar
+-istart  log/log-1.0.1.jar
+-istart  console/console-1.0.0.jar
+-istart  consoletty/consoletty-1.0.1.jar
+-istart  frameworkcommands/frameworkcommands-1.0.0.jar
+-istart  logcommands/logcommands-1.0.1.jar
+-istart  useradmin/useradmin_api-1.0.0.jar
+
+-launch

@@ -1,0 +1,156 @@
+<style type="text/css">
+
+body {
+ background: #ffffff;
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ color:000000;
+ text-align:left;
+ font-weight:normal;
+}
+
+th {
+ background: #d3d3d3;
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ color:000000;
+ text-align:left;
+ font-weight:bold;
+ vertical-align:top;
+}
+
+.marked {
+ font-weight:bold;
+}
+
+td {
+ background: #ffffff;
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ color:000000;
+ text-align:left;
+ font-weight:normal;
+ vertical-align:top;
+}
+
+
+PRE {
+ font-family: Courier New, Courier;
+ font-size:11px;
+ color:#000000;
+ text-align:left;
+ font-weight:normal;
+}
+
+code {
+ font-family: Courier New, Courier;
+ font-size:11px;
+ color:#000000;
+ text-align:left;
+ font-weight:normal;
+}
+
+H1  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:19px;
+ font-weight:normal;
+ color: #000088;
+}
+
+H2  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:15px;
+ font-weight:normal;
+ color: #000088;
+}
+
+H3  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:13px;
+ font-weight:normal;
+ color: #000088;
+}
+
+H4  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ color: #000088;
+}
+
+H5  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:9px;
+ color: #000088;
+}
+
+.testok {
+ background-color: #ffffff;
+ font-size:15px;
+ font-weight:normal;
+ color: #000088;
+}
+
+.testfailed {
+ background-color: #ffffff;
+ background-color: #ffffff;
+ font-size:15px;
+ font-weight:bold;
+ color: #000088;
+}
+
+H6  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:7px;
+ font-weight:bold;
+}
+
+dt { font-weight:bold; }
+
+dd { font-weight:normal; }
+
+div.toc1 {  margin-left: 1em; }
+
+div.toc2 {  margin-left: 2em; }
+
+div.toc3 {  margin-left: 3em; }
+
+div.exampleInner pre { margin-left: 1em; margin-top: 0em; margin-bottom: 0em; }
+div.exampleOuter {border: 4px double gray; margin: 0em; padding: 0em; }
+
+div.exampleInner { 
+ background-color: #d5dee3;
+ border-top-width: 4px;
+ border-top-style: double;
+ border-top-color: #d3d3d3;
+ border-bottom-width: 4px;
+ border-bottom-style: double;
+ border-bottom-color: #d3d3d3;
+ padding: 4px; margin: 0em;
+}
+
+div.exampleWrapper { margin: 4px;}
+
+div.exampleHeader { font-weight: bold;  margin: 4px; }
+
+div.schemaComp { border: 4px double gray; margin: 0em 1em; padding: 0em; }
+
+div.compHeader { margin: 4px; font-weight: bold; }
+
+span.schemaComp { color: #A52A2A; }                  
+
+div.compBody { 
+  border-top-width: 4px;
+  border-top-style: double;
+  border-top-color: #d3d3d3;
+  padding: 4px ; margin: 0em;
+}
+
+.discussion {
+  padding: 4px; 
+  margin: 0em;
+  font-style: italic;
+  background-color: #eeeeee;
+}
+                   
+
+</style>

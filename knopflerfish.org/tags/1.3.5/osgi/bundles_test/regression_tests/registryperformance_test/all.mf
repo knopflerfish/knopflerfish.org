@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.5.4 
+Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
+Bundle-Name: registeryperformance_test
+Bundle-SymbolicName: registeryperformance_test
+Bundle-Version: 1.0.0
+Bundle-Description: Performance test bundle for framework registry
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.perf.servicereg.Activator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.perf.servicereg
+Import-Package: junit.framework,org.knopflerfish.service.perf.servicer
+ eg,org.osgi.framework
+Bundle-UUID: org.knopflerfish:registeryperformance_test:1.0.0:all
+Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
+ n_tests\registryperformance_test
+Build-Date: Wed August 25 2004, 19:59:57
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/

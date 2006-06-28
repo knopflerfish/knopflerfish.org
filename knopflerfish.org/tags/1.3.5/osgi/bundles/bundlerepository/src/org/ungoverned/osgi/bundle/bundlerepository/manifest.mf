@@ -1,0 +1,10 @@
+Bundle-Name: Bundle Repository
+Bundle-Description: A simple bundle repository for Oscar.
+Bundle-UpdateLocation: http://oscar-osgi.sf.net/repo/bundlerepository/bundlerepository.jar
+Bundle-Activator: org.ungoverned.osgi.bundle.bundlerepository.Activator
+Bundle-ClassPath: .,org/ungoverned/osgi/bundle/bundlerepository/kxml.jar
+Bundle-Version: 1.1.2
+Import-Package: org.osgi.framework
+DynamicImport-Package: org.ungoverned.osgi.service.shell
+Export-Package: 
+ org.ungoverned.osgi.service.bundlerepository; specification-version="1.1.0"
