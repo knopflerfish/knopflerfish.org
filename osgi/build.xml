@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="osgi" default="default">
+<project name="osgi" default="all">
 
   <!-- build properties -->
 
@@ -46,24 +46,11 @@
            value = "net.jini.core.entry,net.n3.nanoxml"
 />
 
-  <import file="${topdir}/../ant/bundletasks.xml"/>
-
   <!-- targets -->
-  <target name="default"
-          description = "Builds the framework and bundles in bundles-directory"
-          depends     = "check_bcel">
+  <target name="all">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
-  </target>
-
-  <target name="all"
-          description="Builds the framework and all bundles including optional and test bundles"
-          depends     = "check_bcel">
-    <antcall target="default"/>
-    <ant dir="bundles_opt"  target="all"/>
-    <ant dir="bundles_test" target="all"
-         inheritAll="false" inheritRefs="false"/>
   </target>
 
   <target name="xargs">
@@ -112,8 +99,8 @@
      <replacevalue><![CDATA[
 ## Windows platforms are likely to support tray icons
 -initlevel 1
--istart trayicon/trayicon_all-2.0.0.jar
--istart trayicon_fw/trayicon_fw-2.0.0.jar
+-istart trayicon/trayicon_all-1.0.0.jar
+-istart trayicon_fw/trayicon_fw-1.0.0.jar
 ]]></replacevalue>
 
    </replace>	  
@@ -125,7 +112,7 @@
   <mkdir dir="${javadoc.out.dir}"/>
 
   <property name  = "javadoc.header"
-            value = "Knopflerfish OSGi ${version}"/>
+            value = "&lt;a target=_top href=http://www.knopflerfish.org&gt;Knopflerfish OSGi ${version}&lt;/a&gt;"/>
 	    
   <property name  = "javadoc.footer"
             value = "${javadoc.header}"/>
@@ -142,27 +129,8 @@
  
  <target name="run">
   <java fork="true"
-        jar="framework.jar"
-  >
-  </java>
- </target>
-
- <target name="run-osgi-test-target"
-         description="Start the framework in OSGi test target mode.">
-  <java fork="true"
-        jar="framework.jar"
-  >
-    <arg line="-xargs init-osgi-test-target.xargs"/>
-  </java>
- </target>
-
- <target name="run-osgi-test-target-secure"
-         description="Start the framework with security enabled in OSGi test target mode.">
-  <java fork="true"
-        jar="framework.jar"
-  >
-    <jvmarg value="-Djava.security.manager"/>
-    <arg line="-xargs init-osgi-test-target.xargs"/>
+        jar="out/framework/framework.jar"
+>
   </java>
  </target>
 
@@ -171,15 +139,6 @@
   <delete file="framework.jar"/>
   <delete dir="out"/>
   <delete dir="jars"/>
- </target>
-
-
- <target name="rebuild"
-         description="Cleans then build build all">
-    <antcall target="clean"/>
-    <ant dir="bundles_test" target="clean"
-         inheritAll="false" inheritRefs="false"/>
-    <antcall target="all"/>
  </target>
 
 </project>

@@ -42,7 +42,6 @@ import java.lang.reflect.*;
 import java.security.*;
 
 import org.osgi.framework.*;
-import org.knopflerfish.bundle.framework_test.FrameworkTestSuite.Frame069a;
 import org.knopflerfish.service.framework_test.*;
 
 import org.osgi.service.packageadmin.*;
@@ -75,7 +74,6 @@ public class NativeCodeTestSuite extends TestSuite {
     test_url_base = "bundle://" + bc.getBundle().getBundleId() + "/";
 
     addTest(new Setup());
-   // addTest(new Frame0135a());
     addTest(new Cleanup());
   }
  

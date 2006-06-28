@@ -19,9 +19,7 @@
 
     <ant dir="log"               target="jar_api"/>
     <ant dir="cm/cm"             target="all"/>
-    <ant dir="event"             target="all"/>
     <ant dir="console/console"   target="all"/>
-    <ant dir="io"                target="all"/>
     <ant dir="log"               target="all"/>
     <ant dir="frameworkcommands" target="all"/>
     <ant dir="logcommands"       target="all"/>
@@ -33,7 +31,6 @@
     <ant dir="util"              target="all"/>
     <ant dir="xml"               target="all"/>
     <ant dir="useradmin"         target="all"/>
-    <ant dir="component"         target="all"/>
     <ant dir="cm/cm_cmd"         target="all"/>
     <ant dir="console"           target="all"/>
     <ant dir="device"            target="all"/>

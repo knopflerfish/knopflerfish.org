@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,21 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
 
+import java.util.Set;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import java.util.jar.*;
+import java.util.zip.*;
 
 /**
  * Bundle URL handling.
@@ -47,145 +61,50 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   final public static String PROTOCOL = "bundle";
 
-  final public static String PERM_OK = "P";
-
   private Bundles bundles;
 
-  private PermissionOps secure;
-
-
-  // TODO, we need a more efficient and cleaner solution here.
-
-  BundleURLStreamHandler(Bundles b, PermissionOps s) {
+  BundleURLStreamHandler(Bundles b) {
     bundles = b;
-    secure = s;
   }
-
 
   public URLConnection openConnection(URL u) {
-    if (u.getAuthority() != PERM_OK) {
-      secure.checkResourceAdminPerm(bundles.getBundle(getId(u.getHost())));
-    }
-    return new BundleURLConnection(u, bundles);
+    return new BundleURLConnection(u);
   }
 
+  class BundleURLConnection extends URLConnection {
+    private InputStream is = null;
 
-  protected void parseURL(URL u, String s, int start, int limit)  {
-    String path = u.getPath();
-    String host = u.getHost();
-    long id = -1;
-    int cpElem = u.getPort();
-    if (limit > start) {
-      int len = limit - start;
-      char [] sc = new char[len];
-      s.getChars(start, limit, sc, 0);
-      int pos = 0;
-      if (len >= 2 && sc[0] == '/' && sc[1] == '/') {
-        for (pos = 2; pos < len; pos++) {
-          if (sc[pos] == ':' || sc[pos] == '/') {
-            break;
-          } else if (sc[pos] == '.' || sc[pos] == '_') {
-            if (id == -1) {
-              id = Long.parseLong(new String(sc, 2, pos - 2));
-            }
-          } else if (!Character.isDigit(sc[pos])) {
-            throw new IllegalArgumentException("Illegal chars in bundle id specification");
-          }
-        }
-        host = new String(sc, 2, pos - 2);
-        if (pos < len && sc[pos] == ':') {
-          int portpos = ++pos;
-          cpElem = 0;
-          while (pos < len) {
-            if (sc[pos] == '/') {
-              break;
-            } else if (!Character.isDigit(sc[pos])) {
-              throw new IllegalArgumentException("Illegal chars in bundle port specification");
-            }
-            cpElem = 10 * cpElem + (sc[pos++] - '0');
-          }
-        } else {
-          cpElem = -1;
-        }
-      }
-      if (pos < len) {
-        int pstart;
-        if (sc[pos] != '/') {
-          if (path != null) { 
-            int dirend = path.lastIndexOf('/') + 1;
-            if (dirend > 0) {
-              int plen = len - pos;
-              pstart = path.startsWith("/") ? 0 : 1;
-              len = dirend + plen + pstart;
-              if (len > sc.length) {
-                char [] newsc = new char [len];
-                System.arraycopy(sc, pos, newsc, dirend + pstart, plen);
-                sc = newsc;
-              } else if (pos != dirend) {
-                System.arraycopy(sc, pos, sc, dirend + pstart, plen);
-              }
-              path.getChars(1 - pstart, dirend, sc, 1);
-            } else {
-              len = 1;
-            }
-          } else {
-            len = 1;
-          }
-          sc[0] = '/';
-          pstart = 0;
-          pos = 0;
-        } else {
-          pstart = pos;
-        }
-        int dots = 0;
-        int ipos = pstart - 1;
-        boolean slash = false;
-        for (; pos < len; pos++) {
-          if (sc[pos] == '/') {
-            if (slash) {
-              continue;
-            }
-            slash = true;
-            if (dots == 1) {
-              dots = 0;
-              continue;
-            } else if (dots == 2) {
-              while (ipos > pstart && sc[--ipos] != '/')
-                ;
-            }
-          } else if (sc[pos] == '.') {
-            if (slash) {
-              dots = 1;
-              slash = false;
-              continue;
-            } else if (dots == 1) {
-              dots = 2;
-              continue;
-            }
-          } else {
-            slash = false;
-          }
-          while (dots-- > 0) {
-            sc[++ipos] = '.';
-          }
-          if (++ipos != pos) {
-            sc[ipos] = sc[pos];
-          }
-        }
-        if (dots == 2) {
-          while (ipos > pstart && sc[--ipos] != '/')
-            ;
-        }
-        path = new String(sc, pstart, ipos - pstart + 1);
+    BundleURLConnection(URL u) {
+      super(u);
+    }
+
+    public void connect() throws IOException {
+      if (!connected) {
+	BundleImpl b = null;
+	try {
+	  b = bundles.getBundle(Long.parseLong(url.getHost()));
+	} catch (NumberFormatException ignore) { }
+	if (b != null) {
+	  BundleArchive a = b.getBundleArchive();
+	  if (a != null) {
+	    is = a.getInputStream(url.getFile(), url.getPort());
+	  }
+	}
+	if (is != null) {
+	  connected = true;
+	} else {
+	  throw new IOException("URL not found");
+	}
       }
     }
-    if (id == -1) {
-      id = getId(host);
+
+    public InputStream getInputStream() {
+      try {
+	connect();
+      } catch (IOException ignore) { }
+      return is;
     }
-    secure.checkResourceAdminPerm(bundles.getBundle(id));
-    setURL(u, u.getProtocol(), host, cpElem, PERM_OK, null, path, null, null);
   }
-
 
   /**
    * Equals calculation for bundle URLs.
@@ -193,11 +112,15 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * considered equal, ie. they refer to the same 
    * fragment in the same file.
    *
+   * NYI! a complete check!
    */
   protected boolean equals(URL u1, URL u2) {
-    return sameFile(u1, u2);
+    String ref1 = u1.getRef();
+    String ref2 = u2.getRef();
+    return sameFile(u1, u2) && 
+      (ref1 == ref2 ||
+       (ref1 != null && ref1.equals(ref2)));
   }
-
 
   /**
    * Provides the hash calculation
@@ -215,7 +138,10 @@ public class BundleURLStreamHandler extends URLStreamHandler {
       if (file != null)
 	h += file.hashCode();
 
-      h += u.getPort();
+      String ref = u.getRef();
+      if (ref != null)
+	h += ref.hashCode();
+
     } else {
       h = u.hashCode();
     }
@@ -262,44 +188,5 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     String s2 = u2.getHost();
     return (s1 == s2) || (s1 != null && s1.equals(s2));
   }
-
   
-  /**
-   * Converts a bundle URL to a String.
-   *
-   * @param   url   the URL.
-   * @return  a string representation of the URL.
-   */
-  protected String toExternalForm(URL url) {
-    StringBuffer res = new StringBuffer(url.getProtocol());
-    res.append("://");
-    res.append(url.getHost());
-    int port = url.getPort();
-    if (port >= 0) {
-      res.append(":").append(port);
-    }
-    res.append(url.getPath());
-    return res.toString();
-  }
-
-
-  protected synchronized InetAddress getHostAddress(URL url) {
-    return null;
-  }
-
-  //
-  // Private
-  //
-
-  private long getId(String host) {
-    int i = host.indexOf(".");
-    if (i == -1) {
-      i = host.indexOf("_");
-    }
-    if (i >= 0) {
-      host = host.substring(0, i);
-    }
-    return Long.parseLong(host);
-  }
-
 }

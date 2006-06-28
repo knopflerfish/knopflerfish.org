@@ -18,6 +18,12 @@
   <path id="bundle.compile.path">
   </path>
 
+
+  <property name="bundle.description"    value="Demo bundle"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
   &bundlebuild_include;
 
 </project>

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ** Copyright (c) 2004-2006, KNOPFLERFISH project
+  ** Copyright (c) 2004, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -35,11 +35,11 @@
   -->
 
 
-<project name="knopflerfish" default="default">
+<project name="knopflerfish" default="all">
 
 
   <property name  = "version" 
-            value = "2.0.0"/>
+            value = "1.3.5"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -77,17 +77,9 @@
   <property name = "antclasses"       location = "${ant.dir}/classes"/>
 
 
-            
-  <target name        = "default"
-          description = "Builds entire platform except optional and test bundels" >
-    <delete file="htdocs/bundles.html"/>
-    <ant dir = "ant"                 target = "all" />
-    <ant dir = "tools/jarunpacker"   target = "jar"/>
-    <ant dir = "osgi"                target = "default" />
-  </target>
-
+	    
   <target name        = "all"
-          description = "Builds entire platform including optional and test bundles" >
+          description = "Builds entire platform, but not distribution file" >
     <delete file="htdocs/bundles.html"/>
     <ant dir = "ant"                 target = "all" />
     <ant dir = "tools/jarunpacker"   target = "jar"/>
@@ -155,10 +147,10 @@
 
     <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
                 baseDir            = "${release.dir}/jars"
-                javadocRelPath     = "../javadoc"
+		javadocRelPath     = "../javadoc"
     >
 
-      <fileset dir="${release.dir}/jars">           
+      <fileset dir="${release.dir}/jars">	   
         <include name = "**/*.jar"/>
       </fileset>
    </bundlehtml>
@@ -177,7 +169,7 @@
                 repoXSLURL   = "../htdocs/css/repository.xsl"
                 outFile      = "repo/repository.xml"
                 repoName     = "${obr.name}"
-                baseURL      = "${obr.baseurl}"
+		baseURL      = "${obr.baseurl}"
     >
 
       <fileset dir="${obr.basedir}">
@@ -229,7 +221,7 @@
  
 
   <target   name        = "distrib" 
-            description = "Builds all distribution files">
+            description = "Builds alls distribution files">
     <antcall target     = "xargs"/>
     <antcall target     = "distrib_complete"/>
     <antcall target     = "distrib_fullbin"/>
@@ -268,19 +260,19 @@
             compress    = "true">
 
         <manifest>
-          <attribute name  = "Main-class"   
+	  <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-          <attribute name  = "jarunpacker-destdir"
+	  <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-          <attribute name  = "jarunpacker-opendir"
+	  <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
-          <attribute name  = "knopflerfish-version"
+	  <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
-        </manifest>
+	</manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
@@ -291,24 +283,21 @@
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-           <exclude name = "**/*.jbf"/>
-           <exclude name = "**/out/**"/>
-           <exclude name = "**/*.class"/>
-           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+	   <exclude name = "**/*.jbf"/>
+	   <exclude name = "**/out/**"/>
+	   <exclude name = "**/*.class"/>
+	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "htdocs/**"/>
            <exclude name = "htdocs/releases/**"/>
-           <exclude name = "htdocs/html_src/**"/>
-           <exclude name = "htdocs/html_templates/**"/>
+           <include name = "htdocs/images/*.psp"/>
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
+           <include name = "osgi/packages1.3.txt"/>
 
-           <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
-           <include name = "osgi/kf2"/>
            <include name = "osgi/minimal.xargs"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
@@ -319,8 +308,7 @@
            <include name = "tools/**"/>
            <include name = "osgi/jars/**"/>
 
-           <include name = "changelog.txt"/>
-           <include name = "release_notes.txt"/>
+           <include name = "changelog.html"/>
 
            <include name = "README.txt"/>
 
@@ -333,7 +321,7 @@
            <include name = "osgi/build.xml"/>
 
            <include name = "osgi/framework/**"/>
-           <include name = "osgi/packages1.*.txt"/>
+           <include name = "osgi/packages1.3.txt"/>
 
            <include name = "osgi/bundles/build.xml"/>
 
@@ -363,13 +351,14 @@
            <include name = "osgi/bundles/measurement/**"/>
            <include name = "osgi/bundles/metatype/**"/>
 
-           <include name = "osgi/bundles/component/**"/>
-           <include name = "osgi/bundles/event/**"/>
-           <include name = "osgi/bundles/io/**"/>
+           <include name = "osgi/bundles/prefs/**"/>
+           <include name = "osgi/bundles/upnp/**"/>
+           <include name = "osgi/bundles/provisioning/**"/>
 
            <include name = "osgi/bundles/prefs/**"/>
            <include name = "osgi/bundles/upnp/**"/>
            <include name = "osgi/bundles/provisioning/**"/>
+           <include name = "osgi/bundles/wireadmin/**"/>
 
            <include name = "osgi/bundles/demos/**"/>
 
@@ -384,16 +373,11 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-           <include name = "**"/>
+	   <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
-        </zipfileset>
-
-        <zipfileset dir    = "htdocs"
-                    prefix = "">
-           <include name = "release_notes.txt"/>
         </zipfileset>
 
     </jar>
@@ -421,86 +405,81 @@
             compress    = "true">
 
         <manifest>
-          <attribute name  = "Main-class"   
+	  <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-          <attribute name  = "jarunpacker-destdir"
+	  <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-          <attribute name  = "jarunpacker-optbutton"
+	  <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
-          <attribute name  = "jarunpacker-opendir"
+	  <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
-          <attribute name  = "knopflerfish-version"
+	  <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
 
-        </manifest>
+	</manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-           <exclude name = "**/*.jbf"/>
-           <exclude name = "**/out/**"/>
-           <exclude name = "**/*.class"/>
-           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+	   <exclude name = "**/*.jbf"/>
+	   <exclude name = "**/out/**"/>
+	   <exclude name = "**/*.class"/>
+	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
+           <include name = "osgi/packages1.3.txt"/>
 
-           <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
-           <include name = "osgi/kf2"/>
            <include name = "osgi/minimal.xargs"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
            <include name = "osgi/props.xargs"/>
 
-           <include name = "osgi/jars/desktop/desktop_all-2.0.0.jar"/>
-           <include name = "osgi/jars/consoletelnet/consoletelnet-2.0.0.jar"/>
-           <include name = "osgi/jars/device/device_all-2.0.0.jar"/>
-           <include name = "osgi/jars/logcommands/logcommands-2.0.0.jar"/>
+           <include name = "osgi/jars/desktop/desktop_all-1.1.0.jar"/>
+           <include name = "osgi/jars/consoletelnet/consoletelnet-1.0.0.jar"/>
+           <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
+           <include name = "osgi/jars/logcommands/logcommands-1.0.1.jar"/>
            <include name = "osgi/jars/jsdk/jsdk-2.2.jar"/>
            <include name = "osgi/jars/log/**"/>
-           <include name = "osgi/jars/measurement/measurement-2.0.0.jar"/>
-           <include name = "osgi/jars/position/position-2.0.0.jar"/>
-           <include name = "osgi/jars/metatype/metatype-2.0.0.jar"/>
-           <include name = "osgi/jars/kf_metatype/kf_metatype_all-2.0.0.jar"/>
-           <include name = "osgi/jars/cm_desktop/cm_desktop-2.0.0.jar"/>
+           <include name = "osgi/jars/measurement/measurement-1.0.0.jar"/>
+           <include name = "osgi/jars/position/position-1.0.0.jar"/>
+           <include name = "osgi/jars/metatype/metatype-1.0.0.jar"/>
+           <include name = "osgi/jars/kf_metatype/kf_metatype_all-1.0.0.jar"/>
+           <include name = "osgi/jars/cm_desktop/cm_desktop-1.0.0.jar"/>
 
-           <include name = "osgi/jars/upnp/upnp_api-2.0.0.jar"/>
-           <include name = "osgi/jars/prefs/**"/>
-           <include name = "osgi/jars/provisioning/provisioning_api-2.0.0.jar"/>
+           <include name = "osgi/jars/upnp/upnp_api-1.0.0.jar"/>
+           <include name = "osgi/jars/prefs/prefs_all-1.0.0.jar"/>
+           <include name = "osgi/jars/provisioning/provisioning_api-1.0.0.jar"/>
 
            <include name = "osgi/jars/useradmin/**"/>
-           <include name = "osgi/jars/util/util-2.0.0.jar"/>
-           <include name = "osgi/jars/frameworkcommands/frameworkcommands-2.0.0.jar"/>
+           <include name = "osgi/jars/util/util-1.0.0.jar"/>
+           <include name = "osgi/jars/frameworkcommands/frameworkcommands-1.0.0.jar"/>
            <include name = "osgi/jars/console/**"/>
-           <include name = "osgi/jars/crimson/crimson-2.0.0.jar"/>
+           <include name = "osgi/jars/crimson/crimson-1.1.3.jar"/>
            <include name = "osgi/jars/cm/**"/>
-           <include name = "osgi/jars/cm_cmd/cm_cmd-2.0.0.jar"/>
-           <include name = "osgi/jars/consoletty/consoletty-2.0.0.jar"/>
-           <include name = "osgi/jars/device/device_all-2.0.0.jar"/>
-           <include name = "osgi/jars/http/http_all-2.0.0.jar"/>
-           <include name = "osgi/jars/httproot/httproot-2.0.0.jar"/>
-           <include name = "osgi/jars/httpconsole/httpconsole-2.0.0.jar"/>
+           <include name = "osgi/jars/cm_cmd/cm_cmd-1.0.1.jar"/>
+           <include name = "osgi/jars/consoletty/consoletty-1.0.1.jar"/>
+           <include name = "osgi/jars/device/device_all-1.0.0.jar"/>
+           <include name = "osgi/jars/http/http_all-1.1.0.jar"/>
+           <include name = "osgi/jars/httproot/httproot-1.0.0.jar"/>
+           <include name = "osgi/jars/httpconsole/httpconsole-1.0.0.jar"/>
 
            <include name = "osgi/jars/trayicon/**/*.jar"/>
            <include name = "osgi/jars/trayicon_fw/**/*.jar"/>
            <include name = "osgi/jars/remotefw/*.jar"/>
            <include name = "osgi/jars/bundlerepository/*.jar"/>
-           <include name = "osgi/jars/component/*.jar"/>
-           <include name = "osgi/jars/event/*.jar"/>
-           <include name = "osgi/jars/io/*.jar"/>
-           <include name = "osgi/jars/wireadmin/*.jar"/>
 
-           <include name = "changelog.txt"/>
-           <include name = "release_notes.txt"/>
+           <include name = "changelog.html"/>
 
+           <include name = "htdocs/images/direstraits.jpg"/>
+           <include name = "htdocs/images/*.psp"/>
            <include name = "test.html"/>
 
            <exclude name = "keystore"/>
@@ -510,7 +489,7 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-           <include name = "**"/>
+	   <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
@@ -542,39 +521,37 @@
             compress    = "true">
 
         <manifest>
-          <attribute name  = "Main-class"   
+	  <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-          <attribute name  = "jarunpacker-destdir"
+	  <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-          <attribute name  = "jarunpacker-optbutton"
+	  <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
-          <attribute name  = "jarunpacker-opendir"
+	  <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
-          <attribute name  = "knopflerfish-version"
+	  <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
-        </manifest>
+	</manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-           <exclude name = "**/*.jbf"/>
-           <exclude name = "**/out/**"/>
-           <exclude name = "**/*.class"/>
-           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+	   <exclude name = "**/*.jbf"/>
+	   <exclude name = "**/out/**"/>
+	   <exclude name = "**/*.class"/>
+	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
+           <include name = "osgi/packages1.3.txt"/>
 
-           <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
-           <include name = "osgi/kf2"/>
            <include name = "osgi/minimal.xargs"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
@@ -582,8 +559,7 @@
 
            <include name = "osgi/jars/**"/>
 
-           <include name = "changelog.txt"/>
-           <include name = "release_notes.txt"/>
+           <include name = "changelog.html"/>
 
            <exclude name = "keystore"/>
 
@@ -592,7 +568,7 @@
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-           <include name = "**"/>
+	   <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">
@@ -622,13 +598,10 @@
         <zipfileset dir    = "."
                     prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
 
-           <include name = "release_notes.txt"/>
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
+           <include name = "osgi/packages1.3.txt"/>
 
-           <include name = "osgi/framework.policy"/>
-           <include name = "osgi/kf2"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
            <include name = "osgi/props.xargs"/>
@@ -725,34 +698,35 @@
             compress    = "true">
 
         <manifest>
-          <attribute name  = "Main-class"   
+	  <attribute name  = "Main-class"   
                      value = "org.knopflerfish.tools.jarunpacker.Main"/>
 
-          <attribute name  = "jarunpacker-destdir"
+	  <attribute name  = "jarunpacker-destdir"
                      value = "knopflerfish_osgi_${version}"/>
 
-          <attribute name  = "jarunpacker-optbutton"
+	  <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
-          <attribute name  = "jarunpacker-opendir"
+	  <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
 
-          <attribute name  = "jarunpacker-windowtitle"
+	  <attribute name  = "jarunpacker-windowtitle"
                      value = "Knopflerfish ${version} optional bundles"/>
 
-          <attribute name  = "knopflerfish-version"
+	  <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
-        </manifest>
+	</manifest>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
-           <exclude name = "**/*.jbf"/>
-           <exclude name = "**/out/**"/>
-           <exclude name = "**/*.class"/>
-           <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+	   <exclude name = "**/*.jbf"/>
+	   <exclude name = "**/out/**"/>
+	   <exclude name = "**/*.class"/>
+	   <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
+
 
            <include name = "osgi/jars/axis-osgi/*.jar"/>
            <include name = "osgi/jars/commons-logging/*.jar"/>
@@ -768,10 +742,10 @@
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
            <include name = "osgi/jars/dirdeployer/*.jar"/>
-           <include name = "osgi/jars/jars/junit-example1/*.jar"/>
-           <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
-           <include name = "osgi/jars/jars/jinidriver/*.jar"/>
-           
+	   <include name = "osgi/jars/jars/junit-example1/*.jar"/>
+	   <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
+	   <include name = "osgi/jars/jars/jinidriver/*.jar"/>
+	   
            <exclude name = "keystore"/>
 
            <include name = "osgi/bundles_opt/build.xml"/>
@@ -785,13 +759,11 @@
            <include name = "osgi/bundles_opt/serial/**"/>
            <include name = "osgi/bundles_opt/desktop_displayers/**"/>
 
-           <include name = "osgi/bundles_opt/kxml/**"/>
-
            <exclude name = "**/CVS"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
-           <include name = "**"/>
+	   <include name = "**"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/resources">

@@ -47,8 +47,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -63,7 +61,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.osgi.service.startlevel.StartLevel;
@@ -187,7 +184,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     // Addpermission command
     //
 
-    public final static String USAGE_ADDPERMISSION = "-b #bundle# | -d | -l #location# <type> [<name> [<actions>]]";
+    public final static String USAGE_ADDPERMISSION = "-b #bundle# | -d | -l #location# <type> <name> <actions>";
 
     public final static String[] HELP_ADDPERMISSION = new String[] {
             "Add permissions to bundle",
@@ -230,16 +227,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
             loc = (String) opts.get("-l");
             pi = permissionAdmin.getPermissions(loc);
         }
+        String perm = "(" + opts.get("type") + " \"" + opts.get("name")
+                + "\" \"" + opts.get("actions") + "\")";
         PermissionInfo pia;
         try {
-            pia = new PermissionInfo((String)opts.get("type"),
-                                     (String)opts.get("name"),
-                                     (String)opts.get("actions"));
+            pia = new PermissionInfo(perm);
         } catch (IllegalArgumentException e) {
             out.println("ERROR! " + e.getMessage());
-            out.println("PermissionInfo type = " + opts.get("type"));
-            out.println("PermissionInfo name = " + opts.get("name"));
-            out.println("PermissionInfo actions = " + opts.get("actions"));
+            out.println("PermissionInfo string = " + perm);
             return 1;
         }
         if (pi != null) {
@@ -262,53 +257,25 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     // Bundles command
     //
 
-    public final static String USAGE_BUNDLES = "[-1] [-i] [-l] [-s] [-t] [<bundle>] ...";
+    public final static String USAGE_BUNDLES = "[-1] [-i] [-l] [-s] [<bundle>] ...";
 
     public final static String[] HELP_BUNDLES = new String[] { "List bundles",
-            "-1       One column output", 
-            "-i       Sort on bundle id",
-            "-s       Sort on bundle start level", 
-            "-t       Sort on last modified time", 
-            "-l       Verbose output",
+            "-1       One column output", "-i       Sort on bundle id",
+            "-s       Sort on bundle start level", "-l       Verbose output",
             "<bundle> Name or id of bundle" };
 
     public int cmdBundles(Dictionary opts, Reader in, PrintWriter out,
             Session session) {
         Bundle[] b = getBundles((String[]) opts.get("bundle"),
-                                opts.get("-i") != null, 
-                                opts.get("-s") != null, 
-                                opts.get("-t") != null);
-        boolean verbose = (opts.get("-l") != null);
-        boolean oneColumn = (opts.get("-1") != null);
-        printBundles(out, b, verbose, oneColumn);
-        return 0;
-    }
-
-    private void printBundles(PrintWriter out, Bundle[] b, boolean verbose, boolean oneColumn) {
+                opts.get("-i") != null, opts.get("-s") != null);
         boolean needNl = false;
         // .println("12 5/active CM Commands 2 1/active CM Service");
-        String[] lastModified = null;
-        if (verbose) {
-            lastModified = new String[b.length];
-            int longestLM = 0;
-            SimpleDateFormat dateFormat = new SimpleDateFormat();
-            for (int i = 0; i < b.length; i++) { // Or just look at the first one...
-                lastModified[i] = dateFormat.format(new Date(b[i].getLastModified()));
-                if (lastModified[i].length() > longestLM) {
-                    longestLM = lastModified[i].length();
-                }
-            }
-            String lmHeader = "modified";
-            if (longestLM > lmHeader.length()) {
-                String blank = "                                    ";
-                lmHeader += blank.substring(blank.length() - (longestLM - lmHeader.length()));
-            }
-            out.println("   id  level/state  " + lmHeader + "  location");
-            out.println("   ----------------------------------------------");
+        if (opts.get("-l") != null) {
+            out.println("   id  level/state location");
         } else {
             out.println("   id  level/state name");
-            out.println("   --------------------");
         }
+        out.println("   --------------------");
         for (int i = 0; i < b.length; i++) {
             String level = null;
             try {
@@ -323,15 +290,13 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
             if (b[i] == null) {
                 break;
             }
-            if (verbose) {
+            if (opts.get("-l") != null) {
                 out.println(Util.showId(b[i]) + showState(b[i])
-                            + " " + lastModified[i] 
-                            + "  " + b[i].getLocation()
-                            + getBundleSpeciality(b[i]));
+                        + b[i].getLocation());
             } else {
-                String s = Util.showId(b[i]) + showState(b[i])
-                         + Util.shortName(b[i]) + getBundleSpeciality(b[i]);
-                if ((i & 1) == 0 && !oneColumn) {
+                if ((i & 1) == 0 && opts.get("-1") == null) {
+                    String s = Util.showId(b[i]) + showState(b[i])
+                            + Util.shortName(b[i]);
                     out.print(s);
                     int l = 40 - s.length();
                     if (l > 0) {
@@ -340,7 +305,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                     }
                     needNl = true;
                 } else {
-                    out.println(s);
+                    out.println(Util.showId(b[i]) + showState(b[i])
+                            + Util.shortName(b[i]));
                     needNl = false;
                 }
             }
@@ -348,28 +314,9 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         if (needNl) {
             out.println("");
         }
+        return 0;
     }
-    
-    private String getBundleSpeciality(Bundle bundle) {
-      if (packageAdmin == null) {
-        return "";
-      }
-      String retVal = "";
-      Bundle[] fragments = packageAdmin.getFragments(bundle);
-      if (fragments != null && fragments.length > 0) {
-        retVal += "h"; // host
-      }
-      Bundle[] hosts = packageAdmin.getHosts(bundle);
-      if (hosts != null && hosts.length > 0) {
-        retVal += "f"; // fragment
-      }
-      if (retVal.length() > 0) {
-        retVal = " (" + retVal + ")";
-      }
-      return retVal;
-    }
-      
-    
+
     //
     // Call command
     //
@@ -535,141 +482,6 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     }
 
     //
-    // Closure command
-    //
-    
-    public final static String USAGE_CLOSURE = "<bundle>";
-
-    public final static String[] HELP_CLOSURE = new String[] {
-            "Display the closure for a bundle",
-            "<bundle> - Name or id of bundle" };
-
-    public int cmdClosure(Dictionary opts, Reader in, PrintWriter out,
-            Session session) {
-                
-        if (packageAdmin == null) {
-            out.println("Package Admin service is not available");
-            return 1;
-        }
-        
-        String bname = (String) opts.get("bundle");
-        Bundle[] bl = getBundles(new String[] { bname }, true);
-        Bundle bundle = bl[0];
-        if (bundle == null) {
-            out.println("ERROR! No matching bundle for '" + bname + "'");
-            return 1;
-        }
-
-        bl = getBundles(null, false, false, false);
-        
-        // Package
-        
-        Vector pkgClosure = new Vector();
-        // This is O(n2) at least, possibly O(n3). Should be improved
-        for(int b = 0; b < bl.length; b++) {
-          ExportedPackage[] pkgs = packageAdmin.getExportedPackages(bl[b]);
-          if (pkgs == null) continue;
-          for(int p = 0; p < pkgs.length; p++) {
-            Bundle[] bl2 = pkgs[p].getImportingBundles();
-            if (bl2 == null) continue;
-            for(int ib = 0; ib < bl2.length;  ib++) {
-              if(bl2[ib].getBundleId() == bundle.getBundleId() && !pkgClosure.contains(bl[b])) {
-                pkgClosure.add(bl[b]);
-              }
-            }
-          }
-        }
-        pkgClosure.remove(bundle);
-        if (pkgClosure.size() == 0) {
-          out.println("No package dependencies");
-        } else {
-          out.println("Static dependencies via packages:");
-          Bundle[] bundles = (Bundle[]) pkgClosure.toArray(new Bundle[pkgClosure.size()]);
-          printBundles(out, bundles, false, true);
-        }
-
-        // Service
-        
-        Vector serviceClosure = new Vector();
-        ServiceReference[] srl = bundle.getServicesInUse();
-        for (int i = 0; srl != null && i < srl.length; i++) {
-          if (!serviceClosure.contains(srl[i].getBundle())) {
-            serviceClosure.add(srl[i].getBundle());
-          }
-        }
-        serviceClosure.remove(bundle);
-        if(serviceClosure.size() == 0) {
-          out.println("No service dependencies");
-        } else {
-          out.println("Runtime dependencies via services:");
-          Bundle[] bundles = (Bundle[]) serviceClosure.toArray(new Bundle[serviceClosure.size()]);
-          printBundles(out, bundles, false, true);
-        }
-
-        // Fragment
-        
-        Bundle[] fragmentBundles = packageAdmin.getFragments(bundle);
-        if (fragmentBundles == null) {
-          out.println("No fragments");
-        } else {
-          out.println("Fragments:");
-          printBundles(out, fragmentBundles, false, true);
-        }
-        
-        // Host
-        
-        Bundle[] hostBundles = packageAdmin.getHosts(bundle);
-        if (hostBundles == null) {
-          out.println("No hosts");
-        } else {
-          out.println("Hosts:");
-          printBundles(out, hostBundles, false, true);
-        }
-
-        // Required
-        
-        Vector required = new Vector();
-        Vector requiredBy = new Vector();
-        
-try { // untested code
-        RequiredBundle[] requiredBundles = packageAdmin.getRequiredBundles(null);
-        if (requiredBundles != null) {
-          for (int reqd = 0; reqd < requiredBundles.length; reqd++) {
-            Bundle[] requiringBundles = requiredBundles[reqd].getRequiringBundles();
-            if (requiringBundles == null) continue;
-            if (requiredBundles[reqd].getBundle().equals(bundle)) {
-              for (int ring = 0; ring < requiringBundles.length; ring++) {
-                requiredBy.add(requiringBundles[ring]);
-              }
-            } else {
-              for (int ring = 0; ring < requiringBundles.length; ring++) {
-                if (requiringBundles[ring].equals(bundle)) {
-                  required.add(requiredBundles[reqd].getBundle());
-                }
-              }
-            }
-          }
-        }
-} catch (Throwable ignored) {}
-        if (required.size() == 0) {
-          out.println("No required bundles");
-        } else {
-          out.println("Required bundles:");
-          Bundle[] bundles = (Bundle[]) required.toArray(new Bundle[required.size()]);
-          printBundles(out, bundles, false, true);
-        }
-        if (requiredBy.size() == 0) {
-          out.println("No requiring bundles");
-        } else {
-          out.println("Requiring bundles:");
-          Bundle[] bundles = (Bundle[]) requiredBy.toArray(new Bundle[requiredBy.size()]);
-          printBundles(out, bundles, false, true);
-        }
-        
-        return 0;
-    }
-
-    //
     // Deletepermission command
     //
 
@@ -758,58 +570,28 @@ try { // untested code
     }
 
     //
-    // Findbundles command
-    //
-    
-    public final static String USAGE_FINDBUNDLES = "<symbolic name>";
-
-    public final static String[] HELP_FINDBUNDLES = new String[] {
-            "Find bundles with a given symbolic name", 
-            "<symbolic name>  Symbolic name" };
-
-    public int cmdFindbundles(Dictionary opts, Reader in, PrintWriter out,
-            Session session) {
-        if (packageAdmin == null) {
-            out.println("Package Admin service is not available");
-            return 1;
-        }
-        String symbolicName = (String) opts.get("symbolic name"); 
-        Bundle[] bundles = packageAdmin.getBundles(symbolicName, null);
-        if (bundles == null) {
-          out.println("No bundles found.");
-        } else {
-          printBundles(out, bundles, true, true);
-        }
-        return 0;
-    }
-              
-    //
     // Headers command
     //
 
-    public final static String USAGE_HEADERS = "[-i] [-l #locale#] <bundle> ...";
+    public final static String USAGE_HEADERS = "[-i] <bundle> ...";
 
     public final static String[] HELP_HEADERS = new String[] {
-            "Show bundle header values", 
-            "-i           Sort on bundle id",
-            "-l #locale#  Get localized headers for a given locale",
-            "<bundle>     Name or id of bundle" };
+            "Show bundle header values", "-i       Sort on bundle id",
+            "<bundle> Name or id of bundle" };
 
     public int cmdHeaders(Dictionary opts, Reader in, PrintWriter out,
             Session session) {
         Bundle[] b = getBundles((String[]) opts.get("bundle"),
                 opts.get("-i") != null);
-        String locale = (String) opts.get("-l");
         boolean found = false;
         for (int i = 0; i < b.length; i++) {
             if (b[i] != null) {
                 out.println("Bundle: " + showBundle(b[i]));
-                Dictionary d = (locale == null ? b[i].getHeaders() 
-                                               : b[i].getHeaders(locale));
+                Dictionary d = b[i].getHeaders();
                 for (Enumeration e = d.keys(); e.hasMoreElements();) {
                     String key = (String) e.nextElement();
                     out.println("  " + key + " = "
-                                + Util.showObject(d.get(key)));
+                            + Util.showObject(d.get(key)));
                 }
                 found = true;
             }
@@ -920,7 +702,7 @@ try { // untested code
                     epkgs[i] = packageAdmin.getExportedPackage(selection[i]);
                 }
             } else {
-                epkgs = packageAdmin.getExportedPackages((Bundle)null);
+                epkgs = packageAdmin.getExportedPackages(null);
                 // TODO: We should sort here
             }
         }
@@ -931,13 +713,13 @@ try { // untested code
                 if (verbose) {
                     out.println();
                     out.println("   specification version: "
-                            + epkgs[i].getVersion());
+                            + epkgs[i].getSpecificationVersion());
                     out.println("   removal pending: "
                             + epkgs[i].isRemovalPending());
                     out.println("   exporting bundle: " + showBundle(b));
                     Bundle[] ib = epkgs[i].getImportingBundles();
-                    if (ib != null && ib.length > 0) {
-                        out.println("   importing bundle: " 
+                    if (ib.length > 0) {
+                        out.println("   importing bundle: "
                                     + showBundle(ib[0]));
                         for (int j = 1; j < ib.length; j++) {
                             out.println("                     "
@@ -1058,44 +840,6 @@ try { // untested code
         } else {
             packageAdmin.refreshPackages(null);
         }
-        return 0;
-    }
-
-    //
-    // Resolve command
-    //
-
-    public final static String USAGE_RESOLVE = "[<bundle>] ...";
-
-    public final static String[] HELP_RESOLVE = new String[] {
-            "Resolve one or more bundles", 
-            "If no bundle is specified resolve all bundles",
-            "<bundle> Name or id of bundle" };
-
-    public int cmdResolve(Dictionary opts, Reader in, PrintWriter out,
-            Session session) {
-        if (packageAdmin == null) {
-            out.println("Package Admin service is not available");
-            return 1;
-        }
-        String[] bs = (String[]) opts.get("bundle");
-        Bundle[] b = null;
-        if (bs != null) {
-            b = getBundles(bs, true);
-            for (int i = 0; i < b.length; i++) {
-                if (b[i] == null) {
-                    Bundle[] nb = new Bundle[i];
-                    System.arraycopy(b, 0, nb, 0, nb.length);
-                    b = nb;
-                    break;
-                }
-            }
-            if (b.length == 0) {
-                out.println("ERROR! No matching bundle");
-                return 1;
-            }
-        }
-        packageAdmin.resolveBundles(b);
         return 0;
     }
 
@@ -1482,19 +1226,11 @@ try { // untested code
     }
 
     private Bundle[] getBundles(String[] selection, boolean sortNumeric) {
-        return getBundles(selection, sortNumeric, false, false);
+        return getBundles(selection, sortNumeric, false);
     }
 
-    private Bundle[] getBundles(String[] selection, 
-                                boolean sortNumeric,
-                                boolean sortStartLevel) {
-        return getBundles(selection, sortNumeric, sortStartLevel, false);
-    }
-              
-    private Bundle[] getBundles(String[] selection, 
-                                boolean sortNumeric,
-                                boolean sortStartLevel, 
-                                boolean sortTime) {
+    private Bundle[] getBundles(String[] selection, boolean sortNumeric,
+            boolean sortStartLevel) {
         Bundle[] b = bc.getBundles();
         Util.selectBundles(b, selection);
         if (sortNumeric) {
@@ -1504,9 +1240,6 @@ try { // untested code
         }
         if (sortStartLevel) {
             sortBundlesStartLevel(b);
-        }
-        if (sortTime) {
-            Util.sortBundlesTime(b);
         }
 
         return b;

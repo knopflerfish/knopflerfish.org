@@ -1,20 +1,31 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.device/src/org/osgi/service/device/Device.java,v 1.9 2006/06/16 16:31:29 hargrave Exp $
+ * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/bundles/device/device/src/org/osgi/service/device/Device.java,v 1.1.1.1 2004/03/05 20:35:05 wistrand Exp $
  *
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) The Open Services Gateway Initiative (2000, 2002).
+ * All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
+
 package org.osgi.service.device;
 
 /**
@@ -23,40 +34,42 @@ package org.osgi.service.device;
  * 
  * <p>
  * A service must implement this interface or use the
- * {@link Constants#DEVICE_CATEGORY}registration property to indicate that it
+ * {@link Constants#DEVICE_CATEGORY} registration property to indicate that it
  * is a device. Any services implementing this interface or registered with the
- * <code>DEVICE_CATEGORY</code> property will be discovered by the device manager.
+ * <tt>DEVICE_CATEGORY</tt> property will be discovered by the device manager.
  * 
  * <p>
  * Device services implementing this interface give the device manager the
  * opportunity to indicate to the device that no drivers were found that could
  * (further) refine it. In this case, the device manager calls the
- * {@link #noDriverFound}method on the <code>Device</code> object.
+ * {@link #noDriverFound} method on the <tt>Device</tt> object.
  * 
  * <p>
  * Specialized device implementations will extend this interface by adding
  * methods appropriate to their device category to it.
  * 
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  * @see Driver
  */
-public interface Device {
-	/**
-	 * Return value from {@link Driver#match}indicating that the driver cannot
-	 * refine the device presented to it by the device manager.
-	 * 
-	 * The value is zero.
-	 */
-	public static final int	MATCH_NONE	= 0;
 
-	/**
-	 * Indicates to this <code>Device</code> object that the device manager has
-	 * failed to attach any drivers to it.
-	 * 
-	 * <p>
-	 * If this <code>Device</code> object can be configured differently, the
-	 * driver that registered this <code>Device</code> object may unregister it
-	 * and register a different Device service instead.
-	 */
-	public void noDriverFound();
+public abstract interface Device {
+    /**
+     * Return value from {@link Driver#match} indicating that the driver cannot
+     * refine the device presented to it by the device manager.
+     * 
+     * The value is zero.
+     */
+    public static final int MATCH_NONE = 0;
+
+    /**
+     * Indicates to this <tt>Device</tt> object that the device manager has
+     * failed to attach any drivers to it.
+     * 
+     * <p>
+     * If this <tt>Device</tt> object can be configured differently, the
+     * driver that registered this <tt>Device</tt> object may unregister it
+     * and register a different Device service instead.
+     */
+    public abstract void noDriverFound();
 }

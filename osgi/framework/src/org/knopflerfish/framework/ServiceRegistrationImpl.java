@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import org.osgi.framework.*;
 public class ServiceRegistrationImpl implements ServiceRegistration
 {
   /**
-   * Bundle registering this service.
+   * Bundle implementing this services.
    */
   BundleImpl bundle;
 
@@ -95,7 +95,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   /**
    * Avoid recursive unregistrations.
    */
-  //private boolean unregistering = false;
+  private boolean unregistering = false;
 
 
   /**
@@ -152,6 +152,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
   }
 
+
   /**
    * Unregister the service.
    *
@@ -159,37 +160,37 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   public void unregister() {
     synchronized (eventLock) {
+      synchronized (properties) {
+	if (available) {
+	  bundle.framework.services.removeServiceRegistration(this);
+	  available = false;
+	} else {
+	  throw new IllegalStateException("Service is unregistered");
+	}
+      }
 
-	    if(!Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING)
-	    {
-		    unregister_removeService();
-	    }
-
-	    bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
-
-	    if(Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING)
-	    {
-		    unregister_removeService();
-	    }
+      bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
     }
-    bundle.framework.perm.callUnregister0(this);
+    final ServiceRegistration sr = this;
+    AccessController.doPrivileged(new PrivilegedAction() {
+	public Object run() {
+	  for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
+	    Map.Entry e = (Map.Entry)i.next();
+	    try {
+	      ((ServiceFactory)service).ungetService((Bundle)e.getKey(), sr, e.getValue());
+	    } catch (Throwable ue) {
+	      bundle.framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
+	    }
+	  }
+	  return null;
+	}
+      });
     synchronized (properties) {
       bundle = null;
       dependents = null;
       reference = null;
       service = null;
       serviceInstances = null;
-    }
-  }
-
-  void unregister0() {
-    for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      try {
-        ((ServiceFactory)service).ungetService((Bundle)e.getKey(), this, e.getValue());
-      } catch (Throwable ue) {
-        bundle.framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
-      }
     }
   }
 
@@ -210,21 +211,6 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     } else {
       return false;
     }
-  }
-
-  /**
-   * Remove the service registration for this service.
-   */
-  private void unregister_removeService()
-  {
-      synchronized (properties) {
-	if (available) {
-	  bundle.framework.services.removeServiceRegistration(this);
-	  available = false;
-	} else {
-	  throw new IllegalStateException("Service is unregistered");
-	}
-      }
   }
 
 }

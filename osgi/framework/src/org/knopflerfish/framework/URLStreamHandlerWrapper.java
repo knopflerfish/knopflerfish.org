@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,7 @@ import java.net.*;
 
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
-
-import org.osgi.framework.Constants;
+import org.osgi.util.tracker.*;
 
 /**
  * Wrapper which delegates an URL protocol to 
@@ -58,9 +57,8 @@ public class URLStreamHandlerWrapper
 
   Framework              framework;
   String                 protocol;
+  ServiceTracker         tracker;
   String                 filter;
-  
-  private ServiceReference best;
 
   URLStreamHandlerWrapper(Framework  fw,
 			  String     proto) {
@@ -76,108 +74,40 @@ public class URLStreamHandlerWrapper
       ")" + 
       ")";
 
-    ServiceListener serviceListener = 
-      new ServiceListener() {
-        public void serviceChanged(ServiceEvent evt) {
-          ServiceReference ref = 
-            evt.getServiceReference();
-            
-          switch (evt.getType()) {
-          case ServiceEvent.MODIFIED: {
-            // fall through
-          } 
-          case ServiceEvent.REGISTERED: {
-            if (best == null) {
-              updateBest();
-              return ;
-            }
-            if (compare(best, ref) > 0) {
-              best = ref;
-            }
-            
-          }; break;
-          case ServiceEvent.UNREGISTERING: {
-            if (best.equals(ref)) {
-              best = null;
-            }
-          }
-          }
-        }
-      };
-    
+
     try {
-      framework.systemBC.addServiceListener(serviceListener, filter);
-      
+      tracker = new ServiceTracker(framework.systemBC, 
+				   framework.systemBC.createFilter(filter), 
+				   null);
+      tracker.open();
     } catch (Exception e) {
-      throw new IllegalArgumentException("Could not register service listener for url handler: " + e);
+      throw new IllegalArgumentException("failed to create tracker for " + 
+					 protocol + ": " + e.toString());
     }
-    
+
     if(Debug.url) {
       Debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
-    }
-  }
-
-  private int compare(ServiceReference ref1, ServiceReference ref2) {
-    Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
-    Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
-    
-    int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
-    int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
-
-    if (r2 == r1) {
-      Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);      
-      Long i2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
-      return i1.compareTo(i2);
-
-    } else {
-      return r2 -r1;
-    }
-  }
-
-  private void updateBest() {
-    try {
-      ServiceReference[] refs =
-        framework.systemBC.getServiceReferences(URLStreamHandlerService.class.getName(), 
-                                                filter);
-      if (refs != null) {
-        best = refs[0];
-      } 
-
-      for (int i = 1; i < refs.length; i++) {
-        if (compare(best, refs[i]) > 0) {
-          best = refs[i];
-        }
-      }
-
-    } catch (Exception e) {
-      // this should not happen.
-      throw new IllegalArgumentException("Could not register url handler: " + e);
     }
   }
 
 
 
   private URLStreamHandlerService getService() {
-    URLStreamHandlerService obj;
+
+    URLStreamHandlerService obj = 
+      (URLStreamHandlerService)tracker.getService();
+    
+    if(obj == null) {
+      throw new IllegalStateException("Lost service for protocol=" + protocol);
+    }
 
     try {
-      if (best == null) {
-        updateBest();
-      }
-
-      if (best == null) {
-        throw new IllegalStateException("null: Lost service for protocol="+ protocol);
-      }
-      obj = (URLStreamHandlerService)framework.systemBC.getService(best);
-
-      if (obj == null) {
-        throw new IllegalStateException("null: Lost service for protocol=" + protocol);
-      }
+      ServiceReference ref = tracker.getServiceReference();
       
     } catch (Exception e) {
       throw new IllegalStateException("null: Lost service for protocol=" + protocol);
     }
-
+    
     return obj;
   }
 
@@ -185,19 +115,19 @@ public class URLStreamHandlerWrapper
     return getService().equals(u1, u2);
   }
 
-  protected int getDefaultPort() {
+  protected  int getDefaultPort() {
     return getService().getDefaultPort();
   }
 
-  protected InetAddress getHostAddress(URL u) {
+  protected  InetAddress getHostAddress(URL u) {
     return getService().getHostAddress(u);
   }
 
-  protected int hashCode(URL u) {
+  protected  int hashCode(URL u) {
     return getService().hashCode(u);
   }
 
-  protected boolean hostsEqual(URL u1, URL u2) {
+  protected  boolean hostsEqual(URL u1, URL u2) {
     return getService().hostsEqual(u1, u2);
   }
 
@@ -235,8 +165,8 @@ public class URLStreamHandlerWrapper
 
       int ix = host.lastIndexOf('@');
       if (ix != -1) {
-        userInfo = host.substring(0, ix);
-        host     = host.substring(ix+1);
+	userInfo = host.substring(0, ix);
+	host     = host.substring(ix+1);
       }
     }
         
@@ -248,10 +178,10 @@ public class URLStreamHandlerWrapper
     if (file != null) {
       int ix = file.lastIndexOf('?');
       if (ix != -1) {
-        query = file.substring(ix + 1);
-        path  = file.substring(0, ix);
+	query = file.substring(ix + 1);
+	path  = file.substring(0, ix);
       } else {
-        path = file;
+	path = file;
       }
     }
     setURL(u, protocol, host, port, authority, userInfo, path, query, ref);
@@ -281,30 +211,30 @@ public class URLStreamHandlerWrapper
 
     sb.append("URLStreamHandlerWrapper[");
 
-    ServiceReference ref = best;
+    ServiceReference ref = tracker.getServiceReference();
     sb.append("protocol=" + protocol);
-    //    sb.append(", size=" + tracker.size());
+    sb.append(", size=" + tracker.size());
     if(ref != null) {
       sb.append(", id=" + ref.getProperty(Constants.SERVICE_ID));
       sb.append(", rank=" + ref.getProperty(Constants.SERVICE_RANKING));
 
-//       ServiceReference[] srl = tracker.getServiceReferences();
-//       for(int i = 0; srl != null && i < srl.length; i++) {
-// 	sb.append(", {");
-// 	sb.append("id=" + srl[i].getProperty(Constants.SERVICE_ID));
-// 	sb.append(", rank=" + srl[i].getProperty(Constants.SERVICE_RANKING));
+      ServiceReference[] srl = tracker.getServiceReferences();
+      for(int i = 0; srl != null && i < srl.length; i++) {
+	sb.append(", {");
+	sb.append("id=" + srl[i].getProperty(Constants.SERVICE_ID));
+	sb.append(", rank=" + srl[i].getProperty(Constants.SERVICE_RANKING));
 
-// 	String[] sa = (String[])srl[i].getProperty(URLConstants.URL_HANDLER_PROTOCOL);
-// 	sb.append(", proto=");
+	String[] sa = (String[])srl[i].getProperty(URLConstants.URL_HANDLER_PROTOCOL);
+	sb.append(", proto=");
 	
-// 	for(int j = 0; j < sa.length; j++) {
-// 	  sb.append(sa[j]);
-// 	  if(j < sa.length - 1) {
-// 	    sb.append(", ");
-// 	  }
-// 	}
-// 	sb.append("}");
-//       }
+	for(int j = 0; j < sa.length; j++) {
+	  sb.append(sa[j]);
+	  if(j < sa.length - 1) {
+	    sb.append(", ");
+	  }
+	}
+	sb.append("}");
+      }
       
     } else {
       sb.append(" no service tracked");

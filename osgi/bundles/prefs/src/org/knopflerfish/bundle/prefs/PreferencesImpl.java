@@ -184,11 +184,11 @@ public class PreferencesImpl implements Preferences {
   }
 
   public Preferences parent() {
-    assertValid();
-
     if(parentPath == null) {
       return null;
     }
+
+    assertValid();
 
     return storage.getNode(parentPath, false);
   }
@@ -254,6 +254,9 @@ public class PreferencesImpl implements Preferences {
 
   public void removeNode() {
     assertValid();
+    if("".equals(path)) {
+      throw new RuntimeException("Cannot remove root node");
+    }
     storage.removeNode(path);
     bStale = true;
   }

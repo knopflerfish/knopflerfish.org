@@ -235,7 +235,7 @@ public class JTips extends JPanel {
     if(b) {
       if(frame == null) {
 	frame = new JFrame(title);
-	Activator.desktop.setIcon(frame, "/kf_");
+	Activator.desktop.setIcon(frame, "/fish");
 
 	frame.getContentPane().setLayout(new BorderLayout());
 	frame.getContentPane().add(this, BorderLayout.CENTER);

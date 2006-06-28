@@ -38,7 +38,7 @@ import org.osgi.framework.*;
 import org.knopflerfish.service.framework_test.*;
 
 /*
-  This implementation of a listener behaves very badly as it does not return 
+  This implementation of a listener behaves very bad as it does not return 
   after it has been called.
 
   It is to check that there exist a mechanism in the framework to handle

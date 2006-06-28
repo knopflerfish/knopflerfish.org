@@ -37,9 +37,20 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.net.*;
 
+import java.util.Set;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Enumeration;
+import java.util.Vector;
+
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
-
+import org.osgi.util.tracker.*;
 
 /**
  * Wrapper which delegates an Mime ContentHandlers
@@ -55,8 +66,8 @@ import org.osgi.framework.*;
 
   Framework              framework;
   String                 mimetype;
+  ServiceTracker         tracker;
   String                 filter;
-  ServiceReference       best;
 
   ContentHandlerWrapper(Framework              framework,
 			String                 mimetype) {
@@ -72,107 +83,26 @@ import org.osgi.framework.*;
       ")" + 
       ")";
 
-    ServiceListener serviceListener = 
-      new ServiceListener() {
-        public void serviceChanged(ServiceEvent evt) {
-          ServiceReference ref = 
-            evt.getServiceReference();
-            
-          switch (evt.getType()) {
-          case ServiceEvent.MODIFIED: {
-            // fall through
-          } 
-          case ServiceEvent.REGISTERED: {
-            if (best == null) {
-              updateBest();
-              return ;
-            }
-            
-            if (compare(best, ref) > 0) {
-              best = ref;
-            }
-            
-          }; break;
-          case ServiceEvent.UNREGISTERING: {
-            if (best.equals(ref)) {
-              best = null;
-            }
-          }
-          }
-        }
-      };
-    
     try {
-      framework.systemBC.addServiceListener(serviceListener, filter);
+      tracker = new ServiceTracker(framework.systemBC, 
+				   framework.systemBC.createFilter(filter), 
+				   null);
+      tracker.open();
       
     } catch (Exception e) {
-      throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
+      e.printStackTrace();
     }
-    
     if(Debug.url) {
       Debug.println("created wrapper for " + mimetype + ", filter=" + filter);
     }
   }
-  
-  private int compare(ServiceReference ref1, ServiceReference ref2) {
-    Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
-    Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
-    
-    int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
-    int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
-
-    if (r2 == r1) {
-      Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);      
-      Long i2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
-      return i1.compareTo(i2);
-
-    } else {
-      return r2 -r1;
-    }
-  }
-
-  private void updateBest() {
-    try {
-      ServiceReference[] refs =
-        framework.systemBC.getServiceReferences(ContentHandler.class.getName(), 
-                                                filter);
-      if (refs != null) {
-        best = refs[0];
-      } 
-
-      for (int i = 1; i < refs.length; i++) {
-        if (compare(best, refs[i]) > 0) {
-          best = refs[i];
-        }
-      }
-
-    } catch (Exception e) {
-      // this should not happen.
-      throw new IllegalArgumentException("Could not register url handler: " + e);
-    }
-  }
-  
 
   private ContentHandler getService() {
-    ContentHandler obj;
+    ContentHandler obj = 
+      (ContentHandler)tracker.getService();
 
-    try {
-      if (best == null) {
-        updateBest();
-      }
-
-      if (best == null) {
-        throw new IllegalStateException("null: Lost service for protocol="+ mimetype);
-      }
-
-      obj = (ContentHandler)framework.systemBC.getService(best);
-
-      if (obj == null) {
-        throw new IllegalStateException("null: Lost service for protocol=" + mimetype);
-      }
-      
-    } catch (Exception e) {
-      throw new IllegalStateException("null: Lost service for protocol=" + mimetype);
+    if(obj == null) {
+      throw new IllegalStateException("Lost service for mimetype=" + mimetype);
     }
 
     return obj;
@@ -191,7 +121,7 @@ import org.osgi.framework.*;
 
     sb.append("ContentHandlerWrapper[");
 
-    ServiceReference ref = best; 
+    ServiceReference ref = tracker.getServiceReference();
     sb.append("mimetype=" + mimetype);
     if(ref != null) {
       sb.append(", id=" + ref.getProperty(Constants.SERVICE_ID));

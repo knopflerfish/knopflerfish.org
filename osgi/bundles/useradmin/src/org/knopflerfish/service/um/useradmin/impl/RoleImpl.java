@@ -97,7 +97,7 @@ class RoleImpl implements Role {
         }
 
         // check if the predefined role has the role
-        if (!name.equals(Role.USER_ANYONE))
+        if (!name.equals(UserAdminImpl.ANYONE))
             if (uai.anyone.hasRole(roleName, user, context, visited))
                 return true;
 
@@ -120,7 +120,7 @@ class RoleImpl implements Role {
         // System.out.print( name + "-Role.hasMember user: " + user );
         // System.out.println( " visited: " + visited );
 
-        if (name.equals(user) || name.equals(Role.USER_ANYONE)) {
+        if (name.equals(user) || name.equals(UserAdminImpl.ANYONE)) {
             return true;
         }
 

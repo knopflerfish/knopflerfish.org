@@ -208,7 +208,7 @@ public class ResTest {
       m.invoke(obj1, arguments);
     }
     catch (IllegalAccessException ia) {
-      System.out.println("Framework test IllegalAccessException" +  ia);
+      System.out.println("Framework test IllegaleAccessException" +  ia);
     }
     catch (InvocationTargetException ita) {
       System.out.println("Framework test InvocationTargetException" +  ita);

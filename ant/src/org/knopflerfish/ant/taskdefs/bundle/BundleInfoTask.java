@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
+ * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
- *
- * - Redistributions of source code must retain the above copyright notice,
- *   this list of conditions and the following disclaimer.
- *
- * - Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * - Neither the name of the KNOPFLERFISH project nor the names of its
- *   contributors may be used to endorse or promote products derived
- *   from this software without specific prior written permission.
- *
+ * 
+ * - Redistributions of source code must retain the above copyright notice, 
+ *   this list of conditions and the following disclaimer. 
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice, 
+ *   this list of conditions and the following disclaimer in the documentation 
+ *   and/or other materials provided with the distribution. 
+ * 
+ * - Neither the name of the KNOPFLERFISH project nor the names of its 
+ *   contributors may be used to endorse or promote products derived 
+ *   from this software without specific prior written permission. 
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -35,26 +35,16 @@ package org.knopflerfish.ant.taskdefs.bundle;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
-import org.apache.bcel.classfile.DescendingVisitor;
-import org.apache.bcel.classfile.EmptyVisitor;
-import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LocalVariable;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
@@ -84,12 +74,12 @@ import org.apache.tools.ant.util.StringUtils;
  *
  * <li><b>Source code</b>
  * <p>
- * Java source code is analyzed using very simple line-based scanning of
+ * Java source code is analyzed using very simple line-based scanning of 
  * files. <br>
  * <b>Note</b>: Source code analysis does not attempt to find any
  * <tt>BundleActivator</tt>
  * </p>
- *
+ * 
  * <li><b>Jar files</b>
  * <p>
  * Jar file analysis is not yet implemented
@@ -107,13 +97,13 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *  <tr>
  *   <td valign=top>imports</td>
- *   <td valign=top>Name of property that will receive a comma-separated list
- *       of all used packages.
+ *   <td valign=top>Name of property that will receive a comma-separated list 
+ *       of all used packages. 
  *       <p>
  *       If set to empty string, no property will be set.
  *       </p>
  *       <p>
- *       <b>Note</b>: Some default packages are always added. These
+ *       <b>Note</b>: Some default packages are always added. These 
  *       defaults can be set using the <tt>defaultimports</tt> parameter.
  *       </p>
  *   </td>
@@ -121,8 +111,8 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *  <tr>
  *   <td valign=top>exports</td>
- *   <td valign=top>Name of property that will receive a comma-separated
- *       list of all defined packages.
+ *   <td valign=top>Name of property that will receive a comma-separated 
+ *       list of all defined packages. 
  *       <p>
  *       If set to empty string, no property will be set.
  *       </p>
@@ -131,7 +121,7 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *   <td valign=top>activator</td>
  *   <td valign=top>
- *       Name of property that will receive name of class which implements
+ *       Name of property that will receive name of class which implements 
  *       <tt>org.osgi.framework.BundleActivator</tt>
  *       <p>
  *       If set to empty string, no property will be set.
@@ -147,7 +137,7 @@ import org.apache.tools.ant.util.StringUtils;
  *  <tr>
  *   <td valign=top>stdimports</td>
  *   <td valign=top>
- *       Comma-separated list of all prefixes to standard packages that
+ *       Comma-separated list of all prefixes to standard packages that 
  *       should be ignored in exports list.
  *   </td>
  *   <td valign=top>
@@ -159,16 +149,16 @@ import org.apache.tools.ant.util.StringUtils;
  *  <tr>
  *   <td valign=top>defaultimports</td>
  *   <td valign=top>
- *       Comma-separated list of all default imported packages.
+ *       Comma-separated list of all default imported packages. 
  *       <p>
- *       <b>Note</b>: Do not set <tt>defaultimports</tt> to the empty
- *       string, since that might
- *       cause an later illegal bundle manifest file if <i>no</i> imported
+ *       <b>Note</b>: Do not set <tt>defaultimports</tt> to the empty 
+ *       string, since that might 
+ *       cause an later illegal bundle manifest file if <i>no</i> imported 
  *       packages are found.
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br>
+ *     No.<br> 
  *     Default value is "org.osgi.framework"
  *   </td>
  *  </tr>
@@ -183,55 +173,8 @@ import org.apache.tools.ant.util.StringUtils;
  *       </p>
  *   </td>
  *   <td valign=top>
- *     No.<br>
+ *     No.<br> 
  *     Default value is "false"
- *   </td>
- *  </tr>
- *
- *  <tr>
- *   <td valign=top>checkMinimumEE</td>
- *   <td valign=top>
- *       Flag for testing for the Minum Execution Environment
- *       <p>
- *       If set to "true", the task will check if all used classes
- *       is in the set of the Minimum Execution Environment.
- *       </p>
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "false"
- *   </td>
- *  </tr>
- *
- *  <tr>
- *   <td valign=top>checkSMFEE</td>
- *   <td valign=top>
- *       Flag for testing for the SMF Execution Environment
- *       <p>
- *       If set to "true", the task will check if all used classes
- *       is in the set of the SMF profile Execution Environment.
- *       </p>
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "false"
- *   </td>
- *  </tr>
- *
- *  <tr>
- *   <td valign=top>implicitImports</td>
- *   <td valign=top>
- *       Flag for adding all exported packages to the import list.
- *       <p>
- *       If set to "true", the task will add all packages mentioned in
- *       the property named by <code>exports</code> to the list of
- *       imported packages in the property named by <code>imports</code>.
- *       This emulates the implicit import behaviour present in OSG R1-3.
- *       </p>
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "true"
  *   </td>
  *  </tr>
  *
@@ -240,8 +183,8 @@ import org.apache.tools.ant.util.StringUtils;
  *
  * (required)<br>
  * <p>
- * All files must be specified as a fileset. Unsupported file types
- * are ignored.
+ * All files must be specified as a fileset. Unsupported file types 
+ * are ignored. 
  * </p>
  *
  * <h3>Examples</h3>
@@ -254,13 +197,13 @@ import org.apache.tools.ant.util.StringUtils;
  * </p>
  *
  * <pre>
- *  &lt;bundleinfo  activator = "bmfa.Bundle-Activator"
+ *  &lt;bundleinfo  activator = "bundle.activator" 
  *               imports   = "impl.import.package"&gt;
  *   &lt;fileset dir="classes" includes="test/impl/&#042;"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports   = ${impl.import.package}"/&gt;
- *  &lt;echo message="activator = ${bmfa.Bundle-Activator}"/&gt;
- * </pre>
+ *  &lt;echo message="activator = ${bundle.activator}"/&gt;
+ * </pre> 
  *
  *
  * <h4>Check all imports and exports in API classes</h4>
@@ -271,25 +214,25 @@ import org.apache.tools.ant.util.StringUtils;
  * </p>
  *
  * <pre>
- *  &lt;bundleinfo  exports  = "api.export.package"
+ *  &lt;bundleinfo  exports  = "api.export.package" 
  *               imports  = "api.import.package"&gt;
  *   &lt;fileset dir="classes" includes="test/&#042;"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports  = ${api.import.package}"/&gt;
  *  &lt;echo message="exports  = ${api.export.package}"/&gt;
- * </pre>
- *
+ * </pre> 
+ * 
  */
 public class BundleInfoTask extends Task {
-
+  
   private Vector    filesets = new Vector();
   private FileUtils fileUtils;
-
+  
   private String importsProperty   = "";
   private String exportsProperty   = "";
   private String activatorProperty = "";
   private String mainProperty      = "";
-
+  
   private Set     stdImports       = new TreeSet();
   private boolean bDebug           = false;
 
@@ -298,27 +241,20 @@ public class BundleInfoTask extends Task {
   private boolean bCheckFoundationEE = false;
   private boolean bCheckMinimumEE    = false;
   private boolean bCheckSMFEE        = false;
-  private boolean bImplicitImports   = true;
 
-  /** The set of packages that are provided by the inlcuded classes. */
-  private Set providedSet          = new TreeSet();
-  /** The sub set of the included classes that implements BundleActivator. */
-  private Set activatorSet         = new TreeSet();
-  /**
-   * The set of packages referenced by the included classes but not
-   * provided by them.
-   */
   private Set importSet            = new TreeSet();
+  private Set exportSet            = new TreeSet();
+  private Set activatorSet         = new TreeSet();
 
   private Set classSet             = new TreeSet();
   private Set ownClasses           = new TreeSet();
-
+  
   public BundleInfoTask() {
     fileUtils = FileUtils.newFileUtils();
     setDefaultImports("org.osgi.framework");
     setStdImports("java.");
   }
-
+  
   /**
    * Set property receiving list of imported packages.
    */
@@ -342,17 +278,13 @@ public class BundleInfoTask extends Task {
     this.bCheckSMFEE = "true".equals(s);
   }
 
-  public void setImplicitImports(String s) {
-    this.bImplicitImports = "true".equals(s);
-  }
-
   /**
    * Set default import set.
    *
    * @param packageList Comma-separated list of package names.
    */
   public void setDefaultImports(String packageList) {
-    Vector v = StringUtils.split(packageList.trim(),',');
+    Vector v = StringUtils.split(packageList.trim(),',');  
     importSet.clear();
     importSet.addAll(v);
   }
@@ -392,32 +324,32 @@ public class BundleInfoTask extends Task {
     stdImports.clear();
     stdImports.addAll(StringUtils.split(packageList.trim(),','));
   }
-
+  
   public void addFileset(FileSet set) {
     filesets.addElement(set);
   }
-
+  
   // Implements Task
-  //
+  // 
   // Scan all files in fileset and delegate to analyze()
   // then write back values to properties.
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
-
+    
     for (int i = 0; i < filesets.size(); i++) {
       FileSet fs = (FileSet) filesets.elementAt(i);
       DirectoryScanner ds = fs.getDirectoryScanner(project);
       File fromDir = fs.getDir(project);
-
+      
       String[] srcFiles = ds.getIncludedFiles();
       String[] srcDirs = ds.getIncludedDirectories();
-
+      
       for (int j = 0; j < srcFiles.length ; j++) {
 	analyze(new File(fromDir, srcFiles[j]));
       }
-
+      
       for (int j = 0; j < srcDirs.length ; j++) {
 	analyze(new File(fromDir, srcDirs[j]));
       }
@@ -427,134 +359,53 @@ public class BundleInfoTask extends Task {
 
     Project proj = getProject();
 
-    if(!"".equals(exportsProperty)) {
-      String exportsVal = proj.getProperty(exportsProperty);
-      if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
-        exportsVal = toString(providedSet, ",");
-        log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
-            Project.MSG_VERBOSE);
-        proj.setProperty(exportsProperty, exportsVal);
-      } else {
-        // Export-Package given; check that they are provided.
-        Iterator expIt = Util.parseEntries("export.package",exportsVal,
-                                           true, true, false );
-        while (expIt.hasNext()) {
-          Map expEntry = (Map) expIt.next();
-          String exPkg = (String) expEntry.get("key");
-          if (!providedSet.contains(exPkg)) {
-            log("The package '"+exPkg +"' is in the Export-Package"
-                +" manifest header, but there is no class belonging to it."
-                +" The following packages are provided: "+providedSet,
-                Project.MSG_ERR );
-          }
-        }
-      }
-    }
-
-    importSet.removeAll(providedSet);
+    importSet.removeAll(exportSet);
 
     if(!"".equals(importsProperty)) {
-      String importsVal = proj.getProperty(importsProperty);
-      if (BundleManifestTask.isPropertyValueEmpty(importsVal)) {
-        // No Import-Package given; use derived value.
-        importsVal = toString(importSet, ",");
-        log("Setting \"" +importsProperty +"\" to \""+importsVal +"\"",
-            Project.MSG_VERBOSE);
-        proj.setProperty(importsProperty, importsVal);
-      } else {
-        // Import-Package given; check that all derived packages are
-        // present and that there are no dupplicated packages.
-        TreeSet givenImportSet = new TreeSet();
-        Iterator impIt = Util.parseEntries("import.package",importsVal,
-                                           true, true, false );
-        while (impIt.hasNext()) {
-          Map impEntry = (Map) impIt.next();
-          String pkgName = (String) impEntry.get("key");
-          if (!givenImportSet.add( pkgName )) {
-            log("The package '" +pkgName +"' is mentioned twice in the"
-                +" given 'Import-Package' manifest header: '"
-                +importsVal +"'.",
-                Project.MSG_ERR);
-            throw new BuildException("The package '" +pkgName
-                                     +"' is imported twice.");
-          }
-        }
-        givenImportSet.removeAll(providedSet);
-        TreeSet missingImports = new TreeSet(importSet);
-        missingImports.removeAll(givenImportSet);
-        if (0<missingImports.size()) {
-          log("External packages: "+importSet, Project.MSG_ERR);
-          log("Imported packages: "+givenImportSet, Project.MSG_ERR);
-          log("Provided packages: "+providedSet, Project.MSG_ERR);
+      proj.setNewProperty(importsProperty,   toString(importSet, ","));
+    }
 
-          log("The following external packages are used by the bundle "
-             +"but not mentioned in the Import-Package manifest header: "
-             +missingImports, Project.MSG_ERR );
-          /* Should make this configurable.
-          throw new BuildException
-            ("The following packages are used by the bundle but note "
-             +"mentioned in the Import-Package manifest header: "
-             +missingImports,
-             getLocation() );
-          */
-        }
-        TreeSet extraImports = new TreeSet(givenImportSet);
-        extraImports.removeAll(importSet);
-        if (0<extraImports.size()) {
-          log("External packages: "+importSet, Project.MSG_ERR);
-          log("Imported packages: "+givenImportSet, Project.MSG_ERR);
-
-          log("The following packages are mentioned in the Import-Package"
-              +" manifest header but not used by the included classes: "
-             +extraImports, Project.MSG_WARN );
-        }
-      }
+    if(!"".equals(exportsProperty)) {
+      proj.setNewProperty(exportsProperty,  toString(exportSet, ","));
     }
 
     // Try to be a bit clever when writing back bundle activator
     if(!"".equals(activatorProperty)) {
-      String activatorVal = proj.getProperty(activatorProperty);
-      if (BundleManifestTask.isPropertyValueEmpty(activatorVal)) {
-        // No Bundle-Activator given; use derived value if possible.
-        switch(activatorSet.size()) {
-        case 0:
-          log("No class implementing BundleActivator found", Project.MSG_ERR);
-          throw new BuildException
-            ("Requested to derive Bundle-Activator but there is "
-             +"no class implementing BundleActivator.",
-             getLocation() );
-        case 1:
-          String clazz = (String)activatorSet.iterator().next();
-          proj.setProperty(activatorProperty, clazz);
-          break;
-        default:
-          log("Manual selectio if Bundle-Activator is needed since"
-              +" the set of included classes contains more than one"
-              +" candidate: "+activatorSet,
-              Project.MSG_ERR);
-          throw new BuildException
-            ("Requested to derive Bundle-Activator but there are "
-             +"more than one class implementing BundleActivator.",
-             getLocation() );
-        }
-      } else {
-        // Bundle-Activator given; check that it is correct.
-        if (0==activatorSet.size()) {
-          log("No class implementing BundleActivator found", Project.MSG_ERR);
-        } else {
-          String givenClazz = proj.getProperty(activatorProperty).trim();
-          if (!activatorSet.contains(givenClazz)) {
-            log("The specified BundleActivator '" +givenClazz
-                +"' is not a member of the set of included classes that"
-                +"  implements BundleActivator: " +activatorSet,
-                Project.MSG_WARN);
-            throw new BuildException
-              ("The specified BundleActivator '" +givenClazz
-                +"' is not a member of the set of included classes that"
-                +"  implements BundleActivator: " +activatorSet,
-               getLocation() );
-          }
-        }
+      switch(activatorSet.size()) {
+      case 0:
+	System.out.println("info - no class implementing " + 
+			   "BundleActivator found");
+	break;
+      case 1:
+	{
+	  String clazz = (String)activatorSet.iterator().next();
+	  String clazz0 = proj.getProperty(activatorProperty);
+	  if(clazz0 == null || "".equals(clazz0)) {
+	    // System.out.println("set activator " + activatorProperty + "=" + clazz);
+	  } else {
+	    if(!clazz.equals(clazz0)) {
+	      System.out.println("*** Warning - the class found implementing " + 
+				 " BundleActivator '" + clazz + "' " + 
+				 " does not match the one set as " + 
+				 activatorProperty + "=" + clazz0);
+	    } else {
+	      if(bDebug) {
+		System.out.println("correct activator " + 
+				   activatorProperty + "=" + clazz0);
+	      }
+	    }
+	  }
+	  proj.setNewProperty(activatorProperty, clazz);
+	}
+	break;
+      default:
+	System.out.println("*** Warning - more than one class " + 
+			   "implementing BundleActivator found:");
+	for(Iterator it = activatorSet.iterator(); it.hasNext();) {
+	  System.out.println(" " + it.next());
+	}
+	break;
+	
       }
     }
 
@@ -570,7 +421,7 @@ public class BundleInfoTask extends Task {
 	if(!ownClasses.contains(s)) {
 	  if(bPrintClasses) {
 	    System.out.println(s);
-	  }
+	  } 
 	  if(!EE.isFoundation(s)) {
 	    if(!isImported(s)) {
 	      foundationMissing.add(s);
@@ -592,7 +443,7 @@ public class BundleInfoTask extends Task {
 
     if(bCheckFoundationEE) {
       if(foundationMissing.size() > 0) {
-	System.out.println("Missing " + foundationMissing.size() +
+	System.out.println("Missing " + foundationMissing.size() + 
 			   " classes from foundation profile");
       } else {
 	System.out.println("Passes foundation EE");
@@ -605,7 +456,7 @@ public class BundleInfoTask extends Task {
 
     if(bCheckMinimumEE) {
       if(minimumMissing.size() > 0) {
-	System.out.println("Missing " + minimumMissing.size() +
+	System.out.println("Missing " + minimumMissing.size() + 
 			   " classes from minimum profile");
       } else {
 	System.out.println("Passes minimum EE");
@@ -618,7 +469,7 @@ public class BundleInfoTask extends Task {
 
     if(bCheckSMFEE) {
       if(smfMissing.size() > 0) {
-	System.out.println("Missing " + smfMissing.size() +
+	System.out.println("Missing " + smfMissing.size() + 
 			   " classes from SMF profile");
       } else {
 	System.out.println("Passes SMF EE");
@@ -628,60 +479,18 @@ public class BundleInfoTask extends Task {
 	System.out.println("Not in SMF: " + s);
       }
     }
-
-    /* Handle the implicitImport flag. */
-    if(bImplicitImports
-       && !"".equals(importsProperty)
-       && !"".equals(exportsProperty) ) {
-      String importsSpec = proj.getProperty(importsProperty);
-      log("implicitImport - before: "+importsSpec, Project.MSG_VERBOSE);
-      importSet.clear();
-      if (!BundleManifestTask.isPropertyValueEmpty(importsSpec)) {
-        Iterator impIt = Util.parseEntries("import.package",importsSpec,
-                                           true, true, false );
-        while (impIt.hasNext()) {
-          Map impEntry = (Map) impIt.next();
-          importSet.add( impEntry.get("key") );
-        }
-      }
-
-      String exportsSpec = proj.getProperty(exportsProperty);
-      if (!BundleManifestTask.isPropertyValueEmpty(exportsSpec)) {
-        Iterator expIt = Util.parseEntries("export.package",exportsSpec,
-                                           true, true, false );
-        while (expIt.hasNext()) {
-          Map expEntry = (Map) expIt.next();
-          String pkg = (String) expEntry.get("key");
-          if (!importSet.contains(pkg)) {
-            String ver = (String) expEntry.get("version");
-            String sver = (String) expEntry.get("specification-version");
-            if (null!=ver) {
-              pkg += ";version="+ver;
-            } else if (null!=sver) {
-              pkg += ";specification-version="+sver;
-            }
-            log("implicitImport - adding: "+pkg, Project.MSG_DEBUG);
-            importsSpec += "," +pkg;
-          }
-        }
-        log("implicitImport - after: "+importsSpec, Project.MSG_VERBOSE);
-        proj.setProperty(importsProperty, importsSpec );
-      }
-    }
   }
 
-
+  
 
 
   /**
-   * Analyze a file by checking its suffix and delegate to
+   * Analyze a file by checking its suffix and delegate to 
    * <tt>analyzeClass</tt>, <tt>analyzeJava</tt> etc
    */
   protected void analyze(File file) throws BuildException {
     if(file.getName().endsWith(".class")) {
       analyzeClass(file);
-    } else if(file.getName().endsWith(".jar")) {
-      analyzeJar(file);
     } else if(file.getName().endsWith(".java")) {
       analyzeJava(file);
     } else {
@@ -690,12 +499,15 @@ public class BundleInfoTask extends Task {
   }
 
 
-  protected void addProvidedPackageString(String name) {
+  protected void addExportedPackageString(String name) {
     if(name == null || "".equals(name)) {
       return;
     }
-    log("Provides package: " + name, Project.MSG_DEBUG);
-    providedSet.add(name);
+
+    if(bDebug) {
+      System.out.println(" package " + name);
+    }
+    exportSet.add(name);
   }
 
 
@@ -717,24 +529,12 @@ public class BundleInfoTask extends Task {
   }
 
   /**
-   * Add package names of all types in <code>ts</code> to the list of
-   * imported packages.
-   *
-   * @param ts Array with Type objects.
-   */
-  protected void addImportedType(Type[] ts) {
-    for (int i = ts.length-1; i>-1; i-- ) {
-      addImportedType(ts[i]);
-    }
-  }
-
-  /**
    * Add a class' package name to the list of imported packages.
    *
    * @param className Class name of an object. The class name is stripped
    *                  from the part after the last '.' and added to set
    *                  of imported packages, if its not one of the standard
-   *                  packages. Primitive class names are ignore.
+   *                  packages. Primitive class names are ignore. 
    */
   protected void addImportedString(String className) {
 
@@ -749,7 +549,7 @@ public class BundleInfoTask extends Task {
     }
 
     // only add packages defined outside this set of files
-    if(!providedSet.contains(name)) {
+    if(!exportSet.contains(name)) {
 
       // ...and only add non-std packages
       if(!isStdImport(name)) {
@@ -791,143 +591,52 @@ public class BundleInfoTask extends Task {
 
 
   protected void analyzeJar(File file) throws BuildException {
-    log("Analyze jar file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
-
-    try {
-      JarFile jarFile = new JarFile(file);
-
-      for (Enumeration entries = jarFile.entries();
-           entries.hasMoreElements(); ) {
-        ZipEntry     ze = (ZipEntry) entries.nextElement();
-        String fileName = ze.getName();
-        if (fileName.endsWith(".class")) {
-          log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
-          InputStream  is = jarFile.getInputStream(ze);
-          analyzeClass( new ClassParser(is, fileName ) );
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " +
-			       file + ", exception=" + e);
-    }
+    throw new BuildException("Jar file analyzing not yet supported");
   }
 
   protected void analyzeClass(File file) throws BuildException {
-    log("Analyze class file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
+    if(bDebug) {
+      System.out.println("Analyze class file " + file.getAbsolutePath());
+    }
 
     try {
-      analyzeClass( new ClassParser(file.getAbsolutePath()) );
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " +
-			       file + ", exception=" + e);
-    }
-  }
+      ClassParser        parser   = new ClassParser(file.getAbsolutePath());
+      JavaClass          clazz    = parser.parse();
+      ConstantPool  constant_pool = clazz.getConstantPool();
 
-  protected void analyzeClass(ClassParser parser) throws Exception {
-    final JavaClass    clazz         = parser.parse();
-    final ConstantPool constant_pool = clazz.getConstantPool();
+      ownClasses.add(clazz.getClassName());
+      addExportedPackageString(clazz.getPackageName());
 
-    ownClasses.add(clazz.getClassName());
-    addProvidedPackageString(clazz.getPackageName());
-
-    // Scan all implemented interfaces to find
-    // candidates for the activator AND to find
-    // all referenced packages.
-    String[] interfaces = clazz.getInterfaceNames();
-    for(int i = 0; i < interfaces.length; i++) {
-      if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
-        addActivatorString(clazz.getClassName());
-        break;
+      // Scan all implemented interfaces to find
+      // candidates for the activator AND to find
+      // all referenced packages.
+      String[] interfaces = clazz.getInterfaceNames();
+      for(int i = 0; i < interfaces.length; i++) {
+        if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
+          addActivatorString(clazz.getClassName());
+          break;
+        }
       }
-    }
 
-    /**
-     * Use a descending visitor to find all classes that the given
-     * clazz refers to and add them to the set of imported classes.
-     */
-    DescendingVisitor v = new DescendingVisitor(clazz, new EmptyVisitor() {
-        /**
-         * Keep track of the signatures visited to avoid processing
-         * them more than once. The same signature may apply to
-         * many methods or fields.
-         */
-        boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
-
-        /**
-         * Add the class that the given ConstantClass object
-         * represents to the set of imported classes.
-         *
-         * @param obj The ConstantClass object
-         */
-        public void visitConstantClass( ConstantClass obj ) {
-          String referencedClass = obj.getBytes(constant_pool);
-          referencedClass = referencedClass.charAt(0) == '['
-            ? Utility.signatureToString(referencedClass, false)
-            : Utility.compactClassName(referencedClass,  false);
+      Constant[] constants = constant_pool.getConstantPool();
+      for (int i = 0; i < constants.length; i++) {
+        Constant constant = constants[i];
+        if (constant instanceof ConstantClass) {
+          ConstantClass constantClass = (ConstantClass) constant;
+          String referencedClass = constantClass.getBytes(constant_pool);
+          if (referencedClass.charAt(0) == '[') {
+            referencedClass = Utility.signatureToString(referencedClass, false);
+          } else {
+            referencedClass = Utility.compactClassName(referencedClass, false);
+          }
           addImportedString(referencedClass);
         }
-
-        /**
-         * Add the class used as types for the given field.
-         * This is necessary since if no method is applied to an
-         * object valued field there will be no ConstantClass object
-         * in the ConstantPool for the class that is the type of the
-         * field.
-         *
-         * @param obj A Field object
-         */
-        public void visitField( Field obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            String signature = obj.getSignature();
-            Type type = Type.getType(signature);
-            addImportedType(type);
-          }
-        }
-
-        /**
-         * Add all classes used as types for a local variable in the
-         * class we are analyzing. This is necessary since if no
-         * method is applied to an object valued local variable
-         * there will be no ConstantClass object in the ConstantPool
-         * for the class that is the type of the local variable.
-         *
-         * @param obj A LocalVariable object
-         */
-        public void visitLocalVariable( LocalVariable obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            String signature = obj.getSignature();
-            Type type = Type.getType(signature);
-            addImportedType(type);
-          }
-        }
-
-        /**
-         * Add all classes mentioned in the signature of the given
-         * method. This is necessary since if no method is applied
-         * to a parameter (return type) there will be no
-         * ConstantClass object in the ConstantPool for the class
-         * that is the type of that parameter (return type).
-         *
-         * @param obj A Method object
-         */
-        public void visitMethod( Method obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            String signature = obj.getSignature();
-            Type returnType = Type.getReturnType(signature);
-            Type[] argTypes = Type.getArgumentTypes(signature);
-            addImportedType(returnType);
-            addImportedType(argTypes);
-          }
-        }
-
-      } );
-    // Run the scanner on the loaded class
-    v.visit();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new BuildException("Failed to parse .class file " + 
+			       file + ", exception=" + e);
+    }
   }
 
   /**
@@ -960,7 +669,7 @@ public class BundleInfoTask extends Task {
 	  Vector v = StringUtils.split(line, ' ');
 	  if(v.size() > 1 && "package".equals(v.elementAt(0))) {
 	    String name = (String)v.elementAt(1);
-	    addProvidedPackageString(name);
+	    addExportedPackageString(name);
 	  }
 	}
 	if(line.startsWith("import")) {
@@ -1011,6 +720,4 @@ public class BundleInfoTask extends Task {
     }
     return sb.toString();
   }
-
-
 }

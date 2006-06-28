@@ -10,14 +10,14 @@
 
 -init
 
--install log/log_api-2.0.0.jar
--install console/console_api-2.0.0.jar
--istart  cm/cm_api-2.0.0.jar
--istart  log/log-2.0.0.jar
--istart  console/console-2.0.0.jar
--istart  consoletty/consoletty-2.0.0.jar
--istart  frameworkcommands/frameworkcommands-2.0.0.jar
--istart  logcommands/logcommands-2.0.0.jar
--istart  useradmin/useradmin_api-2.0.0.jar
+-install log/log_api-1.0.1.jar
+-install console/console_api-1.0.0.jar
+-istart  cm/cm_api-1.0.1.jar
+-istart  log/log-1.0.1.jar
+-istart  console/console-1.0.0.jar
+-istart  consoletty/consoletty-1.0.1.jar
+-istart  frameworkcommands/frameworkcommands-1.0.0.jar
+-istart  logcommands/logcommands-1.0.1.jar
+-istart  useradmin/useradmin_api-1.0.0.jar
 
 -launch

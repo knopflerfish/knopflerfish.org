@@ -34,7 +34,7 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-//import java.util.*;
+import java.util.*;
 import java.io.*;
 import java.net.*;
 import org.osgi.framework.*;

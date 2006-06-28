@@ -146,7 +146,7 @@ public class Util {
 
     /**
      * Sort an array of bundle objects based on their Bundle Id. All entries
-     * containing NULL are placed at the end of the array.
+     * containing NULL is placed at the end of the array.
      * 
      * @param b
      *            array of bundles to be sorted, modified with result
@@ -159,35 +159,6 @@ public class Util {
             long p = b[0] != null ? b[0].getBundleId() : Long.MAX_VALUE;
             for (int i = 1; i < l; i++) {
                 long n = b[i] != null ? b[i].getBundleId() : Long.MAX_VALUE;
-                if (p > n) {
-                    x = i - 1;
-                    Bundle t = b[x];
-                    b[x] = b[i];
-                    b[i] = t;
-                } else {
-                    p = n;
-                }
-            }
-        }
-    }
-
-    // TODO: Merge sortBundlesId and sortBundlesTime?
-    
-    /**
-     * Sort an array of bundle objects based on their Last modified time.
-     * All entries containing NULL are placed at the end of the array.
-     * 
-     * @param b
-     *            array of bundles to be sorted, modified with result
-     */
-    public static void sortBundlesTime(Bundle[] b) {
-        int x = b.length;
-
-        for (int l = x; x > 0;) {
-            x = 0;
-            long p = b[0] != null ? b[0].getLastModified() : Long.MAX_VALUE;
-            for (int i = 1; i < l; i++) {
-                long n = b[i] != null ? b[i].getLastModified() : Long.MAX_VALUE;
                 if (p > n) {
                     x = i - 1;
                     Bundle t = b[x];

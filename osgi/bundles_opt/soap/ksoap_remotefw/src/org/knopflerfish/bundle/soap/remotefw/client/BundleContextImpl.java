@@ -467,9 +467,4 @@ public class BundleContextImpl implements BundleContext {
     }
     return false;
   }
-
-public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
-	// TODO Auto-generated method stub
-	return null;
-}
 }

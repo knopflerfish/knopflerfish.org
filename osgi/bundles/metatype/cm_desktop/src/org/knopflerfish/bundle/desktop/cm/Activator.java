@@ -80,7 +80,7 @@ public class Activator implements BundleActivator {
     */
   }
 
-  static MetaTypeInformation getMTP(Bundle b) {
+  static MTP getMTP(Bundle b) {
     SystemMetatypeProvider sysMTP = 
       (SystemMetatypeProvider)mtpTracker.getService();
     if(sysMTP != null) {

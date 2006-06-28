@@ -398,14 +398,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
         synchronized (blFilters) {
             level = (Integer) blFilters.get(bundle.getLocation());
             if (level == null) {
-                Dictionary d = bundle.getHeaders("");
-		String l = (String)d.get("Bundle-SymbolicName");
-                if (l == null) {
-		    l = (String)d.get("Bundle-Name");
-                }
-                if (l != null) {
-                    level = (Integer) blFilters.get(getCommonLocation(l));
-                }
+                level = (Integer) blFilters.get(((String) (bundle.getHeaders())
+                        .get("Bundle-Name"))
+                        + ".jar");
             }
         }
         return (level != null) ? level.intValue() : getFilter();
@@ -566,37 +561,30 @@ class LogConfigImpl implements ManagedService, LogConfig {
     void updateGrabIO() {
         boolean bDebugClass = "true".equals(System.getProperty(
                 "org.knopflerfish.framework.debug.classloader", "false"));
+
         if (!bDebugClass) {
             if (getGrabIO()) {
-                grabIO();
+                if (!getOut()) {
+                    if (!bGrabbed) {
+                        origOut = System.out;
+                        origErr = System.err;
+
+                        System.setOut(new WrapStream("[stdout] ", System.out,
+                                org.osgi.service.log.LogService.LOG_INFO));
+                        System.setErr(new WrapStream("[stderr] ", System.out,
+                                org.osgi.service.log.LogService.LOG_ERROR));
+                    }
+                }
             } else {
-                ungrabIO();
+                if (bGrabbed) {
+                    System.setOut(origOut);
+                    System.setErr(origErr);
+                    bGrabbed = false;
+                }
             }
         }
     }
 
-    void grabIO() {
-        if (!getOut()) {
-            if (!bGrabbed) {
-                origOut = System.out;
-                origErr = System.err;
-                System.setOut(new WrapStream("[stdout] ", System.out,
-                              org.osgi.service.log.LogService.LOG_INFO));
-                System.setErr(new WrapStream("[stderr] ", System.out,
-                              org.osgi.service.log.LogService.LOG_ERROR));
-                bGrabbed = true;
-            }
-        }
-    }
-
-    void ungrabIO() {
-        if (bGrabbed) {
-            System.setOut(origOut);
-            System.setErr(origErr);
-            bGrabbed = false;
-        }
-    }
-            
     class WrapStream extends PrintStream {
         String prefix;
 
@@ -629,7 +617,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
         }
 
         void log(String s) {
-            if (s != null && -1 != s.indexOf(prefix)) {
+            if (-1 != s.indexOf(prefix)) {
                 return;
             }
 

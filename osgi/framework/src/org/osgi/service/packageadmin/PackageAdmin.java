@@ -1,19 +1,27 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.packageadmin/src/org/osgi/service/packageadmin/PackageAdmin.java,v 1.19 2006/06/16 16:31:49 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) The Open Services Gateway Initiative (2001, 2002).
+ * All Rights Reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
+ *
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
 
 package org.osgi.service.packageadmin;
@@ -21,258 +29,134 @@ package org.osgi.service.packageadmin;
 import org.osgi.framework.Bundle;
 
 /**
- * Framework service which allows bundle programmers to inspect the package
- * wiring state of bundles in the Framework as well as other functions related
- * to the class loader network among bundles.
- * 
- * <p>
- * If present, there will only be a single instance of this service registered
- * with the Framework.
- * 
- * @version $Revision: 1.19 $
- * @see org.osgi.service.packageadmin.ExportedPackage
- * @see org.osgi.service.packageadmin.RequiredBundle
+ * Framework service which allows bundle programmers to inspect the packages
+ * exported in the Framework and eagerly update or uninstall bundles.
+ *
+ * If present, there will only be a single instance of this service
+ * registered with the Framework.
+ *
+ * <p>The term <i>exported package</i> (and the corresponding interface
+ * {@link ExportedPackage})refers to a package that has actually been
+ * exported (as opposed to one that is available for export).
+ *
+ * <p>The information about exported packages returned by this
+ * service is valid only until the next time {@link #refreshPackages}is
+ * called.
+ * If an <tt>ExportedPackage</tt> object becomes stale, (that is, the package it references
+ * has been updated or removed as a result of calling
+ * <tt>PackageAdmin.refreshPackages()</tt>),
+ * its <tt>getName()</tt> and <tt>getSpecificationVersion()</tt> continue to return their
+ * old values, <tt>isRemovalPending()</tt> returns <tt>true</tt>, and <tt>getExportingBundle()</tt>
+ * and <tt>getImportingBundles()</tt> return <tt>null</tt>.
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  */
 public interface PackageAdmin {
-	/**
-	 * Gets the exported packages for the specified bundle.
-	 * 
-	 * @param bundle The bundle whose exported packages are to be returned, or
-	 *        <code>null</code> if all exported packages are to be returned.
-	 *        If the specified bundle is the system bundle (that is, the bundle
-	 *        with id zero), this method returns all the packages known to be
-	 *        exported by the system bundle. This will include the package
-	 *        specified by the <code>org.osgi.framework.system.packages</code>
-	 *        system property as well as any other package exported by the
-	 *        framework implementation.
-	 * 
-	 * @return An array of exported packages, or <code>null</code> if the
-	 *         specified bundle has no exported packages.
-	 */
-	public ExportedPackage[] getExportedPackages(Bundle bundle);
+    /**
+     * Gets the packages exported by the specified bundle.
+     *
+     * @param bundle The bundle whose exported packages are to be returned,
+     *               or <tt>null</tt> if all the packages currently
+     *               exported in the Framework are to be returned.  If the
+     *               specified bundle is the system bundle (that is, the
+     *               bundle with id zero), this method returns all the packages
+     *               on the system classpath whose name does not start with
+     *               "java.".  In an environment where the exhaustive list
+     *               of packages on the system classpath is not known in
+     *               advance, this method will return all currently known
+     *               packages on the system classpath, that is, all packages
+     *               on the system classpath that contains one or more classes
+     *               that have been loaded.
+     *
+     * @return The array of packages exported by the specified bundle,
+     * or <tt>null</tt> if the specified bundle has not exported any packages.
+     */
+    public ExportedPackage[] getExportedPackages(Bundle bundle);
 
-	/**
-	 * Gets the exported packages for the specified package name.
-	 * 
-	 * @param name The name of the exported packages to be returned.
-	 * 
-	 * @return An array of the exported packages, or <code>null</code> if no
-	 *         exported packages with the specified name exists.
-	 * @since 1.2
-	 */
-	public ExportedPackage[] getExportedPackages(String name);
+    /**
+     * Gets the <tt>ExportedPackage</tt> object with the specified package name.  All exported
+     * packages
+     * will be checked for the specified name.  In an environment where the
+     * exhaustive list of packages on the system classpath is not known in
+     * advance, this method attempts to see if the named package is on the
+     * system classpath.
+     * This
+     * means that this method may discover an <tt>ExportedPackage</tt> object that was
+     * not present in the list returned by
+     * a prior call to <tt>getExportedPackages()</tt>.
+     *
+     * @param name The name of the exported package to be returned.
+     *
+     * @return The exported package with the specified name, or <tt>null</tt>
+     *         if no expored package with that name exists.
+     */
+    public ExportedPackage getExportedPackage(String name);
 
-	/**
-	 * Gets the exported package for the specified package name.
-	 * 
-	 * <p>
-	 * If there are multiple exported packages with specified name, the exported
-	 * package with the highest version will be returned.
-	 * 
-	 * @param name The name of the exported package to be returned.
-	 * 
-	 * @return The exported package, or <code>null</code> if no exported
-	 *         package with the specified name exists.
-	 * @see #getExportedPackages(String)
-	 */
-	public ExportedPackage getExportedPackage(String name);
-
-	/**
-	 * Forces the update (replacement) or removal of packages exported by the
-	 * specified bundles.
-	 * 
-	 * <p>
-	 * If no bundles are specified, this method will update or remove any
-	 * packages exported by any bundles that were previously updated or
-	 * uninstalled since the last call to this method. The technique by which
-	 * this is accomplished may vary among different Framework implementations.
-	 * One permissible implementation is to stop and restart the Framework.
-	 * 
-	 * <p>
-	 * This method returns to the caller immediately and then performs the
-	 * following steps on a separate thread:
-	 * 
-	 * <ol>
-	 * <li>Compute a graph of bundles starting with the specified bundles. If
-	 * no bundles are specified, compute a graph of bundles starting with bundle
-	 * updated or uninstalled since the last call to this method. Add to the
-	 * graph any bundle that is wired to a package that is currently exported by
-	 * a bundle in the graph. The graph is fully constructed when there is no
-	 * bundle outside the graph that is wired to a bundle in the graph. The
-	 * graph may contain <code>UNINSTALLED</code> bundles that are currently
-	 * still exporting packages.
-	 * 
-	 * <li>Each bundle in the graph that is in the <code>ACTIVE</code> state
-	 * will be stopped as described in the <code>Bundle.stop</code> method.
-	 * 
-	 * <li>Each bundle in the graph that is in the <code>RESOLVED</code>
-	 * state is unresolved and thus moved to the <code>INSTALLED</code> state.
-	 * The effect of this step is that bundles in the graph are no longer
-	 * <code>RESOLVED</code>.
-	 * 
-	 * <li>Each bundle in the graph that is in the <code>UNINSTALLED</code>
-	 * state is removed from the graph and is now completely removed from the
-	 * Framework.
-	 * 
-	 * <li>Each bundle in the graph that was in the <code>ACTIVE</code> state
-	 * prior to Step 2 is started as described in the <code>Bundle.start</code>
-	 * method, causing all bundles required for the restart to be resolved. It
-	 * is possible that, as a result of the previous steps, packages that were
-	 * previously exported no longer are. Therefore, some bundles may be
-	 * unresolvable until another bundle offering a compatible package for
-	 * export has been installed in the Framework.
-	 * <li>A framework event of type
-	 * <code>FrameworkEvent.PACKAGES_REFRESHED</code> is fired.
-	 * </ol>
-	 * 
-	 * <p>
-	 * For any exceptions that are thrown during any of these steps, a
-	 * <code>FrameworkEvent</code> of type <code>ERROR</code> is fired
-	 * containing the exception. The source bundle for these events should be
-	 * the specific bundle to which the exception is related. If no specific
-	 * bundle can be associated with the exception then the System Bundle must
-	 * be used as the source bundle for the event.
-	 * 
-	 * @param bundles The bundles whose exported packages are to be updated or
-	 *        removed, or <code>null</code> for all bundles updated or
-	 *        uninstalled since the last call to this method.
-	 * @throws SecurityException If the caller does not have
-	 *         <code>AdminPermission[System Bundle,RESOLVE]</code> and the
-	 *         Java runtime environment supports permissions.
-	 */
-	public void refreshPackages(Bundle[] bundles);
-
-	/**
-	 * Resolve the specified bundles. The Framework must attempt to resolve the
-	 * specified bundles that are unresolved. Additional bundles that are not
-	 * included in the specified bundles may be resolved as a result of calling
-	 * this method. A permissible implementation of this method is to attempt to
-	 * resolve all unresolved bundles installed in the framework.
-	 * 
-	 * <p>
-	 * If <code>null</code> is specified then the Framework will attempt to
-	 * resolve all unresolved bundles. This method must not cause any bundle to
-	 * be refreshed, stopped, or started. This method will not return until the
-	 * operation has completed.
-	 * 
-	 * @param bundles The bundles to resolve or <code>null</code> to resolve
-	 *        all unresolved bundles installed in the Framework.
-	 * @return <code>true</code> if all specified bundles are resolved;
-	 * @throws SecurityException If the caller does not have
-	 *         <code>AdminPermission[System Bundle,RESOLVE]</code> and the
-	 *         Java runtime environment supports permissions.
-	 * @since 1.2
-	 */
-	public boolean resolveBundles(Bundle[] bundles);
-
-	/**
-	 * Returns an array of required bundles having the specified symbolic name.
-	 * 
-	 * <p>
-	 * If <code>null</code> is specified, then all required bundles will be
-	 * returned.
-	 * 
-	 * @param symbolicName The bundle symbolic name or <code>null</code> for
-	 *        all required bundles.
-	 * @return An array of required bundles or <code>null</code> if no
-	 *         required bundles exist for the specified symbolic name.
-	 * @since 1.2
-	 */
-	public RequiredBundle[] getRequiredBundles(String symbolicName);
-
-	/**
-	 * Returns the bundles with the specified symbolic name whose bundle version
-	 * is within the specified version range. If no bundles are installed that
-	 * have the specified symbolic name, then <code>null</code> is returned.
-	 * If a version range is specified, then only the bundles that have the
-	 * specified symbolic name and whose bundle versions belong to the specified
-	 * version range are returned. The returned bundles are ordered by version
-	 * in descending version order so that the first element of the array
-	 * contains the bundle with the highest version.
-	 * 
-	 * @see org.osgi.framework.Constants#BUNDLE_VERSION_ATTRIBUTE
-	 * @param symbolicName The symbolic name of the desired bundles.
-	 * @param versionRange The version range of the desired bundles, or
-	 *        <code>null</code> if all versions are desired.
-	 * @return An array of bundles with the specified name belonging to the
-	 *         specified version range ordered in descending version order, or
-	 *         <code>null</code> if no bundles are found.
-	 * @since 1.2
-	 */
-	public Bundle[] getBundles(String symbolicName, String versionRange);
-
-	/**
-	 * Returns an array of attached fragment bundles for the specified bundle.
-	 * If the specified bundle is a fragment then <code>null</code> is
-	 * returned. If no fragments are attached to the specified bundle then
-	 * <code>null</code> is returned.
-	 * <p>
-	 * This method does not attempt to resolve the specified bundle. If the
-	 * specified bundle is not resolved then <code>null</code> is returned.
-	 * 
-	 * @param bundle The bundle whose attached fragment bundles are to be
-	 *        returned.
-	 * @return An array of fragment bundles or <code>null</code> if the bundle
-	 *         does not have any attached fragment bundles or the bundle is not
-	 *         resolved.
-	 * @since 1.2
-	 */
-	public Bundle[] getFragments(Bundle bundle);
-
-	/**
-	 * Returns an array containing the host bundle to which the specified
-	 * fragment bundle is attached or <code>null</code> if the specified
-	 * bundle is not attached to a host or is not a fragment bundle. A fragment
-	 * may only be attached to a single host bundle.
-	 * 
-	 * @param bundle The bundle whose host bundle is to be returned.
-	 * @return An array containing the host bundle or <code>null</code> if the
-	 *         bundle does not have a host bundle.
-	 * @since 1.2
-	 */
-	public Bundle[] getHosts(Bundle bundle);
-
-	/**
-	 * Returns the bundle from which the specified class is loaded. The class
-	 * loader of the returned bundle must have been used to load the specified
-	 * class. If the class was not loaded by a bundle class loader then
-	 * <code>null</code> is returned.
-	 * 
-	 * @param clazz The class object from which to locate the bundle.
-	 * @return The bundle from which the specified class is loaded or
-	 *         <code>null</code> if the class was not loaded by a bundle class
-	 *         loader.
-	 * @since 1.2
-	 */
-	public Bundle getBundle(Class clazz);
-
-	/**
-	 * Bundle type indicating the bundle is a fragment bundle.
-	 * 
-	 * <p>
-	 * The value of <code>BUNDLE_TYPE_FRAGMENT</code> is 0x00000001.
-	 * 
-	 * @since 1.2
-	 */
-	public static final int	BUNDLE_TYPE_FRAGMENT	= 0x00000001;
-
-	/**
-	 * Returns the special type of the specified bundle. The bundle type values
-	 * are:
-	 * <ul>
-	 * <li>{@link #BUNDLE_TYPE_FRAGMENT}
-	 * </ul>
-	 * 
-	 * A bundle may be more than one type at a time. A type code is used to
-	 * identify the bundle type for future extendability.
-	 * 
-	 * <p>
-	 * If a bundle is not one or more of the defined types then 0x00000000 is
-	 * returned.
-	 * 
-	 * @param bundle The bundle for which to return the special type.
-	 * @return The special type of the bundle.
-	 * @since 1.2
-	 */
-	public int getBundleType(Bundle bundle);
+    /**
+     * Forces the update (replacement) or removal of packages exported by
+     * the specified bundles.
+     *
+     * <p> If no bundles are specified, this method will update or remove any
+     * packages exported by any bundles that were previously updated or
+     * uninstalled since the last call to this method.
+     * The technique by which this is accomplished
+     * may vary among different Framework implementations. One permissible
+     * implementation is to stop and restart the Framework.
+     *
+     * <p> This method returns to the caller immediately and then performs the
+     * following steps in its own thread:
+     *
+     * <ol>
+     * <li> Compute a graph of bundles starting with the specified bundles. If no
+     * bundles are specified, compute a graph of bundles starting with
+     * previously updated or uninstalled ones.
+     * Add to the graph any bundle that imports a package that is currently exported
+     * by a bundle in the graph. The graph is fully
+     * constructed when there is no bundle outside the graph that imports a
+     * package from a bundle in the graph. The graph may contain
+     * <tt>UNINSTALLED</tt> bundles that are currently still
+     * exporting packages.
+     *
+     * <li> Each bundle in the graph that is in the <tt>ACTIVE</tt> state
+     * will be stopped as described in the <tt>Bundle.stop</tt> method.
+     *
+     * <li> Each bundle in the graph that is in the
+     * <tt>RESOLVED</tt> state is moved
+     * to the <tt>INSTALLED</tt> state.
+     * The effect of this step is that bundles in the graph are no longer
+     * <tt>RESOLVED</tt>.
+     *
+     * <li> Each bundle in the graph that is in the <tt>UNINSTALLED</tt> state is
+     * removed from the graph and is now completely removed from the Framework.
+     *
+     * <li> Each bundle in the graph that was in the
+     * <tt>ACTIVE</tt> state prior to Step 2 is started as
+     * described in the <tt>Bundle.start</tt> method, causing all
+     * bundles required for the restart to be resolved.
+     * It is possible that, as a
+     * result of the previous steps, packages that were
+     * previously exported no longer are. Therefore, some bundles
+     * may be unresolvable until another bundle
+     * offering a compatible package for export has been installed in the
+     * Framework.
+     * <li>A framework event of type <tt>FrameworkEvent.PACKAGES_REFRESHED</tt> is broadcast.
+     * </ol>
+     *
+     * <p>For any exceptions that are thrown during any of these steps, a
+     * <tt>FrameworkEvent</tt> of type <tt>ERROR</tt> is
+     * broadcast, containing the exception.
+     * The source bundle for these events should be the specific bundle
+     * to which the exception is related. If no specific bundle can be
+     * associated with the exception then the System Bundle must be used
+     * as the source bundle for the event.
+     *
+     * @param bundles the bundles whose exported packages are to be updated or
+     * removed, or <tt>null</tt> for all previously updated or uninstalled bundles.
+     *
+     * @exception SecurityException if the caller does not have the
+     * <tt>AdminPermission</tt> and the Java runtime environment supports
+     * permissions.
+     */
+    public void refreshPackages(Bundle[] bundles);
 }

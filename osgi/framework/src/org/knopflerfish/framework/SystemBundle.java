@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,8 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.net.URL;
-import java.security.ProtectionDomain;
 import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
 
-import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
@@ -50,21 +44,25 @@ import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
 
+import java.security.ProtectionDomain;
+
 /**
  * Implementation of the System Bundle object.
  *
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
- * @author Philippe Laporte
- * @author Mats-Ola Persson
  */
 public class SystemBundle extends BundleImpl {
 
+  /**
+   * Property name for telling which packages framework exports.
+   */
+  private final static String SYSPKG = "org.osgi.framework.system.packages";
 
   /**
-   * Property name pointing to file listing of system-exported packages
+   * Property name pointing to file of system packages
    */
-  private final static String SYSPKG_FILE = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
+  private final static String SYSPKG_FILE = "org.osgi.framework.system.packages.file";
 
   /**
    * Name of system property for exporting all J2SE 1.3 packages.
@@ -72,33 +70,26 @@ public class SystemBundle extends BundleImpl {
   private final static String EXPORT13 =
     "org.knopflerfish.framework.system.export.all_13";
 
-  /**
-   * Name of system property for exporting all J2SE 1.4 packages.
-   */
-  private final static String EXPORT14 =
-    "org.knopflerfish.framework.system.export.all_14";
+  private HeaderDictionary headers = null;
+
+  boolean restarting = false;
 
   /**
-   * Name of system property for exporting all J2SE 1.5 packages.
-   */
-  private final static String EXPORT15 =
-    "org.knopflerfish.framework.system.export.all_15";
-
-  /**
-   * Export-Package string for system packages
-   */
-  private final String exportPackageString;
-
-
-  /**
-   * Construct the System Bundle handle.
+   * Construct a the System Bundle handle.
    *
+   * @param bundlesDir Directory where to store the bundles all persistent data.
+   * @param fw Framework for this bundle.
+   * @param loc Location for new bundle.
+   * @param in Bundle JAR as an inputstream.
+   * @exception SecurityException If we don't have permission to import and export
+   *            bundle packages.
    */
   SystemBundle(Framework fw, ProtectionDomain pd) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
-          Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
+    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd);
     state = STARTING;
-    StringBuffer sp = new StringBuffer(System.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
+
+    StringBuffer sp = new StringBuffer(System.getProperty(SYSPKG, ""));
+
     if (sp.length() > 0) {
       sp.append(",");
     }
@@ -107,24 +98,14 @@ public class SystemBundle extends BundleImpl {
       addSysPackagesFromFile(sp, "packages1.3.txt");
     }
 
-    if("true".equals(System.getProperty(EXPORT14, "").trim())) {
-      addSysPackagesFromFile(sp, "packages1.4.txt");
-    }
-
-    if("true".equals(System.getProperty(EXPORT15, "").trim())) {
-      addSysPackagesFromFile(sp, "packages1.5.txt");
-    }
-
     addSysPackagesFromFile(sp, System.getProperty(SYSPKG_FILE, null));
 
     addSystemPackages(sp);
 
-    exportPackageString = sp.toString();
-    bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
+    bpkgs = new BundlePackages(this, sp.toString(), null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
   }
-
 
   /**
    * Add all built-in system packages to a stringbuffer.
@@ -133,38 +114,38 @@ public class SystemBundle extends BundleImpl {
     // Set up org.osgi.framework package
     String name = Bundle.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" + Framework.SPEC_VERSION);
+    sp.append(name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+              "=" + Framework.SPEC_VERSION);
 
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  PackageAdminImpl.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+              "=" +  PackageAdminImpl.SPEC_VERSION);
 
     // Set up permissionadmin package
     name = PermissionAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  PermissionAdminImpl.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+              "=" +  PermissionAdminImpl.SPEC_VERSION);
 
     // Set up startlevel package
     name = StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  StartLevelImpl.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+              "=" +  StartLevelImpl.SPEC_VERSION);
 
     // Set up tracker package
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  "1.3.1");
+    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+              "=" +  "1.2");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  "1.0");
+    sp.append("," + name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION +
+              "=" +  "1.0");
   }
 
 
@@ -176,29 +157,29 @@ public class SystemBundle extends BundleImpl {
     if(sysPkgFile != null) {
       File f = new File(sysPkgFile);
       if(!f.exists() || !f.isFile()) {
-    throw new RuntimeException("System package file '" + sysPkgFile +
-                   "' does not exists");
+        throw new RuntimeException("System package file '" + sysPkgFile +
+                                   "' does not exists");
       } else {
-    if(Debug.packages) {
-      Debug.println("adding system packages from file " + sysPkgFile);
-    }
-    BufferedReader in = null;
-    try {
-      in = new BufferedReader(new FileReader(sysPkgFile));
-      String line;
-      for(line = in.readLine(); line != null;
-          line = in.readLine()) {
-        line = line.trim();
-        if(line.length() > 0 && !line.startsWith("#")) {
-          sp.append(line);
-          sp.append(",");
+        if(Debug.packages) {
+          Debug.println("adding system packages from file " + sysPkgFile);
         }
-      }
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
-    } finally {
-      try {   in.close();  } catch (Exception ignored) { }
-    }
+        BufferedReader in = null;
+        try {
+          in = new BufferedReader(new FileReader(sysPkgFile));
+          String line;
+          for(line = in.readLine(); line != null;
+              line = in.readLine()) {
+            line = line.trim();
+            if(line.length() > 0 && !line.startsWith("#")) {
+              sp.append(line);
+              sp.append(",");
+            }
+          }
+        } catch (IOException e) {
+          throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
+        } finally {
+          try {   in.close();  } catch (Exception ignored) { }
+        }
       }
     }
   }
@@ -218,9 +199,8 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#start
    */
-  synchronized public void start() throws BundleException
-  {
-    secure.checkExecuteAdminPerm(this);
+  synchronized public void start() throws BundleException {
+    framework.checkAdminPermission();
   }
 
 
@@ -229,14 +209,10 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#stop
    */
-  public void stop() throws BundleException {
-    stop(0);    
-  }
-
-
-  synchronized public void stop(int exitcode) throws BundleException {
-    secure.checkExecuteAdminPerm(this);
-    secure.callMainShutdown(exitcode);
+  synchronized public void stop() throws BundleException {
+    if (restarting) return;
+    framework.checkAdminPermission();
+    Main.shutdown(0);
   }
 
 
@@ -246,8 +222,17 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#update
    */
   synchronized public void update(InputStream in) throws BundleException {
-    secure.checkLifecycleAdminPerm(this);
-    secure.callMainRestart();
+    framework.checkAdminPermission();
+    if(Framework.R3_TESTCOMPLIANT || "true".equals(System.getProperty("org.knopflerfish.framework.restart.allow", "true"))) {
+      restarting = true;
+      try {
+        Main.restart();
+      } finally {
+        restarting = false;
+      }
+    } else {
+      Main.shutdown(2);
+    }
   }
 
 
@@ -257,7 +242,7 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#uninstall
    */
   synchronized public void uninstall() throws BundleException {
-    secure.checkLifecycleAdminPerm(this);
+    framework.checkAdminPermission();
     throw new BundleException("uninstall of System bundle is not allowed");
   }
 
@@ -268,43 +253,14 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders() {
-    return getHeaders(null);
+    framework.checkAdminPermission();
+    if (headers == null) {
+      headers = new HeaderDictionary();
+      headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
+      headers.put(Constants.EXPORT_PACKAGE, framework.packages.systemPackages());
+    }
+    return new HeaderDictionary(headers);
   }
-
-  public Dictionary getHeaders(String locale) {
-    secure.checkMetadataAdminPerm(this);
-    Hashtable headers = new Hashtable();
-    headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
-    headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
-    return headers;
-  }
-
-
-  /**
-   * Get bundle data. Get resources from bundle or fragment jars.
-   *
-   * @see org.osgi.framework.Bundle#findEntries
-   */
-  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
-    return null;
-  }
-
-
-  /**
-   *
-   */
-  public URL getEntry(String name) {
-    return null;
-  }
-
-
-  /**
-   *
-   */
-  public Enumeration getEntryPaths(String path) {
-    return null;
-  }
-
 
   //
   // Package method
@@ -336,72 +292,4 @@ public class SystemBundle extends BundleImpl {
     state = STOPPING;
   }
 
-
-  /**
-   * Checks whether a path is included in the path.
-   */
-  private boolean isInClassPath(BundleImpl extension) {
-    String cps = extension.isBootClassPathExtension() ? 
-      "sun.boot.class.path" : "java.class.path";
-    String cp = System.getProperty(cps);
-    String[] scp = Util.splitwords(cp, ":");
-    String path = extension.archive.getJarLocation();
-
-    for (int i = 0; i < scp.length; i++) {
-      if (scp[i].equals(path)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-  /**
-   * Adds an bundle as an extension that will be included
-   * in the boot class path on restart.
-   */
-  void attachFragment(BundleImpl extension) {
-    // NYI! Plugin VM specific functionality, dynamic classpath additions
-    if (isInClassPath(extension)) {
-      super.attachFragment(extension);
-    } else {
-      throw new UnsupportedOperationException("Extension can not be dynamicly activated");
-    }
-  }
-
-
-  /**
-   * Reads all localization entries that affects this bundle 
-   * (including its host/fragments)
-   * @param locale locale == "" the bundle.properties will be read
-   *               o/w it will read the files as described in the spec.
-   * @param localization_entries will append the new entries to this dictionary
-   */
-  protected void readLocalization(String locale, Hashtable localization_entries) {
-
-    String[] parts = Util.splitwords(locale, "_");
-    String tmploc = parts[0];
-    int o = 0;
-    
-    do {
-      if (fragments != null) {
-        for (int i = fragments.size() - 1; i >= 0; i--) {
-          BundleImpl b = (BundleImpl)fragments.get(i);
-          // NYI! Get correct archive
-          Hashtable tmp = b.archive.getLocalizationEntries(tmploc);
-          if (tmp != null) {
-            localization_entries.putAll(tmp);
-          }
-        }
-      }
-      // NYI! read localization from framework?
-      
-      if (++o >= parts.length) {
-        break;
-      }
-      tmploc = tmploc + "_" + parts[o];
-      
-    } while (true);
-  }
 }

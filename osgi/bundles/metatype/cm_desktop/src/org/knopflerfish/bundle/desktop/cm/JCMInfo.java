@@ -50,7 +50,8 @@ import org.osgi.service.metatype.*;
 import java.net.URL;
 
 public class JCMInfo extends JPanel {
-  MetaTypeInformation mtp;
+  MetaTypeProvider mtp;
+  PIDProvider      pp;
 
   JPanel main;
   JCMService jcmService;
@@ -67,16 +68,17 @@ public class JCMInfo extends JPanel {
   JComboBox servicePIDBox = null;
   JComboBox factoryPIDBox = null;
 
-  void setProvider(MetaTypeInformation _mtp, Bundle bundle) {
+  void setProvider(MetaTypeProvider _mtp, PIDProvider _pp,
+		   Bundle bundle) {
     this.mtp = _mtp;
-    
+    this.pp  = _pp;
     main.removeAll();
 
     if(mtp != null) {
       servicePIDBox = null;
       factoryPIDBox = null;
       
-      String[] servicePIDs = mtp.getPids();
+      String[] servicePIDs = pp.getPids();
 
 
       if(servicePIDs != null && servicePIDs.length > 0) {
@@ -94,7 +96,7 @@ public class JCMInfo extends JPanel {
 	  });
       }
       
-      String[] factoryPIDs = mtp.getFactoryPids();
+      String[] factoryPIDs = pp.getFactoryPids();
 
       if(factoryPIDs != null && factoryPIDs.length > 0) {
 	factoryPIDBox = new JComboBox(factoryPIDs);
