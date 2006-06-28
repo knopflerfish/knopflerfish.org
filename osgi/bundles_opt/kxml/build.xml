@@ -14,17 +14,6 @@
   <property name = "bundle.build.impl"  value = "false"/>
   <property name = "bundle.build.all"   value = "false"/>
 
-  <property name="bundle.name"           value="kXML"/>
-  <property name="bundle.docurl"         value="http://www.kxml.org"/>
-  <property name="bundle.contactaddress" value="http://www.kxml.org"/>
-  <property name="bundle.description"    value="kXML"/>
-  <property name="bundle.vendor"         value="kXML.org"/>
-  <property name="bundle.version"        value="1.0"/>
-  <property name="bundle.category"       value="lib"/>
-  <property name="bundle.classpath"      value="kxml2.jar"/>
-
-  <property name="export.package" value="org.xmlpull.v1, org.kxml2.io, org.kxml2.wap, org.kxml2.wap.syncml"/>
-
   &bundlebuild_include;
 
 </project>

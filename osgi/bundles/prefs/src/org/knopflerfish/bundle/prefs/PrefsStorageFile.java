@@ -64,7 +64,18 @@ public class  PrefsStorageFile implements PrefsStorage {
 
   Object lock = new Object();
 
+  /** Set to true when the entire pres tree repesented by this storage
+   ** have been removed.
+   **/
+  boolean bStale = false;
+
   boolean bDebug = false;
+
+  // User names must be encoded to avoid creating invalid file names
+  // Note that specification does not forbid '/' in user names
+  PrefsStorageFile(String base, String user) {
+    this( base  + "/" + encodeUser(user) );
+  }
 
   PrefsStorageFile(String base) {
     File top = new File(System.getProperty("org.knopflerfish.prefs.dir",
@@ -263,10 +274,14 @@ public class  PrefsStorageFile implements PrefsStorage {
   public void removeNode(String path) {
     synchronized(lock) {
       try {
+        if("".equals(path)) {
+          bStale = true;
+        }
+        
         for(Iterator it = prefs.keySet().iterator(); it.hasNext(); ) {
           String p = (String)it.next();
           PreferencesImpl pi = (PreferencesImpl)prefs.get(p);
-          if(p.startsWith(path + "/")) {
+          if(bStale || p.startsWith(path + "/")) {
             pi.bStale = true;
           }
         }
@@ -383,7 +398,9 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  String encode(String s) {
+  static String encode(String s) {
+    // Must encode '__' since they are used as encoding marker.
+    s = Text.replace(s, "__", "__us__");
     s = Text.replace(s, ".", "__dot__");
     s = Text.replace(s, " ", "__space__");
     s = Text.replace(s, "?", "__q__");
@@ -391,11 +408,34 @@ public class  PrefsStorageFile implements PrefsStorage {
     return s;
   }
 
-  String decode(String s) {
+  static String decode(String s) {
     s = Text.replace(s, "__space__",   " ");
     s = Text.replace(s, "__dot__",   ".");
     s = Text.replace(s, "__?__",     "?");
     s = Text.replace(s, "__bslash__", "\\");
+    s = Text.replace(s, "__us__", "__");
+    return s;
+  }
+
+  /** Same encoding as <code>encode()</code> with the addition that
+   ** '/' is also encoded.
+   ** @param s The string to encode
+   ** @return String safe to use as file name.
+   **/
+  static String encodeUser(String s) {
+    s = encode(s);
+    s = Text.replace(s, "/", "__slash__");
+    return s;
+  }
+
+  /** Decodes a string encoded by <code>encodeUser()</code>.
+   ** @see #encodeUser(String)
+   ** @param s The encoded string to decode
+   ** @return String decoded string.
+   **/
+  static String decodeUser(String s) {
+    s = Text.replace(s, "__slash__", "/" );
+    s = decode(s);
     return s;
   }
 

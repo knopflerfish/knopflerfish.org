@@ -13,69 +13,69 @@
 
 ## Basic KF bundles
 -initlevel 1
--install log/log_all-1.0.1.jar
--install cm/cm_all-1.0.1.jar
--install console/console_all-1.0.0.jar
+-install log/log_all-2.0.0.jar
+-install cm/cm_all-2.0.0.jar
+-install console/console_all-2.0.0.jar
+-install component/component_all-2.0.0.jar
+-install event/event_all-2.0.0.jar
 
 
 ## Some library bundles
 -initlevel 2
--install util/util-1.0.0.jar
--install  crimson/crimson-1.1.3.jar
+-install util/util-2.0.0.jar
+-install crimson/crimson-2.0.0.jar
 -install jsdk/jsdk-2.2.jar
 
 # The Bundle repo commands and desktop plugin
--install  bundlerepository/bundlerepository_all-1.1.2.jar
+-install  bundlerepository/bundlerepository_all-2.0.0.jar
 
 ## More basic KF bundles
 -initlevel 3
--install device/device_all-1.0.0.jar
--install useradmin/useradmin_all-1.0.0.jar
+-install device/device_all-2.0.0.jar
+-install useradmin/useradmin_all-2.0.0.jar
 
 -initlevel 4
--install http/http_all-1.1.0.jar
+-install http/http_all-2.0.0.jar
 
 ## console command bundles
 -initlevel 5
--install frameworkcommands/frameworkcommands-1.0.0.jar
--install logcommands/logcommands-1.0.1.jar
--install cm_cmd/cm_cmd-1.0.1.jar
+-install frameworkcommands/frameworkcommands-2.0.0.jar
+-install logcommands/logcommands-2.0.0.jar
+-install cm_cmd/cm_cmd-2.0.0.jar
 
--install consoletty/consoletty-1.0.1.jar
+-install consoletty/consoletty-2.0.0.jar
 
--install consoletelnet/consoletelnet-1.0.0.jar
+-install consoletelnet/consoletelnet-2.0.0.jar
 
 -initlevel 6
--install desktop/desktop_all-1.1.0.jar
+-install desktop/desktop_all-2.0.0.jar
 
 
 -initlevel 7
--install  httproot/httproot-1.0.0.jar
+-install  httproot/httproot-2.0.0.jar
 
 $(WINDOWS_BUNDLES)
 
 -startlevel 7
 
--launch
 
-# Start of these bundles are delayed since thise makes start
+# Start of these bundles are delayed since this makes start
 # order dependencies much easier
 
--start log/log_all-1.0.1.jar
--start crimson/crimson-1.1.3.jar
--start cm/cm_all-1.0.1.jar
--start console/console_all-1.0.0.jar
--start device/device_all-1.0.0.jar
--start useradmin/useradmin_all-1.0.0.jar
--start bundlerepository/bundlerepository_all-1.1.2.jar
--start consoletty/consoletty-1.0.1.jar
--start consoletelnet/consoletelnet-1.0.0.jar
--start frameworkcommands/frameworkcommands-1.0.0.jar
--start logcommands/logcommands-1.0.1.jar
--start cm_cmd/cm_cmd-1.0.1.jar
--start desktop/desktop_all-1.1.0.jar
--start http/http_all-1.1.0.jar
--start httproot/httproot-1.0.0.jar
-
-
-
+-start log/log_all-2.0.0.jar
+-start crimson/crimson-2.0.0.jar
+-start cm/cm_all-2.0.0.jar
+-start console/console_all-2.0.0.jar
+-start component/component_all-2.0.0.jar
+-start event/event_all-2.0.0.jar
+-start device/device_all-2.0.0.jar
+-start useradmin/useradmin_all-2.0.0.jar
+-start bundlerepository/bundlerepository_all-2.0.0.jar
+-start consoletty/consoletty-2.0.0.jar
+-start consoletelnet/consoletelnet-2.0.0.jar
+-start frameworkcommands/frameworkcommands-2.0.0.jar
+-start logcommands/logcommands-2.0.0.jar
+-start cm_cmd/cm_cmd-2.0.0.jar
+-start desktop/desktop_all-2.0.0.jar
+-start http/http_all-2.0.0.jar
+-start httproot/httproot-2.0.0.jar

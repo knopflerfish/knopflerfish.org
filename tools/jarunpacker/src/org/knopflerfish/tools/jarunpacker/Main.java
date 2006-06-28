@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ public class Main {
   String  destdirname   = "";
   String  postHookName = null;
   String  preHookName  = null;
+  String  iconLeft     = null;
   String  iconPath     = null;
   String  licenseResName = null;
   String  licenseTitle   = null;
@@ -76,6 +77,9 @@ public class Main {
     "ant.gif",
     "fish32x32.gif",
     "fish200x300.gif",
+    "kf_16x16.gif",
+    "kf_32x32.gif",
+    "knopflerfish_red400pxl.gif",
     "license.txt",
     "org",
     "pspbrwse.jbf",
@@ -118,18 +122,27 @@ public class Main {
       i++;
     }
 
-    
-
     try {
-      verbosity = Integer.parseInt(System.getProperty("org.knopflerfish.tools.jarunpacker.verbosity"));
+      verbosity = Integer.parseInt(System.getProperty
+                      ("org.knopflerfish.tools.jarunpacker.verbosity"));
     } catch (Exception ignored) {
     }
 
 
     log("unpacking", 2);
 
-    String jarfilename = System.getProperty("java.class.path");
-    if(jarfilename == null || !jarfilename.endsWith(".jar")) {
+    String classPath = System.getProperty("java.class.path");
+    if(classPath == null) {
+      exit("No valid jar file to unpack on classpath", null);
+      System.exit(0);
+    }
+    String jarfilename = "";
+    StringTokenizer st = new StringTokenizer(classPath,
+                                             java.io.File.pathSeparator);
+    while ( st.hasMoreTokens() && !jarfilename.endsWith(".jar")) {
+      jarfilename = st.nextToken();
+    }
+    if(!jarfilename.endsWith(".jar")) {
       exit("No valid jar file to unpack on classpath", null);
       System.exit(0);
     }
@@ -145,7 +158,7 @@ public class Main {
       if(!file.exists()) {
 	exit("Cannot find '" + jarfilename + "'", null);
       }
-      
+
       JarFile jarFile = new JarFile(file);
 
       Manifest mf = jarFile.getManifest();
@@ -171,6 +184,10 @@ public class Main {
 	opendirname = mf.getMainAttributes().getValue("jarunpacker-opendir");
       } catch (Exception ignored) {     }
       //      if(opendirname == null) { opendirname = ".";   }
+
+      try {
+	iconLeft = mf.getMainAttributes().getValue("jarunpacker-iconleft");
+      } catch (Exception ignored) {     }
 
       try {
 	iconPath = mf.getMainAttributes().getValue("jarunpacker-iconpath");

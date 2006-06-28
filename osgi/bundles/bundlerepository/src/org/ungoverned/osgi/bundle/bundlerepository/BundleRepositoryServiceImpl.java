@@ -542,7 +542,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             return false;
         }
 
-        ExportedPackage[] exports = pa.getExportedPackages(null);
+        ExportedPackage[] exports = pa.getExportedPackages((Bundle)null);
         if (exports != null)
         {
             for (int i = 0;

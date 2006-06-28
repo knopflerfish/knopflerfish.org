@@ -661,8 +661,16 @@ public class Util {
 	systemBrowser, 
 	"\"" + url.toString() + "\"",
       });
+    } else if (Util.isMacOSX()) {
+      // Yes, this only works on Mac OS X
+      Runtime rt = Runtime.getRuntime();
+      Process proc = rt.exec(new String[] {
+	"/usr/bin/open",
+	url.toString(),
+      });
     } else {
-      throw new IOException("Only windows browsers are yet supported");
+      throw new IOException
+        ("Only windows and Mac OS X browsers are yet supported");
     }
   }
   
@@ -670,6 +678,14 @@ public class Util {
     String os = System.getProperty("os.name");
     if(os != null) {
       return -1 != os.toLowerCase().indexOf("win");
+    }
+    return false;
+  }
+
+  public static boolean isMacOSX() {
+    String os = System.getProperty("os.name");
+    if(os != null) {
+      return -1 != os.toLowerCase().indexOf("mac os x");
     }
     return false;
   }

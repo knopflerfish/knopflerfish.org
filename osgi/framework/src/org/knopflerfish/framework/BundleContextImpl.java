@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,15 +37,8 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.security.*;
 
-import java.util.Set;
 import java.util.Dictionary;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;
-
 
 import org.osgi.framework.*;
 
@@ -54,6 +47,7 @@ import org.osgi.framework.*;
  *
  * @see org.osgi.framework.BundleContext
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 public class BundleContextImpl
   implements BundleContext
@@ -69,7 +63,7 @@ public class BundleContextImpl
    */
   private BundleImpl bundle;
 
-
+  
   /**
    * Create a BundleContext for specified bundle.
    */
@@ -100,8 +94,7 @@ public class BundleContextImpl
    */
   public Bundle installBundle(String location) throws BundleException {
     isBCvalid();
-    framework.checkAdminPermission();
-    return framework.bundles.install(location, (InputStream)null);
+    return framework.bundles.install(location, null);
   }
 
 
@@ -115,7 +108,6 @@ public class BundleContextImpl
   {
     try {
       isBCvalid();
-      framework.checkAdminPermission();
       return framework.bundles.install(location, in);
     } finally {
       if (in != null) {
@@ -144,7 +136,6 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
-    isBCvalid();
     return framework.bundles.getBundle(id);
   }
 
@@ -155,8 +146,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundles
    */
   public Bundle[] getBundles() {
-    isBCvalid();
-    return framework.bundles.getBundles();
+    List bl = framework.bundles.getBundles();
+    return (Bundle[])bl.toArray(new Bundle [bl.size()]);
   }
 
 
@@ -203,9 +194,6 @@ public class BundleContextImpl
    */
   public void addBundleListener(BundleListener listener) {
     isBCvalid();
-    if (listener instanceof SynchronousBundleListener) {
-      framework.checkAdminPermission();
-    }
     framework.listeners.addBundleListener(bundle, listener);
   }
 
@@ -217,9 +205,6 @@ public class BundleContextImpl
    */
   public void removeBundleListener(BundleListener listener) {
     isBCvalid();
-    if (listener instanceof SynchronousBundleListener) {
-      framework.checkAdminPermission();
-    }
     framework.listeners.removeBundleListener(bundle, listener);
   }
 
@@ -282,15 +267,18 @@ public class BundleContextImpl
   public ServiceReference[] getServiceReferences(String clazz, String filter)
     throws InvalidSyntaxException {
     isBCvalid();
-    if (framework.bPermissions) {
-      try {
-	String c = (clazz != null) ? clazz : "*";
-	AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
-      } catch (AccessControlException ignore) {
-	return null;
-      }
-    }
-    return framework.services.get(clazz, filter);
+    return framework.services.get(clazz, filter, bundle, true);
+  }
+  
+  /**
+   * Get a list of service references.
+   *
+   * @see org.osgi.framework.BundleContext#getAllServiceReferences
+   */
+  public ServiceReference[] getAllServiceReferences(String clazz, String filter) 
+  throws InvalidSyntaxException {
+    isBCvalid();
+    return framework.services.get(clazz, filter, null, false);
   }
 
 
@@ -301,15 +289,11 @@ public class BundleContextImpl
    */
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
-    if (framework.bPermissions) {
-      try { 
-	String c = (clazz != null) ? clazz : "*";
-	AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
-      } catch (AccessControlException ignore) {
-	return null;
-      }
+    if (framework.perm.okGetServicePerm(clazz)) {
+      return framework.services.get(bundle, clazz);
+    } else {
+      return null;
     }
-    return framework.services.get(clazz);
   }
 
 
@@ -361,7 +345,7 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getDataFile
    */
-  public File getDataFile(String filename) {
+  public File getDataFile(String filename) {  
     isBCvalid();
     File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
@@ -414,5 +398,7 @@ public class BundleContextImpl
       throw new IllegalStateException("This bundle context is no longer valid");
     }
   }
+
+
 
 }

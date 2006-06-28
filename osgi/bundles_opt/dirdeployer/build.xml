@@ -23,20 +23,9 @@
 
 
   <path id="bundle.compile.path">
-    <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>  
-    <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>  
+    <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>  
+    <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>  
   </path>
-
-
-  <property name="bundle.description"    value="Monitors a file system directory for bundles to deploy"/>
-  <property name="bundle.category"       value="example"/>
-  <property name="bundle.name"           value="Directory deployer"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-
-  <property name="bundle.apivendor"      value="Knopflerfish"/>
-
-  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/readme.html"/>
 
   &bundlebuild_include;
 

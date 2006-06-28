@@ -155,7 +155,7 @@ public class HttpTestSuite extends TestSuite  {
   
   class Http006a extends FWTestCase {
     public void runTest() throws Throwable {
-      Object obj = httpSR.getProperty("port");
+      Object obj = httpSR.getProperty("openPort");
 
       assertNotNull("No 'port' property set on http server", obj);
       

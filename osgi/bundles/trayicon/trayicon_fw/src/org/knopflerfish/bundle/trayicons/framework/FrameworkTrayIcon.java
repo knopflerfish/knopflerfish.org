@@ -66,7 +66,7 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
 	  FrameworkTrayIcon.class.getName(),
 	  System.getProperty("org.knopflerfish.service.trayicon.fw.title",
 			     "Knopflerfish OSGi"),
-	  FrameworkTrayIcon.class.getResource("/fish16x16.gif"));
+	  FrameworkTrayIcon.class.getResource("/kf_16x16.gif"));
   }
   
   void open() {
@@ -80,7 +80,8 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
 
     Activator.bc.addFrameworkListener(new FrameworkListener() {
 	public void frameworkEvent(FrameworkEvent ev) {
-	  if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType()) {
+	  if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
+             FrameworkEvent.STARTED  == ev.getType()) {
 	    updateStartLevelItems();
 	  }
 	}

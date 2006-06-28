@@ -24,6 +24,13 @@ the framework storage directory and configuration files. In these cases
 
 ...is often enough. 
 
+To enable support for new KF2 specific features, such as extension bundles, 
+you can use the "kf2" shell script. Open a terminal and type
+
+ ./kf2
+
+Note: the script requires a "sh" shell. 
+
 Other uses are possible, but require options and possibly some tweaking
 of the default startup files.
 
@@ -68,12 +75,12 @@ The framework can be started using the startup wrapper class
 This class is also set a Main-Class in framework.jar's manifest, meaning 
 framework.jar can be started using 
 
- java -jar framework.jar [options]
+ java -jar framework.jar [options] OR ./kf [options]
 
 The Main class supports a number of options, which can be displayed
 using 
 
- java -jar framework.jar -help
+ java -jar framework.jar -help OR ./kf -help
 
 Options can also be specified using the -xargs option, which specifies
 a .xargs text file containing lines of new options. Typically all options
@@ -231,6 +238,16 @@ Framework System Properties
      packages as javax.swing.*
      Default: false
 
+   org.knopflerfish.framework.system.export.all_14
+     Make system classloader export all standard JVM 1.4
+     packages as javax.swing.*
+     Default: false
+
+   org.knopflerfish.framework.system.export.all_15
+     Make system classloader export all standard JVM 1.5
+     packages as javax.swing.*
+     Default: false
+
    org.knopflerfish.verbosity
      Framework verbosity level. 0 means few messages
      Default: 0
@@ -298,6 +315,9 @@ Framework System Properties
 
      If "false", don't do anything after shutdown.
 
+     Must be set to "true" if one wants to use KF2 features such as
+     extension bundles.
+
      Default: true
   
   org.knopflerfish.osgi.setcontextclassloader
@@ -349,6 +369,16 @@ Framework System Properties
     be active for publicly exporting bundle: URLs
 
     Default: false (don't export bundle: URLs publicly)
+
+  org.knopflerfish.framework.usingwrapperscript
+    If set to "true", KF will assume that it has been
+    started with the "kf2" shell script, and that it will be 
+    restarted if KF exits with exit code = 200. Required to be 
+    able to use new KF2 features such as extension bundles. 
+
+    This flag is set to "true" by the "kf2" shell script.
+
+    Default: false 
 
 
 Using a HTTP proxy

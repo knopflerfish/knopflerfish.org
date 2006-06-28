@@ -14,23 +14,11 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/consoletelnet/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/useradmin/useradmin_api-1.0.0.jar"/>
-   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/useradmin/useradmin_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
   </path>
-
-  <property name="bundle.description"    value="Telnet console "/>
-  <property name="bundle.category"       value="console"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-  <property name="bundle.apivendor"      value="Knopflerfish"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.name"           value="Telnet Console"/>
-
-  <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/readme.txt"/>
-
-  <property name="bundle.subversionurl" 
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/"/>
 
   &bundlebuild_include;
 
