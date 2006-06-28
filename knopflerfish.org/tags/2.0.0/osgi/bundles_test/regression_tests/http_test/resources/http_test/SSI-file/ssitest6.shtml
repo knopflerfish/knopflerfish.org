@@ -1,0 +1,16 @@
+<html>
+<head>
+<title>
+SSItest6
+</title>
+</head>
+
+<body bgcolor="ffffcc">
+<h3>SSItest6</h3>
+Test 6
+<p>
+Include non existent file
+<!--#include file="nothing/no_such_file.html" -->
+Include end of non existent file
+</body>
+</html>

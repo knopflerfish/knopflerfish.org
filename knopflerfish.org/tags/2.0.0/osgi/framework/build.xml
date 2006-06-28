@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+
+<project name="framework" default="all">
+
+  <!-- build properties -->
+
+  <property name="topdir"        location=".."/>
+  <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
+  <property name="classout"      location="${outdir}/classes"/>
+  <property name="docdir"        location="${ant.project.name}/apidoc"/>
+
+  <property name="jarfile"       location="${topdir}/${ant.project.name}.jar"/>
+
+  <property name = "javac.target"    value="1.1"/>
+  <property name = "javac.source"    value="1.2"/>
+
+  <property name="src.dir" location = "src"/>
+
+  <property name="printClasses" location = "true"/>
+
+  <!-- targets -->
+  <target name="all" depends="compile,jar">
+   <antcall target="list"/>
+  </target>
+
+  <target name        = "compile">
+   <antcall target="compile_full"/>
+   <antcall target="compile_compact"/>
+  </target>
+
+  <target name        = "compile_full" 
+          unless      = "compact"
+          description = "compiles all java sources">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           classpath     = "${topdir}/framework/resources"
+    >
+   </javac>
+  </target>
+
+  <target name = "compile_compact" 
+          if   = "compact"
+          description="compiles with file storage only">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+           excludes      = "org/knopflerfish/framework/bundlestorage/memory/*.java"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           classpath     = "${topdir}/resources"
+    >
+   </javac>
+  </target>
+
+ <target name="jar" depends="compile" description="build jar">
+    <tstamp>
+     <format property = "framework.tstamp" 
+             pattern  = "'Build' EE MMMM d yyyy, HH:mm:ss"
+             locale   = "en"/>
+    </tstamp>
+
+    <property name="fw.impl.version" value="4.0.0"/>
+
+    <echo message="${fw.impl.version}"  file="resources/version"/>
+    <echo message="${framework.tstamp}" file="resources/tstamp"/>
+
+    <jar basedir="${classout}"
+         jarfile="${jarfile}"
+    >
+     <fileset dir="resources"/>
+     <manifest>
+      <attribute name = "Main-class"             value="org.knopflerfish.framework.Main"/>
+      <attribute name = "Specification-Title"    value="OSGi Framework API"/>
+      <attribute name = "Specification-Version"  value="1.3"/>
+      <attribute name = "Specification-Vendor"   value="Open Service Gateway initiative"/>
+      <attribute name = "Implementation-Title"   value="Knopflerfish OSGi Framework"/>
+      <attribute name = "Implementation-Version" value="${fw.impl.version}" />
+      <attribute name = "Implementation-Vendor"  value="Knopflerfish"/>
+      <attribute name = "Bundle-Vendor"          value="Knopflerfish"/>
+      <attribute name = "Bundle-Version"         value="${fw.impl.version}"/>
+      <attribute name = "Bundle-Name"            value="frameworkbundle"/>
+      <attribute name = "Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
+      <attribute name = "Export-Package"         value="org.osgi.framework;specification-version=1.3,org.osgi.service.packageadmin;specification-version=1.2,org.osgi.service.permissionadmin;specification-version=1.2,org.osgi.util.tracker;specification-version=1.3.1,org.osgi.service.startlevel;specification-version=1.0"/>
+      <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org"/>
+      <attribute name = "Build-Date"             value="${framework.tstamp}"/>
+     </manifest>
+    </jar>  
+ </target>  
+ 
+ <target name="run">
+  <java fork="true"
+        jar="${outdir}/${ant.project.name}.jar"
+>
+  </java>
+ </target>
+
+
+ <target name="clean" description="removes all generated files">
+  <delete dir  = "${outdir}"/>
+  <delete file = "${jarfile}"/>
+ </target>
+
+ <import file="${topdir}/../ant/bundletasks.xml"/>
+
+ <target name="list" depends="bundle_tasks">
+  <bundleinfo checkFoundationEE = "true" 
+              checkMinimumEE = "true" >
+    <fileset dir      = "${classout}" 
+             includes = "**/*.class">
+    </fileset>
+  </bundleinfo>
+ </target>
+</project>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="trayicon_fw" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+  <property name="bundle.stdimports"
+            value="java.,javax.swing,javax.accessibility"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/trayicon/trayicon_api-2.0.0.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

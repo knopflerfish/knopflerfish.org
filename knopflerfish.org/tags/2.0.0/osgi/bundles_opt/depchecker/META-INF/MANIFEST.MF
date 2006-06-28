@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.5.3 
+Created-By: 1.4.2-b28 (Sun Microsystems Inc.)
+Bundle-Name: DepChecker
+Bundle-Activator: Main
+Bundle-Description: Automatic Resolve Dependencies
+
