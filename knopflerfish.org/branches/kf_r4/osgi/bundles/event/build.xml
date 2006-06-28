@@ -31,7 +31,7 @@
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
 
   <property name="bmfa.Export-Package"
-            value="org.osgi.service.event;specification-version=1.0"/>
+            value="org.osgi.service.event;specification-version=1.1"/>
 
   &bundlebuild_include;
 
