@@ -1,5 +1,5 @@
 *******************************************
-** Knopflerfish Release 2.0.0 RC1
+** Knopflerfish Release 2.0.0
 **
 ** For more information, please visit 
 **   http://www.knopflerfish.org
@@ -18,11 +18,6 @@
 
  > ant                   # builds framework and all bundle jar files
 
- > ant htdocs            # builds HTML site (in htdocs)
- 
- > ant distrib           # builds distribution file
-   
-
 --- Running   ---
 
 After building, the framework can be run using
@@ -40,9 +35,5 @@ After building, the framework can be run using
 
  ant              - Ant related code and build include files
 
- htdocs           - www.knopflerfish.org web site
+ htdocs           - online documentation (html)
 
-                    The htdocs files *must* be built using
-                    > ant htdocs
-
-                    "htdocs" is also part of the "distrib" target
