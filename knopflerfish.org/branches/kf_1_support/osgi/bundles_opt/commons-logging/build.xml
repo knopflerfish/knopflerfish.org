@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="commons-logging" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+  <property name = "bundle.build.lib"   value = "false"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/**"/> 
+  <property name="api.pattern" value="org/apache/**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+   <copy file  = "${topdir}/jars/log/log_api-1.0.1.jar"         
+         todir = "resources"/>
+  </target>
+
+  <path id="bundle.compile.path">
+   <pathelement location="resources/log_api-1.0.1.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="Apache Commons logging. Publishced under Apache License. See http://www.apache.org/licenses/LICENSE-2.0"/>
+  <property name="bundle.category"       value="lib"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="Commons Logging"/>
+  <property name="bundle.classpath"      value=".,log_api-1.0.1.jar"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt"/>
+  <property name="bundle.apivendor"      value="Knopflerfish/Apache"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/"/>
+
+  
+  <property name="import.package" value="org.osgi.framework,org.osgi.service.log;specification-version=1.2"/>
+
+  <property name="export.package" 
+            value = "org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.log;specification-version=1.1,org.apache.commons.logging;specification-version=1.0.3"/>
+
+  &bundlebuild_include;
+
+</project>

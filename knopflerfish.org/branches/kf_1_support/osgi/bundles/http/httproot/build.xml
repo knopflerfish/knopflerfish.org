@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="httproot" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/httproot/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="Demo HTTP root servlet"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="HTTP root"/>
+
+  &bundlebuild_include;
+
+</project>

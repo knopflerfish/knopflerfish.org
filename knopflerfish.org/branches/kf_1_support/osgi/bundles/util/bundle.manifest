@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-Name: util
+Bundle-SymbolicName: org.knopflerfish.uti
+Bundle-Version: 1.0.0
+Bundle-Description: Misc utilities
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: util
+Export-Package: org.knopflerfish.util,org.knopflerfish.util.sort,org.k
+ nopflerfish.util.workerthread
+Bundle-APIVendor: Knopflerfish

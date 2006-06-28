@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="ksoap-osgi" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/**"/>
+
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/ksoap/**"/>
+
+  <property name = "bundle.build.all"  value="true"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="lib"/>
+  <property name = "bundle.build.impl" value="false"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
+   <pathelement location="resources/ksoap2-j2me-full.jar"/>
+   <pathelement location="resources/ksoap_servlet.jar"/>
+  </path>
+
+  <property name="import.package" value ="org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.http,javax.servlet,javax.servlet.http"/>
+
+  <property name="dynamicimport.package" value ="*"/>
+
+  <property name="bundle.description"    value="kSOAP Server"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Apache"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.docurl"         value="http://www.knopflerfish.org/remote_howto.html"/>
+  <property name="bundle.subversionurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.classpath"      value = ".,ksoap2-j2me-full.jar,ksoap_servlet.jar"/>
+
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+
+  <property name="export.package"
+            value="org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.knopflerfish.service.ksoap"/>
+
+  &bundlebuild_include;
+
+</project>
+

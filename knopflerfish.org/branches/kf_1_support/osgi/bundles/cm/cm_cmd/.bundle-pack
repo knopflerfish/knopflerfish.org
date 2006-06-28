@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundlejar>
+<resource dst="" pattern=".*\.class" src="/cm_cmd/out" type="0"/>
+<resource dst="" src="/cm_cmd/resources" type="2"/>
+</bundlejar>
