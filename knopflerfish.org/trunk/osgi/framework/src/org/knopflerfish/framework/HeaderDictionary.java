@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,11 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import java.util.jar.*;
 
@@ -56,18 +47,9 @@ import java.util.jar.*;
  *
  * @author Jan Stein
  */
-public class HeaderDictionary extends Dictionary
+public class HeaderDictionary extends Dictionary implements Cloneable
 {
-
   private Hashtable headers;
-
-  /**
-   * Create an empty dictionary for manifest attributes.
-   */
-  public HeaderDictionary() {
-    headers = new Hashtable();
-  }
-
 
   /**
    * Create a dictionary from manifest attributes.
@@ -82,14 +64,10 @@ public class HeaderDictionary extends Dictionary
 
 
   /**
-   * Create a clone of an existing HeaderDictionary
+   * Create a dictionary of an existing Hashtable.
    */
-  HeaderDictionary(HeaderDictionary in) {
-    if (in != null) {
-      headers = (Hashtable)in.headers.clone();
-    } else {
-      headers = new Hashtable();
-    }
+  public HeaderDictionary(Hashtable t) {
+    headers = t;
   }
 
 
@@ -150,10 +128,21 @@ public class HeaderDictionary extends Dictionary
 
   
   /** 
-   * Returns the number of entries (dinstint keys) in this dictionary.
+   * Returns the number of entries (distinct keys) in this dictionary.
    */
   public int size() {
     return headers.size();
   }
 
+  /**
+   * Clone
+   */
+  public Object clone() {
+    return new HeaderDictionary((Hashtable)headers.clone());
+  }
+
+
+  public String toString() {
+    return headers.toString();
+  }
 }

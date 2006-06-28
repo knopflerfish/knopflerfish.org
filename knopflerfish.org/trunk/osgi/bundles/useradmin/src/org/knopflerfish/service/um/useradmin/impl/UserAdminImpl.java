@@ -49,6 +49,7 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.service.useradmin.Authorization;
 import org.osgi.service.useradmin.Role;
 import org.osgi.service.useradmin.User;
@@ -56,6 +57,8 @@ import org.osgi.service.useradmin.UserAdmin;
 import org.osgi.service.useradmin.UserAdminEvent;
 import org.osgi.service.useradmin.UserAdminListener;
 import org.osgi.service.useradmin.UserAdminPermission;
+import org.osgi.util.tracker.ServiceTracker;
+
 
 /**
  * Implementation of UserAdmin.
@@ -65,8 +68,6 @@ import org.osgi.service.useradmin.UserAdminPermission;
  */
 public class UserAdminImpl implements ServiceFactory, UserAdmin,
         ServiceListener {
-    static final String ANYONE = "user.anyone";
-
     static final boolean checkPermissions;
 
     static final UserAdminPermission adminPermission;
@@ -83,6 +84,10 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     LogRef log;
 
+    EventQueue eventQueue;
+
+    ServiceTracker eventAdminTracker;
+
     static {
         // Use the same property that the framework uses to enable permission
         // checks
@@ -98,7 +103,12 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         log = new LogRef(bc);
 
         // create the special roles (no events for these)
-        roles.put(ANYONE, anyone = new RoleImpl(ANYONE, this));
+        roles.put(Role.USER_ANYONE,
+                  anyone = new RoleImpl(Role.USER_ANYONE, this));
+
+        eventAdminTracker
+          = new ServiceTracker(this.bc, EventAdmin.class.getName(), null );
+        eventQueue = new EventQueue(this.bc);
     }
 
     /**
@@ -124,11 +134,20 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             }
         } catch (InvalidSyntaxException ex) {
         }
+        eventAdminTracker.open();
 
         if (log.doInfo())
             log.info("Service initialized", uasr);
     }
 
+  
+    /**
+     * The bundle owning this service is stopping; terminate the worker
+     * thread.
+     */
+    void stop() {
+    }
+  
     /**
      * Sends an event to all user admin listeners.
      * 
@@ -140,16 +159,13 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
      */
     void sendEvent(int type, Role role) {
         // dont send event if type = CHANGED and role has been removed
-        if (!(type == UserAdminEvent.ROLE_CHANGED && roles.get(role.getName()) == null)) {
+        if (!(type == UserAdminEvent.ROLE_CHANGED
+              && roles.get(role.getName()) == null)) {
             UserAdminEvent event = new UserAdminEvent(uasr, type, role);
-            for (Enumeration en = listeners.elements(); en.hasMoreElements();) {
-                ServiceReference sr = (ServiceReference) en.nextElement();
-                UserAdminListener ual = (UserAdminListener) bc.getService(sr);
-                if (ual != null) {
-                    ual.roleChanged(event);
-                }
-                bc.ungetService(sr);
-            }
+            eventQueue.enqueue( new SendUserAdminEventJob(bc,
+                                                          eventAdminTracker,
+                                                          event,
+                                                          listeners) );
             if (log.doDebug())
                 log.debug(event.toString(), uasr);
         } else {
@@ -217,7 +233,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             AccessController.checkPermission(adminPermission);
         }
 
-        if (ANYONE.equals(name)) {
+        if (Role.USER_ANYONE.equals(name)) {
             // not OK to remove the predefined role
             return false;
         }
@@ -303,6 +319,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     protected void zap() {
         roles = new Hashtable();
         // create the special roles (no events for these)
-        roles.put(ANYONE, anyone = new RoleImpl(ANYONE, this));
+        roles.put(Role.USER_ANYONE,
+                  anyone = new RoleImpl(Role.USER_ANYONE, this));
     }
 }

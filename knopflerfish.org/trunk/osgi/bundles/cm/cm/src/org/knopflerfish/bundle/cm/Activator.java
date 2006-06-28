@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,17 +58,13 @@ public class Activator implements BundleActivator {
 
     static LogRef log;
 
-    private ServiceRegistration serviceRegistration;
+    static ServiceRegistration serviceRegistration;
 
-    static boolean R3_TESTCOMPLIANT = false;
+    static ConfigurationAdminFactory configAdminFactory = null;
+
 
     public void start(BundleContext bc) {
         Activator.bc = bc;
-
-        R3_TESTCOMPLIANT = "true".equals(System.getProperty(
-                "org.knopflerfish.osgi.r3.testcompliant", "false")
-                .toLowerCase());
-
         throwIfBundleContextIsNull();
         createLogRef();
         createAndRegisterConfigurationAdminFactory();
@@ -93,15 +89,18 @@ public class Activator implements BundleActivator {
 
     private void createAndRegisterConfigurationAdminFactory() {
         throwIfBundleContextIsNull();
-        File storeDir = getStoreDir();
-        serviceRegistration = bc.registerService(ConfigurationAdmin.class
-                .getName(), new ConfigurationAdminFactory(storeDir), null);
+        configAdminFactory = new ConfigurationAdminFactory(getStoreDir());
+        serviceRegistration = bc.registerService(ConfigurationAdmin.class.getName(),
+                                                 configAdminFactory, null);
     }
 
     private void unregisterConfigurationAdminFactory() {
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
             serviceRegistration = null;
+        }
+        if (configAdminFactory != null) {
+          configAdminFactory.stop();
         }
     }
 
@@ -123,7 +122,4 @@ public class Activator implements BundleActivator {
         }
     }
 
-    static boolean r3TestCompliant() {
-        return R3_TESTCOMPLIANT;
-    }
 }

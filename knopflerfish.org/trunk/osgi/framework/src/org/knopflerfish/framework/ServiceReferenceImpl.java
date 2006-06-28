@@ -173,27 +173,10 @@ public class ServiceReferenceImpl implements ServiceReference
 	Integer ref = (Integer)registration.dependents.get(bundle);
 	if (ref == null) {
 	  String[] classes = (String[])registration.properties.get(Constants.OBJECTCLASS);
-	  if (bundle.framework.bPermissions) {
-	    boolean perm = false;
-	    AccessControlContext acc = AccessController.getContext();
-	    for (int i = 0; i < classes.length; i++) {
-	      try { 
-		acc.checkPermission(new ServicePermission(classes[i], ServicePermission.GET));
-		perm = true;
-		break;
-	      } catch (AccessControlException ignore) { }
-	    }
-	    if (!perm) {
-	      throw new SecurityException("Bundle has not permission to get service.");
-	    }
-	  }
+	  bundle.framework.perm.checkGetServicePerms(classes);
 	  if (registration.service instanceof ServiceFactory) {
 	    try {
-	      s = AccessController.doPrivileged(new PrivilegedAction() {
-		  public Object run() {
-		    return ((ServiceFactory)registration.service).getService(bundle, registration);
-		  }
-		});
+              s = bundle.framework.perm.callGetService((ServiceFactory)registration.service, bundle, registration);
 	    } catch (Throwable pe) {
 	      bundle.framework.listeners.frameworkError(registration.bundle, pe);
 	      return null;
@@ -322,6 +305,34 @@ public class ServiceReferenceImpl implements ServiceReference
       val = c;
     }
     return val;
+  }
+
+  public boolean isAssignableTo(Bundle bundle, String className) {
+    int pos = className.lastIndexOf('.');
+    if (pos != -1) {
+      String name = className.substring(0, pos);
+      Pkg p = registration.bundle.framework.packages.getPkg(name);
+      if (p != null) {
+        if (p.providers.size() > 1) {
+          BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);
+          BundlePackages bb = ((BundleImpl)bundle).bpkgs.getProviderBundlePackages(name);
+          // TBD Should we fail if bundle doesn't have an import?
+          return bb == null || pkgExporter == bb;
+        } else {
+          // Since we do not have multiple providers its no problem
+          return true;
+        }
+      } else {
+        // Not a package under package control. System package?
+        if (name.startsWith("java.")) {
+          return true;
+        } else {
+          return true;
+          // return registration.bundle == bundle;
+        }
+      }
+    }
+    return false;
   }
 
 }

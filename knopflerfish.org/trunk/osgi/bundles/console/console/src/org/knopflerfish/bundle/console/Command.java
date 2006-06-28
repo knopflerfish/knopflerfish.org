@@ -214,7 +214,7 @@ public class Command implements ServiceListener, Runnable {
         thread.start();
 
     }
-
+    
     public synchronized void run() {
         bc.addServiceListener(this);
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -232,11 +232,15 @@ public class Command implements ServiceListener, Runnable {
                 if (out instanceof PrintWriter) {
                     status = cg.execute(args, in, (PrintWriter) out, session);
                 } else {
-                    status = cg
-                            .execute(args, in, new PrintWriter(out), session);
+                    status = cg.execute(args, in, new PrintWriter(out), session);
                 }
                 if (commandGroupRef != null) {
-                    bc.ungetService(commandGroupRef);
+                    try {
+                        bc.ungetService(commandGroupRef);
+                    } catch (IllegalStateException ignore) {
+                        // Can happen if the command has invalidated our bc (e.g. update)
+                        // TODO: Warn about this? The input can be screwed up.
+                    }
                 }
                 if (out instanceof Pipe) {
                     try {
@@ -247,7 +251,11 @@ public class Command implements ServiceListener, Runnable {
                 return null;
             }
         });
-        bc.removeServiceListener(this);
+        try {
+            bc.removeServiceListener(this);
+        } catch (IllegalStateException ignore) {
+            // Can happen if the command has invalidated our bc (e.g. update)
+        }
     }
 
     public void serviceChanged(ServiceEvent e) {

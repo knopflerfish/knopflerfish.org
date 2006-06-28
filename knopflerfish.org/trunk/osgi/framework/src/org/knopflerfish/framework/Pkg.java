@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,23 +36,22 @@ package org.knopflerfish.framework;
 
 import java.util.*;
 
-import org.osgi.framework.*;
-
 
 /**
  * Class representing a package.
+ *
+ * @author Jan Stein
  */
 class Pkg {
 
   final String pkg;
 
-  boolean zombie = false;
+  ArrayList /* ExportPkg */ exporters = new ArrayList(1);
 
-  PkgEntry provider = null;
+  ArrayList /* ImportPkg */ importers = new ArrayList();
 
-  ArrayList /* PkgEntry */ exporters = new ArrayList(1);
+  ArrayList /* ExportPkg */ providers = new ArrayList(1);
 
-  ArrayList /* PkgEntry */ importers = new ArrayList();
 
   /**
    * Create package entry.
@@ -65,31 +64,25 @@ class Pkg {
   /**
    * Add an exporter entry from this package.
    *
-   * @param pe PkgEntry to add.
+   * @param pe ExportPkg to add.
    */
-  synchronized void addExporter(PkgEntry pe) {
-    int i = Math.abs(binarySearch(exporters, pe) + 1);
-    exporters.add(i, pe);
-    pe.pkg = this;
+  synchronized void addExporter(ExportPkg ep) {
+    int i = Math.abs(Util.binarySearch(exporters, epComp, ep) + 1);
+    exporters.add(i, ep);
+    ep.attachPkg(this);
   }
 
 
   /**
    * Remove an exporter entry from this package.
    *
-   * @param p PkgEntry to remove.
+   * @param p ExportPkg to remove.
+   * @return false if package is provider otherwise true.
    */
-  synchronized boolean removeExporter(PkgEntry p) {
-    if (p == provider) {
-      return false;
-    }
-    for (int i = exporters.size() - 1; i >= 0; i--) {
-      if (p == exporters.get(i)) {
-	exporters.remove(i);
-	p.pkg = null;
-	break;
-      }
-    }
+  synchronized boolean removeExporter(ExportPkg p) {
+    providers.remove(p);
+    exporters.remove(p);
+    p.detachPkg();
     return true;
   }
 
@@ -97,28 +90,51 @@ class Pkg {
   /**
    * Add an importer entry to this package.
    *
-   * @param pe PkgEntry to add.
+   * @param pe ImportPkg to add.
    */
-  synchronized void addImporter(PkgEntry pe) {
-    int i = Math.abs(binarySearch(importers, pe) + 1);
-    importers.add(i, pe);
-    pe.pkg = this;
+  synchronized void addImporter(ImportPkg ip) {
+    int i = Math.abs(Util.binarySearch(importers, ipComp, ip) + 1);
+    importers.add(i, ip);
+    ip.attachPkg(this);
   }
 
 
   /**
    * Remove an importer entry from this package.
    *
-   * @param p PkgEntry to remove.
+   * @param p ImportPkg to remove.
    */
-  synchronized void removeImporter(PkgEntry p) {
-    for (int i = importers.size() - 1; i >= 0; i--) {
-      if (p == importers.get(i)) {
-	importers.remove(i);
-	p.pkg = null;
-	break;
-      }
+  synchronized void removeImporter(ImportPkg ip) {
+    importers.remove(ip);
+    ip.detachPkg();
+  }
+
+
+  /**
+   * Add an exporter entry as a provider for this package.
+   * If exporter already is provider don't add duplicate.
+   *
+   * @param pe ExportPkg to add.
+   */
+  synchronized void addProvider(ExportPkg ep) {
+    int i = Util.binarySearch(providers, epComp, ep);
+    if (i < 0) {
+      providers.add(-i - 1, ep);
     }
+  }
+
+
+  /**
+   * Get best provider. Best provider is provider
+   * with highest version number.
+   *
+   * @return Provider ExportPkg or null if none..
+   */
+  synchronized ExportPkg getBestProvider() {
+    if (!providers.isEmpty()) {
+      return (ExportPkg)providers.get(0);
+    }
+    return null;
   }
 
 
@@ -131,42 +147,11 @@ class Pkg {
     return exporters.size() == 0 && importers.size() == 0;
   }
 
-  //
-  // Private methods.
-  //
-
-  /**
-   * Do binary search for a package entry in the list with the same
-   * version number add the specifies package entry.
-   *
-   * @param pl Sorted list of package entries to search.
-   * @param p Package entry to search for.
-   * @return index of the found entry. If no entry is found, return
-   *         <tt>(-(<i>insertion point</i>) - 1)</tt>.  The insertion
-   *         point</i> is defined as the point at which the
-   *         key would be inserted into the list.
-   */
-  int binarySearch(List pl, PkgEntry p) {
-    int l = 0;
-    int u = pl.size()-1;
-
-    while (l <= u) {
-      int m = (l + u)/2;
-      int v = ((PkgEntry)pl.get(m)).compareVersion(p);
-      if (v > 0) {
-	l = m + 1;
-      } else if (v < 0) {
-	u = m - 1;
-      } else {
-	return m;
-      }
-    }
-    return -(l + 1);  // key not found.
-  }
 
   public String toString() {
     return toString(2);
   }
+
 
   public String toString(int level) {
     StringBuffer sb = new StringBuffer();
@@ -176,16 +161,68 @@ class Pkg {
       sb.append("pkg=" + pkg);
     }
     if(level > 1) {
-      sb.append(", provider=" + provider);
+      sb.append(", providers=" + providers);
     }
     if(level > 2) {
-      sb.append(", zombie=" + zombie);
-    } 
-    if(level > 3) {
       sb.append(", exporters=" + exporters);
     }
     sb.append("]");
 
     return sb.toString();
   }
+
+
+  static final Util.Comparator epComp = new Util.Comparator() {
+      /**
+       * Version compare two ExportPkg objects. If same version, order according
+       * to bundle id, lowest first.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ExportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+	ExportPkg a = (ExportPkg)oa;
+	ExportPkg b = (ExportPkg)ob;
+	int d = a.version.compareTo(b.version);
+	if (d == 0) {
+	  long ld = b.bpkgs.bundle.id - a.bpkgs.bundle.id;
+	  if (ld < 0)
+	    d = -1;
+	  else if (ld > 0)
+	    d = 1;
+	}
+	return d;
+      }
+    };
+
+  static final Util.Comparator ipComp = new Util.Comparator() {
+      /**
+       * Version compare two ImportPkg objects. If same version, order according
+       * to bundle id, lowest first.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ImportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+	ImportPkg a = (ImportPkg)oa;
+	ImportPkg b = (ImportPkg)ob;
+	int d = a.packageRange.compareTo(b.packageRange);
+	if (d == 0) {
+	  long ld = b.bpkgs.bundle.id - a.bpkgs.bundle.id;
+	  if (ld < 0)
+	    d = -1;
+	  else if (ld > 0)
+	    d = 1;
+	}
+	return d;
+      }
+    };
+
+
 }

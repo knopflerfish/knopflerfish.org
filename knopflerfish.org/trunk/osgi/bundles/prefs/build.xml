@@ -17,18 +17,9 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
-   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
   </path>
-
-  <property name="bundle.description"    value="Preferences"/>
-  <property name="bundle.category"       value="service"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-  <property name="bundle.version"        value="1.0.0"/>
-  <property name="bundle.apivendor"      value="OSGi"/>
-
-
-  <property name="export.package"        value="org.osgi.service.prefs;specification-version=1.0"/>
 
   &bundlebuild_include;
 

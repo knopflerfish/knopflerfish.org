@@ -63,27 +63,42 @@ public class PreferencesServiceImpl implements PreferencesService {
   }
 
   public Preferences getSystemPreferences() {
+    if (systemStorage.bStale) {
+      systemStorage = new PrefsStorageFile(systemBase);
+    }
     return systemStorage.getNode("", true);
   }
 
   public Preferences getUserPreferences(String name) {
     synchronized(userStorage) {
       PrefsStorageFile storage = (PrefsStorageFile)userStorage.get(name);
-      if(storage == null) {
-	storage   = new PrefsStorageFile(userBase + "/" + name);
+      if(storage == null || storage.bStale) {
+	storage   = new PrefsStorageFile(userBase, name);
 	userStorage.put(name, storage);
       }
       return storage.getNode("", true);
     }
   }
   
+  // This implementation is wrong; it only returns live users!
+  // I.e., users that have been asked for via getUserPreferences(name)
+  // before the call to getUsers().
   public String[] getUsers() {
     synchronized(userStorage) {
       String[] names = new String[userStorage.size()];
       int i = 0;
-      for(Iterator it = userStorage.keySet().iterator(); it.hasNext();) {
-	names[i++] = (String)it.next();
+      for(Iterator it = userStorage.entrySet().iterator(); it.hasNext();) {
+        Map.Entry entry = (Map.Entry) it.next();
+        PrefsStorageFile storage = (PrefsStorageFile)entry.getValue();
+        if (!storage.bStale)
+          names[i++] = (String)entry.getKey();
       }
+      if (i!=names.length) {
+        String[] tmp = new String[i];
+        System.arraycopy( names, 0, tmp, 0, i );
+        names = tmp;
+      }
+      
       return names;
     }    
   }

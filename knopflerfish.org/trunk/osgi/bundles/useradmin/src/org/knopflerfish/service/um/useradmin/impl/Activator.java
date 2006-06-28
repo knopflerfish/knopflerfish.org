@@ -49,14 +49,16 @@ import org.osgi.service.useradmin.UserAdmin;
  */
 public class Activator implements BundleActivator {
     ServiceRegistration umsr;
-
+    UserAdminImpl ua;
+  
     public void start(BundleContext bc) {
-        UserAdminImpl ua = new UserAdminImpl(bc);
+        ua = new UserAdminImpl(bc);
         umsr = bc.registerService(UserAdmin.class.getName(), ua,
                 new Hashtable());
     }
 
     public void stop(BundleContext bc) {
+        ua.stop();
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -174,6 +174,9 @@ public final class FileLog implements LogListener {
         for (int i = configuration.getMaxGen() - 1; i > 0; i--) {
             File dst = new File(logdir, LOGBASE + i);
             File src = new File(logdir, LOGBASE + (i - 1));
+            if (dst.exists()) {
+                dst.delete();
+            }
             src.renameTo(dst);
         }
     }
@@ -202,6 +205,9 @@ public final class FileLog implements LogListener {
             File src = new File(logdir, LOGBASE + i);
             if (src.exists()) {
                 File dst = new File(logdir, LOGBASE + i + ".old");
+                if (dst.exists()) {
+                    dst.delete();
+                }
                 src.renameTo(dst);
             } else
                 done = true;

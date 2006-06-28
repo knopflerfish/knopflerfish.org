@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.framework;
 
 import java.security.*;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -44,10 +43,6 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Hashtable;
 import java.util.EventListener;
 
 import org.osgi.framework.*;
@@ -56,6 +51,7 @@ import org.osgi.framework.*;
  * Here we handle all listeners that bundles have registered.
  *
  * @author Jan Stein
+ * @author Philippe Laporte
  */
 public class Listeners
   implements BundleListener, FrameworkListener, ServiceListener {
@@ -76,9 +72,19 @@ public class Listeners
    */
   private ServiceListenerState serviceListeners = new ServiceListenerState();
 
+  /**
+   * Handle to secure call class.
+   */
+  private PermissionOps secure;
+
+
+  Listeners(PermissionOps perm) {
+    secure = perm;
+  }
+
 
   /**
-   * Add a bundle listener to current framework.
+   * Add a bundle listener to the current framework.
    *
    * @param bundle Who wants to add listener.
    * @param listener Object to add.
@@ -86,12 +92,14 @@ public class Listeners
   void addBundleListener(Bundle bundle, BundleListener listener) {
     ListenerEntry le = new ListenerEntry(bundle, listener);
     if (listener instanceof SynchronousBundleListener) {
+      secure.checkListenerAdminPerm(bundle);
       synchronized (syncBundleListeners) {
-	syncBundleListeners.add(le);
+    	  syncBundleListeners.add(le);
       }
-    } else {
+    } 
+    else {
       synchronized (bundleListeners) {
-	bundleListeners.add(le);
+    	  bundleListeners.add(le);
       }
     }
   }
@@ -109,6 +117,7 @@ public class Listeners
     ListenerEntry le = new ListenerEntry(bundle, listener);
     if (listener instanceof SynchronousBundleListener) {
       synchronized (syncBundleListeners) {
+        secure.checkListenerAdminPerm(bundle);
 	syncBundleListeners.remove(le);
       }
     } else {
@@ -187,6 +196,7 @@ public class Listeners
     serviceListeners.removeAll(b);
   }
 
+
   /**
    * Convenience method for throwing framework error event.
    *
@@ -197,35 +207,51 @@ public class Listeners
     frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t));
   }
 
+
+  /**
+   * Convenience method for throwing framework info event.
+   *
+   * @param b Bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  void frameworkInfo(Bundle b, Throwable t) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t));
+  }
+
   //
   // BundleListener interface
   //
 
   /**
-   * Receive notification that a bundle has had a change occur in it's lifecycle.
+   * Receive notification that a bundle has had a change occur in its lifecycle.
    *
    * @see org.osgi.framework.BundleListener#bundleChanged
    */
   public void bundleChanged(final BundleEvent evt) {
     ListenerEntry [] bl, tmp;
-    synchronized (bundleListeners) {
-      tmp = new ListenerEntry[bundleListeners.size()];
-      bundleListeners.toArray(tmp);
+    int type = evt.getType();
+    if(type == BundleEvent.STARTING || type == BundleEvent.STOPPING){
+    	synchronized (syncBundleListeners) {
+    		bl = new ListenerEntry[syncBundleListeners.size()];
+    		syncBundleListeners.toArray(bl);
+    	}
     }
-    synchronized (syncBundleListeners) {
-      bl = new ListenerEntry[tmp.length + syncBundleListeners.size()];
-      syncBundleListeners.toArray(bl);
+    else{
+    	synchronized (bundleListeners) {
+    		tmp = new ListenerEntry[bundleListeners.size()];
+    	    bundleListeners.toArray(tmp);
+    	}
+    	synchronized (syncBundleListeners) {
+    		bl = new ListenerEntry[tmp.length + syncBundleListeners.size()];
+    	    syncBundleListeners.toArray(bl);
+    	}
+    	System.arraycopy(tmp, 0, bl, bl.length - tmp.length, tmp.length);
     }
-    System.arraycopy(tmp, 0, bl, bl.length - tmp.length, tmp.length);
+    
     for (int i = 0; i < bl.length; i++) {
       final ListenerEntry l = bl[i];
       try {
-	AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-	      ((BundleListener)l.listener).bundleChanged(evt);
-	      return null;
-	    }
-	  });
+        secure.callBundleChanged((BundleListener)l.listener, evt);
       } catch (Throwable pe) {
 	frameworkError(l.bundle, pe);
       }
@@ -256,15 +282,9 @@ public class Listeners
     for (int i = 0; i < fl.length; i++) {
       final ListenerEntry l = fl[i];
       try {
-	AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-	      ((FrameworkListener)l.listener).frameworkEvent(evt);
-	      return null;
-	    }
-	  });
+        secure.callFrameworkEvent((FrameworkListener)l.listener, evt);
       } catch (Throwable pe) {
-	// We can't report Error events again, since we probably would
-	// go into a infinite loop.
+	// Don't report Error events again, since probably would go into an infinite loop.
 	if (evt.getType() != FrameworkEvent.ERROR) {
 	  frameworkError(l.bundle, pe);
 	}
@@ -277,41 +297,41 @@ public class Listeners
   //
 
   /**
-   * Receive notification that a service has had a change occur in it's lifecycle.
+   * Receive notification that a service has had a change occur in its lifecycle.
    *
    * @see org.osgi.framework.ServiceListener#serviceChanged
    */
   public void serviceChanged(final ServiceEvent evt) {
     ServiceReferenceImpl sr = (ServiceReferenceImpl)evt.getServiceReference();
-    String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
-    Permission[] perms = new Permission[c.length];
-    for (int i = 0; i < c.length; i++) {
-      perms[i] = new ServicePermission(c[i], ServicePermission.GET);
-    }
-    Set sl = serviceListeners.getMatchingListeners(evt);
+    String[] classes = (String[])sr.getProperty(Constants.OBJECTCLASS);
+    Set sl = serviceListeners.getMatchingListeners(sr);
     int n = 0;
     for (Iterator it = sl.iterator(); it.hasNext(); n++) {
       final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
-      try {
-	for (int j = 0; j < c.length; j++) {
-	  if (l.bundle.hasPermission(perms[j])) {
-	    try {
-	      AccessController.doPrivileged(new PrivilegedAction() {
-		  public Object run() {
-		    ((ServiceListener)l.listener).serviceChanged(evt);
-		    return null;
-		  }
-		});
-	    } catch (Throwable pe) {
-	      frameworkError(l.bundle, pe);
-	    }
-	    break;
-	  }
-	}
-      } catch (Exception le) {
-	frameworkError(l.bundle, le);
+      boolean testAssignable = false;
+      if(!(l.listener instanceof AllServiceListener)){
+        testAssignable = true;
       }
-    }
+      try {
+        int length = classes.length;
+        for (int i = 0; i < length; i++) {
+          if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
+            continue;
+          }
+          if (l.bundle.hasPermission(new ServicePermission(classes[i], 
+                                                           ServicePermission.GET))) {
+            try {
+              secure.callServiceChanged((ServiceListener)l.listener, evt);
+            } catch (Throwable pe) {
+              frameworkError(l.bundle, pe);
+            }
+            break;
+          }
+        }//for
+      } catch (Exception le) {
+        frameworkError(l.bundle, le);
+      }
+    }//for
     if (Debug.ldap) {
       Debug.println("Notified " + n + " listeners");
     }
@@ -554,20 +574,18 @@ class ServiceListenerState {
   }
 
   /**
-   * Gets the listeners interested in modifications of the service
-   * contained in the specified {@link org.osgi.framework.ServiceEvent}.
+   * Gets the listeners interested in modifications of the service reference
    *
-   * @param The event describing the service modification.
+   * @param The reference related to the event describing the service modification.
    * @return A set of listeners to notify.
    */
-  synchronized Set getMatchingListeners(ServiceEvent evt) {
+  synchronized Set getMatchingListeners(ServiceReferenceImpl sr) {
     Set set = new HashSet();    
-    ServiceReferenceImpl sr = (ServiceReferenceImpl)evt.getServiceReference();
     // Check complicated or empty listener filters
     int n = 0;
     for (Iterator it = complicatedListeners.iterator(); it.hasNext(); n++) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.ldap == null || sle.ldap.evaluate(sr.getProperties())) {
+      if (sle.ldap == null || sle.ldap.evaluate(sr.getProperties(), false)) {
 	set.add(sle);
       }
     }

@@ -62,6 +62,13 @@ public class Activator implements BundleActivator {
       ServiceRegistration sr 
 	= bc.registerService(TestSuite.class.getName(), suite, props);
     }
+    {
+      TestSuite suite = new PackageTestSuite(bc);
+      Hashtable props = new Hashtable();
+      props.put("service.pid", suite.getName());
+      ServiceRegistration sr 
+	= bc.registerService(TestSuite.class.getName(), suite, props);
+    }
   }
 
   public void stop(BundleContext bc) {

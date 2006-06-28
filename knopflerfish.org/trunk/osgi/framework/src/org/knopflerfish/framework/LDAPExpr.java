@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import java.util.Enumeration;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.math.BigInteger;
+//import java.math.BigInteger;
 
 public class LDAPExpr {
   public static final int AND     =  0;
@@ -83,44 +83,8 @@ public class LDAPExpr {
   public String attrName;
   public String attrValue;
 
-  // If set to non-null, return this in toString() instead
-  // of correct, normalized form. Required to pass some
-  // incorrect R3 tests
-  String bug = null;
 
   public LDAPExpr(String filter) throws InvalidSyntaxException {
-
-
-
-    if(Framework.R3_TESTCOMPLIANT) {
-      // Workaround for bug in R3 test suite which incorrectly thinks
-      // spaces inside of names are legal
-      // fix by saving the "incorrect but expected" filter string
-      // and return that in toString()
-      
-      String zz  = " \n(& ( \tn ame = TestService1 ) ( ma ne = ServiceTest1 ) ) \r ";
-      String zz2 = " \n(& ( \tname = TestService1 ) ( mane = ServiceTest1 ) ) \r ";
-      String zz3  = "(&(n ame= TestService1 )(ma ne= ServiceTest1 ))";
-      if(filter.equals(zz)) {
-	System.out.println("*** Gah! This string is incorrectly expected to parse by the R3 test case:\n" + zz);
-	filter = zz2;
-	bug = zz3;
-      }
-
-      // The UPnP reference implementation uses 
-      // Filter.toString().indexOf("UPnP....")
-      // to look for properties. Since the filter is 
-      // normalized to lower case, indexOf never matches
-      // and the UPnP event mechanism fails.
-      // Fix by saving the original filter string
-      // and return that in toString()
-      if(-1 != filter.indexOf("UPnP.device.") ||
-	 -1 != filter.indexOf("UPnP.service.")) {
-	System.out.println("UPnP: saving original filter case: " + filter);
-	bug = filter;
-      }
-
-    }
 
     ParseState ps = new ParseState(filter);
     LDAPExpr expr = null;
@@ -197,49 +161,51 @@ public class LDAPExpr {
 
   public static boolean query(String filter, Dictionary pd) 
     throws InvalidSyntaxException {
-    return new LDAPExpr(filter).evaluate(pd);
+    return new LDAPExpr(filter).evaluate(pd, true);
   }
 
   /**
    * Evaluate this LDAP filter.
    */
-  public boolean evaluate(Dictionary p) {
+  public boolean evaluate(Dictionary p, boolean matchCase) {
     if ((operator & SIMPLE) != 0) {      
-      return compare(p.get(attrName), operator, attrValue); 
+      return compare(p.get(attrName), operator, attrValue, matchCase); 
     } else { // (operator & COMPLEX) != 0
       switch (operator) {
       case AND:
         for (int i = 0; i < args.length; i++) {
-          if (!args[i].evaluate(p))
+          if (!args[i].evaluate(p, matchCase))
             return false;
         }
         return true;
       case OR:
         for (int i = 0; i < args.length; i++) {
-          if (args[i].evaluate(p))
+          if (args[i].evaluate(p, matchCase))
             return true;
         }
         return false;
       case NOT:
-        return !args[0].evaluate(p);
+        return !args[0].evaluate(p, matchCase);
       default:
         return false; // Cannot happen
       }
     }
   }
+  
+  
 
   /**** Private methods ****/
 
-  protected boolean compare(Object obj, int op, String s) {
+  protected boolean compare(Object obj, int op, String s, boolean matchCase) {
     if (obj == null) 
       return false;
     if (op == EQ && s.equals(WILDCARD_STRING)) 
       return true;
     try {
       if (obj instanceof String) {
-        return compareString((String)obj, op, s);
-      } else if (obj instanceof Character) {
-        return compareString(obj.toString(), op, s);
+    		return compareString((String)obj, op, s, matchCase);
+      } else if (obj instanceof Character) {  
+    		return compareString(obj.toString(), op, s, matchCase);
       } else if (obj instanceof Boolean) {
         if (op==LE || op==GE)
           return false;
@@ -326,12 +292,12 @@ public class LDAPExpr {
         } 
       } else if (obj instanceof Vector) {
         for (Enumeration e=((Vector)obj).elements(); e.hasMoreElements();)
-          if (compare(e.nextElement(), op, s)) 
+          if (compare(e.nextElement(), op, s, matchCase)) 
             return true;
       } else if (obj.getClass().isArray()) {
         int len = Array.getLength(obj);
         for(int i=0; i<len; i++)
-          if (compare(Array.get(obj, i), op, s)) 
+          if (compare(Array.get(obj, i), op, s, matchCase)) 
             return true;
       } else {
 	// Extended comparison
@@ -354,7 +320,10 @@ public class LDAPExpr {
 	      return c == 0;
 	    }
 	  } else {
-	    boolean b = op == EQ && (obj.equals(other));
+		boolean b = false;
+	    if(op == LE || op == GE ||op == EQ ||op == APPROX){
+	    	b = obj.equals(other);
+	    }
 	    return b;
 	  }
 	}
@@ -409,14 +378,14 @@ public class LDAPExpr {
   }
 
 
-  private static boolean compareString(String s1, int op, String s2) {
+  private static boolean compareString(String s1, int op, String s2, boolean matchCase) {
     switch(op) {
     case LE:
       return s1.compareTo(s2) <= 0;
     case GE:
       return s1.compareTo(s2) >= 0;
     case EQ:
-      return patSubstr(s1,s2);
+      return patSubstr(s1,s2, matchCase);
     case APPROX:
       return fixupString(s2).equals(fixupString(s1));
     default:
@@ -446,26 +415,38 @@ public class LDAPExpr {
     return sb.toString();
   }
 
-  private static boolean patSubstr(String s, String pat) {
-    return s==null ? false : patSubstr(s.toCharArray(),0,pat.toCharArray(),0);
+  private static boolean patSubstr(String s, String pat, boolean matchCase) {
+    return s==null ? false : patSubstr(s.toCharArray(),0,pat.toCharArray(),0, matchCase);
   }
   
-  private static boolean patSubstr(char[] s, int si, char[] pat, int pi) {
+  private static boolean patSubstr(char[] s, int si, char[] pat, int pi, boolean matchCase) {
     if (pat.length-pi == 0) 
       return s.length-si == 0;
     if (pat[pi] == WILDCARD) {
       pi++;
       for (;;) {
-        if (patSubstr( s, si, pat, pi ))
+        if (patSubstr( s, si, pat, pi, matchCase))
           return true;
         if (s.length-si == 0)
           return false;
         si++;
       }
     } else {
-      if (s.length-si==0 || s[si]!=pat[pi])
-        return false;
-      return patSubstr( s, ++si, pat, ++pi );
+    	if (s.length-si==0){
+    		return false;
+    	}
+    	if(matchCase){
+    		if(s[si]!=pat[pi]){
+    			return false;
+    		}
+    	}
+    	else{
+    		if(Character.toLowerCase(s[si]) != pat[pi] &&
+    		   Character.toUpperCase(s[si]) != pat[pi]){
+    			return false;
+    		}
+    	}
+      return patSubstr( s, ++si, pat, ++pi, matchCase);
     }
   }
 
@@ -520,12 +501,6 @@ public class LDAPExpr {
   }
 
   public String toString() {
-    if(Framework.R3_TESTCOMPLIANT) {
-      if(bug != null) {
-	return bug;
-      }
-    }
-
     StringBuffer res = new StringBuffer();
     res.append("(");
     if ((operator & SIMPLE) != 0) { 
@@ -582,7 +557,7 @@ public class LDAPExpr {
 
     public ParseState(String str) throws InvalidSyntaxException {
       this.str = str;
-      if (str == null || str.length() == 0)
+      if (str.length() == 0)
         error(NULL);
       pos = 0;
     }

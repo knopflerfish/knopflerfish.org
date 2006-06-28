@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,11 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
-import java.util.StringTokenizer;
 import java.security.*;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import org.osgi.framework.*;
@@ -53,16 +52,16 @@ import java.lang.reflect.Constructor;
  * basic operations as install, start, stop, uninstall
  * and update.
  *
- * @author Jan Stein, Erik Wistrand
+ * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
  */
 public class Main {
 
   static Framework framework;
 
-  static long bootMgr = 0;
+  static long bootMgr/* = 0*/;
 
   // Verbosity level of printouts. 0 is low.
-  static int verbosity = 0;
+  static int verbosity /*= 0*/;
 
   // Will be filled in from manifest entry during startup
   static String version = "<unknown>";
@@ -81,7 +80,7 @@ public class Main {
 
 
   // Set to true if JVM is started without any arguments
-  static boolean bZeroArgs          = false;
+  static boolean bZeroArgs     /*     = false*/;
 
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
@@ -103,8 +102,10 @@ public class Main {
   static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
   static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
-  static boolean restarting = false;
+  static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
 
+  static boolean restarting = false;
+    
   /**
    * Help class for starting the OSGi framework.
    */
@@ -116,9 +117,10 @@ public class Main {
 
     version = readVersion();
 
-    bootText =
-      "Knopflerfish OSGi framework, version " + version + "\n" +
-      "Copyright 2003-2005 Knopflerfish. All Rights Reserved.\n\n" +
+
+    bootText = 
+      "Knopflerfish OSGi framework, version " + version + "\n" + 
+      "Copyright 2003-2006 Knopflerfish. All Rights Reserved.\n\n" + 
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);
@@ -140,6 +142,7 @@ public class Main {
         args = new String[] {"-init", "-xargs", xargsPath};
       }
     }
+
 
     // expand all -xargs options
     args = expandArgs(args);
@@ -213,7 +216,7 @@ public class Main {
   static String[] getJarBase() {
     String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
-    String[] base = Util.splitwords(jars, ";", '\"');
+    String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
       try {
         base[i] = new URL(base[i]).toString();
@@ -234,7 +237,7 @@ public class Main {
   private static void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
-    boolean hasBeenShutdown = false;
+    boolean doNotLaunch = false;
 
     for (int i = startOffset; i < args.length; i++) {
       try {
@@ -284,9 +287,10 @@ public class Main {
           } else {
             framework.launch(0);
           }
+          doNotLaunch = true;
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
-          hasBeenShutdown = true;
+          doNotLaunch = true;
           framework.shutdown();
           println("Framework shutdown", 0);
         } else if ("-sleep".equals(args[i])) {
@@ -334,10 +338,10 @@ public class Main {
           if (i+1 < args.length) {
             long[] ids = null;
             if("ALL".equals(args[i+1])) {
-              Bundle[] bl = framework.getSystemBundleContext().getBundles();
-              ids = new long[bl.length];
-              for(int n = 0; n < bl.length; n++) {
-                ids[n] = bl[n].getBundleId();
+              List bl = framework.bundles.getBundles();
+              ids = new long[bl.size()];
+              for(int n = bl.size() - 1; n >= 0; n--) {
+                ids[n] = ((BundleImpl)bl.get(n)).getBundleId();
               }
             } else {
               ids = new long[] { getBundleID(base,args[i+1]) };
@@ -410,7 +414,7 @@ public class Main {
       }
     }
 
-    if (!framework.active && !hasBeenShutdown) {
+    if (!framework.active && !doNotLaunch) {
       try {
         framework.launch(0);
         println("Framework launched", 0);
@@ -502,19 +506,6 @@ public class Main {
     return location;
   }
 
-  public static void frameworkEvent(final FrameworkEvent evt) {
-    framework.checkAdminPermission();
-
-    final FrameworkEvent e2 = new FrameworkEvent(evt.getType(),
-                                                 evt.getBundle(),
-                                                 evt.getThrowable());
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          framework.listeners.frameworkEvent(e2);
-          return null;
-        }
-      });
-  }
 
   /**
    * Shutdown framework.
@@ -526,33 +517,28 @@ public class Main {
    */
   static public void shutdown(final int exitcode) {
     if (restarting) return;
-    framework.checkAdminPermission();
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          Thread t = new Thread() {
-              public void run() {
-                if (bootMgr != 0) {
-                  try {
-                    framework.stopBundle(bootMgr);
-                  } catch (BundleException e) {
-                    System.err.println("Stop of BootManager failed, " +
-                                       e.getNestedException());
-                  }
-                }
-                framework.shutdown();
-                if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
-                  System.exit(exitcode);
-                } else {
-                  println("Framework shutdown, skipped System.exit()", 0);
-                }
-              }
-            };
-          t.setDaemon(false);
-          t.start();
-          return null;
+    Thread t = new Thread() {
+        public void run() {
+          if (bootMgr != 0) {
+            try {
+              framework.stopBundle(bootMgr);
+            } catch (BundleException e) {
+              System.err.println("Stop of BootManager failed, " +
+                                 e.getNestedException());
+            }
+          }
+          framework.shutdown();
+          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+            System.exit(exitcode);
+          } else {
+            println("Framework shutdown, skipped System.exit()", 0);
+          }
         }
-      });
+      };
+    t.setDaemon(false);
+    t.start();
   }
+
 
   /**
    * Restart framework.
@@ -561,42 +547,36 @@ public class Main {
    * </p>
    */
   static public void restart() {
-    framework.checkAdminPermission();
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          Thread t = new Thread() {
-              public void run() {
-                restarting = true;
-                try {
-                  if (bootMgr != 0) {
-                    try {
-                      framework.stopBundle(bootMgr);
-                    } catch (BundleException e) {
-                      System.err.println("Stop of BootManager failed, " +
-                                         e.getNestedException());
-                    }
-                  }
-                  framework.shutdown();
-
-                  try {
-                    if (bootMgr != 0) {
-                      framework.launch(bootMgr);
-                    } else {
-                      framework.launch(0);
-                    }
-                  } catch (Exception e) {
-                    println("Failed to restart framework", 0);
-                  }
-                } finally {
-                  restarting = false;
-                }
+    restarting = true;
+    Thread t = new Thread() {
+        public void run() {
+          try {
+            if (bootMgr != 0) {
+              try {
+                framework.stopBundle(bootMgr);
+              } catch (BundleException e) {
+                System.err.println("Stop of BootManager failed, " +
+                                   e.getNestedException());
               }
-            };
-          t.setDaemon(false);
-          t.start();
-          return null;
+            }
+            framework.shutdown();
+  
+            try {
+              if (bootMgr != 0) {
+                framework.launch(bootMgr);
+              } else {
+                framework.launch(0);
+              }
+            } catch (Exception e) {
+              println("Failed to restart framework", 0);
+            }
+          } finally {
+            restarting = false;
+          }
         }
-      });
+      };
+    t.setDaemon(false);
+    t.start();
   }
 
   /**
@@ -625,6 +605,7 @@ public class Main {
       i++;
     }
     String[] r = new String[v.size()];
+
     v.copyInto(r);
     return r;
   }
@@ -712,7 +693,7 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-        String osName = Alias.unifyOsName(System.getProperty("os.name"));
+        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();
@@ -769,7 +750,7 @@ public class Main {
    * Default values for some system properties.
    */
   static String[][] defaultSysProps = new String[][] {
-    {"org.osgi.framework.system.packages", "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
+    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
     {FWDIR_PROP,    FWDIR_DEFAULT},
     {CMDIR_PROP,    CMDIR_DEFAULT},
     //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
@@ -842,7 +823,7 @@ public class Main {
           sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
         }
         jars = sb.toString().replace('\\', '/');
-        sysProps.put("org.knopflerfish.gosg.jars", jars);
+        sysProps.put(JARDIR_PROP, jars);
         println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }

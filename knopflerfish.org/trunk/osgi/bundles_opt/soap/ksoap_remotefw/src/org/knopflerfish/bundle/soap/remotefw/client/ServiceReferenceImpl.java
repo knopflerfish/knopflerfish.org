@@ -133,4 +133,9 @@ public class ServiceReferenceImpl implements ServiceReference {
       "]";
 
   }
+
+public boolean isAssignableTo(Bundle bundle, String className) {
+	// TODO Auto-generated method stub
+	return false;
+}
 }
