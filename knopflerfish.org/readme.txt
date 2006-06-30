@@ -31,6 +31,10 @@ Anyone can check out the main trunk by:
  This will check out "trunk" into a new directory 
  "knopflerfish.org"
 
+The trunk currently contain the latest Knopflerfish 2 sources.
+To access the latest Knopflerfish 1 code check out the "kf_1_support"
+branch.
+
 If you're unsure on Subversion -- do read the Subversion 
 book at http://svnbook.red-bean.com/
 
