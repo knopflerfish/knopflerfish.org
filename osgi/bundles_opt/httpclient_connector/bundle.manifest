@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-Activator: org.knopflerfish.bundle.httpclient_connector.Activat
  or
-Bundle-UUID: org.knopflerfish:httpclient_connector:2.0.0
+Bundle-UUID: org.knopflerfish:httpclient_connector:2.0.1
 Import-Package: org.osgi.framework,org.osgi.service.io, javax.microedi
  tion.io, org.apache.commons.logging
 Export-Package: org.apache.commons.httpclient, 
@@ -13,7 +13,7 @@ Export-Package: org.apache.commons.httpclient,
                 org.apache.commons.httpclient.cookie,
                 org.apache.commons.httpclient.protocol,
                 org.apache.commons.codec
-Bundle-Version: 2.0.0
+Bundle-Version: 2.0.1
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Name: httpclient_connector
 Bundle-Description: A HTTP IO-Connector with proxy support.

@@ -10,6 +10,8 @@ import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import javax.microedition.io.HttpConnection;
+
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -26,26 +28,22 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.util.DateParseException;
 import org.apache.commons.httpclient.util.DateUtil;
 
-import javax.microedition.io.HttpConnection;
-
 
 /**
  * TODO: 
  * - is uri.getEscapedURIReference() correct?
  * - shouldn't the getHeaderField(int nth) throw an IOException?
  */
-
 class HttpClientConnection implements HttpConnection {
 	
-	public final static String PROXY_SERVER = "org.knopflerfish.httpclient_connector.proxy.server";
-	public final static String PROXY_PORT   = "org.knopflerfish.httpclient_connector.proxy.port";
-	public final static String TIMEOUT      = "org.knopflerfish.httpclient_connector.so_timeout";
-	public final static String REALM        = "org.knopflerfish.httpclient_connector.realm";
-	public final static String USERNAME     = "org.knopflerfish.httpclient_connector.username";
-	public final static String PASSWORD     = "org.knopflerfish.httpclient_connector.password";
-	public final static String SCHEME       = "org.knopflerfish.httpclient_connector.scheme";
-	public final static String ENABLE_HTTPS = "org.knopflerfish.httpclient_connector.enable_https";
-	
+  public final static String TIMEOUT        = "org.knopflerfish.httpclient_connector.so_timeout";
+	public final static String PROXY_SERVER   = "org.knopflerfish.httpclient_connector.proxy.server";
+	public final static String PROXY_PORT     = "org.knopflerfish.httpclient_connector.proxy.port";
+	public final static String PROXY_USERNAME = "org.knopflerfish.httpclient_connector.proxy.username";
+	public final static String PROXY_PASSWORD = "org.knopflerfish.httpclient_connector.proxy.password";
+  public final static String PROXY_REALM    = "org.knopflerfish.httpclient_connector.proxy.realm";
+	public final static String PROXY_SCHEME   = "org.knopflerfish.httpclient_connector.proxy.scheme";
+
 	private final static int STATE_SETUP     = 0;
 	private final static int STATE_CONNECTED = 1;
 	private final static int STATE_CLOSED    = 2;
@@ -67,35 +65,36 @@ class HttpClientConnection implements HttpConnection {
 	HttpClientConnection(String url, int mode, boolean timeouts) throws URIException {
 		uri = new URI(url, false); // assume not escaped URIs
 		HostConfiguration conf = client.getHostConfiguration();
-		
-		if (System.getProperty(PROXY_SERVER) != null) {
-			int portNo = -1;
-			
-			try {
-				portNo = Integer.parseInt(System.getProperty(PROXY_PORT));
-				conf.setProxy(System.getProperty(PROXY_SERVER), portNo);
-			} catch (NumberFormatException e) {
-				throw new RuntimeException("Invalid proxy host/port " + 
-						System.getProperty(PROXY_SERVER) + 
-						":" + System.getProperty(PROXY_PORT));
-			}
-			
-			if (System.getProperty(USERNAME) != null) {
-				client.getState().setProxyCredentials(
-						new AuthScope(System.getProperty(PROXY_SERVER), portNo,
-								System.getProperty(REALM), System.getProperty(SCHEME)),
-								new UsernamePasswordCredentials(System.getProperty(USERNAME), 
-										System.getProperty(PASSWORD)));
-			}
-		}
-		
-		if (System.getProperty(TIMEOUT) != null) {
-			try {
-				client.getParams().setSoTimeout(Integer.parseInt(System.getProperty(TIMEOUT)));
-			} catch (NumberFormatException e) {
-				throw new RuntimeException("Invalid timeout " +	System.getProperty(TIMEOUT)); 
-			}
-		}
+
+    String proxyServer = System.getProperty(PROXY_SERVER, System.getProperty("http.proxyHost"));
+    if (proxyServer != null) {
+      int proxyPort;
+      try {
+        proxyPort = Integer.parseInt(System.getProperty(PROXY_PORT, System.getProperty("http.proxyPort", "8080")));
+        conf.setProxy(proxyServer, proxyPort);
+      } catch (NumberFormatException e) {
+        throw new RuntimeException("Invalid proxy: " + proxyServer + ":" + System.getProperty(PROXY_PORT));
+      }
+
+      String proxyUsername = System.getProperty(PROXY_USERNAME);
+      if (proxyUsername != null) {
+        client.getState().setProxyCredentials(
+            new AuthScope(proxyServer,
+                          proxyPort,
+                          System.getProperty(PROXY_REALM),
+                          System.getProperty(PROXY_SCHEME)),
+                          new UsernamePasswordCredentials(proxyUsername, System.getProperty(PROXY_PASSWORD)));
+      }
+    }
+
+    String timeoutString = System.getProperty(TIMEOUT);
+    if (timeoutString != null) {
+      try {
+        client.getParams().setSoTimeout(Integer.parseInt(timeoutString));
+      } catch (NumberFormatException e) {
+        throw new RuntimeException("Invalid timeout " +	timeoutString);
+      }
+    }
 	}
 
 	public long getDate() throws IOException {

@@ -71,7 +71,12 @@ public class HttpConnectionFactory extends BaseConnectionFactory {
   }
 
   public String[] getSupportedSchemes() {
-    return new String[]{"http"};
+    try {
+      Class.forName("javax.net.ssl.HttpsURLConnection");
+      return new String[] { "http", "https" };
+    } catch (ClassNotFoundException cnfe) {
+      return new String[] { "http" };
+    }
   }
 
 } // HttpConnectionFactory
