@@ -34,16 +34,12 @@
 
 package org.knopflerfish.bundle.connectors;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.io.ConnectionFactory;
 
+import org.knopflerfish.bundle.connectors.datagram.DatagramConnectionFactory;
 import org.knopflerfish.bundle.connectors.http.HttpConnectionFactory;
 import org.knopflerfish.bundle.connectors.socket.SocketConnectionFactory;
-import org.knopflerfish.bundle.connectors.datagram.DatagramConnectionFactory;
 
 
 /**

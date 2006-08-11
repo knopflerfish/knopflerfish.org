@@ -21,16 +21,11 @@ Some proxies require authenication. The following properties allow
 you to set up the connector properly in such environments. (Requires 
 the proxy server and port to be set)
 
-org.knopflerfish.httpclient_connector.username=<username>
-org.knopflerfish.httpclient_connector.password=<password>
+org.knopflerfish.httpclient_connector.proxy.username=<username>
+org.knopflerfish.httpclient_connector.proxy.password=<password>
 
-org.knopflerfish.httpclient_connector.realm=<realm>   (optional)
-org.knopflerfish.httpclient_connector.scheme=<scheme> (optional)
+org.knopflerfish.httpclient_connector.proxy.realm=<realm>   (optional)
+org.knopflerfish.httpclient_connector.proxy.scheme=<scheme> (optional)
 
 You can also set SO_TIMEOUT using
 org.knopflerfish.httpclient_connector.so_timeout=<int> 
-
-To disable HTTPS support set 
-org.knopflerfish.httpclient_connector.https_enabled to "false"
-
-
