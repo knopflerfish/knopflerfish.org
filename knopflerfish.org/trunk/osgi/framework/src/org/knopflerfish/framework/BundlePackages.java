@@ -232,6 +232,12 @@ class BundlePackages {
     }
     failReason = bundle.framework.packages.resolve(bundle, permImports.iterator());
     if (failReason == null) {
+      for (Iterator i = permImports.iterator(); i.hasNext(); ) {
+        ImportPkg ip = (ImportPkg)i.next();
+        if (ip.provider == null) { // <=> optional import with unresolved provider
+          i.remove();
+        }
+      } 
       okImports = permImports;
       return true;
     } else {
