@@ -1237,7 +1237,17 @@ class BundleImpl implements Bundle {
     }
     String mbv = archive.getAttribute(Constants.BUNDLE_VERSION);
     if (mbv != null) {
-      version = new Version(mbv);
+      try {
+        version = new Version(mbv);
+      } catch (Throwable ee) {
+        if (v2Manifest) {
+          throw new IllegalArgumentException("Bundle does not specify a valid " + 
+              Constants.BUNDLE_VERSION + " header. Got exception: " + ee.getMessage());
+        } else {
+          version = Version.emptyVersion;
+        }
+      }
+      
     } else {
       version = Version.emptyVersion;
     }
