@@ -129,6 +129,7 @@ import org.apache.tools.ant.util.StringUtils;
  *   </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
+ *  <tr>
  *   <td valign=top>activator</td>
  *   <td valign=top>
  *       Name of property that will receive name of class which implements
@@ -187,7 +188,18 @@ import org.apache.tools.ant.util.StringUtils;
  *     Default value is "false"
  *   </td>
  *  </tr>
- *
+ *  <tr>
+ *   <td valign=top>serviceComponent</td>
+ *   <td valign=top>
+ *       The value of the <tt>Service-Component</tt> manifest header.
+ *       <p>
+ *       If set to non-empty, leave the value of the activator
+ *       property untouched and do not complain if there are no class
+ *       that implements BundleActivator in the bundle.
+ *       </p>
+ *  </td>
+ *   <td valign=top>No.<br> Default value is ""</td>
+ *  </tr>
  *  <tr>
  *   <td valign=top>checkMinimumEE</td>
  *   <td valign=top>
@@ -289,6 +301,7 @@ public class BundleInfoTask extends Task {
   private String exportsProperty   = "";
   private String activatorProperty = "";
   private String mainProperty      = "";
+  private String serviceComponent  = "";
 
   private Set     stdImports       = new TreeSet();
   private boolean bDebug           = false;
@@ -299,6 +312,7 @@ public class BundleInfoTask extends Task {
   private boolean bCheckMinimumEE    = false;
   private boolean bCheckSMFEE        = false;
   private boolean bImplicitImports   = true;
+  private boolean bSetActivator      = true;
 
   /** The set of packages that are provided by the inlcuded classes. */
   private Set providedSet          = new TreeSet();
@@ -370,6 +384,16 @@ public class BundleInfoTask extends Task {
    */
   public void setActivator(String propName) {
     this.activatorProperty = propName;
+  }
+
+  /**
+   * Set name value of the Service-Component manifest header.
+   */
+  public void setServiceComponent(String serviceComponent) {
+    this.serviceComponent = serviceComponent;
+    if (!BundleManifestTask.isPropertyValueEmpty(serviceComponent)) {
+      bSetActivator = false;
+    }
   }
 
   /**
@@ -512,7 +536,7 @@ public class BundleInfoTask extends Task {
     }
 
     // Try to be a bit clever when writing back bundle activator
-    if(!"".equals(activatorProperty)) {
+    if(!"".equals(activatorProperty) && bSetActivator) {
       String activatorVal = proj.getProperty(activatorProperty);
       if (BundleManifestTask.isPropertyValueEmpty(activatorVal)) {
         // No Bundle-Activator given; use derived value if possible.

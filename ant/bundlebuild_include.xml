@@ -440,6 +440,7 @@
               imports   = "bmfa.impl-Import-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.impl}"
+	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -525,6 +526,7 @@
               imports = "bmfa.api-Import-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.api}"
+	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -575,6 +577,7 @@
               imports = "bmfa.lib-Import-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.lib}"
+	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -643,6 +646,7 @@
               exports   = "bmfa.Export-Package"
               stdimports        = "${bundle.stdimports}"
               implicitImports   = "${bundle.implicit.imports.all}"
+	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
