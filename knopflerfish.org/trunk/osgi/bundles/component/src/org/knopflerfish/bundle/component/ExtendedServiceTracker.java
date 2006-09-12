@@ -197,7 +197,9 @@ class ExtendedServiceTracker implements ServiceListener {
         } 
       }
       tracking.add(i, ref);
-      objects.put(ref, cached);
+      if (cached != null) {
+        objects.put(ref, cached);
+      }
     }
   }
 
