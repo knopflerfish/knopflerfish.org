@@ -6,6 +6,23 @@ trunk are available each night at
 
    http://www.knopflerfish.org/snapshots/trunk/
 
+2006-09-13:
+ useradmin:  Added persistence. The path to the file where user admin data is
+             stored can be set with the system property
+              org.knopflerfish.useradmin.store
+             If this is not set, the bundle's data storage area is used,
+             meaning that starting the platform with -init purges the data.
+             One can also use the system property
+              org.knopflerfish.useradmin.oldstore
+             to define a path that is used to read the data if the
+             org.knopflerfish.useradmin.store property is set to a path that
+             does not exist yet. This can be used to move the store to a new
+             location.
+
+2006-09-12:
+ component:  Fixed a bug where, under certain circumstances, null was passed
+             to bind/unbind methods.
+
 2006-06-28:
     Merged KF 2.0.0 branch with trunk. The following changes from the trunk
     were applied:
