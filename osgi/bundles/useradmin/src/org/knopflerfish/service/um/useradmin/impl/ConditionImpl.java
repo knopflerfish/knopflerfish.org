@@ -61,8 +61,8 @@ public class ConditionImpl extends RoleImpl implements Condition {
 
     protected String filter;
 
-    ConditionImpl(String name, UserAdminImpl uai) {
-        super(name, uai);
+    ConditionImpl(String name) {
+        super(name);
     }
 
     boolean hasMember(String user, Dictionary context, Vector v) {
@@ -86,7 +86,7 @@ public class ConditionImpl extends RoleImpl implements Condition {
             try {
                 return LDAPQuery.query(filter, context);
             } catch (InvalidSyntaxException e) {
-                uai.log.error("Bad LDAP syntax: " + filter);
+                Activator.log.error("Bad LDAP syntax: " + filter);
             }
         }
 

@@ -63,11 +63,8 @@ public class AuthorizationImpl implements ContextualAuthorization {
 
     protected Dictionary context;
 
-    private UserAdminImpl uai;
-
-    AuthorizationImpl(RoleImpl user, UserAdminImpl uai) {
+    AuthorizationImpl(RoleImpl user) {
         this.user = user;
-        this.uai = uai;
 
         // Default context:
         context = new Hashtable();
@@ -97,7 +94,7 @@ public class AuthorizationImpl implements ContextualAuthorization {
         // This is probably not the best implementation...
         Vector result = new Vector();
         try {
-            Role[] roles = uai.getRoles(null);
+            Role[] roles = Activator.uai.getRoles(null);
             for (int i = 0; i < roles.length; i++) {
                 String roleName = roles[i].getName();
                 if (hasRole(roleName) && !Role.USER_ANYONE.equals(roleName)) {
@@ -121,10 +118,10 @@ public class AuthorizationImpl implements ContextualAuthorization {
         int authLevel = Levels.LOWEST;
         int confLevel = Levels.LOWEST;
         int integrLevel = Levels.LOWEST;
-        ServiceReference ipamsr = uai.bc
+        ServiceReference ipamsr = Activator.bc
                 .getServiceReference(IPAMValuationService.class.getName());
         if (ipamsr != null) {
-            IPAMValuationService ipam = (IPAMValuationService) uai.bc
+            IPAMValuationService ipam = (IPAMValuationService) Activator.bc
                     .getService(ipamsr);
             if (ipam != null) {
                 Levels levels = ipam.getLevels(inputPath, authMethod);
@@ -132,14 +129,14 @@ public class AuthorizationImpl implements ContextualAuthorization {
                 confLevel = levels.getConfLevel();
                 integrLevel = levels.getIntegrLevel();
             } else {
-                if (uai.log.doWarn())
-                    uai.log.warn("IPAM service is not available. "
+                if (Activator.log.doWarn())
+                    Activator.log.warn("IPAM service is not available. "
                             + "Using fallback IPAM context");
             }
-            uai.bc.ungetService(ipamsr);
+            Activator.bc.ungetService(ipamsr);
         } else {
-            if (uai.log.doWarn())
-                uai.log.warn("IPAM service is not available. "
+            if (Activator.log.doWarn())
+                Activator.log.warn("IPAM service is not available. "
                         + "Using fallback IPAM context");
         }
         context.put(CONTEXT_AUTH_LEVEL, new Integer(authLevel));
