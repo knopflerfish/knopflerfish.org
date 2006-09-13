@@ -34,6 +34,7 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
+import java.io.Serializable;
 import java.security.AccessController;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -49,7 +50,7 @@ import org.osgi.service.useradmin.UserAdminPermission;
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
-public class UAProperties extends Dictionary {
+public class UAProperties extends Dictionary implements Serializable {
     protected RoleImpl role;
 
     protected Hashtable /* String -> byte[] or String */ht = new Hashtable();
@@ -100,7 +101,7 @@ public class UAProperties extends Dictionary {
                         (String) key, getChangeAction()));
             }
             Object res = ht.remove(key);
-            role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
+            Activator.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
             // role.um.save();
             return res;
         }
@@ -126,8 +127,8 @@ public class UAProperties extends Dictionary {
                 throw new IllegalArgumentException(
                         "The value must be of type byte[]"
                                 + " or String,  got " + value.getClass());
-            role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
-            // role.uai.save();
+            Activator.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
+            // Activator.uai.save();
 
             return res;
         }

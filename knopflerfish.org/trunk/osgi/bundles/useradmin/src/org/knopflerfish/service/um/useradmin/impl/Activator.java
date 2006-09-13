@@ -41,6 +41,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.useradmin.UserAdmin;
 
+import org.knopflerfish.service.log.LogRef;
+
 /**
  * Activator for stand alone service gateway UserAdmin service
  * 
@@ -48,17 +50,21 @@ import org.osgi.service.useradmin.UserAdmin;
  * @version $Revision: 1.1.1.1 $
  */
 public class Activator implements BundleActivator {
+    static UserAdminImpl uai;
+    static BundleContext bc;
+    static LogRef log;
     ServiceRegistration umsr;
-    UserAdminImpl ua;
   
     public void start(BundleContext bc) {
-        ua = new UserAdminImpl(bc);
-        umsr = bc.registerService(UserAdmin.class.getName(), ua,
+        Activator.bc = bc;
+        log = new LogRef(bc);
+        uai = new UserAdminImpl();
+        umsr = bc.registerService(UserAdmin.class.getName(), uai,
                 new Hashtable());
     }
 
     public void stop(BundleContext bc) {
-        ua.stop();
+        uai.stop();
     }
 
 }

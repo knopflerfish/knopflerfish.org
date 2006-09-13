@@ -34,6 +34,7 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
+import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -46,8 +47,7 @@ import org.osgi.service.useradmin.Role;
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
-class RoleImpl implements Role {
-    UserAdminImpl uai;
+class RoleImpl implements Role, Serializable {
 
     Vector /* RoleImpl */basicMemberOf = new Vector();
 
@@ -57,8 +57,7 @@ class RoleImpl implements Role {
 
     protected UAProperties props;
 
-    RoleImpl(String name, UserAdminImpl uai) {
-        this.uai = uai;
+    RoleImpl(String name) {
         this.name = name;
         props = new UAProperties(this);
     }
@@ -98,7 +97,7 @@ class RoleImpl implements Role {
 
         // check if the predefined role has the role
         if (!name.equals(Role.USER_ANYONE))
-            if (uai.anyone.hasRole(roleName, user, context, visited))
+            if (Activator.uai.anyone.hasRole(roleName, user, context, visited))
                 return true;
 
         return false;

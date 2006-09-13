@@ -53,8 +53,8 @@ public class GroupImpl extends UserImpl implements Group {
 
     protected Vector reqMembers = new Vector();
 
-    GroupImpl(String name, UserAdminImpl uai) {
-        super(name, uai);
+    GroupImpl(String name) {
+        super(name);
     }
 
     boolean hasRole(String roleName, String user, Dictionary context,

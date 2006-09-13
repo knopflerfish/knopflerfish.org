@@ -50,8 +50,8 @@ import org.osgi.service.useradmin.UserAdminPermission;
 public class UserImpl extends RoleImpl implements User {
     protected UACredentials creds;
 
-    UserImpl(String name, UserAdminImpl uai) {
-        super(name, uai);
+    UserImpl(String name) {
+        super(name);
         creds = new UACredentials(this);
     }
 
