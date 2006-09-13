@@ -324,6 +324,10 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     // Revert to the saved state
     protected void revert() {
+      if (Boolean.getBoolean("org.knopflerfish.useradmin.dontsave")) {
+        if (Activator.log.doDebug()) Activator.log.debug("read skipped");
+        return;
+      }
       String path = System.getProperty("org.knopflerfish.useradmin.store");
       String oldPath = System.getProperty("org.knopflerfish.useradmin.oldstore");
       File file;
@@ -342,12 +346,12 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
           ois.close();
           if (obj instanceof Hashtable) {
             roles = (Hashtable) obj;
-            Activator.log.debug("roles reverted");
+            if (Activator.log.doDebug()) Activator.log.debug("roles reverted");
           } else {
             Activator.log.error("ua_store corrupted");
           }
         } else {
-          Activator.log.debug("ua_store not found");
+          if (Activator.log.doDebug()) Activator.log.debug("ua_store not found");
         }
       } catch (ClassNotFoundException e) {
         Activator.log.error("Failed to instantiate saved roles", e);
@@ -358,6 +362,10 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     // Save the current state
     protected void save() {
+      if (Boolean.getBoolean("org.knopflerfish.useradmin.dontsave")) {
+        if (Activator.log.doDebug()) Activator.log.debug("save skipped");
+        return;
+      }
       String path = System.getProperty("org.knopflerfish.useradmin.store");
       File file;
       if (path == null) {
