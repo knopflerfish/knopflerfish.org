@@ -113,7 +113,11 @@
    <taskdef name        = "bundleobr" 
             classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
-     
+
+   <taskdef name        = "bindex"
+         classpathref = "bundle_tasks.path"
+    classname = "org.knopflerfish.ant.taskdefs.bundle.BIndexTask"/>
+       
  </target>
 
  <target name="default" depends="check_bcel,bundle_tasks"/>
