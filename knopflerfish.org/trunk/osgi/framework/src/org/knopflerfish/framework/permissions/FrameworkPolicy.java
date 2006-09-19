@@ -50,8 +50,6 @@ import org.knopflerfish.framework.BundleURLStreamHandler;
 
 class FrameworkPolicy extends Policy {
 
-  private final PermissionCollection all = new Permissions();
-
   //must not cache
   //private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
 
@@ -82,7 +80,9 @@ class FrameworkPolicy extends Policy {
         return null;
       }
     } else {
-      return all;
+      PermissionCollection pc = new Permissions();
+      pc.add(new AllPermission());
+      return pc;
     }
   }
 
