@@ -143,8 +143,6 @@
   <target name          = "jardocs"
           depends       = "compile_ant">
 
-
-
     <copy todir="${release.dir}/jars">
      <fileset dir="osgi/jars"/>
     </copy>
@@ -162,6 +160,16 @@
         <include name = "**/*.jar"/>
       </fileset>
    </bundlehtml>
+  </target>
+
+  <target name          = "bindex"
+          depends       = "compile_ant">
+   <ant dir="osgi" target="bindex"/>
+  </target>
+
+  <target name          = "install_bindex"
+          depends       = "compile_ant">
+   <ant dir="osgi" target="install_bindex"/>
   </target>
 
   <target name          = "obr"
@@ -226,7 +234,6 @@
      classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
 
    </target>
- 
 
   <target   name        = "distrib" 
             description = "Builds all distribution files">
@@ -238,6 +245,8 @@
     <antcall target     = "distrib_opt"/>
 
     <antcall target     = "obr"/>
+    <antcall target     = "install_bindex"/>
+    <antcall target     = "bindex"/>
   </target>
 
 

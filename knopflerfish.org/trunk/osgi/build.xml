@@ -181,5 +181,47 @@
          inheritAll="false" inheritRefs="false"/>
     <antcall target="all"/>
  </target>
+ 
+ <!-- a bit misplaced, but bindex is very picky with from where it is called -->
+ <property name="bindex.file" location="${topdir}/../bindex.jar"/>
+  <available file         = "${bindex.file}"
+             property     = "bindex.available"/>
+
+ 
+ <target name="install_bindex">
+   <antcall target="download_bindex"/>
+ </target>
+
+ <target name="download_bindex" unless="bindex.available">
+    <get src="http://bundles.osgi.org/build/jar/bindex.jar" 
+         dest="${bindex.file}"
+    />
+ </target>
+
+ <target name          = "bindex" 
+         depends       = "bundle_tasks">
+  <mkdir dir="../repo"/>
+  <property name="bindex.baseurl" value="http://www.knopflerfish.org/repo/"/>
+  <property name="bindex.basedir" value="jars"/>
+
+
+  <bindex outFile         = "${topdir}/../repo/bindex.xml"
+          baseURL         = "${bindex.baseurl}"
+          bindexJar       = "${bindex.file}" >
+
+    <fileset dir="${bindex.basedir}">
+      <include name = "jars/upnp/upnp_api-*.jar"/>
+    </fileset>
+
+    <fileset dir="${bindex.basedir}">
+      <include name = "*/*.jar"/>
+      <exclude name = "*/*_api-*.jar"/>
+      <exclude name = "framework.jar"/>
+    </fileset> 
+  </bindex>
+
+ </target>
+
+
 
 </project>
