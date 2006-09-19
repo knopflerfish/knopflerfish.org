@@ -92,7 +92,7 @@ The repository URL is <a href="http://www.knopflerfish.org/repo/repository.xml">
 </p>
 
 <p>
-As of <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">RFC-0112</a> a new OBR XML format has been introduced. <a href="http://www.knopflerfish.org/repo/bindex.xml">http://www.knopflerfish.org/repo/bindex.xml</a>.
+You can find a <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">\RFC-0112</a> compatible repository at <a href="http://www.knopflerfish.org/repo/bindex.xml\">http://www.knopflerfish.org/repo/bindex.xml</a>.
 </p>
 
 <p>
