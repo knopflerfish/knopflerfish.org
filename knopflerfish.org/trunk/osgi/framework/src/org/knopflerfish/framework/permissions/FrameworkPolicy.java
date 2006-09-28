@@ -56,8 +56,6 @@ class FrameworkPolicy extends Policy {
   private PermissionsHandle ph;
 
   FrameworkPolicy(PermissionsHandle ph) {
-    all.add(new AllPermission());
-    all.setReadOnly();
     this.ph = ph;
   }
 
