@@ -138,7 +138,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
       StringBuffer sb = new StringBuffer();
       
       startFont(sb);
-      PackageAdmin pkgAdmin = (PackageAdmin)Activator.pkgTracker.getService();
+      ServiceReference sr = Activator.getTargetBC().getServiceReference(PackageAdmin.class.getName());
+      PackageAdmin pkgAdmin = (PackageAdmin)Activator.getTargetBC().getService(sr);
       if(pkgAdmin == null) {
         sb.append("No PackageAdmin service found");
       } else {
@@ -270,6 +271,9 @@ try { // untested code
           }
         }
 } catch (Throwable ignored) {}
+
+        Activator.getTargetBC().ungetService(sr);
+
         if (required.size() == 0) {
           sb.append("No required bundles");
         } else {
