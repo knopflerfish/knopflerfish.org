@@ -302,22 +302,24 @@ public class RemoteFWServer implements RemoteFW {
   public Vector  getBundleManifest(long bundleId) {
     Bundle b = Activator.bc.getBundle(bundleId);
 
-    Dictionary d = b.getHeaders();
-
     //Map result = new HashMap();
     Vector result = new Vector();
 
-    int i = 0;
-    for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
-      String key = (String)e.nextElement();
-      String val = (String)d.get(key);
+    if (b != null) {
+      Dictionary d = b.getHeaders();
 
-      if (!"Application-Icon".equals(key)) {
-        result.addElement(key);
-        result.addElement(val);
+      int i = 0;
+      for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
+        String key = (String)e.nextElement();
+        String val = (String)d.get(key);
+  
+        if (!"Application-Icon".equals(key)) {
+          result.addElement(key);
+          result.addElement(val);
+        }
+
+        i += 2;
       }
-
-      i += 2;
     }
 
     return result;
