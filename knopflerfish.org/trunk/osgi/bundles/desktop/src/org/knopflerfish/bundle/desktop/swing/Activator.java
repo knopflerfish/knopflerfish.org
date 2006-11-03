@@ -52,7 +52,6 @@ public class Activator implements BundleActivator {
   static private BundleContext remoteBC;
   static public Desktop desktop;
 
-  static ServiceTracker pkgTracker;
   static Activator      myself;
 
   public static BundleContext getBC() {
@@ -147,9 +146,6 @@ public class Activator implements BundleActivator {
         }
       };
     remoteTracker.open();
-
-    pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
-    pkgTracker.open();
 
     // Spawn to avoid race conditions in resource loading
     Thread t = new Thread() {
@@ -272,11 +268,6 @@ public class Activator implements BundleActivator {
       if(remoteTracker != null) {
         remoteTracker.close();
         remoteTracker = null;
-      }
-
-      if(pkgTracker != null) {
-        pkgTracker.close();
-        pkgTracker = null;
       }
 
       this.bc     = null;
