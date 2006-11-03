@@ -254,7 +254,7 @@ public class BundleContextImpl implements BundleContext {
         ServiceListener l = (ServiceListener)it.next();
         Filter filter     = (Filter)serviceListeners.get(l);
 
-        if(filter.match(props)) {
+        if(filter == null || filter.match(props)) {
           try {
             l.serviceChanged(ev);
           } catch (Exception e) {
