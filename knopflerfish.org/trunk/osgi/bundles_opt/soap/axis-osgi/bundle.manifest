@@ -9,7 +9,7 @@ Bundle-Description: Axis Server
 Bundle-Vendor: Knopflerfish/Apache
 Bundle-APIVendor: Knopflerfish/Apache
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles_opt/soap/readme.html
+ /osgi/bundles_opt/soap/axis.html
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles_opt/soap/

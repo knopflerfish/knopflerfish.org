@@ -6,7 +6,7 @@ control another framework.
 
 The bundle is part of the The Knopflerfish Axis port, see
  
- ../readme.html
+ ../axis.html
 
 for details
 
