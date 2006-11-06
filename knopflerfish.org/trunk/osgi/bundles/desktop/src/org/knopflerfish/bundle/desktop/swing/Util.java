@@ -184,7 +184,10 @@ public class Util {
   public static String getBundleName(Bundle b) {
     String s = getHeader(b, "Bundle-Name", "");
     if(s == null || "".equals(s) || s.startsWith("%")) {
-      s = shortLocation(b.getLocation());
+      String loc = b.getLocation();
+      if (loc != null) {
+        s = shortLocation(b.getLocation());
+      }
     }
 
     return s;
