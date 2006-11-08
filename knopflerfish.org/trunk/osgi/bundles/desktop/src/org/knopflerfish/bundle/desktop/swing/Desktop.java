@@ -1517,6 +1517,10 @@ public class Desktop
     dialog.show();
     dialog.dispose();
 
+    if (!(optionPane.getValue() instanceof String)) { // We'll get an Integer if the user pressed Esc
+      return;
+    }
+
     String value = (String)optionPane.getValue();
 
     if (Strings.get("cancel").equals(value)) {
