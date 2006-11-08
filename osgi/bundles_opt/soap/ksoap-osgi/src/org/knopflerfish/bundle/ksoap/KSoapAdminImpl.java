@@ -49,6 +49,7 @@ import org.knopflerfish.service.ksoap.KSoapAdmin;
 import org.osgi.framework.ServiceReference;
 
 import java.util.Iterator;
+import java.util.Vector;
 
 public class KSoapAdminImpl implements KSoapAdmin {
   Activator activator;
@@ -57,21 +58,19 @@ public class KSoapAdminImpl implements KSoapAdmin {
     this.activator = activator;
   }
 
-  public String[] getPublishedServiceNames() {
+  public Vector getPublishedServiceNames() {
     synchronized (activator.exportedServices) {
       try {
-        String[] sa = new String[activator.exportedServices.size()];
-
-        int i = 0;
+        Vector vector = new Vector();
         for(Iterator it = activator.exportedServices.keySet().iterator();
             it.hasNext();)
           {
             ServiceReference sr         = (ServiceReference)it.next();
             String           name       = (String)sr.getProperty(KSoapAdmin.SOAP_SERVICE_NAME);
-            sa[i++] = name;
+            vector.add(name);
           }
 
-        return sa;
+        return vector;
       } catch (RuntimeException e) {
         e.printStackTrace();
         throw e;

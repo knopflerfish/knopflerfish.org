@@ -172,6 +172,7 @@ public class Activator implements BundleActivator, ServiceListener {
 
             Object serviceObj = bc.getService(sr);
             soapServlet.publishInstance(serviceName, serviceObj);
+            exportedServices.put(sr, new ObjectSOAPService(null, serviceName, serviceObj, classes, null));
           }
         }
         break;
@@ -182,9 +183,10 @@ public class Activator implements BundleActivator, ServiceListener {
             if (serviceName != null) {
 
               ObjectSOAPService soapService
-                = (ObjectSOAPService)exportedServices.get(sr);
+                = (ObjectSOAPService)exportedServices.remove(sr);
               if(soapService != null) {
                 Object serviceObj = soapService.getServiceObject();
+                // TODO: unpublish?
               }
             }
           }
