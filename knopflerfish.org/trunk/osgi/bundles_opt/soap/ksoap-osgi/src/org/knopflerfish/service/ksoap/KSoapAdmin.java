@@ -70,5 +70,5 @@ public interface KSoapAdmin {
   /**
    * Get the currently published service names.
    */
-  public String[] getPublishedServiceNames();
+  public java.util.Vector getPublishedServiceNames();
 }
