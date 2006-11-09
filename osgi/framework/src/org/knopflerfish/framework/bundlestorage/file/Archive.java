@@ -124,11 +124,19 @@ class Archive {
   }
 
   FileTree refFile = null;
-
+  
   Archive(File dir, int rev, InputStream is, URL source) throws IOException {
-    BufferedInputStream bis = new BufferedInputStream(is, 8192);
+	BufferedInputStream bis;
+	//Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
+	if(System.getProperty("java.vendor").startsWith("Skelmir")){
+		bis = new BufferedInputStream(is, is.available());
+	}
+	else{
+		bis = new BufferedInputStream(is, 8192);
+	}
+	
     ZipInputStream zi = null;
-
+	
     // Handle reference: URLs by overriding global flag
     if(source != null && "reference".equals(source.getProtocol())) {
       bReference = true;
@@ -137,8 +145,14 @@ class Archive {
     if (alwaysUnpack) {
       zi = new ZipInputStream(bis);
     } else if (unpack) {
-      // Is 16000 enough?
-      bis.mark(16000);
+      //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
+      if(System.getProperty("java.vendor").startsWith("Skelmir")){
+	    bis.mark(98304);
+	  }
+	  else{
+        //Is 16000 enough?
+		bis.mark(16000);
+      }   
       JarInputStream ji = new JarInputStream(bis);
       manifest = ji.getManifest();
       if (manifest != null) {
