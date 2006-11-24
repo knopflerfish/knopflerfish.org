@@ -181,8 +181,6 @@ public class TelnetConfig {
             throw new IllegalArgumentException("Wrong type for " + HOST_KEY);
         } catch (UnknownHostException uhe) {
             throw new IllegalArgumentException("Cannot resolve " + HOST_KEY);
-        } finally {
-
         }
 
         return inetAddress;
