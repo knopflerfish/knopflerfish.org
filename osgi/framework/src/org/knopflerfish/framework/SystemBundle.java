@@ -40,7 +40,6 @@ import java.security.ProtectionDomain;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
 
 import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 import org.osgi.framework.*;
@@ -102,24 +101,24 @@ public class SystemBundle extends BundleImpl {
     if (sp.length() > 0) {
       sp.append(",");
     }
-
+    
     if("true".equals(System.getProperty(EXPORT13, "").trim())) {
       addSysPackagesFromFile(sp, "packages1.3.txt");
     }
-
+    
     if("true".equals(System.getProperty(EXPORT14, "").trim())) {
       addSysPackagesFromFile(sp, "packages1.4.txt");
     }
-
+    
     if("true".equals(System.getProperty(EXPORT15, "").trim())) {
       addSysPackagesFromFile(sp, "packages1.5.txt");
     }
-
+    
     addSysPackagesFromFile(sp, System.getProperty(SYSPKG_FILE, null));
-
     addSystemPackages(sp);
-
+    
     exportPackageString = sp.toString();
+    
     bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();

@@ -52,6 +52,7 @@ import org.osgi.framework.*;
  *
  * @author Jan Stein
  * @author Philippe Laporte
+ * @author Mats-Ola Persson
  */
 final public class BundleClassLoader extends ClassLoader {
 
@@ -147,12 +148,6 @@ final public class BundleClassLoader extends ClassLoader {
     catch (IllegalArgumentException e) {
       Main.framework.listeners.frameworkError(Main.framework.systemBundle, e);
     }
-    //TODO remove when finished up. This currently insures R3 compliant behavior
-    //for now removing this will break. finish up when when working on other new classLoading aspects 
-    //I could have done more but felt like leaving this to the one who will do the other 
-    //new classLoading aspects was more appropriate
-    bootDelegationPatterns = null;
-    bootDelegationUsed = true;
   }
   
   static boolean isBootDelegated(String className){ 
@@ -169,8 +164,8 @@ final public class BundleClassLoader extends ClassLoader {
         for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
           String ps = (String)i.next();
           if ((ps.endsWith(".") && 
-               classPackage.startsWith(ps)) || 
-              classPackage.equals(ps)) {
+               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) || 
+               classPackage.equals(ps)) {
             return true;
           }
         }
@@ -580,20 +575,30 @@ final public class BundleClassLoader extends ClassLoader {
     if (pkg != null) {
       pbp = bpkgs.getProviderBundlePackages(pkg);
       if (pbp != null) {
-        BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
-        if (cl != this) {
-          if (cl != null) {
-            if (debug) {
-              Debug.println(this + " Import search: " + path +
-                            " from #" + pbp.bundle.id);
+        
+        if (isSystemBundle(pbp.bundle)) {
+          try {
+            return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
+          } catch (ClassNotFoundException e) {
+            // continue
+          }
+          
+        } else {
+          BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
+          if (cl != this) {
+            if (cl != null) {
+              if (debug) {
+                Debug.println(this + " Import search: " + path +
+                    " from #" + pbp.bundle.id);
+              }
+              return secure.callSearchFor(cl, name, pkg, path, action,
+                  onlyFirst, requestor, visited);
             }
-            return secure.callSearchFor(cl, name, pkg, path, action,
-                                        onlyFirst, requestor, visited);
+            if (debug) {
+              Debug.println(this + " No import found: " + path);
+            }
+            return null;
           }
-          if (debug) {
-            Debug.println(this + " No import found: " + path);
-          }
-          return null;
         }
       } else {
         /* 4 */
@@ -667,14 +672,22 @@ final public class BundleClassLoader extends ClassLoader {
       pbp = bpkgs.getDynamicProviderBundlePackages(pkg);
       if (pbp != null) {
         /* 9 */
-        BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
-        if (cl != null) {
-          if (debug) {
-            Debug.println(this + " Dynamic import search: " +
-                          path + " from #" + pbp.bundle.id);
+        if (isSystemBundle(pbp.bundle)) {
+          try {
+            return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
+          } catch (ClassNotFoundException e) {
+            // continue
           }
-          return secure.callSearchFor(cl, name, pkg, path, action,
-                                      onlyFirst, requestor, visited);
+        } else {
+          BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
+          if (cl != null) {
+            if (debug) {
+              Debug.println(this + " Dynamic import search: " +
+                  path + " from #" + pbp.bundle.id);
+            }
+            return secure.callSearchFor(cl, name, pkg, path, action,
+                onlyFirst, requestor, visited);
+          }
         }
       }
       if (debug) {
@@ -682,6 +695,11 @@ final public class BundleClassLoader extends ClassLoader {
       }
     }
     return null;
+  }
+
+
+  private static boolean isSystemBundle(BundleImpl bundle) {
+    return bundle == bundle.framework.systemBundle;
   }
 
 

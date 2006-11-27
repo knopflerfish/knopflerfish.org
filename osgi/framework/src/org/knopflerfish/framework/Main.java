@@ -39,7 +39,6 @@ import java.util.Properties;
 import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
-import java.security.*;
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -750,7 +749,7 @@ public class Main {
    * Default values for some system properties.
    */
   static String[][] defaultSysProps = new String[][] {
-    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
+    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
     {FWDIR_PROP,    FWDIR_DEFAULT},
     {CMDIR_PROP,    CMDIR_DEFAULT},
     //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
@@ -777,7 +776,6 @@ public class Main {
     Properties sysProps = System.getProperties();
 
     println("setDefaultSysProps", 1);
-
     for(int i = 0; i < defaultSysProps.length; i++) {
       if(null == System.getProperty(defaultSysProps[i][0])) {
         println("Using default " + defaultSysProps[i][0] + "=" +

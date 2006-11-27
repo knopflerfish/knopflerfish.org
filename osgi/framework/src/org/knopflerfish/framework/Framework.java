@@ -45,9 +45,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Dictionary;
 
-import org.knopflerfish.framework.permissions.PermissionsHandle;
 import org.osgi.framework.*;
-import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 

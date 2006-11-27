@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.security.*;
 import java.util.HashMap;
 import java.util.Dictionary;
 import java.util.Iterator;

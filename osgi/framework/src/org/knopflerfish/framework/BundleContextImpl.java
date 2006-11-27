@@ -35,7 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.security.*;
 
 import java.util.Dictionary;
 import java.util.List;

@@ -35,7 +35,6 @@
 package org.knopflerfish.framework;
 
 import org.osgi.framework.*;
-import org.osgi.framework.AdminPermission;
 import org.osgi.service.startlevel.*;
 import java.util.Vector;
 import java.util.List;

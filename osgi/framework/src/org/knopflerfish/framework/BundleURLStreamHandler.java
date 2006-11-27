@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
 import java.net.*;
 
 
@@ -94,7 +93,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
         }
         host = new String(sc, 2, pos - 2);
         if (pos < len && sc[pos] == ':') {
-          int portpos = ++pos;
+          ++pos;
           cpElem = 0;
           while (pos < len) {
             if (sc[pos] == '/') {
