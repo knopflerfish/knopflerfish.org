@@ -34,11 +34,9 @@
 
 package org.knopflerfish.framework;
 
-import java.security.*;
 import java.util.*;
 
 import org.osgi.framework.*;
-import org.osgi.framework.AdminPermission;
 import org.osgi.service.packageadmin.*;
 
 /**

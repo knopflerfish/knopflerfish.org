@@ -616,26 +616,6 @@ class BundlePackages {
   //
   // Private methods
   //
-
-  /**
-   * Adds an imported package
-   *
-   * @param pkg import to be included
-   */ 
-  private void addImport(ImportPkg pkg) {
-  }
-
-  /**
-   * Removes an imported package
-   *
-   * @param pkg import to be removed
-   */ 
-  private void removeImport(ImportPkg pkg) {
-    int ii = Util.binarySearch(imports, ipComp, pkg);
-    imports.remove(ii);
-  }
-
-
   
   static final Util.Comparator epComp = new Util.Comparator() {
       /**

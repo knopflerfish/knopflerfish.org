@@ -35,7 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.lang.reflect.*;
-import java.security.*;
 import java.util.Set;
 import java.util.Vector;
 

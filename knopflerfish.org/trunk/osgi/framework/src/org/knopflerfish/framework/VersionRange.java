@@ -36,9 +36,6 @@ package org.knopflerfish.framework;
 
 import org.osgi.framework.Version;
 
-import java.io.*;
-import java.util.StringTokenizer;
-
 /**
  * Class representing OSGi version ranges.
  *
