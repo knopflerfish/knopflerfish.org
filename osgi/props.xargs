@@ -26,6 +26,10 @@
 # Comma-separated list of packges exported by system classloader
 -Dorg.osgi.framework.system.packages=
 
+# Comma-separated list of packages that may be loaded by system classloader
+-Dorg.osgi.framework.bootdelegation=*
+#-Dorg.osgi.framework.bootdelegation=sun.*,com.sun.*
+
 # Web server properties
 -Dorg.knopflerfish.http.dnslookup=false
 -Dorg.osgi.service.http.port=8080

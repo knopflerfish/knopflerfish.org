@@ -753,7 +753,6 @@ final public class BundleClassLoader extends ClassLoader {
       public Object get(Vector items, String path, String name, String _pkg,
                         BundleClassLoader cl, BundleArchive ba) {
         Vector answer = new Vector(items.size());
-        BundlePackages bp = cl.bpkgs;
         for(int i = 0; i < items.size(); i++) {
           int subId = ((Integer)items.elementAt(i)).intValue();
           URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
