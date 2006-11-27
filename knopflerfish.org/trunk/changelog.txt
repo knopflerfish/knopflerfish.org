@@ -17,7 +17,10 @@ trunk are available each night at
              to define a path that is used to read the data if the
              org.knopflerfish.useradmin.store property is set to a path that
              does not exist yet. This can be used to move the store to a new
-             location.
+             location. The persistence can be turned off by setting the
+             system property
+              org.knopflerfish.useradmin.dontsave
+             to true.
 
 2006-09-12:
  component:  Fixed a bug where, under certain circumstances, null was passed
