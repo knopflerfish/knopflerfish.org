@@ -12,7 +12,7 @@
 #-Dorg.osgi.test.seewait=false
 #-Dorg.osgi.test.testcase.timeout=60000
 -Dorg.osgi.test.watchdog=120
--Dscr.bundle.name=Declarative-Services
+-Dscr.bundle.name=org.knopflerfish.bundle.component
 
 # Run with security
 -Djava.security.manager=
