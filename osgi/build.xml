@@ -16,11 +16,14 @@
   <pathelement location="bundles/device/device/src"/>
   <pathelement location="bundles/useradmin/src"/>
   <pathelement location="bundles/wireadmin/src"/>
+  <pathelement location="bundles/component/src"/>
   <pathelement location="bundles/console/console/src"/>
   <pathelement location="bundles/console/consoletcp/src"/>
   <pathelement location="bundles/console/consoletty/src"/>
   <pathelement location="bundles/desktop/src"/>
+  <pathelement location="bundles/event/src"/>
   <pathelement location="bundles/http/http/src"/>
+  <pathelement location="bundles/io/io/src"/>
   <pathelement location="bundles/util/src"/>
   <pathelement location="bundles/demos/demo1/src"/>
   <pathelement location="bundles/position/src"/>
@@ -40,7 +43,7 @@
  </path>
 
  <property name  = "javadoc.packages"
-           value = "org.osgi.framework,org.osgi.util,org.osgi.util.tracker,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.log,org.osgi.service.device,org.osgi.service.useradmin,org.knopflerfish.service.log,org.osgi.service.cm,org.knopflerfish.service.console,org.osgi.service.http,org.knopflerfish.util.http,org.knopflerfish.util,org.knopflerfish.service.trayicon,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.osgi.service.useradmin,org.knopflerfish.service.um.useradmin,org.knopflerfish.service.um.ipam,org.knopflerfish.shared.cm,org.knopflerfish.util.cm,org.knopflerfish.service.demo1,org.knopflerfish.ant.taskdefs.bundle,org.osgi.util.xml,org.osgi.service.startlevel,org.osgi.util.position,org.osgi.service.wireadmin,org.osgi.util.measurement,org.osgi.service.metatype,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.upnp,org.knopflerfish.service.desktop,org.knopflerfish.service.remotefw,org.osgi.service.jini,org.knopflerfish.util.metatype"/>
+           value = "org.knopflerfish.ant.taskdefs.bundle,org.knopflerfish.service.console,org.knopflerfish.service.demo1,org.knopflerfish.service.desktop,org.knopflerfish.service.log,org.knopflerfish.service.remotefw,org.knopflerfish.service.trayicon,org.knopflerfish.service.um.ipam,org.knopflerfish.service.um.useradmin,org.knopflerfish.shared.cm,org.knopflerfish.util,org.knopflerfish.util.cm,org.knopflerfish.util.http,org.knopflerfish.util.metatype,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.osgi.framework,org.osgi.service.cm,org.osgi.service.component,org.osgi.service.condpermadmin,org.osgi.service.device,org.osgi.service.event,org.osgi.service.http,org.osgi.service.io,org.osgi.service.jini,org.osgi.service.log,org.osgi.service.metatype,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.startlevel,org.osgi.service.upnp,org.osgi.service.url,org.osgi.service.useradmin,org.osgi.service.wireadmin,org.osgi.util,org.osgi.util.measurement,org.osgi.util.position,org.osgi.util.tracker,org.osgi.util.xml"/>
 
 <property name  = "javadoc.packages"
            value = "net.jini.core.entry,net.n3.nanoxml"
