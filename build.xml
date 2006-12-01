@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0.0"/>
+            value = "2.0.1"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
