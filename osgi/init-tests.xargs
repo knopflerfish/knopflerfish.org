@@ -42,6 +42,8 @@
 -Dorg.knopflerfish.log.grabio=true
 -Dorg.knopflerfish.log.file=true
 
+# bootdelegation
+-Dorg.osgi.framework.bootdelegation=*
 
 -init
 
