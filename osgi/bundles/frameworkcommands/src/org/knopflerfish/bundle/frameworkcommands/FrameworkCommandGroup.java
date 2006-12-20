@@ -280,8 +280,21 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                                 opts.get("-t") != null);
         boolean verbose = (opts.get("-l") != null);
         boolean oneColumn = (opts.get("-1") != null);
-        printBundles(out, b, verbose, oneColumn);
-        return 0;
+
+        Vector tmp = new Vector();
+        for (int i = 0; i < b.length; i++) {
+          if (b[i] != null) {
+            tmp.add(b[i]);
+          }
+        }
+        
+        if (tmp.size() == 0) {
+          out.println("ERROR! No matching bundle");
+          return 1;
+        } else {
+          printBundles(out, (Bundle[])tmp.toArray(new Bundle[tmp.size()]), verbose, oneColumn);
+          return 0;
+        }
     }
 
     private void printBundles(PrintWriter out, Bundle[] b, boolean verbose, boolean oneColumn) {
