@@ -15,19 +15,11 @@
   <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
 
-  <property name="include.source" value="true"/>
-
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/log/log_api-2.0.0.jar"         
-         todir = "resources"/>
-   <copy file  = "${topdir}/jars/console/console_api-2.0.0.jar"  
-         todir = "resources"/>
-   <copy file  = "${topdir}/jars/remotefw/remotefw_api-2.0.0.jar"  
-         todir = "resources"/>
    <copy file  = "${topdir}/../tools/jarunpacker/out/jarunpacker/jarunpacker.jar"  
-         todir = "resources"/>
+         todir = "resources"/> 
   </target>
 
   <path id="bundle.compile.path">
