@@ -34,10 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.*;
+import javax.swing.JPanel;
 
 public class JCardPane extends JPanel {
 
@@ -52,7 +54,7 @@ public class JCardPane extends JPanel {
 
   public Component addTab(String name, Component comp) {
     add(comp, name);
-    card.addLayoutComponent(name, comp);
+    card.addLayoutComponent(comp, name);
     
     tabs.put(name, comp);
     revalidate();

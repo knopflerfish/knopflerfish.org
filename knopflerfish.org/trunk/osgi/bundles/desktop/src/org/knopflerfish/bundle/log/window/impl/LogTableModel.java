@@ -34,19 +34,10 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.util.*;
-import java.text.*;
+import java.util.ArrayList;
+import java.util.Date;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.*;
-import org.knopflerfish.service.log.LogRef;
-
-import java.awt.*;
-import java.awt.event.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.table.AbstractTableModel;
 
 /**
  * Table model which keeps track of <tt>ExtLogEntry</tt> items.

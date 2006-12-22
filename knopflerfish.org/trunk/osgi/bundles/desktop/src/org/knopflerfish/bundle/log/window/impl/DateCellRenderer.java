@@ -34,13 +34,13 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.util.Date;
-import java.text.SimpleDateFormat;
-
-import java.awt.Component;
 import java.awt.Color;
-import javax.swing.JTextField;
+import java.awt.Component;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.TableCellRenderer;
 
 /**

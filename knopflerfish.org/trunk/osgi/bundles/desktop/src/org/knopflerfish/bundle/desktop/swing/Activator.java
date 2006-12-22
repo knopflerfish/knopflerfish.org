@@ -34,15 +34,20 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-import org.osgi.util.tracker.*;
-import org.osgi.service.packageadmin.*;
-import org.knopflerfish.service.log.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Vector;
 
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
-
+import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.remotefw.RemoteFramework;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
 
@@ -130,9 +135,9 @@ public class Activator implements BundleActivator {
   Map displayers = new HashMap();
 
   public void start(BundleContext _bc) {
-    this.bc        = _bc;
-    this.log       = new LogRef(bc);
-    this.myself    = this;
+    Activator.bc        = _bc;
+    Activator.log       = new LogRef(bc);
+    Activator.myself    = this;
 
     remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null) {
         public Object addingService(ServiceReference sr) {
@@ -220,7 +225,7 @@ public class Activator implements BundleActivator {
 
 
     // We really want this one to be displayed.
-    desktop.bundlePanel.showTab("Large Icons");
+    desktop.bundlePanelShowTab("Large Icons");
     int ix = desktop.detailPanel.indexOfTab("Manifest");
     if(ix != -1) {
       desktop.detailPanel.setSelectedIndex(ix);

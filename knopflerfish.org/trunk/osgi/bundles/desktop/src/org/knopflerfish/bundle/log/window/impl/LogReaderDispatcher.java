@@ -34,14 +34,18 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.util.*;
-import java.text.*;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
-import org.osgi.framework.*;
-import org.osgi.service.log.*;
-import org.knopflerfish.service.log.LogRef;
+import javax.swing.SwingUtilities;
 
-import javax.swing.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogListener;
+import org.osgi.service.log.LogReaderService;
 
 /**
  * Class that listens for all log entries and dispatches them to 

@@ -1,11 +1,12 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -68,7 +69,7 @@ public class ErrorMessageDialog extends JDialog {
     okButton = new JButton("OK");
     okButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        THIS.hide();
+        THIS.setVisible(false);
       }
     });
     JPanel okPanel = new JPanel(new FlowLayout());
@@ -80,7 +81,7 @@ public class ErrorMessageDialog extends JDialog {
       moreButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           showMore = !showMore;
-          moreButton.setLabel(showMore ? "Less info" : "More info");
+          moreButton.setText(showMore ? "Less info" : "More info");
           arrange();
         }
       });
@@ -100,7 +101,7 @@ public class ErrorMessageDialog extends JDialog {
         public void actionPerformed(ActionEvent e) {
           showAdvanced = !showAdvanced;
           if (morePanel == null) showMore = showAdvanced;
-          advancedButton.setLabel(showAdvanced ? "Simple" : "Advanced");
+          advancedButton.setText(showAdvanced ? "Simple" : "Advanced");
           arrange();
         }
       });

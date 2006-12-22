@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.util.*;
 import java.awt.Color;
 
 public class Config {

@@ -34,14 +34,15 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-
-import java.util.*;
-import java.io.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.net.URL;
 
-import java.awt.*;
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
+import org.osgi.framework.Bundle;
 
 public class BundleImageIcon extends ImageIcon {
 

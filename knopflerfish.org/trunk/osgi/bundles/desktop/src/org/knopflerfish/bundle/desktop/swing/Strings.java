@@ -35,8 +35,6 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.Hashtable;
-import java.util.Dictionary;
-import java.util.Enumeration;
 
 /**
  * Utility class for string localization.
