@@ -34,17 +34,43 @@
 
 package org.knopflerfish.bundle.desktop.swing.fwspin;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.CubicCurve2D;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.Vector;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.event.*;
-import javax.swing.*;
-
+import javax.swing.JPanel;
 
 import org.knopflerfish.bundle.desktop.swing.Activator;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 /**
  * @author Erik Wistrand

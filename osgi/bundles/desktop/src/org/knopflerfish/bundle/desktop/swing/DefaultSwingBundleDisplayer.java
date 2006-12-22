@@ -34,15 +34,28 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-import org.knopflerfish.service.desktop.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 
-import java.util.*;
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 
 public abstract class DefaultSwingBundleDisplayer
   implements 

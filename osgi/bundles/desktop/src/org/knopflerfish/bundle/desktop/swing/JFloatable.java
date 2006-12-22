@@ -34,46 +34,25 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
-import org.osgi.service.startlevel.*;
-import org.osgi.util.tracker.*;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.io.*;
-import java.net.URL;
-
-import java.util.jar.*;
-import java.util.zip.*;
-
-import org.knopflerfish.bundle.desktop.swing.console.*;
-
-import org.knopflerfish.service.desktop.*;
-import org.knopflerfish.bundle.log.window.impl.*;
-import org.knopflerfish.util.*;
-
-import javax.swing.plaf.ComponentUI;
-import javax.swing.border.Border;
-
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 public class JFloatable extends JPanel {
 

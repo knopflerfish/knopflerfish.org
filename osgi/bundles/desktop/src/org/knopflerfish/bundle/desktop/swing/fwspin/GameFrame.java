@@ -35,12 +35,12 @@
 package org.knopflerfish.bundle.desktop.swing.fwspin;
 
 
-import org.osgi.framework.*;
-
-import java.util.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.MediaTracker;
 import java.net.URL;
 
 

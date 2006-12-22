@@ -34,22 +34,15 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-import org.osgi.service.startlevel.*;
+import java.util.Dictionary;
+import java.util.Iterator;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.JComponent;
 
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-
-import java.util.*;
-import java.net.URL;
-
-import java.io.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 
 
 public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {

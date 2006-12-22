@@ -34,11 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.plaf.*;
-import javax.swing.plaf.basic.*;
-import javax.swing.plaf.metal.*;
+import javax.swing.LookAndFeel;
+import javax.swing.UIDefaults;
+import javax.swing.plaf.InsetsUIResource;
+import javax.swing.plaf.basic.BasicLookAndFeel;
+import javax.swing.plaf.metal.DefaultMetalTheme;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 
 public class KnopflerfishLookAndFeel extends MetalLookAndFeel {
 

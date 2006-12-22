@@ -34,13 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.swing.fwspin;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
-
-import java.util.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.event.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.util.Vector;
 
 
 

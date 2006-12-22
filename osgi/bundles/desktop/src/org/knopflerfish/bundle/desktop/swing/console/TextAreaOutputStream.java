@@ -34,16 +34,9 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.util.Vector;
-import java.io.*;
+import java.io.OutputStream;
 
-import java.awt.*;
-import java.awt.event.*; 
-import javax.swing.*;
-
-import java.net.URL;
-
-import org.osgi.service.log.LogService;
+import javax.swing.JTextArea;
 
 
 public class TextAreaOutputStream extends OutputStream {

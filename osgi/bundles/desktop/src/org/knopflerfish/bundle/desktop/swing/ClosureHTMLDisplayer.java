@@ -34,21 +34,17 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-import org.osgi.service.startlevel.*;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.swing.JComponent;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
-import org.osgi.util.tracker.*;
-
-import org.knopflerfish.util.Text;
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.event.*;
-import java.awt.*;
-
-import java.util.*;
 
 
 

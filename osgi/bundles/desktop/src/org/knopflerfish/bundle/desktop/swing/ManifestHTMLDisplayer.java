@@ -35,10 +35,10 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.Dictionary;
 import java.util.Date;
+import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 import javax.swing.JComponent;
 

@@ -34,36 +34,42 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.event.*;
-import java.awt.Container;
-import java.awt.Color;
-import java.awt.GridLayout;
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.Image;
-import java.awt.Graphics;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-
-import java.util.List;
-import java.util.Dictionary;
-import java.util.Map;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.net.URL;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Iterator;
-import java.util.Comparator;
-import java.io.*;
-import java.net.URL;
+
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
 
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
