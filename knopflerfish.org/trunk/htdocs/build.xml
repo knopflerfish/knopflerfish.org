@@ -22,288 +22,6 @@
    <echo     message="message=${message}"/>
   </target>
 
-  <target name="all" depends="init"
-          description="Create html pages from templates">
-
-    <property environment = "env"/>
-
-    <tstamp>
-      <format property = "timestamp" 
-              pattern  = "EE MMMM d yyyy, HH:mm:ss"
-              locale   = "en"/>
-    </tstamp>	     
-
-    <property name     = "version"
-              value    = "UNDEF"/>
-
-    <property name     = "template.html" 
-              location = "html_templates/template.html"/>
-
-    <property name     = "formatted.html" 
-              location = "html_templates/formatted.html"/>
-
-    <antcall target="bundle_docs"/>
-
-    <antcall target="txt2html">
-      <param name="fromfile" value="../changelog.txt"/>
-      <param name="tofile"   value="../changelog.html"/>
-    </antcall>
-
-    <antcall target="txt2html">
-      <param name="fromfile" value="../release_notes.txt"/>
-      <param name="tofile"   value="../release_notes.html"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/index_main.html"/>
-      <param name="tofile"   value="index.html"/>
-      <param name="title"    value="Knopflerfish OSGi"/>
-      <param name="desc"     value="The Knopflerfish OSGi framework is a complete, open source, OSGi R3 framework"/>
-      <param name="CLASS_NAVIGATION_INDEX" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/programming_main.html"/>
-      <param name="tofile"   value="programming.html"/>
-      <param name="title"    value="Knopflerfish: Develop OSGi bundles"/>
-      <param name="desc"     value="Information, tips and recommendations for developing OSGi bundles"/>
-      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/desktop_main.html"/>
-      <param name="tofile"   value="desktop.html"/>
-      <param name="title"    value="Running Knopflerfish"/>
-      <param name="desc"     value="The Knopflerfish Desktop displays a graphic view of a running OSGi framework where bundles can be installed/started/stopped etc."/>
-      <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/download_main.html"/>
-      <param name="tofile"   value="download.html"/>
-      <param name="title"    value="Download Knopflerfish OSGi"/>
-      <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_DOWNLOAD" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/license.html"/>
-      <param name="tofile"   value="license.html"/>
-      <param name="desc"     value=""/>
-      <param name="title"    value="Knopflerfish License"/>
-      <param name="CLASS_NAVIGATION_LICENSE" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="../changelog.html"/>
-      <param name="tofile"   value="changelog.html"/>
-      <param name="title"    value="Knopflerfish Changelog"/>
-      <param name="desc"     value="List of changes in the Knopflerfish OSGi"/>
-      <param name="CLASS_NAVIGATION_CHANGELOG" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="../release_notes.html"/>
-      <param name="tofile"   value="release_notes.html"/>
-      <param name="title"    value="Knopflerfish Release Notes"/>
-      <param name="desc"     value="Release note for this release of Knopflerfish OSGi"/>
-      <param name="CLASS_NAVIGATION_RELEASE_NOTES" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/links_main.html"/>
-      <param name="tofile"   value="osgi-links.html"/>
-      <param name="title"    value="Knopflerfish links"/>
-      <param name="desc"     value="Links to OSGi related pages"/>
-      <param name="CLASS_NAVIGATION_LINKS" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/charter_se_main.html"/>
-      <param name="tofile"   value="charter_se.html"/>
-      <param name="title"    value="Stadgar Knopflerfish"/>
-      <param name="desc"     value="Stadgar Knopflerfish"/>
-      <param name="CLASS_NAVIGATION_CHAPTER" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/history_main.html"/>
-      <param name="tofile"   value="history.html"/>
-      <param name="title"    value="Knopflerfish history"/>
-      <param name="desc"     value="Take your pick of reasons behind the Knopflerfish project"/>
-      <param name="CLASS_NAVIGATION_HISTORY" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/components_main.html"/>
-      <param name="tofile"   value="components.html"/>
-      <param name="title"    value="Knopflerfish contents"/>
-      <param name="desc"     value="The contents of the Knopflerfish distribution"/>
-      <param name="CLASS_NAVIGATION_COMP" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/svn_main.html"/>
-      <param name="tofile"   value="svn_info.html"/>
-      <param name="title"    value="Knopflerfish Subversion repository"/>
-      <param name="desc"     value="Using the Knopflerfish Subversion repository"/>
-      <param name="CLASS_NAVIGATION_SVN" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/perf.html"/>
-      <param name="tofile"   value="perf.html"/>
-      <param name="title"    value="Knopflerfish performance test"/>
-      <param name="desc"     value="Approximate time/memory usage for Knopflerfish startup"/>
-      <param name="CLASS_NAVIGATION_PERF" value="navigation_disabled"/>
-    </antcall>
-
-   <loadfile property = "bundle_list"     
-             srcfile  = "bundles/bl.html"/>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/bundles_main.html"/>
-      <param name="tofile"   value="bundles.html"/>
-      <param name="title"    value="Knopflerfish Bundles"/>
-      <param name="desc"     value="Documentation from Knopflerfish bundles"/>
-      <param name="bundle_list"  value="${bundle_list}"/>
-      <param name="CLASS_NAVIGATION_BUNDLES" value="navigation_disabled"/>
-    </antcall>
-
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/osgi_service_tutorial.html"/>
-      <param name="tofile"   value="osgi_service_tutorial.html"/>
-      <param name="title"    value="OSGi Service tutorial"/>
-      <param name="desc"     value="Survival guide for handling OSGi services"/>
-      <param name="CLASS_NAVIGATION_SERVICES" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/remote_howto.html"/>
-      <param name="tofile"   value="remote_howto.html"/>
-      <param name="title"    value="The Remote Knopflerfish OSGi Desktop"/>
-      <param name="desc"     value="How to Activate the 'Remote framework...' Menu Item in the Knopflerfish Desktop."/>
-      <param name="CLASS_NAVIGATION_DESKTOP" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/eclipse_plugin_main.html"/>
-      <param name="tofile"   value="eclipse_plugin.html"/>
-      <param name="title"    value="Knopflerfish Eclipse Plugin"/>
-      <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/eclipse_changelog.html"/>
-      <param name="tofile"   value="eclipse_changelog.html"/>
-      <param name="title"    value="Knopflerfish Eclipse Plugin Changelog"/>
-      <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/eclipse_install.html"/>
-      <param name="tofile"   value="eclipse_install.html"/>
-      <param name="title"    value="Installing the Knopflerfish Eclipse Plugin"/>
-      <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="html_src/eclipse_preferences.html"/>
-      <param name="tofile"   value="eclipse_preferences.html"/>
-      <param name="title"    value="Setting Preferences for Plugin"/>
-      <param name="desc"     value=""/>
-      <param name="CLASS_NAVIGATION_PROG" value="navigation_disabled"/>
-    </antcall>
-
-  </target>
-
-
-  <target name="makehtml">
-    <loadfile property = "main" 
-              srcfile  = "${fromfile}"/>
-
-    <echo message="create ${tofile}"/>
-    <copy file      = "${template.html}" 
-          tofile    = "${tofile}" 
-          overwrite = "true"/>
-
-     <property name="JAVADOC"  
-               value="http://www.knopflerfish.org/releases/${version}/javadoc"/>
-
-     <property name="CLASS_NAVIGATION_INDEX"         value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_PROG"          value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_COMP"          value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_LICENSE"       value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_DOWNLOAD"      value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_LINKS"         value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_DESKTOP"       value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_RELEASE_NOTES" value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_CHANGELOG"     value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_CONTACTS"      value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_SVN"           value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_BUNDLES"       value="navigation_enabled"/>
-     <property name="CLASS_NAVIGATION_PERF"          value="navigation_enabled"/>
-
-    <replace file="${tofile}">
-      <replacefilter token="$(TITLE)"
-	             value="${title}"/>
-	<replacefilter token="$(DESC)"
-	               value="${desc}"/>
-	<replacefilter token="$(MAIN)"
-		       value="${main}"/>		       
-	<replacefilter token="$(TSTAMP)"    value="${timestamp}"/>
-	<replacefilter token="$(USER)"      value="${env.USER}"/>
-	<replacefilter token="$(VERSION)"   value="${version}"/>
-	<replacefilter token="$(MESSAGE)"   value="${message}"/>
-	<replacefilter token="$(BUNDLE_LIST)"   value="${bundle_list}"/>
-	<replacefilter token="$(JAVADOC)"       value="${JAVADOC}"/>
-
-        <replacefilter token="$(CLASS_NAVIGATION)" 
-                       value="navigation_enabled"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_INDEX)" 
-                       value="${CLASS_NAVIGATION_INDEX}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_COMP)" 
-                       value="${CLASS_NAVIGATION_COMP}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_CHANGELOG)" 
-                       value="${CLASS_NAVIGATION_CHANGELOG}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_CONTACTS)" 
-                       value="${CLASS_NAVIGATION_CONTACTS}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_DOWNLOAD)" 
-                       value="${CLASS_NAVIGATION_DOWNLOAD}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_PROG)" 
-                       value="${CLASS_NAVIGATION_PROG}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_DESKTOP)"
-                       value="${CLASS_NAVIGATION_DESKTOP}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_LINKS)" 
-                       value="${CLASS_NAVIGATION_LINKS}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_LICENSE)" 
-                       value="${CLASS_NAVIGATION_LICENSE}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_SVN)" 
-                       value="${CLASS_NAVIGATION_SVN}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_BUNDLES)" 
-                       value="${CLASS_NAVIGATION_BUNDLES}"/>
-
-	<replacefilter token="$(CLASS_NAVIGATION_PERF)" 
-                       value="${CLASS_NAVIGATION_PERF}"/>
-
-    </replace>	       
-  </target>
-
   <target name="txt2html">
     <loadfile property = "main" 
               srcfile  = "${fromfile}"/>
@@ -318,52 +36,243 @@
 		       value="${main}"/>		       
     </replace>
   </target>
+ <target name="ant">
+  <ant target="compile_ant" dir=".."/>
+ </target>
 
-  <!-- bundle doc generation  -->
-  <target name="bundle_docs">
+ <target name="all" depends="ant,init" description="Create the htdocs">
+   <property name="topdir" location=".."/>
+   <property name="bundle.base" location="${topdir}/osgi/bundles"/>
+   <property name="bundle.opt" location="${topdir}/osgi/bundles_opt"/>
 
-   <property name  = "topdir"           location=".."/>
-   <property name  = "bundledoc.dir"    location="bundles"/>
-   <property name  = "bundle.base"      location="${topdir}/osgi/bundles"/>
-   <property name  = "bundle.htmltop"   location="../.."/>
+   <!-- set default values -->
+   <condition property="htdocs.out" else=".">
+    <isset property="htdocs.out"/>
+   </condition>
 
-   <delete dir  = "${bundledoc.dir}"/>
-   <mkdir  dir  = "${bundledoc.dir}"/>
+   <condition property="htdocs.dir" else=".">
+    <isset property="htdocs.dir"/>
+   </condition>
 
-   <antcall target="bundlehtml">
-     <param name="bundle" value="desktop"/>
+   <condition property="template.html" else="${htdocs.dir}/html_templates/template.html">
+    <isset property="template.html"/>
+   </condition>
+
+   <condition property="formatted.html" else="${htdocs.dir}/html_templates/formatted.html">
+    <isset property="formatted.html"/>
+   </condition>
+
+   <condition property="license.html" else="${htdocs.dir}/html_src/license.html">
+    <isset property="license.html"/>
+   </condition>
+
+   <condition property="changelog.txt" else="${htdocs.dir}/../changelog.txt">
+    <isset property="changelog.txt"/>
+   </condition>
+
+   <condition property="release_notes.txt" else="${htdocs.dir}/../release_notes.txt">
+    <isset property="release_notes.txt"/>
+   </condition>
+
+   <condition property="htdocs.distname" else="Knopflerfish OSGi">
+    <isset property="Knopflerfish OSGi"/>
+   </condition>
+
+   <condition property="link.enabled.class" else="navigation_enabled">
+    <isset property="link.enabled.class"/>
+   </condition>
+
+   <condition property="link.disabled.class" else="navigation_disabled">
+    <isset property="link.disabled.class"/>
+   </condition>
+
+   <property name="JAVADOC"  
+             value="http://www.knopflerfish.org/releases/${version}/javadoc"/>
+
+   <taskdef name      = "makehtml"
+ 	    classpath = "${topdir}/ant/classes"
+            classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
+
+   <antcall target="txt2html">
+     <param name="fromfile" value="${changelog.txt}"/>
+     <param name="tofile"   value="${htdocs.dir}/../changelog.html"/>
    </antcall>
 
-   <antcall target="bundlehtml">
-     <param name="bundle.base"   location="${topdir}/osgi/bundles/http"/>
-     <param name="bundle" value="http"/>
+   <antcall target="txt2html">
+     <param name="fromfile" value="${release_notes.txt}"/>
+     <param name="tofile"   value="${htdocs.out}/../release_notes.html"/>
    </antcall>
 
+   <makehtml title="${htdocs.distname}"
+             description="The ${htdocs.distname} framework is a complete OSGi R4 framework"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="index.html"
+             fromfile="${htdocs.dir}/html_src/index_main.html"/>
+
+   <makehtml description="Information, tips and recommendations for developing OSGi bundles"
+             title="${htdocs.distname}: Develop OSGi bundles"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="programming.html"
+             fromfile="${htdocs.dir}/html_src/programming_main.html"
+             disable="CLASS_NAVIGATION_PROG"/>
+
+
+   <makehtml description="The ${htdocs.distname} Desktop displays a graphic view of a running OSGi framework where bundles can be installed/started/stopped etc."
+             title="${htdocs.distname}: Develop OSGi bundles"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="desktop.html"
+             fromfile="${htdocs.dir}/html_src/desktop_main.html"
+             disable="CLASS_NAVIGATION_DESKTOP"/>
+
+    <makehtml description=""
+             title="Download Knopflerfish OSGi."
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="download.html"
+             fromfile="${htdocs.dir}/html_src/download_main.html"
+             disable="CLASS_NAVIGATION_DOWNLOAD"/>
+
+
+    <makehtml description=""
+              title="${htdocs.distname} License"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="license.html"
+              fromfile="${license.html}"
+              disable="CLASS_NAVIGATION_LICENSE"/>
+  
+    <property name="changelog.file" value="../changelog.html"/>
+    <makehtml description="List of changes in ${htdocs.distname}"
+              title="${htdocs.distname} Changelog"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="changelog.html"
+              fromfile="${htdocs.dir}/${changelog.file}"
+              disable="CLASS_NAVIGATION_CHANGELOG"/>
+
+    <property name="release_notes.file" value="../release_notes.html"/>
+    <makehtml description="Release notes for this release of ${htdocs.distname}"
+              title="${htdocs.distname} Release Notes"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="release_notes.html"
+              fromfile="${htdocs.dir}/${release_notes.file}"
+              disable="CLASS_NAVIGATION_RELEASE_NOTES"/>
+
+    <makehtml description="Links to OSGi releated pages"
+              title="${htdocs.distname} Links"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="osgi-links.html"
+              fromfile="${htdocs.dir}/html_src/links_main.html"
+              disable="CLASS_NAVIGATION_LINKS"/>
+
+    <makehtml description="Stadgar Knopflerfish"
+              title="Stadgar Knopflerfish"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="charter_se.html"
+              fromfile="${htdocs.dir}/html_src/charter_se_main.html"
+              disable="CLASS_NAVIGATION_CHAPTER"/>
+
+    <makehtml description="The contents of the ${htdocs.distname} distribution"
+              title="${htdocs.distname} contents"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="components.html"
+              fromfile="${htdocs.dir}/html_src/components_main.html"
+              disable="CLASS_NAVIGATION_COMP"/>
+
+    <makehtml description="Using the Knopflerfish Subversion repository"
+              title="Knopflerfish Subversion repository"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="svn_info.html"
+              fromfile="${htdocs.dir}/html_src/svn_main.html"
+              disable="CLASS_NAVIGATION_SVN"/>
+
+    <makehtml description="Approximate time/memory usage for ${htdocs.distname} startup"
+              title="${htdocs.distname} performance test"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="perf.html"
+              fromfile="${htdocs.dir}/html_src/perf.html"
+              disable="CLASS_NAVIGATION_PERF"/>
+    
+    <makehtml description="Survival guide for handling OSGi services"
+              title="OSGi Service tutorial"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="osgi_service_tutorial.html"
+              fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
+              disable="CLASS_NAVIGATION_SERVICES"/>
+
+    <makehtml description="How to Activate the 'Remote framework...' Menu Item in the ${htdocs.distname} Desktop"
+              title="The Remote ${htdocs.distname} Desktop"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="remote_howto.html"
+              fromfile="${htdocs.dir}/html_src/remote_howto.html"
+              disable="CLASS_NAVIGATION_DESKTOP"/>
+
+    <makehtml description=""
+              title="${htdocs.distname} Eclipse Plugin"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="eclipse_plugin.html"
+              fromfile="${htdocs.dir}/html_src/eclipse_plugin_main.html"
+              disable="CLASS_NAVIGATION_PROG"/>
+
+   <makehtml description=""
+              title="${htdocs.distname} Eclipse Plugin Changelog"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="eclipse_changelog.html"
+              fromfile="${htdocs.dir}/html_src/eclipse_changelog.html"
+              disable="CLASS_NAVIGATION_PROG"/>
+
+   <makehtml title="Installing the ${htdocs.distname} Eclipse Plugin"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="eclipse_install.html"
+             fromfile="${htdocs.dir}/html_src/eclipse_install.html"
+             disable="CLASS_NAVIGATION_PROG"/>
+
+   <makehtml title="Setting Preferences for ${htdocs.distname} Eclipse Plugin"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="eclipse_preferences.html"
+             fromfile="${htdocs.dir}/html_src/eclipse_preferences.html"
+             disable="CLASS_NAVIGATION_PROG"/>
+
+    <echo message="${htdocs.out}"/>
+
+   <taskdef name      = "extrabundledoc"
+            classpath = "${topdir}/ant/classes"
+            classname = "org.knopflerfish.ant.taskdefs.bundle.ExtraBundleDocTask"/>
+
+    <extrabundledoc out="${htdocs.out}/extrabundledocs">
+     <fileset dir="${bundle.base}">
+      <include name="**/docs"/>
+     </fileset>
+    </extrabundledoc>
+
+    <makehtml title="Extra bundle documentation"
+              description=""
+              template="${template.html}"
+              outdir="${htdocs.out}">
+     <fileset dir="${htdocs.out}">
+       <include name="extrabundledocs/**/*.html"/>
+     </fileset>
+    </makehtml>
+
   </target>
-
-  <target name="bundlehtml">
-    <echo file="bundles/bl.html" append="true"><![CDATA[
-<tr>
- <td>
-  <a href="bundles/${bundle}/index.html">${bundle}</a>
- </td>
-</tr>
-]]></echo>
-   
-   <copy todir = "${bundledoc.dir}/${bundle}">
-
-    <fileset dir = "${bundle.base}/${bundle}/docs"/>
-    <filterset>
-     <filter token="VERSION"       value="${version}"/>
-    </filterset>
-   </copy>
-  </target>
-
-<!-- /bundle doc generation -->
-
+ 
   <target name="clean">
    <delete dir="releases"    />
-   <delete dir="bundles" />
    <delete file="../changelog.html" />
    <delete file="../release_notes.html" />
   </target>
