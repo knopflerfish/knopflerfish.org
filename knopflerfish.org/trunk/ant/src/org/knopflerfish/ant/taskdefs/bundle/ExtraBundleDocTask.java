@@ -71,7 +71,7 @@ import org.apache.tools.ant.types.FileSet;
 public class ExtraBundleDocTask extends Task {
   
   private static final String TITLE = "Title";
-  private static final String BODY  = "Body";
+  private static final String BODY  = "Description";
   private static final String INDEX_FILE = "index.html";
   private static final String PROPS_FILE = "doc.properties";
   
@@ -138,7 +138,7 @@ public class ExtraBundleDocTask extends Task {
           
           fout.println("<h3><a href=\""+ new File(dirs[i], INDEX_FILE) + "\">" + 
               props.getProperty(TITLE) + "</a></h3>");
-          fout.println(props.getProperty(BODY));
+          fout.println("<p>" + props.getProperty(BODY) + "</p>");
         }
       } catch (FileNotFoundException e) {
         e.printStackTrace();
