@@ -32,24 +32,33 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import org.apache.tools.ant.Task;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
-import org.apache.tools.ant.util.StringUtils;
-import org.apache.tools.ant.util.JavaEnvUtils;
-
-import org.apache.bcel.Constants;
-import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.Type;
-import org.apache.bcel.generic.BasicType;
-
-import java.io.*;
-import java.util.*;
-import java.util.jar.*;
-import java.util.zip.*;
 
 /**
  * <p>
