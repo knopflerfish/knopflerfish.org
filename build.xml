@@ -109,6 +109,11 @@
 
   <target name        = "htdocs"
           description = "Builds HTML documents">
+    <property name="htdocs.dir"     location="htdocs"/>
+    <property name="htdocs.out"     location="${htdocs.dir}"/>
+    <property name="template.html"  location="${htdocs.dir}/html_templates/template.html"/>
+    <property name="formatted.html" location="${htdocs.dir}/html_templates/formatted.html"/>
+    <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
     <ant    dir         = "htdocs"  target      = "all"/>
   </target>
 
