@@ -46,7 +46,6 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.DescendingVisitor;
