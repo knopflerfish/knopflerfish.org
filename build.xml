@@ -114,7 +114,18 @@
     <property name="template.html"  location="${htdocs.dir}/html_templates/template.html"/>
     <property name="formatted.html" location="${htdocs.dir}/html_templates/formatted.html"/>
     <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
-    <ant    dir         = "htdocs"  target      = "all"/>
+
+    <taskdef name      = "extrabundledoc"
+             classpath = "${ant.classes}"
+             classname = "org.knopflerfish.ant.taskdefs.bundle.ExtraBundleDocTask"/>
+     <delete dir="${htdocs.out}/extrabundledocs"/>
+
+     <extrabundledoc out="${htdocs.out}/extrabundledocs">
+      <fileset dir="osgi/bundles">
+       <include name="**/docs"/>
+      </fileset>
+     </extrabundledoc>
+     <ant    dir         = "htdocs"  target      = "all"/>
   </target>
 
   <target name="check_javadoc" if="javadoc.out.dir.present">
