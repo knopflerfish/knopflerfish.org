@@ -245,14 +245,14 @@ public final class FileLog implements LogListener {
         if (log != null) {
             String s = le.toString();
             if (logSize + s.length() > configuration.getFileSize()) {
-                AccessController.doPrivileged(new PrivilegedAction() {
-                    public Object run() {
-                        log.close();
-                        saveOldGen();
-                        openLog();
-                        return null;
-                    }
-                });
+                 AccessController.doPrivileged(new PrivilegedAction() {
+                     public Object run() {
+                         log.close();
+                         saveOldGen();
+                         openLog();
+                         return null;
+                     }
+                 });
             }
             logSize += s.length();
             log.println(s);

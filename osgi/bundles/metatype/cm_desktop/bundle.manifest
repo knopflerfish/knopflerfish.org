@@ -19,4 +19,7 @@ Import-Package: org.osgi.service.cm,
  org.knopflerfish.service.log,
  org.osgi.framework,
  org.osgi.util.tracker,
- org.osgi.service.metatype
+ org.osgi.service.metatype,
+ javax.swing,
+ javax.swing.event,
+ javax.swing.table

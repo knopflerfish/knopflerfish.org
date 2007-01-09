@@ -125,14 +125,13 @@ public class HttpWrapper {
   
   void register(ServiceReference sr) {
     HttpService http = (HttpService) bc.getService(sr);
-    
     if (http == null) {
       Activator.log.warn("http resource is null");
       return;
     }
     
     try {
-	    Hashtable props = new Hashtable();
+      Hashtable props = new Hashtable();
       http.registerServlet(Activator.SERVLET_ALIAS, servlet, props, null);
       http.registerResources(Activator.RES_ALIAS, Activator.RES_DIR, context);
     } catch (Exception e) {
