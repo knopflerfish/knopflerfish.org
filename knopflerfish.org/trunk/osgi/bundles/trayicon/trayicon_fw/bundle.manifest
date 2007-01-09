@@ -18,4 +18,5 @@ Import-Package: org.knopflerfish.service.log,
  org.knopflerfish.service.trayicon,
  org.osgi.framework,
  org.osgi.service.startlevel,
- org.osgi.util.tracker
+ org.osgi.util.tracker,
+ javax.swing

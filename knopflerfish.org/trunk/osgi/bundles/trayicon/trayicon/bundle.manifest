@@ -23,4 +23,6 @@ Bundle-Activator: org.knopflerfish.bundle.trayicon.Activator
 Export-Package: org.knopflerfish.service.trayicon
 Import-Package: org.osgi.framework,
  org.knopflerfish.service.log,
- org.knopflerfish.service.trayicon
+ org.knopflerfish.service.trayicon,
+ javax.swing,
+ javax.swing.event
