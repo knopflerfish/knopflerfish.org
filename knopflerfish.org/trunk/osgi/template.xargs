@@ -48,6 +48,7 @@
 -install consoletelnet/consoletelnet-2.0.0.jar
 
 -initlevel 6
+-install remotefw/remotefw_api-2.0.0.jar
 -install desktop/desktop_all-2.0.0.jar
 
 

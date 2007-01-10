@@ -24,7 +24,11 @@
 -Dorg.knopflerfish.framework.debug.ldap=false
 
 # Comma-separated list of packges exported by system classloader
--Dorg.osgi.framework.system.packages=
+-Dorg.osgi.framework.system.packages=javax.accessibility,javax.net,\
+        javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,\
+        javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,\
+        javax.swing.plaf.metal,javax.swing.table,javax.swing.text,\
+        javax.swing.tree
 
 # Comma-separated list of packages that may be loaded by system classloader
 -Dorg.osgi.framework.bootdelegation=*
