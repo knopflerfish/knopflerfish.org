@@ -107,8 +107,8 @@ import org.apache.tools.ant.types.FileSet;
  *   </td>
  *   <td>
  *    Allows you to disable certain links. This attribute is very ad hoc.
- *    It will use the properties <code>link.disabled.class</code>
- *    and <code>link.enabled.class</code>. The task will then use the 
+ *    It will use the properties <code>htdocs.link.disabled.class</code>
+ *    and <code>htdocs.link.enabled.class</code>. The task will then use the 
  *    values of these properties to generate the file.
  *   </td>
  *   <td>
@@ -121,6 +121,7 @@ import org.apache.tools.ant.types.FileSet;
  *  <code>tofile</code> one can use filesets. It will simply run through
  *  and perform the task on all given files.
  * </p>
+ * 
  */
 
 public class MakeHTMLTask extends Task {
@@ -163,7 +164,7 @@ public class MakeHTMLTask extends Task {
   private String bundleList;
   
   private ArrayList filesets = new ArrayList();
-  private HashMap links = new HashMap();
+  private String disable;
   
   public void setFromfile(String s) {
     fromFile = new File(s);
@@ -193,30 +194,9 @@ public class MakeHTMLTask extends Task {
     this.bundleList = bundleList;
   }
   
-  
-  private void initLinks() {
-    String enabled = getProject().getProperty("link.enabled.class");
-    links.put("$(CLASS_NAVIGATION)", enabled);
-    links.put("$(CLASS_NAVIGATION_INDEX)", enabled);
-    links.put("$(CLASS_NAVIGATION_COMP)", enabled);
-    links.put("$(CLASS_NAVIGATION_CHANGELOG)", enabled);
-    links.put("$(CLASS_NAVIGATION_CONTACTS)", enabled);
-    links.put("$(CLASS_NAVIGATION_DOWNLOAD)", enabled);
-    links.put("$(CLASS_NAVIGATION_PROG)", enabled);
-    links.put("$(CLASS_NAVIGATION_DESKTOP)", enabled);
-    links.put("$(CLASS_NAVIGATION_LINKS)", enabled);
-    links.put("$(CLASS_NAVIGATION_LICENSE)", enabled);
-    links.put("$(CLASS_NAVIGATION_SVN)", enabled);
-    links.put("$(CLASS_NAVIGATION_BUNDLES)", enabled);
-    links.put("$(CLASS_NAVIGATION_PREF)", enabled);
-  }
-  
+    
   public void setDisable(String disabled) {
-    initLinks();
-    String[] tags = Util.splitwords(disabled);
-    for (int i = 0; i < tags.length; i++) {
-      links.put("$(" + tags[i] + ")", getProject().getProperty("link.disabled.class"));      
-    }
+    this.disable = disabled;
   }
   
   public void addFileset(FileSet fs) {
@@ -227,10 +207,6 @@ public class MakeHTMLTask extends Task {
     if (template == null) throw new BuildException("template must be set");
     if (title == null) title = "";
     if (description == null) description = "";
-    
-    if (links.isEmpty()) {
-      initLinks();
-    }
     
     if (filesets.isEmpty() && fromFile == null && toFile == null) {
       throw new BuildException("Need to specify tofile and fromfile or give a fileset");
@@ -276,6 +252,7 @@ public class MakeHTMLTask extends Task {
       }
       
       String content = Util.loadFile(template.toString());
+      content = Util.replace(content, "$(LINKS)", links());
       content = Util.replace(content, "$(MAIN)", Util.loadFile(fromFile));
       content = Util.replace(content, "$(TITLE)", title);
       content = Util.replace(content, "$(DESC)", description);
@@ -286,13 +263,7 @@ public class MakeHTMLTask extends Task {
       content = Util.replace(content, "$(BUNDLE_LIST)", bundleList);
       content = Util.replace(content, "$(ROOT)", pathToRoot);
       content = Util.replace(content, "$(JAVADOC)", proj.getProperty("JAVADOC"));
-      content = Util.replace(content, "$(CLASS_NAVIGATION)", proj.getProperty("link.enabled.class"));
-      
-      // fix the links
-      for (Iterator iter = links.entrySet().iterator(); iter.hasNext(); ) {
-        Entry link = (Entry) iter.next();
-        content = Util.replace(content, (String) link.getKey(), (String) link.getValue());
-      }
+   
     
       Util.writeStringToFile(new File(outdir, toFile), content);
       System.out.println("wrote " + new File(outdir, toFile));
@@ -303,7 +274,57 @@ public class MakeHTMLTask extends Task {
       e.printStackTrace();
       throw new BuildException(e);
     }
-    
   }
-  
+
+  private static final String LINK_BASE = "htdocs.link.";
+  private static final String LINK_ID = LINK_BASE + "id.";
+  private static final String LINK_TYPE = LINK_BASE + "type.";
+  private static final String LINK_NAME = LINK_BASE + "name.";
+  private static final String LINK_URL = LINK_BASE + "url.";
+  private static final String CSS_CLASS_ENABLED = "htdocs.link.enabled.class";
+  private static final String CSS_CLASS_DISABLED = "htdocs.link.disabled.class";
+
+  private String links() {
+    Project proj = getProject();
+    StringBuffer buf = new StringBuffer();
+    
+    for (int i = 0; ; i++) {
+      String id   = proj.getProperty(LINK_ID + i);
+
+      if (id == null) {
+        break;
+      }
+      
+      String type = proj.getProperty(LINK_TYPE + i);
+      if (type == null) {
+        throw new BuildException("must set htdocs.link.type." + i);
+      }
+
+      if (type.equals("separator")) {
+        buf.append("<p></p>");
+        
+      } else if (type.equals("link")) {
+        
+        String name = proj.getProperty(LINK_NAME + i);
+        String url  = proj.getProperty(LINK_URL + i);
+        if (name == null) {
+          throw new BuildException("Name not set for htdocs.link.url." + i);
+        }
+        
+        String cssClass = null;
+        
+        if (disable != null && disable.equals(id)) {
+          cssClass = getProject().getProperty(CSS_CLASS_DISABLED);
+        } else {
+          cssClass = getProject().getProperty(CSS_CLASS_ENABLED);
+        }
+        
+        buf.append("<a class=\"" + cssClass + "\" href=\"" + url + "\">" + name + "</a><br/>\n");
+      } else {
+        throw new BuildException("Do not recognize type " + type);
+      }
+    }
+
+    return buf.toString();
+  }
 }
