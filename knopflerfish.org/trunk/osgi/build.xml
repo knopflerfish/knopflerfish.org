@@ -210,7 +210,8 @@
 
   <bindex outFile         = "${topdir}/../repo/bindex.xml"
           baseURL         = "${bindex.baseurl}"
-          bindexJar       = "${bindex.file}" >
+          bindexJar       = "${bindex.file}"
+          >
 
     <fileset dir="${bindex.basedir}">
       <include name = "jars/upnp/upnp_api-*.jar"/>

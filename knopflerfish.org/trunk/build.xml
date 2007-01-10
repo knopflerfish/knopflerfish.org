@@ -116,11 +116,13 @@
     <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
 
     <taskdef name      = "extrabundledoc"
-             classpath = "${ant.classes}"
+             classpath = "ant/classes"
              classname = "org.knopflerfish.ant.taskdefs.bundle.ExtraBundleDocTask"/>
      <delete dir="${htdocs.out}/extrabundledocs"/>
 
-     <extrabundledoc out="${htdocs.out}/extrabundledocs">
+     <extrabundledoc out="${htdocs.out}/extrabundledocs"
+                     template="${htdocs.dir}/html_src/userdocs.html"
+                     pattern="&lt;tr&gt;&lt;td class=&quot;newstext&quot;&gt;&lt;a class=&quot;navigation_enabled&quot; href=&quot;$(URL)&quot;&gt;$(TITLE)&lt;/a&gt;&lt;/td&gt;&lt;td class=&quot;newstext&quot;&gt;$(BODY)&lt;/td&gt;&lt;/tr&gt;">
       <fileset dir="osgi/bundles">
        <include name="**/docs"/>
       </fileset>

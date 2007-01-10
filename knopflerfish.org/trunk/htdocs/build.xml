@@ -40,53 +40,153 @@
   <ant target="compile_ant" dir=".."/>
  </target>
 
- <target name="all" depends="ant,init" description="Create the htdocs">
+
+ <target name="all" depends="ant,init" description="Create the KF htdocs">
+
+   <!-- set default values -->
+   <condition property="htdocs.out" value=".">
+    <not>
+     <isset property="htdocs.out"/>
+    </not>
+   </condition>
+
+   <condition property="htdocs.dir" value=".">
+    <not>
+     <isset property="htdocs.dir"/>
+    </not>
+   </condition>
+
+   <condition property="template.html" value="${htdocs.dir}/html_templates/template.html">
+    <not>
+     <isset property="template.html"/>
+    </not>
+   </condition>
+
+   <condition property="formatted.html" value="${htdocs.dir}/html_templates/formatted.html">
+    <not>
+     <isset property="formatted.html"/>
+    </not>
+   </condition>
+
+   <condition property="license.html" value="${htdocs.dir}/html_src/license.html">
+    <not>
+     <isset property="license.html"/>
+    </not>
+   </condition>
+
+   <condition property="changelog.txt" value="${htdocs.dir}/../changelog.txt">
+    <not>
+     <isset property="changelog.txt"/>
+    </not>
+   </condition>
+
+   <condition property="release_notes.txt" value="${htdocs.dir}/../release_notes.txt">
+    <not>
+     <isset property="release_notes.txt"/>
+    </not>
+   </condition>
+
+   <condition property="htdocs.distname" value="Knopflerfish OSGi">
+    <not>
+     <isset property="Knopflerfish OSGi"/>
+    </not>
+   </condition>
+
+   <condition property="htdocs.link.enabled.class" value="navigation_enabled">
+    <not>
+     <isset property="htdocs.link.enabled.class"/>
+    </not>
+   </condition>
+
+   <condition property="htdocs.link.disabled.class" value="navigation_disabled">
+    <not>
+     <isset property="htdocs.link.disabled.class"/>
+    </not>
+   </condition>
+
+   <condition property="JAVADOC" value="http://www.knopflerfish.org/releases/${version}/javadoc">
+    <not>
+     <isset property="JAVADOC"/>
+    </not>
+   </condition>
+
+
+   <!-- define the links -->
+   <property name="htdocs.link.id.0" value="INDEX"/>
+   <property name="htdocs.link.type.0" value="link"/>
+   <property name="htdocs.link.url.0" value="$(ROOT)/index.html"/>
+   <property name="htdocs.link.name.0" value="Home"/>
+
+   <property name="htdocs.link.id.1" value="COMP"/>
+   <property name="htdocs.link.type.1" value="link"/>
+   <property name="htdocs.link.url.1" value="$(ROOT)/components.html"/>
+   <property name="htdocs.link.name.1" value="Contents"/>
+
+   <property name="htdocs.link.id.2" value="USERDOCS"/>
+   <property name="htdocs.link.type.2" value="link"/>
+   <property name="htdocs.link.url.2" value="$(ROOT)/extrabundledocs/index.html"/>
+   <property name="htdocs.link.name.2" value="User docs"/>
+
+   <property name="htdocs.link.id.3" value="RELEASE_NOTES"/>
+   <property name="htdocs.link.type.3" value="link"/>
+   <property name="htdocs.link.url.3" value="$(ROOT)/release_notes.html"/>
+   <property name="htdocs.link.name.3" value="Release Notes"/>
+   
+   <property name="htdocs.link.id.4" value="LICENSE"/>
+   <property name="htdocs.link.type.4" value="link"/>
+   <property name="htdocs.link.url.4" value="$(ROOT)/license.html"/>
+   <property name="htdocs.link.name.4" value="License"/>
+
+   <property name="htdocs.link.id.5" value="DOWNLOAD"/>
+   <property name="htdocs.link.type.5" value="link"/>
+   <property name="htdocs.link.url.5" value="$(ROOT)/download.html"/>
+   <property name="htdocs.link.name.5" value="Running"/>
+
+   <property name="htdocs.link.id.6" value="PROG"/>
+   <property name="htdocs.link.type.6" value="link"/>
+   <property name="htdocs.link.url.6" value="$(ROOT)/programming.html"/>
+   <property name="htdocs.link.name.6" value="Programming"/>
+
+   <property name="htdocs.link.id.7" value="SVN"/>
+   <property name="htdocs.link.type.7" value="link"/>
+   <property name="htdocs.link.url.7" value="$(ROOT)/svn_info.html"/>
+   <property name="htdocs.link.name.7" value="Subversion repository"/>
+
+   <property name="htdocs.link.id.8" value="SEPARATOR"/>
+   <property name="htdocs.link.type.8" value="separator"/>
+
+   <property name="htdocs.link.id.9" value="JAVADOC"/>
+   <property name="htdocs.link.type.9" value="link"/>
+   <property name="htdocs.link.url.9" value="$(ROOT)/releases/${version}/javadoc/index.html"/>
+   <property name="htdocs.link.name.9" value="API docs"/>
+
+   <property name="htdocs.link.id.10" value="JARDOCS"/>
+   <property name="htdocs.link.type.10" value="link"/>
+   <property name="htdocs.link.url.10" value="$(ROOT)/releases/${version}/jars/index.html"/>
+   <property name="htdocs.link.name.10" value="Bundle jar docs"/>
+
+   <property name="htdocs.link.id.11" value="FORUM"/>
+   <property name="htdocs.link.type.11" value="link"/>
+   <property name="htdocs.link.url.11" value="https://sourceforge.net/forum/forum.php?forum_id=328005"/>
+   <property name="htdocs.link.name.11" value="Forum"/>
+
+   <property name="htdocs.link.id.12" value="BUGS"/>
+   <property name="htdocs.link.type.12" value="link"/>
+   <property name="htdocs.link.url.12" value="http://sourceforge.net/tracker/?atid=567241&amp;group_id=82798&amp;func=browse"/>
+   <property name="htdocs.link.name.12" value="Bug tracker"/>
+
+   <property name="htdocs.link.id.13" value="BUNDLE_REPO"/>
+   <property name="htdocs.link.type.13" value="link"/>
+   <property name="htdocs.link.url.13" value="http://www.knopflerfish.org/repo/index.html"/>
+   <property name="htdocs.link.name.13" value="Bundle repository"/>
+   
+   <antcall target="htdocs"/>
+ </target>
+
+ <target name="htdocs" depends="ant,init" description="Create the htdocs">
    <property name="topdir" location=".."/>
    <property name="bundle.base" location="${topdir}/osgi/bundles"/>
    <property name="bundle.opt" location="${topdir}/osgi/bundles_opt"/>
-
-   <!-- set default values -->
-   <condition property="htdocs.out" else=".">
-    <isset property="htdocs.out"/>
-   </condition>
-
-   <condition property="htdocs.dir" else=".">
-    <isset property="htdocs.dir"/>
-   </condition>
-
-   <condition property="template.html" else="${htdocs.dir}/html_templates/template.html">
-    <isset property="template.html"/>
-   </condition>
-
-   <condition property="formatted.html" else="${htdocs.dir}/html_templates/formatted.html">
-    <isset property="formatted.html"/>
-   </condition>
-
-   <condition property="license.html" else="${htdocs.dir}/html_src/license.html">
-    <isset property="license.html"/>
-   </condition>
-
-   <condition property="changelog.txt" else="${htdocs.dir}/../changelog.txt">
-    <isset property="changelog.txt"/>
-   </condition>
-
-   <condition property="release_notes.txt" else="${htdocs.dir}/../release_notes.txt">
-    <isset property="release_notes.txt"/>
-   </condition>
-
-   <condition property="htdocs.distname" else="Knopflerfish OSGi">
-    <isset property="Knopflerfish OSGi"/>
-   </condition>
-
-   <condition property="link.enabled.class" else="navigation_enabled">
-    <isset property="link.enabled.class"/>
-   </condition>
-
-   <condition property="link.disabled.class" else="navigation_disabled">
-    <isset property="link.disabled.class"/>
-   </condition>
-   <property name="JAVADOC"  
-             value="http://www.knopflerfish.org/releases/${version}/javadoc"/>
 
    <taskdef name      = "makehtml"
  	    classpath = "${topdir}/ant/classes"
@@ -107,7 +207,8 @@
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="index.html"
-             fromfile="${htdocs.dir}/html_src/index_main.html"/>
+             fromfile="${htdocs.dir}/html_src/index_main.html"
+             disable="INDEX"/>
 
    <makehtml description="Information, tips and recommendations for developing OSGi bundles"
              title="${htdocs.distname}: Develop OSGi bundles"
@@ -115,16 +216,7 @@
              outdir="${htdocs.out}"
              tofile="programming.html"
              fromfile="${htdocs.dir}/html_src/programming_main.html"
-             disable="CLASS_NAVIGATION_PROG"/>
-
-
-   <makehtml description="The ${htdocs.distname} Desktop displays a graphic view of a running OSGi framework where bundles can be installed/started/stopped etc."
-             title="${htdocs.distname}: Develop OSGi bundles"
-             template="${template.html}"
-             outdir="${htdocs.out}"
-             tofile="desktop.html"
-             fromfile="${htdocs.dir}/html_src/desktop_main.html"
-             disable="CLASS_NAVIGATION_DESKTOP"/>
+             disable="PROG"/>
 
     <makehtml description=""
              title="Download Knopflerfish OSGi."
@@ -132,7 +224,7 @@
              outdir="${htdocs.out}"
              tofile="download.html"
              fromfile="${htdocs.dir}/html_src/download_main.html"
-             disable="CLASS_NAVIGATION_DOWNLOAD"/>
+             disable="DOWNLOAD"/>
 
 
     <makehtml description=""
@@ -141,7 +233,7 @@
               outdir="${htdocs.out}"
               tofile="license.html"
               fromfile="${license.html}"
-              disable="CLASS_NAVIGATION_LICENSE"/>
+              disable="LICENSE"/>
   
     <property name="changelog.file" value="../changelog.html"/>
     <makehtml description="List of changes in ${htdocs.distname}"
@@ -150,7 +242,7 @@
               outdir="${htdocs.out}"
               tofile="changelog.html"
               fromfile="${htdocs.dir}/${changelog.file}"
-              disable="CLASS_NAVIGATION_CHANGELOG"/>
+              disable="CHANGELOG"/>
 
     <property name="release_notes.file" value="../release_notes.html"/>
     <makehtml description="Release notes for this release of ${htdocs.distname}"
@@ -159,7 +251,7 @@
               outdir="${htdocs.out}"
               tofile="release_notes.html"
               fromfile="${htdocs.dir}/${release_notes.file}"
-              disable="CLASS_NAVIGATION_RELEASE_NOTES"/>
+              disable="RELEASE_NOTES"/>
 
     <makehtml description="Links to OSGi releated pages"
               title="${htdocs.distname} Links"
@@ -167,7 +259,7 @@
               outdir="${htdocs.out}"
               tofile="osgi-links.html"
               fromfile="${htdocs.dir}/html_src/links_main.html"
-              disable="CLASS_NAVIGATION_LINKS"/>
+              disable="NAVIGATION_LINKS"/>
 
     <makehtml description="Stadgar Knopflerfish"
               title="Stadgar Knopflerfish"
@@ -175,7 +267,7 @@
               outdir="${htdocs.out}"
               tofile="charter_se.html"
               fromfile="${htdocs.dir}/html_src/charter_se_main.html"
-              disable="CLASS_NAVIGATION_CHAPTER"/>
+              disable="NAVIGATION_CHAPTER"/>
 
     <makehtml description="The contents of the ${htdocs.distname} distribution"
               title="${htdocs.distname} contents"
@@ -183,7 +275,7 @@
               outdir="${htdocs.out}"
               tofile="components.html"
               fromfile="${htdocs.dir}/html_src/components_main.html"
-              disable="CLASS_NAVIGATION_COMP"/>
+              disable="COMP"/>
 
     <makehtml description="Using the Knopflerfish Subversion repository"
               title="Knopflerfish Subversion repository"
@@ -191,7 +283,7 @@
               outdir="${htdocs.out}"
               tofile="svn_info.html"
               fromfile="${htdocs.dir}/html_src/svn_main.html"
-              disable="CLASS_NAVIGATION_SVN"/>
+              disable="SVN"/>
 
     <makehtml description="Approximate time/memory usage for ${htdocs.distname} startup"
               title="${htdocs.distname} performance test"
@@ -199,7 +291,7 @@
               outdir="${htdocs.out}"
               tofile="perf.html"
               fromfile="${htdocs.dir}/html_src/perf.html"
-              disable="CLASS_NAVIGATION_PERF"/>
+              disable="PERF"/>
     
     <makehtml description="Survival guide for handling OSGi services"
               title="OSGi Service tutorial"
@@ -207,7 +299,7 @@
               outdir="${htdocs.out}"
               tofile="osgi_service_tutorial.html"
               fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
-              disable="CLASS_NAVIGATION_SERVICES"/>
+              disable="SERVICES"/>
 
     <makehtml description="How to Activate the 'Remote framework...' Menu Item in the ${htdocs.distname} Desktop"
               title="The Remote ${htdocs.distname} Desktop"
@@ -215,7 +307,7 @@
               outdir="${htdocs.out}"
               tofile="remote_howto.html"
               fromfile="${htdocs.dir}/html_src/remote_howto.html"
-              disable="CLASS_NAVIGATION_DESKTOP"/>
+              disable="DESKTOP"/>
 
     <makehtml description=""
               title="${htdocs.distname} Eclipse Plugin"
@@ -223,7 +315,7 @@
               outdir="${htdocs.out}"
               tofile="eclipse_plugin.html"
               fromfile="${htdocs.dir}/html_src/eclipse_plugin_main.html"
-              disable="CLASS_NAVIGATION_PROG"/>
+              disable="PROG"/>
 
    <makehtml description=""
               title="${htdocs.distname} Eclipse Plugin Changelog"
@@ -231,29 +323,30 @@
               outdir="${htdocs.out}"
               tofile="eclipse_changelog.html"
               fromfile="${htdocs.dir}/html_src/eclipse_changelog.html"
-              disable="CLASS_NAVIGATION_PROG"/>
+              disable="PROG"/>
 
    <makehtml title="Installing the ${htdocs.distname} Eclipse Plugin"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="eclipse_install.html"
              fromfile="${htdocs.dir}/html_src/eclipse_install.html"
-             disable="CLASS_NAVIGATION_PROG"/>
+             disable="PROG"/>
 
    <makehtml title="Setting Preferences for ${htdocs.distname} Eclipse Plugin"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="eclipse_preferences.html"
              fromfile="${htdocs.dir}/html_src/eclipse_preferences.html"
-             disable="CLASS_NAVIGATION_PROG"/>
+             disable="PROG"/>
 
     <echo message="${htdocs.out}"/>
 
 
-    <makehtml title="Extra bundle documentation"
+    <makehtml title="User Documentation"
               description=""
               template="${template.html}"
-              outdir="${htdocs.out}">
+              outdir="${htdocs.out}"
+              disable="USERDOCS">
      <fileset dir="${htdocs.out}">
        <include name="extrabundledocs/**/*.html"/>
      </fileset>

@@ -74,25 +74,37 @@ public class ExtraBundleDocTask extends Task {
   private static final String BODY  = "Description";
   private static final String INDEX_FILE = "index.html";
   private static final String PROPS_FILE = "doc.properties";
+
   
   private ArrayList filesets = new ArrayList();
   private File outputDir;
+  private String template;
+  private String pattern;
   
   public void setOut(String s) {
     outputDir = new File(s);  
+  }
+
+  public void setTemplate(String template) {
+    this.template = template;
+  }
+
+  public void setPattern(String pattern) {
+    this.pattern = pattern;
   }
   
   public void addFileset(FileSet set) {
     filesets.add(set);
   }
   
-	public void execute() {
+  public void execute() {
+    StringBuffer buf = new StringBuffer();
     for (Iterator iter=filesets.iterator(); iter.hasNext(); ) {
       FileSet set = (FileSet) iter.next();
       File dir = set.getDir(getProject());
       DirectoryScanner ds = set.getDirectoryScanner(getProject());
       String[] dirs = ds.getIncludedDirectories();
-     
+      
       // copy the files
       for (int i = 0; i < dirs.length; i++) {
         try {
@@ -111,45 +123,49 @@ public class ExtraBundleDocTask extends Task {
       }
       
       // create the index-file
-      PrintStream fout = null;
-      try {
-        File index = new File(outputDir, INDEX_FILE);
-        fout = new PrintStream(new FileOutputStream(index));
-        fout.println("<h2>Extra bundle documentation</h2>");
-        for (int i = 0; i < dirs.length; i++) {
-          File sourceDir = new File(dir, dirs[i]);
-          if (!new File(sourceDir, INDEX_FILE).isFile()) {
-            System.out.println(sourceDir + " does not contain any index.html. Skipping.");
-            continue;
-          }
-          
-          Properties props = new Properties();
-          props.put(TITLE, sourceDir.getParentFile().getName());
-          props.put(BODY, "");
-          
-          File propsFile = new File(sourceDir, PROPS_FILE);
-          if (propsFile.isFile() && propsFile.canRead()) {
-            try {
-              props.load(new FileInputStream(propsFile));
-            } catch (IOException e) {
-              throw new BuildException(e);
-            }
-          }
-          
-          fout.println("<h3><a href=\""+ new File(dirs[i], INDEX_FILE) + "\">" + 
-              props.getProperty(TITLE) + "</a></h3>");
-          fout.println("<p>" + props.getProperty(BODY) + "</p>");
+  
+      
+      for (int i = 0; i < dirs.length; i++) {
+        File sourceDir = new File(dir, dirs[i]);
+        if (!new File(sourceDir, INDEX_FILE).isFile()) {
+          System.out.println(sourceDir + " does not contain any " + INDEX_FILE + ". Skipping.");
+          continue;
         }
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-        throw new BuildException(e);
-      } finally {
-        try { fout.close(); } catch (Throwable ignored) {}
+        
+        String p = pattern;
+        Properties props = new Properties();
+        
+        props.put(TITLE, sourceDir.getParentFile().getName());
+        props.put(BODY, "");
+
+        File propsFile = new File(sourceDir, PROPS_FILE);
+        if (propsFile.isFile() && propsFile.canRead()) {
+          try {
+            props.load(new FileInputStream(propsFile));
+          } catch (IOException e) {
+            throw new BuildException(e);
+          }
+        }
+        
+        p = Util.replace(p, "$(URL)", new File(dirs[i], INDEX_FILE).toString());
+        p = Util.replace(p, "$(TITLE)", props.getProperty(TITLE));
+        p = Util.replace(p, "$(BODY)", props.getProperty(BODY));
+        buf.append(p);
+        buf.append("\n");
       }
     }
-	}
+      
+    try {
+      Util.writeStringToFile(new File(outputDir, INDEX_FILE), 
+                             Util.replace(Util.loadFile(template), 
+                                          "$(EXTRA_DOC_BODY)", 
+                                          buf.toString()));
+    } catch (IOException e) {
+      throw new BuildException(e);
+    }
+  }
   
-	private void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
+  private void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
 	  
     if (sourceLocation.isHidden()) {
      return ; 
