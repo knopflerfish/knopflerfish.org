@@ -60,15 +60,11 @@ import java.util.Hashtable;
 
 class FrameworkPolicy extends Policy {
 
-  private final PermissionCollection all = new Permissions();
-
   private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
 
   private PermissionAdminImpl permissionAdmin;
 
   FrameworkPolicy(PermissionAdminImpl pa) {
-    all.add(new AllPermission());
-    all.setReadOnly();
     permissionAdmin = pa;
   }
 
@@ -90,7 +86,9 @@ class FrameworkPolicy extends Policy {
         return null;
       }
     } else {
-      return all;
+      PermissionCollection pc = new Permissions();
+      pc.add(new AllPermission());
+      return pc;
     }
   }
 

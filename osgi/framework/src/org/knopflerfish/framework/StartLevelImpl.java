@@ -214,7 +214,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
             }
           }
           notifyFramework();
-          if (notifyWC) {
+          if (notifyWC && wc != null) {
             synchronized (wc) {
               wc.notifyAll();
             }
