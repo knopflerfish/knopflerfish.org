@@ -75,8 +75,15 @@
 
   <property name = "ant.dir"          location="ant"/>
   <property name = "antclasses"       location = "${ant.dir}/classes"/>
+ 
 
-
+  <property name="jarunpacker" location="tools/jarunpacker"/>
+  <property name="jarunpacker.license.txt"  
+            location="${jarunpacker}/license.txt"/>
+  <property name="jarunpacker.license.html" 
+            location="${jarunpacker}/license.html"/>
+  <property name="jarunpacker.properties"
+            location="${jarunpacker}/strings.properties"/>
             
   <target name        = "default"
           description = "Builds entire platform except optional and test bundels" >
@@ -254,7 +261,7 @@
    </target>
 
   <target   name        = "distrib" 
-            description = "Builds all distribution files">
+            description = "Builds all distribution files"> 
     <antcall target     = "xargs"/>
     <antcall target     = "distrib_complete"/>
     <antcall target     = "distrib_fullbin"/>
@@ -418,6 +425,12 @@
            <include name = "**"/>
         </zipfileset>
 
+        <zipfileset dir = "tools/jarunpacker/"> 
+         <include name="strings.properties"/>
+         <include name="license.txt"/>
+         <include name="license.html"/>
+        </zipfileset>
+
         <zipfileset dir    = "htdocs"
                     prefix = "">
            <include name = "release_notes.txt"/>
@@ -544,6 +557,12 @@
            <include name = "**"/>
         </zipfileset>
 
+       <zipfileset dir = "tools/jarunpacker/"> 
+         <include name="strings.properties"/>
+         <include name="license.txt"/>
+         <include name="license.html"/>
+        </zipfileset>
+
     </jar>
 
     <copy file="${distribfile_bin}"        todir="${release.dir}"/>
@@ -625,6 +644,13 @@
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
         </zipfileset>
+
+       <zipfileset dir = "tools/jarunpacker/"> 
+         <include name="strings.properties"/>
+         <include name="license.txt"/>
+         <include name="license.html"/>
+        </zipfileset>
+
 
     </jar>
 
@@ -720,6 +746,7 @@
            <include name = "license.txt"/>
            <include name = "osgi_copyright.txt"/>
         </zipfileset>
+
 
     </zip>
 
@@ -824,6 +851,13 @@
         <zipfileset dir = "tools/jarunpacker/resources">
            <include name = "**"/>
         </zipfileset>
+
+       <zipfileset dir = "tools/jarunpacker/"> 
+         <include name="strings.properties"/>
+         <include name="license.txt"/>
+         <include name="license.html"/>
+        </zipfileset>
+
 
     </jar>
 

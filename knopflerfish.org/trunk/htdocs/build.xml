@@ -88,7 +88,7 @@
 
    <condition property="htdocs.distname" value="Knopflerfish OSGi">
     <not>
-     <isset property="Knopflerfish OSGi"/>
+     <isset property="htdocs.distname"/>
     </not>
    </condition>
 
@@ -218,7 +218,7 @@
              fromfile="${htdocs.dir}/html_src/programming_main.html"
              disable="PROG"/>
 
-    <makehtml description=""
+   <makehtml description=""
              title="Download Knopflerfish OSGi."
              template="${template.html}"
              outdir="${htdocs.out}"
