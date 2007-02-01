@@ -9,11 +9,6 @@ import org.osgi.service.startlevel.*;
 
 import org.knopflerfish.service.soap.remotefw.*;
 
-import javax.wsdl.*;
-import javax.wsdl.factory.*;
-import javax.wsdl.xml.*;
-
-import javax.wsdl.extensions.*;
 import javax.xml.namespace.QName;
 
 // Axis imports
