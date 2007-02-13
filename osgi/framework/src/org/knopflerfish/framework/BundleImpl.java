@@ -1575,6 +1575,9 @@ class BundleImpl implements Bundle {
     if (secure.okResourceAdminPerm(this)) {
       checkUninstalled();
       try {
+	if ("/".equals(name)) {
+	  return getURL(-1, -1, -1, "/");
+	}
         InputStream is = secure.callGetInputStream(archive, name, 0);
         if (is != null) {
           is.close();
