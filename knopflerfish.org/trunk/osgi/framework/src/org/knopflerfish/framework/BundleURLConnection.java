@@ -46,8 +46,9 @@ import java.net.*;
 class BundleURLConnection extends URLConnection {
 
   private InputStream is = null;
-
   private Bundles bundles;
+  private int contentLength;
+  private String contentType;
 
   BundleURLConnection(URL u, Bundles b) {
     super(u);
@@ -81,6 +82,8 @@ class BundleURLConnection extends URLConnection {
       }
       if (is != null) {
         connected = true;
+        contentLength = is.available();
+        contentType = URLConnection.guessContentTypeFromName(url.getFile());
       } else {
         throw new IOException("URL not found");
       }
@@ -93,5 +96,23 @@ class BundleURLConnection extends URLConnection {
     } catch (IOException ignore) {
     }
     return is;
+  }
+
+  public String getContentType() {
+    try {
+      connect();
+      return contentType;
+    } catch (IOException e) {
+      return null;
+    }
+  }
+  
+  public int getContentLength() {
+    try {
+      connect();
+      return contentLength;
+    } catch (IOException e) {
+      return -1;
+    }
   }
 }
