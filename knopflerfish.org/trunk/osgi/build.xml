@@ -196,7 +196,7 @@
  </target>
 
  <target name="download_bindex" unless="bindex.available">
-    <get src="http://bundles.osgi.org/build/jar/bindex.jar" 
+    <get src="http://www2.osgi.org/div/bindex.jar" 
          dest="${bindex.file}"
     />
  </target>
