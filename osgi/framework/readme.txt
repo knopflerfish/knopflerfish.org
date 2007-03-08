@@ -380,6 +380,22 @@ Framework System Properties
 
     Default: false 
 
+  org.knopflerfish.framework.main.class.activation
+   A comma-separated list of locations of bundles whose Main-Class
+   (set in manifest) should be used as activator if no
+   BundleActivator is specified. 
+
+   The Main-Class will be used as activator iff the jar file 
+   does not specify a Bundle-Activator header and the bundle's
+   location(see Bundle.getLocation) is found in the comma-separated
+   list (case-sensitive). 
+   
+   > java -Dorg.knopflerfish.framework.main.class.activation=\ 
+         file:/foo/bar.jar,http://foo.com/bar.jar \ 
+         -jar framework.jar ...
+   
+   Default: the empty list
+
 
 Using a HTTP proxy
 ==================
