@@ -35,7 +35,10 @@
 package org.knopflerfish.framework;
 
 import org.osgi.framework.InvalidSyntaxException;
+
+import java.util.Collection;
 import java.util.Dictionary;
+import java.util.Iterator;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +48,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 //import java.math.BigInteger;
+
 
 public class LDAPExpr {
   public static final int AND     =  0;
@@ -290,9 +294,9 @@ public class LDAPExpr {
             return c == 0;
           }
         } 
-      } else if (obj instanceof Vector) {
-        for (Enumeration e=((Vector)obj).elements(); e.hasMoreElements();)
-          if (compare(e.nextElement(), op, s, matchCase)) 
+      } else if (obj instanceof Collection) {
+        for (Iterator i=((Collection)obj).iterator(); i.hasNext();)
+          if (compare(i.next(), op, s, matchCase)) 
             return true;
       } else if (obj.getClass().isArray()) {
         int len = Array.getLength(obj);
