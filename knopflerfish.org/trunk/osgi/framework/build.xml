@@ -72,7 +72,15 @@
 
     <echo message="${fw.impl.version}"  file="resources/version"/>
     <echo message="${framework.tstamp}" file="resources/tstamp"/>
+    
+    <condition property="version.isset">
+     <isset property="version"/>
+    </condition>
 
+
+    <antcall target="writerelease"/>
+
+   
     <jar basedir="${classout}"
          jarfile="${jarfile}"
     >
@@ -101,6 +109,10 @@
         jar="${outdir}/${ant.project.name}.jar"
 >
   </java>
+ </target>
+
+ <target name="writerelease" if="version.isset">
+  <echo message="${version}" file="resources/release"/>
  </target>
 
 

@@ -275,6 +275,8 @@ public class SystemBundle extends BundleImpl {
     Hashtable headers = new Hashtable();
     headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
+    headers.put(Constants.BUNDLE_VERSION, Main.readRelease());    
+    
     return headers;
   }
 

@@ -651,12 +651,22 @@ public class Main {
     }
   }
 
-  // Read version info from manifest
+  // should this be read from the manifest instead?
   static String readVersion() {
+    return readResource("/version", "<no version found>");
+  }
+
+  // should this be read from the manifest instead?
+  static String readRelease() {
+    return readResource("/release", "0.0.0.snapshot");  
+  }
+  
+  // Read version info from manifest
+  static String readResource(String file, String defaultValue) {
     try {
-      return (new String(Util.readResource("/version"))).trim();
+      return (new String(Util.readResource(file))).trim();
     } catch (Exception e) {
-      return "<no version found>";
+      return defaultValue;
     }
   }
 
