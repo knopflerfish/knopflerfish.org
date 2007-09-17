@@ -226,27 +226,41 @@ public class ServiceReferenceImpl implements ServiceReference
    */
   boolean ungetService(BundleImpl bundle, boolean checkRefCounter) {
     synchronized (registration.properties) {
+      boolean hadReferences = false;
       if (registration.reference != null) {
-	Object countInteger = registration.dependents.remove(bundle);
-	if (countInteger != null) {
-	  int count = ((Integer) countInteger).intValue();
-	  if (checkRefCounter && count > 1) {
-	    registration.dependents.put(bundle, new Integer(count - 1));
-	    return true;
-	  } else {
-	    Object sfi = registration.serviceInstances.remove(bundle);
-	    if (sfi != null) {
-	      try {
-		((ServiceFactory)registration.service).ungetService(bundle, registration, sfi);
-	      } catch (Throwable e) {
-		bundle.framework.listeners.frameworkError(registration.bundle, e);
-	      }
-	    }
-	  }
-	}
+        boolean removeService = false;
+
+        Object countInteger = registration.dependents.remove(bundle);
+        int count = countInteger != null ? ((Integer) countInteger).intValue() : 0;
+        if (count > 0) {
+          hadReferences = true;
+        }
+        
+        if(checkRefCounter) {
+            if (count > 1) {
+              registration.dependents.put(bundle, new Integer(count - 1));
+            } else if(count == 1) {
+                removeService = true;
+            }
+        } else {
+          removeService = true;
+        }
+        
+        if(removeService) {
+          Object sfi = registration.serviceInstances.remove(bundle);
+          if (sfi != null) {
+            try {
+              ((ServiceFactory) registration.service).ungetService(bundle,
+                  registration, sfi);
+            } catch (Throwable e) {
+              bundle.framework.listeners.frameworkError(registration.bundle,
+                  e);
+            }
+          }
+        }
       }
+      return hadReferences;
     }
-    return false;
   }
 
 
