@@ -571,10 +571,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean lStat = checkListenerEvents( out, false, 0, true, BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buA, sr1);
       
       assertTrue("BundleA should be ACTIVE", buA.getState() == Bundle.ACTIVE);
-      assertTrue("Service unget should be false", ungetStat == false);
+      assertTrue("Service unget should be true", ungetStat == true); // Changed according to KF bug #1780141
       assertTrue("Unexpected events", lStat == true);
 
-      if (teststatus == true && buA.getState() == Bundle.ACTIVE && ungetStat == false && lStat == true ) {
+      if (teststatus == true && buA.getState() == Bundle.ACTIVE && ungetStat == true && lStat == true ) {
 	out.println("### framework test bundle :FRAME025A:PASS");
       }
       else {
