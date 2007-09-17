@@ -338,7 +338,7 @@ class BundleArchiveImpl implements BundleArchive
         }
         v.addElement(new Integer(i));
         try {
-          aif.is.close();
+          if(aif.is != null) aif.is.close();
         } 
         catch (IOException ignore) { }
         if (onlyFirst) {

@@ -1544,15 +1544,15 @@ class BundleImpl implements Bundle {
    *
    */
   Enumeration findEntries0(String path, String filePattern, boolean recurse) {
-    Vector res = new Vector();
-      if (isFragmentHost()) {
-        for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-          BundleImpl fb = (BundleImpl)i.next();
-          fb.addResourceEntries(res, path, filePattern, recurse);
-        }
-      }
-      addResourceEntries(res, path, filePattern, recurse);
-      return res.size() != 0 ? res.elements() : null;
+	Vector res = new Vector();
+	addResourceEntries(res, path, filePattern, recurse);
+	if (isFragmentHost()) {
+	  for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+	    BundleImpl fb = (BundleImpl)i.next();
+	    fb.addResourceEntries(res, path, filePattern, recurse);
+	  }
+	}
+	return res.size() != 0 ? res.elements() : null;
   }
 
 
@@ -1564,18 +1564,22 @@ class BundleImpl implements Bundle {
     if (e != null) {
       while (e.hasMoreElements()) {
         String fp = (String)e.nextElement();
-        if (fp.endsWith("/")) {
-          if (recurse) {
+        boolean isDirectory = fp.endsWith("/"); 
+        int searchBackwardFrom = fp.length() - 1;
+        if(isDirectory) {
+        	// Skip last / in case of directories
+        	searchBackwardFrom = searchBackwardFrom - 1; 
+        }
+        int l = fp.lastIndexOf('/', searchBackwardFrom);
+        String lastComponentOfPath = fp.substring(l + 1, searchBackwardFrom + 1);
+        if (pattern == null || Util.filterMatch(pattern, lastComponentOfPath)) {
+	        URL url = getURL(-1, -1, -1, fp);
+	        if (url != null) {
+	          res.add(url);
+	        }
+        }
+        if (isDirectory && recurse) {
             addResourceEntries(res, fp, pattern, recurse);
-          }
-        } else {
-          int l = fp.lastIndexOf('/');
-          if (pattern == null || Util.filterMatch(pattern, fp.substring(l + 1))) {
-            URL url = getURL(-1, -1, -1, fp);
-            if (url != null) {
-              res.add(url);
-            }
-          }
         }
       }
     }
