@@ -235,6 +235,7 @@ public class SystemBundle extends BundleImpl {
 
   synchronized public void stop(int exitcode) throws BundleException {
     secure.checkExecuteAdminPerm(this);
+    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
     secure.callMainShutdown(exitcode);
   }
 
