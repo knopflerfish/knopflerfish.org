@@ -37,6 +37,8 @@ package org.knopflerfish.framework;
 import java.io.InputStream;
 import java.security.ProtectionDomain;
 import java.util.*;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import org.osgi.framework.*;
 
@@ -309,6 +311,20 @@ class PermissionOps {
 
   ProtectionDomain getProtectionDomain(BundleImpl b) {
     return null;
+  }
+
+  /**
+   * Get bundle URL using a bundle: spec and the BundleURLStreamHandler.
+   *
+   * <p>
+   * Note:<br>
+   * Creating bundle: URLs by the URL(String) constructor will only
+   * work if the the fw URL handler is registered, which may be turned
+   * off.
+   * </p>
+   */
+  URL getBundleURL(BundleImpl b, String s) throws MalformedURLException {
+    return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
 
   //
