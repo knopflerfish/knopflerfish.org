@@ -1217,7 +1217,7 @@ class BundleImpl implements Bundle {
         u.append('/');
       }
       u.append(path);
-      return new URL(u.toString());
+      return secure.getBundleURL(this, u.toString());
     } catch (MalformedURLException e) {
       return null;
     }

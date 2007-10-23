@@ -581,13 +581,25 @@ class SecurePermissionOps extends PermissionOps {
    */
   ProtectionDomain getProtectionDomain(BundleImpl b) {
     try {
-      String h = Long.toString(b.id) + "." + Long.toString(b.generation);
-      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, h, "");
+      String h = BundleURLStreamHandler.PROTOCOL + "://" + Long.toString(b.id) + "." + Long.toString(b.generation);
+      URL bundleUrl = getBundleURL(b, h);
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
       return new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
     } catch (MalformedURLException _ignore) { }
     return null;
+  }
+
+  URL getBundleURL(final BundleImpl b, final String s) throws MalformedURLException {
+    try {
+      return (URL)AccessController.doPrivileged(new PrivilegedExceptionAction() {
+          public Object run() throws MalformedURLException {
+            return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+          }
+        });
+    } catch (PrivilegedActionException e) {
+      throw (MalformedURLException) e.getException();
+    }    
   }
 
   //
@@ -621,6 +633,5 @@ class SecurePermissionOps extends PermissionOps {
     }
     res[ti] = new AdminPermission(b, AP_TO_STRING[ti]);
     return res[ti];
-  } 
-   
+  }   
 }
