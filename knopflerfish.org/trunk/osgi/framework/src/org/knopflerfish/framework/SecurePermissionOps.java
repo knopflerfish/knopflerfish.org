@@ -581,8 +581,15 @@ class SecurePermissionOps extends PermissionOps {
    */
   ProtectionDomain getProtectionDomain(BundleImpl b) {
     try {
-      String h = BundleURLStreamHandler.PROTOCOL + "://" + Long.toString(b.id) + "." + Long.toString(b.generation);
-      URL bundleUrl = getBundleURL(b, h);
+      // We cannot use getBundleURL() here because that will
+      // trigger a persmission check while we're still in 
+      // the pahse of building permissions
+      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
+                              Long.toString(b.id) + "." + Long.toString(b.generation),
+                              -1,
+                              "",
+                              b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
       return new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
@@ -601,6 +608,7 @@ class SecurePermissionOps extends PermissionOps {
       throw (MalformedURLException) e.getException();
     }    
   }
+
 
   //
   // Cleaning
