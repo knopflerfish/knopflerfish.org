@@ -76,6 +76,11 @@ public class Debug {
    */
   static boolean ldap = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.ldap"));
 
+  /**
+   * Report Class patching handling
+   */
+  static boolean patch = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.patch"));
+
 
   /**
    * Common println method for debug messages.

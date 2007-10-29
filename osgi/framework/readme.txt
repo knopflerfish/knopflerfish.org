@@ -396,6 +396,44 @@ Framework System Properties
    
    Default: the empty list
 
+  org.knopflerfish.framework.patch
+   If true AND the class org.objectweb.asm.ClassReader is available
+   (by putting the asm-3.0.jar library on the system class path), enable
+   runtime class patching.
+
+   Example:
+
+    java -cp framework.jar:asm-30.jar \
+        org.knopflerfish.framework.Main        
+
+   Default: true
+
+
+  org.knopflerfish.framework.patch.configurl
+   URL to class patch config file. Only used when class patching is enabled.
+
+   This is used as a fallback if
+   a bundle does not specify a Bundle-ClassPatcher-Config manifest header.
+
+
+   Default: !!/patches.props
+
+            "!!" is used to read resources from the system class path
+            "!" can be used to read bundle resources.
+           
+
+  org.knopflerfish.framework.patch.dumpclasses
+   If true and class patchin is enabled, dump all modified classes
+   to a directory.
+
+   Default: false
+    
+  org.knopflerfish.framework.patch.dumpclasses.dir
+   If dumpclasses is enabled, specifies a directory where to dump
+   modified classes
+
+   Default: patchedclasses
+   
 
 Using a HTTP proxy
 ==================

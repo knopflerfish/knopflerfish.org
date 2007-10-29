@@ -84,7 +84,7 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Archive that we load code from.
    */
-  private BundleArchive archive;
+  BundleArchive archive;
 
   /**
    * Fragment archives that we load code from.
@@ -94,7 +94,7 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Imported and Exported java packages.
    */
-  private BundlePackages bpkgs;
+  BundlePackages bpkgs;
   
   private static ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
   private static boolean bootDelegationUsed /*= false*/;
@@ -194,6 +194,33 @@ final public class BundleClassLoader extends ClassLoader {
   //
   // ClassLoader classes
   //
+
+
+  static boolean bHasASM        = false;
+  static boolean bHasCheckedASM = false;
+
+  /**
+   * Check if this bundle is to be byte code patched
+   */
+  static boolean isBundlePatch() {
+    if(!bHasCheckedASM) {
+      try {
+        Class clazz = Class.forName("org.objectweb.asm.ClassReader");
+        bHasASM = true;
+      } catch (Exception no_asm_class) {
+        bHasASM = false;
+      }
+      bHasCheckedASM = true;
+
+      if(Debug.patch) {
+        Debug.println("ASM library: " + bHasASM);
+      }
+    }
+    
+    return bHasASM && 
+      "true".equals(System.getProperty("org.knopflerfish.framework.patch", 
+                                       "true"));
+  }
 
   /**
    * Find bundle class to load.
@@ -720,6 +747,10 @@ final public class BundleClassLoader extends ClassLoader {
                         BundleClassLoader cl, BundleArchive ba) throws IOException {
         byte[] bytes = ba.getClassBytes((Integer)items.get(0), path);
         if (bytes != null) {
+          if(cl.isBundlePatch()) {
+            bytes = ClassPatcher.getInstance(cl).patch(name, 
+                                                       bytes);
+          }
           if (Debug.classLoader) {
             Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - load class: " + name);
           }
