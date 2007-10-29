@@ -403,7 +403,7 @@ Framework System Properties
 
    Example:
 
-    java -cp framework.jar:asm-30.jar \
+    java -cp framework.jar:asm-3.0.jar \
         org.knopflerfish.framework.Main        
 
    Default: true
