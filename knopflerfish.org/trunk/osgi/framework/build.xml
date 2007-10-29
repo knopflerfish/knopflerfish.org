@@ -18,6 +18,11 @@
 
   <property name="printClasses" location = "true"/>
 
+  <path id = "compile.path">
+   <pathelement location="${topdir}/framework/resources"/>
+   <pathelement location="libs/asm-3.0.jar"/>
+  </path>
+
   <!-- targets -->
   <target name="all" depends="compile,jar">
    <antcall target="list"/>
@@ -39,7 +44,7 @@
 	   includes      = "**/*.java"
            target        = "${javac.target}"
            source        = "${javac.source}"
-           classpath     = "${topdir}/framework/resources"
+           classpathref  = "compile.path"
     >
    </javac>
   </target>
@@ -56,7 +61,7 @@
            excludes      = "org/knopflerfish/framework/bundlestorage/memory/*.java"
            target        = "${javac.target}"
            source        = "${javac.source}"
-           classpath     = "${topdir}/resources"
+           classpathref  = "compile.path"
     >
    </javac>
   </target>
