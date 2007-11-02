@@ -164,7 +164,7 @@ public class ClassPatcher {
                                                  ClassWriter.COMPUTE_MAXS, 
                                                  classLoader);
       ClassAdapter trans = new ClassAdapterPatcher(cw, 
-                                                   className.replace(".", "/"),
+                                                   className.replace('.', '/'),
                                                    classLoader, 
                                                    classLoader.archive.getBundleId(),
                                                    this);
@@ -367,7 +367,7 @@ public class ClassPatcher {
                                           "patchedclasses");
       File dir = new File(dirName);
       
-      String classFileName = className.replace(".", "/");
+      String classFileName = className.replace('.', '/');
       int ix = classFileName.lastIndexOf("/");
       File file;
       if(ix != -1) {
