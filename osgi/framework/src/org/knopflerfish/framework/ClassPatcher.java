@@ -353,7 +353,7 @@ public class ClassPatcher {
     }
     
     matchProps.put(PROP_LOCATION,  classLoader.archive.getBundleLocation());
-    matchProps.put(PROP_BID,       Long.valueOf(classLoader.archive.getBundleId()));
+    matchProps.put(PROP_BID,       new Long(classLoader.archive.getBundleId()));
   }
 
 
@@ -484,7 +484,7 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
       if(from.filter != null) {
         ca.cp.matchProps.put(ClassPatcher.PROP_METHODNAME, ca.currentMethodName);
         ca.cp.matchProps.put(ClassPatcher.PROP_METHODDESC, ca.currentMethodDesc);
-        ca.cp.matchProps.put(ClassPatcher.PROP_METHODACCESS, Integer.valueOf(ca.currentMethodAccess));
+        ca.cp.matchProps.put(ClassPatcher.PROP_METHODACCESS, new Integer(ca.currentMethodAccess));
         if(!from.filter.evaluate(ca.cp.matchProps, false)) {
           super.visitMethodInsn(opcode, owner, name, desc); 
           return;
