@@ -81,6 +81,12 @@ public class Debug {
    */
   static boolean patch = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.patch"));
 
+  /**
+   * Report Automanifest handling
+   */
+  static boolean automanifest = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.automanifest"));
+
+
 
   /**
    * Common println method for debug messages.

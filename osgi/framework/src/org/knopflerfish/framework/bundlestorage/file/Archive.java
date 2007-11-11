@@ -98,10 +98,12 @@ class Archive {
    */
   private ZipFile jar;
 
+  private String location;
+
   /**
    * Archive's manifest
    */
-  Manifest manifest /*= null*/;
+  AutoManifest manifest /*= null*/;
 
   /**
    * JAR Entry handle for file that contains current archive.
@@ -119,13 +121,14 @@ class Archive {
    * @param is Jar file data in an InputStream.
    * @param url URL to use to CodeSource.
    */
-  Archive(File dir, int rev, InputStream is) throws IOException {
-    this(dir, rev, is, null);
+  Archive(File dir, int rev, InputStream is, String location) throws IOException {
+    this(dir, rev, is, null, location);
   }
 
   FileTree refFile = null;
   
-  Archive(File dir, int rev, InputStream is, URL source) throws IOException {
+  Archive(File dir, int rev, InputStream is, URL source, String location) throws IOException {
+    this.location = location;
 	BufferedInputStream bis;
 	//Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
 	if(System.getProperty("java.vendor").startsWith("Skelmir")){
@@ -154,7 +157,7 @@ class Archive {
 		bis.mark(16000);
       }   
       JarInputStream ji = new JarInputStream(bis);
-      manifest = ji.getManifest();
+      manifest = new AutoManifest(ji.getManifest(), location);
       if (manifest != null) {
         if (checkManifest()) {
           zi = ji;
@@ -215,6 +218,7 @@ class Archive {
       manifest = getManifest();
       checkManifest();
     }
+    handleAutoManifest();
   }
 
 
@@ -234,6 +238,7 @@ class Archive {
    *
    */
   Archive(File dir, int rev, String location) throws IOException {
+    this.location = location;
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
@@ -294,8 +299,23 @@ class Archive {
       jar = new ZipFile(file);
     }
     manifest = getManifest();
+
+    handleAutoManifest();
   }
 
+
+  // handle automanifest stuff
+  void handleAutoManifest() throws IOException {
+    if(manifest != null && manifest.isAuto()) {
+      if(jar != null) {
+        manifest.addZipFile(jar);
+      } else {
+        if(file != null && file.isDirectory()) {
+          manifest.addFile(file.getAbsolutePath(), file);
+        }
+      }
+    }
+  }
 
   /**
    * Create a Sub-Archive based on a path to in an already
@@ -308,6 +328,7 @@ class Archive {
    * @exception IOException if failed to read Jar file.
    */
   Archive(Archive a, String path) throws IOException {
+    this.location = a.location;
     if (a.jar != null) {
       jar = a.jar;
       subJar = jar.getEntry(path);
@@ -663,11 +684,11 @@ class Archive {
    *
    * @return The manifest for this Archive
    */
-  private Manifest getManifest() throws IOException {
+  private AutoManifest getManifest() throws IOException {
     // TBD: Should recognize entry with lower case?
     InputFlow mif = getInputFlow("META-INF/MANIFEST.MF");
     if (mif != null) {
-      return new Manifest(mif.is);
+      return new AutoManifest(new Manifest(mif.is), location);
     } else {
       throw new IOException("Manifest is missing");
     }

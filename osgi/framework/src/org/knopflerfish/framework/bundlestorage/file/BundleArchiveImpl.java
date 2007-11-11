@@ -130,7 +130,7 @@ class BundleArchiveImpl implements BundleArchive
     } catch (Exception e) {
     }
     bundleDir       = dir;
-    archive         = new Archive(bundleDir, 0, is, source);
+    archive         = new Archive(bundleDir, 0, is, source, bundleLocation);
     storage         = bundleStorage;
     id              = bundleId;
     location        = bundleLocation;
@@ -201,7 +201,7 @@ class BundleArchiveImpl implements BundleArchive
     startOnLaunch = old.startOnLaunch;
     bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
-    archive = new Archive(bundleDir, rev, is);
+    archive = new Archive(bundleDir, rev, is, location);
     nativeLibs = getNativeCode();
     setClassPath();
     putContent(REV_FILE, Integer.toString(rev));
