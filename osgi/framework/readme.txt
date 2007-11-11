@@ -437,6 +437,23 @@ Framework System Properties
    modified classes
 
    Default: patchedclasses
+
+
+  org.knopflerfish.framework.automanifest   
+   Flag to enable automatic manifest generation. If true, bundle
+   manifest can be modified by a special configuration file. See
+   javadoc for org.knopflerfish.framework.AutoManifest class 
+   for details.
+
+   Default: false
+
+
+  org.knopflerfish.framework.automanifest.config
+   Configuration URL for automatic manifest generation. Only
+   valid if org.knopflerfish.framework.automanifest=true
+
+   Default: "!!/automanifest.props"
+
    
 
 Using a HTTP proxy
