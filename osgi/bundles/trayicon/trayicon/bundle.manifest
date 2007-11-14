@@ -16,9 +16,10 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles/trayicon/trayicon/
 Bundle-Classpath: .
-Bundle-NativeCode: TrayIcon12.dll;osname=WindowsXP;processor=x86,TrayI
- con12.dll;osname=Windows2000;processor=x86,TrayIcon12.dll;osname=Wind
- ows98;processor=x86,TrayIcon12.dll;osname=Windows95;processor=x86
+Bundle-NativeCode: TrayIcon12.dll;osname=WindowsVista;processor=x86,Tr
+ ayIcon12.dll;osname=WindowsXP;processor=x86,TrayIcon12.dll;osname=Win
+ dows2000;processor=x86,TrayIcon12.dll;osname=Windows98;processor=x86,
+ TrayIcon12.dll;osname=Windows95;processor=x86
 Bundle-Activator: org.knopflerfish.bundle.trayicon.Activator
 Export-Package: org.knopflerfish.service.trayicon
 Import-Package: org.osgi.framework,
