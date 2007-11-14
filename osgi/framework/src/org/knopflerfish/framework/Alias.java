@@ -68,6 +68,7 @@ public class Alias {
     { "WindowsCE", "windows ce", "wince" },
     { "Windows2000", "windows 2000", "win2000" },
     { "WindowsXP", "windows xp", "winxp" },
+    { "WindowsVista", "windows vista", "winvista" },
     { "Win32", "win*" },
   };
 
