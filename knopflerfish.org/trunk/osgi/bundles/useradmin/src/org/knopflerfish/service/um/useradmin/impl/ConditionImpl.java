@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.osgi.framework.InvalidSyntaxException;
 
 /**
  * Condition implementation.
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
@@ -104,10 +104,11 @@ public class ConditionImpl extends RoleImpl implements Condition {
     }
 
     public void setFilter(String filter) {
-        if (UserAdminImpl.checkPermissions) {
-            AccessController.checkPermission(UserAdminImpl.adminPermission);
-        }
-        this.filter = filter;
+      SecurityManager sm = System.getSecurityManager();
+      if(null!=sm){
+        sm.checkPermission(UserAdminImpl.adminPermission);
+      }
+      this.filter = filter;
     }
 
 }

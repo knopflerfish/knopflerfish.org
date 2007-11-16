@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,69 +102,103 @@ class SecurePermissionOps extends PermissionOps {
 
   boolean okClassAdminPerm(Bundle b) {
     try {
-      AccessController.checkPermission(getAdminPermission(b, AP_CLASS));
+      SecurityManager sm = System.getSecurityManager();
+      if(null!=sm){
+        sm.checkPermission(getAdminPermission(b, AP_CLASS));
+      }
       return true;
-    } catch (AccessControlException _ignore) {
+    } catch (SecurityException _ignore) {
       return false;
     }
   }
 
   void checkExecuteAdminPerm(Bundle b){
-    AccessController.checkPermission(getAdminPermission(b, AP_EXECUTE));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_EXECUTE));
+    }
   }
 
   void checkExtensionLifecycleAdminPerm(Bundle b) {
-    AccessController.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE));
+    }
   }
 
   void checkExtensionLifecycleAdminPerm(Bundle b, Object checkContext) {
-    ((AccessControlContext)checkContext).
-      checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE),
+                         checkContext);
+    }
   }
 
   void checkLifecycleAdminPerm(Bundle b) {
-    AccessController.checkPermission(getAdminPermission(b, AP_LIFECYCLE));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_LIFECYCLE));
+    }
   }
 
   void checkLifecycleAdminPerm(Bundle b, Object checkContext) {
-    ((AccessControlContext)checkContext).
-      checkPermission(getAdminPermission(b, AP_LIFECYCLE));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_LIFECYCLE),
+                         checkContext);
+    }
   }
 
   void checkListenerAdminPerm(Bundle b) {
-    AccessController.checkPermission(getAdminPermission(b, AP_LISTENER));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_LISTENER));
+    }
   }
 
   void checkMetadataAdminPerm(Bundle b) {
-    AccessController.checkPermission(getAdminPermission(b, AP_METADATA));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_METADATA));
+    }
   }
 
   void checkResolveAdminPerm() {
     if (ap_resolve_perm == null) {
-      ap_resolve_perm = new AdminPermission(framework.systemBundle, AdminPermission.RESOLVE);
+      ap_resolve_perm = new AdminPermission(framework.systemBundle,
+                                            AdminPermission.RESOLVE);
     }
-    AccessController.checkPermission(ap_resolve_perm);
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(ap_resolve_perm);
+    }
   }
-  
+
   void checkResourceAdminPerm(Bundle b) {
-    AccessController.checkPermission(getAdminPermission(b, AP_RESOURCE));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_RESOURCE));
+    }
   }
 
   boolean okResourceAdminPerm(Bundle b) {
     try {
       checkResourceAdminPerm(b);
       return true;
-    } catch (AccessControlException _ignore) {
+    } catch (SecurityException _ignore) {
       return false;
     }
   }
-  
+
   void checkStartLevelAdminPerm(){
     if (ap_startlevel_perm == null) {
       ap_startlevel_perm = new AdminPermission(framework.systemBundle,
                                                AdminPermission.STARTLEVEL);
     }
-    AccessController.checkPermission(ap_startlevel_perm);
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(ap_startlevel_perm);
+    }
   }
 
   //
@@ -193,7 +227,7 @@ class SecurePermissionOps extends PermissionOps {
 
   //
   // Package permission checks
-  //  
+  //
 
   boolean hasImportPackagePermission(BundleImpl b, String pkg) {
     if (b.id != 0) {
@@ -256,18 +290,26 @@ class SecurePermissionOps extends PermissionOps {
 
   //
   // Service permission checks
-  //  
+  //
 
   void checkRegisterServicePerm(String clazz) {
-    AccessController.checkPermission(new ServicePermission(clazz, ServicePermission.REGISTER));
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission
+        (new ServicePermission(clazz, ServicePermission.REGISTER));
+    }
   }
 
   boolean okGetServicePerm(String clazz) {
     String c = (clazz != null) ? clazz : "*";
     try {
-      AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
+      SecurityManager sm = System.getSecurityManager();
+      if(null!=sm){
+        sm.checkPermission
+          (new ServicePermission(c, ServicePermission.GET));
+      }
       return true;
-    } catch (AccessControlException _ignore) {
+    } catch (SecurityException _ignore) {
       return false;
     }
   }
@@ -279,17 +321,22 @@ class SecurePermissionOps extends PermissionOps {
   }
 
   boolean okGetServicePerms(String [] classes) {
-    AccessControlContext acc = AccessController.getContext();
-    return okGetServicePerms(acc, classes);
+    SecurityManager sm = System.getSecurityManager();
+    return null!=sm ? okGetServicePerms(sm.getSecurityContext(), classes)
+      : true;
   }
 
-
-  private boolean okGetServicePerms(AccessControlContext acc, String [] classes) {
+  // The type of acc must be AccessControlContext
+  private boolean okGetServicePerms(Object acc, String [] classes) {
+    SecurityManager sm = System.getSecurityManager();
+    if (null==sm) return true;
     for (int i = 0; i < classes.length; i++) {
-      try { 
-        acc.checkPermission(new ServicePermission(classes[i], ServicePermission.GET));
+      try {
+        sm.checkPermission(new ServicePermission(classes[i],
+                                                 ServicePermission.GET),
+                           acc);
         return true;
-      } catch (AccessControlException ignore) { }
+      } catch (SecurityException _ignore) { }
     }
     return false;
   }
@@ -300,7 +347,9 @@ class SecurePermissionOps extends PermissionOps {
    * @param srs Set of ServiceRegistrationImpls to check.
    */
   void filterGetServicePermission(Set srs) {
-    AccessControlContext acc = AccessController.getContext();
+    SecurityManager sm = System.getSecurityManager();
+    if (null==sm) return;
+    Object acc = sm.getSecurityContext();
     for (Iterator i = srs.iterator(); i.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();;
       String[] classes = (String[])sr.properties.get(Constants.OBJECTCLASS);
@@ -582,13 +631,13 @@ class SecurePermissionOps extends PermissionOps {
   ProtectionDomain getProtectionDomain(BundleImpl b) {
     try {
       // We cannot use getBundleURL() here because that will
-      // trigger a persmission check while we're still in 
+      // trigger a persmission check while we're still in
       // the pahse of building permissions
       URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
                               Long.toString(b.id) + "." + Long.toString(b.generation),
                               -1,
                               "",
-                              b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+                              b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
 
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
@@ -601,12 +650,12 @@ class SecurePermissionOps extends PermissionOps {
     try {
       return (URL)AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws MalformedURLException {
-            return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+            return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
           }
         });
     } catch (PrivilegedActionException e) {
       throw (MalformedURLException) e.getException();
-    }    
+    }
   }
 
 
@@ -627,7 +676,7 @@ class SecurePermissionOps extends PermissionOps {
   // Private
   //
 
- 
+
   AdminPermission getAdminPermission(Bundle b, int ti) {
     AdminPermission [] res;
     res = (AdminPermission [])adminPerms.get(b);
@@ -641,5 +690,5 @@ class SecurePermissionOps extends PermissionOps {
     }
     res[ti] = new AdminPermission(b, AP_TO_STRING[ti]);
     return res[ti];
-  }   
+  }
 }

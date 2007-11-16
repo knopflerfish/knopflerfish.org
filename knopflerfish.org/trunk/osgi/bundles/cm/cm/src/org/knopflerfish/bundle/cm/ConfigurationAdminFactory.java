@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ import org.osgi.service.cm.ConfigurationPermission;
 
 /**
  * ConfigurationAdmin implementation
- * 
+ *
  * @author Per Gustafson
  * @author Philippe Laporte
  * @version $Revision: 1.2 $
@@ -90,32 +90,32 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     private ListenerEventQueue listenerEventQueue;
 
     // Constants
-    
+
     static ConfigurationPermission CONFIGURATION_PERMISSION = new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE);
-    static boolean withSecurity = System.getSecurityManager() != null;
-    
+
     static final String DYNAMIC_BUNDLE_LOCATION = "dynamic.service.bundleLocation";
 
     static final String DUMMY_PROPERTY = "org.knopflerfish.dummy.property";
 
     static final String ANY_LOCATION = "*";
-    
-    
+
+
     static void checkConfigPerm(){
-  	  if(withSecurity){
-  		  AccessController.checkPermission(CONFIGURATION_PERMISSION);
-  	  }
+      SecurityManager sm = System.getSecurityManager();
+      if(null!=sm){
+        sm.checkPermission(CONFIGURATION_PERMISSION);
+      }
     }
-    
+
     /*
     //TODO IF use these, the constants are ints: use strings!
     static final String EVENT_TOPIC_CM_DELETED = "org/osgi/service/cm/ConfigurationEvent/" + "CM_DELETED";
     static final String EVENT_TOPIC_CM_UPDATED = "org/osgi/service/cm/ConfigurationEvent/" + "CM_UPDATED";
-    
+
     static final String CM_FACTORYPID = "cm.factoryPid";
     static final String CM_PID = "cm.pid";
     */
-    
+
     public ConfigurationAdminFactory(File storeDir) {
         storeDir.mkdirs();
         try {
@@ -540,7 +540,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             throw (IOException) e.getException();
         }
     }
-    
+
     ConfigurationDictionary[] loadAll(final String factoryPid) throws IOException {
         try {
             return (ConfigurationDictionary[]) AccessController
@@ -566,18 +566,18 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
             if (filterString == null) {
                 matchingConfigurations.addElement(new ConfigurationImpl(d));
-            } 
+            }
             else {
                 Filter filter = Activator.bc.createFilter(filterString);
                 if (filter.match(d)) {
-                	if(callingBundleLocation == null){
-                		matchingConfigurations.addElement(new ConfigurationImpl(d));
-                	}
-                	else{
-                		if(callingBundleLocation.equals((String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION))){
-                			matchingConfigurations.addElement(new ConfigurationImpl(d));
-                		}
-                	}
+                        if(callingBundleLocation == null){
+                                matchingConfigurations.addElement(new ConfigurationImpl(d));
+                        }
+                        else{
+                                if(callingBundleLocation.equals((String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION))){
+                                        matchingConfigurations.addElement(new ConfigurationImpl(d));
+                                }
+                        }
                 }
             }
         }
@@ -646,19 +646,19 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             ServiceReference reference = Activator.serviceRegistration.getReference();
             if(reference == null)
             {
-            	Activator.log.error("ConfigurationImpl.delete: Could not get service reference");
-            	return;
+                Activator.log.error("ConfigurationImpl.delete: Could not get service reference");
+                return;
             }
 
-            //TODO join this with the update call. no need for parallel async delivery 
+            //TODO join this with the update call. no need for parallel async delivery
             ConfigurationAdminFactory.this.sendEvent(new ConfigurationEvent(
-            		                                                        reference,
-            		                                                        ConfigurationEvent.CM_DELETED,
-            		                                                        factoryPid,
-            		                                                        servicePid
-																			)
-													);
-	    
+                                                                                reference,
+                                                                                ConfigurationEvent.CM_DELETED,
+                                                                                factoryPid,
+                                                                                servicePid
+                                                                                                                                                        )
+                                                                                                        );
+
         }
 
         public String getBundleLocation() {
@@ -717,19 +717,19 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             ServiceReference reference = Activator.serviceRegistration.getReference();
             if(reference == null)
             {
-            	Activator.log.error("ConfigurationImpl.update: Could not get service reference");
-            	return;
+                Activator.log.error("ConfigurationImpl.update: Could not get service reference");
+                return;
             }
-            //TODO join this with the update call. no need for parallel async delivery 
+            //TODO join this with the update call. no need for parallel async delivery
             ConfigurationAdminFactory.this.sendEvent(new ConfigurationEvent(
-            																reference,
-            																ConfigurationEvent.CM_UPDATED,
-            																factoryPid,
-            																servicePid
-																			)
-													);
+                                                                                                                                        reference,
+                                                                                                                                        ConfigurationEvent.CM_UPDATED,
+                                                                                                                                        factoryPid,
+                                                                                                                                        servicePid
+                                                                                                                                                        )
+                                                                                                        );
         }
-          
+
         public void update(Dictionary properties) throws IOException {
             throwIfDeleted();
             ConfigurationDictionary.validateDictionary(properties);
@@ -773,16 +773,16 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
         }
 
-		public boolean equals(Object obj) {
-			if(!(obj instanceof Configuration)){
-				return false;
-			}
-			return servicePid.equals(((Configuration)obj).getPid());
-		}
+                public boolean equals(Object obj) {
+                        if(!(obj instanceof Configuration)){
+                                return false;
+                        }
+                        return servicePid.equals(((Configuration)obj).getPid());
+                }
 
-		public int hashCode() {
-			return servicePid.hashCode();
-		}
+                public int hashCode() {
+                        return servicePid.hashCode();
+                }
     }
 
     // /////////////////////////////////////////////////////////////////////////
@@ -797,49 +797,49 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             this.callingBundle = callingBundle;
             this.callingBundleLocation = callingBundle.getLocation();
         }
-        
+
         public Configuration createFactoryConfiguration(String factoryPid)
                 throws IOException {
-        	ConfigurationDictionary[] d;
-        	try{
-            	checkConfigPerm();
+                ConfigurationDictionary[] d;
+                try{
+                checkConfigPerm();
             }
             catch(SecurityException e){
-            	//TODO surely this could be improved
-            	Hashtable pidsForLocation = (Hashtable) locationToPids.get(callingBundleLocation);
+                //TODO surely this could be improved
+                Hashtable pidsForLocation = (Hashtable) locationToPids.get(callingBundleLocation);
                 if (pidsForLocation == null) {
-                	throw new SecurityException("Not owner of the factoryPid");
+                        throw new SecurityException("Not owner of the factoryPid");
                 }
                 boolean found = false;
                 Iterator it = pidsForLocation.entrySet().iterator();
-                
+
                 while(it.hasNext()){
-                	String pid = (String) it.next();
-                	if(pid.equals(factoryPid)){
-                		found = true;
-                		break;
-                	}                	
+                        String pid = (String) it.next();
+                        if(pid.equals(factoryPid)){
+                                found = true;
+                                break;
+                        }
                 }
                 if(!found){
-                	try {
+                        try {
                         d = ConfigurationAdminFactory.this.loadAll(factoryPid);
                     } catch (IOException ex) {
                         d = null;
                     }
                     if (d != null){
-                    	throw new SecurityException("Not owner of the factoryPid");
-                    
+                        throw new SecurityException("Not owner of the factoryPid");
+
                     }
                 }
-            }	
+            }
             ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, factoryPid,
                     ConfigurationAdminFactory.this.generatePid(factoryPid));
             return c;
         }
-       
+
         public Configuration createFactoryConfiguration(String factoryPid,
                 String location) throws IOException {
-        	checkConfigPerm();
+                checkConfigPerm();
             ConfigurationImpl c = new ConfigurationImpl(location, factoryPid,
                     ConfigurationAdminFactory.this.generatePid(factoryPid));
             return c;
@@ -890,15 +890,15 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         public Configuration[] listConfigurations(final String filterString)
                 throws IOException, InvalidSyntaxException {
             Configuration[] configurations = null;
-            boolean hasPerms = true; 
+            boolean hasPerms = true;
             try{
-            	checkConfigPerm();
+                checkConfigPerm();
             }
             catch(SecurityException e){
-            	hasPerms = false;
+                hasPerms = false;
             }
             final String callingBundleLocation = hasPerms ? null : this.callingBundleLocation;
-            
+
             try {
                 configurations = (Configuration[]) AccessController
                         .doPrivileged(new PrivilegedExceptionAction() {
