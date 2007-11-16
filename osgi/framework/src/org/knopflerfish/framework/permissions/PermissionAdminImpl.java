@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,15 +57,15 @@ public class PermissionAdminImpl implements PermissionAdmin {
    * AllPermission used for permission check.
    */
   final private AllPermission ALL_PERMISSION = new AllPermission();
-  
+
   final private PermissionInfoStorage pinfos;
-  
+
 
   public PermissionAdminImpl(PermissionInfoStorage pis) {
     pinfos = pis;
   }
-  
-  
+
+
   //
   // Interface PermissionAdmin
   //
@@ -90,7 +90,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
   /**
    * Assigns the specified permissions to the bundle with the specified
    * location.
-   * 
+   *
    * @param location The location of the bundle that will be assigned the
    *        permissions.
    * @param permissions The permissions to be assigned, or <code>null</code> if
@@ -98,8 +98,12 @@ public class PermissionAdminImpl implements PermissionAdmin {
    * @throws SecurityException If the caller does not have
    *            <code>AllPermission</code>.
    */
-  public synchronized void setPermissions(String location, PermissionInfo[] perms) {
-    AccessController.checkPermission(ALL_PERMISSION);
+  public synchronized void setPermissions(String location,
+                                          PermissionInfo[] perms) {
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(ALL_PERMISSION);
+    }
     if (perms != null) {
       pinfos.put(location, (PermissionInfo[])perms.clone());
     } else {
@@ -111,7 +115,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
   /**
    * Returns the bundle locations that have permissions assigned to them, that
    * is, bundle locations for which an entry exists in the permission table.
-   * 
+   *
    * @return The locations of bundles that have been assigned any permissions,
    *         or <tt>null</tt> if the permission table is empty.
    */
@@ -119,14 +123,14 @@ public class PermissionAdminImpl implements PermissionAdmin {
     return pinfos.getKeys();
   }
 
-  
+
   /**
    * Gets the default permissions.
    *
    * <p>These are the permissions granted to any bundle that does not
    * have permissions assigned to its location.
    *
-   * @return The default permissions, or <tt>null</tt> if default 
+   * @return The default permissions, or <tt>null</tt> if default
    * permissions have not been defined.
    */
   public synchronized PermissionInfo[] getDefaultPermissions() {
@@ -137,18 +141,21 @@ public class PermissionAdminImpl implements PermissionAdmin {
 
   /**
    * Sets the default permissions.
-   * 
+   *
    * <p>
    * These are the permissions granted to any bundle that does not have
    * permissions assigned to its location.
-   * 
+   *
    * @param permissions The default permissions, or <code>null</code> if the
    *        default permissions are to be removed from the permission table.
    * @throws SecurityException If the caller does not have
    *            <code>AllPermission</code>.
    */
   public synchronized void setDefaultPermissions(PermissionInfo[] perms) {
-    AccessController.checkPermission(ALL_PERMISSION);
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(ALL_PERMISSION);
+    }
     if (perms != null) {
       perms = (PermissionInfo[])perms.clone();
     }
