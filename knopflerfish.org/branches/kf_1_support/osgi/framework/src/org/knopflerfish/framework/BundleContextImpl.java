@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,9 +119,9 @@ public class BundleContextImpl
       return framework.bundles.install(location, in);
     } finally {
       if (in != null) {
-	try {
-	  in.close();
-	} catch (IOException ignore) {}
+        try {
+          in.close();
+        } catch (IOException ignore) {}
       }
     }
   }
@@ -252,8 +252,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#registerService
    */
   public ServiceRegistration registerService(String[] clazzes,
-					     Object service,
-					     Dictionary properties) {
+                                             Object service,
+                                             Dictionary properties) {
     isBCvalid();
     String [] classes = (String[]) clazzes.clone();
     return framework.services.register(bundle, classes, service, properties);
@@ -266,8 +266,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#registerService
    */
   public ServiceRegistration registerService(String clazz,
-					     Object service,
-					     Dictionary properties) {
+                                             Object service,
+                                             Dictionary properties) {
     isBCvalid();
     String [] classes =  new String [] { clazz };
     return framework.services.register(bundle, classes, service, properties);
@@ -284,10 +284,13 @@ public class BundleContextImpl
     isBCvalid();
     if (framework.bPermissions) {
       try {
-	String c = (clazz != null) ? clazz : "*";
-	AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
-      } catch (AccessControlException ignore) {
-	return null;
+        String c = (clazz != null) ? clazz : "*";
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(new ServicePermission(c, ServicePermission.GET));
+        }
+      } catch (SecurityException ignore) {
+        return null;
       }
     }
     return framework.services.get(clazz, filter);
@@ -302,11 +305,14 @@ public class BundleContextImpl
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
     if (framework.bPermissions) {
-      try { 
-	String c = (clazz != null) ? clazz : "*";
-	AccessController.checkPermission(new ServicePermission(c, ServicePermission.GET));
-      } catch (AccessControlException ignore) {
-	return null;
+      try {
+        String c = (clazz != null) ? clazz : "*";
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(new ServicePermission(c, ServicePermission.GET));
+        }
+      } catch (SecurityException ignore) {
+        return null;
       }
     }
     return framework.services.get(clazz);
@@ -322,7 +328,7 @@ public class BundleContextImpl
     isBCvalid();
 
     if(reference == null) {
-      // Throw an NPE with a message to be really clear we do it 
+      // Throw an NPE with a message to be really clear we do it
       // intentionally.
       // A better solution would be to throw IllegalArgumentException,
       // but the OSGi ref impl throws NPE, and we want to keep as
@@ -343,7 +349,7 @@ public class BundleContextImpl
     isBCvalid();
 
     if(reference == null) {
-      // Throw an NPE with a message to be really clear we do it 
+      // Throw an NPE with a message to be really clear we do it
       // intentionally.
       // A better solution would be to throw IllegalArgumentException,
       // but the OSGi ref impl throws NPE, and we want to keep as
@@ -366,7 +372,7 @@ public class BundleContextImpl
     File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
       if (!dataRoot.exists()) {
-	dataRoot.mkdirs();
+        dataRoot.mkdirs();
       }
       return new File(dataRoot, filename);
     } else {

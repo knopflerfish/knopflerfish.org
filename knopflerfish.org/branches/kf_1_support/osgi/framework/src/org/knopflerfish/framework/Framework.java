@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -549,7 +549,10 @@ public class Framework {
    */
   void checkAdminPermission() {
     if (bPermissions) {
-      AccessController.checkPermission(ADMIN_PERMISSION);
+      SecurityManager sm = System.getSecurityManager();
+      if (null!=sm) {
+        sm.checkPermission(ADMIN_PERMISSION);
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import org.osgi.service.useradmin.Role;
 
 /**
  * Implementation of Group.
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
@@ -135,8 +135,9 @@ public class GroupImpl extends UserImpl implements Group {
     // - interface org.osgi.service.useradmin.Group
     // -----------------------------
     public boolean addMember(Role role) {
-        if (UserAdminImpl.checkPermissions) {
-            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(UserAdminImpl.adminPermission);
         }
         if (basicMembers.contains(role)) {
             return false;
@@ -149,8 +150,9 @@ public class GroupImpl extends UserImpl implements Group {
     }
 
     public boolean addRequiredMember(Role role) {
-        if (UserAdminImpl.checkPermissions) {
-            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(UserAdminImpl.adminPermission);
         }
         if (reqMembers.contains(role)) {
             return false;
@@ -163,8 +165,9 @@ public class GroupImpl extends UserImpl implements Group {
     }
 
     public boolean removeMember(Role role) {
-        if (UserAdminImpl.checkPermissions) {
-            AccessController.checkPermission(UserAdminImpl.adminPermission);
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(UserAdminImpl.adminPermission);
         }
         if (basicMembers.removeElement(role)) {
             ((RoleImpl) role).basicMemberOf.removeElement(this);

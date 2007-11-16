@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.osgi.service.useradmin.UserAdminPermission;
 
 /**
  * Dictionary for user admin properties. Security checks for put.
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
@@ -95,9 +95,10 @@ public class UAProperties extends Dictionary {
     public Object remove(Object key) {
         // synchronized (role) {
         if (key instanceof String) {
-            if (UserAdminImpl.checkPermissions) {
-                AccessController.checkPermission(new UserAdminPermission(
-                        (String) key, getChangeAction()));
+            SecurityManager sm = System.getSecurityManager();
+            if (null!=sm) {
+              sm.checkPermission
+                  (new UserAdminPermission((String) key, getChangeAction()));
             }
             Object res = ht.remove(key);
             role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
@@ -112,10 +113,12 @@ public class UAProperties extends Dictionary {
     public Object put(Object key, Object value) {
         // synchronized (role) {
         if (key instanceof String) {
-            if (UserAdminImpl.checkPermissions) {
-                AccessController.checkPermission(new UserAdminPermission(
-                        (String) key, getChangeAction()));
+            SecurityManager sm = System.getSecurityManager();
+            if (null!=sm) {
+              sm.checkPermission
+                  (new UserAdminPermission((String) key, getChangeAction()));
             }
+
             Object res;
             // value of type byte[] or String is ok
             if (value instanceof byte[]) {

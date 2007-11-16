@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import org.osgi.service.useradmin.UserAdminPermission;
 
 /**
  * Implementation of Role.
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
@@ -66,9 +66,10 @@ public class UserImpl extends RoleImpl implements User {
     }
 
     public boolean hasCredential(String key, Object value) {
-        if (UserAdminImpl.checkPermissions) {
-            AccessController.checkPermission(new UserAdminPermission(key,
-                    UserAdminPermission.GET_CREDENTIAL));
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+            sm.checkPermission
+              (new UserAdminPermission(key,UserAdminPermission.GET_CREDENTIAL));
         }
         Object val = creds.get(key);
         if (val instanceof byte[] && value instanceof byte[]) {
