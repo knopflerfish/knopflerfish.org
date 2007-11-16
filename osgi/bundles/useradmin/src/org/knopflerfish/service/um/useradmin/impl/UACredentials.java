@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import org.osgi.service.useradmin.UserAdminPermission;
 
 /**
  * Dictionary for user admin credentials. Security checks for get and put.
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
@@ -55,9 +55,11 @@ public class UACredentials extends UAProperties {
 
     public Object get(Object key) {
         if (key instanceof String) {
-            if (UserAdminImpl.checkPermissions) {
-                AccessController.checkPermission(new UserAdminPermission(
-                        (String) key, UserAdminPermission.GET_CREDENTIAL));
+            SecurityManager sm = System.getSecurityManager();
+            if (null!=sm) {
+                sm.checkPermission( new UserAdminPermission
+                                    ((String) key,
+                                     UserAdminPermission.GET_CREDENTIAL));
             }
             return super.get(key);
         }

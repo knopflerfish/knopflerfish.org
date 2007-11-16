@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,9 +85,9 @@ class Services {
    * </ul>
    */
   ServiceRegistration register(BundleImpl bundle,
-			       String[] classes,
-			       Object service,
-			       Dictionary properties) {
+                               String[] classes,
+                               Object service,
+                               Dictionary properties) {
     if (service == null) {
       throw new IllegalArgumentException("Can't register null as service");
     }
@@ -96,46 +96,52 @@ class Services {
       // Check if service implements claimed classes and that they exists.
       ClassLoader bcl = bundle.getClassLoader();
       for (int i = 0; i < classes.length; i++) {
-	if (classes[i] == null) {
-	  throw new IllegalArgumentException("Can't register as null class");
-	}
+        if (classes[i] == null) {
+          throw new IllegalArgumentException("Can't register as null class");
+        }
 
-	//	Debug.println("#" + bundle.getBundleId() + " registred " + i + ": " + classes[i] + " " + properties);
+        //      Debug.println("#" + bundle.getBundleId() + " registred " + i + ": " + classes[i] + " " + properties);
 
-	if (bundle.framework.bPermissions) {
-	  AccessController.checkPermission(new ServicePermission(classes[i], ServicePermission.REGISTER));
-	  if (bundle.id != 0 && classes[i].equals(PermissionAdmin.class.getName())) {
-	    throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
-	  }
-	    
-	}
-	if (bundle.id != 0 && classes[i].equals(PackageAdmin.class.getName())) {
-	  throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
-	}
-	Class c;
-	try {
-	  if (bcl != null) {
-	    c = bcl.loadClass(classes[i]);
-	  } else {
-	    c = Class.forName(classes[i]);
-	  }
-	} catch (ClassNotFoundException e) {
-	  throw new IllegalArgumentException("Class does not exist: " + classes[i]);
-	}
-	if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
-	  throw new IllegalArgumentException("Object " + service + " is not an instance of " + classes[i]);
-	}
+        if (bundle.framework.bPermissions) {
+          SecurityManager sm = System.getSecurityManager();
+          if (null!=sm) {
+            sm.checkPermission
+              (new ServicePermission(classes[i], ServicePermission.REGISTER));
+          }
+          if (bundle.id != 0
+              && classes[i].equals(PermissionAdmin.class.getName())) {
+            throw new IllegalArgumentException
+              ("Registeration of a PermissionAdmin service is not allowed");
+          }
+
+        }
+        if (bundle.id != 0 && classes[i].equals(PackageAdmin.class.getName())) {
+          throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
+        }
+        Class c;
+        try {
+          if (bcl != null) {
+            c = bcl.loadClass(classes[i]);
+          } else {
+            c = Class.forName(classes[i]);
+          }
+        } catch (ClassNotFoundException e) {
+          throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+        }
+        if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
+          throw new IllegalArgumentException("Object " + service + " is not an instance of " + classes[i]);
+        }
       }
       res = new ServiceRegistrationImpl(bundle, service,
-					new PropertiesDictionary(properties, classes, null));
+                                        new PropertiesDictionary(properties, classes, null));
       services.add(res);
       for (int i = 0; i < classes.length; i++) {
-	ArrayList s = (ArrayList) classServices.get(classes[i]);
-	if (s == null) {
-	  s = new ArrayList(1);
-	  classServices.put(classes[i], s);
-	}
-	s.add(res);
+        ArrayList s = (ArrayList) classServices.get(classes[i]);
+        if (s == null) {
+          s = new ArrayList(1);
+          classServices.put(classes[i], s);
+        }
+        s.add(res);
       }
     }
     bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
@@ -155,15 +161,15 @@ class Services {
       ServiceReference res = ((ServiceRegistration)v.get(0)).getReference();
       int size = v.size();
       if (size > 1) {
-	int rank_res = ranking(res);
-	for (int i = 1; i < size; i++) {
-	  ServiceReference s = ((ServiceRegistration)v.get(i)).getReference();
-	  int rank_s = ranking(s);
-	  if (rank_s > rank_res) {
-	    res = s;
-	    rank_res = rank_s;
-	  }
-	}
+        int rank_res = ranking(res);
+        for (int i = 1; i < size; i++) {
+          ServiceReference s = ((ServiceRegistration)v.get(i)).getReference();
+          int rank_s = ranking(s);
+          if (rank_s > rank_res) {
+            res = s;
+            rank_res = rank_s;
+          }
+        }
       }
       return res;
     } else {
@@ -186,21 +192,21 @@ class Services {
     if (clazz == null) {
       s = services.iterator();
       if (s == null) {
-	return null;
+        return null;
       }
     } else {
       ArrayList v = (ArrayList) classServices.get(clazz);
       if (v != null) {
-	s = v.iterator();
+        s = v.iterator();
       } else {
-	return null;
+        return null;
       }
     }
     ArrayList res = new ArrayList();
     while (s.hasNext()) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
       if (filter == null || LDAPExpr.query(filter, sr.properties)) {
-	res.add(sr.getReference());
+        res.add(sr.getReference());
       }
     }
     if (res.isEmpty()) {
@@ -225,9 +231,9 @@ class Services {
     for (int i = 0; i < classes.length; i++) {
       ArrayList s = (ArrayList) classServices.get(classes[i]);
       if (s.size() > 1) {
-	s.remove(sr);
+        s.remove(sr);
       } else {
-	classServices.remove(classes[i]);
+        classServices.remove(classes[i]);
       }
     }
   }
@@ -244,7 +250,7 @@ class Services {
     for (Iterator e = services.iterator(); e.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
       if (sr.bundle == b) {
-	res.add(sr);
+        res.add(sr);
       }
     }
     return res;
@@ -262,7 +268,7 @@ class Services {
     for (Iterator e = services.iterator(); e.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
       if (sr.isUsedByBundle(b)) {
-	res.add(sr);
+        res.add(sr);
       }
     }
     return res;
@@ -271,7 +277,7 @@ class Services {
   //
   // Private methods
   //
-    
+
   /**
    * Get service ranking from a service reference.
    *

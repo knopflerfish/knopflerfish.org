@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,15 +59,13 @@ import org.osgi.service.useradmin.UserAdminPermission;
 
 /**
  * Implementation of UserAdmin.
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
 public class UserAdminImpl implements ServiceFactory, UserAdmin,
         ServiceListener {
     static final String ANYONE = "user.anyone";
-
-    static final boolean checkPermissions;
 
     static final UserAdminPermission adminPermission;
 
@@ -84,9 +82,6 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     LogRef log;
 
     static {
-        // Use the same property that the framework uses to enable permission
-        // checks
-        checkPermissions = System.getSecurityManager() != null;
         adminPermission = new UserAdminPermission(UserAdminPermission.ADMIN,
                 null);
     }
@@ -104,7 +99,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     /**
      * Initialization method for the user admin. We must wait for the service
      * reference before we can check out UserAdminListeners.
-     * 
+     *
      * @param sr
      *            service reference for UserAdmin.
      */
@@ -131,7 +126,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     /**
      * Sends an event to all user admin listeners.
-     * 
+     *
      * @param type
      *            the event type, one of <code>UserAdminEvent.ROLE_CHANGED
      * .ROLE_CREATED or .ROLE_REMOVED</code>.
@@ -182,8 +177,9 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     // - interface org.osgi.service.useradmin.UserAdmin
     // -------------------------
     public Role createRole(String name, int type) {
-        if (checkPermissions) {
-            AccessController.checkPermission(adminPermission);
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(adminPermission);
         }
         if (roles.get(name) != null) {
             // role 'name' already exists, abort and return null
@@ -213,8 +209,9 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     }
 
     public boolean removeRole(String name) {
-        if (checkPermissions) {
-            AccessController.checkPermission(adminPermission);
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(adminPermission);
         }
 
         if (ANYONE.equals(name)) {
