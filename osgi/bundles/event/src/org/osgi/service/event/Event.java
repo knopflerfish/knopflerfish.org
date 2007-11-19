@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/Event.java,v 1.7 2006/06/16 16:31:48 hargrave Exp $
+ * $Header$
  * 
  * Copyright (c) OSGi Alliance (2005, 2006). All Rights Reserved.
  * 
@@ -28,7 +28,7 @@ import org.osgi.framework.Filter;
  * <code>Event</code> objects are delivered to <code>EventHandler</code>
  * services which subsrcibe to the topic of the event.
  * 
- * @version $Revision: 1.7 $
+ * @version $Revision: 4241 $
  */
 public class Event {
 	/**
@@ -174,8 +174,7 @@ public class Event {
 		}
 	}
 
-	private static final String	alphaGrammar	= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"; //$NON-NLS-1$
-	private static final String	tokenGrammar	= alphaGrammar + "0123456789_"; //$NON-NLS-1$
+	private static final String	tokenAlphabet	= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"; //$NON-NLS-1$
 
 	/**
 	 * Validate a token.
@@ -184,14 +183,11 @@ public class Event {
 	 */
 	private void validateToken(String token) {
 		int length = token.length();
-		if (length < 1) {
+		if (length < 1) {	// token must contain at least one character
 			throw new IllegalArgumentException("invalid topic"); //$NON-NLS-1$
 		}
-		if (alphaGrammar.indexOf(token.charAt(0)) == -1) { //$NON-NLS-1$
-			throw new IllegalArgumentException("invalid topic"); //$NON-NLS-1$
-		}
-		for (int i = 1; i < length; i++) {
-			if (tokenGrammar.indexOf(token.charAt(i)) == -1) { //$NON-NLS-1$
+		for (int i = 0; i < length; i++) { // each character in the token must be from the token alphabet
+			if (tokenAlphabet.indexOf(token.charAt(i)) == -1) { //$NON-NLS-1$
 				throw new IllegalArgumentException("invalid topic"); //$NON-NLS-1$
 			}
 		}

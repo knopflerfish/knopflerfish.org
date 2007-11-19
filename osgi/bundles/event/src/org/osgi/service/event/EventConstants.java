@@ -1,5 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.event/src/org/osgi/service/event/EventConstants.java,v 1.13 2006/06/15 19:42:30 hargrave Exp $
+ * $Header$
  * 
  * Copyright (c) OSGi Alliance (2005, 2006). All Rights Reserved.
  * 
@@ -24,7 +24,7 @@ import org.osgi.framework.Constants;
  * 
  * Defines standard names for <code>EventHandler</code> properties.
  * 
- * @version $Revision: 1.13 $
+ * @version $Revision: 4245 $
  */
 public interface EventConstants {
 
@@ -108,6 +108,8 @@ public interface EventConstants {
 
 	/**
 	 * Must be equal to the name of the Exception class.
+	 * 
+	 * @since 1.1
 	 */
 	public static final String	EXCEPTION_CLASS		= "exception.class";
 
@@ -128,7 +130,7 @@ public interface EventConstants {
 	public static final String	SERVICE				= "service";
 
 	/**
-	 * A service’s id.
+	 * A service's id.
 	 */
 	public static final String	SERVICE_ID			= Constants.SERVICE_ID;
 
@@ -140,7 +142,7 @@ public interface EventConstants {
 
 	/**
 	 * 
-	 * A service’s persistent identity.
+	 * A service's persistent identity.
 	 */
 	public static final String	SERVICE_PID			= Constants.SERVICE_PID;
 
@@ -155,7 +157,7 @@ public interface EventConstants {
 	 * This constant was released with an incorrect spelling. It has been
 	 * replaced by {@link #EXCEPTION_CLASS}
 	 * 
-	 * @deprecated As of 1.0.1, replaced by EXCEPTION_CLASS
+	 * @deprecated As of 1.1, replaced by EXCEPTION_CLASS
 	 */
 	public static final String	EXECPTION_CLASS		= "exception.class";
 }
