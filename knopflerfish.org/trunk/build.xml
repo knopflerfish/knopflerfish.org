@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ** Copyright (c) 2004-2006, KNOPFLERFISH project
+  ** Copyright (c) 2004-2007, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0.1"/>
+            value = "2.0.2"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
