@@ -110,6 +110,10 @@
     </not>
    </condition>
 
+  <property name="css_navigation_enabled"	value="navigation_enabled"/>
+  <property name="css_navigation_disabled"	value="navigation_disabled"/>
+  <property name="navigation_pages"		value="INDEX PROG ECLIPSE LICENSE RUNNING PROG COMP DESKTOP UBICORE CHANGELOG SVN"/>
+
 
    <!-- define the links -->
    <property name="htdocs.link.id.0" value="INDEX"/>
@@ -218,15 +222,6 @@
              fromfile="${htdocs.dir}/html_src/programming_main.html"
              disable="PROG"/>
 
-   <makehtml description=""
-             title="Download Knopflerfish OSGi."
-             template="${template.html}"
-             outdir="${htdocs.out}"
-             tofile="download.html"
-             fromfile="${htdocs.dir}/html_src/download_main.html"
-             disable="DOWNLOAD"/>
-
-
     <makehtml description=""
               title="${htdocs.distname} License"
               template="${template.html}"
@@ -251,23 +246,7 @@
               outdir="${htdocs.out}"
               tofile="release_notes.html"
               fromfile="${htdocs.dir}/${release_notes.file}"
-              disable="RELEASE_NOTES"/>
-
-    <makehtml description="Links to OSGi releated pages"
-              title="${htdocs.distname} Links"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="osgi-links.html"
-              fromfile="${htdocs.dir}/html_src/links_main.html"
-              disable="NAVIGATION_LINKS"/>
-
-    <makehtml description="Stadgar Knopflerfish"
-              title="Stadgar Knopflerfish"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="charter_se.html"
-              fromfile="${htdocs.dir}/html_src/charter_se_main.html"
-              disable="NAVIGATION_CHAPTER"/>
+              disable="CHANGELOG"/>
 
     <makehtml description="The contents of the ${htdocs.distname} distribution"
               title="${htdocs.distname} contents"
@@ -285,37 +264,13 @@
               fromfile="${htdocs.dir}/html_src/svn_main.html"
               disable="SVN"/>
 
-    <makehtml description="Approximate time/memory usage for ${htdocs.distname} startup"
-              title="${htdocs.distname} performance test"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="perf.html"
-              fromfile="${htdocs.dir}/html_src/perf.html"
-              disable="PERF"/>
-    
-    <makehtml description="Survival guide for handling OSGi services"
-              title="OSGi Service tutorial"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="osgi_service_tutorial.html"
-              fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
-              disable="SERVICES"/>
-
-    <makehtml description="How to Activate the 'Remote framework...' Menu Item in the ${htdocs.distname} Desktop"
-              title="The Remote ${htdocs.distname} Desktop"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="remote_howto.html"
-              fromfile="${htdocs.dir}/html_src/remote_howto.html"
-              disable="DESKTOP"/>
-
     <makehtml description=""
               title="${htdocs.distname} Eclipse Plugin"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="eclipse_plugin.html"
               fromfile="${htdocs.dir}/html_src/eclipse_plugin_main.html"
-              disable="PROG"/>
+              disable="ECLIPSE"/>
 
    <makehtml description=""
               title="${htdocs.distname} Eclipse Plugin Changelog"
@@ -339,9 +294,25 @@
              fromfile="${htdocs.dir}/html_src/eclipse_preferences.html"
              disable="PROG"/>
 
+   <makehtml description="Running Knopflerfish Pro"
+             title="Running"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="running.html"
+             fromfile="${htdocs.dir}/html_src/download_main.html"
+             disable="RUNNING"/>
+
+   <makehtml description="The Knopflerfish Pro OSGi Desktop"
+             title="Desktop"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="desktop.html"
+             fromfile="${htdocs.dir}/html_src/desktop_main.html"
+             disable="DESKTOP"/>
+
     <echo message="${htdocs.out}"/>
 
-
+<!-- Currently not used
     <makehtml title="User Documentation"
               description=""
               template="${template.html}"
@@ -351,6 +322,7 @@
        <include name="extrabundledocs/**/*.html"/>
      </fileset>
     </makehtml>
+-->
 
   </target>
  
