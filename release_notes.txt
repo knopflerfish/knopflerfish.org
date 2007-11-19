@@ -1,66 +1,45 @@
-Release Notes Knopflerfish 2.0.1
+Release Notes Knopflerfish 2.0.2
 --------------------------------
 
-  This is the first bugfix release after Knopflerfish 2.0.
+  Maintenance release of Knopflerfish
 
   Here follows a breakdown of the most important changes.
 
+=== Framework (Core) ===
 
-=== Framework (R4.core) ===
+  * Bundle Class Patching
+    New feature in KF. Bundles that contain legacy code may be
+    cumbersome to run due to class loading problems in an OSGi
+    environment. This new feature is based on bundle class patching 
+    using byte-code manipulation. This can solve many problems related
+    to third-party libraries using non-OSGi compatible method calls. 
 
-  * Boot Delegation
-             This release includes support for the property
-               org.osgi.framework.bootdelegation
-             By setting this property you control what class should be loaded
-             from the system class loader. Setting
-             org.osgi.framework.bootdelegation to say "org.knopflerfish.*" will
-             cause the framework to try to load all class names matching that
-             pattern using the system class loader. If this fails the framework
-             will try to load the class as any other class. 
+  * Automatic Manifest Generation
+    New feature in KF. Automatic bundle manifest generation, which can
+    add or modify manifests to any jar file, even non-OSGi-bundle jar
+    files. 
 
-             In earlier versions the system behaved as if this property was set
-             to "*", that is the framework all ways checked if the system class
-             loader could load a given class. This property is set to * by
-             default to be backward compliant. 
+  * Custom Implementation of SecurityManager no longer bypassed
+    Changed so that a custom implementation of the SecurityManager no
+    longer is bypassed if it is present.
 
-             More information on this can be found in the R4 core specs section
-             3.8.3.
+  * Corrected bugs concerning finding resources in bundles
+    #1741368, 
 
-  * Import Resolution Optional
-             An issue with imported packages marked as optional has been fixed.
+  * Buffix,  STOPPING event is sent when stop() is called.
 
-  * Limitations
-             As was the case in 2.0, all OSGi R4 features except those listed
-             below are implemented:
+=== Services (Compendium) ===
+      
+  * EventAdmin
+    Updates Event class to allow for alphanumeric event topics
 
-             * Signed bundles are not supported yet.
-             * Conditional Permission Admin is not included.
+  * URLConnection
+    Added getContentType and getContentLength 
+
+
+=== Misc (KF specific, start scritps, build system etc ===
     
-             To use the extension bundle support you need to use a wrapper
-             script that will restart framework when needed. An example
-             shell-script is included (osgi/kf2).
+  * TrayIcon - WindowsVista recognized as platform alias
 
-
-=== Services (R4.cmpn) ===
-
-  * User Admin service
-             Added persistence. The path to the file where user admin data is
-             stored can be set with the system property
-               org.knopflerfish.useradmin.store
-             If this is not set, the bundle's data storage area is used,
-             meaning that starting the platform with -init purges the data.
-             One can also use the system property
-               org.knopflerfish.useradmin.oldstore
-             to define a path that is used to read the data if the
-             org.knopflerfish.useradmin.store property is set to a path that
-             does not exist yet. This can be used to move the store to a new
-             location. The persistence can be turned off by setting the
-             system property
-               org.knopflerfish.useradmin.dontsave
-             to true.
-
-  * Declarative services
-             Fixed a bug where, under certain circumstances, null was passed
-             to bind/unbind methods.
-
+  * Junit fix (#1816102)
 
