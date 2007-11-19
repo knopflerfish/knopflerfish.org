@@ -259,12 +259,32 @@ public class MakeHTMLTask extends Task {
       content = Util.replace(content, "$(TSTAMP)", TIMESTAMP);
       content = Util.replace(content, "$(USER)", System.getProperty("user.name"));
       content = Util.replace(content, "$(VERSION)", proj.getProperty("version"));
+      content = Util.replace(content, "$(DISTNAME)", proj.getProperty("distname"));
       content = Util.replace(content, "$(MESSAGE)", proj.getProperty("release"));
       content = Util.replace(content, "$(BUNDLE_LIST)", bundleList);
       content = Util.replace(content, "$(ROOT)", pathToRoot);
       content = Util.replace(content, "$(JAVADOC)", proj.getProperty("JAVADOC"));
-   
-    
+      content = Util.replace(content, "$(CLASS_NAVIGATION)", proj.getProperty("css_navigation_enabled"));
+
+      String s = proj.getProperty("navigation_pages");
+      String navEnabled = proj.getProperty("css_navigation_enabled");
+      String navDisabled = proj.getProperty("css_navigation_disabled");
+      // System.out.println("Navigation pages: " + s);
+      if (s != null) {
+	String[] navPages = Util.splitwords(s);
+	for (int i = 0; i < navPages.length; i++) {
+	  // System.out.println("Checking: " + navPages[i]);
+	  if (disable.equals(navPages[i])) {
+	    // System.out.println("Disabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
+	    content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navDisabled);
+	  }
+	  else {
+	    // System.out.println("Enabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
+	    content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navEnabled);
+	  }
+	}
+      }
+	    
       Util.writeStringToFile(new File(outdir, toFile), content);
       System.out.println("wrote " + new File(outdir, toFile));
     } catch (IOException e) {
