@@ -30,7 +30,11 @@ Release Notes Knopflerfish 2.0.2
     defined in superclasses for Component.
     #1834414, 
 
-  * Buffix,  STOPPING event is sent when stop() is called.
+  * Bug fix,  STOPPING event is sent when stop() is called.
+
+  * Corrected incorrect return value from 
+    BundleContext.ungetService(Object).
+    See bug #1780141.
 
 === Services (Compendium) ===
       
