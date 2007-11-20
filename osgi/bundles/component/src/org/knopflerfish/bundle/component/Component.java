@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package org.knopflerfish.bundle.component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -52,8 +53,8 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
 
 abstract class Component implements ServiceFactory {
-  
-  protected Config config; 
+
+  protected Config config;
   private boolean active;
   private Object instance;
   protected BundleContext bundleContext;
@@ -62,15 +63,16 @@ abstract class Component implements ServiceFactory {
   protected ComponentInstance componentInstance;
   protected Bundle usingBundle;
 
-  private Hashtable effectiveProperties; // Properties from cm. These can be discarded.
-  
+  // Properties from cm. These can be discarded.
+  private Hashtable effectiveProperties;
+
   public Component(Config config, Dictionary overriddenProps) {
 
     this.config = config;
 
     instance = null;
     componentContext = null;
-    
+
     bundleContext = Backdoor.getBundleContext(config.getBundle());
 
     if (overriddenProps != null) {
@@ -89,13 +91,50 @@ abstract class Component implements ServiceFactory {
     config.disable();
   }
 
-  /** Activates a component. 
+  /**
+   * Find a public or protected method declared by the given class or
+   * one of its ancestors.
+   * @param klass The (concrete) class to look for the method in.
+   * @param name  The name of the method to look for.
+   * @param argSign The method argument types.
+   * @return The method.
+   * @throws NoSuchMethodException if the given class does not
+   *         implement a method with the given name and arg type.
+   */
+  private Method findPublicOrProtectedMethod( Class klass,
+                                              String name,
+                                              Class[] argSign )
+    throws NoSuchMethodException
+  {
+    try {
+      Method method = klass.getDeclaredMethod(name, argSign);
+      int modifiers = method.getModifiers();
+      if (Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers)) {
+        return method;
+      }
+      String msg = "The method \""+name +"\" in \"" +klass.getName()
+        +"\" is neither " +"public nor protected as required.";
+      if (Activator.log.doDebug()) {
+        Activator.log.debug(msg);
+      }
+      throw new NoSuchMethodException(msg);
+    } catch (NoSuchMethodException nsme) {
+      Class superKlass = klass.getSuperclass();
+      if (klass.isArray() || null == superKlass) {
+        throw nsme;
+      }
+      return findPublicOrProtectedMethod(superKlass, name, argSign );
+    }
+  }
+
+
+  /** Activates a component.
       If the component isn't enabled or satisfied, nothing will happen.
       If the component is already activated nothing will happen.
   */
   public synchronized void activate() {
     // this method is described on page 297 r4
-    
+
     // Synchronized because the service is registered before activation,
     // enabling another thread to get the service and thereby trigger a
     // second activate() call.
@@ -103,20 +142,20 @@ abstract class Component implements ServiceFactory {
     if (!config.isEnabled() || !config.isSatisfied())
       return ;
 
-    if(isActivated()) 
+    if(isActivated())
       return ;
 
     // 1. load class
     Class klass = null;
     try {
 
-      Bundle bundle = config.getBundle();       
-      ClassLoader loader = Backdoor.getClassLoader(bundle); 
+      Bundle bundle = config.getBundle();
+      ClassLoader loader = Backdoor.getClassLoader(bundle);
       klass = loader.loadClass(config.getImplementation());
 
     } catch (ClassNotFoundException e) {
       if (Activator.log.doError())
-        Activator.log.error("Could not find class " + 
+        Activator.log.error("Could not find class " +
                             config.getImplementation());
 
       return ;
@@ -126,33 +165,34 @@ abstract class Component implements ServiceFactory {
       // 2. create ComponentContext and ComponentInstance
       instance = klass.newInstance();
       componentInstance = new ComponentInstanceImpl();
-      componentContext = new ComponentContextImpl(componentInstance);             
+      componentContext = new ComponentContextImpl(componentInstance);
 
-      
+
     }  catch (IllegalAccessException e) {
       if (Activator.log.doError())
-        Activator.log.error("Could not access constructor of class " + 
+        Activator.log.error("Could not access constructor of class " +
                             config.getImplementation());
       return ;
 
     } catch (InstantiationException e) {
       if (Activator.log.doError())
-        Activator.log.error("Could not create instance of " + 
-                            config.getImplementation() + 
+        Activator.log.error("Could not create instance of " +
+                            config.getImplementation() +
                             " isn't a proper class.");
       return ;
-      
+
     } catch (ExceptionInInitializerError e) {
       if (Activator.log.doError())
-        Activator.log.error("Constructor for " + 
-                            config.getImplementation() + 
+        Activator.log.error("Constructor for " +
+                            config.getImplementation() +
                             " threw exception.", e);
       return ;
-      
+
     } catch (SecurityException e) {
       if (Activator.log.doError())
-        Activator.log.error("Did not have permissions to create an instance of " + 
-                            config.getImplementation(), e);
+        Activator.log.error("Did not have permissions to create an "
+                            +"instance of " +config.getImplementation(),
+                            e);
       return ;
     }
 
@@ -160,32 +200,35 @@ abstract class Component implements ServiceFactory {
     config.bindReferences(instance);
     try {
 
-      Method method = klass.getDeclaredMethod("activate", 
-                                              new Class[]{ ComponentContext.class });
+      Method method
+        = findPublicOrProtectedMethod( klass,
+                                       "activate",
+                                       new Class[]{ ComponentContext.class });
       method.setAccessible(true);
       method.invoke(instance, new Object[]{ componentContext });
-
     } catch (NoSuchMethodException e) {
       // this instance does not have an activate method, (which is ok)
       if (Activator.log.doDebug()) {
-        Activator.log.debug("this instance does not have an activate method, (which is ok)");
+        Activator.log.debug("this instance does not have an activate "
+                            +"method, (which is ok)");
       }
     } catch (IllegalAccessException e) {
-      Activator.log.error("Declarative Services could not invoke \"deactivate\""  + 
-                          " method in component \""+ config.getName() + 
-                          "\". Got exception", e);
+      Activator.log.error("Declarative Services could not invoke "
+                          +"\"deactivate\" method in component \""
+                          + config.getName() +"\". Got exception",
+                          e);
       return ;
-  
+
     } catch (InvocationTargetException e) {
       // the method threw an exception.
-      Activator.log.error("Declarative Services got exception when invoking " + 
-                          "\"activate\" in component " + config.getName(), e); 
-      
+      Activator.log.error("Declarative Services got exception when invoking " +
+                          "\"activate\" in component " + config.getName(), e);
+
       // if this happens the component should not be activatated
       config.unbindReferences(instance);
       instance = null;
       componentContext = null;
-      
+
       return ;
     }
 
@@ -197,38 +240,41 @@ abstract class Component implements ServiceFactory {
     // this method is described on page 432 r4
 
     if (!isActivated()) return ;
-    
+
     try {
       Class klass = instance.getClass();
-      Method method = klass.getDeclaredMethod("deactivate", 
-                                              new Class[]{ ComponentContext.class });
-      method.setAccessible(true);      
+      Method method
+        = findPublicOrProtectedMethod( klass,
+                                       "deactivate",
+                                       new Class[]{ ComponentContext.class });
+      method.setAccessible(true);
       method.invoke(instance, new Object[]{ componentContext });
-
     } catch (NoSuchMethodException e) {
       // this instance does not have a deactivate method, (which is ok)
       if (Activator.log.doDebug()) {
-        Activator.log.debug("this instance does not have a deactivate method, (which is ok)");
+        Activator.log.debug("this instance does not have a deactivate method, "
+                            +"(which is ok)");
       }
     } catch (IllegalAccessException e) {
-      Activator.log.error("Declarative Services could not invoke \"deactivate\"" + 
-                          " method in component \""+ config.getName() + 
-                          "\". Got exception", e);
-  
+      Activator.log.error("Declarative Services could not invoke "
+                          +"\"deactivate\" method in component \""
+                          + config.getName() +"\". Got exception",
+                          e);
+
     } catch (InvocationTargetException e) {
       // the method threw an exception.
-      Activator.log.error("Declarative Services got exception when invoking " + 
-                          "\"deactivate\" in component " + config.getName(), e); 
+      Activator.log.error("Declarative Services got exception when invoking " +
+                          "\"deactivate\" in component " + config.getName(), e);
     }
-    
+
     config.unbindReferences(instance);
-    
+
     instance = null;
     componentContext = null;
     componentInstance = null;
     active = false;
   }
-  
+
   public boolean isActivated() {
     return active;
   }
@@ -236,7 +282,7 @@ abstract class Component implements ServiceFactory {
   public void unregisterService() {
     if (serviceRegistration != null) {
       try {
-        serviceRegistration.unregister();    
+        serviceRegistration.unregister();
       } catch (IllegalStateException ignored) {
         // Nevermind this, it might have been unregistered previously.
       }
@@ -245,25 +291,26 @@ abstract class Component implements ServiceFactory {
 
   public void registerService() {
     if (Activator.log.doDebug()) {
-      Activator.log.debug("registerService() got BundleContext: " + bundleContext);
+      Activator.log.debug("registerService() got BundleContext: "
+                          + bundleContext);
     }
 
     if (!config.getShouldRegisterService())
       return ;
-    
+
     String[] interfaces = config.getServices();
-    
+
     if (interfaces == null) {
       return ;
     }
-    serviceRegistration = 
+    serviceRegistration =
       bundleContext.registerService(interfaces, this, effectiveProperties);
   }
 
   /**
      This must be overridden
   */
-  public Object getService(Bundle usingBundle, 
+  public Object getService(Bundle usingBundle,
                            ServiceRegistration reg) {
     this.usingBundle = usingBundle;
     return instance;
@@ -272,18 +319,18 @@ abstract class Component implements ServiceFactory {
   /**
      This must be overridden
   */
-  public void ungetService(Bundle usingBundle, 
-                           ServiceRegistration reg, 
+  public void ungetService(Bundle usingBundle,
+                           ServiceRegistration reg,
                            Object obj) {
     this.usingBundle = null;
   }
 
-  /** 
+  /**
       this method is called whenever this components configuration
       becomes satisfied.
    */
   public abstract void satisfied();
-  /** 
+  /**
       this method is called whenever this components configuration
       becomes unsatisfied.
    */
@@ -299,19 +346,19 @@ abstract class Component implements ServiceFactory {
   private class ComponentContextImpl implements ComponentContext {
     private ComponentInstance componentInstance;
     private Dictionary immutable;
-    
+
     public ComponentContextImpl(ComponentInstance componentInstance) {
       this.componentInstance = componentInstance;
     }
-   
+
     public Dictionary getProperties() {
       if (immutable == null) {
         immutable = new ImmutableDictionary(effectiveProperties);
       }
-      
+
       return immutable ;
     }
-    
+
     public Object locateService(String name) {
       Reference ref = config.getReference(name);
       return ref.getService();
@@ -321,16 +368,16 @@ abstract class Component implements ServiceFactory {
       Reference ref = config.getReference(name);
       return ref.getService(sRef);
     }
-    
+
     public Object[] locateServices(String name) {
       Reference ref = config.getReference(name);
       return ref.getServiceReferences();
     }
-    
+
     public BundleContext getBundleContext() {
       return bundleContext;
     }
-    
+
     public ComponentInstance getComponentInstance() {
       return componentInstance;
     }
@@ -338,20 +385,20 @@ abstract class Component implements ServiceFactory {
     public Bundle getUsingBundle() {
       return usingBundle;
     }
-    
+
     public void enableComponent(String name) {
-      Collection collection = 
+      Collection collection =
         SCR.getInstance().getComponents(config.getBundle());
-      
+
       for (Iterator i = collection.iterator();
            i.hasNext(); ) {
-        
+
         Config config = (Config)i.next();
-        
-        if (name == null || 
+
+        if (name == null ||
             config.getName().equals(name)) {
-          
-          
+
+
           if (!config.isEnabled()) {
             Component component = config.createComponent();
             component.enable();
@@ -359,19 +406,19 @@ abstract class Component implements ServiceFactory {
         }
       }
     }
-    
+
     public void disableComponent(String name) {
-      Collection collection = 
+      Collection collection =
         SCR.getInstance().getComponents(config.getBundle());
-      
+
       for (Iterator i = collection.iterator();
            i.hasNext(); ) {
-        
+
         Config config = (Config)i.next();
-        
-        if (name == null || 
+
+        if (name == null ||
             config.getName().equals(name)) {
-          
+
           if (config.isEnabled()) {
             config.disable();
           }
@@ -380,38 +427,39 @@ abstract class Component implements ServiceFactory {
     }
 
     public ServiceReference getServiceReference() {
-      /* 
+      /*
          We need to do it like this since this function might
          be called before *we* even know what it is. However,
-         this value is know by the framework, hence we can 
+         this value is know by the framework, hence we can
          actually retrieve it.
       */
-      
+
       if (serviceRegistration == null) {
 
-        Object thisComponentId = config.getProperties().get(ComponentConstants.COMPONENT_ID);
+        Object thisComponentId
+          = config.getProperties().get(ComponentConstants.COMPONENT_ID);
 
         try {
-          ServiceReference[] refs = 
-            bundleContext.getServiceReferences(config.getImplementation(),
-                                               "(" + ComponentConstants.COMPONENT_ID + "=" + 
-                                               thisComponentId + ")"); 
+          ServiceReference[] refs = bundleContext
+            .getServiceReferences(config.getImplementation(),
+                                  "(" + ComponentConstants.COMPONENT_ID + "=" +
+                                  thisComponentId + ")");
           if (refs == null) {
             return null;
           }
 
           return refs[0];
-            
+
         } catch (Exception e) {
           throw new RuntimeException("This is a bug.", e);
         }
-        
+
       } else {
         return serviceRegistration.getReference();
       }
     }
   }
-  
+
   private class ComponentInstanceImpl implements ComponentInstance {
 
     public void dispose() {
@@ -431,19 +479,19 @@ abstract class Component implements ServiceFactory {
   public Object getInstance() { return instance; }
   public ComponentInstance getComponentInstance() { return componentInstance; }
 
-  /* 
+  /*
      We need to keep track of the entries that has been changed by CM
      since these might have to be removed when a CM_DELETED event occurs..
   */
 
   public void cmUpdated(Dictionary dict) {
     if (dict == null) return ;
-    
+
     for (Enumeration e = dict.keys(); e.hasMoreElements();) {
       Object key = e.nextElement();
       if (!key.equals(ComponentConstants.COMPONENT_NAME) &&
           !key.equals(ComponentConstants.COMPONENT_ID)) {
-        
+
         effectiveProperties.put(key, dict.get(key));
       }
     }
