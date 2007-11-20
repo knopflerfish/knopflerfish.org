@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="httpconsole" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/httpconsole/**"/>
+
+  <property name="bmfa.Bundle-Version"        value="2.0.0"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/http/http_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

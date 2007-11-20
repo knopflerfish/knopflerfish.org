@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
+<project name="componentA_test" default="all">
+
+  <property name="topdir"       location=".."/>
+
+  <property name="bundle.version" value="1.0.1"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="${topdir}/lib/component_api-2.0.0.jar"/>
+    <pathelement location="${topdir}/jars/component-api_test-1.0.0.jar"/>
+  </path>
+
+  &test_include;
+
+</project>
+
+
+

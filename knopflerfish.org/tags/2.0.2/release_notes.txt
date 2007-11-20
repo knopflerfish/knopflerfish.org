@@ -1,0 +1,52 @@
+Release Notes Knopflerfish 2.0.2
+--------------------------------
+
+  Maintenance release of Knopflerfish
+
+  Here follows a breakdown of the most important changes.
+
+=== Framework (Core) ===
+
+  * Bundle Class Patching
+    New feature in KF. Bundles that contain legacy code may be
+    cumbersome to run due to class loading problems in an OSGi
+    environment. This new feature is based on bundle class patching 
+    using byte-code manipulation. This can solve many problems related
+    to third-party libraries using non-OSGi compatible method calls. 
+
+  * Automatic Manifest Generation
+    New feature in KF. Automatic bundle manifest generation, which can
+    add or modify manifests to any jar file, even non-OSGi-bundle jar
+    files. 
+
+  * Custom Implementation of SecurityManager no longer bypassed
+    Changed so that a custom implementation of the SecurityManager no
+    longer is bypassed if it is present.
+
+  * Corrected bugs concerning finding resources in bundles
+    #1741368, 
+
+  * Bug fix, STOPPING event is sent when stop() is called.
+
+  * Corrected incorrect return value from BundleContext.ungetService(Object).
+    See bug #1780141.
+
+=== Services (Compendium) ===
+      
+  * EventAdmin
+    Updates Event class to allow for alphanumeric event topics
+
+  * URLConnection
+    Added getContentType and getContentLength 
+
+  * Component (Declarative Services)
+    Corrected bugs concerning finding activate, deactivate methods
+    defined in superclasses for Component.
+    #1834414, 
+
+=== Misc (KF specific, start scritps, build system etc ===
+    
+  * TrayIcon - WindowsVista recognized as platform alias
+
+  * Junit fix (#1816102)
+

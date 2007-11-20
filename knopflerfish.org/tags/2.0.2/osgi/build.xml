@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="default">
+
+  <!-- build properties -->
+
+  <property name = "topdir"          location = "."/>
+  <property name = "javadoc.out.dir" location = "out/javadoc"/>
+
+
+ <path id="sources.path">
+  <pathelement location="framework/src"/>
+  <pathelement location="bundles/log/src"/>
+  <pathelement location="bundles/cm/cm/src"/>
+  <pathelement location="bundles/cm/cm_cmd/src"/>
+  <pathelement location="bundles/device/device/src"/>
+  <pathelement location="bundles/useradmin/src"/>
+  <pathelement location="bundles/wireadmin/src"/>
+  <pathelement location="bundles/component/src"/>
+  <pathelement location="bundles/console/console/src"/>
+  <pathelement location="bundles/console/consoletcp/src"/>
+  <pathelement location="bundles/console/consoletty/src"/>
+  <pathelement location="bundles/desktop/src"/>
+  <pathelement location="bundles/event/src"/>
+  <pathelement location="bundles/http/http/src"/>
+  <pathelement location="bundles/io/io/src"/>
+  <pathelement location="bundles/util/src"/>
+  <pathelement location="bundles/demos/demo1/src"/>
+  <pathelement location="bundles/position/src"/>
+  <pathelement location="bundles/measurement/src"/>
+  <pathelement location="bundles/provisioning/src"/>
+  <pathelement location="bundles/prefs/src"/>
+  <pathelement location="bundles/upnp/src"/>
+  <pathelement location="bundles/metatype/metatype_api/src"/>
+  <pathelement location="bundles/xml/xml/src"/>
+  <pathelement location="bundles/trayicon/trayicon/src"/>
+  <pathelement location="bundles/remotefw/src"/>
+  <pathelement location="../ant/src"/>
+
+  <pathelement location="bundles/metatype/kf_metatype/src"/>
+
+  <pathelement location="bundles_opt/jini/jinidriver/src"/>
+ </path>
+
+ <property name  = "javadoc.packages"
+           value = "org.knopflerfish.ant.taskdefs.bundle,org.knopflerfish.service.console,org.knopflerfish.service.demo1,org.knopflerfish.service.desktop,org.knopflerfish.service.log,org.knopflerfish.service.remotefw,org.knopflerfish.service.trayicon,org.knopflerfish.service.um.ipam,org.knopflerfish.service.um.useradmin,org.knopflerfish.shared.cm,org.knopflerfish.util,org.knopflerfish.util.cm,org.knopflerfish.util.http,org.knopflerfish.util.metatype,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.osgi.framework,org.osgi.service.cm,org.osgi.service.component,org.osgi.service.condpermadmin,org.osgi.service.device,org.osgi.service.event,org.osgi.service.http,org.osgi.service.io,org.osgi.service.jini,org.osgi.service.log,org.osgi.service.metatype,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.startlevel,org.osgi.service.upnp,org.osgi.service.url,org.osgi.service.useradmin,org.osgi.service.wireadmin,org.osgi.util,org.osgi.util.measurement,org.osgi.util.position,org.osgi.util.tracker,org.osgi.util.xml"/>
+
+<property name  = "javadoc.packages"
+           value = "net.jini.core.entry,net.n3.nanoxml"
+/>
+
+  <import file="${topdir}/../ant/bundletasks.xml"/>
+
+  <!-- targets -->
+  <target name="default"
+          description = "Builds the framework and bundles in bundles-directory"
+          depends     = "check_bcel">
+    <antcall target="xargs"/>
+    <ant dir="framework"    target="all"/>
+    <ant dir="bundles"      target="all"/>
+  </target>
+
+  <target name="all"
+          description="Builds the framework and all bundles including optional and test bundles"
+          depends     = "check_bcel">
+    <antcall target="default"/>
+    <ant dir="bundles_opt"  target="all"/>
+    <ant dir="bundles_test" target="all"
+         inheritAll="false" inheritRefs="false"/>
+  </target>
+
+  <target name="xargs">
+   <antcall target="init_xargs"/>
+   <antcall target="remote_xargs"/>
+  </target>
+
+  <target name="remote_xargs">
+   <copy file="template.xargs" tofile="remote-init.xargs" overwrite="true"/>
+   <replace file="remote-init.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "http://www.knopflerfish.org/releases/${version}/jars/"/>
+     <replacefilter token="$(VERSION)"     value="${version}"/>
+     <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
+   </replace>	  
+ </target>
+
+  <target name="init_xargs">
+   <copy file="template.xargs" tofile="init.xargs" overwrite="true"/>
+
+   <replace file="init.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
+     <replacefilter token="$(VERSION)"         value="${version}"/>
+     <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
+   </replace>	  
+
+   <antcall target="init_xargs_windows">
+    <param name="osname" value="WindowsXP"/>
+   </antcall>
+
+   <antcall target="init_xargs_windows">
+    <param name="osname" value="Windows2000"/>
+   </antcall>
+  </target>
+
+  <target name="init_xargs_windows">
+   <echo message="create init_${osname}.xargs"/>
+   <copy file="template.xargs" tofile="init_${osname}.xargs" overwrite="true"/>
+   <replace file="init_${osname}.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
+     <replacefilter token="$(VERSION)"     value="${version}"/>
+
+     <replacetoken><![CDATA[$(WINDOWS_BUNDLES)]]></replacetoken>
+     <replacevalue><![CDATA[
+## Windows platforms are likely to support tray icons
+-initlevel 1
+-istart trayicon/trayicon_all-2.0.0.jar
+-istart trayicon_fw/trayicon_fw-2.0.0.jar
+]]></replacevalue>
+
+   </replace>	  
+
+
+ </target>
+
+ <target name="javadoc">
+  <mkdir dir="${javadoc.out.dir}"/>
+
+  <property name  = "javadoc.header"
+            value = "Knopflerfish OSGi ${version}"/>
+	    
+  <property name  = "javadoc.footer"
+            value = "${javadoc.header}"/>
+
+  <javadoc sourcepathref = "sources.path"
+           destdir       = "${javadoc.out.dir}"
+           header        = "${javadoc.header}"
+           footer        = "${javadoc.footer}"
+	   packagenames  = "${javadoc.packages}"
+	   excludepackagenames = "${javadoc.excludepackages}"
+   >	   
+  </javadoc>
+ </target>
+ 
+ <target name="run">
+  <java fork="true"
+        jar="framework.jar"
+  >
+  </java>
+ </target>
+
+ <target name="run-osgi-test-target"
+         description="Start the framework in OSGi test target mode.">
+  <java fork="true"
+        jar="framework.jar"
+  >
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
+
+ <target name="run-osgi-test-target-secure"
+         description="Start the framework with security enabled in OSGi test target mode.">
+  <java fork="true"
+        jar="framework.jar"
+  >
+    <jvmarg value="-Djava.security.manager"/>
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
+
+
+ <target name="clean" description="removes all generated files">
+  <delete file="framework.jar"/>
+  <delete dir="out"/>
+  <delete dir="jars"/>
+ </target>
+
+
+ <target name="rebuild"
+         description="Cleans then build build all">
+    <antcall target="clean"/>
+    <ant dir="bundles_test" target="clean"
+         inheritAll="false" inheritRefs="false"/>
+    <antcall target="all"/>
+ </target>
+ 
+ <!-- a bit misplaced, but bindex is very picky with from where it is called -->
+ <property name="bindex.file" location="${topdir}/../bindex.jar"/>
+  <available file         = "${bindex.file}"
+             property     = "bindex.available"/>
+
+ 
+ <target name="install_bindex">
+   <antcall target="download_bindex"/>
+ </target>
+
+ <target name="download_bindex" unless="bindex.available">
+    <get src="http://www2.osgi.org/div/bindex.jar" 
+         dest="${bindex.file}"
+    />
+ </target>
+
+ <target name          = "bindex" 
+         depends       = "bundle_tasks">
+  <mkdir dir="../repo"/>
+  <property name="bindex.baseurl" value="http://www.knopflerfish.org/repo/"/>
+  <property name="bindex.basedir" value="jars"/>
+
+
+  <bindex outFile         = "${topdir}/../repo/bindex.xml"
+          baseURL         = "${bindex.baseurl}"
+          bindexJar       = "${bindex.file}"
+          >
+
+    <fileset dir="${bindex.basedir}">
+      <include name = "jars/upnp/upnp_api-*.jar"/>
+    </fileset>
+
+    <fileset dir="${bindex.basedir}">
+      <include name = "*/*.jar"/>
+      <exclude name = "*/*_api-*.jar"/>
+      <exclude name = "framework.jar"/>
+    </fileset> 
+  </bindex>
+
+ </target>
+
+
+
+</project>

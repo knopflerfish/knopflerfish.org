@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="basicdriverlocator" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/device/device_api-2.0.0.jar"/>
+  </path>
+
+  <property name="impl.pattern"  value="org/knopflerfish/bundle/**"/>
+
+  &bundlebuild_include;
+
+</project>

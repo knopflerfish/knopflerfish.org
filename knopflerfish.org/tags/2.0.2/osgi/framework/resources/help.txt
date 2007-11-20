@@ -1,0 +1,35 @@
+ Usage:  java [properties] org.knopflerfish.framework.Main [-init] [options]
+      or java [properties] -jar framework.jar [-init] [options]
+      or ./kf2 [-init] [options] [-- [properties]]  [--- [extra]] (*)
+
+ Options:
+   -exit          Exit the JVM process
+   -help          Print this text and exit
+   -readme        Print a longer startup readme and exit
+   -version       Print version and exit
+   -jvminfo       Print system and framework properties and exit
+   -xargs file    Load more command line arguments from file
+   -init          Start an empty platform
+   -install URL   Install a bundle
+   -istart URL    Install and start bundle
+   -launch [id]   Launch framework (Default), id = bundle id BootManager
+   -sleep SEC     Sleep a while before next command
+   -shutdown      Shutdown framework
+   -start ID      Start bundle
+   -stop ID       Stop bundle
+   -uninstall ID  Uninstall a bundle
+   -update ID     Update a bundle
+   -initlevel N   Set initial start level for installed bundles
+   -startlevel N  Set start level of Start Level service
+
+ Extra: (Only applicable when using ./kf2)
+   -java PATH	  Use this JVM (Default=java)
+
+
+ The default directory used for storing bundle data is  "fwdir".
+
+ (*) Fully R4 compatible, enables support for extension bundles. (Shell script)
+
+ For extended help and list of all available system properties, see
+
+  https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/readme.txt
