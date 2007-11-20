@@ -26,14 +26,9 @@ Release Notes Knopflerfish 2.0.2
   * Corrected bugs concerning finding resources in bundles
     #1741368, 
 
-  * Corrected bugs concerning finding activate, deactivate methods
-    defined in superclasses for Component.
-    #1834414, 
+  * Bug fix, STOPPING event is sent when stop() is called.
 
-  * Bug fix,  STOPPING event is sent when stop() is called.
-
-  * Corrected incorrect return value from 
-    BundleContext.ungetService(Object).
+  * Corrected incorrect return value from BundleContext.ungetService(Object).
     See bug #1780141.
 
 === Services (Compendium) ===
@@ -44,6 +39,10 @@ Release Notes Knopflerfish 2.0.2
   * URLConnection
     Added getContentType and getContentLength 
 
+  * Component (Declarative Services)
+    Corrected bugs concerning finding activate, deactivate methods
+    defined in superclasses for Component.
+    #1834414, 
 
 === Misc (KF specific, start scritps, build system etc ===
     
