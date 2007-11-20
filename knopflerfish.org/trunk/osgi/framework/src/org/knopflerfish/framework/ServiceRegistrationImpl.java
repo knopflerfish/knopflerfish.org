@@ -84,7 +84,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   /**
    * Is service available.
    */
-  boolean available;
+  volatile boolean available;
 
   /**
    * Lock object for synchronous event delivery.
@@ -94,7 +94,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   /**
    * Avoid recursive unregistrations.
    */
-  //private boolean unregistering = false;
+  private volatile boolean unregistering = false;
 
 
   /**
@@ -139,15 +139,16 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   public void setProperties(Dictionary props) {
     synchronized (eventLock) {
       synchronized (properties) {
-	if (available) {
-	  String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
-	  Long sid = (Long)properties.get(Constants.SERVICE_ID);
-	  properties = new PropertiesDictionary(props, classes, sid);
-	} else {
-	  throw new IllegalStateException("Service is unregistered");
-	}
+        if (available) {
+          String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
+          Long sid = (Long)properties.get(Constants.SERVICE_ID);
+          properties = new PropertiesDictionary(props, classes, sid);
+        } else {
+          throw new IllegalStateException("Service is unregistered");
+        }
       }
-      bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
+      bundle.framework.listeners
+        .serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
     }
   }
 
@@ -157,27 +158,32 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * @see org.osgi.framework.ServiceRegistration#unregister
    */
   public void unregister() {
+    if (unregistering) return;
+
     synchronized (eventLock) {
+      if (unregistering) return;
+      unregistering = true;
+      if(!Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) {
+        unregister_removeService();
+      }
 
-	    if(!Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING)
-	    {
-		    unregister_removeService();
-	    }
-
-	    bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
-
-	    if(Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING)
-	    {
-		    unregister_removeService();
-	    }
+      if (null!=bundle)
+        bundle.framework.listeners
+          .serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING,
+                                         reference));
+      if(Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) {
+        unregister_removeService();
+      }
     }
-    bundle.framework.perm.callUnregister0(this);
     synchronized (properties) {
+      if (null!=bundle)
+        bundle.framework.perm.callUnregister0(this);
       bundle = null;
       dependents = null;
       reference = null;
       service = null;
       serviceInstances = null;
+      unregistering = false;
     }
   }
 
@@ -185,9 +191,12 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
       Map.Entry e = (Map.Entry)i.next();
       try {
-        ((ServiceFactory)service).ungetService((Bundle)e.getKey(), this, e.getValue());
+        ((ServiceFactory)service).ungetService((Bundle)e.getKey(),
+                                               this,
+                                               e.getValue());
       } catch (Throwable ue) {
-        bundle.framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
+        bundle.framework.listeners
+          .frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
       }
     }
   }
@@ -216,14 +225,15 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   private void unregister_removeService()
   {
-      synchronized (properties) {
-	if (available) {
-	  bundle.framework.services.removeServiceRegistration(this);
-	  available = false;
-	} else {
-	  throw new IllegalStateException("Service is unregistered");
-	}
+    synchronized (properties) {
+      if (available) {
+        if (null!=bundle)
+          bundle.framework.services.removeServiceRegistration(this);
+        available = false;
+      } else {
+        throw new IllegalStateException("Service is unregistered");
       }
+    }
   }
 
 }
