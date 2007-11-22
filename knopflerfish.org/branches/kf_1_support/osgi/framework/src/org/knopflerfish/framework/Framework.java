@@ -253,7 +253,7 @@ public class Framework {
                         permissions,
                         null);
 
-      Policy.setPolicy(new FrameworkPolicy(permissions));
+      Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(),permissions));
     }
 
     String[] classes = new String [] { PackageAdmin.class.getName() };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,15 +60,16 @@ import java.util.Hashtable;
 
 class FrameworkPolicy extends Policy {
 
-  private final PermissionCollection all = new Permissions();
+  /** The policy to delegate non-bundle permission requests to. */
+  private final Policy defaultPolicy;
 
-  private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
+  private Hashtable /* Long -> PermissionCollection */
+    permissions = new Hashtable();
 
   private PermissionAdminImpl permissionAdmin;
 
-  FrameworkPolicy(PermissionAdminImpl pa) {
-    all.add(new AllPermission());
-    all.setReadOnly();
+  FrameworkPolicy(Policy defaultPolicy, PermissionAdminImpl pa ) {
+    this.defaultPolicy = defaultPolicy;
     permissionAdmin = pa;
   }
 
@@ -80,7 +81,7 @@ class FrameworkPolicy extends Policy {
     // The following line causes a loop when running on 1.4
     // System.getSecurityManager().checkPermission(new SecurityPermission("getPermissions"));
     // Also note that there's no "getPermissions" target for SercurityPermission
-    
+
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       try {
@@ -90,7 +91,7 @@ class FrameworkPolicy extends Policy {
         return null;
       }
     } else {
-      return all;
+      return defaultPolicy.getPermissions(cs);
     }
   }
 
@@ -107,7 +108,7 @@ class FrameworkPolicy extends Policy {
     if (pc == null) {
       pc = permissionAdmin.getPermissionCollection(id);
       if (pc != null) {
-	permissions.put(id, pc);
+        permissions.put(id, pc);
       }
     }
     return pc;
