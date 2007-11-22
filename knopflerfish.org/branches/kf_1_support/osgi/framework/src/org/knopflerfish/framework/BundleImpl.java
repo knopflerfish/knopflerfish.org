@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,7 +102,7 @@ class BundleImpl implements Bundle {
    * Zombie classloaders for bundle.
    */
   private Map /* String -> BundleClassLoader */ oldClassLoaders = null;
-    
+
   /**
    * Directory for bundle data.
    */
@@ -120,7 +120,7 @@ class BundleImpl implements Bundle {
 
   /**
    * List of all nativeLibs that can be used in this bundle.
-   * 
+   *
    * pl: unused
    */
   //protected List nativeLibs = null;
@@ -174,20 +174,20 @@ class BundleImpl implements Bundle {
     ProtectionDomain pd = null;
     if (fw.bPermissions) {
       try {
-        URLStreamHandler handler 
+        URLStreamHandler handler
           = bpkgs.bundle.framework.bundleURLStreamhandler;
-        
-	URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, 
-                                Long.toString(id), 
+
+        URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
+                                Long.toString(id),
                                 -1,
                                 "",
                                 handler);
-	PermissionCollection pc = fw.permissions.getPermissionCollection(this);
-	pd = new ProtectionDomain(new CodeSource(bundleUrl, 
-						 (java.security.cert.Certificate[])null), 
-				  pc);
-      } catch (MalformedURLException e) { 
-	e.printStackTrace();
+        PermissionCollection pc = fw.permissions.getPermissionCollection(this);
+        pd = new ProtectionDomain(new CodeSource(bundleUrl,
+                                                 (java.security.cert.Certificate[])null),
+                                  pc);
+      } catch (MalformedURLException e) {
+        e.printStackTrace();
       }
     }
     protectionDomain = pd;
@@ -196,12 +196,12 @@ class BundleImpl implements Bundle {
 
     try {
       if(framework.startLevelService == null) {
-	archive.setStartLevel(0);
+        archive.setStartLevel(0);
       } else {
-	if(oldStartLevel == -1) {
-	  archive.setStartLevel(framework.startLevelService.getInitialBundleStartLevel());
-	} else {
-	} 
+        if(oldStartLevel == -1) {
+          archive.setStartLevel(framework.startLevelService.getInitialBundleStartLevel());
+        } else {
+        }
       }
     } catch (Exception e) {
       Debug.println("Failed to set start level on #" + getBundleId() + ": " + e);
@@ -234,11 +234,11 @@ class BundleImpl implements Bundle {
     int updState = getUpdatedState();
 
     setPersistent(true);
-    
+
     if(framework.startLevelService != null) {
       if(getStartLevel() > framework.startLevelService.getStartLevel()) {
-	bDelayedStart = true;
-	return;
+        bDelayedStart = true;
+        return;
       }
     }
 
@@ -249,87 +249,87 @@ class BundleImpl implements Bundle {
       throw new BundleException("Bundle.start: Failed, " + bpkgs.getResolveFailReason());
     case RESOLVED:
       if (framework.active) {
-	state = STARTING;
-	bundleContext = new BundleContextImpl(this);
-	try {
-	  AccessController.doPrivileged(new PrivilegedExceptionAction() {
-	      public Object run() throws BundleException {
-		final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
-		boolean bStarted = false;
+        state = STARTING;
+        bundleContext = new BundleContextImpl(this);
+        try {
+          AccessController.doPrivileged(new PrivilegedExceptionAction() {
+              public Object run() throws BundleException {
+                final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
+                boolean bStarted = false;
 
-		ClassLoader oldLoader = null;
+                ClassLoader oldLoader = null;
 
-		if(Framework.SETCONTEXTCLASSLOADER) {
-		  oldLoader = Thread.currentThread().getContextClassLoader();
-		}
+                if(Framework.SETCONTEXTCLASSLOADER) {
+                  oldLoader = Thread.currentThread().getContextClassLoader();
+                }
 
-		try {
+                try {
 
-		  // If SETCONTEXTCLASSLOADER, set the thread's context
-		  // class loader to the bundle class loader. This
-		  // is useful for debugging external libs using
-		  // the context class loader.
-		  if(Framework.SETCONTEXTCLASSLOADER) {
-		    Thread.currentThread().setContextClassLoader(getClassLoader());
-		  }
+                  // If SETCONTEXTCLASSLOADER, set the thread's context
+                  // class loader to the bundle class loader. This
+                  // is useful for debugging external libs using
+                  // the context class loader.
+                  if(Framework.SETCONTEXTCLASSLOADER) {
+                    Thread.currentThread().setContextClassLoader(getClassLoader());
+                  }
 
-		  if (ba != null) {
-		    
-		    Class c = getClassLoader().loadClass(ba.trim());
-		    bactivator = (BundleActivator)c.newInstance();
+                  if (ba != null) {
 
-		    bactivator.start(bundleContext);
-		    bStarted = true;
-		  } else {
-		    // Check if we have a standard Main-class attribute as
-		    // in normal executable jar files. This is a slight 
-		    // extension to the OSGi spec.
-		    final String mc = archive.getAttribute("Main-class");
-		    
-		    if (mc != null) {
-		      if(Debug.packages) {
-			Debug.println("starting main class " + mc);
-		      }
-		      Class mainClass = getClassLoader().loadClass(mc.trim());
-		      
-		      bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
-		      bactivator.start(bundleContext);
-		      bStarted = true;
-		    }
-		  } 
-		  
-		  if(!bStarted) {
-		    // Even bundles without an activator is marked as 
-		    // ACTIVE.
-		    
-		    // Should we possible log an information message to 
-		    // make sure users are aware of the missing activator?
-		  }
-		  
-		  state = ACTIVE;
-		  startOnLaunch(true);
+                    Class c = getClassLoader().loadClass(ba.trim());
+                    bactivator = (BundleActivator)c.newInstance();
 
-		} catch (Throwable t) {
-		  throw new BundleException("Bundle.start: BundleActivator start failed", t);
-		} finally {
-		  if(Framework.SETCONTEXTCLASSLOADER) {
-		    Thread.currentThread().setContextClassLoader(oldLoader);
-		  }
-		}
-		return null;
-	      }
-	    });
-	} catch (PrivilegedActionException e) {
-	  removeBundleResources();
-	  bundleContext.invalidate();
-	  bundleContext = null;
-	  state = RESOLVED;
-	  throw (BundleException) e.getException();
-	}
-	framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
-	break;
+                    bactivator.start(bundleContext);
+                    bStarted = true;
+                  } else {
+                    // Check if we have a standard Main-class attribute as
+                    // in normal executable jar files. This is a slight
+                    // extension to the OSGi spec.
+                    final String mc = archive.getAttribute("Main-class");
+
+                    if (mc != null) {
+                      if(Debug.packages) {
+                        Debug.println("starting main class " + mc);
+                      }
+                      Class mainClass = getClassLoader().loadClass(mc.trim());
+
+                      bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
+                      bactivator.start(bundleContext);
+                      bStarted = true;
+                    }
+                  }
+
+                  if(!bStarted) {
+                    // Even bundles without an activator is marked as
+                    // ACTIVE.
+
+                    // Should we possible log an information message to
+                    // make sure users are aware of the missing activator?
+                  }
+
+                  state = ACTIVE;
+                  startOnLaunch(true);
+
+                } catch (Throwable t) {
+                  throw new BundleException("Bundle.start: BundleActivator start failed", t);
+                } finally {
+                  if(Framework.SETCONTEXTCLASSLOADER) {
+                    Thread.currentThread().setContextClassLoader(oldLoader);
+                  }
+                }
+                return null;
+              }
+            });
+        } catch (PrivilegedActionException e) {
+          removeBundleResources();
+          bundleContext.invalidate();
+          bundleContext = null;
+          state = RESOLVED;
+          throw (BundleException) e.getException();
+        }
+        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
+        break;
       } else {
-	startOnLaunch(true);
+        startOnLaunch(true);
       }
     case ACTIVE:
       return;
@@ -351,19 +351,19 @@ class BundleImpl implements Bundle {
    * Check if setStartOnLaunch(false) is allowed.
    */
   boolean allowSetStartOnLaunchFalse() {
-    boolean bCompat = 
+    boolean bCompat =
       framework.startLevelService == null ||
       framework.startLevelService.bCompat;
-    
-    return 
+
+    return
       // never never touch on FW shutdown
       !framework.shuttingdown && !archive.isPersistent();
 
       /*
-	&& 
-      
+        &&
+
       // allow touch if in startlevel compatibility mode
-      (bCompat || 
+      (bCompat ||
        // ...also allow touch if not marked as persistant startlevel active
        !isPersistent());
       */
@@ -378,14 +378,14 @@ class BundleImpl implements Bundle {
     framework.checkAdminPermission();
 
     bDelayedStart = false;
-    
+
     setPersistent(false);
 
     if(framework.startLevelService != null) {
       if(getStartLevel() <= framework.startLevelService.getStartLevel()) {
-	if(state == ACTIVE) {
-	  bDelayedStart = true;
-	}
+        if(state == ACTIVE) {
+          bDelayedStart = true;
+        }
       }
     }
 
@@ -395,46 +395,46 @@ class BundleImpl implements Bundle {
       // We don't want this bundle to start on launch after it has been
       // stopped. (Don't apply during shutdown
       if (allowSetStartOnLaunchFalse()) {
-	AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-	      startOnLaunch(false);
-	      return null;
-	    }
-	  });
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              startOnLaunch(false);
+              return null;
+            }
+          });
       }
       break;
     case ACTIVE:
       state = STOPPING;
 
       Throwable savedException =
-	(Throwable) AccessController.doPrivileged(new PrivilegedAction() {
-	  public Object run() {
-	    Throwable res = null;
-	    if (allowSetStartOnLaunchFalse()) {
-	      startOnLaunch(false);
-	    }
-	    if (bactivator != null) {
-	      try {
-		bactivator.stop(bundleContext);
-	      } catch (Throwable e) {
-		res = e;
-	      }
-	      bactivator = null;
-	    }
+        (Throwable) AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            Throwable res = null;
+            if (allowSetStartOnLaunchFalse()) {
+              startOnLaunch(false);
+            }
+            if (bactivator != null) {
+              try {
+                bactivator.stop(bundleContext);
+              } catch (Throwable e) {
+                res = e;
+              }
+              bactivator = null;
+            }
 
-	    bundleContext.invalidate();
-	    bundleContext = null;
-	    removeBundleResources();
-	    state = RESOLVED;
-	    return res;
-	  }
-	});
+            bundleContext.invalidate();
+            bundleContext = null;
+            removeBundleResources();
+            state = RESOLVED;
+            return res;
+          }
+        });
 
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
 
       if (savedException != null) {
-	throw new BundleException("Bundle.stop: BundleActivator stop failed",
-				  savedException);
+        throw new BundleException("Bundle.stop: BundleActivator stop failed",
+                                  savedException);
       }
       break;
     case STARTING:
@@ -472,110 +472,110 @@ class BundleImpl implements Bundle {
       final boolean wasActive = state == ACTIVE;
       switch (getUpdatedState()) {
       case ACTIVE:
-	stop();
-	// Fall through
+        stop();
+        // Fall through
       case INSTALLED:
       case RESOLVED:
-	// Load new bundle
-	try {
-	  final BundleImpl thisBundle = this;
-	  final int oldStartLevel = getStartLevel();
-	  AccessController.doPrivileged(new PrivilegedExceptionAction() {
-	      public Object run() throws BundleException {
-		BundleArchive newArchive = null;
-		HeaderDictionary newHeaders;
-		try {
-		  // New bundle as stream supplied?
-		  InputStream bin;
-		  if (in == null) {
-		    // Try Bundle-UpdateLocation
-		    String update = archive.getAttribute(Constants.BUNDLE_UPDATELOCATION);
-		    if (update == null) {
-		      // Take original location
-		      update = location;
-		    }
-		    bin = (new URL(update)).openStream();
-		  } else {
-		    bin = in;
-		  }
-		  newArchive = framework.storage.replaceBundleJar(archive, bin);
-		  newArchive.setStartLevel(oldStartLevel);
-		} catch (Exception e) {
-		  if (newArchive != null) {
-		    newArchive.purge();
-		  }
-		
-		  if (wasActive) {
-		    try {
-		      start();
-		    } catch (BundleException be) {
-		      framework.listeners.frameworkError(thisBundle, be);
-		    }
-		  }
-		  throw new BundleException("Failed to get update bundle", e);
-		}
+        // Load new bundle
+        try {
+          final BundleImpl thisBundle = this;
+          final int oldStartLevel = getStartLevel();
+          AccessController.doPrivileged(new PrivilegedExceptionAction() {
+              public Object run() throws BundleException {
+                BundleArchive newArchive = null;
+                HeaderDictionary newHeaders;
+                try {
+                  // New bundle as stream supplied?
+                  InputStream bin;
+                  if (in == null) {
+                    // Try Bundle-UpdateLocation
+                    String update = archive.getAttribute(Constants.BUNDLE_UPDATELOCATION);
+                    if (update == null) {
+                      // Take original location
+                      update = location;
+                    }
+                    bin = (new URL(update)).openStream();
+                  } else {
+                    bin = in;
+                  }
+                  newArchive = framework.storage.replaceBundleJar(archive, bin);
+                  newArchive.setStartLevel(oldStartLevel);
+                } catch (Exception e) {
+                  if (newArchive != null) {
+                    newArchive.purge();
+                  }
 
-		// Remove this bundles packages
-		boolean allRemoved = bpkgs.unregisterPackages(false);
+                  if (wasActive) {
+                    try {
+                      start();
+                    } catch (BundleException be) {
+                      framework.listeners.frameworkError(thisBundle, be);
+                    }
+                  }
+                  throw new BundleException("Failed to get update bundle", e);
+                }
 
-		// Loose old bundle if no exporting packages left
-		if (classLoader != null) {
-		  if (allRemoved) {
-		    classLoader.purge();
-		  } else {
-		    saveZombiePackages();
-		  }
-		  classLoader = null;
-		}
+                // Remove this bundles packages
+                boolean allRemoved = bpkgs.unregisterPackages(false);
+
+                // Loose old bundle if no exporting packages left
+                if (classLoader != null) {
+                  if (allRemoved) {
+                    classLoader.purge();
+                  } else {
+                    saveZombiePackages();
+                  }
+                  classLoader = null;
+                }
 
 
-		// Activate new bundle
-		state = INSTALLED;
-		BundleArchive oldArchive = archive;
-		archive = newArchive;
-		doExportImport();
+                // Activate new bundle
+                state = INSTALLED;
+                BundleArchive oldArchive = archive;
+                archive = newArchive;
+                doExportImport();
 
-		// Purge old archive
-		if (allRemoved) {
-		  oldArchive.purge();
-		}
+                // Purge old archive
+                if (allRemoved) {
+                  oldArchive.purge();
+                }
 
-		checkEE(newArchive);
-      
-		// Broadcast updated event
-		framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, thisBundle));
+                checkEE(newArchive);
 
-		// Restart bundles previously stopped in the operation
-		if (wasActive) {
-		  try {
-		    thisBundle.start();
-		  } catch (BundleException be) {
-		    framework.listeners.frameworkError(thisBundle, be);
-		  }
-		}
-		return null;
-	      }
-	    });
-	} catch (PrivilegedActionException e) {
-	  throw (BundleException) e.getException();
-	}
-	break;
+                // Broadcast updated event
+                framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED, thisBundle));
+
+                // Restart bundles previously stopped in the operation
+                if (wasActive) {
+                  try {
+                    thisBundle.start();
+                  } catch (BundleException be) {
+                    framework.listeners.frameworkError(thisBundle, be);
+                  }
+                }
+                return null;
+              }
+            });
+        } catch (PrivilegedActionException e) {
+          throw (BundleException) e.getException();
+        }
+        break;
       case STARTING:
-	// Wait for RUNNING state, this doesn't happen now
-	// since we are synchronized.
-	throw new IllegalStateException("Bundle.update: Bundle is in STARTING state");
+        // Wait for RUNNING state, this doesn't happen now
+        // since we are synchronized.
+        throw new IllegalStateException("Bundle.update: Bundle is in STARTING state");
       case STOPPING:
-	// Wait for RESOLVED state, this doesn't happen now
-	// since we are synchronized.
-	throw new IllegalStateException("Bundle.update: Bundle is in STOPPING state");
+        // Wait for RESOLVED state, this doesn't happen now
+        // since we are synchronized.
+        throw new IllegalStateException("Bundle.update: Bundle is in STOPPING state");
       case UNINSTALLED:
-	throw new IllegalStateException("Bundle.update: Bundle is in UNINSTALLED state");
+        throw new IllegalStateException("Bundle.update: Bundle is in UNINSTALLED state");
       }
     } finally {
       if (in != null) {
-	try {
-	  in.close();
-	} catch (IOException ignore) {}
+        try {
+          in.close();
+        } catch (IOException ignore) {}
       }
     }
   }
@@ -585,12 +585,12 @@ class BundleImpl implements Bundle {
     String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
     if(ee != null) {
       if(Debug.packages) {
-	Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+        Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
       }
       if(!framework.isValidEE(ee)) {
-	throw new BundleException("Execution environment '" + ee + "' is not supported");
+        throw new BundleException("Execution environment '" + ee + "' is not supported");
       }
-    }      
+    }
   }
 
 
@@ -607,13 +607,13 @@ class BundleImpl implements Bundle {
     } catch (Exception ignored) {   }
 
     bDelayedStart = false;
-    
+
     switch (state) {
     case ACTIVE:
       try {
-	stop();
+        stop();
       } catch (BundleException be) {
-	framework.listeners.frameworkError(this, be);
+        framework.listeners.frameworkError(this, be);
       }
       // Fall through
     case INSTALLED:
@@ -621,10 +621,10 @@ class BundleImpl implements Bundle {
       framework.bundles.remove(location);
       if (bpkgs.unregisterPackages(false)) {
         if (classLoader != null) {
-	  AccessController.doPrivileged(new PrivilegedAction() {
+          AccessController.doPrivileged(new PrivilegedAction() {
               public Object run() {
                 classLoader.purge();
-	        classLoader = null;
+                classLoader = null;
                 return null;
               }
             });
@@ -632,31 +632,31 @@ class BundleImpl implements Bundle {
           archive.purge();
         }
       } else {
-	saveZombiePackages();
-	classLoader = null;
+        saveZombiePackages();
+        classLoader = null;
       }
       bpkgs = null;
       bactivator = null;
       if (bundleDir != null) {
-	AccessController.doPrivileged(new PrivilegedAction() {
-	  public Object run() {
-	    if(!bundleDir.delete()) {
-	      // Bundle dir is not deleted completely, make sure we mark
-	      // it as uninstalled for next framework restart
-	      try {
-		archive.setStartLevel(-2); // Mark as uninstalled
-	      } catch (Exception e) {
-		Debug.println("Failed to mark bundle " + id + 
-			      " as uninstalled, " + bundleDir + 
-			      " must be deleted manually: " + e);
-	      }
-	    }
-	    bundleDir = null;
-	    return null;
-	  }
-	});
+        AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            if(!bundleDir.delete()) {
+              // Bundle dir is not deleted completely, make sure we mark
+              // it as uninstalled for next framework restart
+              try {
+                archive.setStartLevel(-2); // Mark as uninstalled
+              } catch (Exception e) {
+                Debug.println("Failed to mark bundle " + id +
+                              " as uninstalled, " + bundleDir +
+                              " must be deleted manually: " + e);
+              }
+            }
+            bundleDir = null;
+            return null;
+          }
+        });
       }
-    
+
       // id, location and headers survices after uninstall.
       state = UNINSTALLED;
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
@@ -754,10 +754,10 @@ class BundleImpl implements Bundle {
   public boolean hasPermission(Object permission) {
     if (permission instanceof Permission) {
       if (framework.bPermissions) {
-	PermissionCollection pc = protectionDomain.getPermissions();
-	return pc != null ? pc.implies((Permission)permission) : false;
+        PermissionCollection pc = protectionDomain.getPermissions();
+        return pc != null ? pc.implies((Permission)permission) : false;
       } else {
-	return true;
+        return true;
       }
     } else {
       return false;
@@ -785,10 +785,9 @@ class BundleImpl implements Bundle {
     }
     try {
       framework.checkAdminPermission();
-      // TBD! Should we have doPrivilegde here?
       BundleClassLoader cl = (BundleClassLoader)getClassLoader();
       if (cl != null) {
-	return cl.getBundleResource(name);
+        return cl.getBundleResource(name);
       }
     } catch (SecurityException ignore) { }
     return null;
@@ -809,9 +808,9 @@ class BundleImpl implements Bundle {
   int getUpdatedState() {
     if (state == INSTALLED) {
       synchronized (this) {
-	if (state == INSTALLED && bpkgs.resolvePackages()) {
-	  state = RESOLVED;
-	}
+        if (state == INSTALLED && bpkgs.resolvePackages()) {
+          state = RESOLVED;
+        }
       }
     }
     return state;
@@ -835,14 +834,14 @@ class BundleImpl implements Bundle {
   ClassLoader getClassLoader() {
     if (classLoader == null) {
       synchronized (this) {
-	if (classLoader == null) {
-	  classLoader = (BundleClassLoader)
-	    AccessController.doPrivileged(new PrivilegedAction() {
-		public Object run() {
-		  return new BundleClassLoader(bpkgs, archive);
-		}
-	      });
-	}
+        if (classLoader == null) {
+          classLoader = (BundleClassLoader)
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                  return new BundleClassLoader(bpkgs, archive);
+                }
+              });
+        }
       }
     }
     return classLoader;
@@ -876,7 +875,7 @@ class BundleImpl implements Bundle {
     if (oldClassLoaders != null) {
       cl = (BundleClassLoader)oldClassLoaders.get(pkg);
       if (cl != null) {
-	return cl;
+        return cl;
       }
     }
     return (BundleClassLoader)getClassLoader();
@@ -893,7 +892,7 @@ class BundleImpl implements Bundle {
     }
     if (oldClassLoaders != null) {
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
-	((BundleClassLoader)i.next()).purge();
+        ((BundleClassLoader)i.next()).purge();
       }
     }
     oldClassLoaders = null;
@@ -919,14 +918,14 @@ class BundleImpl implements Bundle {
     if (oldClassLoaders != null) {
       HashSet res = new HashSet();
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
-	for (Iterator j = ((BundleClassLoader)i.next()).getBpkgs().getExports(); j.hasNext();) {
-	  res.add(j.next());
-	}
+        for (Iterator j = ((BundleClassLoader)i.next()).getBpkgs().getExports(); j.hasNext();) {
+          res.add(j.next());
+        }
       }
       if (bpkgs != null) {
-	for (Iterator i = bpkgs.getExports(); i.hasNext();) {
-	  res.add(i.next());
-	}
+        for (Iterator i = bpkgs.getExports(); i.hasNext();) {
+          res.add(i.next());
+        }
       }
       return res.iterator();
     } else if (bpkgs != null) {
@@ -946,14 +945,14 @@ class BundleImpl implements Bundle {
     if (oldClassLoaders != null) {
       HashSet res = new HashSet();
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
-	for (Iterator j = ((BundleClassLoader)i.next()).getBpkgs().getImports(); j.hasNext();) {
-	  res.add(j.next());
-	}
+        for (Iterator j = ((BundleClassLoader)i.next()).getBpkgs().getImports(); j.hasNext();) {
+          res.add(j.next());
+        }
       }
       if (bpkgs != null) {
-	for (Iterator i = bpkgs.getImports(); i.hasNext();) {
-	  res.add(i.next());
-	}
+        for (Iterator i = bpkgs.getImports(); i.hasNext();) {
+          res.add(i.next());
+        }
       }
       return res.iterator();
     } else if (bpkgs != null) {
@@ -972,49 +971,49 @@ class BundleImpl implements Bundle {
    *
    * @param value Boolean state for start on launch flag.
    */
-  private void startOnLaunch(boolean value) { 
+  private void startOnLaunch(boolean value) {
     try {
       archive.setStartOnLaunchFlag(value);
     } catch (IOException e) {
       framework.listeners.frameworkError(this, e);
     }
   }
-  
-  void setPersistent(final boolean value) { 
+
+  void setPersistent(final boolean value) {
     try {
       AccessController.doPrivileged(new PrivilegedExceptionAction() {
-	  public Object run() throws Exception {
-	    archive.setPersistent(value);
-	    return null;
-	  }
-	});
+          public Object run() throws Exception {
+            archive.setPersistent(value);
+            return null;
+          }
+        });
     } catch (Exception e) {
       framework.listeners.frameworkError(this, e);
     }
   }
-  
-  
+
+
 
   /**
    * Filter out all services that we don't have permission to get.
    *
    * @param srs Set of ServiceRegistrationImpls to check.
    */
-  private void filterGetServicePermission(Set srs) { 
+  private void filterGetServicePermission(Set srs) {
     AccessControlContext acc = AccessController.getContext();
     for (Iterator i = srs.iterator(); i.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();;
       String[] classes = (String[])sr.properties.get(Constants.OBJECTCLASS);
       boolean perm = false;
       for (int n = 0; n < classes.length; n++) {
-	try { 
-	  acc.checkPermission(new ServicePermission(classes[n], ServicePermission.GET));
-	  perm = true;
-	  break;
-	} catch (AccessControlException ignore) { }
+        try {
+          acc.checkPermission(new ServicePermission(classes[n], ServicePermission.GET));
+          perm = true;
+          break;
+        } catch (AccessControlException ignore) { }
       }
       if (!perm) {
-	i.remove();
+        i.remove();
       }
     }
   }
@@ -1027,9 +1026,9 @@ class BundleImpl implements Bundle {
    */
   private void doExportImport() {
     bpkgs = new BundlePackages(this,
-			       archive.getAttribute(Constants.EXPORT_PACKAGE),
-			       archive.getAttribute(Constants.IMPORT_PACKAGE),
-			       archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE));
+                               archive.getAttribute(Constants.EXPORT_PACKAGE),
+                               archive.getAttribute(Constants.IMPORT_PACKAGE),
+                               archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE));
     bpkgs.registerPackages();
   }
 
@@ -1041,16 +1040,16 @@ class BundleImpl implements Bundle {
    * used services.
    *
    */
-  private void removeBundleResources() { 
+  private void removeBundleResources() {
     framework.listeners.removeAllListeners(this);
     Set srs = framework.services.getRegisteredByBundle(this);
     for (Iterator i = srs.iterator(); i.hasNext();) {
       try {
-	((ServiceRegistration)i.next()).unregister();
+        ((ServiceRegistration)i.next()).unregister();
       } catch (IllegalStateException ignore) {
-	// Someone has unregistered the service after stop completed.
-	// This should not occur, but we don't want get stuck in
-	// an illegal state so we catch it.
+        // Someone has unregistered the service after stop completed.
+        // This should not occur, but we don't want get stuck in
+        // an illegal state so we catch it.
       }
     }
     Set s = framework.services.getUsedByBundle(this);
@@ -1080,13 +1079,13 @@ class BundleImpl implements Bundle {
 
   boolean isPersistent() {
     boolean b = archive.isPersistent();
-    
+
     // yup.
     b |= bDelayedStart;
 
     return b;
   }
- 
+
   int getStartLevel() {
     if(archive != null) {
       return archive.getStartLevel();
@@ -1101,9 +1100,9 @@ class BundleImpl implements Bundle {
 
     if(archive != null) {
       try {
-	archive.setStartLevel(n);
+        archive.setStartLevel(n);
       } catch (Exception e) {
-	Debug.println("Failed to set start level on #" + getBundleId());
+        Debug.println("Failed to set start level on #" + getBundleId());
       }
     }
   }
@@ -1123,7 +1122,7 @@ class BundleImpl implements Bundle {
 
   String toString(int detail) {
     StringBuffer sb = new StringBuffer();
-    
+
     sb.append("BundleImpl[");
     sb.append("id=" + getBundleId());
     if(detail > 0) {
@@ -1140,9 +1139,9 @@ class BundleImpl implements Bundle {
 
     if(detail > 4) {
       try {
-	sb.append(", bPersistant=" + isPersistent());
+        sb.append(", bPersistant=" + isPersistent());
       }  catch (Exception e) {
-	sb.append(", bPersistant=" + e);
+        sb.append(", bPersistant=" + e);
       }
     }
     if(detail > 4) {
@@ -1152,5 +1151,5 @@ class BundleImpl implements Bundle {
     sb.append("]");
 
     return sb.toString();
-  }  
+  }
 }

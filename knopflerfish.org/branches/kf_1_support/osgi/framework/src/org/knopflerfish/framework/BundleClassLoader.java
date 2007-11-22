@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,8 @@ final public class BundleClassLoader extends ClassLoader {
 
   static {
     try {
-      ClassLoader.class.getDeclaredMethod("findLibrary", new Class [] { String.class });
+      ClassLoader.class.getDeclaredMethod("findLibrary",
+                                          new Class [] { String.class });
       isJava2 = true;
     } catch (NoSuchMethodException ignore) {
       isJava2 = false;
@@ -102,7 +103,8 @@ final public class BundleClassLoader extends ClassLoader {
     this.bpkgs = bpkgs;
     archive = ba;
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - created new classloader");
+      Debug.println("classLoader(#" + bpkgs.bundle.id
+                    + ") - created new classloader");
     }
   }
 
@@ -119,7 +121,8 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected Class findClass(String name) throws ClassNotFoundException {
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find class: " + name);
+      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find class: "
+                    + name);
     }
     Class c = null;
     String pkg = null;
@@ -128,21 +131,23 @@ final public class BundleClassLoader extends ClassLoader {
       pkg = name.substring(0, pos);
       BundleImpl p = bpkgs.getProviderBundle(pkg);
       if (p != null) {
-	if (p.getBundleId() != 0) {
-	  BundleClassLoader cl = p.getExporterClassLoader(pkg);
-	  if (cl != null) {
-	    c = cl.loadOwnClass(name, pkg);
-	    if (debug) {
-	      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported: " + name +
-			    " from #" + p.getBundleId());
-	    }
-	    return c;
-	  }
-	}
-	if (debug) {
-	  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - no imported found: " + name);
-	}
-	throw new ClassNotFoundException(name);
+        if (p.getBundleId() != 0) {
+          BundleClassLoader cl = p.getExporterClassLoader(pkg);
+          if (cl != null) {
+            c = cl.loadOwnClass(name, pkg);
+            if (debug) {
+              Debug.println("classLoader(#" + bpkgs.bundle.id
+                            + ") - imported: " + name + " from #"
+                            + p.getBundleId());
+            }
+            return c;
+          }
+        }
+        if (debug) {
+          Debug.println("classLoader(#" + bpkgs.bundle.id
+                        + ") - no imported found: " + name);
+        }
+        throw new ClassNotFoundException(name);
       }
     }
     c = loadOwnClass(name, pkg);
@@ -161,8 +166,8 @@ final public class BundleClassLoader extends ClassLoader {
   protected String findLibrary(String name) {
     String res = archive.getNativeLibrary(name);
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find library: " + name
-		    + (res != null ? " OK" : " FAIL"));
+      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find library: "
+                    + name + (res != null ? " OK" : " FAIL"));
     }
     return res;
   }
@@ -175,7 +180,8 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected Enumeration findResources(String name) {
     if (debug) {
-      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find resources: " + name);
+      Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find resources: "
+                    + name);
     }
     BundleClassLoader cl = this;
     int pos = name.lastIndexOf('/');
@@ -184,11 +190,12 @@ final public class BundleClassLoader extends ClassLoader {
       String pkg = name.substring(start, pos).replace('/', '.');
       BundleImpl p = bpkgs.getProviderBundle(pkg);
       if (p != null && p.getBundleId() != 0) {
-	cl = p.getExporterClassLoader(pkg);
-	if (debug) {
-	  Debug.println("classLoader(#" + bpkgs.bundle.id + ") - imported resource: " + name +
-			" from #" + p.getBundleId());
-	}
+        cl = p.getExporterClassLoader(pkg);
+        if (debug) {
+          Debug.println("classLoader(#" + bpkgs.bundle.id
+                        + ") - imported resource: " + name + " from #"
+                        + p.getBundleId());
+        }
       }
     }
     return cl.findBundleResources(name);
@@ -207,7 +214,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
     return null;
   }
-  
+
 
   /**
    * Find Class and load it. This function is abstract in PJava 1.2
@@ -227,13 +234,13 @@ final public class BundleClassLoader extends ClassLoader {
     Class c = findLoadedClass(name);
     if (c == null) {
       try {
-	if (parent != null) {
-	  c = parent.loadClass(name);
-	} else {
-	  c = findSystemClass(name);
-	}
+        if (parent != null) {
+          c = parent.loadClass(name);
+        } else {
+          c = findSystemClass(name);
+        }
       } catch (ClassNotFoundException e) {
-	c = findClass(name);
+        c = findClass(name);
       }
     }
     if (resolve) {
@@ -278,7 +285,7 @@ final public class BundleClassLoader extends ClassLoader {
     try {
       URL url = getResource(name);
       if (url != null) {
-	return url.openStream();
+        return url.openStream();
       }
     } catch (IOException ignore) { }
     return null;
@@ -293,38 +300,44 @@ final public class BundleClassLoader extends ClassLoader {
    * First check if it is already loaded. Then try all archives in this
    * bundles classpath.
    */
-  synchronized Class loadOwnClass(String name, String pkg) throws ClassNotFoundException {
+  synchronized Class loadOwnClass(String name, String pkg)
+    throws ClassNotFoundException
+  {
     Class c = findLoadedClass(name);
     if (c == null) {
       if (debug) {
-	Debug.println("classLoader(#" + bpkgs.bundle.id + ") - try to find: " + name);
+        Debug.println("classLoader(#" + bpkgs.bundle.id
+                      + ") - try to find: " + name);
       }
       try {
-	byte[] bytes = archive.getClassBytes(name);
-	if (bytes != null) {
-	  if (debug) {
-	    Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " + name);
-	  }
+        byte[] bytes = archive.getClassBytes(name);
+        if (bytes != null) {
+          if (debug) {
+            Debug.println("classLoader(#" + bpkgs.bundle.id
+                          + ") - load own class: " + name);
+          }
           if (pkg != null) {
             if (getPackage(pkg) == null) {
               definePackage(pkg, null, null, null, null, null, null, null);
             }
           }
-	  if(bpkgs.bundle.protectionDomain == null) {
-	    // Kaffe can't handle null protectiondomain
-	    return defineClass(name, bytes, 0, bytes.length);
-	  } else {
-	    return defineClass(name, bytes, 0, bytes.length, bpkgs.bundle.protectionDomain);
-	  }
-	}
+          if(bpkgs.bundle.protectionDomain == null) {
+            // Kaffe can't handle null protectiondomain
+            return defineClass(name, bytes, 0, bytes.length);
+          } else {
+            return defineClass(name, bytes, 0, bytes.length,
+                               bpkgs.bundle.protectionDomain);
+          }
+        }
       } catch (IOException ioe) {
-	bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
+        bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
       }
       throw new ClassNotFoundException(name);
     } else {
       if (debug) {
-	Debug.println("classLoader(#" + bpkgs.bundle.id + ") - load own class: " +
-		      name + ", already loaded by " + this);
+        Debug.println("classLoader(#" + bpkgs.bundle.id
+                      + ") - load own class: " + name
+                      + ", already loaded by " + this);
       }
       return c;
     }
@@ -390,42 +403,56 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @return Enumeration of resources
    */
-  private Enumeration findBundleResources(String name) {
+  private Enumeration findBundleResources(final String name) {
     Vector answer = new Vector(1);
     Vector items = archive.componentExists(name);
     if (items != null) {
       for(int i = 0; i < items.size(); i++) {
-        int jarId = items.size() == 1 
+        final int jarId = items.size() == 1
           ? -1
           : ((Integer)items.elementAt(i)).intValue();
-        
+
         try {
           /*
-           * Fix for Java profiles which does not support 
+           * Fix for Java profiles which does not support
            * URL(String, String,int,String,URLStreamHandler).
-           *  
-           * These profiles must set the 
-           * org.knopflerfish.osgi.registerbundleurlhandler property 
+           *
+           * These profiles must set the
+           * org.knopflerfish.osgi.registerbundleurlhandler property
            * to 'true' so the BundleURLStreamHandler is added
            * to the Framework urlStreamHandlerFactory
            */
           URL url = null;
           if(Framework.REGISTERBUNDLEURLHANDLER) {
-            url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                    Long.toString(bpkgs.bundle.id),
-                    jarId,
-                    name.startsWith("/") ? name : ("/" + name));
+            url = new URL(BundleURLStreamHandler.PROTOCOL,
+                          Long.toString(bpkgs.bundle.id),
+                          jarId,
+                          name.startsWith("/") ? name : ("/" + name));
           } else {
-	        URLStreamHandler handler 
-	            = bpkgs.bundle.framework.bundleURLStreamhandler;
-	        url = new URL(BundleURLStreamHandler.PROTOCOL, 
-                    Long.toString(bpkgs.bundle.id),
-                    jarId,
-                    name.startsWith("/") ? name : ("/" + name),
-                    handler);
+            final URLStreamHandler handler
+              = bpkgs.bundle.framework.bundleURLStreamhandler;
+            try {
+              url = (URL) AccessController
+                .doPrivileged(new PrivilegedExceptionAction() {
+                    public Object run() throws MalformedURLException {
+                      return new URL
+                        (BundleURLStreamHandler.PROTOCOL,
+                         Long.toString(bpkgs.bundle.id),
+                         jarId,
+                         name.startsWith("/") ? name : ("/" + name),
+                         handler);
+                    }
+                  });
+            } catch (PrivilegedActionException pae) {
+              // pae.getException() should be an instance of
+              // MalformedURLException, as only "checked" exceptions
+              // will be "wrapped" in a PrivilegedActionException.
+              throw (MalformedURLException) pae.getException();
+            }
           }
           if (debug) {
-            Debug.println("classLoader(#" + bpkgs.bundle.id + ") - found: " + name + " -> " + url);
+            Debug.println("classLoader(#" + bpkgs.bundle.id + ") - found: "
+                          + name + " -> " + url);
           }
           answer.addElement(url);
         } catch (MalformedURLException ignore) {
