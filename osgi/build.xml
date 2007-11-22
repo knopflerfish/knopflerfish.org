@@ -47,7 +47,8 @@
 />
 
   <!-- targets -->
-  <target name="all">
+  <target name="all"
+	  description="Builds the framework and bundles in bundles-directory">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
@@ -134,11 +135,38 @@
   </java>
  </target>
 
+ <target name="run-kf-tests"
+         description="Builds then executes the KF testsuite."
+	 depends="all">
+   <ant dir="bundles_opt/junit"   target="all"/>
+   <ant dir="bundles_test"        target="all"
+	inheritAll="false"        inheritRefs="false"/>
+   <java fork="true"                        jar="framework.jar">
+     <arg line="-xargs init-tests.xargs"/>
+   </java>
+ </target>
+
+ <target name="run-kf-tests-secure"
+         description="Builds then executes the KF testsuite with security enabled."
+	 depends="all">
+   <ant dir="bundles_opt/junit"   target="all"/>
+   <ant dir="bundles_test"        target="all"
+	inheritAll="false"        inheritRefs="false"/>
+   <java fork="true"              jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg line="-xargs init-tests.xargs"/>
+   </java>
+ </target>
+
+
 
  <target name="clean" description="removes all generated files">
-  <delete file="framework.jar"/>
-  <delete dir="out"/>
-  <delete dir="jars"/>
+   <delete file="framework.jar"/>
+   <delete dir="out"/>
+   <delete dir="jars"/>
+   <ant dir="bundles_test"        target="clean"
+	inheritAll="false"        inheritRefs="false"/>
  </target>
 
 </project>

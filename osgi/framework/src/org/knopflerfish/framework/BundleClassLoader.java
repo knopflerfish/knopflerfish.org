@@ -300,7 +300,7 @@ final public class BundleClassLoader extends ClassLoader {
    * First check if it is already loaded. Then try all archives in this
    * bundles classpath.
    */
-  synchronized Class loadOwnClass(String name, String pkg)
+  synchronized Class loadOwnClass(final String name, String pkg)
     throws ClassNotFoundException
   {
     Class c = findLoadedClass(name);
@@ -310,7 +310,23 @@ final public class BundleClassLoader extends ClassLoader {
                       + ") - try to find: " + name);
       }
       try {
-        byte[] bytes = archive.getClassBytes(name);
+        byte[] bytes = null;
+        // Some storage kinds (e.g., expanded storage of sub-JARs)
+        // requieres the Framework's permisisons to allow acces thus
+        // we must call archive.getBytes() via doPrivileged().
+        try {
+          bytes = (byte[]) AccessController
+            .doPrivileged(new PrivilegedExceptionAction() {
+                public Object run() throws IOException {
+                  return archive.getClassBytes(name);
+                }
+              });
+        } catch (PrivilegedActionException pae) {
+          // pae.getException() should be an instance of IOException,
+          // as only "checked" exceptions will be "wrapped" in a
+          // PrivilegedActionException.
+          throw (IOException) pae.getException();
+        }
         if (bytes != null) {
           if (debug) {
             Debug.println("classLoader(#" + bpkgs.bundle.id
