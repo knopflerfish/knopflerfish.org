@@ -109,7 +109,7 @@ import java.util.Hashtable;
  * 
  */
 
-public final class AdminPermission extends Permission {
+public final class AdminPermission extends BasicPermission {
 
 	/**
 	 * The action string <code>class</code> (Value is "class").
