@@ -634,7 +634,9 @@ class BundleImpl implements Bundle {
       // Loose old bundle if no exporting packages left
       if (allRemoved) {
         if (classLoader != null) {
-          ((BundleClassLoader)classLoader).close();
+          if(classLoader instanceof BundleClassLoader) {
+            ((BundleClassLoader)classLoader).close();
+          }
           classLoader = null;
         }
         purgeOld = true;
@@ -743,7 +745,9 @@ class BundleImpl implements Bundle {
       } else {
         if (bpkgs.unregisterPackages(false)) {
           if (classLoader != null) {
-            ((BundleClassLoader)classLoader).purge();
+            if(classLoader instanceof BundleClassLoader) {
+              ((BundleClassLoader)classLoader).purge();
+            }
             classLoader = null;
           } else {
             secure.purge(this, protectionDomain);
@@ -899,11 +903,17 @@ class BundleImpl implements Bundle {
       return null;
     }
     if (getUpdatedState() != INSTALLED) {
-      BundleClassLoader cl = (BundleClassLoader)getClassLoader();
-      if (cl != null) {
-        Enumeration res = cl.getBundleResources(name, true);
-        if (res != null) {
-          return (URL)res.nextElement();
+      ClassLoader cl0 = getClassLoader();
+      if (cl0 != null) {
+        if(cl0 instanceof BundleClassLoader) {
+          BundleClassLoader cl = (BundleClassLoader)getClassLoader();
+          Enumeration res = cl.getBundleResources(name, true);
+          if (res != null) {
+            return (URL)res.nextElement();
+          }
+        } else {
+          // boot/sys extension bundles live on the system classloader
+          return cl0.getResource(name);
         }
       }
     }
@@ -1067,7 +1077,9 @@ class BundleImpl implements Bundle {
       fragment.setHost(null);
     } else {
       if (classLoader != null) {
-        ((BundleClassLoader)classLoader).close();
+        if(classLoader instanceof BundleClassLoader) {
+          ((BundleClassLoader)classLoader).close();
+        }
         classLoader = null;
       }
       bpkgs.unregisterPackages(true);
@@ -1110,7 +1122,10 @@ class BundleImpl implements Bundle {
     }
     if (oldClassLoaders != null) {
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
-        ((BundleClassLoader)i.next()).purge();
+        Object obj = i.next();
+        if(obj instanceof BundleClassLoader) {
+          ((BundleClassLoader)obj).purge();
+        }
       }
       oldClassLoaders = null;
     }
@@ -1151,8 +1166,11 @@ class BundleImpl implements Bundle {
     if (oldClassLoaders != null) {
       HashSet res = new HashSet();
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
-        for (Iterator j = ((BundleClassLoader)i.next()).getBpkgs().getExports(); j.hasNext();) {
-          res.add(j.next());
+        Object obj = i.next();
+        if(obj instanceof BundleClassLoader) {
+          for (Iterator j = ((BundleClassLoader)obj).getBpkgs().getExports(); j.hasNext();) {
+            res.add(j.next());
+          }
         }
       }
       if (bpkgs != null) {
@@ -1178,8 +1196,11 @@ class BundleImpl implements Bundle {
     if (oldClassLoaders != null) {
       HashSet res = new HashSet();
       for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
-        for (Iterator j = ((BundleClassLoader)i.next()).getBpkgs().getImports(); j.hasNext();) {
-          res.add(j.next());
+        Object obj = i.next();
+        if(obj instanceof BundleClassLoader) {
+          for (Iterator j = ((BundleClassLoader)obj).getBpkgs().getImports(); j.hasNext();) {
+            res.add(j.next());
+          }
         }
       }
       if (bpkgs != null) {
@@ -1786,10 +1807,14 @@ class BundleImpl implements Bundle {
       return null;
     }
     if (getUpdatedState() != INSTALLED) {
-      BundleClassLoader cl = (BundleClassLoader)getClassLoader();
-      if (cl != null) {
-        Enumeration e = cl.getBundleResources(name, false);
-        return e != null && e.hasMoreElements() ? e : null;
+      ClassLoader cl0 = (BundleClassLoader)getClassLoader();
+      if (cl0 != null) {
+        if(cl0 instanceof BundleClassLoader) {
+          Enumeration e = ((BundleClassLoader)cl0).getBundleResources(name, false);
+          return e != null && e.hasMoreElements() ? e : null;
+        } else {
+          return cl0.getResources(name);
+        }
       }
     }
     return null;
