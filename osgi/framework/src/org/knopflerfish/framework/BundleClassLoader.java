@@ -219,7 +219,7 @@ final public class BundleClassLoader extends ClassLoader {
     
     return bHasASM && 
       "true".equals(System.getProperty("org.knopflerfish.framework.patch", 
-                                       "true"));
+                                       "false"));
   }
 
   /**

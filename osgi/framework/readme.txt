@@ -407,10 +407,11 @@ Framework System Properties
 
    Example:
 
-    java -cp framework.jar:asm-3.0.jar \
-        org.knopflerfish.framework.Main        
+    java -Dorg.knopflerfish.framework.patch=true\
+         -cp framework.jar:asm-3.0.jar \
+         org.knopflerfish.framework.Main        
 
-   Default: true
+   Default: false
 
 
   org.knopflerfish.framework.patch.configurl
