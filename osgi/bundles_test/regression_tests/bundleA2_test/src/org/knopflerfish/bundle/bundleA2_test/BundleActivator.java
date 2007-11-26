@@ -32,52 +32,32 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.bundle.framework_test;
+package org.knopflerfish.bundle.bundleA2_test;
 
-import java.util.*;
 import org.osgi.framework.*;
-import junit.framework.*;
+import org.knopflerfish.service.bundleA2_test.*;
 
-public class Activator implements BundleActivator {
+/*
+   The start method tries to install the bundle(s) needed to do the test
+   The user has to fill in the bundles array with the bundles needed
+   to do the test.
+
+   To facilitate that the test may take place in another location
+   the POSGRUNDIR property is prepended before the bundle names
+   before an attempt to load them is made
+*/
+
+public class BundleActivator implements org.osgi.framework.BundleActivator {
+  BundleContext bc;
+  BundA s;
 
   public void start(BundleContext bc) {
-    {
-      TestSuite suite = new FrameworkTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new ServiceListenerTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageAdminTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new NativeCodeTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
+    this.bc = bc;
+    s = new BundA(bc);
   }
 
   public void stop(BundleContext bc) {
+    s.unregister();
+    s = null;
   }
 }

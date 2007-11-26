@@ -26,6 +26,8 @@
          todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleA1_test-1.0.1.jar"         
          todir = "resources"/>
+   <copy file  = "${topdir}/jars/bundleA2_test-1.0.0.jar"         
+         todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleB_test-1.0.0.jar"         
          todir = "resources"/>
    <copy file  = "${topdir}/jars/bundleC_test-1.0.0.jar"         

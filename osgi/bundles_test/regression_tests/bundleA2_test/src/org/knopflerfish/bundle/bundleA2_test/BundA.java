@@ -32,52 +32,34 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.bundle.framework_test;
+package org.knopflerfish.bundle.bundleA2_test;
 
-import java.util.*;
+import org.knopflerfish.service.bundleA2_test.*;
 import org.osgi.framework.*;
-import junit.framework.*;
 
-public class Activator implements BundleActivator {
+/*
+   This bundle is used to check parts of the functionality of the framework
+   It registers itself and its service but does nothing.
+*/
 
-  public void start(BundleContext bc) {
-    {
-      TestSuite suite = new FrameworkTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+public class BundA implements BundleA {
+  BundleContext bc;
+  ServiceRegistration sr;
+  String serviceDescription = "org.knopflerfish.service.bundleA2_test.BundleA";
+
+  public BundA (BundleContext bc) {
+    this.bc = bc;
+    try {
+      sr = bc.registerService(serviceDescription, this, null);
     }
-    {
-      TestSuite suite = new ServiceListenerTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageAdminTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new NativeCodeTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+    catch (RuntimeException ru) {
+      System.out.println ("Exception " + ru + " in BundleA start");
+      ru.printStackTrace();
     }
   }
 
-  public void stop(BundleContext bc) {
+  void unregister()
+  {
+    sr.unregister();
   }
 }
