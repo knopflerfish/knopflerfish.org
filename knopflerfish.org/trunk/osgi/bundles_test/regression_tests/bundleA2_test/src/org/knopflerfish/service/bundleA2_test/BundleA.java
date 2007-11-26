@@ -32,52 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.bundle.framework_test;
+package org.knopflerfish.service.bundleA2_test;
 
-import java.util.*;
-import org.osgi.framework.*;
-import junit.framework.*;
-
-public class Activator implements BundleActivator {
-
-  public void start(BundleContext bc) {
-    {
-      TestSuite suite = new FrameworkTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new ServiceListenerTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageAdminTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new NativeCodeTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-  }
-
-  public void stop(BundleContext bc) {
-  }
+public interface BundleA {
 }
