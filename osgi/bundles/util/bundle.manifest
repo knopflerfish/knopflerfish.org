@@ -12,6 +12,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: util
 Export-Package: org.knopflerfish.util,
  org.knopflerfish.util.sort,
- org.knopflerfish.util.workerthread
+ org.knopflerfish.util.workerthread,
+ org.knopflerfish.util.framework
 Import-Package: org.osgi.framework
 
