@@ -328,28 +328,45 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
       final String anyFilter = null;
       context.addServiceListener(srListener, anyFilter);
 
-      // we have to do this manually the first time
-      ServiceReference[] srl = null;
+      // we have to do this manually the first time, note that to get
+      // all services we must use a doPriviledged() here.
       try {
-        srl = (ServiceReference[]) AccessController
-          .doPrivileged(new PrivilegedExceptionAction() {
-              public Object run() throws InvalidSyntaxException {
-                return context.getServiceReferences(null, anyFilter);
+        AccessController.doPrivileged(new PrivilegedExceptionAction() {
+            public Object run() throws InvalidSyntaxException {
+              ServiceReference[] srl
+                = context.getServiceReferences(null, anyFilter);
+              for(int i = 0; srl != null && i < srl.length; i++) {
+                final ServiceReference  sr = srl[i];
+                final ServiceEvent evt
+                  = new ServiceEvent(ServiceEvent.REGISTERED, sr);
+                final String[] c
+                  = (String[])sr.getProperty(Constants.OBJECTCLASS);
+
+                for (int j = 0; j < c.length; j++) {
+                  final Permission perm
+                    = new ServicePermission(c[j], ServicePermission.GET);
+                  if (context.getBundle().hasPermission(perm)) {
+                    try {
+                      srListener.serviceChanged(evt);
+                    } catch (Throwable pe) {
+                      pe.printStackTrace();
+                    }
+                    break;
+                  }
+                }
               }
-            });
+              return null;
+            }
+          });
       } catch (PrivilegedActionException pae) {
         throw (InvalidSyntaxException) pae.getException();
       }
-
-      for(int i = 0; srl != null && i < srl.length; i++) {
-        srListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
-                                                   srl[i]));
-      }
-    } catch (Exception verybadstyle) {
-      verybadstyle.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
-    //    System.out.println("***** created tracker for #" + context.getBundle().getBundleId() +  ", filter=" + filter);
+    //    System.out.println("***** created tracker for #"
+    //                       + context.getBundle().getBundleId()
+    //                       +  ", filter=" + filter);
   }
 
   /**
