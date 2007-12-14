@@ -321,12 +321,14 @@ public class ExecutableBundleActivator implements BundleActivator {
                            String extractNames) throws IOException {
     String startName = null;
     Collection map = getNativeCode(startChoices);
+    // debug("startMap=" + map);
     if(map != null && map.size() > 0) {
       startName = (String)map.iterator().next();
     }
     
     String stopName = null;
     map = getNativeCode(stopChoices);
+    // debug("stopMap=" + map);
     if(map != null && map.size() > 0) {
       stopName = (String)map.iterator().next();
     }
@@ -354,12 +356,47 @@ public class ExecutableBundleActivator implements BundleActivator {
     
     if(startName != null) {
       startFile = extractResource(startName);
+      setExecutable(startFile);
     }
     
     if(stopName != null) {
       stopFile = extractResource(stopName);
+      setExecutable(stopFile);
     }
   }
+
+  void setExecutable(File f) {
+      File cmdFile = findOSCommand("chmod");
+      String[] cmd = new String[] {
+	  cmdFile.getAbsolutePath(),
+	  "a+rx",
+	  f.getAbsolutePath(),
+      };
+      Process p = null;
+      try {
+	  p = Runtime.getRuntime().exec(cmd, null, null);      
+	  p.waitFor();
+      } catch (Exception e) {
+	  throw new RuntimeException("failed to set executable " + f, e);
+      } finally {
+	  // try { p.destroy(); } catch(Exception ignored) {}
+      }
+  }
+
+    File findOSCommand(String cmd) {
+	String[] paths = new String[] { 
+	    "/bin", "/usr/bin", "/bin/local", "/usr/bin/local",
+	};
+
+	for(int i = 0; i <paths.length; i++) {
+	    File f = new File(new File(paths[i]), cmd);
+	    if(f.exists()) {
+		return f;
+	    }
+	}
+	throw new RuntimeException("Cannot find OS command " + cmd);
+    }
+
 
   /**
    * Extract a bundle resource to a file in the
@@ -433,6 +470,8 @@ public class ExecutableBundleActivator implements BundleActivator {
       List best = null;
       VersionRange bestVer = null;
       boolean bestLang = false;
+
+      // debug("getNativeCode bnc=" + bnc + ", proc=" + proc + ", os=" + os + ", osVer=" + osVer);
 
       for (Iterator i = Text.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
         VersionRange matchVer = null;
