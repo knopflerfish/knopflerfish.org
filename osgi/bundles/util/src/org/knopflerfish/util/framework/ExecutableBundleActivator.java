@@ -365,27 +365,31 @@ public class ExecutableBundleActivator implements BundleActivator {
     }
   }
 
-  void setExecutable(File f) {
-      File cmdFile = findOSCommand("chmod");
-      String[] cmd = new String[] {
+  void setExecutable(File f) {   
+    File cmdFile = findOSCommand("chmod");
+    if(cmdFile == null) {
+      debug("No chmod command found, ignoring setExecutable");
+      return;
+    }
+    String[] cmd = new String[] {
 	  cmdFile.getAbsolutePath(),
 	  "a+rx",
 	  f.getAbsolutePath(),
-      };
-      Process p = null;
-      try {
+    };
+    Process p = null;
+    try {
 	  p = Runtime.getRuntime().exec(cmd, null, null);      
 	  p.waitFor();
-      } catch (Exception e) {
-	  throw new RuntimeException("failed to set executable " + f, e);
-      } finally {
+    } catch (Exception e) {
+      debug("failed to set executable " + f, e);
+    } finally {
 	  // try { p.destroy(); } catch(Exception ignored) {}
-      }
+    }
   }
 
-    File findOSCommand(String cmd) {
+  File findOSCommand(String cmd) {
 	String[] paths = new String[] { 
-	    "/bin", "/usr/bin", "/bin/local", "/usr/bin/local",
+      "/bin", "/usr/bin", "/bin/local", "/usr/bin/local",
 	};
 
 	for(int i = 0; i <paths.length; i++) {
@@ -394,8 +398,8 @@ public class ExecutableBundleActivator implements BundleActivator {
 		return f;
 	    }
 	}
-	throw new RuntimeException("Cannot find OS command " + cmd);
-    }
+	return null;
+  }
 
 
   /**
