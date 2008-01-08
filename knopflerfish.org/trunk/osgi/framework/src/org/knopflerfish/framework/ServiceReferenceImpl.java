@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,9 +76,9 @@ public class ServiceReferenceImpl implements ServiceReference
   public Object getProperty(String key) {
     synchronized (registration.properties) {
       if (registration.properties != null) {
-	return cloneObject(registration.properties.get(key));
+        return cloneObject(registration.properties.get(key));
       } else {
-	return null;
+        return null;
       }
     }
   }
@@ -146,11 +146,11 @@ public class ServiceReferenceImpl implements ServiceReference
   public Bundle[] getUsingBundles() {
     synchronized (registration.properties) {
       if (registration.reference != null && registration.dependents.size() > 0) {
-	Set bs = registration.dependents.keySet();
-	Bundle[] res =  new Bundle[bs.size()];
-	return (Bundle[])bs.toArray(res);
+        Set bs = registration.dependents.keySet();
+        Bundle[] res =  new Bundle[bs.size()];
+        return (Bundle[])bs.toArray(res);
       } else {
-	return null;
+        return null;
       }
     }
   }
@@ -168,46 +168,52 @@ public class ServiceReferenceImpl implements ServiceReference
   Object getService(final BundleImpl bundle) {
     Object s = null;
     synchronized (registration.properties) {
-      if (registration.available) {
-	Integer ref = (Integer)registration.dependents.get(bundle);
-	if (ref == null) {
-	  String[] classes = (String[])registration.properties.get(Constants.OBJECTCLASS);
-	  bundle.framework.perm.checkGetServicePerms(classes);
-	  if (registration.service instanceof ServiceFactory) {
-	    try {
-              s = bundle.framework.perm.callGetService((ServiceFactory)registration.service, bundle, registration);
-	    } catch (Throwable pe) {
-	      bundle.framework.listeners.frameworkError(registration.bundle, pe);
-	      return null;
-	    }
-	    if (s == null) {
-	      return null;
-	    }
-	    BundleClassLoader bcl = (BundleClassLoader)registration.bundle.getClassLoader();
-	    for (int i = 0; i < classes.length; i++) {
-	      Class c = null;
-	      try {
-		c = bcl.loadClass(classes[i], true);
-	      } catch (ClassNotFoundException ignore) { } // Already checked
-	      if (!c.isInstance(s)) {
-		bundle.framework.listeners.frameworkError(registration.bundle, new BundleException("ServiceFactory produced an object that did not implement: " + classes[i]));
-		return null;
-	      }
-	    }
-	    registration.serviceInstances.put(bundle, s);
-	  } else {
-	    s = registration.service;
-	  }
-	  registration.dependents.put(bundle, new Integer(1));
-	} else {
-	  int count = ref.intValue();
-	  registration.dependents.put(bundle, new Integer(count + 1));
-	  if (registration.service instanceof ServiceFactory) {
-	    s = registration.serviceInstances.get(bundle);
-	  } else {
-	    s = registration.service;
-	  }
-	}
+      if (registration.available
+          && (!registration.unregistering
+              || Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+        Integer ref = (Integer)registration.dependents.get(bundle);
+        if (ref == null) {
+          String[] classes =
+            (String[])registration.properties.get(Constants.OBJECTCLASS);
+          bundle.framework.perm.checkGetServicePerms(classes);
+          if (registration.service instanceof ServiceFactory) {
+            try {
+              s = bundle.framework.perm.callGetService
+                ((ServiceFactory)registration.service, bundle, registration);
+            } catch (Throwable pe) {
+              bundle.framework.listeners.frameworkError(registration.bundle,
+                                                        pe);
+              return null;
+            }
+            if (s == null) {
+              return null;
+            }
+            BundleClassLoader bcl
+              = (BundleClassLoader)registration.bundle.getClassLoader();
+            for (int i = 0; i < classes.length; i++) {
+              Class c = null;
+              try {
+                c = bcl.loadClass(classes[i], true);
+              } catch (ClassNotFoundException ignore) { } // Already checked
+              if (!c.isInstance(s)) {
+                bundle.framework.listeners.frameworkError(registration.bundle, new BundleException("ServiceFactory produced an object that did not implement: " + classes[i]));
+                return null;
+              }
+            }
+            registration.serviceInstances.put(bundle, s);
+          } else {
+            s = registration.service;
+          }
+          registration.dependents.put(bundle, new Integer(1));
+        } else {
+          int count = ref.intValue();
+          registration.dependents.put(bundle, new Integer(count + 1));
+          if (registration.service instanceof ServiceFactory) {
+            s = registration.serviceInstances.get(bundle);
+          } else {
+            s = registration.service;
+          }
+        }
       }
     }
     return s;
@@ -235,7 +241,7 @@ public class ServiceReferenceImpl implements ServiceReference
         if (count > 0) {
           hadReferences = true;
         }
-        
+
         if(checkRefCounter) {
             if (count > 1) {
               registration.dependents.put(bundle, new Integer(count - 1));
@@ -245,7 +251,7 @@ public class ServiceReferenceImpl implements ServiceReference
         } else {
           removeService = true;
         }
-        
+
         if(removeService) {
           Object sfi = registration.serviceInstances.remove(bundle);
           if (sfi != null) {
@@ -268,7 +274,7 @@ public class ServiceReferenceImpl implements ServiceReference
    * Get all properties registered with this service.
    *
    * @return Dictionary containing properties or null
-   *         if service has been removed. 
+   *         if service has been removed.
    */
   PropertiesDictionary getProperties() {
     return registration.properties;
@@ -276,8 +282,8 @@ public class ServiceReferenceImpl implements ServiceReference
 
   //
   // Private methods
-  //    
-    
+  //
+
   /**
    * Clone object. Handles all service property types
    * and does this recursivly.
@@ -290,9 +296,9 @@ public class ServiceReferenceImpl implements ServiceReference
       val = ((Object [])val).clone();
       int len = Array.getLength(val);
       if (len > 0 && Array.get(val, 0).getClass().isArray()) {
-	for (int i = 0; i < len; i++) {
-	  Array.set(val, i, cloneObject(Array.get(val, i)));
-	}
+        for (int i = 0; i < len; i++) {
+          Array.set(val, i, cloneObject(Array.get(val, i)));
+        }
       }
     } else if (val instanceof boolean []) {
       val = ((boolean [])val).clone();
@@ -313,7 +319,7 @@ public class ServiceReferenceImpl implements ServiceReference
     } else if (val instanceof Vector) {
       Vector c = (Vector)((Vector)val).clone();
       for (int i = 0; i < c.size(); i++) {
-	c.setElementAt(cloneObject(c.elementAt(i)), i);
+        c.setElementAt(cloneObject(c.elementAt(i)), i);
       }
       val = c;
     }

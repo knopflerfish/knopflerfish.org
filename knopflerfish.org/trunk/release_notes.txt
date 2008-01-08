@@ -1,4 +1,4 @@
-Release Notes Knopflerfish 2.0.2
+Release Notes Knopflerfish 2.0.3
 --------------------------------
 
   Maintenance release of Knopflerfish
@@ -7,26 +7,13 @@ Release Notes Knopflerfish 2.0.2
 
 === Framework (Core) ===
 
-  * Bundle Class Patching
-    New feature in KF. Bundles that contain legacy code may be
-    cumbersome to run due to class loading problems in an OSGi
-    environment. This new feature is based on bundle class patching 
-    using byte-code manipulation. This can solve many problems related
-    to third-party libraries using non-OSGi compatible method calls. 
-
-  * Automatic Manifest Generation
-    New feature in KF. Automatic bundle manifest generation, which can
-    add or modify manifests to any jar file, even non-OSGi-bundle jar
-    files. 
-
-  * Custom Implementation of SecurityManager no longer bypassed
-    Changed so that a custom implementation of the SecurityManager no
-    longer is bypassed if it is present.
-
-  * Corrected bugs concerning finding resources in bundles
-    #1741368, 
-
-  * Bug fix, STOPPING event is sent when stop() is called.
+  * Bug fix, Registered services are removed from the registry
+    directly when SeriveRegistration.unregister() is called.
+    
+    Bundles with access to the ServiceReference for a service may get
+    the service during the unregistering phase if the system property 
+    org.knopflerfish.servicereference.valid.during.unregistering
+    have been set to "true" otherwise null will be returned.
 
   * Corrected incorrect return value from BundleContext.ungetService(Object).
     See bug #1780141.

@@ -414,7 +414,7 @@
            <include name = "osgi/bundles/remotefw/**"/>
            <include name = "osgi/bundles/bundlerepository/**"/>
 
-           <exclude name = "**/CVS"/>
+           <exclude name = "**/.svn"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">

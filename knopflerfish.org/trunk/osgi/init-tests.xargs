@@ -45,6 +45,10 @@
 # bootdelegation
 -Dorg.osgi.framework.bootdelegation=*
 
+# Shall bc.getService(ServiceReference) return the service while it is
+# in the state unregistering or not.
+-Dorg.knopflerfish.servicereference.valid.during.unregistering=true
+
 -init
 
 -initlevel 1
