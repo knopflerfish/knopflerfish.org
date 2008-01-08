@@ -15,6 +15,9 @@ Release Notes Knopflerfish 2.0.3
     org.knopflerfish.servicereference.valid.during.unregistering
     have been set to "true" otherwise null will be returned.
 
+  * Bug fix, Calling bundle.getResources(String) on the bundle object
+    for the System bundle throws a ClassCastExcpetion.
+    
   * Corrected incorrect return value from BundleContext.ungetService(Object).
     See bug #1780141.
 

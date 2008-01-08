@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1807,10 +1807,11 @@ class BundleImpl implements Bundle {
       return null;
     }
     if (getUpdatedState() != INSTALLED) {
-      ClassLoader cl0 = (BundleClassLoader)getClassLoader();
+      ClassLoader cl0 = getClassLoader();
       if (cl0 != null) {
         if(cl0 instanceof BundleClassLoader) {
-          Enumeration e = ((BundleClassLoader)cl0).getBundleResources(name, false);
+          Enumeration e = ((BundleClassLoader)cl0).getBundleResources
+            (name, false);
           return e != null && e.hasMoreElements() ? e : null;
         } else {
           return cl0.getResources(name);
