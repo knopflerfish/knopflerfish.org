@@ -128,16 +128,19 @@ class LogConfigImpl implements ManagedService, LogConfig {
 
     synchronized void start() {
         this.pid = this.getClass().getName();
-        initDir();
         configCollection = getDefault();
+        initDir();
         String[] clazzes = new String[] { ManagedService.class.getName(),
                 LogConfig.class.getName() };
         bc.registerService(clazzes, this, configCollection);
     }
 
     private void initDir() {
-        File f = bc.getDataFile("/");
-        dir = (f != null) ? f : null;
+        dir = bc.getDataFile("/"); // default location
+        String d = (String)configCollection.get(DIR);
+        if (d != null) {
+            dir = new File(d);     // location from config 
+        }
     }
 
     void init(LogReaderServiceFactory lr) {
@@ -259,13 +262,11 @@ class LogConfigImpl implements ManagedService, LogConfig {
      * @see org.knopflerfish.service.log.LogConfig#setOut(boolean)
      */
     public synchronized void setOut(boolean b) {
-        if (!DEFAULT_CONFIG) {
-            boolean oldOut = getOut();
-            if (b != oldOut) {
-                set(OUT, new Boolean(b));
-                updateConfig();
-            }
-        }
+	boolean oldOut = getOut();
+	if (b != oldOut) {
+	    set(OUT, new Boolean(b));
+	    updateConfig();
+	}
     }
 
     /*
@@ -284,18 +285,16 @@ class LogConfigImpl implements ManagedService, LogConfig {
      * @see org.knopflerfish.service.log.LogConfig#setFile(boolean)
      */
     public synchronized void setFile(boolean f) {
-        if (!DEFAULT_CONFIG) {
-            if ((dir != null)) {
-                boolean oldFile = getFile();
-                if (f != oldFile) {
-                    Boolean newFile = new Boolean(f);
-                    set(FILE, newFile);
-                    if (logReaderCallback != null)
-                        logReaderCallback.configChange(FILE, new Boolean(
-                                oldFile), newFile);
-                }
-            }
-        }
+	if ((dir != null)) {
+	    boolean oldFile = getFile();
+	    if (f != oldFile) {
+		Boolean newFile = new Boolean(f);
+		set(FILE, newFile);
+		if (logReaderCallback != null)
+		    logReaderCallback.configChange(FILE, new Boolean(oldFile),
+						   newFile);
+	    }
+	}
     }
 
     /*
@@ -509,7 +508,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
                 PROP_LOG_GRABIO, "false")) ? true : false)));
         ht.put(FILE, new Boolean(("true".equalsIgnoreCase(getProperty(
                 PROP_LOG_FILE, "false")) ? true : false)));
-        ht.put(DIR, getProperty(PROP_LOG_FILE_DIR, ""));
+        String dirStr = System.getProperty(PROP_LOG_FILE_DIR);
+        if (dirStr != null)
+            ht.put(DIR, dirStr);
         ht.put(FILE_S, new Integer(20000));
         ht.put(GEN, new Integer(4));
         ht.put(FLUSH, new Boolean(true));
