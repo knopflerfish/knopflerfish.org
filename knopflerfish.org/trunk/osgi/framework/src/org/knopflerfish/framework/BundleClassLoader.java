@@ -95,10 +95,10 @@ final public class BundleClassLoader extends ClassLoader {
    * Imported and Exported java packages.
    */
   BundlePackages bpkgs;
-  
+
   private static ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
   private static boolean bootDelegationUsed /*= false*/;
-  
+
 
   static {
     try {
@@ -107,17 +107,17 @@ final public class BundleClassLoader extends ClassLoader {
     } catch (NoSuchMethodException ignore) {
       isJava2 = false;
     }
-   
+
     buildBootDelegationPatterns();
   }
 
 
-  static void buildBootDelegationPatterns() { 
+  static void buildBootDelegationPatterns() {
     String bootDelegationString = System.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
     bootDelegationUsed = (bootDelegationString != null);
-   
+
     try {
-      Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION, 
+      Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
 				     bootDelegationString,
 				     true, true, false);
 
@@ -128,18 +128,18 @@ final public class BundleClassLoader extends ClassLoader {
 	  bootDelegationPatterns = null;
 	  //in case funny person puts a * amongst other things
 	  break;
-	} 
+	}
 	else if (key.endsWith(".*")) {
 	  bootDelegationPatterns.add(key.substring(0, key.length() - 1));
-	} 
+	}
 	else if (key.endsWith(".")) {
 	  Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
 													    Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
-	} 
+	}
 	else if (key.indexOf("*") != - 1) {
 	  Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
 													    Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
-	} 
+	}
 	else {
 	  bootDelegationPatterns.add(key);
 	}
@@ -149,22 +149,22 @@ final public class BundleClassLoader extends ClassLoader {
       Main.framework.listeners.frameworkError(Main.framework.systemBundle, e);
     }
   }
-  
-  static boolean isBootDelegated(String className){ 
+
+  static boolean isBootDelegated(String className){
     if(!bootDelegationUsed){
       return false;
     }
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
-      String classPackage = className.substring(0, pos);  
+      String classPackage = className.substring(0, pos);
       if (bootDelegationPatterns == null) {
         return true;
-      } 
+      }
       else {
         for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
           String ps = (String)i.next();
-          if ((ps.endsWith(".") && 
-               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) || 
+          if ((ps.endsWith(".") &&
+               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
                classPackage.equals(ps)) {
             return true;
           }
@@ -173,7 +173,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
     return false;
   }
-  
+
 
   /**
    * Create class loader for specified bundle.
@@ -216,9 +216,9 @@ final public class BundleClassLoader extends ClassLoader {
         Debug.println("ASM library: " + bHasASM);
       }
     }
-    
-    return bHasASM && 
-      "true".equals(System.getProperty("org.knopflerfish.framework.patch", 
+
+    return bHasASM &&
+      "true".equals(System.getProperty("org.knopflerfish.framework.patch",
                                        "false"));
   }
 
@@ -305,7 +305,7 @@ final public class BundleClassLoader extends ClassLoader {
       return null;
     }
   }
-  
+
 
   /**
    * Find Class and load it. This function is abstract in PJava 1.2
@@ -417,7 +417,7 @@ final public class BundleClassLoader extends ClassLoader {
       return archive;
     }
   }
-      
+
 
   /**
    * Close down this classloader.
@@ -602,14 +602,14 @@ final public class BundleClassLoader extends ClassLoader {
     if (pkg != null) {
       pbp = bpkgs.getProviderBundlePackages(pkg);
       if (pbp != null) {
-        
+
         if (isSystemBundle(pbp.bundle)) {
           try {
             return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
-          
+
         } else {
           BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
           if (cl != this) {
@@ -662,17 +662,16 @@ final public class BundleClassLoader extends ClassLoader {
     if (this != requestor && ep != null && !ep.checkFilter(name)) {
       return null;
     }
+    // Must collect and merge all search hits from step 5
+    // and 6 to handle the case when onlyFirst is false.
+    Vector /* SearchActionItem */ sais = new Vector();
+
     Vector av = archive.componentExists(path, onlyFirst);
     if (av != null) {
-      try {
-        return action.get(av, path, name, pkg, this, archive);
-      } catch (IOException ioe) {
-        bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
-        return null;
-      }
+      sais.add( new SearchActionItem( av, archive ) );
     }
     /* 6 */
-    if (fragments != null) {
+    if (fragments != null && !(onlyFirst && sais.size()>0) ) {
       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
         BundleArchive ba = (BundleArchive)i.next();
         if (debug) {
@@ -681,15 +680,20 @@ final public class BundleClassLoader extends ClassLoader {
         }
         Vector vec = ba.componentExists(path, onlyFirst);
         if (vec != null) {
-          try {
-            return action.get(vec, path, name, pkg, this, ba);
-          } catch (IOException ioe) {
-            bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
-            return null;
-          }
+          sais.add( new SearchActionItem( vec, ba ) );
+          if (onlyFirst) break;
         }
       }
     }
+    if (sais.size()>0) { /* 5 or 6 found the item */
+      try {
+        return action.get(sais, path, name, pkg, this );
+      } catch (IOException ioe) {
+        bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
+        return null;
+      }
+    }
+
     /* 7 */
     if (ep != null) {
       return null;
@@ -730,12 +734,24 @@ final public class BundleClassLoader extends ClassLoader {
   }
 
 
+  static class SearchActionItem {
+    public Vector /* Integer(class loader internal class path id) */ items;
+    public BundleArchive ba;
+    public SearchActionItem(Vector items, BundleArchive ba)
+    {
+      this.items = items;
+      this.ba = ba;
+    }
+  }
+
   /**
    *  Search action
    */
   interface SearchAction {
-    public Object get(Vector items, String path, String name, String pkg,
-                      BundleClassLoader cl, BundleArchive ba) throws IOException ;
+    public Object get(Vector /* SearchActionItem */ items,
+                      String path, String name, String pkg,
+                      BundleClassLoader cl )
+      throws IOException ;
   }
 
 
@@ -744,29 +760,33 @@ final public class BundleClassLoader extends ClassLoader {
    */
   static final SearchAction classSearch = new SearchAction() {
       public Object get(Vector items, String path, String name, String pkg,
-                        BundleClassLoader cl, BundleArchive ba) throws IOException {
-        byte[] bytes = ba.getClassBytes((Integer)items.get(0), path);
+                        BundleClassLoader cl )
+        throws IOException {
+        SearchActionItem sai = (SearchActionItem) items.get(0);
+        byte[] bytes = sai.ba.getClassBytes((Integer)sai.items.get(0), path);
         if (bytes != null) {
           if(cl.isBundlePatch()) {
-            bytes = ClassPatcher.getInstance(cl).patch(name, 
-                                                       bytes);
+            bytes = ClassPatcher.getInstance(cl).patch(name, bytes);
           }
           if (Debug.classLoader) {
-            Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - load class: " + name);
+            Debug.println("classLoader(#" + cl.bpkgs.bundle.id
+                          + ") - load class: " + name);
           }
           synchronized (cl) {
             Class c = cl.findLoadedClass(name);
             if (c == null) {
               if (pkg != null) {
                 if (cl.getPackage(pkg) == null) {
-                  cl.definePackage(pkg, null, null, null, null, null, null, null);
+                  cl.definePackage(pkg, null, null, null, null,
+                                   null, null, null);
                 }
               }
               if (cl.protectionDomain == null) {
                 // Kaffe can't handle null protectiondomain
                 c = cl.defineClass(name, bytes, 0, bytes.length);
               } else {
-                c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
+                c = cl.defineClass(name, bytes, 0, bytes.length,
+                                   cl.protectionDomain);
               }
             }
             return c;
@@ -781,23 +801,29 @@ final public class BundleClassLoader extends ClassLoader {
    *  Search action for resource searching
    */
   static final SearchAction resourceSearch = new SearchAction() {
-      public Object get(Vector items, String path, String name, String _pkg,
-                        BundleClassLoader cl, BundleArchive ba) {
-        Vector answer = new Vector(items.size());
+      public Object get(Vector items, String path, String name, String pkg,
+                        BundleClassLoader cl )
+        throws IOException {
+
+        Vector answer = new Vector();
         for(int i = 0; i < items.size(); i++) {
-          int subId = ((Integer)items.elementAt(i)).intValue();
-          URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
-                                           ba.getBundleId(),
-                                           subId,
-                                           path);
-          if (url != null) {
-            if (Debug.classLoader) {
-              Debug.println("classLoader(#" + cl.bpkgs.bundle.id + ") - found: " +
-                            path + " -> " + url);
+          SearchActionItem sai = (SearchActionItem) items.elementAt(i);
+          for(int j = 0; j < sai.items.size(); j++) {
+            int subId = ((Integer)sai.items.elementAt(j)).intValue();
+            URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
+                                             sai.ba.getBundleId(),
+                                             subId,
+                                             path);
+            if (url != null) {
+              if (Debug.classLoader) {
+                Debug.println("classLoader(#" + cl.bpkgs.bundle.id
+                              + ") - found: " +
+                              path + " -> " + url);
+              }
+              answer.addElement(url);
+            } else {
+              return null;
             }
-            answer.addElement(url);
-          } else {
-            return null;   
           }
         }
         return answer.elements();

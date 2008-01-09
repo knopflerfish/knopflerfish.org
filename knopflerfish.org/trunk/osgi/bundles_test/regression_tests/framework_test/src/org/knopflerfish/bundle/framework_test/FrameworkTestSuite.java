@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2007, KNOPFLERFISH project
+ * Copyright (c) 2004-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1419,17 +1419,45 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       n = countResources("/fw_test_nonexistent.txt");
       assertEquals("Multiple nonexistent resources should be reflected by CL.getResources() == 0", 0, n);
 
+      // Try to get the top level URL of the bundle
+      url = bc.getBundle().getResource("/");
+      out.println("bc.getBundle().getResource(\"/\") -> " +url);
+      assertNotNull("bc.getBundle().getResource(\"/\")",url);
+      // Check that we can build a usable URL from root URL.
+      url = new URL(url,"META-INF/MANIFEST.MF");
+      assertURLExists(url);
+
+      // Try to get the top level URLs of the bundle and check them
+      {
+        out.println("bc.getBundle().getResources(\"/\") -> ");
+        Enumeration e = bc.getBundle().getResources("/");
+        assertNotNull("bc.getBundle().getResources(\"/\")", e);
+        while(e.hasMoreElements()) {
+          url = (URL)e.nextElement();
+          out.println("\t" +url);
+          assertNotNull("Bundle root URL", url);
+        }
+      }
+
+
       out.println("### framework test bundle :FRAME068A:PASS");
     }
 
 
     int countResources(String name) throws Exception {
+      return countResources(name, false);
+    }
+    int countResources(String name, boolean verbose ) throws Exception {
       Bundle bundle = bc.getBundle();
       int n = 0;
       Enumeration e = bundle.getResources(name);
+      if (verbose) {
+        out.println("bc.getBundle().getResources(\"" + name +"\") -> ");
+      }
       if(e == null) return 0;
       while(e.hasMoreElements()) {
         URL url = (URL)e.nextElement();
+        if (verbose) { out.println("\t" +url); }
         assertURLExists(url);
         n++;
       }
@@ -1501,6 +1529,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       for(Enumeration e = cl.getResources(name);
           e.hasMoreElements();) {
         URL url = (URL)e.nextElement();
+        out.println("Loading text from "+url);
         String s = new String(Util.loadURL(url));
         if(!texts.containsKey(s)) {
           fail("Checking resource name '" + name + "', found unexpected content '" + s + "' in " + url);
