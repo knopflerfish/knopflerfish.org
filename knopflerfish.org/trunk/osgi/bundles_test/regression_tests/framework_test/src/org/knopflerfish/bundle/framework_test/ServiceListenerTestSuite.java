@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 KNOPFLERFISH project
+ * Copyright (c) 2007-2008 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -281,22 +281,21 @@ public class ServiceListenerTestSuite
       events.add(evt);
       out.println("ServiceEvent: " +toString(evt) );
       if (ServiceEvent.UNREGISTERING==evt.getType()) {
-        // Try to get the service.
         ServiceReference sr = evt.getServiceReference();
+
+        // Validate that no bundle is marked as using the service
         Bundle[] usingBundles = sr.getUsingBundles();
         if (null!=usingBundles) {
           teststatus = false;
-          out.print("Using bundles (unreg) should be null but is: ");
-          for (int i=0; usingBundles!=null && i<usingBundles.length; i++) {
-            if (i>0) out.print(", ");
-            out.print(usingBundles[i]);
-          }
-          out.println();
+          printUsingBundles(sr,"Using bundles (unreg) should be null but is: ");
         }
 
+        // Check if the service can be fetched
         Object service = bc.getService(sr);
         usingBundles = sr.getUsingBundles();
         if (UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) {
+          // In this mode the service shall be obtainable during
+          // unregistration.
           if (null==service) {
             teststatus = false;
             out.print("Service should be available to ServiceListener "
@@ -305,12 +304,15 @@ public class ServiceListenerTestSuite
           out.println("Service (unreg): " +service);
           if (usingBundles.length!=1) {
             teststatus = false;
-            out.print("One using bundle expected (unreg, after getService), "
-                      +"found: ");
+            printUsingBundles(sr,
+                              "One using bundle expected "
+                              +"(unreg, after getService), found: ");
           } else {
-            out.print("Using bundles (unreg, after getService): ");
+            printUsingBundles(sr, "Using bundles (unreg, after getService): ");
           }
-        } else { // Service not valid while unregistering
+        } else {
+          // In this mode the service shall NOT be obtainable during
+          // unregistration.
           if (null!=service) {
             teststatus = false;
             out.print("Service should not be available to ServiceListener "
@@ -318,19 +320,45 @@ public class ServiceListenerTestSuite
           }
           if (null!=usingBundles) {
             teststatus = false;
-            out.print("Using bundles (unreg, after getService), "
-                      +"should be null but is: ");
+            printUsingBundles(sr,
+                              "Using bundles (unreg, after getService), "
+                              +"should be null but is: ");
           } else {
-            out.print("Using bundles (unreg, after getService): null");
+            printUsingBundles(sr,
+                              "Using bundles (unreg, after getService): null");
           }
         }
-        for (int i=0; usingBundles!=null && i<usingBundles.length; i++) {
-          if (i>0) out.print(", ");
-          out.print(usingBundles[i]);
-        }
-        out.println();
-
         bc.ungetService(sr);
+
+        // Check that the UNREGISTERING service can not be looked up
+        // using the service registry.
+        try {
+          Long sid = (Long)sr.getProperty(Constants.SERVICE_ID);
+          String sidFilter = "(" +Constants.SERVICE_ID +"=" +sid +")";
+          ServiceReference[] srs = bc.getServiceReferences(null, sidFilter);
+          if (null==srs || 0==srs.length) {
+            out.println("ServiceReference for UNREGISTERING service is not"
+                        +" found in the service registry; ok.");
+          } else {
+            teststatus = false;
+            out.println("*** ServiceReference for UNREGISTERING"
+                        +" service, "
+                        + sr
+                        +", not found in the service registry; fail.");
+            out.print("Found the following Service references: ");
+            for (int i=0; null!=srs && i<srs.length; i++) {
+              if (i>0) out.print(", ");
+              out.print(srs[i]);
+            }
+            out.println();
+          }
+        } catch (Throwable t) {
+          teststatus = false;
+          out.println("*** Unexpected excpetion when trying to lookup a"
+                      +" service while it is in state UNREGISTERING; "
+                      +t);
+          t.printStackTrace(out);
+        }
       }
     }
 
@@ -354,6 +382,18 @@ public class ServiceListenerTestSuite
         }
       }
       return true;
+    }
+
+    private void printUsingBundles(ServiceReference sr, String caption)
+    {
+      Bundle[] usingBundles = sr.getUsingBundles();
+
+      out.print(caption!=null ? caption : "Using bundles: ");
+      for (int i=0; usingBundles!=null && i<usingBundles.length; i++) {
+        if (i>0) out.print(", ");
+        out.print(usingBundles[i]);
+      }
+      out.println();
     }
 
     String toString(ServiceEvent evt)
