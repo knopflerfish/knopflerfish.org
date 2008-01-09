@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,7 +99,7 @@ class BundleArchiveImpl implements BundleArchive
   private int startLevel = -1;
 
   private boolean bPersistent;
-  
+
   private long lastModified = 0;
 
   private ArrayList failedPath = null;
@@ -117,10 +117,10 @@ class BundleArchiveImpl implements BundleArchive
    * Construct new bundle archive.
    *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage, 
-                    FileTree          dir, 
+  BundleArchiveImpl(BundleStorageImpl bundleStorage,
+                    FileTree          dir,
                     InputStream       is,
-                    String            bundleLocation, 
+                    String            bundleLocation,
                     long              bundleId)
     throws Exception
   {
@@ -170,12 +170,12 @@ class BundleArchiveImpl implements BundleArchive
     }
 
     bPersistent = "true".equals(getContent(PERSISTENT_FILE));
-    
+
     s = getContent(LAST_MODIFIED_FILE);
     if (s != null) {
         try {
                 lastModified = Long.parseLong(s);
-        } 
+        }
         catch (NumberFormatException ignore) {}
     }
 
@@ -270,7 +270,7 @@ class BundleArchiveImpl implements BundleArchive
     return startLevel;
   }
 
-  
+
   public void setStartLevel(int level) throws IOException {
     if (startLevel != level) {
       startLevel = level;
@@ -296,12 +296,12 @@ class BundleArchiveImpl implements BundleArchive
                 return lastModified;
   }
 
-  
+
   public void setLastModified(long timemillisecs) throws IOException{
           lastModified = timemillisecs;
           putContent(LAST_MODIFIED_FILE, Long.toString(timemillisecs));
   }
-  
+
 
   /**
    * Get a byte array containg the contents of named file from a bundle
@@ -330,19 +330,30 @@ class BundleArchiveImpl implements BundleArchive
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    for (int i = 0; i < archives.length; i++) {
-      Archive.InputFlow aif = archives[i].getInputFlow(component);
-      if (aif != null) {
-        if (v == null) {
-          v = new Vector();
-        }
+    if (0==component.length()) {
+      // The special case asking for "/"
+      v = new Vector();
+      for (int i = 0; i < archives.length; i++) {
         v.addElement(new Integer(i));
-        try {
-          if(aif.is != null) aif.is.close();
-        } 
-        catch (IOException ignore) { }
         if (onlyFirst) {
           break;
+        }
+      }
+    } else {
+      for (int i = 0; i < archives.length; i++) {
+        Archive.InputFlow aif = archives[i].getInputFlow(component);
+        if (aif != null) {
+          if (v == null) {
+            v = new Vector();
+          }
+          v.addElement(new Integer(i));
+          try {
+            if(aif.is != null) aif.is.close();
+          }
+          catch (IOException ignore) { }
+          if (onlyFirst) {
+            break;
+          }
         }
       }
     }
@@ -400,19 +411,19 @@ class BundleArchiveImpl implements BundleArchive
             try {
               int prefix = Integer.parseInt(val.substring(index0, index1));
               rename.replace(index0, index1, Integer.toString(prefix + 1));
-            } 
+            }
             catch (Throwable t) {
               rename.insert(index0, "0_");
             }
-          } 
+          }
           else {
             rename.insert(index0, "0_");
           }
           renameLibs.put(key, rename.toString());
         }
         return val;
-      } 
-      catch (Exception ignore) {      
+      }
+      catch (Exception ignore) {
       }
     }
     return null;
@@ -548,7 +559,7 @@ class BundleArchiveImpl implements BundleArchive
     }
     return null;
   }
-  
+
 
   /**
    * Write string to named file.
@@ -572,7 +583,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
-    
+
     if (bcp != null) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
@@ -592,7 +603,7 @@ class BundleArchiveImpl implements BundleArchive
         }
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
-    } 
+    }
     else {
       archives = new Archive[] { archive };
     }
@@ -682,7 +693,7 @@ class BundleArchiveImpl implements BundleArchive
           if (!matchLang) {
             continue;
           }
-        } 
+        }
 
         List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
@@ -766,5 +777,5 @@ class BundleArchiveImpl implements BundleArchive
   public String getJarLocation() {
     return archive.getPath();
   }
-  
+
 }//class

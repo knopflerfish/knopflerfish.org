@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, Knopflerfish project
+ * Copyright (c) 2003-2008, Knopflerfish project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,9 +79,9 @@ class BundleArchiveImpl implements BundleArchive
    * Construct new bundle archive.
    *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage, 
+  BundleArchiveImpl(BundleStorageImpl bundleStorage,
                     InputStream       is,
-                    String            bundleLocation, 
+                    String            bundleLocation,
                     long bundleId)
     throws Exception
   {
@@ -148,7 +148,7 @@ class BundleArchiveImpl implements BundleArchive
   public HeaderDictionary getUnlocalizedAttributes() {
     return new HeaderDictionary(archive.manifest.getMainAttributes());
   }
-  
+
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -173,7 +173,7 @@ class BundleArchiveImpl implements BundleArchive
     return startLevel;
   }
 
-  
+
   public void setStartLevel(int level) {
     startLevel = level;
   }
@@ -188,7 +188,7 @@ class BundleArchiveImpl implements BundleArchive
     return bPersistent;
   }
 
-  
+
   public long getLastModified() {
     return lastModified;
   }
@@ -198,7 +198,7 @@ class BundleArchiveImpl implements BundleArchive
           lastModified = timemillisecs;
   }
 
-  
+
   /**
    * Get a byte array containg the contents of named file from a bundle
    * archive.
@@ -226,24 +226,35 @@ class BundleArchiveImpl implements BundleArchive
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    for (int i = 0; i < archives.length; i++) {
-      InputStream is = archives[i].getInputStream(component);
-      if (is != null) {
-        if(v == null) {
-          v = new Vector();
-        }
+    if (0==component.length()) {
+      // The special case asking for "/"
+      v = new Vector();
+      for (int i = 0; i < archives.length; i++) {
         v.addElement(new Integer(i));
-        try {
-            is.close();
-        } catch (IOException ignore) { }
         if (onlyFirst) {
           break;
+        }
+      }
+    } else {
+      for (int i = 0; i < archives.length; i++) {
+        InputStream is = archives[i].getInputStream(component);
+        if (is != null) {
+          if(v == null) {
+            v = new Vector();
+          }
+          v.addElement(new Integer(i));
+          try {
+            is.close();
+          } catch (IOException ignore) { }
+          if (onlyFirst) {
+            break;
+          }
         }
       }
     }
     return v;
   }
-    
+
 
   /**
    * Get an specific InputStream to named entry inside a bundle.
@@ -332,7 +343,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
-    
+
     if (bcp != null) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
@@ -340,7 +351,7 @@ class BundleArchiveImpl implements BundleArchive
         String path = st.nextToken().trim();
         if (".".equals(path)) {
                   a.add(archive);
-          } 
+          }
           else if (path.endsWith(".jar")){
             try {
               a.add(archive.getSubArchive(path));
@@ -365,7 +376,7 @@ class BundleArchiveImpl implements BundleArchive
     }
   }
 
-  
+
   public Enumeration findResourcesPath(String path) {
     return archive.findResourcesPath(path);
   }

@@ -18,6 +18,15 @@ Release Notes Knopflerfish 2.0.3
   * Bug fix, Calling bundle.getResources(String) on the bundle object
     for the System bundle throws a ClassCastExcpetion.
     
+  * Bundle.getResource("/") now returns a valid URL to the root of the
+    bundle's classpath. Bundle.getResources("/") now returns an
+    enumeration of root URLs for the bundles class path. Both these
+    methods previously returned null when called with the argument "/".
+
+  * Bug fix, Bundle.getResources(name) did not include resources from
+    attached fragments if one or more matches was found in the bundle
+    itself.
+
 
 === Services (Compendium) ===
       
