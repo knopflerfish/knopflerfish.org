@@ -14,10 +14,6 @@
 -Dorg.osgi.test.watchdog=120
 -Dscr.bundle.name=org.knopflerfish.bundle.component
 
-# Run with security
--Djava.security.manager=
--Djava.security.policy=file:framework.policy
-
 # EE used for testing
 -Dorg.osgi.framework.executionenvironment=J2SE-1.4
 
