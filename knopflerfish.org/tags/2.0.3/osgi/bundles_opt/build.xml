@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<project name="bundles_opt" default="all">
+
+  <target name="all">
+    <ant dir="commons-logging"    target="all"/>
+    <ant dir="soap"               target="all"/>
+    <ant dir="junit"              target="all"/>
+    <ant dir="serial"             target="all"/>
+    <ant dir="desktop_displayers" target="all"/>
+    <ant dir="oscar-shell"        target="all"/>
+    <ant dir="jini"               target="all"/>
+    <ant dir="dirdeployer"        target="all"/>
+    <ant dir="desktop_awt"        target="all"/>
+    <ant dir="kxml"               target="all"/>
+  </target>
+
+  <target name="clean">
+    <ant dir="commons-logging"    target="clean"/>
+    <ant dir="soap"               target="clean"/>
+    <ant dir="junit"              target="clean"/>
+    <ant dir="serial"             target="clean"/>
+    <ant dir="desktop_displayers" target="clean"/>
+    <ant dir="oscar-shell"        target="clean"/>
+    <ant dir="jini"               target="clean"/>
+    <ant dir="dirdeployer"        target="clean"/>
+    <ant dir="desktop_awt"        target="clean"/>
+    <ant dir="kxml"               target="clean"/>
+  </target>
+
+</project>

@@ -1,0 +1,15 @@
+# List of test IDs
+-Dorg.knopflerfish.junit_runner.tests=RestartTestSuite
+
+# true means "quit framework when all tests are run"
+-Dorg.knopflerfish.junit_runner.quit=true
+
+# true means wait for complete framework start until run
+-Dorg.knopflerfish.junit_runner.wait=false
+
+-Dorg.knopflerfish.gosg.jars=file:jars/
+-Dorg.knopflerfish.framework.debug.startlevel=xtrue
+
+
+-launch
+

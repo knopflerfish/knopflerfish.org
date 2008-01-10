@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: serialportdevice
+Bundle-SymbolicName: org.knopflerfish.bundle.serialportdevice
+Bundle-Version: 2.0.0
+Bundle-UUID: org.knopflerfish:serialportdevice:2.0.0
+Bundle-Category: service
+Bundle-Description: Serial port device
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-Activator: org.knopflerfish.bundle.serial.Activator
+Export-Package: org.knopflerfish.service.serial
+Import-Package: javax.comm,org.knopflerfish.service.log,org.knopflerfi
+ sh.service.serial,org.osgi.framework,org.osgi.service.cm,org.osgi.ser
+ vice.device

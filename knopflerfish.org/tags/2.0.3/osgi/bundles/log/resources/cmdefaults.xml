@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<metatype:values
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype">
+
+  <org.knopflerfish.bundle.log.LogConfig>
+
+   <default.level>info</default.level>
+
+   <bundle.log.level>
+    <item>location;level</item>
+   </bundle.log.level>
+
+   <memory.size>16384</memory.size>
+
+   <file>true</file>
+   <file.flush>true</file.flush>
+   <file.dir></file.dir>
+   <file.generations>4</file.generations>
+
+   <log.out>true</log.out>
+
+  </org.knopflerfish.bundle.log.LogConfig>
+
+ </metatype:values>

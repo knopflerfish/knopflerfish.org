@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+
+<!-- this component is used to check the lazy instanciation of components -->
+ <component name="componentA1.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA1"/>
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentA1"/>
+  </service>
+ </component>
+
+
+
+<!-- A references B, B references C, C references a service that is created  -->
+
+
+<!-- A references B -->
+ <component name="componentA.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA"/>
+
+  <reference name="COMPONENTB1"
+	interface="org.knopflerfish.bundle.componentA_test.ComponentB"
+	bind="setService"
+	unbind="unsetService"/>
+
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentA"/>
+  </service>
+ </component>
+
+
+<!-- B references C -->
+ <component name="componentB.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentB"/>
+
+  <reference name="COMPONENTC1"
+	interface="org.knopflerfish.bundle.componentA_test.ComponentC"
+	bind="setService"
+	unbind="unsetService"/>
+
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentB"/>
+  </service>
+ </component>
+
+
+<!-- C reference TestService -->
+ <component name="componentC.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentC"/>
+
+  <reference name="TESTSERVICE"
+	interface="org.knopflerfish.service.component_test.TestService"
+	bind="setService"
+	unbind="unsetService"/>
+
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentC"/>
+  </service>
+ </component>
+
+
+
+</root>

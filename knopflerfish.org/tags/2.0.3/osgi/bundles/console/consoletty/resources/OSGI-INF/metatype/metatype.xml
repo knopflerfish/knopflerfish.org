@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0">
+
+<MetaData>
+
+<OCD id="1.1.1.2" name="OCD for ConsoleTty" >
+
+  <AD name="nonblocking" id="1.1.1.2.1" type="Boolean" default="false" 
+      description="Use non-blocking tty access. Some JVM-OS combinations cannot handle blocking access to standard input." />
+
+</OCD>
+
+<Designate pid="org.knopflerfish.bundle.consoletty.ConsoleTty" bundle="ignored">
+  <Object ocdref="1.1.1.2"/>
+</Designate>
+
+</MetaData>
+
