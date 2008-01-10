@@ -14,6 +14,9 @@
 -Dorg.osgi.test.watchdog=120
 -Dscr.bundle.name=org.knopflerfish.bundle.component
 
+# Specify the BundleSignerCondition.getCondition() implementation to use
+-Dorg.osgi.vendor.condpermadmin=org.knopflerfish.framework
+
 # EE used for testing
 -Dorg.osgi.framework.executionenvironment=J2SE-1.4
 
