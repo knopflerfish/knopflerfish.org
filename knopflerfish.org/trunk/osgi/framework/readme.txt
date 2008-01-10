@@ -256,6 +256,12 @@ Framework System Properties
      Framework verbosity level. 0 means few messages
      Default: 0
 
+   org.knopflerfish.servicereference.valid.during.unregistering
+     If set to true, then during the UNREGISTERING service event the
+     Listener can use the ServiceReference to receive an instance of
+     the service.
+     Default: false
+
    org.knopflerfish.startlevel.use
      Use the Start Level service.
      Default: true
