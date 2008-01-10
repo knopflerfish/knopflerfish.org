@@ -1,4 +1,4 @@
-Release Notes Knopflerfish 2.0.3
+Release Notes Knopflerfish 2.0.4
 --------------------------------
 
   Maintenance release of Knopflerfish
@@ -7,43 +7,12 @@ Release Notes Knopflerfish 2.0.3
 
 === Framework (Core) ===
 
-  * Bug fix, Registered services are removed from the registry
-    directly when SeriveRegistration.unregister() is called.
-    
-    Bundles with access to the ServiceReference for a service may get
-    the service during the unregistering phase if the system property 
-    org.knopflerfish.servicereference.valid.during.unregistering
-    have been set to "true" otherwise null will be returned.
-
-  * Bug fix, Calling bundle.getResources(String) on the bundle object
-    for the System bundle throws a ClassCastExcpetion.
-    
-  * Bundle.getResource("/") now returns a valid URL to the root of the
-    bundle's classpath. Bundle.getResources("/") now returns an
-    enumeration of root URLs for the bundles class path. Both these
-    methods previously returned null when called with the argument "/".
-
-  * Bug fix, Bundle.getResources(name) did not include resources from
-    attached fragments if one or more matches was found in the bundle
-    itself.
 
 
 === Services (Compendium) ===
       
-  * EventAdmin
-    Updates Event class to allow for alphanumeric event topics
 
-  * URLConnection
-    Added getContentType and getContentLength 
-
-  * Component (Declarative Services)
-    Corrected bugs concerning finding activate, deactivate methods
-    defined in superclasses for Component.
-    #1834414, 
 
 === Misc (KF specific, start scritps, build system etc ===
     
-  * TrayIcon - WindowsVista recognized as platform alias
-
-  * Junit fix (#1816102)
 
