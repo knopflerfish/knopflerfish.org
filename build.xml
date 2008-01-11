@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ** Copyright (c) 2004-2007, KNOPFLERFISH project
+  ** Copyright (c) 2004-2008, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -39,7 +39,7 @@
 
 
   <property name  = "version" 
-            value = "2.0.3"/>
+            value = "2.0.4"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -52,28 +52,28 @@
 
   <property name="release.dir" value = "htdocs/releases/${version}"/>
 
-  <property name      = "javadoc.out.dir" location = "javadoc"/>
+  <property name = "javadoc.out.dir" location = "javadoc"/>
 
 
   <property name     = "distribfile" 
-            location = "knopflerfish_osgi_${version}.jar"/>
+            location = "${release.dir}/knopflerfish_osgi_${version}.jar"/>
 
   <property name     = "distribfile_fullbin" 
-            location = "knopflerfish_fullbin_osgi_${version}.jar"/>
+            location = "${release.dir}/knopflerfish_fullbin_osgi_${version}.jar"/>
 
   <property name     = "distribfile_bin" 
-            location = "knopflerfish_bin_osgi_${version}.jar"/>
+            location = "${release.dir}/knopflerfish_bin_osgi_${version}.jar"/>
 
   <property name     = "distribfile_tiny" 
-            location = "knopflerfish_osgi_tiny_${version}.zip"/>
+            location = "${release.dir}/knopflerfish_osgi_tiny_${version}.zip"/>
 
   <property name     = "distribfile_tests" 
-            location = "knopflerfish_osgi_tests_${version}.zip"/>
+            location = "${release.dir}/knopflerfish_osgi_tests_${version}.zip"/>
 
   <property name     = "distribfile_opt" 
-            location = "knopflerfish_opt_${version}.jar"/>
+            location = "${release.dir}/knopflerfish_opt_${version}.jar"/>
 
-  <property name = "ant.dir"          location="ant"/>
+  <property name = "ant.dir"          location = "ant"/>
   <property name = "antclasses"       location = "${ant.dir}/classes"/>
  
 
@@ -112,6 +112,7 @@
     <ant    dir = "osgi"   target = "clean" />
     <ant    dir = "htdocs" target = "clean" />
     <delete dir = "${javadoc.out.dir}"      />
+    <delete dir = "repo"      />
   </target>
 
   <target name        = "htdocs"
@@ -260,26 +261,34 @@
 
    </target>
 
+  <target name="mkreldir">
+     <mkdir dir = "${release.dir}"/>
+  </target>
+
    <!-- Some of the distrib targets assumes a defulat build -->
    <!-- thus the dependency on "clean,default". -->
    <target name        = "distrib" 
 	   description = "Builds all distribution files"
-	   depends     = "clean,default"> 
-    <antcall target     = "xargs"/>
-    <antcall target     = "distrib_complete"/>
-    <antcall target     = "distrib_fullbin"/>
-    <antcall target     = "distrib_bin"/>
-    <antcall target     = "distrib_tiny"/>
-    <antcall target     = "distrib_opt"/>
+	   depends     = "clean,default,mkreldir"> 
+     <antcall target     = "xargs"/>
+     <antcall target     = "distrib_complete"/>
+     <antcall target     = "distrib_fullbin"/>
+     <antcall target     = "distrib_bin"/>
+     <antcall target     = "distrib_tiny"/>
+     <antcall target     = "distrib_opt"/>
 
-    <antcall target     = "obr"/>
-    <antcall target     = "install_bindex"/>
-    <antcall target     = "bindex"/>
-  </target>
+     <antcall target     = "obr"/>
+     <antcall target     = "obr_index"/>
+     <antcall target     = "install_bindex"/>
+     <antcall target     = "bindex"/>
+
+     <echo message="Build result placed in ${release.dir} and repo"/>
+   </target>
 
 
   <target   name        = "distrib_complete" 
-            description = "Builds self-extraction distribution file">
+            description = "Builds self-extraction distribution file"
+	    depends     = "mkreldir">
 
     <!-- to make sure we get correct version number in framework -->
     <ant    dir         = "osgi/framework"
@@ -441,12 +450,11 @@
 
     </jar>
 
-    <copy file="${distribfile}"        todir="${release.dir}"/>
-
   </target>
 
   <target   name        = "distrib_bin" 
-            description = "Builds self-extraction binary distribution file">
+            description = "Builds self-extraction binary distribution file"
+	    depends     = "mkreldir">
 
     <!-- to make sure we get correct version number in framework -->
     <ant    dir         = "osgi/framework"
@@ -568,12 +576,11 @@
 
     </jar>
 
-    <copy file="${distribfile_bin}"        todir="${release.dir}"/>
-
   </target>
 
   <target   name        = "distrib_fullbin" 
-            description = "Builds self-extraction full binary distribution file">
+            description = "Builds self-extraction full binary distribution file"
+	    depends     = "mkreldir">
 
     <!-- to make sure we get correct version number in framework -->
     <ant    dir         = "osgi/framework"
@@ -657,13 +664,12 @@
 
     </jar>
 
-    <copy file="${distribfile_fullbin}"        todir="${release.dir}"/>
-
   </target>
 
 
   <target   name        = "distrib_tiny" 
-            description = "Builds tiny distribution file">
+            description = "Builds tiny distribution file"
+	    depends     = "mkreldir">
 
     <!-- to make sure we get correct version number in framework -->
     <ant    dir         = "osgi/framework"
@@ -702,12 +708,11 @@
 
     </zip>
 
-    <copy file="${distribfile_tiny}"   todir="${release.dir}"/>
-
   </target>
 
   <target   name        = "distrib_tests" 
-            description = "Builds test distribution file">
+            description = "Builds test distribution file"
+	    depends     = "mkreldir">
 
     <ant    dir         = "osgi/framework"
             target      = "all"/>
@@ -753,8 +758,6 @@
 
     </zip>
 
-    <copy file="${distribfile_tiny}"   todir="${release.dir}"/>
-
   </target>
 
   <target   name        = "distrib_opt" 
@@ -766,7 +769,8 @@
 
   <target   name        = "distrib_opt_maybe"
             if          = "bundles.opt.present"
-            description = "Builds self-extraction optional distribution file">
+            description = "Builds self-extraction optional distribution file"
+	    depends     = "mkreldir">
 
     <ant dir="osgi/bundles_opt" target="all"/>
 
@@ -861,10 +865,7 @@
          <include name="license.html"/>
         </zipfileset>
 
-
     </jar>
-
-    <copy file="${distribfile_opt}"        todir="${release.dir}"/>
 
   </target>
 
