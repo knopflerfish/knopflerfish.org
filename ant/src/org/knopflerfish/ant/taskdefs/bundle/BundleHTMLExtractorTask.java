@@ -1023,9 +1023,10 @@ public class BundleHTMLExtractorTask extends Task {
 
 
         if(javadocRelPath != null && !"".equals(javadocRelPath)) {
-          if(bCheckJavaDoc && !f.exists() && !isSystemPackage(name)) {
+          if( isSystemPackage(name) ) {
             html = replace(html, "${namelink}", "${name}");
-
+          } else if ( (bCheckJavaDoc && !f.exists()) ) {
+            html = replace(html, "${namelink}", "${name}");
             missingDocs.put(name, this);
           } else {
             html = replace(html,
