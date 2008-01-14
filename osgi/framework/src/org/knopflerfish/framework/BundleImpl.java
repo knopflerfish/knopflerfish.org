@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -785,11 +785,21 @@ class BundleImpl implements Bundle {
     }
     try {
       framework.checkAdminPermission();
-      BundleClassLoader cl = (BundleClassLoader)getClassLoader();
+      ClassLoader cl = getClassLoader();
       if (cl != null) {
-        return cl.getBundleResource(name);
+        if (cl instanceof BundleClassLoader) {
+          return ((BundleClassLoader) cl).getBundleResource(name);
+        } else {
+          return cl.getResource(name);
+        }
       }
-    } catch (SecurityException ignore) { }
+    } catch (SecurityException ignore) {
+      if (Debug.bundle_resource) {
+        Debug.printStackTrace("Bundle.getResource(\"" +name
+                              +"\") rejected for #" +getBundleId(),
+                              ignore );
+      }
+    }
     return null;
   }
 
