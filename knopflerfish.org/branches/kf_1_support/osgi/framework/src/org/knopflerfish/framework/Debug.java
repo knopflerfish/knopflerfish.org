@@ -88,6 +88,14 @@ public class Debug {
 
 
   /**
+   * When security is enabled, print information about resource
+   * lookups that are rejected due to missing permissions for the
+   * calling bundle.
+   */
+  static boolean bundle_resource = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
+
+
+  /**
    * Common println method for debug messages.
    */
   static void println(final String str) {

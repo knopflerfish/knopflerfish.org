@@ -20,8 +20,9 @@
 -Dorg.knopflerfish.framework.debug.startlevel=false
 -Dorg.knopflerfish.framework.debug.ldap=false
 -Dorg.knopflerfish.framework.debug.service_reference=false
+-Dorg.knopflerfish.framework.debug.bundle_resource=false
 
-# Comma-separated list of packges exported by system classloader
+# Comma-separated list of packages exported by system classloader
 -Dorg.osgi.framework.system.packages=
 
 # Web server properties
