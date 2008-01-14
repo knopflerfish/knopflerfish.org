@@ -34,6 +34,8 @@
 
 package org.knopflerfish.framework;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import org.osgi.framework.BundleException;
 
 
@@ -88,23 +90,40 @@ public class Debug {
   /**
    * Common println method for debug messages.
    */
-  static void println(String str) {
-    System.out.println("## DEBUG: " + str);
+  static void println(final String str) {
+    // Must use doPriviledged here since stream in System.out can be
+    // implemented by a bundle and need permissions which the bundle
+    // that triggered this debug printout does not have.
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          System.out.println("## DEBUG: " + str);
+          return null;
+        }
+      });
   }
 
   /**
    * Common printStackTrace method for debug messages.
    */
-  static void printStackTrace(String str, Throwable t) {
-    System.out.println("## DEBUG: " + str);
-    t.printStackTrace();
-    if (t instanceof BundleException) {
-      Throwable n = ((BundleException)t).getNestedException();
-      if (n != null) {
-        System.out.println("Nested bundle exception:");
-        n.printStackTrace();
-      }
-    }
+  static void printStackTrace(final String str, final Throwable t) {
+    // Must use doPriviledged here since the streams in System.out and
+    // System.err can be implemented by a bundle and need permissions
+    // which the bundle that triggered this debug printout does not
+    // have.
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          System.out.println("## DEBUG: " + str);
+          t.printStackTrace();
+          if (t instanceof BundleException) {
+            Throwable n = ((BundleException)t).getNestedException();
+            if (n != null) {
+              System.out.println("Nested bundle exception:");
+              n.printStackTrace();
+            }
+          }
+          return null;
+        }
+      });
   }
 
 }
