@@ -188,18 +188,16 @@ Framework System Properties
      Print debug information about LDAP filters
      Default: false
 
-   org.knopflerfish.framework.debug.service_reference
-     When security is enabled, print information about service
-     reference lookups that are rejected due to missing permissions
-     for calling bundle.
-     Default: false
-
-
    org.knopflerfish.framework.ldap.nocache
      Disable LDAP caching for simple filters. LDAP caching
      speeds up framework filters considerably, but uses
      more memory.
+     Default: false
 
+   org.knopflerfish.framework.debug.service_reference
+     When security is enabled, print information about service
+     reference lookups that are rejected due to missing permissions
+     for calling bundle.
      Default: false
 
    org.knopflerfish.framework.bundlestorage
