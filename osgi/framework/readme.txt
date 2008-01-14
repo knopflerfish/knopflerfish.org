@@ -201,6 +201,11 @@ Framework System Properties
      for calling bundle.
      Default: false
 
+   org.knopflerfish.framework.debug.bundle_resource
+     When security is enabled, print information about resource
+     lookups that are rejected due to missing permissions for the
+     calling bundle.
+
    org.knopflerfish.framework.debug.patch
      Print debug information about class patching
      Default: false
