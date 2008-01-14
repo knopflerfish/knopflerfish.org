@@ -85,6 +85,13 @@ public class Debug {
   static boolean service_reference = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.service_reference"));
 
   /**
+   * When security is enabled, print information about resource
+   * lookups that are rejected due to missing permissions for the
+   * calling bundle.
+   */
+  static boolean bundle_resource = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
+
+  /**
    * Report Class patching handling
    */
   static boolean patch = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.patch"));

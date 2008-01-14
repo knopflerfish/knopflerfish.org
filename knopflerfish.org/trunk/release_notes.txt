@@ -7,7 +7,17 @@ Release Notes Knopflerfish 2.0.4
 
 === Framework (Core) ===
 
+  Added system property
+    org.knopflerfish.framework.debug.service_reference
+  If set when security is enabled, print information about service
+  reference lookups that are rejected due to missing permissions for
+  calling bundle.
 
+  Added System property
+    org.knopflerfish.framework.debug.bundle_resource
+  If set when security is enabled, the framework will print
+  information about resource lookups that are rejected due to missing
+  permissions for the calling bundle.
 
 === Services (Compendium) ===
       

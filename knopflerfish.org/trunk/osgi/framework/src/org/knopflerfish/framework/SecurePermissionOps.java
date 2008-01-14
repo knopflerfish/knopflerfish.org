@@ -185,7 +185,12 @@ class SecurePermissionOps extends PermissionOps {
     try {
       checkResourceAdminPerm(b);
       return true;
-    } catch (SecurityException _ignore) {
+    } catch (SecurityException ignore) {
+      if (Debug.bundle_resource) {
+        Debug.printStackTrace("No permission to access resources in bundle #"
+                              +b.getBundleId(),
+                              ignore );
+      }
       return false;
     }
   }
