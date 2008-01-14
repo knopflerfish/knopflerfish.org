@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -309,7 +309,12 @@ class SecurePermissionOps extends PermissionOps {
           (new ServicePermission(c, ServicePermission.GET));
       }
       return true;
-    } catch (SecurityException _ignore) {
+    } catch (SecurityException ignore) {
+      if (Debug.service_reference) {
+        Debug.printStackTrace
+          ("No permission to get service of class \""+c+"\".",
+           ignore );
+      }
       return false;
     }
   }
@@ -336,7 +341,13 @@ class SecurePermissionOps extends PermissionOps {
                                                  ServicePermission.GET),
                            acc);
         return true;
-      } catch (SecurityException _ignore) { }
+      } catch (SecurityException ignore) {
+        if (Debug.service_reference) {
+          Debug.printStackTrace
+            ("No permission to get service of class \""+classes[i]+"\".",
+             ignore );
+        }
+      }
     }
     return false;
   }

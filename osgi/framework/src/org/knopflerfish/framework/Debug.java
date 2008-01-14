@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,9 @@
 
 package org.knopflerfish.framework;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import org.osgi.framework.BundleException;
-
 
 /**
  * Static variables that controls debugging of the framework code.
@@ -77,6 +78,13 @@ public class Debug {
   static boolean ldap = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.ldap"));
 
   /**
+   * When security is enabled, print information about service
+   * reference lookups that are rejected due to missing permissions
+   * for calling bundle.
+   */
+  static boolean service_reference = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.service_reference"));
+
+  /**
    * Report Class patching handling
    */
   static boolean patch = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.patch"));
@@ -91,23 +99,40 @@ public class Debug {
   /**
    * Common println method for debug messages.
    */
-  static void println(String str) {
-    System.out.println("## DEBUG: " + str);
+  static void println(final String str) {
+    // Must use doPriviledged here since stream in System.out can be
+    // implemented by a bundle and need permissions which the bundle
+    // that triggered this debug printout does not have.
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          System.out.println("## DEBUG: " + str);
+          return null;
+        }
+      });
   }
 
   /**
    * Common printStackTrace method for debug messages.
    */
-  static void printStackTrace(String str, Throwable t) {
-    System.out.println("## DEBUG: " + str);
-    t.printStackTrace();
-    if (t instanceof BundleException) {
-      Throwable n = ((BundleException)t).getNestedException();
-      if (n != null) {
-	System.out.println("Nested bundle exception:");
-	n.printStackTrace();
-      }
-    }
+  static void printStackTrace(final String str, final Throwable t) {
+    // Must use doPriviledged here since the streams in System.out and
+    // System.err can be implemented by a bundle and need permissions
+    // which the bundle that triggered this debug printout does not
+    // have.
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          System.out.println("## DEBUG: " + str);
+          t.printStackTrace();
+          if (t instanceof BundleException) {
+            Throwable n = ((BundleException)t).getNestedException();
+            if (n != null) {
+              System.out.println("Nested bundle exception:");
+              n.printStackTrace();
+            }
+          }
+          return null;
+        }
+      });
   }
 
 }
