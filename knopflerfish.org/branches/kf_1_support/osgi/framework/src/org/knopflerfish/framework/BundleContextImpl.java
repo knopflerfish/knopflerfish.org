@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -283,13 +283,21 @@ public class BundleContextImpl
     throws InvalidSyntaxException {
     isBCvalid();
     if (framework.bPermissions) {
+      String c = (clazz != null) ? clazz : "*";
       try {
-        String c = (clazz != null) ? clazz : "*";
         SecurityManager sm = System.getSecurityManager();
         if (null!=sm) {
           sm.checkPermission(new ServicePermission(c, ServicePermission.GET));
         }
       } catch (SecurityException ignore) {
+        if (Debug.service_reference) {
+          Debug.printStackTrace
+            ("BundleContext.getServiceReferences(\""
+             +c+"\", "
+             +(null==filter ? "null" : ("\"" +filter +"\"") )
+             +"): rejected.",
+             ignore );
+        }
         return null;
       }
     }
@@ -305,13 +313,18 @@ public class BundleContextImpl
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
     if (framework.bPermissions) {
+      String c = (clazz != null) ? clazz : "*";
       try {
-        String c = (clazz != null) ? clazz : "*";
         SecurityManager sm = System.getSecurityManager();
         if (null!=sm) {
           sm.checkPermission(new ServicePermission(c, ServicePermission.GET));
         }
       } catch (SecurityException ignore) {
+        if (Debug.service_reference) {
+          Debug.printStackTrace
+            ("BundleContext.getServiceReferences(\""+c+"\"): rejected.",
+             ignore );
+        }
         return null;
       }
     }
