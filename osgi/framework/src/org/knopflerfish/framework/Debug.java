@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,14 @@ public class Debug {
 
 
   /**
+   * When security is enabled, print information about service
+   * reference lookups that are rejected due to missing permissions
+   * for calling bundle.
+   */
+  static boolean service_reference = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.service_reference"));
+
+
+  /**
    * Common println method for debug messages.
    */
   static void println(String str) {
@@ -93,8 +101,8 @@ public class Debug {
     if (t instanceof BundleException) {
       Throwable n = ((BundleException)t).getNestedException();
       if (n != null) {
-	System.out.println("Nested bundle exception:");
-	n.printStackTrace();
+        System.out.println("Nested bundle exception:");
+        n.printStackTrace();
       }
     }
   }
