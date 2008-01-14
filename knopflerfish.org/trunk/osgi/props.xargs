@@ -22,6 +22,7 @@
 -Dorg.knopflerfish.framework.debug.classloader=false
 -Dorg.knopflerfish.framework.debug.startlevel=false
 -Dorg.knopflerfish.framework.debug.ldap=false
+-Dorg.knopflerfish.framework.debug.service_reference=false
 
 # Comma-separated list of packges exported by system classloader
 -Dorg.osgi.framework.system.packages=javax.accessibility,javax.net,\
