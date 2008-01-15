@@ -502,8 +502,8 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Read content of file as a string.
    *
-   * @param f File to write too
-   * @return content String to write
+   * @param f File to read from
+   * @return contents of the file as a single String
    */
   private String getContent(String f) {
     DataInputStream in = null;

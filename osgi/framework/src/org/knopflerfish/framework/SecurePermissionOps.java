@@ -418,6 +418,15 @@ class SecurePermissionOps extends PermissionOps {
       });
   }
 
+  String callFindLibrary0(final BundleClassLoader cl,
+                          final String name) {
+    return (String) AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          return cl.findLibrary0(name);
+        }
+      });
+  }
+
 
   //
   // BundleImpl secure operations

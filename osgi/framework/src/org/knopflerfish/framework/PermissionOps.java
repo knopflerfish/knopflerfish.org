@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,6 +190,11 @@ class PermissionOps {
                        final BundleClassLoader requestor,
                        final HashSet visited) {
     return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+  }
+
+  String callFindLibrary0(final BundleClassLoader cl,
+                          final String name) {
+    return cl.findLibrary0(name);
   }
 
   //
