@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -118,31 +120,31 @@ final public class BundleClassLoader extends ClassLoader {
 
     try {
       Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
-				     bootDelegationString,
-				     true, true, false);
+                                     bootDelegationString,
+                                     true, true, false);
 
       while (i.hasNext()) {
-	Map e = (Map)i.next();
-	String key = (String)e.get("key");
-	if (key.equals("*")) {
-	  bootDelegationPatterns = null;
-	  //in case funny person puts a * amongst other things
-	  break;
-	}
-	else if (key.endsWith(".*")) {
-	  bootDelegationPatterns.add(key.substring(0, key.length() - 1));
-	}
-	else if (key.endsWith(".")) {
-	  Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
-													    Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
-	}
-	else if (key.indexOf("*") != - 1) {
-	  Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
-													    Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
-	}
-	else {
-	  bootDelegationPatterns.add(key);
-	}
+        Map e = (Map)i.next();
+        String key = (String)e.get("key");
+        if (key.equals("*")) {
+          bootDelegationPatterns = null;
+          //in case funny person puts a * amongst other things
+          break;
+        }
+        else if (key.endsWith(".*")) {
+          bootDelegationPatterns.add(key.substring(0, key.length() - 1));
+        }
+        else if (key.endsWith(".")) {
+          Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
+                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
+        }
+        else if (key.indexOf("*") != - 1) {
+          Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
+                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
+        }
+        else {
+          bootDelegationPatterns.add(key);
+        }
       }
     }
     catch (IllegalArgumentException e) {
@@ -265,15 +267,7 @@ final public class BundleClassLoader extends ClassLoader {
    * @see java.lang.ClassLoader#findLibrary
    */
   protected String findLibrary(String name) {
-    String res = archive.getNativeLibrary(name);
-    if (res == null && fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        res = ((BundleArchive)i.next()).getNativeLibrary(name);
-        if (res != null) {
-          break;
-        }
-      }
-    }
+    String res = secure.callFindLibrary0(this,name);
     if (debug) {
       Debug.println(this + " Find library: " + name + (res != null ? " OK" : " FAIL"));
     }
@@ -829,5 +823,25 @@ final public class BundleClassLoader extends ClassLoader {
         return answer.elements();
       }
     };
+
+
+  /**
+   * Find native library code to load. This method is called from
+   * findLibrary(name) within a doPriviledged-block via the
+   * secure object.
+   *
+   */
+  String findLibrary0(final String name) {
+    String res = archive.getNativeLibrary(name);
+    if (res == null && fragments != null) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        res = ((BundleArchive)i.next()).getNativeLibrary(name);
+        if (res != null) {
+          break;
+        }
+      }
+    }
+    return res;
+  }
 
 } //class
