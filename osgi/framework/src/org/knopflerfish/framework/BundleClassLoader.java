@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,8 +163,17 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @see java.lang.ClassLoader#findLibrary
    */
-  protected String findLibrary(String name) {
-    String res = archive.getNativeLibrary(name);
+  protected String findLibrary(final String name) {
+    String res = null;
+    // Some storage kinds (e.g., expanded storage of sub-JARs)
+    // requieres the Framework's permisisons to allow acces thus
+    // we must call archive.getNativeLibrary(name) via doPrivileged().
+    res = (String) AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          return archive.getNativeLibrary(name);
+        }
+      });
+
     if (debug) {
       Debug.println("classLoader(#" + bpkgs.bundle.id + ") - find library: "
                     + name + (res != null ? " OK" : " FAIL"));
