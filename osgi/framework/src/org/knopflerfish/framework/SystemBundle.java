@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,14 @@ public class SystemBundle extends BundleImpl {
    */
   private final static String SYSPKG_FILE = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
 
+
+  /**
+   * Name of system property for exporting all packages for according
+   * to version of the running JRE.
+   */
+  private final static String EXPORT_ALL_CURRENT =
+    "org.knopflerfish.framework.system.export.all";
+
   /**
    * Name of system property for exporting all J2SE 1.3 packages.
    */
@@ -84,6 +92,12 @@ public class SystemBundle extends BundleImpl {
     "org.knopflerfish.framework.system.export.all_15";
 
   /**
+   * Name of system property for exporting all J2SE 1.6 packages.
+   */
+  private final static String EXPORT16 =
+    "org.knopflerfish.framework.system.export.all_16";
+
+  /**
    * Export-Package string for system packages
    */
   private final String exportPackageString;
@@ -101,24 +115,43 @@ public class SystemBundle extends BundleImpl {
     if (sp.length() > 0) {
       sp.append(",");
     }
-    
-    if("true".equals(System.getProperty(EXPORT13, "").trim())) {
-      addSysPackagesFromFile(sp, "packages1.3.txt");
+
+    if ("true".equals(System.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
+      String jv = System.getProperty("java.version", null);
+      if (null!=jv) { // Extract <M>.<N> part of the version string
+        int end = jv.indexOf('.');
+        if (end>-1) {
+          end = jv.indexOf('.',end+1);
+        }
+        if (end>-1) {
+          addSysPackagesFromFile(sp, "packages"+ jv.substring(0,end)+".txt");
+        }
+      }
+    } else {
+
+      if("true".equals(System.getProperty(EXPORT13, "").trim())) {
+        addSysPackagesFromFile(sp, "packages1.3.txt");
+      }
+
+      if("true".equals(System.getProperty(EXPORT14, "").trim())) {
+        addSysPackagesFromFile(sp, "packages1.4.txt");
+      }
+
+      if("true".equals(System.getProperty(EXPORT15, "").trim())) {
+        addSysPackagesFromFile(sp, "packages1.5.txt");
+      }
+
+      if("true".equals(System.getProperty(EXPORT15, "").trim())) {
+        addSysPackagesFromFile(sp, "packages1.6.txt");
+      }
+
     }
-    
-    if("true".equals(System.getProperty(EXPORT14, "").trim())) {
-      addSysPackagesFromFile(sp, "packages1.4.txt");
-    }
-    
-    if("true".equals(System.getProperty(EXPORT15, "").trim())) {
-      addSysPackagesFromFile(sp, "packages1.5.txt");
-    }
-    
+
     addSysPackagesFromFile(sp, System.getProperty(SYSPKG_FILE, null));
     addSystemPackages(sp);
-    
+
     exportPackageString = sp.toString();
-    
+
     bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
@@ -169,21 +202,50 @@ public class SystemBundle extends BundleImpl {
 
   /**
    * Read a file with package names and add them to a stringbuffer.
+   * The file is searched for in the current working directory, then
+   * on the class path.
+   * @param sp Buffer to append the exports to. Same format as the
+   *           Export-Package manifest header.
+   * @param sysPkgFile Name of the file to load packages to be
+   *           exported from.
    */
   void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
+    if (null==sysPkgFile || 0==sysPkgFile.length() ) return;
 
-    if(sysPkgFile != null) {
-      File f = new File(sysPkgFile);
-      if(!f.exists() || !f.isFile()) {
-    throw new RuntimeException("System package file '" + sysPkgFile +
-                   "' does not exists");
-      } else {
     if(Debug.packages) {
-      Debug.println("adding system packages from file " + sysPkgFile);
+      Debug.println("Will add system packages from file " + sysPkgFile);
+    }
+
+    URL  url = null;
+    File f = new File(sysPkgFile);
+
+    if(!f.exists() || !f.isFile()) {
+      url = SystemBundle.class.getResource(sysPkgFile);
+      if (null==url) {
+        url = SystemBundle.class.getResource("/" +sysPkgFile);
+      }
+      if (null==url) {
+        throw new RuntimeException("System package file '" + sysPkgFile +
+                                   "' does not exists");
+      }
     }
     BufferedReader in = null;
     try {
-      in = new BufferedReader(new FileReader(sysPkgFile));
+      Reader reader = null;
+      String source = null;
+
+      if (null==url) {
+        reader = new FileReader(f);
+        source = f.getAbsolutePath().toString();
+      } else {
+        reader = new InputStreamReader(url.openStream());
+        source = url.toString();
+      }
+      in = new BufferedReader(reader);
+      if(Debug.packages) {
+        Debug.println("\treading from " +source);
+      }
+
       String line;
       for(line = in.readLine(); line != null;
           line = in.readLine()) {
@@ -194,11 +256,9 @@ public class SystemBundle extends BundleImpl {
         }
       }
     } catch (IOException e) {
-      throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
+      throw new IllegalArgumentException("Failed to read " +sysPkgFile +": " +e);
     } finally {
       try {   in.close();  } catch (Exception ignored) { }
-    }
-      }
     }
   }
 
@@ -229,7 +289,7 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#stop
    */
   public void stop() throws BundleException {
-    stop(0);    
+    stop(0);
   }
 
 
@@ -276,8 +336,8 @@ public class SystemBundle extends BundleImpl {
     Hashtable headers = new Hashtable();
     headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
-    headers.put(Constants.BUNDLE_VERSION, Main.readRelease());    
-    
+    headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
+
     return headers;
   }
 
@@ -343,7 +403,7 @@ public class SystemBundle extends BundleImpl {
    * Checks whether a path is included in the path.
    */
   private boolean isInClassPath(BundleImpl extension) {
-    String cps = extension.isBootClassPathExtension() ? 
+    String cps = extension.isBootClassPathExtension() ?
       "sun.boot.class.path" : "java.class.path";
     String cp = System.getProperty(cps);
     String[] scp = Util.splitwords(cp, ":");
@@ -374,7 +434,7 @@ public class SystemBundle extends BundleImpl {
 
 
   /**
-   * Reads all localization entries that affects this bundle 
+   * Reads all localization entries that affects this bundle
    * (including its host/fragments)
    * @param locale locale == "" the bundle.properties will be read
    *               o/w it will read the files as described in the spec.
@@ -385,7 +445,7 @@ public class SystemBundle extends BundleImpl {
     String[] parts = Util.splitwords(locale, "_");
     String tmploc = parts[0];
     int o = 0;
-    
+
     do {
       if (fragments != null) {
         for (int i = fragments.size() - 1; i >= 0; i--) {
@@ -398,12 +458,12 @@ public class SystemBundle extends BundleImpl {
         }
       }
       // NYI! read localization from framework?
-      
+
       if (++o >= parts.length) {
         break;
       }
       tmploc = tmploc + "_" + parts[o];
-      
+
     } while (true);
   }
 }

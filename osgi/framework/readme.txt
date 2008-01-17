@@ -248,20 +248,49 @@ Framework System Properties
 
      Default: true
       
+   org.knopflerfish.framework.system.export.all
+     Make the system class loader export all standard JRE packages
+     as defined by the currently running Java version.
+
+     This is the same as setting the appropriate
+     org.knopflerfish.framework.system.export.all_<M><N> where <M> is
+     the major (first) number and <N> is the minor (second) number in
+     the standard system property "java.version".
+
+     When this property is set to "true" all the properties named
+     org.knopflerfish.framework.system.export.all_<M><N>
+     defined below will be ignored.
+
+     More system bundle exports can by added by setting the OSGi
+     defined property org.osgi.framework.system.packages or using the
+     knopflerfish property org.osgi.framework.system.packages.file.
+
+     Default: false
+
    org.knopflerfish.framework.system.export.all_13
-     Make system classloader export all standard JVM 1.3
+     Make the system class loader export all standard JRE 1.3
      packages as javax.swing.*
+
      Default: false
 
    org.knopflerfish.framework.system.export.all_14
-     Make system classloader export all standard JVM 1.4
+     Make the system class loader export all standard JRE 1.4
      packages as javax.swing.*
+
      Default: false
 
    org.knopflerfish.framework.system.export.all_15
-     Make system classloader export all standard JVM 1.5
+     Make the system class loader export all standard JRE 1.5
      packages as javax.swing.*
+
      Default: false
+
+   org.knopflerfish.framework.system.export.all_16
+     Make the system class loader export all standard JRE 1.6
+     packages as javax.swing.*
+
+     Default: false
+
 
    org.knopflerfish.verbosity
      Framework verbosity level. 0 means few messages
