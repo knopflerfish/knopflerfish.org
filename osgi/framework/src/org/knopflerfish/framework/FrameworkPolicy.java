@@ -56,6 +56,7 @@ import java.util.Hashtable;
  *
  * @see java.security.Policy
  * @author Jan Stein
+ * @author Gunnar Ekolin
  */
 
 class FrameworkPolicy extends Policy {
@@ -77,10 +78,31 @@ class FrameworkPolicy extends Policy {
   // Policy methods
   //
 
+  // Delegate to the wrapped defaultPolicy for all non-bundle domains.
+  public PermissionCollection getPermissions(ProtectionDomain pd) {
+    if (null==pd)
+      return defaultPolicy.getPermissions(pd);
+
+    CodeSource cs = pd.getCodeSource();
+    if (null==cs)
+      return defaultPolicy.getPermissions(pd);
+
+    URL u = cs.getLocation();
+    if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
+      return getPermissions(cs);
+    } else {
+      return defaultPolicy.getPermissions(pd);
+    }
+  }
+
+
+  // Delegate to the wrapped defaultPolicy for all non-bundle domains.
   public PermissionCollection getPermissions(CodeSource cs) {
     // The following line causes a loop when running on 1.4
     // System.getSecurityManager().checkPermission(new SecurityPermission("getPermissions"));
     // Also note that there's no "getPermissions" target for SercurityPermission
+
+    if (null==cs) return new Permissions();
 
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
@@ -95,8 +117,26 @@ class FrameworkPolicy extends Policy {
     }
   }
 
+  public boolean implies(ProtectionDomain pd, Permission p) {
+    if (null==pd)
+      return defaultPolicy.implies(pd,p);
+
+    CodeSource cs = pd.getCodeSource();
+    if (null==cs)
+      return defaultPolicy.implies(pd,p);
+
+    URL u = cs.getLocation();
+    if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
+      return super.implies(pd,p);
+    } else {
+      return defaultPolicy.implies(pd,p);
+    }
+  }
+
   public void refresh() {
-    // Nothing todo since we are always updated
+    // A bundle permissions is allways up to date, but we must
+    // propagate to the wrapped defaultPolicy.
+    defaultPolicy.refresh();
   }
 
   //
