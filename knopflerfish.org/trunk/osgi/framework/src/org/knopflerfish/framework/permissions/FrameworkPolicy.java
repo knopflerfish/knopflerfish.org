@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,18 +44,23 @@ import org.knopflerfish.framework.BundleURLStreamHandler;
 /**
  * Implementation of a Permission Policy for Framework.
  *
+ * Special handling for all protection domains that corresponds to a
+ * bundle, for all other delegate to given default policy (normally
+ * the policy file based policy implementation).
+ *
  * @see java.security.Policy
- * @author Jan Stein, Philippe Laporte
+ * @author Jan Stein, Philippe Laporte, Gunnar Ekolin
  */
 
 class FrameworkPolicy extends Policy {
 
-  //must not cache
-  //private Hashtable /* Long -> PermissionCollection */ permissions = new Hashtable();
+  /** The policy to delegate non-bundle permission requests to. */
+  private final Policy defaultPolicy;
 
   private PermissionsHandle ph;
 
-  FrameworkPolicy(PermissionsHandle ph) {
+  FrameworkPolicy(Policy policy, PermissionsHandle ph) {
+    this.defaultPolicy = policy;
     this.ph = ph;
   }
 
@@ -63,11 +68,27 @@ class FrameworkPolicy extends Policy {
   // Policy methods
   //
 
+  // Delegate to the wrapped defaultPolicy for all non-bundle domains.
+  public PermissionCollection getPermissions(ProtectionDomain pd) {
+    if (null==pd)
+      return defaultPolicy.getPermissions(pd);
+
+    CodeSource cs = pd.getCodeSource();
+    if (null==cs)
+      return defaultPolicy.getPermissions(pd);
+
+    URL u = cs.getLocation();
+    if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
+      return getPermissions(cs);
+    } else {
+      return defaultPolicy.getPermissions(pd);
+    }
+  }
+
+
   public PermissionCollection getPermissions(CodeSource cs) {
-    // The following line causes a loop when running on 1.4
-    // System.getSecurityManager().checkPermission(new SecurityPermission("getPermissions"));
-    // Also note that there's no "getPermissions" target for SercurityPermission
-    
+    if (null==cs) return new Permissions();
+
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       try {
@@ -78,36 +99,30 @@ class FrameworkPolicy extends Policy {
         return null;
       }
     } else {
-      PermissionCollection pc = new Permissions();
-      pc.add(new AllPermission());
-      return pc;
+      return defaultPolicy.getPermissions(cs);
+    }
+  }
+
+  public boolean implies(ProtectionDomain pd, Permission p) {
+    if (null==pd)
+      return defaultPolicy.implies(pd,p);
+
+    CodeSource cs = pd.getCodeSource();
+    if (null==cs)
+      return defaultPolicy.implies(pd,p);
+
+    URL u = cs.getLocation();
+    if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
+      return super.implies(pd,p);
+    } else {
+      return defaultPolicy.implies(pd,p);
     }
   }
 
   public void refresh() {
-    // Nothing todo since we are always updated
+    // A bundle permissions is allways up to date, but we must
+    // propagate to the wrapped defaultPolicy.
+    defaultPolicy.refresh();
   }
 
-  //
-  // Package methods
-  //
-  
-  /* no, must always refresh from admin! 
-  PermissionCollection getPermissions(Long id) {
-     
-    PermissionCollection pc = (PermissionCollection)permissions.get(id);
-    if (pc == null) {
-      pc = permissionAdmin.getPermissionCollection(id);
-      if (pc != null) {
-    	  permissions.put(id, pc);
-      }
-    }
-    return pc;
-  }
-*/
-  /*
-  void invalidate(long id) {
-    permissions.remove(new Long(id));
-  }
-*/
 }

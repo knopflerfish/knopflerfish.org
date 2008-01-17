@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,8 +63,8 @@ public class PermissionsHandle {
   public PermissionsHandle(Framework fw) {
     framework = fw;
     pinfos = new PermissionInfoStorage();
-    pa = new PermissionAdminImpl(pinfos);     
-    Policy.setPolicy(new FrameworkPolicy(this));
+    pa = new PermissionAdminImpl(pinfos);
+    Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(), this));
   }
 
 
@@ -93,7 +93,7 @@ public class PermissionsHandle {
     return (PermissionCollection)pcCache.get(bid);
   }
 
-  
+
   /**
    * Create the permissionCollection assigned to the bundle.
    * We return a permission wrapper so that we can change it dynamically.
