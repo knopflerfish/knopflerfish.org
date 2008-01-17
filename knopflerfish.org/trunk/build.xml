@@ -349,7 +349,6 @@
            <exclude name = "htdocs/html_templates/**"/>
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
@@ -379,7 +378,6 @@
            <include name = "osgi/build.xml"/>
 
            <include name = "osgi/framework/**"/>
-           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/bundles/build.xml"/>
 
@@ -500,7 +498,6 @@
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
@@ -625,7 +622,6 @@
 
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/init.xargs"/>
@@ -687,7 +683,6 @@
            <include name = "release_notes.txt"/>
 
            <include name = "osgi/framework.jar"/>
-           <include name = "osgi/packages1.*.txt"/>
 
            <include name = "osgi/framework.policy"/>
            <include name = "osgi/kf2"/>
