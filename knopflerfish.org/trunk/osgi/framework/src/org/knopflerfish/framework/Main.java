@@ -104,7 +104,7 @@ public class Main {
   static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
 
   static boolean restarting = false;
-    
+
   /**
    * Help class for starting the OSGi framework.
    */
@@ -117,9 +117,9 @@ public class Main {
     version = readVersion();
 
 
-    bootText = 
-      "Knopflerfish OSGi framework, version " + version + "\n" + 
-      "Copyright 2003-2006 Knopflerfish. All Rights Reserved.\n\n" + 
+    bootText =
+      "Knopflerfish OSGi framework, version " + version + "\n" +
+      "Copyright 2003-2008 Knopflerfish. All Rights Reserved.\n\n" +
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);
@@ -233,6 +233,7 @@ public class Main {
    * @param args argument line
    * @param startOffset index to start from in argv
    */
+
   private static void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
@@ -559,7 +560,7 @@ public class Main {
               }
             }
             framework.shutdown();
-  
+
             try {
               if (bootMgr != 0) {
                 framework.launch(bootMgr);
@@ -658,9 +659,9 @@ public class Main {
 
   // should this be read from the manifest instead?
   static String readRelease() {
-    return readResource("/release", "0.0.0.snapshot");  
+    return readResource("/release", "0.0.0.snapshot");
   }
-  
+
   // Read version info from manifest
   static String readResource(String file, String defaultValue) {
     try {
@@ -952,7 +953,7 @@ public class Main {
         tmpline = tmpline.trim();
 
         // check for line continuation char and
-        // build up line until aline without such a mark is found.
+        // build up line until a line without such a mark is found.
         if(tmpline.endsWith("\\")) {
           // found continuation mark, store actual line to
           // buffered continuation line
