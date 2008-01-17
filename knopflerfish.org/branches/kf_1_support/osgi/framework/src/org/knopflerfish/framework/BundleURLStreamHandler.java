@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
 
 package org.knopflerfish.framework;
 
+import org.osgi.framework.AdminPermission;
+
 import java.io.*;
 import java.net.*;
 import java.security.*;
@@ -61,6 +63,8 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   final public static String PROTOCOL = "bundle";
 
+  final static Permission ADMIN_PERMISSION = new AdminPermission();
+
   private Bundles bundles;
 
   BundleURLStreamHandler(Bundles b) {
@@ -80,36 +84,40 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
     public void connect() throws IOException {
       if (!connected) {
-	BundleImpl b = null;
-	try {
-	  b = bundles.getBundle(Long.parseLong(url.getHost()));
-	} catch (NumberFormatException ignore) { }
-	if (b != null) {
-	  BundleArchive a = b.getBundleArchive();
-	  if (a != null) {
-	    is = a.getInputStream(url.getFile(), url.getPort());
-	  }
-	}
-	if (is != null) {
-	  connected = true;
-	} else {
-	  throw new IOException("URL not found");
-	}
+        BundleImpl b = null;
+        try {
+          b = bundles.getBundle(Long.parseLong(url.getHost()));
+        } catch (NumberFormatException ignore) { }
+        if (b != null) {
+          BundleArchive a = b.getBundleArchive();
+          if (a != null) {
+            is = a.getInputStream(url.getFile(), url.getPort());
+          }
+        }
+        if (is != null) {
+          connected = true;
+        } else {
+          throw new IOException("URL not found");
+        }
       }
     }
 
     public InputStream getInputStream() {
       try {
-	connect();
+        connect();
       } catch (IOException ignore) { }
       return is;
+    }
+
+    public Permission getPermission() throws IOException {
+      return ADMIN_PERMISSION;
     }
   }
 
   /**
    * Equals calculation for bundle URLs.
-   * @return <tt>true</tt> if the two urls are 
-   * considered equal, ie. they refer to the same 
+   * @return <tt>true</tt> if the two urls are
+   * considered equal, ie. they refer to the same
    * fragment in the same file.
    *
    * NYI! a complete check!
@@ -117,7 +125,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
   protected boolean equals(URL u1, URL u2) {
     String ref1 = u1.getRef();
     String ref2 = u2.getRef();
-    return sameFile(u1, u2) && 
+    return sameFile(u1, u2) &&
       (ref1 == ref2 ||
        (ref1 != null && ref1.equals(ref2)));
   }
@@ -132,15 +140,15 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     if (PROTOCOL.equals(u.getProtocol())) {
       String host = u.getHost();
       if (host != null)
-	h = host.hashCode();
+        h = host.hashCode();
 
       String file = u.getFile();
       if (file != null)
-	h += file.hashCode();
+        h += file.hashCode();
 
       String ref = u.getRef();
       if (ref != null)
-	h += ref.hashCode();
+        h += ref.hashCode();
 
     } else {
       h = u.hashCode();
@@ -157,17 +165,17 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     String p1 = u1.getProtocol();
     if (PROTOCOL.equals(p1)) {
       if (!p1.equals(u2.getProtocol()))
-	return false;
+        return false;
 
       if (!hostsEqual(u1, u2))
-	return false;
+        return false;
 
       if (!(u1.getFile() == u2.getFile() ||
-	    (u1.getFile() != null && u1.getFile().equals(u2.getFile()))))
-	return false;
+            (u1.getFile() != null && u1.getFile().equals(u2.getFile()))))
+        return false;
 
       if (u1.getPort() != u2.getPort())
-	return false;
+        return false;
 
       return true;
     } else {
@@ -178,9 +186,9 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   /**
    * Compares the host components of two URLs.
-   * @param u1 the URL of the first host to compare 
-   * @param u2 the URL of the second host to compare 
-   * @return	<tt>true</tt> if and only if they 
+   * @param u1 the URL of the first host to compare
+   * @param u2 the URL of the second host to compare
+   * @return    <tt>true</tt> if and only if they
    * are equal, <tt>false</tt> otherwise.
    */
   protected boolean hostsEqual(URL u1, URL u2) {
@@ -188,5 +196,5 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     String s2 = u2.getHost();
     return (s1 == s2) || (s1 != null && s1.equals(s2));
   }
-  
+
 }
