@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,9 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.security.Permission;
+
+import org.osgi.framework.AdminPermission;
 
 
 /**
@@ -44,6 +47,9 @@ import java.net.*;
  * @author Jan Stein
  */
 class BundleURLConnection extends URLConnection {
+  // Should maybe only allow the bundle that fetched the URL to connect?
+  final static Permission ADMIN_PERMISSION
+    = new AdminPermission( (String)null, AdminPermission.RESOURCE);
 
   private InputStream is = null;
   private Bundles bundles;
@@ -106,7 +112,7 @@ class BundleURLConnection extends URLConnection {
       return null;
     }
   }
-  
+
   public int getContentLength() {
     try {
       connect();
@@ -115,4 +121,9 @@ class BundleURLConnection extends URLConnection {
       return -1;
     }
   }
+
+  public Permission getPermission() throws IOException {
+    return ADMIN_PERMISSION;
+  }
+
 }
