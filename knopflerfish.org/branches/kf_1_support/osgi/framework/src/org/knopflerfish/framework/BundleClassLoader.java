@@ -430,7 +430,12 @@ final public class BundleClassLoader extends ClassLoader {
    */
   private Enumeration findBundleResources(final String name) {
     Vector answer = new Vector(1);
-    Vector items = archive.componentExists(name);
+    Vector items = (Vector)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return archive.componentExists(name);
+          }
+        });
     if (items != null) {
       for(int i = 0; i < items.size(); i++) {
         final int jarId = items.size() == 1

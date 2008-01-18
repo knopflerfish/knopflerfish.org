@@ -112,10 +112,10 @@ class BundleArchiveImpl implements BundleArchive
    * Construct new bundle archive.
    *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage, 
-                    FileTree          dir, 
+  BundleArchiveImpl(BundleStorageImpl bundleStorage,
+                    FileTree          dir,
                     InputStream       is,
-                    String            bundleLocation, 
+                    String            bundleLocation,
                     long              bundleId)
     throws Exception
   {
@@ -145,7 +145,9 @@ class BundleArchiveImpl implements BundleArchive
    * Construct new bundle archive based on saved data.
    *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage, FileTree dir, long bundleId)
+  BundleArchiveImpl(BundleStorageImpl bundleStorage,
+                    FileTree dir,
+                    long bundleId)
     throws Exception
   {
     bundleDir = dir;
@@ -208,16 +210,16 @@ class BundleArchiveImpl implements BundleArchive
 
   boolean isFake() {
     // What the f**k is this? Test case seem to require it!
-    // 
+    //
     // OK. Some background story might me good here:
     //
     // The R3 tests are not compatible with the R3 spec (sic)
-    // 
+    //
     // However to be R3, you have to pass the tests.
     // Thus, KF uses a system property to determine if
     // it should be compartible with the spec or the tests.
     // Framework.R3_TESTCOMPLIANT reflects this state.
-    // 
+    //
     // One such difference is the "fakeheader" manifest
     // (another on is the buggy filter test, see LDAPEpr.java)
     // attribute that the test suite at one stage uses
@@ -274,7 +276,7 @@ class BundleArchiveImpl implements BundleArchive
   public int getStartLevel() {
     return startLevel;
   }
-  
+
   public void setStartLevel(int level) throws IOException {
     if (startLevel != level) {
       startLevel = level;
@@ -538,7 +540,7 @@ class BundleArchiveImpl implements BundleArchive
     }
     return null;
   }
-  
+
 
   /**
    * Write string to named file.
@@ -562,7 +564,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
-    
+
     if (!bFake && (bcp != null)) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
