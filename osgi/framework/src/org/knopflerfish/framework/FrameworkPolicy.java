@@ -102,7 +102,10 @@ class FrameworkPolicy extends Policy {
     // System.getSecurityManager().checkPermission(new SecurityPermission("getPermissions"));
     // Also note that there's no "getPermissions" target for SercurityPermission
 
-    if (null==cs) return new Permissions();
+    if (null==cs) {
+      // Not a code source for a bundle, delegate to the default policy
+      return defaultPolicy.getPermissions(cs);
+    }
 
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {

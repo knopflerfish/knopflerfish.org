@@ -322,7 +322,7 @@ public class BundleContextImpl
       } catch (SecurityException ignore) {
         if (Debug.service_reference) {
           Debug.printStackTrace
-            ("BundleContext.getServiceReferences(\""+c+"\"): rejected.",
+            ("BundleContext.getServiceReference(\""+c+"\"): rejected.",
              ignore );
         }
         return null;

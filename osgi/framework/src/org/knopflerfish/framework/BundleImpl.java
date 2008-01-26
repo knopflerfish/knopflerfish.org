@@ -841,18 +841,14 @@ class BundleImpl implements Bundle {
    * Get class loader for this bundle.
    * Create the classloader if we haven't done this previously.
    */
-  ClassLoader getClassLoader() {
+  synchronized ClassLoader getClassLoader() {
     if (classLoader == null) {
-      synchronized (this) {
-        if (classLoader == null) {
-          classLoader = (BundleClassLoader)
-            AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
-                  return new BundleClassLoader(bpkgs, archive);
-                }
-              });
-        }
-      }
+      classLoader = (BundleClassLoader)
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              return new BundleClassLoader(bpkgs, archive);
+            }
+          });
     }
     return classLoader;
   }
