@@ -87,7 +87,10 @@ class FrameworkPolicy extends Policy {
 
 
   public PermissionCollection getPermissions(CodeSource cs) {
-    if (null==cs) return new Permissions();
+    if (null==cs) {
+      // Not a code source for a bundle, delegate to the default policy
+      return defaultPolicy.getPermissions(cs);
+    }
 
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {

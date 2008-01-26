@@ -1025,12 +1025,10 @@ class BundleImpl implements Bundle {
    *
    * @return Bundles classloader.
    */
-  ClassLoader getClassLoader() {
+  synchronized ClassLoader getClassLoader() {
     if (classLoader == null) {
-      synchronized (this) {
-        if (classLoader == null && (state & RESOLVED_FLAGS) != 0) {
-          classLoader = secure.callGetClassLoader0(this);
-        }
+      if (classLoader == null && (state & RESOLVED_FLAGS) != 0) {
+        classLoader = secure.callGetClassLoader0(this);
       }
     }
     return classLoader;
