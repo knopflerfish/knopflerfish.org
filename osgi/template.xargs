@@ -45,7 +45,7 @@
 
 -install consoletty/consoletty-2.0.0.jar
 
--install consoletelnet/consoletelnet-2.0.0.jar
+-install consoletelnet/consoletelnet-2.0.1.jar
 
 -initlevel 6
 -install remotefw/remotefw_api-2.0.0.jar
@@ -73,7 +73,7 @@ $(WINDOWS_BUNDLES)
 -start useradmin/useradmin_all-2.0.0.jar
 -start bundlerepository/bundlerepository_all-2.0.0.jar
 -start consoletty/consoletty-2.0.0.jar
--start consoletelnet/consoletelnet-2.0.0.jar
+-start consoletelnet/consoletelnet-2.0.1.jar
 -start frameworkcommands/frameworkcommands-2.0.0.jar
 -start logcommands/logcommands-2.0.0.jar
 -start cm_cmd/cm_cmd-2.0.0.jar
