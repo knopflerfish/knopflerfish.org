@@ -133,6 +133,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame125a());
     addTest(new Frame130a());
     addTest(new Frame160a());
+    addTest(new Frame161a());
     addTest(new Frame170a());
     addTest(new Frame175a());
     addTest(new Frame180a());
@@ -2739,6 +2740,36 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  public final static String [] HELP_FRAME161A =  {
+    "Test bundle resource retrieval from boot class path."
+  };
+
+  class Frame161a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean pass = true;
+
+      String resourceName = "java/lang/Thread.class";
+
+      URL url1 = bc.getBundle().getResource(resourceName);
+      URL url2 = this.getClass().getClassLoader().getResource(resourceName);
+
+      //System.out.println("URL from bundle.getResource() = "+url1);
+      //System.out.println("URL from classLoader.getResource() = "+url2);
+
+      // Bundle.getResource() should only return resources from bundles.
+      assertNull("bundle.getResource(\"" +resourceName+"\")" , url1);
+      // BundleClassLoader.getResource() should return resources
+      // according to the class space (classpath), i.e., delegate to
+      // parent class loader before searching its own paths.
+      assertNotNull("bundleClassLoader.getResource(\""+resourceName+"\")",url2);
+
+      if (pass == true) {
+        out.println("### framework test bundle :FRAME161A:PASS");
+      } else {
+        fail("### framework test bundle :FRAME161A:FAIL");
+      }
+    }
+  }
 
   boolean callReturned;
   Integer doneSyncListener;
