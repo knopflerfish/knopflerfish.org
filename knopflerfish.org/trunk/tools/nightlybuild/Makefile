@@ -1,41 +1,64 @@
 
 WWW_DIR=/home/wistrand/knopflerfish.org/www
-OUT_DIR=/home/wistrand/knopflerfish.org/www/snapshots/trunk
+OUT_DIR=/home/wistrand/knopflerfish.org/www/snapshots
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
-VERSION = 1.3.2
 TAG     = trunk
-SUFFIX  = -trunk
 
+LATEST_LINK=latest_${TAG}
 
-CP      = /bin/cp -p
+CP      = /bin/cp 
 SVN     = /usr/pkg/bin/svn
-ANT     = /home/wistrand/knopflerfish.org/build/ant
+ANT     = /home/polli/apache-ant-1.6.2/bin/ant
 #ANT	= /usr/pkg/bin/ant
-MAKE    = /usr/bin/make
 AWK     = /usr/bin/awk
-JAVA    = /usr/pkg/java/sun-1.3.1/bin/java
+GREP    = /usr/bin/grep
+SED     = /usr/bin/sed
+RM      = /bin/rm
+LN      = /bin/ln
+JAVA    = java
+#JAVA    = /usr/pkg/java/sun-1.3.1/bin/java
+#JAVA_HOME = /usr/pkg/java/sun-1.3.1
+
+# The current (upcomming) Knopflerfish release version
+#REL_VERSION = 2.0.4
+REL_VERSION := $(shell cd ${TAG} && ${ANT} version | ${GREP} "Version: " | ${SED} -e 's/.*Version: //g')
+
+# The current SVN revision number
+REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Revision: //')
+
+
+# The version of this nightly build
+VERSION := ${REL_VERSION}_${REVISION}
+
+
+.PHONY: help all obr_export obr obr_install checkout update status build
+.PHONY: distrib distrib_test clean run_tests run_tests_pre run_tests_post 
+.PHONY: run_tests1 run_tests1_pa run_tests2 copyout outindex version
 
 help:
-	echo "all        build all"
-	echo "run_tests  run regression tests"
+	@echo "update     clean and update"
+	@echo "all        builds distribution, tests it and publishes it."
+	@echo "run_tests  run regression tests"
 
-all: 
-	${MAKE} update && \
-	${MAKE} rebuild && \
-	${MAKE} distrib_tests && \
-	${MAKE} copyout
-	${MAKE} run_tests
+all: distrib distrib_tests copyout outindex run_tests
+
+version:
+	@echo "Current Knopflerfish version is: ${REL_VERSION}"
+	@echo "Current repository version is: ${REVISION}"
+	@echo "Current build version is: ${VERSION}"
 
 obr_export:
-	(cd ${TAG} && ${ANT} obr) && \
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} obr obr_index) && \
 	cp -r ${TAG}/osgi/jars /home/wistrand/knopflerfish.org/www/repo
 	cp -r ${TAG}/repo/*.xml /home/wistrand/knopflerfish.org/www/repo
+	cp -r ${TAG}/repo/*.html /home/wistrand/knopflerfish.org/www/repo
 	cp -r ${TAG}/htdocs/css/repository.xsl /home/wistrand/knopflerfish.org/www/css
 
 
+
 obr:
-	(cd ${TAG} && ${ANT} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
 
 obr_install:
 	cp -r ${TAG}/repo ${WWW_DIR}
@@ -44,27 +67,20 @@ checkout:
 	${SVN} co ${REPO}
 
 update:
-	${SVN} update ${TAG}
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} clean)
+	(cd ${TAG} && ${SVN} update)
 
 status:
-	${SVN} status ${TAG}
+	(cd ${TAG} && ${SVN} status)
 
-rebuild:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} clean all)
+build:
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} all)
+
+distrib:
 	(cd ${TAG} && ${ANT} -Dversion=${VERSION} distrib)
 
 distrib_tests:
 	(cd ${TAG} && ${ANT} -Dversion=${VERSION} distrib_tests)
-
-build:
-	(cd ${TAG} && ${ANT} all)
-
-distrib:
-	(cd ${TAG} && ${ANT} distrib)
-
-public:
-	cp $TAG/*.jar TAG/*.zip \
-	$OUT_DIR
 
 clean:
 	rm -rf ${TAG}
@@ -83,12 +99,22 @@ run_tests_post:
 	cp -r \
 		${TAG}/osgi/junit_grunt \
 		${OUT_DIR}
+	cp \
+		kf_junit_index_style.xsl \
+		${OUT_DIR}/junit_grunt/junit_index_style.xsl
 
 run_tests1:
 	(\
 	cd ${TAG}/osgi && \
 	${JAVA} -jar framework.jar -xargs init-tests.xargs \
 		> junit_grunt/out.txt 2>&1 \
+	)
+
+run_tests1_pa:
+	(\
+	cd ${TAG}/osgi && \
+	${JAVA} -jar framework.jar -xargs init-tests_pa.xargs \
+		>> junit_grunt/out.txt 2>&1 \
 	)
 
 
@@ -106,39 +132,13 @@ run_tests2:
 		>> junit_grunt/out.txt 2>&1 \
 	)
 
-
-
 copyout:
 	@mkdir -p ${OUT_DIR}
-	@${CP} ${TAG}/knopflerfish_bin_osgi_${VERSION}.jar \
-	   ${OUT_DIR}/knopflerfish_bin_osgi_${VERSION}${SUFFIX}.jar	
-
-	@${CP} ${TAG}/knopflerfish_fullbin_osgi_${VERSION}.jar \
-	${OUT_DIR}/knopflerfish_fullbin_osgi_${VERSION}${SUFFIX}.jar
-
-	@${CP} ${TAG}/knopflerfish_opt_${VERSION}.jar \
-	${OUT_DIR}/knopflerfish_opt_${VERSION}${SUFFIX}.jar
-
-	@${CP} ${TAG}/knopflerfish_osgi_${VERSION}.jar \
-	${OUT_DIR}/knopflerfish_osgi_${VERSION}${SUFFIX}.jar
-
-	@${CP} ${TAG}/knopflerfish_osgi_tiny_${VERSION}.zip \
-	${OUT_DIR}/knopflerfish_osgi_tiny_${VERSION}${SUFFIX}.zip
-
-	@${CP} ${TAG}/knopflerfish_osgi_tests_${VERSION}.zip \
-	${OUT_DIR}/knopflerfish_osgi_tests_${VERSION}${SUFFIX}.zip
-
-	@(cd ${OUT_DIR} && /bin/ls -l *.jar *.zip) \
-	| ${AWK} -f outlist.awk \
-	> ${OUT_DIR}/index.html
-
-	@${CP} -r ${TAG}/osgi/jars \
-	${OUT_DIR}/jars
-
+	@${RM} -rf ${OUT_DIR}/${REL_VERSION}*
+	${CP} -r ${TAG}/htdocs/releases/${VERSION} ${OUT_DIR}
 
 outindex:
-	@(cd ${OUT_DIR} && /bin/ls -l *.jar *.zip) \
-	| ${AWK} -f outlist.awk \
-	> ${OUT_DIR}/index.html
-
-
+	@(cd ${OUT_DIR} && /bin/ls -l ${VERSION}/*.jar ${VERSION}/*.zip) \
+	| ${AWK} -f outlist.awk > ${OUT_DIR}/index.html
+	@${RM} -f ${OUT_DIR}/${LATEST_LINK}
+	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${LATEST_LINK})

@@ -4,8 +4,8 @@ BEGIN {
   print "<title>Knopflerfish OSGi - latest distributions</title>"
   print "<LINK href=\"/css/knopflerfish.css\" rel=\"stylesheet\" type=\"text/css\">"
   print "</head>"
-  print "<body>"
-  print "<h2>Latest Knopflerfish distribution from trunk</h2>"
+  print "<body style=\"background: #ffffff;\">"
+  print "<h3>Latest Knopflerfish distribution from trunk</h3>"
   print "<pre>"
 } 
 
