@@ -115,6 +115,11 @@
     <delete dir = "repo"      />
   </target>
 
+  <target name = "version"
+	  description="Echos the current Knopflerfish version to stdout.">
+    <echo message = "Version: ${version}"/>
+  </target>
+
   <target name        = "htdocs"
           description = "Builds HTML documents">
     <property name="htdocs.dir"     location="htdocs"/>
