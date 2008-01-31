@@ -64,6 +64,8 @@
 
 	      <h3>Documentation</h3>
 
+	      <a href="ChangeLog.txt">Change Log</a>
+	      <p>
 	      <a href="release_notes.html">Release Notes</a>
 	      <p>
 	      <a href="javadoc">API documentation</a>
