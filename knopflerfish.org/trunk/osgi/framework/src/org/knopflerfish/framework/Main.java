@@ -587,14 +587,24 @@ public class Main {
     Vector v = new Vector();
     int i = 0;
     while(i < argv.length) {
-      if ("-xargs".equals(argv[i])) {
+      if ("-xargs".equals(argv[i]) || "--xargs".equals(argv[i])) {
+        // if "--xargs", ignore any load errors of xargs file
+        boolean bIgnoreException = argv[i].equals("--xargs");
         if (i+1 < argv.length) {
           String   xargsPath = argv[i+1];
-          String[] moreArgs = loadArgs(xargsPath, argv);
           i++;
-          String[] r = expandArgs(moreArgs);
-          for(int j = 0; j < r.length; j++) {
-            v.addElement(r[j]);
+          try {
+            String[] moreArgs = loadArgs(xargsPath, argv);
+            String[] r = expandArgs(moreArgs);
+            for(int j = 0; j < r.length; j++) {
+              v.addElement(r[j]);
+            }
+          } catch (RuntimeException e) {
+            if(bIgnoreException) {
+              println("Failed to load -xargs " + xargsPath, 1, e);
+            } else {
+              throw e;
+            }
           }
         } else {
           throw new IllegalArgumentException("-xargs without argument");
@@ -1034,8 +1044,15 @@ public class Main {
    * @param level print level.
    */
   static void println(String s, int level) {
+    println(s, level, null);
+  }
+
+  static void println(String s, int level, Exception e) {
     if(verbosity >= level) {
       System.out.println((level > 0 ? ("#" + level + ": ") : "") + s);
+      if(e != null) {
+        e.printStackTrace();
+      }
     }
   }
 
