@@ -7,6 +7,7 @@ TAG     = trunk
 
 LATEST_LINK=latest_${TAG}
 
+CAT     = /bin/cat
 CP      = /bin/cp 
 SVN     = /usr/pkg/bin/svn
 ANT     = /home/polli/apache-ant-1.6.2/bin/ant
@@ -20,13 +21,13 @@ JAVA    = java
 #JAVA    = /usr/pkg/java/sun-1.3.1/bin/java
 #JAVA_HOME = /usr/pkg/java/sun-1.3.1
 
+DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
 # The current (upcomming) Knopflerfish release version
 #REL_VERSION = 2.0.4
 REL_VERSION := $(shell cd ${TAG} && ${ANT} version | ${GREP} "Version: " | ${SED} -e 's/.*Version: //g')
 
 # The current SVN revision number
 REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Revision: //')
-
 
 # The version of this nightly build
 VERSION := ${REL_VERSION}_${REVISION}
@@ -35,13 +36,14 @@ VERSION := ${REL_VERSION}_${REVISION}
 .PHONY: help all obr_export obr obr_install checkout update status build
 .PHONY: distrib distrib_test clean run_tests run_tests_pre run_tests_post 
 .PHONY: run_tests1 run_tests1_pa run_tests2 copyout outindex version
+.PHONY: relindex clean_snapshots
 
 help:
 	@echo "update     clean and update"
 	@echo "all        builds distribution, tests it and publishes it."
 	@echo "run_tests  run regression tests"
 
-all: distrib distrib_tests copyout outindex run_tests
+all: distrib distrib_tests copyout relindex  clean_snapshots outindex run_tests
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
@@ -134,11 +136,39 @@ run_tests2:
 
 copyout:
 	@mkdir -p ${OUT_DIR}
-	@${RM} -rf ${OUT_DIR}/${REL_VERSION}*
 	${CP} -r ${TAG}/htdocs/releases/${VERSION} ${OUT_DIR}
 
+relindex:
+	cat rel_index.html.in | \
+	  sed -e "s/@VERSION@/${VERSION}/g" \
+              -e "s/@TAG@/${TAG}/g" \
+              -e "s/@DATE@/${DATE}/g" \
+	  > ${OUT_DIR}/${VERSION}/index.html
+
+# Remove all but the 10 last BUILDs for each release from ${OUT_DIR}
+clean_snapshots:
+	@mkdir -p ${OUT_DIR}
+	@(cd ${OUT_DIR}; \
+	  BUILD_CNT=0; \
+	  for FF in `ls -1dcrt ${REL_VERSION}_*`; do \
+	    if [ -d $$FF ]; then \
+	      BUILD_CNT=`expr $$BUILD_CNT + 1`; \
+	      if [ $$BUILD_CNT -gt 10 ]; then \
+	        ${RM} -rf $$FF; \
+	      fi; \
+	    fi; \
+	  done)
+
 outindex:
-	@(cd ${OUT_DIR} && /bin/ls -l ${VERSION}/*.jar ${VERSION}/*.zip) \
-	| ${AWK} -f outlist.awk > ${OUT_DIR}/index.html
 	@${RM} -f ${OUT_DIR}/${LATEST_LINK}
+	@${CAT} snap_index.html.pre > ${OUT_DIR}/index.html
+	@echo "<a href=\"${LATEST_LINK}\">Latest</a><p/>" >> ${OUT_DIR}/index.html
+	@(cd ${OUT_DIR}; \
+	  for FF in `ls -1ct`; do \
+	    if [ -d $$FF ]; then \
+	      echo "<a href=\"$$FF\">$$FF</a><p/>" >> ${OUT_DIR}/index.html; \
+	    fi; \
+	  done)
+	@${CAT} snap_index.html.post >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${LATEST_LINK})
+
