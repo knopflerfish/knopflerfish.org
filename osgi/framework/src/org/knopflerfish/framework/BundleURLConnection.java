@@ -61,30 +61,40 @@ class BundleURLConnection extends URLConnection {
     bundles = b;
   }
 
-  public void connect() throws IOException {
-    if (!connected) {
-      BundleImpl b = null;
-      long ai = -1;
-      long fi = -1;
-      try {
-        String s = url.getHost();
-        int i = s.indexOf('_');
-        if (i >= 0) {
-          fi = Long.parseLong(s.substring(i+1));
-          s = s.substring(0,i);
-        }
-        i = s.indexOf('.');
-        if (i >= 0) {
+  /**
+   * @return The bundle archive that provides the contents of this
+   *         bundle URL.
+   */
+  private BundleArchive getBundleArchive()
+  {
+    BundleImpl b = null;
+    long ai = -1;
+    long fi = -1;
+    try {
+      String s = url.getHost();
+      int i = s.indexOf('_');
+      if (i >= 0) {
+        fi = Long.parseLong(s.substring(i+1));
+        s = s.substring(0,i);
+      }
+      i = s.indexOf('.');
+      if (i >= 0) {
           ai = Long.parseLong(s.substring(i+1));
           s = s.substring(0,i);
         }
         b = (BundleImpl)bundles.getBundle(Long.parseLong(s));
       } catch (NumberFormatException _ignore) { }
       if (b != null) {
-        BundleArchive a = b.getBundleArchive(ai, fi);
-        if (a != null) {
-          is = a.getInputStream(url.getFile(), url.getPort());
-        }
+        return b.getBundleArchive(ai, fi);
+      }
+      return null;
+  }
+
+  public void connect() throws IOException {
+    if (!connected) {
+      BundleArchive a = getBundleArchive();
+      if (a != null) {
+        is = a.getInputStream(url.getFile(), url.getPort());
       }
       if (is != null) {
         connected = true;
