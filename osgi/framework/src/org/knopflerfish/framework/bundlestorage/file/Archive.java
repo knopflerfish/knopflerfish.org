@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -441,19 +441,28 @@ class Archive {
     InputStream is;
     try {
       if (jar != null) {
-        if (subJar != null) {
-          JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-          do {
-            ze = ji.getNextJarEntry();
-            if (ze == null) {
-              ji.close();
-              return null;
-            }
-          } while (!component.equals(ze.getName()));
-          is = (InputStream)ji;
+        if (component.equals("")) {
+          // Returns a stream to the entire Jar.
+          if (subJar != null) {
+            is = jar.getInputStream(subJar);
+          } else {
+            is = new FileInputStream(jar.getName());
+          }
         } else {
-          ze = jar.getEntry(component);
-          is = (ze != null) ? jar.getInputStream(ze) : null;
+          if (subJar != null) {
+            JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+            do {
+              ze = ji.getNextJarEntry();
+              if (ze == null) {
+                ji.close();
+                return null;
+              }
+            } while (!component.equals(ze.getName()));
+            is = (InputStream)ji;
+          } else {
+            ze = jar.getEntry(component);
+            is = (ze != null) ? jar.getInputStream(ze) : null;
+          }
         }
       } else {
         File f = findFile(file, component);
