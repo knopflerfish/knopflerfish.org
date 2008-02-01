@@ -456,21 +456,32 @@ class Archive {
     try {
       if (jar != null) {
         if (subJar != null) {
-          if (subJar.isDirectory()) {
-            ze = jar.getEntry(subJar.getName() + component);
+          if (component.equals("")) {
+            // Return a stream to the entire Jar.
+            return new InputFlow(jar.getInputStream(subJar), subJar.getSize());
           } else {
-            JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
-            do {
-              ze = ji.getNextJarEntry();
-              if (ze == null) {
-                ji.close();
-                return null;
-              }
-            } while (!component.equals(ze.getName()));
-            return new InputFlow((InputStream)ji, ze.getSize());
+            if (subJar.isDirectory()) {
+              ze = jar.getEntry(subJar.getName() + component);
+            } else {
+              JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+              do {
+                ze = ji.getNextJarEntry();
+                if (ze == null) {
+                  ji.close();
+                  return null;
+                }
+              } while (!component.equals(ze.getName()));
+              return new InputFlow((InputStream)ji, ze.getSize());
+            }
           }
         } else {
-          ze = jar.getEntry(component);
+          if (component.equals("")) {
+            // Return a stream to the entire Jar.
+            File f = new File(jar.getName());
+            return new InputFlow(new FileInputStream(f), f.length() );
+          } else {
+            ze = jar.getEntry(component);
+          }
         }
         return ze != null ? new InputFlow(jar.getInputStream(ze), ze.getSize()) : null;
       } else {
