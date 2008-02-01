@@ -5,7 +5,7 @@ REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
 TAG     = trunk
 
-LATEST_LINK=latest_${TAG}
+CURRENT_LINK=current_${TAG}
 
 CAT     = /bin/cat
 CP      = /bin/cp 
@@ -163,15 +163,17 @@ clean_snapshots:
 	  done)
 
 outindex:
-	@${RM} -f ${OUT_DIR}/${LATEST_LINK}
+	@${RM} -f ${OUT_DIR}/${CURRENT_LINK}
 	@${CAT} snap_index.html.pre > ${OUT_DIR}/index.html
-	@echo "<a href=\"${LATEST_LINK}\">Latest</a><p/>" >> ${OUT_DIR}/index.html
+	@echo "The current build on ${TAG} is <a href=\"${CURRENT_LINK}\">${VERSION}</a>.<p/>" >> ${OUT_DIR}/index.html
+	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
+	@echo "<p>" >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR}; \
 	  for FF in `ls -1ct`; do \
 	    if [ -d $$FF ]; then \
-	      echo "<a href=\"$$FF\">$$FF</a><p/>" >> ${OUT_DIR}/index.html; \
+	      echo "<a href=\"$$FF\">$$FF</a><br/>" >> ${OUT_DIR}/index.html; \
 	    fi; \
 	  done)
 	@${CAT} snap_index.html.post >> ${OUT_DIR}/index.html
-	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${LATEST_LINK})
+	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${CURRENT_LINK})
 
