@@ -456,12 +456,12 @@ class Archive {
     try {
       if (jar != null) {
         if (subJar != null) {
-          if (component.equals("")) {
-            // Return a stream to the entire Jar.
-            return new InputFlow(jar.getInputStream(subJar), subJar.getSize());
+          if (subJar.isDirectory()) {
+            ze = jar.getEntry(subJar.getName() + component);
           } else {
-            if (subJar.isDirectory()) {
-              ze = jar.getEntry(subJar.getName() + component);
+            if (component.equals("")) {
+              // Return a stream to the entire Jar.
+              return new InputFlow(jar.getInputStream(subJar), subJar.getSize());
             } else {
               JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
               do {
