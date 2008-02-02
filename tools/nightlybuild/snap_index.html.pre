@@ -9,7 +9,7 @@
 <title>Knopflerfish OSGi - snapshot builds</title>
 
 <LINK href="/css/knopflerfish.css" rel="stylesheet" type="text/css">
-<link rel="shortcut icon" href="images/favicon.ico" >
+<link rel="shortcut icon" href="/images/favicon.ico" >
 
 </head>
 
@@ -39,7 +39,7 @@
     <td valign="top">
       <div style="text-align:left; margin-right: 15px; margin-left: 10px; margin-top:10px;">
 
-      <a class="navigation_enabled" href="index.html">Home</a><br/>
+      <a class="navigation_enabled" href="/index.html">Home</a><br/>
       </p>
       <hr>
       Maintained by</br>
