@@ -141,7 +141,7 @@ public class SystemBundle extends BundleImpl {
         addSysPackagesFromFile(sp, "packages1.5.txt");
       }
 
-      if("true".equals(System.getProperty(EXPORT15, "").trim())) {
+      if("true".equals(System.getProperty(EXPORT16, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.6.txt");
       }
 
