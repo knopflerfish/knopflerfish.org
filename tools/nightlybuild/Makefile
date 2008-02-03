@@ -42,7 +42,7 @@ help:
 	@echo "all        builds distribution, tests it and publishes it."
 	@echo "run_tests  run regression tests"
 
-all: distrib distrib_tests copyout relindex  clean_snapshots outindex run_tests
+all: version distrib distrib_tests copyout relindex  clean_snapshots outindex run_tests
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
