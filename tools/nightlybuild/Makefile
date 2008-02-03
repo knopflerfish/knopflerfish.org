@@ -102,15 +102,15 @@ run_tests_post:
 run_tests1:
 	(\
 	  cd ${TAG}/osgi && \
-	  ${ANT} -Dversion=${VERSION} run-kf-tests-secure) \
-	         > junit_grunt/out1.txt 2>&1
+	  ${ANT} -Dversion=${VERSION} run-kf-tests-secure \
+	         > junit_grunt/out1.txt 2>&1 \
 	)
 
 run_tests2:
 	(\
 	  cd ${TAG}/osgi && \
-	  ${ANT} -Dversion=${VERSION} run-kf-restart-tests-secure) \
-	         > junit_grunt/out1.txt 2>&1
+	  ${ANT} -Dversion=${VERSION} run-kf-restart-tests-secure \
+	         > junit_grunt/out2.txt 2>&1 \
 	)
 
 CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAG}
