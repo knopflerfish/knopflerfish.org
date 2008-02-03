@@ -172,8 +172,17 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
+   <!-- Run most of the test suites. -->
    <java fork="true"                        jar="framework.jar">
      <arg line="-xargs init-tests.xargs"/>
+   </java>
+   <!-- Set up for the restart test suite. -->
+   <java fork="true"              jar="framework.jar">
+     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+   </java>
+   <!-- Restart and check that the same set of bundles are started. -->
+   <java fork="true"              jar="framework.jar">
+     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
    </java>
  </target>
 
@@ -188,33 +197,7 @@
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg line="-xargs init-tests.xargs"/>
    </java>
- </target>
-
- <target name="run-kf-restart-tests"
-         description="Builds then executes the KF restart testsuite."
-	 depends="all">
-   <ant dir="bundles_opt/junit"   target="all"/>
-   <ant dir="bundles_test"        target="all"
-	inheritAll="false"        inheritRefs="false"/>
-   <!-- Initial start to set up framework with a set of bundles. -->
-   <java fork="true"              jar="framework.jar">
-     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
-   </java>
-   <!-- Restart and check that the same set of bundles are started. -->
-   <java fork="true"              jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
-   </java>
- </target>
-
- <target name="run-kf-restart-tests-secure"
-         description="Builds then executes the KF restart testsuite with security enabled."
-	 depends="all">
-   <ant dir="bundles_opt/junit"   target="all"/>
-   <ant dir="bundles_test"        target="all"
-	inheritAll="false"        inheritRefs="false"/>
-   <!-- Initial start to set up framework with a set of bundles. -->
+   <!-- Set up for the restart test suite. -->
    <java fork="true"              jar="framework.jar">
      <jvmarg value="-Djava.security.manager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
@@ -227,7 +210,6 @@
      <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
    </java>
  </target>
-
 
  <target name="clean" description="removes all generated files">
   <delete file="framework.jar"/>
