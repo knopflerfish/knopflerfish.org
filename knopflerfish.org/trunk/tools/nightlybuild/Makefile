@@ -34,10 +34,11 @@ REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Re
 # The version of this nightly build
 VERSION := ${REL_VERSION}_${REVISION}
 
-.PHONY: help all obr_export obr obr_install checkout update status build
-.PHONY: distrib distrib_test clean run_tests run_tests_pre run_tests_post 
-.PHONY: run_tests1 run_tests1_pa run_tests2 copyout outindex version
-.PHONY: relindex clean_snapshots
+.PHONY: help all  clean version checkout update status
+.PHONY: build distrib distrib_test
+.PHONY: copyout outindex relindex clean_snapshots
+.PHONY: run_tests run_tests_pre run_tests_post run_tests1
+.PHONY: obr_export obr obr_install
 
 help:
 	@echo "update     clean and update"
@@ -88,7 +89,7 @@ distrib_tests:
 clean:
 	$(RM) -rf ${TAG}
 
-run_tests: run_tests_pre run_tests1 run_tests2 run_tests_post
+run_tests: run_tests_pre run_tests1 run_tests_post
 
 run_tests_pre:
 	@$(RM)   -rf ${TAG}/osgi/junit_grunt
@@ -103,15 +104,9 @@ run_tests1:
 	(\
 	  cd ${TAG}/osgi && \
 	  ${ANT} -Dversion=${VERSION} run-kf-tests-secure \
-	         > junit_grunt/out1.txt 2>&1 \
+	         >> junit_grunt/out.txt 2>&1 \
 	)
 
-run_tests2:
-	(\
-	  cd ${TAG}/osgi && \
-	  ${ANT} -Dversion=${VERSION} run-kf-restart-tests-secure \
-	         > junit_grunt/out2.txt 2>&1 \
-	)
 
 CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAG}
 CH_LOG_DEST=${OUT_DIR}/${VERSION}/ChangeLog.txt
