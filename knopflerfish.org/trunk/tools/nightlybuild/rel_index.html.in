@@ -176,7 +176,7 @@
 	  </table>
 
 	  <h3>Test results</h3>
-	  <a href="junit_grunt/index.xml">Latest test results (XML)</a>
+	  <a href="junit_grunt/index.xml">Test results (XML)</a>
 
 
 	    <p>
