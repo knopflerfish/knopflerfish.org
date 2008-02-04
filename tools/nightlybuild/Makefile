@@ -7,11 +7,7 @@ TAG         = trunk
 CURRENT_LINK=current_${TAG}
 BUILD_KIND  = "snapshot build"
 
-ANT	= /usr/pkg/bin/ant \
-            -Dversion=${VERSION} \
-            -Dsvn.tag=${TAG} \
-            -Dbuild.kind=${BUILD_KIND}
-
+ANT	= /usr/pkg/bin/ant
 AWK     = /usr/bin/awk
 CAT     = /bin/cat
 CP      = /bin/cp 
@@ -37,16 +33,24 @@ REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Re
 # The version of this nightly build
 VERSION := ${REL_VERSION}_${REVISION}
 
+# Ant with build properties set.
+ANTv = ${ANT} -Dversion=${VERSION} \
+              -Dsvn.tag=${TAG} \
+              -Dbuild.kind=${BUILD_KIND}
+
+
+
 .PHONY: help all  clean version checkout update status
 .PHONY: build distrib
 .PHONY: copyout outindex clean_snapshots
 .PHONY: obr_export obr obr_install
 
-help:
-	@echo "update     clean and update"
-	@echo "all        builds distribution, tests it and publishes it."
 
-all: version distrib copyout clean_snapshots outindex
+help:
+	@echo "update       clean and update"
+	@echo "all          builds distribution, tests it and publishes it."
+
+all: version $(TAG)/ant/lib/bcel-5.1.jar distrib copyout clean_snapshots outindex
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
@@ -54,7 +58,7 @@ version:
 	@echo "Current build version is: ${VERSION}"
 
 obr_export:
-	(cd ${TAG} && ${ANT} obr obr_index) && \
+	(cd ${TAG} && ${ANTv} obr obr_index) && \
 	$(CP) -r ${TAG}/osgi/jars /home/wistrand/knopflerfish.org/www/repo
 	$(CP) -r ${TAG}/repo/*.xml /home/wistrand/knopflerfish.org/www/repo
 	$(CP) -r ${TAG}/repo/*.html /home/wistrand/knopflerfish.org/www/repo
@@ -63,10 +67,13 @@ obr_export:
 
 
 obr:
-	(cd ${TAG} && ${ANT} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
+	(cd ${TAG} && ${ANTv} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
 
 obr_install:
 	$(CP) -r ${TAG}/repo ${WWW_DIR}
+
+$(TAG)/ant/lib/bcel-5.1.jar:
+	(cd ${TAG}/osgi && ${ANT} install_bcel)
 
 checkout:
 	${SVN} co ${REPO}
@@ -79,10 +86,10 @@ status:
 	(cd ${TAG} && ${SVN} status)
 
 build:
-	(cd ${TAG} && ${ANT} all)
+	(cd ${TAG} && ${ANTv} all)
 
 distrib:
-	(cd ${TAG} && ${ANT} distrib)
+	(cd ${TAG} && ${ANTv} distrib)
 
 clean:
 	$(RM) -rf ${TAG}
