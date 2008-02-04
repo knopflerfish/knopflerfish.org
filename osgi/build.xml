@@ -172,6 +172,7 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
+   <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <!-- Run most of the test suites. -->
    <java fork="true"
@@ -209,6 +210,7 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
+   <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <java fork="true"
 	 output="junit_grunt/out.txt"
