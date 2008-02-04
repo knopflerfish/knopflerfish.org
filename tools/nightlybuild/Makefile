@@ -37,15 +37,13 @@ VERSION := ${REL_VERSION}_${REVISION}
 .PHONY: help all  clean version checkout update status
 .PHONY: build distrib distrib_test
 .PHONY: copyout outindex relindex clean_snapshots
-.PHONY: run_tests run_tests_pre run_tests_post run_tests1
 .PHONY: obr_export obr obr_install
 
 help:
 	@echo "update     clean and update"
 	@echo "all        builds distribution, tests it and publishes it."
-	@echo "run_tests  run regression tests"
 
-all: version distrib distrib_tests copyout relindex  clean_snapshots outindex run_tests
+all: version distrib distrib_tests copyout relindex  clean_snapshots outindex
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
@@ -88,20 +86,6 @@ distrib_tests:
 
 clean:
 	$(RM) -rf ${TAG}
-
-run_tests: run_tests_pre run_tests1 run_tests_post
-
-run_tests_pre:
-	@$(RM)   -rf ${TAG}/osgi/junit_grunt
-	@$(MKDIR) -p ${TAG}/osgi/junit_grunt
-
-run_tests_post:
-	$(CP) -rp ${TAG}/osgi/junit_grunt ${OUT_DIR}/${VERSION}
-	$(CP) -p  kf_junit_index_style.xsl \
-	          ${OUT_DIR}/${VERSION}/junit_grunt/junit_index_style.xsl
-
-run_tests1:
-	(cd ${TAG}/osgi && ${ANT} -Dversion=${VERSION} run-kf-tests-secure)
 
 
 CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAG}
