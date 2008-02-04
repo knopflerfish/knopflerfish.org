@@ -6,7 +6,7 @@
 <meta http-equiv = "CACHE-CONTROL"
       content    = "NO-CACHE"/>
 
-<title>Knopflerfish OSGi - snapshot build @VERSION@ @DATE@</title>
+<title>Knopflerfish OSGi - @VERSION@ @BUILD_KIND@</title>
 
 <LINK href="/css/knopflerfish.css" rel="stylesheet" type="text/css">
 <link rel="shortcut icon" href="/images/favicon.ico" >
@@ -60,7 +60,7 @@
 	<tr>
           <td>
 	    <div id="mainblock">
-	      <h2>Knopflerfish snapshot build @VERSION@ from @TAG@, @DATE@</h2>
+	      <h2>Knopflerfish @VERSION@ @BUILD_KIND@ from @TAG@, @DATE@</h2>
 
 	      <h3>Documentation</h3>
 
@@ -77,7 +77,7 @@
 	      <table cellpadding="2">
 		<tr>
 		  <th>Name</th>
-		  <th>Size</th>
+		  <th>Size (bytes)</th>
 		  <th>Description</th>
 		</tr>
 
@@ -87,7 +87,7 @@
 		      knopflerfish_osgi_@VERSION@.jar</a>
 		  </td>
 		  <td>
-		      8.6M
+		      @DISTRIBFILE_LENGTH@
 		  </td>
 		  <td>
 		      Complete framework, including source code and
@@ -101,7 +101,7 @@
 		      knopflerfish_fullbin_osgi_@VERSION@.jar</a>
 		  </td>
 		  <td>
-		      2.8M
+		      @DISTRIBFILE_FULLBIN_LENGTH@
 		  </td>
 		  <td>
 		      Full binary framework and bundles. No source or
@@ -115,7 +115,7 @@
 		      knopflerfish_bin_osgi_@VERSION@.jar</a><br>
 		  </td> 
 		  <td>
-		      2.1M
+		      @DISTRIBFILE_BIN_LENGTH@
 		  </td>
 		  <td>
 		      Core binary framework and some bundles. No
@@ -129,7 +129,7 @@
 		      knopflerfish_opt_@VERSION@.jar</a><br> 
 		  </td>
 		  <td>
-		      6.9M
+		      @DISTRIBFILE_OPT_LENGTH@
 		  </td>
 		  <td>
 		      A set of optional bundles, including SOAP
@@ -150,7 +150,7 @@
 		      knopflerfish_osgi_tiny_@VERSION@.zip</a><br> 
 		  </td>
 		  <td>
-		      300K
+		      @DISTRIBFILE_TINY_LENGTH@
 		  </td>
 		  <td>
 		      Remotely loading framework, no source, no docs,
@@ -165,7 +165,7 @@
 		      knopflerfish_osgi_tests_@VERSION@.zip</a><br> 
 		  </td>
 		  <td>
-		      300K
+		      @DISTRIBFILE_TESTS_LENGTH@
 		  </td>
 		  <td>
 		      Bundles for testing the framework and selected

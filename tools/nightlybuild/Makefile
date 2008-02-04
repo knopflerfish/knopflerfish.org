@@ -3,12 +3,15 @@ WWW_DIR=/home/wistrand/knopflerfish.org/www
 OUT_DIR=/home/wistrand/knopflerfish.org/www/snapshots
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
-TAG     = trunk
-
+TAG         = trunk
 CURRENT_LINK=current_${TAG}
+BUILD_KIND  = "snapshot build"
 
-#ANT	= /usr/pkg/bin/ant
-ANT     = /home/polli/apache-ant-1.6.2/bin/ant
+ANT	= /usr/pkg/bin/ant \
+            -Dversion=${VERSION} \
+            -Dsvn.tag=${TAG} \
+            -Dbuild.kind=${BUILD_KIND}
+
 AWK     = /usr/bin/awk
 CAT     = /bin/cat
 CP      = /bin/cp 
@@ -35,15 +38,15 @@ REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Re
 VERSION := ${REL_VERSION}_${REVISION}
 
 .PHONY: help all  clean version checkout update status
-.PHONY: build distrib distrib_test
-.PHONY: copyout outindex relindex clean_snapshots
+.PHONY: build distrib
+.PHONY: copyout outindex clean_snapshots
 .PHONY: obr_export obr obr_install
 
 help:
 	@echo "update     clean and update"
 	@echo "all        builds distribution, tests it and publishes it."
 
-all: version distrib distrib_tests copyout relindex  clean_snapshots outindex
+all: version distrib copyout clean_snapshots outindex
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
@@ -51,7 +54,7 @@ version:
 	@echo "Current build version is: ${VERSION}"
 
 obr_export:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} obr obr_index) && \
+	(cd ${TAG} && ${ANT} obr obr_index) && \
 	$(CP) -r ${TAG}/osgi/jars /home/wistrand/knopflerfish.org/www/repo
 	$(CP) -r ${TAG}/repo/*.xml /home/wistrand/knopflerfish.org/www/repo
 	$(CP) -r ${TAG}/repo/*.html /home/wistrand/knopflerfish.org/www/repo
@@ -60,7 +63,7 @@ obr_export:
 
 
 obr:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
+	(cd ${TAG} && ${ANT} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
 
 obr_install:
 	$(CP) -r ${TAG}/repo ${WWW_DIR}
@@ -69,20 +72,17 @@ checkout:
 	${SVN} co ${REPO}
 
 update:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} clean)
+	(cd ${TAG} && ${ANT} clean)
 	(cd ${TAG} && ${SVN} update)
 
 status:
 	(cd ${TAG} && ${SVN} status)
 
 build:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} all)
+	(cd ${TAG} && ${ANT} all)
 
 distrib:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} distrib)
-
-distrib_tests:
-	(cd ${TAG} && ${ANT} -Dversion=${VERSION} distrib_tests)
+	(cd ${TAG} && ${ANT} distrib)
 
 clean:
 	$(RM) -rf ${TAG}
@@ -95,13 +95,6 @@ copyout:
 	@$(MKDIR) -p ${OUT_DIR}
 	$(CP) -r ${TAG}/htdocs/releases/${VERSION} ${OUT_DIR}
 	@[ -r ${CH_LOG_SRC} ] && $(CP) -p $(CH_LOG_SRC) $(CH_LOG_DEST)
-
-relindex:
-	$(CAT) rel_index.html.in | \
-	  $(SED) -e "s/@VERSION@/${VERSION}/g" \
-                 -e "s/@TAG@/${TAG}/g" \
-                 -e "s/@DATE@/${DATE}/g" \
-	  > ${OUT_DIR}/${VERSION}/index.html
 
 # Remove all but the 10 last BUILDs for each release from ${OUT_DIR}
 clean_snapshots:
