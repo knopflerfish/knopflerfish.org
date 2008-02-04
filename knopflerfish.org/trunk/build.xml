@@ -38,8 +38,14 @@
 <project name="knopflerfish" default="default">
 
 
+  <!-- The version of this build -->
   <property name  = "version"
             value = "2.0.4"/>
+  <!-- The subversion tag / branch that this build is made on -->
+  <!-- E.g., "trunk", "tags/2.0.4", "branches/kf_1_support". -->
+  <property name  = "svn.tag"    value="tags/${version}"/>
+  <!-- The kind of build, used on the index page for the release. -->
+  <property name  = "build.kind" value="release build"/>
 
   <!-- ONLY set this for public releases! -->
   <property name  = "release" value="${version}"/>
@@ -50,10 +56,13 @@
 
   <property name = "ee.check.foundation"   value = "true"/>
 
+  <!-- The direcotry to place the results of a distrib build in. -->
   <property name="release.dir" value = "htdocs/releases/${version}"/>
 
-  <property name = "javadoc.out.dir" location = "javadoc"/>
+  <!-- A directory to place intermediate files for a distib build in. -->
+  <property name = "distrib.out.dir" location = "out"/>
 
+  <property name = "javadoc.out.dir" location = "javadoc"/>
 
   <property name     = "distribfile"
             location = "${release.dir}/knopflerfish_osgi_${version}.jar"/>
@@ -112,7 +121,8 @@
     <ant    dir = "osgi"   target = "clean" />
     <ant    dir = "htdocs" target = "clean" />
     <delete dir = "${javadoc.out.dir}"      />
-    <delete dir = "repo"      />
+    <delete dir = "${distrib.out.dir}"      />
+    <delete dir = "repo"/>
   </target>
 
   <target name = "version"
@@ -203,6 +213,54 @@
     </copy>
   </target>
 
+  <!-- Creates an HTML index page for a release build.-->
+  <target name          = "distrib_index"
+          depends       = "mkreldir">
+    <tstamp>
+     <format property = "distrib.tstamp" 
+             pattern  = "yyyy-MM-dd HH:mm"
+             locale   = "en"/>
+    </tstamp>
+    <length property="distribfile.length"
+	    file="${distribfile}" />
+    <length property="distribfile_fullbin.length"
+	    file="${distribfile_fullbin}" />
+    <length property="distribfile_bin.length"
+	    file="${distribfile_bin}" />
+    <length property="distribfile_opt.length"
+	    file="${distribfile_opt}" />
+    <length property="distribfile_tiny.length"
+	    file="${distribfile_tiny}" />
+    <length property="distribfile_tests.length"
+	    file="${distribfile_tests}" />
+
+    <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
+	 dest="${release.dir}/index.html"/>
+
+    <replace file="${release.dir}/index.html">
+      <replacefilter token="@VERSION@"
+		     value="${version}"/>
+      <replacefilter token="@DATE@"
+		     value="${distrib.tstamp}"/>
+      <replacefilter token="@TAG@"
+		     value="${svn.tag}"/>
+      <replacefilter token="@BUILD_KIND@"
+		     value="${build.kind}"/>
+      <replacefilter token="@DISTRIBFILE_LENGTH@"
+		     value="${distribfile.length}"/>
+      <replacefilter token="@DISTRIBFILE_FULLBIN_LENGTH@"
+		     value="${distribfile_fullbin.length}"/>
+      <replacefilter token="@DISTRIBFILE_BIN_LENGTH@"
+		     value="${distribfile_bin.length}"/>
+      <replacefilter token="@DISTRIBFILE_OPT_LENGTH@"
+		     value="${distribfile_opt.length}"/>
+      <replacefilter token="@DISTRIBFILE_TINY_LENGTH@"
+		     value="${distribfile_tiny.length}"/>
+      <replacefilter token="@DISTRIBFILE_TESTS_LENGTH@"
+		     value="${distribfile_tests.length}"/>
+    </replace>
+  </target>
+
 
   <target name          = "bindex"
           depends       = "compile_ant">
@@ -278,7 +336,8 @@
    </target>
 
   <target name="mkreldir">
-     <mkdir dir = "${release.dir}"/>
+    <mkdir dir = "${release.dir}"/>
+    <mkdir dir = "${distrib.out.dir}"/>
   </target>
 
    <!-- Some of the distrib targets assumes a defulat build -->
@@ -292,8 +351,10 @@
      <antcall target     = "distrib_bin"/>
      <antcall target     = "distrib_tiny"/>
      <antcall target     = "distrib_opt"/>
+     <antcall target     = "distrib_tests"/>
 
      <antcall target     = "run-kf-tests"/>
+     <antcall target     = "distrib_index"/>
 
      <antcall target     = "obr"/>
      <antcall target     = "obr_index"/>
