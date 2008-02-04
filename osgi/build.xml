@@ -172,18 +172,35 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
+   <echo message="Running the main test suite..."/>
    <!-- Run most of the test suites. -->
-   <java fork="true"                        jar="framework.jar">
-     <arg line="-xargs init-tests.xargs"/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="false"
+         jar="framework.jar">
+     <arg value="-xargs"/>
+     <arg value="init-tests.xargs"/>
    </java>
    <!-- Set up for the restart test suite. -->
-   <java fork="true"              jar="framework.jar">
-     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+   <echo message="Running the restart test suite, part 1..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
    </java>
    <!-- Restart and check that the same set of bundles are started. -->
-   <java fork="true"              jar="framework.jar">
-     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
+   <echo message="Running the restart test suite, part 2..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
    </java>
+   <echo message="Test output is available in junit_grunt/out.txt."/>
+   <echo message="Test results are available in junit_grunt/index.xml"/>
  </target>
 
  <target name="run-kf-tests-secure"
@@ -192,23 +209,40 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
-   <java fork="true"              jar="framework.jar">
+   <echo message="Running the main test suite..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="false"
+	 jar="framework.jar">
      <jvmarg value="-Djava.security.manager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg line="-xargs init-tests.xargs"/>
+     <arg value="-xargs"/>
+     <arg value="init-tests.xargs"/>
    </java>
    <!-- Set up for the restart test suite. -->
-   <java fork="true"              jar="framework.jar">
+   <echo message="Running the restart test suite, part 1..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
      <jvmarg value="-Djava.security.manager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
    </java>
    <!-- Restart and check that the same set of bundles are started. -->
-   <java fork="true"              jar="framework.jar">
+   <echo message="Running the restart test suite, part 2..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
      <jvmarg value="-Djava.security.manager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg line="-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
    </java>
+   <echo message="Test output is available in junit_grunt/out.txt."/>
+   <echo message="Test results are available in junit_grunt/index.xml."/>
  </target>
 
  <target name="clean" description="removes all generated files">

@@ -101,11 +101,7 @@ run_tests_post:
 	          ${OUT_DIR}/${VERSION}/junit_grunt/junit_index_style.xsl
 
 run_tests1:
-	(\
-	  cd ${TAG}/osgi && \
-	  ${ANT} -Dversion=${VERSION} run-kf-tests-secure \
-	         >> junit_grunt/out.txt 2>&1 \
-	)
+	(cd ${TAG}/osgi && ${ANT} -Dversion=${VERSION} run-kf-tests-secure)
 
 
 CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAG}
