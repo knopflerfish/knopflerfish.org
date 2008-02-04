@@ -193,6 +193,17 @@
    </bundlehtml>
   </target>
 
+  <!-- Runs the kf-test suites and copies the test result to the release.-->
+  <target name          = "run-kf-tests"
+          depends       = "compile_ant">
+    <delete dir="osgi/junit_grunt"/>
+    <ant    dir="osgi" target="run-kf-tests-secure"/>
+    <copy   todir="${release.dir}/junit_grunt">
+     <fileset dir="osgi/junit_grunt"/>
+    </copy>
+  </target>
+
+
   <target name          = "bindex"
           depends       = "compile_ant">
    <ant dir="osgi" target="bindex"/>
@@ -281,6 +292,8 @@
      <antcall target     = "distrib_bin"/>
      <antcall target     = "distrib_tiny"/>
      <antcall target     = "distrib_opt"/>
+
+     <antcall target     = "run-kf-tests"/>
 
      <antcall target     = "obr"/>
      <antcall target     = "obr_index"/>
