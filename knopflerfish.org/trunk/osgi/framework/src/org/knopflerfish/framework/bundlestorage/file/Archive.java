@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -331,13 +331,16 @@ class Archive {
     this.location = a.location;
     if (a.jar != null) {
       jar = a.jar;
+      // Try a directory first, make sure that path ends with "/"
+      if (!path.endsWith("/")) {
+        path += "/";
+      }
       subJar = jar.getEntry(path);
       if (subJar == null) {
-          throw new IOException("No such JAR component: " + path);
+        subJar = jar.getEntry(path.substring(0,path.length()-1));
       }
-      // If directory make sure that it ends with "/"
-      if (subJar.isDirectory() && !path.endsWith("/")) {
-        subJar = jar.getEntry(path + "/");
+      if (subJar == null) {
+          throw new IOException("No such JAR component: " + path);
       }
       file = a.file;
     } else {
