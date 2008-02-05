@@ -35,6 +35,25 @@ Release Notes Knopflerfish 2.0.4
   information about resource lookups that are rejected due to missing
   permissions for the calling bundle.
 
+  Fixed a bug related to bundle class paths pointing to a directory
+  inside the bundle jar file.
+
+  The manifest of the system bundle now contains the
+  Bundle-SymbolicName header. SourceForge issue tracker id [1866116].
+
+  Fix of issue [1516267] in SourceForge issue tracker.
+
+  Bundle URLConnection.getPermission() now returns AdminPermission.
+
+  Added system property for debugging
+    org.knopflerfish.framework.debug.bundle_resource
+  if set to true all resource loading operations that fails due to
+  missing permissions will be logged to System.out.
+
+  The security policy used by the framework now delegates to the
+  default policy for non-bundle security domains. I.e., permissions
+  for non-bundle domains may be defined using a policy file.
+
 
 === Services (Compendium) ===
       
@@ -42,4 +61,33 @@ Release Notes Knopflerfish 2.0.4
 
 === Misc (KF specific, start scritps, build system etc ===
     
+  Start of the Framework
 
+  The command line option "--xargs <FILE>" was added. Loads the
+  named file like "-xargs <FILE>" if the file can be found, but does
+  not abort startup of the framework if the file cannot be read.
+
+
+  Consoletelnet
+
+  The telnet console implementation now handles a missing console
+  service by returning a message to the client saying that there is no
+  console service available. If the console service is stopped while
+  a telnet console session is active that session will be terminated
+  with a message saying that the console service have been terminated.
+
+
+  Build System
+
+  Building a distribution from the top level directory places all
+  output in the directory htdocs/releases/<VERSION>.
+  New items that that are placed here:
+
+   index.html file with links to all products, release note, test
+   results, etc.
+
+   Subdirectory with javadoc.
+   
+   Test results form the KF internal test suite.
+
+   ChangeLog generated from subversion commits.
