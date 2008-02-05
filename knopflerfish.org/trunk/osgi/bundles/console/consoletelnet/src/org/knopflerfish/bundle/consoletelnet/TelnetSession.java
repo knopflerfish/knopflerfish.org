@@ -119,6 +119,8 @@ public class TelnetSession
         this.bc = bc;
         this.tserv = tserv;
 
+        log.info("Connection request from " +socket.getInetAddress() );
+
         // Set up service tracker for the console service.
         consoleTracker = new ServiceTracker(bc, consoleServiceName, this);
         consoleTracker.open();
@@ -127,7 +129,7 @@ public class TelnetSession
             is = socket.getInputStream();
             os = socket.getOutputStream();
         } catch (IOException iox) {
-            log.error("Session socket opening exception " + iox.toString());
+            log.error("Session socket opening exception " +iox.toString(), iox);
         }
 
         telnetInputStream = new TelnetInputStream(is, this);
@@ -165,20 +167,15 @@ public class TelnetSession
 
             if (telnetLogin.isPermitted() == true) {
                 if (null==consoleService) {
-                    consoleTracker.close();
                     printWriter.println("Console service not available, "
                                         +"closing telnet session.");
                     printWriter.flush();
-                    printWriter.close();
-
-                    reader.close();
-                    telnetInputStream.close();
-                    telnetOutputStream.close();
-                    is.close();
-                    os.close();
-                    socket.close();
-                    tserv.removeSession(this);
+                    log.info("User " + telnetLogin.getUser()
+                             + " logged in, but was logged out since "
+                             + " no console service is available.");
+                    sessionEnd(null);
                 } else {
+                    log.info("User " + telnetLogin.getUser() + " logged in");
                     Authorization authorization
                         = telnetLogin.getAuthorization();
                     s = consoleService.runSession("telnet session", reader,
@@ -195,39 +192,25 @@ public class TelnetSession
                     s.addSessionListener(this);
                 }
             } else {
-                consoleTracker.close();
                 printWriter.println("Login incorrect");
                 printWriter.flush();
-                printWriter.close();
-
-                reader.close();
-                telnetInputStream.close();
-                telnetOutputStream.close();
-                is.close();
-                os.close();
-                socket.close();
-                tserv.removeSession(this);
+                log.info("Login incorrect, user name was: '"
+                         + telnetLogin.getUser() +"'." );
+                sessionEnd(null);
             }
         } catch (IOException ioe) {
-            log.error("Session exception " + ioe.toString());
+            log.error("Session exception " + ioe.toString(), ioe);
             ioe.printStackTrace();
             tserv.removeSession(this);
         }
     }
 
-    public void sessionEnd(Session s) { // called if the console session
-        // terminates
+    // Session listener callback.
+    // 1) Called from the console session when it is closed.
+    // 2) Called directly (s==null) to release resources in
+    //    cases where a session is never started.
+    public void sessionEnd(Session s) {
         try {
-            close();
-        } catch (Exception iox) {
-            log.error("Session end exception " + iox.toString());
-        }
-    }
-
-    public void close() {
-        consoleTracker.close();
-        try {
-            s.close();
             printWriter.close();
             reader.close();
             telnetInputStream.close();
@@ -235,11 +218,22 @@ public class TelnetSession
             is.close();
             os.close();
             socket.close();
-            log.info("User " + telnetLogin.getUser() + " logged out");
+            if (s!=null) {
+                log.info("User " + telnetLogin.getUser() + " logged out");
+            }
             tserv.removeSession(this);
-            s = null;
-        } catch (IOException iox) {
-            log.error("Session close exception " + iox.toString());
+            this.s = null;
+        } catch (Exception iox) {
+            log.error("Session end exception " + iox.toString(), iox);
+        }
+        consoleTracker.close();
+    }
+
+    public void close() {
+        if (s==null) {
+            log.warn("Console session already closed.");
+        } else {
+            s.close(); // This will trigger a call to sessionEnd(s).
         }
     }
 
@@ -302,7 +296,7 @@ public class TelnetSession
             telnetOutputStream.writeCommand("["
                     + socket.getLocalAddress().getHostName() + ": yes]");
         } catch (IOException ex) {
-            log.error("Command AYT exception " + ex.toString());
+            log.error("Command AYT exception " + ex.toString(), ex);
         }
     }
 
@@ -341,7 +335,7 @@ public class TelnetSession
         try {
             telnetOutputStream.writeCommand(response);
         } catch (IOException ex) {
-            log.error("Command DONT exception " + ex.toString());
+            log.error("Command DONT exception " + ex.toString(), ex);
         }
     }
 
@@ -356,7 +350,7 @@ public class TelnetSession
         try {
             telnetOutputStream.writeCommand(response);
         } catch (IOException ex) {
-            log.error("Command DO exception " + ex.toString());
+            log.error("Command DO exception " + ex.toString(), ex);
         }
     }
 
@@ -371,7 +365,7 @@ public class TelnetSession
         try {
             telnetOutputStream.writeCommand(response);
         } catch (IOException ex) {
-            log.error("Command WONT exception " + ex.toString());
+            log.error("Command WONT exception " + ex.toString(), ex);
         }
     }
 
@@ -386,7 +380,7 @@ public class TelnetSession
         try {
             telnetOutputStream.writeCommand(response);
         } catch (IOException ex) {
-            log.error("Command WILL exception " + ex.toString());
+            log.error("Command WILL exception " + ex.toString(), ex);
         }
     }
 
@@ -402,7 +396,7 @@ public class TelnetSession
         try {
             telnetOutputStream.writeCommand(response);
         } catch (IOException ex) {
-            log.error("Command SE exception " + ex.toString());
+            log.error("Command SE exception " + ex.toString(), ex);
         }
     }
 
@@ -529,7 +523,7 @@ public class TelnetSession
                     try {
                         ca = ps.getAuthorization();
                     } catch (IllegalStateException ex) {
-                        log.warn("Failed to get UserAdmin service.");
+                        log.warn("Failed to get UserAdmin service.",ex);
                     }
 
                     if (ca != null) {
@@ -618,7 +612,7 @@ public class TelnetSession
         try {
             Thread.sleep(20);
         } catch (Exception ex) {
-            log.error("Fail during Thread sleep" + ex.toString());
+          log.error("Fail during Thread sleep" + ex.toString(),ex);
         }
 
         // Offer all telnet options that should be shown.
@@ -629,7 +623,7 @@ public class TelnetSession
                     tos.writeCommand(tc.getWILL());
                 } catch (IOException ex) {
                     log.error("Fail during initial option negotiation"
-                            + ex.toString());
+                              + ex.toString(),ex);
                 }
             }
         }
@@ -643,6 +637,7 @@ public class TelnetSession
     public Object addingService(ServiceReference reference) {
         if (null==consoleService) {
             consoleService  = (ConsoleService) bc.getService(reference);
+            // log.info("New console service selected.");
             return consoleService;
         } else {
             return null;
@@ -655,7 +650,10 @@ public class TelnetSession
     public void removedService(ServiceReference reference, Object service) {
         if (consoleService == service) {
             if (null!=s) {
-                printWriter.println("Console service terminated.");
+                log.info("Console service closed.");
+                printWriter.println("Console service closed,"
+                                    +" terminating telnet session.");
+                printWriter.flush();
                 close();
             }
             consoleService = null;
