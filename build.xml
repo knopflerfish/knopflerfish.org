@@ -216,6 +216,9 @@
   <!-- Creates an HTML index page for a release build.-->
   <target name          = "distrib_index"
           depends       = "mkreldir">
+    <!-- The releas page links to a local release_notes file. -->
+    <copy file   = "release_notes.txt"
+          tofile = "${release.dir}/release_notes.txt"/>
     <tstamp>
      <format property = "distrib.tstamp" 
              pattern  = "yyyy-MM-dd HH:mm"
