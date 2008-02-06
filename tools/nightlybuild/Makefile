@@ -103,12 +103,12 @@ copyout:
 	$(CP) -r ${TAG}/htdocs/releases/${VERSION} ${OUT_DIR}
 	@[ -r ${CH_LOG_SRC} ] && $(CP) -p $(CH_LOG_SRC) $(CH_LOG_DEST)
 
-# Remove all but the 10 last BUILDs for each release from ${OUT_DIR}
+# Remove all but the 10 last BUILDs from ${OUT_DIR}
 clean_snapshots:
 	@$(MKDIR) -p ${OUT_DIR}
 	@(cd ${OUT_DIR}; \
 	  BUILD_CNT=0; \
-	  for FF in `ls -1dcrt ${REL_VERSION}_*`; do \
+	  for FF in `ls -1dct`; do \
 	    if [ -d $$FF ]; then \
 	      BUILD_CNT=`expr $$BUILD_CNT + 1`; \
 	      if [ $$BUILD_CNT -gt 10 ]; then \
@@ -124,7 +124,7 @@ outindex:
 	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
 	@echo "<p>" >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR}; \
-	  for FF in `ls -1ct`; do \
+	  for FF in `ls -1dct`; do \
 	    if [ -d $$FF ]; then \
 	      echo "<a href=\"$$FF\">$$FF</a><br/>" >> ${OUT_DIR}/index.html; \
 	    fi; \
