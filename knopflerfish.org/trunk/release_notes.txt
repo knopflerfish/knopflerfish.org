@@ -91,3 +91,6 @@ Release Notes Knopflerfish 2.0.4
    Test results form the KF internal test suite.
 
    ChangeLog generated from subversion commits.
+
+  Nightly builds now uses a version number that complies to the OSGi
+  spec. Issue [1885598].
