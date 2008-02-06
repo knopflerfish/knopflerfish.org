@@ -31,7 +31,7 @@ REL_VERSION := $(shell cd ${TAG} && ${ANT} version | ${GREP} "Version: " | ${SED
 REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Revision: //')
 
 # The version of this nightly build
-VERSION := ${REL_VERSION}_${REVISION}
+VERSION := ${REL_VERSION}.snapshot_${REVISION}
 
 # Ant with build properties set.
 ANTv = ${ANT} -Dversion=${VERSION} \
