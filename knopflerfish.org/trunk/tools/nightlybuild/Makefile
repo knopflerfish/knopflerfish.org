@@ -108,7 +108,7 @@ clean_snapshots:
 	@$(MKDIR) -p ${OUT_DIR}
 	@(cd ${OUT_DIR}; \
 	  BUILD_CNT=0; \
-	  for FF in `ls -1dct`; do \
+	  for FF in `ls -1ct`; do \
 	    if [ -d $$FF ]; then \
 	      BUILD_CNT=`expr $$BUILD_CNT + 1`; \
 	      if [ $$BUILD_CNT -gt 10 ]; then \
@@ -124,7 +124,7 @@ outindex:
 	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
 	@echo "<p>" >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR}; \
-	  for FF in `ls -1dct`; do \
+	  for FF in `ls -1ct`; do \
 	    if [ -d $$FF ]; then \
 	      echo "<a href=\"$$FF\">$$FF</a><br/>" >> ${OUT_DIR}/index.html; \
 	    fi; \
