@@ -120,6 +120,7 @@
     <ant    dir = "ant"    target = "clean" />
     <ant    dir = "osgi"   target = "clean" />
     <ant    dir = "htdocs" target = "clean" />
+    <delete file= "release_notes.txt"/>
     <delete dir = "${javadoc.out.dir}"      />
     <delete dir = "${distrib.out.dir}"      />
     <delete dir = "repo"/>
@@ -218,7 +219,8 @@
           depends       = "mkreldir">
     <!-- The releas page links to a local release_notes file. -->
     <copy file   = "release_notes.txt"
-          tofile = "${release.dir}/release_notes.txt"/>
+          tofile = "${release.dir}/release_notes.txt">
+    </copy>
     <tstamp>
      <format property = "distrib.tstamp" 
              pattern  = "yyyy-MM-dd HH:mm"
@@ -348,6 +350,13 @@
    <target name        = "distrib"
 	   description = "Builds all distribution files"
 	   depends     = "clean,default,mkreldir">
+     <copy file   = "release_notes.in"
+           tofile = "release_notes.txt">
+       <filterset>
+	 <filter token="@VERSION@" value="${version}"/>
+       </filterset>
+     </copy>
+
      <antcall target     = "xargs"/>
      <antcall target     = "distrib_complete"/>
      <antcall target     = "distrib_fullbin"/>
