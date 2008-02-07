@@ -352,8 +352,8 @@
 	   depends     = "clean,default,mkreldir">
      <copy file   = "release_notes.in"
            tofile = "release_notes.txt">
-       <filterset>
-	 <filter token="@VERSION@" value="${version}"/>
+       <filterset begintoken="@" endtoken="@">
+	 <filter token="VERSION" value="${version}"/>
        </filterset>
      </copy>
 
