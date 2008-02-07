@@ -141,7 +141,7 @@ class BundleImpl implements Bundle {
   /**
    * Classloader for bundle.
    */
-  private ClassLoader classLoader = null;
+  private volatile ClassLoader classLoader = null;
 
   /**
    * Zombie packages for bundle.
@@ -179,12 +179,12 @@ class BundleImpl implements Bundle {
    * All fragment bundles this bundle hosts.
    */
   ArrayList fragments = null;
- 
+
   /**
    * This bundle's fragment attach policy.
    */
   String attachPolicy;
-  
+
   /**
    * Fragment description. This is null when the bundle isn't
    * a fragment bundle.
@@ -195,13 +195,13 @@ class BundleImpl implements Bundle {
    * Stores the default locale entries when uninstalled.
    */
   private HeaderDictionary cachedHeaders = null;
-  
+
   /**
    * Stores the raw manifest headers.
    */
   private HeaderDictionary cachedRawHeaders = null;
 
-  
+
   /**
    * Construct a new Bundle empty.
    *
@@ -373,35 +373,35 @@ class BundleImpl implements Bundle {
         bactivator.start(bundleContext);
         bStarted = true;
       } else {
-	// Check if we have a standard Main-class attribute as
-	// in normal executable jar files. This is a slight
-	// extension to the OSGi spec.
-	// Update: The Main-Class attribute is only used if
-	// the bundle's locations is an element in the 
-	// comma-separated list defined org.knopflerfish.main.class.activation
+        // Check if we have a standard Main-class attribute as
+        // in normal executable jar files. This is a slight
+        // extension to the OSGi spec.
+        // Update: The Main-Class attribute is only used if
+        // the bundle's locations is an element in the
+        // comma-separated list defined org.knopflerfish.main.class.activation
 
-	String mainClassActivators = System.getProperty("org.knopflerfish.main.class.activation");
-	if (mainClassActivators != null) {
-	  final String mc = archive.getAttribute("Main-class");
-	  
-	  if (mc != null) {
-	    String[] files = Util.splitwords(mainClassActivators, ",");
-	    for (int i = 0; i < files.length; i++) {
-	      if (files[i].equals(location)) {
-		if(Debug.packages) {
-		  Debug.println("starting main class " + mc);
-		}
-		
-		Class mainClass = getClassLoader().loadClass(mc.trim());
-		
-		bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
-		bactivator.start(bundleContext);
-		bStarted = true;
-		break;
-	      }
-	    }
-	  }
-	}
+        String mainClassActivators = System.getProperty("org.knopflerfish.main.class.activation");
+        if (mainClassActivators != null) {
+          final String mc = archive.getAttribute("Main-class");
+
+          if (mc != null) {
+            String[] files = Util.splitwords(mainClassActivators, ",");
+            for (int i = 0; i < files.length; i++) {
+              if (files[i].equals(location)) {
+                if(Debug.packages) {
+                  Debug.println("starting main class " + mc);
+                }
+
+                Class mainClass = getClassLoader().loadClass(mc.trim());
+
+                bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
+                bactivator.start(bundleContext);
+                bStarted = true;
+                break;
+              }
+            }
+          }
+        }
       }
 
       if (!bStarted) {
@@ -603,7 +603,7 @@ class BundleImpl implements Bundle {
       if (newArchive != null) {
         newArchive.purge();
       }
-                  
+
       if (wasActive) {
         try {
           start();
@@ -718,7 +718,7 @@ class BundleImpl implements Bundle {
     cachedHeaders = getHeaders0(null);
 
     bDelayedStart = false;
-  
+
     switch (state) {
     case ACTIVE:
       try {
@@ -878,7 +878,7 @@ class BundleImpl implements Bundle {
     if (permission instanceof Permission) {
       if (secure.checkPermissions()) {
         //get the current status from permission admin
-	PermissionCollection pc = protectionDomain.getPermissions();
+        PermissionCollection pc = protectionDomain.getPermissions();
         return pc != null ? pc.implies((Permission)permission) : false;
       } else {
         return true;
@@ -984,7 +984,7 @@ class BundleImpl implements Bundle {
             } else {
               detachFragments(false);
             }
-          } 
+          }
         }
       }
     }
@@ -1025,13 +1025,17 @@ class BundleImpl implements Bundle {
    *
    * @return Bundles classloader.
    */
-  synchronized ClassLoader getClassLoader() {
-    if (classLoader == null) {
-      if (classLoader == null && (state & RESOLVED_FLAGS) != 0) {
-        classLoader = secure.callGetClassLoader0(this);
+  ClassLoader getClassLoader() {
+    ClassLoader loader = classLoader;
+    if (loader == null) {
+      synchronized(this) {
+        if (classLoader == null && (state & RESOLVED_FLAGS) != 0) {
+          classLoader = secure.callGetClassLoader0(this);
+        }
+        loader = classLoader;
       }
     }
-    return classLoader;
+    return loader;
   }
 
 
@@ -1086,7 +1090,7 @@ class BundleImpl implements Bundle {
       }
       bpkgs.registerPackages();
     }
-    
+
     state = INSTALLED;
     if (sendEvent) {
       framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
@@ -1274,13 +1278,13 @@ class BundleImpl implements Bundle {
         version = new Version(mbv);
       } catch (Throwable ee) {
         if (v2Manifest) {
-          throw new IllegalArgumentException("Bundle does not specify a valid " + 
+          throw new IllegalArgumentException("Bundle does not specify a valid " +
               Constants.BUNDLE_VERSION + " header. Got exception: " + ee.getMessage());
         } else {
           version = Version.emptyVersion;
         }
       }
-      
+
     } else {
       version = Version.emptyVersion;
     }
@@ -1304,28 +1308,28 @@ class BundleImpl implements Bundle {
     i = Util.parseEntries(Constants.FRAGMENT_HOST,
                           archive.getAttribute(Constants.FRAGMENT_HOST),
                           true, true, true);
-    
+
     if (i.hasNext()) {
-      
+
       if (archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
         throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
       }
-      
+
       e = (Map)i.next();
       String extension = (String)e.get(Constants.EXTENSION_DIRECTIVE);
       String key = (String)e.get("key");
-      
+
       if (Constants.EXTENSION_FRAMEWORK.equals(extension) ||
           Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-        
-        // an extension bundle must target the system bundle.  
-        if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(key) && 
+
+        // an extension bundle must target the system bundle.
+        if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(key) &&
             !"org.knopflerfish.framework".equals(key)) {
           throw new IllegalArgumentException("An extension bundle must target " +
                                              "the system bundle(=" +
                                              Constants.SYSTEM_BUNDLE_SYMBOLICNAME + ")");
         }
-        
+
         if (archive.getAttribute(Constants.IMPORT_PACKAGE) != null ||
             archive.getAttribute(Constants.REQUIRE_BUNDLE) != null ||
             archive.getAttribute(Constants.BUNDLE_NATIVECODE) != null ||
@@ -1353,12 +1357,12 @@ class BundleImpl implements Bundle {
         }
       } else {
         if (extension != null) {
-          throw new IllegalArgumentException("Did not recognize directive " + 
+          throw new IllegalArgumentException("Did not recognize directive " +
                                              Constants.EXTENSION_DIRECTIVE
                                              + ":=" + extension + "." );
         }
       }
-      
+
       if (fragment == null) {
         fragment = new Fragment(key,
                                 extension,
@@ -1563,15 +1567,15 @@ class BundleImpl implements Bundle {
    *
    */
   Enumeration findEntries0(String path, String filePattern, boolean recurse) {
-	Vector res = new Vector();
-	addResourceEntries(res, path, filePattern, recurse);
-	if (isFragmentHost()) {
-	  for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-	    BundleImpl fb = (BundleImpl)i.next();
-	    fb.addResourceEntries(res, path, filePattern, recurse);
-	  }
-	}
-	return res.size() != 0 ? res.elements() : null;
+        Vector res = new Vector();
+        addResourceEntries(res, path, filePattern, recurse);
+        if (isFragmentHost()) {
+          for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+            BundleImpl fb = (BundleImpl)i.next();
+            fb.addResourceEntries(res, path, filePattern, recurse);
+          }
+        }
+        return res.size() != 0 ? res.elements() : null;
   }
 
 
@@ -1583,19 +1587,19 @@ class BundleImpl implements Bundle {
     if (e != null) {
       while (e.hasMoreElements()) {
         String fp = (String)e.nextElement();
-        boolean isDirectory = fp.endsWith("/"); 
+        boolean isDirectory = fp.endsWith("/");
         int searchBackwardFrom = fp.length() - 1;
         if(isDirectory) {
-        	// Skip last / in case of directories
-        	searchBackwardFrom = searchBackwardFrom - 1; 
+                // Skip last / in case of directories
+                searchBackwardFrom = searchBackwardFrom - 1;
         }
         int l = fp.lastIndexOf('/', searchBackwardFrom);
         String lastComponentOfPath = fp.substring(l + 1, searchBackwardFrom + 1);
         if (pattern == null || Util.filterMatch(pattern, lastComponentOfPath)) {
-	        URL url = getURL(-1, -1, -1, fp);
-	        if (url != null) {
-	          res.add(url);
-	        }
+                URL url = getURL(-1, -1, -1, fp);
+                if (url != null) {
+                  res.add(url);
+                }
         }
         if (isDirectory && recurse) {
             addResourceEntries(res, fp, pattern, recurse);
@@ -1612,9 +1616,9 @@ class BundleImpl implements Bundle {
     if (secure.okResourceAdminPerm(this)) {
       checkUninstalled();
       try {
-	if ("/".equals(name)) {
-	  return getURL(-1, -1, -1, "/");
-	}
+        if ("/".equals(name)) {
+          return getURL(-1, -1, -1, "/");
+        }
         InputStream is = secure.callGetInputStream(archive, name, 0);
         if (is != null) {
           is.close();
@@ -1649,27 +1653,27 @@ class BundleImpl implements Bundle {
       locale = defaultLocale;
     } else if (locale.equals("")) {
       return null;
-    } 
+    }
 
     Hashtable localization_entries = new Hashtable();
     readLocalization("", localization_entries, baseName);
     readLocalization(Locale.getDefault().toString(), localization_entries, baseName);
     if (!locale.equals(defaultLocale)) {
       readLocalization(locale, localization_entries, baseName);
-    } 
-    
+    }
+
     return localization_entries;
   }
 
 
   /**
    * "Localizes" this bundle's headers
-   * @param localization_entries A mapping of localization variables to values. 
+   * @param localization_entries A mapping of localization variables to values.
    * @returns the updated dictionary.
    */
   private HeaderDictionary localize(Dictionary localization_entries) {
     HeaderDictionary localized = (HeaderDictionary)cachedRawHeaders.clone();
-    
+
     if (localization_entries != null) {
       for (Enumeration e = localized.keys();
            e.hasMoreElements(); ) {
@@ -1692,13 +1696,13 @@ class BundleImpl implements Bundle {
   }
 
   /**
-   * Reads all localization entries that affects this bundle 
+   * Reads all localization entries that affects this bundle
    * (including its host/fragments)
    * @param locale locale == "" the bundle.properties will be read
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
    */
-  protected void readLocalization(String locale, 
+  protected void readLocalization(String locale,
                                   Hashtable localization_entries,
                                   String baseName) {
     if (baseName == null) {
@@ -1726,12 +1730,12 @@ class BundleImpl implements Bundle {
       if (tmp != null) {
         localization_entries.putAll(tmp);
       }
-      
+
       if (++o >= parts.length) {
         break;
       }
       tmploc = tmploc + "_" + parts[o];
-      
+
     } while (true);
   }
 
@@ -1752,10 +1756,10 @@ class BundleImpl implements Bundle {
     if ("".equals(locale)) {
       return (HeaderDictionary)cachedRawHeaders.clone();
     }
-    
+
     if (state == UNINSTALLED) {
       return (HeaderDictionary)cachedHeaders.clone();
-    } 
+    }
 
     String base = (String)cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
     Dictionary d;
@@ -1859,7 +1863,7 @@ class BundleImpl implements Bundle {
    */
   boolean isExtension() {
     return isFragment() &&
-      fragment.extension != null;      
+      fragment.extension != null;
   }
 
   /**
@@ -1914,7 +1918,7 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Returns the attached fragment host OR 
+   * Returns the attached fragment host OR
    * the most suitable.
    */
   BundleImpl getFragmentHost() {
@@ -1923,7 +1927,7 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Determines whether this bundle is a fragment host 
+   * Determines whether this bundle is a fragment host
    * or not.
    */
   boolean isFragmentHost() {
@@ -1986,7 +1990,7 @@ class BundleImpl implements Bundle {
    * Returns a iterator over all attached fragments.
    */
   Iterator getFragments() {
-    return fragments == null ? 
+    return fragments == null ?
       new ArrayList(0).iterator() : fragments.iterator();
   }
 
@@ -2028,21 +2032,21 @@ class BundleImpl implements Bundle {
 
 
   /**
-   */  
+   */
   class Fragment {
     final String name;
     final String extension;
     final VersionRange versionRange;
     BundleImpl host = null;
-    
+
     Fragment(String name, String extension, String range) {
       this.name = name;
       this.extension = extension;
       this.versionRange = range == null ?
-        VersionRange.defaultVersionRange :     
+        VersionRange.defaultVersionRange :
         new VersionRange(range);
     }
-    
+
     void setHost(BundleImpl host) {
       this.host = host;
     }
