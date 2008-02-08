@@ -3,56 +3,11 @@ Release Notes Knopflerfish @VERSION@
 
   Maintenance release of Knopflerfish
 
-  Here follows a breakdown of the most important changes.
+  Here follows a breakdown of the most important changes since the 
+  last release.
 
 === Framework (Core) ===
 
-  Added system property
-    org.knopflerfish.framework.system.export.all
-  If set to true the system bundle will export all standard packages
-  provided by the JRE. The files packages<M><N>.txt specifying the set
-  of packages to export for JRE <M>.<N> have been moved inside
-  framework.jar to simplify embedding. A file named packages<M><N>.txt
-  in the current working directory will override the embedded file
-  with the same name.
-
-  Added system property
-   org.knopflerfish.framework.system.export.all_16
-  and a packages1.6.txt file. If this property is set to true the
-  system bundle will export all standard packages provided by a
-  Java SE 6 JRE. 
-
-
-  Added system property
-    org.knopflerfish.framework.debug.service_reference
-  If set when security is enabled, print information about service
-  reference lookups that are rejected due to missing permissions for
-  calling bundle.
-
-  Added system property
-    org.knopflerfish.framework.debug.bundle_resource
-  If set when security is enabled, the framework will print
-  information about resource lookups that are rejected due to missing
-  permissions for the calling bundle.
-
-  Fixed a bug related to bundle class paths pointing to a directory
-  inside the bundle jar file.
-
-  The manifest of the system bundle now contains the
-  Bundle-SymbolicName header. SourceForge issue tracker id [1866116].
-
-  Fix of issue [1516267] in SourceForge issue tracker.
-
-  Bundle URLConnection.getPermission() now returns AdminPermission.
-
-  Added system property for debugging
-    org.knopflerfish.framework.debug.bundle_resource
-  if set to true all resource loading operations that fails due to
-  missing permissions will be logged to System.out.
-
-  The security policy used by the framework now delegates to the
-  default policy for non-bundle security domains. I.e., permissions
-  for non-bundle domains may be defined using a policy file.
 
 
 === Services (Compendium) ===
@@ -61,36 +16,3 @@ Release Notes Knopflerfish @VERSION@
 
 === Misc (KF specific, start scritps, build system etc ===
     
-  Start of the Framework
-
-  The command line option "--xargs <FILE>" was added. Loads the
-  named file like "-xargs <FILE>" if the file can be found, but does
-  not abort startup of the framework if the file cannot be read.
-
-
-  Consoletelnet
-
-  The telnet console implementation now handles a missing console
-  service by returning a message to the client saying that there is no
-  console service available. If the console service is stopped while
-  a telnet console session is active that session will be terminated
-  with a message saying that the console service have been terminated.
-
-
-  Build System
-
-  Building a distribution from the top level directory places all
-  output in the directory htdocs/releases/<VERSION>.
-  New items that that are placed here:
-
-   index.html file with links to all products, release note, test
-   results, etc.
-
-   Subdirectory with javadoc.
-   
-   Test results form the KF internal test suite.
-
-   ChangeLog generated from subversion commits.
-
-  Nightly builds now uses a version number that complies to the OSGi
-  spec. Issue [1885598].
