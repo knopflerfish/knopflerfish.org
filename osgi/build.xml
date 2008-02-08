@@ -7,6 +7,9 @@
   <property name = "topdir"          location = "."/>
   <property name = "javadoc.out.dir" location = "out/javadoc"/>
 
+  <!-- The initial part of the URL to use for the default jars -->
+  <!-- location in the remote xargs files.  -->
+  <property name = "base.url" value="http://www.knopflerfish.org/releases"/>
 
  <path id="sources.path">
   <pathelement location="framework/src"/>
@@ -74,7 +77,7 @@
    <copy file="template.xargs" tofile="remote-init.xargs" overwrite="true"/>
    <replace file="remote-init.xargs">
      <replacefilter token = "$(JAR_PREFIX)" 
-                    value = "http://www.knopflerfish.org/releases/${version}/jars/"/>
+                    value = "${base.url}/${version}/jars/"/>
      <replacefilter token="$(VERSION)"     value="${version}"/>
      <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
    </replace>	  
