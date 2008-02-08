@@ -1,0 +1,192 @@
+<html>
+<head>
+<meta http-equiv = "Content-Type"
+      content    = "text/html; charset=ISO-8859-1"/>
+
+<meta http-equiv = "CACHE-CONTROL"
+      content    = "NO-CACHE"/>
+
+<title>Knopflerfish OSGi - @VERSION@ @BUILD_KIND@</title>
+
+<LINK href="/css/knopflerfish.css" rel="stylesheet" type="text/css">
+<link rel="shortcut icon" href="/images/favicon.ico" >
+
+</head>
+
+<body style="background: #ffffff;">
+<a name="top"></a>
+<table border=0 cellpadding=0 cellspacing=0>
+  <tr>
+   <td width="15%" class="leftheader">
+     Knopflerfish<br>
+     @VERSION@<br>
+     @DATE@
+   </td>
+
+   <td width="85" class="pageheader" >
+   <table border=0 cellpadding=0 cellspacing=0 width="100%">
+     <tr>
+     <td width="50%" >
+     <a href="http://www.knopflerfish.org"> 
+       <img src="/images/knopflerfish4_red400pxl.gif" border=0></a>
+     </td>
+     <td>
+     </td>
+     </tr>
+  </table>
+  </td>          
+  </tr>
+  <tr>
+    <td valign="top">
+      <div style="text-align:left; margin-right: 15px; margin-left: 10px; margin-top:10px;">
+
+      <a class="navigation_enabled" href="/index.html">Home</a><br/>
+      </p>
+      <hr>
+      Maintained by</br>
+      <a class="navigation_enabled" href="http://www.makewave.com"><img src="/images/makewave_logo_126x16.gif" border="0"</a><br/><br/>
+      <a class="navigation_enabled" href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro</a><br/>
+      <a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a><br/>
+      <a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_training.shtml">Training</a><br/>
+      </p>
+      <em><b>Services for the OSGi Business User</b></em><br/>
+
+      <hr>
+      </div>
+    </td>
+
+    <td width="85%" valign="top">
+      <table class="bodytable">
+	<tr>
+          <td>
+	    <div id="mainblock">
+	      <h2>Knopflerfish @VERSION@ @BUILD_KIND@ from @TAG@, @DATE@</h2>
+
+	      <h3>Documentation</h3>
+
+	      <a href="ChangeLog.txt">Change Log</a>
+	      <p>
+	      <a href="release_notes.txt">Release Notes</a>
+	      <p>
+	      <a href="javadoc">API documentation</a>
+	      <p>
+	      <a href="jars">Bundle jar docs</a>
+
+	      <h3>Downloads</h3>
+
+	      <table cellpadding="2">
+		<tr>
+		  <th>Name</th>
+		  <th>Size (bytes)</th>
+		  <th>Description</th>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_osgi_@VERSION@.jar">
+		      knopflerfish_osgi_@VERSION@.jar</a>
+		  </td>
+		  <td>
+		      @DISTRIBFILE_LENGTH@
+		  </td>
+		  <td>
+		      Complete framework, including source code and
+		      docs. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_fullbin_osgi_@VERSION@.jar">
+		      knopflerfish_fullbin_osgi_@VERSION@.jar</a>
+		  </td>
+		  <td>
+		      @DISTRIBFILE_FULLBIN_LENGTH@
+		  </td>
+		  <td>
+		      Full binary framework and bundles. No source or
+		      docs. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_bin_osgi_@VERSION@.jar">
+		      knopflerfish_bin_osgi_@VERSION@.jar</a><br>
+		  </td> 
+		  <td>
+		      @DISTRIBFILE_BIN_LENGTH@
+		  </td>
+		  <td>
+		      Core binary framework and some bundles. No
+		      source or docs. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_opt_@VERSION@.jar">
+		      knopflerfish_opt_@VERSION@.jar</a><br> 
+		  </td>
+		  <td>
+		      @DISTRIBFILE_OPT_LENGTH@
+		  </td>
+		  <td>
+		      A set of optional bundles, including SOAP
+		      support for any OSGi service. See 
+		      <a href="https://www.knopflerfish.org/svn/knopflerfish.org/@TAG@/osgi/bundles_opt/soap/readme.html">
+		      SOAP readme</a> for details. Also includes
+		      support for OSGi <a
+		      href="http://www.knopflerfish.org/XMLMetatype">
+		      Metatype</a> data and a desktop UI for CM. This
+		      download should be installed on top of a
+		      previous installation. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_osgi_tiny_@VERSION@.zip">
+		      knopflerfish_osgi_tiny_@VERSION@.zip</a><br> 
+		  </td>
+		  <td>
+		      @DISTRIBFILE_TINY_LENGTH@
+		  </td>
+		  <td>
+		      Remotely loading framework, no source, no docs,
+		      just framework.jar and config files for loading
+		      all bundles from the web.
+		  </td>
+		</tr>
+		
+		<tr>
+		  <td>
+		      <a href="knopflerfish_osgi_tests_@VERSION@.zip">
+		      knopflerfish_osgi_tests_@VERSION@.zip</a><br> 
+		  </td>
+		  <td>
+		      @DISTRIBFILE_TESTS_LENGTH@
+		  </td>
+		  <td>
+		      Bundles for testing the framework and selected
+		      services using JUnit.
+		  </td>
+		</tr>
+		
+	  </table>
+
+	  <h3>Test results</h3>
+	  <a href="junit_grunt/index.xml">Test results (XML)</a>
+
+
+	    <p>
+	    <a class=top href="#top">top</a>
+	    </div>
+	  </td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

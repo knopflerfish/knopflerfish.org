@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="desktop" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+  <property name="bundle.stdimports"
+            value="java.,javax.swing,javax.accessibility"/>
+
+  <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+   <copy file  = "${topdir}/../tools/jarunpacker/out/jarunpacker/jarunpacker.jar"  
+         todir = "resources"/> 
+  </target>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/remotefw/remotefw_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

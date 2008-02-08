@@ -1,0 +1,79 @@
+<html>
+<head>
+<title>OSGi Metatype support</title>
+<style>
+
+body {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ color:000000;
+ text-align:left;
+ font-weight:normal;
+ background:#ffffff;
+}
+
+h1 { font-family: Verdana, Arial, Helvetica, sans-serif;}
+h2 { font-family: Verdana, Arial, Helvetica, sans-serif;}
+h3 { font-family: Verdana, Arial, Helvetica, sans-serif;}
+h4 { font-family: Verdana, Arial, Helvetica, sans-serif;}
+
+</style>
+</head>
+
+<body>
+<h2>The Knopflerfish OSGi Metatype implementation</h2>
+
+<p>
+This Knopflerfish OSGi Metatype implementation contains bundles 
+handling definition of OSGI Metatype and Configuration Management user 
+interaction.
+</p>
+
+<p>
+Full information on the knopflerfish project can be found at 
+<a href="http://www.knopflerfish.org">http://www.knopflerfish.org</a>.
+</p>
+
+<h3><a href="kf_metatype">kf_metatype</a></h3>
+
+<p>
+
+   This bundle defines an XML format for specifying OSGi Metatype
+   instances. Also included are implementations classes for
+   the interfaces specified in org.osgi.service.metatype
+</p>
+<p>
+   This bundle, if started,  also exports  service of 
+   type org.knopflerfish.util.metatype.SystemMetatypeProvider,
+   allowing other bundles to retreive metatype information from
+   bundles.
+<p>
+   For XML specification, see package.html or<br>
+    <a href="http://www.knopflerfish.org/XMLMetatype/">http://www.knopflerfish.org/XMLMetatype/</a>
+</p>
+
+<h3><a href="cm_desktop">cm_desktop</a></h3>
+
+<p>
+   This bundle registers a Desktop plugin, presenting a Swing UI
+   for manipulation of CM dictionaries.
+</p>
+<p>
+   The bundle uses the SystemMetatypeProvider exported from kf_metatype.
+</p>
+
+<h3><a href="metatype_demo">metatype_demo</a></h3>
+
+<p>
+A simple bundle, defining a few managed services.
+
+</p>
+<h3>Todo</h3>
+
+<p>
+ <ul>
+<li> CM implementation in osgi/bundles/ shouldbe changed to use new
+   schema-style storage for data.
+</ul>
+
+</p>
