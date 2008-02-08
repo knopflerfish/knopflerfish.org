@@ -40,7 +40,7 @@
 
   <!-- The version of this build -->
   <property name  = "version"
-            value = "2.0.4"/>
+            value = "2.0.5"/>
   <!-- The subversion tag / branch that this build is made on -->
   <!-- E.g., "trunk", "tags/2.0.4", "branches/kf_1_support". -->
   <property name  = "svn.tag"    value="tags/${version}"/>
@@ -956,28 +956,9 @@
 
   </target>
 
-
- <target name="install_bcel">
-   <antcall target="download_bcel" />
-   <antcall target="unpack_bcel"   />
- </target>
-
- <target name="download_bcel">
-   <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip"
-        dest = "${sysprops.ANT_HOME}/bcel-${bcel.version}.zip"/>
- </target>
-
- <target name="unpack_bcel">
-   <unzip src = "${sysprops.ANT_HOME}/bcel-${bcel.version}.zip"
-         dest = "${sysprops.ANT_HOME}/lib">
-    <patternset>
-     <include name="bcel-${bcel.version}/bcel-${bcel.version}.jar"/>
-    </patternset>
-   </unzip>
-
-   <move file   = "${sysprops.ANT_HOME}/lib/bcel-${bcel.version}/bcel-${bcel.version}.jar"
-         tofile = "${sysprops.ANT_HOME}/lib/bcel-${bcel.version}.jar"/>
-
+ <target name="install_bcel"
+         description="Download and install bcel in the ant/lib.">
+   <ant dir="osgi" target="install_bcel" />
  </target>
 
 </project>
