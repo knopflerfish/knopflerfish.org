@@ -1,3 +1,185 @@
+2008-02-07 20:40:30 +0100 (Thu, 07 Feb 2008), revision 2213, ekolin
+Wrong token value for a filterset
+U   knopflerfish.org/trunk/build.xml
+
+2008-02-07 20:28:16 +0100 (Thu, 07 Feb 2008), revision 2212, ekolin
+More release build and nightly build improvements.
+U   knopflerfish.org/trunk/build.xml
+A   knopflerfish.org/trunk/release_notes.in
+D   knopflerfish.org/trunk/release_notes.txt
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-02-07 20:27:17 +0100 (Thu, 07 Feb 2008), revision 2211, ekolin
+Revert to duoble checked locking, but use volatile and a helper varaible to reduce the risk of returning null from getClassloader().
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+
+2008-02-06 09:40:58 +0100 (Wed, 06 Feb 2008), revision 2210, ekolin
+Also update release note.
+U   knopflerfish.org/trunk/release_notes.txt
+
+2008-02-06 09:28:55 +0100 (Wed, 06 Feb 2008), revision 2209, ekolin
+Use version number for the nightly builds that complies to the OSGi specification (R 4, section 3.2.4) since the version is used as Bundle-Version for the system bundle.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-06 07:31:23 +0100 (Wed, 06 Feb 2008), revision 2208, ekolin
+Yet another nightly build fix.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-06 07:19:20 +0100 (Wed, 06 Feb 2008), revision 2207, ekolin
+Only keep the last 10 builds
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-05 11:59:28 +0100 (Tue, 05 Feb 2008), revision 2206, ekolin
+Include the release_notes file in the built release (plain text).
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-02-05 11:58:47 +0100 (Tue, 05 Feb 2008), revision 2205, ekolin
+Update release notes to contain all changes accordeing to the change log.
+U   knopflerfish.org/trunk/release_notes.txt
+
+2008-02-05 10:11:56 +0100 (Tue, 05 Feb 2008), revision 2204, ekolin
+Removed a double close when the console is terminated. Imporved logging.
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/src/org/knopflerfish/bundle/consoletelnet/TelnetSession.java
+
+2008-02-04 17:48:59 +0100 (Mon, 04 Feb 2008), revision 2203, ekolin
+Clean up makefile for nightly builds.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-04 17:23:52 +0100 (Mon, 04 Feb 2008), revision 2202, ekolin
+A release page for each build is now inlcuded in the htdocs/releases/m.n.o/ directory. Nightly builds adjusted to use this page. The distrib build now also builds the test bundles deliverable.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-02-04 15:24:21 +0100 (Mon, 04 Feb 2008), revision 2201, ekolin
+A top level distrib build now exectues the kf test suites and places the result in the directory junit_grunt in the release.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-04 15:00:23 +0100 (Mon, 04 Feb 2008), revision 2200, ekolin
+Must create the out directory manully before redirecting javm out/err to a file in it.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-02-04 14:49:15 +0100 (Mon, 04 Feb 2008), revision 2199, ekolin
+The run-kf-tests* targets in the osgi directory now places the output from the framework in the expected log, i.e., in junit_grunt/out.txt
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-04 14:00:54 +0100 (Mon, 04 Feb 2008), revision 2198, ekolin
+Update to reflect KF 2.0 changes and changes to nightly build system.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/readme.html
+
+2008-02-04 13:27:27 +0100 (Mon, 04 Feb 2008), revision 2197, ekolin
+Directories listed in the manifest header Bundle-Classpath that did not end with a '/' was not handled correctly (a NullPointerException was thrown when trying to load a resource from such a class path entry).
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2008-02-03 14:21:46 +0100 (Sun, 03 Feb 2008), revision 2196, ekolin
+Inlcude the restart test suite in the run-kf-tests target to ensure that it is allways exectued.
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-03 13:52:30 +0100 (Sun, 03 Feb 2008), revision 2195, ekolin
+Badly placed paranthesis in nightly build script.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-03 13:33:52 +0100 (Sun, 03 Feb 2008), revision 2194, ekolin
+Fix the bad bundle version in the start script of the restart test suite. Clean up test step of nightly build.
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/test-restart1.xargs
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-02-03 09:26:58 +0100 (Sun, 03 Feb 2008), revision 2193, ekolin
+Make it easier to locate the start of a build in the nightly build log.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/build.sh
+
+2008-02-02 18:12:28 +0100 (Sat, 02 Feb 2008), revision 2192, ekolin
+Fix broken links on snapshot build page templates.
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-02-02 10:19:49 +0100 (Sat, 02 Feb 2008), revision 2191, ekolin
+Corrected NPE problem caused by fix for [1516267].
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2008-02-02 10:00:47 +0100 (Sat, 02 Feb 2008), revision 2190, ekolin
+Wrong constant used when testing if system packages acocring to JRE 1.6 should be exported or not.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+
+2008-02-01 16:53:45 +0100 (Fri, 01 Feb 2008), revision 2189, ekolin
+Archive.getInputStream() now returns a steram to the entire jar file holding the archive contents. This solves issue [1516267] in tracker on SourceForge.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2008-02-01 15:58:39 +0100 (Fri, 01 Feb 2008), revision 2187, ekolin
+Added a Bundle-SymbolicName manifest header for the system bundle. This solves issue [1866116] in tracker on SourceForge.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+
+2008-02-01 09:40:33 +0100 (Fri, 01 Feb 2008), revision 2186, ekolin
+Change log generator script.
+A   knopflerfish.org/trunk/tools/nightlybuild/svnChangeLog.sh
+
+2008-02-01 09:39:01 +0100 (Fri, 01 Feb 2008), revision 2185, ekolin
+Improve the snapshot index page slightly.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-01-31 22:58:25 +0100 (Thu, 31 Jan 2008), revision 2184, wistrand
+added --xargs option
+U   knopflerfish.org/trunk/osgi/framework/resources/help.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+
+2008-01-31 16:24:02 +0100 (Thu, 31 Jan 2008), revision 2183, ekolin
+Added change log to snapshot builds.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-01-31 15:09:45 +0100 (Thu, 31 Jan 2008), revision 2182, ekolin
+Improved index page generation for nightly builds.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+D   knopflerfish.org/trunk/tools/nightlybuild/outlist.awk
+A   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+A   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.post
+A   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-01-31 11:23:43 +0100 (Thu, 31 Jan 2008), revision 2181, ekolin
+Factor out parsing of the host part of KF bundle URLs into a private helper method. This simplifies life for the Spring Dynamic Modules for OSGi.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleURLConnection.java
+
+2008-01-30 17:57:01 +0100 (Wed, 30 Jan 2008), revision 2180, ekolin
+Update of nightly build tools. Now produces builds wiht a version like 2.0.4_2175, where the last part is the SVN revision that the build was made on.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/build.sh
+A   knopflerfish.org/trunk/tools/nightlybuild/kf_junit_index_style.xsl
+U   knopflerfish.org/trunk/tools/nightlybuild/outlist.awk
+
+2008-01-30 17:09:32 +0100 (Wed, 30 Jan 2008), revision 2179, ekolin
+Added a framework test case 161A, that highlights the difference between Bundle.getResource(java/lang/Thread.class) and BundleClassLoader.getResource(java/lang/Thread.class) in the current implementation.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+
+2008-01-30 11:41:49 +0100 (Wed, 30 Jan 2008), revision 2178, ekolin
+Fix consoletelnet so that it can start without any console service and so that it tracks the console service it uses. Telnet sessions will be terminated when the console service they use are removed.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/src/org/knopflerfish/bundle/consoletelnet/TelnetServer.java
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/src/org/knopflerfish/bundle/consoletelnet/TelnetSession.java
+U   knopflerfish.org/trunk/osgi/template.xargs
+
+2008-01-26 14:42:17 +0100 (Sat, 26 Jan 2008), revision 2177, ekolin
+When calling FrameworkPolcy.getPermissions(CodeSource) with a null CodeSource delegate to the default policy handler. Remove a case of double-checked locking from the BundleImpl class since double-checked locking may fail.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/resources/version
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/FrameworkPolicy.java
+
+2008-01-22 09:27:35 +0100 (Tue, 22 Jan 2008), revision 2175, ekolin
+Add missing standard packages to system bundle exports for JRE 1.4 and JRE 1.5.
+U   knopflerfish.org/trunk/changelog.txt
+U   knopflerfish.org/trunk/osgi/framework/resources/packages1.4.txt
+U   knopflerfish.org/trunk/osgi/framework/resources/packages1.5.txt
+
 2008-01-18 15:56:16 +0100 (Fri, 18 Jan 2008), revision 2174, ekolin
 Add target that simplifies executing the JUnit based KF-test suite.
 U   knopflerfish.org/trunk/osgi/build.xml
@@ -718,7 +900,7 @@ U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
 U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
 
 2006-09-11 15:09:57 +0200 (Mon, 11 Sep 2006), revision 2041, polli
-file:///Users/ekolin/work/secureon/svn/cuba/JavaClient2/doc/index.html?com/secureon/lime/Constants.hNicer exception for resolution:="optional" when the import is not resolved. Bug fix for Bundle-Version. The TCK has tests that allows invalid Bundle-Versions when Bundle-ManifestVersion!=2 and tests that disallow invalid Bundle-Version when Bundle-ManifestVersion==2
+Nicer exception for resolution:="optional" when the import is not resolved. Bug fix for Bundle-Version. The TCK has tests that allows invalid Bundle-Versions when Bundle-ManifestVersion!=2 and tests that disallow invalid Bundle-Version when Bundle-ManifestVersion==2
 U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
 U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
 
