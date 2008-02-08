@@ -1,6 +1,9 @@
 
 WWW_DIR=/home/wistrand/knopflerfish.org/www
-OUT_DIR=/home/wistrand/knopflerfish.org/www/snapshots
+WWW_PATH=snapshots
+OUT_DIR=/home/wistrand/knopflerfish.org/www/${WWW_PATH}
+OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
+
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
 TAG         = trunk
@@ -36,9 +39,8 @@ VERSION := ${REL_VERSION}.snapshot_${REVISION}
 # Ant with build properties set.
 ANTv = ${ANT} -Dversion=${VERSION} \
               -Dsvn.tag=${TAG} \
-              -Dbuild.kind=${BUILD_KIND}
-
-
+              -Dbuild.kind=${BUILD_KIND} \
+	      -Dbase.url=${OUT_URL}
 
 .PHONY: help all  clean version checkout update status
 .PHONY: build distrib
