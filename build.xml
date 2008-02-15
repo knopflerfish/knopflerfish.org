@@ -216,7 +216,8 @@
 
   <!-- Creates an HTML index page for a release build.-->
   <target name          = "distrib_index"
-          depends       = "mkreldir">
+          depends       = "mkreldir,compile_ant">
+
     <!-- The releas page links to a local release_notes file. -->
     <copy file   = "release_notes.txt"
           tofile = "${release.dir}/release_notes.txt">
@@ -226,18 +227,34 @@
              pattern  = "yyyy-MM-dd HH:mm"
              locale   = "en"/>
     </tstamp>
-    <length property="distribfile.length"
+    <taskdef name      = "byteformatter"
+             classpath = "ant/classes"
+             classname = "org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
+
+    <length property="distribfile.length0"
 	    file="${distribfile}" />
-    <length property="distribfile_fullbin.length"
+    <byteformatter value="${distribfile.length0}" 
+                   propertyName="distribfile.length"/>
+    <length property="distribfile_fullbin.length0"
 	    file="${distribfile_fullbin}" />
-    <length property="distribfile_bin.length"
+    <byteformatter value="${distribfile_fullbin.length0}" 
+                   propertyName="distribfile_fullbin.length"/>
+    <length property="distribfile_bin.length0"
 	    file="${distribfile_bin}" />
-    <length property="distribfile_opt.length"
+    <byteformatter value="${distribfile_bin.length0}" 
+                   propertyName="distribfile_bin.length"/>
+    <length property="distribfile_opt.length0"
 	    file="${distribfile_opt}" />
-    <length property="distribfile_tiny.length"
+    <byteformatter value="${distribfile_opt.length0}" 
+                   propertyName="distribfile_opt.length"/>
+    <length property="distribfile_tiny.length0"
 	    file="${distribfile_tiny}" />
-    <length property="distribfile_tests.length"
+    <byteformatter value="${distribfile_tiny.length0}" 
+                   propertyName="distribfile_tiny.length"/>
+    <length property="distribfile_tests.length0"
 	    file="${distribfile_tests}" />
+    <byteformatter value="${distribfile_tests.length0}" 
+                   propertyName="distribfile_tests.length"/>
 
     <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
 	 dest="${release.dir}/index.html"/>
