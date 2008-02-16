@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,8 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 
 /**
- * @author Mats-Ola Persson, based on an implementation by Martin Berg, Magnus Klack (refactoring by Bjorn Andersson)
+ * @author Mats-Ola Persson, based on an implementation by
+ *         Martin Berg, Magnus Klack (refactoring by Bjorn Andersson)
  */
 public class Parser {
 
@@ -68,7 +69,7 @@ public class Parser {
                                     "Long", "Short", "String"};
 
   static private String SCR_NAMESPACE_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
-  
+
   public static Collection readXML(Bundle declaringBundle,
                                    URL url) throws IllegalXMLException {
 
@@ -100,21 +101,21 @@ public class Parser {
     }
   }
 
-  private static boolean isInSCRNamespace(XmlPullParser parser, 
+  private static boolean isInSCRNamespace(XmlPullParser parser,
                                           String tagName,
                                           int level) {
 
-    return tagName.equals(parser.getName()) && 
-      (parser.getDepth() == level || 
+    return tagName.equals(parser.getName()) &&
+      (parser.getDepth() == level ||
        SCR_NAMESPACE_URI.equals(parser.getNamespace()) ||
-       "".equals(parser.getNamespace())); 
-    /* 
+       "".equals(parser.getNamespace()));
+    /*
        the test "".equals(parser.getNamespace()) SHOULD not be
        needed but was added since the osgi-tests actually
        breaks the document specification.
-       
+
     */
-    
+
   }
 
   private static ArrayList readDocument(Bundle declaringBundle, XmlPullParser parser)
@@ -131,10 +132,10 @@ public class Parser {
       }
 
       if (parser.getEventType() == XmlPullParser.START_TAG &&
-          "component".equals(parser.getName()) && 
-          (parser.getDepth() == 1 || 
+          "component".equals(parser.getName()) &&
+          (parser.getDepth() == 1 ||
            SCR_NAMESPACE_URI.equals(parser.getNamespace()))) {
-        
+
         try {
           Config config = readComponent(declaringBundle, parser);
           decls.add(config);
@@ -145,7 +146,7 @@ public class Parser {
           continue;
         }
       }
-      
+
       event = parser.next();
     }
 
@@ -193,7 +194,7 @@ public class Parser {
                                 "in component: \"" + curr.getName()
                                 + "\"");
         }
-        
+
       } else if (isInSCRNamespace(parser, "reference", 2)) {
 
         setReference(curr, parser, bundle);
@@ -301,7 +302,7 @@ public class Parser {
     if (isArray) {
 
       /*I needed to add 'trim' order to make it pass the OSGi-test..
-       Isn't that a bit strange? */ 
+       Isn't that a bit strange? */
 
       String text = parser.nextText().trim();
       values = splitwords(text, "\n\r");
@@ -310,10 +311,10 @@ public class Parser {
 
     }
 
-    
+
     if (type == null || // defaults to string
         "String".equals(type)) {
-      retval = values;
+      retval = isArray ? (Object) values : (Object) values[0];
 
     } else if ("Boolean".equals(type)) {
 
@@ -328,14 +329,14 @@ public class Parser {
 
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Boolean(array[0]);
     } else if ("Byte".equals(type)) {
       byte[] array = new byte[values.length];
       for (int i=0; i<array.length; i++) {
         array[i] = Byte.parseByte(values[i]);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Byte(array[0]);
     } else if ("Char".equals(type)) {
 
       char[] array = new char[values.length];
@@ -343,55 +344,54 @@ public class Parser {
         array[i] = values[i].charAt(0);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Character(array[0]);
     } else if ("Double".equals(type)) {
       double[] array = new double[values.length];
       for (int i=0; i<array.length; i++) {
         array[i] = Double.parseDouble(values[i]);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Double(array[0]);
     } else if ("Float".equals(type)) {
       float[] array = new float[values.length];
       for (int i=0; i<array.length; i++) {
         array[i] = Float.parseFloat(values[i]);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Float(array[0]);
     } else if ("Integer".equals(type)) {
       int[] array = new int[values.length];
       for (int i=0; i<array.length; i++) {
         array[i] = Integer.parseInt(values[i]);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Integer(array[0]);
     } else if ("Long".equals(type)) {
       long[] array = new long[values.length];
       for (int i=0; i<array.length; i++) {
         array[i] = Long.parseLong(values[i]);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Long(array[0]);
     } else if ("Short".equals(type)) {
       short[] array = new short[values.length];
       for (int i=0; i<array.length; i++) {
         array[i] = Short.parseShort(values[i]);
       }
 
-      retval = array;
+      retval = isArray ? (Object) array : (Object) new Short(array[0]);
     } else {
       throw new IllegalXMLException("Did not recognize \"" + type +
                                     "\" in property-tag.");
-
     }
 
-    if (isArray)
+    if (isArray) {
       parser.next();
-    else
+    } else {
       skip(parser);
+    }
 
-
-    compConf.setProperty(name, isArray ? (Object)retval : ((Object[])retval)[0]);
+    compConf.setProperty(name, retval );
   }
 
   /*
@@ -411,20 +411,20 @@ public class Parser {
     for (int i = 0; i < parser.getAttributeCount(); i++) {
 
       if (parser.getAttributeName(i).equals("servicefactory")) { // &&
-        
+
         boolean isServiceFactory = parseBoolean(parser, i);
-          
+
           if (isServiceFactory &&
-              (compConf.isImmediate() || 
+              (compConf.isImmediate() ||
                compConf.getFactory() != null)) {
-            throw new IllegalXMLException("Attribute servicefactory in service-tag "+ 
+            throw new IllegalXMLException("Attribute servicefactory in service-tag "+
                                           "cannot be set to \"true\" when component "+
                                           "is either an immediate component or " +
                                           "a factory component.");
           }
 
 
-          
+
         compConf.setServiceFactory(isServiceFactory);
 
       } else {
@@ -713,7 +713,7 @@ public class Parser {
         filter =
           bc.createFilter("(" + Constants.OBJECTCLASS + "=" + interfaceName +")");
       }
-      
+
       Reference ref = new Reference(name, filter, interfaceName,
                                     optional, multiple, dynamic,
                                     bind, unbind, bc);
@@ -765,7 +765,7 @@ public class Parser {
     for (int i = 0; i < expected.length - 1; i++)
       buf.append("\"" + expected[i] + "\"/");
 
-    buf.append("\"" + expected[expected.length - 1] + "\"" + 
+    buf.append("\"" + expected[expected.length - 1] + "\"" +
                " but got \"" + parser.getAttributeValue(attr) + "\".");
 
 
@@ -802,9 +802,9 @@ public class Parser {
    */
   public static String [] splitwords(String s, String whiteSpace) {
     Vector        v     = new Vector(); // (String) individual words after splitting
-    StringBuffer  buf   = new StringBuffer(); 
-    int           i     = 0; 
-    
+    StringBuffer  buf   = new StringBuffer();
+    int           i     = 0;
+
     while (i < s.length()) {
       char c = s.charAt(i);
 
@@ -813,18 +813,18 @@ public class Parser {
           buf = new StringBuffer();
         }
         buf.append(c);
-	i++;
-      } else {	
-	// found whitespace or end of citation, append word if we have one
-	if(buf != null) {
-	  v.addElement(buf.toString());
-	  buf = null;
-	}
+        i++;
+      } else {
+        // found whitespace or end of citation, append word if we have one
+        if(buf != null) {
+          v.addElement(buf.toString());
+          buf = null;
+        }
 
-	// and skip whitespace so we start clean on a word or citation char
-	while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
-	  i++;
-	}
+        // and skip whitespace so we start clean on a word or citation char
+        while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
+          i++;
+        }
       }
     }
 
@@ -832,11 +832,11 @@ public class Parser {
     if(buf != null) {
       v.addElement(buf.toString());
     }
-    
+
     // Copy back into an array
     String [] r = new String[v.size()];
     v.copyInto(r);
-    
+
     return r;
   }
 
