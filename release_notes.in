@@ -12,7 +12,15 @@ Release Notes Knopflerfish @VERSION@
 
 === Services (Compendium) ===
       
+  Component Service
+
+  Fixed a class-cast bug when loading array valued (non-String)
+  properties from the XML document. See forum thread 
+  https://sourceforge.net/forum/forum.php?thread_id=1937504&amp;forum_id=328005
+  for details.
 
 
 === Misc (KF specific, start scritps, build system etc ===
-    
+
+  More adjustments to the build system to improve nightly- and
+  release- builds.
