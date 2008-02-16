@@ -231,30 +231,18 @@
              classpath = "ant/classes"
              classname = "org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
 
-    <length property="distribfile.length0"
-	    file="${distribfile}" />
-    <byteformatter value="${distribfile.length0}" 
-                   propertyName="distribfile.length"/>
-    <length property="distribfile_fullbin.length0"
-	    file="${distribfile_fullbin}" />
-    <byteformatter value="${distribfile_fullbin.length0}" 
-                   propertyName="distribfile_fullbin.length"/>
-    <length property="distribfile_bin.length0"
-	    file="${distribfile_bin}" />
-    <byteformatter value="${distribfile_bin.length0}" 
-                   propertyName="distribfile_bin.length"/>
-    <length property="distribfile_opt.length0"
-	    file="${distribfile_opt}" />
-    <byteformatter value="${distribfile_opt.length0}" 
-                   propertyName="distribfile_opt.length"/>
-    <length property="distribfile_tiny.length0"
-	    file="${distribfile_tiny}" />
-    <byteformatter value="${distribfile_tiny.length0}" 
-                   propertyName="distribfile_tiny.length"/>
-    <length property="distribfile_tests.length0"
-	    file="${distribfile_tests}" />
-    <byteformatter value="${distribfile_tests.length0}" 
-                   propertyName="distribfile_tests.length"/>
+    <byteformatter file="${distribfile}" unit=""
+                   property="distribfile.length"/>
+    <byteformatter file="${distribfile_fullbin}" unit=""
+                   property="distribfile_fullbin.length"/>
+    <byteformatter file="${distribfile_bin}" unit=""
+                   property="distribfile_bin.length"/>
+    <byteformatter file="${distribfile_opt}" unit=""
+                   property="distribfile_opt.length"/>
+    <byteformatter file="${distribfile_tiny}" unit=""
+                   property="distribfile_tiny.length"/>
+    <byteformatter file="${distribfile_tests}" unit=""
+                   property="distribfile_tests.length"/>
 
     <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
 	 dest="${release.dir}/index.html"/>

@@ -33,22 +33,8 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.Vector;
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.taskdefs.Manifest;
-import org.apache.tools.ant.taskdefs.ManifestException;
-import org.apache.tools.ant.types.EnumeratedAttribute;
 
 
 /**
@@ -65,16 +51,28 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *   <td valign=top><b>Required</b></td>
  *  </tr>
  *  <tr>
- *    <td valign="top">value</td>
- *    <td valign="top">The value to format.</td>
- *    <td valign="top" align="center">
- *      Yes.</td>
- *  </tr>
- *  <tr>
  *    <td valign="top">property</td>
  *    <td valign="top">
  *      The name of the property to assign the foramted value to.</td>
  *    <td valign="top" align="center">Yes.</td>
+ *  </tr>
+ *  <tr>
+ *    <td valign="top">unit</td>
+ *    <td valign="top">The unit append to the formated value. E.g., byte</td>
+ *    <td valign="top" align="center">
+ *      No, default is the empty string.</td>
+ *  </tr>
+ *  <tr>
+ *    <td valign="top">value</td>
+ *    <td valign="top">The value to format.</td>
+ *    <td valign="top" align="center">
+ *      One of value and file must be given.</td>
+ *  </tr>
+ *  <tr>
+ *    <td valign="top">file</td>
+ *    <td valign="top">The file of get the size of and format.</td>
+ *    <td valign="top" align="center">
+ *      One of value and file must be given.</td>
  *  </tr>
  * </table>
  *
@@ -84,11 +82,21 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *
  * <h3>Examples</h3>
  *
- * <h4>Format a file size</h4>
+ * <h4>Format a value as bytes</h4>
  *
  * <pre>
  *  &lt;byteformatter value="9093663"
- *                    property="myFormatedFilesize"/&gt;
+ *                    property="myFormatedFilesize"
+ *                    unit="b" /&gt;
+ * </pre>
+ *
+ *
+ * <h4>Format the size of a file as bytes</h4>
+ *
+ * <pre>
+ *  &lt;byteformatter file="archive.jar"
+ *                    property="archive.size"
+ *                    unit="B" /&gt;
  * </pre>
  *
  *
@@ -102,26 +110,53 @@ public class ByteFormatterTask extends Task {
     super();
    }
 
-  private long value;
-  /**
-   * Set the value to format.
-   *
-   * @param the value to format
-   */
-  public void setValue(long value) {
-    this.value = value;
-  }
-
-  private String propertyName;
+  private String property;
   /**
    * The name of the property to save the foramted value to.
    *
    * @param f the propety name.
    */
-  public void setPropertyName(String propertyName) {
-    this.propertyName = propertyName;
+  public void setProperty(String property) {
+    this.property = property;
   }
 
+
+  private String unit = "";
+  /**
+   * The unit to append to the formated value.
+   *
+   * @param u the unit name
+   */
+  public void setUnit(String unit) {
+    this.unit = unit;
+  }
+
+
+  private long value;
+  /**
+   * Set the value to format.
+   *
+   * @param value the value to format
+   */
+  public void setValue(long value) {
+    this.value = value;
+  }
+
+
+  private File file;
+  /**
+   * Set the file to get the size of and format
+   *
+   * @param file the file to return a formated file size for.
+   */
+  public void setFile(File file) {
+    this.file = file;
+    this.value = file.length();
+  }
+
+
+
+  static final long step = 1024;
 
   /**
    * Create or update the Manifest when used as a task.
@@ -129,24 +164,36 @@ public class ByteFormatterTask extends Task {
    * @throws BuildException if the manifest cannot be written.
    */
   public void execute() {
-    final int factor = 1024;
-    long k = value / factor;
-    long m = k / factor;
-    long g = m / factor;
-    long t = g / factor;
-    
-    Project   project      = getProject();
-    if (t>0) {
-      project.setProperty(propertyName, String.valueOf(t)+" TB");
-    } else if (g>0) {
-      project.setProperty(propertyName, String.valueOf(g)+" GB");
-    } else if (m>0) {
-      project.setProperty(propertyName, String.valueOf(m)+" MB");
-    } else if (k>0) {
-      project.setProperty(propertyName, String.valueOf(k)+" kB");
-    } else {
-      project.setProperty(propertyName, String.valueOf(value)+" B");
+    String formatedValue = "";
+    String[] suffixes = new String[]{ " "," k"," M"," G"," T"," E"," P"};
+
+    int ix = 0;
+    long factor = 1;
+
+    while(value/factor>step && ix<suffixes.length) {
+      factor *= step;
+      ix++;
     }
+
+    long i = value/factor;    // Integral part of reduced value
+    long r = value -i*factor; // Remainded.
+
+    formatedValue = formatValue(i, r/(factor/step));
+
+    Project project = getProject();
+    project.setProperty(property, formatedValue +suffixes[ix] +unit);
   }
 
+  private String formatValue( long integral, long fraction)
+  {
+    String res = String.valueOf(integral);
+    if (integral<10) {
+      long dec = fraction/10;
+      res = res +"." +(dec<10?"0":"") +String.valueOf(dec);
+    } else if (integral<100) {
+      long dec = fraction;
+      res = res +"." +(dec<100?"0":"") +(dec<10?"0":"") +String.valueOf(dec);
+    }
+    return res;
+  }
 }
