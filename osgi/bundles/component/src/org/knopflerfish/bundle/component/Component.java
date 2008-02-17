@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ import org.osgi.service.component.ComponentInstance;
 abstract class Component implements ServiceFactory {
 
   protected Config config;
+  private Long componentId;
   private boolean active;
   private Object instance;
   protected BundleContext bundleContext;
@@ -286,6 +287,7 @@ abstract class Component implements ServiceFactory {
       } catch (IllegalStateException ignored) {
         // Nevermind this, it might have been unregistered previously.
       }
+      serviceRegistration = null;
     }
   }
 
@@ -338,8 +340,9 @@ abstract class Component implements ServiceFactory {
   public abstract void unsatisfied();
 
 
-  public void setProperty(Object key, Object value) {
-    config.setProperty((String)key, value);
+  public void setComponentId(Long componentId) {
+    this.componentId = componentId;
+    effectiveProperties.put(ComponentConstants.COMPONENT_ID, componentId);
   }
 
   // to provide compability with component context
@@ -436,14 +439,11 @@ abstract class Component implements ServiceFactory {
 
       if (serviceRegistration == null) {
 
-        Object thisComponentId
-          = config.getProperties().get(ComponentConstants.COMPONENT_ID);
-
         try {
           ServiceReference[] refs = bundleContext
             .getServiceReferences(config.getImplementation(),
                                   "(" + ComponentConstants.COMPONENT_ID + "=" +
-                                  thisComponentId + ")");
+                                  componentId + ")");
           if (refs == null) {
             return null;
           }
@@ -495,6 +495,9 @@ abstract class Component implements ServiceFactory {
         effectiveProperties.put(key, dict.get(key));
       }
     }
+    if (serviceRegistration != null) {
+      serviceRegistration.setProperties(effectiveProperties);
+    }
   }
 
   public void cmDeleted() {
@@ -503,6 +506,12 @@ abstract class Component implements ServiceFactory {
     for (Enumeration e = dict.keys(); e.hasMoreElements();) {
       Object key = e.nextElement();
       effectiveProperties.put(key, dict.get(key));
+    }
+    if (componentId!=null){
+      effectiveProperties.put(ComponentConstants.COMPONENT_ID, componentId);
+    }
+    if (serviceRegistration != null) {
+      serviceRegistration.setProperties(effectiveProperties);
     }
   }
 }
