@@ -19,6 +19,9 @@ Release Notes Knopflerfish @VERSION@
   https://sourceforge.net/forum/forum.php?thread_id=1937504&amp;forum_id=328005
   for details.
 
+  Fix issue [1895316]. Service References published by Component Service
+  on behalf of some component where missing the component.id property.
+
 
 === Misc (KF specific, start scritps, build system etc ===
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,34 +60,34 @@ import org.osgi.service.component.ComponentConstants;
 class SCR implements SynchronousBundleListener {
 
   private Hashtable bundleConfigs = new Hashtable();
-  
+
   private Collection components = new ArrayList();
   private Hashtable factoryConfigs = new Hashtable();
 
-  
+
   private Hashtable serviceConfigs = new Hashtable();
-  
+
   private static long componentId = 0;
   private static SCR instance;
-  
+
   public static void init(BundleContext bc) {
     if (instance == null) {
       instance = new SCR(bc);
-      
+
       Bundle[] bundles = bc.getBundles();
       for(int i=0;i<bundles.length;i++){
         if (bundles[i].getState() == Bundle.ACTIVE) {
           instance.bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
         }
-      }      
+      }
     }
   }
 
   public static SCR getInstance() {
     return instance;
   }
-  
-  private SCR(BundleContext bc) {    
+
+  private SCR(BundleContext bc) {
     bc.addBundleListener(this);
     bc.registerService(ConfigurationListener.class.getName(),
                        new CMListener(),
@@ -96,14 +96,14 @@ class SCR implements SynchronousBundleListener {
 
   public synchronized void shutdown() {
 
-    for (Enumeration e = bundleConfigs.keys(); 
+    for (Enumeration e = bundleConfigs.keys();
          e.hasMoreElements();) {
-      
+
       Bundle bundle = (Bundle) e.nextElement();
       bundleChanged(new BundleEvent(BundleEvent.STOPPING, bundle));
-      
+
     }
-    
+
     instance = null;
   }
 
@@ -116,11 +116,11 @@ class SCR implements SynchronousBundleListener {
 
     switch (event.getType()) {
     case BundleEvent.STARTED:
-    
+
       // Create components
       Collection addedConfigs = new ArrayList();
       String[] manifestEntries = Parser.splitwords(manifestEntry, ",");
-      
+
       for (int i = 0; i < manifestEntries.length; i++) {
         URL resourceURL = bundle.getResource(manifestEntries[i]);
         if (resourceURL == null) {
@@ -144,12 +144,12 @@ class SCR implements SynchronousBundleListener {
       bundleConfigs.put(bundle, new ArrayList());
       for (Iterator iter = addedConfigs.iterator(); iter.hasNext();) {
         Config config = (Config) iter.next();
-       
+
         if (config.isAutoEnabled()) {
           Component component = config.createComponent();
           component.enable();
         }
-        
+
         // Add to cycle finder:
         String[] services = config.getServices();
         if (services != null) {
@@ -178,7 +178,7 @@ class SCR implements SynchronousBundleListener {
           }
         }
       }
-      
+
       Collection tmp = (Collection)bundleConfigs.get(bundle);
       tmp.addAll(addedConfigs);
       bundleConfigs.put(bundle, tmp);
@@ -196,7 +196,7 @@ class SCR implements SynchronousBundleListener {
           config.disable();
           // Remove from cycle finder:
           String[] services = config.getServices();
-          if (services != null) { 
+          if (services != null) {
             for (int i=0; i<services.length; i++) {
               ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
               if (existing == null) continue;
@@ -236,20 +236,19 @@ class SCR implements SynchronousBundleListener {
     visited.remove(config);
     return false;
   }
-    
+
   public Collection getComponents(Bundle bundle) {
     return (Collection)bundleConfigs.get(bundle);
   }
 
   public synchronized void initComponent(Component component) {
-    component.setProperty(ComponentConstants.COMPONENT_ID, 
-                          new Long(++componentId));
+    component.setComponentId(new Long(++componentId));
     initConfig(component);
     components.add(component);
     // build graph here.
   }
 
-  public synchronized void removeComponent(Component component) { 
+  public synchronized void removeComponent(Component component) {
     if (component != null) {
       removeConfig(component);
       components.remove(component);
@@ -260,7 +259,7 @@ class SCR implements SynchronousBundleListener {
 
     BundleContext bc = component.getBundleContext();
     ServiceReference ref = bc.getServiceReference(ConfigurationAdmin.class.getName());
-    
+
     if (ref == null)
       return null;
 
@@ -275,13 +274,13 @@ class SCR implements SynchronousBundleListener {
       for (Enumeration e = dict.keys();
            e.hasMoreElements();) {
         Object key = e.nextElement();
-        
+
         if (dict.get(key) == component) {
           dict.remove(key);
           break;
         }
       }
-      
+
       if (dict.isEmpty()) {
         factoryConfigs.remove(config.getName());
       }
@@ -298,30 +297,30 @@ class SCR implements SynchronousBundleListener {
       return ;
 
     try {
-      Configuration[] conf = 
-        admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID + 
+      Configuration[] conf =
+        admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID +
                                  "=" + name + ")");
-      
+
       if (conf != null) {
         Dictionary table = (Dictionary)factoryConfigs.get(name);
-        
+
         if (table == null) {
           table = new Hashtable();
           factoryConfigs.put(name, table);
         }
-        
+
         Collection configs = (Collection)bundleConfigs.get(config.getBundle());
-        
+
         if (table.get(conf[0].getPid()) == null) {
           component.cmUpdated(conf[0].getProperties());
           table.put(conf[0].getPid(), component);
         }
-        
-        
+
+
         for (int i = conf.length - 1; i >= 0; i--) {
           String pid = conf[i].getPid();
           Component instance = (Component)table.get(pid);
-          
+
           if (instance == null) {
             Config copy = config.copy();
             instance = copy.createComponent();
@@ -336,9 +335,9 @@ class SCR implements SynchronousBundleListener {
       } else {
 
         // regular single configuration
-        conf = 
+        conf =
           admin.listConfigurations("(" + Constants.SERVICE_PID + "=" + name + ")");
-        
+
         if (conf != null &&
             conf.length == 1) {
           component.cmUpdated(conf[0].getProperties());
@@ -348,8 +347,8 @@ class SCR implements SynchronousBundleListener {
     } catch (InvalidSyntaxException e) {
       Activator.log.error("The name (" + name + ") must have screwed up the filter.", e);
     } catch (IOException e) {
-      Activator.log.error("Declarative Services could not retrieve " + 
-                          "the configuration for component " + name + 
+      Activator.log.error("Declarative Services could not retrieve " +
+                          "the configuration for component " + name +
                           ". Got IOException.", e);
     }
   }
@@ -365,8 +364,8 @@ class SCR implements SynchronousBundleListener {
         return null;
 
       try {
-        Configuration[] conf = 
-          admin.listConfigurations("(" + Constants.SERVICE_PID + 
+        Configuration[] conf =
+          admin.listConfigurations("(" + Constants.SERVICE_PID +
                                    "=" + pid + ")");
 
         return conf == null ? null : conf[0];
@@ -374,20 +373,20 @@ class SCR implements SynchronousBundleListener {
         Activator.log.error("The PID (" + pid + ") must have screwed up the filter.", e);
         return null;
       } catch (IOException e) {
-        Activator.log.error("Declarative Services could not retrieve " + 
-                            "the configuration for component with pid " + pid + 
+        Activator.log.error("Declarative Services could not retrieve " +
+                            "the configuration for component with pid " + pid +
                             ". Got IOException.", e);
         return null;
       }
-      
+
     }
 
     private void restart(Component component) {
       restart(component, null);
     }
-    
+
     private void restart(Component component, Configuration configuration) {
-      
+
       component.deactivate();
       component.unregisterService();
 
@@ -395,117 +394,117 @@ class SCR implements SynchronousBundleListener {
         component.cmUpdated(configuration.getProperties());
       } else {
         component.cmDeleted();
-        removeConfig(component);        
+        removeConfig(component);
       }
-      
+
       component.registerService();
       component.activate();
-   
+
     }
-    
+
     public void configurationEvent(ConfigurationEvent evt) {
-      
+
       String factoryPid = evt.getFactoryPid();
       String pid = evt.getPid();
 
-      synchronized(SCR.getInstance()){      
+      synchronized(SCR.getInstance()){
         if (factoryPid != null) {
-          
+
           Dictionary table = (Dictionary) factoryConfigs.get(factoryPid);
-          
+
           if (table != null) {
             Component component = (Component)table.get(pid);
             if (component != null) {
               if (evt.getType() == ConfigurationEvent.CM_DELETED) {
                 table.remove(pid);
-                
+
                 if (table.isEmpty()) {
-                  
+
                   factoryConfigs.remove(factoryPid);
                   restart(component);
-                  
+
                 } else {
-                  
+
                   component.disable();
-                  
+
                 }
-               
+
               } else {
-                
+
                 Configuration conf = getConfiguration(component, pid);
                 if (conf == null)
                   return ;
-                
+
                 restart(component, conf);
               }
-              
-            
+
+
             } else { // we need to create a new component
-              
+
               Object key = table.keys().nextElement();
               Component src = (Component)table.get(key);
               Config config = src.getConfig();
               Config copy = config.copy();
-              
+
               Component instance = copy.createComponent();
-              Configuration conf = 
+              Configuration conf =
                 getConfiguration(instance, pid);
-              
-              if (conf == null) 
+
+              if (conf == null)
                 return ;
-              
+
               instance.cmUpdated(conf.getProperties());
               Collection collection = (Collection)bundleConfigs.get(copy.getBundle());
               collection.add(copy);
               instance.enable();
-              
+
             }
           } else {
-            
+
             for (Iterator i = components.iterator();
                  i.hasNext(); ) { // start looking for a potential target.
-              
+
               Component component = (Component)i.next();
               Config config = component.getConfig();
-              
+
               if (factoryPid.equals(config.getName())) {
                   // this is a new factory configuration (and has a corresponding component)
-                  Configuration conf = 
+                  Configuration conf =
                     getConfiguration(component, pid);
-                  
-                  if (conf == null) 
+
+                  if (conf == null)
                     continue; // does not have permission.
-                  
+
                   table = new Hashtable();
                   factoryConfigs.put(factoryPid, table);
                   table.put(evt.getPid(), component);
                   restart(component, conf);
-                  
-//                } 
+
+//                }
               }
             }
           }
-        
+
         } else { // just a regular Single Configuration.
-          
+
           for (Iterator i = components.iterator();
              i.hasNext(); ) { // start looking for a potential target.
-            
+
             Component component = (Component)i.next();
             Config config = component.getConfig();
-            
+
             if (pid.equals(config.getName())) {
-              
+
               if (evt.getType() == ConfigurationEvent.CM_DELETED) {
                 restart(component);
               }
-              
+
               Configuration conf =
                 getConfiguration(component, pid);
-              
-              if (conf == null) 
+
+              if (conf == null)
                 continue ; // might not have permission
-            
+
               restart(component, conf);
               // note that there might be other that matches as well..
             }
@@ -515,4 +514,3 @@ class SCR implements SynchronousBundleListener {
     }
   }
 }
-

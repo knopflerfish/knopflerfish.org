@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   private BundleContext bc;
 
   private int counter = 0;
-    
+
   public ComponentTestSuite(BundleContext bc) {
     super("ComponentTestSuite");
     this.bc = bc;
@@ -58,17 +58,17 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   }
 
   public void bump() {counter++;}
-    
+
   /* from http_test */
   class FWTestCase extends TestCase {
     public String getName() {
       String name = getClass().getName();
       int ix = name.lastIndexOf("$");
       if(ix == -1) {
-	ix = name.lastIndexOf(".");
+        ix = name.lastIndexOf(".");
       }
       if(ix != -1) {
-	name = name.substring(ix + 1);
+        name = name.substring(ix + 1);
       }
       return name;
     }
@@ -76,12 +76,15 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
   private class Test1 extends FWTestCase {
     /**
-     * This checks that componenents are lazily instanciated, and eagerily removed.
+     * This checks that componenents are lazily instanciated, and
+     * eagerily removed.
      * How it works:
      * - test case is started: the bundles componentA is installed.
      * - ComponentA1 is registered the service ComponentServiceA1
-     * - The test then gets the service reference (this should not activate the component)
-     * - The test then gets the serivce object (this should activate the component)
+     * - The test then gets the service reference (this should not
+     *   activate the component)
+     * - The test then gets the serivce object (this should activate
+     *   the component)
      * - When the component is activate the bump method is called.
      * - Then the test ungets the service, this should deactivate the component.
      * - When the component is deactivated the bump method is called.
@@ -90,14 +93,28 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     public void runTest() {
       try {
         counter = 0;
-        
+
          Bundle c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
          c1.start();
 
-         ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA1");
+         ServiceReference ref = bc.getServiceReference
+           ("org.knopflerfish.bundle.componentA_test.ComponentA1");
+
          assertNotNull("Could not get service reference for A1", ref);
          assertEquals("Should not have been bumped", 0, counter);
-        
+
+         // Check that the component name is available as service property
+         String compName
+           = (String) ref.getProperty(ComponentConstants.COMPONENT_NAME);
+         System.out.println("component.name= " +compName);
+         assertEquals("component name valid", "componentA1.test", compName);
+
+         // Check that the component id is available as service property
+         Long compId = (Long) ref.getProperty(ComponentConstants.COMPONENT_ID);
+         System.out.println("component.id= " +compId);
+         assertNotNull("component.id null", compId);
+         assertTrue("component.id > 0", compId.longValue()>0);
+
          Object obj = bc.getService(ref);
 
          try {
@@ -106,18 +123,18 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          assertNotNull("Could not get service object for A1", obj);
          assertEquals("Should have been bumped", counter, 1);
-         
+
          bc.ungetService(ref);
-         
+
          try {
            Thread.sleep(1000);
          } catch (Exception e) {}
-         
+
          assertEquals("Should have been bumped again", counter, 2);
-         
+
          counter = 0;
          c1.uninstall();
-         
+
       } catch (Exception e ) {
         fail("Got exception: Test1: " + e);
       }
@@ -134,21 +151,21 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
      * before: no components are started.
      * action: TestService is registered
      * after: all components are activated
-     * 
+     *
      * then:
-     * 
+     *
      * before: all components are activated
      * action: unregister TestService
      * after: all components are deactivated
      *
      * (the components call bump when they are (de-)actived)
      */
-    
+
     public void runTest() {
       try {
-        
+
         counter = 0;
-                
+
         Bundle c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
@@ -169,7 +186,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC");
         bc.getService(ref);
-        
+
         assertEquals("Should have been bumped", 3, counter);
         reg.unregister();
 
@@ -186,5 +203,5 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       }
     }
   }
-  
+
 }
