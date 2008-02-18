@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,8 +149,8 @@ public class Framework {
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
   public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
-	  TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
-				     FALSE));
+    TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
+				     TRUE));
 
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests

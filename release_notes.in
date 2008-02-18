@@ -8,6 +8,11 @@ Release Notes Knopflerfish @VERSION@
 
 === Framework (Core) ===
 
+  The default value of the system property named
+    org.knopflerfish.servicereference.valid.during.unregistering
+  is changed from false to true. See osgi/framework/readme.txt for details.
+  This change is done in accordance to a clarification done by CPEG
+  February 2008.
 
 
 === Services (Compendium) ===
