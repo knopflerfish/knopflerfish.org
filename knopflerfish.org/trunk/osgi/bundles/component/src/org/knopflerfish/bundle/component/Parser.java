@@ -66,7 +66,8 @@ public class Parser {
 
   static String[] supportedTypes = {"Boolean", "Byte", "Char",
                                     "Double", "Float", "Integer",
-                                    "Long", "Short", "String"};
+                                    "Long", "Short", "String",
+                                    "Character"};
 
   static private String SCR_NAMESPACE_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
 
@@ -337,7 +338,7 @@ public class Parser {
       }
 
       retval = isArray ? (Object) array : (Object) new Byte(array[0]);
-    } else if ("Char".equals(type)) {
+    } else if ("Char".equals(type) || "Character".equals(type)) {
 
       char[] array = new char[values.length];
       for (int i=0; i<array.length; i++) {
