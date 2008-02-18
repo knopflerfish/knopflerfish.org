@@ -70,7 +70,7 @@ public class ServiceListenerTestSuite
   final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING
     = TRUE.equals(System.getProperty
            ("org.knopflerfish.servicereference.valid.during.unregistering",
-            FALSE));
+            TRUE));
 
 
   public ServiceListenerTestSuite (BundleContext bc)

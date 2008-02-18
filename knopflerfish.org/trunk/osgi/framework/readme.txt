@@ -297,10 +297,14 @@ Framework System Properties
      Default: 0
 
    org.knopflerfish.servicereference.valid.during.unregistering
-     If set to true, then during the UNREGISTERING service event the
-     Listener can use the ServiceReference to receive an instance of
-     the service.
-     Default: false
+     If set to false, then the service reference can not be used to
+     fetch an instance of the service during delivery and handling of
+     the UNREGISTERING service event. This (false) is the behaviour
+     specified in the OSGi R4.0.1 specification, according to a
+     clarification done by CPEG February 2008 it shall now be possible
+     to obtain a service instance during delivery of UNREGISTERING
+     events thus this property now defaults to true.
+     Default: true
 
    org.knopflerfish.startlevel.use
      Use the Start Level service.
