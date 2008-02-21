@@ -1543,7 +1543,13 @@ public class Desktop
   void addBundle() {
     if(openFC == null) {
       openFC = new JFileChooser();
-      openFC.setCurrentDirectory(new File("."));
+      // Using `new File(".")` as current dir does not work on MacOSX!
+      String jarsProp=System.getProperty("org.knopflerfish.gosg.jars");
+      File cwd = new File(System.getProperty("user.dir"));
+      if (jarsProp!=null && jarsProp.startsWith("file:")) {
+        cwd = new File(cwd, jarsProp.substring(5));
+      }
+      openFC.setCurrentDirectory( cwd);
       openFC.setMultiSelectionEnabled(true);
       FileFilterImpl filter = new FileFilterImpl();
       filter.addExtension("jar");
