@@ -160,8 +160,7 @@ public class ClassPatcher {
 
     try {           
       ClassReader  cr    = new ClassReader(classBytes);
-      ClassWriter  cw    = new BundleClassWriter(ClassWriter.COMPUTE_FRAMES | 
-                                                 ClassWriter.COMPUTE_MAXS, 
+      ClassWriter  cw    = new BundleClassWriter(ClassWriter.COMPUTE_MAXS, 
                                                  classLoader);
       ClassAdapter trans = new ClassAdapterPatcher(cw, 
                                                    className.replace('.', '/'),
