@@ -254,6 +254,7 @@
   <delete file="framework.jar"/>
   <delete dir="out"/>
   <delete dir="jars"/>
+  <delete dir="..ant/classes"/>
  </target>
 
 
