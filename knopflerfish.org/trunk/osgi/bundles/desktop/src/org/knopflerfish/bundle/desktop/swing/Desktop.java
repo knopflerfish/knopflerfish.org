@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,15 +227,15 @@ public class Desktop
    * to time.
    */
   private Comparator referenceComparator = new Comparator() {
-	public int compare(Object obj1, Object obj2) {
-		ServiceReference ref1 = (ServiceReference)obj1;
-		ServiceReference ref2 = (ServiceReference)obj2;
-		Long l1 = (Long)ref1.getProperty(Constants.SERVICE_ID);
-		Long l2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
-		return l1.compareTo(l2);
-	}
+        public int compare(Object obj1, Object obj2) {
+                ServiceReference ref1 = (ServiceReference)obj1;
+                ServiceReference ref2 = (ServiceReference)obj2;
+                Long l1 = (Long)ref1.getProperty(Constants.SERVICE_ID);
+                Long l2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
+                return l1.compareTo(l2);
+        }
   };
-  
+
   Map displayMap = new TreeMap(referenceComparator);
   Map menuMap    = new HashMap();
   Map detailMap  = new HashMap();
@@ -793,7 +793,7 @@ public class Desktop
 
     viewPopupMenu = new JPopupMenu();
     menuMap.clear();
-    
+
     for(Iterator it = displayMap.keySet().iterator(); it.hasNext(); ) {
       final ServiceReference     sr   = (ServiceReference)it.next();
       final String key = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
@@ -811,7 +811,7 @@ public class Desktop
   void bundlePanelShowTab(String name) {
     ServiceReference[] sr;
     try {
-      sr = Activator.getBC().getServiceReferences(SwingBundleDisplayer.class.getName(), 
+      sr = Activator.getBC().getServiceReferences(SwingBundleDisplayer.class.getName(),
           "("+SwingBundleDisplayer.PROP_NAME+"=" + name +")");
       if (sr != null) {
         bundlePanelShowTab(sr[0]);
@@ -820,15 +820,15 @@ public class Desktop
       throw new RuntimeException(e.getMessage());
     }
   }
-  
+
   void bundlePanelShowTab(ServiceReference sr) {
     final String key = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
     bundlePanel.showTab(key);
     JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
     item.setSelected(true);
   }
-  
-  
+
+
   void updateLevelItems() {
     StartLevel sls =
       (StartLevel)slTracker.getService();
@@ -1543,13 +1543,14 @@ public class Desktop
   void addBundle() {
     if(openFC == null) {
       openFC = new JFileChooser();
-      // Using `new File(".")` as current dir does not work on MacOSX!
-      String jarsProp=System.getProperty("org.knopflerfish.gosg.jars");
       File cwd = new File(System.getProperty("user.dir"));
+      String jarsProp=System.getProperty("org.knopflerfish.gosg.jars");
       if (jarsProp!=null && jarsProp.startsWith("file:")) {
-        cwd = new File(cwd, jarsProp.substring(5));
+        cwd = new File(jarsProp.substring(5));
       }
-      openFC.setCurrentDirectory( cwd);
+      // The argument to setCurrentDirectory() must be an ablsolute
+      // path on MacOSX!
+      openFC.setCurrentDirectory(cwd.getAbsoluteFile());
       openFC.setMultiSelectionEnabled(true);
       FileFilterImpl filter = new FileFilterImpl();
       filter.addExtension("jar");

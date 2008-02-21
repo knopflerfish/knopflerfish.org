@@ -14,6 +14,8 @@ Release Notes Knopflerfish @VERSION@
   This change is done in accordance to a clarification done by CPEG
   February 2008.
 
+  ASM 3.1 is now used for byte code patching.
+
 
 === Services (Compendium) ===
       
@@ -29,6 +31,10 @@ Release Notes Knopflerfish @VERSION@
 
 
 === Misc (KF specific, start scritps, build system etc ===
+
+  The initial direcotry for the add bundle dialog in the Desktop is 
+  now based on the system property "org.knopflerfish.gosg.jars" if
+  set to a file URL, otherwise the current working directory is used.
 
   More adjustments to the build system to improve nightly- and
   release- builds.
