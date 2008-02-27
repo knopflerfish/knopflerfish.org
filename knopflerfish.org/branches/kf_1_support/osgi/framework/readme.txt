@@ -164,6 +164,12 @@ Framework System Properties
      classloader,
      other than java.* and org.osgi.framework
 
+   org.knopflerfish.framework.debug.print_with_do_privileged
+     Surrond all debug print-operations originating from
+     setting org.knopflerfish.debug.* properties with a
+     doPrivileged() wrapper.
+     Default: true
+
    org.knopflerfish.framework.debug.classloader
      Print debug information from classloader
      Default: false

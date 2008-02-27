@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,6 +188,39 @@ public class Framework {
   static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
   static boolean bIsMemoryStorage = false;
+
+  static int javaVersionMajor = -1;
+  static int javaVersionMinor = -1;
+  static int javaVersionMicro = -1;
+  static {
+    String javaVersion = System.getProperty("java.version");
+    if (null!=javaVersion) {
+      int startPos = 0;
+      int dotPos   = javaVersion.indexOf('.');
+      if (-1<dotPos) {
+        try {
+          javaVersionMajor
+            = Integer.parseInt(javaVersion.substring(startPos,dotPos));
+          startPos = dotPos +1;
+          dotPos   = javaVersion.indexOf('.',startPos );
+          if (-1<dotPos) {
+            javaVersionMinor
+              = Integer.parseInt(javaVersion.substring(startPos,dotPos));
+            startPos = dotPos +1;
+            dotPos   = javaVersion.indexOf('.',startPos );
+            if (-1<dotPos) {
+              javaVersionMicro
+                = Integer.parseInt(javaVersion.substring(startPos,dotPos));
+            }
+          }
+        } catch (NumberFormatException _nfe) {
+        }
+      }
+    }
+  }
+
+  static boolean isDoubleCheckedLockingSafe
+    = javaVersionMajor>=1 && javaVersionMinor>=5;;
 
   /**
    * Contruct a framework.

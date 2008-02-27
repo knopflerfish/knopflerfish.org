@@ -96,42 +96,93 @@ public class Debug {
 
 
   /**
+   * When security is enabled, use a doPrivileged() around
+   * the actual call to System.out.println() to allow for PrintStream
+   * implementations that does not handle the case with limited
+   * priviledges themselfs.
+   */
+  static boolean use_do_privilege
+    = System.getSecurityManager() != null
+    && "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
+
+
+  /**
+   * The actual println implementation.
+   *
+   * @param str the message to print.
+   */
+  private static void println0(final String str) {
+    System.out.println("## DEBUG: " + str);
+  }
+
+  /**
    * Common println method for debug messages.
+   *
+   * @param str the message to print.
    */
   static void println(final String str) {
-    // Must use doPriviledged here since stream in System.out can be
-    // implemented by a bundle and need permissions which the bundle
-    // that triggered this debug printout does not have.
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          System.out.println("## DEBUG: " + str);
-          return null;
-        }
-      });
+    if(use_do_privilege) {
+      // The call to this method can be made from a the framework on
+      // behalf of a bundle that have no permissions at all assinged
+      // to it.
+      //
+      // Use doPrivileged() here to protect the Framework from
+      // PrintStream implementations that does not wrapp calls needing
+      // premissions in their own doPrivileged().
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            println0(str);
+            return null;
+          }
+        });
+    } else {
+      println0(str);
+    }
+  }
+
+
+  /**
+   * The actual printStackTrace() implementation.
+   *
+   * @param str the message to print.
+   * @param t   the throwable to print a stack trace for.
+   */
+  private static void printStackTrace0(final String str, final Throwable t) {
+    System.out.println("## DEBUG: " + str);
+    t.printStackTrace();
+    if (t instanceof BundleException) {
+      Throwable n = ((BundleException)t).getNestedException();
+      if (n != null) {
+        System.out.println("Nested bundle exception:");
+        n.printStackTrace();
+      }
+    }
   }
 
   /**
    * Common printStackTrace method for debug messages.
+   *
+   * @param str the message to print.
+   * @param t   the throwable to print a stack trace for.
    */
   static void printStackTrace(final String str, final Throwable t) {
-    // Must use doPriviledged here since the streams in System.out and
-    // System.err can be implemented by a bundle and need permissions
-    // which the bundle that triggered this debug printout does not
-    // have.
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          System.out.println("## DEBUG: " + str);
-          t.printStackTrace();
-          if (t instanceof BundleException) {
-            Throwable n = ((BundleException)t).getNestedException();
-            if (n != null) {
-              System.out.println("Nested bundle exception:");
-              n.printStackTrace();
-            }
+    if(use_do_privilege) {
+      // The call to this method can be made from a the framework on
+      // behalf of a bundle that have no permissions at all assinged
+      // to it.
+      //
+      // Use doPrivileged() here to protect the Framework from
+      // PrintStream implementations that does not wrapp calls needing
+      // premissions in their own doPrivileged().
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            printStackTrace0(str,t);
+            return null;
           }
-          return null;
-        }
-      });
+        });
+    } else {
+      printStackTrace0(str,t);
+    }
   }
 
 }

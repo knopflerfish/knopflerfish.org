@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ class PermissionsWrapper extends PermissionCollection {
 
   private BundleImpl bundle;
   private PermissionAdminImpl pa;
-  private PermissionCollection permissions;
+  private volatile PermissionCollection permissions;
   private boolean readOnly = false;
 
   PermissionsWrapper(PermissionAdminImpl p, BundleImpl b) {
@@ -68,7 +68,7 @@ class PermissionsWrapper extends PermissionCollection {
     getPerms().add(permission);
   }
 
-    
+
   public Enumeration elements() {
     return getPerms().elements();
   }
@@ -95,21 +95,28 @@ class PermissionsWrapper extends PermissionCollection {
     permissions = null;
   }
 
+  private void getPerms0() {
+    PermissionCollection p = makePermissionCollection(bundle);
+    if (readOnly) {
+      p.setReadOnly();
+    }
+    permissions = p;
+  }
+
   private PermissionCollection getPerms() {
-    PermissionCollection p = permissions;
-    if (p == null) {
-      synchronized (this) {
-	p = permissions;
-	if (p == null) {
-	  p = makePermissionCollection(bundle);
-	  if (readOnly) {
-	    p.setReadOnly();
-	  }
-	  permissions = p;
-	}
+    if (Framework.isDoubleCheckedLockingSafe) {
+       if (permissions == null) {
+        synchronized (this) {
+          getPerms0();
+        }
+      }
+      return permissions;
+    } else {
+      synchronized(this) {
+        getPerms0();
+        return permissions;
       }
     }
-    return p;
   }
 
 
@@ -133,20 +140,20 @@ class PermissionsWrapper extends PermissionCollection {
     } else {
       pi = pa.getDefaultPermissions();
       if (pi != null) {
-	pc = makePermissionCollection(pi);
+        pc = makePermissionCollection(pi);
       } else {
-	pc = new Permissions();
+        pc = new Permissions();
       }
     }
     File root = bundle.getDataRoot();
     if (root != null) {
       pc.add(new FilePermission(root.getPath(), "read,write"));
       pc.add(new FilePermission((new File(root, "-")).getPath(),
-				"read,write,execute,delete"));
+                                "read,write,execute,delete"));
     }
     if (pa.runtimePermissions != null) {
       for (Enumeration e = pa.runtimePermissions.elements(); e.hasMoreElements();) {
-	pc.add((Permission) e.nextElement());
+        pc.add((Permission) e.nextElement());
       }
     }
     return pc;
@@ -170,11 +177,11 @@ class PermissionsWrapper extends PermissionCollection {
       String n = pi[i].getName();
       String t = pi[i].getType();
       try {
-	Class pc = Class.forName(t);
-	Constructor c = pc.getConstructor(new Class [] { String.class, String.class });
-	p.add((Permission)c.newInstance(new Object[] { n, a }));
+        Class pc = Class.forName(t);
+        Constructor c = pc.getConstructor(new Class [] { String.class, String.class });
+        p.add((Permission)c.newInstance(new Object[] { n, a }));
       } catch (ClassNotFoundException e) {
-	p.add(new UnresolvedPermission(t, n, a, null));
+        p.add(new UnresolvedPermission(t, n, a, null));
       } catch (NoSuchMethodException ignore) {
       } catch (InstantiationException ignore) {
       } catch (IllegalAccessException ignore) {

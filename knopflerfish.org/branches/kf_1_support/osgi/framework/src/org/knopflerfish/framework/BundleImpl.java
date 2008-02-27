@@ -96,7 +96,7 @@ class BundleImpl implements Bundle {
   /**
    * Classloader for bundle.
    */
-  private BundleClassLoader classLoader = null;
+  private volatile BundleClassLoader classLoader = null;
 
   /**
    * Zombie classloaders for bundle.
@@ -837,20 +837,35 @@ class BundleImpl implements Bundle {
   }
 
 
+  private void getClassLoader0() {
+    classLoader = (BundleClassLoader)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return new BundleClassLoader(bpkgs, archive);
+          }
+        });
+  }
+
   /**
    * Get class loader for this bundle.
    * Create the classloader if we haven't done this previously.
    */
-  synchronized ClassLoader getClassLoader() {
-    if (classLoader == null) {
-      classLoader = (BundleClassLoader)
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-              return new BundleClassLoader(bpkgs, archive);
-            }
-          });
+  ClassLoader getClassLoader() {
+    if (Framework.isDoubleCheckedLockingSafe) {
+      if (classLoader == null) {
+        synchronized (this) {
+          getClassLoader0();
+        }
+      }
+      return classLoader;
+    } else {
+      synchronized(this) {
+        if (classLoader == null) {
+          getClassLoader0();
+        }
+        return classLoader;
+      }
     }
-    return classLoader;
   }
 
 
@@ -1006,14 +1021,18 @@ class BundleImpl implements Bundle {
    * @param srs Set of ServiceRegistrationImpls to check.
    */
   private void filterGetServicePermission(Set srs) {
+    SecurityManager sm = System.getSecurityManager();
+    if (sm==null) return; // security disabled, nothing to filter out
     AccessControlContext acc = AccessController.getContext();
+
     for (Iterator i = srs.iterator(); i.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();;
       String[] classes = (String[])sr.properties.get(Constants.OBJECTCLASS);
       boolean perm = false;
       for (int n = 0; n < classes.length; n++) {
         try {
-          acc.checkPermission(new ServicePermission(classes[n], ServicePermission.GET));
+          sm.checkPermission
+            (new ServicePermission(classes[n], ServicePermission.GET), acc);
           perm = true;
           break;
         } catch (AccessControlException ignore) { }
