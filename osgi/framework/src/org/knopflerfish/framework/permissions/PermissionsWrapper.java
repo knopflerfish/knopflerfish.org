@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,16 +55,16 @@ import org.knopflerfish.framework.Framework;
 
 public class PermissionsWrapper extends PermissionCollection {
   private static final long serialVersionUID = 1L;
-  
+
   String location;
 
   private PermissionInfoStorage pinfos;
   private PermissionCollection implicitPermissions;
   private PermissionCollection localPermissions;
-  private PermissionCollection systemPermissions;
+  private volatile PermissionCollection systemPermissions;
   private File dataRoot;
   private boolean readOnly = false;
-  
+
 
   PermissionsWrapper(Framework fw,
                      PermissionInfoStorage pis,
@@ -88,7 +88,7 @@ public class PermissionsWrapper extends PermissionCollection {
     getPerms().add(permission);
   }
 
-    
+
   public Enumeration elements() {
     return new Enumeration() {
         private Enumeration implicitElements = implicitPermissions.elements();
@@ -103,7 +103,7 @@ public class PermissionsWrapper extends PermissionCollection {
           }
           return systemElements.hasMoreElements();
         }
-            
+
 
         public Object nextElement() {
           if (implicitElements != null) {
@@ -156,23 +156,32 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
-  private PermissionCollection getPerms() {
-    PermissionCollection p = systemPermissions;
-    if (p == null) {
-      synchronized (this) {
-        p = systemPermissions;
-        if (p == null) {
-          p = makePermissionCollection();
-          if (readOnly) {
-            p.setReadOnly();
-          }
-          systemPermissions = p;
-        }
-      }
+  private PermissionCollection getPerms0() {
+    PermissionCollection p = makePermissionCollection();
+    if (readOnly) {
+      p.setReadOnly();
     }
+    systemPermissions = p;
     return p;
   }
 
+  private PermissionCollection getPerms() {
+    if (Framework.isDoubleCheckedLockingSafe) {
+       if (systemPermissions == null) {
+        synchronized (this) {
+          return getPerms0();
+        }
+      }
+      return systemPermissions;
+    } else {
+      synchronized(this) {
+        if (systemPermissions==null) {
+          return getPerms0();
+        }
+        return systemPermissions;
+      }
+    }
+  }
 
   private PermissionCollection makeLocalPermissionCollection(InputStream localPerms) {
     try {
@@ -227,8 +236,6 @@ public class PermissionsWrapper extends PermissionCollection {
    * permissions that are available in the CLASSPATH are constructed and all the
    * bundle based permissions are constructed as UnresolvedPermissions.
    *
-   * @param bundle The bundle whose permissions are to be created.
-   *
    * @return The permissions assigned to the bundle with the specified
    * location, or the default permissions if that bundle has not been assigned
    * any permissions.
@@ -254,10 +261,10 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   /**
-   * 
+   *
    * @param pi PermissionInfo to enter into the PermissionCollection.
    *
-   * @return 
+   * @return
    */
   private Permission makePermission(PermissionInfo pi, boolean usingDefault) {
     String a = pi.getActions();

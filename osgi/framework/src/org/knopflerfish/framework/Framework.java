@@ -195,6 +195,51 @@ public class Framework {
 
   final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
 
+  public static int javaVersionMajor = -1;
+  public static int javaVersionMinor = -1;
+  public static int javaVersionMicro = -1;
+  static {
+    String javaVersion = System.getProperty("java.version");
+    // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
+    if (null!=javaVersion) {
+      int startPos = 0;
+      int endPos   = 0;
+      int max      = javaVersion.length();
+      while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
+        endPos++;
+      }
+      if (startPos<endPos) {
+        try {
+          javaVersionMajor
+            = Integer.parseInt(javaVersion.substring(startPos,endPos));
+          startPos = endPos +1;
+          endPos   = startPos;
+          while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
+            endPos++;
+          }
+          if (startPos<endPos) {
+            javaVersionMinor
+              = Integer.parseInt(javaVersion.substring(startPos,endPos));
+            startPos = endPos +1;
+            endPos   = startPos;
+            while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))){
+              endPos++;
+            }
+            if (startPos<endPos) {
+              javaVersionMicro
+                = Integer.parseInt(javaVersion.substring(startPos,endPos));
+            }
+          }
+        } catch (NumberFormatException _nfe) {
+        }
+      }
+    }
+  }
+
+  public static final boolean isDoubleCheckedLockingSafe
+    = javaVersionMajor>=1 && javaVersionMinor>=5;;
+
+
   /**
    * Contruct a framework.
    *
