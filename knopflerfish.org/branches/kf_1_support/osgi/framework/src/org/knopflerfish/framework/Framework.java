@@ -194,23 +194,34 @@ public class Framework {
   static int javaVersionMicro = -1;
   static {
     String javaVersion = System.getProperty("java.version");
+    // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
     if (null!=javaVersion) {
       int startPos = 0;
-      int dotPos   = javaVersion.indexOf('.');
-      if (-1<dotPos) {
+      int endPos   = 0;
+      int max      = javaVersion.length();
+      while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
+        endPos++;
+      }
+      if (startPos<endPos) {
         try {
           javaVersionMajor
-            = Integer.parseInt(javaVersion.substring(startPos,dotPos));
-          startPos = dotPos +1;
-          dotPos   = javaVersion.indexOf('.',startPos );
-          if (-1<dotPos) {
+            = Integer.parseInt(javaVersion.substring(startPos,endPos));
+          startPos = endPos +1;
+          endPos   = startPos;
+          while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
+            endPos++;
+          }
+          if (startPos<endPos) {
             javaVersionMinor
-              = Integer.parseInt(javaVersion.substring(startPos,dotPos));
-            startPos = dotPos +1;
-            dotPos   = javaVersion.indexOf('.',startPos );
-            if (-1<dotPos) {
+              = Integer.parseInt(javaVersion.substring(startPos,endPos));
+            startPos = endPos +1;
+            endPos   = startPos;
+            while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))){
+              endPos++;
+            }
+            if (startPos<endPos) {
               javaVersionMicro
-                = Integer.parseInt(javaVersion.substring(startPos,dotPos));
+                = Integer.parseInt(javaVersion.substring(startPos,endPos));
             }
           }
         } catch (NumberFormatException _nfe) {
@@ -227,7 +238,6 @@ public class Framework {
    *
    */
   public Framework(Object m) throws Exception {
-
     // guard this for profiles without System.setProperty
     try {
       System.setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, defaultEE);
