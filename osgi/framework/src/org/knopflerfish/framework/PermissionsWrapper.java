@@ -95,25 +95,28 @@ class PermissionsWrapper extends PermissionCollection {
     permissions = null;
   }
 
-  private void getPerms0() {
+  private PermissionCollection getPerms0() {
     PermissionCollection p = makePermissionCollection(bundle);
     if (readOnly) {
       p.setReadOnly();
     }
     permissions = p;
+    return p;
   }
 
   private PermissionCollection getPerms() {
     if (Framework.isDoubleCheckedLockingSafe) {
        if (permissions == null) {
         synchronized (this) {
-          getPerms0();
+          return getPerms0();
         }
       }
       return permissions;
     } else {
       synchronized(this) {
-        getPerms0();
+        if (permissions == null) {
+          return getPerms0();
+        }
         return permissions;
       }
     }
