@@ -175,6 +175,10 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
+   <antcall target="run-kf-tests-bare"/>
+ </target>
+
+ <target name="run-kf-tests-bare">
    <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <!-- Run most of the test suites. -->
@@ -213,6 +217,10 @@
    <ant dir="bundles_opt/junit"   target="all"/>
    <ant dir="bundles_test"        target="all"
 	inheritAll="false"        inheritRefs="false"/>
+   <antcall target="run-kf-tests-secure-bare"/>
+ </target>
+
+ <target name="run-kf-tests-secure-bare">
    <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <java fork="true"
@@ -254,7 +262,7 @@
   <delete file="framework.jar"/>
   <delete dir="out"/>
   <delete dir="jars"/>
-  <delete dir="..ant/classes"/>
+  <delete dir="../ant/classes"/>
  </target>
 
 
