@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework;
 
+import java.lang.reflect.Method;
 import java.net.*;
 import java.security.*;
 
@@ -77,21 +78,92 @@ class FrameworkPolicy extends Policy {
   //
   // Policy methods
   //
+  /** The Policy.implies(ProtectionDomain,Permission) method if running
+   *  in JDK 1.4 or above. */
+  private static Method impliesPDPermMethod;
+  /** The Policy.getPermissions(ProtectionDomain) method if running
+   *  in JDK 1.4 or above. */
+  private static Method getPermissionsPDMethod;
+  static {
+    try {
+      impliesPDPermMethod = Policy.class
+        .getDeclaredMethod("implies",
+                           new Class[] {ProtectionDomain.class,
+                                        Permission.class});
+      getPermissionsPDMethod = Policy.class
+        .getDeclaredMethod("getPermissions",
+                           new Class[] {ProtectionDomain.class});
+    } catch (NoSuchMethodException ignore) {
+      impliesPDPermMethod    = null;
+      getPermissionsPDMethod = null;
+    }
+  }
+
+  /**
+   * If the method Policy#getPermissions(ProtectionDomain pd) is
+   * available use it on the <tt>defaultPolicy</tt> object, otherwise
+   * return an empty permission collection.
+   *
+   * @param policy the policy object to use.
+   * @param pd     the protection domain to ask about.
+   * @return The permissions for the given protection domain.
+   */
+  private boolean implies0(Policy policy,
+                           ProtectionDomain pd,
+                           Permission permission) {
+    if (null!=impliesPDPermMethod) {
+      try {
+        return ((Boolean)
+          impliesPDPermMethod.invoke(policy,
+                                     new Object[] {pd, permission})
+                ).booleanValue();
+      } catch (Exception e) {
+        Debug.printStackTrace
+          ("Failed to call Policy#implies(ProtectionDomain,Permissions)", e);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * If the method Policy#getPermissions(ProtectionDomain pd) is
+   * available use it on the <tt>defaultPolicy</tt> object, otherwise
+   * return an empty permission collection.
+   *
+   * @param policy the policy object to use.
+   * @param pd     the protection domain to ask about.
+   * @return The permissions for the given protection domain.
+   */
+  private PermissionCollection getPermissions0(Policy policy,
+                                               ProtectionDomain pd) {
+    if (null!=getPermissionsPDMethod) {
+      try {
+        return (PermissionCollection)
+          getPermissionsPDMethod.invoke(policy,
+                                        new Object[] {pd});
+      } catch (Exception e) {
+        Debug.printStackTrace
+          ("Failed to call Policy#getPermissions(ProtectionDomain)",
+           e);
+      }
+    }
+    return new Permissions();
+  }
 
   // Delegate to the wrapped defaultPolicy for all non-bundle domains.
   public PermissionCollection getPermissions(ProtectionDomain pd) {
     if (null==pd)
-      return defaultPolicy.getPermissions(pd);
+      return getPermissions0(defaultPolicy, pd);
 
     CodeSource cs = pd.getCodeSource();
     if (null==cs)
-      return defaultPolicy.getPermissions(pd);
+      return getPermissions0(defaultPolicy, pd);
 
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       return getPermissions(cs);
     } else {
-      return defaultPolicy.getPermissions(pd);
+      return getPermissions0(defaultPolicy, pd);
     }
   }
 
@@ -122,17 +194,18 @@ class FrameworkPolicy extends Policy {
 
   public boolean implies(ProtectionDomain pd, Permission p) {
     if (null==pd)
-      return defaultPolicy.implies(pd,p);
+      return implies0(defaultPolicy,pd,p);
 
     CodeSource cs = pd.getCodeSource();
     if (null==cs)
-      return defaultPolicy.implies(pd,p);
+      return implies0(defaultPolicy,pd,p);
 
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
-      return super.implies(pd,p);
+      PermissionCollection pc = getPermissions(cs);
+      return (pc == null) ? false : pc.implies(p);
     } else {
-      return defaultPolicy.implies(pd,p);
+      return implies0(defaultPolicy,pd,p);
     }
   }
 
