@@ -53,7 +53,7 @@ import java.net.URL;
 
 /**
  * Manifest subclass which modifies some of the attributes automatically.
- * This can be used to add or remove manifest headers to any loaded bundle. For example, 
+ * This can be used to add or remove manifest headers to any loaded bundle. For example,
  * adding package import/export headers.
  *
  * <p>
@@ -77,7 +77,7 @@ import java.net.URL;
  * </p>
  *
  * <p>
- * The configuration file for automatic manifest generation is on java property 
+ * The configuration file for automatic manifest generation is on java property
  * file format with any number of sections as:
  * <pre>
  * [id].match.filter=[ldap filter]
@@ -107,7 +107,7 @@ import java.net.URL;
  * <code>[id]</code> is any string. The <code>[id]</code> is also used for sorting the sections. Matching is
  * done is this sort order.
  * </p>
- * 
+ *
  * </p>
  * The <code>match.filter</code> value is an LDAP filter expression used to select
  * which bundles the section applies to. Only the first matching section is applied to
@@ -144,7 +144,7 @@ import java.net.URL;
  *                    the export.filter
  * </pre>
  * <p>
- * <b>Note 1</b>: An extra attribute 
+ * <b>Note 1</b>: An extra attribute
  *       <code>"Bundle-AutoManifest-config"</code>
  *       is always added to the manifest. The value is the URL of the config file
  * </p>
@@ -211,7 +211,7 @@ public class AutoManifest extends Manifest {
     }
 
     autoInfo = findConfig();
-    
+
     if(isAuto() && Debug.automanifest) {
       Debug.println("Using auto manifest for bundlelocation " + location);
     }
@@ -308,7 +308,7 @@ public class AutoManifest extends Manifest {
       mainAttrs = mf.getMainAttributes();
 
 
-      if(autoInfo != null) {        
+      if(autoInfo != null) {
         // store a flag for debug purposes
         mainAttrs.putValue("Bundle-AutoManifest-config", configSource);
 
@@ -329,7 +329,7 @@ public class AutoManifest extends Manifest {
               mainAttrs.putValue(Constants.EXPORT_PACKAGE, exports);
             } else {
               mainAttrs.remove(new Attributes.Name(Constants.EXPORT_PACKAGE));
-            }            
+            }
           } else {
             mainAttrs.putValue(key, val);
           }
@@ -338,7 +338,7 @@ public class AutoManifest extends Manifest {
     }
     return mainAttrs;
   }
-  
+
   /**
    * Add a File for automatic package export consideration.
    */
@@ -350,7 +350,7 @@ public class AutoManifest extends Manifest {
    * Add a File for automatic package export consideration.
    */
   public void addFile(String prefix, File file) throws IOException {
-    String f = prefix.length() < file.getAbsolutePath().length() 
+    String f = prefix.length() < file.getAbsolutePath().length()
       ? file.getAbsolutePath().substring(prefix.length() + 1)
       : file.getAbsolutePath();
 
@@ -368,7 +368,7 @@ public class AutoManifest extends Manifest {
 
   // used to avoid recreating a new hash table at each isValidFileName() call
   private Hashtable fileProps = new Hashtable();
-  
+
   private boolean isValidFileName(String f) {
     if(autoInfo != null && autoInfo.fileNameFilter != null) {
       fileProps.put("file", f);
@@ -423,7 +423,7 @@ public class AutoManifest extends Manifest {
   }
 
 
-  
+
 
   /***
    * Create Export-Package string from package set
@@ -444,7 +444,7 @@ public class AutoManifest extends Manifest {
     }
     return sb.toString();
   }
-  
+
 
   private AutoInfo findConfig() {
     Hashtable props = new Hashtable();
@@ -460,7 +460,7 @@ public class AutoManifest extends Manifest {
     for(Iterator it = configs.keySet().iterator(); it.hasNext(); ) {
       String   id = (String)it.next();
       AutoInfo ai = (AutoInfo)configs.get(id);
-      
+
       if(ai.filter.evaluate(props, true)) {
         return ai;
       }
@@ -477,14 +477,14 @@ public class AutoManifest extends Manifest {
           url = AutoManifest.class.getResource(urlS.substring(2));
         } else {
           url = new URL(urlS);
-        }          
+        }
         is = url.openStream();
         return loadConfigFromInputStream(is);
       } catch (Exception e) {
         Debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
       } finally {
         try { is.close(); } catch (Exception ignored) { }
-      }    
+      }
     }
     return new HashMap();
   }
@@ -501,7 +501,7 @@ public class AutoManifest extends Manifest {
       int ix = key.indexOf(".");
       if(ix != -1) {
         String id = key.substring(0, ix);
-        
+
         String pattern     = (String)props.get(id + ".match.filter");
         String export      = (String)props.get(id + ".export.filter");
         String fileFilter  = (String)props.get(id + ".export.file.filter");
@@ -542,27 +542,28 @@ public class AutoManifest extends Manifest {
       try {
         this.filter  = new LDAPExpr(filter);
       } catch (Exception e) {
-        throw new RuntimeException("Bad filter '" + filter + "'", e);
+        throw new RuntimeException("Bad filter '" + filter + "': " +e);
       }
       try {
         this.fileNameFilter  = new LDAPExpr(nameFilter);
       } catch (Exception e) {
-        throw new RuntimeException("Bad file name filter '" + nameFilter + "'", e);
+        throw new RuntimeException("Bad file name filter '" + nameFilter
+                                   + "': " +e);
       }
       try {
         this.exportFilter  = new LDAPExpr(export);
       } catch (Exception e) {
-        throw new RuntimeException("Bad export filter '" + export + "'", e);
+        throw new RuntimeException("Bad export filter '" + export + "': " +e);
       }
       this.headers = headers;
     }
-    
+
     public String toString() {
-      return "AutoInfo[" + 
-        "filter=" + filter + 
-        ", exportFilter="+ exportFilter + 
-        ", version=" + version + 
-        ", headers=" + headers + 
+      return "AutoInfo[" +
+        "filter=" + filter +
+        ", exportFilter="+ exportFilter +
+        ", version=" + version +
+        ", headers=" + headers +
         "]";
     }
   }

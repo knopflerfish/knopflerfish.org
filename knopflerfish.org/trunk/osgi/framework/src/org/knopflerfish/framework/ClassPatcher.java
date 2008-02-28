@@ -75,7 +75,7 @@ import org.objectweb.asm.Opcodes;
  * See the resource file /patches.props for a list of patched
  * methods. This file references code in ClassPatcherWrappers.
  * </p>
- * 
+ *
  * @see ClassPatcherWrappers
  * @author Erik Wistrand
  */
@@ -130,7 +130,7 @@ public class ClassPatcher {
     String urlS = classLoader.archive.getAttribute("Bundle-ClassPatcher-Config");
 
     if(urlS == null || "".equals(urlS)) {
-      urlS = System.getProperty("org.knopflerfish.framework.patch.configurl", 
+      urlS = System.getProperty("org.knopflerfish.framework.patch.configurl",
                                 "!!/patches.props");
     } else if("none".equals(urlS)) {
       urlS = null;
@@ -158,18 +158,18 @@ public class ClassPatcher {
       }
     }
 
-    try {           
+    try {
       ClassReader  cr    = new ClassReader(classBytes);
-      ClassWriter  cw    = new BundleClassWriter(ClassWriter.COMPUTE_MAXS, 
+      ClassWriter  cw    = new BundleClassWriter(ClassWriter.COMPUTE_MAXS,
                                                  classLoader);
-      ClassAdapter trans = new ClassAdapterPatcher(cw, 
+      ClassAdapter trans = new ClassAdapterPatcher(cw,
                                                    className.replace('.', '/'),
-                                                   classLoader, 
+                                                   classLoader,
                                                    classLoader.archive.getBundleId(),
                                                    this);
-      
+
       cr.accept(trans, 0);
-      
+
       byte[] newBytes = cw.toByteArray();
 
       if(bDumpClasses) {
@@ -177,7 +177,8 @@ public class ClassPatcher {
       }
       classBytes = newBytes;
     } catch (Exception e) {
-      throw new RuntimeException("Failed to patch " + className + "/" + classLoader, e);
+      throw new RuntimeException("Failed to patch " + className + "/"
+                                 + classLoader +": " +e);
     }
     return classBytes;
   }
@@ -196,16 +197,16 @@ public class ClassPatcher {
         url = classLoader.getResource(urlS.substring(1));
       } else {
         url = new URL(urlS);
-      }          
+      }
       is = url.openStream();
       loadWrappersFromInputStream(is);
     } catch (Exception e) {
       Debug.printStackTrace("Failed to load patches conf from " + url, e);
     } finally {
       try { is.close(); } catch (Exception ignored) { }
-    }    
+    }
   }
-  
+
 
   protected void loadWrappersFromInputStream(InputStream is) throws IOException {
     Properties props = new Properties();
@@ -236,7 +237,7 @@ public class ClassPatcher {
             }
           }
 
-          addPatch(from, 
+          addPatch(from,
                    to,
                    "true".equals(props.get(PRE + id + ".active")),
                    "true".equals(props.get(PRE + id + ".static")),
@@ -282,7 +283,7 @@ public class ClassPatcher {
     String targetOwner = r[0];
     String targetName = r[1];
 
-    if(BundleClassLoader.isBundlePatch() && 
+    if(BundleClassLoader.isBundlePatch() &&
        "true".equals(System.getProperty("kf.patch." + targetName, "" + defActive))) {
       MethodInfo mi     = new MethodInfo(owner, name, desc, bStatic);
       if(filter != null) {
@@ -305,10 +306,10 @@ public class ClassPatcher {
       targetDesc = "(" + targetDesc + ")" + retType;
 
       MethodInfo target = new MethodInfo(targetOwner,
-                                         targetName, 
+                                         targetName,
                                          targetDesc,
                                          false);
-      
+
       target.key = mi;
       wrappers.put(mi, target);
     }
@@ -324,8 +325,8 @@ public class ClassPatcher {
           Debug.println("Patches in " + mi.className);
           bFirst = false;
         }
-        Debug.println(" " + mi.nPatches + " " + 
-                      (mi.nPatches == 1 ? "occurance " : "occurances") + 
+        Debug.println(" " + mi.nPatches + " " +
+                      (mi.nPatches == 1 ? "occurance " : "occurances") +
                       " of " + from.owner + "." + from.name);
       }
       mi.nPatches = 0;
@@ -339,18 +340,18 @@ public class ClassPatcher {
   }
 
 
-  // Initialize matchProps member with manifest headers + 
+  // Initialize matchProps member with manifest headers +
   // bundle location and id
   protected void makeMatchProps() {
     matchProps = new Hashtable();
     Dictionary d = classLoader.bpkgs.bundle.getHeaders();
-    
+
     for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
       Object key = e.nextElement();
       Object val = d.get(key);
       matchProps.put(key, val);
     }
-    
+
     matchProps.put(PROP_LOCATION,  classLoader.archive.getBundleLocation());
     matchProps.put(PROP_BID,       new Long(classLoader.archive.getBundleId()));
   }
@@ -362,10 +363,10 @@ public class ClassPatcher {
   protected void dumpClassBytes(String className, byte[] classBytes) {
     OutputStream os = null;
     try {
-      String dirName = System.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir", 
+      String dirName = System.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir",
                                           "patchedclasses");
       File dir = new File(dirName);
-      
+
       String classFileName = className.replace('.', '/');
       int ix = classFileName.lastIndexOf("/");
       File file;
@@ -403,14 +404,14 @@ class ClassAdapterPatcher extends ClassAdapter {
   ClassPatcher      cp;
 
   // set to true by ReplaceMethodAdapter if BID field needs to be added
-  boolean           bNeedBIDField = false; 
+  boolean           bNeedBIDField = false;
 
   // magic name of bundle id field added to all processed classes.
   static final String FIELD_BID = "__kf_asm_bid_" + ClassPatcher.class.hashCode()+ "__";
 
-  ClassAdapterPatcher(ClassVisitor      cv, 
-                      String            className, 
-                      BundleClassLoader bcl, 
+  ClassAdapterPatcher(ClassVisitor      cv,
+                      String            className,
+                      BundleClassLoader bcl,
                       long              bid,
                       ClassPatcher      cp) {
     super(cv);
@@ -419,7 +420,7 @@ class ClassAdapterPatcher extends ClassAdapter {
     this.bid       = bid;
     this.cp        = cp;
   }
-  
+
   public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
     currentSuperName  = superName;
     currentInterfaces = interfaces;
@@ -427,17 +428,17 @@ class ClassAdapterPatcher extends ClassAdapter {
   }
 
 
-  public void visitEnd() { 
+  public void visitEnd() {
     if(bNeedBIDField) {
       // Add a static field containing the bundle id to the processed class.
       // This files is used by the wrapper methods to find the bundle owning
       // the class.
       // The field has the magic/long name defined by FIELD_BID
       // hopefully no-one else uses this
-      super.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC, 
+      super.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC,
                        FIELD_BID,
-                       "J", 
-                       null, 
+                       "J",
+                       null,
                        new Long(bid));
     }
 
@@ -448,10 +449,10 @@ class ClassAdapterPatcher extends ClassAdapter {
     }
   }
 
-  public MethodVisitor visitMethod(int access, 
+  public MethodVisitor visitMethod(int access,
                                    String name,
-                                   String desc, 
-                                   String signature, 
+                                   String desc,
+                                   String signature,
                                    String[] exceptions) {
     currentMethodName   = name;
     currentMethodDesc   = desc;
@@ -485,35 +486,35 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
         ca.cp.matchProps.put(ClassPatcher.PROP_METHODDESC, ca.currentMethodDesc);
         ca.cp.matchProps.put(ClassPatcher.PROP_METHODACCESS, new Integer(ca.currentMethodAccess));
         if(!from.filter.evaluate(ca.cp.matchProps, false)) {
-          super.visitMethodInsn(opcode, owner, name, desc); 
+          super.visitMethodInsn(opcode, owner, name, desc);
           return;
         }
       }
 
       if(Debug.patch) {
-        Debug.println("patch " + ca.className + "/" + ca.currentSuperName + "." + ca.currentMethodName + "\n" + 
-                      " " + from0.owner + 
-                      "." + from.name + "\n" + 
+        Debug.println("patch " + ca.className + "/" + ca.currentSuperName + "." + ca.currentMethodName + "\n" +
+                      " " + from0.owner +
+                      "." + from.name + "\n" +
                       " " + mi.owner + "." + mi.name);
       }
       wrapMethod(mi);
     } else {
-      super.visitMethodInsn(opcode, owner, name, desc); 
+      super.visitMethodInsn(opcode, owner, name, desc);
     }
   }
 
   void wrapMethod(MethodInfo mi) {
 
     // We really need the BID field, so tell
-    // the ClassAdapterPatcher that this is needed.    
+    // the ClassAdapterPatcher that this is needed.
     ca.bNeedBIDField = true;
 
     // push the bundle id on the stack since the wrapper expects it
-    super.visitFieldInsn(GETSTATIC, 
+    super.visitFieldInsn(GETSTATIC,
                          ca.className,
-                         ClassAdapterPatcher.FIELD_BID, 
-                         "J");   
-    
+                         ClassAdapterPatcher.FIELD_BID,
+                         "J");
+
     if((ca.currentMethodAccess | ACC_STATIC) != 0) {
       // push NULL context object if it's a static context
       super.visitInsn(ACONST_NULL);
@@ -532,16 +533,16 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
 }
 
 /*
-      // If we have a virtual match, add code the verifies that 
+      // If we have a virtual match, add code the verifies that
       // the top stack value is an instance of cName.
       // If it is, wrap the call, otherwise keep original.
-      // 
+      //
       // We cannot do the instanceof check at patch time since
       // not all classes are loaded yet and we would quite likely
       // run into loops causing ClassCircularityError
       if(false && from.bVirtual) {
         String cName = from.owner;
-        
+
         // Test if caller is instanceof cName
         super.visitInsn(DUP);
         super.visitTypeInsn(INSTANCEOF, cName);
@@ -557,7 +558,7 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
         Label label_End = new Label();
         super.visitJumpInsn(GOTO, label_End);
 
-        // caller is not instance of cName, keep original invoke        
+        // caller is not instance of cName, keep original invoke
         super.visitLabel(label_NotcName);
         super.visitMethodInsn(opcode, owner, name, desc);
 
@@ -592,31 +593,31 @@ class MethodInfo {
   public int hashCode() {
     return owner.hashCode() + 17 * name.hashCode() + 61 * desc.hashCode();
   }
-  
+
   public boolean equals(Object obj) {
     if(!(obj instanceof MethodInfo)) {
       return false;
     }
     MethodInfo mi = (MethodInfo)obj;
-    return 
-      owner.equals(mi.owner) && 
-      name.equals(mi.name) && 
+    return
+      owner.equals(mi.owner) &&
+      name.equals(mi.name) &&
       desc.equals(mi.desc);
   }
 
   public String toString() {
-    return "MethodInfo[" + 
-      "owner=" + owner + 
-      ", name=" + name + 
-      ", desc=" + desc + 
-      ", bStatic=" + bStatic + 
-      ", filter= " + filter + 
+    return "MethodInfo[" +
+      "owner=" + owner +
+      ", name=" + name +
+      ", desc=" + desc +
+      ", bStatic=" + bStatic +
+      ", filter= " + filter +
       "]";
   }
 }
 
 /**
- * Custom class writer using a specified class loader for 
+ * Custom class writer using a specified class loader for
  * the getCommonSuperClass method.
  */
 class BundleClassWriter extends ClassWriter {
@@ -637,7 +638,7 @@ class BundleClassWriter extends ClassWriter {
       c = Class.forName(type1.replace('/', '.'), true, classLoader);
       d = Class.forName(type2.replace('/', '.'), true, classLoader);
     } catch (ClassNotFoundException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e.toString());
     }
     if (c.isAssignableFrom(d)) {
       return type1;
