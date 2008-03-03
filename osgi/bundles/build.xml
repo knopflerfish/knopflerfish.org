@@ -57,4 +57,9 @@
     <ant dir="bundlerepository"  target="all"/>
   </target>
 
+   <target name="bundle_doc">
+     <ant dir="http"              target="bundle_doc"/>
+     <ant dir="console"           target="bundle_doc"/>
+   </target>
+
 </project>

@@ -15,7 +15,7 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * <p>
@@ -131,7 +131,7 @@ public class MakeHTMLTask extends Task {
   /**
    * The source file
    */
-  private File fromFile;
+  private String fromFile;
   
   /**
    * Target directory, where everything will end up
@@ -167,7 +167,7 @@ public class MakeHTMLTask extends Task {
   private String disable;
   
   public void setFromfile(String s) {
-    fromFile = new File(s);
+    fromFile = s;
   }
   
   public void setTofile(String s) {
@@ -213,7 +213,12 @@ public class MakeHTMLTask extends Task {
     }
 
     if (filesets.isEmpty()) {
-      transform(fromFile.toString(), toFile.toString());
+      log("Project base is: " + getProject().getBaseDir());
+      log("Attempting to transform: " + fromFile);
+      if (!FileUtils.isAbsolutePath(fromFile)) {
+	fromFile = getProject().getBaseDir() + File.separator + fromFile;
+      }
+      transform(fromFile, toFile.toString());
     } else {
       if (fromFile != null) throw new BuildException("Can not specify fromfile when using filesets");
       if (toFile != null) throw new BuildException("Can not specify tofile when using filesets");
@@ -274,7 +279,7 @@ public class MakeHTMLTask extends Task {
 	String[] navPages = Util.splitwords(s);
 	for (int i = 0; i < navPages.length; i++) {
 	  // System.out.println("Checking: " + navPages[i]);
-	  if (disable.equals(navPages[i])) {
+	  if (disable != null && disable.equals(navPages[i])) {
 	    // System.out.println("Disabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
 	    content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navDisabled);
 	  }

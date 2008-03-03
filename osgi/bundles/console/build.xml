@@ -9,4 +9,9 @@
     <ant dir="consoletelnet"     target="all"/>
   </target>
 
+   <target name="bundle_doc">
+     <ant dir="console"           target="bundle_doc"/>
+     <ant dir="consoletelnet"     target="bundle_doc"/>
+   </target>
+
 </project>

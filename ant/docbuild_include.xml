@@ -1,0 +1,26 @@
+<project name="docbuild" basedir=".">
+
+  <dirname property="docbuild.basedir" file="${ant.file.docbuild}"/>
+
+  <target name="build_doc"
+	  description="Builds user or bundle doc">
+    <taskdef name      = "makehtml"
+ 	     classpath = "${docbuild.basedir}/classes"
+             classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
+
+  
+    <makehtml title="${docbuild.title}"
+              description="${docbuild.description}"
+              template="${docbuild.basedir}/html_template/bundledoc.html"
+              outdir="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}"
+              tofile="index.html"
+              fromfile="${docbuild.fromdir}/index.html"/>
+    
+    <copy todir="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}">
+      <fileset dir="${docbuild.fromdir}">
+	<include name="*/**"/>
+	<exclude name="index.html"/>
+      </fileset>
+    </copy>
+  </target>
+</project>

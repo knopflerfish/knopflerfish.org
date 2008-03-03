@@ -146,6 +146,9 @@
 
  <property name = "outdir"   location = "${topdir}/out/${ant.project.name}"/>
  <property name = "jardir"   location = "${topdir}/jars/${ant.project.name}"/>
+ <property name = "outdocdir"   location = "${topdir}/out/doc/${ant.project.name}"/>
+
+ <property name = "bundledoc_template"   location = "${topdir}/../ant/html_template/bundledoc.html"/>
 
  <property name = "exported.file" location = "${topdir}/out/exported.txt"/>
  <property name = "sources.file"  location = "${topdir}/out/sources.txt"/>
@@ -158,6 +161,7 @@
  <property name = "bundle.build.api"    value = "true"/>
  <property name = "bundle.build.impl"   value = "true"/>
  <property name = "bundle.build.all"    value = "true"/>
+ <property name = "bundle.build.doc"    value = "false"/>
 
  <!-- Bundles that both export packages and provides implementations -->
  <!-- shall have the implicitImport flag set in the bundleinfo task. -->
@@ -398,6 +402,10 @@
 
   <condition property="do_build_all">
    <equals arg1="${bundle.build.all}" arg2="true"/>
+  </condition>
+
+  <condition property="do_build_doc">
+   <equals arg1="${bundle.build.doc}" arg2="true"/>
   </condition>
 
 <!--
@@ -814,7 +822,31 @@
    </junit>
   </target>
 
- <target name = "clean" description = "Removes all files in utput directory">
-  <delete dir = "${outdir}"/>
-  <delete dir = "${jardir}"/>
- </target>
+  <target name="bundle_doc"
+	  description="Creates bundle specific doc"
+	  depends="setup_build"
+	  if="do_build_doc">
+    
+    <taskdef name      = "makehtml"
+ 	     classpath = "${topdir}/../ant/classes"
+             classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
+
+    <makehtml title="${bmfa.Bundle-Name}"
+              description="${bmfa.Bundle-Description}"
+              template="${bundledoc_template}"
+              outdir="${outdocdir}"
+              tofile="index.html"
+              fromfile="doc/index.html"/>
+
+    <copy todir="${outdocdir}">
+      <fileset dir="doc">
+	<include name="**"/>
+	<exclude name="index.html"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name = "clean" description = "Removes all files in output directory">
+    <delete dir = "${outdir}"/>
+    <delete dir = "${jardir}"/>
+  </target>

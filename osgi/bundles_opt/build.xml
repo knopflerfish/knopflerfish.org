@@ -28,4 +28,11 @@
     <ant dir="kxml"               target="clean"/>
   </target>
 
+  <target name="bundle_doc">
+    <ant dir="commons-logging"    target="bundle_doc"/>
+    <ant dir="junit"              target="bundle_doc"/>
+    <ant dir="serial"             target="bundle_doc"/>
+    <ant dir="kxml"               target="bundle_doc"/>
+  </target>
+
 </project>
