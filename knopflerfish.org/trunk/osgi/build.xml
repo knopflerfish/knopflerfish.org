@@ -280,7 +280,7 @@
              property     = "bindex.available"/>
 
  
- <target name="install_bindex">
+  <target name="install_bindex">
    <antcall target="download_bindex"/>
  </target>
 
@@ -315,6 +315,10 @@
 
  </target>
 
-
-
+ <target name="bundle_doc"
+         description="Builds bundle specific docs">
+   <ant dir="bundles"	   target="bundle_doc"/>
+   <ant dir="bundles_opt"  target="bundle_doc"/>
+ </target>
+ 
 </project>

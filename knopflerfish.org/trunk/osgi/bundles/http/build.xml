@@ -14,4 +14,8 @@
     <ant dir="httpconsole"       target="clean"/>
    </target>
 
+   <target name="bundle_doc">
+     <ant dir="http"           target="bundle_doc"/>
+   </target>
+
 </project>

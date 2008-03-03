@@ -20,9 +20,11 @@
 # EE used for testing
 -Dorg.osgi.framework.executionenvironment=J2SE-1.4
 
--install file:../../osgi.ri-tck/osgi.core.impls.jar
+#-install file:../../osgi.ri-tck/osgi.core.impls.jar
+-install file:../../osgi/tck-4.0.1/osgi.core.impls.jar
 #-install file:../../osgi.ri-tck/testcond.jar
--install file:../../osgi.ri-tck/osgi.target.jar
+#-install file:../../osgi.ri-tck/osgi.target.jar
+-install file:../../osgi/tck-4.0.1/osgi.target.jar
 
 # Load the default configuration
 -xargs init.xargs
@@ -44,6 +46,7 @@
 -istart  upnp/upnp_api-2.0.0.jar
 -istart  wireadmin/wireadmin_api-2.0.0.jar
 
--start  file:../../osgi.ri-tck/osgi.target.jar
+#-start  file:../../osgi.ri-tck/osgi.target.jar
+-start file:../../osgi/tck-4.0.1/osgi.target.jar
 
 
