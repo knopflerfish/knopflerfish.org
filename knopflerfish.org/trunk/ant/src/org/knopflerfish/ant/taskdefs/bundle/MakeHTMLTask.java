@@ -213,8 +213,8 @@ public class MakeHTMLTask extends Task {
     }
 
     if (filesets.isEmpty()) {
-      log("Project base is: " + getProject().getBaseDir());
-      log("Attempting to transform: " + fromFile);
+      // log("Project base is: " + getProject().getBaseDir());
+      // log("Attempting to transform: " + fromFile);
       if (!FileUtils.isAbsolutePath(fromFile)) {
 	fromFile = getProject().getBaseDir() + File.separator + fromFile;
       }
@@ -291,7 +291,7 @@ public class MakeHTMLTask extends Task {
       }
 	    
       Util.writeStringToFile(new File(outdir, toFile), content);
-      System.out.println("wrote " + new File(outdir, toFile));
+      log("Created: " + new File(outdir, toFile));
     } catch (IOException e) {
       e.printStackTrace();
       throw new BuildException(e);
