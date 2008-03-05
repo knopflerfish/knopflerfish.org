@@ -48,7 +48,7 @@
 -initlevel 2
 -install util/util-2.0.0.jar
 -install crimson/crimson-2.0.0.jar
--install jsdk/jsdk-2.2.jar
+-install jsdk/jsdk_api-2.5.jar
 
 # The Bundle repo commands and desktop plugin
 #-install  bundlerepository/bundlerepository_all-2.0.0.jar

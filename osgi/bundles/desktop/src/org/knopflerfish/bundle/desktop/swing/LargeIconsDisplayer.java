@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -306,7 +306,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               Dimension size = scroll.getViewport().getExtentSize();
 
               if(size.width != 0) {
-                grid.setColumns(size.width / w);
+                grid.setColumns(size.width<w ? 1 : size.width / w);
                 grid.setRows(0);
               }
 

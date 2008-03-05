@@ -24,7 +24,7 @@
 -initlevel 2
 -install util/util-2.0.0.jar
 -install crimson/crimson-2.0.0.jar
--install jsdk/jsdk-2.2.jar
+-install jsdk/jsdk_api-2.5.jar
 
 # The Bundle repo commands and desktop plugin
 -install  bundlerepository/bundlerepository_all-2.0.0.jar
@@ -35,7 +35,7 @@
 -install useradmin/useradmin_all-2.0.0.jar
 
 -initlevel 4
--install http/http_all-2.0.0.jar
+-install http/http_all-2.1.0.jar
 
 ## console command bundles
 -initlevel 5
@@ -78,5 +78,5 @@ $(WINDOWS_BUNDLES)
 -start logcommands/logcommands-2.0.0.jar
 -start cm_cmd/cm_cmd-2.0.0.jar
 -start desktop/desktop_all-2.0.0.jar
--start http/http_all-2.0.0.jar
+-start http/http_all-2.1.0.jar
 -start httproot/httproot-2.0.0.jar
