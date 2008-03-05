@@ -1,5 +1,5 @@
 <!--
-  ** Copyright (c) 2003-2006, KNOPFLERFISH project
+  ** Copyright (c) 2003-2008, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -479,6 +479,9 @@
        excludes = "**/pspbrwse.jbf"
        manifest = "${outdir}/impl.mf"
     >
+     <fileset dir      = "${src.dir}"
+              includes = "${impl.pattern},${impl-api.pattern}"
+	      excludes = "**/*.java,**/*.html"/>
      <fileset dir = "${resources.dir}"/>
   </jar>  
  </target>
@@ -563,6 +566,9 @@
        includes = "${api.pattern}"
        manifest = "${outdir}/api.mf"
     >
+     <fileset dir      = "${src.dir}"
+              includes = "${api.pattern}"
+	      excludes = "**/*.java,**/*.html"/>
     </jar>  
 
  </target>
@@ -616,6 +622,9 @@
        includes = "${api.pattern}"
        manifest = "${outdir}/lib.mf"
     >
+     <fileset dir      = "${src.dir}"
+              includes = "${api.pattern}"
+	      excludes = "**/*.java,**/*.html"/>
      <fileset dir = "${resources.dir}"/>
   </jar>  
 
@@ -686,6 +695,9 @@
        excludes = "**/pspbrwse.jbf"
        manifest = "${outdir}/all.mf"
     >
+     <fileset dir      = "${src.dir}"
+              includes = "${impl.pattern},${impl-api.pattern}"
+	      excludes = "**/*.java,**/*.html"/>
      <fileset dir = "${resources.dir}"/>
     </jar>
     

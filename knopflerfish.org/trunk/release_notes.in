@@ -23,6 +23,21 @@ Release Notes Knopflerfish @VERSION@
 
 === Services (Compendium) ===
       
+  Http Server / JSDK
+
+  The JSDK bundle exports Servlet API version 2.5 (was 2.2). 
+  Note: the JSDK-bundles have been redesigned from beeing a LIB-bundle
+  to an API-bundle. I.e., it does not wrap a servlet.jar-file any
+  more, all classes are directly available inside the API-jar. This
+  increases performance and simplifies for other bundles that needs
+  access to the classes during their build phase.
+
+  The http-server is updated to work with the version 2.5 of the Servlet API.
+
+  Build files for servlet aware bundles updated to build using classes
+  from jsdk_api-2.5.jar.
+
+
   Component Service
 
   Fixed a class-cast bug when loading array valued (non-String)

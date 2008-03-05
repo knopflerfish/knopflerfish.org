@@ -25,7 +25,7 @@
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
    <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
-   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/> 
+   <pathelement location="${topdir}/jars/jsdk/jsdk_api-2.5.jar"/> 
   </path>
 
   <!-- want to include the log client w/o duplicating code -->
