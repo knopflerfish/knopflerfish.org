@@ -48,13 +48,18 @@ public class RemoteAgent  {
       Bundle b = context.getBundle(bundleId);
       b.start();
     } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
 
-  public void stopBundle(long bundleId) throws BundleException {
-    Bundle b = context.getBundle(bundleId);
-    b.stop();
+  public void stopBundle(long bundleId)  {
+    try {
+      Bundle b = context.getBundle(bundleId);
+      b.stop();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   public void uninstallBundle(long bundleId) {
@@ -62,6 +67,7 @@ public class RemoteAgent  {
       Bundle b = context.getBundle(bundleId);
       b.uninstall();
     } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -71,6 +77,7 @@ public class RemoteAgent  {
       
       return b.getBundleId();
     } catch (Exception e) {
+      e.printStackTrace();
       return -1;
     }
   }
