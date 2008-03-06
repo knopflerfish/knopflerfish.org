@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Dictionary;
@@ -146,8 +147,15 @@ public class HttpConfig {
         config.put(HttpConfig.HTTPS_PORT_KEY, Integer.getInteger(
                 "org.osgi.service.http.secure.port", HTTPS_PORT_DEFAULT));
 
-        config.put(HttpConfig.HOST_KEY, System.getProperty(
-                "org.osgi.service.http.hostname", ""));
+        String hostname = System.getProperty("org.osgi.service.http.hostname", "");
+        if ("".equals(hostname)) {
+          try {
+            hostname = InetAddress.getLocalHost().getHostAddress();
+          } catch (Exception _e) {
+            hostname = "localhost";
+          }
+        }
+        config.put(HttpConfig.HOST_KEY, hostname);
 
         Properties mimeProps = new Properties();
         try {
