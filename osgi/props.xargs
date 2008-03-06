@@ -25,12 +25,13 @@
 -Dorg.knopflerfish.framework.debug.service_reference=false
 -Dorg.knopflerfish.framework.debug.bundle_resource=false
 
-# Comma-separated list of packges exported by system classloader
--Dorg.osgi.framework.system.packages=javax.accessibility,javax.net,\
-        javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,\
-        javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,\
-        javax.swing.plaf.metal,javax.swing.table,javax.swing.text,\
-        javax.swing.tree
+# Add all standard packages for the currently running JRE version to
+# the set of packages exported by the system classloader.
+-Dorg.knopflerfish.framework.system.export.all=true
+
+# Comma-separated list of packages to be added to the set of packages
+# exported by system classloader.
+#-Dorg.osgi.framework.system.packages=
 
 # Comma-separated list of packages that may be loaded by system classloader
 -Dorg.osgi.framework.bootdelegation=*

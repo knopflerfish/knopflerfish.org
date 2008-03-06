@@ -225,8 +225,8 @@ public class SystemBundle extends BundleImpl {
         url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
       if (null==url) {
-        throw new RuntimeException("System package file '" + sysPkgFile +
-                                   "' does not exists");
+        Debug.println("Could not add system bundle package exports from '"
+                      + sysPkgFile +"', file not found.");
       }
     }
     BufferedReader in = null;
