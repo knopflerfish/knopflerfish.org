@@ -69,6 +69,10 @@ public class HeaderBase {
 
   protected static final String HOST_HEADER_KEY = "Host";
 
+  protected static final String TRANSFER_ENCODING_KEY = "transfer-encoding";
+
+  protected static final String TRANSFER_ENCODING_VALUE_CHUNKED = "chunked";
+
   // private fields
 
   private HttpConfigWrapper httpConfig;
@@ -193,7 +197,7 @@ public class HeaderBase {
 
   // private methods
 
-  private void parseHeaders(ServletInputStreamImpl in)
+  void parseHeaders(ServletInputStreamImpl in)
     throws HttpException, IOException
   {
 

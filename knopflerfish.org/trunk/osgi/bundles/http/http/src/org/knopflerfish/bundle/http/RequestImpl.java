@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -164,11 +165,59 @@ public class RequestImpl implements Request, PoolableObject {
         }
       }
     } else {
-      if (base.getMethod().equals(RequestBase.POST_METHOD))
-        throw new HttpException(HttpServletResponse.SC_LENGTH_REQUIRED);
+      if (base.getMethod().equals(RequestBase.POST_METHOD)) {
+        String transfer_encoding = getHeader(HeaderBase.TRANSFER_ENCODING_KEY);
+        if(HeaderBase.TRANSFER_ENCODING_VALUE_CHUNKED.equals(transfer_encoding)) {
+          // Handle chunked body the by reading every chunk and creating
+          // a new servletinputstream for the decoded body
+          // The only client (so far) that seems to be doing this is the
+          // Axis2 library
+          base.setBody(readChunkedBody(base.getBody()));
+        } else {
+          throw new HttpException(HttpServletResponse.SC_LENGTH_REQUIRED);
+        }
+      }
     }
 
     handleSession();
+  }
+
+  ServletInputStreamImpl readChunkedBody(ServletInputStreamImpl is) 
+    throws IOException, HttpException {
+    int          chunkSize = 0;
+    String       line;
+    StringBuffer sb = new StringBuffer();
+
+    // Build stringbuffer containing all chunk contents, then 
+    // make a byte array using request encoding.
+    // Yes, one could likely be more memory effective
+    do {
+      line = is.readLine().trim();
+      int ix = line.indexOf(";");
+      if(ix != -1) {
+        line = line.substring(0, ix);
+      }
+      chunkSize = Integer.parseInt(line, 16);
+      int n = 0;
+      while(n < chunkSize) {
+        line = is.readLine();
+        n += line.length();
+        sb.append(line);
+        sb.append("\r\n");
+      }
+    } while(chunkSize > 0);
+
+    // remaining stuff should be parsed as headers
+    base.parseHeaders(is);
+
+    String enc = getCharacterEncoding();
+    if(enc == null || enc.length() == 0) {
+      enc = "UTF-8";
+    }
+    byte[] bytes = sb.toString().getBytes(enc);
+    ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
+    
+    return new ServletInputStreamImpl(bin, bytes.length);
   }
 
   public boolean getKeepAlive() {
