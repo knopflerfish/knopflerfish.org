@@ -134,6 +134,10 @@ public class RequestBase extends HeaderBase {
     return body;
   }
 
+  void setBody(ServletInputStreamImpl newBody) {
+    this.body = newBody;
+  }
+
   public Hashtable getParameters() {
 
     if (parameters == null)
