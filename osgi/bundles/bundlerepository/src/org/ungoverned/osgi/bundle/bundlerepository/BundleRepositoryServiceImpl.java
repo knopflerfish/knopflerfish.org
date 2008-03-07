@@ -661,14 +661,16 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
     {
       String uaName = bundle.getSymbolicName();
       String uaVers = (String) bundle.getHeaders().get("Bundle-Version");
+      String uaComm = "";
 
       if (0==bundle.getBundleId()) { // The system bundle
+        uaComm = uaVers;
         uaName = m_context.getProperty(Constants.FRAMEWORK_VENDOR);
-        uaVers = m_context.getProperty(Constants.FRAMEWORK_VERSION)
-          + "/" +uaVers;
+        uaVers = m_context.getProperty(Constants.FRAMEWORK_VERSION);
       }
       return uaName
-        + (uaVers!=null && uaVers.length()>0 ? ("/" + uaVers) : "");
+        + (uaVers!=null && uaVers.length()>0 ? ("/" + uaVers)      : "")
+        + (uaComm!=null && uaComm.length()>0 ? (" (" +uaComm +")") : "");
     }
 
     private void parseRepositoryFile(int hopCount, String urlStr)
