@@ -657,6 +657,20 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         }
     }
 
+    private String getUserAgentForBundle(Bundle bundle)
+    {
+      String uaName = bundle.getSymbolicName();
+      String uaVers = (String) bundle.getHeaders().get("Bundle-Version");
+
+      if (0==bundle.getBundleId()) { // The system bundle
+        uaName = m_context.getProperty(Constants.FRAMEWORK_VENDOR);
+        uaVers = m_context.getProperty(Constants.FRAMEWORK_VERSION)
+          + "/" +uaVers;
+      }
+      return uaName
+        + (uaVers!=null && uaVers.length()>0 ? ("/" + uaVers) : "");
+    }
+
     private void parseRepositoryFile(int hopCount, String urlStr)
     {
         InputStream is = null;
@@ -684,13 +698,11 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             }
             // Identify us (via User-Agent) with bundlename and the
             // framework vendor name and version.
-            String fw_vendor = m_context.getProperty(Constants.FRAMEWORK_VENDOR);
-            String fw_version = m_context.getProperty(Constants.FRAMEWORK_VERSION);
             conn.setRequestProperty("User-Agent",
-                                    "bundlerepository/2.0"
+                                    getUserAgentForBundle(m_context.getBundle())
                                     +" "
-                                    +fw_vendor.replace(' ','_')
-                                    +"/" +fw_version);
+                                    +getUserAgentForBundle(m_context.getBundle(0))
+                                    );
             is = conn.getInputStream();
 
             // Create the parser Kxml
