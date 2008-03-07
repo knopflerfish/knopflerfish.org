@@ -175,7 +175,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                     (String) records[i].getAttribute(BundleRecord.BUNDLE_NAME);
                 int[] targetVersion = Util.parseVersionString(
                     (String) records[i].getAttribute(BundleRecord.BUNDLE_VERSION));
-            
+
                 if ((targetName != null) &&
                     targetName.equalsIgnoreCase(name) &&
                     (Util.compareVersion(targetVersion, version) == 0))
@@ -379,7 +379,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
 
             return true;
         }
-        
+
         return false;
     }
 
@@ -391,7 +391,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         // everything in order.
         List deployList = new ArrayList();
         resolvePackages(pkgs, deployList);
-        
+
         // Convert list of update locations to an array of bundle
         // records and return it.
         BundleRecord[] records = new BundleRecord[deployList.size()];
@@ -480,7 +480,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             err.println(Util.getBundleName(bundle) + " not in repository.");
             return false;
         }
-        
+
         // Check bundle version againts bundle record version.
         int[] bundleVersion = Util.parseVersionString(
             (String) bundle.getHeaders().get(Constants.BUNDLE_VERSION));
@@ -599,7 +599,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                 }
             }
         }
-            
+
         // If none of the sources are installed locally, then
         // just pick the first one.
         return sources[0];
@@ -656,7 +656,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             parseRepositoryFile(m_hopCount, m_urls[urlIdx]);
         }
     }
-    
+
     private void parseRepositoryFile(int hopCount, String urlStr)
     {
         InputStream is = null;
@@ -665,10 +665,10 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
 
         try
         {
-            // Do it the manual way to have a chance to 
+            // Do it the manual way to have a chance to
             // set request properties as proxy auth (EW).
             URL url = new URL(urlStr);
-            URLConnection conn = url.openConnection(); 
+            URLConnection conn = url.openConnection();
 
             // Support for http proxy authentication
             String auth = System.getProperty("http.proxyAuth");
@@ -682,6 +682,15 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                         "Proxy-Authorization", "Basic " + base64);
                 }
             }
+            // Identify us (via User-Agent) with bundlename and the
+            // framework vendor name and version.
+            String fw_vendor = m_context.getProperty(Constants.FRAMEWORK_VENDOR);
+            String fw_version = m_context.getProperty(Constants.FRAMEWORK_VERSION);
+            conn.setRequestProperty("User-Agent",
+                                    "bundlerepository/2.0"
+                                    +" "
+                                    +fw_vendor.replace(' ','_')
+                                    +"/" +fw_version);
             is = conn.getInputStream();
 
             // Create the parser Kxml
@@ -711,11 +720,11 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             for (int bundleIdx = 0; bundleIdx < root.size(); bundleIdx++)
             {
                 Object obj = root.get(bundleIdx);
-                
+
                 // The elements of the root will either be a HashMap for
                 // the repository tag or a MultivalueMap for the bundle
                 // tag, as indicated above when we parsed the file.
-                
+
                 // If HashMap, then read repository information.
                 if (obj instanceof HashMap)
                 {
@@ -752,7 +761,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                         }
                     });
                     bundleMap.putAll((Map) obj);
-                    
+
                     // Convert any import package declarations
                     // to PackageDeclaration objects.
                     Object target = bundleMap.get(BundleRecord.IMPORT_PACKAGE);
@@ -880,7 +889,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
 
         return decls;
     }
-    
+
     private PackageDeclaration convertPackageMap(Map map)
     {
         // Create a case-insensitive map.
