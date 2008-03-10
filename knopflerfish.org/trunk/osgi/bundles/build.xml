@@ -57,9 +57,12 @@
     <ant dir="bundlerepository"  target="all"/>
   </target>
 
+   <!-- Generate bundle docs for these bundles -->
    <target name="bundle_doc">
-     <ant dir="http"              target="bundle_doc"/>
-     <ant dir="console"           target="bundle_doc"/>
+     <ant dir="http"            target="bundle_doc"/>
+     <ant dir="console"         target="bundle_doc"/>
+    <ant dir="log"		target="bundle_doc"/>
+    <ant dir="logcommands"      target="bundle_doc"/>
    </target>
 
 </project>
