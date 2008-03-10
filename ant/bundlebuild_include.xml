@@ -836,17 +836,14 @@
 
   <target name="bundle_doc"
 	  description="Creates bundle specific doc"
-	  depends="setup_build"
+	  depends="setup_build,bundle_tasks,setup_manifest_props"
 	  if="do_build_doc">
     
-    <taskdef name      = "makehtml"
- 	     classpath = "${topdir}/../ant/classes"
-             classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
-
     <makehtml title="${bmfa.Bundle-Name}"
               description="${bmfa.Bundle-Description}"
               template="${bundledoc_template}"
               outdir="${outdocdir}"
+	      manstyle="true"
               tofile="index.html"
               fromfile="doc/index.html"/>
 

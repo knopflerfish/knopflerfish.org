@@ -117,6 +117,11 @@
    <taskdef name        = "bindex"
          classpathref = "bundle_tasks.path"
     classname = "org.knopflerfish.ant.taskdefs.bundle.BIndexTask"/>
+
+    <taskdef name      = "makehtml"
+ 	     classpath = "${topdir}/../ant/classes"
+             classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
+
  </target>
 
  <target name="default" depends="check_bcel,bundle_tasks"/>

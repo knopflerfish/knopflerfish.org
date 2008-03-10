@@ -11,7 +11,7 @@
   
     <makehtml title="${docbuild.title}"
               description="${docbuild.description}"
-              template="${docbuild.basedir}/html_template/bundledoc.html"
+              template="${docbuild.basedir}/html_template/bundledoc_ext.html"
               outdir="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}"
               tofile="index.html"
               fromfile="${docbuild.fromdir}/index.html"/>

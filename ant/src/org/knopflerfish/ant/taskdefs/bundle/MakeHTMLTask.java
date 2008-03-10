@@ -128,6 +128,13 @@ public class MakeHTMLTask extends Task {
   
   private final static String TIMESTAMP = new SimpleDateFormat("EE MMMM d yyyy, HH:mm:ss", Locale.ENGLISH).format(new Date());
   
+  private String lib_suffix = "";
+  private String api_suffix = "_api";
+  private String impl_suffix = "";
+  private String all_suffix = "_all";
+  private String projectName = "";
+  private boolean do_manpage = false;
+  
   /**
    * The source file
    */
@@ -194,6 +201,10 @@ public class MakeHTMLTask extends Task {
     this.bundleList = bundleList;
   }
   
+  public void setManstyle(String manstyle) {
+    this.do_manpage = true;
+  }
+
     
   public void setDisable(String disabled) {
     this.disable = disabled;
@@ -204,6 +215,9 @@ public class MakeHTMLTask extends Task {
   }
   
   public void execute() {
+    Project proj = getProject();
+    this.projectName = proj.getName();
+    
     if (template == null) throw new BuildException("template must be set");
     if (title == null) title = "";
     if (description == null) description = "";
@@ -212,6 +226,12 @@ public class MakeHTMLTask extends Task {
       throw new BuildException("Need to specify tofile and fromfile or give a fileset");
     }
 
+    // Set suffixes
+    impl_suffix = proj.getProperty("impl.suffix");
+    api_suffix = proj.getProperty("api.suffix");
+    lib_suffix = proj.getProperty("lib.suffix");
+    all_suffix = proj.getProperty("all.suffix");
+    
     if (filesets.isEmpty()) {
       // log("Project base is: " + getProject().getBaseDir());
       // log("Attempting to transform: " + fromFile);
@@ -271,6 +291,32 @@ public class MakeHTMLTask extends Task {
       content = Util.replace(content, "$(JAVADOC)", proj.getProperty("JAVADOC"));
       content = Util.replace(content, "$(CLASS_NAVIGATION)", proj.getProperty("css_navigation_enabled"));
 
+      // Used for bundle_doc generation
+      if (do_manpage) {
+	content = Util.replace(content, "$(BUNDLE_NAME)", this.projectName);
+	content = Util.replace(content, "$(BUNDLE_VERSION)", proj.getProperty("bmfa.Bundle-Version"));
+	
+	// Create links to generated jardoc for this bundle
+	StringBuffer sbuf = new StringBuffer();
+	generateJardocPath(sbuf, "bundle.build.lib", lib_suffix);
+	generateJardocPath(sbuf, "bundle.build.api", api_suffix);
+	generateJardocPath(sbuf, "bundle.build.all", all_suffix);
+	generateJardocPath(sbuf, "bundle.build.impl", impl_suffix);
+	content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
+
+	content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", proj.getProperty("bmfa.Export-Package"));
+
+	// Replce H1-H3 headers to man page style, if manpage style
+	content = Util.replace(content, "<h1", "<h1 class=\"man\"");
+	content = Util.replace(content, "<H1", "<h1 class=\"man\"");
+	content = Util.replace(content, "<h2", "<h2 class=\"man\"");
+	content = Util.replace(content, "<H2", "<h2 class=\"man\"");
+	content = Util.replace(content, "<h3", "<h3 class=\"man\"");
+	content = Util.replace(content, "<H3", "<h3 class=\"man\"");
+
+	content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", proj.getProperty("bmfa.Export-Package"));
+      }
+      
       String s = proj.getProperty("navigation_pages");
       String navEnabled = proj.getProperty("css_navigation_enabled");
       String navDisabled = proj.getProperty("css_navigation_disabled");
@@ -352,4 +398,29 @@ public class MakeHTMLTask extends Task {
 
     return buf.toString();
   }
+
+  // Returns a bool for s Project prop. If null => false
+  private boolean getBoolProperty(String prop) {
+    if (prop == null)
+      return false;
+    
+    Boolean b = Boolean.valueOf(getProject().getProperty(prop));
+    
+    return b.booleanValue();
+  }
+
+  private void generateJardocPath(StringBuffer sbuf, String prop, String suffix) {
+    if (getBoolProperty(prop)) {
+      sbuf.append("<a target=\"_blank\" href=\"../../jars/");
+      sbuf.append(this.projectName);
+      sbuf.append("/");
+      sbuf.append(this.projectName);
+      sbuf.append(suffix);
+      sbuf.append(".html\">");
+      sbuf.append(this.projectName);
+      sbuf.append(suffix);
+      sbuf.append("</a><br>\n");
+    }
+  }
+  
 }

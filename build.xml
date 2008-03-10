@@ -62,6 +62,8 @@
   <!-- A directory to place intermediate files for a distib build in. -->
   <property name = "distrib.out.dir" location = "out"/>
 
+  <property name="bundledoc.dir" location="${release.dir}/bundledoc"/>
+
   <property name = "javadoc.out.dir" location = "javadoc"/>
 
   <property name     = "distribfile"
@@ -138,7 +140,14 @@
     <property name="template.html"  location="${htdocs.dir}/html_templates/template.html"/>
     <property name="formatted.html" location="${htdocs.dir}/html_templates/formatted.html"/>
     <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
-
+    
+    <copy file   = "release_notes.in"
+          tofile = "release_notes.txt">
+      <filterset begintoken="@" endtoken="@">
+	<filter token="VERSION" value="${version}"/>
+      </filterset>
+    </copy>
+    
     <taskdef name      = "extrabundledoc"
              classpath = "ant/classes"
              classname = "org.knopflerfish.ant.taskdefs.bundle.ExtraBundleDocTask"/>
@@ -147,13 +156,13 @@
      <extrabundledoc out="${htdocs.out}/extrabundledocs"
                      template="${htdocs.dir}/html_src/userdocs.html"
                      pattern="&lt;tr&gt;&lt;td class=&quot;newstext&quot;&gt;&lt;a class=&quot;navigation_enabled&quot; href=&quot;$(URL)&quot;&gt;$(TITLE)&lt;/a&gt;&lt;/td&gt;&lt;td class=&quot;newstext&quot;&gt;$(BODY)&lt;/td&gt;&lt;/tr&gt;">
-      <fileset dir="osgi/bundles">
-       <include name="**/docs"/>
-      </fileset>
+       <fileset dir="osgi/bundles">
+	 <include name="**/docs"/>
+       </fileset>
      </extrabundledoc>
      <ant    dir         = "htdocs"  target      = "all"/>
   </target>
-
+  
   <target name="check_javadoc" if="javadoc.out.dir.present">
    <echo  message  = "*** Using pre-build javadocs" />
    <echo  message  = "*** remove ${javadoc.out.dir} to rebuild" />
@@ -202,6 +211,28 @@
         <include name = "**/*.jar"/>
       </fileset>
    </bundlehtml>
+  </target>
+
+  
+  <target name          = "bundle_doc"
+	  description	= "Creates bundle specific documentaion"
+          depends       = "compile_ant">
+    <mkdir dir="${bundledoc.dir}"/>
+
+    <ant dir = "osgi"	target="bundle_doc"/>
+    
+    <copy todir="${bundledoc.dir}">
+      <!-- The generated bundle_doc files -->
+      <fileset dir="osgi/out/doc">
+	<include name="**"/>
+      </fileset>
+
+      <!-- and some templates -->
+      <fileset dir="htdocs/html_templates/bundle_doc">
+	<include name="*.html" />
+      </fileset>
+
+    </copy>
   </target>
 
   <!-- Runs the kf-test suites and copies the test result to the release.-->
@@ -355,12 +386,6 @@
    <target name        = "distrib"
 	   description = "Builds all distribution files"
 	   depends     = "clean,default,mkreldir">
-     <copy file   = "release_notes.in"
-           tofile = "release_notes.txt">
-       <filterset begintoken="@" endtoken="@">
-	 <filter token="VERSION" value="${version}"/>
-       </filterset>
-     </copy>
 
      <antcall target     = "xargs"/>
      <antcall target     = "distrib_complete"/>
@@ -398,6 +423,8 @@
     <antcall target     = "javadoc_maybe"/>
 
     <antcall target     = "jardocs"/>
+
+    <antcall target     = "bundle_doc"/>
 
     <antcall target      = "htdocs"/>
 
@@ -966,4 +993,8 @@
    <ant dir="osgi" target="install_bcel" />
  </target>
 
+ <target name="build_distrib_docs"
+	 description="Builds the distrib docs"
+	 depends="htdocs, bundle_doc, javadoc, jardocs"/>
+ 
 </project>
