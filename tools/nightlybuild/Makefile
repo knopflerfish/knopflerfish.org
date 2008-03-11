@@ -32,7 +32,7 @@ DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
 REL_VERSION := $(shell cd ${TAG} && ${ANT} version | \
                        ${GREP} "Version: " | \
                        ${SED} -e 's/.*Version: //g' \
-                              -e 's/\.[0-9]*[a-zA-Z_][-0-9aa-zA-Z_]*//')
+                              -e 's/\.[0-9]*[-a-zA-Z_][-0-9aa-zA-Z_]*//')
 
 # The current SVN revision number
 REVISION := $(shell ${SVN} info ${REPO} | \
