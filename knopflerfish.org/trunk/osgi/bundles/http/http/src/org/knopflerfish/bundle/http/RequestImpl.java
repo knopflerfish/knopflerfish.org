@@ -68,7 +68,11 @@ public class RequestImpl implements Request, PoolableObject {
 
   private final HttpSessionManager sessionManager;
 
+  private InetAddress localAddress  = null;
   private InetAddress remoteAddress = null;
+
+  private int localPort  = 0;
+  private int remotePort = 0;
 
   private final Attributes attributes = new Attributes();
 
@@ -107,37 +111,41 @@ public class RequestImpl implements Request, PoolableObject {
     return sb;
   }
 
-  public String getLocalName() {
-    return httpConfig.getHost();
-  }
-
-  public int getRemotePort() {
-    System.err.println("***NYI." + getClass().getName());
-    throw new RuntimeException("NYI");
-  }
-
   public java.util.Map getParameterMap() {
     return base.getParameters();
   }
 
   public String getLocalAddr() {
-    return httpConfig.getHost();
+    return localAddress.getHostAddress();
+  }
+
+  public String getLocalName() {
+    if (httpConfig.getDNSLookup()) {
+      return localAddress.getHostName();
+    }
+    return localAddress.getHostAddress();
   }
 
 
   public int getLocalPort() {
-    return httpConfig.getPort();
+    return localPort;
   }
 
   public void init(InputStream is,
+                   InetAddress localAddress,
+                   int localPort,
                    InetAddress remoteAddress,
+                   int remotePort,
                    HttpConfigWrapper httpConfig)
       throws HttpException, IOException
   {
     base.init(is, httpConfig);
 
-    this.httpConfig = httpConfig;
+    this.httpConfig    = httpConfig;
+    this.localAddress  = localAddress;
+    this.localPort     = localPort;
     this.remoteAddress = remoteAddress;
+    this.remotePort    = remotePort;
 
     boolean http_1_1 = base.getProtocol().equals(
                                                  RequestBase.HTTP_1_1_PROTOCOL);
@@ -182,13 +190,13 @@ public class RequestImpl implements Request, PoolableObject {
     handleSession();
   }
 
-  ServletInputStreamImpl readChunkedBody(ServletInputStreamImpl is) 
+  ServletInputStreamImpl readChunkedBody(ServletInputStreamImpl is)
     throws IOException, HttpException {
     int          chunkSize = 0;
     String       line;
     StringBuffer sb = new StringBuffer();
 
-    // Build stringbuffer containing all chunk contents, then 
+    // Build stringbuffer containing all chunk contents, then
     // make a byte array using request encoding.
     // Yes, one could likely be more memory effective
     do {
@@ -216,7 +224,7 @@ public class RequestImpl implements Request, PoolableObject {
     }
     byte[] bytes = sb.toString().getBytes(enc);
     ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
-    
+
     return new ServletInputStreamImpl(bin, bytes.length);
   }
 
@@ -259,7 +267,11 @@ public class RequestImpl implements Request, PoolableObject {
 
     base.destroy();
 
+    localAddress  = null;
     remoteAddress = null;
+
+    localPort  = 0;
+    remotePort = 0;
 
     attributes.removeAll();
 
@@ -535,7 +547,11 @@ public class RequestImpl implements Request, PoolableObject {
     if (httpConfig.getDNSLookup()) {
       return remoteAddress.getHostName();
     }
-    return null;
+    return remoteAddress.getHostAddress();
+  }
+
+  public int getRemotePort() {
+    return remotePort;
   }
 
   public RequestDispatcher getRequestDispatcher(String uri) {

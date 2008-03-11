@@ -102,21 +102,28 @@ public class Transaction implements Runnable, PoolableObject {
         final ResponseImpl response = (ResponseImpl) responsePool.get();
 
         InetAddress remoteAddress = null;
+        InetAddress localAddress  = null;
+
+        int localPort  = 0;
+        int remotePort = 0;
 
         try {
-
             if (client != null) {
                 client.setSoTimeout(1000 * httpConfig.getConnectionTimeout());
                 is = client.getInputStream();
                 os = client.getOutputStream();
+                localAddress  = client.getLocalAddress();
+                localPort     = client.getLocalPort();
                 remoteAddress = client.getInetAddress();
+                remotePort    = client.getPort();
             }
 
             while (true) {
 
                 try {
 
-                    request.init(is, remoteAddress, httpConfig);
+                    request.init(is, localAddress, localPort,
+                                 remoteAddress, remotePort, httpConfig);
                     response.init(os, request, httpConfig);
 
                     String uri = request.getRequestURI();
