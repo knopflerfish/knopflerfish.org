@@ -26,12 +26,18 @@ JAVA    = java
 #JAVA_HOME = /usr/pkg/java/sun-1.3.1
 
 DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
-# The current (upcomming) Knopflerfish release version
-#REL_VERSION = 2.0.4
-REL_VERSION := $(shell cd ${TAG} && ${ANT} version | ${GREP} "Version: " | ${SED} -e 's/.*Version: //g')
+# The Major.Minor.Micro part of the current (upcomming) Knopflerfish
+# release version.
+# E.g., REL_VERSION = 2.0.4
+REL_VERSION := $(shell cd ${TAG} && ${ANT} version | \
+                       ${GREP} "Version: " | \
+                       ${SED} -e 's/.*Version: //g' \
+                              -e 's/\.[0-9]*[a-zA-Z_][-0-9aa-zA-Z_]*//')
 
 # The current SVN revision number
-REVISION := $(shell ${SVN} info ${REPO} | ${GREP} 'Revision: ' | ${SED} -e 's/Revision: //')
+REVISION := $(shell ${SVN} info ${REPO} | \
+                    ${GREP} 'Revision: ' | \
+                    ${SED} -e 's/Revision: //')
 
 # The version of this nightly build
 VERSION := ${REL_VERSION}.snapshot_${REVISION}
