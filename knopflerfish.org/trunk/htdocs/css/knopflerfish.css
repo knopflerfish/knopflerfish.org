@@ -117,6 +117,11 @@ TD.menu {
  border-bottom-width: 1px;
 }
 
+BODY.mainblock {
+ padding: 5px;
+ margin:  5px;
+}
+
 .navigation_enabled
 {
  text-decoration:	none;
@@ -167,7 +172,6 @@ A.navigation_disabled:hover {
 .manpage {
 
 }
-
 
 H1.man {
  font-family: Verdana, Arial, Helvetica, sans-serif;

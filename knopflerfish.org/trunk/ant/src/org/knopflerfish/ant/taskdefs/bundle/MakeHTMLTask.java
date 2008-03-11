@@ -304,7 +304,9 @@ public class MakeHTMLTask extends Task {
 	generateJardocPath(sbuf, "bundle.build.impl", impl_suffix);
 	content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
 
-	content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", proj.getProperty("bmfa.Export-Package"));
+        String epkgs = proj.getProperty("bmfa.Export-Package");
+        epkgs = Util.replace(epkgs, ",", "<br>");
+	content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
 
 	// Replce H1-H3 headers to man page style, if manpage style
 	content = Util.replace(content, "<h1", "<h1 class=\"man\"");
@@ -313,8 +315,6 @@ public class MakeHTMLTask extends Task {
 	content = Util.replace(content, "<H2", "<h2 class=\"man\"");
 	content = Util.replace(content, "<h3", "<h3 class=\"man\"");
 	content = Util.replace(content, "<H3", "<h3 class=\"man\"");
-
-	content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", proj.getProperty("bmfa.Export-Package"));
       }
       
       String s = proj.getProperty("navigation_pages");
