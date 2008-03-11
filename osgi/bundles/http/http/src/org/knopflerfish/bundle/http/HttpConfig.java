@@ -146,16 +146,8 @@ public class HttpConfig {
                 "org.osgi.service.http.port", HTTP_PORT_DEFAULT));
         config.put(HttpConfig.HTTPS_PORT_KEY, Integer.getInteger(
                 "org.osgi.service.http.secure.port", HTTPS_PORT_DEFAULT));
-
-        String hostname = System.getProperty("org.osgi.service.http.hostname", "");
-        if ("".equals(hostname)) {
-          try {
-            hostname = InetAddress.getLocalHost().getHostAddress();
-          } catch (Exception _e) {
-            hostname = "localhost";
-          }
-        }
-        config.put(HttpConfig.HOST_KEY, hostname);
+        config.put(HttpConfig.HOST_KEY,
+                   System.getProperty("org.osgi.service.http.hostname", ""));
 
         Properties mimeProps = new Properties();
         try {
