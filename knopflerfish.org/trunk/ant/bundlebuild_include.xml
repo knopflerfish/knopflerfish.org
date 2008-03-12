@@ -843,14 +843,15 @@
               description="${bmfa.Bundle-Description}"
               template="${bundledoc_template}"
               outdir="${outdocdir}"
-	      manstyle="true"
-              tofile="index.html"
-              fromfile="doc/index.html"/>
+	      manstyle="true">
+      <fileset dir="doc">
+	<include name="**/*.html"/>
+      </fileset>
+    </makehtml>
 
     <copy todir="${outdocdir}">
       <fileset dir="doc">
-	<include name="**"/>
-	<exclude name="index.html"/>
+	<exclude name="**/*.html"/>
       </fileset>
     </copy>
   </target>

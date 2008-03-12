@@ -18,6 +18,7 @@
   <property name = "bundle.build.api"  value="false"/>
   <property name = "bundle.build.lib"  value="lib"/>
   <property name = "bundle.build.impl" value="false"/>
+  <property name = "bundle.build.doc"  value="true"/>
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/jsdk/jsdk_api-2.5.jar"/>
