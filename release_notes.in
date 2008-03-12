@@ -71,3 +71,11 @@ Release Notes Knopflerfish @VERSION@
 
   More adjustments to the build system to improve nightly- and
   release- builds.
+
+
+  Documentation
+
+  We have started to collect / add bundle documentation on a seprate
+  page that will be part of the release. For snapshot-builds you can
+  find the documentation via the link
+  http://www.knopflerfish.org/snapshots/current_trunk/bundledoc/

@@ -8,6 +8,8 @@
 
   <property name="topdir"       location="../../.."/>
 
+  <property name = "bundle.build.doc"   value = "true"/>
+
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/soapobject/**"/>
 

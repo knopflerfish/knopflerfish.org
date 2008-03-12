@@ -33,6 +33,7 @@
     <ant dir="junit"              target="bundle_doc"/>
     <ant dir="serial"             target="bundle_doc"/>
     <ant dir="kxml"               target="bundle_doc"/>
+    <ant dir="soap"               target="bundle_doc"/>
   </target>
 
 </project>
