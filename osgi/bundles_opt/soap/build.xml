@@ -5,6 +5,7 @@
    <target name="all">
     <ant dir="../commons-logging"   target="all"/>
     <ant dir="axis-osgi"            target="all"/>
+    <ant dir="axis2-osgi"           target="all"/>
     <ant dir="soap_desktop"         target="all"/>
     <ant dir="soap_remotefw"        target="all"/>
     <ant dir="soapobject"           target="all"/>
@@ -16,6 +17,7 @@
    <target name="clean">
     <ant dir="../commons-logging"   target="clean"/>
     <ant dir="axis-osgi"            target="clean"/>
+    <ant dir="axis2-osgi"           target="clean"/>
     <ant dir="soap_desktop"         target="clean"/>
     <ant dir="soap_remotefw"        target="clean"/>
     <ant dir="soapobject"           target="clean"/>
@@ -28,6 +30,7 @@
   
   <target name="bundle_doc">
     <ant dir="axis-osgi"            target="bundle_doc"/>
+    <ant dir="axis2-osgi"           target="bundle_doc"/>
     <ant dir="soapobject"           target="bundle_doc"/>
     <ant dir="soap_desktop"         target="bundle_doc"/>
     <ant dir="soap_remotefw"        target="bundle_doc"/>
