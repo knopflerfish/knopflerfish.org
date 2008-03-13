@@ -67,6 +67,13 @@ Release Notes Knopflerfish @VERSION@
   exporting a service as an Axis WebService.
 
 
+  Axis2-OSGi
+
+  A new bundle that exports Web Services using Axis2.
+  This bundle is much like the axis-osgi bundle but uses Axis2
+  for the actual implementation.
+
+
   Build System
 
   More adjustments to the build system to improve nightly- and
