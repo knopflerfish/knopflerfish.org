@@ -396,9 +396,14 @@ public class BundleInfoTask extends Task {
    * @param packageList Comma-separated list of package names.
    */
   public void setExtraImports(String packageList) {
-    Vector v = StringUtils.split(packageList.trim(),',');
     extraImportSet.clear();
-    extraImportSet.addAll(v);
+    if (null!=packageList) {
+      packageList = packageList.trim();
+      if (packageList.length()>0) {
+        Vector v = StringUtils.split(packageList,',');
+        extraImportSet.addAll(v);
+      }
+    }
   }
 
 
