@@ -37,6 +37,9 @@ package org.knopflerfish.bundle.axis2_soapclient_adb;
 import org.knopflerfish.client.axis2_soapobject.MySoapTestServiceStub.MyJavaBean;
 
 import org.osgi.framework.*;
+import junit.framework.*;
+
+import java.util.Hashtable;
 
 
 public class BundleActivator implements org.osgi.framework.BundleActivator {
@@ -44,11 +47,12 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
 
   public void start(BundleContext bc) {
     this.bc = bc;
-    try {
-      main(null);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+
+    TestSuite suite = new Axis2TestSuite(bc);
+    Hashtable props = new Hashtable();
+    props.put("service.pid", suite.getName());
+    ServiceRegistration sr
+      = bc.registerService(TestSuite.class.getName(), suite, props);
   }
 
   public void stop(BundleContext bc) {
@@ -63,15 +67,16 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
     System.out.println("1.0 * 2.0     = " +client.mul(1.0,2.0));
     int[] res = client.addToAll(1,new int[]{2,3,4});
     System.out.println("1   + [2,3,4] = " +formatIntArray(res));
-    MyJavaBean bean = client.getBean();
-    System.out.println("getBean():            "+bean);
-    bean = new MyJavaBean();
-    bean.setName("Jim");
-    bean.setValue(33333333);
-    client.setBean(bean);
-    System.out.println("getBean():            "+bean);
-    System.out.println("getBean().getName():  "+bean.getName());
-    System.out.println("getBean().getValue(): "+bean.getValue());
+    MyJavaBean bean1 = client.getBean();
+    System.out.println("getBean():            "+bean1);
+    bean1 = new MyJavaBean();
+    bean1.setName("Jim");
+    bean1.setValue(33333333);
+    client.setBean(bean1);
+    MyJavaBean bean2 = client.getBean();
+    System.out.println("getBean():            "+bean2);
+    System.out.println("getBean().getName():  "+bean2.getName());
+    System.out.println("getBean().getValue(): "+bean2.getValue());
     client.setBean(null);
   }
 
