@@ -34,6 +34,8 @@
 
  <property name = "topdir"   location = "."/>
  <property name = "proj.dir" location = "."/>
+ <property name = "osgi.dir" location = "${topdir}"/>
+ <property name = "ant.dir"  location = "${topdir}/../ant"/>
 
  <!-- Special value to be used as the value for a bundle manifest    -->
  <!-- property that shall not be included in the generated manifest. -->
@@ -148,7 +150,7 @@
  <property name = "jardir"   location = "${topdir}/jars/${ant.project.name}"/>
  <property name = "outdocdir"   location = "${topdir}/out/doc/${ant.project.name}"/>
 
- <property name = "bundledoc_template"   location = "${topdir}/../ant/html_template/bundledoc.html"/>
+ <property name = "bundledoc_template"   location = "${ant.dir}/html_template/bundledoc.html"/>
 
  <property name = "exported.file" location = "${topdir}/out/exported.txt"/>
  <property name = "sources.file"  location = "${topdir}/out/sources.txt"/>
@@ -199,7 +201,7 @@
 
 
  <path id = "framework.path">
-  <pathelement location = "${topdir}/framework.jar"/>
+  <pathelement location = "${osgi.dir}/framework.jar"/>
  </path>
 
  <path id = "bundle.path">
@@ -208,7 +210,7 @@
    <path refid = "bundle.compile.path"/>
  </path>
 
- <import file="${topdir}/../ant/bundletasks.xml"/>
+ <import file="${ant.dir}/bundletasks.xml"/>
 
  <target name="init"
          depends="setup_build,check_bcel,bundle_tasks,setup_manifest_props">
