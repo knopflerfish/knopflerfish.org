@@ -29,6 +29,10 @@
 # Load the default configuration
 -xargs init.xargs
 
+# The system bundle MUST NOT export package except those starting with "java.*"
+-Dorg.knopflerfish.framework.system.export.all=false
+-Dorg.osgi.framework.system.packages=
+
 # These bundles intefere with testing
 -stop desktop/desktop_all-2.0.0.jar
 -stop httproot/httproot-2.0.0.jar
