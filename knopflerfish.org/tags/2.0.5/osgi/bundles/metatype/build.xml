@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+  <target name="all">
+    <ant dir="metatype_api"              target="all"/>
+  </target>
+
+  <target name="clean">
+    <ant dir="metatype_api"              target="clean"/>
+  </target>
+
+</project>

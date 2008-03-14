@@ -1,0 +1,2 @@
+automate in-memory bundle "persistent" storage.
+Native-code test suite: to finish what started

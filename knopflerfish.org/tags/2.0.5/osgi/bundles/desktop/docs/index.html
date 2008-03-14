@@ -1,0 +1,136 @@
+<h2>The Knopflerfish Desktop</h2>
+
+<div style="align:float;"><a href="images/desktop_info_manifest.gif"><img align=right src="images/desktop_info_manifest_200.gif" border=0></a>
+</div>
+
+<p>
+The Knopflerfish OSGi Desktop displays a graphical overview of the OSGi
+framework. Most common operations as install, start, stop and update can
+be performed on bundles using the desktop. Additionally, bundle and service
+detail information is shown, and an experimental "Save deploy archive" is
+incluced.
+</p>
+
+<p>
+The desktop is a standard OSGi bundle, using Swing. The desktop is primarily
+designed to manage a locally running framework, but can be used to control a
+remote framework, using the optional <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.html">SOAP bundles</a>.
+Consult the description of <a href="remote_howto.html">how to activate the "Remote framework..." menu item</a>.
+</p>
+<p>
+Additionally, the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/readme.html">HTTP console</a> or the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/readme.txt">Telnet console</a> bundle can always be used for remote control. Both are available in the <a href="http://www.knopflerfish.org/repo/">KF bundle repository</a>.
+</p>
+
+<p>
+The desktop can be customized using plugin services, see <a href="releases/$(VERSION)/javadoc/org/knopflerfish/service/desktop/SwingBundleDisplayer.html">SwingBundleDisplayer</a> for details.
+</p>
+
+<p>
+The Desktop bundle can be found in
+<pre>
+  knopflerfish/osgi/bundles/desktop
+</pre>
+
+<p>
+When started, it creates a window with four main areas:
+<dl>
+  <dt>Toolbar
+  <dd>The top toolbar provides quick access to common operations
+    as start/stop/update bundles.
+  <dt>Bundle view
+  <dd>The center bundle view area display all installed bundles
+    and their states. By clicking on bundles in this are,
+    detail information is displayed in the <b>Bundle detail area</b>
+    Four different views a supported internally (new can be installed):
+    <ul>
+      <li><a href="#view_icons">Icons</a> - each bundle is displayed as an icon.
+      <li><a href="#view_details">Details</a> - each bundle is displayed as a table row.
+      <li><a href="#view_spin">Spin</a> - each bundle is displayed in a really cool graphics view.
+      <li><a href="#view_timeline">Time line</a> - each bundle event is displayed in a zoomable time line view.
+    </ul>
+  <dt>Bundle detail area
+  <dd>The rightmost bundle detail area shows detailed
+    information on selected bundles such as:
+   <ul>
+    <li>manifest
+    <li>bundle closure
+    <li>imported/exported services
+    <li>imported/exported packages
+    <li>bundle logs.<br>
+   </ul>
+   New detail pages can be installed run-time using plug-ins.
+
+  <dt>Framework console
+  <dd>The bottom console area allows interaction with the
+    text console. This console acts exactly as the <tt>consoltty</tt> bundle, but does not require a shell or DOS window to run.
+</dl>
+
+
+<a name="#view_icons"></a>
+<h4>Icon view</h4>
+To view the installed bundles as icons, select
+<pre>
+View -&gt; Large Icons
+</pre>
+<img src="images/desktop_icons.gif" border=1 align="left">
+
+<table>
+  <tr>
+    <td><img src="images/bundle_installed.gif"></td>
+    <td>Bundle which has a BundleActivator</td>
+  </tr>
+  <tr>
+    <td><img src="images/bundle_active.gif"></td>
+    <td>Active bundle</td>
+  </tr>
+  <tr>
+    <td><img src="images/lib_installed.gif"></td>
+    <td>"Library" bundle which has no BundleActivator</td>
+  </tr>
+</table>
+
+<br clear="all"/>
+
+<p>
+Bundles can be selected by clicking.
+</p>
+
+<a name="#view_details"></a>
+<h4>Detail list view</h4>
+To view the installed bundles as a detailed list, select
+<pre>
+View -&gt; Details
+</pre>
+<img src="images/desktop_details.gif" border=1>
+<p>
+Bundles can be selected by clicking.
+</p>
+
+
+<a name="#view_spin"></a>
+<h4>Detail spin view</h4>
+To view the installed bundles as graphics, select
+<pre>
+View -&gt; Spin
+</pre>
+<img src="images/desktop_spin.gif" border=1>
+<p>
+Dependencies between bundles and services are shown as connecting
+lines. Not how the console bundle depends on three other bundles
+in the image above.
+<p>
+Bundles can be selected by clicking.
+</p>
+
+<a name="#view_timeline"></a>
+<h4>Detail spin view</h4>
+To view the installed bundles as a time line, select
+<pre>
+View -&gt; Time line
+</pre>
+<img src="images/desktop_timeline.gif" border=1>
+<p>
+Each bundle has a horizontal line, with bundle events marked for each bundle
+<p>
+Bundles can be selected by clicking.
+</p>
