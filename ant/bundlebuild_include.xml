@@ -176,6 +176,11 @@
  <!-- I.e., packages that are made available throug the system classloader.-->
  <property name = "bundle.stdimports"   value = "java."/>
  
+ <!-- A comma separated list of packages that needs to be imported even -->
+ <!-- though that they are not explicitly referenced. -->
+ <!-- E.g. classes loaded using reflection. -->
+ <property name = "bundle.extraimports"   value = "java."/>
+ 
  <!-- First part of the suffix to inser right before "-jar" in the -->
  <!-- name of jar files to create.                                 -->
  <!-- E.g. The full name of the impl-jar will be on the form:      -->
@@ -449,6 +454,7 @@
   <bundleinfo activator = "bmfa.impl-Bundle-Activator" 
               imports   = "bmfa.impl-Import-Package"
               stdimports        = "${bundle.stdimports}"
+              extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.impl}"
 	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
@@ -538,6 +544,7 @@
   <bundleinfo exports = "bmfa.api-Export-Package" 
               imports = "bmfa.api-Import-Package"
               stdimports        = "${bundle.stdimports}"
+              extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.api}"
 	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
@@ -592,6 +599,7 @@
   <bundleinfo exports = "bmfa.lib-Export-Package" 
               imports = "bmfa.lib-Import-Package"
               stdimports        = "${bundle.stdimports}"
+              extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.lib}"
 	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"
@@ -664,6 +672,7 @@
               imports   = "bmfa.Import-Package"
               exports   = "bmfa.Export-Package"
               stdimports        = "${bundle.stdimports}"
+              extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.all}"
 	      serviceComponent  = "${bmfa.Service-Component}"
               checkFoundationEE = "${ee.check.foundation}"

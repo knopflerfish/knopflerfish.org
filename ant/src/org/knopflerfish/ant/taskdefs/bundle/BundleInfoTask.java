@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -174,6 +174,20 @@ import org.apache.tools.ant.util.StringUtils;
  *  </tr>
  *
  *  <tr>
+ *   <td valign=top>extraimports</td>
+ *   <td valign=top>
+ *       Comma-separated list of package names that must be present
+ *       in the import list even though they are not explicitly
+ *       referenced from the bundles code. E.g., packages from which
+ *       all classes are loaded using reflection.
+ *   </td>
+ *   <td valign=top>
+ *     No.<br>
+ *     Default value is ""
+ *   </td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>checkFoundationEE</td>
  *   <td valign=top>
  *       Flag for testing for the Foundation Execution Environment
@@ -322,6 +336,11 @@ public class BundleInfoTask extends Task {
    * provided by them.
    */
   private Set importSet            = new TreeSet();
+  /**
+   * A set of packages used by the included classes but not
+   * referenced from them.
+   */
+  private Set extraImportSet       = new TreeSet();
 
   private Set classSet             = new TreeSet();
   private Set ownClasses           = new TreeSet();
@@ -368,6 +387,18 @@ public class BundleInfoTask extends Task {
     Vector v = StringUtils.split(packageList.trim(),',');
     importSet.clear();
     importSet.addAll(v);
+  }
+
+
+  /**
+   * Set the extra imports set.
+   *
+   * @param packageList Comma-separated list of package names.
+   */
+  public void setExtraImports(String packageList) {
+    Vector v = StringUtils.split(packageList.trim(),',');
+    extraImportSet.clear();
+    extraImportSet.addAll(v);
   }
 
 
@@ -438,11 +469,11 @@ public class BundleInfoTask extends Task {
       String[] srcDirs = ds.getIncludedDirectories();
 
       for (int j = 0; j < srcFiles.length ; j++) {
-	analyze(new File(fromDir, srcFiles[j]));
+        analyze(new File(fromDir, srcFiles[j]));
       }
 
       for (int j = 0; j < srcDirs.length ; j++) {
-	analyze(new File(fromDir, srcDirs[j]));
+        analyze(new File(fromDir, srcDirs[j]));
       }
     }
 
@@ -474,6 +505,7 @@ public class BundleInfoTask extends Task {
       }
     }
 
+    importSet.addAll(extraImportSet);
     importSet.removeAll(providedSet);
 
     if(!"".equals(importsProperty)) {
@@ -590,65 +622,65 @@ public class BundleInfoTask extends Task {
       String s = (String)it.next();
       if(s.endsWith("[]")) {
       } else {
-	if(!ownClasses.contains(s)) {
-	  if(bPrintClasses) {
-	    System.out.println(s);
-	  }
-	  if(!EE.isFoundation(s)) {
-	    if(!isImported(s)) {
-	      foundationMissing.add(s);
-	    }
-	  }
-	  if(!EE.isMinimum(s)) {
-	    if(!isImported(s)) {
-	      minimumMissing.add(s);
-	    }
-	  }
-	  if(!EE.isSMF(s)) {
-	    if(!isImported(s)) {
-	      smfMissing.add(s);
-	    }
-	  }
-	}
+        if(!ownClasses.contains(s)) {
+          if(bPrintClasses) {
+            System.out.println(s);
+          }
+          if(!EE.isFoundation(s)) {
+            if(!isImported(s)) {
+              foundationMissing.add(s);
+            }
+          }
+          if(!EE.isMinimum(s)) {
+            if(!isImported(s)) {
+              minimumMissing.add(s);
+            }
+          }
+          if(!EE.isSMF(s)) {
+            if(!isImported(s)) {
+              smfMissing.add(s);
+            }
+          }
+        }
       }
     }
 
     if(bCheckFoundationEE) {
       if(foundationMissing.size() > 0) {
-	System.out.println("Missing " + foundationMissing.size() +
-			   " classes from foundation profile");
+        System.out.println("Missing " + foundationMissing.size() +
+                           " classes from foundation profile");
       } else {
-	System.out.println("Passes foundation EE");
+        System.out.println("Passes foundation EE");
       }
       for(Iterator it = foundationMissing.iterator(); it.hasNext();) {
-	String s = (String)it.next();
-	System.out.println("Not in foundation: " + s);
+        String s = (String)it.next();
+        System.out.println("Not in foundation: " + s);
       }
     }
 
     if(bCheckMinimumEE) {
       if(minimumMissing.size() > 0) {
-	System.out.println("Missing " + minimumMissing.size() +
-			   " classes from minimum profile");
+        System.out.println("Missing " + minimumMissing.size() +
+                           " classes from minimum profile");
       } else {
-	System.out.println("Passes minimum EE");
+        System.out.println("Passes minimum EE");
       }
       for(Iterator it = minimumMissing.iterator(); it.hasNext();) {
-	String s = (String)it.next();
-	System.out.println("Not in minimum: " + s);
+        String s = (String)it.next();
+        System.out.println("Not in minimum: " + s);
       }
     }
 
     if(bCheckSMFEE) {
       if(smfMissing.size() > 0) {
-	System.out.println("Missing " + smfMissing.size() +
-			   " classes from SMF profile");
+        System.out.println("Missing " + smfMissing.size() +
+                           " classes from SMF profile");
       } else {
-	System.out.println("Passes SMF EE");
+        System.out.println("Passes SMF EE");
       }
       for(Iterator it = smfMissing.iterator(); it.hasNext();) {
-	String s = (String)it.next();
-	System.out.println("Not in SMF: " + s);
+        String s = (String)it.next();
+        System.out.println("Not in SMF: " + s);
       }
     }
 
@@ -776,7 +808,7 @@ public class BundleInfoTask extends Task {
 
       // ...and only add non-std packages
       if(!isStdImport(name)) {
-	importSet.add(name);
+        importSet.add(name);
       }
     }
 
@@ -787,10 +819,10 @@ public class BundleInfoTask extends Task {
     for(Iterator it = importSet.iterator(); it.hasNext(); ) {
       String pkg = (String)it.next();
       if(className.startsWith(pkg)) {
-	String rest = className.substring(pkg.length() + 1);
-	if(-1 == rest.indexOf(".")) {
-	  return true;
-	}
+        String rest = className.substring(pkg.length() + 1);
+        if(-1 == rest.indexOf(".")) {
+          return true;
+        }
       }
     }
     return false;
@@ -806,7 +838,7 @@ public class BundleInfoTask extends Task {
     for(Iterator it = stdImports.iterator(); it.hasNext();) {
       String s = (String)it.next();
       if(name.startsWith(s)) {
-	return true;
+        return true;
       }
     }
     return false;
@@ -832,7 +864,7 @@ public class BundleInfoTask extends Task {
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to analyze class-file " +
-			       file + ", exception=" + e);
+                               file + ", exception=" + e);
     }
   }
 
@@ -844,7 +876,7 @@ public class BundleInfoTask extends Task {
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to analyze class-file " +
-			       file + ", exception=" + e);
+                               file + ", exception=" + e);
     }
   }
 
@@ -976,29 +1008,29 @@ public class BundleInfoTask extends Task {
       reader = new BufferedReader(new FileReader(file));
 
       while(null != (line = reader.readLine())) {
-	lineNo++;
-	line = line.replace(';', ' ').replace('\t', ' ').trim();
-	
-	if(line.startsWith("package")) {
-	  Vector v = StringUtils.split(line, ' ');
-	  if(v.size() > 1 && "package".equals(v.elementAt(0))) {
-	    String name = (String)v.elementAt(1);
-	    addProvidedPackageString(name);
-	  }
-	}
-	if(line.startsWith("import")) {
-	  Vector v = StringUtils.split(line, ' ');
-	  if(v.size() > 1 && "import".equals(v.elementAt(0))) {
-	    String name = (String)v.elementAt(1);
-	    addImportedString(name);
-	  }
-	}
+        lineNo++;
+        line = line.replace(';', ' ').replace('\t', ' ').trim();
+
+        if(line.startsWith("package")) {
+          Vector v = StringUtils.split(line, ' ');
+          if(v.size() > 1 && "package".equals(v.elementAt(0))) {
+            String name = (String)v.elementAt(1);
+            addProvidedPackageString(name);
+          }
+        }
+        if(line.startsWith("import")) {
+          Vector v = StringUtils.split(line, ' ');
+          if(v.size() > 1 && "import".equals(v.elementAt(0))) {
+            String name = (String)v.elementAt(1);
+            addImportedString(name);
+          }
+        }
       }
     } catch (Exception e) {
       throw new BuildException("Failed to scan " + file + ", err=" + e);
     } finally {
       if(reader != null) {
-	try { reader.close(); } catch (Exception ignored) { }
+        try { reader.close(); } catch (Exception ignored) { }
       }
     }
   }
@@ -1029,11 +1061,10 @@ public class BundleInfoTask extends Task {
       String name = (String)it.next();
       sb.append(name);
       if(it.hasNext()) {
-	sb.append(separator);
+        sb.append(separator);
       }
     }
     return sb.toString();
   }
-
 
 }
