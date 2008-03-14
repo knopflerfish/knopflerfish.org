@@ -10,6 +10,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.axis2_soapclient_adb.BundleActivator
 Bundle-Category: test
 Import-Package: org.osgi.framework,
+ junit.framework,
  javax.xml.namespace,
  javax.xml.stream,
  org.apache.axiom.om,

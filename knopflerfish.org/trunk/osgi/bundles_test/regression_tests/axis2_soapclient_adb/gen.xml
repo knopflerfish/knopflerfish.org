@@ -2,8 +2,9 @@
 
 <project name="gen_axis2_soapclient_adb" default="default">
 
-  <property name="gen.dir"    value="axis2_gen"/>
+  <property name="topdir"     location=".."/>
   <property name="osgi.dir"   location="../../.."/>
+  <property name="gen.dir"    value="axis2_gen"/>
   <property name="axis2-osgi.home"
 	    location="${osgi.dir}/bundles_opt/soap/axis2-osgi"/>
 
@@ -64,8 +65,9 @@
 	 classname="org.knopflerfish.bundle.axis2_soapclient_adb.BundleActivator"
 	 >
      <classpath>
-       <pathelement path="../out/axis2_soapclient_adb/classes"/>
+       <pathelement path="${topdir}/out/axis2_soapclient_adb/classes"/>
        <pathelement location="${osgi.dir}/framework.jar"/>
+       <pathelement location="${topdir}/lib/junit.jar"/>
        <path refid="axis2.class.path"/>
        <path refid="axis2-unbundled.class.path"/>
      </classpath>
