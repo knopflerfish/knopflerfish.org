@@ -73,6 +73,9 @@ Release Notes Knopflerfish @VERSION@
   This bundle is much like the axis-osgi bundle but uses Axis2
   for the actual implementation.
 
+  Note: Th version of the axis2-osgi bundle in this release can not
+        be used with security enabled since it does no start then.
+
 
   Build System
 
