@@ -179,7 +179,7 @@
  <!-- A comma separated list of packages that needs to be imported even -->
  <!-- though that they are not explicitly referenced. -->
  <!-- E.g. classes loaded using reflection. -->
- <property name = "bundle.extraimports"   value = "java."/>
+ <property name = "bundle.extraimports"   value = ""/>
  
  <!-- First part of the suffix to inser right before "-jar" in the -->
  <!-- name of jar files to create.                                 -->
