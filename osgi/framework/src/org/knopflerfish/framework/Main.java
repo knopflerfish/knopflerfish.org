@@ -884,6 +884,35 @@ public class Main {
 
 
   /**
+   * If the last to elements in args "-xargs" or "--xargs" then expand
+   * it with arg as argument and replace the last element in args with
+   * the expansion. Otherwise just add arg to args.
+   * <p>
+   * This expansion is necessarry to allow redefinition of a system
+   * property after inclusion of xargs-file that sets the same property.
+   *
+   * @param args The vector to add elements to.
+   * @param arg  The element to add.
+   */
+  private static void addArg(Vector args, String arg)
+  {
+    if (0==args.size()) {
+      args.addElement(arg);
+    } else {
+      String lastArg = (String) args.lastElement();
+      if ("-xargs".equals(lastArg) || "--xargs".equals(lastArg)) {
+        String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
+        args.removeElementAt(args.size()-1);
+        for (int i=0; i<exArgs.length; i++) {
+          args.addElement(exArgs[i]);
+        }
+      } else {
+        args.addElement(arg);
+      }
+    }
+  }
+
+  /**
    * Helper method when OS shell does not allow long command lines. This
    * method has nowadays become the only reasonable way to start the
    * framework due to the amount of properties.
@@ -1012,17 +1041,17 @@ public class Main {
         } else if(line.startsWith("-")) {
           int i = line.indexOf(' ');
           if (i != -1) {
-            v.addElement(line.substring(0,i));
+            addArg(v, line.substring(0,i));
             line = line.substring(i).trim();
             if(line.length() > 0) {
-              v.addElement(line);
+              addArg(v, line);
             }
           } else {
-            v.addElement(line);
+            addArg(v, line);
           }
         } else if(line.length() > 0) {
           // Add argument
-          v.addElement(line);
+          addArg(v,line);
         }
       }
       setSecurityManager(sysProps);
