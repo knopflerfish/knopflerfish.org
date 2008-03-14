@@ -1,3 +1,629 @@
+2008-03-14 19:20:10 +0100 (Fri, 14 Mar 2008), revision 2277, ekolin
+
+U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
+
+2008-03-14 19:08:03 +0100 (Fri, 14 Mar 2008), revision 2276, ekolin
+The system bundle must not export anything but java.* packages when running as OSGi test target.
+U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
+
+2008-03-14 19:06:26 +0100 (Fri, 14 Mar 2008), revision 2275, ekolin
+Fix xargs parsing in Main so that it is possible to redefine a system property in a xargs file after inclusion of another xargs file that defines the same system property.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+
+2008-03-14 16:41:36 +0100 (Fri, 14 Mar 2008), revision 2274, ekolin
+Added note about axis2-osgi limitations
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-14 16:38:50 +0100 (Fri, 14 Mar 2008), revision 2273, ekolin
+ASM-3.0 have been relaced by ASM-3.1
+U   knopflerfish.org/trunk/osgi/framework/readme.txt
+
+2008-03-14 16:37:22 +0100 (Fri, 14 Mar 2008), revision 2272, ekolin
+More export/import adjustments
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+
+2008-03-14 16:36:39 +0100 (Fri, 14 Mar 2008), revision 2271, ekolin
+ASM 3.0 have been replaced by ASM-3.1
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-03-14 16:36:01 +0100 (Fri, 14 Mar 2008), revision 2270, ekolin
+Added TestSuite to the axis2_soapclient_adb bundle.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/gen.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/axis2_soapclient_adb/Axis2TestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/axis2_soapclient_adb/BundleActivator.java
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/MySoapTestServiceCallbackHandler.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/MySoapTestServiceStub.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build.xml
+
+2008-03-14 16:03:25 +0100 (Fri, 14 Mar 2008), revision 2269, ekolin
+Must read system properties from priviledged code.
+U   knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/src/org/apache/commons/logging/LogFactory.java
+
+2008-03-14 15:21:14 +0100 (Fri, 14 Mar 2008), revision 2268, ekolin
+Wrong default value for bundle.extraimports property.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+
+2008-03-14 14:38:19 +0100 (Fri, 14 Mar 2008), revision 2267, ekolin
+Added property named 'bundle.extraimports' that shall contain a comma separated list of packages that the bundle must import but which are not explicitely referenced from the code in the bundle. E.g., a package from which all classes are loaded using reflection.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+
+2008-03-14 12:13:18 +0100 (Fri, 14 Mar 2008), revision 2266, ekolin
+Added a server and a client bundle that uses Axis2. Remains to add JUnit test suite published by the client.
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/gen.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/axis2_soapclient_adb/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/axis2_soapclient_adb/BundleActivator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/axis2_soapclient_adb/MySoapTestServiceClient_ADB.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/bundle/axis2_soapobject/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/bundle/axis2_soapobject/BundleActivator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/bundle/axis2_soapobject/MySoapTestServiceImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/service/axis2_soapobject/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/service/axis2_soapobject/MyJavaBean.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/src/org/knopflerfish/service/axis2_soapobject/MySoapTestService.java
+
+2008-03-14 12:06:18 +0100 (Fri, 14 Mar 2008), revision 2265, ekolin
+The ant varai
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+
+2008-03-14 10:47:36 +0100 (Fri, 14 Mar 2008), revision 2264, ekolin
+Must export more packages needed by ADB clients.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+
+2008-03-13 13:28:19 +0100 (Thu, 13 Mar 2008), revision 2263, ekolin
+Added info on how to list available web services.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/doc/index.html
+
+2008-03-13 12:10:14 +0100 (Thu, 13 Mar 2008), revision 2262, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-13 11:51:14 +0100 (Thu, 13 Mar 2008), revision 2261, wistrand
+added axis2-osgi bundle
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/doc/index.html
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/conf/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/conf/axis2.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/XmlSchema-1.3.2.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/XmlSchema-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/activation-1.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/activation-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/annogen-0.1.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/annogen-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axiom-api-1.2.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axiom-api-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axiom-dom-1.2.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axiom-dom-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axiom-impl-1.2.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axiom-impl-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-adb-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-clustering-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-codegen-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-fastinfoset-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-java2wsdl-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-jaxbri-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-jaxws-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-jaxws-api-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-jibx-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-json-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-jws-api-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-kernel-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-metadata-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-mtompolicy-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-saaj-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-saaj-api-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-spring-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/axis2-xmlbeans-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/backport-util-concurrent-2.2.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/backport-util-concurrent-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-codec-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-codec-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-fileupload-1.1.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-fileupload-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-httpclient-3.0.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-httpclient-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-io-1.2.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/commons-io-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/geronimo-annotation-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/geronimo-annotation_1.0_spec-1.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/geronimo-jms_1.1_spec-1.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/httpcore-4.0-alpha5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/httpcore-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/httpcore-nio-4.0-alpha5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/httpcore-nio-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/httpcore-niossl-4.0-alpha5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/httpcore-niossl-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jalopy-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jaxb-api-2.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jaxb-api-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jaxb-impl-2.0.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jaxb-impl-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jaxen-1.1.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jaxen-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jettison-1.0-RC1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jettison-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jibx-bind-1.1.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jibx-bind-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jibx-run-1.1.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/jibx-run-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/juli-6.0.10.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/log4j-1.2.14.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/log4j-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/mail-1.4.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/mail-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/mex-impl-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/neethi-2.0.2.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/neethi-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/soapmonitor-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/stax-api-1.0.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/stax-api-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/tribes-6.0.10.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/woden-1.0-incubating-M7b.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/woden-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/wsdl4j-1.6.2.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/wsdl4j-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/wstx-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/wstx-asl-3.2.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/xml-apis-1.3.03.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/xml-apis-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/axis/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/axis/server-config.wsdd
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/addressing-1.3.mar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/axis2-scripting-1.3.mar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/mex-1.3.mar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/modules.list
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/ping-1.3.mar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/soapmonitor-1.3.mar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/Axis2AdminImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/Axis2AdminServlet.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/Axis2Servlet.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/OSGiAxisService.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/OSGiConfigurator.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/SOAPService.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/service/axis2/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/service/axis2/Axis2Admin.java
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/axis2-adb-codegen-1.3.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/commons-logging-1.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/commons-logging-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/jaxb-xjc-2.0.5.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/jaxb-xjc-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xalan-2.7.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xalan-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xbean-2.2.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xbean-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xercesImpl-2.8.1.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xercesImpl-LICENSE.txt
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/build.xml
+
+2008-03-13 09:19:45 +0100 (Thu, 13 Mar 2008), revision 2260, ekolin
+The release notes document now covers all bug fix releases of
+Knopflerfish 2.0.
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-12 17:40:48 +0100 (Wed, 12 Mar 2008), revision 2259, ekolin
+Added bundle doc for SOAP bundles.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/docbuild_include.xml
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/doc/index.html
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/doc/index.html
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/doc/soapclient.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap-osgi/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap-osgi/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap-osgi/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/doc/index.html
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.html
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/doc/index.html
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/readme.txt
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soapclient/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soapobject/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/soapobject/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/soapobject/doc/index.html
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-11 17:00:18 +0100 (Tue, 11 Mar 2008), revision 2258, ekolin
+Ignore export package if value is the special empty token.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+
+2008-03-11 16:50:47 +0100 (Tue, 11 Mar 2008), revision 2257, ekolin
+Bundle doc pages: Remove frameboarders, adjust sizes etc.
+U   knopflerfish.org/trunk/ant/html_template/bundledoc.html
+U   knopflerfish.org/trunk/ant/html_template/bundledoc_ext.html
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+U   knopflerfish.org/trunk/htdocs/css/knopflerfish.css
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_hdr.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_main.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/index.html
+
+2008-03-11 14:13:55 +0100 (Tue, 11 Mar 2008), revision 2256, ekolin
+The methods getLocalAddr(), getLocalName(), getLocalPort() and getRemoteName(), getRemoteAddr(), getRemotePort() in ServletRequest are now fully implemented.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpConfig.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Transaction.java
+
+2008-03-11 11:51:03 +0100 (Tue, 11 Mar 2008), revision 2255, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-03-11 11:48:02 +0100 (Tue, 11 Mar 2008), revision 2254, ekolin
+Use a default version number that indicates a direct build from the SVN-repository.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-03-11 10:31:53 +0100 (Tue, 11 Mar 2008), revision 2253, ekolin
+Move log-doc to where it belongs
+U   knopflerfish.org/trunk/osgi/bundles/log/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/doc/index.html
+
+2008-03-10 20:07:15 +0100 (Mon, 10 Mar 2008), revision 2252, cl
+Spelling errors
+U   knopflerfish.org/trunk/htdocs/html_src/components_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/desktop_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/download_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/eclipse_install.html
+U   knopflerfish.org/trunk/htdocs/html_src/eclipse_plugin_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/eclipse_preferences.html
+U   knopflerfish.org/trunk/htdocs/html_src/license.html
+U   knopflerfish.org/trunk/htdocs/html_src/programming_main.html
+
+2008-03-10 18:06:15 +0100 (Mon, 10 Mar 2008), revision 2251, ekolin
+Add link for new bundledoc to release page template.
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-03-10 17:51:24 +0100 (Mon, 10 Mar 2008), revision 2250, cl
+bundle_doc is now build as part of KF distrib + added some more bundle_doc section. Available in distrib under Bundle User Documentation
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+U   knopflerfish.org/trunk/ant/docbuild_include.xml
+U   knopflerfish.org/trunk/ant/html_template/bundledoc.html
+A   knopflerfish.org/trunk/ant/html_template/bundledoc_ext.html
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/css/knopflerfish.css
+A   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/
+A   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_hdr.html
+A   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
+A   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_main.html
+A   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/index.html
+U   knopflerfish.org/trunk/htdocs/html_templates/template.html
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/console/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/http/http/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/log/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/log/doc/
+A   knopflerfish.org/trunk/osgi/bundles/log/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/logcommands/doc/
+A   knopflerfish.org/trunk/osgi/bundles/logcommands/doc/index.html
+
+2008-03-07 18:36:56 +0100 (Fri, 07 Mar 2008), revision 2249, wistrand
+simple support for chunked POST requests as used by Axis2 clients
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HeaderBase.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestBase.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestImpl.java
+
+2008-03-07 15:37:22 +0100 (Fri, 07 Mar 2008), revision 2248, ekolin
+More User-Agent name improvements.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/bundle/bundlerepository/BundleRepositoryServiceImpl.java
+
+2008-03-07 15:31:11 +0100 (Fri, 07 Mar 2008), revision 2247, ekolin
+Make the User-Agent name fully dynamic, based on bundle symbolict name
+and version.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/bundle/bundlerepository/BundleRepositoryServiceImpl.java
+
+2008-03-07 14:06:40 +0100 (Fri, 07 Mar 2008), revision 2246, ekolin
+Set up User-Agent when downloading the repository description.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/bundle/bundlerepository/BundleRepositoryServiceImpl.java
+
+2008-03-06 17:11:23 +0100 (Thu, 06 Mar 2008), revision 2245, wistrand
+removed throws BundleException and added stacktrace printouts
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soapobject/src/org/knopflerfish/bundle/soapobject/RemoteAgent.java
+
+2008-03-06 16:36:10 +0100 (Thu, 06 Mar 2008), revision 2244, ekolin
+Compute a default host name equal to the hosts numeric IP-address on string form for the default HTTP configuration if one have not already been defined via the system property org.osgi.service.http.hostname.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpConfig.java
+
+2008-03-06 10:39:24 +0100 (Thu, 06 Mar 2008), revision 2243, ekolin
+Change the default set of packages exported by the system bundle, declared in props.xars to be all packages according to the specification of the JRE executing the framework. If such a specificaiton is missing for the current JRE version proceed anyhow.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/trunk/osgi/props.xargs
+
+2008-03-05 16:20:22 +0100 (Wed, 05 Mar 2008), revision 2242, ekolin
+Axis-OSGi: Added generation of bean mapping elements for non-standard parameter types to the WSDD for services exported by ObjectSOAPService to Axis.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/src/org/knopflerfish/axis/ObjectSOAPService.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-05 14:22:27 +0100 (Wed, 05 Mar 2008), revision 2241, ekolin
+Updates Servlet API to version 2.5 (provided by jsdk_api-2.5.jar), updated http impl to use Servlet API 2.5.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LargeIconsDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HeaderBase.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpSessionImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpUtil.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestBase.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestWrapper.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseWrapper.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ServletContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httproot/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/jsdk/.bundle-pack
+U   knopflerfish.org/trunk/osgi/bundles/jsdk/.classpath
+U   knopflerfish.org/trunk/osgi/bundles/jsdk/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/jsdk/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles/jsdk/resources/LICENSE
+D   knopflerfish.org/trunk/osgi/bundles/jsdk/resources/servlet.jar
+D   knopflerfish.org/trunk/osgi/bundles/jsdk/src/dummy
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/Filter.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/FilterChain.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/FilterConfig.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/GenericServlet.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/LocalStrings.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/LocalStrings_fr.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/LocalStrings_ja.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/RequestDispatcher.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/Servlet.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletConfig.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletContext.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletContextAttributeEvent.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletContextAttributeListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletContextEvent.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletContextListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletException.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletInputStream.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletOutputStream.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletRequest.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletRequestAttributeEvent.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletRequestAttributeListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletRequestEvent.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletRequestListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletRequestWrapper.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletResponse.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/ServletResponseWrapper.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/SingleThreadModel.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/UnavailableException.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/Cookie.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpServlet.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpServletRequest.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpServletRequestWrapper.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpServletResponse.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpServletResponseWrapper.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSession.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionActivationListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionAttributeListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionBindingEvent.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionBindingListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionContext.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionEvent.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpSessionListener.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/HttpUtils.java
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/LocalStrings.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/LocalStrings_es.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/LocalStrings_fr.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/LocalStrings_ja.properties
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/http/package.html
+A   knopflerfish.org/trunk/osgi/bundles/jsdk/src/javax/servlet/package.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/jini/jinidriver/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/howto.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/componentA_test/src/org/knopflerfish/bundle/componentA_test/ComponentP.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/http_test/build.xml
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/http_api-2.0.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/http_api-2.1.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/jsdk_api-2.5.jar
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/servlet.jar
+U   knopflerfish.org/trunk/osgi/init-tests.xargs
+U   knopflerfish.org/trunk/osgi/template.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-04 00:38:32 +0100 (Tue, 04 Mar 2008), revision 2240, cl
+Corrected log messages
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+
+2008-03-03 15:03:15 +0100 (Mon, 03 Mar 2008), revision 2239, cl
+Added bundle_doc task + added some basic doc/index.html files
+A   knopflerfish.org/trunk/osgi/bundles/http/http/doc/
+A   knopflerfish.org/trunk/osgi/bundles/http/http/doc/index.html
+
+2008-03-03 15:00:09 +0100 (Mon, 03 Mar 2008), revision 2238, cl
+Added bundle_doc task + added some basic doc/index.html files
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+A   knopflerfish.org/trunk/ant/docbuild_include.xml
+A   knopflerfish.org/trunk/ant/html_template/bundledoc.html
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/console/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/console/console/doc/
+A   knopflerfish.org/trunk/osgi/bundles/console/console/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/doc/
+A   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/doc/
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/doc/index.html
+U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
+
+2008-02-28 14:06:32 +0100 (Thu, 28 Feb 2008), revision 2236, ekolin
+Ported fix of a double checked lock problem from kf_1_support.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionsWrapper.java
+
+2008-02-28 13:39:30 +0100 (Thu, 28 Feb 2008), revision 2235, ekolin
+Minor rewrite of FrameworkPolicy to use reflection so that it works on pre JDK 1.4 JREs. Also fixed the AutoManifest class and ClassPatcher so that thehy no longer requires that RuntimeExcpetion can hold a another excpetion (another JDK 1.4 feature).
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/AutoManifest.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ClassPatcher.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/FrameworkPolicy.java
+
+2008-02-27 15:44:40 +0100 (Wed, 27 Feb 2008), revision 2232, ekolin
+Made the usage of doPrivileged() in the framework debug printouts configurable via s system property: org.knopflerfish.framework.debug.print_with_do_privileged
+U   knopflerfish.org/trunk/osgi/framework/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-02-22 18:55:22 +0100 (Fri, 22 Feb 2008), revision 2230, ekolin
+Updated to work with KF 2.0.*
+_U  knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/src/org/knopflerfish/test/framework/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/src/org/knopflerfish/test/framework/TestFW.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/src/org/knopflerfish/test/framework/TimedTask.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/timingtests.sh
+
+2008-02-21 14:57:25 +0100 (Thu, 21 Feb 2008), revision 2229, ekolin
+Allow absolute paths in system property org.knopflerfish.gosg.jars when setting the initial directory for the desktops add jar file chooser.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-02-21 14:28:26 +0100 (Thu, 21 Feb 2008), revision 2228, ekolin
+Start install file dialog in the default jars-directory if available otherwise in the current working directory (workaround for MacOSX limitation).
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+
+2008-02-21 14:26:44 +0100 (Thu, 21 Feb 2008), revision 2227, ekolin
+Clean must also remove locally built ant tasks.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-02-21 11:09:26 +0100 (Thu, 21 Feb 2008), revision 2226, wistrand
+removed COMPUTE_FRAMES directive to fix axis incompatability
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ClassPatcher.java
+
+2008-02-21 11:07:39 +0100 (Thu, 21 Feb 2008), revision 2225, wistrand
+updated ASM library to version 3.1
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+D   knopflerfish.org/trunk/osgi/framework/libs/asm-3.0.jar
+A   knopflerfish.org/trunk/osgi/framework/libs/asm-3.1.jar
+
+2008-02-18 16:49:18 +0100 (Mon, 18 Feb 2008), revision 2224, ekolin
+Change the default value for the system property org.knopflerfish.servicereference.valid.during.unregistering to true as adviced by CPEG.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-02-18 14:46:23 +0100 (Mon, 18 Feb 2008), revision 2223, ekolin
+Add unit tests that excercises component properties of all possible types.
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Parser.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/componentA_test/resources/service.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+
+2008-02-18 14:45:22 +0100 (Mon, 18 Feb 2008), revision 2222, ekolin
+Extend to handle properties with values that are arrays of primitive types.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+
+2008-02-17 11:48:45 +0100 (Sun, 17 Feb 2008), revision 2221, ekolin
+Fix for issue [1895316]; component.id not amongst the published properties on a component based service.
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-02-16 20:40:12 +0100 (Sat, 16 Feb 2008), revision 2220, ekolin
+Fix a class cast exception when parsing non-string array-valued properties in the Component Service impl.
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Parser.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-02-16 12:19:34 +0100 (Sat, 16 Feb 2008), revision 2219, ekolin
+Added unit and file attributes to the byteformatter, print value using three digits of precision.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+U   knopflerfish.org/trunk/build.xml
+
+2008-02-15 15:46:04 +0100 (Fri, 15 Feb 2008), revision 2218, ekolin
+Added a simple formation of the file sized on the release page as k/M/G/T byte to inrease readability.
+A   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+U   knopflerfish.org/trunk/build.xml
+
+2008-02-08 11:11:11 +0100 (Fri, 08 Feb 2008), revision 2217, ekolin
+Fix URL to jars directory in remote xargs-files so that it works for nightly-builds too.
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-02-08 10:50:41 +0100 (Fri, 08 Feb 2008), revision 2216, ekolin
+Knopflerfish 2.0.4 released, prepare for the next release.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-02-08 10:22:19 +0100 (Fri, 08 Feb 2008), revision 2214, ekolin
+Update changelog.txt for the 2.0.4 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2008-02-07 20:40:30 +0100 (Thu, 07 Feb 2008), revision 2213, ekolin
 Wrong token value for a filterset
 U   knopflerfish.org/trunk/build.xml
