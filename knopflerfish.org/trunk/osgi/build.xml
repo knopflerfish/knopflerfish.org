@@ -151,13 +151,32 @@
   </java>
  </target>
 
- <target name="run-init"
-         description="Clean start the framework with default set of bundles.">
+ <target name="run-secure"
+         description="(Re)start framework with default set of bundles.">
   <java fork="true"
         jar="framework.jar"
   >
-     <arg value="-init"/>
+    <jvmarg value="-Djava.security.manager"/>
+    <jvmarg value="-Djava.security.policy=framework.policy"/>
   </java>
+ </target>
+
+ <target name="run-init"
+         description="Clean start the framework with default set of bundles.">
+   <java fork="true"
+         jar="framework.jar" >
+     <arg value="-init"/>
+   </java>
+ </target>
+
+ <target name="run-secure-init"
+         description="(Re)start framework with default set of bundles.">
+   <java fork="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-init"/>
+   </java>
  </target>
 
  <target name="run-osgi-test-target"
@@ -190,6 +209,7 @@
  </target>
 
  <target name="run-kf-tests-bare">
+   <delete dir="junit_grunt"/>
    <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <!-- Run most of the test suites. -->
@@ -199,6 +219,15 @@
          jar="framework.jar">
      <arg value="-xargs"/>
      <arg value="init-tests.xargs"/>
+   </java>
+   <!-- Run Axis2 client test. -->
+   <echo message="Running the SOAP-Axis2TestSuite..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+         jar="framework.jar">
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
    </java>
    <!-- Set up for the restart test suite. -->
    <echo message="Running the restart test suite, part 1..."/>
@@ -232,7 +261,8 @@
  </target>
 
  <target name="run-kf-tests-secure-bare">
-   <mkdir dir="junit_grunt"/>
+   <delete dir="junit_grunt"/>
+   <mkdir  dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <java fork="true"
 	 output="junit_grunt/out.txt"
@@ -242,6 +272,17 @@
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-xargs"/>
      <arg value="init-tests.xargs"/>
+   </java>
+   <!-- Run Axis2 client test. -->
+   <echo message="Running the SOAP-Axis2TestSuite..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
    </java>
    <!-- Set up for the restart test suite. -->
    <echo message="Running the restart test suite, part 1..."/>
