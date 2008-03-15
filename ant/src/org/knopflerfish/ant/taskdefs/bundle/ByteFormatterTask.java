@@ -38,8 +38,8 @@ import org.apache.tools.ant.Task;
 
 
 /**
- * Set a property to to a formated file size in k (kilo byte), M (Mega
- * byte) etc.
+ * Sets a property to a formated value in k, M, G, ... with an
+ * optional unit.
  * <p>
  *
  * <h3>Parameters</h3>
@@ -58,7 +58,7 @@ import org.apache.tools.ant.Task;
  *  </tr>
  *  <tr>
  *    <td valign="top">unit</td>
- *    <td valign="top">The unit append to the formated value. E.g., byte</td>
+ *    <td valign="top">The unit to append to the formated value. E.g., byte</td>
  *    <td valign="top" align="center">
  *      No, default is the empty string.</td>
  *  </tr>
@@ -70,7 +70,7 @@ import org.apache.tools.ant.Task;
  *  </tr>
  *  <tr>
  *    <td valign="top">file</td>
- *    <td valign="top">The file of get the size of and format.</td>
+ *    <td valign="top">The file whose size is the value to format.</td>
  *    <td valign="top" align="center">
  *      One of value and file must be given.</td>
  *  </tr>
@@ -91,7 +91,8 @@ import org.apache.tools.ant.Task;
  * </pre>
  *
  *
- * <h4>Format the size of a file as bytes</h4>
+ * <h4>Format the size of the file <tt>archive.jar</tt> appending the
+ * unit <tt>B</tt></h4>
  *
  * <pre>
  *  &lt;byteformatter file="archive.jar"
@@ -145,7 +146,7 @@ public class ByteFormatterTask extends Task {
 
   private File file;
   /**
-   * Set the file to get the size of and format
+   * Set the file to get the size of as the the value to format.
    *
    * @param file the file to return a formated file size for.
    */
@@ -159,7 +160,7 @@ public class ByteFormatterTask extends Task {
   static final long step = 1024;
 
   /**
-   * Create or update the Manifest when used as a task.
+   * Format value using k, M, G, ... using multiples of 1024.
    *
    * @throws BuildException if the manifest cannot be written.
    */
@@ -176,23 +177,24 @@ public class ByteFormatterTask extends Task {
     }
 
     long i = value/factor;    // Integral part of reduced value
-    long r = value -i*factor; // Remainded.
-
-    formatedValue = formatValue(i, r/(factor/step));
+    long r = value -i*factor; // Remainder.
+    // Convert r to a decimal fraction
+    double fraction  = ((double) r)/((double) factor);
+    formatedValue = formatValue(i, fraction);
 
     Project project = getProject();
     project.setProperty(property, formatedValue +suffixes[ix] +unit);
   }
 
-  private String formatValue( long integral, long fraction)
+  private String formatValue( long integral, double fraction)
   {
     String res = String.valueOf(integral);
-    if (integral<10) {
-      long dec = fraction/10;
+    if (integral<10) { // Append two digits from the fraction
+      int dec = (int) (fraction*100);
       res = res +"." +(dec<10?"0":"") +String.valueOf(dec);
-    } else if (integral<100) {
-      long dec = fraction;
-      res = res +"." +(dec<100?"0":"") +(dec<10?"0":"") +String.valueOf(dec);
+    } else if (integral<100) { // Append one digit from the fraction
+      int dec = (int) (fraction*10);
+      res = res +"." +String.valueOf(dec);
     }
     return res;
   }
