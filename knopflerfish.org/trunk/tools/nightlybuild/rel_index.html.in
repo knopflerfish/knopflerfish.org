@@ -136,9 +136,8 @@
 		  <td>
 		      A set of optional bundles, including SOAP
 		      support for any OSGi service. See 
-		      <a href="https://www.knopflerfish.org/svn/knopflerfish.org/@TAG@/osgi/bundles_opt/soap/readme.html">
-		      SOAP readme</a> for details. Also includes
-		      support for OSGi <a
+		      <a href="bundledoc">Bundle User Documentation</a>
+		      for details. Also includes support for OSGi <a
 		      href="http://www.knopflerfish.org/XMLMetatype">
 		      Metatype</a> data and a desktop UI for CM. This
 		      download should be installed on top of a
