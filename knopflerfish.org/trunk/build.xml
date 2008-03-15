@@ -52,7 +52,7 @@
 
   <property environment="sysprops"/>
 
-  <property name = "bcel.version"        value    = "5.1"/>
+  <property name = "bcel.version"        value    = "5.2"/>
 
   <property name = "ee.check.foundation"   value = "true"/>
 
