@@ -837,13 +837,16 @@ class BundleImpl implements Bundle {
   }
 
 
-  private void getClassLoader0() {
-    classLoader = (BundleClassLoader)
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            return new BundleClassLoader(bpkgs, archive);
-          }
-        });
+  private ClassLoader getClassLoader0() {
+    if (classLoader == null) {
+      classLoader = (BundleClassLoader)
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              return new BundleClassLoader(bpkgs, archive);
+            }
+          });
+    }
+    return classLoader;
   }
 
   /**
@@ -854,16 +857,13 @@ class BundleImpl implements Bundle {
     if (Framework.isDoubleCheckedLockingSafe) {
       if (classLoader == null) {
         synchronized (this) {
-          getClassLoader0();
+          return getClassLoader0();
         }
       }
       return classLoader;
     } else {
       synchronized(this) {
-        if (classLoader == null) {
-          getClassLoader0();
-        }
-        return classLoader;
+        return getClassLoader0();
       }
     }
   }

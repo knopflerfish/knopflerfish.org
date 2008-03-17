@@ -128,12 +128,39 @@
   </javadoc>
  </target>
  
- <target name="run">
-  <java fork="true"
-        jar="out/framework/framework.jar"
->
-  </java>
+ <target name="run"
+         description="(Re)start the framework.">
+   <java fork="true"
+         jar="out/framework/framework.jar">
+   </java>
  </target>
+ <target name="run-secure"
+         description="(Re)start framework with security enabled.">
+   <java fork="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+   </java>
+ </target>
+
+ <target name="run-init"
+         description="Initial start with default set of bundles.">
+   <java fork="true"
+         jar="framework.jar" >
+     <arg value="-init"/>
+   </java>
+ </target>
+
+ <target name="run-secure-init"
+         description="Initial start with security enabled and default set of bundles.">
+   <java fork="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-init"/>
+   </java>
+ </target>
+
 
  <target name="run-kf-tests"
          description="Builds then executes the KF testsuite."

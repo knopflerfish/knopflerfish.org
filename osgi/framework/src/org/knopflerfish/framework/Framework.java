@@ -230,8 +230,16 @@ public class Framework {
     }
   }
 
-  static boolean isDoubleCheckedLockingSafe
-    = javaVersionMajor>=1 && javaVersionMinor>=5;;
+  /**
+   * Is it safe to use double-checked locking or not.
+   * It is safe if JSR 133 is included in the running JRE.
+   * I.e., for Java SE if version is 1.5 or higher.
+   */
+  final static boolean isDoubleCheckedLockingSafe
+    = "true".equals(System.getProperty
+                    ("org.knopflerfish.framework.is_doublechecked_locking_safe",
+                     (javaVersionMajor>=1 && javaVersionMinor>=5
+                      ? "true" : "false")));
 
   /**
    * Contruct a framework.
