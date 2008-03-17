@@ -96,12 +96,14 @@ class PermissionsWrapper extends PermissionCollection {
   }
 
   private PermissionCollection getPerms0() {
-    PermissionCollection p = makePermissionCollection(bundle);
-    if (readOnly) {
-      p.setReadOnly();
+    if (permissions == null) {
+      PermissionCollection p = makePermissionCollection(bundle);
+      if (readOnly) {
+        p.setReadOnly();
+      }
+      permissions = p;
     }
-    permissions = p;
-    return p;
+    return permissions;
   }
 
   private PermissionCollection getPerms() {
@@ -114,10 +116,7 @@ class PermissionsWrapper extends PermissionCollection {
       return permissions;
     } else {
       synchronized(this) {
-        if (permissions == null) {
-          return getPerms0();
-        }
-        return permissions;
+        return getPerms0();
       }
     }
   }

@@ -99,11 +99,11 @@ public class Debug {
    * When security is enabled, use a doPrivileged() around
    * the actual call to System.out.println() to allow for PrintStream
    * implementations that does not handle the case with limited
-   * priviledges themselfs.
+   * privileges them self.
    */
   static boolean use_do_privilege
     = System.getSecurityManager() != null
-    && "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
+    && "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","false"));
 
 
   /**
