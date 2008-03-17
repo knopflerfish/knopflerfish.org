@@ -298,6 +298,15 @@ Framework System Properties
      Default: false
 
 
+   org.knopflerfish.framework.is_doublechecked_locking_safe
+     Is it safe to use double-checked locking or not.
+     It is safe if JSR 133 is included in the running JRE. I.e., for
+     Java SE if version is 1.5 or higher.
+
+     Default: true if value of the system property java.version >= 1.5,
+              false otherwise
+
+
    org.knopflerfish.verbosity
      Framework verbosity level. 0 means few messages
      Default: 0

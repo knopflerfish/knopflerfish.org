@@ -124,7 +124,7 @@ public class Framework {
    * The start level service.
    */
   StartLevelImpl startLevelService;
- 
+
 
   /**
    * Factory for handling service-based URLs
@@ -164,7 +164,7 @@ public class Framework {
 
 
   static boolean bIsMemoryStorage /*= false*/;
-  
+
   private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
   /**
@@ -174,7 +174,7 @@ public class Framework {
   private final static String BOOT_CLASSPATH_FILE = "boot";
   private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
 
-  /** Cached value of 
+  /** Cached value of
    * System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
@@ -236,9 +236,16 @@ public class Framework {
     }
   }
 
-  public static final boolean isDoubleCheckedLockingSafe
-    = javaVersionMajor>=1 && javaVersionMinor>=5;;
-
+  /**
+   * Is it safe to use double-checked locking or not.
+   * It is safe if JSR 133 is included in the running JRE.
+   * I.e., for Java SE if version is 1.5 or higher.
+   */
+  public final static boolean isDoubleCheckedLockingSafe
+    = "true".equals(System.getProperty
+                    ("org.knopflerfish.framework.is_doublechecked_locking_safe",
+                     (javaVersionMajor>=1 && javaVersionMinor>=5
+                      ? "true" : "false")));
 
   /**
    * Contruct a framework.
@@ -246,7 +253,7 @@ public class Framework {
    */
   public Framework(Object m) throws Exception {
 
-    String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." + 
+    String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
       System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
 
@@ -259,7 +266,7 @@ public class Framework {
     } else {
       SUPPORTS_EXTENSION_BUNDLES = true;
     }
-    
+
     String ver = System.getProperty("os.version");
     if (ver != null) {
       int dots = 0;
@@ -277,7 +284,7 @@ public class Framework {
       }
       osVersion = ver.substring(0, i);
     }
-        
+
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
       try {
@@ -298,7 +305,7 @@ public class Framework {
 
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
-    
+
     listeners         = new Listeners(perm);
     services          = new Services(perm);
 
@@ -315,7 +322,7 @@ public class Framework {
 		      classes,
 		      new PackageAdminImpl(this),
 		      null);
-    
+
     registerStartLevel();
 
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
@@ -327,13 +334,13 @@ public class Framework {
     urlStreamHandlerFactory
       .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
 			   new ReferenceURLStreamHandler());
-    
+
     // Install service based URL stream handler. This can be turned
     // off if there is need
     if(REGISTERSERVICEURLHANDLER) {
       try {
         URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
-        
+
         URLConnection.setContentHandlerFactory(contentHandlerFactory);
       } catch (Throwable e) {
         Debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
@@ -341,7 +348,7 @@ public class Framework {
       }
     }
     bundles.load();
-    
+
     mainHandle = m;
   }
 
@@ -367,7 +374,7 @@ public class Framework {
     }
   }
 
-  
+
   /**
    * Start this Framework.
    * This method starts all the bundles that were started at
@@ -413,7 +420,7 @@ public class Framework {
       }
       systemBundle.systemActive();
 
-      // start level open is delayed to this point to 
+      // start level open is delayed to this point to
       // correctly work at restart
       if (startLevelService != null) {
         startLevelService.open();
@@ -468,7 +475,7 @@ public class Framework {
 	  listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, be));
 	}
       }
-      shuttingdown = false; 
+      shuttingdown = false;
       // Purge any unrefreshed bundles
       List all = bundles.getBundles();
       for (Iterator i = all.iterator(); i.hasNext(); ) {
@@ -685,22 +692,22 @@ public class Framework {
    */
   public static String getProperty(String key) {
     if (Constants.FRAMEWORK_VERSION.equals(key)) {
-      // The version of the framework. 
+      // The version of the framework.
       return SPEC_VERSION;
     } else if (Constants.FRAMEWORK_VENDOR.equals(key)) {
-      // The vendor of this framework implementation. 
+      // The vendor of this framework implementation.
       return "Knopflerfish";
     } else if (Constants.FRAMEWORK_LANGUAGE.equals(key)) {
-      // The language being used. See ISO 639 for possible values. 
+      // The language being used. See ISO 639 for possible values.
       return Locale.getDefault().getLanguage();
     } else if (Constants.FRAMEWORK_OS_NAME.equals(key)) {
-      // The name of the operating system of the hosting computer. 
+      // The name of the operating system of the hosting computer.
       return osName;
     } else if (Constants.FRAMEWORK_OS_VERSION.equals(key)) {
-      // The version number of the operating system of the hosting computer. 
+      // The version number of the operating system of the hosting computer.
       return osVersion;
     } else if (Constants.FRAMEWORK_PROCESSOR.equals(key)) {
-      // The name of the processor of the hosting computer. 
+      // The name of the processor of the hosting computer.
       return osArch;
     } else if (Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE.equals(key)) {
       return TRUE;
@@ -714,7 +721,7 @@ public class Framework {
       return System.getProperty(key);
     }
   }
-  
+
   public static Dictionary getProperties(){
     Dictionary props = System.getProperties();
     props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
