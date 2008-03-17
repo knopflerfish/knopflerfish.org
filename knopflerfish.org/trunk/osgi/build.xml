@@ -144,25 +144,23 @@
  </target>
  
  <target name="run"
-         description="(Re)start framework with default set of bundles.">
+         description="(Re)start the framework.">
   <java fork="true"
-        jar="framework.jar"
-  >
+        jar="framework.jar">
   </java>
  </target>
 
  <target name="run-secure"
-         description="(Re)start framework with default set of bundles.">
+         description="(Re)start framework with security enabled.">
   <java fork="true"
-        jar="framework.jar"
-  >
+        jar="framework.jar">
     <jvmarg value="-Djava.security.manager"/>
     <jvmarg value="-Djava.security.policy=framework.policy"/>
   </java>
  </target>
 
  <target name="run-init"
-         description="Clean start the framework with default set of bundles.">
+         description="Initial start with default set of bundles.">
    <java fork="true"
          jar="framework.jar" >
      <arg value="-init"/>
@@ -170,7 +168,7 @@
  </target>
 
  <target name="run-secure-init"
-         description="(Re)start framework with default set of bundles.">
+         description="Initial start with security enabled and default set of bundles.">
    <java fork="true"
          jar="framework.jar">
      <jvmarg value="-Djava.security.manager"/>

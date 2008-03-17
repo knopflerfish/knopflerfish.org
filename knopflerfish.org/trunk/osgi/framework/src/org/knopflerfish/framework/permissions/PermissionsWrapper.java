@@ -157,12 +157,14 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   private PermissionCollection getPerms0() {
-    PermissionCollection p = makePermissionCollection();
-    if (readOnly) {
-      p.setReadOnly();
+    if (systemPermissions == null) {
+      PermissionCollection p = makePermissionCollection();
+      if (readOnly) {
+        p.setReadOnly();
+      }
+      systemPermissions = p;
     }
-    systemPermissions = p;
-    return p;
+    return systemPermissions;
   }
 
   private PermissionCollection getPerms() {
@@ -175,10 +177,7 @@ public class PermissionsWrapper extends PermissionCollection {
       return systemPermissions;
     } else {
       synchronized(this) {
-        if (systemPermissions==null) {
-          return getPerms0();
-        }
-        return systemPermissions;
+        return getPerms0();
       }
     }
   }
