@@ -9,6 +9,7 @@
 	    location="${osgi.dir}/bundles_opt/soap/axis2-osgi"/>
 
   <!-- The URI to download the WSDL from -->
+  <property name="ws.file"    location="MySoapTestService.xml"/>
   <property name="ws.host"    value="localhost"/>
   <property name="ws.port"    value="8080"/>
   <property name="ws.path"    value="/axis2/services/MySoapTestService"/>
@@ -34,14 +35,15 @@
 
  <target name="default" depends="gen,install,clean"/>
 
- <target name="gen" description="Generate ADB style client">
+ <target name="gen"
+	 description="Generate ADB style client with unwrapped params.">
   <java fork="true"
 	classname="org.apache.axis2.wsdl.WSDL2Java"
 	classpathref="axis2.gen.class.path"
   >
     <jvmarg value="-Daxis2.xml=${axis2-osgi.home}/resources/WEB-INF/conf/axis2.xml"/>
     <jvmarg value="-Daxis2.repo=${axis2-osgi.home}/resources"/>
-    <arg line="-uri '${ws.uri}?wsdl' -p ${ws.pkg} -o ${gen.dir}"/>
+    <arg line="-uri ${ws.file} -d adb -uw -p ${ws.pkg} -o ${gen.dir}"/>
   </java>
  </target>
 
@@ -57,6 +59,10 @@
   <delete dir="${gen.dir}"/>
  </target>
 
+
+ <target name="get" description="Downloads the WSDL from the server.">
+    <get src="${ws.uri}?wsdl" dest="${ws.file}"/>
+ </target>
 
  <target name="run" description="Execute as stand alone client.">
    <!-- Ensure that the client have been built -->

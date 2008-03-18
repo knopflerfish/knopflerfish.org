@@ -36,8 +36,7 @@
     <pathelement location="${topdir}/lib/junit.jar"/>
   </path>
 
-  <!-- This requires that the axis2_soapobject bundle is up and running. -->
-  <!-- <property name="do.bundle.custom.pre" value="true"/> -->
+  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <ant antfile="gen.xml"/>
   </target>
@@ -47,6 +46,12 @@
   </target>
 
   &bundlebuild_include;
+
+  <!-- This requires that the axis2_soapobject bundle is up and running. -->
+ <target name="get"
+	 description="Downloads the WSDL from the server.">
+   <ant antfile="gen.xml" target="get"/>
+ </target>
 
   <!-- This requires that the axis2_soapobject bundle is up and running. -->
  <target name="run" description="Execute as stand alone client.">
