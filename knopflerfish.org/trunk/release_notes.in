@@ -15,6 +15,10 @@ Release Notes Knopflerfish @VERSION@
 === Misc (KF specific, start scripts, build system etc ===
 
 
+  Axis2-OSGi
+
+  Now also works with security enabled.
+
 
 
 ========================================================================
@@ -95,7 +99,7 @@ Release Notes Knopflerfish 2.0.5
   This bundle is much like the axis-osgi bundle but uses Axis2
   for the actual implementation.
 
-  Note: Th version of the axis2-osgi bundle in this release can not
+  Note: The version of the axis2-osgi bundle in this release can not
         be used with security enabled since it does no start then.
 
 
