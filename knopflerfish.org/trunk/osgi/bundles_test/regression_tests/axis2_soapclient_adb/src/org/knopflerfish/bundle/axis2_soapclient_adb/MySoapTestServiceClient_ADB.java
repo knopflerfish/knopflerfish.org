@@ -52,12 +52,15 @@ public class MySoapTestServiceClient_ADB {
     }
   }
 
-
+  // This client assumes that the stub was generated using the option
+  // "-uw" for unwrapp parameters. The commented out code below is
+  // what you need to type if parameter unwrapping is not used.
   public String getName()
   {
     try {
-      MySoapTestServiceStub.GetNameResponse res = stub.getName();
-      return res.get_return();
+      //MySoapTestServiceStub.GetNameResponse res = stub.getName();
+      //return res.get_return();
+      return stub.getName();
     } catch (Exception e) {
       System.err.println("getName() failed: " +e.getMessage());
       e.printStackTrace();
@@ -67,13 +70,14 @@ public class MySoapTestServiceClient_ADB {
 
   public int add(int a, int b)
   {
-    MySoapTestServiceStub.Add req = new MySoapTestServiceStub.Add();
-    req.setParam0(a);
-    req.setParam1(b);
+    //MySoapTestServiceStub.Add req = new MySoapTestServiceStub.Add();
+    //req.setParam0(a);
+    //req.setParam1(b);
 
     try {
-      MySoapTestServiceStub.AddResponse res = stub.add(req);
-      return res.get_return();
+      //MySoapTestServiceStub.AddResponse res = stub.add(req);
+      //return res.get_return();
+      return stub.add(a,b);
     } catch (Exception e) {
       System.err.println("add("+a+","+b+") failed: " +e.getMessage());
       e.printStackTrace();
@@ -83,13 +87,14 @@ public class MySoapTestServiceClient_ADB {
 
   public int[] addToAll(int a, int b[])
   {
-    MySoapTestServiceStub.AddToAll req = new MySoapTestServiceStub.AddToAll();
-    req.setParam0(a);
-    req.setParam1(b);
+    //MySoapTestServiceStub.AddToAll req = new MySoapTestServiceStub.AddToAll();
+    //req.setParam0(a);
+    //req.setParam1(b);
 
     try {
-      MySoapTestServiceStub.AddToAllResponse res = stub.addToAll(req);
-      return res.get_return();
+      //MySoapTestServiceStub.AddToAllResponse res = stub.addToAll(req);
+      //return res.get_return();
+      return stub.addToAll(a,b);
     } catch (Exception e) {
       System.err.println("addToAll("+a+","+b+") failed: " +e.getMessage());
       e.printStackTrace();
@@ -99,13 +104,14 @@ public class MySoapTestServiceClient_ADB {
 
   public double mul(double x, double y)
   {
-    MySoapTestServiceStub.Mul req = new MySoapTestServiceStub.Mul();
-    req.setParam0(x);
-    req.setParam1(y);
+    //MySoapTestServiceStub.Mul req = new MySoapTestServiceStub.Mul();
+    //req.setParam0(x);
+    //req.setParam1(y);
 
     try {
-      MySoapTestServiceStub.MulResponse res = stub.mul(req);
-      return res.get_return();
+      //MySoapTestServiceStub.MulResponse res = stub.mul(req);
+      //return res.get_return();
+      return stub.mul(x,y);
     } catch (Exception e) {
       System.err.println("mul("+x+","+y+") failed: " +e.getMessage());
       e.printStackTrace();
@@ -116,8 +122,9 @@ public class MySoapTestServiceClient_ADB {
   public MySoapTestServiceStub.MyJavaBean getBean()
   {
     try {
-      MySoapTestServiceStub.GetBeanResponse res = stub.getBean();
-      return res.get_return();
+      //MySoapTestServiceStub.GetBeanResponse res = stub.getBean();
+      //return res.get_return();
+      return stub.getBean();
     } catch (Exception e) {
       System.err.println("getBean() failed: " +e.getMessage());
       e.printStackTrace();
@@ -128,10 +135,11 @@ public class MySoapTestServiceClient_ADB {
   public void setBean(MySoapTestServiceStub.MyJavaBean bean)
   {
     try {
-      MySoapTestServiceStub.SetBean req = new MySoapTestServiceStub.SetBean();
-      req.setParam0(bean);
+      //MySoapTestServiceStub.SetBean req = new MySoapTestServiceStub.SetBean();
+      //req.setParam0(bean);
 
-      stub.setBean(req);
+      //stub.setBean(req);
+      stub.setBean(bean);
     } catch (Exception e) {
       System.err.println("setBean() failed: " +e.getMessage());
       e.printStackTrace();
