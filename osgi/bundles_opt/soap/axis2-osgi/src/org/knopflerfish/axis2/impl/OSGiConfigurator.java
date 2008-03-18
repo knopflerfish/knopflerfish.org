@@ -6,9 +6,11 @@ import org.apache.axis2.util.Loader;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.deployment.repository.util.ArchiveReader;
 import org.apache.axis2.description.AxisServiceGroup;
+import org.apache.axis2.description.AxisModule;
 import org.apache.axis2.description.Parameter;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.axis2.engine.AxisConfigurator;
+import org.apache.axis2.modules.Module;
 import org.apache.axis2.transport.http.HTTPConstants;
 
 import org.apache.axis2.deployment.*;
@@ -22,7 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashMap;
+import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
 
 import org.knopflerfish.service.log.LogRef;
 
@@ -113,11 +119,10 @@ public class OSGiConfigurator
       axis2Stream =
         Loader.getResourceAsStream(BUNDLE_AXIS2_CONFIGURATION_RESOURCE);
 
-
-      log.debug("axis2Stream=" + axis2Stream);
-
       axisConfig = populateAxisConfiguration(axis2Stream);
       axisConfig.setSystemClassLoader(Activator.class.getClassLoader());
+      axisConfig.setServiceClassLoader(Activator.class.getClassLoader());
+      axisConfig.setModuleClassLoader(Activator.class.getClassLoader());
 
       if(axis2Stream != null){
         axis2Stream.close();
@@ -133,14 +138,18 @@ public class OSGiConfigurator
       }
 
       // Load module repository from /WEB-INF/modules
+      /* This fails when security is enabled since there is no way to
+       * grant permissions to classes loaded by the deployment class
+       * loader used (subclass of URLClassLoader) used to load the
+       * module.
       URL url = this.getClass().getResource("/");
       if (url != null) {
-        log.debug("start: load repository from "+url);
         loadRepositoryFromURL(url);
-        log.debug("done:  load repository from "+url);
       } else {
         log.warn("Could not find /");
       }
+      */
+      loadModules("/" +DeploymentConstants.MODULE_PATH);
 
       // when the module is an unpacked war file,
       // we can set the web location path in the deployment engine.
@@ -163,6 +172,109 @@ public class OSGiConfigurator
 
   public AxisConfiguration getAxisConfiguration() throws AxisFault {
     return axisConfig;
+  }
+
+
+  /**
+   * Loads all initializes modules listed in
+   * <tt><i>path</i>/modules.list</tt>
+   *
+   * This method is does the same work as
+   * <tt>org.apache.axis2.deployment.DeploymentEngine#loadRepositoryFromURL</tt>
+   * but without using child class loaders for each module. Thus the
+   * .mar-file must be added to the Bundle-Classpath in the manifest.
+   * The reason for this collapsing of class loaders is that we do not
+   * currently have a way to assign correct permissions to classes
+   * loaded by a child class loader and without that they can not
+   * request other classes loaded by a bundle class loader when
+   * security is enabled.
+   *
+   * @param modulesPath Path to modules dir (inside bundle).
+   */
+  private void loadModules(String modulesPath )
+    throws DeploymentException
+  {
+    try {
+      String moduleListPath = modulesPath +"/modules.list";
+      URL moduleListUrl     = this.getClass().getResource(moduleListPath);
+      if (null==moduleListUrl) {
+        throw new DeploymentException("Module list, '" +moduleListPath
+                                      +"' not found.");
+      }
+      log.info("Loading modules according to " +moduleListUrl);
+      ArrayList moduleFiles = getFileList(moduleListUrl);
+      for (Iterator it = moduleFiles.iterator(); it.hasNext(); ) {
+        String moduleArchiveName = (String) it.next();
+        if (moduleArchiveName.endsWith(".mar")) {
+          String moduleVersionedName
+            = moduleArchiveName.substring(0,moduleArchiveName.length()-4);
+          String moduleName
+            = org.apache.axis2.util.Utils.getModuleName(moduleVersionedName);
+          String moduleVersion
+            = org.apache.axis2.util.Utils.getModuleVersion(moduleVersionedName);
+
+          loadModule(moduleName, moduleVersion,
+                     modulesPath +"/" +moduleArchiveName);
+        }
+      }
+      axisConfig.validateSystemPredefinedPhases();
+    } catch (DeploymentException e) {
+      throw e;
+    } catch (AxisFault e) {
+      throw new DeploymentException(e);
+    }
+
+  }
+
+  /**
+   * Load one module given its name, version and location.
+   * @param name    The module name string.
+   * @param version The module version string.
+   * @param path    The path to .mar-file holding the modules classes.
+   */
+  private void loadModule(String name, String version, String path )
+    throws DeploymentException
+  {
+    AxisModule module = new AxisModule();
+    module.setModuleClassLoader(this.getClass().getClassLoader());
+    module.setParent(axisConfig);
+    URL moduleurl = this.getClass().getResource(path);
+    module.setName(name);
+    module.setVersion(version);
+    axisConfig.addDefaultModuleVersion(module.getName(),module.getVersion());
+
+    populateModule(module, moduleurl);
+    module.setFileName(moduleurl);
+    try {
+      DeploymentEngine.addNewModule(module, axisConfig);
+    } catch (AxisFault e) {
+      throw new DeploymentException(e);
+    }
+  }
+
+  private void populateModule(AxisModule module, URL moduleUrl)
+    throws DeploymentException
+  {
+    try {
+      log.debug("Loading "+module.getName() +"-" +module.getVersion()
+                +" from "+moduleUrl);
+      JarInputStream ji = new JarInputStream(moduleUrl.openStream());
+      ZipEntry ze;
+
+      do {
+        ze = ji.getNextJarEntry();
+        if (ze==null) {
+          ji.close();
+          throw new DeploymentException("module.xml missing");
+        }
+      } while (!"META-INF/module.xml".equals(ze.getName()));
+
+      ModuleBuilder moduleBuilder = new ModuleBuilder(ji, module, axisConfig);
+      moduleBuilder.populateModule();
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new DeploymentException(e);
+    }
   }
 
   /**
