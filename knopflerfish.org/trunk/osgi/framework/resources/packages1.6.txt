@@ -5,6 +5,9 @@ javax.activation
 javax.activity
 javax.annotation
 javax.annotation.processing
+javax.crypto
+javax.crypto.interfaces
+javax.crypto.spec
 javax.imageio
 javax.imageio.event
 javax.imageio.metadata
@@ -32,6 +35,8 @@ javax.naming.directory
 javax.naming.event
 javax.naming.ldap
 javax.naming.spi
+javax.net
+javax.net.ssl
 javax.print
 javax.print.attribute
 javax.print.attribute.standard
@@ -46,6 +51,7 @@ javax.security.auth.kerberos
 javax.security.auth.login
 javax.security.auth.spi
 javax.security.auth.x500
+javax.security.cert
 javax.security.sasl
 javax.smartcardio
 javax.sound.midi
