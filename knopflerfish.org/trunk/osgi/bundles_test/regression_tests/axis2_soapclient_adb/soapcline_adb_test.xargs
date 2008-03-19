@@ -30,7 +30,7 @@
 #-Dorg.osgi.framework.system.packages=
 
 # Comma-separated list of packages that may be loaded by system classloader
--Dorg.osgi.framework.bootdelegation=*
+-Dorg.osgi.framework.bootdelegation=
 
 # Web server properties
 -Dorg.knopflerfish.http.dnslookup=false
@@ -55,6 +55,8 @@
 
 -initlevel 2
 -install jsdk/jsdk_api-2.5.jar
+-install xerces/xerces-2.9.1.jar
+-install xalan/xalan-2.7.1.jar
 -istart junit/junit_all-2.0.0.jar
 
 -initlevel 3
@@ -74,6 +76,8 @@
 
 -start log/log_all-2.0.0.jar
 -start cm/cm_all-2.0.0.jar
+-start xerces/xerces-2.9.1.jar
+-start xalan/xalan-2.7.1.jar
 -start http/http_all-2.1.0.jar
 -start event/event_all-2.0.0.jar
 -start io/io_all-2.0.0.jar
