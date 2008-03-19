@@ -18,7 +18,16 @@ Release Notes Knopflerfish @VERSION@
   Axis2-OSGi
 
   Now also works with security enabled.
+  If using this bundle you must also install and start the Xerces and
+  Xalan bundles mentioned below.
 
+  Xerces and Xalan
+
+  New bundles wrapping Apache Xerces-J 2.91 and Xalan-J 2.7.1
+  providing XML functionality required by the Axis2-OSGi bundle.
+  The old low memory foot-print Crimson-bundle is not needed when
+  Xerces is present, but they can both be installed and started
+  without causing any conflicts.
 
 
 ========================================================================
