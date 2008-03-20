@@ -212,6 +212,7 @@ public class XMLTransformerActivator
   {
     Vector v = new Vector(1);
     if (url != null) {
+      //System.out.println("Loading factory class names from: "+url);
       String transformerFactoryClassName = null;
       InputStream is = url.openStream();
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -261,21 +262,23 @@ public class XMLTransformerActivator
         // properties. It will never be used since
         // this class will operate as a service factory and give each
         // service requestor it's own TransformerFactory
-        TransformerFactory factory
-          = (TransformerFactory) getFactory(transformerFactoryClassName);
-        Hashtable properties = new Hashtable(7);
-        properties.put(Constants.SERVICE_DESCRIPTION, TRANSFORMERFACOTRYDESCR);
-        properties.put(Constants.SERVICE_PID, TRANSFORMERFACTORYNAME + "."
-                       + context.getBundle().getBundleId() + "." + index);
-        // store the transformer factory class name in the properties so that
-        // it can be retrieved when getService is called
-        // to return a transformer factory
-        properties.put(FACTORYNAMEKEY, transformerFactoryClassName);
-        // release the factory
-        factory = null;
-        // register the factory as a service
-        context.registerService(TRANSFORMERFACTORYNAME, this, properties);
-        index++;
+        Object obj = getFactory(transformerFactoryClassName);
+        if (obj instanceof TransformerFactory) {
+          TransformerFactory factory = (TransformerFactory) obj;
+          Hashtable properties = new Hashtable(7);
+          properties.put(Constants.SERVICE_DESCRIPTION, TRANSFORMERFACOTRYDESCR);
+          properties.put(Constants.SERVICE_PID, TRANSFORMERFACTORYNAME + "."
+                         + context.getBundle().getBundleId() + "." + index);
+          // store the transformer factory class name in the
+          // properties so that it can be retrieved when getService is
+          // called to return a transformer factory
+          properties.put(FACTORYNAMEKEY, transformerFactoryClassName);
+          // release the factory
+          factory = null;
+          // register the factory as a service
+          context.registerService(TRANSFORMERFACTORYNAME, this, properties);
+          index++;
+        }
       }
     }
   }
@@ -300,21 +303,23 @@ public class XMLTransformerActivator
         // properties. It will never be used since
         // this class will operate as a service factory and give each
         // service requestor it's own XPathFactory
-        XPathFactory factory
-          = (XPathFactory) getFactory(xPathFactoryClassName);
-        Hashtable properties = new Hashtable(7);
-        properties.put(Constants.SERVICE_DESCRIPTION, XPATHFACOTRYDESCR);
-        properties.put(Constants.SERVICE_PID, XPATHFACTORYNAME + "."
-                       + context.getBundle().getBundleId() + "." + index);
-        // store the xpath factory class name in the properties so that
-        // it can be retrieved when getService is called
-        // to return a xpath factory
-        properties.put(FACTORYNAMEKEY, xPathFactoryClassName);
-        // release the factory
-        factory = null;
-        // register the factory as a service
-        context.registerService(XPATHFACTORYNAME, this, properties);
-        index++;
+        Object obj = getFactory(xPathFactoryClassName);
+        if (obj instanceof XPathFactory) {
+          XPathFactory factory = (XPathFactory) obj;
+          Hashtable properties = new Hashtable(7);
+          properties.put(Constants.SERVICE_DESCRIPTION, XPATHFACOTRYDESCR);
+          properties.put(Constants.SERVICE_PID, XPATHFACTORYNAME + "."
+                         + context.getBundle().getBundleId() + "." + index);
+          // store the xpath factory class name in the properties so
+          // that it can be retrieved when getService is called to
+          // return a xpath factory
+          properties.put(FACTORYNAMEKEY, xPathFactoryClassName);
+          // release the factory
+          factory = null;
+          // register the factory as a service
+          context.registerService(XPATHFACTORYNAME, this, properties);
+          index++;
+        }
       }
     }
   }
@@ -332,7 +337,9 @@ public class XMLTransformerActivator
   {
     Exception e = null;
     try {
-      return Class.forName(factoryClassName).newInstance();
+      Class factoryClazz = Class.forName(factoryClassName);
+      Object res = factoryClazz.newInstance();
+      return res;
     }
     catch (ClassNotFoundException cnfe) {
       e = cnfe;
