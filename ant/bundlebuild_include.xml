@@ -1,5 +1,5 @@
 <!--
-  ** Copyright (c) 2003-2004, KNOPFLERFISH project
+  ** Copyright (c) 2003-2008, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -46,6 +46,7 @@
  <property name = "javac.target"        value    = "1.2"/>
  <property name = "javac.source"        value="1.2"/>
  <property name = "ant.dir"             location = "${topdir}/../ant"/>
+ <property name = "ant.lib"             location = "${ant.dir}/lib"/>
  <property name = "antclasses"          location = "${ant.dir}/classes"/>
 
  <property environment = "env"/>
@@ -150,6 +151,17 @@
    <path refid = "bundle.compile.path"/>
  </path>
 
+ <path id="bcel.path">
+  <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
+ </path>
+
+ <path id="bundle_tasks.path">
+   <path refid="bcel.path"/>
+   <pathelement location="${antclasses}"/>
+ </path>
+
+
+
  <target name="init" depends="setup_build">
    <tstamp>
     <format property = "bundle.date" 
@@ -157,13 +169,12 @@
             locale   = "en"/>
    </tstamp>
 
-   <available classname = "org.apache.bcel.classfile.JavaClass" 
-              property  = "bcel.available"/>
+   <available classname    = "org.apache.bcel.classfile.JavaClass" 
+	      classpathref = "bcel.path"
+              property     = "bcel.available"/>
 
    <fail unless  = "bcel.available" 
-         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in $$ANT_HOME/lib. You can also try  'ant install_bcel'"/>
-
-
+         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel'"/>
  </target>
 
  <target name="install_bcel">
@@ -172,21 +183,22 @@
  </target>
 
  <target name="download_bcel">
+   <mkdir dir = "${ant.lib}"/>
    <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
-        dest = "${sysprops.ANT_HOME}/bcel-${bcel.version}.zip"/>
+        dest = "${ant.lib}/bcel-${bcel.version}.zip"/>
  </target>
 
  <target name="unpack_bcel">
-   <unzip src = "${sysprops.ANT_HOME}/bcel-${bcel.version}.zip"
-         dest = "${sysprops.ANT_HOME}/lib">
+   <unzip src = "${ant.lib}/bcel-${bcel.version}.zip"
+         dest = "${ant.lib}">
     <patternset>
      <include name="bcel-${bcel.version}/bcel-${bcel.version}.jar"/>
     </patternset>
    </unzip>
-
-   <move file   = "${sysprops.ANT_HOME}/lib/bcel-${bcel.version}/bcel-${bcel.version}.jar" 
-         tofile = "${sysprops.ANT_HOME}/lib/bcel-${bcel.version}.jar"/>
-
+   <move file   = "${ant.lib}/bcel-${bcel.version}/bcel-${bcel.version}.jar" 
+         tofile = "${ant.lib}/bcel-${bcel.version}.jar"/>
+   <delete dir  = "${ant.lib}/bcel-${bcel.version}"/>
+   <delete file = "${ant.lib}/bcel-${bcel.version}.zip"/>
  </target>
 
  <target name="install_netcomponents">
@@ -242,20 +254,20 @@
      <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
    </javac>
 
-   <taskdef name      = "bundleinfo" 
-            classpath = "${antclasses}" 
+   <taskdef name         = "bundleinfo" 
+            classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
 
    <taskdef name      = "bundlemanifest" 
-            classpath = "${antclasses}" 
+            classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
 
    <taskdef name      = "bundlehtml" 
-            classpath = "${antclasses}" 
+            classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
 
    <taskdef name      = "bundleobr" 
-            classpath = "${antclasses}" 
+            classpathref = "bundle_tasks.path"
      classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
      
  </target>
