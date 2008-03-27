@@ -17,7 +17,7 @@
 	      <table cellpadding="2">
 		<tr>
 		  <th>Name</th>
-		  <th>Size (bytes)</th>
+		  <th>Size</th>
 		  <th>Description</th>
 		</tr>
 
@@ -111,8 +111,15 @@
 		      services using JUnit.
 		  </td>
 		</tr>
-		
 	  </table>
+
+	  <p>
+	  <b>Note</b>: Sizes are measured using binary bytes
+	  (kiB, MiB, ...), see <a
+	  href="http://en.wikipedia.org/wiki/Kibibyte"
+	  >http://en.wikipedia.org/wiki/Kibibyte</a> for a
+	  detailed explanation and motivation of this unit.
+
 
 	  <h3>Test results</h3>
 	  <a href="junit_grunt/index.xml">Test results (XML)</a>

@@ -38,8 +38,11 @@ import org.apache.tools.ant.Task;
 
 
 /**
- * Sets a property to a formated value in k, M, G, ... with an
- * optional unit.
+ * Sets a property to a formated value in ki, Mi, Gi, ... with an
+ * optional unit. Here <tt>ki</tt> is short for <tt>kibi</tt>, (a
+ * contraction of kilo binary) see <a
+ * href="http://en.wikipedia.org/wiki/Kibibyte">http://en.wikipedia.org/wiki/Kibibyte</a>
+ * for a detailed explanation.
  * <p>
  *
  * <h3>Parameters</h3>
@@ -61,6 +64,13 @@ import org.apache.tools.ant.Task;
  *    <td valign="top">The unit to append to the formated value. E.g., byte</td>
  *    <td valign="top" align="center">
  *      No, default is the empty string.</td>
+ *  </tr>
+ *  <tr>
+ *    <td valign="top">sep</td>
+ *    <td valign="top">The string placed between the number and the
+ *                     unit.</td>
+ *    <td valign="top" align="center">
+ *      No, default is the HTML non-breaking space, "&amp;nbsp;".</td>
  *  </tr>
  *  <tr>
  *    <td valign="top">value</td>
@@ -87,7 +97,7 @@ import org.apache.tools.ant.Task;
  * <pre>
  *  &lt;byteformatter value="9093663"
  *                    property="myFormatedFilesize"
- *                    unit="b" /&gt;
+ *                    unit="B" /&gt;
  * </pre>
  *
  *
@@ -133,6 +143,17 @@ public class ByteFormatterTask extends Task {
   }
 
 
+  private String sep = "&nbsp;";
+  /**
+   * The separator between the numeral and the prefixed unit.
+   *
+   * @param sep the sepeartor string.
+   */
+  public void setSep(String sep) {
+    this.sep = sep;
+  }
+
+
   private long value;
   /**
    * Set the value to format.
@@ -160,13 +181,16 @@ public class ByteFormatterTask extends Task {
   static final long step = 1024;
 
   /**
-   * Format value using k, M, G, ... using multiples of 1024.
+   * Format value using ki, Mi, Gi, ... using multiples of 1024. I.e.,
+   * binary "bytes".
    *
    * @throws BuildException if the manifest cannot be written.
    */
   public void execute() {
     String formatedValue = "";
-    String[] suffixes = new String[]{ " "," k"," M"," G"," T"," E"," P"};
+    String[] suffixes = new String[]{ "",  "ki","Mi",
+                                      "Gi","Ti","Pi",
+                                      "Ei","Zi","Yi"};
 
     int ix = 0;
     long factor = 1;
@@ -183,7 +207,7 @@ public class ByteFormatterTask extends Task {
     formatedValue = formatValue(i, fraction);
 
     Project project = getProject();
-    project.setProperty(property, formatedValue +suffixes[ix] +unit);
+    project.setProperty(property, formatedValue +sep +suffixes[ix] +unit);
   }
 
   private String formatValue( long integral, double fraction)

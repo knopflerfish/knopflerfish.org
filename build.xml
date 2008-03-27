@@ -262,17 +262,17 @@
              classpath = "ant/classes"
              classname = "org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
 
-    <byteformatter file="${distribfile}" unit=""
+    <byteformatter file="${distribfile}" unit="B"
                    property="distribfile.length"/>
-    <byteformatter file="${distribfile_fullbin}" unit=""
+    <byteformatter file="${distribfile_fullbin}" unit="B"
                    property="distribfile_fullbin.length"/>
-    <byteformatter file="${distribfile_bin}" unit=""
+    <byteformatter file="${distribfile_bin}" unit="B"
                    property="distribfile_bin.length"/>
-    <byteformatter file="${distribfile_opt}" unit=""
+    <byteformatter file="${distribfile_opt}" unit="B"
                    property="distribfile_opt.length"/>
-    <byteformatter file="${distribfile_tiny}" unit=""
+    <byteformatter file="${distribfile_tiny}" unit="B"
                    property="distribfile_tiny.length"/>
-    <byteformatter file="${distribfile_tests}" unit=""
+    <byteformatter file="${distribfile_tests}" unit="B"
                    property="distribfile_tests.length"/>
 
     <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
