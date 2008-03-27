@@ -52,9 +52,13 @@ class BundleURLConnection extends URLConnection {
     = new AdminPermission( (String)null, AdminPermission.RESOURCE);
 
   private InputStream is = null;
+  /** The collection of available bundles. */
   private Bundles bundles;
+  /** The bundle that provides the data for this URL. */
+  private BundleImpl bundle;
   private int contentLength;
   private String contentType;
+
 
   BundleURLConnection(URL u, Bundles b) {
     super(u);
@@ -62,12 +66,17 @@ class BundleURLConnection extends URLConnection {
   }
 
   /**
+   * Analyzes the URL to determine the bundle and which of its related
+   * bundle archives that actually provides the contents of this
+   * URL. The bundle is stored in the private member field
+   * <tt>bundle</tt>, the bundle archive is returned.
+   *
    * @return The bundle archive that provides the contents of this
    *         bundle URL.
    */
   private BundleArchive getBundleArchive()
   {
-    BundleImpl b = null;
+    bundle = null;
     long ai = -1;
     long fi = -1;
     try {
@@ -82,19 +91,23 @@ class BundleURLConnection extends URLConnection {
           ai = Long.parseLong(s.substring(i+1));
           s = s.substring(0,i);
         }
-        b = (BundleImpl)bundles.getBundle(Long.parseLong(s));
+        bundle = (BundleImpl)bundles.getBundle(Long.parseLong(s));
       } catch (NumberFormatException _ignore) { }
-      if (b != null) {
-        return b.getBundleArchive(ai, fi);
+      if (bundle != null) {
+        return bundle.getBundleArchive(ai, fi);
       }
       return null;
   }
 
   public void connect() throws IOException {
     if (!connected) {
-      BundleArchive a = getBundleArchive();
+      final BundleArchive a = getBundleArchive();
       if (a != null) {
-        is = a.getInputStream(url.getFile(), url.getPort());
+        // Some storage kinds (e.g., expanded storage of sub-JARs)
+        // requieres the Framework's permisisons to allow access
+        // thus we must call bundleArchive.getInputStream()
+        // via doPrivileged().
+        is = bundle.secure.callGetInputStream(a, url.getFile(), url.getPort());
       }
       if (is != null) {
         connected = true;
