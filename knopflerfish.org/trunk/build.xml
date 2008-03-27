@@ -278,6 +278,14 @@
     <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
 	 dest="${release.dir}/index.html"/>
 
+    <loadfile property = "release_page.mainblock"     
+              srcfile  = "release_page.in"/>
+
+    <replace file="${release.dir}/index.html">
+      <replacefilter token="@MAINBLOCK@"
+		     value="${release_page.mainblock}"/>
+    </replace>
+
     <replace file="${release.dir}/index.html">
       <replacefilter token="@VERSION@"
 		     value="${version}"/>
