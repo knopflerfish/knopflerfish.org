@@ -12,8 +12,9 @@
   <property name="jarfile"       location="${topdir}/${ant.project.name}.jar"/>
 
 
-  <property name = "ant.dir"         location = "${topdir}/../ant"/>
-  <property name = "antclasses"      location = "${ant.dir}/classes"/>
+  <property name = "ant.dir"         location="${topdir}/../ant"/>
+  <property name = "ant.lib"         location="${ant.dir}/lib"/>
+  <property name = "antclasses"      location="${ant.dir}/classes"/>
   <property name = "javac.target"    value="1.1"/>
   <property name = "javac.source"    value="1.2"/>
 
@@ -110,6 +111,16 @@
   <delete file = "${jarfile}"/>
  </target>
 
+ <path id="bcel.path">
+   <fileset dir="${ant.lib}"   includes="bcel-*.jar"/>
+ </path>
+
+ <path id="bundle_tasks.path">
+   <path refid="bcel.path"/>
+   <pathelement location="${antclasses}"/>
+ </path>
+
+
  <target name        = "compile_ant" 
          description = "Compile and link the custom bundleinfo task">
 
@@ -122,12 +133,12 @@
      <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
    </javac>
 
-   <taskdef name      = "bundleinfo" 
-            classpath = "${antclasses}" 
+   <taskdef name         = "bundleinfo" 
+            classpathref = "bundle_tasks.path" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
 
-   <taskdef name      = "bundlehtml" 
-            classpath = "${antclasses}" 
+   <taskdef name         = "bundlehtml" 
+            classpathref = "bundle_tasks.path" 
      classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
      
  </target>

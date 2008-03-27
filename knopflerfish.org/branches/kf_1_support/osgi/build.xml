@@ -249,6 +249,12 @@
  </target>
 
 
+ <target name="install_bcel"
+         description="Download and install bcel in ../ant/lib.">
+   <ant dir="bundles/log" target="install_bcel" />
+ </target>
+
+
 
  <target name="clean" description="removes all generated files">
    <delete file="framework.jar"/>

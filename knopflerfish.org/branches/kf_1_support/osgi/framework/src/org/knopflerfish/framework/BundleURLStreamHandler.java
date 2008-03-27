@@ -84,14 +84,34 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
     public void connect() throws IOException {
       if (!connected) {
+        /*
+         * AdminPermission is checked for when asking for a resource
+         * URL, but it should also enfource it when actually
+         * connection to that URL...
+         * Not done right now to be backwards compatible.
+        // AdminPermission is required to access Bundle URLs.
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(ADMIN_PERMISSION);
+        }
+        */
         BundleImpl b = null;
         try {
           b = bundles.getBundle(Long.parseLong(url.getHost()));
         } catch (NumberFormatException ignore) { }
         if (b != null) {
-          BundleArchive a = b.getBundleArchive();
+          final BundleArchive a = b.getBundleArchive();
           if (a != null) {
-            is = a.getInputStream(url.getFile(), url.getPort());
+            // Some storage kinds (e.g., expanded storage of sub-JARs)
+            // requieres the Framework's permisisons to allow access
+            // thus we must call bundleArchive.getInputStream(path)
+            // via doPrivileged().
+            is = (InputStream)
+              AccessController.doPrivileged(new PrivilegedAction() {
+                  public Object run() {
+                    return a.getInputStream(url.getFile(), url.getPort());
+                  }
+                });
           }
         }
         if (is != null) {

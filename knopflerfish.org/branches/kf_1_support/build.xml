@@ -777,27 +777,9 @@
   </target>
 
 
- <target name="install_bcel">
-   <antcall target="download_bcel" />
-   <antcall target="unpack_bcel"   />
- </target>
-
- <target name="download_bcel">
-   <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
-        dest = "${sysprops.ANT_HOME}/bcel-${bcel.version}.zip"/>
- </target>
-
- <target name="unpack_bcel">
-   <unzip src = "${sysprops.ANT_HOME}/bcel-${bcel.version}.zip"
-         dest = "${sysprops.ANT_HOME}/lib">
-    <patternset>
-     <include name="bcel-${bcel.version}/bcel-${bcel.version}.jar"/>
-    </patternset>
-   </unzip>
-
-   <move file   = "${sysprops.ANT_HOME}/lib/bcel-${bcel.version}/bcel-${bcel.version}.jar" 
-         tofile = "${sysprops.ANT_HOME}/lib/bcel-${bcel.version}.jar"/>
-
+ <target name="install_bcel"
+         description="Download and install bcel in ./ant/lib.">
+   <ant dir="osgi/bundles/log" target="install_bcel" />
  </target>
 
 </project>
