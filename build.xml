@@ -253,6 +253,10 @@
     <copy file   = "release_notes.txt"
           tofile = "${release.dir}/release_notes.txt">
     </copy>
+    <!-- Publish the version conrolled default change log file. -->
+    <copy file   = "changelog.txt"
+          tofile = "${release.dir}/ChangeLog.txt">
+    </copy>
     <tstamp>
      <format property = "distrib.tstamp" 
              pattern  = "yyyy-MM-dd HH:mm"
