@@ -835,7 +835,7 @@
           tofile = "${release.dir}/release_notes.html">
     </copy>
     <copy file   = "${distrib.out.dir}/changelog.html"
-          tofile = "${release.dir}/ChangeLog.html">
+          tofile = "${release.dir}/changelog.html">
     </copy>
     <tstamp>
      <format property = "distrib.tstamp" 
