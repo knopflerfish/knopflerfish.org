@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-Name: basicdriverlocator
+Bundle-SymbolicName: org.knopflerfish.basicdriverlocator
+Bundle-Version: 1.0.0
+Bundle-Description: Basic device driver locator
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.basicdriverlocator.Activator
+Bundle-Category: service
+Import-Package: org.knopflerfish.service.log,org.osgi.framework,org.os
+ gi.service.device
+

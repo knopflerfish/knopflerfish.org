@@ -1,0 +1,72 @@
+#
+# Startup file for framework testing
+#
+
+# List of test IDs
+#-Dorg.knopflerfish.junit_runner.tests=PerformanceRegistryTestSuite
+-Dorg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
+#-Dorg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
+
+
+-Dorg.knopflerfish.bundle.perf.servicereg.nlisteners=100
+-Dorg.knopflerfish.bundle.perf.servicereg.nservices=1000
+
+# true means "quit framework when all tests are run"
+-Dorg.knopflerfish.junit_runner.quit=true
+
+# Initial startup verbosity, 0 is low verbosity
+-Dorg.knopflerfish.verbosity=0
+
+# Prefix for searching for bundle URLs from console or command line
+-Dorg.knopflerfish.gosg.jars=file:jars/
+
+# Various debug flags
+-Dorg.knopflerfish.framework.debug.print_with_do_privileged=true
+-Dorg.knopflerfish.framework.debug.packages=false
+-Dorg.knopflerfish.framework.debug.errors=true
+-Dorg.knopflerfish.framework.debug.classloader=false
+-Dorg.knopflerfish.framework.debug.startlevel=false
+-Dorg.knopflerfish.framework.debug.ldap=false
+
+# Comma-separated list of packges exported by system classloader
+-Dorg.osgi.framework.system.packages=
+
+# Web server properties
+-Dorg.knopflerfish.http.dnslookup=false
+-Dorg.osgi.service.http.port=8080
+
+-Dorg.knopflerfish.startlevel.use=true
+
+# Log service properties
+-Dorg.knopflerfish.log.out=false
+-Dorg.knopflerfish.log.level=info
+-Dorg.knopflerfish.log.grabio=true
+-Dorg.knopflerfish.log.file=true
+
+
+-init
+
+-initlevel 1
+#no special bundles required
+
+-initlevel 2
+-istart junit/junit_all-1.0.0.jar
+
+# the test cases
+-istart file:bundles_test/regression_tests/jars/framework_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/filter_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/servicetracker_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/constants_test-1.0.0.jar
+-istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
+
+# the test case runner bundle.
+-istart junit_runner/junit_runner_all-1.0.0.jar
+
+-startlevel 2
+
+-launch
+
+
+
+
+

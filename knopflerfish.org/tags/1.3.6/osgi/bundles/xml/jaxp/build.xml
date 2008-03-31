@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="jaxp" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "bundle.build.lib"   value = "true"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+
+
+  <property name="bundle.version"        value="1.0"/>
+  <property name="bundle.category"       value="lib"/>
+  <property name="bundle.description"    value="The Sun JAXP XML parser"/>
+  <property name="bundle.vendor"         value="Sun/Knopflerfish"/>
+  <property name="bundle.classpath"      value="parser.jar,jaxp.jar"/>
+  <property name="bundle.name"           value="JAXP XML lib"/>
+
+  <property name="export.package"        value="com.sun.xml.parser ; specification-version=1.0, com.sun.xml.tree ; specification-version=1.0, com.sun.xml.util ; specification-version=1.0, org.w3c.dom ; specification-version=2.0, org.xml.sax ; specification-version=2.0, org.xml.sax.helpers ; specification-version=2.0, javax.xml.parsers ; specification-version=2.0"/>
+
+  &bundlebuild_include;
+
+</project>

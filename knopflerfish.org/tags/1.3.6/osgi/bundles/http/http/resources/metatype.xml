@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<metatype:metatype
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
+        xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
+
+  <xsd:schema>
+   <xsd:complexType name="org.knopflerfish.bundle.http.factory.HttpServer"
+                    maxOccurs="unbounded">
+    <xsd:element  name = "port.http"               type="xsd:int"/>
+    <xsd:element  name = "host"                    type="xsd:string"/>
+    <xsd:element  name = "session.timeout.default" type="xsd:int"/>
+    <xsd:element  name = "connection.max"          type="xsd:int"/>
+    <xsd:element  name = "connection.timeout"      type="xsd:int"/>
+    <xsd:element  name = "response.buffer.size.default"          type="xsd:int"/>
+    <xsd:element  name = "service.ranking"         type="xsd:int"/>
+    <xsd:element  name = "dns.lookup"              type="xsd:boolean"/>
+   </xsd:complexType> 
+
+  </xsd:schema>
+
+</metatype:metatype>

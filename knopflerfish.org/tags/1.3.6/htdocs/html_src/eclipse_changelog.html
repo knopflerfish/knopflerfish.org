@@ -1,0 +1,90 @@
+
+<h3>Changes v1.0.14 2006-03-29</h3>
+<table>
+ <tr>
+  <td nowrap>Core</td>
+  <td>
+   Added some core functionality allowing other plugins to 
+   access bundle projects.
+  </td>
+ </tr>
+</table>
+<h3>Changes v1.0.13 2006-03-02</h3>
+<table>
+ <tr>
+  <td nowrap>Core</td>
+  <td>
+   Bug fix: Jar files where not closed after manifest was read, 
+   causing locked files. This would normally happen when
+   making a clean build after a debug session.
+  </td>
+ </tr>
+</table>
+<h3>Changes v1.0.12 2005-12-03</h3>
+<table>
+ <tr>
+  <td nowrap>Editor/Builder</td>
+  <td>
+   Bug fix. If source had import declarations referencing
+   internal classes, the plugin wrongly said that the 
+   parent class should be imported in the manifest. E.g.
+   If the line import com.foo.Class1.InternalClass 
+   existed in the source the plugin would say that the
+   package com.foo.Class1 should be imported.
+  </td>
+ </tr>
+ <tr>
+  <td nowrap>Export</td>
+  <td>
+   Bug fix. The plugin did not create the parent directories
+   needed for the export path.
+  </td>
+ </tr>
+ <tr>
+  <td nowrap>Builder</td>
+  <td>
+   Bug fix. The resource hierarchy was not refreshed when 
+   the bundle jar file was built. This resulted in 
+   resource out of synch related errors when for instance
+   CVS tried to replace a bundle project from repository.
+  </td>
+ </tr>
+ <tr>
+  <td nowrap>Update Site</td>
+  <td>
+   Bug fix. Attempt to get the update site to work properly.
+  </td>
+ </tr>
+ <tr>
+  <td nowrap>Launcher</td>
+  <td>
+   Bug fix. System properties are checked in order to 
+   determine what system packages are exported through
+   the system classloader.<br>
+   For Knopflerfish the following properties are checked<br>
+   - org.osgi.framework.system.packages<br>
+   - org.osgi.framework.system.packages.file<br>
+   - org.knopflerfish.framework.system.export.all_13<br>
+   For eclipse the following properties are checked<br>
+   - org.osgi.framework.system.packages<br>
+  </td>
+ </tr>
+ <tr>
+  <td nowrap>Editor/Builder</td>
+  <td>
+   Bug fix. Only packages which contained java resources
+   where allowed to be exported.
+  </td>
+ </tr>
+ <tr>
+  <td nowrap>Editor/Builder</td>
+  <td>
+   Bug fix. Large bundle projects could bring eclipse
+   to its knees, especially if the manifest editor was
+   shown.
+  </td>
+ </tr>
+</table>
+
+
+

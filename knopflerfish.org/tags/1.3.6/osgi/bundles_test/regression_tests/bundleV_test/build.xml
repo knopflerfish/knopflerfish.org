@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
+<project name="bundleV_test" default="all">
+
+  <property name="topdir"       location=".."/>
+
+  <property name="bundle.version" value="1.0.0"/>
+
+  <path id = "bundle.compile.path">
+  </path>
+
+  &test_include;
+
+</project>
+
+
+
