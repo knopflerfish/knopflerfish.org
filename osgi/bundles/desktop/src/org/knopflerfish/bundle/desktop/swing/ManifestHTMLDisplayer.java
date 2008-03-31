@@ -34,17 +34,21 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Iterator;
+import org.osgi.framework.*;
+import org.osgi.service.startlevel.*;
 
-import javax.swing.JComponent;
+import javax.swing.table.*;
+import javax.swing.*;
+import javax.swing.event.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.startlevel.StartLevel;
+import java.awt.event.*;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+
+import java.util.*;
+
+
 
 public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
@@ -78,10 +82,6 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
       appendRow(sb, "Location", "" + b.getLocation());
       appendRow(sb, "State",    Util.stateName(b.getState()));
-      if (b.getSymbolicName() != null) {
-        appendRow(sb, "Symbolic name", b.getSymbolicName());
-      }
-      appendRow(sb, "Last modified", "" + new SimpleDateFormat().format(new Date(b.getLastModified())));
       
       StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
       if(sls != null) {
@@ -118,8 +118,6 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 	  appendRow(sb, key, value);
 	}
       }
-      // Spacer for better layout:
-appendRow(sb, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", "");
       
       sb.append("</table>");
       return sb;

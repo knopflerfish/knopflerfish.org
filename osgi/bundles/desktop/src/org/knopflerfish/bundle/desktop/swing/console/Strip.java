@@ -35,12 +35,9 @@
 package org.knopflerfish.bundle.desktop.swing.console;
 
 
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
 
 
 /**

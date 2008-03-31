@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.util.ArrayList;
 
 /**
  * This class contains aliases for system properties.
@@ -56,20 +55,16 @@ public class Alias {
 
   /**
    * List of OS name aliases. The first entry is the true name.
-   * All aliases must be in lowercase.
    */
   final public static String[][] osNameAliases = {
-    { "MacOSX", "Mac OS X" },
-    { "OS2", "os/2" },
+    { "OS2", "OS/2" },
     { "QNX", "procnto" },
-    { "windows95", "windows 95", "win95" },
-    { "Windows98", "windows 98", "win98" },
-    { "WindowsNT", "windows nt", "winnt" },
-    { "WindowsCE", "windows ce", "wince" },
-    { "Windows2000", "windows 2000", "win2000" },
-    { "WindowsXP", "windows xp", "winxp" },
-    { "WindowsVista", "windows vista", "winvista" },
-    { "Win32", "win*" },
+    { "Windows95", "Windows 95", "Win95" },
+    { "Windows98", "Windows 98", "Win98" },
+    { "WindowsNT", "Windows NT", "WinNT" },
+    { "WindowsCE", "Windows CE", "WinCE" },
+    { "Windows2000", "Windows 2000", "Win2000" },
+    { "WindowsXP", "Windows XP", "WinXP" },
   };
 
 
@@ -79,18 +74,15 @@ public class Alias {
    * @param name Processor name.
    * @return The unified name.
    */
-  static public ArrayList unifyProcessor(String name) {
-    ArrayList res = new ArrayList(2);
+  static public String unifyProcessor(String name) {
     for (int i = 0; i < processorAliases.length; i++) {
-      for (int j = 1; j < processorAliases[i].length; j++) {
+      for (int j = 0; j < processorAliases[i].length; j++) {
 	if (name.equalsIgnoreCase(processorAliases[i][j])) {
-	  res.add(processorAliases[i][0]);
-          break;
+	  return processorAliases[i][0];
 	}
       }
     }
-    res.add(name);
-    return res;
+    return name;
   }
 
 
@@ -100,24 +92,15 @@ public class Alias {
      * @param name OS name.
      * @return The unified name.
      */
-  static public ArrayList unifyOsName(String name) {
-    ArrayList res = new ArrayList(3);
-    String lname = name.toLowerCase();
+  static public String unifyOsName(String name) {
     for (int i = 0; i < osNameAliases.length; i++) {
-      for (int j = 1; j < osNameAliases[i].length; j++) {
-        int last = osNameAliases[i][j].length() - 1;
-	if (lname.equals(osNameAliases[i][j]) ||
-            osNameAliases[i][j].charAt(last) == '*' &&
-            lname.startsWith(osNameAliases[i][j].substring(0, last))) {
-          if (!lname.equals(osNameAliases[i][0])) {
-            res.add(osNameAliases[i][0]);
-          }
-          break;
+      for (int j = 0; j < osNameAliases[i].length; j++) {
+	if (name.equalsIgnoreCase(osNameAliases[i][j])) {
+	  return osNameAliases[i][0];
 	}
       }
     }
-    res.add(name);
-    return res;
+    return name;
   }
 
 }

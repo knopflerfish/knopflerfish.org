@@ -1,56 +1,46 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.prefs/src/org/osgi/service/prefs/PreferencesService.java,v 1.10 2006/06/16 16:31:30 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * @(#)PreferencesService.java  1.4 01/07/18
+ * $Header: /cvshome/repository/org/osgi/service/prefs/PreferencesService.java,v 1.5 2001/07/31 19:06:00 pkriens Exp $
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Open Services Gateway Initiative (OSGi) Confidential. 
+ * 
+ * (C) Copyright 1996-2001 Sun Microsystems, Inc. 
+ * 
+ * This source code is licensed to OSGi as MEMBER LICENSED MATERIALS 
+ * under the terms of Section 3.2 of the OSGi MEMBER AGREEMENT.
+ * 
  */
+
 package org.osgi.service.prefs;
 
 /**
  * The Preferences Service.
- * 
- * <p>
- * Each bundle using this service has its own set of preference trees: one for
- * system preferences, and one for each user.
- * 
- * <p>
- * A <code>PreferencesService</code> object is specific to the bundle which
- * obtained it from the service registry. If a bundle wishes to allow another
- * bundle to access its preferences, it should pass its
- * <code>PreferencesService</code> object to that bundle.
- *  
+ *
+ * <p>Each bundle using this service has its own set of preference trees: 
+ * one for system preferences, and one for each user.
+ *
+ * <p>A <tt>PreferencesService</tt> object is specific to the bundle which obtained
+ * it from the service registry. If a bundle wishes to allow another bundle
+ * to access its preferences, it should pass its <tt>PreferencesService</tt> object to
+ * that bundle.
+ *
  */
 public interface PreferencesService {
-	/**
-	 * Returns the root system node for the calling bundle.
-	 * 
-	 * @return The root system node for the calling bundle.
-	 */
-	public Preferences getSystemPreferences();
 
-	/**
-	 * Returns the root node for the specified user and the calling bundle.
-	 * 
-	 * @param name The user for which to return the preference root node. 
-	 * @return The root node for the specified user and the calling bundle.
-	 */
-	public Preferences getUserPreferences(String name);
+    /**
+     * Returns the root system node for the calling bundle.
+     */
+    public abstract Preferences getSystemPreferences();
 
-	/**
-	 * Returns the names of users for which node trees exist.
-	 * 
-	 * @return The names of users for which node trees exist.
-	 */
-	public String[] getUsers();
+    /**
+     * Returns the root node for the specified user 
+     * and the calling bundle.
+     */
+    public abstract Preferences getUserPreferences(String name);
+
+    /**
+     * Returns the names of users for which node trees exist.
+     */
+    public abstract String[] getUsers();
+
 }

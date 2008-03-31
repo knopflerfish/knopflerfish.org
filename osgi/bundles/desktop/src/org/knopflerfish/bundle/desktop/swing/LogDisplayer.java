@@ -34,21 +34,22 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.BorderLayout;
-import java.util.Iterator;
+import org.osgi.framework.*;
+import org.osgi.service.startlevel.*;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
+import javax.swing.table.*;
+import javax.swing.*;
+import javax.swing.event.*;
 
-import org.knopflerfish.bundle.log.window.impl.FilterLogTableModel;
-import org.knopflerfish.bundle.log.window.impl.JLogEntryDetail;
-import org.knopflerfish.bundle.log.window.impl.JLogPanel;
-import org.knopflerfish.bundle.log.window.impl.LogReaderDispatcher;
-import org.knopflerfish.bundle.log.window.impl.LogTableModel;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
+import java.awt.event.*;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+
+import java.util.*;
+
+
+import org.knopflerfish.bundle.log.window.impl.*;
 
 public class LogDisplayer extends DefaultSwingBundleDisplayer {
 

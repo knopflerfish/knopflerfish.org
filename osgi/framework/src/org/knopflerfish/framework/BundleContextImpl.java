@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,17 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
+import java.security.*;
 
+import java.util.Set;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+
 
 import org.osgi.framework.*;
 
@@ -46,7 +54,6 @@ import org.osgi.framework.*;
  *
  * @see org.osgi.framework.BundleContext
  * @author Jan Stein
- * @author Philippe Laporte
  */
 public class BundleContextImpl
   implements BundleContext
@@ -62,7 +69,7 @@ public class BundleContextImpl
    */
   private BundleImpl bundle;
 
-  
+
   /**
    * Create a BundleContext for specified bundle.
    */
@@ -93,7 +100,8 @@ public class BundleContextImpl
    */
   public Bundle installBundle(String location) throws BundleException {
     isBCvalid();
-    return framework.bundles.install(location, null);
+    framework.checkAdminPermission();
+    return framework.bundles.install(location, (InputStream)null);
   }
 
 
@@ -107,12 +115,13 @@ public class BundleContextImpl
   {
     try {
       isBCvalid();
+      framework.checkAdminPermission();
       return framework.bundles.install(location, in);
     } finally {
       if (in != null) {
-	try {
-	  in.close();
-	} catch (IOException ignore) {}
+        try {
+          in.close();
+        } catch (IOException ignore) {}
       }
     }
   }
@@ -135,6 +144,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
+    isBCvalid();
     return framework.bundles.getBundle(id);
   }
 
@@ -145,8 +155,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundles
    */
   public Bundle[] getBundles() {
-    List bl = framework.bundles.getBundles();
-    return (Bundle[])bl.toArray(new Bundle [bl.size()]);
+    isBCvalid();
+    return framework.bundles.getBundles();
   }
 
 
@@ -193,6 +203,9 @@ public class BundleContextImpl
    */
   public void addBundleListener(BundleListener listener) {
     isBCvalid();
+    if (listener instanceof SynchronousBundleListener) {
+      framework.checkAdminPermission();
+    }
     framework.listeners.addBundleListener(bundle, listener);
   }
 
@@ -204,6 +217,9 @@ public class BundleContextImpl
    */
   public void removeBundleListener(BundleListener listener) {
     isBCvalid();
+    if (listener instanceof SynchronousBundleListener) {
+      framework.checkAdminPermission();
+    }
     framework.listeners.removeBundleListener(bundle, listener);
   }
 
@@ -236,8 +252,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#registerService
    */
   public ServiceRegistration registerService(String[] clazzes,
-					     Object service,
-					     Dictionary properties) {
+                                             Object service,
+                                             Dictionary properties) {
     isBCvalid();
     String [] classes = (String[]) clazzes.clone();
     return framework.services.register(bundle, classes, service, properties);
@@ -250,8 +266,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#registerService
    */
   public ServiceRegistration registerService(String clazz,
-					     Object service,
-					     Dictionary properties) {
+                                             Object service,
+                                             Dictionary properties) {
     isBCvalid();
     String [] classes =  new String [] { clazz };
     return framework.services.register(bundle, classes, service, properties);
@@ -266,18 +282,26 @@ public class BundleContextImpl
   public ServiceReference[] getServiceReferences(String clazz, String filter)
     throws InvalidSyntaxException {
     isBCvalid();
-    return framework.services.get(clazz, filter, bundle, true);
-  }
-  
-  /**
-   * Get a list of service references.
-   *
-   * @see org.osgi.framework.BundleContext#getAllServiceReferences
-   */
-  public ServiceReference[] getAllServiceReferences(String clazz, String filter) 
-  throws InvalidSyntaxException {
-    isBCvalid();
-    return framework.services.get(clazz, filter, null, false);
+    if (framework.bPermissions) {
+      String c = (clazz != null) ? clazz : "*";
+      try {
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(new ServicePermission(c, ServicePermission.GET));
+        }
+      } catch (SecurityException ignore) {
+        if (Debug.service_reference) {
+          Debug.printStackTrace
+            ("BundleContext.getServiceReferences(\""
+             +c+"\", "
+             +(null==filter ? "null" : ("\"" +filter +"\"") )
+             +"): rejected.",
+             ignore );
+        }
+        return null;
+      }
+    }
+    return framework.services.get(clazz, filter);
   }
 
 
@@ -288,11 +312,23 @@ public class BundleContextImpl
    */
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
-    if (framework.perm.okGetServicePerm(clazz)) {
-      return framework.services.get(bundle, clazz);
-    } else {
-      return null;
+    if (framework.bPermissions) {
+      String c = (clazz != null) ? clazz : "*";
+      try {
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission(new ServicePermission(c, ServicePermission.GET));
+        }
+      } catch (SecurityException ignore) {
+        if (Debug.service_reference) {
+          Debug.printStackTrace
+            ("BundleContext.getServiceReference(\""+c+"\"): rejected.",
+             ignore );
+        }
+        return null;
+      }
     }
+    return framework.services.get(clazz);
   }
 
 
@@ -305,7 +341,7 @@ public class BundleContextImpl
     isBCvalid();
 
     if(reference == null) {
-      // Throw an NPE with a message to be really clear we do it 
+      // Throw an NPE with a message to be really clear we do it
       // intentionally.
       // A better solution would be to throw IllegalArgumentException,
       // but the OSGi ref impl throws NPE, and we want to keep as
@@ -326,7 +362,7 @@ public class BundleContextImpl
     isBCvalid();
 
     if(reference == null) {
-      // Throw an NPE with a message to be really clear we do it 
+      // Throw an NPE with a message to be really clear we do it
       // intentionally.
       // A better solution would be to throw IllegalArgumentException,
       // but the OSGi ref impl throws NPE, and we want to keep as
@@ -344,12 +380,12 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getDataFile
    */
-  public File getDataFile(String filename) {  
+  public File getDataFile(String filename) {
     isBCvalid();
     File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
       if (!dataRoot.exists()) {
-	dataRoot.mkdirs();
+        dataRoot.mkdirs();
       }
       return new File(dataRoot, filename);
     } else {
@@ -397,7 +433,5 @@ public class BundleContextImpl
       throw new IllegalStateException("This bundle context is no longer valid");
     }
   }
-
-
 
 }

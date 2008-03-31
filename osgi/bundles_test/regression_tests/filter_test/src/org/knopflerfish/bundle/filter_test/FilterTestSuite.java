@@ -252,7 +252,7 @@ public class FilterTestSuite extends TestSuite {
 	  }
 	}
 	
-	// NoMatch tests. None of these should match
+	// NoMatch tests. Nono of these shoudl match
 	String [] noMatchTests = new String [] {
 	  // Equal tests
 	  "(String=notest)",
@@ -359,10 +359,6 @@ public class FilterTestSuite extends TestSuite {
 	Hashtable props2 = new Hashtable();
 	props2.put("sTRING", "123");
 	Hashtable props3 = new Hashtable();
-	Hashtable props4 = new Hashtable();
-	props4.put("STRING", "String");
-	Hashtable props5 = new Hashtable();
-	props5.put("STRING", "STRING");
 
 	try {
 	  tsr = bc.registerService ("java.lang.Object", this, props1);
@@ -374,8 +370,6 @@ public class FilterTestSuite extends TestSuite {
 	  Filter f1 = bc.createFilter("(  String=123)");
 	  Filter f2 = bc.createFilter("(String	=123)");
 	  Filter f3 = bc.createFilter("(String=*)");
-	  Filter f4 = bc.createFilter("(String=String)");
-	  
 	  if (!f1.match(tsr.getReference())) {
 	    fail("Failed to match against service reference in FRAME150A");
 	  }
@@ -384,12 +378,6 @@ public class FilterTestSuite extends TestSuite {
 	  }
 	  if (f3.match(props3)) {
 	    fail("Illegal matched filter against empty dictionary in FRAME150A");
-	  }
-	  if (!f4.matchCase(props4)) {
-		  fail("Failed to match against dictionary in FRAME150A");
-	  }
-	  if (f4.matchCase(props5)) {
-		  fail("Illegal matched filter against dictionary in FRAME150A");
 	  }
 	  if (!f1.equals(f2)) {
 	    fail("Failed to compare to equal filters in FRAME150A");
@@ -412,7 +400,7 @@ public class FilterTestSuite extends TestSuite {
 	    // ok
 	  }
 	  shouldFail = true;
-	  bc.createFilter("(what?)");
+	  Filter f4 = bc.createFilter("(what?)");
 	  fail("BundleContext.createFilter() did not throw expected exception in FRAME150A");
 	} catch (InvalidSyntaxException ise) {
 	  if (!shouldFail) {

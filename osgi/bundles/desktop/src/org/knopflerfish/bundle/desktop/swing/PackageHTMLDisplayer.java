@@ -34,16 +34,19 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Iterator;
+import org.osgi.framework.*;
+import org.osgi.service.startlevel.*;
+import org.osgi.service.packageadmin.*;
+import org.osgi.util.tracker.*;
 
-import javax.swing.JComponent;
+import javax.swing.table.*;
+import javax.swing.*;
+import javax.swing.event.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Version;
-import org.osgi.service.packageadmin.ExportedPackage;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.util.tracker.ServiceTracker;
+import java.awt.event.*;
+import java.awt.*;
+
+import java.util.*;
 
 
 
@@ -89,22 +92,22 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
 	if(pkgs != null && pkgs.length > 0) {
 	  sb.append("<b>Exported packages</b>");
-  	for (int i = 0; i < pkgs.length; i++) {
-  	  sb.append("<br>");
-  	  sb.append("<b>" + pkgs[i].getName() + "</b>");
-  	  Version version = pkgs[i].getVersion();
-  	  if (version != null) {
-  	    sb.append(" " + version);
-  	  }
-  	  Bundle[] bl = pkgs[i].getImportingBundles();
-  	  for(int j = 0; bl != null && j < bl.length; j++) {
-  	    sb.append("<br>");
-  	    sb.append("&nbsp;&nbsp;");
-  	    Util.bundleLink(sb, bl[j]);
-  	  }
-  	}
 	} else {
 	  sb.append("<b>No exported packages</b>");
+	}
+	for(int i = 0; pkgs != null && i < pkgs.length; i++) {
+	  sb.append("<br>");
+	  sb.append("<b>" + pkgs[i].getName() + "</b>");
+	  String version = pkgs[i].getSpecificationVersion();
+	  if(version != null) {
+	    sb.append(" " + version);
+	  }
+	  Bundle[] bl = pkgs[i].getImportingBundles();
+	  for(int j = 0; bl != null && j < bl.length; j++) {
+	    sb.append("<br>");
+	    sb.append("&nbsp;&nbsp;");
+	    Util.bundleLink(sb, bl[j]);
+	  }
 	}
 
 	StringBuffer sb3 = new StringBuffer();
@@ -122,10 +125,6 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 	      if(bl2[k].getBundleId() == b.getBundleId()) {
 		sb2.append("<br>");
 		sb2.append("<b>" + pkgs2[j].getName() + "</b>");
-		Version version = pkgs2[j].getVersion();
-		if (version != null) {
-		  sb2.append(" " + version);
-		}
 	      }
 	    }
 	    if(sb2.length() > 0) {

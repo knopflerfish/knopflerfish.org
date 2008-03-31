@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,101 +34,44 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.MediaTracker;
-import java.awt.Point;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Comparator;
+import org.osgi.framework.*;
+import org.osgi.service.packageadmin.*;
+import org.osgi.service.startlevel.*;
+import org.osgi.util.tracker.*;
+
+import javax.swing.table.*;
+import javax.swing.*;
+import javax.swing.event.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+
+import java.util.Enumeration;
+import java.util.Vector;
 import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.io.*;
+import java.net.URL;
 
-import javax.swing.AbstractButton;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextPane;
-import javax.swing.JToolBar;
-import javax.swing.JViewport;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import java.util.jar.*;
+import java.util.zip.*;
 
-import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
-import org.knopflerfish.service.desktop.BundleSelectionListener;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SwingBundleDisplayer;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.FrameworkListener;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
-import org.osgi.util.tracker.ServiceTracker;
+import org.knopflerfish.bundle.desktop.swing.console.*;
+
+import org.knopflerfish.service.desktop.*;
+import org.knopflerfish.bundle.log.window.impl.*;
+import org.knopflerfish.util.*;
+
+import javax.swing.plaf.ComponentUI;
 
 /**
  * The big one. This class displays the main desktop frame, menues, console
@@ -221,23 +164,7 @@ public class Desktop
   public Desktop() {
   }
 
-  /* We use a comparator to make sure that the ordering of
-   * the different displays is constant. O/w we would end
-   * up with a UI where menu item changes place from time
-   * to time.
-   */
-  private Comparator referenceComparator = new Comparator() {
-        public int compare(Object obj1, Object obj2) {
-                ServiceReference ref1 = (ServiceReference)obj1;
-                ServiceReference ref2 = (ServiceReference)obj2;
-                Long l1 = (Long)ref1.getProperty(Constants.SERVICE_ID);
-                Long l2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
-                return l1.compareTo(l2);
-        }
-  };
-
-  Map displayMap = new TreeMap(referenceComparator);
-  Map menuMap    = new HashMap();
+  Map displayMap = new HashMap();
   Map detailMap  = new HashMap();
 
   public void start() {
@@ -389,19 +316,19 @@ public class Desktop
 
     setRemote(Activator.remoteTracker.getService() != null);
 
-    setIcon(frame, "/kf_");
+    setIcon(frame, "/fish");
 
     frame.pack();
-    frame.setVisible(true);
+    frame.show();
     frame.toFront();
 
-//    String dispFilter1 =
-//      "(&" +
-//      "(" + Constants.OBJECTCLASS + "=" +
-//      SwingBundleDisplayer.class.getName() +
-//      ")" +
-//      "(" + SwingBundleDisplayer.PROP_ISDETAIL + "=false" + ")" +
-//      ")";
+    String dispFilter1 =
+      "(&" +
+      "(" + Constants.OBJECTCLASS + "=" +
+      SwingBundleDisplayer.class.getName() +
+      ")" +
+      "(" + SwingBundleDisplayer.PROP_ISDETAIL + "=false" + ")" +
+      ")";
 
     String dispFilter =
       "(" + Constants.OBJECTCLASS + "=" +
@@ -498,6 +425,7 @@ public class Desktop
             } else {
 
               displayMap.remove(sr);
+
               bundlePanel.removeTab(name);
 
               makeViewPopupMenu();
@@ -792,40 +720,22 @@ public class Desktop
   void makeViewPopupMenu() {
 
     viewPopupMenu = new JPopupMenu();
-    menuMap.clear();
 
     for(Iterator it = displayMap.keySet().iterator(); it.hasNext(); ) {
-      final ServiceReference     sr   = (ServiceReference)it.next();
-      final String key = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
+
+      ServiceReference     sr   = (ServiceReference)it.next();
+      SwingBundleDisplayer disp = (SwingBundleDisplayer)displayMap.get(sr);
+
+      final String key          = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
 
       JMenuItem item = new JMenuItem(key);
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
-            bundlePanelShowTab(sr);
+            bundlePanel.showTab(key);
           }
         });
       viewPopupMenu.add(item);
     }
-  }
-
-  void bundlePanelShowTab(String name) {
-    ServiceReference[] sr;
-    try {
-      sr = Activator.getBC().getServiceReferences(SwingBundleDisplayer.class.getName(),
-          "("+SwingBundleDisplayer.PROP_NAME+"=" + name +")");
-      if (sr != null) {
-        bundlePanelShowTab(sr[0]);
-      }
-    } catch (InvalidSyntaxException e) {
-      throw new RuntimeException(e.getMessage());
-    }
-  }
-
-  void bundlePanelShowTab(ServiceReference sr) {
-    final String key = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
-    bundlePanel.showTab(key);
-    JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
-    item.setSelected(true);
   }
 
 
@@ -1274,12 +1184,11 @@ public class Desktop
     menu.add(new JSeparator());
 
     int count = 0;
-    menuMap.clear();
     for(Iterator it = displayMap.keySet().iterator(); it.hasNext(); ) {
-      final ServiceReference     sr   = (ServiceReference)it.next();
+      ServiceReference     sr   = (ServiceReference)it.next();
+      SwingBundleDisplayer disp = (SwingBundleDisplayer)displayMap.get(sr);
       final String   name = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
       final int c2 = count++;
-
       menu.add(new JRadioButtonMenuItem(name) {
           {
             setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1 + c2,
@@ -1287,10 +1196,10 @@ public class Desktop
             setMnemonic(KeyEvent.VK_1 + c2);
             addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ev) {
-                  bundlePanelShowTab(sr);
+
+                  bundlePanel.showTab(name);
                 }
               });
-            menuMap.put(sr, this);
             group.add(this);
           }});
     }
@@ -1301,75 +1210,7 @@ public class Desktop
     menu.add(new JSeparator());
     menu.add(lfMenu);
 
-    menu.add(makeErrorDialogMenu());
-
     return menu;
-  }
-
-
-  JMenu edlMenu = null;
-
-  JMenu makeErrorDialogMenu() {
-    return new JMenu(Strings.get("menu_errordialog")) {
-      {
-        add(new JCheckBoxMenuItem(Strings.get("menu_errordialog_use")) {
-          {
-            addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty("org.knopflerfish.desktop.dontuseerrordialog", String.valueOf(!getState()));
-                edlMenu.setEnabled(getState());
-              }
-            });
-            setState(!"true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false")));
-          }
-        });
-        edlMenu = new JMenu(Strings.get("menu_errordialoglevel")) {
-          {
-            ButtonGroup group = new ButtonGroup();
-
-            AbstractButton jrbn = new JRadioButtonMenuItem(Strings.get("menu_errordialoglevel_normal"));
-            group.add(jrbn);
-            add(jrbn);
-            jrbn.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty("org.knopflerfish.desktop.errordialogfriendliness", "normal");
-              }
-            });
-
-            AbstractButton jrbm = new JRadioButtonMenuItem(Strings.get("menu_errordialoglevel_more"));
-            group.add(jrbm);
-            add(jrbm);
-            jrbm.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty("org.knopflerfish.desktop.errordialogfriendliness", "more");
-              }
-            });
-
-            AbstractButton jrba = new JRadioButtonMenuItem(Strings.get("menu_errordialoglevel_advanced"));
-            group.add(jrba);
-            add(jrba);
-            jrba.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty("org.knopflerfish.desktop.errordialogfriendliness", "advanced");
-              }
-            });
-
-            String curr = System.getProperty("org.knopflerfish.desktop.errordialogfriendliness", null);
-            if ("more".equals(curr)) {
-              group.setSelected(jrbm.getModel(), true);
-            } else if ("advanced".equals(curr)) {
-              group.setSelected(jrba.getModel(), true);
-            } else {
-              group.setSelected(jrbn.getModel(), true);
-            }
-
-            setEnabled(!"true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false")));
-
-          }
-        };
-        add(edlMenu);
-      }
-    };
   }
 
 
@@ -1417,7 +1258,7 @@ public class Desktop
   JMenu makeEditMenu() {
     return new JMenu(Strings.get("menu_edit")) {
         {
-          /*add(new JMenuItem(Strings.get("item_selectall")) {
+          add(new JMenuItem(Strings.get("item_selectall")) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
                                                       ActionEvent.CTRL_MASK));
@@ -1426,11 +1267,10 @@ public class Desktop
                 addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent ev) {
                       contentPane.invalidate();
-                      new ErrorMessageDialog(frame, "Not implemented", Strings.get("item_selectall") + " is not implemented.", null, null).show();
                     }
                   });
               }
-            });*/
+            });
           add(new JMenuItem(Strings.get("item_unselectall")) {
               {
                 addActionListener(new ActionListener() {
@@ -1505,7 +1345,7 @@ public class Desktop
         Bundle sysBundle = Activator.getBC().getBundle((long)0);
         sysBundle.stop();
       } catch (Exception e) {
-        showErr("Failed to stop bundle.", e);
+        e.printStackTrace();
       }
     }
   }
@@ -1543,14 +1383,7 @@ public class Desktop
   void addBundle() {
     if(openFC == null) {
       openFC = new JFileChooser();
-      File cwd = new File(System.getProperty("user.dir"));
-      String jarsProp=System.getProperty("org.knopflerfish.gosg.jars");
-      if (jarsProp!=null && jarsProp.startsWith("file:")) {
-        cwd = new File(jarsProp.substring(5));
-      }
-      // The argument to setCurrentDirectory() must be an ablsolute
-      // path on MacOSX!
-      openFC.setCurrentDirectory(cwd.getAbsoluteFile());
+      openFC.setCurrentDirectory(new File("."));
       openFC.setMultiSelectionEnabled(true);
       FileFilterImpl filter = new FileFilterImpl();
       filter.addExtension("jar");
@@ -1607,12 +1440,8 @@ public class Desktop
     JDialog dialog =
       optionPane.createDialog(frame,
                               Strings.get("remote_connect_title"));
-    dialog.setVisible(true);
+    dialog.show();
     dialog.dispose();
-
-    if (!(optionPane.getValue() instanceof String)) { // We'll get an Integer if the user pressed Esc
-      return;
-    }
 
     String value = (String)optionPane.getValue();
 
@@ -1920,7 +1749,7 @@ public class Desktop
       // end of jarunpacker copy
 
     } catch (Exception e) {
-      showErr("Failed to write to " + file, e);
+      e.printStackTrace();
       Activator.log.error("Failed to write to " + file, e);
     } finally {
       try { out.close(); } catch (Exception ignored) { }
@@ -2046,11 +1875,9 @@ public class Desktop
 
   void updateBundle(Bundle b) {
     try {
-      boolean wasSelected = isSelected(b);
       boolean bUpdateIsUpdate = "true".equals(System.getProperty("org.knopflerfish.desktop.updateisupdate", "true"));
       if(bUpdateIsUpdate || b == Activator.getBC().getBundle()) {
         b.update();
-        if (wasSelected) setSelected(b);
       } else {
         String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
         if(location == null || "".equals(location)) {
@@ -2063,7 +1890,6 @@ public class Desktop
           if(Util.canBeStarted(newBundle)) {
             startBundle(newBundle);
           }
-          if (wasSelected) setSelected(newBundle);
         }
       }
     } catch (Exception e) {
@@ -2081,7 +1907,7 @@ public class Desktop
       .showOptionDialog(frame,
                         Strings.fmt("q_uninstallbundle",
                                      Util.getBundleName(b)),
-                        Strings.get("msg_uninstallbundle"),
+                        Strings.get("msg_uniunstallbundle"),
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
@@ -2092,12 +1918,6 @@ public class Desktop
     if(n == 0) {
       try {
         b.uninstall();
-        try { // Try to unselect uninstalled bundle
-          if (isSelected(b)) {
-            toggleSelected(b);
-            contentPane.invalidate();
-          }
-        } catch (Throwable ignore) {}
         return true;
       } catch (Exception e) {
         showErr("failed to uninstall bundle " + Util.getBundleName(b), e);
@@ -2110,19 +1930,15 @@ public class Desktop
 
 
   void showErr(String msg, Exception e) {
+    if(msg != null && !"".equals(msg)) {
+      System.out.println(msg);
+    }
     Throwable t = e;
     while(t instanceof BundleException &&
           ((BundleException) t).getNestedException() != null) {
       t = ((BundleException) t).getNestedException();
     }
-    if ("true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false"))) {
-      if(msg != null && !"".equals(msg)) {
-        System.out.println(msg);
-      }
-      t.printStackTrace();
-    } else {
-      new ErrorMessageDialog(frame, null, msg, null, t).setVisible(true);
-    }
+    t.printStackTrace();
   }
 
 
@@ -2184,19 +2000,22 @@ public class Desktop
 
 
   void addFile(File file) {
-    try {
-      String location = "file:" + file.getAbsolutePath();
-      Bundle b = Activator.getTargetBC().installBundle(location);
 
-      if(Util.canBeStarted(b)) {
-        startBundle(b);
+    try {
+      if(file.getName().toUpperCase().endsWith(".JAR")) {
+        try {
+          String location = "file:" + file.getAbsolutePath();
+          Bundle b = Activator.getTargetBC().installBundle(location);
+          Dictionary headers = b.getHeaders();
+          if(Util.canBeStarted(b)) {
+            startBundle(b);
+          }
+        } catch (Exception e) {
+          showErr(null, e);
+        }
       }
     } catch (Exception e) {
-      if(file.getName().toUpperCase().endsWith(".JAR")) {
-        showErr("Failed to open bundle.", e);
-      } else {
-        showErr("The file is not a bundle.", e);
-      }
+      Activator.log.error("Failed to add file", e);
     }
   }
 
@@ -2263,7 +2082,15 @@ public class Desktop
       return;
     }
 
+    Bundle b = ev.getBundle();
+
     bundleCache = Activator.getTargetBC().getBundles();
+
+    boolean bMyself = false;
+
+    if(Activator.getTargetBC() == Activator.getBC()) {
+      bMyself = b.getBundleId() == Activator.getBC().getBundle().getBundleId();
+    }
 
     updateStatusBar();
     toolBar.revalidate();
@@ -2312,12 +2139,11 @@ public class Desktop
   }
 
   void showVersion() {
-    BundleContext bc = Activator.getBC();
-    String version = (String)bc.getBundle().getHeaders().get("Bundle-Version");
+    String version = "1.1.1";
     String txt = Strings.fmt("str_abouttext", version);
 
     ImageIcon icon =
-      new ImageIcon(getClass().getResource("/kf_200x21.gif"));
+      new ImageIcon(getClass().getResource("/fish150x225.gif"));
 
     JOptionPane.showMessageDialog(frame,
                                   txt,

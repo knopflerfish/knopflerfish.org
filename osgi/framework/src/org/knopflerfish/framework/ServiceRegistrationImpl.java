@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework;
 
+import java.security.*;
 import java.util.HashMap;
 import java.util.Dictionary;
 import java.util.Iterator;
@@ -51,7 +52,7 @@ import org.osgi.framework.*;
 public class ServiceRegistrationImpl implements ServiceRegistration
 {
   /**
-   * Bundle registering this service.
+   * Bundle implementing this services.
    */
   BundleImpl bundle;
 
@@ -82,10 +83,9 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   HashMap /*Bundle->Object*/ serviceInstances = new HashMap();
 
   /**
-   * Is service available. I.e., if <code>true</code> then holders
-   * of a ServiceReference for the serivice are allowed to get it.
+   * Is service available.
    */
-  volatile boolean available;
+  boolean available;
 
   /**
    * Lock object for synchronous event delivery.
@@ -93,11 +93,9 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   private Object eventLock = new Object();
 
   /**
-   * Avoid recursive unregistrations. I.e., if <code>true</code> then
-   * unregistration of this service have started but are not yet
-   * finished.
+   * Avoid recursive unregistrations.
    */
-  volatile boolean unregistering = false;
+  private boolean unregistering = false;
 
 
   /**
@@ -142,18 +140,18 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   public void setProperties(Dictionary props) {
     synchronized (eventLock) {
       synchronized (properties) {
-        if (available) {
-          String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
-          Long sid = (Long)properties.get(Constants.SERVICE_ID);
-          properties = new PropertiesDictionary(props, classes, sid);
-        } else {
-          throw new IllegalStateException("Service is unregistered");
-        }
+	if (available) {
+	  String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
+	  Long sid = (Long)properties.get(Constants.SERVICE_ID);
+	  properties = new PropertiesDictionary(props, classes, sid);
+	} else {
+	  throw new IllegalStateException("Service is unregistered");
+	}
       }
-      bundle.framework.listeners
-        .serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
+      bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
     }
   }
+
 
   /**
    * Unregister the service.
@@ -161,55 +159,38 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * @see org.osgi.framework.ServiceRegistration#unregister
    */
   public void unregister() {
-    if (unregistering) return; // Silently ignore redundant unregistration.
-    synchronized (eventLock) {
-      if (unregistering) return;
-      unregistering = true;
-
-      synchronized (properties) {
-        if (available) {
-          if (null!=bundle)
-            bundle.framework.services.removeServiceRegistration(this);
-        } else {
-          throw new IllegalStateException("Service is unregistered");
-        }
-      }
-    }
-
-    if (null!=bundle) {
-      bundle.framework.listeners
-        .serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING,
-                                         reference));
-    }
     synchronized (eventLock) {
       synchronized (properties) {
-        available = false;
-        if (null!=bundle)
-          bundle.framework.perm.callUnregister0(this);
-        bundle = null;
-        dependents = null;
-        reference = null;
-        service = null;
-        serviceInstances = null;
-        unregistering = false;
+	if (available) {
+	  bundle.framework.services.removeServiceRegistration(this);
+	  available = false;
+	} else {
+	  throw new IllegalStateException("Service is unregistered");
+	}
       }
-    }
-  }
 
-  /**
-   * Unget all remaining ServiceFactory service instances.
-   */
-  void unregister0() {
-    for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      try {
-        ((ServiceFactory)service).ungetService((Bundle)e.getKey(),
-                                               this,
-                                               e.getValue());
-      } catch (Throwable ue) {
-        bundle.framework.listeners
-          .frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
-      }
+      bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference));
+    }
+    final ServiceRegistration sr = this;
+    AccessController.doPrivileged(new PrivilegedAction() {
+	public Object run() {
+	  for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
+	    Map.Entry e = (Map.Entry)i.next();
+	    try {
+	      ((ServiceFactory)service).ungetService((Bundle)e.getKey(), sr, e.getValue());
+	    } catch (Throwable ue) {
+	      bundle.framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
+	    }
+	  }
+	  return null;
+	}
+      });
+    synchronized (properties) {
+      bundle = null;
+      dependents = null;
+      reference = null;
+      service = null;
+      serviceInstances = null;
     }
   }
 

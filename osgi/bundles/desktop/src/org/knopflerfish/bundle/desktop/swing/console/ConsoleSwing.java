@@ -34,17 +34,16 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.*;
+import java.io.*;
 
-import javax.swing.JComponent;
-import javax.swing.JLabel;
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.console.*;
 
-import org.knopflerfish.service.console.ConsoleService;
-import org.knopflerfish.service.console.Session;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
 public class ConsoleSwing {
 

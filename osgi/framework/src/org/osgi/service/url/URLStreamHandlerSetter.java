@@ -1,19 +1,19 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.url/src/org/osgi/service/url/URLStreamHandlerSetter.java,v 1.8 2006/06/16 16:31:31 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) 2002 - IBM Corporation
+ * All Rights Reserved.
+ * 	
+ * These materials have been contributed to the Open Services Gateway
+ * Initiative (OSGi) as "MEMBER LICENSED MATERIALS" as defined in, and
+ * subject to the terms of, the OSGi Member Agreement by and between OSGi and
+ * IBM, specifically including but not limited to, the license
+ * rights and warranty disclaimers as set forth in Sections 3.2 and 12.1
+ * thereof.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * All company, brand and product names contained within this document may be
+ * trademarks that are the sole property of the respective owners.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * The above notice must be included on all copies of this document that are
+ * made.
  */
 
 package org.osgi.service.url;
@@ -21,32 +21,43 @@ package org.osgi.service.url;
 import java.net.URL;
 
 /**
- * Interface used by <code>URLStreamHandlerService</code> objects to call the
- * <code>setURL</code> method on the proxy <code>URLStreamHandler</code> object.
- * 
- * <p>
- * Objects of this type are passed to the
- * {@link URLStreamHandlerService#parseURL}method. Invoking the <code>setURL</code>
- * method on the <code>URLStreamHandlerSetter</code> object will invoke the
- * <code>setURL</code> method on the proxy <code>URLStreamHandler</code> object that
- * is actually registered with <code>java.net.URL</code> for the protocol.
- * 
- * @version $Revision: 1.8 $
+ * Interface used by <tt>URLStreamHandlerService</tt> objects to call the <tt>setURL</tt> method
+ * on the proxy <tt>URLStreamHandler</tt> object.
+ *
+ * <p>Objects of this type are passed to the {@link URLStreamHandlerService#parseURL}
+ * method.
+ * Invoking the <tt>setURL</tt> method on the <tt>URLStreamHandlerSetter</tt> object will invoke the
+ * <tt>setURL</tt> method on the proxy <tt>URLStreamHandler</tt> object that is actually
+ * registered with <tt>java.net.URL</tt> for the protocol.
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Ben Reed, IBM Corporation (breed@almaden.ibm.com)
  */
-public interface URLStreamHandlerSetter {
-	/**
-	 * @see "java.net.URLStreamHandler.setURL(URL,String,String,int,String,String)"
-	 * 
-	 * @deprecated This method is only for compatibility with handlers written
-	 *             for JDK 1.1.
-	 */
-	public void setURL(URL u, String protocol, String host, int port,
-			String file, String ref);
+public interface URLStreamHandlerSetter
+{
+    /**
+     * @see "java.net.URLStreamHandler.setURL(URL,String,String,int,String,String)"
+     *
+     * @deprecated This method is only for compatibility with handlers written
+     *             for JDK 1.1.
+     */
+    public void setURL(URL u,
+		       String protocol,
+		       String host,
+		       int port,
+		       String file,
+		       String ref);
 
-	/**
-	 * @see "java.net.URLStreamHandler.setURL(URL,String,String,int,String,String,String,String)"
-	 */
-	public void setURL(URL u, String protocol, String host, int port,
-			String authority, String userInfo, String path, String query,
-			String ref);
+    /**
+     * @see "java.net.URLStreamHandler.setURL(URL,String,String,int,String,String,String,String)"
+     */
+    public void setURL(URL u,
+		       String protocol,
+		       String host,
+		       int port,
+		       String authority,
+		       String userInfo,
+		       String path,
+		       String query,
+		       String ref);
 }

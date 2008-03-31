@@ -34,20 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Shape;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import java.awt.*;
+import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
+import java.awt.event.*;
+import java.util.*;
+import java.lang.Thread;
 
 
 public class StatusBar extends JComponent 

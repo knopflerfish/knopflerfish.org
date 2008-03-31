@@ -34,13 +34,13 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 
-import javax.swing.JTable;
+import java.awt.Component;
+import java.awt.Color;
 import javax.swing.JTextField;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
 /**
@@ -68,34 +68,24 @@ public class DateCellRenderer extends JTextField implements TableCellRenderer {
 						 int row, 
 						 int column) {
 
-    Color bg;
-    Color fg;
+    // Get the default string renderer, just to clone the colors
+    Component defComp = table.getDefaultRenderer(String.class)
+      .getTableCellRendererComponent(table, 
+				     "dummy",
+				     isSelected,
+				     hasFocus,
+				     row, 
+				     column);
     
+    Color bg = defComp.getBackground();
+    Color fg = defComp.getForeground();
+
     if(isSelected) {
       bg = table.getSelectionBackground();
       fg = table.getSelectionForeground();
 
       // remove any transparency in background. I'm amazed.
       bg = new Color(bg.getRed(), bg.getGreen(), bg.getBlue());
-    } else {
-      try {
-        // Get the default string renderer, just to clone the colors
-        Component defComp = table.getDefaultRenderer(String.class)
-          .getTableCellRendererComponent(table, 
-    				     "dummy",
-    				     isSelected,
-    				     hasFocus,
-    				     row, 
-    				     column);
-        bg = defComp.getBackground();
-        fg = defComp.getForeground();
-      } catch (Throwable e) {
-        // It has been reported that the previous call can throw something.
-        // In that case, we'll just set the colors manually:
-        bg = Color.WHITE;
-        fg = Color.BLACK;
-      }
-        
     }
 
     // paint by setting the formatted date

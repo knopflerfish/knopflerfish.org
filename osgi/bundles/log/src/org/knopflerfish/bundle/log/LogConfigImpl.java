@@ -128,19 +128,16 @@ class LogConfigImpl implements ManagedService, LogConfig {
 
     synchronized void start() {
         this.pid = this.getClass().getName();
-        configCollection = getDefault();
         initDir();
+        configCollection = getDefault();
         String[] clazzes = new String[] { ManagedService.class.getName(),
                 LogConfig.class.getName() };
         bc.registerService(clazzes, this, configCollection);
     }
 
     private void initDir() {
-        dir = bc.getDataFile("/"); // default location
-        String d = (String)configCollection.get(DIR);
-        if (d != null) {
-            dir = new File(d);     // location from config 
-        }
+        File f = bc.getDataFile("/");
+        dir = (f != null) ? f : null;
     }
 
     void init(LogReaderServiceFactory lr) {
@@ -262,11 +259,13 @@ class LogConfigImpl implements ManagedService, LogConfig {
      * @see org.knopflerfish.service.log.LogConfig#setOut(boolean)
      */
     public synchronized void setOut(boolean b) {
-	boolean oldOut = getOut();
-	if (b != oldOut) {
-	    set(OUT, new Boolean(b));
-	    updateConfig();
-	}
+        if (!DEFAULT_CONFIG) {
+            boolean oldOut = getOut();
+            if (b != oldOut) {
+                set(OUT, new Boolean(b));
+                updateConfig();
+            }
+        }
     }
 
     /*
@@ -285,16 +284,18 @@ class LogConfigImpl implements ManagedService, LogConfig {
      * @see org.knopflerfish.service.log.LogConfig#setFile(boolean)
      */
     public synchronized void setFile(boolean f) {
-	if ((dir != null)) {
-	    boolean oldFile = getFile();
-	    if (f != oldFile) {
-		Boolean newFile = new Boolean(f);
-		set(FILE, newFile);
-		if (logReaderCallback != null)
-		    logReaderCallback.configChange(FILE, new Boolean(oldFile),
-						   newFile);
-	    }
-	}
+        if (!DEFAULT_CONFIG) {
+            if ((dir != null)) {
+                boolean oldFile = getFile();
+                if (f != oldFile) {
+                    Boolean newFile = new Boolean(f);
+                    set(FILE, newFile);
+                    if (logReaderCallback != null)
+                        logReaderCallback.configChange(FILE, new Boolean(
+                                oldFile), newFile);
+                }
+            }
+        }
     }
 
     /*
@@ -397,14 +398,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
         synchronized (blFilters) {
             level = (Integer) blFilters.get(bundle.getLocation());
             if (level == null) {
-                Dictionary d = bundle.getHeaders("");
-		String l = (String)d.get("Bundle-SymbolicName");
-                if (l == null) {
-		    l = (String)d.get("Bundle-Name");
-                }
-                if (l != null) {
-                    level = (Integer) blFilters.get(getCommonLocation(l));
-                }
+                level = (Integer) blFilters.get(((String) (bundle.getHeaders())
+                        .get("Bundle-Name"))
+                        + ".jar");
             }
         }
         return (level != null) ? level.intValue() : getFilter();
@@ -508,9 +504,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
                 PROP_LOG_GRABIO, "false")) ? true : false)));
         ht.put(FILE, new Boolean(("true".equalsIgnoreCase(getProperty(
                 PROP_LOG_FILE, "false")) ? true : false)));
-        String dirStr = System.getProperty(PROP_LOG_FILE_DIR);
-        if (dirStr != null)
-            ht.put(DIR, dirStr);
+        ht.put(DIR, getProperty(PROP_LOG_FILE_DIR, ""));
         ht.put(FILE_S, new Integer(20000));
         ht.put(GEN, new Integer(4));
         ht.put(FLUSH, new Boolean(true));
@@ -567,37 +561,30 @@ class LogConfigImpl implements ManagedService, LogConfig {
     void updateGrabIO() {
         boolean bDebugClass = "true".equals(System.getProperty(
                 "org.knopflerfish.framework.debug.classloader", "false"));
+
         if (!bDebugClass) {
             if (getGrabIO()) {
-                grabIO();
+                if (!getOut()) {
+                    if (!bGrabbed) {
+                        origOut = System.out;
+                        origErr = System.err;
+
+                        System.setOut(new WrapStream("[stdout] ", System.out,
+                                org.osgi.service.log.LogService.LOG_INFO));
+                        System.setErr(new WrapStream("[stderr] ", System.out,
+                                org.osgi.service.log.LogService.LOG_ERROR));
+                    }
+                }
             } else {
-                ungrabIO();
+                if (bGrabbed) {
+                    System.setOut(origOut);
+                    System.setErr(origErr);
+                    bGrabbed = false;
+                }
             }
         }
     }
 
-    void grabIO() {
-        if (!getOut()) {
-            if (!bGrabbed) {
-                origOut = System.out;
-                origErr = System.err;
-                System.setOut(new WrapStream("[stdout] ", System.out,
-                              org.osgi.service.log.LogService.LOG_INFO));
-                System.setErr(new WrapStream("[stderr] ", System.out,
-                              org.osgi.service.log.LogService.LOG_ERROR));
-                bGrabbed = true;
-            }
-        }
-    }
-
-    void ungrabIO() {
-        if (bGrabbed) {
-            System.setOut(origOut);
-            System.setErr(origErr);
-            bGrabbed = false;
-        }
-    }
-            
     class WrapStream extends PrintStream {
         String prefix;
 
@@ -630,7 +617,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
         }
 
         void log(String s) {
-            if (s != null && -1 != s.indexOf(prefix)) {
+            if (-1 != s.indexOf(prefix)) {
                 return;
             }
 

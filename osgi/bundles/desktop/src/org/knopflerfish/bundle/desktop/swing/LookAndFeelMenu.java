@@ -34,23 +34,25 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.Component;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Vector;
-
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.LookAndFeel;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.LookAndFeel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import java.awt.Component;
+import java.awt.Cursor;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+
+import java.util.*;
 
 /**
  ** A menu that handles Look & Feel changes. for a Java GUI.

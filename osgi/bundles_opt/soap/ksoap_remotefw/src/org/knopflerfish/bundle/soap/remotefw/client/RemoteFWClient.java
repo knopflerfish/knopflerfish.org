@@ -196,8 +196,7 @@ public class RemoteFWClient implements RemoteFW {
 
 
   public long    getBundle() {
-    Object obj = doCall("getBundle");
-    return (obj == null ? 0 : new Long(obj.toString()).longValue());
+    return new Long(doCall("getBundle").toString()).longValue();
   }
 
   public long[]    getBundles() {
@@ -211,12 +210,11 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public String  getBundleLocation(long bid) {
-    return toString(doCall("getBundleLocation", bid));
+    return doCall("getBundleLocation", bid).toString();
   }
 
   public int  getBundleState(long bid) {
-    Object obj = doCall("getBundleState", bid);
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getBundleState", bid).toString()).intValue();
   }
 
 
@@ -296,8 +294,7 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public int  getStartLevel() {
-    Object obj = doCall("getStartLevel");
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getStartLevel").toString()).intValue();
   }
 
 
@@ -311,8 +308,7 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public int  getBundleStartLevel(long bid) {
-    Object obj = doCall("getBundleStartLevel", bid);
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getBundleStartLevel", bid).toString()).intValue();
   }
 
 
@@ -321,8 +317,7 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public int  getInitialBundleStartLevel() {
-    Object obj = doCall("getInitialBundleStartLevel");
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getInitialBundleStartLevel").toString()).intValue();
   }
 
   public boolean isBundlePersistentlyStarted(long bid) {
@@ -551,10 +546,6 @@ public class RemoteFWClient implements RemoteFW {
     }
 
     return la;
-  }
-
-  static String toString(Object obj) {
-    return (obj == null ? null : obj.toString());
   }
 
   public static Object toDisplay(Object val) {

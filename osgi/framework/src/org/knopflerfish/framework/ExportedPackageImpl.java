@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,17 @@
 package org.knopflerfish.framework;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Vector;
+
 
 
 import org.osgi.framework.*;
@@ -60,9 +70,9 @@ import org.osgi.service.packageadmin.ExportedPackage;
  */
 public class ExportedPackageImpl implements ExportedPackage {
 
-  final private ExportPkg pkg;
+  final private PkgEntry pkg;
 
-  ExportedPackageImpl(ExportPkg pkg) {
+  ExportedPackageImpl(PkgEntry pkg) {
     this.pkg = pkg;
   }
 
@@ -84,8 +94,8 @@ public class ExportedPackageImpl implements ExportedPackage {
    *         has become stale.
    */
   public Bundle getExportingBundle() {
-    if (pkg.pkg != null) {
-      return pkg.bpkgs.bundle;
+    if (pkg.bundle.framework.packages.isProvider(pkg)) {
+      return pkg.bundle;
     } else {
       return null;
     }
@@ -105,19 +115,15 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    Collection imps = pkg.getPackageImporters();
-    if (imps != null) {
-      int size = imps.size();
-      List rl = pkg.bpkgs.getRequiredBy(); 
-      int rsize = rl.size() ;
-      Bundle[] res = new Bundle[size + rsize];
-      imps.toArray(res);
-      for (int i = 0; i < rsize; i++) {
-        res[size + i] = ((BundlePackages)rl.get(i)).bundle;
+    Packages packages = pkg.bundle.framework.packages;
+    synchronized (packages) {
+      if (packages.isProvider(pkg)) {
+	Collection imps = packages.getPackageImporters(pkg.name);
+	Bundle[] res = new Bundle[imps.size()];
+	return (Bundle[])imps.toArray(res);
+      } else {
+	return null;
       }
-      return res;
-    } else {
-      return null;
     }
   }
 
@@ -143,17 +149,14 @@ public class ExportedPackageImpl implements ExportedPackage {
    * <tt>false</tt> otherwise.
    */
   public boolean isRemovalPending() {
-    // TBD, check this
-    if (pkg.isProvider()) {
-      return pkg.zombie;
-    } else {
-      return false;
+    Packages packages = pkg.bundle.framework.packages;
+    synchronized (packages) {
+      if (packages.isProvider(pkg)) {
+	return packages.isZombiePackage(pkg);
+      } else {
+	return true;
+      }
     }
-  }
-
-
-  public Version getVersion() {
-    return pkg.version;
   }
 
 }

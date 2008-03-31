@@ -23,17 +23,17 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/junit/junit_all-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/demo1/demo1_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/demo1/demo1_api-1.0.0.jar"/>
    <pathelement location="${topdir}/bundles_opt/junit/junit/resources/junit.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
   </path>
 
 
-  <property name="bmfa.Bundle-Description"    value="JUnit example1"/>
-  <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
-  <property name="bmfa.Import-Package"
+  <property name="bundle.description"    value="JUnit example1"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="import.package"
             value="junit.framework,org.osgi.framework,org.knopflerfish.service.demo1"/>
 
   &bundlebuild_include;

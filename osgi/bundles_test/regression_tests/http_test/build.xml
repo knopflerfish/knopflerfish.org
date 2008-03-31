@@ -11,8 +11,8 @@
   <property name="bundle.version" value="1.0.0"/>
 
   <path id = "bundle.compile.path">
-    <pathelement location="${topdir}/lib/jsdk_api-2.5.jar"/>
-    <pathelement location="${topdir}/lib/http_api-2.1.0.jar"/>
+    <pathelement location="${topdir}/lib/http_api-1.1.0.jar"/>
+    <pathelement location="${topdir}/lib/servlet.jar"/>
   </path>
 
   &test_include;

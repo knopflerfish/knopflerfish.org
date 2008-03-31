@@ -21,6 +21,7 @@
 -Dorg.knopflerfish.gosg.jars=file:jars/
 
 # Various debug flags
+-Dorg.knopflerfish.framework.debug.print_with_do_privileged=true
 -Dorg.knopflerfish.framework.debug.packages=false
 -Dorg.knopflerfish.framework.debug.errors=true
 -Dorg.knopflerfish.framework.debug.classloader=false
@@ -42,28 +43,14 @@
 -Dorg.knopflerfish.log.grabio=true
 -Dorg.knopflerfish.log.file=true
 
-# bootdelegation
--Dorg.osgi.framework.bootdelegation=*
-
-# Shall bc.getService(ServiceReference) return the service while it is
-# in the state unregistering or not.
--Dorg.knopflerfish.servicereference.valid.during.unregistering=true
 
 -init
 
 -initlevel 1
--install log/log_all-2.0.0.jar
--install cm/cm_all-2.0.0.jar
--install console/console_all-2.0.0.jar
--install event/event_all-2.0.0.jar
+#no special bundles required
 
 -initlevel 2
--install jsdk/jsdk_api-2.5.jar
--istart junit/junit_all-2.0.0.jar
-
--initlevel 4
--install http/http_all-2.1.0.jar
--install io/io_all-2.0.0.jar
+-istart junit/junit_all-1.0.0.jar
 
 # the test cases
 -istart file:bundles_test/regression_tests/jars/framework_test-1.0.0.jar
@@ -71,26 +58,15 @@
 -istart file:bundles_test/regression_tests/jars/servicetracker_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/constants_test-1.0.0.jar
 -istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/eventadmin_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/http_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/io_test-1.0.0.jar
 
-# packages required by component_test
--istart log/log_all-2.0.0.jar
--istart cm/cm_all-2.0.0.jar
--istart component/component_all-2.0.0.jar
--istart file:bundles_test/regression_tests/jars/component_test-1.0.0.jar
+# the test case runner bundle.
+-istart junit_runner/junit_runner_all-1.0.0.jar
 
--startlevel 7
-
--start log/log_all-2.0.0.jar
--start cm/cm_all-2.0.0.jar
--start http/http_all-2.1.0.jar
--start event/event_all-2.0.0.jar
--start io/io_all-2.0.0.jar
+-startlevel 2
 
 -launch
 
-# the test case runner bundle.
--istart junit_runner/junit_runner_all-2.0.0.jar
+
+
+
 

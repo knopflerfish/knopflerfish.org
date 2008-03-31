@@ -24,13 +24,6 @@ the framework storage directory and configuration files. In these cases
 
 ...is often enough. 
 
-To enable support for new KF2 specific features, such as extension bundles, 
-you can use the "kf2" shell script. Open a terminal and type
-
- ./kf2
-
-Note: the script requires a "sh" shell. 
-
 Other uses are possible, but require options and possibly some tweaking
 of the default startup files.
 
@@ -75,12 +68,12 @@ The framework can be started using the startup wrapper class
 This class is also set a Main-Class in framework.jar's manifest, meaning 
 framework.jar can be started using 
 
- java -jar framework.jar [options] OR ./kf [options]
+ java -jar framework.jar [options]
 
 The Main class supports a number of options, which can be displayed
 using 
 
- java -jar framework.jar -help OR ./kf -help
+ java -jar framework.jar -help
 
 Options can also be specified using the -xargs option, which specifies
 a .xargs text file containing lines of new options. Typically all options
@@ -201,7 +194,13 @@ Framework System Properties
      Print debug information about LDAP filters
      Default: false
 
-  org.knopflerfish.framework.debug.service_reference
+   org.knopflerfish.framework.ldap.nocache
+     Disable LDAP caching for simple filters. LDAP caching
+     speeds up framework filters considerably, but uses
+     more memory.
+     Default: false
+
+   org.knopflerfish.framework.debug.service_reference
      When security is enabled, print information about service
      reference lookups that are rejected due to missing permissions
      for calling bundle.
@@ -211,17 +210,6 @@ Framework System Properties
      When security is enabled, print information about resource
      lookups that are rejected due to missing permissions for the
      calling bundle.
-
-   org.knopflerfish.framework.debug.patch
-     Print debug information about class patching
-     Default: false
-
-   org.knopflerfish.framework.ldap.nocache
-     Disable LDAP caching for simple filters. LDAP caching
-     speeds up framework filters considerably, but uses
-     more memory.
-
-     Default: false
 
    org.knopflerfish.framework.bundlestorage
      Storage implementation for bundles
@@ -254,72 +242,22 @@ Framework System Properties
 
      Default: true
       
-   org.knopflerfish.framework.system.export.all
-     Make the system class loader export all standard JRE packages
-     as defined by the currently running Java version.
-
-     This is the same as setting the appropriate
-     org.knopflerfish.framework.system.export.all_<M><N> where <M> is
-     the major (first) number and <N> is the minor (second) number in
-     the standard system property "java.version".
-
-     When this property is set to "true" all the properties named
-     org.knopflerfish.framework.system.export.all_<M><N>
-     defined below will be ignored.
-
-     More system bundle exports can by added by setting the OSGi
-     defined property org.osgi.framework.system.packages or using the
-     knopflerfish property org.osgi.framework.system.packages.file.
-
-     Default: false
-
    org.knopflerfish.framework.system.export.all_13
-     Make the system class loader export all standard JRE 1.3
+     Make system classloader export all standard JVM 1.3
      packages as javax.swing.*
-
      Default: false
-
-   org.knopflerfish.framework.system.export.all_14
-     Make the system class loader export all standard JRE 1.4
-     packages as javax.swing.*
-
-     Default: false
-
-   org.knopflerfish.framework.system.export.all_15
-     Make the system class loader export all standard JRE 1.5
-     packages as javax.swing.*
-
-     Default: false
-
-   org.knopflerfish.framework.system.export.all_16
-     Make the system class loader export all standard JRE 1.6
-     packages as javax.swing.*
-
-     Default: false
-
 
    org.knopflerfish.framework.is_doublechecked_locking_safe
      Is it safe to use double-checked locking or not.
      It is safe if JSR 133 is included in the running JRE. I.e., for
      Java SE if version is 1.5 or higher.
 
-     Default: true if value of the system property java.version >= 1.5,
+     Default: true if value of system property java.version >= 1.5,
               false otherwise
-
 
    org.knopflerfish.verbosity
      Framework verbosity level. 0 means few messages
      Default: 0
-
-   org.knopflerfish.servicereference.valid.during.unregistering
-     If set to false, then the service reference can not be used to
-     fetch an instance of the service during delivery and handling of
-     the UNREGISTERING service event. This (false) is the behaviour
-     specified in the OSGi R4.0.1 specification, according to a
-     clarification done by CPEG February 2008 it shall now be possible
-     to obtain a service instance during delivery of UNREGISTERING
-     events thus this property now defaults to true.
-     Default: true
 
    org.knopflerfish.startlevel.use
      Use the Start Level service.
@@ -384,9 +322,6 @@ Framework System Properties
 
      If "false", don't do anything after shutdown.
 
-     Must be set to "true" if one wants to use KF2 features such as
-     extension bundles.
-
      Default: true
   
   org.knopflerfish.osgi.setcontextclassloader
@@ -439,88 +374,6 @@ Framework System Properties
 
     Default: false (don't export bundle: URLs publicly)
 
-  org.knopflerfish.framework.usingwrapperscript
-    If set to "true", KF will assume that it has been
-    started with the "kf2" shell script, and that it will be 
-    restarted if KF exits with exit code = 200. Required to be 
-    able to use new KF2 features such as extension bundles. 
-
-    This flag is set to "true" by the "kf2" shell script.
-
-    Default: false 
-
-  org.knopflerfish.framework.main.class.activation
-   A comma-separated list of locations of bundles whose Main-Class
-   (set in manifest) should be used as activator if no
-   BundleActivator is specified. 
-
-   The Main-Class will be used as activator iff the jar file 
-   does not specify a Bundle-Activator header and the bundle's
-   location(see Bundle.getLocation) is found in the comma-separated
-   list (case-sensitive). 
-   
-   > java -Dorg.knopflerfish.framework.main.class.activation=\ 
-         file:/foo/bar.jar,http://foo.com/bar.jar \ 
-         -jar framework.jar ...
-   
-   Default: the empty list
-
-  org.knopflerfish.framework.patch
-   If true AND the class org.objectweb.asm.ClassReader is available
-   (by putting the asm-3.1.jar library on the system class path), enable
-   runtime class patching.
-
-   Example:
-
-    java -Dorg.knopflerfish.framework.patch=true\
-         -cp framework.jar:asm-3.1.jar \
-         org.knopflerfish.framework.Main        
-
-   Default: false
-
-
-  org.knopflerfish.framework.patch.configurl
-   URL to class patch config file. Only used when class patching is enabled.
-
-   This is used as a fallback if
-   a bundle does not specify a Bundle-ClassPatcher-Config manifest header.
-
-
-   Default: !!/patches.props
-
-            "!!" is used to read resources from the system class path
-            "!" can be used to read bundle resources.
-           
-
-  org.knopflerfish.framework.patch.dumpclasses
-   If true and class patchin is enabled, dump all modified classes
-   to a directory.
-
-   Default: false
-    
-  org.knopflerfish.framework.patch.dumpclasses.dir
-   If dumpclasses is enabled, specifies a directory where to dump
-   modified classes
-
-   Default: patchedclasses
-
-
-  org.knopflerfish.framework.automanifest   
-   Flag to enable automatic manifest generation. If true, bundle
-   manifest can be modified by a special configuration file. See
-   javadoc for org.knopflerfish.framework.AutoManifest class 
-   for details.
-
-   Default: false
-
-
-  org.knopflerfish.framework.automanifest.config
-   Configuration URL for automatic manifest generation. Only
-   valid if org.knopflerfish.framework.automanifest=true
-
-   Default: "!!/automanifest.props"
-
-   
 
 Using a HTTP proxy
 ==================

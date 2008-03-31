@@ -34,10 +34,8 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Hashtable;
-
-import javax.swing.LookAndFeel;
-import javax.swing.UIManager;
+import javax.swing.*;
+import java.util.*;
 
 public class LFManager {
 

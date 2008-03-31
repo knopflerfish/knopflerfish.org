@@ -57,7 +57,7 @@ class Desktop {
     libImage    = loadImage("/lib.gif");
 
 
-    setIcon(frame, "/kf_");
+    setIcon(frame, "/fish");
   }
 
   static Image loadImage(String urlS) {

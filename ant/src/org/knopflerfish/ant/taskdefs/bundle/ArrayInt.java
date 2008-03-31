@@ -32,6 +32,8 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
+import java.io.*;
+import java.util.*;
 
 public class ArrayInt extends Number implements Comparable {
   int[] ia = new int[0];

@@ -34,9 +34,9 @@
 
 package org.knopflerfish.bundle.desktop.swing.fwspin;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.util.Vector;
+import java.util.*;
+import java.awt.*;
+import java.awt.geom.*;
 
 
 public abstract class SpinItem {

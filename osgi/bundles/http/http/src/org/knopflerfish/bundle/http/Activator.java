@@ -120,7 +120,6 @@ public class Activator implements BundleActivator {
         } catch (ConfigurationException ce) {
             if (log.doError())
                 log.error("Configuration error", ce);
-
         } finally {
             if (adminRef != null)
                 bc.ungetService(adminRef);

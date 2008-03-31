@@ -1,15 +1,12 @@
 <?xml version="1.0"?>
 
-<project name="osgi" default="default">
+<project name="osgi" default="all">
 
   <!-- build properties -->
 
   <property name = "topdir"          location = "."/>
   <property name = "javadoc.out.dir" location = "out/javadoc"/>
 
-  <!-- The initial part of the URL to use for the default jars -->
-  <!-- location in the remote xargs files.  -->
-  <property name = "base.url" value="http://www.knopflerfish.org/releases"/>
 
  <path id="sources.path">
   <pathelement location="framework/src"/>
@@ -19,15 +16,11 @@
   <pathelement location="bundles/device/device/src"/>
   <pathelement location="bundles/useradmin/src"/>
   <pathelement location="bundles/wireadmin/src"/>
-  <pathelement location="bundles/component/src"/>
   <pathelement location="bundles/console/console/src"/>
   <pathelement location="bundles/console/consoletcp/src"/>
   <pathelement location="bundles/console/consoletty/src"/>
   <pathelement location="bundles/desktop/src"/>
-  <pathelement location="bundles/event/src"/>
-  <pathelement location="bundles/jsdk/src"/>
   <pathelement location="bundles/http/http/src"/>
-  <pathelement location="bundles/io/io/src"/>
   <pathelement location="bundles/util/src"/>
   <pathelement location="bundles/demos/demo1/src"/>
   <pathelement location="bundles/position/src"/>
@@ -47,26 +40,18 @@
  </path>
 
  <property name  = "javadoc.packages"
-           value = "javax.servlet,javax.servlet.http,org.knopflerfish.ant.taskdefs.bundle,org.knopflerfish.service.axis,org.knopflerfish.service.console,org.knopflerfish.service.demo1,org.knopflerfish.service.desktop,org.knopflerfish.service.dirdeployer,org.knopflerfish.service.junit,org.knopflerfish.service.ksoap,org.knopflerfish.service.log,org.knopflerfish.service.remotefw,org.knopflerfish.service.serial,org.knopflerfish.service.soap.demo1,org.knopflerfish.service.soap.remotefw,org.knopflerfish.service.trayicon,org.knopflerfish.service.um.ipam,org.knopflerfish.service.um.useradmin,org.knopflerfish.shared.cm,org.knopflerfish.util,org.knopflerfish.util.cm,org.knopflerfish.util.framework,org.knopflerfish.util.http,org.knopflerfish.util.metatype,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.kxml2.io,org.kxml2.wap,org.kxml2.wap.syncml,org.osgi.framework,org.osgi.service.cm,org.osgi.service.component,org.osgi.service.condpermadmin,org.osgi.service.device,org.osgi.service.event,org.osgi.service.http,org.osgi.service.io,org.osgi.service.jini,org.osgi.service.log,org.osgi.service.metatype,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.startlevel,org.osgi.service.upnp,org.osgi.service.url,org.osgi.service.useradmin,org.osgi.service.wireadmin,org.osgi.util,org.osgi.util.measurement,org.osgi.util.position,org.osgi.util.tracker,org.osgi.util.xml"/>
+           value = "org.osgi.framework,org.osgi.util,org.osgi.util.tracker,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.log,org.osgi.service.device,org.osgi.service.useradmin,org.knopflerfish.service.log,org.osgi.service.cm,org.knopflerfish.service.console,org.osgi.service.http,org.knopflerfish.util.http,org.knopflerfish.util,org.knopflerfish.service.trayicon,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.osgi.service.useradmin,org.knopflerfish.service.um.useradmin,org.knopflerfish.service.um.ipam,org.knopflerfish.shared.cm,org.knopflerfish.util.cm,org.knopflerfish.service.demo1,org.knopflerfish.ant.taskdefs.bundle,org.osgi.util.xml,org.osgi.service.startlevel,org.osgi.util.position,org.osgi.service.wireadmin,org.osgi.util.measurement,org.osgi.service.metatype,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.upnp,org.knopflerfish.service.desktop,org.knopflerfish.service.remotefw,org.osgi.service.jini,org.knopflerfish.util.metatype"/>
 
-  <import file="${topdir}/../ant/bundletasks.xml"/>
+<property name  = "javadoc.packages"
+           value = "net.jini.core.entry,net.n3.nanoxml"
+/>
 
   <!-- targets -->
-  <target name="default"
-          description = "Builds the framework and bundles in bundles-directory"
-          depends     = "check_bcel">
+  <target name="all"
+	  description="Builds the framework and bundles in bundles-directory">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
-  </target>
-
-  <target name="all"
-          description="Builds the framework and all bundles including optional and test bundles"
-          depends     = "check_bcel">
-    <antcall target="default"/>
-    <ant dir="bundles_opt"  target="all"/>
-    <ant dir="bundles_test" target="all"
-         inheritAll="false" inheritRefs="false"/>
   </target>
 
   <target name="xargs">
@@ -78,7 +63,7 @@
    <copy file="template.xargs" tofile="remote-init.xargs" overwrite="true"/>
    <replace file="remote-init.xargs">
      <replacefilter token = "$(JAR_PREFIX)" 
-                    value = "${base.url}/${version}/jars/"/>
+                    value = "http://www.knopflerfish.org/releases/${version}/jars/"/>
      <replacefilter token="$(VERSION)"     value="${version}"/>
      <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
    </replace>	  
@@ -115,8 +100,8 @@
      <replacevalue><![CDATA[
 ## Windows platforms are likely to support tray icons
 -initlevel 1
--istart trayicon/trayicon_all-2.0.0.jar
--istart trayicon_fw/trayicon_fw-2.0.0.jar
+-istart trayicon/trayicon_all-1.0.0.jar
+-istart trayicon_fw/trayicon_fw-1.0.0.jar
 ]]></replacevalue>
 
    </replace>	  
@@ -128,7 +113,7 @@
   <mkdir dir="${javadoc.out.dir}"/>
 
   <property name  = "javadoc.header"
-            value = "Knopflerfish OSGi ${version}"/>
+            value = "&lt;a target=_top href=http://www.knopflerfish.org&gt;Knopflerfish OSGi ${version}&lt;/a&gt;"/>
 	    
   <property name  = "javadoc.footer"
             value = "${javadoc.header}"/>
@@ -145,18 +130,17 @@
  
  <target name="run"
          description="(Re)start the framework.">
-  <java fork="true"
-        jar="framework.jar">
-  </java>
+   <java fork="true"
+         jar="framework.jar">
+   </java>
  </target>
-
  <target name="run-secure"
          description="(Re)start framework with security enabled.">
-  <java fork="true"
-        jar="framework.jar">
-    <jvmarg value="-Djava.security.manager"/>
-    <jvmarg value="-Djava.security.policy=framework.policy"/>
-  </java>
+   <java fork="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+   </java>
  </target>
 
  <target name="run-init"
@@ -177,25 +161,6 @@
    </java>
  </target>
 
- <target name="run-osgi-test-target"
-         description="Start the framework in OSGi test target mode.">
-  <java fork="true"
-        jar="framework.jar"
-  >
-    <arg line="-xargs init-osgi-test-target.xargs"/>
-  </java>
- </target>
-
- <target name="run-osgi-test-target-secure"
-         description="Start the framework with security enabled in OSGi test target mode.">
-  <java fork="true"
-        jar="framework.jar"
-  >
-    <jvmarg value="-Djava.security.manager"/>
-    <jvmarg value="-Djava.security.policy=file:framework.policy"/>
-    <arg line="-xargs init-osgi-test-target.xargs"/>
-  </java>
- </target>
 
  <target name="run-kf-tests"
          description="Builds then executes the KF testsuite."
@@ -207,25 +172,13 @@
  </target>
 
  <target name="run-kf-tests-bare">
-   <delete dir="junit_grunt"/>
    <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
-   <!-- Run most of the test suites. -->
    <java fork="true"
 	 output="junit_grunt/out.txt"
 	 append="false"
          jar="framework.jar">
-     <arg value="-xargs"/>
-     <arg value="init-tests.xargs"/>
-   </java>
-   <!-- Run Axis2 client test. -->
-   <echo message="Running the SOAP-Axis2TestSuite..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-         jar="framework.jar">
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
+     <arg line="-xargs init-tests.xargs"/>
    </java>
    <!-- Set up for the restart test suite. -->
    <echo message="Running the restart test suite, part 1..."/>
@@ -259,8 +212,7 @@
  </target>
 
  <target name="run-kf-tests-secure-bare">
-   <delete dir="junit_grunt"/>
-   <mkdir  dir="junit_grunt"/>
+   <mkdir dir="junit_grunt"/>
    <echo message="Running the main test suite..."/>
    <java fork="true"
 	 output="junit_grunt/out.txt"
@@ -268,19 +220,7 @@
 	 jar="framework.jar">
      <jvmarg value="-Djava.security.manager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg value="-xargs"/>
-     <arg value="init-tests.xargs"/>
-   </java>
-   <!-- Run Axis2 client test. -->
-   <echo message="Running the SOAP-Axis2TestSuite..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-         jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
+     <arg line="-xargs init-tests.xargs"/>
    </java>
    <!-- Set up for the restart test suite. -->
    <echo message="Running the restart test suite, part 1..."/>
@@ -308,67 +248,21 @@
    <echo message="Test results are available in junit_grunt/index.xml."/>
  </target>
 
+
+ <target name="install_bcel"
+         description="Download and install bcel in ../ant/lib.">
+   <ant dir="bundles/log" target="install_bcel" />
+ </target>
+
+
+
  <target name="clean" description="removes all generated files">
-  <delete file="framework.jar"/>
-  <delete dir="out"/>
-  <delete dir="jars"/>
-  <delete dir="../ant/classes"/>
+   <delete file="framework.jar"/>
+   <delete dir="out"/>
+   <delete dir="jars"/>
+   <delete dir="../ant/classes"/>
+   <ant dir="bundles_test"        target="clean"
+	inheritAll="false"        inheritRefs="false"/>
  </target>
 
-
- <target name="rebuild"
-         description="Cleans then build build all">
-    <antcall target="clean"/>
-    <ant dir="bundles_test" target="clean"
-         inheritAll="false" inheritRefs="false"/>
-    <antcall target="all"/>
- </target>
- 
- <!-- a bit misplaced, but bindex is very picky with from where it is called -->
- <property name="bindex.file" location="${topdir}/../bindex.jar"/>
-  <available file         = "${bindex.file}"
-             property     = "bindex.available"/>
-
- 
-  <target name="install_bindex">
-   <antcall target="download_bindex"/>
- </target>
-
- <target name="download_bindex" unless="bindex.available">
-    <get src="http://www2.osgi.org/div/bindex.jar" 
-         dest="${bindex.file}"
-    />
- </target>
-
- <target name          = "bindex" 
-         depends       = "bundle_tasks">
-  <mkdir dir="../repo"/>
-  <property name="bindex.baseurl" value="http://www.knopflerfish.org/repo/"/>
-  <property name="bindex.basedir" value="jars"/>
-
-
-  <bindex outFile         = "${topdir}/../repo/bindex.xml"
-          baseURL         = "${bindex.baseurl}"
-          bindexJar       = "${bindex.file}"
-          >
-
-    <fileset dir="${bindex.basedir}">
-      <include name = "jars/upnp/upnp_api-*.jar"/>
-    </fileset>
-
-    <fileset dir="${bindex.basedir}">
-      <include name = "*/*.jar"/>
-      <exclude name = "*/*_api-*.jar"/>
-      <exclude name = "framework.jar"/>
-    </fileset> 
-  </bindex>
-
- </target>
-
- <target name="bundle_doc"
-         description="Builds bundle specific docs">
-   <ant dir="bundles"	   target="bundle_doc"/>
-   <ant dir="bundles_opt"  target="bundle_doc"/>
- </target>
- 
 </project>

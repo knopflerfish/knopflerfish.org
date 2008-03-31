@@ -34,15 +34,19 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
+import java.text.*;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.log.LogRef;
 
-import org.osgi.framework.Bundle;
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.*;
 
 
 /**

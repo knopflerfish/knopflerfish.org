@@ -16,7 +16,7 @@
 -init
 
 -initlevel 1
--istart junit/junit_all-2.0.0.jar
+-istart junit/junit_all-1.0.0.jar
 
 # the test cases
 -initlevel 5
@@ -24,7 +24,7 @@
 
 # the test case runner bundle.
 -initlevel 20
--istart junit_runner/junit_runner_all-2.0.0.jar
+-istart junit_runner/junit_runner_all-1.0.0.jar
 
 -startlevel 20
 

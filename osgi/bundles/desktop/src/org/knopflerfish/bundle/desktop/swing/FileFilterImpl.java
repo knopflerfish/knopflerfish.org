@@ -35,13 +35,16 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.io.File;
-import java.util.Enumeration;
 import java.util.Hashtable;
-
-import javax.swing.filechooser.FileFilter;
+import java.util.Enumeration;
+import javax.swing.*;
+import javax.swing.filechooser.*;
 
 public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
 
+  private static String TYPE_UNKNOWN = "Type Unknown";
+  private static String HIDDEN_FILE = "Hidden File";
+  
   private Hashtable filters                    = null;
   private String    description                = null;
   private String    fullDescription            = null;

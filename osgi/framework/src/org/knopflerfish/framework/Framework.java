@@ -38,29 +38,43 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.Locale;
+
 
 import org.osgi.framework.*;
+import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
+
 
 /**
  * This class contains references to all common data structures
  * inside the framework.
  *
- * @author Jan Stein, Erik Wistrand, Philippe Laporte, Mats-Ola Persson
+ * @author Jan Stein, Erik Wistrand
  */
 public class Framework {
 
   /**
    * Specification version for this framework.
    */
-  static final String SPEC_VERSION = "1.3";
+  static final String SPEC_VERSION = "1.2";
+
+  /**
+   * AdminPermission used for permission check.
+   */
+  final static AdminPermission ADMIN_PERMISSION = new AdminPermission();
 
   /**
    * Boolean indicating that framework is running.
@@ -70,17 +84,17 @@ public class Framework {
   /**
    * Set during shutdown process.
    */
-  boolean shuttingdown /*= false*/;
+  boolean shuttingdown = false;
 
   /**
    * All bundle in this framework.
    */
-  public Bundles bundles;
+  protected Bundles bundles;
 
   /**
    * All listeners in this framework.
    */
-  Listeners listeners;
+  Listeners listeners = new Listeners();
 
   /**
    * All exported and imported packages in this framework.
@@ -90,13 +104,17 @@ public class Framework {
   /**
    * All registered services in this framework.
    */
-  Services services;
+  Services services = new Services();
 
   /**
-   * PermissionOps handle.
+   * PermissionAdmin service
    */
-  PermissionOps perm;
+  PermissionAdminImpl permissions = null;
 
+  /**
+   * indicates that we use security
+   */
+  boolean bPermissions = false;
 
   /**
    * System bundle
@@ -113,18 +131,17 @@ public class Framework {
   /**
    * Private Bundle Data Storage
    */
-  FileTree dataStorage /*= null*/;
+  FileTree dataStorage = null;
 
   /**
-   * Main handle so that main doesn't get GCed.
+   * Main handle so that main does get GCed.
    */
   Object mainHandle;
 
   /**
    * The start level service.
    */
-  StartLevelImpl startLevelService;
-
+  StartLevelImpl                 startLevelService;
 
   /**
    * Factory for handling service-based URLs
@@ -137,67 +154,44 @@ public class Framework {
   ServiceContentHandlerFactory   contentHandlerFactory;
 
   /**
+   * Magic handler for bundle: URLs
+   */
+  URLStreamHandler bundleURLStreamhandler;
+
+  /**
    * Property constants for the framework.
    */
-  final static String TRUE   = "true";
-  final static String FALSE  = "false";
+  final static String osArch    = System.getProperty("os.arch");
+  final static String osName    = System.getProperty("os.name");
+  final static String osVersion = System.getProperty("os.version");
 
-  final static String osArch = System.getProperty("os.arch");
-  final static String osName = System.getProperty("os.name");
-  static String osVersion;
-
-  // If set to true, then during the UNREGISTERING event the Listener
-  // can use the ServiceReference to receive an instance of the service.
-  public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
-    TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
-				     TRUE));
+  // Some tests conflicts with the R3 spec. If testcompliant=true
+  // prefer the tests, not the spec
+  public final static boolean R3_TESTCOMPLIANT =
+    "true".equals(System.getProperty("org.knopflerfish.osgi.r3.testcompliant",
+                                     "false"));
 
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests
   // but shouldn't really be used in production.
   final static boolean SETCONTEXTCLASSLOADER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
+    "true".equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", "false"));
+
+  final static boolean REGISTERBUNDLEURLHANDLER =
+    "true".equals(System.getProperty("org.knopflerfish.osgi.registerbundleurlhandler", "false"));
 
   final static boolean REGISTERSERVICEURLHANDLER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
+    "true".equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", "true"));
 
 
+  // Accepted execution environments.
+  static String defaultEE = "CDC-1.0/Foundation-1.0,OSGi/Minimum-1.0";
 
-  static boolean bIsMemoryStorage /*= false*/;
+  static boolean bIsMemoryStorage = false;
 
-  private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
-
-  /**
-   * The file where we store the class path
-   */
-  private final static String CLASSPATH_DIR = "classpath";
-  private final static String BOOT_CLASSPATH_FILE = "boot";
-  private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
-
-  /** Cached value of
-   * System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
-   * Used and updated by isValidEE()
-   */
-  private Set    eeCacheSet = new HashSet();
-  private String eeCache = null;
-
-  /**
-   * Whether the framework supports extension bundles or not.
-   * This will be false if bIsMemoryStorage is false.
-   */
-  static boolean SUPPORTS_EXTENSION_BUNDLES;
-
-  final static boolean EXIT_ON_SHUTDOWN =
-    TRUE.equals(System.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
-
-  final static int EXIT_CODE_NORMAL  = 0;
-  final static int EXIT_CODE_RESTART = 200;
-
-  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
-
-  public static int javaVersionMajor = -1;
-  public static int javaVersionMinor = -1;
-  public static int javaVersionMicro = -1;
+  static int javaVersionMajor = -1;
+  static int javaVersionMinor = -1;
+  static int javaVersionMicro = -1;
   static {
     String javaVersion = System.getProperty("java.version");
     // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
@@ -241,7 +235,7 @@ public class Framework {
    * It is safe if JSR 133 is included in the running JRE.
    * I.e., for Java SE if version is 1.5 or higher.
    */
-  public final static boolean isDoubleCheckedLockingSafe
+  final static boolean isDoubleCheckedLockingSafe
     = "true".equals(System.getProperty
                     ("org.knopflerfish.framework.is_doublechecked_locking_safe",
                      (javaVersionMajor>=1 && javaVersionMinor>=5
@@ -252,53 +246,28 @@ public class Framework {
    *
    */
   public Framework(Object m) throws Exception {
+    // guard this for profiles without System.setProperty
+    try {
+      System.setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, defaultEE);
+    } catch (Throwable e) {
+      if(Debug.packages) {
+        Debug.println("Failed to set execution environment: " + e);
+      }
+    }
 
     String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
       System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
 
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
-    if (bIsMemoryStorage ||
-        !EXIT_ON_SHUTDOWN ||
-        !USING_WRAPPER_SCRIPT) {
-      SUPPORTS_EXTENSION_BUNDLES = false;
-      // we can not support this in this mode.
-    } else {
-      SUPPORTS_EXTENSION_BUNDLES = true;
-    }
 
-    String ver = System.getProperty("os.version");
-    if (ver != null) {
-      int dots = 0;
-      int i = 0;
-      for ( ; i < ver.length(); i++) {
-        char c = ver.charAt(i);
-        if (Character.isDigit(c)) {
-          continue;
-        } else if (c == '.') {
-          if (++dots < 3) {
-            continue;
-          }
-        }
-        break;
-      }
-      osVersion = ver.substring(0, i);
+    // We just happens to know that the memory storage impl isn't R3
+    // compatible. And it never will be since it isn't persistent
+    // by design.
+    if(R3_TESTCOMPLIANT && bIsMemoryStorage) {
+      throw new RuntimeException("Memory bundle storage is not compatible " +
+                                 "with R3 complicance");
     }
-
-    ProtectionDomain pd = null;
-    if (System.getSecurityManager() != null) {
-      try {
-        pd = getClass().getProtectionDomain();
-      } catch (Throwable t) {
-        if(Debug.classLoader) {
-          Debug.println("Failed to get protection domain: " + t);
-        }
-      }
-      perm = new SecurePermissionOps(this);
-    } else {
-      perm = new PermissionOps();
-    }
-
 
     Class storageImpl = Class.forName(whichStorageImpl);
     storage           = (BundleStorage)storageImpl.newInstance();
@@ -306,34 +275,83 @@ public class Framework {
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
 
-    listeners         = new Listeners(perm);
-    services          = new Services(perm);
-
+    // guard this for profiles without Class.getProtectionDomain
+    ProtectionDomain pd = null;
+    if(System.getSecurityManager() != null) {
+      try {
+        pd = getClass().getProtectionDomain();
+      } catch (Throwable t) {
+        if(Debug.classLoader) {
+          Debug.println("Failed to get protection domain: " + t);
+        }
+      }
+    }
     systemBundle      = new SystemBundle(this, pd);
+
     systemBC          = new BundleContextImpl(systemBundle);
     bundles           = new Bundles(this);
 
     systemBundle.setBundleContext(systemBC);
 
-    perm.registerService();
+
+
+    if (System.getSecurityManager() != null) {
+      bPermissions = true;
+      permissions       = new PermissionAdminImpl(this);
+      String [] classes = new String [] { PermissionAdmin.class.getName() };
+      services.register(systemBundle,
+                        classes,
+                        permissions,
+                        null);
+
+      Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(),permissions));
+    }
 
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
-		      classes,
-		      new PackageAdminImpl(this),
-		      null);
+                      classes,
+                      new PackageAdminImpl(this),
+                      null);
 
-    registerStartLevel();
+
+    String useStartLevel =
+      System.getProperty("org.knopflerfish.startlevel.use", "true");
+
+    if("true".equals(useStartLevel)) {
+      if(Debug.startlevel) {
+        Debug.println("[using startlevel service]");
+      }
+      startLevelService = new StartLevelImpl(this);
+
+      // restoreState just reads from persistant storage
+      // open() needs to be called to actually do the work
+      // This is done after framework has been launched.
+      startLevelService.restoreState();
+
+      services.register(systemBundle,
+                        new String [] { StartLevel.class.getName() },
+                        startLevelService,
+                        null);
+    }
+
+
+    mainHandle = m;
 
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
     contentHandlerFactory   = new ServiceContentHandlerFactory(this);
+    bundleURLStreamhandler  = new BundleURLStreamHandler(bundles);
+
+    // Only register bundle: URLs publicly if explicitly told so
+    // Note: registering bundle: URLs exports way to much.
+    if(REGISTERBUNDLEURLHANDLER) {
+      urlStreamHandlerFactory
+        .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
+                             bundleURLStreamhandler);
+    }
 
     urlStreamHandlerFactory
-      .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
-                           new BundleURLStreamHandler(bundles, perm));
-    urlStreamHandlerFactory
       .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
-			   new ReferenceURLStreamHandler());
+                           new ReferenceURLStreamHandler());
 
     // Install service based URL stream handler. This can be turned
     // off if there is need
@@ -348,30 +366,6 @@ public class Framework {
       }
     }
     bundles.load();
-
-    mainHandle = m;
-  }
-
-
-  private void registerStartLevel(){
-    String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, TRUE);
-
-    if(TRUE.equals(useStartLevel)) {
-      if(Debug.startlevel) {
-        Debug.println("[using startlevel service]");
-      }
-      startLevelService = new StartLevelImpl(this);
-
-      // restoreState just reads from persistent storage
-      // open() needs to be called to actually do the work
-      // This is done after framework has been launched.
-      startLevelService.restoreState();
-
-      services.register(systemBundle,
-                        new String [] { StartLevel.class.getName() },
-                        startLevelService,
-                        null);
-    }
   }
 
 
@@ -407,22 +401,22 @@ public class Framework {
     if (!active) {
       active = true;
       if (startBundle > 0) {
-	startBundle(startBundle);
+        startBundle(startBundle);
       } else {
-	for (Iterator i = storage.getStartOnLaunchBundles().iterator(); i.hasNext(); ) {
-	  Bundle b = bundles.getBundle((String)i.next());
-	  try {
-	    b.start();
-	  } catch (BundleException be) {
-	    listeners.frameworkError(b, be);
-	  }
-	}
+        for (Iterator i = storage.getStartOnLaunchBundles().iterator(); i.hasNext(); ) {
+          Bundle b = bundles.getBundle((String)i.next());
+          try {
+            b.start();
+          } catch (BundleException be) {
+            listeners.frameworkError(b, be);
+          }
+        }
       }
       systemBundle.systemActive();
 
       // start level open is delayed to this point to
       // correctly work at restart
-      if (startLevelService != null) {
+      if(startLevelService != null) {
         startLevelService.open();
       }
 
@@ -456,73 +450,33 @@ public class Framework {
       active = false;
       List slist = storage.getStartOnLaunchBundles();
       shuttingdown = true;
-      systemBundle.systemShuttingdown();
-      if (startLevelService != null) {
+      if(startLevelService != null) {
         startLevelService.shutdown();
       }
+      systemBundle.systemShuttingdown();
+      try {
+        systemBundle.stop();
+      } catch (BundleException ignore) {}
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
-	Bundle b = bundles.getBundle((String)slist.get(i));
-	try {
-	  if(b != null) {
-	    synchronized (b) {
-	      if (b.getState() == Bundle.ACTIVE) {
-		b.stop();
-	      }
-	    }
-	  }
-	} catch (BundleException be) {
-	  listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, be));
-	}
+        Bundle b = bundles.getBundle((String)slist.get(i));
+        try {
+          if(b != null) {
+            synchronized (b) {
+              if (b.getState() == Bundle.ACTIVE) {
+                b.stop();
+              }
+            }
+          }
+        } catch (BundleException be) {
+          listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, be));
+        }
       }
       shuttingdown = false;
       // Purge any unrefreshed bundles
-      List all = bundles.getBundles();
-      for (Iterator i = all.iterator(); i.hasNext(); ) {
-	((BundleImpl)i.next()).purge();
-      }
-    }
-
-    StringBuffer bootClasspath = new StringBuffer();
-    StringBuffer frameworkClasspath = new StringBuffer();
-    for (Iterator i = bundles.getFragmentBundles(systemBundle).iterator(); i.hasNext(); ) {
-      BundleImpl eb = (BundleImpl)i.next();
-      String path = eb.archive.getJarLocation();
-      StringBuffer sb = eb.isBootClassPathExtension() ? bootClasspath : frameworkClasspath;
-      sb.append(path);
-      if (i.hasNext()) {
-        sb.append(File.pathSeparator);
-      }
-    }
-
-    try {
-      FileTree storage = Util.getFileStorage(CLASSPATH_DIR);
-      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
-      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
-      if (bootClasspath.length() > 0) {
-        saveStringBuffer(bcpf, bootClasspath);
-      } else {
-        bcpf.delete();
-      }
-      if (frameworkClasspath.length() > 0) {
-        saveStringBuffer(fcpf, frameworkClasspath);
-      } else {
-        fcpf.delete();
-      }
-    } catch (IOException e) {
-      System.err.println("Could not save classpath " + e);
-    }
-  }
-
-
-  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
-    PrintStream out = null;
-    try {
-      out = new PrintStream(new FileOutputStream(f));
-      out.println(content.toString());
-    } finally {
-      if (out != null) {
-	out.close();
+      BundleImpl [] all = bundles.getBundles();
+      for (int i = 0; i < all.length; i++) {
+        all[i].purge();
       }
     }
   }
@@ -548,7 +502,7 @@ public class Framework {
    * @exception BundleException If start failed.
    */
   public void startBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
+    BundleImpl b = bundles.getBundle(id);
     if (b != null) {
       b.start();
     } else {
@@ -564,7 +518,7 @@ public class Framework {
    * @exception BundleException If stop failed.
    */
   public void stopBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
+    BundleImpl b = bundles.getBundle(id);
     if (b != null) {
       b.stop();
     } else {
@@ -580,7 +534,7 @@ public class Framework {
    * @exception BundleException If uninstall failed.
    */
   public void uninstallBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
+    BundleImpl b = bundles.getBundle(id);
     if (b != null) {
       b.uninstall();
     } else {
@@ -596,7 +550,7 @@ public class Framework {
    * @exception BundleException If update failed.
    */
   public void updateBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
+    BundleImpl b = bundles.getBundle(id);
     if (b != null) {
       b.update();
     } else {
@@ -614,9 +568,9 @@ public class Framework {
    * if the identifier doesn't match any installed bundle.
    */
   public String getBundleLocation(long id) {
-    Bundle b = bundles.getBundle(id);
+    BundleImpl b = bundles.getBundle(id);
     if (b != null) {
-      return b.getLocation();
+      return b.location;
     } else {
       return null;
     }
@@ -631,29 +585,40 @@ public class Framework {
    * if the location doesn't match any installed bundle.
    */
   public long getBundleId(String location) {
-    Bundle b = bundles.getBundle(location);
+    BundleImpl b = bundles.getBundle(location);
     if (b != null) {
-      return b.getBundleId();
+      return b.id;
     } else {
       return -1;
     }
   }
 
   /**
+   * Check that we have admin permission.
+   *
+   * @exception SecurityException if we don't have admin permission.
+   */
+  void checkAdminPermission() {
+    if (bPermissions) {
+      SecurityManager sm = System.getSecurityManager();
+      if (null!=sm) {
+        sm.checkPermission(ADMIN_PERMISSION);
+      }
+    }
+  }
+
+  /**
    * Get private bundle data storage file handle.
    */
-  public FileTree getDataStorage(long id) {
-	if (dataStorage != null) {
-	  return new FileTree(dataStorage, Long.toString(id));
-	}
-	return null;
+  FileTree getDataStorage() {
+    return dataStorage;
   }
 
   /**
    * Check if an execution environment string is accepted
    */
   boolean isValidEE(String ee) {
-    ee = ee.trim();
+
     if(ee == null || "".equals(ee)) {
       return true;
     }
@@ -661,26 +626,36 @@ public class Framework {
     String fwEE = System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
-      // If EE is not set, allow everything
-      return true;
-    } else if (!fwEE.equals(eeCache)) {
       eeCacheSet.clear();
+    } else {
+      if(!fwEE.equals(eeCache)) {
+        eeCacheSet.clear();
 
-      String[] l = Util.splitwords(fwEE, ",");
-      for(int i = 0 ; i < l.length; i++) {
-        eeCacheSet.add(l[i]);
+        String[] l = Util.splitwords(fwEE, ",", '\"');
+        for(int i = 0 ; i < l.length; i++) {
+          eeCacheSet.add(l[i]);
+        }
       }
-      eeCache = fwEE;
     }
+    eeCache = fwEE;
 
-    String[] eel   = Util.splitwords(ee, ",");
+    String[] eel   = Util.splitwords(ee, ",", '\"');
+
     for(int i = 0 ; i < eel.length; i++) {
       if(eeCacheSet.contains(eel[i])) {
-	return true;
+        return true;
       }
     }
+
     return false;
   }
+
+
+  // Cached value of
+  // System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+  // Used and updated by isValidEE()
+  Set    eeCacheSet = new HashSet();
+  String eeCache = null;
 
   //
   // Static package methods
@@ -709,38 +684,22 @@ public class Framework {
     } else if (Constants.FRAMEWORK_PROCESSOR.equals(key)) {
       // The name of the processor of the hosting computer.
       return osArch;
-    } else if (Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE.equals(key)) {
-      return TRUE;
-    } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
-      return TRUE;
-    } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
-      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
-    } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
-      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
+    } else if (Constants.FRAMEWORK_EXECUTIONENVIRONMENT.equals(key)) {
+      // The name of the fw execution environment
+      return System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
     } else {
       return System.getProperty(key);
     }
-  }
-
-  public static Dictionary getProperties(){
-    Dictionary props = System.getProperties();
-    props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
-    props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
-    props.put(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
-    props.put(Constants.FRAMEWORK_OS_NAME, osName);
-    props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
-    props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
-    props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
-    props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-    return props;
   }
 
   /**
    * Get the bundle context used by the system bundle.
    */
   public BundleContext getSystemBundleContext() {
-    return systemBC;
+    return (BundleContext)
+      AccessController.doPrivileged(new  PrivilegedAction() {
+          public Object run() {
+            return systemBC;
+          }});
   }
 }

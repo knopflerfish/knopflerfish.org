@@ -34,14 +34,21 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
+import java.text.*;
+import java.io.*;
+import java.net.URL;
 
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.util.Text;
-import org.osgi.framework.Bundle;
-import org.osgi.service.log.LogEntry;
+
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
 
 
 public class Util {

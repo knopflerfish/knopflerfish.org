@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.bundle.metatype;
 
 import org.osgi.framework.*;
 import org.osgi.service.metatype.*;
 
 import java.net.URL;
+import java.io.*;
 import java.util.*;
 import org.osgi.service.cm.*;
 
@@ -52,32 +48,30 @@ import org.knopflerfish.service.log.LogRef;
 
 
 public class Activator implements BundleActivator {
-  BundleContext bc;
+  static BundleContext bc = null;
 
-  LogRef log;
+  static LogRef log;
 
   SystemMetatypeProvider sysMTP;
   SysPropMetatypeProvider spMTP;
-  public void start(BundleContext _bc) {
 
+  public void start(BundleContext _bc) {
     this.bc = _bc;
     this.log = new LogRef(bc);
 
     sysMTP = new SystemMetatypeProvider(bc);
     sysMTP.open();
-   
+
     bc.registerService(new String[] {
-    								 SystemMetatypeProvider.class.getName(), 
-    								 MetaTypeProvider.class.getName(),
-    								 MetaTypeService.class.getName()
-    								},
-		               sysMTP,
-		               new Hashtable()
-		              );
+      SystemMetatypeProvider.class.getName(), 
+      MetaTypeProvider.class.getName(),
+      PIDProvider.class.getName(),
+    },
+		       sysMTP,
+		       new Hashtable());
 
     ManagedService config = new ManagedService() {
-	
-    Map mtpRegs = new HashMap();
+	Map mtpRegs = new HashMap();
 
 	public void updated(Dictionary props) {
 
@@ -94,91 +88,90 @@ public class Activator implements BundleActivator {
 
 	    try {
 	      for(int i = 0; i < v.size(); i++) {
-	    	  URL url = new URL(v.elementAt(i).toString());
-	    	  mtp[i] = Loader.loadMTPFromURL(bc.getBundle(), url);
+		URL url = new URL(v.elementAt(i).toString());
+		mtp[i] = Loader.loadMTPFromURL(bc.getBundle(), url);
 	      }
 	      
 	      for(Iterator it = mtpRegs.keySet().iterator(); it.hasNext();) {
-	    	  ServiceRegistration reg = (ServiceRegistration)it.next();
-	    	  reg.unregister();
+		ServiceRegistration reg = (ServiceRegistration)it.next();
+		reg.unregister();
 	      }
 	      mtpRegs.clear();
 	      
 	      for(int i = 0; i < mtp.length; i++) {
-	    	  Hashtable prop = new Hashtable();
-	    	  prop.put("source.url", v.elementAt(i).toString());
-	    	  String [] pids = mtp[i].getPids();
-	    	  if(pids != null) {
-	    		  prop.put("service.pids", pids);
-	    	  }
-	    	  pids = mtp[i].getFactoryPids();
-	    	  if(pids != null) {
-	    		  prop.put("factory.pids", pids);
-	    	  }
-	    	  
-	    	  ServiceRegistration reg = 
-	    		  bc.registerService(MetaTypeProvider.class.getName(), mtp[i], prop);
-	    	  
-	    	  mtpRegs.put(reg, mtp[i]);
+		Hashtable prop = new Hashtable();
+		prop.put("source.url", v.elementAt(i).toString());
+		String [] pids = mtp[i].getPids();
+		if(pids != null) {
+		  prop.put("service.pids", pids);
+		}
+		pids = mtp[i].getFactoryPids();
+		if(pids != null) {
+		  prop.put("factory.pids", pids);
+		}
+		//		System.out.println("register " + mtp[i].getId() + ", props=" + prop);
+		ServiceRegistration reg = 
+		  bc.registerService(MetaTypeProvider.class.getName(),
+				     mtp[i], prop);
+		mtpRegs.put(reg, mtp[i]);
 	      }
-	    } 
-	    catch (Exception e) {
+	    } catch (Exception e) {
 	      log.error("Failed to set values",e);
 	    }
-	  } //synchronized
-	} // method
-    };
+	  }
+	}
+      };
 
     Hashtable props = new Hashtable();
     props.put("service.pid", "org.knopflerfish.util.metatype.SystemMetatypeProvider");
 
-    bc.registerService(ManagedService.class.getName(), config, props);
+    bc.registerService(ManagedService.class.getName(), config,
+		       props);
+
 
     setupSystemProps();
 
   }
 
-  
   void setupSystemProps() {
-    
-	ManagedService config = new ManagedService() {
-	
-		public void updated(Dictionary props) {
-    		if(props != null) {
-    			for(Enumeration e = props.keys(); e.hasMoreElements();) {
-    				String key = (String)e.nextElement();
-    				Object val = props.get(key);
+    ManagedService config = new ManagedService() {
+	public void updated(Dictionary props) {
+	  if(props != null) {
+	    for(Enumeration e = props.keys(); e.hasMoreElements();) {
+	      String key = (String)e.nextElement();
+	      Object val = props.get(key);
 
-    				if(val != null) {
-    					try {
-    						System.setProperty(key, val.toString());
-    					} 
-    					catch (Exception ex) {
-    						log.error("Failed to set system property '" + key + "' to " + val, ex);
-    					}
-    				}
-    			}
-    		}
-    	}
-    };
+	      if(val != null) {
+		try {
+		  System.setProperty(key, val.toString());
+		} catch (Exception ex) {
+		  log.error("Failed to set system property '" + key + "' to " + val, ex);
+		}
+	      }
+	    }
+	  }
+	}
+      };
     
     Hashtable props = new Hashtable();
     props.put("service.pid", SysPropMetatypeProvider.PID);
     
-    bc.registerService(ManagedService.class.getName(), config, props);
+    bc.registerService(ManagedService.class.getName(), config,
+		       props);
 
+    
     spMTP = new SysPropMetatypeProvider();
 
     bc.registerService(new String[] {
-    								 MetaTypeProvider.class.getName()
-    								},
-		               spMTP,
-		               new Hashtable() {
-			 				{
-			 					put("service.pids", spMTP.getPids());
-			 				}
-			 			}
-                       );
+      MetaTypeProvider.class.getName(),
+      PIDProvider.class.getName()
+    },
+		       spMTP,
+		       new Hashtable() {
+			 {
+			   put("service.pids", spMTP.getPids());
+			 }
+			 });
     
   }
 
@@ -205,17 +198,20 @@ class SysPropMetatypeProvider extends MTP {
       String key = (String)e.nextElement();
       Object val = (String)sysProps.get(key);
       if(key.startsWith("java.") ||
-         key.startsWith("os.") ||
-    	 key.startsWith("sun.") ||
-    	 key.startsWith("awt.") ||
-    	 key.startsWith("user.")) {
-    	  continue;
+	 key.startsWith("os.") ||
+	 key.startsWith("sun.") ||
+	 key.startsWith("awt.") ||
+	 key.startsWith("user.")) {
+	continue;
       }
       defProps.put(key, val);
     }
 
 
-    spOCD = new OCD(PID, PID, "Java system properties", defProps);
+    spOCD = new OCD(PID,
+		    PID,
+		    "Java system properties",
+		    defProps);
 
     addService(PID, spOCD);
   }

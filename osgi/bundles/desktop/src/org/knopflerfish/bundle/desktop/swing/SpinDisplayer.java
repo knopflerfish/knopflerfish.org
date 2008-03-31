@@ -34,15 +34,31 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import org.osgi.framework.*;
 
-import javax.swing.JComponent;
+import javax.swing.table.*;
+import javax.swing.*;
+import javax.swing.event.*;
+
+import java.awt.event.*;
+import java.awt.Container;
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.Image;
+import java.awt.Graphics;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+
+import java.util.*;
+import java.io.*;
+import java.net.URL;
+
 
 import org.knopflerfish.bundle.desktop.swing.fwspin.Spin;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
 
 public class SpinDisplayer extends DefaultSwingBundleDisplayer {
 

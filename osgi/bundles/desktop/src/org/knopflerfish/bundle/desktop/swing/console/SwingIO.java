@@ -34,26 +34,14 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.InputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
 import java.util.Vector;
+import java.io.*;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+import java.net.URL;
 
 import org.osgi.service.log.LogService;
 

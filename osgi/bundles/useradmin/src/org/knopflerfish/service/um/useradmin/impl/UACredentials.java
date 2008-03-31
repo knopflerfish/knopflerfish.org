@@ -56,10 +56,10 @@ public class UACredentials extends UAProperties {
     public Object get(Object key) {
         if (key instanceof String) {
             SecurityManager sm = System.getSecurityManager();
-            if(null!=sm){
-                sm.checkPermission
-                  (new UserAdminPermission((String) key,
-                                           UserAdminPermission.GET_CREDENTIAL));
+            if (null!=sm) {
+                sm.checkPermission( new UserAdminPermission
+                                    ((String) key,
+                                     UserAdminPermission.GET_CREDENTIAL));
             }
             return super.get(key);
         }

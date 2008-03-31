@@ -34,20 +34,15 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Vector;
+import org.osgi.framework.*;
+import org.osgi.util.tracker.*;
+import org.osgi.service.packageadmin.*;
+import org.knopflerfish.service.log.*;
 
-import org.knopflerfish.service.log.LogRef;
+import java.util.*;
+import org.knopflerfish.service.desktop.*;
+
 import org.knopflerfish.service.remotefw.RemoteFramework;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
 
@@ -57,6 +52,7 @@ public class Activator implements BundleActivator {
   static private BundleContext remoteBC;
   static public Desktop desktop;
 
+  static ServiceTracker pkgTracker;
   static Activator      myself;
 
   public static BundleContext getBC() {
@@ -135,9 +131,9 @@ public class Activator implements BundleActivator {
   Map displayers = new HashMap();
 
   public void start(BundleContext _bc) {
-    Activator.bc        = _bc;
-    Activator.log       = new LogRef(bc);
-    Activator.myself    = this;
+    this.bc        = _bc;
+    this.log       = new LogRef(bc);
+    this.myself    = this;
 
     remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null) {
         public Object addingService(ServiceReference sr) {
@@ -151,6 +147,9 @@ public class Activator implements BundleActivator {
         }
       };
     remoteTracker.open();
+
+    pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
+    pkgTracker.open();
 
     // Spawn to avoid race conditions in resource loading
     Thread t = new Thread() {
@@ -225,7 +224,7 @@ public class Activator implements BundleActivator {
 
 
     // We really want this one to be displayed.
-    desktop.bundlePanelShowTab("Large Icons");
+    desktop.bundlePanel.showTab("Large Icons");
     int ix = desktop.detailPanel.indexOfTab("Manifest");
     if(ix != -1) {
       desktop.detailPanel.setSelectedIndex(ix);
@@ -273,6 +272,11 @@ public class Activator implements BundleActivator {
       if(remoteTracker != null) {
         remoteTracker.close();
         remoteTracker = null;
+      }
+
+      if(pkgTracker != null) {
+        pkgTracker.close();
+        pkgTracker = null;
       }
 
       this.bc     = null;

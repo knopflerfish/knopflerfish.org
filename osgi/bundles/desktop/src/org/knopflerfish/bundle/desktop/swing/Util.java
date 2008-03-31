@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,11 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.startlevel.*;
 import org.osgi.service.packageadmin.*;
-
-
-import java.awt.Color;
-import java.io.*;
-import java.lang.reflect.Array;
-import java.net.URL;
 import java.util.*;
+import java.awt.Color;
+import java.net.URL;
+
+import java.io.*;
 
 import org.knopflerfish.util.Text;
 
@@ -79,11 +77,11 @@ public class Util {
     sb.append("</a>");
   }
 
-  public static void serviceLink(StringBuffer sb,
-                                 ServiceReference sr,
-                                 String txt) {
-    sb.append("<a href=\"" + URL_SERVICE_PREFIX +
-              sr.getProperty(Constants.SERVICE_ID) + "\">");
+  public static void serviceLink(StringBuffer sb, 
+				 ServiceReference sr,
+				 String txt) {
+    sb.append("<a href=\"" + URL_SERVICE_PREFIX + 
+	      sr.getProperty(Constants.SERVICE_ID) + "\">");
     sb.append(txt);
     sb.append("</a>");
   }
@@ -98,20 +96,20 @@ public class Util {
 
   public static long bidFromURL(URL url) {
     if(!isBundleLink(url)) {
-      throw new RuntimeException("URL '" + url + "' does not start with " +
-                                 URL_BUNDLE_PREFIX);
+      throw new RuntimeException("URL '" + url + "' does not start with " + 
+				 URL_BUNDLE_PREFIX);
     }
     return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
   }
 
   public static long sidFromURL(URL url) {
     if(!isServiceLink(url)) {
-      throw new RuntimeException("URL '" + url + "' does not start with " +
-                                 URL_SERVICE_PREFIX);
+      throw new RuntimeException("URL '" + url + "' does not start with " + 
+				 URL_SERVICE_PREFIX);
     }
     return Long.parseLong(url.toString().substring(URL_SERVICE_PREFIX.length()));
   }
-
+  
   public static String serviceEventName(int type) {
     switch(type) {
     case ServiceEvent.REGISTERED:    return "registered";
@@ -132,22 +130,22 @@ public class Util {
     }
   }
 
-  public static Object getProp(ServiceReference sr,
-                               String key,
-                               Object def) {
+  public static Object getProp(ServiceReference sr, 
+			       String key,
+			       Object def) {
     Object obj = sr.getProperty(key);
     return obj != null ? obj : def;
   }
 
-  public static String getStringProp(ServiceReference sr,
-                                     String key,
-                                     String def) {
+  public static String getStringProp(ServiceReference sr, 
+				     String key,
+				     String def) {
     return (String)getProp(sr, key, def);
   }
 
-  public static boolean getBooleanProp(ServiceReference sr,
-                                       String key,
-                                       boolean def) {
+  public static boolean getBooleanProp(ServiceReference sr, 
+				       String key,
+				       boolean def) {
     return ((Boolean)getProp(sr, key, def ? Boolean.TRUE : Boolean.FALSE))
       .booleanValue();
   }
@@ -182,14 +180,11 @@ public class Util {
 
     return s;
   }
-
+  
   public static String getBundleName(Bundle b) {
     String s = getHeader(b, "Bundle-Name", "");
     if(s == null || "".equals(s) || s.startsWith("%")) {
-      String loc = b.getLocation();
-      if (loc != null) {
-        s = shortLocation(b.getLocation());
-      }
+      s = shortLocation(b.getLocation());
     }
 
     return s;
@@ -218,9 +213,9 @@ public class Util {
     if(sls != null) {
       sb.append(" Start level: ");
       try {
-        sb.append(sls.getBundleStartLevel(b));
+	sb.append(sls.getBundleStartLevel(b));
       } catch (IllegalArgumentException e) {
-        sb.append("not managed");
+	sb.append("not managed");
       }
       sb.append("<br>");
     }
@@ -235,7 +230,7 @@ public class Util {
     public int compare(Object o1, Object o2) {
       Bundle b1 = (Bundle)o1;
       Bundle b2 = (Bundle)o2;
-
+      
       return (int)(b1.getBundleId() - b2.getBundleId());
     }
 
@@ -247,7 +242,7 @@ public class Util {
 
 // StringBuffer (red.green.blue) -> Color
   static Hashtable colors = new Hashtable();
-
+  
   static int maxK = 256;
 
   static Color rgbInterPolate(Color c1, Color c2, double k) {
@@ -317,47 +312,47 @@ public class Util {
      *                   null or empty set on top level call
      * @return           Set of <tt>Bundle</tt>
      */
-    static public Set getPackageClosure(PackageAdmin pkgAdmin,
-                                        Bundle[]     allBundles,
-                                        Bundle       target,
-                                        Set          handled) {
-
+    static public Set getPackageClosure(PackageAdmin pkgAdmin, 
+					Bundle[]     allBundles, 
+					Bundle       target,
+					Set          handled) {
+      
       if(pkgAdmin == null) {
-        throw new IllegalArgumentException("pkgAdmin argument cannot be null");
+	throw new IllegalArgumentException("pkgAdmin argument cannot be null");
       }
 
       if(handled == null) {
-        handled = new HashSet();
+	handled = new HashSet();
       }
 
       Set closure = new TreeSet(Util.bundleIdComparator);
 
       // This is O(n2) at least, possibly O(n3). Should be improved
       for(int i = 0; i < allBundles.length; i++) {
-        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(allBundles[i]);
+	ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(allBundles[i]);
+	
+	for(int j = 0; pkgs != null && j < pkgs.length; j++) {
+	  Bundle[] bl2 = pkgs[j].getImportingBundles();
+	  
+	  for(int k = 0; bl2 != null && k < bl2.length;  k++) {
+	    if(bl2[k].getBundleId() == target.getBundleId()) {
 
-        for(int j = 0; pkgs != null && j < pkgs.length; j++) {
-          Bundle[] bl2 = pkgs[j].getImportingBundles();
+	      // found an exporter to target - add it to closure
+	      closure.add(allBundles[i]);
 
-          for(int k = 0; bl2 != null && k < bl2.length;  k++) {
-            if(bl2[k].getBundleId() == target.getBundleId()) {
+	      // Then, get closure from the exporter, if not already
+	      // handled. Add that closure set to the target closure.
+	      if(!handled.contains(allBundles[i])) {
+		handled.add(allBundles[i]);
 
-              // found an exporter to target - add it to closure
-              closure.add(allBundles[i]);
-
-              // Then, get closure from the exporter, if not already
-              // handled. Add that closure set to the target closure.
-              if(!handled.contains(allBundles[i])) {
-                handled.add(allBundles[i]);
-
-                // call recursivley with exporter as target
-                Set trans =
-                  getPackageClosure(pkgAdmin, allBundles, allBundles[i], handled);
-                closure.addAll(trans);
-              }
-            }
-          }
-        }
+		// call recursivley with exporter as target
+		Set trans = 
+		  getPackageClosure(pkgAdmin, allBundles, allBundles[i], handled); 
+		closure.addAll(trans);
+	      }
+	    }
+	  }
+	}
       }
 
       return closure;
@@ -373,28 +368,28 @@ public class Util {
      * @return        Set of <tt>Bundle</tt>
      */
     static public Set getServiceClosure(Bundle       target,
-                                        Set          handled) {
-
+					Set          handled) {
+      
       if(handled == null) {
-        handled = new HashSet();
+	handled = new HashSet();
       }
-
+      
       Set closure = new TreeSet(Util.bundleIdComparator);
 
       ServiceReference[] srl = target.getServicesInUse();
 
       for(int i = 0; srl != null && i < srl.length; i++) {
-        Bundle b = srl[i].getBundle();
-        closure.add(b);
+	Bundle b = srl[i].getBundle();
+	closure.add(b);
 
-        if(!handled.contains(b)) {
-          handled.add(b);
-
-          Set trans = getServiceClosure(b, handled);
-          closure.addAll(trans);
-        }
+	if(!handled.contains(b)) {
+	  handled.add(b);
+	  
+	  Set trans = getServiceClosure(b, handled);
+	  closure.addAll(trans);
+	}
       }
-
+      
       return closure;
     }
 
@@ -412,15 +407,15 @@ public class Util {
     "org.knopflerfish.log.out=false",
     "org.knopflerfish.log.level=info",
   };
-
+  
   public static StringBuffer getXARGS(Bundle target,
-                                      Set pkgClosure,
-                                      Set serviceClosure) {
-
+				      Set pkgClosure,
+				      Set serviceClosure) {
+    
     StringBuffer sb = new StringBuffer();
-
+    
     String jarBase = System.getProperty("org.knopflerfish.gosg.jars", "");
-
+    
     Set all = new TreeSet(Util.bundleIdComparator);
     all.addAll(pkgClosure);
     all.addAll(serviceClosure);
@@ -433,12 +428,12 @@ public class Util {
       String[] w = Text.splitwords(STD_PROPS[i], "=", '\"');
       String def = null;
       if(w.length == 2) {
-        def = w[1];
+	def = w[1];
       }
       String val = System.getProperty(w[0]);
       if(null != val && !val.equals(def)) {
-        sb.append("-D" + w[0] + "=" + val);
-        sb.append("\n");
+	sb.append("-D" + w[0] + "=" + val);
+	sb.append("\n");
       }
     }
 
@@ -452,31 +447,31 @@ public class Util {
       Bundle b = (Bundle)it.next();
       int level = -1;
       try {
-        level = sl.getBundleStartLevel(b);
+	level = sl.getBundleStartLevel(b);
       } catch (Exception ignored) {
       }
 
       levelMax = Math.max(level, levelMax);
       if(level != -1 && level != lastLevel) {
-        sb.append("-initlevel " + level + "\n");
+	sb.append("-initlevel " + level + "\n");
 
-        lastLevel = level;
+	lastLevel = level;
       }
-      sb.append("-install " +
-                Text.replace(b.getLocation(), jarBase, "") +
-                "\n");
-
+      sb.append("-install " + 
+		Text.replace(b.getLocation(), jarBase, "") + 
+		"\n");
+      
       n++;
     }
-
+    
     sb.append("-launch\n");
-
+    
     n = 0;
     for(Iterator it = all.iterator(); it.hasNext(); ) {
       Bundle b = (Bundle)it.next();
       n++;
       if(b.getState() == Bundle.ACTIVE) {
-        sb.append("-start " + n + "\n");
+	sb.append("-start " + n + "\n");
       }
     }
 
@@ -494,70 +489,70 @@ public class Util {
     Constants.FRAMEWORK_OS_NAME ,
     Constants.FRAMEWORK_OS_VERSION,
     Constants.FRAMEWORK_PROCESSOR,
-    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,      
   };
-
+  
   static public String getSystemInfo() {
     StringBuffer sb = new StringBuffer();
     try {
 
       Map props = new TreeMap(Activator.getSystemProperties());
-
+      
       sb.append("<table>\n");
-
+      
       sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
       sb.append(fontify("Framework properties", -1));
-
+      
       String spid = (String)props.get("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
-        sb.append(fontify(" (" + spid + ")", -1));
+	sb.append(fontify(" (" + spid + ")", -1));
       }
-
+      
       sb.append("</td>\n");
       sb.append(" </tr>\n");
-
-
+      
+      
       for(int i = 0; i < FWPROPS.length; i++) {
-        sb.append(" <tr>\n");
-        sb.append("  <td valign=\"top\">");
-        sb.append(fontify(FWPROPS[i]));
-        sb.append("</td>\n");
-        sb.append("  <td valign=\"top\">");
-        sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
-        sb.append("</td>\n");
-        sb.append(" </tr>\n");
+	sb.append(" <tr>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(FWPROPS[i]));
+	sb.append("</td>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+	sb.append("</td>\n");
+	sb.append(" </tr>\n");
       }
-
+      
       sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
       sb.append(fontify("System properties", -1));
       sb.append("</td>\n");
       sb.append("</tr>\n");
-
-
+      
+      
       for(Iterator it = props.keySet().iterator(); it.hasNext();) {
-        String key = (String)it.next();
-        String val = (String)props.get(key);
-        sb.append(" <tr>\n");
-        sb.append("  <td valign=\"top\">");
-        sb.append(fontify(key));
-        sb.append("</td>\n");
-        sb.append("  <td valign=\"top\">");
-        sb.append(fontify(val));
-        sb.append("</td>\n");
-        sb.append("</tr>\n");
+	String key = (String)it.next();
+	String val = (String)props.get(key);
+	sb.append(" <tr>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(key));
+	sb.append("</td>\n");
+	sb.append("  <td valign=\"top\">");
+	sb.append(fontify(val));
+	sb.append("</td>\n");
+	sb.append("</tr>\n");
       }
 
     } catch (Exception e) {
-      sb.append("<tr><td colspan=2>" +
-                fontify("Failed to get system props: " + e) +
-                "</td></tr>");
-
+      sb.append("<tr><td colspan=2>" + 
+		fontify("Failed to get system props: " + e) + 
+		"</td></tr>");
+      
     }
     sb.append("</table>");
 
     return sb.toString();
   }
-
+  
   static public String fontify(Object o) {
     return fontify(o, -2);
   }
@@ -571,7 +566,7 @@ public class Util {
     if(val == null) {
       out.println("null");
     } else if(val.getClass().isArray()) {
-      printArray(out, val);
+      printArray(out, (Object[])val);
     } else if(val instanceof Vector) {
       printVector(out, (Vector)val);
     } else if(val instanceof Map) {
@@ -585,74 +580,73 @@ public class Util {
       //      out.print(" (" + val.getClass().getName() + ")");
     }
   }
-
+  
   static public void printDictionary(PrintWriter out, Dictionary d) throws IOException {
-
+    
     out.println("<table border=0>");
     for(Enumeration e = d.keys(); e.hasMoreElements();) {
       Object key = e.nextElement();
       Object val = d.get(key);
       out.println("<tr>");
-
+      
       out.println("<td valign=top>");
       printObject(out, key);
       out.println("</td>");
-
+      
       out.println("<td valign=top>");
       printObject(out, val);
       out.println("</td>");
-
+      
       out.println("</tr>");
     }
     out.println("</table>");
   }
-
+  
   static public void printMap(PrintWriter out, Map m) throws IOException {
-
+    
     out.println("<table border=0>");
     for(Iterator it = m.keySet().iterator(); it.hasNext();) {
       Object key = it.next();
       Object val = m.get(key);
-
+      
       out.println("<tr>");
-
+      
       out.println("<td valign=top>");
       printObject(out, key);
       out.println("</td>");
-
+      
       out.println("<td valign=top>");
       printObject(out, val);
       out.println("</td>");
-
+      
       out.println("</tr>");
     }
     out.println("</table>");
   }
-
-  static public void printArray(PrintWriter out, Object a) throws IOException {
-    int length = Array.getLength(a);
-    for(int i = 0; i < length; i++) {
-      printObject(out, Array.get(a,i));
-      if(i < length - 1) {
-        out.println("<br>");
+  
+  static public void printArray(PrintWriter out, Object[] a) throws IOException {
+    for(int i = 0; i < a.length; i++) {
+      printObject(out, a[i]);
+      if(i < a.length - 1) {
+	out.println("<br>");
       }
     }
   }
-
+  
   static public void printSet(PrintWriter out, Set a) throws IOException {
     for(Iterator it = a.iterator(); it.hasNext();) {
       printObject(out, it.next());
       if(it.hasNext()) {
-        out.println("<br>");
+	out.println("<br>");
       }
     }
   }
-
+  
   static public void printVector(PrintWriter out, Vector a) throws IOException {
     for(int i = 0; i < a.size(); i++) {
       printObject(out, a.elementAt(i));
       if(i < a.size() - 1) {
-        out.println("<br>");
+	out.println("<br>");
       }
     }
   }
@@ -664,22 +658,14 @@ public class Util {
       String systemBrowser = "explorer.exe";
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
-        systemBrowser,
-        "\"" + url.toString() + "\"",
-      });
-    } else if (Util.isMacOSX()) {
-      // Yes, this only works on Mac OS X
-      Runtime rt = Runtime.getRuntime();
-      Process proc = rt.exec(new String[] {
-        "/usr/bin/open",
-        url.toString(),
+	systemBrowser, 
+	"\"" + url.toString() + "\"",
       });
     } else {
-      throw new IOException
-        ("Only windows and Mac OS X browsers are yet supported");
+      throw new IOException("Only windows browsers are yet supported");
     }
   }
-
+  
   public static boolean isWindows() {
     String os = System.getProperty("os.name");
     if(os != null) {
@@ -687,12 +673,5 @@ public class Util {
     }
     return false;
   }
-
-  public static boolean isMacOSX() {
-    String os = System.getProperty("os.name");
-    if(os != null) {
-      return -1 != os.toLowerCase().indexOf("mac os x");
-    }
-    return false;
-  }
 }
+

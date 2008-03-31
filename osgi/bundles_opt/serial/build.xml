@@ -2,26 +2,16 @@
 
 <project name="serial" default="all">
 
-  <target name="all">
-    <ant dir="serialportdevice"    target="all"/>
-    <ant dir="comm-win32"          target="all"/>
-    <ant dir="comm-linux"          target="all"/>
+   <target name="all">
+     <ant dir="serialportdevice"    target="all"/>
+     <ant dir="comm-win32"          target="all"/>
+     <ant dir="comm-linux"          target="all"/>
   </target>
 
-  <target name="clean">
-    <ant dir="serialportdevice"    target="clean"/>
-    <ant dir="comm-win32"          target="clean"/>
-    <ant dir="comm-linux"          target="clean"/>
+   <target name="clean">
+     <ant dir="serialportdevice"    target="clean"/>
+     <ant dir="comm-win32"          target="clean"/>
+     <ant dir="comm-linux"          target="clean"/>
   </target>
 
-  <import file="../../../ant/docbuild_include.xml"/>
-  
-  <target name="bundle_doc">
-    <antcall target="build_doc">
-      <param name="docbuild.name" value="serial"/>  
-      <param name="docbuild.title" value="Serial Communication"/>
-      <param name="docbuild.fromdir" value="doc"/>
-     <param name="docbuild.description" value="Serial Port Communication"/> 
-    </antcall>
-  </target>
 </project>

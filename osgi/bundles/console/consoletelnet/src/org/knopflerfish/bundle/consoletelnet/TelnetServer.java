@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,9 +60,16 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
         Runnable, ManagedService {
     private static BundleContext bc;
 
+    private static final String consoleServiceName = ConsoleService.class
+            .getName();
+
     private static LogRef log = null;
 
+    private static ConsoleService cs = null;
+
     private static TelnetConfig telnetConfig = null;
+
+    private static ServiceReference servRef = null;
 
     private static ServiceRegistration configServReg = null;
 
@@ -88,6 +95,12 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
         TelnetServer.bc = bc;
 
         log = new LogRef(bc, true);
+        servRef = bc.getServiceReference(consoleServiceName);
+
+        cs = (ConsoleService) bc.getService(servRef);
+        if (cs == null) {
+            log.error("Failed to get ConsoleService");
+        }
 
         telnetSessions = new Hashtable();
 
@@ -171,7 +184,7 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
 
                     // System.out.println("accepting on " + socket);
                     TelnetSession telnetSession = new TelnetSession(socket,
-                            telnetConfig, log, bc, this);
+                            telnetConfig, cs, log, bc, this);
                     Thread telnetSessionThread = new Thread(telnetSession,
                             "TelnetConsoleSession");
                     telnetSessions.put(telnetSession, telnetSessionThread);

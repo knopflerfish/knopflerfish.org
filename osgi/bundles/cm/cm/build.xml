@@ -8,13 +8,26 @@
 
   <property name="topdir"       location="../../.."/>
 
-  <property name="api.pattern"      value="org/osgi/service/cm/**"/>
-  <property name="impl.pattern"     value="org/knopflerfish/bundle/**"/> 
-  <property name="impl-api.pattern" value="org/knopflerfish/shared/cm/**"/> 
+  <property name="api.pattern"  value="org/osgi/service/cm/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
   </path>
+
+  <property name="bundle.description"    value="Configuration management service"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.1"/>
+  <property name="bundle.name"           value="CM Service"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="import.service"        value="org.knopflerfish.service.log.LogService,org.osgi.service.cm.ManagedService,org.osgi.service.cm.ManagedServiceFactory,org.osgi.service.cm.ConfigurationPlugin"/>
+
+  <property name="export.package"        value="org.osgi.service.cm;specification-version=1.0.0,org.knopflerfish.shared.cm;specification-version=1.0"/>
+
+  <property name="export.service"        value="org.osgi.service.cm.ConfigurationAdmin"/>
+
 
   &bundlebuild_include;
 

@@ -82,8 +82,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void startBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.start();
+      Activator.bc.getBundle(bid).start();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to start bid=" + bid);
     }
@@ -94,8 +93,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void stopBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.stop();
+      Activator.bc.getBundle(bid).stop();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to stop bid=" + bid);
     }
@@ -114,8 +112,7 @@ public class RemoteFWServer implements RemoteFW {
           data = data.substring(end + Util.B64_END.length());
         }
         byte[] bytes = Base64.decode(data);
-        Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.update(new ByteArrayInputStream(bytes));
+        Activator.bc.getBundle(bid).update(new ByteArrayInputStream(bytes));
       } else {
         updateBundle(bid);
       }
@@ -133,8 +130,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void updateBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.update();
+      Activator.bc.getBundle(bid).update();
     } catch (BundleException e) {
       Activator.log.warn("Failed to update bid=" + bid, e);
       throw new IllegalArgumentException("Failed to update bid=" + bid);
@@ -146,8 +142,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void uninstallBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.uninstall();
+      Activator.bc.getBundle(bid).uninstall();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to uninstall bid=" + bid);
     }
@@ -184,11 +179,11 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
-  public long getBundle() {
+  public long       getBundle() {
     return Activator.bc.getBundle().getBundleId();
   }
 
-  public long[] getBundles() {
+  public long[]    getBundles() {
     Bundle[] bl = Activator.bc.getBundles();
     long[] bids = new long[bl.length];
 
@@ -210,7 +205,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public String  getBundleLocation(long bid) {
     Bundle b = Activator.bc.getBundle(bid);
-    return (b == null ? null : b.getLocation());
+    return b.getLocation();
   }
 
   public int  getBundleState(SoapPrimitive bid) {
@@ -227,7 +222,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public long[]    getServicesInUse(long bid) {
     Bundle b = Activator.bc.getBundle(bid);
-    return Util.referencesToLong(b == null ? null : b.getServicesInUse());
+    return Util.referencesToLong(b.getServicesInUse());
   }
 
   public long[]    getUsingBundles(SoapPrimitive sid) {
@@ -307,24 +302,22 @@ public class RemoteFWServer implements RemoteFW {
   public Vector  getBundleManifest(long bundleId) {
     Bundle b = Activator.bc.getBundle(bundleId);
 
+    Dictionary d = b.getHeaders();
+
     //Map result = new HashMap();
     Vector result = new Vector();
 
-    if (b != null) {
-      Dictionary d = b.getHeaders();
+    int i = 0;
+    for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
+      String key = (String)e.nextElement();
+      String val = (String)d.get(key);
 
-      int i = 0;
-      for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
-        String key = (String)e.nextElement();
-        String val = (String)d.get(key);
-  
-        if (!"Application-Icon".equals(key)) {
-          result.addElement(key);
-          result.addElement(val);
-        }
-
-        i += 2;
+      if (!"Application-Icon".equals(key)) {
+        result.addElement(key);
+        result.addElement(val);
       }
+
+      i += 2;
     }
 
     return result;

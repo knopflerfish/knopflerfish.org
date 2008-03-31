@@ -36,10 +36,12 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.util.Properties;
-import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
+import java.util.StringTokenizer;
+import java.security.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import org.osgi.framework.*;
@@ -51,16 +53,16 @@ import java.lang.reflect.Constructor;
  * basic operations as install, start, stop, uninstall
  * and update.
  *
- * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
+ * @author Jan Stein, Erik Wistrand
  */
 public class Main {
 
   static Framework framework;
 
-  static long bootMgr/* = 0*/;
+  static long bootMgr = 0;
 
   // Verbosity level of printouts. 0 is low.
-  static int verbosity /*= 0*/;
+  static int verbosity = 0;
 
   // Will be filled in from manifest entry during startup
   static String version = "<unknown>";
@@ -79,7 +81,7 @@ public class Main {
 
 
   // Set to true if JVM is started without any arguments
-  static boolean bZeroArgs     /*     = false*/;
+  static boolean bZeroArgs          = false;
 
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
@@ -101,8 +103,6 @@ public class Main {
   static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
   static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
-  static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
-
   static boolean restarting = false;
 
   /**
@@ -115,7 +115,6 @@ public class Main {
     } catch (Exception ignored) { }
 
     version = readVersion();
-
 
     bootText =
       "Knopflerfish OSGi framework, version " + version + "\n" +
@@ -141,7 +140,6 @@ public class Main {
         args = new String[] {"-init", "-xargs", xargsPath};
       }
     }
-
 
     // expand all -xargs options
     args = expandArgs(args);
@@ -215,7 +213,7 @@ public class Main {
   static String[] getJarBase() {
     String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
-    String[] base = Util.splitwords(jars, ";");
+    String[] base = Util.splitwords(jars, ";", '\"');
     for (int i=0; i<base.length; i++) {
       try {
         base[i] = new URL(base[i]).toString();
@@ -233,11 +231,10 @@ public class Main {
    * @param args argument line
    * @param startOffset index to start from in argv
    */
-
   private static void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
-    boolean doNotLaunch = false;
+    boolean hasBeenShutdown = false;
 
     for (int i = startOffset; i < args.length; i++) {
       try {
@@ -287,10 +284,9 @@ public class Main {
           } else {
             framework.launch(0);
           }
-          doNotLaunch = true;
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
-          doNotLaunch = true;
+          hasBeenShutdown = true;
           framework.shutdown();
           println("Framework shutdown", 0);
         } else if ("-sleep".equals(args[i])) {
@@ -338,10 +334,10 @@ public class Main {
           if (i+1 < args.length) {
             long[] ids = null;
             if("ALL".equals(args[i+1])) {
-              List bl = framework.bundles.getBundles();
-              ids = new long[bl.size()];
-              for(int n = bl.size() - 1; n >= 0; n--) {
-                ids[n] = ((BundleImpl)bl.get(n)).getBundleId();
+              Bundle[] bl = framework.getSystemBundleContext().getBundles();
+              ids = new long[bl.length];
+              for(int n = 0; n < bl.length; n++) {
+                ids[n] = bl[n].getBundleId();
               }
             } else {
               ids = new long[] { getBundleID(base,args[i+1]) };
@@ -414,7 +410,7 @@ public class Main {
       }
     }
 
-    if (!framework.active && !doNotLaunch) {
+    if (!framework.active && !hasBeenShutdown) {
       try {
         framework.launch(0);
         println("Framework launched", 0);
@@ -506,6 +502,19 @@ public class Main {
     return location;
   }
 
+  public static void frameworkEvent(final FrameworkEvent evt) {
+    framework.checkAdminPermission();
+
+    final FrameworkEvent e2 = new FrameworkEvent(evt.getType(),
+                                                 evt.getBundle(),
+                                                 evt.getThrowable());
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          framework.listeners.frameworkEvent(e2);
+          return null;
+        }
+      });
+  }
 
   /**
    * Shutdown framework.
@@ -517,28 +526,33 @@ public class Main {
    */
   static public void shutdown(final int exitcode) {
     if (restarting) return;
-    Thread t = new Thread() {
-        public void run() {
-          if (bootMgr != 0) {
-            try {
-              framework.stopBundle(bootMgr);
-            } catch (BundleException e) {
-              System.err.println("Stop of BootManager failed, " +
-                                 e.getNestedException());
-            }
-          }
-          framework.shutdown();
-          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
-            System.exit(exitcode);
-          } else {
-            println("Framework shutdown, skipped System.exit()", 0);
-          }
+    framework.checkAdminPermission();
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          Thread t = new Thread() {
+              public void run() {
+                if (bootMgr != 0) {
+                  try {
+                    framework.stopBundle(bootMgr);
+                  } catch (BundleException e) {
+                    System.err.println("Stop of BootManager failed, " +
+                                       e.getNestedException());
+                  }
+                }
+                framework.shutdown();
+                if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+                  System.exit(exitcode);
+                } else {
+                  println("Framework shutdown, skipped System.exit()", 0);
+                }
+              }
+            };
+          t.setDaemon(false);
+          t.start();
+          return null;
         }
-      };
-    t.setDaemon(false);
-    t.start();
+      });
   }
-
 
   /**
    * Restart framework.
@@ -547,36 +561,42 @@ public class Main {
    * </p>
    */
   static public void restart() {
-    restarting = true;
-    Thread t = new Thread() {
-        public void run() {
-          try {
-            if (bootMgr != 0) {
-              try {
-                framework.stopBundle(bootMgr);
-              } catch (BundleException e) {
-                System.err.println("Stop of BootManager failed, " +
-                                   e.getNestedException());
-              }
-            }
-            framework.shutdown();
+    framework.checkAdminPermission();
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          Thread t = new Thread() {
+              public void run() {
+                restarting = true;
+                try {
+                  if (bootMgr != 0) {
+                    try {
+                      framework.stopBundle(bootMgr);
+                    } catch (BundleException e) {
+                      System.err.println("Stop of BootManager failed, " +
+                                         e.getNestedException());
+                    }
+                  }
+                  framework.shutdown();
 
-            try {
-              if (bootMgr != 0) {
-                framework.launch(bootMgr);
-              } else {
-                framework.launch(0);
+                  try {
+                    if (bootMgr != 0) {
+                      framework.launch(bootMgr);
+                    } else {
+                      framework.launch(0);
+                    }
+                  } catch (Exception e) {
+                    println("Failed to restart framework", 0);
+                  }
+                } finally {
+                  restarting = false;
+                }
               }
-            } catch (Exception e) {
-              println("Failed to restart framework", 0);
-            }
-          } finally {
-            restarting = false;
-          }
+            };
+          t.setDaemon(false);
+          t.start();
+          return null;
         }
-      };
-    t.setDaemon(false);
-    t.start();
+      });
   }
 
   /**
@@ -587,24 +607,14 @@ public class Main {
     Vector v = new Vector();
     int i = 0;
     while(i < argv.length) {
-      if ("-xargs".equals(argv[i]) || "--xargs".equals(argv[i])) {
-        // if "--xargs", ignore any load errors of xargs file
-        boolean bIgnoreException = argv[i].equals("--xargs");
+      if ("-xargs".equals(argv[i])) {
         if (i+1 < argv.length) {
           String   xargsPath = argv[i+1];
+          String[] moreArgs = loadArgs(xargsPath, argv);
           i++;
-          try {
-            String[] moreArgs = loadArgs(xargsPath, argv);
-            String[] r = expandArgs(moreArgs);
-            for(int j = 0; j < r.length; j++) {
-              v.addElement(r[j]);
-            }
-          } catch (RuntimeException e) {
-            if(bIgnoreException) {
-              println("Failed to load -xargs " + xargsPath, 1, e);
-            } else {
-              throw e;
-            }
+          String[] r = expandArgs(moreArgs);
+          for(int j = 0; j < r.length; j++) {
+            v.addElement(r[j]);
           }
         } else {
           throw new IllegalArgumentException("-xargs without argument");
@@ -615,7 +625,6 @@ public class Main {
       i++;
     }
     String[] r = new String[v.size()];
-
     v.copyInto(r);
     return r;
   }
@@ -662,22 +671,12 @@ public class Main {
     }
   }
 
-  // should this be read from the manifest instead?
-  static String readVersion() {
-    return readResource("/version", "<no version found>");
-  }
-
-  // should this be read from the manifest instead?
-  static String readRelease() {
-    return readResource("/release", "0.0.0.snapshot");
-  }
-
   // Read version info from manifest
-  static String readResource(String file, String defaultValue) {
+  static String readVersion() {
     try {
-      return (new String(Util.readResource(file))).trim();
+      return (new String(Util.readResource("/version"))).trim();
     } catch (Exception e) {
-      return defaultValue;
+      return "<no version found>";
     }
   }
 
@@ -713,7 +712,7 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
+        String osName = Alias.unifyOsName(System.getProperty("os.name"));
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();
@@ -770,7 +769,7 @@ public class Main {
    * Default values for some system properties.
    */
   static String[][] defaultSysProps = new String[][] {
-    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
+    {"org.osgi.framework.system.packages", "javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
     {FWDIR_PROP,    FWDIR_DEFAULT},
     {CMDIR_PROP,    CMDIR_DEFAULT},
     //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
@@ -797,6 +796,7 @@ public class Main {
     Properties sysProps = System.getProperties();
 
     println("setDefaultSysProps", 1);
+
     for(int i = 0; i < defaultSysProps.length; i++) {
       if(null == System.getProperty(defaultSysProps[i][0])) {
         println("Using default " + defaultSysProps[i][0] + "=" +
@@ -842,7 +842,7 @@ public class Main {
           sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
         }
         jars = sb.toString().replace('\\', '/');
-        sysProps.put(JARDIR_PROP, jars);
+        sysProps.put("org.knopflerfish.gosg.jars", jars);
         println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
@@ -882,35 +882,6 @@ public class Main {
     return arg2;
   }
 
-
-  /**
-   * If the last to elements in args "-xargs" or "--xargs" then expand
-   * it with arg as argument and replace the last element in args with
-   * the expansion. Otherwise just add arg to args.
-   * <p>
-   * This expansion is necessarry to allow redefinition of a system
-   * property after inclusion of xargs-file that sets the same property.
-   *
-   * @param args The vector to add elements to.
-   * @param arg  The element to add.
-   */
-  private static void addArg(Vector args, String arg)
-  {
-    if (0==args.size()) {
-      args.addElement(arg);
-    } else {
-      String lastArg = (String) args.lastElement();
-      if ("-xargs".equals(lastArg) || "--xargs".equals(lastArg)) {
-        String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
-        args.removeElementAt(args.size()-1);
-        for (int i=0; i<exArgs.length; i++) {
-          args.addElement(exArgs[i]);
-        }
-      } else {
-        args.addElement(arg);
-      }
-    }
-  }
 
   /**
    * Helper method when OS shell does not allow long command lines. This
@@ -992,7 +963,7 @@ public class Main {
         tmpline = tmpline.trim();
 
         // check for line continuation char and
-        // build up line until a line without such a mark is found.
+        // build up line until aline without such a mark is found.
         if(tmpline.endsWith("\\")) {
           // found continuation mark, store actual line to
           // buffered continuation line
@@ -1041,17 +1012,17 @@ public class Main {
         } else if(line.startsWith("-")) {
           int i = line.indexOf(' ');
           if (i != -1) {
-            addArg(v, line.substring(0,i));
+            v.addElement(line.substring(0,i));
             line = line.substring(i).trim();
             if(line.length() > 0) {
-              addArg(v, line);
+              v.addElement(line);
             }
           } else {
-            addArg(v, line);
+            v.addElement(line);
           }
         } else if(line.length() > 0) {
           // Add argument
-          addArg(v,line);
+          v.addElement(line);
         }
       }
       setSecurityManager(sysProps);
@@ -1073,15 +1044,8 @@ public class Main {
    * @param level print level.
    */
   static void println(String s, int level) {
-    println(s, level, null);
-  }
-
-  static void println(String s, int level, Exception e) {
     if(verbosity >= level) {
       System.out.println((level > 0 ? ("#" + level + ": ") : "") + s);
-      if(e != null) {
-        e.printStackTrace();
-      }
     }
   }
 

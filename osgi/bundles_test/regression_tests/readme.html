@@ -15,7 +15,7 @@ source, via the <a href="http://www.knopflerfish.org">Knopflerfish</a> project.
 </p>
 
 <p>
-The tests can be compiled stand-alone from the main KF distrib, by just checking out the regression_tests/ dir and compile using ant:
+The tests can be compiled standalone from the main KF distrib, by just checking out the regression_tests/ dir and compile using ant:
 
 <pre>
  &gt; svn co \
@@ -29,12 +29,12 @@ https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regres
 
 <p>
 The KF nightly build runs these test, and saves the results at <br/>
-<tt>http://www.knopflerfish.org/snapshots/&lt;<i>RELEASE</i>&gt;/junit_grunt/index.xml</tt>
+<a href="http://www.knopflerfish.org/snapshots/trunk/junit_grunt/index.xml">http://www.knopflerfish.org/snapshots/trunk/junit_grunt/index.xml</a>
 </p>
 
 <p>
 A precompiled zip file of the necessary test bundles can be found at <br/>
-<tt>http://www.knopflerfish.org/snapshots/&lt;<i>RELEASE</i>&gt;/knopflerfish_osgi_tests_&lt;<i>RELEASE</i>&gt;-trunk.zip"></tt>
+<a href="http://www.knopflerfish.org/snapshots/trunk/knopflerfish_osgi_tests_1.3.2-trunk.zip">http://www.knopflerfish.org/snapshots/trunk/knopflerfish_osgi_tests_1.3.2-trunk.zip</a>
 </p>
 
 
@@ -94,51 +94,29 @@ The tests can also be accessed/browsed using subversion, from <br/>
 </table>
 
 <p>
-and a lot of small test bundles <tt>bundle[A-Z]_test</tt> which are
-used as embedded bundles.
+and a lot of small test bundles <tt>bundle[A-Z]_test</tt> which are used as embedded bundles.
 </p>
 
 <h4 class="shadow">Test source, origin, errors, updates</h4>
 <p>
-Most of the tests have been ported from a log-based test system, to a
-JUnit-based system (see <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">JUnit
-testing on OSGi</a>), and the test in themselves may thus contain
-porting errors.
+Most of the tests have been ported from a log-based test system, to a JUnit-based system (see <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">JUnit testing on OSGi</a>), and the test in themselves may thus contain porting errors.
 </p>
 <p>
-Reviews are encouraged! Please report any possible test errors, new
-tests, suggestions, or new platforms that the tests have been run on,
-to <a href="mailto:info@knopflerfish.org">info@knopflerfish.org</a>
+Reviews are encouraged! Please report any possible test errors, new tests, suggestions, or new platforms that the tests have been run on, to <a href="mailto:info@knopflerfish.org">info@knopflerfish.org</a>
 
 </p>
 
 <h4 class="shadow">Running the tests</h4>
 
 <p>
-If you have a checked out copy of the subversion repository
-<tt>knopflerfish.org</tt> then you can run all these tests from the
-<tt>osgi</tt>-subdirectory by typing:<br/><pre>
-ant run-osgi-test-target-secure
-</pre>
-This will build all needed bundles and then execute the test suites.
-
-<p>
-The rest of this page describes how to run the tests by hand.
-
-<p>
-The test cases above can be run using the <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">junit
-bundle</a>. It can also be run without the http server, using the <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/junit_runner/readme.txt">junit_runner
-bundle</a>.
+The test cases above can be run using the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">junit bundle</a>. It can also be run without the http server, using the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/junit_runner/readme.txt">junit_runner bundle</a>.
 </p>
 
 <p>
-To run a stand-alone tests you should only need to install
+To run a standalone tests you should only need to install
 </p>
 <pre>
- junit_all-2.0.0.jar
+ junit_all-1.0.0.jar
 </pre>
 
 then the one or more of the actual test cases
@@ -163,29 +141,23 @@ which reads system properties
  org.knopflerfish.junit_runner.quit=true
 </pre>
 
-<p> When the framework is started, the junit_runner bundle will run
-all installed test and write the XML results to a directory (including
-XSLT styles for HTML presentation). The default output directory is
-<tt>junit_grunt<sup><a href="#grunt">1</a></sup></tt> </p>
+<p>
+When the framework is started, the junit_runner bundle will run all installed
+test and write the XML results to a directory (including XSLT styles for HTML presentation). The default output directory is <tt>junit_grunt<sup><a href="#grunt">1</a></sup></tt>
+</p>
 
 <p>
-An KF .xargs file doing exactly this can be found at <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/init-tests.xargs">init-tests.xargs</a>. This
-is the same file used for the nightly test runs.
+An KF .xargs file doing exactly this can be found at <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/init-tests.xargs">init-tests.xargs</a>. This is the same file used for the nightly test runs.
 </p>
 
 <h4 class="shadow">Running the restart tests</h4>
 
 <p>
-The <tt>restart_test</tt> bundle is intended to test framework
-behavior after a restart. This requires the system triggering the test
-to start the framework twice, first in a completely clean state, then
-in a restarted state.
+The <tt>restart_test</tt> bundle is intended to test framework behavoir after a restart. This requires the system triggering the test to start the framework twice, first in a completely clean state, then in a restarted state.
 </p>
 
 <p>
-The first run will install a set of bundles (at different start
-levels) and then quit.
+The first run will install a set of bundles (at different start levels) and then quit.
 </p>
 
 <p>
@@ -208,7 +180,7 @@ restart tests:<br/>
 <sup>1</sup>Hi Klas!
 </p>
 
-<div class="shadow">Copyright 2004-2008 Knopflerfish</div>
+<div class="shadow">Copyright 2004 Knopflerfish</div>
 
 </body>
 </html>

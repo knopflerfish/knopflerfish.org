@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<metatype:values
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype">
+
+ <org.knopflerfish.bundle.http.factory.HttpServer>
+
+   <port.http>8080</port.http>
+   <host></host>
+   <session.timeout.default>1200</session.timeout.default>
+   <connection.timeout>30</connection.timeout>
+   <connection.max>50</connection.max>
+   <dns.lookup>false</dns.lookup>
+   <response.buffer.size.default>16384</response.buffer.size.default>
+   <service.ranking>1</service.ranking>
+
+  </org.knopflerfish.bundle.http.factory.HttpServer>
+
+
+ </metatype:values>

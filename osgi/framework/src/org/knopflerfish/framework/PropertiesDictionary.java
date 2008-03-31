@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,13 +131,13 @@ class PropertiesDictionary extends Dictionary
 
   // These aren't used but we implement to fulfill Dictionary class
 
-  public Enumeration elements() { throw new UnsupportedOperationException("Not implemented"); }
+  public Enumeration elements() { throw new RuntimeException("Not implemented"); }
 
-  public boolean isEmpty() { throw new UnsupportedOperationException("Not implemented"); }
+  public boolean isEmpty() { throw new RuntimeException("Not implemented"); }
 
-  public Enumeration keys() { throw new UnsupportedOperationException("Not implemented"); }
+  public Enumeration keys() { throw new RuntimeException("Not implemented"); }
 
-  public Object put(Object k, Object v) { throw new UnsupportedOperationException("Not implemented"); }
+  public Object put(Object k, Object v) { throw new RuntimeException("Not implemented"); }
 
-  public Object remove(Object k) { throw new UnsupportedOperationException("Not implemented"); }
+  public Object remove(Object k) { throw new RuntimeException("Not implemented"); }
 }

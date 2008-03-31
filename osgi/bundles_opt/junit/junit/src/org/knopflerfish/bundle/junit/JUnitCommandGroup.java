@@ -109,9 +109,9 @@ public class JUnitCommandGroup extends CommandGroupAdapter
       
       if(srl == null || srl.length == 0) {
 	out.println("No Test services found");
-      } else {
-        out.println("Found " + srl.length + " tests");
       }
+      
+      out.println("Found " + srl.length + " tests");
       for(int i = 0; srl != null && i < srl.length; i++) {
 	Object obj = Activator.bc.getService(srl[i]);
 	if(obj instanceof Test) {

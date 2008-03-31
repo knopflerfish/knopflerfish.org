@@ -34,9 +34,13 @@
 
 package org.knopflerfish.service.desktop;
 
+import org.osgi.framework.Bundle;
+
+import javax.swing.JComponent;
+import javax.swing.ListSelectionModel;
+import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Default implementation of BundleSelectionModel.

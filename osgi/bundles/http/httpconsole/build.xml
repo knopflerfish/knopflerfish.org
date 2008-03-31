@@ -11,12 +11,18 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/httpconsole/**"/>
 
-  <property name="bmfa.Bundle-Version"        value="2.0.0"/>
-
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/jsdk/jsdk_api-2.5.jar"/> 
-   <pathelement location="${topdir}/jars/http/http_api-2.1.0.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
   </path>
+
+
+  <property name="bundle.description"    value="Simple HTTP/HTML console allowing framework management"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="HTTP-console"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/readme.html"/>
 
   &bundlebuild_include;
 

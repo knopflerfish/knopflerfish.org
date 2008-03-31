@@ -7,5 +7,6 @@
 			<accessrule kind="nonaccessible" pattern="**/*"/>
 		</accessrules>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="resources/servlet.jar"/>
 	<classpathentry kind="output" path="out"/>
 </classpath>

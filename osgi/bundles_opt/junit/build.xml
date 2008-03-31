@@ -14,8 +14,4 @@
     <ant dir="examples"     target="clean"/>
   </target>
 
-  <target name="bundle_doc">
-    <ant dir="junit"	target="bundle_doc"/>
-  </target>
-
 </project>

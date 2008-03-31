@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,10 @@ final class UpdateQueue implements Runnable {
 
     private Thread thread;
 
+    /**
+     * * The thread running this object.
+     */
+
     private final Object threadLock = new Object();
 
     /**
@@ -85,12 +89,31 @@ final class UpdateQueue implements Runnable {
 
     public void run() {
         while (true) {
+            if (doUpdateQueueLogging()) {
+                Activator.log
+                        .debug("[UpdateQueue] Getting next Update from queue");
+            }
             Update update = dequeue();
             if (update == null) {
+                if (doUpdateQueueLogging()) {
+                    Activator.log
+                            .debug("[UpdateQueue] Got null Update from queue");
+                }
                 return;
             }
+            if (doUpdateQueueLogging()) {
+                Activator.log.debug("[UpdateQueue] Got an Update from queue");
+            }
             try {
+                if (doUpdateQueueLogging()) {
+                    Activator.log
+                            .debug("[UpdateQueue] Calling Update.doUpdate");
+                }
                 update.doUpdate(pm);
+                if (doUpdateQueueLogging()) {
+                    Activator.log
+                            .debug("[UpdateQueue] Update.doUpdate returned");
+                }
             } catch (ConfigurationException ce) {
                 Activator.log.error("[CM] Error in configuration for "
                         + update.pid, ce);
@@ -112,7 +135,12 @@ final class UpdateQueue implements Runnable {
 
     public synchronized void enqueue(Update update) {
         if (update == null) {
-            return;
+            throw new IllegalArgumentException(
+                    "ConfigurationDispatcher.enqueue(Update) needs a non-null argument.");
+        }
+        if (doUpdateQueueLogging()) {
+            Activator.log.debug("[UpdateQueue] Adding update for " + update.pid
+                    + " to queue");
         }
         queue.addElement(update);
         attachNewThreadIfNeccesary();
@@ -129,11 +157,19 @@ final class UpdateQueue implements Runnable {
     private synchronized Update dequeue() {
         if (queue.isEmpty()) {
             try {
+                if (doUpdateQueueLogging()) {
+                    Activator.log
+                            .debug("[UpdateQueue] Queue is empty. Waiting 5000 ms");
+                }
                 wait(5000);
             } catch (InterruptedException ignored) {
             }
         }
         if (queue.isEmpty()) {
+            if (doUpdateQueueLogging()) {
+                Activator.log
+                        .debug("[UpdateQueue] Queue is still empty. Detaching thread.");
+            }
             detachCurrentThread();
             return null;
         }
@@ -145,6 +181,9 @@ final class UpdateQueue implements Runnable {
     void attachNewThreadIfNeccesary() {
         synchronized (threadLock) {
             if (thread == null) {
+                if (doUpdateQueueLogging()) {
+                    Activator.log.debug("[UpdateQueue] Attaching new thread.");
+                }
                 thread = new Thread(this);
                 thread.setDaemon(true);
                 thread.start();
@@ -154,7 +193,16 @@ final class UpdateQueue implements Runnable {
 
     void detachCurrentThread() {
         synchronized (threadLock) {
+            if (doUpdateQueueLogging()) {
+                Activator.log
+                        .debug("[UpdateQueue] Detaching thread because queue is empty.");
+            }
             thread = null;
         }
+    }
+
+    boolean doUpdateQueueLogging() {
+        // return Activator.log.doDebug()
+        return false;
     }
 }

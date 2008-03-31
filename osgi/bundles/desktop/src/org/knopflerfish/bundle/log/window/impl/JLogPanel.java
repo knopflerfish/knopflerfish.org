@@ -34,24 +34,22 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.awt.BorderLayout;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Iterator;
+import java.util.*;
+import java.text.*;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.log.LogRef;
+
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.*;
+
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
 
 public class JLogPanel extends JPanel implements ClipboardOwner {
   

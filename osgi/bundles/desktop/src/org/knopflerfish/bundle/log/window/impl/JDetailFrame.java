@@ -34,12 +34,21 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.util.Date;
+import java.util.*;
+import java.text.*;
 
-import javax.swing.JFrame;
+import java.net.URL;
+
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.util.Text;
+
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
 
 public class JDetailFrame extends JFrame {
   int w = 500;

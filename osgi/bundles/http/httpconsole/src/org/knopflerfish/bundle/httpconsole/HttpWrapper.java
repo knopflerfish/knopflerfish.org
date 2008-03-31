@@ -83,40 +83,53 @@ public class HttpWrapper {
   public static String PROP_DIR   = "httpwrapper.resource.dir";
 
   BundleContext  bc;
+  ServiceTracker httpTracker;
 
-  HttpServlet servlet;
-  HttpContext context;
-
-  HttpWrapper(BundleContext bc, HttpServlet servlet, HttpContext context) {
+  HttpWrapper(BundleContext bc) {
     this.bc = bc;
-    this.servlet = servlet;
-    this.context = context;
   }
   
   void open() {
+    try {
+      String httpFilter = 
+	System.getProperty("org.knopflerfish.httpconsole.filter",
+			   "(objectclass=org.osgi.service.http.HttpService)");
+      httpTracker = new ServiceTracker(bc, bc.createFilter(httpFilter), null);
+      httpTracker.open();
+    } catch (InvalidSyntaxException e) {
+      throw new RuntimeException("Failed to set up http tracker: " + e);
+    }
+
     ServiceListener sl = new ServiceListener() {
-    	public void serviceChanged(ServiceEvent ev) {
-    	  ServiceReference sr = ev.getServiceReference();
-    	  switch(ev.getType()) {
-    	  case ServiceEvent.REGISTERED:
-    	    {
-      	    try {
+	public void serviceChanged(ServiceEvent ev) {
+	  ServiceReference sr = ev.getServiceReference();
+	  switch(ev.getType()) {
+	  case ServiceEvent.REGISTERED:
+	    {
               register(sr);
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-          }
-        }
-      }
-    };
+	    }
+	    break;
+	  case ServiceEvent.UNREGISTERING:
+	    {
+              unregister(sr);
+	    }
+	    break;
+	  }
+	}
+      };
     
-    String filter = "(objectclass=" + HttpService.class.getName() + ")";
-    
+    String filter = 
+      "(|" + 
+      "(objectclass=" + HttpServlet.class.getName() + ")" + 
+      "(objectclass=" + HttpContext.class.getName() + ")" + 
+      ")";
+
     try {
       bc.addServiceListener(sl, filter);
       ServiceReference[] srl = bc.getServiceReferences(null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
-        register(srl[i]);
+	sl.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
+					   srl[i]));
       }
     } catch (InvalidSyntaxException e) { 
       e.printStackTrace(); 
@@ -124,19 +137,53 @@ public class HttpWrapper {
   }
   
   void register(ServiceReference sr) {
-    HttpService http = (HttpService) bc.getService(sr);
-    if (http == null) {
+    // resource is either a HttpServlet or a HttpContext
+    // Use instanceof to check the type
+    Object resource = bc.getService(sr); 
+
+    // all resources must have an alias
+    String alias    = (String)sr.getProperty(PROP_ALIAS);
+
+    if(resource == null) {
       Activator.log.warn("http resource is null");
       return;
     }
+    if(alias == null || "".equals(alias)) {
+      Activator.log.warn(PROP_ALIAS + " must be set, is " + alias);
+      return;
+    }
+
+    Object[] httplist = httpTracker.getServices();
     
-    try {
-      Hashtable props = new Hashtable();
-      http.registerServlet(Activator.SERVLET_ALIAS, servlet, props, null);
-      http.registerResources(Activator.RES_ALIAS, Activator.RES_DIR, context);
-    } catch (Exception e) {
-      Activator.log.error("Failed to register resource", e);
+    for(int i = 0; httplist != null && i < httplist.length; i++) {
+      HttpService http = (HttpService)httplist[i];
+      try {
+	if(resource instanceof HttpServlet) {
+	  Hashtable props = new Hashtable();
+	  http.registerServlet(alias, (HttpServlet)resource, props, null);
+	} else if(resource instanceof HttpContext) {
+	  String dir        = (String)sr.getProperty(PROP_DIR);
+	  http.registerResources(alias, dir, (HttpContext)resource);
+	}
+      } catch (Exception e) {
+	Activator.log.error("Failed to register resource, alias=" + alias, e);
+      }
     }
   }
-
+  
+  void unregister(ServiceReference sr) {
+    String alias        = (String)sr.getProperty(PROP_ALIAS);
+    
+    Object[] httplist = httpTracker.getServices();
+    
+    for(int i = 0; httplist != null && i < httplist.length; i++) {
+      HttpService http = (HttpService)httplist[i];
+      try {
+	http.unregister(alias);
+      } catch (Exception e) {
+	Activator.log.error("Failed to unregister resource, alias=" + alias, e);
+      }
+      bc.ungetService(sr);
+    }
+  }
 }

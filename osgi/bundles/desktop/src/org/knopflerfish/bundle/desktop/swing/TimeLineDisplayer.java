@@ -34,43 +34,16 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import org.osgi.framework.*;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
-import javax.swing.JViewport;
-import javax.swing.ListSelectionModel;
+import org.knopflerfish.service.desktop.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceReference;
+import javax.swing.*;
+import javax.swing.event.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
 
 public class TimeLineDisplayer extends DefaultSwingBundleDisplayer {
 

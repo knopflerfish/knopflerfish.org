@@ -5,7 +5,6 @@
    <target name="all">
     <ant dir="../commons-logging"   target="all"/>
     <ant dir="axis-osgi"            target="all"/>
-    <ant dir="axis2-osgi"           target="all"/>
     <ant dir="soap_desktop"         target="all"/>
     <ant dir="soap_remotefw"        target="all"/>
     <ant dir="soapobject"           target="all"/>
@@ -17,33 +16,12 @@
    <target name="clean">
     <ant dir="../commons-logging"   target="clean"/>
     <ant dir="axis-osgi"            target="clean"/>
-    <ant dir="axis2-osgi"           target="clean"/>
     <ant dir="soap_desktop"         target="clean"/>
     <ant dir="soap_remotefw"        target="clean"/>
     <ant dir="soapobject"           target="clean"/>
     <ant dir="demos"                target="clean"/>
     <ant dir="ksoap-osgi"           target="clean"/>
     <ant dir="ksoap_remotefw"       target="clean"/>
-  </target>
-
-  <import file="../../../ant/docbuild_include.xml"/>
-  
-  <target name="bundle_doc">
-    <ant dir="axis-osgi"            target="bundle_doc"/>
-    <ant dir="axis2-osgi"           target="bundle_doc"/>
-    <ant dir="soapobject"           target="bundle_doc"/>
-    <ant dir="soap_desktop"         target="bundle_doc"/>
-    <ant dir="soap_remotefw"        target="bundle_doc"/>
-    <ant dir="ksoap-osgi"           target="bundle_doc"/>
-    <ant dir="ksoap_remotefw"       target="bundle_doc"/>
-
-    <antcall target="build_doc">
-      <param name="docbuild.name" value="soap"/>  
-      <param name="docbuild.title" value="Web Services / SOAP"/>
-      <param name="docbuild.fromdir" value="doc"/>
-      <param name="docbuild.description"
-	     value="How to export a registered service as a Web Service using SOAP"/> 
-    </antcall>
   </target>
 
 </project>

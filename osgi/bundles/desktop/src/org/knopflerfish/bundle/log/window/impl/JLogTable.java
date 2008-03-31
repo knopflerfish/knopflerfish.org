@@ -34,15 +34,20 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.awt.Color;
-import java.util.Date;
+import java.util.*;
+import java.text.*;
 
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.log.LogRef;
 
-import org.osgi.service.log.LogEntry;
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.*;
+import javax.swing.border.*;
 
 /**
  * Table subclass which displays <tt>ExtLogEntry</tt> items.

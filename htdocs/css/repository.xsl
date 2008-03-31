@@ -37,22 +37,45 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <body>
 <a name="top"></a>
-<table class="bodytable">
+<table border="0" cellpadding="0" cellspacing="0">
   <tr>
-    <td class="pageheader">
-      <div style="text-align: left; margin-left: 5px; margin-top: 5px; margin-bottom: 5px;">
-	<h2><xsl:value-of select="bundles/repository-bundle-name"/></h2>
-	<div style="font-style: italic; margin-left: 20px; margin-right: 20px; margin-top: 5px; margin-bottom: 5px;">
-	  This is an OBR compatible bundle repository.
-	</div>
+    <td width="10%">
+      <div style="text-align:left; margin-right: 10px; margin-left: 10px; margin-top:10 px;">
+      <a href="/index.html"><img src="http://www.knopflerfish.org/images/knopflerfish-small.gif" border="0"/></a><br/>
+      <p>
+      <a class="navigation_enabled" href="/index.html">Home</a><br/>
+      <a class="navigation_enabled" href="/components.html">Contents</a><br/>
+      <a class="navigation_enabled" href="/download.html">Download</a><br/>
+      <a class="navigation_enabled" href="/changelog.html">Changelog</a><br/>
+      <a class="navigation_enabled" href="/contacts.html">Contacts</a><br/>
+      <a class="navigation_enabled" href="/programming.html">Programming</a><br/>
+      <a class="navigation_enabled" href="/desktop.html#1">Desktop</a><br/>
+      <a class="navigation_enabled" href="/osgi-links.html">Links</a><br/>
+      <a class="navigation_enabled" href="/history.html">History</a><br/>
+      <a class="navigation_enabled"   href="/svn_info.html">Subversion repository</a><br/>
+
+      </p>
+      <img src="http://www.knopflerfish.org/images/smallfish.gif" border="0"/>
+      <br/>
       </div>
     </td>
-  </tr>
-  <tr><td height="5"></td></tr>
-  <tr>
-    <td class="mainblock">
-
-      <div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px; margin-right: 5px;">
+    <td width="90%">
+      <table class="bodytable">
+	<tr>
+	  <td class="pageheader">
+	    <div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px;">
+	    <h2><xsl:value-of select="bundles/repository-bundle-name"/></h2>
+	    <div style="font-style: italic; margin-left: 20px; margin-right: 20px; margin-top: 5px; margin-bottom: 5px;">
+	    This is an OBR compatible bundle repository.
+	    </div>
+	    </div>
+	  </td>
+	</tr>
+        <tr><td height="5"></td></tr>
+	<tr>
+	  <td class="mainblock">
+	    
+	    <div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px; margin-right: 5px;">
 
 <!-- start -->
 
@@ -65,13 +88,9 @@ read the XML file, list bundles, and install bundles and their dependencies.
 </p>
 
 <p>
-The repository URL is <a href="http://www.knopflerfish.org/repo/repository.xml">http://www.knopflerfish.org/repo/repository.xml</a>.
-</p>
+The repository URL is <a href="http://www.knopflerfish.org/repo/repository.xml">http://www.knopflerfish.org/repo/repository.xml</a>
 
-<p>
-You can find a <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">RFC-0112</a> compatible repository at <a href="http://www.knopflerfish.org/repo/bindex.xml">http://www.knopflerfish.org/repo/bindex.xml</a>.
 </p>
-
 <p>
 This repository is generated on <xsl:value-of select="bundles/date"/>
 </p>
@@ -148,8 +167,11 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 
 <!-- stop -->
 
-      <a class="top" href="#top">top</a>
-      </div>
+	    <a class="top" href="#top">top</a>
+	    </div>
+	  </td>
+	</tr>
+      </table>
     </td>
   </tr>
 </table>

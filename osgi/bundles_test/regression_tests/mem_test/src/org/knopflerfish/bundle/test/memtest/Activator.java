@@ -50,14 +50,18 @@ public class Activator implements BundleActivator {
           
           while(bRun) {
             long now = System.currentTimeMillis();
-            if(now - lastTime >= interval) {
-              dumpState();
-              lastTime = System.currentTimeMillis();
-            }
-            try {
-              Thread.sleep(sleep);
-            } catch (Exception e) {
-              e.printStackTrace();
+            if(now - initTime >= totaltime) {
+              stopAll();
+            } else {
+              if(now - lastTime >= interval) {
+                dumpState();
+                lastTime = System.currentTimeMillis();
+              }
+              try {
+                Thread.sleep(sleep);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
             }
           }
         }
@@ -66,10 +70,6 @@ public class Activator implements BundleActivator {
     runner.start();
   }
 
-  long oldTotalMem = 0;
-  long oldFreeMem  = 0;
-  long oldUsedMem  = 0;
-  
   void dumpState() {
     rt.gc();
     long totalMem = rt.totalMemory();
@@ -78,16 +78,9 @@ public class Activator implements BundleActivator {
     
     long now = System.currentTimeMillis();
     
-    String msg = now +
-    ", " + totalMem + "(" + (totalMem - oldTotalMem) + ")" +
-    ", " + freeMem + "(" + (freeMem - oldFreeMem) + ")" +
-    ", " + usedMem + "(" + (usedMem - oldUsedMem) + ")";
-    
     Bundle[] bl = bc.getBundles();
     
-    oldTotalMem = totalMem;
-    oldFreeMem  = freeMem;
-    oldUsedMem  = usedMem;
+    String msg = now + ", " + totalMem + ", " + freeMem + ", " + usedMem; 
     out.println(msg);
     out.flush();
     System.out.println(msg);
@@ -107,6 +100,7 @@ public class Activator implements BundleActivator {
         out.close();
       } catch (Exception e) {
       }
+      System.exit(0);
     }
   }
   
