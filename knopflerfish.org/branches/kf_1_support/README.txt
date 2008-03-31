@@ -14,7 +14,7 @@
    - JDK 1.3 or later, available from java.sun.com 
    - Ant, available from ant.apache.org 
    - BCEL, available from jakarta.apache.org/bcel 
-     install in $ANTHOME/lib
+     install in ant/lib or system wide in $ANTHOME/lib.
 
  > ant                   # builds framework and all bundle jar files
 

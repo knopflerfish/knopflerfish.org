@@ -22,6 +22,21 @@
    <echo     message="message=${message}"/>
   </target>
 
+  <target name="txt2html">
+    <loadfile property = "main" 
+              srcfile  = "${fromfile}"/>
+
+    <echo message="create ${tofile}"/>
+    <copy file      = "${formatted.html}" 
+          tofile    = "${tofile}" 
+          overwrite = "true"/>
+
+    <replace file="${tofile}">
+	<replacefilter token="$(MAIN)"
+		       value="${main}"/>		       
+    </replace>
+  </target>
+
   <target name="all" depends="init"
           description="Create html pages from templates">
 
@@ -38,6 +53,26 @@
 
     <property name     = "template.html" 
               location = "html_templates/template.html"/>
+
+    <condition property="htdocs.dir"
+	       value=".">
+      <not><isset property="htdocs.dir"/></not>
+    </condition>
+
+    <condition property="formatted.html"
+	       value="${htdocs.dir}/html_templates/formatted.html">
+      <not><isset property="formatted.html"/></not>
+    </condition>
+
+    <antcall target="txt2html">
+      <param name="fromfile" value="../changelog.txt"/>
+      <param name="tofile"   value="${distrib.out.dir}/changelog.html"/>
+    </antcall>
+
+    <antcall target="txt2html">
+      <param name="fromfile" value="${distrib.out.dir}/release_notes.txt"/>
+      <param name="tofile"   value="${distrib.out.dir}/release_notes.html"/>
+    </antcall>
 
     <antcall target="bundle_docs"/>
 
@@ -71,14 +106,6 @@
       <param name="title"    value="Download Knopflerfish OSGi"/>
       <param name="desc"     value=""/>
       <param name="CLASS_NAVIGATION_DOWNLOAD" value="navigation_disabled"/>
-    </antcall>
-
-    <antcall target="makehtml">
-      <param name="fromfile" value="../changelog.html"/>
-      <param name="tofile"   value="changelog.html"/>
-      <param name="title"    value="Knopflerfish Changelog"/>
-      <param name="desc"     value="List of changes in the Knopflerfish OSGi"/>
-      <param name="CLASS_NAVIGATION_CHANGELOG" value="navigation_disabled"/>
     </antcall>
 
     <antcall target="makehtml">
