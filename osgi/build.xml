@@ -131,7 +131,7 @@
  <target name="run"
          description="(Re)start the framework.">
    <java fork="true"
-         jar="out/framework/framework.jar">
+         jar="framework.jar">
    </java>
  </target>
  <target name="run-secure"

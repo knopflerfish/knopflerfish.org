@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,9 @@ public class Main {
 
 
   public static void main(String[] argv) {
-    
+
     theMain = new Main();
-    
+
     theMain.unpack(argv);
   }
 
@@ -60,6 +60,7 @@ public class Main {
   String  destdirname   = "";
   String  postHookName = null;
   String  preHookName  = null;
+  String  iconLeft     = null;
   String  iconPath     = null;
   String  licenseResName = null;
   String  licenseTitle   = null;
@@ -76,6 +77,9 @@ public class Main {
     "ant.gif",
     "fish32x32.gif",
     "fish200x300.gif",
+    "kf_16x16.gif",
+    "kf_32x32.gif",
+    "knopflerfish_red400pxl.gif",
     "license.txt",
     "org",
     "pspbrwse.jbf",
@@ -88,48 +92,57 @@ public class Main {
   boolean bText  = false;
 
   void printHelp() {
-    System.out.println("Usage: jarunpacker [options]\n\n" + 
-		       " -help         print this page\n" +
-		       " -batch        do not use swing or ask for options\n" +
-		       " -silent       be silent\n" +
-		       " -destdir dir  set destination dir to destdir\n" +
-		       ""
-		       );
+    System.out.println("Usage: jarunpacker [options]\n\n" +
+                       " -help         print this page\n" +
+                       " -batch        do not use swing or ask for options\n" +
+                       " -silent       be silent\n" +
+                       " -destdir dir  set destination dir to destdir\n" +
+                       ""
+                       );
   }
 
   void unpack(String[] argv) {
     int i = 0;
     while(i < argv.length) {
       if("-batch".equals(argv[i])) {
-	bBatch = true;
+        bBatch = true;
       } else if("-help".equals(argv[i])) {
-	printHelp();
-	exit("", null);
+        printHelp();
+        exit("", null);
       } else if("-silent".equals(argv[i])) {
-	bSilent = true;
+        bSilent = true;
       } else if("-destdir".equals(argv[i]) && i+1 < argv.length) {
-	i++;
-	destdirname = argv[i];
+        i++;
+        destdirname = argv[i];
       } else {
-	System.out.println("Unknown option '" + argv[i] + "'\n");
-	printHelp();
-	exit("", null);
+        System.out.println("Unknown option '" + argv[i] + "'\n");
+        printHelp();
+        exit("", null);
       }
       i++;
     }
 
-    
-
     try {
-      verbosity = Integer.parseInt(System.getProperty("org.knopflerfish.tools.jarunpacker.verbosity"));
+      verbosity = Integer.parseInt(System.getProperty
+                      ("org.knopflerfish.tools.jarunpacker.verbosity"));
     } catch (Exception ignored) {
     }
 
 
     log("unpacking", 2);
 
-    String jarfilename = System.getProperty("java.class.path");
-    if(jarfilename == null || !jarfilename.endsWith(".jar")) {
+    String classPath = System.getProperty("java.class.path");
+    if(classPath == null) {
+      exit("No valid jar file to unpack on classpath", null);
+      System.exit(0);
+    }
+    String jarfilename = "";
+    StringTokenizer st = new StringTokenizer(classPath,
+                                             java.io.File.pathSeparator);
+    while ( st.hasMoreTokens() && !jarfilename.endsWith(".jar")) {
+      jarfilename = st.nextToken();
+    }
+    if(!jarfilename.endsWith(".jar")) {
       exit("No valid jar file to unpack on classpath", null);
       System.exit(0);
     }
@@ -143,58 +156,62 @@ public class Main {
       File file = new File(jarfilename);
 
       if(!file.exists()) {
-	exit("Cannot find '" + jarfilename + "'", null);
+        exit("Cannot find '" + jarfilename + "'", null);
       }
-      
+
       JarFile jarFile = new JarFile(file);
 
       Manifest mf = jarFile.getManifest();
 
       if(destdirname.equals("")) {
-	try {
-	  destdirname = mf.getMainAttributes().getValue("jarunpacker-destdir");
-	} catch (Exception ignored) {	}
+        try {
+          destdirname = mf.getMainAttributes().getValue("jarunpacker-destdir");
+        } catch (Exception ignored) {   }
       }
-      if(destdirname == null) {	destdirname = ".";   }
+      if(destdirname == null) { destdirname = ".";   }
 
       try {
-	version = mf.getMainAttributes().getValue("knopflerfish-version");
+        version = mf.getMainAttributes().getValue("knopflerfish-version");
       } catch (Exception ignored) {      }
       if(version == null) {  version = "";   }
 
       try {
-	optButtons = mf.getMainAttributes().getValue("jarunpacker-optbutton");
+        optButtons = mf.getMainAttributes().getValue("jarunpacker-optbutton");
       } catch (Exception ignored) {  }
       if(optButtons == null) {  optButtons = "base source htdocs";  }
 
       try {
-	opendirname = mf.getMainAttributes().getValue("jarunpacker-opendir");
+        opendirname = mf.getMainAttributes().getValue("jarunpacker-opendir");
       } catch (Exception ignored) {     }
       //      if(opendirname == null) { opendirname = ".";   }
 
       try {
-	iconPath = mf.getMainAttributes().getValue("jarunpacker-iconpath");
+        iconLeft = mf.getMainAttributes().getValue("jarunpacker-iconleft");
       } catch (Exception ignored) {     }
 
       try {
-	licenseResName = mf.getMainAttributes().getValue("jarunpacker-licensepath");
+        iconPath = mf.getMainAttributes().getValue("jarunpacker-iconpath");
       } catch (Exception ignored) {     }
 
       try {
-	licenseTitle = mf.getMainAttributes().getValue("jarunpacker-licensetitle");
+        licenseResName = mf.getMainAttributes().getValue("jarunpacker-licensepath");
       } catch (Exception ignored) {     }
 
       try {
-	windowTitle = mf.getMainAttributes().getValue("jarunpacker-windowtitle");
+        licenseTitle = mf.getMainAttributes().getValue("jarunpacker-licensetitle");
+      } catch (Exception ignored) {     }
+
+      try {
+        windowTitle = mf.getMainAttributes().getValue("jarunpacker-windowtitle");
       } catch (Exception ignored) {     }
 
 
       try {
-	preHookName = mf.getMainAttributes().getValue("jarunpacker-prehook");
+        preHookName = mf.getMainAttributes().getValue("jarunpacker-prehook");
       } catch (Exception ignored) {      }
-      
+
       try {
-	postHookName = mf.getMainAttributes().getValue("jarunpacker-posthook");
+        postHookName = mf.getMainAttributes().getValue("jarunpacker-posthook");
       } catch (Exception ignored) {      }
 
       destDir = new File(destdirname);
@@ -203,91 +220,91 @@ public class Main {
       int nFiles = 0;
       long nBytes = 0;
       for(Enumeration e = jarFile.entries(); e.hasMoreElements(); ) {
-	ZipEntry entry = (ZipEntry)e.nextElement();
-	if(!isExcluded(entry)) {
-	  nFiles++;
-	  long size = entry.getSize();
-	  if(size != -1) {
-	    nBytes += size;
-	  }
-	}
+        ZipEntry entry = (ZipEntry)e.nextElement();
+        if(!isExcluded(entry)) {
+          nFiles++;
+          long size = entry.getSize();
+          if(size != -1) {
+            nBytes += size;
+          }
+        }
       }
-      
+
 
       if(!bBatch) {
-	try {
-	  JUnpackWizard wizard = new JUnpackWizard(jarFile, destDir, nBytes, nFiles);
-	  ui = wizard;
-	  
-	  wizard.start();
-	  
-	  if(!wizard.isFinished()) {
-	    exit("Wizard not finished", null);
-	  }
-	  
-	  destDir = wizard.getDestDir();
-	  if(!wizard.doOpenDir()) {
-	    opendirname = null;
-	  }
-	} catch (Throwable e) {
-	  e.printStackTrace();
-	}
+        try {
+          JUnpackWizard wizard = new JUnpackWizard(jarFile, destDir, nBytes, nFiles);
+          ui = wizard;
+
+          wizard.start();
+
+          if(!wizard.isFinished()) {
+            exit("Wizard not finished", null);
+          }
+
+          destDir = wizard.getDestDir();
+          if(!wizard.doOpenDir()) {
+            opendirname = null;
+          }
+        } catch (Throwable e) {
+          e.printStackTrace();
+        }
       }
-      
+
       if(ui == null) {
 
-	if(!destDir.exists()) {
-	  destDir.mkdirs();
-	}
-      
-	if(!destDir.exists()) {
-	  exit("failed to create destdir " + destDir.getAbsolutePath(), null);
-	} 
+        if(!destDir.exists()) {
+          destDir.mkdirs();
+        }
 
-	ui = new TextUI(jarFile, destDir);
+        if(!destDir.exists()) {
+          exit("failed to create destdir " + destDir.getAbsolutePath(), null);
+        }
+
+        ui = new TextUI(jarFile, destDir);
       }
 
       log("extracting " + nFiles + " files to: " + destDir.getAbsolutePath() + ", size=" + (nBytes/1024) + "kb", 0);
 
       int count = 0;
       for(Enumeration e = jarFile.entries(); !bCancel && e.hasMoreElements(); ) {
-	ZipEntry entry = (ZipEntry)e.nextElement();
+        ZipEntry entry = (ZipEntry)e.nextElement();
 
-	if(!isExcluded(entry)) {
-	  progress(entry.getName(), 100 * count / nFiles);
-	  if(entry.isDirectory()) {
-	    makeDir(jarFile, entry, destDir);
-	  } else {
-	    copyEntry(jarFile, entry, destDir);
-	  }
-	  count++;
-	}
+        if(!isExcluded(entry)) {
+          progress(entry.getName(), 100 * count / nFiles);
+          if(entry.isDirectory()) {
+            makeDir(jarFile, entry, destDir);
+          } else {
+            copyEntry(jarFile, entry, destDir);
+          }
+          count++;
+        }
       }
 
       if(ui != null) {
-	ui.theEnd();
+        ui.theEnd();
       }
 
       call(jarFile, destDir, postHookName);
 
       if(!bCancel && opendirname != null) {
-	opendirname = Strings.replace(opendirname,
-				      "${destdir}", 
-				      destDir.getAbsolutePath());
-	openDir = new File(opendirname);
+        opendirname = Strings.replace(opendirname,
+                                      "${destdir}",
+                                      destDir.getAbsolutePath());
+        openDir = new File(opendirname);
       }
 
 
       if(openDir != null) {
-	doOpenDir(openDir);
+        doOpenDir(openDir);
       }
-      
+
     } catch (Exception  e) {
       exit("Failed to unpack " + jarfilename, e);
     }
     if(bCancel) {
-      exit("Installation cancelled - some extracted files may be left in\n " + 
-	   destDir.getAbsolutePath(), null);
+      exit("Installation cancelled - some extracted files may be left in\n " +
+           destDir.getAbsolutePath(), null);
     } else {
       exit("Installation complete", null);
     }
@@ -299,11 +316,11 @@ public class Main {
     for(Enumeration e = jarFile.entries(); e.hasMoreElements(); ) {
       ZipEntry entry = (ZipEntry)e.nextElement();
       if(!isExcluded(entry)) {
-	nFiles++;
-	long size = entry.getSize();
-	if(size != -1) {
-	  nBytes += size;
-	}
+        nFiles++;
+        long size = entry.getSize();
+        if(size != -1) {
+          nBytes += size;
+        }
       }
     }
     return nBytes;
@@ -313,15 +330,15 @@ public class Main {
   void doOpenDir(File dir) {
     try {
       if(Util.isWindows() && !bBatch) {
-	// Yes, this only works on windows
-	String systemBrowser = "explorer.exe";
-	Runtime rt = Runtime.getRuntime();
-	Process proc = rt.exec(new String[] {
-	  systemBrowser, 
-	  dir.getAbsolutePath()
-	});
+        // Yes, this only works on windows
+        String systemBrowser = "explorer.exe";
+        Runtime rt = Runtime.getRuntime();
+        Process proc = rt.exec(new String[] {
+          systemBrowser,
+          dir.getAbsolutePath()
+        });
       } else {
-	log("Installed in " + dir.getAbsolutePath(), 0);
+        log("Installed in " + dir.getAbsolutePath(), 0);
       }
     } catch (Exception e) {
       log("Failed to open dir " + dir + ": " + e, 0);
@@ -339,13 +356,13 @@ public class Main {
       Class clazz = Class.forName(className);
 
       Method mainM = clazz.getMethod("main", new Class[] {
-	sa.getClass()
+        sa.getClass()
       });
 
       Object obj  = clazz.newInstance();
-      
+
       mainM.invoke(null, new Object[] { new String[] { file.getName(), destDir.getAbsolutePath() }} );
-      
+
     } catch (Exception e) {
       e.printStackTrace();
       log("Failed to call " + className, 0);
@@ -355,17 +372,17 @@ public class Main {
   boolean isExcluded(ZipEntry entry) {
     for(int i = 0; i < excludePrefix.length; i++) {
       if(entry.getName().startsWith(excludePrefix[i])) {
-	return true;
+        return true;
       }
     }
 
     if(iconPath != null) {
       String s = iconPath;
       if(s.startsWith("/")) {
-	s = s.substring(1);
+        s = s.substring(1);
       }
       if(entry.getName().equals(s)) {
-	return true;
+        return true;
       }
     }
     if(ui != null && ui.isExcluded(entry.getName())) {
@@ -384,22 +401,22 @@ public class Main {
       q = Strings.replace(q, "$(name)", d.getName());
 
       int n = ui.ask(Strings.get("title_replace_dir"),
-			   q,
-			   Strings.getArray("replace_array4"),
-			   InstallUI.OPT_YES,
-			   null);
+                           q,
+                           Strings.getArray("replace_array4"),
+                           InstallUI.OPT_YES,
+                           null);
       switch(n) {
       case InstallUI.OPT_YES:
-	break;
+        break;
       case InstallUI.OPT_YESALL:
-	bReplaceDirYesAll = true;
-	break;
+        bReplaceDirYesAll = true;
+        break;
       case InstallUI.OPT_NONE:
       case InstallUI.OPT_NO:
-	return;
+        return;
       case InstallUI.OPT_CANCEL:
-	bCancel = true;
-	return;
+        bCancel = true;
+        return;
       }
     }
 
@@ -425,24 +442,24 @@ public class Main {
 
     if(!bReplaceYesAll && d.exists()) {
       int n = ui.askFile(Strings.get("title_replace_file"),
-			       Strings.getArray("replace_array4"),
-			       InstallUI.OPT_YES,
-			       d.getAbsolutePath(),
-			       d.getName(),
-			       new Date(entry.getTime()),
-			       entry.getSize());
+                               Strings.getArray("replace_array4"),
+                               InstallUI.OPT_YES,
+                               d.getAbsolutePath(),
+                               d.getName(),
+                               new Date(entry.getTime()),
+                               entry.getSize());
       switch(n) {
       case InstallUI.OPT_YES:
-	break;
+        break;
       case InstallUI.OPT_YESALL:
-	bReplaceYesAll = true;
-	break;
+        bReplaceYesAll = true;
+        break;
       case InstallUI.OPT_NONE:
       case InstallUI.OPT_NO:
-	return;
+        return;
       case InstallUI.OPT_CANCEL:
-	bCancel = true;
-	return;
+        bCancel = true;
+        return;
       }
     }
 
@@ -456,12 +473,12 @@ public class Main {
       int n;
       int total = 0;
       while ((n = in.read(buf)) > 0) {
-	out.write(buf, 0, n);
-	total += n;
+        out.write(buf, 0, n);
+        total += n;
       }
     } finally {
-      try { in.close(); } catch (Exception ignored) { } 
-      try { out.close(); } catch (Exception ignored) { } 
+      try { in.close(); } catch (Exception ignored) { }
+      try { out.close(); } catch (Exception ignored) { }
     }
   }
 
