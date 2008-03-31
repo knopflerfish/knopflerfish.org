@@ -104,12 +104,17 @@ clean:
 
 
 CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAG}
-CH_LOG_DEST=${OUT_DIR}/${VERSION}/ChangeLog.txt
+CH_LOG_DEST=${OUT_DIR}/${VERSION}/changelog.html
 
 copyout:
 	@$(MKDIR) -p ${OUT_DIR}
 	$(CP) -r ${TAG}/htdocs/releases/${VERSION} ${OUT_DIR}
-	@[ -r ${CH_LOG_SRC} ] && $(CP) -p $(CH_LOG_SRC) $(CH_LOG_DEST)
+	@if [ -r ${CH_LOG_SRC} ]; then \
+	  echo "<html><head><title>Change Log</title></head>" > $(CH_LOG_DEST);\
+	  echo "<body><pre>"                                 >> $(CH_LOG_DEST);\
+	  cat $(CH_LOG_SRC)                                  >> $(CH_LOG_DEST);\
+	  echo "</pre></body></html>"                        >> $(CH_LOG_DEST);\
+	fi
 
 # Remove all but the 10 last BUILDs from ${OUT_DIR}
 clean_snapshots:
