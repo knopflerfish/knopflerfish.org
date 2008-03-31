@@ -6,11 +6,11 @@
 	      <p>
 	      <a href="release_notes.txt">Release Notes</a>
 	      <p>
-	      <a href="bundledoc">Bundle User Documentation</a>
+	      <a href="bundledoc/index.html">Bundle User Documentation</a>
 	      <p>
-	      <a href="javadoc">API documentation</a>
+	      <a href="javadoc/index.html">API documentation</a>
 	      <p>
-	      <a href="jars">Bundle jar docs</a>
+	      <a href="jars/index.html">Bundle jar docs</a>
 
 	      <h3>Downloads</h3>
 
