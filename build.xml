@@ -649,6 +649,13 @@
            <exclude name = "**/CVS"/>
         </zipfileset>
 
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
+	   <include name = "release_notes.txt"/>
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
+        </zipfileset>
+
         <zipfileset dir    = "tools/jarunpacker/resources"
                     prefix = "knopflerfish_osgi_${version}">
            <include name = "license.txt"/>
