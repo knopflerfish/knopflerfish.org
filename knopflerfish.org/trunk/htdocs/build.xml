@@ -80,7 +80,7 @@
     </not>
    </condition>
 
-   <condition property="release_notes.txt" value="${htdocs.dir}/../release_notes.txt">
+   <condition property="release_notes.txt" value="${distrib.out.dir}/release_notes.txt">
     <not>
      <isset property="release_notes.txt"/>
     </not>
@@ -198,12 +198,12 @@
 
    <antcall target="txt2html">
      <param name="fromfile" value="${changelog.txt}"/>
-     <param name="tofile"   value="${htdocs.dir}/../changelog.html"/>
+     <param name="tofile"   value="${distrib.out.dir}/changelog.html"/>
    </antcall>
 
    <antcall target="txt2html">
      <param name="fromfile" value="${release_notes.txt}"/>
-     <param name="tofile"   value="${htdocs.out}/../release_notes.html"/>
+     <param name="tofile"   value="${distrib.out.dir}/release_notes.html"/>
    </antcall>
 
    <makehtml title="${htdocs.distname}"
@@ -230,22 +230,24 @@
               fromfile="${license.html}"
               disable="LICENSE"/>
   
-    <property name="changelog.file" value="../changelog.html"/>
+    <property name="changelog.file"
+	      location="${distrib.out.dir}/changelog.html"/>
     <makehtml description="List of changes in ${htdocs.distname}"
               title="${htdocs.distname} Changelog"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="changelog.html"
-              fromfile="${htdocs.dir}/${changelog.file}"
+              fromfile="${changelog.file}"
               disable="CHANGELOG"/>
 
-    <property name="release_notes.file" value="../release_notes.html"/>
+    <property name="release_notes.file"
+	      location="${distrib.out.dir}/release_notes.html"/>
     <makehtml description="Release notes for this release of ${htdocs.distname}"
               title="${htdocs.distname} Release Notes"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="release_notes.html"
-              fromfile="${htdocs.dir}/${release_notes.file}"
+              fromfile="${release_notes.file}"
               disable="CHANGELOG"/>
 
     <makehtml description="The contents of the ${htdocs.distname} distribution"

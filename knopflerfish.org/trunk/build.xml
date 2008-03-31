@@ -122,7 +122,6 @@
     <ant    dir = "ant"    target = "clean" />
     <ant    dir = "osgi"   target = "clean" />
     <ant    dir = "htdocs" target = "clean" />
-    <delete file= "release_notes.txt"/>
     <delete dir = "${javadoc.out.dir}"      />
     <delete dir = "${distrib.out.dir}"      />
     <delete dir = "repo"/>
@@ -142,7 +141,7 @@
     <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
     
     <copy file   = "release_notes.in"
-          tofile = "release_notes.txt">
+          tofile = "${distrib.out.dir}/release_notes.txt">
       <filterset begintoken="@" endtoken="@">
 	<filter token="VERSION" value="${version}"/>
       </filterset>
@@ -250,12 +249,11 @@
           depends       = "mkreldir,compile_ant">
 
     <!-- The releas page links to a local release_notes file. -->
-    <copy file   = "release_notes.txt"
-          tofile = "${release.dir}/release_notes.txt">
+    <copy file   = "${distrib.out.dir}/release_notes.html"
+          tofile = "${release.dir}/release_notes.html">
     </copy>
-    <!-- Publish the version conrolled default change log file. -->
-    <copy file   = "changelog.txt"
-          tofile = "${release.dir}/ChangeLog.txt">
+    <copy file   = "${distrib.out.dir}/changelog.html"
+          tofile = "${release.dir}/changelog.html">
     </copy>
     <tstamp>
      <format property = "distrib.tstamp" 
@@ -499,9 +497,6 @@
            <include name = "tools/**"/>
            <include name = "osgi/jars/**"/>
 
-           <include name = "changelog.txt"/>
-           <include name = "release_notes.txt"/>
-
            <include name = "README.txt"/>
 
            <exclude name = "keystore"/>
@@ -560,6 +555,13 @@
            <include name = "osgi/bundles/bundlerepository/**"/>
 
            <exclude name = "**/.svn"/>
+        </zipfileset>
+
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish.org">
+	   <include name = "release_notes.txt"/>
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
@@ -681,15 +683,19 @@
            <include name = "osgi/jars/io/*.jar"/>
            <include name = "osgi/jars/wireadmin/*.jar"/>
 
-           <include name = "changelog.txt"/>
-           <include name = "release_notes.txt"/>
-
            <include name = "test.html"/>
 
            <exclude name = "keystore"/>
 
            <exclude name = "**/build.xml"/>
            <exclude name = "**/CVS"/>
+        </zipfileset>
+
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish.org">
+	   <include name = "release_notes.txt"/>
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
@@ -769,13 +775,17 @@
 
            <include name = "osgi/jars/**"/>
 
-           <include name = "changelog.txt"/>
-           <include name = "release_notes.txt"/>
-
            <exclude name = "keystore"/>
 
            <exclude name = "**/build.xml"/>
            <exclude name = "**/CVS"/>
+        </zipfileset>
+
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish.org">
+	   <include name = "release_notes.txt"/>
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
         </zipfileset>
 
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
@@ -815,8 +825,6 @@
         <zipfileset dir    = "."
                     prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
 
-           <include name = "release_notes.txt"/>
-
            <include name = "osgi/framework.jar"/>
 
            <include name = "osgi/framework.policy"/>
@@ -828,6 +836,16 @@
            <include name = "osgi/bundlemanager.props"/>
            <include name = "osgi/bm.props"/>
            <exclude name = "**/CVS"/>
+        </zipfileset>
+
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
+	   <include name = "release_notes.txt"/>
+	   <!-- Skip html versions to keep it tiny -->
+	   <!--
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
+	   -->
         </zipfileset>
 
         <zipfileset dir    = "tools/jarunpacker/resources"
