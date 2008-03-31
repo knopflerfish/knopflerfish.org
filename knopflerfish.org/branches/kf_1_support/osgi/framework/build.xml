@@ -115,6 +115,7 @@
    <fileset dir="${ant.lib}"   includes="bcel-*.jar"/>
  </path>
 
+ <!-- Class path with BCEL and local ant tasks. -->
  <path id="bundle_tasks.path">
    <path refid="bcel.path"/>
    <pathelement location="${antclasses}"/>
@@ -126,9 +127,10 @@
 
    <mkdir dir = "${antclasses}"/>
 
-   <javac destdir = "${antclasses}"
-          srcdir  = "${ant.dir}/src" 
-          debug = "on">
+   <javac destdir      = "${antclasses}"
+          srcdir       = "${ant.dir}/src" 
+          classpathref = "bundle_tasks.path" 
+          debug        = "on">
      <!-- Bundle.java requires Ant 1.6+ -->
      <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
    </javac>
