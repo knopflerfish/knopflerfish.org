@@ -52,8 +52,6 @@
 
   <property environment="sysprops"/>
 
-  <property name = "bcel.version"        value    = "5.2"/>
-
   <property name = "ee.check.foundation"   value = "true"/>
 
   <!-- The direcotry to place the results of a distrib build in. -->
@@ -84,9 +82,8 @@
   <property name     = "distribfile_opt"
             location = "${release.dir}/knopflerfish_opt_${version}.jar"/>
 
-  <property name = "ant.dir"          location = "ant"/>
-  <property name = "antclasses"       location = "${ant.dir}/classes"/>
-
+  <property name="ant.dir"          location="ant"/>
+  <import   file="${ant.dir}/bundletasks.xml"/>
 
   <property name="jarunpacker" location="tools/jarunpacker"/>
   <property name="jarunpacker.license.txt"
@@ -95,6 +92,7 @@
             location="${jarunpacker}/license.html"/>
   <property name="jarunpacker.properties"
             location="${jarunpacker}/strings.properties"/>
+
 
   <target name        = "default"
           description = "Builds entire platform except optional and test bundels" >
@@ -133,7 +131,8 @@
   </target>
 
   <target name        = "htdocs"
-          description = "Builds HTML documents">
+          description = "Builds HTML documents"
+	  depends     = "bundle_tasks">
     <property name="htdocs.dir"     location="htdocs"/>
     <property name="htdocs.out"     location="${htdocs.dir}"/>
     <property name="template.html"  location="${htdocs.dir}/html_templates/template.html"/>
@@ -147,19 +146,16 @@
       </filterset>
     </copy>
     
-    <taskdef name      = "extrabundledoc"
-             classpath = "ant/classes"
-             classname = "org.knopflerfish.ant.taskdefs.bundle.ExtraBundleDocTask"/>
-     <delete dir="${htdocs.out}/extrabundledocs"/>
+    <delete dir="${htdocs.out}/extrabundledocs"/>
 
-     <extrabundledoc out="${htdocs.out}/extrabundledocs"
-                     template="${htdocs.dir}/html_src/userdocs.html"
-                     pattern="&lt;tr&gt;&lt;td class=&quot;newstext&quot;&gt;&lt;a class=&quot;navigation_enabled&quot; href=&quot;$(URL)&quot;&gt;$(TITLE)&lt;/a&gt;&lt;/td&gt;&lt;td class=&quot;newstext&quot;&gt;$(BODY)&lt;/td&gt;&lt;/tr&gt;">
-       <fileset dir="osgi/bundles">
-	 <include name="**/docs"/>
-       </fileset>
-     </extrabundledoc>
-     <ant    dir         = "htdocs"  target      = "all"/>
+    <extrabundledoc out="${htdocs.out}/extrabundledocs"
+                    template="${htdocs.dir}/html_src/userdocs.html"
+                    pattern="&lt;tr&gt;&lt;td class=&quot;newstext&quot;&gt;&lt;a class=&quot;navigation_enabled&quot; href=&quot;$(URL)&quot;&gt;$(TITLE)&lt;/a&gt;&lt;/td&gt;&lt;td class=&quot;newstext&quot;&gt;$(BODY)&lt;/td&gt;&lt;/tr&gt;">
+      <fileset dir="osgi/bundles">
+	<include name="**/docs"/>
+      </fileset>
+    </extrabundledoc>
+    <ant    dir         = "htdocs"  target      = "all"/>
   </target>
   
   <target name="check_javadoc" if="javadoc.out.dir.present">
@@ -191,7 +187,7 @@
   </target>
 
   <target name          = "jardocs"
-          depends       = "compile_ant">
+          depends       = "bundle_tasks">
 
     <copy todir="${release.dir}/jars">
      <fileset dir="osgi/jars"/>
@@ -215,7 +211,7 @@
   
   <target name          = "bundle_doc"
 	  description	= "Creates bundle specific documentaion"
-          depends       = "compile_ant">
+          depends       = "bundle_tasks">
     <mkdir dir="${bundledoc.dir}"/>
 
     <ant dir = "osgi"	target="bundle_doc"/>
@@ -236,7 +232,7 @@
 
   <!-- Runs the kf-test suites and copies the test result to the release.-->
   <target name          = "run-kf-tests"
-          depends       = "compile_ant">
+          depends       = "bundle_tasks">
     <delete dir="osgi/junit_grunt"/>
     <ant    dir="osgi" target="run-kf-tests-secure"/>
     <copy   todir="${release.dir}/junit_grunt">
@@ -246,7 +242,7 @@
 
   <!-- Creates an HTML index page for a release build.-->
   <target name          = "distrib_index"
-          depends       = "mkreldir,compile_ant">
+          depends       = "mkreldir,bundle_tasks">
 
     <!-- The releas page links to a local release_notes file. -->
     <copy file   = "${distrib.out.dir}/release_notes.html"
@@ -260,9 +256,6 @@
              pattern  = "yyyy-MM-dd HH:mm"
              locale   = "en"/>
     </tstamp>
-    <taskdef name      = "byteformatter"
-             classpath = "ant/classes"
-             classname = "org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
 
     <byteformatter file="${distribfile}" unit="B"
                    property="distribfile.length"/>
@@ -314,17 +307,36 @@
 
 
   <target name          = "bindex"
-          depends       = "compile_ant">
-   <ant dir="osgi" target="bindex"/>
-  </target>
+          depends       = "bundle_tasks">
 
-  <target name          = "install_bindex"
-          depends       = "compile_ant">
-   <ant dir="osgi" target="install_bindex"/>
+    <property name="bindex.dest.dir"  location="repo"/>
+    <property name="bindex.base.url"  value="http://www.knopflerfish.org/repo"/>
+    <property name="bindex.base.dir"  location="osgi"/>
+    <property name="bindex.jars.dir"  location="${bindex.base.dir}/jars"/>
+    <property name="bindex.repo.name" value="Knopflerfish bundle repository"/>
+
+    <mkdir dir="${bindex.dest.dir}"/>
+    <bindex outFile         = "${bindex.dest.dir}/bindex.xml"
+            baseDir         = "${bindex.base.dir}"
+            baseURL         = "${bindex.base.url}"
+	    repoName        = "${bindex.repo.name}"
+            bindexJar       = "ant/lib/bindex.jar"
+            >
+
+      <fileset dir="${bindex.jars.dir}">
+	<include name = "jars/upnp/upnp_api-*.jar"/>
+      </fileset>
+
+      <fileset dir="${bindex.jars.dir}">
+	<include name = "*/*.jar"/>
+	<exclude name = "*/*_api-*.jar"/>
+	<exclude name = "framework.jar"/>
+      </fileset> 
+    </bindex>
   </target>
 
   <target name          = "obr"
-          depends       = "compile_ant">
+          depends       = "bundle_tasks">
 
     <property name="obr.baseurl" value="http://www.knopflerfish.org/repo/jars/"/>
     <property name="obr.basedir" location="osgi/jars"/>
@@ -363,28 +375,6 @@
    </java>
 
   </target>
-
-  <target name        = "compile_ant"
-          description = "Compile and link the custom bundleinfo task">
-
-   <mkdir dir = "${antclasses}"/>
-
-   <javac destdir = "${antclasses}"
-          srcdir  = "${ant.dir}/src"
-          debug = "on">
-     <!-- Bundle.java requires Ant 1.6+ -->
-     <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
-   </javac>
-
-   <taskdef name      = "bundlehtml"
-            classpath = "${antclasses}"
-     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
-
-   <taskdef name      = "bundleobr"
-            classpath = "${antclasses}"
-     classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
-
-   </target>
 
   <target name="mkreldir">
     <mkdir dir = "${release.dir}"/>

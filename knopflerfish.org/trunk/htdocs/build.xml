@@ -36,12 +36,14 @@
 		       value="${main}"/>		       
     </replace>
   </target>
- <target name="ant">
-  <ant target="compile_ant" dir=".."/>
+ <target name="bundle_tasks">
+  <ant target="bundle_tasks" dir=".."/>
  </target>
 
 
- <target name="all" depends="ant,init" description="Create the KF htdocs">
+ <target name="all"
+	 depends="bundle_tasks,init"
+	 description="Create the KF htdocs">
 
    <!-- set default values -->
    <condition property="htdocs.out" value=".">
@@ -187,7 +189,9 @@
    <antcall target="htdocs"/>
  </target>
 
- <target name="htdocs" depends="ant,init" description="Create the htdocs">
+ <target name="htdocs"
+	 depends="bundle_tasks,init"
+	 description="Create the htdocs">
    <property name="topdir" location=".."/>
    <property name="bundle.base" location="${topdir}/osgi/bundles"/>
    <property name="bundle.opt" location="${topdir}/osgi/bundles_opt"/>
