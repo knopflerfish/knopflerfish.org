@@ -345,11 +345,12 @@
  <target name          = "bindex" 
          depends       = "bundle_tasks">
   <mkdir dir="../repo"/>
-  <property name="bindex.baseurl" value="http://www.knopflerfish.org/repo/"/>
+  <property name="bindex.baseurl" value="http://www.knopflerfish.org/repo"/>
   <property name="bindex.basedir" value="jars"/>
 
 
   <bindex outFile         = "${topdir}/../repo/bindex.xml"
+          baseDir         = "."
           baseURL         = "${bindex.baseurl}"
           bindexJar       = "${bindex.file}"
           >
