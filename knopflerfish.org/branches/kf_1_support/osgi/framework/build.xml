@@ -124,6 +124,12 @@
 
  <target name        = "compile_ant" 
          description = "Compile and link the custom bundleinfo task">
+   <available classname    = "org.apache.bcel.classfile.JavaClass" 
+	      classpathref = "bcel.path"
+              property     = "bcel.available"/>
+
+   <fail unless  = "bcel.available" 
+         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel'"/>
 
    <mkdir dir = "${antclasses}"/>
 
