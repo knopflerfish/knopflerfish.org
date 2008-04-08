@@ -52,7 +52,12 @@
          message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel' which will download bcel and then install it in ${ant.lib}"/>
  </target>
 
- <target name="install_bcel">
+ <target name="maybe_install_bcel" unless="bcel.available">
+   <antcall target="install_bcel"/>
+ </target>
+
+ <target name="install_bcel"
+	 description="Installs BCEL ${bcel-version} in ${ant.lib}">
    <antcall target="download_bcel" />
    <antcall target="unpack_bcel"   />
  </target>
@@ -98,7 +103,7 @@
  </path>
 
  <target name        = "bundle_tasks" 
-         depends     = "check_bcel,install_bindex"
+         depends     = "maybe_install_bcel,install_bindex"
          description = "Compile and link the custom bundle tasks">
    <mkdir dir = "${antclasses}"/>
    <javac destdir      = "${antclasses}"
