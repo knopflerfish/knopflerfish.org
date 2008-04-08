@@ -19,7 +19,7 @@
 
   <target name="bundle.custom.pre">
     <property name="jarunpacker.dir" location="${topdir}/../tools/jarunpacker"/>
-    <ant dir="${jarunpacker.dir}"/>
+    <ant dir="${jarunpacker.dir}" inheritAll="false" inheritRefs="false"/>
     <copy file="${jarunpacker.dir}/out/jarunpacker/jarunpacker.jar"  
           todir="resources"/> 
   </target>

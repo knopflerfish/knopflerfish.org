@@ -43,11 +43,11 @@
  <path id="bcel.path">
   <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
  </path>
+ <available classname    = "org.apache.bcel.classfile.JavaClass"
+            classpathref = "bcel.path"
+            property     = "bcel.available"/>
 
  <target name="check_bcel">
-   <available classname    = "org.apache.bcel.classfile.JavaClass"
-              classpathref = "bcel.path"
-              property     = "bcel.available"/>
    <fail unless  = "bcel.available" 
          message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel' which will download bcel and then install it in ${ant.lib}"/>
  </target>
