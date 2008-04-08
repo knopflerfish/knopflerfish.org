@@ -54,7 +54,7 @@
   <!-- targets -->
   <target name="default"
           description = "Builds the framework and bundles in bundles-directory"
-          depends     = "check_bcel">
+          depends     = "bundle_tasks">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
@@ -62,7 +62,7 @@
 
   <target name="all"
           description="Builds the framework and all bundles including optional and test bundles"
-          depends     = "check_bcel">
+          depends     = "bundle_tasks">
     <antcall target="default"/>
     <ant dir="bundles_opt"  target="all"/>
     <ant dir="bundles_test" target="all"
