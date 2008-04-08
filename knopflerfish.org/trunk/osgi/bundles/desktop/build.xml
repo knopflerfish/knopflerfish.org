@@ -18,8 +18,10 @@
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/../tools/jarunpacker/out/jarunpacker/jarunpacker.jar"  
-         todir = "resources"/> 
+    <property name="jarunpacker.dir" location="${topdir}/../tools/jarunpacker"/>
+    <ant dir="${jarunpacker.dir}"/>
+    <copy file="${jarunpacker.dir}/out/jarunpacker/jarunpacker.jar"  
+          todir="resources"/> 
   </target>
 
   <path id="bundle.compile.path">
