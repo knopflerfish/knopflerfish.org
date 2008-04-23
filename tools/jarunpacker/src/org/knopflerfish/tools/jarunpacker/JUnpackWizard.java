@@ -254,12 +254,15 @@ public class JUnpackWizard extends JWizard {
          name.startsWith("knopflerfish.org/ant") ||
          name.startsWith("knopflerfish.org/keystore") ||
          name.endsWith("build.xml") ||
-         name.endsWith(".java") ||
-         name.endsWith(".xargs"))
+         name.endsWith(".java"))
         {
           //      System.out.println("skip " + name + " since no source");
           b = true;
         }
+    } else if (name.endsWith(".xargs")) {
+      // If source is selected do not exclude .xargs-files; needed to
+      // undo the exclude done above when compBaseCB i de-selected.
+      b = false;
     }
 
     if(!compHtdocsCB.isSelected()) {
