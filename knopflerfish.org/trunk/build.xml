@@ -521,6 +521,8 @@
            <include name = "osgi/bundles/xml/build.xml"/>
            <include name = "osgi/bundles/xml/xml/**"/>
            <include name = "osgi/bundles/xml/crimson/**"/>
+           <include name = "osgi/bundles/xml/xerces/**"/>
+           <include name = "osgi/bundles/xml/xalan/**"/>
            <include name = "osgi/bundles/desktop/**"/>
            <include name = "osgi/bundles/wireadmin/**"/>
            <include name = "osgi/bundles/position/**"/>

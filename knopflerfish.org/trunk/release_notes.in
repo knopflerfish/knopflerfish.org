@@ -33,6 +33,8 @@ Release Notes Knopflerfish @VERSION@
   Xerces is present, but they can both be installed and started
   without causing any conflicts.
 
+  Fixed bug 1949895; "missing template.xargs, won't build".
+
 
 ========================================================================
 
