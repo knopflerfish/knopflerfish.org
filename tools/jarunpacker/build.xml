@@ -28,6 +28,8 @@
 
     <javac destdir       = "${classout}" 
            srcdir        = "${src.dir}" 
+           target        = "1.2"
+           source        = "1.2"
            debug         = "on"
 	   includes      = "**/*.java"
     >
