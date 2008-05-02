@@ -152,6 +152,15 @@ final public class BundleClassLoader extends ClassLoader {
     }
   }
 
+  static boolean isBootDelegatedResource(String name) {
+    // Convert resource name to class name format, preserving the
+    // package part of the path/name.
+    int pos = name.lastIndexOf('/');
+    return pos != -1
+      ? isBootDelegated(name.substring(0,pos).replace('/','.')+".X")
+      : false;
+  }
+
   static boolean isBootDelegated(String className){
     if(!bootDelegationUsed){
       return false;
@@ -237,7 +246,12 @@ final public class BundleClassLoader extends ClassLoader {
     }
     if (isBootDelegated(name)) {
       try {
-        return parent.loadClass(name);
+        Class bootDelegationCls = parent.loadClass(name);
+        if (debug && bootDelegationCls!=null) {
+          Debug.println(this +" findClass: " +name +" boot delegation: "
+                        +bootDelegationCls);
+        }
+        return bootDelegationCls;
       } catch (ClassNotFoundException e) { }
     }
     if (secure.okClassAdminPerm(bpkgs.bundle)) {
@@ -281,7 +295,7 @@ final public class BundleClassLoader extends ClassLoader {
    * @see java.lang.ClassLoader#findResources
    */
   protected Enumeration findResources(String name) {
-    // Step 1 and 2 are done by getResources?
+    // Step 1 and 2 are done by getResources
     return getBundleResources(name, false);
   }
 
@@ -342,9 +356,71 @@ final public class BundleClassLoader extends ClassLoader {
     if (debug) {
       Debug.println(this + " getResource: " + name);
     }
-    URL res = super.getResource(name);
-    if (res == null && !isJava2) {
-      return findResource(name);
+    URL res = null;
+    if (name.startsWith("java/")) {
+      res = parent.getResource(name);
+      if (debug) {
+        Debug.println(this +" getResource: " +name +" file in java pkg: "+res);
+      }
+      return res;
+    }
+
+    if (isBootDelegatedResource(name)) {
+      res = parent.getResource(name);
+      if (debug&&res!=null) {
+        Debug.println(this +" getResource: " +name +" boot delegation: " +res);
+      }
+    }
+
+    if (res==null && !isJava2) {
+      res = super.getResource(name);
+    }
+
+    if (res==null) {
+      res = findResource(name);
+    }
+
+    if (debug) {
+      Debug.println(this + " getResource: " + name +" returned: "+res);
+    }
+    return res;
+  }
+
+
+  /**
+   * Finds all the resources with the given name. A resource is some data
+   * (images, audio, text, etc) that can be accessed by class code in a way
+   * that is independent of the location of the code.
+   *
+   * <p>The name of a resource is a <tt>/</tt>-separated path name that
+   * identifies the resource.
+   *
+   * @param  name resource name
+   * @return  An enumeration of {@link java.net.URL <tt>URL</tt>} objects for
+   *          the resource.  If no resources could  be found, the enumeration
+   *          will be empty.  Resources that the class loader doesn't have
+   *          access to will not be in the enumeration.
+   *
+   * @see java.lang.ClassLoader#getResources
+   * @see org.osgi.framework.Bundle#getResources(String name)
+   *
+   */
+  public Enumeration getResources(String name) throws IOException {
+    if (debug) {
+      Debug.println(this + " getResources: " + name);
+    }
+    int start = name.startsWith("/") ? 1 : 0;
+    if (name.substring(start).startsWith("java/")) {
+      return parent.getResources(name);
+    }
+
+    Enumeration res = null;
+    if (isBootDelegatedResource(name)) {
+      res = parent.getResources(name);
+    }
+
+    if (res==null || !res.hasMoreElements()) {
+      res = findResources(name);
     }
     return res;
   }
