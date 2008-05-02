@@ -8,7 +8,7 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleP1_test.BundleActivator
 Bundle-Category: test
-Export-Package: org.knopflerfish.bundle.bundleP1_test; specification-v
- ersion=1.0
+Export-Package: org.osgi.framework,
+ org.knopflerfish.bundle.bundleP1_test; specification-version=1.0
 Bundle-UUID: org.knopflerfish:bundleP1_test:1.0.0:all
 

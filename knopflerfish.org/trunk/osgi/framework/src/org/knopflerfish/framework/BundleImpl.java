@@ -905,16 +905,7 @@ class BundleImpl implements Bundle {
     if (getUpdatedState() != INSTALLED) {
       ClassLoader cl0 = getClassLoader();
       if (cl0 != null) {
-        if(cl0 instanceof BundleClassLoader) {
-          BundleClassLoader cl = (BundleClassLoader)getClassLoader();
-          Enumeration res = cl.getBundleResources(name, true);
-          if (res != null) {
-            return (URL)res.nextElement();
-          }
-        } else {
-          // boot/sys extension bundles live on the system classloader
-          return cl0.getResource(name);
-        }
+        return cl0.getResource(name);
       }
     }
     return null;
@@ -1811,13 +1802,8 @@ class BundleImpl implements Bundle {
     if (getUpdatedState() != INSTALLED) {
       ClassLoader cl0 = getClassLoader();
       if (cl0 != null) {
-        if(cl0 instanceof BundleClassLoader) {
-          Enumeration e = ((BundleClassLoader)cl0).getBundleResources
-            (name, false);
-          return e != null && e.hasMoreElements() ? e : null;
-        } else {
-          return cl0.getResources(name);
-        }
+        Enumeration e = cl0.getResources(name);
+        return e != null && e.hasMoreElements() ? e : null;
       }
     }
     return null;

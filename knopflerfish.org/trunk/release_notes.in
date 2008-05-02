@@ -8,6 +8,15 @@ Release Notes Knopflerfish @VERSION@
 
 === Framework (Core) ===
 
+  Bundle.getResource(), Bundle.getResources() and the corresponding
+  methods in the bundle class loader now honors the OSGi specified
+  system property named "org.osgi.framework.bootdelegation". Note that
+  this change breaks the backwards compatibility with OSGi R3, since
+  Bundle.getResource() and Bundle.getResources() now returns resources
+  from the class space and not only the bundle-space as in R3.
+  This solves the following issue:
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1955529&group_id=82798&atid=567241
+
   Added a missing do privileged when opening an URL connection to a
   bundle resource. Problem originally found in Knopflerfish 1.3.5 and
   fixed on the kf_1_support branch.

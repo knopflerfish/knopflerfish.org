@@ -11,19 +11,7 @@ Export-Package: org.knopflerfish.bundle.eventadmin_test.scenario1,
  org.knopflerfish.bundle.eventadmin_test.scenario5,
  org.knopflerfish.bundle.eventadmin_test.scenario6 
 Import-Package: junit.framework, 
+ org.osgi.framework,
  org.osgi.service.event,
  org.knopflerfish.service.demo1,
  org.knopflerfish.service.log
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
