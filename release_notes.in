@@ -50,6 +50,14 @@ Release Notes Knopflerfish @VERSION@
   Fixed bug 1949895; "missing template.xargs, won't build".
 
 
+  Build System
+
+  Fixed issues 1949895 (missing template.xargs, won't build)
+  and 1953611 ("ant all" fails):
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1949895&group_id=82798&atid=567241
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1953611&group_id=82798&atid=567241
+
+
 ========================================================================
 
 
