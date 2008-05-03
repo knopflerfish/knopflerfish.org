@@ -1610,7 +1610,7 @@ class BundleImpl implements Bundle {
         if ("/".equals(name)) {
           return getURL(-1, -1, -1, "/");
         }
-        InputStream is = secure.callGetInputStream(archive, name, 0);
+        InputStream is = secure.callGetInputStream(archive, name, -1);
         if (is != null) {
           is.close();
           return getURL(-1, -1, -1, name);
