@@ -387,6 +387,9 @@ final public class BundleClassLoader extends ClassLoader {
   }
 
 
+  // We would like to use the following implementation of
+  // getResources() but that method is final in JDK 1.4
+  // thus we can not redefine it.
   /**
    * Finds all the resources with the given name. A resource is some data
    * (images, audio, text, etc) that can be accessed by class code in a way
@@ -405,7 +408,7 @@ final public class BundleClassLoader extends ClassLoader {
    * @see org.osgi.framework.Bundle#getResources(String name)
    *
    */
-  public Enumeration getResources(String name) throws IOException {
+  public Enumeration getResourcesOSGi(String name) throws IOException {
     if (debug) {
       Debug.println(this + " getResources: " + name);
     }
