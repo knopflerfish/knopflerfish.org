@@ -1802,7 +1802,9 @@ class BundleImpl implements Bundle {
     if (getUpdatedState() != INSTALLED) {
       ClassLoader cl0 = getClassLoader();
       if (cl0 != null) {
-        Enumeration e = cl0.getResources(name);
+        Enumeration e = cl0 instanceof BundleClassLoader
+          ? ((BundleClassLoader) cl0).getResourcesOSGi(name)
+          : cl0.getResources(name);;
         return e != null && e.hasMoreElements() ? e : null;
       }
     }
