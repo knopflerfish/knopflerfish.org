@@ -52,9 +52,14 @@
   <import file="${topdir}/../ant/bundletasks.xml"/>
 
   <!-- targets -->
+  <target name="init">
+    <available property="dir.bundles_opt.present"  file="bundles_opt"/>
+    <available property="dir.bundles_test.present" file="bundles_test"/>
+  </target>
+
   <target name="default"
           description = "Builds the framework and bundles in bundles-directory"
-          depends     = "bundle_tasks">
+          depends     = "init,bundle_tasks">
     <antcall target="xargs"/>
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
@@ -62,12 +67,26 @@
 
   <target name="all"
           description="Builds the framework and all bundles including optional and test bundles"
-          depends     = "bundle_tasks">
-    <antcall target="default"/>
+          depends     = "default,bundles_opt,bundles_test">
+  </target>
+
+  <target name="bundles_opt" depends="init">
+   <fail unless  = "dir.bundles_opt.present" 
+         message = "The directory for optional bundles, bundles_opt, is missing. Please download Knopflerfish_opt_&lt;version&gt;.jar and install it in the same directory as Knopflerfish_osgi_&lt;version&gt;.jar"/>
     <ant dir="bundles_opt"  target="all"/>
+  </target>
+
+  <target name="bundles_test"
+	  depends="init,bundles_test_missing,bundles_test_present" />
+  <target name="bundles_test_present" if="dir.bundles_test.present">
     <ant dir="bundles_test" target="all"
          inheritAll="false" inheritRefs="false"/>
   </target>
+  <target name="bundles_test_missing" unless="dir.bundles_test.present">
+   <echo level="warning"
+	 message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
+  </target>
+
 
   <target name="xargs">
    <antcall target="init_xargs"/>

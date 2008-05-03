@@ -934,7 +934,7 @@
                      value = "knopflerfish_osgi_${version}"/>
 
           <attribute name  = "jarunpacker-optbutton"
-                     value = "base"/>
+                     value = "base source"/>
 
           <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
