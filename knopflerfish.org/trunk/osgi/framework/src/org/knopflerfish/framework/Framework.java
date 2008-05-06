@@ -150,7 +150,7 @@ public class Framework {
   // can use the ServiceReference to receive an instance of the service.
   public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
     TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
-				     TRUE));
+                                     TRUE));
 
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests
@@ -319,9 +319,9 @@ public class Framework {
 
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
-		      classes,
-		      new PackageAdminImpl(this),
-		      null);
+                      classes,
+                      new PackageAdminImpl(this),
+                      null);
 
     registerStartLevel();
 
@@ -333,7 +333,7 @@ public class Framework {
                            new BundleURLStreamHandler(bundles, perm));
     urlStreamHandlerFactory
       .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
-			   new ReferenceURLStreamHandler());
+                           new ReferenceURLStreamHandler());
 
     // Install service based URL stream handler. This can be turned
     // off if there is need
@@ -407,16 +407,16 @@ public class Framework {
     if (!active) {
       active = true;
       if (startBundle > 0) {
-	startBundle(startBundle);
+        startBundle(startBundle);
       } else {
-	for (Iterator i = storage.getStartOnLaunchBundles().iterator(); i.hasNext(); ) {
-	  Bundle b = bundles.getBundle((String)i.next());
-	  try {
-	    b.start();
-	  } catch (BundleException be) {
-	    listeners.frameworkError(b, be);
-	  }
-	}
+        for (Iterator i = storage.getStartOnLaunchBundles().iterator(); i.hasNext(); ) {
+          Bundle b = bundles.getBundle((String)i.next());
+          try {
+            b.start();
+          } catch (BundleException be) {
+            listeners.frameworkError(b, be);
+          }
+        }
       }
       systemBundle.systemActive();
 
@@ -462,24 +462,24 @@ public class Framework {
       }
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
-	Bundle b = bundles.getBundle((String)slist.get(i));
-	try {
-	  if(b != null) {
-	    synchronized (b) {
-	      if (b.getState() == Bundle.ACTIVE) {
-		b.stop();
-	      }
-	    }
-	  }
-	} catch (BundleException be) {
-	  listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, be));
-	}
+        Bundle b = bundles.getBundle((String)slist.get(i));
+        try {
+          if(b != null) {
+            synchronized (b) {
+              if (b.getState() == Bundle.ACTIVE) {
+                b.stop();
+              }
+            }
+          }
+        } catch (BundleException be) {
+          listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, be));
+        }
       }
       shuttingdown = false;
       // Purge any unrefreshed bundles
       List all = bundles.getBundles();
       for (Iterator i = all.iterator(); i.hasNext(); ) {
-	((BundleImpl)i.next()).purge();
+        ((BundleImpl)i.next()).purge();
       }
     }
 
@@ -522,7 +522,7 @@ public class Framework {
       out.println(content.toString());
     } finally {
       if (out != null) {
-	out.close();
+        out.close();
       }
     }
   }
@@ -643,10 +643,10 @@ public class Framework {
    * Get private bundle data storage file handle.
    */
   public FileTree getDataStorage(long id) {
-	if (dataStorage != null) {
-	  return new FileTree(dataStorage, Long.toString(id));
-	}
-	return null;
+        if (dataStorage != null) {
+          return new FileTree(dataStorage, Long.toString(id));
+        }
+        return null;
   }
 
   /**
@@ -676,7 +676,7 @@ public class Framework {
     String[] eel   = Util.splitwords(ee, ",");
     for(int i = 0 ; i < eel.length; i++) {
       if(eeCacheSet.contains(eel[i])) {
-	return true;
+        return true;
       }
     }
     return false;

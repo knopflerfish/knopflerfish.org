@@ -8,6 +8,11 @@ Release Notes Knopflerfish @VERSION@
 
 === Framework (Core) ===
 
+  Fixed a bug in the handling of the re-export directive in the
+  Require-Bundle manifest-header. 
+  Reported in issues 1957937 (Require-Bundle: visibility:=reexport broken)
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1957937&group_id=82798&atid=567241
+
   Bundle.getResource(), Bundle.getResources() and the corresponding
   methods in the bundle class loader now honors the OSGi specified
   system property named "org.osgi.framework.bootdelegation". Note that
@@ -39,6 +44,7 @@ Release Notes Knopflerfish @VERSION@
   If using this bundle you must also install and start the Xerces and
   Xalan bundles mentioned below.
 
+
   Xerces and Xalan
 
   New bundles wrapping Apache Xerces-J 2.91 and Xalan-J 2.7.1
@@ -46,8 +52,6 @@ Release Notes Knopflerfish @VERSION@
   The old low memory foot-print Crimson-bundle is not needed when
   Xerces is present, but they can both be installed and started
   without causing any conflicts.
-
-  Fixed bug 1949895; "missing template.xargs, won't build".
 
 
   Build System

@@ -35,7 +35,7 @@
  <property name = "topdir"   location = "."/>
  <property name = "proj.dir" location = "."/>
  <property name = "osgi.dir" location = "${topdir}"/>
- <property name = "ant.dir"  location = "${topdir}/../ant"/>
+ <property name = "ant.dir"  location = "${osgi.dir}/../ant"/>
 
  <!-- Special value to be used as the value for a bundle manifest    -->
  <!-- property that shall not be included in the generated manifest. -->
@@ -328,7 +328,7 @@
 
  <target name = "all" depends = "init">
    <antcall target = "try_bundle.custom.pre"/>
-   <antcall target = "jars"/>
+   <antcall target = "jars" inheritRefs="true"/>
    <antcall target = "try_bundle.custom.post"/>
  </target>
 
@@ -376,20 +376,20 @@
 
  <target name        = "jars"
          description = "compile all jars">
-  <antcall target = "jar_api0"/>
-  <antcall target = "jar_lib"/>
-  <antcall target = "jar_impl"/>
-  <antcall target = "jar_all0"/>
+  <antcall target = "jar_api0" inheritRefs="true"/>
+  <antcall target = "jar_lib"  inheritRefs="true"/>
+  <antcall target = "jar_impl" inheritRefs="true"/>
+  <antcall target = "jar_all0" inheritRefs="true"/>
  </target>
 
  <target name    = "jar_api0" 
          if      = "api.pattern">
-   <antcall target = "jar_api"/>
+   <antcall target = "jar_api" inheritRefs="true"/>
  </target>
 
  <target name    = "jar_all0" 
          if      = "api.pattern">
-   <antcall target = "jar_all"/>
+   <antcall target = "jar_all" inheritRefs="true"/>
  </target>
 
  <!-- set up build conditions -->
@@ -442,7 +442,7 @@
          if      = "do_build_impl">
   <echo message = "${impl.jar}"/>
 
-  <antcall target = "compile"/>
+  <antcall target = "compile" inheritRefs="true"/>
 
   <!-- Use the impl version of manifest properties, define it if needed. -->
   <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
@@ -468,7 +468,7 @@
   </bundleinfo>
 
   <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir"/>
+  <antcall target="make_resource_dir" inheritRefs="true"/>
 
   <bundlemanifest kind="impl"
                   mode="${bundlemanifest.mode}"
@@ -529,7 +529,7 @@
          if      = "do_build_api">
   <echo message = "${api.jar}"/>
 
-  <antcall target = "compile_api"/>
+  <antcall target = "compile_api" inheritRefs="true"/>
 
   <!-- If api-variant unspecified use the standard def. -->
   <property name="bmfa.api-Export-Package" value="${bmfa.Export-Package}"/>
@@ -587,7 +587,7 @@
          if      = "do_build_lib">
   <echo message = "${lib.jar}"/>
 
-  <antcall target = "compile_api"/>
+  <antcall target = "compile_api" inheritRefs="true"/>
 
   <!-- Use the api version of manifest properties, define if needed. -->
   <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
@@ -613,7 +613,7 @@
   </bundleinfo>
 
   <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir"/>
+  <antcall target="make_resource_dir" inheritRefs="true"/>
 
   <bundlemanifest kind="lib"
                   mode="${bundlemanifest.mode}"
@@ -638,7 +638,7 @@
      <fileset dir = "${resources.dir}"/>
   </jar>  
 
-  <antcall target="add_src_lib"/>
+  <antcall target="add_src_lib" inheritRefs="true"/>
 
  </target>
 
@@ -651,7 +651,7 @@
          if      = "do_build_all">
   <echo message = "${all.jar}"/>
 
-  <antcall target = "compile"/>
+  <antcall target = "compile" inheritRefs="true"/>
 
   <!-- Create a file set include pattern for the Bundle-Classpath -->
   <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
@@ -686,7 +686,7 @@
   </bundleinfo>
 
   <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir"/>
+  <antcall target="make_resource_dir" inheritRefs="true"/>
 
   <bundlemanifest kind=""
                   mode="${bundlemanifest.mode}"
@@ -712,7 +712,7 @@
      <fileset dir = "${resources.dir}"/>
     </jar>
     
-   <antcall target = "add_src_all"/>
+   <antcall target = "add_src_all" inheritRefs="true"/>
  </target>
 
  <target name="check_telnet">

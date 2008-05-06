@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ package org.knopflerfish.framework;
 
 import org.osgi.framework.*;
 
-  
+
 class RequireBundle {
 
   final BundlePackages requestor;
@@ -51,16 +51,40 @@ class RequireBundle {
     this.requestor = requestor;
     this.name = name;
     if (visibility != null) {
-      this.visibility = visibility;
-      // NYI warn if not a known value;
+      this.visibility = visibility.intern();
+      if (this.visibility!=Constants.VISIBILITY_PRIVATE &&
+          this.visibility!=Constants.VISIBILITY_REEXPORT ) {
+        throw new IllegalArgumentException
+          ("Invalid directive : '"
+           +Constants.VISIBILITY_DIRECTIVE +":="+this.visibility
+           +"' in manifest header '"
+           +Constants.REQUIRE_BUNDLE +": " +this.name
+           +"' of bundle with id " +this.requestor.bundle.getBundleId()
+           +" ("+this.requestor.bundle.getSymbolicName()+")"
+           +". The value must be either '"
+           +Constants.VISIBILITY_PRIVATE  +"' or '"
+           +Constants.VISIBILITY_REEXPORT +"'.");
+      }
     } else {
       this.visibility = Constants.VISIBILITY_PRIVATE;
     }
     if (resolution != null) {
-      this.resolution = resolution;
+      this.resolution = resolution.intern();
+      if (this.resolution!=Constants.RESOLUTION_MANDATORY &&
+          this.resolution!=Constants.RESOLUTION_OPTIONAL ) {
+        throw new IllegalArgumentException
+          ("Invalid directive : '"
+           +Constants.RESOLUTION_DIRECTIVE +":="+this.resolution
+           +"' in manifest header '"
+           +Constants.REQUIRE_BUNDLE +": " +this.name
+           +"' of bundle with id " +this.requestor.bundle.getBundleId()
+           +" ("+this.requestor.bundle.getSymbolicName()+")"
+           +". The value must be either '"
+           +Constants.RESOLUTION_MANDATORY +"' or '"
+           +Constants.RESOLUTION_OPTIONAL  +"'.");
+      }
     } else {
       this.resolution = Constants.RESOLUTION_MANDATORY;
-      // NYI warn if not a known value;
     }
     if (range != null) {
       this.bundleRange = new VersionRange(range);
