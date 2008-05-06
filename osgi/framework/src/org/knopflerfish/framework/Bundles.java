@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,10 +103,10 @@ public class Bundles {
     BundleArchive ba = null;
     try {
       if (in == null) {
-        // Do it the manual way to have a chance to 
+        // Do it the manual way to have a chance to
         // set request properties
         URL url  = new URL(location);
-        URLConnection conn = url.openConnection(); 
+        URLConnection conn = url.openConnection();
 
         // Support for http proxy authentication
         //TODO put in update as well
@@ -115,7 +115,7 @@ public class Bundles {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
             String base64 = Util.base64Encode(auth);
-            conn.setRequestProperty("Proxy-Authorization", 
+            conn.setRequestProperty("Proxy-Authorization",
                                     "Basic " + base64);
           }
         }
@@ -154,7 +154,7 @@ public class Bundles {
       ba.setLastModified(System.currentTimeMillis());
 
       bundles.put(location, res);
-              
+
       return res;
     } catch (Exception e) {
       if (ba != null) {
@@ -163,7 +163,7 @@ public class Bundles {
       throw new BundleException("Failed to install bundle: " + e, e);
     }
   }
-    
+
 
   /**
    * Remove bundle registration.
@@ -318,8 +318,21 @@ public class Bundles {
   synchronized void load() {
     BundleArchive [] bas = framework.storage.getAllBundleArchives();
     for (int i = 0; i < bas.length; i++) {
-      BundleImpl b = new BundleImpl(framework, bas[i]);
-      bundles.put(b.location, b);
+      try {
+        BundleImpl b = new BundleImpl(framework, bas[i]);
+        bundles.put(b.location, b);
+      } catch (Exception e) {
+        try {
+          bas[i].setStartOnLaunchFlag(false); // Do not start on launch
+          bas[i].setStartLevel(-2); // Mark as uninstalled
+        } catch (IOException _ioe) {
+        }
+        System.err.println("Error: Failed to load bundle "
+                           +bas[i].getBundleId()
+                           +" (" +bas[i].getBundleLocation() +")"
+                           +" uninstalled it!" );
+        e.printStackTrace();
+      }
     }
   }
 
@@ -339,13 +352,13 @@ public class Bundles {
         } catch (BundleException be) {
           rb.framework.listeners.frameworkError(rb, be);
         }
-      } 
-    }    
+      }
+    }
   }
 
 
   /**
-   * Returns all fragment bundles that is 
+   * Returns all fragment bundles that is
    * already attached and targets given bundle.
    *
    * @param target the targetted bundle

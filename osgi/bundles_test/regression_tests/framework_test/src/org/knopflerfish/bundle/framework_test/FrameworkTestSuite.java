@@ -1339,9 +1339,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       //investigate further why in memory bundle storage misses
       //some. it seems some entries are not loaded from the file
       //this is super-flaky, revisit
-      if(i != 35 && i != 32 && i != 38){
+      if(i != 37 && i != 35 && i != 40){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"32,35,38 != "+ i);
+               +"35,37,40 != "+ i);
       }
 
       //another existing directory
@@ -1363,9 +1363,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // directory used above inside the jar-file.
       // Also note that the may or may not be entries for directory in
       // the jar-file.
-      if(i!=104 && i!=105 && i!=107){
+      if(i!=106 && i!=107 && i!=109){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"104, 105, 107 != " + i);
+               +"106, 107, 109 != " + i);
       }
 
 

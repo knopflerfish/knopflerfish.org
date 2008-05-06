@@ -52,7 +52,7 @@ public interface BundleArchive {
 
   /**
    * Get an attribute from the manifest of a bundle.
-   * 
+   *
    * Not localized
    *
    * @param key Name of attribute to get.
@@ -92,19 +92,19 @@ public interface BundleArchive {
   /**
    * Get stored bundle start level.
    */
-  int getStartLevel(); 
+  int getStartLevel();
 
   /**
    * Set stored bundle start level.
    */
-  void setStartLevel(int level) throws IOException; 
+  void setStartLevel(int level) throws IOException;
 
   void setPersistent(boolean b)  throws IOException;
 
   boolean isPersistent();
-  
+
   long getLastModified();
-  
+
   void setLastModified(long timemillisecs)throws IOException;
 
   /**
@@ -186,7 +186,7 @@ public interface BundleArchive {
    */
   List getFailedClassPathEntries();
 
-  
+
   /**
    * Returns an Enumeration of all the paths (<code>String</code> objects)
    * to entries within the bundle whose longest sub-path matches the supplied
@@ -195,7 +195,7 @@ public interface BundleArchive {
    * @return
    */
   Enumeration findResourcesPath(String path);
-  
+
 
   /**
    * @return the location of the cached bundle.

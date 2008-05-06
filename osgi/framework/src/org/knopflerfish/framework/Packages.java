@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -156,11 +156,11 @@ class Packages {
       List r = resolvePackages(pkgs.iterator());
       tempBlackList = null;
       if (r.size() == 0) {
-	registerNewProviders(ip.bpkgs.bundle);
-	res = (ExportPkg)tempProvider.get(ip.name);
+        registerNewProviders(ip.bpkgs.bundle);
+        res = (ExportPkg)tempProvider.get(ip.name);
         ip.provider = res;
       } else {
-	p.removeImporter(ip);
+        p.removeImporter(ip);
       }
       tempProvider = null;
       tempRequired = null;
@@ -203,7 +203,7 @@ class Packages {
               return false;
             }
           }
-	}
+        }
       }
     }
 
@@ -246,7 +246,7 @@ class Packages {
     if (Debug.packages) {
       Debug.println("resolve: " + bundle);
     }
-    // If we entry with tempResolved set, it means that we already have
+    // If we enter with tempResolved set, it means that we already have
     // resolved bundles. Check that it is true!
     if (tempResolved != null) {
       if (!tempResolved.contains(bundle)) {
@@ -285,7 +285,7 @@ class Packages {
       }
     } else {
       res = "Failed to resolve required bundle or host: " + br;
-    } 
+    }
     tempResolved = null;
     tempProvider = null;
     tempRequired = null;
@@ -306,8 +306,8 @@ class Packages {
   Pkg getPkg(String pkg) {
     return (Pkg)packages.get(pkg);
   }
-    
-    
+
+
   /**
    * Get bundles affected by zombie packages.
    * Compute a graph of bundles starting with the specified bundles.
@@ -324,10 +324,10 @@ class Packages {
    * @return List of bundles affected.
    */
   synchronized Collection getZombieAffected(Bundle [] bundles) {
-    // set of affected bundles will be in start-level/bundle-id order  
+    // set of affected bundles will be in start-level/bundle-id order
     TreeSet affected = new TreeSet(new Comparator() {
       public int compare(Object o1, Object o2) {
-        BundleImpl b1 = (BundleImpl)o1; 
+        BundleImpl b1 = (BundleImpl)o1;
         BundleImpl b2 = (BundleImpl)o2;
         int dif  = b1.getStartLevel() - b2.getStartLevel();
         if (dif == 0) {
@@ -364,7 +364,7 @@ class Packages {
           BundleImpl tmp = (BundleImpl)bundles[i];
 
           if (tmp.isFragment() &&
-              tmp.isAttached() && 
+              tmp.isAttached() &&
               !affected.contains(tmp.getFragmentHost())) {
             affected.add(tmp.getFragmentHost());
           } else {
@@ -419,19 +419,19 @@ class Packages {
     Iterator i = getPackagesProvidedBy(ip.bpkgs).iterator();
     if (i.hasNext()) {
       do {
-	ExportPkg ep = (ExportPkg)i.next();
-	boolean foundUses = false;
-	for (Iterator ii = ep.pkg.importers.iterator(); ii.hasNext(); ) {
-	  ImportPkg iip = (ImportPkg)ii.next();
-	  if (iip.provider == ep) {
-	    if (backTrackUses(iip)) {
-	      foundUses = true;
-	    }
-	  }
-	}
-	if (!foundUses) {
-	  checkUses(ep);
-	}
+        ExportPkg ep = (ExportPkg)i.next();
+        boolean foundUses = false;
+        for (Iterator ii = ep.pkg.importers.iterator(); ii.hasNext(); ) {
+          ImportPkg iip = (ImportPkg)ii.next();
+          if (iip.provider == ep) {
+            if (backTrackUses(iip)) {
+              foundUses = true;
+            }
+          }
+        }
+        if (!foundUses) {
+          checkUses(ep);
+        }
       } while (i.hasNext());
       return true;
     } else {
@@ -519,7 +519,7 @@ class Packages {
             tempBlackListHits++;
             continue;
           }
-	  if (ep.zombie) {
+          if (ep.zombie) {
             // TBD! Should we refrain from using a zombie package and try a new provider instead?
             continue;
           }
@@ -597,7 +597,7 @@ class Packages {
           continue;
         }
       }
-      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle)) { 
+      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle)) {
         provider = ep;
         break;
       }
@@ -679,7 +679,7 @@ class Packages {
   /**
    * Check that the packages that this provider uses do not collied with previous
    * selections. If a bundle doesn't have a uses directive we check all currently
-   * imported packages. This is then applied recursivly. 
+   * imported packages. This is then applied recursivly.
    *
    * @param pkg Exported package to check
    * @return True if we checked all packages without collision.
@@ -847,26 +847,38 @@ class Packages {
         bpkgs.requiredBy = new ArrayList(1);
       }
       bpkgs.requiredBy.add(br.requestor);
+      if (Debug.packages) {
+        Debug.println("registerNewProviders: '"
+                      +Constants.REQUIRE_BUNDLE +": " + br.name
+                      +"' for " +br.requestor.bundle.getBundleId()
+                      +" bound to " +bpkgs.bundle.getBundleId());
+      }
       if (br.visibility == Constants.VISIBILITY_REEXPORT) {
         // Create necessary re-export entries
         for (Iterator be = bpkgs.getExports(); be.hasNext(); ) {
-          br.requestor.checkReExport((ExportPkg)be.next());
+          ExportPkg ep = (ExportPkg) be.next();
+          br.requestor.checkReExport(ep);
+          if (Debug.packages) {
+            Debug.println("registerNewProviders: "
+                          +br.requestor.bundle.getBundleId()
+                          +" reexports package " + ep.name);
+          }
         }
       }
     }
     for (Iterator i = tempResolved.iterator(); i.hasNext();) {
       BundleImpl bs = (BundleImpl)i.next();
       if (bs.getState() == Bundle.INSTALLED) {
-	for (Iterator bi = bs.bpkgs.getImports(); bi.hasNext(); ) {
-	  ImportPkg ip = (ImportPkg)bi.next();
-	  ip.provider = (ExportPkg)tempProvider.get(ip.name);
-	}
-	if (bs != bundle) {
-	  if (bs.getUpdatedState() == Bundle.INSTALLED) {
-	    framework.listeners.frameworkError(bs,
-	       new Exception("registerNewProviders: InternalError!"));
-	  }
-	}
+        for (Iterator bi = bs.bpkgs.getImports(); bi.hasNext(); ) {
+          ImportPkg ip = (ImportPkg)bi.next();
+          ip.provider = (ExportPkg)tempProvider.get(ip.name);
+        }
+        if (bs != bundle) {
+          if (bs.getUpdatedState() == Bundle.INSTALLED) {
+            framework.listeners.frameworkError(bs,
+               new Exception("registerNewProviders: InternalError!"));
+          }
+        }
       }
     }
   }
