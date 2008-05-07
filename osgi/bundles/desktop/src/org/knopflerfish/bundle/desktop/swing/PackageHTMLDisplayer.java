@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
- * All rights reserved.
+ * Copyright (c) 2003-2008, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -34,7 +33,11 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -43,6 +46,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.util.tracker.ServiceTracker;
 
 
@@ -52,19 +56,19 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
   ServiceTracker pkgTracker;
 
   public PackageHTMLDisplayer(BundleContext bc) {
-    super(bc, "Packages", "Shows bundle packages", true); 
+    super(bc, "Packages", "Shows bundle packages", true);
 
     pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
     pkgTracker.open();
   }
-  
+
   public JComponent newJComponent() {
     return new JHTML(this);
   }
 
   public void valueChanged(long bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JHTML comp = (JHTML)it.next();
       comp.valueChanged(bl);
@@ -83,74 +87,200 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       startFont(sb);
       PackageAdmin pkgAdmin = (PackageAdmin)pkgTracker.getService();
       if(pkgAdmin == null) {
-	sb.append("No PackageAdmin service found");
+        sb.append("No PackageAdmin service found");
       } else {
-	ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);
+        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);
 
-	if(pkgs != null && pkgs.length > 0) {
-	  sb.append("<b>Exported packages</b>");
-  	for (int i = 0; i < pkgs.length; i++) {
-  	  sb.append("<br>");
-  	  sb.append("<b>" + pkgs[i].getName() + "</b>");
-  	  Version version = pkgs[i].getVersion();
-  	  if (version != null) {
-  	    sb.append(" " + version);
-  	  }
-  	  Bundle[] bl = pkgs[i].getImportingBundles();
-  	  for(int j = 0; bl != null && j < bl.length; j++) {
-  	    sb.append("<br>");
-  	    sb.append("&nbsp;&nbsp;");
-  	    Util.bundleLink(sb, bl[j]);
-  	  }
-  	}
-	} else {
-	  sb.append("<b>No exported packages</b>");
-	}
+        if(pkgs != null && pkgs.length > 0) {
+          sb.append("<b>Exported packages</b>");
 
-	StringBuffer sb3 = new StringBuffer();
+          List exportDescr  = new ArrayList();
+          for (int i = 0; i < pkgs.length; i++) {
+            StringBuffer sb1 = new StringBuffer();
+            sb1.append("<br>");
+            sb1.append("<b>" + pkgs[i].getName() + "</b>");
+            Version version = pkgs[i].getVersion();
+            if (version != null) {
+              sb1.append(" " + version);
+            }
+            if (pkgs[i].isRemovalPending()) {
+              sb1.append(" ").append("<i>pending removal</i>");
+            }
+            Bundle[] bl = pkgs[i].getImportingBundles();
+            for(int j = 0; bl != null && j < bl.length; j++) {
+              sb1.append("<br>");
+              sb1.append("&nbsp;&nbsp;");
+              Util.bundleLink(sb1, bl[j]);
+            }
+            exportDescr.add(sb1.toString());
+          }
+          Collections.sort(exportDescr);
+          for (Iterator it = exportDescr.iterator(); it.hasNext(); ) {
+            sb.append(it.next());
+          }
 
-	Bundle[] bl = getBundleArray();
+        } else {
+          sb.append("<b>No exported packages</b>");
+        }
 
-	for(int i = 0; i < bl.length; i++) {
-	  ExportedPackage[] pkgs2 = pkgAdmin.getExportedPackages(bl[i]);
+        // Array with all bundles that can be required.
+        RequiredBundle[] rbl = pkgAdmin.getRequiredBundles(null);
 
-	  for(int j = 0; pkgs2 != null && j < pkgs2.length; j++) {
-	    Bundle[] bl2 = pkgs2[j].getImportingBundles();
-	    StringBuffer sb2 = new StringBuffer();
+        List importedPkgs = new ArrayList();
+        List requiredPkgs = new ArrayList();
 
-	    for(int k = 0; bl2 != null && k < bl2.length; k++) {
-	      if(bl2[k].getBundleId() == b.getBundleId()) {
-		sb2.append("<br>");
-		sb2.append("<b>" + pkgs2[j].getName() + "</b>");
-		Version version = pkgs2[j].getVersion();
-		if (version != null) {
-		  sb2.append(" " + version);
-		}
-	      }
-	    }
-	    if(sb2.length() > 0) {
-	      sb3.append(sb2.toString());
-	      sb3.append("<br>");
-	      sb3.append("&nbsp;&nbsp;");
-	      Util.bundleLink(sb3, pkgs2[j].getExportingBundle());
-	    }
-	  }
-	}
+        ExportedPackage[] allEpkgs = pkgAdmin.getExportedPackages((Bundle)null);
+        for(int i = 0; allEpkgs != null && i < allEpkgs.length; i++) {
+          Bundle[] bl2 = allEpkgs[i].getImportingBundles();
 
-	sb.append("<p>");
-	if(sb3.length() > 0) {
-	  sb.append("<b>Imported packages</b>");
-	  sb.append(sb3.toString());
-	} else {
-	  sb.append("<b>No imported packages</b>");
-	}
-	sb.append("</p>");
+          for(int k = 0; bl2 != null && k < bl2.length; k++) {
+            if(bl2[k].getBundleId() == b.getBundleId()) {
+              Bundle exporter = allEpkgs[i].getExportingBundle();
+              if (isBundleRequiredBy(rbl, exporter, b)) {
+                requiredPkgs.add(allEpkgs[i]);
+              } else {
+                importedPkgs.add(allEpkgs[i]);
+              }
+            }
+          }
+        }
+
+        sb.append("<p>");
+        if(importedPkgs.size() > 0) {
+          sb.append("<b>Imported packages</b>");
+          Collections.sort(importedPkgs, new ExportedPackageComparator());
+          for (Iterator it = importedPkgs.iterator(); it.hasNext(); ) {
+            sb.append(formatPackage( (ExportedPackage) it.next(), false ));
+          }
+        } else {
+          sb.append("<b>No imported packages</b>");
+        }
+        sb.append("</p>");
+
+        if(requiredPkgs.size() > 0) {
+          sb.append("<p>");
+          sb.append("<b>Packages available from required bundles</b>");
+          Collections.sort(requiredPkgs, new ExportedPackageComparator());
+          for (Iterator it = requiredPkgs.iterator(); it.hasNext(); ) {
+            ExportedPackage epkg = (ExportedPackage) it.next();
+            sb.append(formatPackage( epkg, isPkgInList(epkg, importedPkgs)));
+          }
+          sb.append("</p>");
+        }
+
+        Bundle[] requiringBundles = getRequiringBundles(rbl,b);
+        if (requiringBundles!=null && requiringBundles.length>0) {
+          sb.append("<p>");
+          sb.append("<b>Required by</b>");
+          for (int j=0; requiringBundles!=null && j<requiringBundles.length;
+               j++) {
+            sb.append("<br>");
+            sb.append("&nbsp;&nbsp");
+            Util.bundleLink(sb, requiringBundles[j]);
+          }
+          sb.append("</p>");
+        }
       }
 
       sb.append("</font>");
 
       return sb;
     }
+
+    /**
+     * Check if a package given by epkg.getName() is present in the list
+     * of ExportedPackage objects named importPkgs.
+     */
+    private boolean isPkgInList(ExportedPackage epkg, List importedPkgs)
+    {
+      for (Iterator it = importedPkgs.iterator(); it.hasNext(); ) {
+        ExportedPackage ipkg = (ExportedPackage) it.next();
+        if (epkg.getName().equals(ipkg.getName())) return true;
+      }
+      return false;
+    }
+
+    private String formatPackage(ExportedPackage epkg, boolean isShadowed)
+    {
+      StringBuffer sb = new StringBuffer();
+
+      sb.append("<br>");
+      sb.append("<b>" + epkg.getName() + "</b>");
+      Version version = epkg.getVersion();
+      if (version != null) {
+        sb.append(" ").append(version);
+      }
+      if (epkg.isRemovalPending()) {
+        sb.append(" ").append("<i>pending removal</i>");
+      }
+      if (isShadowed) {
+        sb.append(" ").append("<i>shadowed</i>");
+      }
+      sb.append("<br>");
+      sb.append("&nbsp;&nbsp;");
+      Util.bundleLink(sb, epkg.getExportingBundle());
+      return sb.toString();
+    }
+
+    /**
+     * Check if one given bundle is reuired by another specified bundle.
+     *
+     * @param rbl List of required bundles as returend by package admin.
+     * @param requiredBundle The bundle to check if it is required.
+     * @param requiringBundle The bundle to check that it requires.
+     * @return <tt>true</tt> if requiredbundle is required by
+     *         requiringBundle, <tt>false</tt> otherwsie.
+     */
+    private boolean isBundleRequiredBy(RequiredBundle[] rbl,
+                                       Bundle requiredBundle,
+                                       Bundle requiringBundle)
+    {
+      Bundle[] requiringBundles = getRequiringBundles(rbl, requiredBundle);
+      for (int j=0; requiringBundles!=null && j<requiringBundles.length;j++){
+        if (requiringBundles[j].getBundleId()==requiringBundle.getBundleId()){
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Get a list of bundles that requires the specified bundle.
+     *
+     * @param rbl List of required bundles as returend by package admin.
+     * @param bundle The bundle to get requiring bundles for.
+     * @return <tt>true</tt> if requiredbundle is required by
+     *         requiringBundle, <tt>false</tt> otherwsie.
+     */
+    private Bundle[] getRequiringBundles(RequiredBundle[] rbl,
+                                         Bundle b)
+    {
+      for (int i=0; rbl!=null && i<rbl.length; i++) {
+        if (rbl[i].getBundle().getBundleId()==b.getBundleId()) {
+          return rbl[i].getRequiringBundles();
+        }
+      }
+      return null;
+    }
+
+  }
+
+  static class ExportedPackageComparator implements Comparator
+  {
+    public int compare(Object o1, Object o2)
+    {
+      ExportedPackage ep1 = (ExportedPackage) o1;
+      ExportedPackage ep2 = (ExportedPackage) o2;
+
+      if (ep1.getName().equals(ep2.getName())) {
+        ep1.getVersion().compareTo(ep2.getVersion());
+      }
+      return ep1.getName().compareTo(ep2.getName());
+    }
+    public boolean equals(Object o)
+    {
+      return o instanceof ExportedPackageComparator;
+    }
+
   }
 }
-
