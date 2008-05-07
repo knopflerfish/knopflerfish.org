@@ -1363,9 +1363,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // directory used above inside the jar-file.
       // Also note that the may or may not be entries for directory in
       // the jar-file.
-      if(i!=106 && i!=107 && i!=109){
+      if(i!=107 && i!=109 && i!=112){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"106, 107, 109 != " + i);
+               +"107, 109, 112 != " + i);
       }
 
 
