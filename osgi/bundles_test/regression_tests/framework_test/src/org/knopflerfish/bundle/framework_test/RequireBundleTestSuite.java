@@ -52,6 +52,9 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   // Test target bundles
   Bundle buA;
   Bundle buB;
+  Bundle buC;
+  Bundle buD;
+  Bundle buCc;
 
   PrintStream out = System.out;
 
@@ -64,6 +67,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
 
     addTest(new Setup());
     addTest(new Frame400a());
+    addTest(new Frame410a());
     addTest(new Cleanup());
   }
 
@@ -104,6 +108,12 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
       assertNotNull(buA);
       buB = Util.installBundle(bc, "rb_B_api-0.1.0.jar");
       assertNotNull(buB);
+      buC = Util.installBundle(bc, "rb_C_api-0.1.0.jar");
+      assertNotNull(buC);
+      buD = Util.installBundle(bc, "rb_D_api-0.1.0.jar");
+      assertNotNull(buD);
+      buCc = Util.installBundle(bc, "rb_C-0.1.0.jar");
+      assertNotNull(buCc);
     }
   }
 
@@ -112,8 +122,11 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
       // Uninstalls the test target bundles
 
       Bundle[] bundles = new Bundle[] {
-        buA ,
-        buB
+        buA,
+        buB,
+        buC,
+        buD,
+        buCc
       };
       for(int i = 0; i < bundles.length; i++) {
         try {  bundles[i].uninstall();  }
@@ -122,6 +135,9 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
 
       buA = null;
       buB = null;
+      buC = null;
+      buD = null;
+      buCc = null;
     }
   }
 
@@ -133,33 +149,77 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   class Frame400a extends FWTestCase {
 
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-
       // Start buA to resolve it
       try {
         buA.start();
       }
       catch (BundleException bexcR) {
-        teststatus = false;
         fail("framework test bundle "+ bexcR
              +"(" + bexcR.getNestedException() + ") :FRAME400A:FAIL");
       }
       catch (SecurityException secR) {
-        teststatus = false;
         fail("framework test bundle "+ secR +" :FRAME400A:FAIL");
       }
 
       String ceStr = checkExports(bc, buA, new String[]{"test_rb.B"});
       if ( ceStr != null ) {
-          teststatus = false;
           fail(ceStr +  ":FRAME400A:FAIL");
       }
+      out.println("### framework test bundle :FRAME400A:PASS");
+    }
+  }
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :FRAME400A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME400A:FAIL");
+  public final static String [] HELP_FRAME410A =  {
+    "Split packages via require bundle directive."
+  };
+
+  class Frame410a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      // Start buA to resolve it
+      try {
+        buCc.start();
       }
+      catch (BundleException bexcR) {
+        fail("framework test bundle "+ bexcR
+             +"(" + bexcR.getNestedException() + ") :FRAME410A:FAIL");
+      }
+      catch (SecurityException secR) {
+        fail("framework test bundle "+ secR +" :FRAME410A:FAIL");
+      }
+
+      String ceStr = checkExports(bc, buC, new String[]{"test_rb.C"});
+      if ( ceStr != null ) {
+          fail(ceStr +  ":FRAME410A:FAIL");
+      }
+
+      // Check that bCc have registered 3 service instanciating
+      // classes via both the require-bundle packages and the imported
+      // package from bC that is split over bC and bD.
+      Map expected = new HashMap();
+      expected.put("C.C","Class test_rb.C.C from bundle C.");
+      expected.put("C.D","Class test_rb.C.D from bundle D.");
+      expected.put("D.D","Class test_rb.D.D from bundle D.");
+      try {
+        ServiceReference[] srs
+          = bc.getServiceReferences(Object.class.getName(),
+                                    "(test_rb=*)");
+        assertEquals("Found correct number of services",3,srs.length);
+        for (int i=0; i<srs.length; i++) {
+          ServiceReference sr = srs[i];
+          String name   = (String) sr.getProperty("test_rb");
+          String value  = (String) sr.getProperty("toString");
+          String answer = (String) expected.remove(name);
+          String msg    = "Value of toString for "+name
+            +" expected '" +answer +"' was '" +value +"'.";
+          assertEquals(msg, answer, value);
+        }
+        out.println("Unused expected keys: " +expected);
+        assertEquals("All expected keys not found.", 0, expected.size());
+      } catch (Exception e) {
+        fail("framework test bundle "+ e +" :FRAME410A:FAIL");
+      }
+      out.println("### framework test bundle :FRAME410A:PASS");
     }
   }
 

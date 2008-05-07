@@ -59,7 +59,9 @@
    <copy file="${tb.dir}/resimp_test-1.0.0.jar"    todir="resources"/>
    <copy file="${tb.dir}/rb_A/rb_A-0.1.0.jar"      todir="resources"/>
    <copy file="${tb.dir}/rb_B/rb_B_api-0.1.0.jar"  todir="resources"/>
-
+   <copy file="${tb.dir}/rb_C/rb_C_api-0.1.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/rb_C/rb_C-0.1.0.jar"      todir="resources"/>
+   <copy file="${tb.dir}/rb_D/rb_D_api-0.1.0.jar"  todir="resources"/>
   </target>
 
   <path id = "bundle.compile.path">

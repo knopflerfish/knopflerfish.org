@@ -69,11 +69,6 @@ final public class BundleClassLoader extends ClassLoader {
   final static private ClassLoader parent = Framework.class.getClassLoader();
 
   /**
-   * Whether we run in a Java 2 environment.
-   */
-  private static boolean isJava2;
-
-  /**
    * Handle to secure operations.
    */
   final PermissionOps secure;
@@ -103,13 +98,6 @@ final public class BundleClassLoader extends ClassLoader {
 
 
   static {
-    try {
-      ClassLoader.class.getDeclaredMethod("findLibrary", new Class [] { String.class });
-      isJava2 = true;
-    } catch (NoSuchMethodException ignore) {
-      isJava2 = false;
-    }
-
     buildBootDelegationPatterns();
   }
 
@@ -367,21 +355,18 @@ final public class BundleClassLoader extends ClassLoader {
 
     if (isBootDelegatedResource(name)) {
       res = parent.getResource(name);
-      if (debug&&res!=null) {
-        Debug.println(this +" getResource: " +name +" boot delegation: " +res);
+      if (res!=null) {
+        if (debug) {
+          Debug.println(this +" getResource: " +name +" boot delegation: "
+                        +res);
+        }
+        return res;
       }
     }
 
-    if (res==null && !isJava2) {
-      res = super.getResource(name);
-    }
-
-    if (res==null) {
-      res = findResource(name);
-    }
-
+    res = findResource(name);
     if (debug) {
-      Debug.println(this + " getResource: " + name +" returned: "+res);
+      Debug.println(this + " getResource: " + name +" bundle space: "+res);
     }
     return res;
   }
@@ -389,7 +374,7 @@ final public class BundleClassLoader extends ClassLoader {
 
   // We would like to use the following implementation of
   // getResources() but that method is final in JDK 1.4
-  // thus we can not redefine it.
+  // thus we can not redefine it here.
   /**
    * Finds all the resources with the given name. A resource is some data
    * (images, audio, text, etc) that can be accessed by class code in a way
@@ -724,6 +709,10 @@ final public class BundleClassLoader extends ClassLoader {
                 }
               }
             }
+          }
+          if (debug) {
+            Debug.println(this + " Required bundle search: "
+                          +"Not found, continuing with local search.");
           }
         }
       }
