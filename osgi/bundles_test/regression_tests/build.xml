@@ -37,6 +37,7 @@
     <ant dir="bundleW1_test"            target="all"/>
     <ant dir="resexp_test"              target="all"/>
     <ant dir="resimp_test"              target="all"/>
+    <ant dir="require-bundle"	        target="all"/>
     <ant dir="framework_test"           target="all"/>
     <ant dir="filter_test"              target="all"/>
     <ant dir="constants_test"           target="all"/>
@@ -62,7 +63,6 @@
     <ant dir="extension_test"		target="all"/>
     <ant dir="axis2_soapobject"		target="all"/>
     <ant dir="axis2_soapclient_adb"	target="all"/>
-    <ant dir="require-bundle"	        target="all"/>
   </target>
 
    <target name="clean">
@@ -99,6 +99,7 @@
     <ant dir="bundleW1_test"            target="clean"/>
     <ant dir="resexp_test"              target="clean"/>
     <ant dir="resimp_test"              target="clean"/>
+    <ant dir="require-bundle"	        target="clean"/>
     <ant dir="framework_test"           target="clean"/>
     <ant dir="filter_test"              target="clean"/>
     <ant dir="servicetracker_test"      target="clean"/>
@@ -124,7 +125,6 @@
     <ant dir="extension_test"		target="clean"/>
     <ant dir="axis2_soapobject"		target="clean"/>
     <ant dir="axis2_soapclient_adb"	target="clean"/>
-    <ant dir="require-bundle"	        target="clean"/>
   </target>
 
 </project>
