@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,12 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Iterator;
 
 import javax.swing.JComponent;
@@ -49,7 +52,7 @@ import org.osgi.service.startlevel.StartLevel;
 public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   public ManifestHTMLDisplayer(BundleContext bc) {
-    super(bc, "Manifest", "Shows bundle manifest", true); 
+    super(bc, "Manifest", "Shows bundle manifest", true);
   }
 
   public JComponent newJComponent() {
@@ -58,7 +61,7 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   public void valueChanged(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JHTML comp = (JHTML)it.next();
       comp.valueChanged(bl);
@@ -72,9 +75,9 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     public StringBuffer  bundleInfo(Bundle b) {
       StringBuffer sb = new StringBuffer();
-      
+
       Dictionary headers = b.getHeaders();
-      
+
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
       appendRow(sb, "Location", "" + b.getLocation());
       appendRow(sb, "State",    Util.stateName(b.getState()));
@@ -82,49 +85,53 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
         appendRow(sb, "Symbolic name", b.getSymbolicName());
       }
       appendRow(sb, "Last modified", "" + new SimpleDateFormat().format(new Date(b.getLastModified())));
-      
+
       StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
       if(sls != null) {
-	String level = "";
-	try {
-	  level = Integer.toString(sls.getBundleStartLevel(b));
-	} catch (IllegalArgumentException e) {
-	  level = "not managed";
-	}
-	appendRow(sb, "Start level", level);
+        String level = "";
+        try {
+          level = Integer.toString(sls.getBundleStartLevel(b));
+        } catch (IllegalArgumentException e) {
+          level = "not managed";
+        }
+        appendRow(sb, "Start level", level);
       }
-      
+
+      // Spacer for better layout (and separation of non-manifest data):
+      appendRow(sb, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", "");
+
+      List headerKeys = new ArrayList(headers.size());
       for(Enumeration e = headers.keys(); e.hasMoreElements(); ) {
-	String  key   = (String)e.nextElement();
-	String  value = (String)headers.get(key);
-	if(value != null && !"".equals(value)) {
+        headerKeys.add(e.nextElement());
+      }
+      Collections.sort(headerKeys);
+      for(Iterator it = headerKeys.iterator(); it.hasNext(); ) {
+        String  key   = (String)it.next();
+        String  value = (String)headers.get(key);
+        if(value != null && !"".equals(value)) {
           value = Strings.replace(value, "<", "&lt;");
           value = Strings.replace(value, ">", "&gt;");
-	  if("Import-Package".equals(key) ||
-	     "Export-Service".equals(key) ||
-	     "Bundle-Classpath".equals(key) ||
-	     "Classpath".equals(key) ||
-	     "Import-Service".equals(key) ||
-	     "Export-Package".equals(key)) {
-	    value = Strings.replace(value, ",", "<br>");
-	  } else {
-	    if(value.startsWith("http:") ||
-	       value.startsWith("https:") ||
-	       value.startsWith("ftp:") ||
-	       value.startsWith("file:")) {
-	      value = "<a href=\"" + value + "\">" + value + "</a>";
-	    }
-	  }
-	  appendRow(sb, key, value);
-	}
+          if("Import-Package".equals(key) ||
+             "Export-Service".equals(key) ||
+             "Bundle-Classpath".equals(key) ||
+             "Classpath".equals(key) ||
+             "Import-Service".equals(key) ||
+             "Export-Package".equals(key)) {
+            value = Strings.replace(value, ",", "<br>");
+          } else {
+            if(value.startsWith("http:") ||
+               value.startsWith("https:") ||
+               value.startsWith("ftp:") ||
+               value.startsWith("file:")) {
+              value = "<a href=\"" + value + "\">" + value + "</a>";
+            }
+          }
+          appendRow(sb, key, value);
+        }
       }
-      // Spacer for better layout:
-appendRow(sb, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", "");
-      
       sb.append("</table>");
       return sb;
-    }    
+    }
   }
-  
-}
 
+}
