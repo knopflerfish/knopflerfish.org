@@ -327,13 +327,19 @@
    <echo message="Test results are available in junit_grunt/index.xml."/>
  </target>
 
- <target name="clean" description="removes all generated files">
+ <target name="clean"
+	 description="removes all generated files"
+	 depends="init,clean_bundles_test">
   <delete file="framework.jar"/>
   <delete dir="out"/>
   <delete dir="jars"/>
   <delete dir="../ant/classes"/>
  </target>
 
+ <target name="clean_bundles_test" if="dir.bundles_test.present">
+   <ant dir="bundles_test" target="clean"
+        inheritAll="false" inheritRefs="false"/>
+ </target>
 
  <target name="rebuild"
          description="Cleans then build build all">

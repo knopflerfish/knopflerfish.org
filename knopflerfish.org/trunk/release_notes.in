@@ -45,6 +45,15 @@ Release Notes Knopflerfish @VERSION@
   Xalan bundles mentioned below.
 
 
+  Desktop
+
+  The packages-tab now presents data about packages made available via
+  Require-Bundle manifest header (was listed amongst the imported
+  packages before). Packages pending removal are marked. All three
+  lists of packages are sorted on package name and version.
+
+  Manifest entries in the Manifest-tab are now sorted.
+
   Xerces and Xalan
 
   New bundles wrapping Apache Xerces-J 2.91 and Xalan-J 2.7.1
