@@ -306,6 +306,22 @@ public class Util {
     return c;
   }
 
+    public static byte[] readStream(InputStream is) throws IOException {
+      try {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BufferedInputStream   bin = new BufferedInputStream(is);
+        byte[] buf = new byte[1024 * 10];
+        int len;
+        while(-1 != (len = bin.read(buf))) {
+          out.write(buf, 0, len);
+        }
+        return out.toByteArray();
+      } finally {
+        try { is.close(); } catch (Exception ignored) { }
+      }
+    }
+
+
     /**
      * Get transitive closure of a target bundle
      * by searching for all exporters to the target.
