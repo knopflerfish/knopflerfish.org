@@ -65,6 +65,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -110,6 +112,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import java.util.prefs.Preferences;
 
 import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
@@ -126,6 +129,7 @@ import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
@@ -524,8 +528,54 @@ public class Desktop
     }
 
     consoleSwing.getJComponent().requestFocus();
+
+    checkUpdate(false);
   }
 
+  void checkUpdate(boolean bForce) {
+    try {
+      if(bForce) {
+        Preferences prefs = Preferences.userNodeForPackage(getClass());
+        prefs.remove(KEY_UPDATEVERSION);
+        prefs.flush();
+      }
+
+      String versionURL = 
+        System.getProperty("org.knopflerfish.desktop.releasenotesurl", 
+                           "http://www.knopflerfish.org/releases/current/release_notes.txt");
+      
+      URL url  = new URL(versionURL);
+      URLConnection conn = url.openConnection();
+      InputStream is = conn.getInputStream();
+
+      String notes = new String(Util.readStream(is), "ISO-8859-1");
+
+      int ix = notes.indexOf("\n");
+      if(ix != -1) {
+        String line = notes.substring(0, ix);
+        ix = line.lastIndexOf(" ");
+        if(ix != -1) {
+          Version version = new Version(line.substring(ix + 1));
+          Bundle sysBundle = Activator.getBC().getBundle(0);
+          Version sysVersion = new Version((String)sysBundle.getHeaders().get("Bundle-Version"));
+
+          Activator.log.info("sysVersion=" + sysVersion + ", version=" + version);
+          if(sysVersion.compareTo(version) < 0) {
+            showUpdate(sysVersion, version, notes);
+          }
+        } else {
+          Activator.log.warn("No version info in " + line);
+        }
+      } else {
+        Activator.log.warn("No version line");
+      }
+      // System.out.println("read " + notes);
+
+    } catch (Exception e) {
+      Activator.log.warn("Failed to read update info", e);
+    }
+  }
+    
   JButton toolStartBundles;
   JButton toolStopBundles;
   JButton toolUpdateBundles;
@@ -1409,6 +1459,16 @@ public class Desktop
               }
             });
 
+          add(new JMenuItem(Strings.get("str_checkupdate")) {
+              {
+                addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent ev) {
+                      checkUpdate(true);
+                    }
+                  });
+              }
+            });
+
 
         }
       };
@@ -2281,6 +2341,63 @@ public class Desktop
     }
     tips.setVisible(true);
   }
+
+  static final String KEY_UPDATEVERSION = "updateVersion";
+
+ void showUpdate(Version sysVersion, Version version, String notes) {
+   Preferences prefs = Preferences.userNodeForPackage(getClass());
+   
+   Activator.log.info("showUpdate sysVersion=" + sysVersion + ", version=" + version);
+   try {
+     String prefsVersionS = prefs.get(KEY_UPDATEVERSION, "");
+     if(prefsVersionS != null && !"".equals(prefsVersionS)) {
+       Version prefsVersion = new Version(prefsVersionS);
+       Activator.log.info("prefsVersion=" + prefsVersion);
+       if(prefsVersion.compareTo(version) >= 0) {
+         Activator.log.info("skip showUpdate " + version);
+         return;
+       }
+     }
+   } catch (Exception e) {
+     Activator.log.warn("Failed to compare prefs version", e);
+   }
+
+   JTextPane html = new JTextPane();
+   
+    html.setContentType("text/html");
+
+    html.setEditable(false);
+
+    html.setText("<pre>\n" + 
+                 notes + 
+                 "\n<pre>");
+
+    final JScrollPane scroll = new JScrollPane(html);
+    scroll.setPreferredSize(new Dimension(500, 300));
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          JViewport vp = scroll.getViewport();
+          if(vp != null) {
+            vp.setViewPosition(new Point(0,0));
+            scroll.setViewport(vp);
+          }
+        }
+      });
+
+    JOptionPane.showMessageDialog(frame,
+                                  scroll,
+                                  "Update available",
+                                  JOptionPane.INFORMATION_MESSAGE,
+                                  null);
+
+    try {
+      prefs.put(KEY_UPDATEVERSION, version.toString());
+      Activator.log.info("saved version " + version);
+      prefs.flush();
+    } catch (Exception e) {
+      Activator.log.warn("Failed to store prefs", e);
+    }
+ }
 
 
   void showInfo() {
