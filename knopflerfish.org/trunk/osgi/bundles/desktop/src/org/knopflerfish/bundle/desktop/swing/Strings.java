@@ -166,6 +166,7 @@ public class Strings {
 	  put("startlevel.label",     "Start level: ");
 	  put("menu_startlevel",      "Start level");
 	  put("nostartlevel.label",   "");
+	  put("str_checkupdate",      "Check for update");
 	}
       };
   }
