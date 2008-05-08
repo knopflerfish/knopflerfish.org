@@ -698,6 +698,18 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                         "Proxy-Authorization", "Basic " + base64);
                 }
             }
+
+            // Support for http basic authentication
+            String basicAuth = System.getProperty("http.basicAuth");
+            if (basicAuth != null && !"".equals(basicAuth)) {
+              if ("http".equals(url.getProtocol()) ||
+                  "https".equals(url.getProtocol())) {
+                String base64 = Util.base64Encode(basicAuth);
+                conn.setRequestProperty("Authorization", 
+                                        "Basic " +base64);
+              }
+            }
+
             // Identify us (via User-Agent) with bundlename and the
             // framework vendor name and version.
             conn.setRequestProperty("User-Agent",
