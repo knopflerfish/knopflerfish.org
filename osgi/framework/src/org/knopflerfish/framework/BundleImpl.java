@@ -1209,6 +1209,31 @@ class BundleImpl implements Bundle {
     }
   }
 
+  /**
+   * Get a list of all BundlePackages that require the exported
+   * packages that comes from this bundle.
+   *
+   * @return List of all requiring bundles as BundlePackages.
+   */
+  List getRequiredBy() {
+    if (oldClassLoaders != null) {
+      ArrayList res = new ArrayList();
+      for (Iterator i = oldClassLoaders.values().iterator(); i.hasNext();) {
+        Object obj = i.next();
+        if(obj instanceof BundleClassLoader) {
+          res.addAll(((BundleClassLoader) obj).getBpkgs().getRequiredBy());
+        }
+      }
+      if (bpkgs != null) {
+        res.addAll(bpkgs.getRequiredBy());
+      }
+      return res;
+    } else if (bpkgs != null) {
+      return bpkgs.getRequiredBy();
+    } else {
+      return new ArrayList(0);
+    }
+  }
 
   /**
    * Construct URL to bundle resource

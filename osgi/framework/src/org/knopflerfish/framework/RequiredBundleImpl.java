@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import java.util.List;
 
 /**
  * Implementation for required bundle interface.
- * 
+ *
  */
 public class RequiredBundleImpl implements RequiredBundle
 {
@@ -60,7 +60,7 @@ public class RequiredBundleImpl implements RequiredBundle
 
   /**
    * Returns the symbolic name of this required bundle.
-   * 
+   *
    * @return The symbolic name of this required bundle.
    */
   public String getSymbolicName() {
@@ -70,7 +70,7 @@ public class RequiredBundleImpl implements RequiredBundle
 
   /**
    * Returns the bundle associated with this required bundle.
-   * 
+   *
    * @return The bundle, or <code>null</code> if this
    *         <code>RequiredBundle</code> object has become stale.
    */
@@ -85,19 +85,19 @@ public class RequiredBundleImpl implements RequiredBundle
 
   /**
    * Returns the bundles that currently require this required bundle.
-   * 
+   *
    * <p>
    * If this required bundle is required and then re-exported by another
    * bundle then all the requiring bundles of the re-exporting bundle are
    * included in the returned array.
-   * 
+   *
    * @return An array of bundles currently requiring this required bundle, or
    *         <code>null</code> if this <code>RequiredBundle</code> object
    *         has become stale.
    */
   public Bundle[] getRequiringBundles() {
     if (bpkgs.isRegistered()) {
-      List rl = bpkgs.getRequiredBy();
+      List rl = bpkgs.bundle.getRequiredBy();
       Bundle[] res = new Bundle[rl.size()];
       for (int i = rl.size() - 1; i >= 0; i--) {
         res[i] = ((BundlePackages)rl.get(i)).bundle;
@@ -110,7 +110,7 @@ public class RequiredBundleImpl implements RequiredBundle
 
   /**
    * Returns the version of this required bundle.
-   * 
+   *
    * @return The version of this required bundle, or
    *         {@link Version#emptyVersion} if no version information is
    *         available.
@@ -123,7 +123,7 @@ public class RequiredBundleImpl implements RequiredBundle
   /**
    * Returns <code>true</code> if the bundle associated with this
    * <code>RequiredBundle</code> object has been updated or uninstalled.
-   * 
+   *
    * @return <code>true</code> if the reqiured bundle has been updated or
    *         uninstalled, or if the <code>RequiredBundle</code> object has
    *         become stale; <code>false</code> otherwise.

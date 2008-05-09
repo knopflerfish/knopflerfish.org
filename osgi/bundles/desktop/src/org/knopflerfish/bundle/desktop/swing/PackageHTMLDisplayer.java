@@ -104,7 +104,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
               sb1.append(" " + version);
             }
             if (pkgs[i].isRemovalPending()) {
-              sb1.append(" ").append("<i>pending removal</i>");
+              sb1.append(" ").append("<i>pending removal on refresh</i>");
             }
             Bundle[] bl = pkgs[i].getImportingBundles();
             for(int j = 0; bl != null && j < bl.length; j++) {
@@ -168,10 +168,14 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("</p>");
         }
 
-        Bundle[] requiringBundles = getRequiringBundles(rbl,b);
+        RequiredBundle rb = getRequiredBundle(rbl, b);
+        Bundle[] requiringBundles = rb!=null ? rb.getRequiringBundles() : null;
         if (requiringBundles!=null && requiringBundles.length>0) {
           sb.append("<p>");
           sb.append("<b>Required by</b>");
+          if (rb.isRemovalPending()) {
+            sb.append(" (<i>pending removal on refresh</i>)");
+          }
           for (int j=0; requiringBundles!=null && j<requiringBundles.length;
                j++) {
             sb.append("<br>");
@@ -210,11 +214,14 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       if (version != null) {
         sb.append(" ").append(version);
       }
-      if (epkg.isRemovalPending()) {
-        sb.append(" ").append("<i>pending removal</i>");
-      }
       if (isShadowed) {
-        sb.append(" ").append("<i>shadowed</i>");
+        sb.append(" <i>shadowed</i>");
+      }
+      if (epkg.isRemovalPending()) {
+        if (isShadowed) {
+          sb.append(",");
+        }
+        sb.append(" <i>pending removal on refresh</i>");
       }
       sb.append("<br>");
       sb.append("&nbsp;&nbsp;");
@@ -223,7 +230,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     /**
-     * Check if one given bundle is reuired by another specified bundle.
+     * Check if one given bundle is required by another specified bundle.
      *
      * @param rbl List of required bundles as returend by package admin.
      * @param requiredBundle The bundle to check if it is required.
@@ -235,7 +242,8 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
                                        Bundle requiredBundle,
                                        Bundle requiringBundle)
     {
-      Bundle[] requiringBundles = getRequiringBundles(rbl, requiredBundle);
+      RequiredBundle rb = getRequiredBundle(rbl, requiredBundle);
+      Bundle[] requiringBundles = rb!=null ? rb.getRequiringBundles() : null;
       for (int j=0; requiringBundles!=null && j<requiringBundles.length;j++){
         if (requiringBundles[j].getBundleId()==requiringBundle.getBundleId()){
           return true;
@@ -245,19 +253,19 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     /**
-     * Get a list of bundles that requires the specified bundle.
+     * Get the RequiredBundle object for this bundle.
      *
      * @param rbl List of required bundles as returend by package admin.
      * @param bundle The bundle to get requiring bundles for.
-     * @return <tt>true</tt> if requiredbundle is required by
-     *         requiringBundle, <tt>false</tt> otherwsie.
+     * @return The RequiredBundle object for the given bundle or
+     *         <tt>null</tt> if the bundle is not required.
      */
-    private Bundle[] getRequiringBundles(RequiredBundle[] rbl,
-                                         Bundle b)
+    private RequiredBundle getRequiredBundle(RequiredBundle[] rbl,
+                                             Bundle b)
     {
       for (int i=0; rbl!=null && i<rbl.length; i++) {
         if (rbl[i].getBundle().getBundleId()==b.getBundleId()) {
-          return rbl[i].getRequiringBundles();
+          return rbl[i];
         }
       }
       return null;

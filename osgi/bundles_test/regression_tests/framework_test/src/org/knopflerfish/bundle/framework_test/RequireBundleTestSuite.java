@@ -69,6 +69,9 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame400a());
     addTest(new Frame410a());
     addTest(new Cleanup());
+    addTest(new Setup());
+    addTest(new Frame420a());
+    addTest(new Cleanup());
   }
 
 
@@ -220,6 +223,165 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         fail("framework test bundle "+ e +" :FRAME410A:FAIL");
       }
       out.println("### framework test bundle :FRAME410A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME420A =  {
+    "Refresh of required bundle."
+  };
+
+  class Frame420a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      // Start buA to resolve it
+      try {
+        buCc.start();
+      }
+      catch (BundleException bexcR) {
+        fail("framework test bundle "+ bexcR
+             +"(" + bexcR.getNestedException() + ") :FRAME420A:FAIL");
+      }
+      catch (SecurityException secR) {
+        fail("framework test bundle "+ secR +" :FRAME420A:FAIL");
+      }
+
+      String ceStr = checkExports(bc, buC, new String[]{"test_rb.C"});
+      if ( ceStr != null ) {
+          fail(ceStr +  ":FRAME420A:FAIL");
+      }
+
+      try {
+        ServiceReference paSR = bc.getServiceReference
+          (org.osgi.service.packageadmin.PackageAdmin.class.getName());
+        PackageAdmin pa = (PackageAdmin)bc.getService(paSR);
+        if (pa == null) {
+          fail("Failed to get PackageAdmin service");
+        }
+        // buD shall export 2 packages:
+        ExportedPackage[] epkgs = pa.getExportedPackages(buD);
+        assertNotNull("Packages shall be exported from D",epkgs);
+        assertEquals("Number of packages exported from D",2,epkgs.length);
+        int normalPkgs = 0;
+        int pendingRemovalPkgs = 0;
+        for(int i=0; i<epkgs.length; i++) {
+          out.println("epkgs["+i+"] initially: "+epkgs[i]);
+          if (epkgs[i].isRemovalPending()) {
+            pendingRemovalPkgs++;
+          } else {
+            normalPkgs++;
+          }
+        }
+        assertEquals("Pkgs pending removal",0,pendingRemovalPkgs);
+        assertEquals("Pkgs exported",2,normalPkgs);
+        // buD shall be required by 2 bundles (buC and buCc).
+        RequiredBundle[] rbs = pa.getRequiredBundles(buD.getSymbolicName());
+        assertEquals("D is a RequiredBundle",1,rbs.length);
+        assertTrue("RequiredBundle removal pending",!rbs[0].isRemovalPending());
+        Bundle[] dUsers = rbs[0].getRequiringBundles();
+        StringBuffer sb = new StringBuffer(buD +" is required by ");
+        for (int i=0; i<dUsers.length; i++) {
+          sb.append(" ").append(dUsers[i].toString());
+        }
+        out.println(sb.toString());
+        assertEquals("Number of bundles requiring D",2,dUsers.length);
+        bc.ungetService(paSR);
+        pa = null;
+
+        // Update the required bundle, D, check that there are two
+        // versions of packages exported (one marked as pending removal).
+        out.println("Updating " +buD);
+        Util.updateBundle(bc, buD, "rb_D_api-0.1.0.jar");
+        // Must allways fetch a new PackageAdmin after an update!
+        pa = (PackageAdmin)bc.getService(paSR);
+        if (pa == null) {
+          fail("Failed to get PackageAdmin service");
+        }
+        epkgs = pa.getExportedPackages(buD);
+        assertNotNull("Packages shall be exported from D",epkgs);
+        assertEquals("Number of packages exported from D",4,epkgs.length);
+        normalPkgs = 0;
+        pendingRemovalPkgs = 0;
+        for(int i=0; i<epkgs.length; i++) {
+          out.println("epkgs["+i+"] after update: "+epkgs[i]);
+          if (epkgs[i].isRemovalPending()) {
+            pendingRemovalPkgs++;
+          } else {
+            normalPkgs++;
+          }
+        }
+        assertEquals("Pkgs pending removal",2,pendingRemovalPkgs);
+        assertEquals("Pkgs exported",2,normalPkgs);
+
+        // buD is still required by 2 bundles (buC and buCc).
+        rbs = pa.getRequiredBundles(buD.getSymbolicName());
+        assertEquals("D is a RequiredBundle after update",1,rbs.length);
+        assertTrue("RequiredBundle removal not pending after update",
+                   !rbs[0].isRemovalPending());
+        dUsers = rbs[0].getRequiringBundles();
+        sb = new StringBuffer(buD +" is required by ");
+        for (int i=0; i<dUsers.length; i++) {
+          sb.append(" ").append(dUsers[i].toString());
+        }
+        out.println(sb.toString());
+        assertEquals("Number of bundles requiring D after update",
+                     2,dUsers.length);
+
+        // Refresh and wait
+        out.println("Calling PackageAdmin.refresh().");
+        pa.refreshPackages(null);
+        bc.ungetService(paSR);
+        pa = null;
+        // Note: PackageAdmin.refresh() will return immediately, i.e.,
+        // before the refresh operation is completed. Thus a litle
+        // sleep here since there is no explicit event signaling the
+        // completion of the refresh operation.
+        Thread.currentThread().sleep(1000);
+
+        // Check that the old packages are gone.
+        // Must allways fetch a new PackageAdmin after a refresh!
+        pa = (PackageAdmin)bc.getService(paSR);
+        if (pa == null) {
+          fail("Failed to get PackageAdmin service");
+        }
+
+        epkgs = pa.getExportedPackages(buD);
+        assertNotNull("Packages shall be exported from D",epkgs);
+        normalPkgs = 0;
+        pendingRemovalPkgs = 0;
+        for(int i=0; i<epkgs.length; i++) {
+          out.println("epkgs["+i+"] after refresh: "+epkgs[i]);
+          if (epkgs[i].isRemovalPending()) {
+            pendingRemovalPkgs++;
+          } else {
+            normalPkgs++;
+          }
+        }
+        assertEquals("Number of packages exported from D",2,epkgs.length);
+        assertEquals("Pkgs pending removal",0,pendingRemovalPkgs);
+        assertEquals("Pkgs exported",2,normalPkgs);
+
+        // buD is required by 2 bundles (buC and buCc).
+        rbs = pa.getRequiredBundles(buD.getSymbolicName());
+        assertEquals("D is a RequiredBundle after refresh",1,rbs.length);
+        assertTrue("RequiredBundle removal not pending after refresh",
+                   !rbs[0].isRemovalPending());
+        dUsers = rbs[0].getRequiringBundles();
+        sb = new StringBuffer(buD +" is required by ");
+        for (int i=0; i<dUsers.length; i++) {
+          sb.append(" ").append(dUsers[i].toString());
+        }
+        out.println(sb.toString());
+        assertEquals("Number of bundles requiring D after refresh",
+                     2,dUsers.length);
+        bc.ungetService(paSR);
+        pa = null;
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("framework test bundle "+ e +" :FRAME420A:FAIL");
+      }
+      out.println("### framework test bundle :FRAME420A:PASS");
     }
   }
 

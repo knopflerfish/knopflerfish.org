@@ -324,7 +324,9 @@ public class PackageAdminImpl implements PackageAdmin {
     }
     for (Iterator i = bs.iterator(); i.hasNext(); ) {
       BundleImpl b = (BundleImpl)i.next();
-      if ((b.state & BundleImpl.RESOLVED_FLAGS) != 0 && !b.isFragment()) {
+      if (((b.state & BundleImpl.RESOLVED_FLAGS) != 0
+           || b.getRequiredBy().size()>0)//Required, updated but not re-resolved
+          && !b.isFragment()) {
         res.add(new RequiredBundleImpl(b.bpkgs));
       }
     }

@@ -540,10 +540,10 @@ public class Desktop
         prefs.flush();
       }
 
-      String versionURL = 
-        System.getProperty("org.knopflerfish.desktop.releasenotesurl", 
+      String versionURL =
+        System.getProperty("org.knopflerfish.desktop.releasenotesurl",
                            "http://www.knopflerfish.org/releases/current/release_notes.txt");
-      
+
       URL url  = new URL(versionURL);
       URLConnection conn = url.openConnection();
       InputStream is = conn.getInputStream();
@@ -575,7 +575,7 @@ public class Desktop
       Activator.log.warn("Failed to read update info", e);
     }
   }
-    
+
   JButton toolStartBundles;
   JButton toolStopBundles;
   JButton toolUpdateBundles;
@@ -2346,7 +2346,7 @@ public class Desktop
 
  void showUpdate(Version sysVersion, Version version, String notes) {
    Preferences prefs = Preferences.userNodeForPackage(getClass());
-   
+
    Activator.log.info("showUpdate sysVersion=" + sysVersion + ", version=" + version);
    try {
      String prefsVersionS = prefs.get(KEY_UPDATEVERSION, "");
@@ -2363,14 +2363,14 @@ public class Desktop
    }
 
    JTextPane html = new JTextPane();
-   
+
     html.setContentType("text/html");
 
     html.setEditable(false);
 
-    html.setText("<pre>\n" + 
-                 notes + 
-                 "\n<pre>");
+    html.setText("<pre>\n" +
+                 notes +
+                 "\n</pre>");
 
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(500, 300));
