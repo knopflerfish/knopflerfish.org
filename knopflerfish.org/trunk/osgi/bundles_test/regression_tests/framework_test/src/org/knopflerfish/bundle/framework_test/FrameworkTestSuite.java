@@ -1363,9 +1363,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // FrameworkTestSuite is changed in such a way that new files
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
-      if(i!=110){
+      if(i!=111){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"110 != " + i);
+               +"111 != " + i);
       }
 
 

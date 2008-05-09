@@ -190,6 +190,15 @@ class Packages {
     if (!force) {
       for (Iterator i = exports.iterator(); i.hasNext(); ) {
         ExportPkg ep = (ExportPkg)i.next();
+        // Is the exporting bundle wired to any bundle via Require-Bundle
+        if (ep.bpkgs.requiredBy!=null && ep.bpkgs.requiredBy.size()>0) {
+          if (Debug.packages) {
+            Debug.println("unregisterPackages: Failed to unregister, " + ep +
+                          " is still in use via Require-Bundle.");
+          }
+          markAsZombies(exports);
+          return false;
+        }
         Pkg p = ep.pkg;
         if (p.providers.contains(ep)) {
           for (Iterator ii = p.importers.iterator(); ii.hasNext(); ) {
@@ -197,7 +206,7 @@ class Packages {
             if (ep == ip.provider && ep.bpkgs != ip.bpkgs) {
               if (Debug.packages) {
                 Debug.println("unregisterPackages: Failed to unregister, " + ep +
-                              " is still in use.");
+                              " is still in use via import-package.");
               }
               markAsZombies(exports);
               return false;
@@ -310,15 +319,17 @@ class Packages {
 
   /**
    * Get bundles affected by zombie packages.
+   *
    * Compute a graph of bundles starting with the specified bundles.
    * If no bundles are specified, compute a graph of bundles starting
-   * with all exporting a zombie package.
-   * Any bundle that imports a package that is currently exported
-   * by a bundle in the graph is added to the graph. The graph is fully
-   * constructed when there is no bundle outside the graph that imports a
-   * package from a bundle in the graph. The graph may contain
-   * <tt>UNINSTALLED</tt> bundles that are currently still
-   * exporting packages.
+   * with all exporting a zombie package.  Any bundle that imports a
+   * package that is currently exported by a bundle in the graph (or
+   * requires a bundle that is in the graph) is added to the
+   * graph. The graph is fully constructed when there is no bundle
+   * outside the graph that imports a package from a bundle in the
+   * graph (and there is no bundle outside the graph that requires a
+   * bundle in the graph). The graph may contain <tt>UNINSTALLED</tt>
+   * bundles that are currently still exporting packages.
    *
    * @param bundles Initial bundle set.
    * @return List of bundles affected.
@@ -345,11 +356,12 @@ class Packages {
       }
       for (Iterator i = packages.values().iterator(); i.hasNext();) {
         Pkg p = (Pkg)i.next();
-        for (Iterator ps = p.providers.iterator(); ps.hasNext(); ) {
+        // Search all exporters to catch both provided and required pkgs
+        for (Iterator ps = p.exporters.iterator(); ps.hasNext(); ) {
           ExportPkg ep = (ExportPkg)ps.next();
           if (ep.zombie) {
             if (Debug.packages) {
-              Debug.println("getZombieAffected: found zombie - " + ep.bpkgs.bundle);
+              Debug.println("getZombieAffected: found zombie - " + ep);
             }
             affected.add(ep.bpkgs.bundle);
           }
@@ -384,9 +396,24 @@ class Packages {
             if (!affected.contains(ib)) {
               moreBundles.add(ib);
               if (Debug.packages) {
-                Debug.println("getZombieAffected: added - " + ib);
+                Debug.println("getZombieAffected: added importing bundle - "
+                              + ib);
               }
               affected.add(ib);
+            }
+          }
+        }
+        if (ep.bpkgs.requiredBy!=null) {
+          for (Iterator rbi = ep.bpkgs.requiredBy.iterator(); rbi.hasNext();) {
+            BundlePackages rbpkgs = (BundlePackages) rbi.next();
+            Bundle rb = rbpkgs.bundle;
+            if (!affected.contains(rb)) {
+              moreBundles.add(rb);
+              if (Debug.packages) {
+                Debug.println("getZombieAffected: added requiring bundle - "
+                              + rb);
+              }
+              affected.add(rb);
             }
           }
         }

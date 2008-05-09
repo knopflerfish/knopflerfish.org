@@ -8,6 +8,15 @@ Release Notes Knopflerfish @VERSION@
 
 === Framework (Core) ===
 
+
+  Fixed a bug when updating a required bundle. The require relation
+  was not refreshed when a package refresh was done after the update,
+  i.e., the requiring bundle continued to use the old, removed
+  packages.
+  Reported in issue 1960999 (Update of required bundle broken)
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1960999&group_id=82798&atid=567241
+
+
   Fixed a bug in the handling of the re-export directive in the
   Require-Bundle manifest-header. 
   Reported in issues 1957937 (Require-Bundle: visibility:=reexport broken)
