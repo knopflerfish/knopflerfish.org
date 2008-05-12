@@ -374,7 +374,7 @@ abstract class Component implements ServiceFactory {
 
     public Object[] locateServices(String name) {
       Reference ref = config.getReference(name);
-      return ref.getServiceReferences();
+      return ref.getServices();
     }
 
     public BundleContext getBundleContext() {
