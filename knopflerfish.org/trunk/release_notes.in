@@ -43,6 +43,13 @@ Release Notes Knopflerfish @VERSION@
 
 === Services (Compendium) ===
       
+  Declarative Services [SCR]
+  ComponentContext.locateServices(String) now returns the actual
+  service object. 
+  Reported in issues 1699277 ([SCR] locateServices(String) returns
+  ServiceReference[])
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1699277&group_id=82798&atid=567241
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
