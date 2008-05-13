@@ -28,12 +28,13 @@ Release Notes Knopflerfish @VERSION@
   this change breaks the backwards compatibility with OSGi R3, since
   Bundle.getResource() and Bundle.getResources() now returns resources
   from the class space and not only the bundle-space as in R3.
-  This solves the following issue:
+  Reported in issues 1955529 (Bundle.getResource does not delegate)
   http://sourceforge.net/tracker/index.php?func=detail&aid=1955529&group_id=82798&atid=567241
 
   Bundle.getEntry() now looks in the correct place independt of the
   specified bundle class path. 
-  This solves the following issue:
+  Reported in issues 1829522 (Violation of Spec: Bundle.getEntry uses
+  Bundle-Classpath)
   http://sourceforge.net/tracker/index.php?func=detail&aid=1829522&group_id=82798&atid=567241
 
   Added a missing do privileged when opening an URL connection to a
@@ -69,6 +70,11 @@ Release Notes Knopflerfish @VERSION@
   lists of packages are sorted on package name and version.
 
   Manifest entries in the Manifest-tab are now sorted.
+
+  The desktop bundle now checks for new Knopflerfish releases when
+  started. If one is found a message dialog with the release note of
+  the new release will be displayed (once for each new release).
+
 
   Xerces and Xalan
 
