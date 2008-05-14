@@ -973,6 +973,10 @@ class BundleImpl implements Bundle {
                 }
               }
             } else {
+              framework.listeners.frameworkError
+                (this,
+                 new BundleException("Unable to resolve bundle: "
+                                     + bpkgs.getResolveFailReason()));
               detachFragments(false);
             }
           }
