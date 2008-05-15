@@ -327,39 +327,27 @@
  </target>
  
  <!-- a bit misplaced, but bindex is very picky with from where it is called -->
- <property name="bindex.file" location="${topdir}/../bindex.jar"/>
-  <available file         = "${bindex.file}"
-             property     = "bindex.available"/>
-
- 
-  <target name="install_bindex">
-   <antcall target="download_bindex"/>
- </target>
-
- <target name="download_bindex" unless="bindex.available">
-    <get src="http://www2.osgi.org/div/bindex.jar" 
-         dest="${bindex.file}"
-    />
- </target>
-
  <target name          = "bindex" 
          depends       = "bundle_tasks">
-  <mkdir dir="../repo"/>
-  <property name="bindex.baseurl" value="http://www.knopflerfish.org/repo"/>
-  <property name="bindex.basedir" value="jars"/>
+  <property name="bindex.dest.dir"  location="${topdir}/../repo"/>
+  <property name="bindex.base.url"  value="http://www.knopflerfish.org/repo"/>
+  <property name="bindex.base.dir"  location="."/>
+  <property name="bindex.jars.dir"  location="${bindex.base.dir}/jars"/>
+  <property name="bindex.repo.name" value="Knopflerfish bundle repository"/>
 
-
-  <bindex outFile         = "${topdir}/../repo/bindex.xml"
-          baseDir         = "."
-          baseURL         = "${bindex.baseurl}"
-          bindexJar       = "${bindex.file}"
+  <mkdir dir="${bindex.dest.dir}"/>
+  <bindex outFile         = "${bindex.dest.dir}/bindex.xml"
+          baseDir         = "${bindex.base.dir}"
+          baseURL         = "${bindex.base.url}"
+	  repoName        = "${bindex.repo.name}"
           >
 
-    <fileset dir="${bindex.basedir}">
-      <include name = "jars/upnp/upnp_api-*.jar"/>
+    <fileset dir="${bindex.jars.dir}">
+      <include name = "upnp/upnp_api-*.jar"/>
+      <include name = "remotefw/remotefw_api-*.jar"/>
     </fileset>
 
-    <fileset dir="${bindex.basedir}">
+    <fileset dir="${bindex.jars.dir}">
       <include name = "*/*.jar"/>
       <exclude name = "*/*_api-*.jar"/>
       <exclude name = "framework.jar"/>

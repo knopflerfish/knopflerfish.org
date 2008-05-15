@@ -303,14 +303,8 @@
   </target>
 
 
-  <target name          = "bindex"
-          depends       = "compile_ant">
+  <target name          = "bindex">
    <ant dir="osgi" target="bindex"/>
-  </target>
-
-  <target name          = "install_bindex"
-          depends       = "compile_ant">
-   <ant dir="osgi" target="install_bindex"/>
   </target>
 
   <target name          = "obr"
