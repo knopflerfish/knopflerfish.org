@@ -320,11 +320,11 @@
             baseDir         = "${bindex.base.dir}"
             baseURL         = "${bindex.base.url}"
 	    repoName        = "${bindex.repo.name}"
-            bindexJar       = "ant/lib/bindex.jar"
             >
 
       <fileset dir="${bindex.jars.dir}">
-	<include name = "jars/upnp/upnp_api-*.jar"/>
+	<include name = "upnp/upnp_api-*.jar"/>
+	<include name = "remotefw/remotefw_api-*.jar"/>
       </fileset>
 
       <fileset dir="${bindex.jars.dir}">
