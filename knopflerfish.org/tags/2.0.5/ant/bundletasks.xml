@@ -44,11 +44,6 @@
   <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
  </path>
 
- <path id="bundle_tasks.path">
-   <path refid="bcel.path"/>
-   <pathelement location="${antclasses}"/>
- </path>
-
  <target name="check_bcel">
    <available classname    = "org.apache.bcel.classfile.JavaClass"
               classpathref = "bcel.path"
@@ -81,8 +76,28 @@
    <delete file = "${ant.lib}/bcel-${bcel.version}.zip"/>
  </target>
 
+ <path id="bindex.path">
+  <pathelement location = "${ant.lib}/bindex.jar"/>
+ </path>
+
+ <available classname    = "org.osgi.impl.bundle.bindex.Index"
+            classpathref = "bindex.path"
+            property     = "bindex.available"/>
+
+ <target name="install_bindex" unless="bindex.available">
+   <get src="http://www.osgi.org/download/bindex.jar" 
+        dest="${ant.lib}/bindex.jar"
+	/>
+ </target>
+
+ <path id="bundle_tasks.path">
+   <pathelement location="${antclasses}"/>
+   <path refid="bcel.path"/>
+   <path refid="bindex.path"/>
+ </path>
+
  <target name        = "bundle_tasks" 
-         depends     = "check_bcel"
+         depends     = "check_bcel,install_bindex"
          description = "Compile and link the custom bundle tasks">
    <mkdir dir = "${antclasses}"/>
    <javac destdir      = "${antclasses}"
