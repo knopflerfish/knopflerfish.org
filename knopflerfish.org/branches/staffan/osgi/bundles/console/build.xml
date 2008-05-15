@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+   <target name="all">
+    <ant dir="console"           target="all"/>
+    <ant dir="consoletty"        target="all"/>
+    <ant dir="consoletcp"        target="all"/>
+    <ant dir="consoletelnet"     target="all"/>
+  </target>
+
+   <target name="bundle_doc">
+     <ant dir="console"           target="bundle_doc"/>
+     <ant dir="consoletelnet"     target="bundle_doc"/>
+   </target>
+
+</project>

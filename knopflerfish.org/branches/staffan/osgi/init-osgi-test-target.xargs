@@ -1,0 +1,55 @@
+#
+# Startup file for executing the OSGi RI test suite
+#
+
+-Dapple.laf.useScreenMenuBar=true
+
+#
+# Act as an OSGi test director target
+#
+-Dorg.osgi.test.target.port=3191
+-Dorg.osgi.test.broadcast=localhost
+#-Dorg.osgi.test.seewait=false
+#-Dorg.osgi.test.testcase.timeout=60000
+-Dorg.osgi.test.watchdog=120
+-Dscr.bundle.name=org.knopflerfish.bundle.component
+
+# Specify the BundleSignerCondition.getCondition() implementation to use
+-Dorg.osgi.vendor.condpermadmin=org.knopflerfish.framework
+
+# EE used for testing
+-Dorg.osgi.framework.executionenvironment=J2SE-1.4
+
+#-install file:../../osgi.ri-tck/osgi.core.impls.jar
+-install file:../../osgi/tck-4.0.1/osgi.core.impls.jar
+#-install file:../../osgi.ri-tck/testcond.jar
+#-install file:../../osgi.ri-tck/osgi.target.jar
+-install file:../../osgi/tck-4.0.1/osgi.target.jar
+
+# Load the default configuration
+-xargs init.xargs
+
+# The system bundle MUST NOT export package except those starting with "java.*"
+-Dorg.knopflerfish.framework.system.export.all=false
+
+# These bundles intefere with testing
+-stop desktop/desktop_all-2.0.0.jar
+-stop httproot/httproot-2.0.0.jar
+
+-Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
+-istart  prefs/prefs_all-2.0.0.jar
+-istart  event/event_all-2.0.0.jar
+-install kxml/kxml-1.0.jar
+-install metatype/metatype-2.0.0.jar
+-istart  kf_metatype/kf_metatype_all-2.0.0.jar
+-istart  measurement/measurement-2.0.0.jar
+-istart  io/io_all-2.0.0.jar
+-istart  position/position-2.0.0.jar
+-istart  provisioning/provisioning_api-2.0.0.jar
+-istart  upnp/upnp_api-2.0.0.jar
+-istart  wireadmin/wireadmin_api-2.0.0.jar
+
+#-start  file:../../osgi.ri-tck/osgi.target.jar
+-start file:../../osgi/tck-4.0.1/osgi.target.jar
+
+

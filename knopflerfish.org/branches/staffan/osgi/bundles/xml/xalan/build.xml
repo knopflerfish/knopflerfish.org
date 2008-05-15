@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="xalan" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+
+  <property name="api.pattern" value="**" />
+  <property name="impl.pattern" value="**" />
+
+  <property name = "bundle.build.lib"   value = "false"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <property name="all.suffix.name" value=""/>
+
+  &bundlebuild_include;
+
+</project>
