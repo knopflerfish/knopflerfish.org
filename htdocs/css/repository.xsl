@@ -65,11 +65,11 @@ read the XML file, list bundles, and install bundles and their dependencies.
 </p>
 
 <p>
-The repository URL is <a href="http://www.knopflerfish.org/repo/repository.xml">http://www.knopflerfish.org/repo/repository.xml</a>.
+The repository URL is <a href="@@obr.base.url@@/repository.xml">@@obr.base.url@@/repository.xml</a>.
 </p>
 
 <p>
-You can find a <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">RFC-0112</a> compatible repository at <a href="http://www.knopflerfish.org/repo/bindex.xml">http://www.knopflerfish.org/repo/bindex.xml</a>.
+You can find a <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">RFC-0112</a> compatible repository at <a href="@@obr.base.url@@/bindex.xml">@@obr.base.url@@/bindex.xml</a>.
 </p>
 
 <p>
@@ -78,7 +78,11 @@ This repository is generated on <xsl:value-of select="bundles/date"/>
 
 
 <p>
-<b>Important</b>: You need either the latest bundlerepository.jar from the Oscar distribution, or the <a href="http://www.knopflerfish.org/repo/jars/bundlerepository/bundlerepository_all-1.1.0.jar">KF bundlerepository</a> bundle. The KF bundlerepository bundle also integrates into the KF desktop and console.
+<b>Important</b>: You need either the latest bundlerepository.jar from
+the Oscar distribution, or
+the <a href="@@obr.base.url@@/jars/bundlerepository/bundlerepository_all-1.1.0.jar">KF
+bundlerepository</a> bundle. The KF bundlerepository bundle also
+integrates into the KF desktop and console.
 </p>
 
 <br clear="all"/>
