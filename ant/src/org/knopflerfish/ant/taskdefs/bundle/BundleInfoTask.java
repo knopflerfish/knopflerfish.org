@@ -754,7 +754,7 @@ public class BundleInfoTask extends Task {
     if(name == null || "".equals(name)) {
       return;
     }
-    log("Provides package: " + name, Project.MSG_DEBUG);
+    log(" Provides package: " + name, Project.MSG_DEBUG);
     providedSet.add(name);
   }
 
@@ -770,7 +770,7 @@ public class BundleInfoTask extends Task {
    */
   protected void addImportedType(Type t) {
     if(t instanceof BasicType) {
-      // Ignore all basic types
+      log("   " +t +" skiped; basic", Project.MSG_DEBUG);
     } else {
       addImportedString(t.toString());
     }
@@ -805,18 +805,23 @@ public class BundleInfoTask extends Task {
     String name = packageName(className);
 
     if("".equals(name)) {
+      log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
       return;
     }
 
     // only add packages defined outside this set of files
     if(!providedSet.contains(name)) {
-
       // ...and only add non-std packages
       if(!isStdImport(name)) {
+        log("   " +name +" added ; unprovided non-standard package.",
+            Project.MSG_DEBUG);
         importSet.add(name);
+      } else {
+        log("   " +name +" skiped; standard import.", Project.MSG_DEBUG);
       }
+    } else {
+      log("   " +name +" skiped; package provided.", Project.MSG_DEBUG);
     }
-
     classSet.add(className);
   }
 
@@ -922,6 +927,8 @@ public class BundleInfoTask extends Task {
          * @param obj The ConstantClass object
          */
         public void visitConstantClass( ConstantClass obj ) {
+          log(" visit constant class " +obj, Project.MSG_DEBUG);
+
           String referencedClass = obj.getBytes(constant_pool);
           referencedClass = referencedClass.charAt(0) == '['
             ? Utility.signatureToString(referencedClass, false)
@@ -940,6 +947,8 @@ public class BundleInfoTask extends Task {
          */
         public void visitField( Field obj ) {
           if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit field " +obj, Project.MSG_DEBUG);
+
             visitedSignatures[obj.getSignatureIndex()] = true;
             String signature = obj.getSignature();
             Type type = Type.getType(signature);
@@ -958,6 +967,8 @@ public class BundleInfoTask extends Task {
          */
         public void visitLocalVariable( LocalVariable obj ) {
           if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit local variable " +obj, Project.MSG_DEBUG);
+
             visitedSignatures[obj.getSignatureIndex()] = true;
             String signature = obj.getSignature();
             Type type = Type.getType(signature);
@@ -976,6 +987,8 @@ public class BundleInfoTask extends Task {
          */
         public void visitMethod( Method obj ) {
           if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit method " +obj, Project.MSG_DEBUG);
+
             visitedSignatures[obj.getSignatureIndex()] = true;
             String signature = obj.getSignature();
             Type returnType = Type.getReturnType(signature);
