@@ -10,6 +10,11 @@ Release Notes Knopflerfish @VERSION@
 === Framework (Core) ===
 
 
+  Only use File.exists() for file-objects based on an absolute path.
+  Reported in issue 1966119 (Support custom working directory
+  (FWDIR_PROP is not enough))
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1966119&group_id=82798&atid=567241
+
   Fixed a bug when updating a required bundle. The require relation
   was not refreshed when a package refresh was done after the update,
   i.e., the requiring bundle continued to use the old, removed
