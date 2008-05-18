@@ -1,7 +1,8 @@
 Release Notes Knopflerfish @VERSION@
 --------------------------------
 
-  Maintenance release of Knopflerfish
+  Maintenance release of Knopflerfish available from
+  @DOWNLOAD_URL@
 
   Here follows a breakdown of the most important changes since the 
   last release.
@@ -86,6 +87,11 @@ Release Notes Knopflerfish @VERSION@
 
 
   Build System
+
+  The derivation of imported packages done by the bundle-info-task now
+  detects packages that are only referenced from invoke instructions in
+  the byte code. E.g., the package of a parameter in an invocation of a
+  super-class method.
 
   Fixed issues 1949895 (missing template.xargs, won't build)
   and 1953611 ("ant all" fails):

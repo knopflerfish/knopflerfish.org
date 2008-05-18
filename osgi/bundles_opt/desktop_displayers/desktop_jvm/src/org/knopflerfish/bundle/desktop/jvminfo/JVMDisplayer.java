@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import org.knopflerfish.service.desktop.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 
 public class JVMDisplayer extends DefaultSwingBundleDisplayer {
 

@@ -25,7 +25,7 @@
   <!-- classloader and the two instances of the class would not live -->
   <!-- in the same universe!                                         -->
   <property name="bmfa.Import-Package"
-            value="org.osgi.framework,org.knopflerfish.test.framework"/>
+            value="org.osgi.framework,org.knopflerfish.framework,org.knopflerfish.test.framework"/>
 
   &bundlebuild_include;
 

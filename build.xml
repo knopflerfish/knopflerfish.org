@@ -145,7 +145,8 @@
     <copy file   = "release_notes.in"
           tofile = "${distrib.out.dir}/release_notes.txt">
       <filterset begintoken="@" endtoken="@">
-	<filter token="VERSION" value="${version}"/>
+	<filter token="VERSION"      value="${version}"/>
+	<filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
       </filterset>
     </copy>
     

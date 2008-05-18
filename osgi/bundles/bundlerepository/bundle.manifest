@@ -24,5 +24,7 @@ Import-Package: org.osgi.framework,
  org.osgi.util.tracker,
  org.ungoverned.osgi.service.shell;resolution:=optional,
  org.knopflerfish.service.console;specification-version=1.0.0,
- org.ungoverned.osgi.service.bundlerepository;specification-version=1.1.0
-
+ org.ungoverned.osgi.service.bundlerepository;specification-version=1.1.0,
+ javax.swing;resolution:=optional,
+ javax.swing.event;resolution:=optional,
+ javax.swing.tree;resolution:=optional
