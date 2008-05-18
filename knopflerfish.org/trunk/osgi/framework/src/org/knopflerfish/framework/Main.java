@@ -474,7 +474,7 @@ public class Main {
 
           println("check " + url, 2);
           if ("file".equals(url.getProtocol())) {
-            File f = new File(url.getFile());
+            File f = new File(url.getFile()).getAbsoluteFile();
             if (!f.exists() || !f.canRead()) {
               continue; // Noope; try next.
             }
@@ -821,7 +821,7 @@ public class Main {
       String jarBaseDir = topDir + "jars";
       println("jarBaseDir=" + jarBaseDir, 1);
 
-      File jarDir = new File(jarBaseDir);
+      File jarDir = new File(jarBaseDir).getAbsoluteFile();
       if(jarDir.exists() && jarDir.isDirectory()) {
 
         // avoid FileNameFilter since some profiles don't have it
@@ -962,9 +962,12 @@ public class Main {
 
       // Check as file first, then as a URL
 
-      File f = new File(xargsPath);
+      // Make the file object absolute before calling exists(), see
+      // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
+      // for details.
+      File f = new File(new File(xargsPath).getAbsolutePath());
       if(f.exists()) {
-        println("Loading xargs file " + f.getAbsolutePath(), 0);
+        println("Loading xargs file " + f, 0);
         in = new BufferedReader(new FileReader(f));
       }
 
