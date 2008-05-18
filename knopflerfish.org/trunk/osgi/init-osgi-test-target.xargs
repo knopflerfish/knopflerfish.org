@@ -33,7 +33,7 @@
 -Dorg.knopflerfish.framework.system.export.all=false
 
 # These bundles intefere with testing
--stop desktop/desktop_all-2.0.0.jar
+-stop desktop/desktop_all-2.0.1.jar
 -stop httproot/httproot-2.0.0.jar
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir

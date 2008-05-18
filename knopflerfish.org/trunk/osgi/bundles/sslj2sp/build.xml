@@ -10,7 +10,7 @@
 
   <property name = "ee.check.foundation"   value = "false"/>
 
-  <property name = "do.bundle.custom.pre" value="true"/>
+  <property name = "do.bundle.custom.pre"  value="true"/>
   <property name = "do.bundle.custom.post" value="true"/>
 
   <property name = "bundle.build.api"      value = "false"/>
@@ -20,7 +20,6 @@
 
   <property name="impl.pattern"            value="org/knopflerfish/**/*"/>
   <property name="resources.dir"           value="resources"/>
-  <property name="bundle.stdimports"       value="java.,javax.net.ssl"/>
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>

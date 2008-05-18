@@ -46,6 +46,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.Code;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.DescendingVisitor;
@@ -56,6 +57,11 @@ import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -891,8 +897,9 @@ public class BundleInfoTask extends Task {
   }
 
   protected void analyzeClass(ClassParser parser) throws Exception {
-    final JavaClass    clazz         = parser.parse();
-    final ConstantPool constant_pool = clazz.getConstantPool();
+    final JavaClass       clazz            = parser.parse();
+    final ConstantPool    constant_pool    = clazz.getConstantPool();
+    final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
 
     ownClasses.add(clazz.getClassName());
     addProvidedPackageString(clazz.getPackageName());
@@ -995,6 +1002,36 @@ public class BundleInfoTask extends Task {
             Type[] argTypes = Type.getArgumentTypes(signature);
             addImportedType(returnType);
             addImportedType(argTypes);
+          }
+        }
+
+        /**
+         * Look for packages for types in signatures of methods
+         * invoked from code in the class.
+         *
+         * This typically finds packages from arguments in calls to a
+         * superclass method in the current class where no local
+         * variable (or field) was used for intermediate storage of
+         * the parameter.
+         *
+         * @param obj The Code object to visit
+         */
+        public void visitCode( Code obj ) {
+          InstructionList il = new InstructionList(obj.getCode());
+          for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
+            Instruction inst = ih.getInstruction();
+            if (inst instanceof InvokeInstruction) {
+              InvokeInstruction ii = (InvokeInstruction) inst;
+              log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
+
+              // These signatures have no index in the constant pool
+              // thus no check/update in visitedSignatures[].
+              String signature = ii.getSignature(constant_poolGen);
+              Type returnType = Type.getReturnType(signature);
+              Type[] argTypes = Type.getArgumentTypes(signature);
+              addImportedType(returnType);
+              addImportedType(argTypes);
+            }
           }
         }
 
