@@ -10,7 +10,10 @@ Release Notes Knopflerfish @VERSION@
 === Framework (Core) ===
 
 
-  Only use File.exists() for file-objects based on an absolute path.
+  Search for xargs files given with relative file names now first
+  tries to find the file in parent directory of the current framework
+  directory, then in the current working directory. Also ensured that
+  File.exists() are only used for file-objects based on an absolute path.
   Reported in issue 1966119 (Support custom working directory
   (FWDIR_PROP is not enough))
   http://sourceforge.net/tracker/index.php?func=detail&aid=1966119&group_id=82798&atid=567241
