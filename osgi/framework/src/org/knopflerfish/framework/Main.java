@@ -84,24 +84,24 @@ public class Main {
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
 
-  static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
-  static final String JARDIR_DEFAULT = "file:";
+  public static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
+  public static final String JARDIR_DEFAULT = "file:";
 
-  static final String FWDIR_PROP    = "org.osgi.framework.dir";
-  static final String FWDIR_DEFAULT = "fwdir";
-  static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
-  static final String CMDIR_DEFAULT = "cmdir";
+  public static final String FWDIR_PROP    = "org.osgi.framework.dir";
+  public static final String FWDIR_DEFAULT = "fwdir";
+  public static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
+  public static final String CMDIR_DEFAULT = "cmdir";
 
-  static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
-  static final String VERBOSITY_DEFAULT = "0";
+  public static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
+  public static final String VERBOSITY_DEFAULT = "0";
 
 
-  static final String XARGS_DEFAULT     = "default";
+  public static final String XARGS_DEFAULT     = "default";
 
-  static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
-  static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
+  public static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
+  public static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
-  static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+  public static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
 
   static boolean restarting = false;
 
