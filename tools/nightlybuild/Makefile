@@ -7,7 +7,8 @@ OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
 TAG         = trunk
-CURRENT_LINK=current_${TAG}
+TAGs        = $(subst /,_,$(TAG))
+CURRENT_LINK=current_${TAGs}
 BUILD_KIND  = "snapshot build"
 
 ANT	= /usr/pkg/bin/ant
@@ -58,7 +59,7 @@ help:
 	@echo "update       clean and update"
 	@echo "all          builds distribution, tests it and publishes it."
 
-all: version $(TAG)/ant/lib/bcel-5.1.jar distrib copyout clean_snapshots outindex
+all: version distrib copyout clean_snapshots outindex
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
@@ -80,9 +81,6 @@ obr:
 obr_install:
 	$(CP) -r ${TAG}/repo ${WWW_DIR}
 
-$(TAG)/ant/lib/bcel-5.1.jar:
-	(cd ${TAG}/osgi && ${ANT} install_bcel)
-
 checkout:
 	${SVN} co ${REPO}
 
@@ -103,7 +101,7 @@ clean:
 	$(RM) -rf ${TAG}
 
 
-CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAG}
+CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAGs}
 CH_LOG_DEST=${OUT_DIR}/${VERSION}/changelog.html
 
 copyout:
