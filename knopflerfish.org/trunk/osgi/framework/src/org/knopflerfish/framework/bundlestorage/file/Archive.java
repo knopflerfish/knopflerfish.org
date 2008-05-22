@@ -74,19 +74,19 @@ class Archive {
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  final private static boolean unpack = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
+  final private static boolean unpack = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
 
   /**
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  final private static boolean alwaysUnpack = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
+  final private static boolean alwaysUnpack = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
 
   /**
    * Controls if file: URLs should be referenced only, not copied
    * to bundle storage dir
    */
-  boolean bReference = new Boolean(System.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
+  boolean bReference = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
 
   /**
    * File handle for file that contains current archive.
@@ -131,7 +131,7 @@ class Archive {
     this.location = location;
 	BufferedInputStream bis;
 	//Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
-	if(System.getProperty("java.vendor").startsWith("Skelmir")){
+	if(Framework.getProperty("java.vendor").startsWith("Skelmir")){
 		bis = new BufferedInputStream(is, is.available());
 	}
 	else{
@@ -149,7 +149,7 @@ class Archive {
       zi = new ZipInputStream(bis);
     } else if (unpack) {
       //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
-      if(System.getProperty("java.vendor").startsWith("Skelmir")){
+      if(Framework.getProperty("java.vendor").startsWith("Skelmir")){
 	    bis.mark(98304);
 	  }
 	  else{

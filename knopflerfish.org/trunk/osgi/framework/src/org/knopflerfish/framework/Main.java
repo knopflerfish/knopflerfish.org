@@ -111,7 +111,7 @@ public class Main {
   public static void main(String[] args) {
     try {
       verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     version = readVersion();
@@ -155,7 +155,7 @@ public class Main {
     // redo this since it might have changed
     try {
       verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     if(bZeroArgs) {
@@ -197,7 +197,7 @@ public class Main {
   static String[] initBase   = null;
 
   static void doInit() {
-    String d = System.getProperty(FWDIR_PROP);
+    String d = Framework.getProperty(FWDIR_PROP);
 
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
@@ -213,7 +213,7 @@ public class Main {
   }
 
   static String[] getJarBase() {
-    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+    String jars = Framework.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
     String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
@@ -528,7 +528,7 @@ public class Main {
             }
           }
           framework.shutdown();
-          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+          if("true".equals(Framework.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
             System.exit(exitcode);
           } else {
             println("Framework shutdown, skipped System.exit()", 0);
@@ -701,7 +701,7 @@ public class Main {
       }
     }
 
-    String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+    String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
     // avoid getAbsoluteFile since some profiles don't have this
     File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
     File xargsFile  = null;
@@ -720,7 +720,7 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
+        String osName = (String)Alias.unifyOsName(Framework.getProperty("os.name")).get(0);
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();
@@ -804,24 +804,24 @@ public class Main {
 
     println("setDefaultSysProps", 1);
     for(int i = 0; i < defaultSysProps.length; i++) {
-      if(null == System.getProperty(defaultSysProps[i][0])) {
+      if(null == Framework.getProperty(defaultSysProps[i][0])) {
         println("Using default " + defaultSysProps[i][0] + "=" +
                 defaultSysProps[i][1], 1);
         sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
       } else {
-        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1);
+        println("system prop " + defaultSysProps[i][0] + "=" + Framework.getProperty(defaultSysProps[i][0]), 1);
       }
     }
 
     // Set version info
-    if(null == System.getProperty(PRODVERSION_PROP)) {
+    if(null == Framework.getProperty(PRODVERSION_PROP)) {
       sysProps.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty(JARDIR_PROP, null);
+    String jars = Framework.getProperty(JARDIR_PROP, null);
 
     if(jars == null || "".equals(jars)) {
       String jarBaseDir = topDir + "jars";
@@ -852,6 +852,10 @@ public class Main {
         println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
+
+    // Write to framework properties. This should be the primary
+    // source for all code, including the framework itself.
+    Framework.setProperties(sysProps);
 
     // Write back system properties
     System.setProperties(sysProps);
@@ -973,7 +977,7 @@ public class Main {
       println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
-      String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+      String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
       // avoid getAbsoluteFile since some profiles don't have this
       File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
       // avoid getParentFile since some profiles don't have this

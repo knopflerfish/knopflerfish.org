@@ -357,7 +357,7 @@ public class Listeners
   }
 
   static boolean nocacheldap = 
-    "true".equals(System.getProperty("org.knopflerfish.framework.ldap.nocache"));
+    "true".equals(Framework.getProperty("org.knopflerfish.framework.ldap.nocache"));
 }
 
 /**

@@ -126,11 +126,11 @@ public class ClassPatcher {
 
 
   protected void init() {
-    bDumpClasses = "true".equals(System.getProperty("org.knopflerfish.framework.patch.dumpclasses"));
+    bDumpClasses = "true".equals(Framework.getProperty("org.knopflerfish.framework.patch.dumpclasses"));
     String urlS = classLoader.archive.getAttribute("Bundle-ClassPatcher-Config");
 
     if(urlS == null || "".equals(urlS)) {
-      urlS = System.getProperty("org.knopflerfish.framework.patch.configurl",
+      urlS = Framework.getProperty("org.knopflerfish.framework.patch.configurl",
                                 "!!/patches.props");
     } else if("none".equals(urlS)) {
       urlS = null;
@@ -284,7 +284,7 @@ public class ClassPatcher {
     String targetName = r[1];
 
     if(BundleClassLoader.isBundlePatch() &&
-       "true".equals(System.getProperty("kf.patch." + targetName, "" + defActive))) {
+       "true".equals(Framework.getProperty("kf.patch." + targetName, "" + defActive))) {
       MethodInfo mi     = new MethodInfo(owner, name, desc, bStatic);
       if(filter != null) {
         try {
@@ -363,7 +363,7 @@ public class ClassPatcher {
   protected void dumpClassBytes(String className, byte[] classBytes) {
     OutputStream os = null;
     try {
-      String dirName = System.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir",
+      String dirName = Framework.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir",
                                           "patchedclasses");
       File dir = new File(dirName);
 
