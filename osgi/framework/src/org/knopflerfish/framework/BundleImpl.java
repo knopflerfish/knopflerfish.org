@@ -380,7 +380,7 @@ class BundleImpl implements Bundle {
         // the bundle's locations is an element in the
         // comma-separated list defined org.knopflerfish.main.class.activation
 
-        String mainClassActivators = System.getProperty("org.knopflerfish.main.class.activation");
+        String mainClassActivators = Framework.getProperty("org.knopflerfish.main.class.activation");
         if (mainClassActivators != null) {
           final String mc = archive.getAttribute("Main-class");
 

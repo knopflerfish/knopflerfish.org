@@ -71,7 +71,7 @@ public class ServiceURLStreamHandlerFactory
     this.framework = fw;
 
     // Initialize JVM classpath packages
-    String s = System.getProperty("java.protocol.handler.pkgs", "");
+    String s = Framework.getProperty("java.protocol.handler.pkgs", "");
     
     jvmPkgs = Util.splitwords(s, "|");
 

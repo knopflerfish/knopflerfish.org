@@ -200,9 +200,9 @@ public class AutoManifest extends Manifest {
 
     // just read the config once
     if(configs == null) {
-      boolean bActive   = "true".equals(System.getProperty("org.knopflerfish.framework.automanifest","false"));
+      boolean bActive   = "true".equals(Framework.getProperty("org.knopflerfish.framework.automanifest","false"));
       String  defSource = bActive ? "!!/automanifest.props" : null;
-      configSource = System.getProperty("org.knopflerfish.framework.automanifest.config", defSource);
+      configSource = Framework.getProperty("org.knopflerfish.framework.automanifest.config", defSource);
       configs      = loadConfig(configSource);
 
       if(Debug.automanifest) {
