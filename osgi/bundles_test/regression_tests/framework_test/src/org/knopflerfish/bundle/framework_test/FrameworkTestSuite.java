@@ -213,56 +213,39 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame007a extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      String trunk = "org.osgi.framework.";
+      String[] NNList = new String[] {
+        Constants.FRAMEWORK_OS_VERSION,
+        Constants.FRAMEWORK_OS_NAME,
+        Constants.FRAMEWORK_PROCESSOR,
+        Constants.FRAMEWORK_VERSION,
+        Constants.FRAMEWORK_VENDOR,
+        Constants.FRAMEWORK_LANGUAGE,
+      };
 
-      String stem = "version";
-      String data = bc.getProperty(trunk+stem);
-      if (data == null) {
-        teststatus = false;
+      for(int i = 0; i < NNList.length; i++) {
+        String k = NNList[i];
+        String v = bc.getProperty(k);
+        if(v == null) {
+          fail("'" + k + "' not set");
+        }
       }
-      out.println(trunk + stem + " " + data);
-
-      stem = "vendor";
-      data = bc.getProperty(trunk+stem);
-      if (data == null) {
-        teststatus = false;
-      }
-      out.println(trunk + stem + " " + data);
-
-      stem = "language";
-      data = bc.getProperty(trunk+stem);
-      if (data == null) {
-        teststatus = false;
-      }
-      out.println(trunk + stem + " " + data);
-
-      stem = "os.name";
-      data = bc.getProperty(trunk+stem);
-      if (data == null) {
-        teststatus = false;
-      }
-      out.println(trunk + stem + " " + data);
-
-      stem = "os.version";
-      data = bc.getProperty(trunk+stem);
-      if (data == null) {
-        teststatus = false;
-      }
-      out.println(trunk + stem + " " + data);
-
-      stem = "processor";
-      data = bc.getProperty(trunk+stem);
-      if (data == null) {
-        teststatus = false;
-      }
-      out.println(trunk + stem + " " + data);
-
-      if (teststatus == true ) {
-        out.println("### framework test bundle :FRAME007A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME007A:FAIL");
+      
+      String[] TFList = new String[] {
+        Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE,
+        Constants.SUPPORTS_FRAMEWORK_FRAGMENT,
+        Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+        Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
+      };
+      
+      for( int i = 0; i < TFList.length; i++) {
+        String k = TFList[i];
+        String v = bc.getProperty(k);
+        if(v == null) {
+          fail("'" + k + "' not set");
+        } 
+        if(!("true".equals(v) || "false".equals(v))) {
+          fail("'" + k + "' is '" + v + "', expected 'true' or 'false'");
+        }
       }
     }
   }
