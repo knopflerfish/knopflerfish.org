@@ -683,6 +683,8 @@ public class Util {
         systemBrowser,
         "\"" + url.toString() + "\"",
       });
+      new StreamGobbler(proc.getErrorStream());
+      new StreamGobbler(proc.getInputStream());
     } else if (Util.isMacOSX()) {
       // Yes, this only works on Mac OS X
       Runtime rt = Runtime.getRuntime();
@@ -690,6 +692,8 @@ public class Util {
         "/usr/bin/open",
         url.toString(),
       });
+      new StreamGobbler(proc.getErrorStream());
+      new StreamGobbler(proc.getInputStream());
     } else {
       throw new IOException
         ("Only windows and Mac OS X browsers are yet supported");
@@ -706,9 +710,31 @@ public class Util {
 
   public static boolean isMacOSX() {
     String os = System.getProperty("os.name");
-    if(os != null) {
-      return -1 != os.toLowerCase().indexOf("mac os x");
-    }
-    return false;
+    return "Mac OS X".equals(os);
   }
+
+  /** A thread that empties an input stream without complaining.*/
+  static class StreamGobbler extends Thread
+  {
+    InputStream is;
+    StreamGobbler(InputStream is)
+    {
+      this.is = is;
+      start();
+    }
+
+    public void run()
+    {
+      BufferedReader br = new BufferedReader(new InputStreamReader(is));
+      String line = "";
+      try {
+        while (null!=line) {
+          line = br.readLine();
+          //System.out.println(line);
+        }
+      } catch (IOException _ioe) {
+      }
+    }
+  }
+
 }
