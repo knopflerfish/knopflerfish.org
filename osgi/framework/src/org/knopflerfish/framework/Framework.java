@@ -714,6 +714,13 @@ public class Framework {
     return p;
   }
 
+  /**
+   * Get a copy of the current system properties.
+   */
+  public static java.util.Properties getSystemProperties() {
+    return (java.util.Properties)System.getProperties().clone();
+  }
+
 
   protected static void initProperties() {
     props = new HashMap();
@@ -773,7 +780,7 @@ public class Framework {
     props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, 
               SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
 
-    Dictionary sysProps = System.getProperties();
+    Dictionary sysProps = getSystemProperties();
     
     setProperties(sysProps);
   }

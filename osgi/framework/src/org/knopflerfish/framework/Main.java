@@ -84,6 +84,9 @@ public class Main {
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
 
+  public static boolean bWriteSysProps = true;
+
+
   public static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   public static final String JARDIR_DEFAULT = "file:";
 
@@ -112,6 +115,10 @@ public class Main {
     try {
       verbosity =
         Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+    } catch (Exception ignored) { }
+    
+    try {
+      bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "true"));
     } catch (Exception ignored) { }
 
     version = readVersion();
@@ -653,7 +660,7 @@ public class Main {
   static void printJVMInfo() {
 
     try {
-      Properties props = System.getProperties();
+      Properties props = Framework.getSystemProperties();
       System.out.println("--- System properties ---");
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
         String key = (String)e.nextElement();
@@ -800,8 +807,8 @@ public class Main {
 
     // Make modifications to temporary dictionary and write
     // it back in end of this method
-    Properties sysProps = System.getProperties();
-
+    Properties sysProps = Framework.getSystemProperties();
+    
     println("setDefaultSysProps", 1);
     for(int i = 0; i < defaultSysProps.length; i++) {
       if(null == Framework.getProperty(defaultSysProps[i][0])) {
@@ -853,13 +860,22 @@ public class Main {
       }
     }
 
+    // Write back system properties
+    if(bWriteSysProps) {
+      mergeSystemProperties(sysProps);
+    }
+
     // Write to framework properties. This should be the primary
     // source for all code, including the framework itself.
     Framework.setProperties(sysProps);
-
-    // Write back system properties
-    System.setProperties(sysProps);
   }
+  
+  static void mergeSystemProperties(Properties props) {
+    Properties p = Framework.getSystemProperties();
+    p.putAll(props);
+    System.setProperties(p);
+  }
+
 
   /**
    * Loop over args array and check that it looks reasonable.
@@ -962,7 +978,7 @@ public class Main {
    *         <tt>argv</tt> by the caller.
    */
   static String [] loadArgs(String xargsPath, String[] oldArgs) {
-
+    
     if(XARGS_DEFAULT.equals(xargsPath)) {
       xargsPath = getDefaultXArgs(oldArgs);
     }
@@ -1022,7 +1038,7 @@ public class Main {
       }
 
 
-      Properties   sysProps = System.getProperties();
+      Properties   sysProps = Framework.getSystemProperties();
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -1096,7 +1112,15 @@ public class Main {
         }
       }
       setSecurityManager(sysProps);
-      System.setProperties(sysProps);
+
+      if(bWriteSysProps) {
+        mergeSystemProperties(sysProps);
+      }
+
+      // Write to framework properties. This should be the primary
+      // source for all code, including the framework itself.
+      Framework.setProperties(sysProps);
+
     } catch (Exception e) {
       throw new IllegalArgumentException("xargs loading failed: " + e);
     }
@@ -1131,14 +1155,15 @@ public class Main {
       String manager  = (String)props.get("java.security.manager");
       String policy   = (String)props.get("java.security.policy");
 
-
       if(manager != null) {
         if(System.getSecurityManager() == null) {
           println("Setting security manager=" + manager +
                   ", policy=" + policy, 1);
           System.setProperty("java.security.manager", manager);
+          props.put("java.security.manager", manager);
           if(policy != null) {
             System.setProperty("java.security.policy",  policy);
+            props.put("java.security.policy", policy);
           }
           SecurityManager sm = null;
           if("".equals(manager)) {
