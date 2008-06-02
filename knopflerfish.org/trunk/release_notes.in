@@ -53,6 +53,13 @@ Release Notes Knopflerfish @VERSION@
   The URLConnection.getLastModified() for bundle URLs now returns the
   last modified of the bundle that the contents is fetched from.
 
+  Added a new system property,
+  org.knopflerfish.framework.xargs.writesysprops, that controls
+  weather properties defined using -Dname=value in xargs files are to
+  be exported as system properties or not. Such properties will
+  always be available to bundles via BundleContext.getProperty(name).
+  See osgi/framework/readme.txt for details.
+
 
 === Services (Compendium) ===
       

@@ -1433,8 +1433,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // last modified for the bundle providing the resource).
       url = bc.getBundle().getResource("/fw_test_single.txt");
       URLConnection urlConn = url.openConnection();
-      out.println(url +".lastModified() = " +urlConn.getLastModified());
-      out.println( bc.getBundle()+".lastModified() = " +bc.getBundle().getLastModified());
       assertEquals("Last modified on bundle URL connection is the last "
                    +"modified of the bundle itself.",
                    urlConn.getLastModified(),

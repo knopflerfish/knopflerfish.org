@@ -57,11 +57,29 @@ import org.osgi.service.startlevel.StartLevel;
  * This class contains references to all common data structures
  * inside the framework.
  *
- * @author Jan Stein, Erik Wistrand, Philippe Laporte, Mats-Ola Persson
+ * @author Jan Stein, Erik Wistrand, Philippe Laporte,
+ *         Mats-Ola Persson, Gunnar Ekolin
  */
 public class Framework {
 
+  /**
+   * The "System" properties for this framework instance.  Allways use
+   * <tt>Framework.setProperty(String,String)</tt> to add values to
+   * this map.
+   */
   protected static Map/*<String, String>*/ props = new HashMap/*<String, String>*/();
+
+  /**
+   * The set of properties that must not be present in props, since a
+   * bundle is allowed to update them and such updates are required to
+   * be visible when calling <tt>BundleContext.getProperty(String)</tt>.
+   */
+  private static Set volatileProperties = new HashSet();
+  static
+  {
+    // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
+    volatileProperties.add(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+  }
 
 
   /**
@@ -176,7 +194,7 @@ public class Framework {
 
   static boolean bIsMemoryStorage /*= false*/;
 
-  static String whichStorageImpl; 
+  static String whichStorageImpl;
 
   private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
@@ -697,7 +715,11 @@ public class Framework {
   }
 
   public static void setProperty(String key, String val) {
-    props.put(key, val);
+    if (volatileProperties.contains(key)) {
+      System.setProperty(key,val);
+    } else {
+      props.put(key, val);
+    }
   }
 
   public static void setProperties(Dictionary newProps) {
@@ -742,14 +764,12 @@ public class Framework {
       SUPPORTS_EXTENSION_BUNDLES = true;
     }
     // The name of the operating system of the hosting computer.
-    props.put(Constants.FRAMEWORK_OS_NAME, 
-              System.getProperty("os.name"));
+    setProperty(Constants.FRAMEWORK_OS_NAME, System.getProperty("os.name"));
 
 
     // The name of the processor of the hosting computer.
-    props.put(Constants.FRAMEWORK_PROCESSOR,
-              System.getProperty("os.arch"));
-    
+    setProperty(Constants.FRAMEWORK_PROCESSOR, System.getProperty("os.arch"));
+
     String ver = System.getProperty("os.version");
     if (ver != null) {
       int dots = 0;
@@ -767,21 +787,22 @@ public class Framework {
       }
       osVersion = ver.substring(0, i);
     }
-    props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
-    props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
-    props.put(Constants.FRAMEWORK_VENDOR,  "Knopflerfish");
-    props.put(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
+    setProperty(Constants.FRAMEWORK_OS_VERSION, osVersion);
+    setProperty(Constants.FRAMEWORK_VERSION,   SPEC_VERSION);
+    setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
+    setProperty(Constants.FRAMEWORK_LANGUAGE,
+                Locale.getDefault().getLanguage());
 
     // Various framework properties
-    props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
-    props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, 
-              SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, 
-              SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+    setProperty(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
+    setProperty(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
+    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+    setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
+                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
 
     Dictionary sysProps = getSystemProperties();
-    
+
     setProperties(sysProps);
   }
 
