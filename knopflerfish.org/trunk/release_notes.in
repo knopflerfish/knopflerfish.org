@@ -50,6 +50,9 @@ Release Notes Knopflerfish @VERSION@
   bundle resource. Problem originally found in Knopflerfish 1.3.5 and
   fixed on the kf_1_support branch.
 
+  The last URLConnection.getLastModified() for bundle URLs now returns
+  the last modified of the bundle that the contents is fetched from.
+
 
 === Services (Compendium) ===
       

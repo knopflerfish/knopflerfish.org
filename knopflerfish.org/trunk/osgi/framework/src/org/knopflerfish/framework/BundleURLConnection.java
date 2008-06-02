@@ -58,7 +58,7 @@ class BundleURLConnection extends URLConnection {
   private BundleImpl bundle;
   private int contentLength;
   private String contentType;
-
+  private long lastModified;
 
   BundleURLConnection(URL u, Bundles b) {
     super(u);
@@ -113,6 +113,7 @@ class BundleURLConnection extends URLConnection {
         connected = true;
         contentLength = is.available();
         contentType = URLConnection.guessContentTypeFromName(url.getFile());
+        lastModified = a.getLastModified();
       } else {
         throw new IOException("URL not found");
       }
@@ -142,6 +143,15 @@ class BundleURLConnection extends URLConnection {
       return contentLength;
     } catch (IOException e) {
       return -1;
+    }
+  }
+
+  public long getLastModified() {
+    try {
+      connect();
+      return lastModified;
+    } catch (IOException e) {
+      return 0;
     }
   }
 
