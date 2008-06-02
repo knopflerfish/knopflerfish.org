@@ -116,7 +116,7 @@ public class Main {
       verbosity =
         Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
-    
+
     try {
       bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "true"));
     } catch (Exception ignored) { }
@@ -808,7 +808,7 @@ public class Main {
     // Make modifications to temporary dictionary and write
     // it back in end of this method
     Properties sysProps = Framework.getSystemProperties();
-    
+
     println("setDefaultSysProps", 1);
     for(int i = 0; i < defaultSysProps.length; i++) {
       if(null == Framework.getProperty(defaultSysProps[i][0])) {
@@ -869,7 +869,7 @@ public class Main {
     // source for all code, including the framework itself.
     Framework.setProperties(sysProps);
   }
-  
+
   static void mergeSystemProperties(Properties props) {
     Properties p = Framework.getSystemProperties();
     p.putAll(props);
@@ -978,7 +978,7 @@ public class Main {
    *         <tt>argv</tt> by the caller.
    */
   static String [] loadArgs(String xargsPath, String[] oldArgs) {
-    
+
     if(XARGS_DEFAULT.equals(xargsPath)) {
       xargsPath = getDefaultXArgs(oldArgs);
     }
