@@ -15,11 +15,20 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles_opt/junit/
 Bundle-Activator: org.knopflerfish.bundle.junit.Activator
 Bundle-Classpath: .,junit.jar
-DynamicImport-Package: org.knopflerfish.service.console,javax.servlet,
- javax.servlet.http,org.osgi.service.http
-Export-Package: org.knopflerfish.service.junit;specification-version=1
- .0.0,junit.framework;specification-version=3.8.1
-Import-Package: org.osgi.framework,org.osgi.util.tracker,org.knopflerf
- ish.service.junit;specification-version=1.0.0,junit.framework;specifi
- cation-version=3.8.1
-
+Export-Package: org.knopflerfish.service.junit;specification-version=1.0.0,
+ junit.framework;specification-version=3.8.1
+Import-Package: org.osgi.framework,
+ javax.servlet;resolution:=optional,
+ javax.servlet.http;resolution:=optional,
+ javax.swing;resolution:=optional,
+ javax.swing.border;resolution:=optional,
+ javax.swing.event;resolution:=optional,
+ javax.swing.text;resolution:=optional,
+ javax.swing.tree;resolution:=optional,
+ javax.xml.parsers;resolution:=optional,
+ junit.framework;specification-version=3.8.1,
+ org.knopflerfish.service.console;resolution:=optional,
+ org.knopflerfish.service.junit;specification-version=1.0.0,
+ org.osgi.service.http;resolution:=optional,
+ org.osgi.util.tracker;resolution:=optional,
+ org.w3c.dom;resolution:=optional

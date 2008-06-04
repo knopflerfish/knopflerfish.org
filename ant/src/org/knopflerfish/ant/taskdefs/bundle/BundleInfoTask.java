@@ -46,6 +46,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.Code;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.DescendingVisitor;
@@ -56,6 +57,11 @@ import org.apache.bcel.classfile.LocalVariable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -754,7 +760,7 @@ public class BundleInfoTask extends Task {
     if(name == null || "".equals(name)) {
       return;
     }
-    log("Provides package: " + name, Project.MSG_DEBUG);
+    log(" Provides package: " + name, Project.MSG_DEBUG);
     providedSet.add(name);
   }
 
@@ -770,7 +776,7 @@ public class BundleInfoTask extends Task {
    */
   protected void addImportedType(Type t) {
     if(t instanceof BasicType) {
-      // Ignore all basic types
+      log("   " +t +" skiped; basic", Project.MSG_DEBUG);
     } else {
       addImportedString(t.toString());
     }
@@ -805,18 +811,23 @@ public class BundleInfoTask extends Task {
     String name = packageName(className);
 
     if("".equals(name)) {
+      log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
       return;
     }
 
     // only add packages defined outside this set of files
     if(!providedSet.contains(name)) {
-
       // ...and only add non-std packages
       if(!isStdImport(name)) {
+        log("   " +name +" added ; unprovided non-standard package.",
+            Project.MSG_DEBUG);
         importSet.add(name);
+      } else {
+        log("   " +name +" skiped; standard import.", Project.MSG_DEBUG);
       }
+    } else {
+      log("   " +name +" skiped; package provided.", Project.MSG_DEBUG);
     }
-
     classSet.add(className);
   }
 
@@ -886,8 +897,9 @@ public class BundleInfoTask extends Task {
   }
 
   protected void analyzeClass(ClassParser parser) throws Exception {
-    final JavaClass    clazz         = parser.parse();
-    final ConstantPool constant_pool = clazz.getConstantPool();
+    final JavaClass       clazz            = parser.parse();
+    final ConstantPool    constant_pool    = clazz.getConstantPool();
+    final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
 
     ownClasses.add(clazz.getClassName());
     addProvidedPackageString(clazz.getPackageName());
@@ -922,6 +934,8 @@ public class BundleInfoTask extends Task {
          * @param obj The ConstantClass object
          */
         public void visitConstantClass( ConstantClass obj ) {
+          log(" visit constant class " +obj, Project.MSG_DEBUG);
+
           String referencedClass = obj.getBytes(constant_pool);
           referencedClass = referencedClass.charAt(0) == '['
             ? Utility.signatureToString(referencedClass, false)
@@ -940,6 +954,8 @@ public class BundleInfoTask extends Task {
          */
         public void visitField( Field obj ) {
           if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit field " +obj, Project.MSG_DEBUG);
+
             visitedSignatures[obj.getSignatureIndex()] = true;
             String signature = obj.getSignature();
             Type type = Type.getType(signature);
@@ -958,6 +974,8 @@ public class BundleInfoTask extends Task {
          */
         public void visitLocalVariable( LocalVariable obj ) {
           if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit local variable " +obj, Project.MSG_DEBUG);
+
             visitedSignatures[obj.getSignatureIndex()] = true;
             String signature = obj.getSignature();
             Type type = Type.getType(signature);
@@ -976,12 +994,44 @@ public class BundleInfoTask extends Task {
          */
         public void visitMethod( Method obj ) {
           if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit method " +obj, Project.MSG_DEBUG);
+
             visitedSignatures[obj.getSignatureIndex()] = true;
             String signature = obj.getSignature();
             Type returnType = Type.getReturnType(signature);
             Type[] argTypes = Type.getArgumentTypes(signature);
             addImportedType(returnType);
             addImportedType(argTypes);
+          }
+        }
+
+        /**
+         * Look for packages for types in signatures of methods
+         * invoked from code in the class.
+         *
+         * This typically finds packages from arguments in calls to a
+         * superclass method in the current class where no local
+         * variable (or field) was used for intermediate storage of
+         * the parameter.
+         *
+         * @param obj The Code object to visit
+         */
+        public void visitCode( Code obj ) {
+          InstructionList il = new InstructionList(obj.getCode());
+          for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
+            Instruction inst = ih.getInstruction();
+            if (inst instanceof InvokeInstruction) {
+              InvokeInstruction ii = (InvokeInstruction) inst;
+              log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
+
+              // These signatures have no index in the constant pool
+              // thus no check/update in visitedSignatures[].
+              String signature = ii.getSignature(constant_poolGen);
+              Type returnType = Type.getReturnType(signature);
+              Type[] argTypes = Type.getArgumentTypes(signature);
+              addImportedType(returnType);
+              addImportedType(argTypes);
+            }
           }
         }
 

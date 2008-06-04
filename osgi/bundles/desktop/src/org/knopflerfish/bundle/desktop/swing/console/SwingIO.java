@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -323,9 +323,23 @@ public class SwingIO extends JPanel {
   void start() {
     stop();
     in         = new TextReader();
+    tfCmd.setText("");
+    tfCmd.setEnabled(true);
     setVisible(true);
     if(ConsoleSwing.config.grabSystemIO) {
       setSystemIO();
+    }
+  }
+
+  void disableInput(String reason) {
+    if(ConsoleSwing.config.grabSystemIO) {
+      restoreSystemIO();
+    }
+    tfCmd.setEnabled(false);
+    tfCmd.setText(reason);
+    if(in != null) {
+      in.close();
+      in = null;
     }
   }
 

@@ -55,7 +55,6 @@ public class BIndexTask extends Task {
   private String baseURL             = "";
   private String repoName            = null;
   private String outFile             = "bindex.xml";
-  private String bindexJar           = "bindex.jar";
 
   /**
    * The working directory of the BIndex process. The bundle URLs will
@@ -83,10 +82,6 @@ public class BIndexTask extends Task {
 
   public void addFileset(FileSet set) {
     filesets.addElement(set);
-  }
-
-  public void setBindexJar(String s) {
-    bindexJar = s;
   }
 
   // Implements Task

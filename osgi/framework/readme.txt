@@ -520,6 +520,14 @@ Framework System Properties
 
    Default: "!!/automanifest.props"
 
+
+  org.knopflerfish.framework.xargs.writesysprops
+   Properties defined using -Dname=value in xargs-files are available
+   for bundles using BundleContext.getProperty(name).
+   This property controls weather such properties shall also be
+   exported as system properties or not.
+  Default: true (i.e., create a system property for each property).
+
    
 
 Using a HTTP proxy

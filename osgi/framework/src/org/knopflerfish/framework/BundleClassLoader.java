@@ -103,7 +103,7 @@ final public class BundleClassLoader extends ClassLoader {
 
 
   static void buildBootDelegationPatterns() {
-    String bootDelegationString = System.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
+    String bootDelegationString = Framework.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
     bootDelegationUsed = (bootDelegationString != null);
 
     try {
@@ -217,8 +217,8 @@ final public class BundleClassLoader extends ClassLoader {
     }
 
     return bHasASM &&
-      "true".equals(System.getProperty("org.knopflerfish.framework.patch",
-                                       "false"));
+      "true".equals(Framework.getProperty("org.knopflerfish.framework.patch",
+                                          "false"));
   }
 
   /**

@@ -106,7 +106,7 @@ public class Activator implements BundleActivator {
                 if (log.doInfo())
                     log.info("No CM present, using default configuration");
                 serverFactory.updated(HttpServerFactory.DEFAULT_PID, HttpConfig
-                        .getDefaultConfig());
+                        .getDefaultConfig(bc));
             } else {
                 if (configs == null || configs.length == 0) {
                     if (log.doInfo())
@@ -114,7 +114,7 @@ public class Activator implements BundleActivator {
                                 .info("No configuration present, creating default configuration");
 
                     serverFactory.updated(HttpServerFactory.DEFAULT_PID,
-                            HttpConfig.getDefaultConfig());
+                            HttpConfig.getDefaultConfig(bc));
                 }
             }
         } catch (ConfigurationException ce) {

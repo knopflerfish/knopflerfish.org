@@ -39,11 +39,15 @@ import java.net.*;
 import java.security.*;
 
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -53,9 +57,30 @@ import org.osgi.service.startlevel.StartLevel;
  * This class contains references to all common data structures
  * inside the framework.
  *
- * @author Jan Stein, Erik Wistrand, Philippe Laporte, Mats-Ola Persson
+ * @author Jan Stein, Erik Wistrand, Philippe Laporte,
+ *         Mats-Ola Persson, Gunnar Ekolin
  */
 public class Framework {
+
+  /**
+   * The "System" properties for this framework instance.  Allways use
+   * <tt>Framework.setProperty(String,String)</tt> to add values to
+   * this map.
+   */
+  protected static Map/*<String, String>*/ props = new HashMap/*<String, String>*/();
+
+  /**
+   * The set of properties that must not be present in props, since a
+   * bundle is allowed to update them and such updates are required to
+   * be visible when calling <tt>BundleContext.getProperty(String)</tt>.
+   */
+  private static Set volatileProperties = new HashSet();
+  static
+  {
+    // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
+    volatileProperties.add(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+  }
+
 
   /**
    * Specification version for this framework.
@@ -142,28 +167,34 @@ public class Framework {
   final static String TRUE   = "true";
   final static String FALSE  = "false";
 
-  final static String osArch = System.getProperty("os.arch");
-  final static String osName = System.getProperty("os.name");
+  static {
+    initProperties();
+  }
+
+  final static String osArch = Framework.getProperty("os.arch");
+  final static String osName = Framework.getProperty("os.name");
   static String osVersion;
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
   public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
-    TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
+    TRUE.equals(Framework.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
                                      TRUE));
 
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests
   // but shouldn't really be used in production.
   final static boolean SETCONTEXTCLASSLOADER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
+    TRUE.equals(Framework.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
 
   final static boolean REGISTERSERVICEURLHANDLER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
+    TRUE.equals(Framework.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
 
 
 
   static boolean bIsMemoryStorage /*= false*/;
+
+  static String whichStorageImpl;
 
   private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
@@ -175,7 +206,7 @@ public class Framework {
   private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
 
   /** Cached value of
-   * System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+   * Framework.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
   private Set    eeCacheSet = new HashSet();
@@ -188,18 +219,18 @@ public class Framework {
   static boolean SUPPORTS_EXTENSION_BUNDLES;
 
   final static boolean EXIT_ON_SHUTDOWN =
-    TRUE.equals(System.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
+    TRUE.equals(Framework.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
 
   final static int EXIT_CODE_NORMAL  = 0;
   final static int EXIT_CODE_RESTART = 200;
 
-  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
+  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(Framework.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
 
   public static int javaVersionMajor = -1;
   public static int javaVersionMinor = -1;
   public static int javaVersionMicro = -1;
   static {
-    String javaVersion = System.getProperty("java.version");
+    String javaVersion = Framework.getProperty("java.version");
     // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
     if (null!=javaVersion) {
       int startPos = 0;
@@ -242,10 +273,12 @@ public class Framework {
    * I.e., for Java SE if version is 1.5 or higher.
    */
   public final static boolean isDoubleCheckedLockingSafe
-    = "true".equals(System.getProperty
+    = "true".equals(Framework.getProperty
                     ("org.knopflerfish.framework.is_doublechecked_locking_safe",
                      (javaVersionMajor>=1 && javaVersionMinor>=5
                       ? "true" : "false")));
+
+
 
   /**
    * Contruct a framework.
@@ -253,37 +286,7 @@ public class Framework {
    */
   public Framework(Object m) throws Exception {
 
-    String whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
-      System.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
-      ".BundleStorageImpl";
 
-    bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
-    if (bIsMemoryStorage ||
-        !EXIT_ON_SHUTDOWN ||
-        !USING_WRAPPER_SCRIPT) {
-      SUPPORTS_EXTENSION_BUNDLES = false;
-      // we can not support this in this mode.
-    } else {
-      SUPPORTS_EXTENSION_BUNDLES = true;
-    }
-
-    String ver = System.getProperty("os.version");
-    if (ver != null) {
-      int dots = 0;
-      int i = 0;
-      for ( ; i < ver.length(); i++) {
-        char c = ver.charAt(i);
-        if (Character.isDigit(c)) {
-          continue;
-        } else if (c == '.') {
-          if (++dots < 3) {
-            continue;
-          }
-        }
-        break;
-      }
-      osVersion = ver.substring(0, i);
-    }
 
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
@@ -353,8 +356,10 @@ public class Framework {
   }
 
 
+
+
   private void registerStartLevel(){
-    String useStartLevel = System.getProperty(USESTARTLEVEL_PROP, TRUE);
+    String useStartLevel = Framework.getProperty(USESTARTLEVEL_PROP, TRUE);
 
     if(TRUE.equals(useStartLevel)) {
       if(Debug.startlevel) {
@@ -658,7 +663,7 @@ public class Framework {
       return true;
     }
 
-    String fwEE = System.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    String fwEE = Framework.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
       // If EE is not set, allow everything
@@ -686,55 +691,119 @@ public class Framework {
   // Static package methods
   //
 
+
   /**
    * Retrieve the value of the named framework property.
    *
    */
   public static String getProperty(String key) {
-    if (Constants.FRAMEWORK_VERSION.equals(key)) {
-      // The version of the framework.
-      return SPEC_VERSION;
-    } else if (Constants.FRAMEWORK_VENDOR.equals(key)) {
-      // The vendor of this framework implementation.
-      return "Knopflerfish";
-    } else if (Constants.FRAMEWORK_LANGUAGE.equals(key)) {
-      // The language being used. See ISO 639 for possible values.
-      return Locale.getDefault().getLanguage();
-    } else if (Constants.FRAMEWORK_OS_NAME.equals(key)) {
-      // The name of the operating system of the hosting computer.
-      return osName;
-    } else if (Constants.FRAMEWORK_OS_VERSION.equals(key)) {
-      // The version number of the operating system of the hosting computer.
-      return osVersion;
-    } else if (Constants.FRAMEWORK_PROCESSOR.equals(key)) {
-      // The name of the processor of the hosting computer.
-      return osArch;
-    } else if (Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE.equals(key)) {
-      return TRUE;
-    } else if (Constants.SUPPORTS_FRAMEWORK_FRAGMENT.equals(key)) {
-      return TRUE;
-    } else if (Constants.SUPPORTS_FRAMEWORK_EXTENSION.equals(key)) {
-      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
-    } else if (Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION.equals(key)) {
-      return SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE;
+    return getProperty(key, null);
+  }
+
+  /**
+   * Retrieve the value of the named framework property, with a default value.
+   *
+   */
+  public static String getProperty(String key, String def) {
+    String v = (String)props.get(key);
+    if(v != null) {
+      return v;
     } else {
-      return System.getProperty(key);
+      // default to system property
+      return System.getProperty(key, def);
+    }
+  }
+
+  public static void setProperty(String key, String val) {
+    if (volatileProperties.contains(key)) {
+      System.setProperty(key,val);
+    } else {
+      props.put(key, val);
+    }
+  }
+
+  public static void setProperties(Dictionary newProps) {
+    for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
+      String key = (String)it.nextElement();
+      setProperty(key, (String)newProps.get(key));
     }
   }
 
   public static Dictionary getProperties(){
-    Dictionary props = System.getProperties();
-    props.put(Constants.FRAMEWORK_VERSION, SPEC_VERSION);
-    props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
-    props.put(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
-    props.put(Constants.FRAMEWORK_OS_NAME, osName);
-    props.put(Constants.FRAMEWORK_OS_VERSION, osVersion);
-    props.put(Constants.FRAMEWORK_PROCESSOR, osArch);
-    props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
-    props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-    props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-    return props;
+    Hashtable p = new Hashtable();
+    p.putAll(System.getProperties());
+    p.putAll(props);
+    return p;
+  }
+
+  /**
+   * Get a copy of the current system properties.
+   */
+  public static java.util.Properties getSystemProperties() {
+    return (java.util.Properties)System.getProperties().clone();
+  }
+
+
+  protected static void initProperties() {
+    props = new HashMap();
+
+
+
+
+    whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
+      Framework.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
+      ".BundleStorageImpl";
+
+    bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
+    if (bIsMemoryStorage ||
+        !EXIT_ON_SHUTDOWN ||
+        !USING_WRAPPER_SCRIPT) {
+      SUPPORTS_EXTENSION_BUNDLES = false;
+      // we can not support this in this mode.
+    } else {
+      SUPPORTS_EXTENSION_BUNDLES = true;
+    }
+    // The name of the operating system of the hosting computer.
+    setProperty(Constants.FRAMEWORK_OS_NAME, System.getProperty("os.name"));
+
+
+    // The name of the processor of the hosting computer.
+    setProperty(Constants.FRAMEWORK_PROCESSOR, System.getProperty("os.arch"));
+
+    String ver = System.getProperty("os.version");
+    if (ver != null) {
+      int dots = 0;
+      int i = 0;
+      for ( ; i < ver.length(); i++) {
+        char c = ver.charAt(i);
+        if (Character.isDigit(c)) {
+          continue;
+        } else if (c == '.') {
+          if (++dots < 3) {
+            continue;
+          }
+        }
+        break;
+      }
+      osVersion = ver.substring(0, i);
+    }
+    setProperty(Constants.FRAMEWORK_OS_VERSION, osVersion);
+    setProperty(Constants.FRAMEWORK_VERSION,   SPEC_VERSION);
+    setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
+    setProperty(Constants.FRAMEWORK_LANGUAGE,
+                Locale.getDefault().getLanguage());
+
+    // Various framework properties
+    setProperty(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
+    setProperty(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
+    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+    setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
+                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+
+    Dictionary sysProps = getSystemProperties();
+
+    setProperties(sysProps);
   }
 
   /**

@@ -110,7 +110,7 @@ public class Bundles {
 
         // Support for http proxy authentication
         //TODO put in update as well
-        String auth = System.getProperty("http.proxyAuth");
+        String auth = Framework.getProperty("http.proxyAuth");
         if (auth != null && !"".equals(auth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -120,7 +120,7 @@ public class Bundles {
           }
         }
         // Support for http basic authentication
-        String basicAuth = System.getProperty("http.basicAuth");
+        String basicAuth = Framework.getProperty("http.basicAuth");
         if (basicAuth != null && !"".equals(basicAuth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
