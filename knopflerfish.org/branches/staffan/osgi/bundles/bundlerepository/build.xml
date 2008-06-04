@@ -9,8 +9,6 @@
   <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
-  <property name="bundle.stdimports"
-            value="java.,javax.swing,javax.accessibility"/>
 
   <property name = "bundle.build.api"      value = "false"/>
   <property name = "bundle.build.impl"     value = "false"/>
@@ -31,7 +29,7 @@
   </target>
 
   <path id="bundle.compile.path">
-    <pathelement location="${topdir}/jars/desktop/desktop_api-2.0.0.jar"/>  
+    <pathelement location="${topdir}/jars/desktop/desktop_api-2.0.1.jar"/>  
     <pathelement location="resources/console_api-2.0.0.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
     <pathelement location="resources/kxml-min.jar"/>

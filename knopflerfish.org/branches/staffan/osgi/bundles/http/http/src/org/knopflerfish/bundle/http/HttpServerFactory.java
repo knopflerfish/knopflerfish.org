@@ -106,8 +106,9 @@ public class HttpServerFactory implements ManagedServiceFactory {
                 if (log.doDebug()) {
                     log.debug("create pid=" + pid);
                 }
-                httpServer = new HttpServer(bc, new HttpConfig(configuration),
-                        log);
+                httpServer = new HttpServer(bc,
+                                            new HttpConfig(bc,configuration),
+                                            log);
                 servers.put(pid, httpServer);
 
                 // registration is moved to HttpServer.update()

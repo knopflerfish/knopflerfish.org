@@ -1,13 +1,22 @@
 Release Notes Knopflerfish @VERSION@
 --------------------------------
 
-  Maintenance release of Knopflerfish
+  Maintenance release of Knopflerfish available from
+  @DOWNLOAD_URL@
 
   Here follows a breakdown of the most important changes since the 
   last release.
 
 === Framework (Core) ===
 
+
+  Search for xargs files given with relative file names now first
+  tries to find the file in parent directory of the current framework
+  directory, then in the current working directory. Also ensured that
+  File.exists() are only used for file-objects based on an absolute path.
+  Reported in issue 1966119 (Support custom working directory
+  (FWDIR_PROP is not enough))
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1966119&group_id=82798&atid=567241
 
   Fixed a bug when updating a required bundle. The require relation
   was not refreshed when a package refresh was done after the update,
@@ -40,6 +49,16 @@ Release Notes Knopflerfish @VERSION@
   Added a missing do privileged when opening an URL connection to a
   bundle resource. Problem originally found in Knopflerfish 1.3.5 and
   fixed on the kf_1_support branch.
+
+  The URLConnection.getLastModified() for bundle URLs now returns the
+  last modified of the bundle that the contents is fetched from.
+
+  Added a new system property,
+  org.knopflerfish.framework.xargs.writesysprops, that controls
+  weather properties defined using -Dname=value in xargs files are to
+  be exported as system properties or not. Such properties will
+  always be available to bundles via BundleContext.getProperty(name).
+  See osgi/framework/readme.txt for details.
 
 
 === Services (Compendium) ===
@@ -86,6 +105,11 @@ Release Notes Knopflerfish @VERSION@
 
 
   Build System
+
+  The derivation of imported packages done by the bundle-info-task now
+  detects packages that are only referenced from invoke instructions in
+  the byte code. E.g., the package of a parameter in an invocation of a
+  super-class method.
 
   Fixed issues 1949895 (missing template.xargs, won't build)
   and 1953611 ("ant all" fails):

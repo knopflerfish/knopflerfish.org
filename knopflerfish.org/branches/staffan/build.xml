@@ -54,8 +54,11 @@
 
   <property name = "ee.check.foundation"   value = "true"/>
 
-  <!-- The direcotry to place the results of a distrib build in. -->
+  <!-- The directory to place the results of a distrib build in. -->
   <property name="release.dir" value = "htdocs/releases/${version}"/>
+
+  <!-- The URL that this release will be available on after installation. -->
+  <property name="base.url" value = "http://www.knopflerfish.org/releases"/>
 
   <!-- A directory to place intermediate files for a distib build in. -->
   <property name = "distrib.out.dir" location = "out"/>
@@ -142,7 +145,8 @@
     <copy file   = "release_notes.in"
           tofile = "${distrib.out.dir}/release_notes.txt">
       <filterset begintoken="@" endtoken="@">
-	<filter token="VERSION" value="${version}"/>
+	<filter token="VERSION"      value="${version}"/>
+	<filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
       </filterset>
     </copy>
     
@@ -306,25 +310,37 @@
   </target>
 
 
-  <target name          = "bindex"
-          depends       = "bundle_tasks">
+  <target name="bindex" depends="bundle_tasks">
+    <!-- The top level REPO file -->
+    <antcall target="bindex_bare">
+      <param name="bindex.dest.dir" location="repo"/>
+      <param name="bindex.base.url" value="http://www.knopflerfish.org/repo"/>
+    </antcall>
 
-    <property name="bindex.dest.dir"  location="repo"/>
-    <property name="bindex.base.url"  value="http://www.knopflerfish.org/repo"/>
+    <!-- The release directory REPO file -->
+    <antcall target="bindex_bare">
+      <param name="bindex.dest.dir" location="${release.dir}"/>
+      <param name="bindex.base.url" value="${base.url}/${version}"/>
+    </antcall>
+  </target>
+
+  <!-- Parameters: bindex.dest.dir, bindex.base.url -->
+  <target name="bindex_bare">
     <property name="bindex.base.dir"  location="osgi"/>
     <property name="bindex.jars.dir"  location="${bindex.base.dir}/jars"/>
-    <property name="bindex.repo.name" value="Knopflerfish bundle repository"/>
+    <property name="bindex.repo.name"
+	      value="Knopflerfish bundle repository - ${version}"/>
 
     <mkdir dir="${bindex.dest.dir}"/>
     <bindex outFile         = "${bindex.dest.dir}/bindex.xml"
             baseDir         = "${bindex.base.dir}"
             baseURL         = "${bindex.base.url}"
 	    repoName        = "${bindex.repo.name}"
-            bindexJar       = "ant/lib/bindex.jar"
             >
 
       <fileset dir="${bindex.jars.dir}">
-	<include name = "jars/upnp/upnp_api-*.jar"/>
+	<include name = "upnp/upnp_api-*.jar"/>
+	<include name = "remotefw/remotefw_api-*.jar"/>
       </fileset>
 
       <fileset dir="${bindex.jars.dir}">
@@ -335,46 +351,67 @@
     </bindex>
   </target>
 
-  <target name          = "obr"
-          depends       = "bundle_tasks">
 
-    <property name="obr.baseurl" value="http://www.knopflerfish.org/repo/jars/"/>
-    <property name="obr.basedir" location="osgi/jars"/>
-    <property name="obr.name"    value="Knopflerfish bundle repository"/>
+  <target name="obr" depends="bundle_tasks">
+    <!-- The top level REPO file -->
+    <antcall target="obr_bare">
+      <param name="obr.dest.dir"  location="repo"/>
+      <param name="obr.base.url"  value="http://www.knopflerfish.org/repo"/>
+      <param name="obr.html.file" value="index.html"/>
+    </antcall>
+    <!-- The release directory REPO file -->
+    <antcall target="obr_bare">
+      <param name="obr.dest.dir"  location="${release.dir}"/>
+      <param name="obr.base.url"  value="${base.url}/${version}"/>
+      <param name="obr.html.file" value="repository.html"/>
+    </antcall>
+  </target>
 
-    <mkdir dir="repo"/>
+  <!-- Parameters: obr.dest.dir, obr.base.url and obr.html.file  -->
+  <target name="obr_bare">
+    <property name="obr.name"
+	      value="Knopflerfish bundle repository - ${version}"/>
+    <property name="obr.base.dir" location="osgi/jars"/>
+    <property name="obr.xml.file" value="repository.xml"/>
+    <property name="obr.xsl.file" location="htdocs/css/repository.xsl"/>
 
-    <bundleobr  baseDir      = "${obr.basedir}"
-                repoXSLURL   = "../htdocs/css/repository.xsl"
-                outFile      = "repo/repository.xml"
+    <mkdir dir="${obr.dest.dir}"/>
+    <bundleobr  baseDir      = "${obr.base.dir}"
+                repoXSLURL   = "repository.xsl"
+                outFile      = "${obr.dest.dir}/${obr.xml.file}"
                 repoName     = "${obr.name}"
-                baseURL      = "${obr.baseurl}"
-    >
-
-      <fileset dir="${obr.basedir}">
+                baseURL      = "${obr.base.url}/jars/">
+      <fileset dir="${obr.base.dir}">
         <include name = "upnp/upnp_api-*.jar"/>
       </fileset>
 
-      <fileset dir="${obr.basedir}">
+      <fileset dir="${obr.base.dir}">
         <include name = "**/*.jar"/>
         <exclude name = "**/*_api-*.jar"/>
         <exclude name = "framework.jar"/>
       </fileset>
-   </bundleobr>
-
+    </bundleobr>
+    <!-- Generate HTML-page from repository.xml -->
+    <copy file="${obr.xsl.file}"
+	  toFile="${obr.dest.dir}/repository.xsl"
+	  overwrite="true">
+      <filterset begintoken="@@" endtoken="@@">
+	<filter token="obr.base.url" value="${obr.base.url}"/>
+      </filterset>
+    </copy>
+    <!-- Use fork here since the value of "-OUT" must be relative to CWD -->
+    <java classname="org.apache.xalan.xslt.Process"
+	  fork="yes"
+	  dir="${obr.dest.dir}">
+      <arg value="-IN"/>
+      <arg value="repository.xml"/>
+      <arg value="-XSL"/>
+      <arg value="repository.xsl"/>
+      <arg value="-OUT"/>
+      <arg value="${obr.html.file}"/>
+    </java>
   </target>
 
-  <target name="obr_index">
-   <java classname="org.apache.xalan.xslt.Process">
-    <arg value="-IN"/>
-    <arg value="repo/repository.xml"/>
-    <arg value="-XSL"/>
-    <arg value="htdocs/css/repository.xsl"/>
-    <arg value="-OUT"/>
-    <arg value="repo/index.html"/>
-   </java>
-
-  </target>
 
   <target name="mkreldir">
     <mkdir dir = "${release.dir}"/>
@@ -399,7 +436,6 @@
      <antcall target     = "distrib_index"/>
 
      <antcall target     = "obr"/>
-     <antcall target     = "obr_index"/>
      <antcall target     = "install_bindex"/>
      <antcall target     = "bindex"/>
 

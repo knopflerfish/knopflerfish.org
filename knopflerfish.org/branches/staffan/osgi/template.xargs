@@ -27,7 +27,7 @@
 -install jsdk/jsdk_api-2.5.jar
 
 # The Bundle repo commands and desktop plugin
--install  bundlerepository/bundlerepository_all-2.0.0.jar
+-install  bundlerepository/bundlerepository_all-2.0.1.jar
 
 ## More basic KF bundles
 -initlevel 3
@@ -49,7 +49,7 @@
 
 -initlevel 6
 -install remotefw/remotefw_api-2.0.0.jar
--install desktop/desktop_all-2.0.0.jar
+-install desktop/desktop_all-2.0.1.jar
 
 
 -initlevel 7
@@ -71,12 +71,12 @@ $(WINDOWS_BUNDLES)
 -start event/event_all-2.0.0.jar
 -start device/device_all-2.0.0.jar
 -start useradmin/useradmin_all-2.0.0.jar
--start bundlerepository/bundlerepository_all-2.0.0.jar
+-start bundlerepository/bundlerepository_all-2.0.1.jar
 -start consoletty/consoletty-2.0.0.jar
 -start consoletelnet/consoletelnet-2.0.1.jar
 -start frameworkcommands/frameworkcommands-2.0.0.jar
 -start logcommands/logcommands-2.0.0.jar
 -start cm_cmd/cm_cmd-2.0.0.jar
--start desktop/desktop_all-2.0.0.jar
+-start desktop/desktop_all-2.0.1.jar
 -start http/http_all-2.1.0.jar
 -start httproot/httproot-2.0.0.jar

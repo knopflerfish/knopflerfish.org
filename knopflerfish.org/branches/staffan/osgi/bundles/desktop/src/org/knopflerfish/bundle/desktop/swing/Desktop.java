@@ -2434,7 +2434,7 @@ public class Desktop
     String txt = Strings.fmt("str_abouttext", version);
 
     ImageIcon icon =
-      new ImageIcon(getClass().getResource("/kf_300x170.png"));
+      new ImageIcon(getClass().getResource("/kf_200x21.gif"));
 
     JOptionPane.showMessageDialog(frame,
                                   txt,

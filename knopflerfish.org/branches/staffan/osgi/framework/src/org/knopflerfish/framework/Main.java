@@ -84,24 +84,27 @@ public class Main {
   // will be initialized by main() - up for anyone for grabbing
   public static String bootText = "";
 
-  static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
-  static final String JARDIR_DEFAULT = "file:";
-
-  static final String FWDIR_PROP    = "org.osgi.framework.dir";
-  static final String FWDIR_DEFAULT = "fwdir";
-  static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
-  static final String CMDIR_DEFAULT = "cmdir";
-
-  static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
-  static final String VERBOSITY_DEFAULT = "0";
+  public static boolean bWriteSysProps = true;
 
 
-  static final String XARGS_DEFAULT     = "default";
+  public static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
+  public static final String JARDIR_DEFAULT = "file:";
 
-  static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
-  static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
+  public static final String FWDIR_PROP    = "org.osgi.framework.dir";
+  public static final String FWDIR_DEFAULT = "fwdir";
+  public static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
+  public static final String CMDIR_DEFAULT = "cmdir";
 
-  static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+  public static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
+  public static final String VERBOSITY_DEFAULT = "0";
+
+
+  public static final String XARGS_DEFAULT     = "default";
+
+  public static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
+  public static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
+
+  public static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
 
   static boolean restarting = false;
 
@@ -111,7 +114,11 @@ public class Main {
   public static void main(String[] args) {
     try {
       verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+    } catch (Exception ignored) { }
+
+    try {
+      bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "true"));
     } catch (Exception ignored) { }
 
     version = readVersion();
@@ -155,7 +162,7 @@ public class Main {
     // redo this since it might have changed
     try {
       verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     if(bZeroArgs) {
@@ -197,7 +204,7 @@ public class Main {
   static String[] initBase   = null;
 
   static void doInit() {
-    String d = System.getProperty(FWDIR_PROP);
+    String d = Framework.getProperty(FWDIR_PROP);
 
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
@@ -213,7 +220,7 @@ public class Main {
   }
 
   static String[] getJarBase() {
-    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+    String jars = Framework.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
     String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
@@ -474,7 +481,7 @@ public class Main {
 
           println("check " + url, 2);
           if ("file".equals(url.getProtocol())) {
-            File f = new File(url.getFile());
+            File f = new File(url.getFile()).getAbsoluteFile();
             if (!f.exists() || !f.canRead()) {
               continue; // Noope; try next.
             }
@@ -528,7 +535,7 @@ public class Main {
             }
           }
           framework.shutdown();
-          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+          if("true".equals(Framework.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
             System.exit(exitcode);
           } else {
             println("Framework shutdown, skipped System.exit()", 0);
@@ -580,8 +587,14 @@ public class Main {
   }
 
   /**
-   * Expand all occurance of -xargs URL into a new
-   * array without any -xargs
+   * Expand all occurance of <tt>-xarg &lt;URL&gt;</tt> and <tt>--xarg
+   * &lt;URL&gt;</tt> into a new array without any <tt>-xargs</tt>,
+   * <tt>--xargs</tt>.
+   *
+   * @param argv array of command line options to expand all
+   *             <tt>-xarg &lt;URL&gt;</tt> options in.
+   * @return New argv array where all <tt>-xarg &lt;URL&gt;</tt>
+   *         options have been expanded.
    */
   static String[] expandArgs(String[] argv) {
     Vector v = new Vector();
@@ -647,7 +660,7 @@ public class Main {
   static void printJVMInfo() {
 
     try {
-      Properties props = System.getProperties();
+      Properties props = Framework.getSystemProperties();
       System.out.println("--- System properties ---");
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
         String key = (String)e.nextElement();
@@ -695,12 +708,13 @@ public class Main {
       }
     }
 
-    String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
-    File fwDir      = new File(fwDirStr);
+    String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+    // avoid getAbsoluteFile since some profiles don't have this
+    File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
     File xargsFile  = null;
 
     // avoid getParentFile since some profiles don't have this
-    String defDirStr = (new File(fwDir.getAbsolutePath())).getParent();
+    String defDirStr = fwDir.getParent();
     File   defDir    = defDirStr != null ? new File(defDirStr) : null;
 
     println("fwDir="+ fwDir, 2);
@@ -713,7 +727,7 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
+        String osName = (String)Alias.unifyOsName(Framework.getProperty("os.name")).get(0);
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();
@@ -725,14 +739,13 @@ public class Main {
 
 
       if(!bInit && (fwDir.exists() && fwDir.isDirectory())) {
-        println("found fwdir at " + fwDir.getAbsolutePath(), 1);
+        println("found fwdir at " + fwDir, 1);
         xargsFile = new File(defDir, defaultXArgsStart);
         if(xargsFile.exists()) {
           println("\n" +
                   "Default restart xargs file: " + xargsFile +
                   "\n" +
-                  "To reinitialize, remove the " + fwDir.toString() +
-                  " directory\n",
+                  "To reinitialize, remove the " + fwDir +" directory\n",
                   5);
         } else {
           File xargsFile2 = new File(defDir, defaultXArgsInit);
@@ -741,7 +754,7 @@ public class Main {
           xargsFile = xargsFile2;
         }
       } else {
-        println("no fwdir at " + fwDir.getAbsolutePath(), 1);
+        println("no fwdir at " + fwDir, 1);
         xargsFile = new File(defDir, defaultXArgsInit);
         if(xargsFile.exists()) {
           println("\n" +
@@ -794,34 +807,34 @@ public class Main {
 
     // Make modifications to temporary dictionary and write
     // it back in end of this method
-    Properties sysProps = System.getProperties();
+    Properties sysProps = Framework.getSystemProperties();
 
     println("setDefaultSysProps", 1);
     for(int i = 0; i < defaultSysProps.length; i++) {
-      if(null == System.getProperty(defaultSysProps[i][0])) {
+      if(null == Framework.getProperty(defaultSysProps[i][0])) {
         println("Using default " + defaultSysProps[i][0] + "=" +
                 defaultSysProps[i][1], 1);
         sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
       } else {
-        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1);
+        println("system prop " + defaultSysProps[i][0] + "=" + Framework.getProperty(defaultSysProps[i][0]), 1);
       }
     }
 
     // Set version info
-    if(null == System.getProperty(PRODVERSION_PROP)) {
+    if(null == Framework.getProperty(PRODVERSION_PROP)) {
       sysProps.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty(JARDIR_PROP, null);
+    String jars = Framework.getProperty(JARDIR_PROP, null);
 
     if(jars == null || "".equals(jars)) {
       String jarBaseDir = topDir + "jars";
       println("jarBaseDir=" + jarBaseDir, 1);
 
-      File jarDir = new File(jarBaseDir);
+      File jarDir = new File(jarBaseDir).getAbsoluteFile();
       if(jarDir.exists() && jarDir.isDirectory()) {
 
         // avoid FileNameFilter since some profiles don't have it
@@ -848,8 +861,21 @@ public class Main {
     }
 
     // Write back system properties
-    System.setProperties(sysProps);
+    if(bWriteSysProps) {
+      mergeSystemProperties(sysProps);
+    }
+
+    // Write to framework properties. This should be the primary
+    // source for all code, including the framework itself.
+    Framework.setProperties(sysProps);
   }
+
+  static void mergeSystemProperties(Properties props) {
+    Properties p = Framework.getSystemProperties();
+    p.putAll(props);
+    System.setProperties(p);
+  }
+
 
   /**
    * Loop over args array and check that it looks reasonable.
@@ -930,7 +956,7 @@ public class Main {
    *  <li>Each line starting with '-D' and containing an '=' is set as
    *      a system property.
    *      Example "-Dorg.knopflerfish.test=apa" is equivalent
-   *      to <code>System.setProperty("org.knopflerfish.test", "apa");</code>
+   *      to <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
    *  <li>Each line of length zero is ignored.
    *  <li>Each line starting with '#' is ignored.
    *  <li>Lines starting with '-' is used a command with optional argument
@@ -940,19 +966,22 @@ public class Main {
    * </ul>
    * </p>
    *
-   *
-   * @param argv Original command line arguments. These should begin
-   *             with "-xargs" "<file to load>". If argv.length &lt; 2
-   *             return original argv.
-   * @return     Original argv + argv loaded from file
+   * @param xargsPath The URL to load the xargs-file from. The URL
+   *                  protcoll defaults to "file:". File URLs are
+   *                  first search for in the parent directory of the
+   *                  current FW-dir, then in the current working directory.
+   * @param argv      The command line arguments as the look before
+   *                  the file named in <tt>xargsPath</tt> have been
+   *                  expanded.
+   * @return array with command line options loaded from
+   *         <tt>xargsPath</tt> suitable to be merged into
+   *         <tt>argv</tt> by the caller.
    */
   static String [] loadArgs(String xargsPath, String[] oldArgs) {
 
     if(XARGS_DEFAULT.equals(xargsPath)) {
       xargsPath = getDefaultXArgs(oldArgs);
     }
-
-
 
     // out result
     Vector v = new Vector();
@@ -961,16 +990,44 @@ public class Main {
       BufferedReader in = null;
 
       // Check as file first, then as a URL
+      println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
 
-      File f = new File(xargsPath);
-      if(f.exists()) {
-        println("Loading xargs file " + f.getAbsolutePath(), 0);
-        in = new BufferedReader(new FileReader(f));
+      // 1) Search in parent dir of the current framework directory
+      String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+      // avoid getAbsoluteFile since some profiles don't have this
+      File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
+      // avoid getParentFile since some profiles don't have this
+      String defDirStr = fwDir.getParent();
+      File   defDir    = defDirStr != null ? new File(defDirStr) : null;
+      if (null!=defDir) {
+        // Make the file object absolute before calling exists(), see
+        // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
+        // for details.
+        File f = new File(new File(defDir,xargsPath).getAbsolutePath());
+        println(" trying " +f, 5);
+        if(f.exists()) {
+          println("Loading xargs file " + f, 0);
+          in = new BufferedReader(new FileReader(f));
+        }
       }
 
+      // 2) Search in the current working directory
+      if (null==in) {
+        // Make the file object absolute before calling exists(), see
+        // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
+        // for details.
+        File f = new File(new File(xargsPath).getAbsolutePath());
+        println(" trying " +f, 5);
+        if(f.exists()) {
+          println("Loading xargs file " + f, 0);
+          in = new BufferedReader(new FileReader(f));
+        }
+      }
 
+      // 3) Try argument as URL
       if(in == null) {
         try {
+          println(" trying URL " +xargsPath, 5);
           URL url = new URL(xargsPath);
           println("Loading xargs url " + url, 0);
           in = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -981,7 +1038,7 @@ public class Main {
       }
 
 
-      Properties   sysProps = System.getProperties();
+      Properties   sysProps = Framework.getSystemProperties();
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -1055,7 +1112,15 @@ public class Main {
         }
       }
       setSecurityManager(sysProps);
-      System.setProperties(sysProps);
+
+      if(bWriteSysProps) {
+        mergeSystemProperties(sysProps);
+      }
+
+      // Write to framework properties. This should be the primary
+      // source for all code, including the framework itself.
+      Framework.setProperties(sysProps);
+
     } catch (Exception e) {
       throw new IllegalArgumentException("xargs loading failed: " + e);
     }
@@ -1090,14 +1155,15 @@ public class Main {
       String manager  = (String)props.get("java.security.manager");
       String policy   = (String)props.get("java.security.policy");
 
-
       if(manager != null) {
         if(System.getSecurityManager() == null) {
           println("Setting security manager=" + manager +
                   ", policy=" + policy, 1);
           System.setProperty("java.security.manager", manager);
+          props.put("java.security.manager", manager);
           if(policy != null) {
             System.setProperty("java.security.policy",  policy);
+            props.put("java.security.policy", policy);
           }
           SecurityManager sm = null;
           if("".equals(manager)) {

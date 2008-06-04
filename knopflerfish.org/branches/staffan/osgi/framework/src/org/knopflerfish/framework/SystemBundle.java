@@ -111,13 +111,13 @@ public class SystemBundle extends BundleImpl {
     super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
           Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
     state = STARTING;
-    StringBuffer sp = new StringBuffer(System.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
+    StringBuffer sp = new StringBuffer(Framework.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
     if (sp.length() > 0) {
       sp.append(",");
     }
 
-    if ("true".equals(System.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
-      String jv = System.getProperty("java.version", null);
+    if ("true".equals(Framework.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
+      String jv = Framework.getProperty("java.version", null);
       if (null!=jv) { // Extract <M>.<N> part of the version string
         int end = jv.indexOf('.');
         if (end>-1) {
@@ -129,25 +129,25 @@ public class SystemBundle extends BundleImpl {
       }
     } else {
 
-      if("true".equals(System.getProperty(EXPORT13, "").trim())) {
+      if("true".equals(Framework.getProperty(EXPORT13, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.3.txt");
       }
 
-      if("true".equals(System.getProperty(EXPORT14, "").trim())) {
+      if("true".equals(Framework.getProperty(EXPORT14, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.4.txt");
       }
 
-      if("true".equals(System.getProperty(EXPORT15, "").trim())) {
+      if("true".equals(Framework.getProperty(EXPORT15, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.5.txt");
       }
 
-      if("true".equals(System.getProperty(EXPORT16, "").trim())) {
+      if("true".equals(Framework.getProperty(EXPORT16, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.6.txt");
       }
 
     }
 
-    addSysPackagesFromFile(sp, System.getProperty(SYSPKG_FILE, null));
+    addSysPackagesFromFile(sp, Framework.getProperty(SYSPKG_FILE, null));
     addSystemPackages(sp);
 
     exportPackageString = sp.toString();
@@ -407,7 +407,7 @@ public class SystemBundle extends BundleImpl {
   private boolean isInClassPath(BundleImpl extension) {
     String cps = extension.isBootClassPathExtension() ?
       "sun.boot.class.path" : "java.class.path";
-    String cp = System.getProperty(cps);
+    String cp = Framework.getProperty(cps);
     String[] scp = Util.splitwords(cp, ":");
     String path = extension.archive.getJarLocation();
 
