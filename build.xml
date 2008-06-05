@@ -153,6 +153,14 @@
       </filterset>
     </copy>
     
+    <copy file   = "README.txt"
+          tofile = "${distrib.out.dir}/README.txt">
+      <filterset begintoken="@" endtoken="@">
+	<filter token="VERSION"      value="${version}"/>
+	<filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
+      </filterset>
+    </copy>
+    
     <delete dir="${htdocs.out}/extrabundledocs"/>
 
     <extrabundledoc out="${htdocs.out}/extrabundledocs"
@@ -526,8 +534,6 @@
            <include name = "tools/**"/>
            <include name = "osgi/jars/**"/>
 
-           <include name = "README.txt"/>
-
            <exclude name = "keystore"/>
 
 
@@ -590,6 +596,7 @@
 
         <zipfileset dir    = "${distrib.out.dir}"
                     prefix = "knopflerfish.org">
+           <include name = "README.txt"/>
 	   <include name = "release_notes.txt"/>
 	   <include name = "release_notes.html"/>
 	   <include name = "changelog.html"/>

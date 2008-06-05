@@ -1,5 +1,5 @@
 *******************************************
-** Knopflerfish Release 2.0.0
+** Knopflerfish Release @VERSION@
 **
 ** For more information, please visit 
 **   http://www.knopflerfish.org
