@@ -373,28 +373,28 @@ class BundleImpl implements Bundle {
         bactivator.start(bundleContext);
         bStarted = true;
       } else {
-        // Check if we have a standard Main-class attribute as
-        // in normal executable jar files. This is a slight
-        // extension to the OSGi spec.
-        // Update: The Main-Class attribute is only used if
-        // the bundle's locations is an element in the
-        // comma-separated list defined org.knopflerfish.main.class.activation
-
-        String mainClassActivators = Framework.getProperty("org.knopflerfish.main.class.activation");
-        if (mainClassActivators != null) {
-          final String mc = archive.getAttribute("Main-class");
+        // If the Main-Class manifest attribute is set and this
+        // bundles location is present in the value (comma separated
+        // list) of the (System) property named
+        // org.knopflerfish.framework.main.class.activation then setup
+        // up a bundle activator that calls the main-method of the
+        // Main-Class when the bundle is started, and if the
+        // Main-Class contains a method named stop() call that
+        // method when the bundle is stopped.
+        String locations = Framework.getProperty
+          ("org.knopflerfish.framework.main.class.activation");
+        if (locations != null) {
+          final String mc = archive.getAttribute("Main-Class");
 
           if (mc != null) {
-            String[] files = Util.splitwords(mainClassActivators, ",");
-            for (int i = 0; i < files.length; i++) {
-              if (files[i].equals(location)) {
+            String[] locs = Util.splitwords(locations, ",");
+            for (int i = 0; i < locs.length; i++) {
+              if (locs[i].equals(location)) {
                 if(Debug.packages) {
                   Debug.println("starting main class " + mc);
                 }
-
                 Class mainClass = getClassLoader().loadClass(mc.trim());
-
-                bactivator = MainClassBundleActivator.create(getClassLoader(), mainClass);
+                bactivator = new MainClassBundleActivator(mainClass);
                 bactivator.start(bundleContext);
                 bStarted = true;
                 break;
