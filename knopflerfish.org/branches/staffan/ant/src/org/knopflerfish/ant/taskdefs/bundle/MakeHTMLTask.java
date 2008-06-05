@@ -333,6 +333,8 @@ public class MakeHTMLTask extends Task {
                              proj.getProperty("JAVADOC"));
       content = Util.replace(content, "$(CLASS_NAVIGATION)",
                              proj.getProperty("css_navigation_enabled"));
+      content = Util.replace(content, "$(SVN_REPO_URL)",
+                             proj.getProperty("svn.repo.url"));
       content = Util.replace(content, "$(SVN_TAG)",proj.getProperty("svn.tag"));
 
       // Used for bundle_doc generation
