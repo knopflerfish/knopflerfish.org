@@ -505,7 +505,7 @@ Framework System Properties
    Default: patchedclasses
 
 
-  org.knopflerfish.framework.automanifest   
+  org.knopflerfish.framework.automanifest
    Flag to enable automatic manifest generation. If true, bundle
    manifest can be modified by a special configuration file. See
    javadoc for org.knopflerfish.framework.AutoManifest class 
@@ -516,9 +516,18 @@ Framework System Properties
 
   org.knopflerfish.framework.automanifest.config
    Configuration URL for automatic manifest generation. Only
-   valid if org.knopflerfish.framework.automanifest=true
+   valid if org.knopflerfish.framework.automanifest=true.
+   An URL starting with "!!" followed by path is refer to a resource
+   on the classloader that have loaded the framework.
 
    Default: "!!/automanifest.props"
+
+
+  org.knopflerfish.framework.debug.automanifest
+   Print debug output for automatic manifest actions.
+
+   Default: false
+
 
 
   org.knopflerfish.framework.xargs.writesysprops
