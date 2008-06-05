@@ -41,6 +41,9 @@
   <!-- The version of this build -->
   <property name  = "version"
             value = "2.1.0.svn-XXXX"/>
+  <!-- The SVN-repository URL -->
+  <property name="svn.repo.url"
+	    value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
   <!-- The subversion tag / branch that this build is made on -->
   <!-- E.g., "trunk", "tags/2.0.4", "branches/kf_1_support". -->
   <property name  = "svn.tag"    value="tags/${version}"/>
