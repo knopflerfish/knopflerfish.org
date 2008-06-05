@@ -1,4 +1,4 @@
-<h3>JUnit on OSGI</h3>
+<h1>JUnit on OSGI</h1>
 
 Bundles to support JUnit testing on a running framework. 
 <p>
@@ -22,7 +22,7 @@ There are three bundles involved:
 <dd>    some small test cases using junit
 </dl>
 
-<h3>Requirements:</h3>
+<h2>Requirements:</h2>
 
 The junit bundle does not require any other bundles (as of revision 737)
 but can use the HTTP server and the KF console to make test access easier.
@@ -34,7 +34,7 @@ but can use the HTTP server and the KF console to make test access easier.
 <li> - XML parser (used by the client part)
 </ul>
 
-<h3>Background</h3>
+<h2>Background</h2>
 
 JUnit allows developers to write unit tests by writing classes 
 implementing junit.framework.Test, e.g TestCase, TestSuite etc.
@@ -56,7 +56,7 @@ Thus, the junit bundle allows remote access to test cases running
 on a framework, from any normal test tool running on a developer 
 machine.
 
-<h3>How it works</h3>
+<h2>How it works</h2>
 <ol> 
 <li>Bundle developers write tests for a bundle B just as any other 
     JUnit tests. The tests simply extends TestCase or TestSuite.
@@ -165,7 +165,7 @@ machine.
   HTML.
  
 
-<h3>JUnit support in bundlebuild_include.xml</h3>
+<h2>JUnit support in bundlebuild_include.xml</h2>
 ----------------------------------------
 
 As a convenience, the ant/bundlebuild_include.xml script
@@ -198,7 +198,7 @@ The following Ant properties are set as default in bundlebuild_include.xml:
   junit.outfile          junit
 </pre>
 
-<h3>Known issues</h3>
+<h2>Known issues</h2>
 
 <ul>
 <li>TestSuites are "flattened" by the client proxy, so the
