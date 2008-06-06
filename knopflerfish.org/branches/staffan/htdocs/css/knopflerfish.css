@@ -38,12 +38,16 @@ BODY  {
   /*  background: #f4d6ea; */
 }
 
-DL.leftmenu2 {
+DL.leftmenu2,leftmenu2_last {
   margin:	6px 0px 6px 0px;	     
   padding:	6px 0px 6px 0px;
   border-style: solid;
   border-color: #802060;
   border-width: 0px 0px 1px 0px;
+}
+
+DL.leftmenu2_last {
+  border-width: 0px 0px 0px 0px;
 }
 
 DT.leftmenu2 {
@@ -73,7 +77,19 @@ DD.leftmenu2  {
 
 #footer {
   clear:both;
+  border-style: solid;
+  border-color: #802060;
+  border-width: 1px 0px 0px 0px;
+  margin:	20px 15px 15px 15px;
 }
+
+#copyright {
+  margin-left: 200px;
+  font-size:10px;
+  color: #000;
+  text-align: right;
+  padding: 5px 10px 0px 0px;
+}	  
 
 H2 {
   font-family: Verdana, Arial, Helvetica, sans-serif;
