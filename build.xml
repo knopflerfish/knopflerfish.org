@@ -507,6 +507,7 @@
         <zipfileset dir    = "${release.doc.dir}"
                     prefix = "knopflerfish.org/docs">
 	  <include name = "**"/>
+          <exclude name = "**/*.jar"/>
 	</zipfileset>
 	
         <zipfileset dir    = "."
