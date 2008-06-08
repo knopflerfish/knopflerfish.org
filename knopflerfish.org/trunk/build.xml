@@ -625,6 +625,9 @@
 
     </jar>
 
+    <copy todir="${release.dir}/jars">
+     <fileset dir="osgi/jars"/>
+    </copy>
   </target>
 
   <target   name        = "distrib_bin"
@@ -1056,6 +1059,9 @@
 
     </jar>
 
+    <copy todir="${release.dir}/jars">
+     <fileset dir="osgi/jars"/>
+    </copy>
   </target>
 
  <target name="install_bcel"
