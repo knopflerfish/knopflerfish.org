@@ -7,6 +7,19 @@ Release Notes Knopflerfish @VERSION@
   Here follows a breakdown of the most important changes since the 
   last release.
 
+
+
+========================================================================
+
+
+Release Notes Knopflerfish 2.1.0
+--------------------------------
+
+  Maintenance release of Knopflerfish with new graphical profile.
+
+  Here follows a breakdown of the most important changes since the 
+  last release.
+
 === Framework (Core) ===
 
 
@@ -27,7 +40,7 @@ Release Notes Knopflerfish @VERSION@
 
 
   Fixed a bug in the handling of the re-export directive in the
-  Require-Bundle manifest-header. 
+  Require-Bundle manifest-header.
   Reported in issues 1957937 (Require-Bundle: visibility:=reexport broken)
   http://sourceforge.net/tracker/index.php?func=detail&aid=1957937&group_id=82798&atid=567241
 
@@ -55,7 +68,7 @@ Release Notes Knopflerfish @VERSION@
 
   Added a new system property,
   org.knopflerfish.framework.xargs.writesysprops, that controls
-  weather properties defined using -Dname=value in xargs files are to
+  whether properties defined using -Dname=value in xargs files are to
   be exported as system properties or not. Such properties will
   always be available to bundles via BundleContext.getProperty(name).
   See osgi/framework/readme.txt for details.
