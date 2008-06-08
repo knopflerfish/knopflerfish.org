@@ -288,22 +288,17 @@
     <byteformatter file="${distribfile_tests}" unit="B"
                    property="distribfile_tests.length"/>
 
-    <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
-	 dest="${release.dir}/index.html"/>
-
-    <loadfile property = "release_page.mainblock"     
-              srcfile  = "release_page.in"/>
-
-    <replace file="${release.dir}/index.html">
-      <replacefilter token="@MAINBLOCK@"
-		     value="${release_page.mainblock}"/>
-    </replace>
+    <copy file   = "htdocs/html_src/release_page.html.in"
+          tofile = "${release.dir}/index.html">
+    </copy>
 
     <replace file="${release.dir}/index.html">
       <replacefilter token="@VERSION@"
 		     value="${version}"/>
       <replacefilter token="@DATE@"
 		     value="${distrib.tstamp}"/>
+      <replacefilter token="@REPO_URL@"
+		     value="${svn.repo.url}"/>
       <replacefilter token="@TAG@"
 		     value="${svn.tag}"/>
       <replacefilter token="@BUILD_KIND@"
