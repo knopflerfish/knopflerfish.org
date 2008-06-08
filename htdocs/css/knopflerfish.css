@@ -15,6 +15,13 @@ BODY  {
   padding: 0px 0px 0px 0px;
 }
 
+#mainblock {
+  margin-left: 210px; 
+  padding-right: 15px;
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
+}
+
 #header {
   margin-bottom: 30px;
 }
@@ -68,11 +75,6 @@ DD.leftmenu2  {
   background-image: url('/images/slash_small.jpg');
   background-repeat: no-repeat;
   background-position: 0 .5em;
-}
-
-#mainblock {
-  margin-left: 210px; 
-  padding-right: 15px;
 }
 
 #footer {
@@ -161,4 +163,15 @@ PRE {
  color:000000;
  text-align:left;
  font-weight:normal;
+}
+
+TH {
+ text-align: left;
+ font-family: Helvetica, sans-serif;
+ font-size: 14px;
+}
+
+TD {
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
 }
