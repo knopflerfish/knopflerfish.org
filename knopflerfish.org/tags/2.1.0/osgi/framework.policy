@@ -1,0 +1,3 @@
+grant codeBase "file:framework.jar" {
+  permission java.security.AllPermission;
+};

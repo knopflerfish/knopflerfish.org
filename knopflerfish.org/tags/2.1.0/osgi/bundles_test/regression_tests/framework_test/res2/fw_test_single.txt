@@ -1,0 +1,1 @@
+This is a single resource in the bundle's res2.jar internal jar file.

@@ -1,0 +1,16 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: axis2_soapobject
+Bundle-SymbolicName: org.knopflerfish.bundle.axis2_soapobject
+Bundle-Version: 1.0.0
+Bundle-UUID: org.knopflerfish.bundle.axis2_soapobject:1.0.0:all
+Bundle-Description: Exporter of a Web Service via Axis2
+Bundle-Vendor: Knopflerfish/Makewave
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.axis2_soapobject.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.axis2_soapobject;version=1.0.0
+Import-Package: org.knopflerfish.service.axis2_soapobject,
+ org.osgi.framework,
+ org.knopflerfish.service.axis2
+

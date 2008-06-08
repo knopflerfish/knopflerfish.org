@@ -1,0 +1,87 @@
+<h1>Axis2 OSGi</h1>
+
+<div class="abstract">
+This is an OSGi bundlification of a standard Axis2 server.<br/>
+
+The version used for this bundle is identical to the version of the
+Axis2 implementation that it contains.
+</div>
+
+<p> The bundle is part of the <a href="../soap/index.html#axis1">The
+Knopflerfish Axis 2</a> package.  </p>
+
+
+<h2>Description</h2>
+
+<p>
+In order to export a service object as a
+SOAP service, the only thing needed is to set a property named
+"SOAP.service.name" on the registered service. As a convenience
+<tt>org.knopflerfish.service.axis2.Axis2Admin.SOAP_SERVICE_NAME</tt> is
+a String constant that holds this name. The property value should be
+of type java.lang.String and its value will be used as the name of the
+exposed SOAP service.</p>
+
+<p> The set of service methods exported from a service with the
+<tt>SOAP.service.name</tt> property set can be controlled via another
+service property named, <tt>SOAP.service.methods</tt>. 
+
+<ul>
+ <li>If not set, or set to the value <tt>*</tt> then <b>all</b> methods in the registered classes are exposed as web service methods. </li>
+ <li>If set to a string with space separated method names, only 
+     those methods will be exposed as web service methods.</li>
+ <li>If set to a valid LDAP filter string, only methods names matching
+     the filter will be added. For example, <tt>(name=get*)</tt> will
+     export all <tt>get*()</tt> methods.
+ </li>
+</ul>
+
+As a convenience
+<tt>org.knopflerfish.service.axis2.Axis2Admin.SOAP_SERVICE_METHODS</tt>
+is a String constant that holds this service property name.  </p>
+
+<p>Web Services exported by the axis2-osgi bundle will have URLs on the
+form:</p>
+<pre>
+   http://localhost:8080/axis2/services/<i>&lt;SOAP_SERVICE_NAME&gt;</i>
+</pre>
+
+<p> To view the WSDL for a specific Web Service visit the URL: </p>
+<pre>
+   http://localhost:8080/axis2/services/<i>&lt;SOAP_SERVICE_NAME&gt;?wsdl</i>
+</pre>
+
+<p> To explore all web services provided by the axis2-osgi bundle the
+following URL may be used. </p>
+
+<pre>
+   http://localhost:8080/axis2admin/
+</pre>
+
+<p><b>Note: </b>The standard method in the Axis 2 web application to
+   view all service, visiting the URL
+   <tt>http://localhost:8080/axis2/listServices</tt> does <b>not</b>
+   work in axis2-osgi since it requires full WAR-support with JSP
+   handling which is not supported by the Knopflerfish HTTP
+   server.</p>
+
+<p> The code to make all this work consist of just a few quite small
+classes (not counting all Axis classes) so it is quite easy to get an
+overview of the porting effort. However it took some time
+experimenting and studying the Axis code to make this work, so some of
+the code may be harder to understand.</p>
+
+
+<p><b>Note: </b>The axis-osgi bundle depends on the commons-logging
+bundle to be installed an started. Further if your JRE does not
+support an XML parser you need to provide that as well (e.g Xerces).
+</p>
+
+<p> The axis-osgi.jar file is quite large due to the contained axis2
+jar files, even though some axis2 libraries are removed. For details
+and axis2 licenses, see contents of <tt>/WEB-INF/lib/</tt> inside the
+<tt>axis2-osgi.jar</tt>-file.  </p>
+
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a>
+

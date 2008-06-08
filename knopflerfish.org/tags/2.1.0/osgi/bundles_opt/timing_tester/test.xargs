@@ -1,0 +1,111 @@
+#
+# Knopflerfish release 2.0.5
+#
+
+## platform ID, if unset of empty, don't use
+-Dorg.osgi.provisioning.spid=EW
+
+-Dorg.knopflerfish.soap.remotefw.server=false
+-Dorg.knopflerfish.soap.remotefw.client=true
+
+-Dorg.knopflerfish.verbosity=0
+
+-Dorg.knopflerfish.gosg.jars=file:../../jars/
+
+-Dorg.knopflerfish.framework.debug.packages=false
+-Dorg.knopflerfish.framework.debug.errors=true
+-Dorg.knopflerfish.framework.debug.classloader=false
+-Dorg.knopflerfish.framework.debug.startlevel=false
+-Dorg.knopflerfish.framework.debug.ldap=false
+-Dorg.knopflerfish.framework.debug.url=false
+
+-Dorg.osgi.framework.system.packages=org.knopflerfish.test.framework,org.knopflerfish.framework
+-Dorg.knopflerfish.framework.system.export.all=true
+
+-Dorg.knopflerfish.http.dnslookup=false
+-Dorg.osgi.service.http.port=8080
+
+-Dorg.knopflerfish.startlevel.use=true
+
+-Dorg.knopflerfish.log.out=false
+-Dorg.knopflerfish.log.level=info
+-Dorg.knopflerfish.log.grabio=true
+-Dorg.knopflerfish.log.file=false
+
+-init
+
+
+## Basic KF bundles
+-initlevel 1
+-install log/log_all-2.0.0.jar
+-install cm/cm_all-2.0.0.jar
+-install console/console_all-2.0.0.jar
+-install component/component_all-2.0.0.jar
+-install event/event_all-2.0.0.jar
+
+
+## Some library bundles
+-initlevel 2
+-install util/util-2.0.0.jar
+-install crimson/crimson-2.0.0.jar
+-install jsdk/jsdk_api-2.5.jar
+
+# The Bundle repo commands and desktop plugin
+#-install  bundlerepository/bundlerepository_all-2.0.1.jar
+
+
+## More basic KF bundles
+-initlevel 3
+-install device/device_all-2.0.0.jar
+-install useradmin/useradmin_all-2.0.0.jar
+
+-initlevel 4
+-install http/http_all-2.1.0.jar
+
+
+## console command bundles
+-initlevel 5
+#-install frameworkcommands/frameworkcommands-2.0.0.jar
+-install logcommands/logcommands-2.0.0.jar
+-install cm_cmd/cm_cmd-2.0.0.jar
+
+-install consoletty/consoletty-2.0.0.jar
+
+-install consoletelnet/consoletelnet-2.0.1.jar
+
+
+-initlevel 6
+#-install remotefw/remotefw_api-2.0.0.jar
+#-install desktop/desktop_all-2.0.1.jar
+
+
+-initlevel 7
+-install  httproot/httproot-2.0.0.jar
+
+
+-startlevel 7
+
+
+# Start of these bundles are delayed since this makes start
+# order dependencies much easier
+
+-start log/log_all-2.0.0.jar
+-start crimson/crimson-2.0.0.jar
+-start cm/cm_all-2.0.0.jar
+-start console/console_all-2.0.0.jar
+-start component/component_all-2.0.0.jar
+-start event/event_all-2.0.0.jar
+-start device/device_all-2.0.0.jar
+-start useradmin/useradmin_all-2.0.0.jar
+#-start bundlerepository/bundlerepository_all-2.0.1.jar
+-start consoletty/consoletty-2.0.0.jar
+-start consoletelnet/consoletelnet-2.0.1.jar
+#-start frameworkcommands/frameworkcommands-2.0.0.jar
+-start logcommands/logcommands-2.0.0.jar
+-start cm_cmd/cm_cmd-2.0.0.jar
+#-start desktop/desktop_all-2.0.1.jar
+-start http/http_all-2.1.0.jar
+-start httproot/httproot-2.0.0.jar
+
+
+-istart tester/tester-2.0.0.jar
