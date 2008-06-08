@@ -1,3 +1,611 @@
+2008-06-08 21:21:58 +0200 (Sun, 08 Jun 2008), revision 2396, ekolin
+New graphical profile for web pages and documentation.
+U   knopflerfish.org/trunk/README.txt
+A   knopflerfish.org/trunk/ant/html_template/bundle_header.html
+U   knopflerfish.org/trunk/ant/html_template/bundle_index.html
+U   knopflerfish.org/trunk/ant/html_template/bundle_list.html
+U   knopflerfish.org/trunk/ant/html_template/bundle_main.html
+U   knopflerfish.org/trunk/ant/html_template/bundledoc.html
+U   knopflerfish.org/trunk/ant/html_template/style.css
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/build.xml
+A   knopflerfish.org/trunk/htdocs/css/kf_man.css
+U   knopflerfish.org/trunk/htdocs/css/knopflerfish.css
+U   knopflerfish.org/trunk/htdocs/html_src/components_main.html
+A   knopflerfish.org/trunk/htdocs/html_src/release_page.html.in
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_hdr.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_main.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/index.html
+U   knopflerfish.org/trunk/htdocs/html_templates/template.html
+U   knopflerfish.org/trunk/htdocs/images/desktop-clip.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop1.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_drop_view.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_drop_view.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_log.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_log.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_manifest.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_manifest.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_packages.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_packages.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_services.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_info_services.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_on_eclipse.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_open_bundle.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_open_bundle.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_set_startlevel.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_set_startlevel.png
+U   knopflerfish.org/trunk/htdocs/images/desktop_setbundle_startlevel.gif
+U   knopflerfish.org/trunk/htdocs/images/desktop_setbundle_startlevel.png
+A   knopflerfish.org/trunk/htdocs/images/fadeout_15.png
+A   knopflerfish.org/trunk/htdocs/images/kf300_black.png
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/resources/app.png
+U   knopflerfish.org/trunk/osgi/bundles/desktop/resources/kf_16x16.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/kf_300x170.png
+U   knopflerfish.org/trunk/osgi/bundles/desktop/resources/kf_32x32.gif
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/resources/kf_16x16.gif
+U   knopflerfish.org/trunk/osgi/bundles_opt/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/doc/
+D   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/doc/index.html
+A   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/doc/index.html
+D   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/readme.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/doc/index.html
+D   knopflerfish.org/trunk/release_page.in
+U   knopflerfish.org/trunk/tools/jarunpacker/resources/fish16x16.gif
+U   knopflerfish.org/trunk/tools/jarunpacker/resources/fish200x300.gif
+U   knopflerfish.org/trunk/tools/jarunpacker/resources/fish32x32.gif
+U   knopflerfish.org/trunk/tools/jarunpacker/resources/kf_16x16.gif
+U   knopflerfish.org/trunk/tools/jarunpacker/resources/kf_32x32.gif
+U   knopflerfish.org/trunk/tools/jarunpacker/resources/knopflerfish_red400pxl.gif
+
+2008-06-05 11:03:28 +0200 (Thu, 05 Jun 2008), revision 2375, ekolin
+Fix the auto activator from main feature.
+U   knopflerfish.org/trunk/osgi/framework/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/MainClassBundleActivator.java
+
+2008-06-02 11:42:17 +0200 (Mon, 02 Jun 2008), revision 2373, ekolin
+Ensure that the System property org.osgi.framework.executionenvironment is volatile. I.e., a bundle must be able to update this property, thus we must not cache it in the framework.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-02 09:18:14 +0200 (Mon, 02 Jun 2008), revision 2372, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-02 09:16:42 +0200 (Mon, 02 Jun 2008), revision 2371, ekolin
+The last URLConnection.getLastModified() for bundle URLs now returns the last modified of the bundle that the contents is fetched from.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleURLConnection.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-29 15:18:38 +0200 (Thu, 29 May 2008), revision 2370, wistrand
+added org.knopflerfish.framework.xargs.writesysprops=true/false system property. default is true
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+
+2008-05-29 06:57:06 +0200 (Thu, 29 May 2008), revision 2369, ekolin
+The bundlerepository bundle now loads the repository definitions in a background thread to avoid blocking the main thread during startup and the AWT Event thread when refreshed (slow, hanging network connections). External links in the details view of the Bundle Repository-tab in the desktop now opens in the default browser on Mac OS X. The Knopflerfish release and snapshot-build repositories are now allways added to the set of default repository URLs.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/desktop/OBRDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/desktop/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+U   knopflerfish.org/trunk/osgi/template.xargs
+
+2008-05-23 14:07:16 +0200 (Fri, 23 May 2008), revision 2368, ekolin
+Ignore some more build products
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/resources/
+
+2008-05-22 15:34:48 +0200 (Thu, 22 May 2008), revision 2367, wistrand
+first attempt at moving from System.getProperty to Framework.getProperty
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/AutoManifest.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Bundles.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ClassPatcher.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Listeners.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceContentHandlerFactory.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceURLStreamHandlerFactory.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Util.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2008-05-22 14:37:31 +0200 (Thu, 22 May 2008), revision 2366, wistrand
+better messages for missing bundle property test
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+
+2008-05-22 10:59:03 +0200 (Thu, 22 May 2008), revision 2365, ekolin
+Replace all explicit as well as implicit calls to System.getProperty() with calls to BundleContext.getProperty().
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpConfig.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServerFactory.java
+
+2008-05-21 12:54:22 +0200 (Wed, 21 May 2008), revision 2364, ekolin
+Simplify and generalize scripts for nightly builds.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/build.sh
+
+2008-05-20 12:00:00 +0200 (Tue, 20 May 2008), revision 2363, ekolin
+Make string constants naming system properties public for convenience (issue 1966119).
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+
+2008-05-19 10:33:21 +0200 (Mon, 19 May 2008), revision 2362, ekolin
+Search for xargs files given with relative file names now first tries to find the file in parent directory of the current framework directory, then in the current working directory. Issue 1966119.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-18 19:06:00 +0200 (Sun, 18 May 2008), revision 2361, ekolin
+Fix issue  1966119 (Support custom working directory
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-18 18:41:02 +0200 (Sun, 18 May 2008), revision 2360, ekolin
+The derivation of imported packages done by the bundle-info-task now detects packages that are only referenced from invoke instructions in the byte code. Removed a number of no longer needed 'bundle.stdimports' and 'bundle.extraimports' from the build-files. Added imports with resolution=optional for referenced packages that are not used (or optional). Bumped desktop version to 2.0.1 due to new functionality (update check, manifest entry sorting, ...). Added download URL to the release-note.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/sslj2sp/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/boing/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/desktop_jvm/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/desktop_jvm/src/org/knopflerfish/bundle/desktop/jvminfo/JGraph.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/desktop_jvm/src/org/knopflerfish/bundle/desktop/jvminfo/JVMDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/build.xml
+U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
+U   knopflerfish.org/trunk/osgi/template.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-17 18:35:49 +0200 (Sat, 17 May 2008), revision 2359, ekolin
+Make class analyzis visible when using debug level logging.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+
+2008-05-16 17:18:15 +0200 (Fri, 16 May 2008), revision 2358, ekolin
+Use a service tracker for the console service to remove start order dependency and improve behaviour when the console serivce is updated.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/ConsoleSwing.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/SwingIO.java
+
+2008-05-16 14:03:30 +0200 (Fri, 16 May 2008), revision 2357, ekolin
+Create local repository.xml and bindex.xml in the release diretory.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/css/repository.xsl
+U   knopflerfish.org/trunk/release_page.in
+
+2008-05-16 10:09:41 +0200 (Fri, 16 May 2008), revision 2356, ekolin
+Add missing import of the package javax.swing.border
+U   knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/bundle.manifest
+
+2008-05-15 15:02:25 +0200 (Thu, 15 May 2008), revision 2354, ekolin
+More bindex cleanup.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BIndexTask.java
+U   knopflerfish.org/trunk/build.xml
+
+2008-05-15 10:03:33 +0200 (Thu, 15 May 2008), revision 2349, ekolin
+Remove unwanted, extra quote level around the repository name.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BIndexTask.java
+
+2008-05-14 16:43:43 +0200 (Wed, 14 May 2008), revision 2348, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+
+2008-05-14 09:41:41 +0200 (Wed, 14 May 2008), revision 2347, ekolin
+Remove non-existing jar from bundle classpath
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+
+2008-05-13 09:35:29 +0200 (Tue, 13 May 2008), revision 2346, ekolin
+Unify formating.
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-12 16:28:56 +0200 (Mon, 12 May 2008), revision 2345, ekolin
+Fix issue 1699277 ([SCR] locateServices(String) returns ServiceReference[])
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-09 17:39:17 +0200 (Fri, 09 May 2008), revision 2344, ekolin
+Fix issue 1960999 (Update of required bundle broken)
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/RequireBundleTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/Util.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ExportedPackageImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Packages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/RequiredBundleImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-08 16:33:11 +0200 (Thu, 08 May 2008), revision 2343, wistrand
+added update check
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Strings.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+
+2008-05-08 16:32:58 +0200 (Thu, 08 May 2008), revision 2342, wistrand
+added update check
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+
+2008-05-08 14:32:51 +0200 (Thu, 08 May 2008), revision 2341, wistrand
+Support for http basic authentication by using system property http.basicAuth=name:pwd
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/bundle/bundlerepository/BundleRepositoryServiceImpl.java
+
+2008-05-08 14:23:05 +0200 (Thu, 08 May 2008), revision 2340, wistrand
+Support for http basic authentication by using system property http.basicAuth=name:pwd
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Bundles.java
+
+2008-05-07 18:00:51 +0200 (Wed, 07 May 2008), revision 2339, ekolin
+Removed now obsolete PJava 1.2 support from the bundle class loader. Build system: top-level clean was not cleaning regression test bundles. Added new regression test case for split packages via Require-Bundle.
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/RequireBundleTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/test_rb/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/test_rb/C/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/test_rb/C/C.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/test_rb/C/D.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/test_rb/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/src/test_rb/bundle/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/src/test_rb/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/src/test_rb/C/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/src/test_rb/C/D.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/src/test_rb/D/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_D/src/test_rb/D/D.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-07 15:37:38 +0200 (Wed, 07 May 2008), revision 2338, ekolin
+Packages tab now presents data about packages made available via Require-Bundle manifest header. Package names are sorted, packages pending removal are marked. Manifest entries are also sorted in the Manifest-tab.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageHTMLDisplayer.java
+
+2008-05-07 07:59:22 +0200 (Wed, 07 May 2008), revision 2337, ekolin
+Update number of expected jar entries (new test suite -> new entries).
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+
+2008-05-07 07:36:17 +0200 (Wed, 07 May 2008), revision 2336, ekolin
+Must build in require-bundle before building framework_tests since that bundle uses the bundles from require-bundle.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build.xml
+
+2008-05-06 15:22:08 +0200 (Tue, 06 May 2008), revision 2335, ekolin
+Fixed issue 1957937 (Require-Bundle: visibility:=reexport broken)
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/build.xml
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/resources/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/RequireBundleTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/src/test_rb/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/src/test_rb/A/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/src/test_rb/A/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/src/test_rb/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/src/test_rb/B/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_B/src/test_rb/B/B.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleArchive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Bundles.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ExportedPackageImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Packages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/RequireBundle.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Util.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-03 16:11:37 +0200 (Sat, 03 May 2008), revision 2334, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+
+2008-05-03 15:58:23 +0200 (Sat, 03 May 2008), revision 2333, ekolin
+Renamed BundleClassLoader.getResources() to BundleClassLoader.getResourcesOSGi() since ClassLoader.getResources() is final in JDK 1.4. This is not really good since resources listed by BundleClassLoader.getResources() may not be obtainable when calling BUndleClassLoader.getResource() (found by parent classloader but blocked due to missing boot delegation).
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+
+2008-05-03 15:25:28 +0200 (Sat, 03 May 2008), revision 2332, ekolin
+Fix issue 1953611; 'ant all' fails.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-03 13:58:04 +0200 (Sat, 03 May 2008), revision 2331, ekolin
+Fix issue 1955529; Bundle.getEntry() depndes on '.' to be the first entry in the bundle class path.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-05-02 23:10:20 +0200 (Fri, 02 May 2008), revision 2330, ekolin
+Bundle.getResource(), Bundle.getResources() and the corresponding methods in the bundle class loader now honors the OSGi specified system property named org.osgi.framework.bootdelegation
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventConsumer1.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventConsumer2.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventConsumer3.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventConsumer4.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventProducer1.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventProducer2.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventProducer3.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/EventProducer4.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/TestServiceBundle.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/resources/testlibs/ThreadTest.jar
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/src/org/knopflerfish/bundle/eventadmin_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/resources/version
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/init-tests.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-04-26 12:14:19 +0200 (Sat, 26 Apr 2008), revision 2329, ekolin
+Set source and target Java version to 1.2
+U   knopflerfish.org/trunk/tools/jarunpacker/build.xml
+
+2008-04-23 19:08:23 +0200 (Wed, 23 Apr 2008), revision 2328, ekolin
+Fix sf-gatespace.com-bugs-trakcer bug [ 1949895 ] missing template.xargs, won't build
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+U   knopflerfish.org/trunk/tools/jarunpacker/src/org/knopflerfish/tools/jarunpacker/JUnpackWizard.java
+
+2008-04-23 18:44:17 +0200 (Wed, 23 Apr 2008), revision 2327, ekolin
+Include .xargs-files when unpakcing source only (the template.xargs
+file is needed to do a build).
+U   knopflerfish.org/trunk/tools/jarunpacker/src/org/knopflerfish/tools/jarunpacker/JUnpackWizard.java
+
+2008-04-08 10:21:26 +0200 (Tue, 08 Apr 2008), revision 2325, ekolin
+The check for BCEL must be done outside of the check_Bcel target since the result is also used by the maybe_install_bcel target. Made ant/lib a versioned element.
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+A   knopflerfish.org/trunk/ant/lib/
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+
+2008-04-08 10:06:15 +0200 (Tue, 08 Apr 2008), revision 2324, ekolin
+Depend on bundle_tasks not check_bcel since autdownload of local bcel
+copy have been added.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-04-08 10:03:18 +0200 (Tue, 08 Apr 2008), revision 2323, ekolin
+Depends on jarunpacker, must build it!
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+
+2008-04-08 09:58:48 +0200 (Tue, 08 Apr 2008), revision 2322, ekolin
+Auto install bcel in ant/lib if not preseent on class path
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+
+2008-04-03 14:40:35 +0200 (Thu, 03 Apr 2008), revision 2318, ekolin
+Refactoring of OSGi bundle repository description  generation. The downloaded file bindex.jar is moved to ant/lib, all taskdefs for the KF ant tasks are moved to bundletasks.xml which is imported by the toplevel build.xml file.
+_U  knopflerfish.org/trunk/
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BIndexTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/build.xml
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-04-02 09:43:34 +0200 (Wed, 02 Apr 2008), revision 2316, ekolin
+Fix broken link to "Release Notes" shall point to release_notes.html.
+U   knopflerfish.org/trunk/release_page.in
+
+2008-03-31 16:21:14 +0200 (Mon, 31 Mar 2008), revision 2315, ekolin
+Ignore out-dir with build products.
+_U  knopflerfish.org/trunk/
+
+2008-03-31 16:14:04 +0200 (Mon, 31 Mar 2008), revision 2314, ekolin
+Place generated docs in out to simplify clean up.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/build.xml
+U   knopflerfish.org/trunk/release_page.in
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-03-31 10:27:38 +0200 (Mon, 31 Mar 2008), revision 2305, ekolin
+Make links point to the actual index-page and not only to the
+directory holding the index page (makes the page work better when used
+via file-URLs).
+U   knopflerfish.org/trunk/release_page.in
+
+2008-03-31 10:13:05 +0200 (Mon, 31 Mar 2008), revision 2304, ekolin
+Publish the default version controlled change log file, to avoid empty
+link in release-builds.
+U   knopflerfish.org/trunk/build.xml
+
+2008-03-27 16:18:27 +0100 (Thu, 27 Mar 2008), revision 2302, ekolin
+Use binary bytes in the unit name on the release page sine that is the unit that file sizes are measured in.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_page.in
+
+2008-03-27 15:40:57 +0100 (Thu, 27 Mar 2008), revision 2301, ekolin
+Factor out the main block from the rel_index.html.in page to a separate file so that the rel_index.html.in file can be used as template for other pages too.
+U   knopflerfish.org/trunk/build.xml
+A   knopflerfish.org/trunk/release_page.in
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-03-27 14:29:40 +0100 (Thu, 27 Mar 2008), revision 2300, ekolin
+Use doPrivileged() when opening an URL connection to a bundle resource since the archive implementation may need file permissions not granted to all code sources.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleURLConnection.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-20 08:24:07 +0100 (Thu, 20 Mar 2008), revision 2298, ekolin
+Protect agains class cast error, if the listed factory can not be casted to the expected factory type do not try to register it as a factory service.
+U   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/org/osgi/util/xml/XMLTransformerActivator.java
+
+2008-03-20 08:22:57 +0100 (Thu, 20 Mar 2008), revision 2297, ekolin
+Remove javax.security.sasl from import list since that package is not available in JDK 1.4
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+
+2008-03-19 16:59:32 +0100 (Wed, 19 Mar 2008), revision 2296, ekolin
+Empty system property not allowed
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs
+
+2008-03-19 16:41:14 +0100 (Wed, 19 Mar 2008), revision 2295, ekolin
+Add some more Axis2 documentation.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/doc/index.html
+
+2008-03-19 16:31:22 +0100 (Wed, 19 Mar 2008), revision 2294, ekolin
+Added a new bundle, xalan, that provides the Apache Xalan XML tranformation functionality. This bundle must be present to get WSDL documents for web-services exported by the axis2-osgi bundle.
+U   knopflerfish.org/trunk/osgi/bundles/xml/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/README.txt
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/resources/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/resources/xalan.jar
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/org/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/org/osgi/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/org/osgi/util/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/org/osgi/util/xml/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/src/org/osgi/util/xml/XMLTransformerActivator.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-19 12:58:42 +0100 (Wed, 19 Mar 2008), revision 2293, ekolin
+Removed some unused (but referenced) packages from the import list, removed xml-apis.jar from lib, stated explicit import of packages provided by the new xerces-bundle.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/xml-apis-1.3.03.jar
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/WEB-INF/lib/xml-apis-LICENSE.txt
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xml-apis-1.3.03.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/unusedlibs/xml-apis-LICENSE.txt
+
+2008-03-19 12:56:19 +0100 (Wed, 19 Mar 2008), revision 2292, ekolin
+Added bundle wrapping Xerces-J 2.9.1.
+U   knopflerfish.org/trunk/osgi/bundles/xml/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/xml/crimson/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/README.txt
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/LICENSE-SAX.html
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/LICENSE.DOM-documentation.html
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/LICENSE.DOM-software.html
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/LICENSE.resolver.txt
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/LICENSE.serializer.txt
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/resolver.jar
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/serializer.jar
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/xercesImpl.jar
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/resources/xml-apis.jar
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/src/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/src/org/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/src/org/osgi/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/src/org/osgi/util/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/src/org/osgi/util/xml/
+A   knopflerfish.org/trunk/osgi/bundles/xml/xerces/src/org/osgi/util/xml/XMLParserActivator.java
+
+2008-03-18 16:13:26 +0100 (Tue, 18 Mar 2008), revision 2291, ekolin
+The Axis2-OSGi bundle now also works with security enabled.
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-18 16:02:42 +0100 (Tue, 18 Mar 2008), revision 2290, ekolin
+Save downloaded WSDL, allways generate, use parameter unwrapping in the stub.
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/MySoapTestService.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/gen.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/bundle/axis2_soapclient_adb/MySoapTestServiceClient_ADB.java
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/MySoapTestServiceCallbackHandler.java
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/MySoapTestServiceStub.java
+
+2008-03-18 13:10:39 +0100 (Tue, 18 Mar 2008), revision 2289, ekolin
+Use the bundle class loader to load axis2 modules, the default child class loader used by Axis2 will not assign permissions required by the framework to load other Axis2 classes when used in secure mode.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/addressing-1.3.mar
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/resources/modules/addressing-1.3.mar
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/knopflerfish/axis2/impl/OSGiConfigurator.java
+
+2008-03-18 11:17:33 +0100 (Tue, 18 Mar 2008), revision 2288, ekolin
+Add misssing packages.
+U   knopflerfish.org/trunk/osgi/framework/resources/packages1.6.txt
+
+2008-03-18 04:48:53 +0100 (Tue, 18 Mar 2008), revision 2287, cl
+Changed to <h3 class="man">
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
+
+2008-03-17 12:08:32 +0100 (Mon, 17 Mar 2008), revision 2286, ekolin
+Made the usage of double checked locking configurable via a system property named org.knopflerfish.framework.is_doublechecked_locking_safe. Fixed a bug in the double-checked locking code in PermissionsWrapper.
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/framework/readme.txt
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionsWrapper.java
+
+2008-03-15 11:57:08 +0100 (Sat, 15 Mar 2008), revision 2284, ekolin
+New link to SOAP-doc due to bundle user documentation reorganization.
+U   knopflerfish.org/trunk/tools/nightlybuild/rel_index.html.in
+
+2008-03-15 11:55:14 +0100 (Sat, 15 Mar 2008), revision 2283, ekolin
+Fixed a bug in the ByteFormatterTask.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+
+2008-03-15 09:41:56 +0100 (Sat, 15 Mar 2008), revision 2282, ekolin
+Found the BCEL version in one more place...
+U   knopflerfish.org/trunk/build.xml
+
+2008-03-14 19:43:14 +0100 (Fri, 14 Mar 2008), revision 2281, ekolin
+Use bcel version 5.2 to get ridd of some warnings when building the
+axis2-oasgi bundle.
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+
+2008-03-14 19:34:45 +0100 (Fri, 14 Mar 2008), revision 2280, ekolin
+Post 2.0.5 release update.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-03-14 19:30:27 +0100 (Fri, 14 Mar 2008), revision 2278, ekolin
+Update changelog for 2.0.5 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2008-03-14 19:20:10 +0100 (Fri, 14 Mar 2008), revision 2277, ekolin
 
 U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
