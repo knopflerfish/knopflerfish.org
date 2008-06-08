@@ -40,7 +40,7 @@
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_training.shtml">Training</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com"><img src="doc/images/makewave_logo_126x16.gif" border="0"></a><br>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com"><img src="/images/makewave_logo_126x16.gif" border="0"></a><br>
 	  <dd><em><b>Services for the OSGi Business User</b></em></dd>
       </div>
 
@@ -48,4 +48,6 @@
 	<h2>Knopflerfish snapshot builds</h2>
 
 	Most recent build done on @DATE@.
+        <p>
+
 
