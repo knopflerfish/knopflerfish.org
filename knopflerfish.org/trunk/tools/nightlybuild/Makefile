@@ -130,7 +130,7 @@ clean_snapshots:
 
 outindex:
 	@${RM} -f ${OUT_DIR}/${CURRENT_LINK}
-	@${CAT} snap_index.html.pre | \
+	@${CAT} ${TAG}/tools/nightlybuild/snap_index.html.pre | \
             ${SED} -e "s/@DATE@/${DATE}/g"              > ${OUT_DIR}/index.html
 	@echo "The current build on ${TAG} is <a href=">> ${OUT_DIR}/index.html
 	@echo "\"${CURRENT_LINK}\">${VERSION}</a>.<p/>">> ${OUT_DIR}/index.html
@@ -144,6 +144,7 @@ outindex:
 	      echo "<a href=\"$$FF\">$$FF</a><br/>"  >> ${OUT_DIR}/index.html; \
 	    fi; \
 	  done)
-	@${CAT} snap_index.html.post                   >> ${OUT_DIR}/index.html
+	@${CAT} ${TAG}/tools/nightlybuild/snap_index.html.post \
+                                                       >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${CURRENT_LINK})
 
