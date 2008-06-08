@@ -2,16 +2,40 @@
 
 <head>
 <LINK href="style.css" rel="stylesheet" type="text/css">
+
+  <style type="text/css"> 
+      BODY {
+      background: #fff;
+      margin-top:    5px;
+      margin-left:  15px;
+      margin-right: 10px;
+      }
+
+      #bundle_list {
+        margin-left: 8px;
+      }
+
+      #bundle_list A {
+        color: #000;
+        text-decoration: none;
+      }
+	      
+      #bundle_list A:hover {
+        color: #805362;	      
+        text-decoration: underline;
+        font-weight:      bold;
+      }
+  </style>
 </head>
 
 <body>
-<a target="_top" href="../../../index.html">Knopflerfish pages</a>
-
-<h3><a target="bundle_main" href="main.html">All bundles</a></h3>
-
-<table>
+<a target="_top" href="../index.html">Knopflerfish Documentation</a><br>
+<a target="bundle_main" href="main.html">Bundle Jar Documentation</a></h3><br>
+<p>
+<div id="bundle_list">
 ${bundle.list}
-</table>
+</div>
+</p>
 </body>
 
 </html>
