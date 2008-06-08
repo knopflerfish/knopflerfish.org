@@ -279,6 +279,10 @@ public class BundleHTMLExtractorTask extends Task {
     return new File(templateHTMLDir, "bundle_index.html");
   }
 
+  File getBundleHeaderTemplate() {
+    return new File(templateHTMLDir, "bundle_header.html");
+  }
+
   public void setBaseDir(String s) {
     this.baseDir = new File((new File(s)).getAbsolutePath());
   }
@@ -362,6 +366,9 @@ public class BundleHTMLExtractorTask extends Task {
 
       copyFile(getBundleIndexTemplate(),
                new File(baseDir, "index.html"));
+
+      copyFile(getBundleHeaderTemplate(),
+               new File(baseDir, "header.html"));
 
       copyFile(getBundleCSSTemplate(),
                new File(baseDir, "style.css"));

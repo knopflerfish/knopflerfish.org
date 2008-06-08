@@ -77,7 +77,7 @@ public class Activator implements BundleActivator, Runnable
       for (int i=0; repoURLs!=null && i<repoURLs.length; i++) {
         repoURLSet.add(repoURLs[i]);
       }
-      repoURLSet.add("http://www.knopflerfish.org/repo/repository.xml");
+      repoURLSet.add("http://www.knopflerfish.org/releases/current/repository.xml");
       repoURLSet.add("http://www.knopflerfish.org/snapshots/current_trunk/repository.xml");
       repoURLs = (String[]) repoURLSet.toArray(new String[repoURLSet.size()]);
       m_brs.setRepositoryURLs(repoURLs);

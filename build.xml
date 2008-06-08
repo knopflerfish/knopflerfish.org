@@ -40,7 +40,10 @@
 
   <!-- The version of this build -->
   <property name  = "version"
-            value = "2.0.6.svn-XXXX"/>
+            value = "2.1.0.svn-XXXX"/>
+  <!-- The SVN-repository URL -->
+  <property name="svn.repo.url"
+	    value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
   <!-- The subversion tag / branch that this build is made on -->
   <!-- E.g., "trunk", "tags/2.0.4", "branches/kf_1_support". -->
   <property name  = "svn.tag"    value="tags/${version}"/>
@@ -57,13 +60,16 @@
   <!-- The directory to place the results of a distrib build in. -->
   <property name="release.dir" value = "htdocs/releases/${version}"/>
 
+  <!-- The directory to place the distrib build docs in. -->
+  <property name="release.doc.dir" value = "htdocs/releases/${version}/doc"/>
+
   <!-- The URL that this release will be available on after installation. -->
   <property name="base.url" value = "http://www.knopflerfish.org/releases"/>
 
   <!-- A directory to place intermediate files for a distib build in. -->
   <property name = "distrib.out.dir" location = "out"/>
 
-  <property name="bundledoc.dir" location="${release.dir}/bundledoc"/>
+  <property name="bundledoc.dir" location="${release.doc.dir}/bundledoc"/>
 
   <property name = "javadoc.out.dir" location = "javadoc"/>
 
@@ -137,7 +143,7 @@
           description = "Builds HTML documents"
 	  depends     = "bundle_tasks">
     <property name="htdocs.dir"     location="htdocs"/>
-    <property name="htdocs.out"     location="${htdocs.dir}"/>
+    <property name="htdocs.out"     location="${release.doc.dir}"/>
     <property name="template.html"  location="${htdocs.dir}/html_templates/template.html"/>
     <property name="formatted.html" location="${htdocs.dir}/html_templates/formatted.html"/>
     <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
@@ -150,16 +156,24 @@
       </filterset>
     </copy>
     
-    <delete dir="${htdocs.out}/extrabundledocs"/>
-
-    <extrabundledoc out="${htdocs.out}/extrabundledocs"
-                    template="${htdocs.dir}/html_src/userdocs.html"
-                    pattern="&lt;tr&gt;&lt;td class=&quot;newstext&quot;&gt;&lt;a class=&quot;navigation_enabled&quot; href=&quot;$(URL)&quot;&gt;$(TITLE)&lt;/a&gt;&lt;/td&gt;&lt;td class=&quot;newstext&quot;&gt;$(BODY)&lt;/td&gt;&lt;/tr&gt;">
-      <fileset dir="osgi/bundles">
-	<include name="**/docs"/>
-      </fileset>
-    </extrabundledoc>
+    <copy file   = "README.txt"
+          tofile = "${distrib.out.dir}/README.txt">
+      <filterset begintoken="@" endtoken="@">
+	<filter token="VERSION"      value="${version}"/>
+	<filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
+      </filterset>
+    </copy>
+    
     <ant    dir         = "htdocs"  target      = "all"/>
+
+    <copy todir="${release.doc.dir}">
+      <fileset dir="${htdocs.dir}">
+	<include name="css/knopflerfish.css"/>
+	<include name="css/kf_man.css"/>
+	<include name="images/**"/>
+      </fileset>
+    </copy>
+    
   </target>
   
   <target name="check_javadoc" if="javadoc.out.dir.present">
@@ -184,8 +198,8 @@
     <ant    dir         = "osgi"
             target      = "javadoc"/>
 
-    <mkdir dir="${release.dir}/javadoc"/>
-    <copy todir="${release.dir}/javadoc">
+    <mkdir dir="${release.doc.dir}/javadoc"/>
+    <copy todir="${release.doc.dir}/javadoc">
      <fileset dir="${javadoc.out.dir}"/>
     </copy>
   </target>
@@ -193,20 +207,20 @@
   <target name          = "jardocs"
           depends       = "bundle_tasks">
 
-    <copy todir="${release.dir}/jars">
+    <copy todir="${release.doc.dir}/jars">
      <fileset dir="osgi/jars"/>
     </copy>
 
     <!-- this is just copied to allow cross-reference to the framework -->
     <copy file   = "osgi/framework.jar"
-          tofile = "${release.dir}/jars/framework.jar"/>
+          tofile = "${release.doc.dir}/jars/framework.jar"/>
 
     <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
-                baseDir            = "${release.dir}/jars"
+                baseDir            = "${release.doc.dir}/jars"
                 javadocRelPath     = "../javadoc"
     >
 
-      <fileset dir="${release.dir}/jars">
+      <fileset dir="${release.doc.dir}/jars">
         <include name = "**/*.jar"/>
       </fileset>
    </bundlehtml>
@@ -274,22 +288,17 @@
     <byteformatter file="${distribfile_tests}" unit="B"
                    property="distribfile_tests.length"/>
 
-    <get src="http://www.knopflerfish.org/snapshots/rel_index.html.in"
-	 dest="${release.dir}/index.html"/>
-
-    <loadfile property = "release_page.mainblock"     
-              srcfile  = "release_page.in"/>
-
-    <replace file="${release.dir}/index.html">
-      <replacefilter token="@MAINBLOCK@"
-		     value="${release_page.mainblock}"/>
-    </replace>
+    <copy file   = "htdocs/html_src/release_page.html.in"
+          tofile = "${release.dir}/index.html">
+    </copy>
 
     <replace file="${release.dir}/index.html">
       <replacefilter token="@VERSION@"
 		     value="${version}"/>
       <replacefilter token="@DATE@"
 		     value="${distrib.tstamp}"/>
+      <replacefilter token="@REPO_URL@"
+		     value="${svn.repo.url}"/>
       <replacefilter token="@TAG@"
 		     value="${svn.tag}"/>
       <replacefilter token="@BUILD_KIND@"
@@ -487,12 +496,20 @@
 
         </manifest>
 
+	<!--
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
            <include name = "htdocs/releases/${version}/**/*.html"/>
            <include name = "htdocs/releases/${version}/**/*.css"/>
         </zipfileset>
+	-->
 
+        <zipfileset dir    = "${release.doc.dir}"
+                    prefix = "knopflerfish.org/docs">
+	  <include name = "**"/>
+          <exclude name = "**/*.jar"/>
+	</zipfileset>
+	
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
@@ -502,10 +519,6 @@
            <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
 
-           <include name = "htdocs/**"/>
-           <exclude name = "htdocs/releases/**"/>
-           <exclude name = "htdocs/html_src/**"/>
-           <exclude name = "htdocs/html_templates/**"/>
 
            <include name = "osgi/framework.jar"/>
 
@@ -522,8 +535,6 @@
            <include name = "build.xml"/>
            <include name = "tools/**"/>
            <include name = "osgi/jars/**"/>
-
-           <include name = "README.txt"/>
 
            <exclude name = "keystore"/>
 
@@ -587,6 +598,7 @@
 
         <zipfileset dir    = "${distrib.out.dir}"
                     prefix = "knopflerfish.org">
+           <include name = "README.txt"/>
 	   <include name = "release_notes.txt"/>
 	   <include name = "release_notes.html"/>
 	   <include name = "changelog.html"/>

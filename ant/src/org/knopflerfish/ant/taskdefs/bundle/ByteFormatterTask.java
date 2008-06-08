@@ -60,6 +60,14 @@ import org.apache.tools.ant.Task;
  *    <td valign="top" align="center">Yes.</td>
  *  </tr>
  *  <tr>
+ *    <td valign="top">binaryPrefixURL</td>
+ *    <td valign="top">An URL pointing to a page explaining the binary
+ *                     unit suffixes.</td>
+ *    <td valign="top" align="center">
+ *      http://en.wikipedia.org/wiki/Binary_prefix#IEC_standard_prefixes
+ *    </td>
+ *  </tr>
+ *  <tr>
  *    <td valign="top">unit</td>
  *    <td valign="top">The unit to append to the formated value. E.g., byte</td>
  *    <td valign="top" align="center">
@@ -143,6 +151,18 @@ public class ByteFormatterTask extends Task {
   }
 
 
+  private String binaryPrefixURL
+    = "http://en.wikipedia.org/wiki/Binary_prefix#IEC_standard_prefixes";
+  /**
+   * The URL that explains binary prefixes.
+   *
+   * @param url The url to let the binare prefix point to.
+   */
+  public void setBinaryPrefixURL(String url) {
+    this.binaryPrefixURL = url;
+  }
+
+
   private String sep = "&nbsp;";
   /**
    * The separator between the numeral and the prefixed unit.
@@ -188,9 +208,17 @@ public class ByteFormatterTask extends Task {
    */
   public void execute() {
     String formatedValue = "";
-    String[] suffixes = new String[]{ "",  "ki","Mi",
+    String[] suffixes = new String[]{ "",  "Ki","Mi",
                                       "Gi","Ti","Pi",
                                       "Ei","Zi","Yi"};
+    if (binaryPrefixURL!=null && binaryPrefixURL.length()>0) {
+      for (int i=0; i<suffixes.length; i++) {
+        if (suffixes[i].length()>0) {
+          suffixes[i] = "<a href=\"" +binaryPrefixURL +"\">"
+            +suffixes[i] + "</a>";
+        }
+      }
+    }
 
     int ix = 0;
     long factor = 1;

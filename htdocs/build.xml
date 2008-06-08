@@ -318,18 +318,6 @@
 
     <echo message="${htdocs.out}"/>
 
-<!-- Currently not used
-    <makehtml title="User Documentation"
-              description=""
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              disable="USERDOCS">
-     <fileset dir="${htdocs.out}">
-       <include name="extrabundledocs/**/*.html"/>
-     </fileset>
-    </makehtml>
--->
-
   </target>
  
   <target name="clean">
