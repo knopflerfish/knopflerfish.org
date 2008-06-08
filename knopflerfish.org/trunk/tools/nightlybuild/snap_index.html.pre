@@ -45,9 +45,6 @@
       </div>
 
       <div id="mainblock">
-	<h2>Knopflerfish snapshot builds</h2>
-
-	Most recent build done on @DATE@.
-        <p>
+	<h2>Knopflerfish snapshot builds @DATE@</h2>
 
 
