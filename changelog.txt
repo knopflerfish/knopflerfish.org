@@ -1,3 +1,11 @@
+2008-06-08 21:34:12 +0200 (Sun, 08 Jun 2008), revision 2398, ekolin
+Relax last modified test to allow for a difference of 1.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+
+2008-06-08 21:30:08 +0200 (Sun, 08 Jun 2008), revision 2397, ekolin
+Update changelog for the 2.1.0 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2008-06-08 21:21:58 +0200 (Sun, 08 Jun 2008), revision 2396, ekolin
 New graphical profile for web pages and documentation.
 U   knopflerfish.org/trunk/README.txt
