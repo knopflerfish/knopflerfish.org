@@ -127,7 +127,7 @@
 	    <td>
 	      A set of optional bundles, including SOAP support for
 	      any OSGi service. See
-	      <a href="bundledoc">Bundle User Documentation</a>
+	      <a href="doc/bundledoc">Bundle User Documentation</a>
 	      for details. Also includes support for OSGi
 	      <a href="http://www.knopflerfish.org/XMLMetatype">
 	      Metatype</a> data and a desktop UI for CM. This
