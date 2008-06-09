@@ -91,16 +91,24 @@ import org.apache.tools.ant.util.FileUtils;
  *  </tr>
  *  <tr>
  *   <td valign=top>javadocRelPath</td>
- *   <td valign=top>Relative path (from baseDir) to javadocs.
+ *   <td valign=top>Relative path (from outDir) to javadocs.
+ *   </td>
+ *   <td valign=top>No.<br> Default value is "."</td>
+ *  </tr>
+ *  <tr>
+ *   <td valign=top>outDir</td>
+ *   <td valign=top>
+ *    Directory to place resulting files in.
  *   </td>
  *   <td valign=top>No.<br> Default value is "."</td>
  *  </tr>
  *  <tr>
  *   <td valign=top>baseDir</td>
  *   <td valign=top>
- *    Base directory for scanning for jar files.
+ *    Remove this part of the path from the specified jar-files and
+ *    use the remainder as file name in the outDir.
  *   </td>
- *   <td valign=top>No.<br> Default value is "."</td>
+ *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
  *   <td valign=top>templateHTMLDir</td>
  *   <td valign=top>
@@ -152,11 +160,12 @@ import org.apache.tools.ant.util.FileUtils;
  *
  * <pre>
  * &lt;bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
- *                baseDir            = "${release.dir}/jars"
+ *                outDir             = "${release.dir}/docs"
+ *                baseDir            = "${release.dir}/osgi"
  *                javadocRelPath     = "../javadoc"
  *   &gt;
  *
- *     &lt;fileset dir="${release.dir}/jars"&gt;
+ *     &lt;fileset dir="${release.dir}/osgi/jars"&gt;
  *       &lt;include name = "&ast;&ast;/&ast;.jar"/&gt;
  *     &lt;/fileset&gt;
  * </pre>
@@ -169,7 +178,8 @@ public class BundleHTMLExtractorTask extends Task {
 
   private File   templateHTMLDir     = new File(".");
   private String listSeparator       = "<br>\n";
-  private File   baseDir             = new File(".");
+  private File   outDir              = new File(".");
+  private File   baseDir             = null;
   private String javadocRelPath      = null;
 
 
@@ -283,6 +293,10 @@ public class BundleHTMLExtractorTask extends Task {
     return new File(templateHTMLDir, "bundle_header.html");
   }
 
+  public void setOutDir(String s) {
+    this.outDir = new File((new File(s)).getAbsolutePath());
+  }
+
   public void setBaseDir(String s) {
     this.baseDir = new File((new File(s)).getAbsolutePath());
   }
@@ -357,21 +371,21 @@ public class BundleHTMLExtractorTask extends Task {
       }
 
       makeListPage(getBundleMainTemplate(),
-                   new File(baseDir, "main.html"),
+                   new File(outDir, "main.html"),
                    indexMainRow);
 
       makeListPage(getBundleListTemplate(),
-                   new File(baseDir, "list.html"),
+                   new File(outDir, "list.html"),
                    indexListRow);
 
       copyFile(getBundleIndexTemplate(),
-               new File(baseDir, "index.html"));
+               new File(outDir, "index.html"));
 
       copyFile(getBundleHeaderTemplate(),
-               new File(baseDir, "header.html"));
+               new File(outDir, "header.html"));
 
       copyFile(getBundleCSSTemplate(),
-               new File(baseDir, "style.css"));
+               new File(outDir, "style.css"));
 
 
       for(Iterator it = missingDocs.keySet().iterator(); it.hasNext();) {
@@ -403,12 +417,8 @@ public class BundleHTMLExtractorTask extends Task {
       unresolvedCount += info.unresolvedMap.size();
 
       String row = rowTemplate;
-
       row = info.stdReplace(row, false);
-
-      row = replace(row,
-                    "${bundledoc}",
-                    replace(info.path, ".jar", ".html"));
+      row = replace(row, "${bundledoc}", info.relPath +".html");
 
       sb.append(row);
     }
@@ -486,35 +496,53 @@ public class BundleHTMLExtractorTask extends Task {
     Map        serviceExportMap = new TreeMap();
     Map        serviceImportMap = new TreeMap();
 
-    String     relPath = "";
-    String     path    = "";
+    String     relPath   = "";
+    String     relPathUp = "";
+    String     path      = "";
+    String     jarRelPath = "";
 
     Map unresolvedMap = new TreeMap();
 
     public BundleInfo(File file) throws IOException  {
       this.file = file;
-      relPath = "";
-      File dir = file.getParentFile();
 
-      while(dir != null && !dir.equals(baseDir)) {
-        //      System.out.println("** ! " + dir + " || " + baseDir);
-        relPath += "../";
-        dir = dir.getParentFile();
-
+      String filePath = file.getCanonicalPath();
+      String basePath = baseDir.getCanonicalPath();
+      //System.out.println("basePath: "+basePath);
+      //System.out.println("filePath: "+filePath);
+      if (!filePath.startsWith(basePath)) {
+        throw new BuildException("The file '"+filePath
+                                 +"' does not reside in baseDir ("
+                                 +basePath +")!");
+      }
+      relPath = filePath.substring(basePath.length()+1);
+      if (relPath.endsWith(".jar"))
+        relPath = relPath.substring(0,relPath.length()-4);
+      path = outDir.getCanonicalPath() + File.separator + relPath;
+      int sepIx = relPath.indexOf(File.separator);
+      while (sepIx>-1) {
+        relPathUp += ".." +File.separator;;
+        sepIx = relPath.indexOf(File.separator,sepIx+1);
       }
 
-      if(dir == null) {
-        throw new BuildException(baseDir.getAbsolutePath() + " is not parent of " + file.getAbsolutePath());
+      //System.out.println("path:      "+path);
+      //System.out.println("relPath:   "+relPath);
+      //System.out.println("relPathUp: "+relPathUp);
+
+      File htmlPath = new File(path).getParentFile();
+      while (htmlPath!=null && !filePath.startsWith(htmlPath.toString())) {
+        if (jarRelPath.length()>0) {
+          jarRelPath += File.separator;
+        }
+        jarRelPath += "..";
+        htmlPath = htmlPath.getParentFile();
       }
-
-      if(relPath.equals("")) {
-        //      relPath = ".";
+      //System.out.println("jarRelPath: "+jarRelPath);
+      if (jarRelPath.length()>0) {
+        jarRelPath += File.separator;
       }
-
-
-      path = replace(file.getCanonicalPath().substring(1 + baseDir.getCanonicalPath().length()), "\\", "/");
-
-      //      System.out.println(file + ", " + relPath + ", " + baseDir.getAbsolutePath() + ", path=" + path);
+      jarRelPath += filePath.substring(htmlPath.toString().length()+1);
+      //System.out.println("jarRelPath: "+jarRelPath);
     }
 
     public void load() throws Exception {
@@ -522,37 +550,15 @@ public class BundleHTMLExtractorTask extends Task {
       Manifest   mf           = jarFile.getManifest();
       attribs                 = mf.getMainAttributes();
 
-      vars.put("html.file", replace(file.toString(), ".jar", ".html"));
-
-      String absBase = baseDir.getCanonicalPath();
-
-      String  htmlFilename = (String)vars.get("html.file");
-
-      File htmlFile = new File(htmlFilename);
-
-      String absFile = htmlFile.getCanonicalPath();
-
-      if(!absFile.startsWith(absBase)) {
-        System.out.println("*** base dir is not parent of html file");
-        System.out.println("base dir:  " + absBase);
-        System.out.println("html file: " + absFile);
-      } else {
-        String relPath = absFile.substring(absBase.length() + 1);
-
-        //        System.out.println("absFile=" + absFile);
-        //        System.out.println("relPath=" + relPath);
-
-        vars.put("html.uri", replace(relPath, "\\", "/"));
-      }
+      vars.put("html.file", path +".html");
+      vars.put("html.uri",  replace(relPath, "\\", "/"));
 
       pkgExportMap     = parseNames(attribs.getValue("Export-Package"));
       pkgImportMap     = parseNames(attribs.getValue("Import-Package"));
       serviceExportMap = parseNames(attribs.getValue("Export-Service"));
       serviceImportMap = parseNames(attribs.getValue("Import-Service"));
 
-      if(true) {
-        extractSource(jarFile, new File(replace(file.getAbsolutePath(), ".jar", "") + "/src"));
-      }
+      extractSource(jarFile, new File( path +"/src"));
     }
 
 
@@ -577,9 +583,9 @@ public class BundleHTMLExtractorTask extends Task {
       if(count > 0) {
         bSourceInside = true;
 
-        //      System.out.println("found " + count + " source files in " + jarFile.getName());
+        //System.out.println("found " + count + " source files in " + jarFile.getName());
 
-        //      System.out.println("creating "+ destDir.getAbsolutePath());
+        //System.out.println("creating "+ destDir.getAbsolutePath());
         destDir.mkdirs();
 
         for(Enumeration e = jarFile.entries(); e.hasMoreElements(); ) {
@@ -643,7 +649,7 @@ public class BundleHTMLExtractorTask extends Task {
       File d = new File(destDir, replace(entry.getName(), prefix, ""));
 
       d.mkdirs();
-      //      System.out.println("created dir  " + d.getAbsolutePath());
+      //System.out.println("created dir  " + d.getAbsolutePath());
     }
 
 
@@ -659,7 +665,7 @@ public class BundleHTMLExtractorTask extends Task {
         dir.mkdirs();
       }
 
-      //      System.out.println("extracting to " + d.getAbsolutePath());
+      //System.out.println("extracting to " + d.getAbsolutePath());
 
       copyStream(new BufferedInputStream(file.getInputStream(entry)),
                  new BufferedOutputStream(new FileOutputStream(d)));
@@ -694,7 +700,7 @@ public class BundleHTMLExtractorTask extends Task {
 
       Map map = new TreeMap();
 
-      //      System.out.println(file + ": " + s);
+      //System.out.println(file + ": " + s);
       if(s != null) {
         s = s.trim();
         String[] lines = Util.splitwords(s, ",", '\"');
@@ -716,7 +722,7 @@ public class BundleHTMLExtractorTask extends Task {
             }
           }
 
-          //      System.out.println(" " + i + ": " + name + ", version=" + spec);
+          //System.out.println(" " + i + ": " + name + ", version=" + spec);
           ArrayInt version = new ArrayInt(spec);
 
           map.put(name, version);
@@ -728,10 +734,10 @@ public class BundleHTMLExtractorTask extends Task {
 
     public void writeInfo() throws IOException {
 
-      //    System.out.println("jar info from " + file);
-
       String template = stdReplace(Util.load(getBundleInfoTemplate().getAbsolutePath()));
       String outName  = (String)vars.get("html.file");
+
+      //System.out.println("jar info from " + file + " to " +outName);
 
       Util.writeStringToFile(new File(outName), template);
     }
@@ -749,7 +755,7 @@ public class BundleHTMLExtractorTask extends Task {
 
         template = replace(template, "${" + key + "}", "" + val);
 
-        //      System.out.println(key + "->" + val);
+        //System.out.println(key + "->" + val);
       }
 
       for(Iterator it = vars.keySet().iterator(); it.hasNext(); ) {
@@ -758,7 +764,7 @@ public class BundleHTMLExtractorTask extends Task {
 
         template = replace(template, "${" + key + "}", "" + val);
 
-        //      System.out.println(key + "->" + val);
+        //System.out.println(key + "->" + val);
       }
 
       Set handledSet = new TreeSet();
@@ -843,7 +849,8 @@ public class BundleHTMLExtractorTask extends Task {
       template = replace(template,  "${BYTES}", "" + file.length());
       template = replace(template,  "${KBYTES}", "" + (file.length() / 1024));
 
-      template = replace(template,  "${relpath}",     relPath);
+      template = replace(template,  "${relpathup}",  relPathUp);
+      template = replace(template,  "${jarRelPath}", jarRelPath);
       template = replace(template,  "${javadocdir}",
                          javadocRelPath != null ? javadocRelPath : "");
 
@@ -978,9 +985,7 @@ public class BundleHTMLExtractorTask extends Task {
           String row = info.stdReplace(bundleRow, false);
 
           row = replace(row, "${what}", what);
-          row = replace(row,
-                        "${bundledoc}",
-                        replace(relPath + info.path, ".jar", ".html"));
+          row = replace(row, "${bundledoc}", relPathUp +info.relPath +".html");
           sb.append(row);
         }
 
@@ -1024,10 +1029,10 @@ public class BundleHTMLExtractorTask extends Task {
         String html = pkgHTML;
 
         String docFile = replace(name, ".", "/") + linkSuffix;
-        String docPath = relPath + javadocRelPath + "/" + docFile;
+        String docPath = relPathUp + javadocRelPath + "/" + docFile;
 
-        File f = new File(file.getParentFile(), docPath);
-
+        File f = new File(outDir + File.separator
+                          + javadocRelPath + File.separator + docFile);
 
         if(javadocRelPath != null && !"".equals(javadocRelPath)) {
           if( isSystemPackage(name) ) {

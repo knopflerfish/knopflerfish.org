@@ -58,10 +58,10 @@
   <property name = "ee.check.foundation"   value = "true"/>
 
   <!-- The directory to place the results of a distrib build in. -->
-  <property name="release.dir" value = "htdocs/releases/${version}"/>
+  <property name="release.dir" location = "htdocs/releases/${version}"/>
 
   <!-- The directory to place the distrib build docs in. -->
-  <property name="release.doc.dir" value = "htdocs/releases/${version}/doc"/>
+  <property name="release.doc.dir" location = "${release.dir}/docs"/>
 
   <!-- The URL that this release will be available on after installation. -->
   <property name="base.url" value = "http://www.knopflerfish.org/releases"/>
@@ -206,21 +206,13 @@
 
   <target name          = "jardocs"
           depends       = "bundle_tasks">
-
-    <copy todir="${release.doc.dir}/jars">
-     <fileset dir="osgi/jars"/>
-    </copy>
-
-    <!-- this is just copied to allow cross-reference to the framework -->
-    <copy file   = "osgi/framework.jar"
-          tofile = "${release.doc.dir}/jars/framework.jar"/>
-
+    <property name="jardocs.dir" location="${release.doc.dir}/jars"/>
+    <mkdir dir="${jardocs.dir}"/>
     <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
-                baseDir            = "${release.doc.dir}/jars"
-                javadocRelPath     = "../javadoc"
-    >
-
-      <fileset dir="${release.doc.dir}/jars">
+                outDir             = "${jardocs.dir}"
+                baseDir            = "${release.dir}/osgi/jars"
+                javadocRelPath     = "../javadoc" >
+      <fileset dir="${release.dir}/osgi/jars">
         <include name = "**/*.jar"/>
       </fileset>
    </bundlehtml>
@@ -329,7 +321,7 @@
     <!-- The release directory REPO file -->
     <antcall target="bindex_bare">
       <param name="bindex.dest.dir" location="${release.dir}"/>
-      <param name="bindex.base.url" value="${base.url}/${version}"/>
+      <param name="bindex.base.url" value="${base.url}/${version}/osgi"/>
     </antcall>
   </target>
 
@@ -371,7 +363,7 @@
     <!-- The release directory REPO file -->
     <antcall target="obr_bare">
       <param name="obr.dest.dir"  location="${release.dir}"/>
-      <param name="obr.base.url"  value="${base.url}/${version}"/>
+      <param name="obr.base.url"  value="${base.url}/${version}/osgi"/>
       <param name="obr.html.file" value="repository.html"/>
     </antcall>
   </target>
@@ -467,6 +459,12 @@
     <!-- builds javadoc if not already present    -->
     <antcall target     = "javadoc_maybe"/>
 
+    <copy todir="${release.dir}/osgi/jars">
+     <fileset dir="osgi/jars"/>
+    </copy>
+    <!-- this is just copied to allow cross-reference to the framework -->
+    <copy file   = "osgi/framework.jar"
+          tofile = "${release.dir}/osgi/jars/framework.jar"/>
     <antcall target     = "jardocs"/>
 
     <antcall target     = "bundle_doc"/>
@@ -624,10 +622,6 @@
         </zipfileset>
 
     </jar>
-
-    <copy todir="${release.dir}/jars">
-     <fileset dir="osgi/jars"/>
-    </copy>
   </target>
 
   <target   name        = "distrib_bin"
@@ -969,6 +963,12 @@
     <ant    dir         = "tools/jarunpacker"
             target      = "compile"/>
 
+    <copy todir="${release.dir}/osgi/jars">
+     <fileset dir="osgi/jars"/>
+    </copy>
+    <!-- this is just copied to allow cross-reference to the framework -->
+    <copy file   = "osgi/framework.jar"
+          tofile = "${release.dir}/osgi/jars/framework.jar"/>
     <antcall target     = "jardocs"/>
 
     <delete file        ="${distribfile_opt}"/>
@@ -1007,27 +1007,35 @@
            <exclude name = "**/*.class"/>
            <exclude name = "**/knopflerfish_osgi_${version}.jar"/>
 
-           <include name = "osgi/jars/axis-osgi/*.jar"/>
            <include name = "osgi/jars/commons-logging/*.jar"/>
+           <include name = "osgi/jars/axis-osgi/*.jar"/>
+           <include name = "osgi/jars/axis2-osgi/*.jar"/>
            <include name = "osgi/jars/soap_desktop/*.jar"/>
            <include name = "osgi/jars/soap_remotefw/*.jar"/>
-           <include name = "osgi/jars/soap_soapclient/*.jar"/>
            <include name = "osgi/jars/soapobject/*.jar"/>
            <include name = "osgi/jars/soap_demoservice/*.jar"/>
+           <include name = "osgi/jars/soap_soapclient/*.jar"/>
 
-           <include name = "osgi/jars/ksoap_remotefw/*.jar"/>
            <include name = "osgi/jars/ksoap-osgi/*.jar"/>
+           <include name = "osgi/jars/ksoap_remotefw/*.jar"/>
 
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
+           <include name = "osgi/jars/junit-example1/*.jar"/>
+
+           <include name = "osgi/jars/serialportdevice/*.jar"/>
+           <include name = "osgi/jars/comm-win32/*.jar"/>
+           <include name = "osgi/jars/comm-linux/*.jar"/>
+
+           <include name = "osgi/jars/desktop_jvm/*.jar"/>
+           <include name = "osgi/jars/oscar-shell/*.jar"/>
+           <include name = "osgi/jars/jinidriver/*.jar"/>
            <include name = "osgi/jars/dirdeployer/*.jar"/>
-           <include name = "osgi/jars/jars/junit-example1/*.jar"/>
-           <include name = "osgi/jars/jars/oscar-shell/*.jar"/>
-           <include name = "osgi/jars/jars/jinidriver/*.jar"/>
+           <include name = "osgi/jars/desktop_awt/*.jar"/>
+           <include name = "osgi/jars/kxml/*.jar"/>
 
            <exclude name = "keystore"/>
 
-           <include name = "osgi/bundles_opt/build.xml"/>
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
            <include name = "osgi/bundles_opt/dirdeployer/**"/>
@@ -1043,6 +1051,38 @@
            <exclude name = "**/CVS"/>
         </zipfileset>
 
+        <zipfileset dir    = "${release.doc.dir}"
+                    prefix = "knopflerfish.org/docs">
+          <include name = "jars/commons-logging/**"/>
+          <include name = "jars/axis-osgi/**"/>
+          <include name = "jars/axis2-osgi/**"/>
+          <include name = "jars/soap_desktop/**"/>
+          <include name = "jars/soap_remotefw/**"/>
+          <include name = "jars/soapobject/**"/>
+          <include name = "jars/soap_demoservice/**"/>
+          <include name = "jars/soap_soapclient/**"/>
+
+          <include name = "jars/ksoap-osgi/**"/>
+          <include name = "jars/ksoap_remotefw/**"/>
+
+          <include name = "jars/junit/**"/>
+          <include name = "jars/junit_runner/**"/>
+          <include name = "jars/junit-example1/**"/>
+
+          <include name = "jars/serialportdevice/**"/>
+          <include name = "jars/comm-win32/**"/>
+          <include name = "jars/comm-linux/**"/>
+
+          <include name = "jars/desktop_jvm/**"/>
+          <include name = "jars/oscar-shell/**"/>
+          <include name = "jars/jinidriver/**"/>
+          <include name = "jars/dirdeployer/**"/>
+          <include name = "jars/desktop_awt/**"/>
+          <include name = "jars/kxml/**"/>
+
+          <exclude name = "**/*.jar"/>
+	</zipfileset>
+
         <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
            <include name = "**"/>
         </zipfileset>
@@ -1056,12 +1096,7 @@
          <include name="license.txt"/>
          <include name="license.html"/>
         </zipfileset>
-
     </jar>
-
-    <copy todir="${release.dir}/jars">
-     <fileset dir="osgi/jars"/>
-    </copy>
   </target>
 
  <target name="install_bcel"
