@@ -157,7 +157,7 @@
     </copy>
     <!-- Used by the desktop to check for new releases. -->
     <copy file="${distrib.out.dir}/release_notes.txt"
-	  todir="${release.dir}">
+	  todir="${release.dir}"/>
     
     <copy file   = "README.txt"
           tofile = "${distrib.out.dir}/README.txt">
