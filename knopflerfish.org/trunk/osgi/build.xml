@@ -97,7 +97,7 @@
    <copy file="template.xargs" tofile="remote-init.xargs" overwrite="true"/>
    <replace file="remote-init.xargs">
      <replacefilter token = "$(JAR_PREFIX)" 
-                    value = "${base.url}/${version}/jars/"/>
+                    value = "${base.url}/${version}/osgi/jars/"/>
      <replacefilter token="$(VERSION)"     value="${version}"/>
      <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
    </replace>	  
