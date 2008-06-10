@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -200,7 +200,9 @@ public class  PrefsStorageFile implements PrefsStorage {
         Vector v = new Vector();
         for(int i = 0; i < f.length; i++) {
           if(!f[i].startsWith(".")) {
-            v.addElement(decode(f[i]));
+            // Use decodeUser() here since it may be user names and
+            // its safe to use that decoder.
+            v.addElement(decodeUser(f[i]));
           }
         }
         String[] f2 = new String[v.size()];
@@ -277,7 +279,7 @@ public class  PrefsStorageFile implements PrefsStorage {
         if("".equals(path)) {
           bStale = true;
         }
-        
+
         for(Iterator it = prefs.keySet().iterator(); it.hasNext(); ) {
           String p = (String)it.next();
           PreferencesImpl pi = (PreferencesImpl)prefs.get(p);
