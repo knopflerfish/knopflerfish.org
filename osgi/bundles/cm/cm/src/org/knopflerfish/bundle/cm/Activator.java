@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,7 +106,7 @@ public class Activator implements BundleActivator {
 
     private File getStoreDir() {
         throwIfBundleContextIsNull();
-        String storeDirName = System.getProperty(STORE_DIR_PROP);
+        String storeDirName = bc.getProperty(STORE_DIR_PROP);
         File storeDir = null;
         if (storeDirName == null || "".equals(storeDirName)) {
             storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
