@@ -687,7 +687,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             URLConnection conn = url.openConnection();
 
             // Support for http proxy authentication
-            String auth = System.getProperty("http.proxyAuth");
+            String auth = m_context.getProperty("http.proxyAuth");
             if ((auth != null) && (auth.length() > 0))
             {
                 if ("http".equals(url.getProtocol()) ||
@@ -700,12 +700,12 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             }
 
             // Support for http basic authentication
-            String basicAuth = System.getProperty("http.basicAuth");
+            String basicAuth = m_context.getProperty("http.basicAuth");
             if (basicAuth != null && !"".equals(basicAuth)) {
               if ("http".equals(url.getProtocol()) ||
                   "https".equals(url.getProtocol())) {
                 String base64 = Util.base64Encode(basicAuth);
-                conn.setRequestProperty("Authorization", 
+                conn.setRequestProperty("Authorization",
                                         "Basic " +base64);
               }
             }
