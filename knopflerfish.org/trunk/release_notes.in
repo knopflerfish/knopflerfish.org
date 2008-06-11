@@ -7,6 +7,10 @@ Release Notes Knopflerfish @VERSION@
   Here follows a breakdown of the most important changes since the 
   last release.
 
+=== Framework (Core) ===
+
+  Fix file separator issue for unpacked bundle-jar files. Reported in
+  https://sourceforge.net/forum/forum.php?thread_id=2071337&forum_id=328005
 
 
 ========================================================================

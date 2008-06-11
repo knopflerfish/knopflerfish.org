@@ -110,7 +110,7 @@ class Archive {
    * If not null, it is a sub jar instead.
    */
   private ZipEntry subJar /*= null*/;
-  
+
   /**
    * Create an Archive based on contents of an InputStream,
    * the archive is saved as local copy in the specified
@@ -126,20 +126,20 @@ class Archive {
   }
 
   FileTree refFile = null;
-  
+
   Archive(File dir, int rev, InputStream is, URL source, String location) throws IOException {
     this.location = location;
-	BufferedInputStream bis;
-	//Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
-	if(Framework.getProperty("java.vendor").startsWith("Skelmir")){
-		bis = new BufferedInputStream(is, is.available());
-	}
-	else{
-		bis = new BufferedInputStream(is, 8192);
-	}
-	
+        BufferedInputStream bis;
+        //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
+        if(Framework.getProperty("java.vendor").startsWith("Skelmir")){
+                bis = new BufferedInputStream(is, is.available());
+        }
+        else{
+                bis = new BufferedInputStream(is, 8192);
+        }
+
     ZipInputStream zi = null;
-	
+
     // Handle reference: URLs by overriding global flag
     if(source != null && "reference".equals(source.getProtocol())) {
       bReference = true;
@@ -150,12 +150,12 @@ class Archive {
     } else if (unpack) {
       //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
       if(Framework.getProperty("java.vendor").startsWith("Skelmir")){
-	    bis.mark(98304);
-	  }
-	  else{
+            bis.mark(98304);
+          }
+          else{
         //Is 16000 enough?
-		bis.mark(16000);
-      }   
+                bis.mark(16000);
+      }
       JarInputStream ji = new JarInputStream(bis);
       manifest = new AutoManifest(ji.getManifest(), location);
       if (manifest != null) {
@@ -171,8 +171,8 @@ class Archive {
       }
     }
     file = new FileTree(dir, ARCHIVE + rev);
-  
-  
+
+
     if (zi != null) {
       File f;
       file.mkdirs();
@@ -284,7 +284,7 @@ class Archive {
           }
         } catch (Exception e) {
           throw new IOException("Bad file URL stored in referenced jar in: " +
-                                dir.getAbsolutePath() + 
+                                dir.getAbsolutePath() +
                                 ", location=" + location);
         }
       }
@@ -292,7 +292,7 @@ class Archive {
         throw new IOException("No saved jar file found in: " + dir.getAbsolutePath() + ", old location=" + location);
       }
     }
-    
+
     if (file.isDirectory()) {
       jar = null;
     } else {
@@ -396,8 +396,8 @@ class Archive {
     }
     return null;
   }
-  
-  
+
+
   /**
    * Get a byte array containg the contents of named class file from
    * the archive.
@@ -428,7 +428,7 @@ class Archive {
             System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
             System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
           }
-        } 
+        }
         catch (EOFException ignore) {
           // On Pjava we somtimes get a mysterious EOF excpetion,
           // but everything seems okey. (SUN Bug 4040920)
@@ -500,19 +500,19 @@ class Archive {
   //TODO not extensively tested
   Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
-    if (jar != null) { 
-      ZipEntry entry; 
+    if (jar != null) {
+      ZipEntry entry;
       //"normalize" + erroneous path check: be generous
       path.replace('\\', '/');
       if (path.startsWith("/")){
-        path =  path.substring(1);   
-      }  
+        path =  path.substring(1);
+      }
       if (!path.endsWith("/")/*in case bad argument*/){
         if (path.length() > 1){
           path += "/";
-        }       
-      } 
-                
+        }
+      }
+
       Enumeration entries = jar.entries();
       while (entries.hasMoreElements()){
         entry = (ZipEntry) entries.nextElement();
@@ -529,7 +529,7 @@ class Archive {
           } else if (path.equals("")){
             answer.add(name);
           }
-        }       
+        }
       }
     } else {
       File f = findFile(file, path);
@@ -544,14 +544,14 @@ class Archive {
       for(int i = 0; i < length; i++){
         String filePath = files[i].getPath();
         filePath = filePath.substring(file.getPath().length() + 1);
-        filePath.replace(File.separatorChar, '/');
+        filePath = filePath.replace(File.separatorChar, '/');
         if(files[i].isDirectory()){
           filePath += "/";
         }
         answer.add(filePath);
       }
     }
-    
+
     if(answer.size() == 0){
       return null;
     }
@@ -651,8 +651,8 @@ class Archive {
       } catch (IOException ignore) {}
     }
   }
-  
-  
+
+
 
   //
   // Private methods
@@ -768,7 +768,7 @@ class Archive {
    * Returns the path to this bundle.
    */
   String getPath() {
-    return file.getAbsolutePath();    
+    return file.getAbsolutePath();
   }
 
   /**
