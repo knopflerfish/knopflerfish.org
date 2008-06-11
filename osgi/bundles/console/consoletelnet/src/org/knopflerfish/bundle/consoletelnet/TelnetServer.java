@@ -93,7 +93,7 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
 
         Hashtable conf = new Hashtable();
         try {
-            telnetConfig = new TelnetConfig();
+            telnetConfig = new TelnetConfig(bc);
             conf.put(Constants.SERVICE_PID, getClass().getName());
 
             configServReg = bc.registerService(ManagedService.class.getName(),
