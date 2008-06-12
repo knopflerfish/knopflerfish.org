@@ -84,12 +84,16 @@ public class Activator implements BundleActivator {
       RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
       return rc.getSystemProperties(getTargetBC());
     } else {
+      // There is no method in BundleContext that enumerates
+      // properties, thus use the set of keys from the system properties.
       Properties props = System.getProperties();
       Map map = new HashMap();
 
       for(Enumeration e = props.keys(); e.hasMoreElements();) {
         String key = (String)e.nextElement();
-        String val = (String)props.get(key);
+        // We want local property values that applies to this instance
+        // of the framework.
+        String val = Util.getProperty(key, (String) props.get(key));
         map.put(key, val);
       }
       return map;

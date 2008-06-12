@@ -541,8 +541,8 @@ public class Desktop
       }
 
       String versionURL =
-        System.getProperty("org.knopflerfish.desktop.releasenotesurl",
-                           "http://www.knopflerfish.org/releases/current/release_notes.txt");
+        Util.getProperty("org.knopflerfish.desktop.releasenotesurl",
+                         "http://www.knopflerfish.org/releases/current/release_notes.txt");
 
       URL url  = new URL(versionURL);
       URLConnection conn = url.openConnection();
@@ -1370,7 +1370,7 @@ public class Desktop
                 edlMenu.setEnabled(getState());
               }
             });
-            setState(!"true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false")));
+            setState(!Util.getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog", false));
           }
         });
         edlMenu = new JMenu(Strings.get("menu_errordialoglevel")) {
@@ -1404,7 +1404,7 @@ public class Desktop
               }
             });
 
-            String curr = System.getProperty("org.knopflerfish.desktop.errordialogfriendliness", null);
+            String curr = Util.getProperty("org.knopflerfish.desktop.errordialogfriendliness", null);
             if ("more".equals(curr)) {
               group.setSelected(jrbm.getModel(), true);
             } else if ("advanced".equals(curr)) {
@@ -1413,7 +1413,7 @@ public class Desktop
               group.setSelected(jrbn.getModel(), true);
             }
 
-            setEnabled(!"true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false")));
+            setEnabled(!Util.getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog", false));
 
           }
         };
@@ -1603,8 +1603,8 @@ public class Desktop
   void addBundle() {
     if(openFC == null) {
       openFC = new JFileChooser();
-      File cwd = new File(System.getProperty("user.dir"));
-      String jarsProp=System.getProperty("org.knopflerfish.gosg.jars");
+      File cwd = new File(Util.getProperty("user.dir", "."));
+      String jarsProp=Util.getProperty("org.knopflerfish.gosg.jars",null);
       if (jarsProp!=null && jarsProp.startsWith("file:")) {
         cwd = new File(jarsProp.substring(5));
       }
@@ -2107,7 +2107,9 @@ public class Desktop
   void updateBundle(Bundle b) {
     try {
       boolean wasSelected = isSelected(b);
-      boolean bUpdateIsUpdate = "true".equals(System.getProperty("org.knopflerfish.desktop.updateisupdate", "true"));
+      boolean bUpdateIsUpdate
+        = Util.getBooleanProperty("org.knopflerfish.desktop.updateisupdate",
+                                  true);
       if(bUpdateIsUpdate || b == Activator.getBC().getBundle()) {
         b.update();
         if (wasSelected) setSelected(b);
@@ -2175,7 +2177,8 @@ public class Desktop
           ((BundleException) t).getNestedException() != null) {
       t = ((BundleException) t).getNestedException();
     }
-    if ("true".equals(System.getProperty("org.knopflerfish.desktop.dontuseerrordialog", "false"))) {
+    if (Util.getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog",
+                                false)) {
       if(msg != null && !"".equals(msg)) {
         System.out.println(msg);
       }
@@ -2445,7 +2448,7 @@ public class Desktop
 
   public void setIcon(JFrame frame, String baseName) {
     String iconName = baseName + "32x32.gif";
-    if (System.getProperty( "os.name", "" ).startsWith("Win")) {
+    if (Util.isWindows()) {
       iconName = baseName + "16x16.gif";
     }
     String strURL = iconName;
