@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,23 +47,24 @@ public class LFManager {
 
   public LFManager() {
     try {
-      String s = System.getProperty("org.knopflerfish.osgi.desktop.usesystemlf");
-      bUseSystemLF = s == null || "true".equals(s);
+      bUseSystemLF
+        = Util.getBooleanProperty("org.knopflerfish.osgi.desktop.usesystemlf",
+                                  true);
     } catch (Exception e) {
       Activator.log.error("Failed to get property", e);
     }
   }
-  
+
   public void init() {
     if(!customLF.containsKey(KnopflerfishLookAndFeel.class.getName())) {
       customLF.put(KnopflerfishLookAndFeel.class.getName(),
-		   new KnopflerfishLookAndFeel());
+                   new KnopflerfishLookAndFeel());
       Activator.log.debug("Created Knopflerfish L&F");
     }
 
     // check if swing handles this all by itself...
     try {
-      if(!"".equals(System.getProperty("swing.defaultlaf", ""))) {
+      if(!"".equals(Util.getProperty("swing.defaultlaf", ""))) {
         return;
       }
     } catch (Exception ignored) { }
@@ -75,28 +76,28 @@ public class LFManager {
     }
     try {
       boolean bUseCustomLF = false;
-      if(origLF == null) { 
-	Activator.log.debug("Setting Knopflerfish L&F since no LF was set");
-	bUseCustomLF = true;
+      if(origLF == null) {
+        Activator.log.debug("Setting Knopflerfish L&F since no LF was set");
+        bUseCustomLF = true;
       } else {
-	if(origLF.getClass().getName().startsWith("com.l2fprod.gui.plaf.skin")) {
-	  Activator.log.debug("Skipping Knopflerfish L&F since SkinLF seems to be active");
-	} else if(-1 != origLF.getClass().getName().indexOf("apple.")) {
-	  Activator.log.debug("Skipping Knopflerfish L&F since Apple LF seems to be active");
-	} else {
-	  Activator.log.debug("Overriding LF " + origLF.getClass().getName() + 
-			     " with Knopflerfish LF");
-	  bUseCustomLF = true;
-	}
+        if(origLF.getClass().getName().startsWith("com.l2fprod.gui.plaf.skin")) {
+          Activator.log.debug("Skipping Knopflerfish L&F since SkinLF seems to be active");
+        } else if(-1 != origLF.getClass().getName().indexOf("apple.")) {
+          Activator.log.debug("Skipping Knopflerfish L&F since Apple LF seems to be active");
+        } else {
+          Activator.log.debug("Overriding LF " + origLF.getClass().getName() +
+                             " with Knopflerfish LF");
+          bUseCustomLF = true;
+        }
       }
       if(bUseSystemLF) {
-	String systemLF = UIManager.getSystemLookAndFeelClassName();
-	Activator.log.debug("Setting system L&F " + systemLF);
-	UIManager.setLookAndFeel(systemLF);
+        String systemLF = UIManager.getSystemLookAndFeelClassName();
+        Activator.log.debug("Setting system L&F " + systemLF);
+        UIManager.setLookAndFeel(systemLF);
       } else if(bUseCustomLF) {
-	Activator.log.debug("Setting Knopflerfish L&F...");
-	UIManager.setLookAndFeel((LookAndFeel)
-				 customLF.get(KnopflerfishLookAndFeel.class.getName()));
+        Activator.log.debug("Setting Knopflerfish L&F...");
+        UIManager.setLookAndFeel((LookAndFeel)
+                                 customLF.get(KnopflerfishLookAndFeel.class.getName()));
       }
     } catch (Exception e) {
       Activator.log.error("Failed to set default LF");

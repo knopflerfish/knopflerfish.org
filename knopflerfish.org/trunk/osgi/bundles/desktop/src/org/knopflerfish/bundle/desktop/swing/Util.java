@@ -435,7 +435,7 @@ public class Util {
 
     StringBuffer sb = new StringBuffer();
 
-    String jarBase = System.getProperty("org.knopflerfish.gosg.jars", "");
+    String jarBase = Util.getProperty("org.knopflerfish.gosg.jars", "");
 
     Set all = new TreeSet(Util.bundleIdComparator);
     all.addAll(pkgClosure);
@@ -451,7 +451,7 @@ public class Util {
       if(w.length == 2) {
         def = w[1];
       }
-      String val = System.getProperty(w[0]);
+      String val = Util.getProperty(w[0],null);
       if(null != val && !val.equals(def)) {
         sb.append("-D" + w[0] + "=" + val);
         sb.append("\n");
@@ -701,7 +701,7 @@ public class Util {
   }
 
   public static boolean isWindows() {
-    String os = System.getProperty("os.name");
+    String os = Util.getProperty("os.name", null);
     if(os != null) {
       return -1 != os.toLowerCase().indexOf("win");
     }
@@ -709,7 +709,7 @@ public class Util {
   }
 
   public static boolean isMacOSX() {
-    String os = System.getProperty("os.name");
+    String os = Util.getProperty("os.name", null);
     return "Mac OS X".equals(os);
   }
 
@@ -736,5 +736,38 @@ public class Util {
       }
     }
   }
+
+  public static String getProperty(String key, String def)
+  {
+    String sValue = Activator.getBC().getProperty(key);
+    if (null!=sValue && 0<sValue.length()) {
+      return sValue;
+    }
+    return def;
+  }
+
+  public static int getIntProperty(String key, int def)
+  {
+    String sValue = Activator.getBC().getProperty(key);
+    if (null!=sValue && 0<sValue.length()) {
+      try {
+        return Integer.parseInt(sValue);
+      } catch (Exception _e) {
+      }
+    }
+    return def;
+  }
+
+
+  public static boolean getBooleanProperty(String key, boolean def)
+  {
+    String sValue = Activator.getBC().getProperty(key);
+    if (null!=sValue && 0<sValue.length()) {
+      return "true".equals(sValue);
+    }
+    return def;
+  }
+
+
 
 }

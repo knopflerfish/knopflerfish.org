@@ -57,6 +57,8 @@ import javax.swing.SwingUtilities;
 
 import org.osgi.service.log.LogService;
 
+import org.knopflerfish.bundle.desktop.swing.Util;
+
 public class SwingIO extends JPanel {
 
   JTextArea  text;
@@ -87,11 +89,14 @@ public class SwingIO extends JPanel {
 
   boolean bGrabbed = false;
 
-  int maxLines = new Integer(System.getProperty("org.knopflerfish.desktop.console.maxlines", "5000")).intValue();
+  int maxLines
+    = Util.getIntProperty("org.knopflerfish.desktop.console.maxlines", 5000);
 
   void setSystemIO() {
 
-    boolean bDebugClass = "true".equals(System.getProperty("org.knopflerfish.framework.debug.classloader", "false"));
+    boolean bDebugClass
+      = Util.getBooleanProperty("org.knopflerfish.framework.debug.classloader",
+                                false);
 
     if(!bDebugClass) {
       if(!bGrabbed) {
