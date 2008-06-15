@@ -4,12 +4,12 @@ WWW_PATH=snapshots
 OUT_DIR=/home/wistrand/knopflerfish.org/www/${WWW_PATH}
 OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 
-REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
-
 TAG         = trunk
 TAGs        = $(subst /,_,$(TAG))
 CURRENT_LINK=current_${TAGs}
 BUILD_KIND  = "snapshot build"
+
+REPO=https://www.knopflerfish.org/svn/knopflerfish.org/$(TAG)
 
 ANT	= /usr/pkg/bin/ant
 AWK     = /usr/bin/awk
@@ -131,7 +131,9 @@ clean_snapshots:
 outindex:
 	@${RM} -f ${OUT_DIR}/${CURRENT_LINK}
 	@${CAT} ${TAG}/tools/nightlybuild/snap_index.html.pre | \
-            ${SED} -e "s/@DATE@/${DATE}/g"              > ${OUT_DIR}/index.html
+            ${SED} -e "s/@DATE@/${DATE}/g" \
+                   -e "s/@REPO@/${REPO}/g" \
+                                                        > ${OUT_DIR}/index.html
 	@echo "The current build on ${TAG} is <a href=">> ${OUT_DIR}/index.html
 	@echo "\"${CURRENT_LINK}\">${VERSION}</a>.<p/>">> ${OUT_DIR}/index.html
 	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
