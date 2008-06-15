@@ -179,7 +179,7 @@ public class LogRef implements ServiceListener, LogService {
         boolean b = false;
 
         try {
-            b = "true".equals(System.getProperty("org.knopflerfish.log.out"));
+            b = "true".equals(bc.getProperty("org.knopflerfish.log.out"));
         } catch (Throwable t) {
             System.err.println("get system property failed: " + t);
             t.printStackTrace();

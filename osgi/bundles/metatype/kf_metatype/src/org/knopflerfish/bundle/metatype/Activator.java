@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,69 +65,69 @@ public class Activator implements BundleActivator {
 
     sysMTP = new SystemMetatypeProvider(bc);
     sysMTP.open();
-   
+
     bc.registerService(new String[] {
-    								 SystemMetatypeProvider.class.getName(), 
-    								 MetaTypeProvider.class.getName(),
-    								 MetaTypeService.class.getName()
-    								},
-		               sysMTP,
-		               new Hashtable()
-		              );
+        SystemMetatypeProvider.class.getName(),
+        MetaTypeProvider.class.getName(),
+        MetaTypeService.class.getName()
+      },
+      sysMTP,
+      new Hashtable()
+      );
 
     ManagedService config = new ManagedService() {
-	
-    Map mtpRegs = new HashMap();
 
-	public void updated(Dictionary props) {
+        Map mtpRegs = new HashMap();
 
-	  synchronized(mtpRegs) {
-	    Vector v = null;
-	    if(props != null) {
-	      v = (Vector)props.get("external.metatype.urls");
-	    } 
-	    if(v == null) {
-	      v = new Vector();
-	    }
+        public void updated(Dictionary props) {
 
-	    MTP[] mtp = new MTP[v.size()];
+          synchronized(mtpRegs) {
+            Vector v = null;
+            if(props != null) {
+              v = (Vector)props.get("external.metatype.urls");
+            }
+            if(v == null) {
+              v = new Vector();
+            }
 
-	    try {
-	      for(int i = 0; i < v.size(); i++) {
-	    	  URL url = new URL(v.elementAt(i).toString());
-	    	  mtp[i] = Loader.loadMTPFromURL(bc.getBundle(), url);
-	      }
-	      
-	      for(Iterator it = mtpRegs.keySet().iterator(); it.hasNext();) {
-	    	  ServiceRegistration reg = (ServiceRegistration)it.next();
-	    	  reg.unregister();
-	      }
-	      mtpRegs.clear();
-	      
-	      for(int i = 0; i < mtp.length; i++) {
-	    	  Hashtable prop = new Hashtable();
-	    	  prop.put("source.url", v.elementAt(i).toString());
-	    	  String [] pids = mtp[i].getPids();
-	    	  if(pids != null) {
-	    		  prop.put("service.pids", pids);
-	    	  }
-	    	  pids = mtp[i].getFactoryPids();
-	    	  if(pids != null) {
-	    		  prop.put("factory.pids", pids);
-	    	  }
-	    	  
-	    	  ServiceRegistration reg = 
-	    		  bc.registerService(MetaTypeProvider.class.getName(), mtp[i], prop);
-	    	  
-	    	  mtpRegs.put(reg, mtp[i]);
-	      }
-	    } 
-	    catch (Exception e) {
-	      log.error("Failed to set values",e);
-	    }
-	  } //synchronized
-	} // method
-    };
+            MTP[] mtp = new MTP[v.size()];
+
+            try {
+              for(int i = 0; i < v.size(); i++) {
+                URL url = new URL(v.elementAt(i).toString());
+                mtp[i] = Loader.loadMTPFromURL(bc.getBundle(), url);
+              }
+
+              for(Iterator it = mtpRegs.keySet().iterator(); it.hasNext();) {
+                ServiceRegistration reg = (ServiceRegistration)it.next();
+                reg.unregister();
+              }
+              mtpRegs.clear();
+
+              for(int i = 0; i < mtp.length; i++) {
+                Hashtable prop = new Hashtable();
+                prop.put("source.url", v.elementAt(i).toString());
+                String [] pids = mtp[i].getPids();
+                if(pids != null) {
+                  prop.put("service.pids", pids);
+                }
+                pids = mtp[i].getFactoryPids();
+                if(pids != null) {
+                  prop.put("factory.pids", pids);
+                }
+
+                ServiceRegistration reg =
+                  bc.registerService(MetaTypeProvider.class.getName(), mtp[i], prop);
+
+                mtpRegs.put(reg, mtp[i]);
+              }
+            }
+            catch (Exception e) {
+              log.error("Failed to set values",e);
+            }
+          } //synchronized
+        } // method
+      };
 
     Hashtable props = new Hashtable();
     props.put("service.pid", "org.knopflerfish.util.metatype.SystemMetatypeProvider");
@@ -138,48 +138,48 @@ public class Activator implements BundleActivator {
 
   }
 
-  
-  void setupSystemProps() {
-    
-	ManagedService config = new ManagedService() {
-	
-		public void updated(Dictionary props) {
-    		if(props != null) {
-    			for(Enumeration e = props.keys(); e.hasMoreElements();) {
-    				String key = (String)e.nextElement();
-    				Object val = props.get(key);
 
-    				if(val != null) {
-    					try {
-    						System.setProperty(key, val.toString());
-    					} 
-    					catch (Exception ex) {
-    						log.error("Failed to set system property '" + key + "' to " + val, ex);
-    					}
-    				}
-    			}
-    		}
-    	}
-    };
-    
+  void setupSystemProps() {
+
+    ManagedService config = new ManagedService() {
+
+        public void updated(Dictionary props) {
+          if(props != null) {
+            for(Enumeration e = props.keys(); e.hasMoreElements();) {
+              String key = (String)e.nextElement();
+              Object val = props.get(key);
+
+              if(val != null) {
+                try {
+                  System.setProperty(key, val.toString());
+                }
+                catch (Exception ex) {
+                  log.error("Failed to set system property '" + key + "' to " + val, ex);
+                }
+              }
+            }
+          }
+        }
+      };
+
     Hashtable props = new Hashtable();
     props.put("service.pid", SysPropMetatypeProvider.PID);
-    
+
     bc.registerService(ManagedService.class.getName(), config, props);
 
-    spMTP = new SysPropMetatypeProvider();
+    spMTP = new SysPropMetatypeProvider(bc);
 
     bc.registerService(new String[] {
-    								 MetaTypeProvider.class.getName()
-    								},
-		               spMTP,
-		               new Hashtable() {
-			 				{
-			 					put("service.pids", spMTP.getPids());
-			 				}
-			 			}
-                       );
-    
+        MetaTypeProvider.class.getName()
+      },
+      spMTP,
+      new Hashtable() {
+        {
+          put("service.pids", spMTP.getPids());
+        }
+      }
+      );
+
   }
 
   public void stop(BundleContext bc) {
@@ -194,7 +194,7 @@ class SysPropMetatypeProvider extends MTP {
   OCD spOCD;
   static final String PID = "java.system.properties";
 
-  SysPropMetatypeProvider() {
+  SysPropMetatypeProvider(BundleContext bc) {
     super("System properties");
 
     Hashtable defProps = new Hashtable();
@@ -203,13 +203,17 @@ class SysPropMetatypeProvider extends MTP {
 
     for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
       String key = (String)e.nextElement();
-      Object val = (String)sysProps.get(key);
+      // Use the local value for the current framework instance; props
+      // that have not been exported with some value as system
+      // proepties will not be visible due to the limitation of
+      // BundleContex.getProprty() on OSGi R4.
+      Object val = (String)bc.getProperty(key);
       if(key.startsWith("java.") ||
          key.startsWith("os.") ||
-    	 key.startsWith("sun.") ||
-    	 key.startsWith("awt.") ||
-    	 key.startsWith("user.")) {
-    	  continue;
+         key.startsWith("sun.") ||
+         key.startsWith("awt.") ||
+         key.startsWith("user.")) {
+        continue;
       }
       defProps.put(key, val);
     }
@@ -220,4 +224,3 @@ class SysPropMetatypeProvider extends MTP {
     addService(PID, spOCD);
   }
 }
-

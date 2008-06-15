@@ -78,8 +78,11 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
   PrefsStorageFile(String base) {
-    File top = new File(System.getProperty("org.knopflerfish.prefs.dir",
-                                           "prefsdir"));
+    String prefsDir = Activator.bc.getProperty("org.knopflerfish.prefs.dir");
+    if (null==prefsDir || prefsDir.length()==0 ) {
+      prefsDir = "prefsdir";
+    }
+    File top = new File(prefsDir);
     baseDir  = new File(top, base);
     baseDir.mkdirs();
 

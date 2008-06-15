@@ -13,7 +13,7 @@
   <property name="impl-api.pattern" value="org/knopflerfish/shared/cm/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
   </path>
 
   &bundlebuild_include;

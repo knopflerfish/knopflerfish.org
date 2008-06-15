@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -325,8 +325,10 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         if (Activator.log.doDebug()) Activator.log.debug("read skipped");
         return;
       }
-      String path = System.getProperty("org.knopflerfish.useradmin.store");
-      String oldPath = System.getProperty("org.knopflerfish.useradmin.oldstore");
+      String path
+        = Activator.bc.getProperty("org.knopflerfish.useradmin.store");
+      String oldPath
+        = Activator.bc.getProperty("org.knopflerfish.useradmin.oldstore");
       File file;
       if (path == null) {
         file = Activator.bc.getDataFile("ua_store");
@@ -363,7 +365,8 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         if (Activator.log.doDebug()) Activator.log.debug("save skipped");
         return;
       }
-      String path = System.getProperty("org.knopflerfish.useradmin.store");
+      String path
+        = Activator.bc.getProperty("org.knopflerfish.useradmin.store");
       File file;
       if (path == null) {
         file = Activator.bc.getDataFile("ua_store");

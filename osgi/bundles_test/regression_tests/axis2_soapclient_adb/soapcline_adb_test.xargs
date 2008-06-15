@@ -48,10 +48,10 @@
 -init
 
 -initlevel 1
--install log/log_all-2.0.0.jar
--install cm/cm_all-2.0.0.jar
+-install log/log_all-2.0.1.jar
+-install cm/cm_all-2.0.1.jar
 -install console/console_all-2.0.0.jar
--install event/event_all-2.0.0.jar
+-install event/event_all-2.0.1.jar
 
 -initlevel 2
 -install jsdk/jsdk_api-2.5.jar
@@ -74,12 +74,12 @@
 
 -startlevel 7
 
--start log/log_all-2.0.0.jar
--start cm/cm_all-2.0.0.jar
+-start log/log_all-2.0.1.jar
+-start cm/cm_all-2.0.1.jar
 -start xerces/xerces-2.9.1.jar
 -start xalan/xalan-2.7.1.jar
 -start http/http_all-2.1.0.jar
--start event/event_all-2.0.0.jar
+-start event/event_all-2.0.1.jar
 -start io/io_all-2.0.0.jar
 
 -launch

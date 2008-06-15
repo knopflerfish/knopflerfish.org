@@ -54,10 +54,10 @@
 -init
 
 -initlevel 1
--install log/log_all-2.0.0.jar
--install cm/cm_all-2.0.0.jar
+-install log/log_all-2.0.1.jar
+-install cm/cm_all-2.0.1.jar
 -install console/console_all-2.0.0.jar
--install event/event_all-2.0.0.jar
+-install event/event_all-2.0.1.jar
 
 -initlevel 2
 -install jsdk/jsdk_api-2.5.jar
@@ -78,17 +78,15 @@
 -istart file:bundles_test/regression_tests/jars/io_test-1.0.0.jar
 
 # packages required by component_test
--istart log/log_all-2.0.0.jar
--istart cm/cm_all-2.0.0.jar
+-start  log/log_all-2.0.1.jar
+-start  cm/cm_all-2.0.1.jar
 -istart component/component_all-2.0.0.jar
 -istart file:bundles_test/regression_tests/jars/component_test-1.0.0.jar
 
 -startlevel 7
 
--start log/log_all-2.0.0.jar
--start cm/cm_all-2.0.0.jar
 -start http/http_all-2.1.0.jar
--start event/event_all-2.0.0.jar
+-start event/event_all-2.0.1.jar
 -start io/io_all-2.0.0.jar
 
 -launch

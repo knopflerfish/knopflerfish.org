@@ -24,7 +24,7 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
 <!--   <pathelement location="${topdir}/jars/device/device_api-2.0.0.jar"/>-->
    <pathelement location="resources/RXTXcomm.jar"/>
    <pathelement location="resources/comm.jar"/>

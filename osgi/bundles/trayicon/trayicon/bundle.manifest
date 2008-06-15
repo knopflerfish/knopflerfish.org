@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Tray-Icon-Manager
 Bundle-SymbolicName: org.knopflerfish.bundle.trayicon
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:trayicon:2.0.0
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:trayicon:2.0.1
 Bundle-Category: service
 Bundle-Description: Windows Tray Icon manager. Uses code written by Ja
  n Struyf, jan.struyf@cs.kuleuven.ac.be, http://jeans.studentenweb.org

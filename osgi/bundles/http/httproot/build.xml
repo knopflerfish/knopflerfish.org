@@ -13,7 +13,7 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
    <pathelement location="${topdir}/jars/jsdk/jsdk_api-2.5.jar"/> 
    <pathelement location="${topdir}/jars/http/http_api-2.1.0.jar"/>
   </path>

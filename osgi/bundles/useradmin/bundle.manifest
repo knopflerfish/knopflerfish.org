@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: UserAdmin
 Bundle-SymbolicName: org.knopflerfish.bundle.useradmin
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:useradmin:2.0.0
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:useradmin:2.0.1
 Bundle-Description: User Administration Service
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
