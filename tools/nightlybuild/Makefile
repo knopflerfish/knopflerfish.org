@@ -132,7 +132,7 @@ outindex:
 	@${RM} -f ${OUT_DIR}/${CURRENT_LINK}
 	@${CAT} ${TAG}/tools/nightlybuild/snap_index.html.pre | \
             ${SED} -e "s/@DATE@/${DATE}/g" \
-                   -e "s/@REPO@/${REPO}/g" \
+                   -e "s!@REPO@!${REPO}!g" \
                                                         > ${OUT_DIR}/index.html
 	@echo "The current build on ${TAG} is <a href=">> ${OUT_DIR}/index.html
 	@echo "\"${CURRENT_LINK}\">${VERSION}</a>.<p/>">> ${OUT_DIR}/index.html
