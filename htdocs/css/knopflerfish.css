@@ -22,6 +22,12 @@ BODY  {
   font-size: 12px;
 }
 
+#mainblock_obr {
+  margin: 20px 10px 20px 10px;
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
+}
+
 #header {
   margin-bottom: 30px;
 }
@@ -171,7 +177,34 @@ TH {
  font-size: 14px;
 }
 
+TH.fancy {
+ text-align: center;
+ font-family: Helvetica, sans-serif;
+ font-size: 12px;
+}
+
 TD {
   font-family: Helvetica, sans-serif;
   font-size: 12px;
+  vertical-align: top;
+}
+
+TABLE.fancy {
+  border-collapse: collapse;
+}
+
+TR.fancy {
+  background: #C9C9C9;
+  border-bottom: 2px solid #A3A3A3;
+  border-top: 2px solid #A3A3A3;
+}
+
+TD.fancy {
+  padding: 2px 4px 2px 4px;
+}
+
+TD.fancy_row {
+  background: #C9C9C9;
+  border-bottom: 2px solid #A3A3A3;
+  border-top: 2px solid #A3A3A3;
 }
