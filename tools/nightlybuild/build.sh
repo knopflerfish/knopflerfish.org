@@ -18,11 +18,17 @@ build() {
     # Append all output to the file build.log
     exec >>build_${TAGs}.log  2>&1 
 
-    echo "============================================================"
+    echo "= Clean ===================================================="
     /bin/date
 
     # Remove old build result and update to the current level.
     gmake TAG=${TAG} update
+
+    # Update the Makefile
+    cp -pf ${TAG/}tools/nightlybuild/Makefile Makefile
+
+    echo "= Build ===================================================="
+    /bin/date
     # Start build (separate command to ensure that everything can be updated).
     gmake TAG=${TAG} all
 }
