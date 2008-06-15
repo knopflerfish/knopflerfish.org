@@ -25,7 +25,7 @@ build() {
     gmake TAG=${TAG} update
 
     # Update the Makefile
-    cp -pf ${TAG/}tools/nightlybuild/Makefile Makefile
+    cp -pf ${TAG}/tools/nightlybuild/Makefile Makefile
 
     echo "= Build ===================================================="
     /bin/date
