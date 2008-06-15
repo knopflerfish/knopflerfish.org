@@ -45,7 +45,7 @@
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://sourceforge.net/forum/forum.php?forum_id=328005">KF Forum</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://sourceforge.net/tracker/?atid=567241&group_id=82798&func=browse">Bug tracker</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.knopflerfish.org/repo/index.html">Bundle repository</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://www.knopflerfish.org/svn/knopflerfish.org/branches/staffan">Source (subversion)</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="@REPO_URL@/@TAG@">Source (subversion)</a></dd>
 	</dl>
 
 	<dl class="leftmenu2_last">
