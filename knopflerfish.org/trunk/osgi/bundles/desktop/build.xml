@@ -25,9 +25,9 @@
 
   <path id="bundle.compile.path">
    <pathelement location="${topdir}/jars/remotefw/remotefw_api-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
    <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-2.0.1.jar"/>
    <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
   </path>
 

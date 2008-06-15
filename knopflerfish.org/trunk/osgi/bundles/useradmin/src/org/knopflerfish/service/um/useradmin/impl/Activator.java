@@ -45,7 +45,7 @@ import org.knopflerfish.service.log.LogRef;
 
 /**
  * Activator for stand alone service gateway UserAdmin service
- * 
+ *
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
@@ -54,7 +54,7 @@ public class Activator implements BundleActivator {
     static BundleContext bc;
     static LogRef log;
     ServiceRegistration umsr;
-  
+
     public void start(BundleContext bc) {
         Activator.bc = bc;
         log = new LogRef(bc);

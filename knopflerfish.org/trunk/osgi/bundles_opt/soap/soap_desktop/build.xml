@@ -20,7 +20,7 @@
             value="org/knopflerfish/bundle/**"/>
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
    <pathelement location="${topdir}/jars/desktop/desktop_api-2.0.1.jar"/>
    <pathelement location="../axis-osgi/resources/wsdl4j.jar"/>

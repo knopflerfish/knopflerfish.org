@@ -19,8 +19,8 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
 
   <path id="bundle.compile.path">
-    <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
-    <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+    <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
+    <pathelement location="${topdir}/jars/cm/cm_api-2.0.1.jar"/>
     <pathelement location="resources/kxml2.jar"/>
   </path>
 

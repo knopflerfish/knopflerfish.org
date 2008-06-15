@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: basicdriverlocator
 Bundle-SymbolicName: org.knopflerfish.bundle.basicdriverlocator
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:basicdriverlocator:2.0.0
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:basicdriverlocator:2.0.1
 Bundle-Description: Basic device driver locator
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi

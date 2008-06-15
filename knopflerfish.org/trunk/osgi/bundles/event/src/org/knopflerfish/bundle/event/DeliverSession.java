@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,8 @@ import org.osgi.service.event.EventHandler;
  */
 public class DeliverSession {
 
-    private static final String TIMEOUT_PROP = "org.knopflerfish.eventadmin.timeout";
+    private static final String TIMEOUT_PROP
+      = "org.knopflerfish.eventadmin.timeout";
 
     /** local event variable */
     private Event event;
@@ -77,7 +78,8 @@ public class DeliverSession {
      * @param evt the event to be delivered
      * @param context the bundle context
      * @param owner The thread which launched the deliver session
-     * @param name the type of delivery which is being made, either synchronous or asynchronous
+     * @param name the type of delivery which is being made, either
+     *             synchronous or asynchronous
      */
     public DeliverSession(InternalAdminEvent evt) {
       internalEvent = evt;
@@ -86,7 +88,10 @@ public class DeliverSession {
 
       /* Tries to get the timeout property from the system*/
       try {
-        timeout = Long.parseLong(System.getProperty(TIMEOUT_PROP, "0"));
+        String timeoutS = Activator.bundleContext.getProperty(TIMEOUT_PROP);
+        if (null!=timeoutS && 0<timeoutS.length()) {
+          timeout = Long.parseLong(timeoutS);
+        }
       } catch (NumberFormatException ignore) {}
     }
 
@@ -106,15 +111,17 @@ public class DeliverSession {
       boolean isBlacklisted = false;
 
       for (int i = 0; i < serviceReferences.length; i++) {
-        EventHandler currentHandler =
-          (EventHandler) Activator.bundleContext.getService(serviceReferences[i]);
+        EventHandler currentHandler = (EventHandler)
+          Activator.bundleContext.getService(serviceReferences[i]);
         isBlacklisted = blacklisted.contains(currentHandler);
         if (!isBlacklisted) {
           String filterString = null;
           try {
-            filterString = (String) serviceReferences[i].getProperty(EventConstants.EVENT_FILTER);
+            filterString = (String)
+              serviceReferences[i].getProperty(EventConstants.EVENT_FILTER);
             if (filterString != null) {
-              Filter filter = Activator.bundleContext.createFilter(filterString);
+              Filter filter
+                = Activator.bundleContext.createFilter(filterString);
               filterMatch = filter==null || filterMatched(event, filter);
             } else {
               filterMatch = true;
@@ -123,7 +130,8 @@ public class DeliverSession {
             filterMatch = true;
           } catch (InvalidSyntaxException err) {
             if (Activator.log.doDebug()) {
-              Activator.log.debug("Invalid Syntax when matching filter (" + filterString + ") of " + currentHandler);
+              Activator.log.debug("Invalid Syntax when matching filter ("
+                                  + filterString + ") of " + currentHandler);
             }
             blacklisted.add(currentHandler);
             isBlacklisted = true;

@@ -38,10 +38,10 @@
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
 -istart  prefs/prefs_all-2.0.0.jar
--istart  event/event_all-2.0.0.jar
+-istart  event/event_all-2.0.1.jar
 -install kxml/kxml-1.0.jar
 -install metatype/metatype-2.0.0.jar
--istart  kf_metatype/kf_metatype_all-2.0.0.jar
+-istart  kf_metatype/kf_metatype_all-2.0.1.jar
 -istart  measurement/measurement-2.0.0.jar
 -istart  io/io_all-2.0.0.jar
 -istart  position/position-2.0.0.jar

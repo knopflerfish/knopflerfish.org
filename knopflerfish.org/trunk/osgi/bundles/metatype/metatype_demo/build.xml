@@ -13,10 +13,10 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-2.0.1.jar"/>
    <pathelement location="${topdir}/jars/metatype/metatype-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/kf_metatype/kf_metatype-2.0.0.jar"/>
+   <pathelement location="${topdir}/jars/kf_metatype/kf_metatype-2.0.1.jar"/>
   </path>
   
   
