@@ -1310,14 +1310,14 @@ public class OBRDisplayer
     String       name;
     StringBuffer log = new StringBuffer();
     BundleRecord br;
-    boolean bInstalled = false;
-    boolean     bBusy;
+    boolean      bInstalled = false;
+    boolean      bBusy;
 
     public OBRNode(BundleRecord br) {
       super(null);
       this.br = br;
 
-      name = Util.getBRName(br);
+      name   = Util.getBRName(br) +" " +Util.getBRVersion(br);
       //      setIcon(bundleIcon);
     }
 

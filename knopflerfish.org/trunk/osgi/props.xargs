@@ -14,7 +14,7 @@
 #-Djava.security.policy=file:framework.policy
 
 # URL to bundle repository
--Doscar.repository.url=http://www.knopflerfish.org/repo/repository.xml
+#-Doscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
 
 # Various debug flags
 -Dorg.knopflerfish.framework.debug.packages=false
