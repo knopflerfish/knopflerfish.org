@@ -51,7 +51,7 @@
 -install jsdk/jsdk_api-2.5.jar
 
 # The Bundle repo commands and desktop plugin
-#-install  bundlerepository/bundlerepository_all-2.0.1.jar
+#-install  bundlerepository/bundlerepository_all-2.0.2.jar
 
 
 ## More basic KF bundles
@@ -97,7 +97,7 @@
 -start event/event_all-2.0.1.jar
 -start device/device_all-2.0.0.jar
 -start useradmin/useradmin_all-2.0.1.jar
-#-start bundlerepository/bundlerepository_all-2.0.1.jar
+#-start bundlerepository/bundlerepository_all-2.0.2.jar
 -start consoletty/consoletty-2.0.0.jar
 -start consoletelnet/consoletelnet-2.0.1.jar
 #-start frameworkcommands/frameworkcommands-2.0.1.jar

@@ -194,6 +194,14 @@ public class Util {
     return s;
   }
 
+  /**
+   * Get Version of BundleRecord by trying "Bundle-Version" attribute.
+   */
+  public static String getBRVersion(BundleRecord br) {
+    String s = getAttribute(br, BundleRecord.BUNDLE_VERSION, "0.0.0");
+    return s;
+  }
+
   public static void startFont(StringBuffer sb) {
     startFont(sb, "-2");
   }

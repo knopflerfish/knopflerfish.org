@@ -7,10 +7,29 @@ Release Notes Knopflerfish @VERSION@
   Here follows a breakdown of the most important changes since the 
   last release.
 
+
+=== General (non-optional bundles) ===
+
+  Direct usage of System.getProperty() have been replaced with calls
+  to BundleContext.getProperty() to allow for making the framework
+  configuration local.
+
+
 === Framework (Core) ===
 
   Fix file separator issue for unpacked bundle-jar files. Reported in
   https://sourceforge.net/forum/forum.php?thread_id=2071337&forum_id=328005
+
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Bundle Repository Bundle
+
+  The Desktop plugin provided by this bundle now presents the version
+  of all bundles in the tree on the left hand side. URLs for the
+  default repositories as well as the Knopflerfish repositories are
+  now included by default.
 
 
 ========================================================================
