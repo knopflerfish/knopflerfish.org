@@ -367,12 +367,16 @@
       <param name="obr.dest.dir"  location="repo"/>
       <param name="obr.base.url"  value="http://www.knopflerfish.org/repo"/>
       <param name="obr.html.file" value="index.html"/>
+      <param name="obr.doc.root"   value="http://www.knopflerfish.org"/>
+      <param name="obr.css.url"   value="http://www.knopflerfish.org/css/knopflerfish2.css"/>
     </antcall>
     <!-- The release directory REPO file -->
     <antcall target="obr_bare">
       <param name="obr.dest.dir"  location="${release.dir}"/>
       <param name="obr.base.url"  value="${base.url}/${version}"/>
       <param name="obr.html.file" value="repository.html"/>
+      <param name="obr.doc.root"   value="doc"/>
+      <param name="obr.css.url"   value="doc/css/knopflerfish.css"/>
     </antcall>
   </target>
 
@@ -406,6 +410,8 @@
 	  overwrite="true">
       <filterset begintoken="@@" endtoken="@@">
 	<filter token="obr.base.url" value="${obr.base.url}"/>
+	<filter token="obr.doc.root" value="${obr.doc.root}"/>
+	<filter token="obr.css.url" value="${obr.css.url}"/>
       </filterset>
     </copy>
     <!-- Use fork here since the value of "-OUT" must be relative to CWD -->
