@@ -209,7 +209,7 @@
   <pathelement location = "${osgi.dir}/framework.jar"/>
  </path>
 
- <path id = "bundle.path">
+ <path id = "bundle.path.0">
    <path refid = "framework.path"/>
    <path refid = "bundle.api.path"/>
    <path refid = "bundle.compile.path"/>
@@ -224,6 +224,11 @@
             pattern  = "EE MMMM d yyyy, HH:mm:ss"
             locale   = "en"/>
    </tstamp>
+   <bundle_locator classPathRef="bundle.path.0" newClassPathId="bundle.path">
+     <fileset dir="${topdir}/jars">
+       <include name="**/*.jar"/>
+     </fileset>
+   </bundle_locator>
  </target>
 
  <!-- This target must be called before using any of the bmfa.* properties.-->
@@ -327,20 +332,20 @@
 
 
  <target name = "all" depends = "init">
-   <antcall target = "try_bundle.custom.pre"/>
-   <antcall target = "jars" inheritRefs="true"/>
-   <antcall target = "try_bundle.custom.post"/>
+   <antcall inheritRefs="true" target="try_bundle.custom.pre"/>
+   <antcall inheritRefs="true" target="jars"/>
+   <antcall inheritRefs="true" target="try_bundle.custom.post"/>
  </target>
 
 
  <target name        = "try_bundle.custom.pre"
          if          = "do.bundle.custom.pre">
-   <antcall target = "bundle.custom.pre"/>
+   <antcall inheritRefs="true" target="bundle.custom.pre"/>
  </target>
 
  <target name        = "try_bundle.custom.post"
          if          = "do.bundle.custom.post">
-   <antcall target = "bundle.custom.post"/>
+   <antcall inheritRefs="true" target="bundle.custom.post"/>
  </target>
 
  <target name        = "compile" 
