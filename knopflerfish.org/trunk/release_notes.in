@@ -38,6 +38,14 @@ Release Notes Knopflerfish @VERSION@
   supports references to externalt repositories. No import is
   generated for packages with optional resolution.
 
+  To reduces the burden of updating all build files when bumping the
+  version of a bundle the build system have been extended with
+  expansion of bundle versions for items on the "bundle.path". E.g.,
+  if a non-exisitng path elements with location like
+  "log_api-N.N.N.jar" are present in the the "bundle.compile.path" or
+  in the "bundle.api.path" then it will be replace by the bundle with
+  matching name and highest version in the the jars-directory where
+  the resulting bundles are place.
 
 ========================================================================
 

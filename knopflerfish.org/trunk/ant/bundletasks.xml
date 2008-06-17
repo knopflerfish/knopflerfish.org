@@ -148,6 +148,9 @@
     <taskdef name="byteformatter"
              classpathref="bundle_tasks.path"
              classname="org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
+    <taskdef name="bundle_locator"
+             classpathref="bundle_tasks.path"
+             classname="org.knopflerfish.ant.taskdefs.bundle.BundleLocator"/>
 
  </target>
 
