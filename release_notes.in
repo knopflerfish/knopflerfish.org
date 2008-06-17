@@ -32,6 +32,13 @@ Release Notes Knopflerfish @VERSION@
   now included by default.
 
 
+  Build System
+
+  The task that generates the OSCAR Bundle Repository description now
+  supports references to externalt repositories. No import is
+  generated for packages with optional resolution.
+
+
 ========================================================================
 
 
