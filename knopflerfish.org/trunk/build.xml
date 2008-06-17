@@ -382,13 +382,17 @@
     <property name="obr.base.dir" location="osgi/jars"/>
     <property name="obr.xml.file" value="repository.xml"/>
     <property name="obr.xsl.file" location="htdocs/css/repository.xsl"/>
+    <!-- Comma separated list of external OSCAR repositories. -->
+    <property name="obr.extern.repo.urls"
+	      value="http://www.knopflerfish.org/releases/current/repository.xml"/>
 
     <mkdir dir="${obr.dest.dir}"/>
-    <bundleobr  baseDir      = "${obr.base.dir}"
-                repoXSLURL   = "repository.xsl"
-                outFile      = "${obr.dest.dir}/${obr.xml.file}"
-                repoName     = "${obr.name}"
-                baseURL      = "${obr.base.url}/jars/">
+    <bundleobr  baseDir       = "${obr.base.dir}"
+                repoXSLURL    = "repository.xsl"
+                outFile       = "${obr.dest.dir}/${obr.xml.file}"
+                repoName      = "${obr.name}"
+                baseURL       = "${obr.base.url}/jars/"
+		externRepoURLs="${obr.extern.repo.urls}">
       <fileset dir="${obr.base.dir}">
         <include name = "upnp/upnp_api-*.jar"/>
       </fileset>
