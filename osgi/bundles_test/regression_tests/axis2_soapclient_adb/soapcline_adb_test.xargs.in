@@ -1,6 +1,9 @@
 #
 # Startup file additions for running Axis2 ADB Client test suite
 #
+# NOTE: Paths in this file assumes that the current working directory is
+#       $(OSGI_DIR)
+#
 
 # List of test IDs
 -Dorg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
@@ -12,7 +15,7 @@
 -Dorg.knopflerfish.verbosity=0
 
 # Prefix for searching for bundle URLs from console or command line
--Dorg.knopflerfish.gosg.jars=file:jars/
+-Dorg.knopflerfish.gosg.jars=file:
 
 # Various debug flags
 -Dorg.knopflerfish.framework.debug.packages=false
@@ -48,42 +51,42 @@
 -init
 
 -initlevel 1
--install log/log_all-2.0.1.jar
--install cm/cm_all-2.0.1.jar
--install console/console_all-2.0.0.jar
--install event/event_all-2.0.1.jar
+-install log_all-N.N.N.jar
+-install cm_all-N.N.N.jar
+-install console_all-N.N.N.jar
+-install event_all-N.N.N.jar
 
 -initlevel 2
--install jsdk/jsdk_api-2.5.jar
--install xerces/xerces-2.9.1.jar
--install xalan/xalan-2.7.1.jar
--istart junit/junit_all-2.0.0.jar
+-install jsdk_api-N.N.N.jar
+-install xerces-N.N.N.jar
+-install xalan-N.N.N.jar
+-istart  junit_all-N.N.N.jar
 
 -initlevel 3
--istart commons-logging/commons-logging_all-2.0.0.jar
+-istart commons-logging_all-N.N.N.jar
 
 -initlevel 4
--install http/http_all-2.1.0.jar
--install io/io_all-2.0.0.jar
--istart axis2-osgi/axis2-osgi_all-1.3.jar
+-install http_all-N.N.N.jar
+-install io_all-N.N.N.jar
+-istart  axis2-osgi_all-N.N.N.jar
 
 # the test cases
--istart file:bundles_test/regression_tests/jars/axis2_soapobject/axis2_soapobject_all-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/axis2_soapclient_adb/axis2_soapclient_adb-1.0.0.jar
+-istart axis2_soapobject_all-N.N.N.jar
+-istart axis2_soapclient_adb-N.N.N.jar
 
 
 -startlevel 7
 
--start log/log_all-2.0.1.jar
--start cm/cm_all-2.0.1.jar
--start xerces/xerces-2.9.1.jar
--start xalan/xalan-2.7.1.jar
--start http/http_all-2.1.0.jar
--start event/event_all-2.0.1.jar
--start io/io_all-2.0.0.jar
+-start log_all-N.N.N.jar
+-start cm_all-N.N.N.jar
+-start xerces-N.N.N.jar
+-start xalan-N.N.N.jar
+-start http_all-N.N.N.jar
+-start event_all-N.N.N.jar
+-start io_all-N.N.N.jar
 
 -launch
 
 # the test case runner bundle.
--istart junit_runner/junit_runner_all-2.0.0.jar
+-istart junit_runner_all-N.N.N.jar
 
