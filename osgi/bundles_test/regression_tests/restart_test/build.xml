@@ -20,6 +20,8 @@
             value = "org/knopflerfish/bundle/**"/>
 
   <path id = "bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${topdir}/lib/junit.jar"/>
   </path>
 
   <property name="do.bundle.custom.pre" value="true"/>
