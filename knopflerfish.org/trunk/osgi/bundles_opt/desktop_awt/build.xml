@@ -17,12 +17,17 @@
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file  = "${topdir}/jars/console/console_api-2.0.0.jar"  
-         todir = "resources"/>
+    <bundle_locator bundleName="console_api" property="console_api">
+      <fileset dir="${topdir}/jars">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy file="${console_api}"  
+          tofile="resources/console_api.jar"/>
   </target>
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/console/console_api-2.0.0.jar"/>
+   <pathelement location="console_api-N.N.N.jar"/>
   </path>
 
   &bundlebuild_include;

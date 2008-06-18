@@ -23,8 +23,8 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/junit/junit_all-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/demo1/demo1_api-2.0.0.jar"/>
+   <pathelement location="junit_all-N.N.N.jar"/>
+   <pathelement location="demo1_api-N.N.N.jar"/>
    <pathelement location="${topdir}/bundles_opt/junit/junit/resources/junit.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
   </path>

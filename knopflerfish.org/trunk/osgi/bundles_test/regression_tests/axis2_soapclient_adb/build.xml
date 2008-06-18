@@ -30,7 +30,7 @@
 
   <path id = "bundle.compile.path">
     <path refid="axis2.class.path"/>
-    <pathelement location="${osgi.dir}/jars/junit/junit_all-2.0.0.jar"/>
+    <pathelement location="junit_all-N.N.N.jar"/>
     <pathelement location="${topdir}/lib/junit.jar"/>
   </path>
 

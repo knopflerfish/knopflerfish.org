@@ -40,9 +40,9 @@
 	  classname="org.knopflerfish.test.framework.TestFW">
       <classpath>
 	<pathelement location="${fw.jar}"/>
-	<pathelement location="${topdir}/jars/tester/tester-2.0.0.jar"/>
+	<pathelement location="${topdir}/jars/tester/tester-{bmfa.Bundle-Version}.jar"/>
       </classpath>
-      <jvmarg value="-Dtest.log.prefix=${log.prefix}"/>
+      <jvmarg value="-Dtest.log.prefix=${log.prefix})"/>
       <jvmarg value="-Dtest.log.file=${log.file.name}"/>
       <jvmarg value="-Dorg.knopflerfish.framework.bundlestorage=${fw.storage}"/>
       <jvmarg value="-Dfwdir.delete=true"/>

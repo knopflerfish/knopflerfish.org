@@ -13,7 +13,7 @@
 
 
   <path id="bundle.compile.path">
-    <pathelement location="${topdir}/jars/demo1/demo1_api-2.0.0.jar"/>
+    <pathelement location="demo1_api-N.N.N.jar"/>
   </path>
 
   &bundlebuild_include;

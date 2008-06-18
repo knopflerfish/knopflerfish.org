@@ -1,4 +1,4 @@
-Release Notes Knopflerfish @VERSION@
+Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 --------------------------------
 
   Maintenance release of Knopflerfish available from
@@ -13,6 +13,8 @@ Release Notes Knopflerfish @VERSION@
   Direct usage of System.getProperty() have been replaced with calls
   to BundleContext.getProperty() to allow for making the framework
   configuration local.
+  See the documentation of the framework property named
+  "org.knopflerfish.framework.xargs.writesysprops"
 
 
 === Framework (Core) ===
@@ -35,17 +37,18 @@ Release Notes Knopflerfish @VERSION@
   Build System
 
   The task that generates the OSCAR Bundle Repository description now
-  supports references to externalt repositories. No import is
+  supports references to external repositories. No import is
   generated for packages with optional resolution.
 
   To reduces the burden of updating all build files when bumping the
   version of a bundle the build system have been extended with
   expansion of bundle versions for items on the "bundle.path". E.g.,
-  if a non-exisitng path elements with location like
-  "log_api-N.N.N.jar" are present in the the "bundle.compile.path" or
-  in the "bundle.api.path" then it will be replace by the bundle with
-  matching name and highest version in the the jars-directory where
-  the resulting bundles are place.
+  if a non-existing path elements with location like
+  "log_api-N.N.N.jar" are present in the the "bundle.path" then it
+  will be replace by the bundle with matching name and highest version
+  amongst the bundles available in the directories ${topdir}/jars and
+  ${osgi.dir}/jars. The build will fail if no match was found.
+  All build-files have been updated to take advantage of this feature.
 
 ========================================================================
 
