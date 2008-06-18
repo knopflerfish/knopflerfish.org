@@ -10,7 +10,3 @@ Bundle-Category: test
 Import-Package: junit.framework,org.osgi.framework,org.osgi.service.st
  artlevel
 Bundle-UUID: org.knopflerfish:restart_test:1.0.0:all
-Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
- n_tests\restart_test
-Build-Date: Wed August 25 2004, 19:57:34
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/

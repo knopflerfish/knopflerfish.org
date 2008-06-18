@@ -18,7 +18,7 @@
 -Dorg.knopflerfish.verbosity=0
 
 # Prefix for searching for bundle URLs from console or command line
--Dorg.knopflerfish.gosg.jars=file:jars/
+-Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
 
 # Various debug flags
 -Dorg.knopflerfish.framework.debug.packages=false
@@ -54,43 +54,43 @@
 -init
 
 -initlevel 1
--install log/log_all-2.0.1.jar
--install cm/cm_all-2.0.1.jar
--install console/console_all-2.0.0.jar
--install event/event_all-2.0.1.jar
+-install log_all-N.N.N.jar
+-install cm_all-N.N.N.jar
+-install console_all-N.N.N.jar
+-install event_all-N.N.N.jar
 
 -initlevel 2
--install jsdk/jsdk_api-2.5.jar
--istart junit/junit_all-2.0.0.jar
+-install jsdk_api-N.N.N.jar
+-istart  junit_all-N.N.N.jar
 
 -initlevel 4
--install http/http_all-2.1.0.jar
--install io/io_all-2.0.0.jar
+-install http_all-N.N.N.jar
+-install io_all-N.N.N.jar
 
 # the test cases
--istart file:bundles_test/regression_tests/jars/framework_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/filter_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/servicetracker_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/constants_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/registryperformance_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/eventadmin_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/http_test-1.0.0.jar
--istart file:bundles_test/regression_tests/jars/io_test-1.0.0.jar
+-istart framework_test-N.N.N.jar
+-istart filter_test-N.N.N.jar
+-istart servicetracker_test-N.N.N.jar
+-istart constants_test-N.N.N.jar
+-istart registryperformance_test-N.N.N.jar
+-istart eventadmin_test-N.N.N.jar
+-istart http_test-N.N.N.jar
+-istart io_test-N.N.N.jar
 
 # packages required by component_test
--start  log/log_all-2.0.1.jar
--start  cm/cm_all-2.0.1.jar
--istart component/component_all-2.0.0.jar
--istart file:bundles_test/regression_tests/jars/component_test-1.0.0.jar
+-start  log_all-N.N.N.jar
+-start  cm_all-N.N.N.jar
+-istart component_all-N.N.N.jar
+-istart component_test-N.N.N.jar
 
 -startlevel 7
 
--start http/http_all-2.1.0.jar
--start event/event_all-2.0.1.jar
--start io/io_all-2.0.0.jar
+-start  http_all-N.N.N.jar
+-start  event_all-N.N.N.jar
+-start  io_all-N.N.N.jar
 
 -launch
 
 # the test case runner bundle.
--istart junit_runner/junit_runner_all-2.0.0.jar
+-istart junit_runner_all-N.N.N.jar
 

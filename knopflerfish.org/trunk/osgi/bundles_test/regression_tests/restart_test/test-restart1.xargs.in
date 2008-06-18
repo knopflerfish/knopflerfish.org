@@ -1,6 +1,9 @@
 #
 # Startup file for framework restart testing
 #
+# NOTE: Paths in this file assumes that the current working directory is
+#       $(OSGI_DIR)
+#
 
 # List of test IDs
 -Dorg.knopflerfish.junit_runner.tests=RestartSetupTestSuite
@@ -11,20 +14,20 @@
 # true means wait for complete framework start until run
 -Dorg.knopflerfish.junit_runner.wait=true
 
--Dorg.knopflerfish.gosg.jars=file:jars/
+-Dorg.knopflerfish.gosg.jars=file:
 
 -init
 
 -initlevel 1
--istart junit/junit_all-2.0.0.jar
+-istart junit_all-N.N.N.jar
 
 # the test cases
 -initlevel 5
--istart file:bundles_test/regression_tests/jars/restart_test-1.0.0.jar
+-istart restart_test-N.N.N.jar
 
 # the test case runner bundle.
 -initlevel 20
--istart junit_runner/junit_runner_all-2.0.0.jar
+-istart junit_runner_all-N.N.N.jar
 
 -startlevel 20
 

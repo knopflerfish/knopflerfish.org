@@ -27,6 +27,23 @@
   <property name="bmfa.Import-Package"
             value="org.osgi.framework,org.knopflerfish.framework,org.knopflerfish.test.framework"/>
 
+
+  <property name="xargs" location="test.xargs"/>
+  <property name="do.bundle.custom.post" value="true"/>
+  <target name="bundle.custom.post">
+    <property name="bundleVersionFilterTester"
+	      location="${outdir}/${ant.project.name}.props"/>
+    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
+      <fileset dir="${jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy file="${xargs}.in" tofile="${xargs}" overwrite="true"/>
+    <replace file="${xargs}"
+	     replacefilterfile="${bundleVersionFilterTester}">
+    </replace>	  
+  </target>
+
   &bundlebuild_include;
 
   <property name="log.file.name" value="log.csv"/>
@@ -40,14 +57,14 @@
 	  classname="org.knopflerfish.test.framework.TestFW">
       <classpath>
 	<pathelement location="${fw.jar}"/>
-	<pathelement location="${topdir}/jars/tester/tester-{bmfa.Bundle-Version}.jar"/>
+	<pathelement location="${topdir}/jars/tester/tester-${bmfa.Bundle-Version}.jar"/>
       </classpath>
       <jvmarg value="-Dtest.log.prefix=${log.prefix})"/>
       <jvmarg value="-Dtest.log.file=${log.file.name}"/>
       <jvmarg value="-Dorg.knopflerfish.framework.bundlestorage=${fw.storage}"/>
       <jvmarg value="-Dfwdir.delete=true"/>
       <arg value="-xargs"/>
-      <arg value="test.xargs"/>
+      <arg value="${xargs}"/>
     </java>
   </target>
 </project>

@@ -540,7 +540,7 @@
            <include name = "osgi/minimal.xargs"/>
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>
-           <include name = "osgi/template.xargs"/>
+           <include name = "osgi/*.xargs.in"/>
            <include name = "osgi/props.xargs"/>
 
            <include name = "build.xml"/>
@@ -1049,6 +1049,7 @@
 
            <exclude name = "keystore"/>
 
+           <include name = "osgi/bundles_opt/build.xml"/>
            <include name = "osgi/bundles_opt/soap/**"/>
            <include name = "osgi/bundles_opt/commons-logging/**"/>
            <include name = "osgi/bundles_opt/dirdeployer/**"/>

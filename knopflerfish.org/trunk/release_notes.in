@@ -47,8 +47,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   "log_api-N.N.N.jar" are present in the the "bundle.path" then it
   will be replace by the bundle with matching name and highest version
   amongst the bundles available in the directories ${topdir}/jars and
-  ${osgi.dir}/jars. The build will fail if no match was found.
-  All build-files have been updated to take advantage of this feature.
+  ${osgi.dir}/jars. The build will fail if no match was found.  All
+  build-files have been updated to take advantage of this feature.
+  All xargs-files are now generated from templates with bundle names
+  on the form log_all-N.N.N.jar using a similar expansion method.
+
 
 ========================================================================
 
