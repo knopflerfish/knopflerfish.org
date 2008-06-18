@@ -146,8 +146,13 @@
  <property name = "src.dir"        location = "src"/>
  <property name = "resources.dir"  location = "resources"/>
 
+ <!-- Directory to place all intermediate build products for this project. -->
  <property name = "outdir"   location = "${topdir}/out/${ant.project.name}"/>
- <property name = "jardir"   location = "${topdir}/jars/${ant.project.name}"/>
+ <!-- The root of the local bundle repository. -->
+ <property name = "jars.dir" location = "${topdir}/jars"/>
+ <!-- Subdirectory of jars.dir where this projects bundles shall live. -->
+ <property name = "jardir"   location = "${jars.dir}/${ant.project.name}"/>
+ <!-- Directory to generate bundle documentation to. -->
  <property name = "outdocdir"   location = "${topdir}/out/doc/${ant.project.name}"/>
 
  <property name = "bundledoc_template"   location = "${ant.dir}/html_template/bundledoc.html"/>
@@ -209,7 +214,7 @@
   <pathelement location = "${osgi.dir}/framework.jar"/>
  </path>
 
- <path id = "bundle.path.0">
+ <path id = "bundle.path">
    <path refid = "framework.path"/>
    <path refid = "bundle.api.path"/>
    <path refid = "bundle.compile.path"/>
@@ -224,11 +229,6 @@
             pattern  = "EE MMMM d yyyy, HH:mm:ss"
             locale   = "en"/>
    </tstamp>
-   <bundle_locator classPathRef="bundle.path.0" newClassPathId="bundle.path">
-     <fileset dir="${topdir}/jars">
-       <include name="**/*.jar"/>
-     </fileset>
-   </bundle_locator>
  </target>
 
  <!-- This target must be called before using any of the bmfa.* properties.-->
@@ -353,12 +353,23 @@
 
     <mkdir dir = "${classes.out.dir}"/>
 
+    <bundle_locator classPathRef="bundle.path"
+		    newClassPathId="bundle.path.Expanded"
+		    failOnMissingBundles="true">
+      <fileset dir="${osgi.dir}/jars">
+	<include name="**/*.jar"/>
+      </fileset>
+      <fileset dir="${jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+
     <javac destdir       = "${classes.out.dir}" 
            debug         = "on"
            srcdir        = "${src.dir}"
            target        = "${javac.target}"
            source        = "${javac.source}"
-           classpathref  = "bundle.path"
+           classpathref  = "bundle.path.Expanded"
            includes      = "${impl.pattern},${impl-api.pattern},${api.pattern}"
     >
    </javac>
@@ -369,10 +380,21 @@
 
     <mkdir dir = "${classes.out.dir}"/>
 
+    <bundle_locator classPathRef="bundle.path"
+		    newClassPathId="bundle.path.Expanded"
+		    failOnMissingBundles="false">
+      <fileset dir="${osgi.dir}/jars">
+	<include name="**/*.jar"/>
+      </fileset>
+      <fileset dir="${jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+
     <javac destdir       = "${classes.out.dir}" 
            debug         = "on"
            srcdir        = "${src.dir}"
-           classpathref  = "bundle.path"
+           classpathref  = "bundle.path.Expanded"
            target        = "${javac.target}"
            source        = "${javac.source}"
            includes      = "${api.pattern}">
@@ -815,7 +837,7 @@
          fork="yes"
    >
     <classpath>
-      <path location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+      <path location="${jars.dir}/junit/junit_all-1.0.0.jar"/>
       <path refid="bundle.compile.path"/>
     </classpath>
 
@@ -839,7 +861,7 @@
                   value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
 
      <classpath>
-       <path location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+       <path location="${jars.dir}/junit/junit_all-1.0.0.jar"/>
        <path refid="bundle.compile.path"/>
      </classpath>
 

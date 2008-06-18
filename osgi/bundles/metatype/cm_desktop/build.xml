@@ -18,12 +18,12 @@
 -->
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
-   <pathelement location="${topdir}/jars/cm/cm_api-2.0.1.jar"/>
-   <pathelement location="${topdir}/jars/util/util-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/desktop/desktop_api-2.0.1.jar"/>
-   <pathelement location="${topdir}/jars/metatype/metatype-2.0.0.jar"/>
-   <pathelement location="${topdir}/jars/kf_metatype/kf_metatype-2.0.1.jar"/>
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="util-N.N.N.jar"/>
+   <pathelement location="desktop_api-N.N.N.jar"/>
+   <pathelement location="metatype-N.N.N.jar"/>
+   <pathelement location="kf_metatype-N.N.N.jar"/>
   </path>
   
   &bundlebuild_include;

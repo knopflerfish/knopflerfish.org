@@ -22,7 +22,7 @@
             value = "org/knopflerfish/service/**"/>
 
   <path id = "bundle.compile.path">
-   <pathelement location="${osgi.dir}/jars/axis2-osgi/axis2-osgi_all-1.3.jar"/>
+   <pathelement location="axis2-osgi_all-N.N.N.jar"/>
   </path>
 
   &bundlebuild_include;

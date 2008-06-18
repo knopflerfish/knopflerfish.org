@@ -24,7 +24,7 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="${topdir}/jars/log/log_api-2.0.1.jar"/>
+   <pathelement location="log_api-N.N.N.jar"/>
 <!--
    <pathelement location="resources/trayicon.jar"/>
 -->

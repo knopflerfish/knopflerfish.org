@@ -23,7 +23,7 @@
             value = "test_rb/A/**"/>
 
   <path id = "bundle.compile.path">
-    <pathelement location="${topdir}/jars/rb_B/rb_B_*.jar"/>
+    <pathelement location="rb_B_api-N.N.N.jar"/>
   </path>
 
   &bundlebuild_include;

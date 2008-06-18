@@ -111,6 +111,18 @@ import org.apache.tools.ant.util.FileUtils;
  *                  No default value.</td>
  *  </tr>
  *
+ *  <tr>
+ *   <td valign=top>failOnMissingBundles</td>
+ *   <td valign=top>
+ *     If a file with name <tt><it>bundleName</it>-N.N.N.jar</tt> is
+ *     found on the classpath to transform and there is no matching
+ *     bundle in the file set then fail the build if set to
+ *     <tt>true</tt>. Same applies if the given <tt>bundleName</tt>
+ *     can not be transformed.
+ *   </td>
+ *   <td valign=top>No.<br>Defaults to <tt>true</tt>.</td>
+ *  </tr>
+ *
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
@@ -131,6 +143,7 @@ public class BundleLocator extends Task {
   private String property   = null;
   private Reference classPathRef = null;
   private String newClassPathId = null;
+  private boolean failOnMissingBundles = true;
 
   public BundleLocator() {
 
@@ -158,6 +171,10 @@ public class BundleLocator extends Task {
     newClassPathId = s;
   }
 
+  public void setFailOnMissingBundles(boolean b) {
+    failOnMissingBundles = b;
+  }
+
   // Implements Task
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
@@ -182,12 +199,25 @@ public class BundleLocator extends Task {
       log("Updating bundle paths in class path reference '"
           +classPathRef +"'.",
           Project.MSG_VERBOSE);
+
+      Iterator pathIt = null;
       try {
         Path path = (Path) classPathRef.getReferencedObject();
-        for (Iterator it=path.iterator(); it.hasNext(); ){
-          Resource resource = (Resource) it.next();
+        pathIt = path.iterator();
+      } catch (BuildException e) {
+        // Unsatisfied ref in the given path; can not expand.
+        // Make the new path a reference to the old one.
+        log("Unresolvable reference in '" +classPathRef
+            +"' can not expand bundle names in it.",
+            Project.MSG_WARN);
+        newPath.setRefid(classPathRef);
+      }
+
+      if (null!=pathIt) {
+        while( null!=pathIt && pathIt.hasNext()) {
+          Resource resource = (Resource) pathIt.next();
           boolean added = false;
-          log("resource:"+resource,Project.MSG_INFO);
+          log("resource:"+resource,Project.MSG_DEBUG);
           if (resource instanceof FileResource) {
             FileResource fr = (FileResource) resource;
             if (!fr.isExists()) {
@@ -202,6 +232,18 @@ public class BundleLocator extends Task {
                   added = true;
                   log(" => " +bi.file.getAbsolutePath(),
                       Project.MSG_DEBUG);
+                } else {
+                  int logLevel = failOnMissingBundles
+                    ? Project.MSG_ERR : Project.MSG_INFO;
+                  log("No match for '" +fileName
+                      +"' when expanding the path named '"
+                      +classPathRef.getRefId() +"'.",
+                      logLevel);
+                  log("Bundles with known version: " +map.keySet(), logLevel);
+                  if (failOnMissingBundles) {
+                    throw new BuildException
+                      ("No bundle with name like '" +fileName+"' found.");
+                  }
                 }
               }
             }
@@ -210,18 +252,10 @@ public class BundleLocator extends Task {
             newPath.add(resource);
           }
         }
-        log("Expanded path named '" +newClassPathId +"' is " +newPath,
-            Project.MSG_VERBOSE);
-      } catch (BuildException e) {
-        // Unsatisfied ref in the given path; can not expand.
-        // Make the new path a reference to the old one.
-        newPath.setRefid(classPathRef);
-      } catch (Exception e) {
-        log("Got unexpected exception '" +e.getClass() +"': "+e,
-            Project.MSG_WARN);
+        log(newClassPathId +" = " +newPath, Project.MSG_INFO);
       }
       project.addReference(newClassPathId, newPath);
-    }
+    } // end of transform path structure.
 
   }
 
@@ -234,8 +268,14 @@ public class BundleLocator extends Task {
     try {
       for (int i = 0; i < filesets.size(); i++) {
         FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(project);
         File             projDir = fs.getDir(project);
+        if (!projDir.exists()) {
+          log("Skipping nested file set rooted at '" +projDir
+              +"' since that directory does not exist.",
+              Project.MSG_WARN);
+          continue;
+        }
+        DirectoryScanner ds      = fs.getDirectoryScanner(project);
 
         String[] srcFiles = ds.getIncludedFiles();
         String[] srcDirs  = ds.getIncludedDirectories();
