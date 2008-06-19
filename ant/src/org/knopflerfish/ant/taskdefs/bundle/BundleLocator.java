@@ -52,7 +52,7 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
 import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.types.resources.FileResource;
+//import org.apache.tools.ant.types.resources.FileResource;
 import org.apache.tools.ant.util.FileUtils;
 
 /**
@@ -153,20 +153,18 @@ import org.apache.tools.ant.util.FileUtils;
  */
 public class BundleLocator extends Task {
 
-  private Vector    filesets = new Vector();
-  private FileUtils fileUtils;
+  private final Vector    filesets = new Vector();
+  private final FileUtils fileUtils;
 
-  private String bundleName = null;
-  private String property   = null;
-  private Reference classPathRef = null;
-  private String newClassPathId = null;
-  private boolean failOnMissingBundles = true;
-  private File replacefilterfile = null;
+  private String    bundleName           = null;
+  private String    property             = null;
+  private Reference classPathRef         = null;
+  private String    newClassPathId       = null;
+  private boolean   failOnMissingBundles = true;
+  private File      replacefilterfile    = null;
 
   public BundleLocator() {
-
     fileUtils = FileUtils.newFileUtils();
-
   }
 
   public void setProperty(String s) {
@@ -203,8 +201,11 @@ public class BundleLocator extends Task {
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
-    // bundleName -> location of the matching bundle with the highest version.
-    Map bundleMap = buildBundleVersionMap();
+    /** Mapping from <tt>bundleName</tt> without the version suffix
+     * (<tt>-N.N.N.jar</tt>) to the BundleInfo object of the bundle
+     * within the file set with the highest version.
+     */
+    final Map bundleMap = buildBundleVersionMap();
 
     if (null!=bundleName) {
       setProperty(bundleMap);
@@ -235,36 +236,47 @@ public class BundleLocator extends Task {
     public File file;
   }
 
-  // bundleName -> location of the matching bundle with the highest version.
+  /**
+   * Traverses the given file sets, adding an entry to the returned
+   * map for each bundle with a name on the form
+   * <tt><it>bundleName</it>-<it>Version</it>.jar</tt>. The version
+   * must be a valid version accoring to the OSGi version specifivation.
+   *
+   * The key of the entry in the returned map is the
+   * <tt><it>bundleName</it></tt> and the value is the corresponding
+   * <tt>BundleInfo</tt>-object.
+   * @return map with the bundles with the highest version.
+   */
   Map buildBundleVersionMap()
   {
-    Map map = new HashMap();
+    final Map map = new HashMap();
 
     try {
       for (int i = 0; i < filesets.size(); i++) {
-        FileSet          fs      = (FileSet) filesets.elementAt(i);
-        File             projDir = fs.getDir(project);
+        final FileSet          fs      = (FileSet) filesets.elementAt(i);
+        final File             projDir = fs.getDir(project);
         if (!projDir.exists()) {
           log("Skipping nested file set rooted at '" +projDir
               +"' since that directory does not exist.",
               Project.MSG_WARN);
           continue;
         }
-        DirectoryScanner ds      = fs.getDirectoryScanner(project);
+        final DirectoryScanner ds      = fs.getDirectoryScanner(project);
 
-        String[] srcFiles = ds.getIncludedFiles();
-        String[] srcDirs  = ds.getIncludedDirectories();
+        final String[] srcFiles = ds.getIncludedFiles();
+        final String[] srcDirs  = ds.getIncludedDirectories();
 
         for (int j = 0; j < srcFiles.length ; j++) {
-          File file = new File(projDir, srcFiles[j]);
-          String fileName = file.getName();
+          final File file = new File(projDir, srcFiles[j]);
+          final String fileName = file.getName();
           if(file.getName().endsWith(".jar")) {
             log( "Found candidate " +file, Project.MSG_DEBUG);
             int ix = fileName.lastIndexOf('-');
             if (0<ix) {
-              String bundleName = fileName.substring(0,ix);
-              String versionS = fileName.substring(ix+1,fileName.length()-4);
-              Version newVersion = new Version(versionS);
+              final String bundleName = fileName.substring(0,ix);
+              final String versionS
+                = fileName.substring(ix+1,fileName.length()-4);
+              final Version newVersion = new Version(versionS);
               BundleInfo bi = (BundleInfo) map.get(bundleName);
               if (null==bi) {
                 bi = new BundleInfo();
@@ -294,7 +306,7 @@ public class BundleLocator extends Task {
   {
     log("Searching for a versioned bundle named '" +bundleName +"'.",
         Project.MSG_VERBOSE);
-    BundleInfo bi = (BundleInfo) bundleMap.get(bundleName);
+    final BundleInfo bi = (BundleInfo) bundleMap.get(bundleName);
 
     if (bi!=null && property!=null) {
       project.setProperty(property,bi.file.getAbsolutePath());
@@ -304,15 +316,15 @@ public class BundleLocator extends Task {
 
   private void transformPath(Map bundleMap)
   {
-    Path newPath = new Path(project);
+    final Path newPath = new Path(project);
     log("Updating bundle paths in class path reference '"
         +classPathRef +"'.",
         Project.MSG_VERBOSE);
 
-    Iterator pathIt = null;
+    String[] pathElements = null;
     try {
-      Path path = (Path) classPathRef.getReferencedObject();
-      pathIt = path.iterator();
+      final Path path = (Path) classPathRef.getReferencedObject();
+      pathElements = path.list();
     } catch (BuildException e) {
       // Unsatisfied ref in the given path; can not expand.
       // Make the new path a reference to the old one.
@@ -322,44 +334,41 @@ public class BundleLocator extends Task {
       newPath.setRefid(classPathRef);
     }
 
-    if (null!=pathIt) {
-      while( null!=pathIt && pathIt.hasNext()) {
-        Resource resource = (Resource) pathIt.next();
+    if (null!=pathElements) {
+      for (int i=0; i<pathElements.length; i++) {
+        final File pathElement = new File(pathElements[i]);
         boolean added = false;
-        log("resource:"+resource,Project.MSG_DEBUG);
-        if (resource instanceof FileResource) {
-          FileResource fr = (FileResource) resource;
-          if (!fr.isExists()) {
-            String fileName = fr.getName();
-            log("Found non existing file resource on path: " +fileName,
-                Project.MSG_DEBUG);
-            if (fileName.endsWith("-N.N.N.jar")) {
-              String key = fileName.substring(0,fileName.length() -10);
-              BundleInfo bi = (BundleInfo) bundleMap.get(key);
-              if (bi!=null) {
-                newPath.add(new FileResource(bi.file));
-                added = true;
-                log(" => " +bi.file.getAbsolutePath(),
-                    Project.MSG_DEBUG);
-              } else {
-                int logLevel = failOnMissingBundles
-                  ? Project.MSG_ERR : Project.MSG_INFO;
-                log("No match for '" +fileName
-                    +"' when expanding the path named '"
-                    +classPathRef.getRefId() +"'.",
-                    logLevel);
-                log("Bundles with known version: " +bundleMap.keySet(),
-                    logLevel);
-                if (failOnMissingBundles) {
-                  throw new BuildException
-                    ("No bundle with name like '" +fileName+"' found.");
-                }
+        log("path element: "+pathElement, Project.MSG_DEBUG);
+        if (!pathElement.exists()) {
+          log("Found non existing path element: " +pathElement,
+              Project.MSG_DEBUG);
+          final String fileName = pathElement.getName();
+          if (fileName.endsWith("-N.N.N.jar")) {
+            final String key = fileName.substring(0,fileName.length() -10);
+            final BundleInfo bi = (BundleInfo) bundleMap.get(key);
+            if (bi!=null) {
+              final String filePath = bi.file.getAbsolutePath();
+              newPath.setPath(filePath);
+              added = true;
+              log(fileName +" => " +filePath, Project.MSG_VERBOSE);
+            } else {
+              final int logLevel = failOnMissingBundles
+                ? Project.MSG_ERR : Project.MSG_INFO;
+              log("No match for '" +fileName
+                  +"' when expanding the path named '"
+                  +classPathRef.getRefId() +"'.",
+                  logLevel);
+              log("Bundles with known version: " +bundleMap.keySet(),
+                  logLevel);
+              if (failOnMissingBundles) {
+                throw new BuildException
+                  ("No bundle with name like '" +fileName+"' found.");
               }
-            }
+              }
           }
         }
         if (!added) {
-          newPath.add(resource);
+          newPath.setPath(pathElement.getAbsolutePath());
         }
       }
       log(newClassPathId +" = " +newPath, Project.MSG_INFO);
@@ -370,9 +379,9 @@ public class BundleLocator extends Task {
 
   private void writeReplaceFilterFile(Map bundleMap)
   {
-    Properties props = new Properties();
+    final Properties props = new Properties();
     for (Iterator it = bundleMap.values().iterator(); it.hasNext();) {
-      BundleInfo bi = (BundleInfo) it.next();
+      final BundleInfo bi = (BundleInfo) it.next();
       props.put(bi.name +"-N.N.N.jar", bi.relPath);
     }
     OutputStream out = null;
