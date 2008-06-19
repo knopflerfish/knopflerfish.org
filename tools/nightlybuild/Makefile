@@ -1,7 +1,8 @@
 
-WWW_DIR=/home/wistrand/knopflerfish.org/www
+KF_HOME=/home/wistrand/knopflerfish.org
+WWW_DIR=${KF_HOME}/www
 WWW_PATH=snapshots
-OUT_DIR=/home/wistrand/knopflerfish.org/www/${WWW_PATH}
+OUT_DIR=${WWW_DIR}/${WWW_PATH}
 OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 
 TAG         = trunk
@@ -9,7 +10,8 @@ TAGs        = $(subst /,_,$(TAG))
 CURRENT_LINK=current_${TAGs}
 BUILD_KIND  = "snapshot build"
 
-REPO=https://www.knopflerfish.org/svn/knopflerfish.org/$(TAG)
+CHANGE_LOG=${KF_HOME}/ChangeLog_${TAG}
+REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
 ANT	= /usr/pkg/bin/ant
 AWK     = /usr/bin/awk
@@ -30,7 +32,7 @@ DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
 # The Major.Minor.Micro part of the current (upcomming) Knopflerfish
 # release version.
 # E.g., REL_VERSION = 2.0.4
-REL_VERSION := $(shell cd ${TAG} && ${ANT} version | \
+REL_VERSION := $(shell cd ${TAGs} && ${ANT} version | \
                        ${GREP} "Version: " | \
                        ${SED} -e 's/.*Version: //g' \
                               -e 's/\.[0-9]*[-a-zA-Z_][-0-9aa-zA-Z_]*//')
@@ -41,7 +43,7 @@ REVISION := $(shell ${SVN} info ${REPO} | \
                     ${SED} -e 's/Revision: //')
 
 # The version of this nightly build
-VERSION := ${REL_VERSION}.snapshot_${REVISION}
+VERSION := ${REL_VERSION}.snapshot_${TAGs}_${REVISION}
 
 # Ant with build properties set.
 ANTv = ${ANT} -Dversion=${VERSION} \
@@ -66,60 +68,44 @@ version:
 	@echo "Current repository version is: ${REVISION}"
 	@echo "Current build version is: ${VERSION}"
 
-obr_export:
-	(cd ${TAG} && ${ANTv} obr obr_index) && \
-	$(CP) -r ${TAG}/osgi/jars /home/wistrand/knopflerfish.org/www/repo
-	$(CP) -r ${TAG}/repo/*.xml /home/wistrand/knopflerfish.org/www/repo
-	$(CP) -r ${TAG}/repo/*.html /home/wistrand/knopflerfish.org/www/repo
-	$(CP) -r ${TAG}/htdocs/css/repository.xsl /home/wistrand/knopflerfish.org/www/css
-
-
-
 obr:
-	(cd ${TAG} && ${ANTv} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
+	(cd ${TAGs} && ${ANTv} obr bindex)
 
 obr_install:
-	$(CP) -r ${TAG}/repo ${WWW_DIR}
+	$(CP) ${TAGs}/repo/* ${WWW_DIR}/repo
+	${RM} -f ${WWW_DIR}/repo/jars
+	${LN} -s ${WWW_DIR}/releases/${VERSION}/jars ${WWW_DIR}/repo/
 
 checkout:
-	${SVN} co ${REPO}
+	${SVN} co ${REPO} ${TAGs}
 
 update:
-	(cd ${TAG} && ${ANT} clean)
-	(cd ${TAG} && ${SVN} update)
+	(cd ${TAGs} && ${ANT} clean)
+	(cd ${TAGs} && ${SVN} update)
+	[ -r ${CHANGE_LOG} ] && cp ${CHANGE_LOG} ${TAGs}/changelog.txt
 
 status:
-	(cd ${TAG} && ${SVN} status)
+	(cd ${TAGs} && ${SVN} status)
 
 build:
-	(cd ${TAG} && ${ANTv} all)
+	(cd ${TAGs} && ${ANTv} all)
 
 distrib:
-	(cd ${TAG} && ${ANTv} distrib)
+	(cd ${TAGs} && ${ANTv} distrib)
 
 clean:
-	$(RM) -rf ${TAG}
-
-
-CH_LOG_SRC=${WWW_DIR}/../ChangeLog_${TAGs}
-CH_LOG_DEST=${OUT_DIR}/${VERSION}/changelog.html
+	$(RM) -rf ${TAGs}
 
 copyout:
 	@$(MKDIR) -p ${OUT_DIR}
-	$(CP) -r ${TAG}/htdocs/releases/${VERSION} ${OUT_DIR}
-	@if [ -r ${CH_LOG_SRC} ]; then \
-	  echo "<html><head><title>Change Log</title></head>" > $(CH_LOG_DEST);\
-	  echo "<body><pre>"                                 >> $(CH_LOG_DEST);\
-	  cat $(CH_LOG_SRC)                                  >> $(CH_LOG_DEST);\
-	  echo "</pre></body></html>"                        >> $(CH_LOG_DEST);\
-	fi
+	$(CP) -r ${TAGs}/htdocs/releases/${VERSION} ${OUT_DIR}
 
-# Remove all but the 10 last BUILDs from ${OUT_DIR}
+# Remove all but the 10 last BUILDs on the current ${TAG} from ${OUT_DIR}
 clean_snapshots:
 	@$(MKDIR) -p ${OUT_DIR}
 	@(cd ${OUT_DIR}; \
 	  BUILD_CNT=0; \
-	  for FF in `ls -1ct`; do \
+	  for FF in `ls -1ctd *snapshot_${TAGs}*`; do \
 	    if [ -d $$FF ]; then \
 	      BUILD_CNT=`expr $$BUILD_CNT + 1`; \
 	      if [ $$BUILD_CNT -gt 10 ]; then \
@@ -130,7 +116,7 @@ clean_snapshots:
 
 outindex:
 	@${RM} -f ${OUT_DIR}/${CURRENT_LINK}
-	@${CAT} ${TAG}/tools/nightlybuild/snap_index.html.pre | \
+	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.pre | \
             ${SED} -e "s/@DATE@/${DATE}/g" \
                    -e "s!@REPO@!${REPO}!g" \
                                                         > ${OUT_DIR}/index.html
@@ -146,7 +132,7 @@ outindex:
 	      echo "<a href=\"$$FF\">$$FF</a><br/>"  >> ${OUT_DIR}/index.html; \
 	    fi; \
 	  done)
-	@${CAT} ${TAG}/tools/nightlybuild/snap_index.html.post \
+	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.post \
                                                        >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${CURRENT_LINK})
 
