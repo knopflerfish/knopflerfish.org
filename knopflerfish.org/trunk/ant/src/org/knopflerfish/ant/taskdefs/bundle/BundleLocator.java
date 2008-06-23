@@ -133,9 +133,12 @@ import org.apache.tools.ant.util.FileUtils;
  *     Creates a property file suitable for use as the
  *     replacefilterfile argument in the replace-task. Keys in the
  *     property file will be the bundle name on the form
- *     <tt><it>bundleName</it>-N.N.N.jar</tt>, values is the expanded
+ *     <tt><it>@bundleName</it>-N.N.N.jar@</tt>, values is the expanded
  *     file path relative to the root-directory of the file set that
- *     the expansion orginates from.
+ *     the expansion orginates from. The "@" surrounding the key are
+ *     needede to avoid problem if the name of one bundle is contained
+ *     within the name of another bundle. E.g.,
+ *     <tt>kxml-N.N.N.jar</tt> and <tt>xml-N.N.N.jar</tt>.
  *   </td>
  *   <td valign=top>No.<br>No default value.</td>
  *  </tr>
@@ -382,12 +385,12 @@ public class BundleLocator extends Task {
     final Properties props = new Properties();
     for (Iterator it = bundleMap.values().iterator(); it.hasNext();) {
       final BundleInfo bi = (BundleInfo) it.next();
-      props.put(bi.name +"-N.N.N.jar", bi.relPath);
+      props.put("@" +bi.name +"-N.N.N.jar@", bi.relPath);
     }
     OutputStream out = null;
     try {
       out= new FileOutputStream(replacefilterfile);
-      props.store(out, "bundle version replace filter");
+      props.store(out, "Bundle Version Expansion Mapping");
     } catch (IOException ioe) {
       log("Failed to write replacefilterfile, "+replacefilterfile
           +", reason: "+ioe,

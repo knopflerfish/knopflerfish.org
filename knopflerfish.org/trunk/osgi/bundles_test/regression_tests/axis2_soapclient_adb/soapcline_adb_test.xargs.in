@@ -51,42 +51,42 @@
 -init
 
 -initlevel 1
--install log_all-N.N.N.jar
--install cm_all-N.N.N.jar
--install console_all-N.N.N.jar
--install event_all-N.N.N.jar
+-install @log_all-N.N.N.jar@
+-install @cm_all-N.N.N.jar@
+-install @console_all-N.N.N.jar@
+-install @event_all-N.N.N.jar@
 
 -initlevel 2
--install jsdk_api-N.N.N.jar
--install xerces-N.N.N.jar
--install xalan-N.N.N.jar
--istart  junit_all-N.N.N.jar
+-install @jsdk_api-N.N.N.jar@
+-install @xerces-N.N.N.jar@
+-install @xalan-N.N.N.jar@
+-istart  @junit_all-N.N.N.jar@
 
 -initlevel 3
--istart commons-logging_all-N.N.N.jar
+-istart @commons-logging_all-N.N.N.jar@
 
 -initlevel 4
--install http_all-N.N.N.jar
--install io_all-N.N.N.jar
--istart  axis2-osgi_all-N.N.N.jar
+-install @http_all-N.N.N.jar@
+-install @io_all-N.N.N.jar@
+-istart  @axis2-osgi_all-N.N.N.jar@
 
 # the test cases
--istart axis2_soapobject_all-N.N.N.jar
--istart axis2_soapclient_adb-N.N.N.jar
+-istart @axis2_soapobject_all-N.N.N.jar@
+-istart @axis2_soapclient_adb-N.N.N.jar@
 
 
 -startlevel 7
 
--start log_all-N.N.N.jar
--start cm_all-N.N.N.jar
--start xerces-N.N.N.jar
--start xalan-N.N.N.jar
--start http_all-N.N.N.jar
--start event_all-N.N.N.jar
--start io_all-N.N.N.jar
+-start @log_all-N.N.N.jar@
+-start @cm_all-N.N.N.jar@
+-start @xerces-N.N.N.jar@
+-start @xalan-N.N.N.jar@
+-start @http_all-N.N.N.jar@
+-start @event_all-N.N.N.jar@
+-start @io_all-N.N.N.jar@
 
 -launch
 
 # the test case runner bundle.
--istart junit_runner_all-N.N.N.jar
+-istart @junit_runner_all-N.N.N.jar@
 

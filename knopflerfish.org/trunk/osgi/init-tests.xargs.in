@@ -54,43 +54,43 @@
 -init
 
 -initlevel 1
--install log_all-N.N.N.jar
--install cm_all-N.N.N.jar
--install console_all-N.N.N.jar
--install event_all-N.N.N.jar
+-install @log_all-N.N.N.jar@
+-install @cm_all-N.N.N.jar@
+-install @console_all-N.N.N.jar@
+-install @event_all-N.N.N.jar@
 
 -initlevel 2
--install jsdk_api-N.N.N.jar
--istart  junit_all-N.N.N.jar
+-install @jsdk_api-N.N.N.jar@
+-istart  @junit_all-N.N.N.jar@
 
 -initlevel 4
--install http_all-N.N.N.jar
--install io_all-N.N.N.jar
+-install @http_all-N.N.N.jar@
+-install @io_all-N.N.N.jar@
 
 # the test cases
--istart framework_test-N.N.N.jar
--istart filter_test-N.N.N.jar
--istart servicetracker_test-N.N.N.jar
--istart constants_test-N.N.N.jar
--istart registryperformance_test-N.N.N.jar
--istart eventadmin_test-N.N.N.jar
--istart http_test-N.N.N.jar
--istart io_test-N.N.N.jar
+-istart @framework_test-N.N.N.jar@
+-istart @filter_test-N.N.N.jar@
+-istart @servicetracker_test-N.N.N.jar@
+-istart @constants_test-N.N.N.jar@
+-istart @registryperformance_test-N.N.N.jar@
+-istart @eventadmin_test-N.N.N.jar@
+-istart @http_test-N.N.N.jar@
+-istart @io_test-N.N.N.jar@
 
 # packages required by component_test
--start  log_all-N.N.N.jar
--start  cm_all-N.N.N.jar
--istart component_all-N.N.N.jar
--istart component_test-N.N.N.jar
+-start  @log_all-N.N.N.jar@
+-start  @cm_all-N.N.N.jar@
+-istart @component_all-N.N.N.jar@
+-istart @component_test-N.N.N.jar@
 
 -startlevel 7
 
--start  http_all-N.N.N.jar
--start  event_all-N.N.N.jar
--start  io_all-N.N.N.jar
+-start  @http_all-N.N.N.jar@
+-start  @event_all-N.N.N.jar@
+-start  @io_all-N.N.N.jar@
 
 -launch
 
 # the test case runner bundle.
--istart junit_runner_all-N.N.N.jar
+-istart @junit_runner_all-N.N.N.jar@
 

@@ -53,7 +53,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   ${osgi.dir}/jars. The build will fail if no match was found.  All
   build-files have been updated to take advantage of this feature.
   All xargs-files are now generated from templates with bundle names
-  on the form log_all-N.N.N.jar using a similar expansion method.
+  on the form @log_all-N.N.N.jar@ using a similar expansion method.
 
 
 ========================================================================
