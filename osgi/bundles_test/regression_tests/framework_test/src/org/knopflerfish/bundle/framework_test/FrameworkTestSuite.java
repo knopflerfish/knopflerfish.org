@@ -136,6 +136,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame161a());
     addTest(new Frame162a());
     addTest(new Frame163a());
+    addTest(new Frame164a());
     addTest(new Frame170a());
     addTest(new Frame175a());
     addTest(new Frame180a());
@@ -229,20 +230,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           fail("'" + k + "' not set");
         }
       }
-      
+
       String[] TFList = new String[] {
         Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE,
         Constants.SUPPORTS_FRAMEWORK_FRAGMENT,
         Constants.SUPPORTS_FRAMEWORK_EXTENSION,
         Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
       };
-      
+
       for( int i = 0; i < TFList.length; i++) {
         String k = TFList[i];
         String v = bc.getProperty(k);
         if(v == null) {
           fail("'" + k + "' not set");
-        } 
+        }
         if(!("true".equals(v) || "false".equals(v))) {
           fail("'" + k + "' is '" + v + "', expected 'true' or 'false'");
         }
@@ -1346,9 +1347,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // FrameworkTestSuite is changed in such a way that new files
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
-      if(i!=111){
+      if(i!=112){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"111 != " + i);
+               +"112 != " + i);
       }
 
 
@@ -2840,6 +2841,50 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
     }
   }
+
+
+  public final static String [] HELP_FRAME164A =  {
+    "Test normalization of relative paths in bundle URLs created using "
+    +" new URL(bundleUrl, 'relative path')."
+  };
+
+  class Frame164a extends FWTestCase {
+    public void runTest() throws Throwable {
+
+      // Use the Util-class as test target.
+      final String resourceName
+        = "org/knopflerfish/bundle/framework_test/Util.class";
+
+      URL url1 = bc.getBundle().getResource(resourceName);
+
+      testRelativeURL(url1, "..", "/org/knopflerfish/bundle/");
+      testRelativeURL(url1, "../..", "/org/knopflerfish/");
+      testRelativeURL(url1, "../../..", "/org/");
+      testRelativeURL(url1, "../../../..", "/");
+      testRelativeURL(url1, "../../../../..", "/../");
+
+      out.println("### framework test bundle :FRAME164A:PASS");
+    }
+
+    private void testRelativeURL(URL baseURL, String path, String resPath)
+      throws Throwable
+    {
+      URL url2 = new URL( baseURL, path +"/");
+      URL url3 = new URL( baseURL, path );
+
+      System.out.println("baseURL = "+baseURL);
+      System.out.println("URL from new URL(\""+path+"/\") = "+url2);
+      System.out.println("URL from new URL(\""+path+"\") = "+url3);
+
+      assertNotNull("url2 = new URL(baseURL, \""+path +"/\")",url2);
+      assertNotNull("url3 = new URL(baseURL, \""+path +"\")",url3);
+      assertEquals("url2 and url3 shall be equal.", url2, url3);
+      assertEquals("url2.getPath()", resPath, url2.getPath());
+    }
+
+  }
+
+
 
   boolean callReturned;
   Integer doneSyncListener;

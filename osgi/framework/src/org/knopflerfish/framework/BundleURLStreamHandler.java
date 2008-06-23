@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
       if (pos < len) {
         int pstart;
         if (sc[pos] != '/') {
-          if (path != null) { 
+          if (path != null) {
             int dirend = path.lastIndexOf('/') + 1;
             if (dirend > 0) {
               int plen = len - pos;
@@ -149,8 +149,12 @@ public class BundleURLStreamHandler extends URLStreamHandler {
               dots = 0;
               continue;
             } else if (dots == 2) {
-              while (ipos > pstart && sc[--ipos] != '/')
-                ;
+              if (ipos>pstart) { // There is a path-level to remove.
+                dots = 0;
+                while (ipos > pstart && sc[--ipos] != '/')
+                  ;
+                continue;
+              }
             }
           } else if (sc[pos] == '.') {
             if (slash) {
@@ -172,8 +176,18 @@ public class BundleURLStreamHandler extends URLStreamHandler {
           }
         }
         if (dots == 2) {
-          while (ipos > pstart && sc[--ipos] != '/')
-            ;
+          if (ipos > pstart) { // There is a level to remove
+            while (ipos > pstart && sc[--ipos] != '/')
+              ;
+          } else { // On top level, keep the ".."
+            while (dots-- > 0) {
+              sc[++ipos] = '.';
+            }
+            // Add trailing '/' to ensure that a relative URL created
+            // with path ".." results in the same URL as one created
+            // using "../".
+            sc[++ipos] = '/';
+          }
         }
         path = new String(sc, pstart, ipos - pstart + 1);
       }
@@ -188,8 +202,8 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   /**
    * Equals calculation for bundle URLs.
-   * @return <tt>true</tt> if the two urls are 
-   * considered equal, ie. they refer to the same 
+   * @return <tt>true</tt> if the two urls are
+   * considered equal, ie. they refer to the same
    * fragment in the same file.
    *
    */
@@ -208,11 +222,11 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     if (PROTOCOL.equals(u.getProtocol())) {
       String host = u.getHost();
       if (host != null)
-	h = host.hashCode();
+        h = host.hashCode();
 
       String file = u.getFile();
       if (file != null)
-	h += file.hashCode();
+        h += file.hashCode();
 
       h += u.getPort();
     } else {
@@ -230,17 +244,17 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     String p1 = u1.getProtocol();
     if (PROTOCOL.equals(p1)) {
       if (!p1.equals(u2.getProtocol()))
-	return false;
+        return false;
 
       if (!hostsEqual(u1, u2))
-	return false;
+        return false;
 
       if (!(u1.getFile() == u2.getFile() ||
-	    (u1.getFile() != null && u1.getFile().equals(u2.getFile()))))
-	return false;
+            (u1.getFile() != null && u1.getFile().equals(u2.getFile()))))
+        return false;
 
       if (u1.getPort() != u2.getPort())
-	return false;
+        return false;
 
       return true;
     } else {
@@ -251,9 +265,9 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   /**
    * Compares the host components of two URLs.
-   * @param u1 the URL of the first host to compare 
-   * @param u2 the URL of the second host to compare 
-   * @return	<tt>true</tt> if and only if they 
+   * @param u1 the URL of the first host to compare
+   * @param u2 the URL of the second host to compare
+   * @return    <tt>true</tt> if and only if they
    * are equal, <tt>false</tt> otherwise.
    */
   protected boolean hostsEqual(URL u1, URL u2) {
@@ -262,7 +276,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     return (s1 == s2) || (s1 != null && s1.equals(s2));
   }
 
-  
+
   /**
    * Converts a bundle URL to a String.
    *
