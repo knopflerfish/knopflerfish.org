@@ -19,15 +19,15 @@
 -init
 
 -initlevel 1
--istart junit_all-N.N.N.jar
+-istart @junit_all-N.N.N.jar@
 
 # the test cases
 -initlevel 5
--istart restart_test-N.N.N.jar
+-istart @restart_test-N.N.N.jar@
 
 # the test case runner bundle.
 -initlevel 20
--istart junit_runner_all-N.N.N.jar
+-istart @junit_runner_all-N.N.N.jar@
 
 -startlevel 20
 

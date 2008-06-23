@@ -10,14 +10,14 @@
 
 -init
 
--install log_api-N.N.N.jar
--install console_api-N.N.N.jar
--istart  cm_api-N.N.N.jar
--istart  log-N.N.N.jar
--istart  console-N.N.N.jar
--istart  consoletty-N.N.N.jar
--istart  frameworkcommands-N.N.N.jar
--istart  logcommands-N.N.N.jar
--istart  useradmin_api-N.N.N.jar
+-install @log_api-N.N.N.jar@
+-install @console_api-N.N.N.jar@
+-istart  @cm_api-N.N.N.jar@
+-istart  @log-N.N.N.jar@
+-istart  @console-N.N.N.jar@
+-istart  @consoletty-N.N.N.jar@
+-istart  @frameworkcommands-N.N.N.jar@
+-istart  @logcommands-N.N.N.jar@
+-istart  @useradmin_api-N.N.N.jar@
 
 -launch

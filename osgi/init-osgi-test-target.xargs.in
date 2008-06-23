@@ -33,21 +33,21 @@
 -Dorg.knopflerfish.framework.system.export.all=false
 
 # These bundles intefere with testing
--stop desktop_all-N.N.N.jar
--stop httproot-N.N.N.jar
+-stop @desktop_all-N.N.N.jar@
+-stop @httproot-N.N.N.jar@
 
 -Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
--istart  prefs_all-N.N.N.jar
--istart  event_all-N.N.N.jar
--install kxml-N.N.N.jar
--install metatype-N.N.N.jar
--istart  kf_metatype_all-N.N.N.jar
--istart  measurement-N.N.N.jar
--istart  io_all-N.N.N.jar
--istart  position-N.N.N.jar
--istart  provisioning_api-N.N.N.jar
--istart  upnp_api-N.N.N.jar
--istart  wireadmin_api-N.N.N.jar
+-istart  @prefs_all-N.N.N.jar@
+-istart  @event_all-N.N.N.jar@
+-install @kxml-N.N.N.jar@
+-install @metatype-N.N.N.jar@
+-istart  @kf_metatype_all-N.N.N.jar@
+-istart  @measurement-N.N.N.jar@
+-istart  @io_all-N.N.N.jar@
+-istart  @position-N.N.N.jar@
+-istart  @provisioning_api-N.N.N.jar@
+-istart  @upnp_api-N.N.N.jar@
+-istart  @wireadmin_api-N.N.N.jar@
 
 #-start  file:../../osgi.ri-tck/osgi.target.jar
 -start file:../../osgi/tck-4.0.1/osgi.target.jar
