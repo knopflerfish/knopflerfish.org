@@ -19,6 +19,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Fix an issue with normalization of relative bundle URLs reported in
+  http://sourceforge.net/tracker/index.php?func=detail&aid=2000856&group_id=82798&atid=567241
+
   Fix file separator issue for unpacked bundle-jar files. Reported in
   https://sourceforge.net/forum/forum.php?thread_id=2071337&forum_id=328005
 
