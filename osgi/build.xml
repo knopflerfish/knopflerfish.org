@@ -82,6 +82,7 @@
   <target name="bundles_test_present" if="dir.bundles_test.present">
     <ant dir="bundles_test" target="all"
          inheritAll="false" inheritRefs="false"/>
+    <antcall target="xargs"/>
   </target>
   <target name="bundles_test_missing" unless="dir.bundles_test.present">
    <echo level="warning"
@@ -274,10 +275,7 @@
 
  <target name="run-kf-tests"
          description="Builds then executes the KF testsuite."
-	 depends="all">
-   <ant dir="bundles_opt/junit"   target="all"/>
-   <ant dir="bundles_test"        target="all"
-	inheritAll="false"        inheritRefs="false"/>
+	 depends="clean,all">
    <antcall target="run-kf-tests-bare"/>
  </target>
 
@@ -326,10 +324,7 @@
 
  <target name="run-kf-tests-secure"
          description="Builds then executes the KF testsuite with security enabled."
-	 depends="all">
-   <ant dir="bundles_opt/junit"   target="all"/>
-   <ant dir="bundles_test"        target="all"
-	inheritAll="false"        inheritRefs="false"/>
+	 depends="clean,all">
    <antcall target="run-kf-tests-secure-bare"/>
  </target>
 
