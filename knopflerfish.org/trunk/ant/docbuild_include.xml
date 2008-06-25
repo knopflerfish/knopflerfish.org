@@ -8,16 +8,19 @@
  	     classpath = "${docbuild.basedir}/classes"
              classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
 
-  
+    <!-- Default out dir -->
+    <property name="docbuild.outdir"
+	      location="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}"/>
+
     <makehtml title="${docbuild.title}"
               description="${docbuild.description}"
               template="${docbuild.basedir}/html_template/bundledoc_ext.html"
-              outdir="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}">
+              outdir="${docbuild.outdir}">
       <fileset dir="${docbuild.fromdir}">
 	<include name="**/*.html"/>
       </fileset>
     </makehtml>
-    <copy todir="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}">
+    <copy todir="${docbuild.outdir}">
       <fileset dir="${docbuild.fromdir}">
 	<exclude name="**/*.html"/>
       </fileset>

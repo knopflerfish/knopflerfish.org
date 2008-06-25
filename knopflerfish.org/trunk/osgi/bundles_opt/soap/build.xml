@@ -26,7 +26,8 @@
     <ant dir="ksoap_remotefw"       target="clean"/>
   </target>
 
-  <import file="../../../ant/docbuild_include.xml"/>
+  <property name="topdir" location="../.."/>
+  <import file="${topdir}/../ant/docbuild_include.xml"/>
   
   <target name="bundle_doc">
     <ant dir="axis-osgi"            target="bundle_doc"/>
@@ -37,10 +38,13 @@
     <ant dir="ksoap-osgi"           target="bundle_doc"/>
     <ant dir="ksoap_remotefw"       target="bundle_doc"/>
 
+    <!-- The root if the local bundle docs directory. -->
+    <property name = "docs.dir" location = "${topdir}/out/doc"/>
     <antcall target="build_doc">
       <param name="docbuild.name" value="soap"/>  
       <param name="docbuild.title" value="Web Services / SOAP"/>
-      <param name="docbuild.fromdir" value="doc"/>
+      <param name="docbuild.fromdir" location="doc"/>
+      <param name="docbuild.outdir"  location="${docs.dir}/soap"/>
       <param name="docbuild.description"
 	     value="How to export a registered service as a Web Service using SOAP"/> 
     </antcall>
