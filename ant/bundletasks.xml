@@ -109,6 +109,8 @@
    <javac destdir      = "${antclasses}"
           srcdir       = "${ant.dir}/src"
 	  classpathref = "bundle_tasks.path"
+	  target       = "1.4"
+          source       = "1.4"
           debug        = "on">
      <!-- Bundle.java requires Ant 1.6+ -->
      <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>

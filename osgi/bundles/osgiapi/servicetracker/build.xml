@@ -28,14 +28,14 @@
   <path id="bundle.compile.path">
   </path>
 
-  <property name="bundle.description"    value="OSGi Service tracker"/>
-  <property name="bundle.category"       value="util"/>
-  <property name="bundle.vendor"         value="Knopflerfish"/>
-  <property name="bundle.apivendor"      value="OSGi"/>
-  <property name="bundle.version"        value="1.1.0"/>
-  <property name="bundle.docurl"         value="http://www.osgi.org"/>
+  <property name="bmfa.Bundle-Description"    value="OSGi Service tracker"/>
+  <property name="bmfa.Bundle-Category"       value="util"/>
+  <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
+  <property name="bmfa.Bundle-ApiVendor"      value="OSGi"/>
+  <property name="bmfa.Bundle-Version"        value="1.1.0"/>
+  <property name="bmfa.Bundle-DocURL"         value="http://www.osgi.org"/>
 
-  <property name="export.package"        value="org.osgi.util.tracker;specification-version=1.2"/>
+  <property name="bmfa.Export-Package"        value="org.osgi.util.tracker;specification-version=1.2"/>
 
   &bundlebuild_include;
 

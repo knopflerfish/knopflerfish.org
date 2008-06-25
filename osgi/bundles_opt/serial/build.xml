@@ -14,14 +14,19 @@
     <ant dir="comm-linux"          target="clean"/>
   </target>
 
-  <import file="../../../ant/docbuild_include.xml"/>
+  <property name="topdir" location="../.."/>
+  <import file="${topdir}/../ant/docbuild_include.xml"/>
   
   <target name="bundle_doc">
+    <!-- The root if the local bundle docs directory. -->
+    <property name = "docs.dir" location = "${topdir}/out/doc"/>
+
     <antcall target="build_doc">
       <param name="docbuild.name" value="serial"/>  
       <param name="docbuild.title" value="Serial Communication"/>
-      <param name="docbuild.fromdir" value="doc"/>
-     <param name="docbuild.description" value="Serial Port Communication"/> 
+      <param name="docbuild.fromdir" location="doc"/>
+      <param name="docbuild.outdir"  location="${docs.dir}/serial"/>
+      <param name="docbuild.description" value="Serial Port Communication"/> 
     </antcall>
   </target>
 </project>

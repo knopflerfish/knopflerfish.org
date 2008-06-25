@@ -152,8 +152,10 @@
  <property name = "jars.dir" location = "${topdir}/jars"/>
  <!-- Subdirectory of jars.dir where this projects bundles shall live. -->
  <property name = "jardir"   location = "${jars.dir}/${ant.project.name}"/>
- <!-- Directory to generate bundle documentation to. -->
- <property name = "outdocdir"   location = "${topdir}/out/doc/${ant.project.name}"/>
+ <!-- The root if the local bundle docs direcotry. -->
+ <property name = "docs.dir" location = "${topdir}/out/doc"/>
+ <!-- Directory to place generate bundle documentation in. -->
+ <property name = "outdocdir"   location = "${docs.dir}/${ant.project.name}"/>
 
  <property name = "bundledoc_template"   location = "${ant.dir}/html_template/bundledoc.html"/>
 
