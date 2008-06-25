@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,26 +59,31 @@ import org.osgi.service.io.ConnectorService;
 import org.osgi.service.io.ConnectionFactory;
 
 class ConnectorServiceImpl implements ConnectorService {
-  
+
   private static BundleContext bc = null;
 
   public ConnectorServiceImpl(BundleContext bc) {
     this.bc = bc;
   }
-    
+
   public Connection open(String uri) throws IOException {
     return open(uri, ConnectorService.READ_WRITE);
   }
-  
+
   public Connection open(String uri, int mode) throws IOException {
     return open(uri, mode, false);
   }
-  
-  public Connection open(String uri, int mode, boolean timeouts) throws IOException {
+
+  public Connection open(String uri, int mode, boolean timeouts)
+    throws IOException
+  {
     if (mode != Connector.READ &&
-	mode != Connector.WRITE &&
-	mode != Connector.READ_WRITE)
+        mode != Connector.WRITE &&
+        mode != Connector.READ_WRITE)
       throw new IllegalArgumentException("Variable mode has an invalid value");
+
+    if (null==uri || uri.length==0)
+      throw new IllegalArgumentException("URI must not be null or empty");
 
     int schemeSeparator = uri.indexOf(':');
 
@@ -90,21 +95,21 @@ class ConnectorServiceImpl implements ConnectorService {
 
     ConnectionFactory factory = getFactory(scheme);
     Connection retval = null;
-	
+
     if (factory != null) {
       retval = factory.createConnection(uri, mode, timeouts);
-	    
-    } else { 
-	    
+
+    } else {
+
       // fall back to Connector.
       try {
-	retval = Connector.open(uri, mode, timeouts);
+        retval = Connector.open(uri, mode, timeouts);
       } catch (Exception e) {
-	throw new ConnectionNotFoundException();
+        throw new ConnectionNotFoundException();
       }
-	    
+
     }
-	
+
     if (retval == null)
       throw new ConnectionNotFoundException();
     else
@@ -114,10 +119,10 @@ class ConnectorServiceImpl implements ConnectorService {
 
   private ConnectionFactory getFactory(String scheme) {
     ServiceReference[] refs = null;
-    
+
     try {
-      refs = 
-	bc.getServiceReferences(ConnectionFactory.class.getName(), null);
+      refs =
+        bc.getServiceReferences(ConnectionFactory.class.getName(), null);
     } catch (InvalidSyntaxException e) {
       // this should not be happening
     }
@@ -130,13 +135,13 @@ class ConnectorServiceImpl implements ConnectorService {
 
     for (int i = 0; i < refs.length; i++) {
       String[] tmp = (String[])refs[i].getProperty(ConnectionFactory.IO_SCHEME);
-      
+
       for (int o = 0; o < tmp.length; o++) {
 
-	if (scheme.equalsIgnoreCase(tmp[o])) {
-	  list.add(refs[i]);
-	  break;
-	}
+        if (scheme.equalsIgnoreCase(tmp[o])) {
+          list.add(refs[i]);
+          break;
+        }
       }
     }
 
@@ -145,55 +150,55 @@ class ConnectorServiceImpl implements ConnectorService {
     }
 
     ServiceReference bestRef = (ServiceReference)list.get(0);
-    
+
     if (list.size() == 1)
       return (ConnectionFactory)bc.getService(bestRef);
-    
+
     int bestRanking = getRanking(bestRef);
     int rank;
     ServiceReference ref;
-    
+
     for (int i = 1; i < list.size(); i++) {
       ref = (ServiceReference)list.get(i);
       rank = getRanking(ref);
-      
+
       if (rank > bestRanking) { // by highest rank, then lowest service id.
-	bestRanking = rank;
-	bestRef = ref;
-	
+        bestRanking = rank;
+        bestRef = ref;
+
       } else {
-	if (rank == bestRanking) {
-	  
-	  Long l1 = (Long)ref.getProperty(Constants.SERVICE_ID);
-	  Long l2 = (Long)bestRef.getProperty(Constants.SERVICE_ID);
-	  
-	  if (l1.compareTo(l2) < 0) {
-	    bestRef = ref;
-	  }
-	}
+        if (rank == bestRanking) {
+
+          Long l1 = (Long)ref.getProperty(Constants.SERVICE_ID);
+          Long l2 = (Long)bestRef.getProperty(Constants.SERVICE_ID);
+
+          if (l1.compareTo(l2) < 0) {
+            bestRef = ref;
+          }
+        }
       }
     }
     return (ConnectionFactory)bc.getService(bestRef);
   }
 
-  /* Returns 0 (default value) if there is not rank for 
+  /* Returns 0 (default value) if there is not rank for
      the specificed service or if it has an invalid rank.
   */
   private int getRanking(ServiceReference ref) {
-	
-    Object rank = 
+
+    Object rank =
       (Object)ref.getProperty(Constants.SERVICE_RANKING);
 
-    if (rank == null) 
-      return 0; 
-	
+    if (rank == null)
+      return 0;
+
     if (rank instanceof Integer)
       return ((Integer)rank).intValue();
-    else 
+    else
       return 0;
-	
-  }    
- 
+
+  }
+
   public DataInputStream openDataInputStream(String name) throws IOException {
     Connection con = open(name, ConnectorService.READ, false);
 
@@ -203,10 +208,10 @@ class ConnectorServiceImpl implements ConnectorService {
       return stream;
     }
     con.close();
-    throw new IOException("Given scheme does not support input"); 
+    throw new IOException("Given scheme does not support input");
   }
-    
-    
+
+
   public DataOutputStream openDataOutputStream(String name) throws IOException {
     Connection con = open(name, ConnectorService.WRITE, false);
 
@@ -215,14 +220,14 @@ class ConnectorServiceImpl implements ConnectorService {
       con.close();
       return stream;
     }
-	
+
     con.close();
-    throw new IOException("Given scheme does not support output"); 
+    throw new IOException("Given scheme does not support output");
   }
-    
-    
+
+
   public InputStream openInputStream(String name) throws IOException {
-	
+
     Connection con = open(name, ConnectorService.READ, false);
 
     if (con instanceof InputConnection) {
@@ -230,22 +235,22 @@ class ConnectorServiceImpl implements ConnectorService {
       con.close();
       return stream;
     }
-	
+
     con.close();
-    throw new IOException("Given scheme does not support input"); 
+    throw new IOException("Given scheme does not support input");
   }
-    
-    
+
+
   public OutputStream openOutputStream(String name) throws IOException {
     Connection con = open(name, ConnectorService.WRITE, false);
-	
+
     if (con instanceof OutputConnection) {
       OutputStream stream = ((OutputConnection)con).openOutputStream();
       con.close();
       return stream;
     }
-	
+
     con.close();
-    throw new IOException("Given scheme does not support output"); 
+    throw new IOException("Given scheme does not support output");
   }
 }
