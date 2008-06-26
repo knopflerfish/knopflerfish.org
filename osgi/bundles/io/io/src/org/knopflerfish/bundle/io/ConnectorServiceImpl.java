@@ -82,7 +82,7 @@ class ConnectorServiceImpl implements ConnectorService {
         mode != Connector.READ_WRITE)
       throw new IllegalArgumentException("Variable mode has an invalid value");
 
-    if (null==uri || uri.length==0)
+    if (null==uri || uri.length()==0)
       throw new IllegalArgumentException("URI must not be null or empty");
 
     int schemeSeparator = uri.indexOf(':');
