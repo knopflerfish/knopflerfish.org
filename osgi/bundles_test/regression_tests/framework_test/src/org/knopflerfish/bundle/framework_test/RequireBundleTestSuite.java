@@ -196,7 +196,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
           fail(ceStr +  ":FRAME410A:FAIL");
       }
 
-      // Check that bCc have registered 3 service instanciating
+      // Check that bC has registered 3 services instanciating
       // classes via both the require-bundle packages and the imported
       // package from bC that is split over bC and bD.
       Map expected = new HashMap();
