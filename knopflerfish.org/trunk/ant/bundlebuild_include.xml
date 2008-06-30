@@ -188,7 +188,7 @@
  <!-- E.g. classes loaded using reflection. -->
  <property name = "bundle.extraimports"   value = ""/>
  
- <!-- First part of the suffix to inser right before "-jar" in the -->
+ <!-- First part of the suffix to insert right before "-jar" in the -->
  <!-- name of jar files to create.                                 -->
  <!-- E.g. The full name of the impl-jar will be on the form:      -->
  <!--${jardir}/${ant.project.name}${impl.suffix.name}-${bmfa.Bundle-Version}-->
@@ -467,11 +467,11 @@
  </target>
 
 
+ <!-- ============================= IMPL =============================== -->
  <target name    = "jar_impl" 
+         depends = "init,bundle_tasks,compile" 
          if      = "do_build_impl">
   <echo message = "${impl.jar}"/>
-
-  <antcall target = "compile" inheritRefs="true"/>
 
   <!-- Use the impl version of manifest properties, define it if needed. -->
   <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
@@ -486,6 +486,7 @@
               extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.impl}"
 	      serviceComponent  = "${bmfa.Service-Component}"
+	      fragmentHost      = "${bmfa.Fragment-Host}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -553,12 +554,11 @@
   </jar>
  </target>
 
+ <!-- ============================= API =============================== -->
  <target name    = "jar_api" 
-         depends = "init,bundle_tasks" 
+         depends = "init,bundle_tasks,compile_api" 
          if      = "do_build_api">
   <echo message = "${api.jar}"/>
-
-  <antcall target = "compile_api" inheritRefs="true"/>
 
   <!-- If api-variant unspecified use the standard def. -->
   <property name="bmfa.api-Export-Package" value="${bmfa.Export-Package}"/>
@@ -576,6 +576,7 @@
               extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.api}"
 	      serviceComponent  = "${bmfa.Service-Component}"
+	      fragmentHost      = "${bmfa.Fragment-Host}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
@@ -611,12 +612,11 @@
 
  </target>
 
+ <!-- ============================= LIB =============================== -->
  <target name    = "jar_lib" 
-         depends = "init,bundle_tasks" 
+         depends = "init,bundle_tasks,compile_api" 
          if      = "do_build_lib">
   <echo message = "${lib.jar}"/>
-
-  <antcall target = "compile_api" inheritRefs="true"/>
 
   <!-- Use the api version of manifest properties, define if needed. -->
   <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
@@ -631,12 +631,12 @@
               extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.lib}"
 	      serviceComponent  = "${bmfa.Service-Component}"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
+	      fragmentHost      = "${bmfa.Fragment-Host}"
+              checkFoundationEE = "${ee.check.foundation}">
    <fileset dir      = "${classes.out.dir}" 
             includes = "${api.pattern}">
    </fileset>
-   <fileset dir = "${resources.dir}"
+   <fileset dir      = "${resources.dir}"
             includes = "${lib.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
@@ -659,8 +659,7 @@
   <jar basedir  = "${classes.out.dir}"
        jarfile  = "${lib.jar}"
        includes = "${api.pattern}"
-       manifest = "${outdir}/lib.mf"
-    >
+       manifest = "${outdir}/lib.mf">
      <fileset dir      = "${src.dir}"
               includes = "${api.pattern}"
 	      excludes = "**/*.java,**/*.html"/>
@@ -675,24 +674,23 @@
    <mkdir dir = "${resources.dir}"/>
  </target>
 
+ <!-- ============================= ALL =============================== -->
  <target name    = "jar_all" 
-         depends = "init,bundle_tasks" 
+         depends = "init,bundle_tasks,compile" 
          if      = "do_build_all">
   <echo message = "${all.jar}"/>
-
-  <antcall target = "compile" inheritRefs="true"/>
 
   <!-- Create a file set include pattern for the Bundle-Classpath -->
   <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
                        propertyName   ="all.Bundle-Classpath.pattern" />
 
-  <bundleinfo exports   = "bmfa.Export-Package"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
+  <!-- Determine / validate set of packages to be exported. -->
+  <bundleinfo exports="bmfa.Export-Package"
+              checkFoundationEE="${ee.check.foundation}">
    <fileset dir      = "${classes.out.dir}" 
             includes = "${api.pattern},${impl-api.pattern}">
    </fileset>
-   <fileset dir = "${resources.dir}"
+   <fileset dir      = "${resources.dir}"
             includes = "${all.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
@@ -704,12 +702,13 @@
               extraimports      = "${bundle.extraimports}"
               implicitImports   = "${bundle.implicit.imports.all}"
 	      serviceComponent  = "${bmfa.Service-Component}"
+	      fragmentHost      = "${bmfa.Fragment-Host}"
               checkFoundationEE = "${ee.check.foundation}"
   >
    <fileset dir      = "${classes.out.dir}" 
             includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
    </fileset>
-   <fileset dir = "${resources.dir}"
+   <fileset dir      = "${resources.dir}"
             includes = "${all.Bundle-Classpath.pattern}">
    </fileset>
   </bundleinfo>
@@ -743,6 +742,7 @@
     
    <antcall target = "add_src_all" inheritRefs="true"/>
  </target>
+
 
  <target name="check_telnet">
    <available classname = "com.oroinc.net.telnet.TelnetCommand" 

@@ -594,16 +594,18 @@ public class BundleManifestTask extends Task {
         mainS.removeAttribute(attrName);
         String newAttrName = attrName.substring(prefixLength);
         mainS.removeAttribute(newAttrName);
-        try {
-          Manifest.Attribute newAttr
-            = new Manifest.Attribute(newAttrName,attrVal);
-          mainS.addConfiguredAttribute(newAttr);
-          log("Overriding '" +newAttrName +"' with value of '"+attrName+"'.",
-              Project.MSG_VERBOSE);
-        } catch (ManifestException me) {
-          throw new BuildException("overriding of '" +newAttrName
-                                   +"' failed: "+me,
-                                   me, getLocation());
+        if (!isPropertyValueEmpty(attrVal)) {
+          try {
+            Manifest.Attribute newAttr
+              = new Manifest.Attribute(newAttrName,attrVal);
+            mainS.addConfiguredAttribute(newAttr);
+            log("Overriding '" +newAttrName +"' with value of '"+attrName+"'.",
+                Project.MSG_VERBOSE);
+          } catch (ManifestException me) {
+            throw new BuildException("overriding of '" +newAttrName
+                                     +"' failed: "+me,
+                                     me, getLocation());
+          }
         }
       }
     }

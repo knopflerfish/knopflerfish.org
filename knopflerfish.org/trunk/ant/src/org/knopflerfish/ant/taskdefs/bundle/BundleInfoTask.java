@@ -165,17 +165,13 @@ import org.apache.tools.ant.util.StringUtils;
  *  <tr>
  *   <td valign=top>defaultimports</td>
  *   <td valign=top>
- *       Comma-separated list of all default imported packages.
- *       <p>
- *       <b>Note</b>: Do not set <tt>defaultimports</tt> to the empty
- *       string, since that might
- *       cause an later illegal bundle manifest file if <i>no</i> imported
- *       packages are found.
- *       </p>
+ *       Comma-separated list of packages that will be unconditionally
+ *       added to the derived set of packages that the bundle needs to
+ *       import.
  *   </td>
  *   <td valign=top>
  *     No.<br>
- *     Default value is "org.osgi.framework"
+ *     Default value is ""
  *   </td>
  *  </tr>
  *
@@ -215,6 +211,19 @@ import org.apache.tools.ant.util.StringUtils;
  *       If set to non-empty, leave the value of the activator
  *       property untouched and do not complain if there are no class
  *       that implements BundleActivator in the bundle.
+ *       </p>
+ *  </td>
+ *   <td valign=top>No.<br> Default value is ""</td>
+ *  </tr>
+ *  <tr>
+ *   <td valign=top>fragmentHost</td>
+ *   <td valign=top>
+ *       The value of the <tt>Fragment-Host</tt> manifest header.
+ *       <p>
+ *       If set to non-empty (i.e., this is a fragment bundle), leave
+ *       the value of the activator property untouched and do not
+ *       complain if there are no class that implements
+ *       BundleActivator in the bundle.
  *       </p>
  *  </td>
  *   <td valign=top>No.<br> Default value is ""</td>
@@ -321,6 +330,7 @@ public class BundleInfoTask extends Task {
   private String activatorProperty = "";
   private String mainProperty      = "";
   private String serviceComponent  = "";
+  private String fragmentHost      = "";
 
   private Set     stdImports       = new TreeSet();
   private boolean bDebug           = false;
@@ -353,7 +363,7 @@ public class BundleInfoTask extends Task {
 
   public BundleInfoTask() {
     fileUtils = FileUtils.newFileUtils();
-    setDefaultImports("org.osgi.framework");
+    setDefaultImports("");
     setStdImports("java.");
   }
 
@@ -390,9 +400,14 @@ public class BundleInfoTask extends Task {
    * @param packageList Comma-separated list of package names.
    */
   public void setDefaultImports(String packageList) {
-    Vector v = StringUtils.split(packageList.trim(),',');
     importSet.clear();
-    importSet.addAll(v);
+    if (null!=packageList) {
+      packageList = packageList.trim();
+      if (0<packageList.length()) {
+        Vector v = StringUtils.split(packageList,',');
+        importSet.addAll(v);
+      }
+    }
   }
 
 
@@ -432,7 +447,17 @@ public class BundleInfoTask extends Task {
    */
   public void setServiceComponent(String serviceComponent) {
     this.serviceComponent = serviceComponent;
-    if (!BundleManifestTask.isPropertyValueEmpty(serviceComponent)) {
+    if (!BundleManifestTask.isPropertyValueEmpty(this.serviceComponent)) {
+      bSetActivator = false;
+    }
+  }
+
+  /**
+   * Set value of the Fragment-Host manifest header.
+   */
+  public void setFragmentHost(String fragmentHost) {
+    this.fragmentHost = fragmentHost;
+    if (!BundleManifestTask.isPropertyValueEmpty(this.fragmentHost)) {
       bSetActivator = false;
     }
   }
@@ -495,10 +520,17 @@ public class BundleInfoTask extends Task {
     if(!"".equals(exportsProperty)) {
       String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
-        exportsVal = toString(providedSet, ",");
-        log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
-            Project.MSG_VERBOSE);
-        proj.setProperty(exportsProperty, exportsVal);
+        if (0==providedSet.size()) {
+          proj.setProperty(exportsProperty,
+                           BundleManifestTask.BUNDLE_EMPTY_STRING);
+          log("No packages exported, leaving \"" +exportsProperty +"\" empty.",
+              Project.MSG_VERBOSE);
+        } else {
+          exportsVal = toString(providedSet, ",");
+          log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
+              Project.MSG_VERBOSE);
+          proj.setProperty(exportsProperty, exportsVal);
+        }
       } else {
         // Export-Package given; check that they are provided.
         Iterator expIt = Util.parseEntries("export.package",exportsVal,
@@ -523,10 +555,18 @@ public class BundleInfoTask extends Task {
       String importsVal = proj.getProperty(importsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(importsVal)) {
         // No Import-Package given; use derived value.
-        importsVal = toString(importSet, ",");
-        log("Setting \"" +importsProperty +"\" to \""+importsVal +"\"",
-            Project.MSG_VERBOSE);
-        proj.setProperty(importsProperty, importsVal);
+        log("importSet.size()="+importSet.size(),Project.MSG_VERBOSE);
+        if (0==importSet.size()) {
+          log("No packages to import, leaving \"" +importsProperty +"\" empty.",
+              Project.MSG_VERBOSE);
+          proj.setProperty(importsProperty,
+                           BundleManifestTask.BUNDLE_EMPTY_STRING);
+        } else {
+          importsVal = toString(importSet, ",");
+          log("Setting \"" +importsProperty +"\" to \""+importsVal +"\"",
+              Project.MSG_VERBOSE);
+          proj.setProperty(importsProperty, importsVal);
+        }
       } else {
         // Import-Package given; check that all derived packages are
         // present and that there are no dupplicated packages.

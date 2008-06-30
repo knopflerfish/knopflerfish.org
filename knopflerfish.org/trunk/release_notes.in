@@ -55,6 +55,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   All xargs-files are now generated from templates with bundle names
   on the form @log_all-N.N.N.jar@ using a similar expansion method.
 
+  It is now possible to use bundlebuild_include.xml to build fragment
+  bundles. The recommended build file setting for fragment bundles is:
+
+  <property name = "bundle.build.lib"   value = "false"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+
+  I.e., build it as an "all"-bunlde.
+
+  Bundle manifest files with an empty "Export-Package" or
+  "Import-Package" attribute should no longer be generated.
+
 
 ========================================================================
 
