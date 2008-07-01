@@ -163,8 +163,8 @@
      <replacevalue><![CDATA[
 ## Windows platforms are likely to support tray icons
 -initlevel 1
--istart trayicon_all-N.N.N.jar
--istart trayicon_fw-N.N.N.jar
+-istart @trayicon_all-N.N.N.jar@
+-istart @trayicon_fw-N.N.N.jar@
 ]]></replacevalue>
 
    </replace>	  
