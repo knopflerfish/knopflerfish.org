@@ -17,8 +17,8 @@
   <property name="topdir" location="../.."/>
   <import file="${topdir}/../ant/docbuild_include.xml"/>
   
-  <target name="bundle_doc">
-    <!-- The root if the local bundle docs directory. -->
+  <target name="bundle_doc_overview">
+    <!-- The root of the local bundle docs directory. -->
     <property name = "docs.dir" location = "${topdir}/out/doc"/>
 
     <antcall target="build_doc">
@@ -28,5 +28,9 @@
       <param name="docbuild.outdir"  location="${docs.dir}/serial"/>
       <param name="docbuild.description" value="Serial Port Communication"/> 
     </antcall>
+  </target>
+
+  <target name="bundle_doc"
+	  depends="bundle_doc_overview">
   </target>
 </project>
