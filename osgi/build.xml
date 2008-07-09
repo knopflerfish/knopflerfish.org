@@ -4,8 +4,10 @@
 
   <!-- build properties -->
 
-  <property name = "topdir"          location = "."/>
-  <property name = "javadoc.out.dir" location = "out/javadoc"/>
+  <property name="topdir"          location="."/>
+  <property name="osgi.dir"        location="."/>
+  <property name="jars.dir"        location="jars"/>
+  <property name="javadoc.out.dir" location="out/javadoc"/>
 
   <!-- The initial part of the URL to use for the default jars -->
   <!-- location in the remote xargs files.  -->
@@ -93,7 +95,7 @@
   <target name="xargs" depends="init,bundle_tasks">
     <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
     <bundle_locator replacefilterfile="${bundleVersionFilter}">
-      <fileset dir="jars">
+      <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>
@@ -106,9 +108,9 @@
 
   <target name="minimal_xargs">
    <copy file="minimal.xargs.in"
-	 tofile="minimal.xargs"
+	 tofile="${osgi.dir}/minimal.xargs"
 	 overwrite="true"/>
-   <replace file="minimal.xargs"
+   <replace file="${osgi.dir}/minimal.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "file:jars/"/>
@@ -118,8 +120,10 @@
   </target>
 
   <target name="remote_xargs">
-   <copy file="template.xargs.in" tofile="remote-init.xargs" overwrite="true"/>
-   <replace file="remote-init.xargs"
+   <copy file="template.xargs.in"
+	 tofile="${osgi.dir}/remote-init.xargs"
+	 overwrite="true"/>
+   <replace file="${osgi.dir}/remote-init.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "${base.url}/${version}/osgi/jars/"/>
@@ -129,9 +133,11 @@
   </target>
 
   <target name="init_xargs">
-   <copy file="template.xargs.in" tofile="init.xargs" overwrite="true"/>
+   <copy file="template.xargs.in"
+	 tofile="${osgi.dir}/init.xargs"
+	 overwrite="true"/>
 
-   <replace file="init.xargs"
+   <replace file="${osgi.dir}/init.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "file:jars/"/>
@@ -151,9 +157,9 @@
   <target name="init_xargs_windows">
    <echo message="create init_${osname}.xargs"/>
    <copy file="template.xargs.in"
-	 tofile="init_${osname}.xargs"
+	 tofile="${osgi.dir}/init_${osname}.xargs"
 	 overwrite="true"/>
-   <replace file="init_${osname}.xargs"
+   <replace file="${osgi.dir}/init_${osname}.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "file:jars/"/>
@@ -172,9 +178,9 @@
 
   <target name="osgi_test_xargs">
    <copy file="init-osgi-test-target.xargs.in"
-	 tofile="init-osgi-test-target.xargs"
+	 tofile="${osgi.dir}/init-osgi-test-target.xargs"
 	 overwrite="true"/>
-   <replace file="init-osgi-test-target.xargs"
+   <replace file="${osgi.dir}/init-osgi-test-target.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
    </replace>	  
   </target>
@@ -182,16 +188,20 @@
   <target name="test_xargs">
     <property name="bundleVersionFilterTest"
 	      location="out/bundleVersionsTest.props"/>
+    <property name="jars.pattern"
+	      value="jars/**/*.jar"/>
+    <property name="jars_test.pattern"
+	      value="bundles_test/regression_tests/jars/**/*.jar"/>
     <bundle_locator replacefilterfile="${bundleVersionFilterTest}">
-      <fileset dir=".">
-	<include name="jars/**/*.jar"/>
-	<include name="bundles_test/regression_tests/jars/**/*.jar"/>
+      <fileset dir="${osgi.dir}">
+	<include name="${jars.pattern}"/>
+	<include name="${jars_test.pattern}"/>
       </fileset>
     </bundle_locator>
     <copy file="init-tests.xargs.in"
-	  tofile="init-tests.xargs"
+	  tofile="${osgi.dir}/init-tests.xargs"
 	  overwrite="true"/>
-    <replace file="init-tests.xargs"
+    <replace file="${osgi.dir}/init-tests.xargs"
 	     replacefilterfile="${bundleVersionFilterTest}">
       <replacefilter token="$(JAR_PREFIX)"      value="file:"/>
       <replacefilter token="$(VERSION)"         value=""/>
