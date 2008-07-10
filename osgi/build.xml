@@ -94,9 +94,10 @@
 
   <target name="xargs" depends="init,bundle_tasks">
     <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
+    <property name="xargs.jars.pattern"  value="**/*.jar"/>
     <bundle_locator replacefilterfile="${bundleVersionFilter}">
       <fileset dir="${jars.dir}">
-	<include name="**/*.jar"/>
+	<include name="${xargs.jars.pattern}"/>
       </fileset>
     </bundle_locator>
     <antcall target="minimal_xargs"/>
@@ -188,14 +189,14 @@
   <target name="test_xargs">
     <property name="bundleVersionFilterTest"
 	      location="out/bundleVersionsTest.props"/>
-    <property name="jars.pattern"
+    <property name="test_xargs.jars.pattern"
 	      value="jars/**/*.jar"/>
-    <property name="jars_test.pattern"
+    <property name="test_xargs.jars_test.pattern"
 	      value="bundles_test/regression_tests/jars/**/*.jar"/>
     <bundle_locator replacefilterfile="${bundleVersionFilterTest}">
       <fileset dir="${osgi.dir}">
-	<include name="${jars.pattern}"/>
-	<include name="${jars_test.pattern}"/>
+	<include name="${test_xargs.jars.pattern}"/>
+	<include name="${test_xargs.jars_test.pattern}"/>
       </fileset>
     </bundle_locator>
     <copy file="init-tests.xargs.in"
