@@ -7,8 +7,6 @@
   <property name="topdir"        location="."/>
   <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
   <property name="classout"      location="${outdir}/classes"/>
-  <property name="docdir"        location="${ant.project.name}/apidoc"/>
-
 
   <property name="src.dir" location = "src"/>
 
@@ -54,6 +52,7 @@
 
       <include   name="noia/**"/>
       <exclude   name="**/CVS"/>
+      <exclude   name="**/.svn"/>
       <include   name="*.gif"/>
      </zipfileset>
 
