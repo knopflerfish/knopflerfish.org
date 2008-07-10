@@ -191,12 +191,12 @@
 	      location="out/bundleVersionsTest.props"/>
     <property name="test_xargs.jars.pattern"
 	      value="jars/**/*.jar"/>
-    <property name="test_xargs.jars_test.pattern"
+    <property name="test_xargs.test.jars.pattern"
 	      value="bundles_test/regression_tests/jars/**/*.jar"/>
     <bundle_locator replacefilterfile="${bundleVersionFilterTest}">
       <fileset dir="${osgi.dir}">
 	<include name="${test_xargs.jars.pattern}"/>
-	<include name="${test_xargs.jars_test.pattern}"/>
+	<include name="${test_xargs.test.jars.pattern}"/>
       </fileset>
     </bundle_locator>
     <copy file="init-tests.xargs.in"
