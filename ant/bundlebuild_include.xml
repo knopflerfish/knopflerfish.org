@@ -1,23 +1,23 @@
 <!--
   ** Copyright (c) 2003-2008, KNOPFLERFISH project
   ** All rights reserved.
-  ** 
-  ** Redistribution and use in source and binary forms, with or without 
-  ** modification, are permitted provided that the following conditions 
+  **
+  ** Redistribution and use in source and binary forms, with or without
+  ** modification, are permitted provided that the following conditions
   ** are met:
-  ** 
-  ** - Redistributions of source code must retain the above copyright notice, 
-  **   this list of conditions and the following disclaimer. 
-  ** 
-  ** - Redistributions in binary form must reproduce the above copyright 
-  **   notice, this list of conditions and the following disclaimer in 
-  **   the documentation and/or other materials provided with the 
-  **   distribution. 
-  ** 
-  ** - Neither the name of the KNOPFLERFISH project nor the names of its 
-  **   contributors may be used to endorse or promote products derived 
-  **   from this software without specific prior written permission. 
-  ** 
+  **
+  ** - Redistributions of source code must retain the above copyright notice,
+  **   this list of conditions and the following disclaimer.
+  **
+  ** - Redistributions in binary form must reproduce the above copyright
+  **   notice, this list of conditions and the following disclaimer in
+  **   the documentation and/or other materials provided with the
+  **   distribution.
+  **
+  ** - Neither the name of the KNOPFLERFISH project nor the names of its
+  **   contributors may be used to endorse or promote products derived
+  **   from this software without specific prior written permission.
+  **
   ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
   ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -69,7 +69,7 @@
  <!-- the build.xml before including this file, or creating a template-->
  <!-- manifest file, named bundle.manifest, in the same directory as  -->
  <!-- the build.xml. Such template manifest files are typically       -->
- <!-- created by the Knopflefish eclipse plugin.                      --> 
+ <!-- created by the Knopflefish eclipse plugin.                      -->
  <property name="bundlemanifest.template"
            location="${proj.dir}/bundle.manifest"/>
 
@@ -120,7 +120,7 @@
  <property name="bmfa.Require-Bundle"         value="${bundle.emptystring}"/>
  <property name="bmfa.Service-Component"      value="${bundle.emptystring}"/>
  <!-- End of properties used as value for bundle manifest headers.     -->
- 
+
 
  <!-- Special values for manifest headers of the api-bundle can be set -->
  <!-- by defining properties with the prefix "bmfa.api-" E.g.          -->
@@ -182,12 +182,12 @@
  <!-- A comma separated list of packages that does not need to be imported. -->
  <!-- I.e., packages that are made available throug the system classloader.-->
  <property name = "bundle.stdimports"   value = "java."/>
- 
+
  <!-- A comma separated list of packages that needs to be imported even -->
  <!-- though that they are not explicitly referenced. -->
  <!-- E.g. classes loaded using reflection. -->
  <property name = "bundle.extraimports"   value = ""/>
- 
+
  <!-- First part of the suffix to insert right before "-jar" in the -->
  <!-- name of jar files to create.                                 -->
  <!-- E.g. The full name of the impl-jar will be on the form:      -->
@@ -206,7 +206,7 @@
    value="Bundle-Activator,Export-Service,Import-Service,Bundle-Config"/>
  <property name="attrs.to.skip.impl" value="Export-Package"/>
  <property name="attrs.to.skip.all"  value=""/>
- 
+
  <!-- Let the bundlemanifest task print the name of the activator -->
  <!-- and the exported and imported packages on the console.      -->
  <property name="bundlemanifest.verbose" value="true"/>
@@ -227,7 +227,7 @@
  <target name="init"
          depends="setup_build,check_bcel,bundle_tasks,setup_manifest_props">
    <tstamp>
-    <format property = "bundle.date" 
+    <format property = "bundle.date"
             pattern  = "EE MMMM d yyyy, HH:mm:ss"
             locale   = "en"/>
    </tstamp>
@@ -289,7 +289,7 @@
    <!-- Defines properties that depends on bundle manifest header values. -->
    <property name="impl.suffix"
              value="${impl.suffix.name}-${bmfa.Bundle-Version}"/>
-   <property name="impl.jar"     
+   <property name="impl.jar"
              location="${jardir}/${ant.project.name}${impl.suffix}.jar"/>
    <property name="api.suffix"
              value="${api.suffix.name}-${bmfa.Bundle-Version}"/>
@@ -297,7 +297,7 @@
              location="${jardir}/${ant.project.name}${api.suffix}.jar"/>
    <property name="lib.suffix"
              value="${lib.suffix.name}-${bmfa.Bundle-Version}"/>
-   <property name="lib.jar"     
+   <property name="lib.jar"
              location="${jardir}/${ant.project.name}${lib.suffix}.jar"/>
    <property name="all.suffix"
              value="${all.suffix.name}-${bmfa.Bundle-Version}"/>
@@ -315,7 +315,7 @@
  </target>
 
  <target name="download_netcomponents">
-   <get src = "http://www.savarese.org/oro/downloads/NetComponents-1.3.8.zip" 
+   <get src = "http://www.savarese.org/oro/downloads/NetComponents-1.3.8.zip"
         dest = "${sysprops.ANT_HOME}/NetComponents-1.3.8.zip"/>
  </target>
 
@@ -327,7 +327,7 @@
     </patternset>
    </unzip>
 
-   <move file   = "${sysprops.ANT_HOME}/lib/NetComponents-1.3.8a/NetComponents.jar" 
+   <move file   = "${sysprops.ANT_HOME}/lib/NetComponents-1.3.8a/NetComponents.jar"
          tofile = "${sysprops.ANT_HOME}/lib/NetComponents.jar"/>
 
  </target>
@@ -350,8 +350,9 @@
    <antcall inheritRefs="true" target="bundle.custom.post"/>
  </target>
 
- <target name        = "compile" 
-         description = "compiles all java sources">
+ <target name        = "compile"
+         description = "compiles all java sources"
+	 if          = "src.dir.exists">
 
     <mkdir dir = "${classes.out.dir}"/>
 
@@ -366,7 +367,7 @@
       </fileset>
     </bundle_locator>
 
-    <javac destdir       = "${classes.out.dir}" 
+    <javac destdir       = "${classes.out.dir}"
            debug         = "on"
            srcdir        = "${src.dir}"
            target        = "${javac.target}"
@@ -377,8 +378,9 @@
    </javac>
   </target>
 
- <target name        = "compile_api" 
-         description = "compiles only api java sources">
+ <target name        = "compile_api"
+         description = "compiles only api java sources"
+	 if          = "src.dir.exists">
 
     <mkdir dir = "${classes.out.dir}"/>
 
@@ -393,7 +395,7 @@
       </fileset>
     </bundle_locator>
 
-    <javac destdir       = "${classes.out.dir}" 
+    <javac destdir       = "${classes.out.dir}"
            debug         = "on"
            srcdir        = "${src.dir}"
            classpathref  = "bundle.path.Expanded"
@@ -411,12 +413,12 @@
   <antcall target = "jar_all0" inheritRefs="true"/>
  </target>
 
- <target name    = "jar_api0" 
+ <target name    = "jar_api0"
          if      = "api.pattern">
    <antcall target = "jar_api" inheritRefs="true"/>
  </target>
 
- <target name    = "jar_all0" 
+ <target name    = "jar_all0"
          if      = "api.pattern">
    <antcall target = "jar_all" inheritRefs="true"/>
  </target>
@@ -461,294 +463,297 @@
   </condition>
   <property name = "bundlemanifest.mode" value="replace"/>
 
+  <available property="src.dir.exists" file="${src.dir}"/>
+
   <!-- Ensure that the resources dir exists (required since -->
   <!-- it is used as the "dir"-attribute in a <fileset>.    -->
   <mkdir dir = "${resources.dir}"/>
+  <!-- Ensure that the compiler output dir exists (required since -->
+  <!-- it is used as the "dir"-attribute in a <fileset>.    -->
+  <mkdir dir = "${classes.out.dir}"/>
  </target>
 
 
  <!-- ============================= IMPL =============================== -->
- <target name    = "jar_impl" 
-         depends = "init,bundle_tasks,compile" 
+ <target name    = "jar_impl"
+         depends = "init,bundle_tasks,compile"
          if      = "do_build_impl">
-  <echo message = "${impl.jar}"/>
+   <echo message = "${impl.jar}"/>
 
-  <!-- Use the impl version of manifest properties, define it if needed. -->
-  <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
-  <property name="bmfa.impl-Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
-  <!-- Create a file set include pattern for the Bundle-Classpath -->
-  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
-                       propertyName   ="impl.Bundle-Classpath.pattern" />
+   <!-- Use the impl version of manifest properties, define it if needed. -->
+   <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
+   <property name="bmfa.impl-Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
+   <!-- Create a file set include pattern for the Bundle-Classpath -->
+   <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+			propertyName   ="impl.Bundle-Classpath.pattern" />
 
-  <bundleinfo activator = "bmfa.impl-Bundle-Activator" 
-              imports   = "bmfa.impl-Import-Package"
-              stdimports        = "${bundle.stdimports}"
-              extraimports      = "${bundle.extraimports}"
-              implicitImports   = "${bundle.implicit.imports.impl}"
-	      serviceComponent  = "${bmfa.Service-Component}"
-	      fragmentHost      = "${bmfa.Fragment-Host}"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${impl.pattern},${impl-api.pattern}">
-   </fileset>
-   <fileset dir = "${resources.dir}"
-            includes = "${impl.Bundle-Classpath.pattern}">
-   </fileset>
-  </bundleinfo>
+   <bundleinfo activator = "bmfa.impl-Bundle-Activator"
+               imports   = "bmfa.impl-Import-Package"
+               stdimports        = "${bundle.stdimports}"
+               extraimports      = "${bundle.extraimports}"
+               implicitImports   = "${bundle.implicit.imports.impl}"
+	       serviceComponent  = "${bmfa.Service-Component}"
+	       fragmentHost      = "${bmfa.Fragment-Host}"
+               checkFoundationEE = "${ee.check.foundation}">
+     <fileset dir      = "${classes.out.dir}"
+              includes = "${impl.pattern},${impl-api.pattern}">
+     </fileset>
+     <fileset dir = "${resources.dir}"
+              includes = "${impl.Bundle-Classpath.pattern}">
+     </fileset>
+   </bundleinfo>
 
-  <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir" inheritRefs="true"/>
+   <mkdir dir = "${jardir}"/>
 
-  <bundlemanifest kind="impl"
-                  mode="${bundlemanifest.mode}"
-                  mainAttributesToSkip="${attrs.to.skip.impl}"
-                  attributePropertyPrefix="${bundle.mf.attr.prefix}"
-                  templateFile="${bundlemanifest.template}"
-                  verbose="${bundlemanifest.verbose}"
-                  file="${outdir}/impl.mf">
-    <attribute name="Build-Date"       value="${bundle.date}"/>
-    <attribute name="Built-From"       value="${proj.dir}"/>
-  </bundlemanifest>
+   <bundlemanifest kind="impl"
+                   mode="${bundlemanifest.mode}"
+                   mainAttributesToSkip="${attrs.to.skip.impl}"
+                   attributePropertyPrefix="${bundle.mf.attr.prefix}"
+                   templateFile="${bundlemanifest.template}"
+                   verbose="${bundlemanifest.verbose}"
+                   file="${outdir}/impl.mf">
+     <attribute name="Build-Date"       value="${bundle.date}"/>
+     <attribute name="Built-From"       value="${proj.dir}"/>
+   </bundlemanifest>
 
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${impl.jar}"
-       includes = "${impl.pattern},${impl-api.pattern}"
-       excludes = "**/pspbrwse.jbf"
-       manifest = "${outdir}/impl.mf"
-    >
-     <fileset dir      = "${src.dir}"
-              includes = "${impl.pattern},${impl-api.pattern}"
-	      excludes = "**/*.java,**/*.html"/>
+   <jar basedir  = "${classes.out.dir}"
+	jarfile  = "${impl.jar}"
+	includes = "${impl.pattern},${impl-api.pattern}"
+	excludes = "**/pspbrwse.jbf"
+	manifest = "${outdir}/impl.mf">
      <fileset dir = "${resources.dir}"/>
-  </jar>  
+   </jar>
+
+   <antcall target="add_src_resources" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${impl.jar}"/>
+     <param name="add.src.resource.includes"
+	    value="${impl.pattern},${impl-api.pattern}"/>
+   </antcall>
+   <antcall target="add_src" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${impl.jar}"/>
+   </antcall>
  </target>
 
- <target name    = "add_src_all"
-         if      = "include.source">
-
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${all.jar}"
-       includes = "${api.pattern},${impl-api.pattern},${impl.pattern}"
-       update   = "true">
-
-     <zipfileset dir      = "${src.dir}"
-              includes = "**/*.java"
-              prefix = "OSGI-OPT/src"
-     />     
-  </jar>
- </target>
-
- <target name    = "add_src_lib"
-         if      = "include.source">
-
- <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${impl.jar}"
-       includes = "${api.pattern}"
-       update   = "true">
-
-     <zipfileset dir      = "${src.dir}"
-              includes = "**/*.java"
-              prefix = "OSGI-OPT/src"
-     />     
-  </jar>
- </target>
 
  <!-- ============================= API =============================== -->
- <target name    = "jar_api" 
-         depends = "init,bundle_tasks,compile_api" 
+ <target name    = "jar_api"
+         depends = "init,bundle_tasks,compile_api"
          if      = "do_build_api">
-  <echo message = "${api.jar}"/>
+   <echo message = "${api.jar}"/>
 
-  <!-- If api-variant unspecified use the standard def. -->
-  <property name="bmfa.api-Export-Package" value="${bmfa.Export-Package}"/>
-  <!-- Note that bmfa.api-Import-Package must not inherit from   -->
-  <!-- bmfa.Import-Package since we want to avoid importing      -->
-  <!-- packages only required by the implementation.             -->
-  <property name="bmfa.api-Import-Package" value="${bundle.emptystring}"/>
-  <!-- Create a file set include pattern for the Bundle-Classpath -->
-  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
-                       propertyName   ="api.Bundle-Classpath.pattern" />
+   <!-- If api-variant unspecified use the standard def. -->
+   <property name="bmfa.api-Export-Package" value="${bmfa.Export-Package}"/>
+   <!-- Note that bmfa.api-Import-Package must not inherit from   -->
+   <!-- bmfa.Import-Package since we want to avoid importing      -->
+   <!-- packages only required by the implementation.             -->
+   <property name="bmfa.api-Import-Package" value="${bundle.emptystring}"/>
+   <!-- Create a file set include pattern for the Bundle-Classpath -->
+   <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+			propertyName   ="api.Bundle-Classpath.pattern" />
 
-  <bundleinfo exports = "bmfa.api-Export-Package" 
-              imports = "bmfa.api-Import-Package"
-              stdimports        = "${bundle.stdimports}"
-              extraimports      = "${bundle.extraimports}"
-              implicitImports   = "${bundle.implicit.imports.api}"
-	      serviceComponent  = "${bmfa.Service-Component}"
-	      fragmentHost      = "${bmfa.Fragment-Host}"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${api.pattern}">
-   </fileset>
-   <fileset dir = "${resources.dir}"
-            includes = "${api.Bundle-Classpath.pattern}">
-   </fileset>
-  </bundleinfo>
+   <bundleinfo exports = "bmfa.api-Export-Package"
+               imports = "bmfa.api-Import-Package"
+               stdimports        = "${bundle.stdimports}"
+               extraimports      = "${bundle.extraimports}"
+               implicitImports   = "${bundle.implicit.imports.api}"
+	       serviceComponent  = "${bmfa.Service-Component}"
+	       fragmentHost      = "${bmfa.Fragment-Host}"
+               checkFoundationEE = "${ee.check.foundation}">
+     <fileset dir      = "${classes.out.dir}"
+              includes = "${api.pattern}">
+     </fileset>
+     <fileset dir = "${resources.dir}"
+              includes = "${api.Bundle-Classpath.pattern}">
+     </fileset>
+   </bundleinfo>
 
-  <mkdir dir = "${jardir}"/>
+   <mkdir dir = "${jardir}"/>
 
-  <bundlemanifest      mode ="${bundlemanifest.mode}"
-                       kind ="api"
-       mainAttributesToSkip ="${attrs.to.skip.api}"
-    attributePropertyPrefix ="${bundle.mf.attr.prefix}"
-               templateFile ="${bundlemanifest.template}"
-                    verbose ="${bundlemanifest.verbose}"
-                       file ="${outdir}/api.mf">
-    <attribute name="Build-Date"       value="${bundle.date}"/>
-    <attribute name="Built-From"       value="${proj.dir}"/>
-  </bundlemanifest>
+   <bundlemanifest      mode ="${bundlemanifest.mode}"
+			kind ="api"
+        mainAttributesToSkip ="${attrs.to.skip.api}"
+     attributePropertyPrefix ="${bundle.mf.attr.prefix}"
+                templateFile ="${bundlemanifest.template}"
+                     verbose ="${bundlemanifest.verbose}"
+                        file ="${outdir}/api.mf">
+     <attribute name="Build-Date"       value="${bundle.date}"/>
+     <attribute name="Built-From"       value="${proj.dir}"/>
+   </bundlemanifest>
 
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${api.jar}"
-       includes = "${api.pattern}"
-       manifest = "${outdir}/api.mf"
-    >
-     <fileset dir      = "${src.dir}"
-              includes = "${api.pattern}"
-	      excludes = "**/*.java,**/*.html"/>
-    </jar>  
+   <jar basedir  = "${classes.out.dir}"
+	jarfile  = "${api.jar}"
+	includes = "${api.pattern}"
+	manifest = "${outdir}/api.mf">
+   </jar>
 
+   <antcall target="add_src_resources" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${api.jar}"/>
+     <param name="add.src.resource.includes"
+	    value="${api.pattern}"/>
+   </antcall>
+   <antcall target="add_src" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${api.jar}"/>
+   </antcall>
  </target>
+
 
  <!-- ============================= LIB =============================== -->
- <target name    = "jar_lib" 
-         depends = "init,bundle_tasks,compile_api" 
+ <target name    = "jar_lib"
+         depends = "init,bundle_tasks,compile_api"
          if      = "do_build_lib">
-  <echo message = "${lib.jar}"/>
+   <echo message = "${lib.jar}"/>
 
-  <!-- Use the api version of manifest properties, define if needed. -->
-  <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
-  <property name="bmfa.lib-Export-Package" value="${bmfa.Export-Package}"/>
-  <!-- Create a file set include pattern for the Bundle-Classpath -->
-  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
-                       propertyName   ="lib.Bundle-Classpath.pattern" />
+   <!-- Use the api version of manifest properties, define if needed. -->
+   <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
+   <property name="bmfa.lib-Export-Package" value="${bmfa.Export-Package}"/>
+   <!-- Create a file set include pattern for the Bundle-Classpath -->
+   <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+			propertyName   ="lib.Bundle-Classpath.pattern" />
 
-  <bundleinfo exports = "bmfa.lib-Export-Package" 
-              imports = "bmfa.lib-Import-Package"
-              stdimports        = "${bundle.stdimports}"
-              extraimports      = "${bundle.extraimports}"
-              implicitImports   = "${bundle.implicit.imports.lib}"
-	      serviceComponent  = "${bmfa.Service-Component}"
-	      fragmentHost      = "${bmfa.Fragment-Host}"
-              checkFoundationEE = "${ee.check.foundation}">
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${api.pattern}">
-   </fileset>
-   <fileset dir      = "${resources.dir}"
-            includes = "${lib.Bundle-Classpath.pattern}">
-   </fileset>
-  </bundleinfo>
+   <bundleinfo exports = "bmfa.lib-Export-Package"
+               imports = "bmfa.lib-Import-Package"
+               stdimports        = "${bundle.stdimports}"
+               extraimports      = "${bundle.extraimports}"
+               implicitImports   = "${bundle.implicit.imports.lib}"
+	       serviceComponent  = "${bmfa.Service-Component}"
+	       fragmentHost      = "${bmfa.Fragment-Host}"
+               checkFoundationEE = "${ee.check.foundation}">
+     <fileset dir      = "${classes.out.dir}"
+              includes = "${api.pattern}">
+     </fileset>
+     <fileset dir      = "${resources.dir}"
+              includes = "${lib.Bundle-Classpath.pattern}">
+     </fileset>
+   </bundleinfo>
 
-  <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir" inheritRefs="true"/>
+   <mkdir dir = "${jardir}"/>
 
-  <bundlemanifest kind="lib"
-                  mode="${bundlemanifest.mode}"
-                  mainAttributesToSkip = "${attrs.to.skip.lib}"
-                  attributePropertyPrefix = "${bundle.mf.attr.prefix}"
-                  templateFile="${bundlemanifest.template}"
-                  verbose="${bundlemanifest.verbose}"
-                  file="${outdir}/lib.mf">
-    <attribute name="Build-Date"     value="${bundle.date}"/>
-    <attribute name="Built-From"     value="${proj.dir}"/>
-    <attribute name="Export-Package" value="${bmfa.Export-Package}"/>
-  </bundlemanifest>
+   <bundlemanifest kind="lib"
+                   mode="${bundlemanifest.mode}"
+                   mainAttributesToSkip = "${attrs.to.skip.lib}"
+                   attributePropertyPrefix = "${bundle.mf.attr.prefix}"
+                   templateFile="${bundlemanifest.template}"
+                   verbose="${bundlemanifest.verbose}"
+                   file="${outdir}/lib.mf">
+     <attribute name="Build-Date"     value="${bundle.date}"/>
+     <attribute name="Built-From"     value="${proj.dir}"/>
+     <attribute name="Export-Package" value="${bmfa.Export-Package}"/>
+   </bundlemanifest>
 
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${lib.jar}"
-       includes = "${api.pattern}"
-       manifest = "${outdir}/lib.mf">
-     <fileset dir      = "${src.dir}"
-              includes = "${api.pattern}"
-	      excludes = "**/*.java,**/*.html"/>
+   <jar basedir  = "${classes.out.dir}"
+	jarfile  = "${lib.jar}"
+	includes = "${api.pattern}"
+	manifest = "${outdir}/lib.mf">
      <fileset dir = "${resources.dir}"/>
-  </jar>  
+   </jar>
 
-  <antcall target="add_src_lib" inheritRefs="true"/>
-
+   <antcall target="add_src_resources" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${lib.jar}"/>
+     <param name="add.src.resource.includes" value="${api.pattern}"/>
+   </antcall>
+   <antcall target="add_src" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${lib.jar}"/>
+   </antcall>
  </target>
 
- <target name = "make_resource_dir" if = "resources.dir">
-   <mkdir dir = "${resources.dir}"/>
- </target>
 
  <!-- ============================= ALL =============================== -->
- <target name    = "jar_all" 
-         depends = "init,bundle_tasks,compile" 
+ <target name    = "jar_all"
+         depends = "init,bundle_tasks,compile"
          if      = "do_build_all">
-  <echo message = "${all.jar}"/>
+   <echo message = "${all.jar}"/>
 
-  <!-- Create a file set include pattern for the Bundle-Classpath -->
-  <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
-                       propertyName   ="all.Bundle-Classpath.pattern" />
+   <!-- Create a file set include pattern for the Bundle-Classpath -->
+   <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
+			propertyName   ="all.Bundle-Classpath.pattern" />
 
-  <!-- Determine / validate set of packages to be exported. -->
-  <bundleinfo exports="bmfa.Export-Package"
-              checkFoundationEE="${ee.check.foundation}">
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${api.pattern},${impl-api.pattern}">
-   </fileset>
-   <fileset dir      = "${resources.dir}"
-            includes = "${all.Bundle-Classpath.pattern}">
-   </fileset>
-  </bundleinfo>
+   <!-- Determine / validate set of packages to be exported. -->
+   <bundleinfo exports="bmfa.Export-Package"
+               checkFoundationEE="${ee.check.foundation}">
+     <fileset dir      = "${classes.out.dir}"
+              includes = "${api.pattern},${impl-api.pattern}">
+     </fileset>
+     <fileset dir      = "${resources.dir}"
+              includes = "${all.Bundle-Classpath.pattern}">
+     </fileset>
+   </bundleinfo>
 
-  <bundleinfo activator = "bmfa.Bundle-Activator" 
-              imports   = "bmfa.Import-Package"
-              exports   = "bmfa.Export-Package"
-              stdimports        = "${bundle.stdimports}"
-              extraimports      = "${bundle.extraimports}"
-              implicitImports   = "${bundle.implicit.imports.all}"
-	      serviceComponent  = "${bmfa.Service-Component}"
-	      fragmentHost      = "${bmfa.Fragment-Host}"
-              checkFoundationEE = "${ee.check.foundation}"
-  >
-   <fileset dir      = "${classes.out.dir}" 
-            includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
-   </fileset>
-   <fileset dir      = "${resources.dir}"
-            includes = "${all.Bundle-Classpath.pattern}">
-   </fileset>
-  </bundleinfo>
+   <bundleinfo activator = "bmfa.Bundle-Activator"
+               imports   = "bmfa.Import-Package"
+               exports   = "bmfa.Export-Package"
+               stdimports        = "${bundle.stdimports}"
+               extraimports      = "${bundle.extraimports}"
+               implicitImports   = "${bundle.implicit.imports.all}"
+	       serviceComponent  = "${bmfa.Service-Component}"
+	       fragmentHost      = "${bmfa.Fragment-Host}"
+               checkFoundationEE = "${ee.check.foundation}">
+     <fileset dir      = "${classes.out.dir}"
+              includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
+     </fileset>
+     <fileset dir      = "${resources.dir}"
+              includes = "${all.Bundle-Classpath.pattern}">
+     </fileset>
+   </bundleinfo>
 
-  <mkdir dir = "${jardir}"/>
-  <antcall target="make_resource_dir" inheritRefs="true"/>
+   <mkdir dir = "${jardir}"/>
 
-  <bundlemanifest kind=""
-                  mode="${bundlemanifest.mode}"
-                  mainAttributesToSkip = "${attrs.to.skip.all}"
-                  attributePropertyPrefix = "${bundle.mf.attr.prefix}"
-                  templateFile="${bundlemanifest.template}"
-                  verbose="${bundlemanifest.verbose}"
-                  file="${outdir}/all.mf">
-    <attribute name="Build-Date"       value="${bundle.date}"/>
-    <attribute name="Built-From"       value="${proj.dir}"/>
-  </bundlemanifest>
+   <bundlemanifest kind=""
+                   mode="${bundlemanifest.mode}"
+                   mainAttributesToSkip = "${attrs.to.skip.all}"
+                   attributePropertyPrefix = "${bundle.mf.attr.prefix}"
+                   templateFile="${bundlemanifest.template}"
+                   verbose="${bundlemanifest.verbose}"
+                   file="${outdir}/all.mf">
+     <attribute name="Build-Date"       value="${bundle.date}"/>
+     <attribute name="Built-From"       value="${proj.dir}"/>
+   </bundlemanifest>
 
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${all.jar}"
-       compress = "true"
-       includes = "${api.pattern},${impl-api.pattern},${impl.pattern}"
-       excludes = "**/pspbrwse.jbf"
-       manifest = "${outdir}/all.mf"
-    >
-     <fileset dir      = "${src.dir}"
-              includes = "${impl.pattern},${impl-api.pattern}"
-	      excludes = "**/*.java,**/*.html"/>
+   <jar basedir  = "${classes.out.dir}"
+	jarfile  = "${all.jar}"
+	compress = "true"
+	includes = "${api.pattern},${impl-api.pattern},${impl.pattern}"
+	excludes = "**/pspbrwse.jbf"
+	manifest = "${outdir}/all.mf">
      <fileset dir = "${resources.dir}"/>
-    </jar>
-    
-   <antcall target = "add_src_all" inheritRefs="true"/>
+   </jar>
+
+   <antcall target="add_src_resources" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${all.jar}"/>
+     <param name="add.src.resource.includes"
+	    value="${api.pattern},${impl-api.pattern},${impl.pattern}"/>
+   </antcall>
+   <antcall target="add_src" inheritRefs="true">
+     <param name="add.src.resource.jarfile"  value="${all.jar}"/>
+   </antcall>
+ </target>
+
+
+ <!-- Helper taget that adds resources from the source tree to a bundle. -->
+ <target name="add_src_resources"
+	 if="src.dir.exists">
+  <jar jarfile="${add.src.resource.jarfile}"
+       update="true">
+    <fileset dir="${src.dir}"
+             includes="${add.src.resource.includes}"
+	     excludes="**/*.java,**/*.html"/>
+  </jar>
+ </target>
+
+ <!-- Helper taget that adds soruces from the source tree to a bundle. -->
+ <target name="add_src"
+         if="include.source">
+  <jar jarfile="${add.src.jarfile}"
+       update="true">
+    <zipfileset dir="${src.dir}" includes="**/*.java" prefix="OSGI-OPT/src"/>
+  </jar>
  </target>
 
 
  <target name="check_telnet">
-   <available classname = "com.oroinc.net.telnet.TelnetCommand" 
+   <available classname = "com.oroinc.net.telnet.TelnetCommand"
               property  = "telnet.available"/>
 
-   <fail unless  = "telnet.available" 
+   <fail unless  = "telnet.available"
          message = "Telnet lib is not available. Please download from http://www.savarese.org/oro/downloads/index.html#NetComponents and install in $$ANT_HOME/lib. You can also try  'ant install_netcomponents'"/>
  </target>
 
@@ -776,7 +781,7 @@
    <sleep seconds="5"/>
  </target>
 
- <target name="stop" 
+ <target name="stop"
          depends="init"
          description="Stop bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
@@ -785,7 +790,7 @@
    </antcall>
  </target>
 
- <target name="start" 
+ <target name="start"
          depends="init"
          description="Start bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
@@ -794,7 +799,7 @@
    </antcall>
  </target>
 
- <target name="update" 
+ <target name="update"
          depends="init"
          description="Update bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
@@ -803,7 +808,7 @@
    </antcall>
  </target>
 
- <target name="uninstall" 
+ <target name="uninstall"
          depends="init"
          description="Uninstall bmfa.Bundle-Name using telnet console">
    <antcall target="send_console_cmd">
@@ -814,7 +819,7 @@
 
  <target name="send_console_cmd" depends="check_telnet"
  >
-  <telnet port     = "${console.port}" 
+  <telnet port     = "${console.port}"
           server   = "${console.host}"
           timeout  = "20">
    <read string="${console.welcome}"/>
@@ -829,13 +834,13 @@
 </target>
 
 
-  <target name="junit_ext" 
+  <target name="junit_ext"
           description="Runs remote JUnit test using external runner">
 
    <fail unless="test.id" message="test.id must be set to test suite id"/>
 
 
-   <java classname="${junit.runner.class}" 
+   <java classname="${junit.runner.class}"
          fork="yes"
    >
     <classpath>
@@ -843,7 +848,7 @@
       <path refid="bundle.compile.path"/>
     </classpath>
 
-    <sysproperty key   = "suite.url" 
+    <sysproperty key   = "suite.url"
                  value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
     <arg value="org.knopflerfish.service.junit.client.JUnitClient"/>
    </java>
@@ -854,12 +859,12 @@
 
    <fail unless="test.id" message="test.id must be set to test suite id"/>
 
-   <echo message = "JUnit output file is '${junit.outfile}'"/> 
-   <junit fork         = "yes" 
-          showoutput   = "true" 
+   <echo message = "JUnit output file is '${junit.outfile}'"/>
+   <junit fork         = "yes"
+          showoutput   = "true"
           printsummary = "true">
 
-     <sysproperty key   = "suite.url" 
+     <sysproperty key   = "suite.url"
                   value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
 
      <classpath>
@@ -869,7 +874,7 @@
 
      <formatter type="${junit.formatter}"/>
 
-     <test name    = "org.knopflerfish.service.junit.client.JUnitClient" 
+     <test name    = "org.knopflerfish.service.junit.client.JUnitClient"
            outfile = "${junit.outfile}"/>
    </junit>
   </target>
@@ -878,7 +883,7 @@
 	  description="Creates bundle specific doc"
 	  depends="setup_build,bundle_tasks,setup_manifest_props"
 	  if="do_build_doc">
-    
+
     <makehtml title="${bmfa.Bundle-Name}"
               description="${bmfa.Bundle-Description}"
               template="${bundledoc_template}"
@@ -895,7 +900,7 @@
       </fileset>
     </copy>
   </target>
-  
+
   <target name = "clean" description = "Removes all files in output directory">
     <delete dir = "${outdir}"/>
     <delete dir = "${jardir}"/>
