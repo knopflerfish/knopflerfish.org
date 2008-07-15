@@ -279,7 +279,14 @@ public class BundleLocator extends Task {
               final String bundleName = fileName.substring(0,ix);
               final String versionS
                 = fileName.substring(ix+1,fileName.length()-4);
-              final Version newVersion = new Version(versionS);
+              Version newVersion = Version.emptyVersion;
+              try {
+                newVersion = new Version(versionS);
+              } catch (NumberFormatException nfe) {
+                log("Invalid or missing bundle version in bundle name '"
+                    +fileName +"' assuming " +newVersion +".",
+                    Project.MSG_WARN);
+              }
               BundleInfo bi = (BundleInfo) map.get(bundleName);
               if (null==bi) {
                 bi = new BundleInfo();
