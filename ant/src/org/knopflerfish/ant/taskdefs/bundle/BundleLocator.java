@@ -392,7 +392,8 @@ public class BundleLocator extends Task {
     final Properties props = new Properties();
     for (Iterator it = bundleMap.values().iterator(); it.hasNext();) {
       final BundleInfo bi = (BundleInfo) it.next();
-      props.put("@" +bi.name +"-N.N.N.jar@", bi.relPath);
+      //Note: since the path is an URL we must ensure that '/' is used.
+      props.put("@" +bi.name +"-N.N.N.jar@", bi.relPath.replace('\\','/'));
     }
     OutputStream out = null;
     try {
