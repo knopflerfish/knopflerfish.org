@@ -68,6 +68,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Bundle manifest files with an empty "Export-Package" or
   "Import-Package" attribute should no longer be generated.
 
+  The requirement on having a both a "src" and a "resoruces" directory
+  in each bundle directory (if they where missing they where created
+  during the build) have been removed.
+
 
 ========================================================================
 
