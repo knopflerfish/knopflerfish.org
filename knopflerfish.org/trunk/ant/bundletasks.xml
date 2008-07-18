@@ -154,6 +154,10 @@
              classpathref="bundle_tasks.path"
              classname="org.knopflerfish.ant.taskdefs.bundle.BundleLocator"/>
 
+    <taskdef name="bundle_javadoc_helper"
+             classpathref="bundle_tasks.path"
+             classname="org.knopflerfish.ant.taskdefs.bundle.BundleJavadocHelperTask"/>
+
  </target>
 
  <target name="default" depends="check_bcel,bundle_tasks"/>

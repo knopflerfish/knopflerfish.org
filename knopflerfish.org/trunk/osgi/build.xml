@@ -9,52 +9,19 @@
   <property name="jars.dir"        location="jars"/>
   <property name="javadoc.out.dir" location="out/javadoc"/>
 
+  <property name="exported.file" location="out/exported.txt"/>
+  <property name="sources.file"  location="out/sources.txt"/>
+
   <!-- The initial part of the URL to use for the default jars -->
   <!-- location in the remote xargs files.  -->
   <property name = "base.url" value="http://www.knopflerfish.org/releases"/>
 
- <path id="sources.path">
-  <pathelement location="framework/src"/>
-  <pathelement location="bundles/log/src"/>
-  <pathelement location="bundles/cm/cm/src"/>
-  <pathelement location="bundles/cm/cm_cmd/src"/>
-  <pathelement location="bundles/device/device/src"/>
-  <pathelement location="bundles/useradmin/src"/>
-  <pathelement location="bundles/wireadmin/src"/>
-  <pathelement location="bundles/component/src"/>
-  <pathelement location="bundles/console/console/src"/>
-  <pathelement location="bundles/console/consoletcp/src"/>
-  <pathelement location="bundles/console/consoletty/src"/>
-  <pathelement location="bundles/desktop/src"/>
-  <pathelement location="bundles/event/src"/>
-  <pathelement location="bundles/jsdk/src"/>
-  <pathelement location="bundles/http/http/src"/>
-  <pathelement location="bundles/io/io/src"/>
-  <pathelement location="bundles/util/src"/>
-  <pathelement location="bundles/demos/demo1/src"/>
-  <pathelement location="bundles/position/src"/>
-  <pathelement location="bundles/measurement/src"/>
-  <pathelement location="bundles/provisioning/src"/>
-  <pathelement location="bundles/prefs/src"/>
-  <pathelement location="bundles/upnp/src"/>
-  <pathelement location="bundles/metatype/metatype_api/src"/>
-  <pathelement location="bundles/xml/xml/src"/>
-  <pathelement location="bundles/trayicon/trayicon/src"/>
-  <pathelement location="bundles/remotefw/src"/>
-  <pathelement location="../ant/src"/>
-
-  <pathelement location="bundles/metatype/kf_metatype/src"/>
-
-  <pathelement location="bundles_opt/jini/jinidriver/src"/>
- </path>
-
- <property name  = "javadoc.packages"
-           value = "javax.servlet,javax.servlet.http,org.knopflerfish.ant.taskdefs.bundle,org.knopflerfish.service.axis,org.knopflerfish.service.console,org.knopflerfish.service.demo1,org.knopflerfish.service.desktop,org.knopflerfish.service.dirdeployer,org.knopflerfish.service.junit,org.knopflerfish.service.ksoap,org.knopflerfish.service.log,org.knopflerfish.service.remotefw,org.knopflerfish.service.serial,org.knopflerfish.service.soap.demo1,org.knopflerfish.service.soap.remotefw,org.knopflerfish.service.trayicon,org.knopflerfish.service.um.ipam,org.knopflerfish.service.um.useradmin,org.knopflerfish.shared.cm,org.knopflerfish.util,org.knopflerfish.util.cm,org.knopflerfish.util.framework,org.knopflerfish.util.http,org.knopflerfish.util.metatype,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.ksoap2,org.ksoap2.serialization,org.ksoap2.transport,org.kxml2.io,org.kxml2.wap,org.kxml2.wap.syncml,org.osgi.framework,org.osgi.service.cm,org.osgi.service.component,org.osgi.service.condpermadmin,org.osgi.service.device,org.osgi.service.event,org.osgi.service.http,org.osgi.service.io,org.osgi.service.jini,org.osgi.service.log,org.osgi.service.metatype,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.startlevel,org.osgi.service.upnp,org.osgi.service.url,org.osgi.service.useradmin,org.osgi.service.wireadmin,org.osgi.util,org.osgi.util.measurement,org.osgi.util.position,org.osgi.util.tracker,org.osgi.util.xml"/>
 
   <import file="${topdir}/../ant/bundletasks.xml"/>
 
   <!-- targets -->
   <target name="init">
+    <mkdir dir="out"/>
     <available property="dir.bundles_opt.present"  file="bundles_opt"/>
     <available property="dir.bundles_test.present" file="bundles_test"/>
   </target>
@@ -62,6 +29,10 @@
   <target name="default"
           description = "Builds the framework and bundles in bundles-directory"
           depends     = "init,bundle_tasks">
+    <delete file="${exported.file}"/>
+    <delete file="${sources.file}"/>
+    <property name="generate.javadoc.data" value="true"/>
+
     <ant dir="framework"    target="all"/>
     <ant dir="bundles"      target="all"/>
     <antcall inheritAll="true" target="xargs"/>
@@ -211,23 +182,63 @@
  </target>
 
 
- <target name="javadoc">
-  <mkdir dir="${javadoc.out.dir}"/>
+  <target name="javadoc" depends="bundle_tasks">
+    <mkdir dir="${javadoc.out.dir}"/>
 
-  <property name  = "javadoc.header"
-            value = "Knopflerfish OSGi ${version}"/>
+    <!-- Explicit list of non-bundle source tree roots. -->
+    <path id="sources.path">
+      <pathelement location="framework/src"/>
+      <pathelement location="../ant/src"/>
+    </path>
+    <!-- Add in source roots for all compiled bundles. -->
+    <bundle_javadoc_helper srcRootsFile="${sources.file}"
+                           srcPathId="sources.path"/>
+
+    <!-- Explicit list of non-bundle packages. -->
+    <property name="javadoc.packages"
+              value="org.knopflerfish.ant.taskdefs.bundle,
+                     org.osgi.framework,
+                     org.osgi.service.condpermadmin,
+                     org.osgi.service.packageadmin,
+                     org.osgi.service.permissionadmin,
+                     org.osgi.service.startlevel,
+                     org.osgi.service.url,
+                     org.osgi.util.tracker,
+                     "/>
+    <!-- Add in all packages exported by the compiled bundles. -->
+    <bundle_javadoc_helper exportPkgsFile="${exported.file}"
+                           pkgPropertyName="javadoc.packages"/>
+
+    <property name="javadoc.excludepackages"
+              value="org.w3c.dom,
+                     org.w3c.dom.bootstrap,
+                     org.w3c.dom.css,
+                     org.w3c.dom.events,
+                     org.w3c.dom.html,
+                     org.w3c.dom.ls,
+                     org.w3c.dom.ranges,
+                     org.w3c.dom.stylesheets,
+                     org.w3c.dom.traversal,
+                     org.w3c.dom.views,
+                     org.w3c.dom.xpath,
+                     org.xml.sax,
+                     org.xml.sax.ext,
+                     org.xml.sax.helpers
+                     "/>
+
+    <property name="javadoc.header"
+              value="Knopflerfish OSGi ${version}"/>
 	    
-  <property name  = "javadoc.footer"
-            value = "${javadoc.header}"/>
+    <property name="javadoc.footer"
+              value="${javadoc.header}"/>
 
-  <javadoc sourcepathref = "sources.path"
-           destdir       = "${javadoc.out.dir}"
-           header        = "${javadoc.header}"
-           footer        = "${javadoc.footer}"
-	   packagenames  = "${javadoc.packages}"
-	   excludepackagenames = "${javadoc.excludepackages}"
-   >	   
-  </javadoc>
+    <javadoc sourcepathref = "sources.path"
+             destdir       = "${javadoc.out.dir}"
+             header        = "${javadoc.header}"
+             footer        = "${javadoc.footer}"
+	     packagenames  = "${javadoc.packages}"
+	     excludepackagenames = "${javadoc.excludepackages}">	   
+    </javadoc>
  </target>
  
  <target name="run"
