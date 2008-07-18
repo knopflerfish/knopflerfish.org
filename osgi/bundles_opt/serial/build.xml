@@ -1,17 +1,34 @@
 <?xml version="1.0"?>
 
-<project name="serial" default="all">
+<project name="serial-dir" default="all">
 
-  <target name="all">
-    <ant dir="serialportdevice"    target="all"/>
-    <ant dir="comm-win32"          target="all"/>
-    <ant dir="comm-linux"          target="all"/>
+  <!-- Internal target that calls a specified target in all sub-dirs. -->
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="serialportdevice"/>
+    <ant target="${the.target}" dir="comm-win32"/>
+    <ant target="${the.target}" dir="comm-linux"/>
   </target>
 
-  <target name="clean">
-    <ant dir="serialportdevice"    target="clean"/>
-    <ant dir="comm-win32"          target="clean"/>
-    <ant dir="comm-linux"          target="clean"/>
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean" 
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+  </target>
+  
+  <target name="bundle_doc" 
+	  depends="bundle_doc_overview"
+	  description="Builds doc for all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="bundle_doc"/>
+    </antcall>
   </target>
 
   <property name="topdir" location="../.."/>
@@ -30,7 +47,4 @@
     </antcall>
   </target>
 
-  <target name="bundle_doc"
-	  depends="bundle_doc_overview">
-  </target>
 </project>

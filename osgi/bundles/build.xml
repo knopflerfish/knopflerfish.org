@@ -68,6 +68,8 @@
     <ant target="${the.target}" dir="provisioning"/>
     <ant target="${the.target}" dir="prefs"/>
     <ant target="${the.target}" dir="bundlerepository"/>
+
+    <ant target="${the.target}" dir="demos"/>
   </target>
 
 
