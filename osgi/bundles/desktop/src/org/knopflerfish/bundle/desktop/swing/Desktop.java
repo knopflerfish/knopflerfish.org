@@ -532,48 +532,53 @@ public class Desktop
     checkUpdate(false);
   }
 
-  void checkUpdate(boolean bForce) {
-    try {
-      if(bForce) {
-        Preferences prefs = Preferences.userNodeForPackage(getClass());
-        prefs.remove(KEY_UPDATEVERSION);
-        prefs.flush();
-      }
-
-      String versionURL =
-        Util.getProperty("org.knopflerfish.desktop.releasenotesurl",
-                         "http://www.knopflerfish.org/releases/current/release_notes.txt");
-
-      URL url  = new URL(versionURL);
-      URLConnection conn = url.openConnection();
-      InputStream is = conn.getInputStream();
-
-      String notes = new String(Util.readStream(is), "ISO-8859-1");
-
-      int ix = notes.indexOf("\n");
-      if(ix != -1) {
-        String line = notes.substring(0, ix);
-        ix = line.lastIndexOf(" ");
-        if(ix != -1) {
-          Version version = new Version(line.substring(ix + 1));
-          Bundle sysBundle = Activator.getBC().getBundle(0);
-          Version sysVersion = new Version((String)sysBundle.getHeaders().get("Bundle-Version"));
-
-          Activator.log.info("sysVersion=" + sysVersion + ", version=" + version);
-          if(sysVersion.compareTo(version) < 0) {
-            showUpdate(sysVersion, version, notes);
+  void checkUpdate(final boolean bForce) {
+    // Run in threads, to avoid startup delay caused by network problems.
+    new Thread() {
+      public void run() {
+        try {
+          if(bForce) {
+            Preferences prefs = Preferences.userNodeForPackage(getClass());
+            prefs.remove(KEY_UPDATEVERSION);
+            prefs.flush();
           }
-        } else {
-          Activator.log.warn("No version info in " + line);
-        }
-      } else {
-        Activator.log.warn("No version line");
-      }
-      // System.out.println("read " + notes);
 
-    } catch (Exception e) {
-      Activator.log.warn("Failed to read update info", e);
-    }
+          String versionURL =
+            Util.getProperty("org.knopflerfish.desktop.releasenotesurl",
+                             "http://www.knopflerfish.org/releases/current/release_notes.txt");
+
+          URL url  = new URL(versionURL);
+          URLConnection conn = url.openConnection();
+          InputStream is = conn.getInputStream();
+
+          String notes = new String(Util.readStream(is), "ISO-8859-1");
+
+          int ix = notes.indexOf("\n");
+          if(ix != -1) {
+            String line = notes.substring(0, ix);
+            ix = line.lastIndexOf(" ");
+            if(ix != -1) {
+              Version version = new Version(line.substring(ix + 1));
+              Bundle sysBundle = Activator.getBC().getBundle(0);
+              Version sysVersion = new Version((String)sysBundle.getHeaders().get("Bundle-Version"));
+
+              Activator.log.info("sysVersion=" + sysVersion + ", version=" + version);
+              if(sysVersion.compareTo(version) < 0) {
+                showUpdate(sysVersion, version, notes);
+              }
+            } else {
+              Activator.log.warn("No version info in " + line);
+            }
+          } else {
+            Activator.log.warn("No version line");
+          }
+          // System.out.println("read " + notes);
+
+        } catch (Exception e) {
+          Activator.log.warn("Failed to read update info", e);
+        }
+      }
+    }.start();
   }
 
   JButton toolStartBundles;
