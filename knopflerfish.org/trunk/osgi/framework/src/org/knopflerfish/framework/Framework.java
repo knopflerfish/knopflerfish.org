@@ -167,6 +167,15 @@ public class Framework {
   final static String TRUE   = "true";
   final static String FALSE  = "false";
 
+  // EXIT_ON_SHUTDOWN and USING_WRAPPER_SCRIPT  must be initialized 
+  // before initProperties(). Thus, they are *not* possible
+  // to set on a per-framework basis (which wouldn't make sense anyway).
+  final static boolean EXIT_ON_SHUTDOWN =
+    TRUE.equals(Framework.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
+
+  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(Framework.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
+
+
   static {
     initProperties();
   }
@@ -218,13 +227,10 @@ public class Framework {
    */
   static boolean SUPPORTS_EXTENSION_BUNDLES;
 
-  final static boolean EXIT_ON_SHUTDOWN =
-    TRUE.equals(Framework.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
 
   final static int EXIT_CODE_NORMAL  = 0;
   final static int EXIT_CODE_RESTART = 200;
 
-  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(Framework.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
 
   public static int javaVersionMajor = -1;
   public static int javaVersionMinor = -1;
