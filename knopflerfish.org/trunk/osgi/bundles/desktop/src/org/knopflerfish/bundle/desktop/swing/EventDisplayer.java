@@ -206,7 +206,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 		       eventPanel,
 		       eventDetail);
       
-      splitPane.setDividerLocation(120);
+      splitPane.setDividerLocation(170);
 
       add(splitPane, BorderLayout.CENTER);
 

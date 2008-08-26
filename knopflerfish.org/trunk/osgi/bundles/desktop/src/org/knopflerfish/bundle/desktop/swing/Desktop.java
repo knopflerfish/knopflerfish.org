@@ -322,17 +322,17 @@ public class Desktop
     contentPane = frame.getContentPane();
 
     contentPane.setLayout(new BorderLayout());
-    contentPane.setSize(new Dimension(600, 400));
+    contentPane.setSize(new Dimension(800, 450));
 
     bundlePanel = new JCardPane();
-    bundlePanel.setPreferredSize(new Dimension(450, 300));
+    bundlePanel.setPreferredSize(new Dimension(400, 300));
 
     toolBar       = makeToolBar();
 
 
     detailPanel   = new JTabbedPane();
 
-    detailPanel.setPreferredSize(new Dimension(350, 300));
+    detailPanel.setPreferredSize(new Dimension(400, 300));
 
     detailPanel.setTabPlacement(JTabbedPane.BOTTOM);
 
