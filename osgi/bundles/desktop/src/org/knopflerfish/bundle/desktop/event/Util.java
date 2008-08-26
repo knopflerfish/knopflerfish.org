@@ -40,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.Iterator;
 
@@ -48,6 +49,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
+import java.lang.reflect.Array;
 
 
 public class Util {
@@ -158,17 +160,64 @@ public class Util {
 
 
   static Set SKIP_KEYS = new HashSet() {{
-    add("event.topics");
     add("log.entry");
     add("event");
-    add("message");
-    add("service.objectClass");
-    add(EventConstants.EVENT_TOPIC);
     add(EventConstants.BUNDLE);
     add(EventConstants.EXCEPTION);
     add(EventConstants.SERVICE);
-    add(EventConstants.TIMESTAMP);
   }};
+
+  public static String objToHTML(Object obj) {
+    if(obj == null) {
+      return "";
+    } else if(obj instanceof Map) {
+      return mapToHTML(obj);
+    } else if(obj.getClass().isArray()) {
+      return arrayToHTML(obj);
+    } else {
+      return fontify(obj.toString());
+    }
+  }
+
+  public static String mapToHTML(Object obj) {
+    if(obj == null) {
+      return "null";
+    }
+    StringBuffer sb = new StringBuffer();
+    Map map = (Map)obj;
+    sb.append("<table>");
+    for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
+      Object key = it.next();
+      Object val = map.get(key);
+      sb.append("<tr>");
+      sb.append("<td>");
+      sb.append(fontify(key.toString()));
+      sb.append("</td>");
+      sb.append("<td>");
+      sb.append(fontify(val.toString()));
+      sb.append("</td>");
+      sb.append("</tr>");
+    }
+    sb.append("</table>");
+    return sb.toString();
+  }
+
+  public static String arrayToHTML(Object obj) {
+    if(obj == null) {
+      return "null";
+    }
+    StringBuffer sb = new StringBuffer();
+    sb.append("[");
+    for(int i = 0; i < Array.getLength(obj); i++) {
+      if(i > 0) {
+        sb.append(", ");
+      }
+      Object val = Array.get(obj, i);
+      sb.append(objToHTML(val));
+    }
+    sb.append("]");
+    return sb.toString();
+  }
 
   public static String toHTML(Event e) {
     StringBuffer sb = new StringBuffer();
@@ -177,9 +226,10 @@ public class Util {
 
     Set keys = new TreeSet();
     for(int i = 0; i < names.length; i++) {
-      if(!SKIP_KEYS.contains(names[i])) {
-        keys.add(names[i]);
-      }
+      // if(!SKIP_KEYS.contains(names[i])) 
+        {
+          keys.add(names[i]);
+        }
     }
 
     sb.append("<html>");
@@ -217,9 +267,14 @@ public class Util {
       sb.append("<td>");
       sb.append(fontify(key));
       sb.append("</td>");
-      
+
       sb.append("<td>");
-      sb.append(fontify("" + e.getProperty(key)));
+      Object val = e.getProperty(key);
+      if(SKIP_KEYS.contains(key)) {
+        sb.append(fontify("<i>" + val.getClass().getName() + "@" + val.hashCode() + "</i>"));
+      } else {
+        sb.append(objToHTML(val));
+      }
       sb.append("</td>");
       
       sb.append("</tr>");
@@ -291,6 +346,9 @@ public class Util {
   }
 
   static public String fontify(String s, String size) {
+    if(s == null) {
+      return "";
+    }
     return "<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">" + s + "</font>";
   }
   

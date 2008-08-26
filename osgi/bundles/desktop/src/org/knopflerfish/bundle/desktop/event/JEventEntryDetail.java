@@ -133,6 +133,7 @@ public class JEventEntryDetail extends JPanel {
 	});
     }};
 
+    /*
     JButton reloadButton = new JButton(reloadIcon) {	{
       setToolTipText("Clear event list");
       addActionListener(new ActionListener() {
@@ -141,12 +142,13 @@ public class JEventEntryDetail extends JPanel {
 	  }
 	});
     }};
+    */
 
     cmdPanel.add(firstButton);
     cmdPanel.add(prevButton);
     cmdPanel.add(nextButton);
     cmdPanel.add(lastButton);
-    cmdPanel.add(reloadButton);
+    // cmdPanel.add(reloadButton);
 
     //    cmdPanel.add(reloadButton);
 

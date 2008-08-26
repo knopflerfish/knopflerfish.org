@@ -138,9 +138,7 @@ public class FilterEventTableModel
   }
 
   public int getRowCount() {
-    synchronized(lock) {
-      return filteredEntries.size();
-    }
+    return filteredEntries != null ? filteredEntries.size() : 0;
   }
 
 

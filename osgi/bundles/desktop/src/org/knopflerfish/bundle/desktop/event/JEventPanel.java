@@ -34,36 +34,25 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.awt.BorderLayout;
-import java.awt.Toolkit;
-import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Iterator;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.event.*;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
+import java.util.*;
 
 import org.osgi.service.event.Event;
 import org.osgi.framework.Filter;
 
+
 public class JEventPanel extends JPanel implements ClipboardOwner {
   
   JTextArea text;
-  JTextField topicC;
+  JComboBox topicC;
   JTextField filterC;
 
   EventTableModel model;
@@ -72,30 +61,58 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   JPopupMenu    popup;
   Color txtColor;
 
-  public JEventPanel(EventTableModel   model, 
-		   JEventEntryDetail logEntryDetail,
-		   boolean         bSort) {
+  DefaultComboBoxModel topicModel;
+  DefaultListModel allTopics;
+  DefaultListModel allKeys;
+
+  Set selectedKeys;
+
+  boolean popupOK = false;
+
+  public JEventPanel(DefaultListModel allTopics, 
+                     DefaultListModel allKeys, 
+                     Set              selectedKeys,
+                     EventTableModel   model, 
+                     JEventEntryDetail logEntryDetail,
+                     boolean         bSort) {
     super(new BorderLayout());
+    this.allTopics = allTopics;
+    this.allKeys   = allKeys;
+    this.selectedKeys = new LinkedHashSet();
+    this.selectedKeys.addAll(selectedKeys);
+
+    allTopics.addListDataListener(new ListDataListener() {
+        public void 	contentsChanged(ListDataEvent e) {
+          updateTopics();
+        }
+        public void 	intervalAdded(ListDataEvent e) {
+          updateTopics();
+        }
+        public void 	intervalRemoved(ListDataEvent e) {
+          updateTopics();
+        }
+      });
+
+    allKeys.addListDataListener(new ListDataListener() {
+        public void 	contentsChanged(ListDataEvent e) {
+          updateKeys();
+        }
+        public void 	intervalAdded(ListDataEvent e) {
+          updateKeys();
+        }
+        public void 	intervalRemoved(ListDataEvent e) {
+          updateKeys();
+        }
+      });
+
     this.model = model;
     
     table = new JEventTable(model, logEntryDetail, bSort);
     scrollpane = new JScrollPane(table);
 
+    popup = new JPopupMenu();
 
-    popup = new JPopupMenu() {
-	  {
-	    add(new JMenuItem("Copy log to clipboard") {
-		{
-		  addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent ev) {
-			copyToClipBoard();
-		      }
-		    });
-		}
-	      });
-	  }
-      };
-    getJEventTable().addMouseListener(new MouseAdapter() {
+    MouseListener ml = new MouseAdapter() {
 	public void mousePressed(MouseEvent e) {
 	  maybeShowPopup(e);
 	}
@@ -106,26 +123,52 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 	
 	private void maybeShowPopup(MouseEvent e) {
 	  if (e.isPopupTrigger()) {
+            makePopup();
 	    popup.show(e.getComponent(), e.getX(), e.getY());
 	  }
 	}
-      });
+      };
+    
+    getJEventTable().addMouseListener(ml);
+    getJEventTable().getTableHeader().addMouseListener(ml);
+    
     
     JPanel p1 = new JPanel(new FlowLayout());
-    p1.add(new JLabel("Topic:"));
 
-    topicC = new JTextField(model.getDispatcher().getTopic(), 15);
+    JPanel tPanel = new JPanel(new BorderLayout());
+    tPanel.add(new JLabel("Topic:"), BorderLayout.WEST);
+
+    topicModel = new DefaultComboBoxModel();
+    topicC = new JComboBox(topicModel); 
+    topicC.setEditable(true);
+
+    updateTopics();
+
+    topicModel.setSelectedItem("*");
+
+    updateTableModel();
+
+    topicC.setMaximumSize(new Dimension(120, 50));
     topicC.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          JEventPanel.this.model.getDispatcher().setTopic(topicC.getText());
+          String topicS = topicC.getSelectedItem().toString();
+          if(-1 == topicModel.getIndexOf(topicS)) {
+            topicModel.addElement(topicS);
+          }
+
+          JEventPanel.this.model.getDispatcher().setTopic(topicS);
+          JEventPanel.this.model.clear();
         }
       });
 
-    p1.add(topicC, BorderLayout.CENTER);
+    tPanel.add(topicC, BorderLayout.CENTER);
 
-    p1.add(new JLabel("Filter:"));
 
-    filterC = new JTextField(model.getDispatcher().getFilter(), 12);
+
+    JPanel fPanel = new JPanel(new BorderLayout());
+    fPanel.add(new JLabel("Filter:"), BorderLayout.WEST);
+        
+    filterC = new JTextField(model.getDispatcher().getFilter(), 8);
     txtColor = filterC.getForeground();
     filterC.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -136,6 +179,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
             }
             filterC.setToolTipText("Event filter");
             filterC.setForeground(txtColor);
+            JEventPanel.this.model.clear();
             JEventPanel.this.model.getDispatcher().setFilter(filterS);
           } catch (Exception ex) {
             filterC.setForeground(Color.red);
@@ -145,10 +189,118 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
         }
       });
 
-    p1.add(filterC);
+    fPanel.add(filterC, BorderLayout.CENTER);
+
+
+    
+    JButton newButton = new JButton("New");
+    newButton.setToolTipText("New event view window");
+    newButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          newWindow();
+        }
+      });
+
+
+
+    JButton clearButton = new JButton("Clear");
+    clearButton.setToolTipText("Clear event list");
+    clearButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          JEventPanel.this.model.clear();
+        }
+      });
+
+    p1.add(tPanel);
+    p1.add(fPanel);
+    p1.add(newButton);
+    p1.add(clearButton);
 
     add(scrollpane, BorderLayout.CENTER);
     add(p1, BorderLayout.NORTH);
+  }
+
+  JMenuItem copyItem = new JMenuItem("Copy events to clipboard") {
+      {
+        addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              copyToClipBoard();
+            }
+          });
+      }
+    };
+
+  void updateKeys() {
+    popupOK = false;
+  }
+
+  ArrayList cbList = new ArrayList();
+
+  void makePopup() {
+    if(popupOK) {
+      return;
+    }
+
+    popup.removeAll();
+    popup.add(copyItem);
+    popupOK = true;
+    
+    cbList.clear();
+
+    for(int i = 0; i < allKeys.getSize(); i++) {
+      final String val = allKeys.getElementAt(i).toString();
+      final JCheckBoxMenuItem cb = new JCheckBoxMenuItem(val);
+      if(selectedKeys.contains(val)) {
+        cb.setState(true);
+      }
+      cbList.add(cb);
+      cb.addItemListener(new ItemListener() {
+          public void 	itemStateChanged(ItemEvent e) {
+            if(cb.getState()) {
+              selectedKeys.add(val);
+            } else {
+              selectedKeys.remove(val);
+
+              // avoid zero-column table
+              if(selectedKeys.size() == 0) {
+                selectedKeys.add(val);
+                cb.setState(true);
+              }
+            }
+            updateTableModel();
+          }
+        });
+      popup.add(cb);
+    }
+  }
+
+  void updateTableModel() {
+    ArrayList names = new ArrayList();
+    for(Iterator it = selectedKeys.iterator(); it.hasNext(); ) {
+      String name = (String)it.next();
+      names.add(name);
+    }
+    model.setColumns(names);
+  }
+
+  void updateTopics() {
+    DefaultComboBoxModel cbModel = new DefaultComboBoxModel();
+    for(int i = 0; i < topicModel.getSize(); i++) {
+      Object val = topicModel.getElementAt(i);
+      cbModel.addElement(val);
+    }
+    for(int i = 0; i < allTopics.getSize(); i++) {
+      Object val = allTopics.getElementAt(i);
+      if(-1 == cbModel.getIndexOf(val)) {
+        cbModel.addElement(val);
+      }
+    }
+    cbModel.setSelectedItem(topicModel.getSelectedItem());
+    topicModel = cbModel;
+    topicC.setModel(cbModel);
+  }
+
+  public void newWindow() {
   }
 
   void copyToClipBoard() {
