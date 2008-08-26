@@ -531,7 +531,9 @@
    <antcall target="add_src" inheritRefs="true">
      <param name="add.src.resource.jarfile"  value="${impl.jar}"/>
    </antcall>
-   <antcall target="save_javadoc_data" inheritRefs="true"/>
+   <antcall target="save_javadoc_data" inheritRefs="true">
+     <param name="manifest.file"  value="${outdir}/impl.mf"/>
+   </antcall>
  </target>
 
 
@@ -593,7 +595,9 @@
    <antcall target="add_src" inheritRefs="true">
      <param name="add.src.resource.jarfile"  value="${api.jar}"/>
    </antcall>
-   <antcall target="save_javadoc_data" inheritRefs="true"/>
+   <antcall target="save_javadoc_data" inheritRefs="true">
+     <param name="manifest.file"  value="${outdir}/api.mf"/>
+   </antcall>
  </target>
 
 
@@ -655,7 +659,9 @@
    <antcall target="add_src" inheritRefs="true">
      <param name="add.src.resource.jarfile"  value="${lib.jar}"/>
    </antcall>
-   <antcall target="save_javadoc_data" inheritRefs="true"/>
+   <antcall target="save_javadoc_data" inheritRefs="true">
+     <param name="manifest.file"  value="${outdir}/lib.mf"/>
+   </antcall>
  </target>
 
 
@@ -726,7 +732,9 @@
    <antcall target="add_src" inheritRefs="true">
      <param name="add.src.resource.jarfile"  value="${all.jar}"/>
    </antcall>
-   <antcall target="save_javadoc_data" inheritRefs="true"/>
+   <antcall target="save_javadoc_data" inheritRefs="true">
+     <param name="manifest.file"  value="${outdir}/all.mf"/>
+   </antcall>
  </target>
 
 
@@ -763,8 +771,16 @@
    <echo message="save_javadoc: to:${sources.file} src:${src.dir} "/>
    <echo file="${sources.file}" append="true"
 	 message="${src.dir}${line.separator}"/>
+   <!-- Load the generated manifest file (${manifest.file}) to get the -->
+   <!-- actual export-package value used. -->
+   <property name="save_javadoc_bmfa.Export-Package"
+	     value="${bundle.emptystring}"/>
+   <bundlemanifest mode="templateOnly"
+                   attributePropertyPrefix="save_javadoc_bmfa."
+                   templateFile="${manifest.file}">
+   </bundlemanifest>
    <echo file="${exported.file}" append="true"
-	 message="${bmfa.Export-Package}${line.separator}"/>
+	 message="${save_javadoc_bmfa.Export-Package}${line.separator}"/>
  </target>
 
  <target name="check_telnet">
