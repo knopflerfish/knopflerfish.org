@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.*;
 
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.*;
+import javax.swing.*;
 import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
 
 /**
  * Table model which keeps track of <tt>Event</tt> items.
@@ -47,61 +48,75 @@ import org.osgi.service.event.Event;
  * New entries should be added using <tt>logged</tt>
  * </p>
  */
-public class EventTableModel extends AbstractTableModel {
+public class EventTableModel extends DefaultTableModel {
   
   private ArrayList entries = new ArrayList();
 
-  static final int COL_TIME      = 0;
-  static final int COL_TOPIC     = 1;
-  static final int COL_BUNDLE    = 2;
-  static final int COL_MESSAGE   = 3;
-
   EventReaderDispatcher dispatcher;
 
+  DefaultListModel allKeys;
   
   /**
    * Name of column headers
    */
   String[] headers = { 
-    "Time", 
-    "Topic", 
-    "Bundle", 
-    "Message", 
+    EventConstants.TIMESTAMP,
+    EventConstants.EVENT_TOPIC,
+    "bundle.id", 
+    "message", 
   };
-
-  /**
-   * Column classes.
-   */
-  Class [] clazzes = {
-    Date.class,   // TIME
-    String.class, // TOPIC
-    String.class, // MESSAGE
-    String.class, // BUNDLE
-  };
-
 
   public EventTableModel() {
     super();
+    this.allKeys = allKeys;
   }
 
   public EventReaderDispatcher getDispatcher() {
     return dispatcher;
   }
 
-
   public void setDispatcher(EventReaderDispatcher dispatcher) {
     this.dispatcher = dispatcher;
   }
 
   
+  /*
   public Class getColumnClass(int c) {
     return clazzes[c];
   }
+  */
 
   public boolean isCellEditable(int row, int col) {
     return false;
   }
 
+  public void setColumns(java.util.List names) {
+
+
+    String[] h2 = new String[names.size()];
+    {
+      int i = 0;
+      for(Iterator it = names.iterator(); it.hasNext(); ) {
+        h2[i++] = it.next().toString();
+      }
+      
+    }
+    boolean bChanged = false;
+    if(h2.length == headers.length) {
+      for(int i = 0; i < headers.length; i++) {
+        if(!h2[i].equals(headers[i])) {
+          bChanged = true;
+        }
+      }
+    } else {
+      bChanged = true;
+    }
+    if(bChanged) {
+      headers = h2;
+      fireTableStructureChanged();
+    } else {
+    }
+  }
 
   public int getColumnCount() {
     return headers.length;
@@ -122,33 +137,26 @@ public class EventTableModel extends AbstractTableModel {
 
 
   public Object getValueAt(int row, int col) {
-    return getValueAt(getEntry(row), col);
+    Object val = getValueAt(getEntry(row), col);
+
+    if(-1 != headers[col].indexOf("timestamp") && (val instanceof Long)) {
+      return new Date(((Long)val).longValue());
+    }
+
+    return val;
   }
 
   public Object getValueAt(Event e, int col) {
 
     if(col >= getColumnCount()) { 
-      throw new ArrayIndexOutOfBoundsException("Column " + col + 
-					       " is larger than " + 
-					       (getColumnCount() - 1));
+      return "";
     }
 
-    switch(col) {
-    case COL_TIME:
-      return new Date(Util.getTime(e));
-    case COL_TOPIC:
-      return e.getTopic();
-    case COL_BUNDLE:
-      return Util.shortName(Util.getBundle(e));
-    case COL_MESSAGE:
-      return Util.getMessage(e);
-    default:
-      return null;
-    }
+    return e.getProperty(headers[col]);
   }
 
   public int getRowCount() {
-    return entries.size();
+    return entries != null ? entries.size() : 0;
   }
 
   public void logged(Event entry) {

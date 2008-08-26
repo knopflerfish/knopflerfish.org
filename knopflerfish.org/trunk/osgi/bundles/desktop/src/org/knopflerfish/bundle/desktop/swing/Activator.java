@@ -40,7 +40,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
-
+import java.lang.reflect.Constructor;
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.remotefw.RemoteFramework;
 import org.osgi.framework.BundleActivator;
@@ -48,6 +48,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
+import org.knopflerfish.util.Text;
 
 public class Activator implements BundleActivator {
 
@@ -178,7 +179,43 @@ public class Activator implements BundleActivator {
 
     ServiceRegistration reg;
 
+    String[] dispClassNames = new String[] {
+      LargeIconsDisplayer.class.getName(), 
+      TimeLineDisplayer.class.getName(),
+      TableDisplayer.class.getName(),
+      SpinDisplayer.class.getName(),
+      ManifestHTMLDisplayer.class.getName(),
+      ClosureHTMLDisplayer.class.getName(),
+      ServiceHTMLDisplayer.class.getName(),
+      PackageHTMLDisplayer.class.getName(),
+      LogDisplayer.class.getName(),
+      EventDisplayer.class.getName(),
+    };
+    
+    String dispsS = Util.getProperty("org.knopflerfish.desktop.displays", "").trim();
+    
+    if(dispsS != null && dispsS.length() > 0) {
+      dispClassNames = Text.splitwords(dispsS, "\n\t ", '\"');
+    }
+
+    for(int i = 0; i < dispClassNames.length; i++) {
+      String className = dispClassNames[i];
+      
+      try {
+        Class       clazz = Class.forName(className);
+        Constructor cons  = clazz.getConstructor(new Class[] { BundleContext.class });
+
+        disp = (DefaultSwingBundleDisplayer)cons.newInstance(new Object[] { getTargetBC() });
+        disp.open();
+        reg = disp.register();
+        displayers.put(disp, reg);        
+      } catch (Exception e) {
+        log.warn("Failed to create displayer " + className, e);
+      }
+    }
+
     // bundle displayers
+    /*
     disp = new LargeIconsDisplayer(getTargetBC());
     disp.open();
     reg = disp.register();
@@ -220,12 +257,6 @@ public class Activator implements BundleActivator {
     reg = disp.register();
     displayers.put(disp, reg);
 
-    /*
-    disp = new EventDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-    */
 
     //if(getBC() == getTargetBC()) {
     disp = new LogDisplayer(getTargetBC());
@@ -238,7 +269,7 @@ public class Activator implements BundleActivator {
     disp.open();
     reg = disp.register();
     displayers.put(disp, reg);
-
+    */
 
     // We really want this one to be displayed.
     desktop.bundlePanelShowTab("Large Icons");

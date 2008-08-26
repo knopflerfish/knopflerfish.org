@@ -34,13 +34,13 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.awt.Color;
-import java.util.Date;
+import java.util.*;
+import java.awt.*;
+import java.awt.event.*;
 
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.*;
+import javax.swing.table.*;
+import javax.swing.event.*;
 
 import org.osgi.service.event.Event;
 
@@ -52,15 +52,16 @@ public class JEventTable extends JTable {
   EventTableModel    model;
   JEventEntryDetail logEntryDetail;
 
-  public JEventTable(EventTableModel   model, 
-		   JEventEntryDetail logEntryDetail,
-		   boolean         bSort) {
+  public JEventTable(
+                     EventTableModel   model, 
+                     JEventEntryDetail logEntryDetail,
+                     boolean         bSort) {
     super();
     
     this.logEntryDetail = logEntryDetail;
     this.model          = model;
 
-    if(false) {
+    if(true) {
       TableSorter sorter = new TableSorter(model);
       
       setModel(sorter);
@@ -69,8 +70,10 @@ public class JEventTable extends JTable {
       setModel(model);
     }
 
-    setDefaultRenderer(Date.class, 
-		       new DateCellRenderer("HH:mm:ss, MMM dd"));
+    
+    setDefaultRenderer(Date.class,   new DateCellRenderer("HH:mm:ss, MMM dd"));
+    setDefaultRenderer(String.class, new StringCellRenderer());
+    // setDefaultRenderer(Object.class, new StringCellRenderer());
     
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -100,10 +103,31 @@ public class JEventTable extends JTable {
 	}
       });
 
+    /*
     getColumnModel().getColumn(EventTableModel.COL_TIME).setPreferredWidth(100);
     getColumnModel().getColumn(EventTableModel.COL_TOPIC).setPreferredWidth(170);
     getColumnModel().getColumn(EventTableModel.COL_BUNDLE).setPreferredWidth(80);    
+    */
   }
+  
+
+  public TableCellRenderer getCellRenderer(int row, int column) {
+    Object val = model.getValueAt(row, column);
+
+    return getDefaultRenderer(val != null ? val.getClass() : Object.class);    
+  }
+
+
+  /*
+  public TableCellRenderer getDefaultRenderer(Class  clazz) {
+    TableCellRenderer te = (TableCellRenderer)cellRenderers.get(clazz);
+    if(te != null) {
+      return te;
+    }
+    return super.getDefaultRenderer(clazz);
+  }
+  */
+
 
   Event getEventEntry(Event e, int delta) {
     int ix = model.getEntries().indexOf(e);
