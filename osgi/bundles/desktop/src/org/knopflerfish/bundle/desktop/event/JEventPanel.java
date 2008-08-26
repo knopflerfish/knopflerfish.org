@@ -132,11 +132,12 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     getJEventTable().addMouseListener(ml);
     getJEventTable().getTableHeader().addMouseListener(ml);
     
-    
-    JPanel p1 = new JPanel(new FlowLayout());
-
+    JLabel jl;    
     JPanel tPanel = new JPanel(new BorderLayout());
-    tPanel.add(new JLabel("Topic:"), BorderLayout.WEST);
+
+    jl = new JLabel("Topic:");
+    jl.setSize(new Dimension(100, jl.getSize().height));
+    tPanel.add(jl, BorderLayout.WEST);
 
     topicModel = new DefaultComboBoxModel();
     topicC = new JComboBox(topicModel); 
@@ -166,8 +167,11 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
 
     JPanel fPanel = new JPanel(new BorderLayout());
-    fPanel.add(new JLabel("Filter:"), BorderLayout.WEST);
-        
+    jl = new JLabel("Filter:");
+    jl.setSize(new Dimension(100, jl.getSize().height));
+
+    fPanel.add(jl, BorderLayout.WEST);
+    
     filterC = new JTextField(model.getDispatcher().getFilter(), 8);
     txtColor = filterC.getForeground();
     filterC.addActionListener(new ActionListener() {
@@ -176,12 +180,14 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
           try {
             if(filterS.length() > 0) {
               Filter f = org.knopflerfish.bundle.desktop.swing.Activator.getBC().createFilter(filterS);
+              System.out.println("made filter " + f);
             }
             filterC.setToolTipText("Event filter");
             filterC.setForeground(txtColor);
             JEventPanel.this.model.clear();
             JEventPanel.this.model.getDispatcher().setFilter(filterS);
           } catch (Exception ex) {
+            System.out.println("bad filter " + filterS + ", " + ex.getMessage());
             filterC.setForeground(Color.red);
             filterC.setToolTipText(ex.getMessage());
           }
@@ -211,13 +217,25 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
         }
       });
 
-    p1.add(tPanel);
-    p1.add(fPanel);
-    p1.add(newButton);
-    p1.add(clearButton);
+    
+
+
+    JPanel p2 = new JPanel();
+    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
+
+    p2.add(tPanel);
+
+    JPanel p3 = new JPanel();
+    p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
+
+    p3.add(fPanel);    
+    p3.add(newButton);
+    p3.add(clearButton);
+
+    p2.add(p3);
 
     add(scrollpane, BorderLayout.CENTER);
-    add(p1, BorderLayout.NORTH);
+    add(p2, BorderLayout.NORTH);
   }
 
   JMenuItem copyItem = new JMenuItem("Copy events to clipboard") {
@@ -243,8 +261,8 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     popup.removeAll();
     popup.add(copyItem);
-    popupOK = true;
-    
+    popup.add(new JPopupMenu.Separator());
+
     cbList.clear();
 
     for(int i = 0; i < allKeys.getSize(); i++) {
@@ -272,6 +290,8 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
         });
       popup.add(cb);
     }
+
+    popupOK = true;
   }
 
   void updateTableModel() {
