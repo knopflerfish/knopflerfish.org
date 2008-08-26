@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.event;
 
+import java.util.HashSet;
 import java.util.Vector;
 
 import org.osgi.framework.BundleContext;
@@ -70,7 +71,7 @@ public class DeliverSession {
     private long timeout = 0;
 
     /** the references to the blacklisted handlers */
-    private static Vector blacklisted = new Vector();
+    private static HashSet blacklisted = new HashSet();
 
     /**
      * Standard constructor for DeliverSession.
@@ -111,9 +112,10 @@ public class DeliverSession {
       boolean isBlacklisted = false;
 
       for (int i = 0; i < serviceReferences.length; i++) {
+        ServiceReference currentHandlerSR = serviceReferences[i];
         EventHandler currentHandler = (EventHandler)
-          Activator.bundleContext.getService(serviceReferences[i]);
-        isBlacklisted = blacklisted.contains(currentHandler);
+          Activator.bundleContext.getService(currentHandlerSR);
+        isBlacklisted = blacklisted.contains(currentHandlerSR);
         if (!isBlacklisted) {
           String filterString = null;
           try {
@@ -127,16 +129,18 @@ public class DeliverSession {
               filterMatch = true;
             }
           } catch(NullPointerException e) {
-            filterMatch = true;
-          } catch (InvalidSyntaxException err) {
-            if (Activator.log.doDebug()) {
-              Activator.log.debug("Invalid Syntax when matching filter ("
-                                  + filterString + ") of " + currentHandler);
-            }
-            blacklisted.add(currentHandler);
+            filterMatch = true; // why is this OK??? /EW
+          } catch (Exception err) {
+            blacklisted.add(currentHandlerSR);
             isBlacklisted = true;
-            /* this means no filter match */
             filterMatch = false;
+
+            // log after blacklisting, in case logging in itself triggers the filter...
+            if (Activator.log.doDebug()) {
+              Activator.log.warn("Failure when matching filter ("
+                                 + filterString + ") of " + currentHandler, err);
+            }
+
           }
 
           try {
@@ -162,8 +166,8 @@ public class DeliverSession {
               Activator.log.debug("Invalid topic in handler:" + currentHandler);
             }
             /* blacklist the handler */
-            if(!blacklisted.contains(currentHandler)){
-              blacklisted.add(currentHandler);
+            if(!blacklisted.contains(currentHandlerSR)){
+              blacklisted.add(currentHandlerSR);
               isBlacklisted=true;
             }
           }
@@ -186,8 +190,8 @@ public class DeliverSession {
                   wait(timeout);
                   Activator.log.error("NOTIFER TIMED OUT: "+ timeoutDeliver.getName());
                   /* check if already blacklisted by another thread */
-                  if (!blacklisted.contains(currentHandler)) {
-                    blacklisted.addElement(currentHandler);
+                  if (!blacklisted.contains(currentHandlerSR)) {
+                    blacklisted.add(currentHandlerSR);
                     if (Activator.log.doDebug()) {
                       Activator.log.debug("The handler " + currentHandler.toString()
                                           + " was blacklisted due to timeout");
