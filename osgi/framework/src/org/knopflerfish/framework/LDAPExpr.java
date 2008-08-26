@@ -332,8 +332,9 @@ public class LDAPExpr {
 	  }
 	}
       }
-    } catch (Exception e) { 
-      e.printStackTrace();
+    } catch (Exception ignored_but_evals_to_false) { 
+      // This might happen if a string-to-datatype conversion fails
+      // Just consider it a false match and ignore the exception
     }
     return false;
   }
