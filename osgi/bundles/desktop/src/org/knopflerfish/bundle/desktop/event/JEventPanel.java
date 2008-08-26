@@ -217,8 +217,13 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
         }
       });
 
-    
-
+    JButton sendButton = new JButton("Send...");
+    sendButton.setToolTipText("Send event...");
+    sendButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          openSendFrame();
+        }
+      });
 
     JPanel p2 = new JPanel();
     p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
@@ -231,11 +236,36 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     p3.add(fPanel);    
     p3.add(newButton);
     p3.add(clearButton);
+    p3.add(sendButton);
 
     p2.add(p3);
 
     add(scrollpane, BorderLayout.CENTER);
     add(p2, BorderLayout.NORTH);
+  }
+
+  JFrame sendFrame;
+  JSendEventPanel sendPanel;
+
+  void openSendFrame() {
+    if(sendFrame == null) {
+      sendFrame = new JFrame("Send event");
+      sendFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+      sendFrame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {
+            sendFrame.setVisible(false);
+          }
+        });
+      sendPanel = new JSendEventPanel(allTopics) {
+          public void doClose() {
+            sendFrame.setVisible(false);
+          }
+        };
+      sendPanel.setBorder(BorderFactory.createTitledBorder("Send Event"));
+      sendFrame.getContentPane().add(sendPanel);
+      sendFrame.pack();
+    }
+    sendFrame.setVisible(true);
   }
 
   JMenuItem copyItem = new JMenuItem("Copy events to clipboard") {
@@ -265,8 +295,13 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     cbList.clear();
 
+    Set keys = new TreeSet();
     for(int i = 0; i < allKeys.getSize(); i++) {
-      final String val = allKeys.getElementAt(i).toString();
+      String val = allKeys.getElementAt(i).toString();
+      keys.add(val);
+    }
+    for(Iterator it = keys.iterator(); it.hasNext(); ) {
+      final String val = (String)it.next();
       final JCheckBoxMenuItem cb = new JCheckBoxMenuItem(val);
       if(selectedKeys.contains(val)) {
         cb.setState(true);
@@ -359,5 +394,10 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
   public void close() {
     table.close();
+    if(sendFrame != null) {
+      sendFrame.setVisible(false);
+      sendFrame.dispose();
+      sendFrame = null;
+    }
   }
 }

@@ -72,13 +72,28 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
     allKeys.addElement(EventConstants.TIMESTAMP);
     allKeys.addElement(EventConstants.EVENT_TOPIC);
-    allKeys.addElement("bundle.id");
-    allKeys.addElement("message");
-    
+    allKeys.addElement(EventConstants.EVENT_FILTER);
+    allKeys.addElement(EventConstants.BUNDLE_SIGNER);
+    allKeys.addElement(EventConstants.BUNDLE_SYMBOLICNAME);
+    allKeys.addElement(EventConstants.BUNDLE_ID);
+    allKeys.addElement(EventConstants.BUNDLE);
+    allKeys.addElement(EventConstants.EVENT);
+    allKeys.addElement(EventConstants.EXCEPTION);
+    allKeys.addElement(EventConstants.EXCEPTION_CLASS);
+    allKeys.addElement(EventConstants.EXCEPTION_MESSAGE);
+    allKeys.addElement(EventConstants.MESSAGE);
+    allKeys.addElement(EventConstants.SERVICE);
+    allKeys.addElement(EventConstants.SERVICE_ID);
+    allKeys.addElement(EventConstants.SERVICE_OBJECTCLASS);
+    allKeys.addElement(EventConstants.TIMESTAMP);
+    allKeys.addElement("service.pid");
+    allKeys.addElement("log.entry");
+    allKeys.addElement("log.level");    
+
     selectedKeys.add(EventConstants.TIMESTAMP);
     selectedKeys.add(EventConstants.EVENT_TOPIC);
-    selectedKeys.add("bundle.id");
-    selectedKeys.add("message");
+    selectedKeys.add(EventConstants.BUNDLE_ID);
+    selectedKeys.add(EventConstants.MESSAGE);
   }
 
   ServiceRegistration reg = null;
