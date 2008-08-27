@@ -36,10 +36,12 @@ package org.knopflerfish.bundle.desktop.event;
 
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import javax.swing.*;
-import javax.swing.event.*;
+// import javax.swing.event.*;
+import javax.swing.table.*;
 
 import java.util.*;
 
@@ -53,10 +55,14 @@ public class JSendEventPanel extends JPanel  {
   DefaultListModel allTopics;
   JTable propTable;
 
-  public JSendEventPanel(DefaultListModel allTopics) {
-    super(new BorderLayout());
+  JEventTable     table;
 
-    this.allTopics = allTopics;
+  public JSendEventPanel(JEventTable     _table, 
+                         DefaultListModel _allTopics) {
+    super(new BorderLayout());
+    
+    this.table     = _table;
+    this.allTopics = _allTopics;
 
     topicModel = new DefaultComboBoxModel();
     topicC = new JComboBox(topicModel); 
@@ -77,11 +83,12 @@ public class JSendEventPanel extends JPanel  {
     JLabel jl;    
     JPanel tPanel = new JPanel(new BorderLayout());
     
-    jl = new JLabel("Topic:");
-    jl.setSize(new Dimension(100, jl.getSize().height));
-    tPanel.add(jl, BorderLayout.WEST);
+    // jl = new JLabel("Topic:");
+    // jl.setSize(new Dimension(100, jl.getSize().height));
+    // tPanel.add(jl, BorderLayout.WEST);
     tPanel.add(topicC, BorderLayout.CENTER);
     
+    tPanel.setBorder(BorderFactory.createTitledBorder("Event topic"));
     add(tPanel, BorderLayout.NORTH);
 
     JButton sendButton = new JButton("Send");
@@ -98,20 +105,113 @@ public class JSendEventPanel extends JPanel  {
         }
       });
 
+    JButton copyButton = new JButton("Copy value from selected");
+    copyButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          int ix = table.getSelectedRow();
+          if(ix != -1) {
+            Event event = table.model.getEntry(ix);
+            setEvent(event);
+          } else {
+            setEvent(null);
+          }
+          makeModel(templateEvent);
+        }
+      });
+    
+    JButton clearButton = new JButton("Clear");
+    clearButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          data[0].clear();
+          data[1].clear();
+          ((AbstractTableModel)propTable.getModel()).fireTableDataChanged();
+        }
+      });
+
+    JButton addButton = new JButton("Add row");
+    addButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          data[0].add("");
+          data[1].add("");
+          ((AbstractTableModel)propTable.getModel()).fireTableDataChanged();
+        }
+      });
+                                 
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+    buttonPanel.add(copyButton);
+    buttonPanel.add(addButton);
+    buttonPanel.add(clearButton);
     buttonPanel.add(sendButton);
     buttonPanel.add(closeButton);
 
-    String[][] vals = new String[10][2];
-
-    propTable = new JTable(vals, new String[] {"Name", "Value"});
+    propTable = new JTable() {
+        public TableCellRenderer getCellRenderer(int row, int column) {
+          Object val = getValueAt(row, column);
+          
+          return getDefaultRenderer(val != null ? val.getClass() : String.class);    
+        }
+      };
+    
+    // propTable.setEditable(true);
+    makeModel(null);
 
     JScrollPane scroll = new JScrollPane(propTable);
+    scroll.setBorder(BorderFactory.createTitledBorder("Event properties"));
 
     add(scroll, BorderLayout.CENTER);
     add(buttonPanel, BorderLayout.SOUTH);
   }
+
+  Event templateEvent;
+
+  void setEvent(Event ev) {
+    this.templateEvent = ev;
+  }
+
+  ArrayList[] data;
+
+  void makeModel(Event template) {    
+
+    data = new ArrayList[] { new ArrayList(), new ArrayList() };
+    int extraRowCount = 10;
+
+    if(template != null) {
+      String[] names = template.getPropertyNames();
+      for(int i = 0; i < names.length; i++) {
+        data[0].add(names[i]);
+        data[1].add(template.getProperty(names[i]));
+      }
+      extraRowCount = 3;
+      topicC.setSelectedItem(template.getTopic());
+    }
+    // add some empty data
+    for(int i = 0; i < extraRowCount; i++) {
+      data[0].add("");
+      data[1].add("");
+    }
+      
+    AbstractTableModel model = new AbstractTableModel() {
+        public String 	getColumnName(int column) {
+          return column == 0 ? "Name" : "Value";
+        }
+
+        public boolean 	isCellEditable(int rowIndex, int columnIndex) {
+          return true;
+        }
+   
+        public int getColumnCount() { return 2; }
+        public int getRowCount() { return data[0].size();}
+        public Object getValueAt(int row, int col) { 
+          return data[col].get(row);
+        }
+      };
+
+    propTable.setModel(model);
+    // propTable.invalidate();
+    // propTable.repaint();
+  }
+
 
   void doSend() {
     String topic = (String)topicC.getSelectedItem();
@@ -125,14 +225,13 @@ public class JSendEventPanel extends JPanel  {
       if(key != null && !"".equals(key)) {
         String name = key.toString();
         if(val != null) {
-          props.put(name, val.toString());
+          props.put(name, val);
         }
       }
     }
     org.osgi.service.event.Event ev = 
       new org.osgi.service.event.Event(topic, props);
 
-    System.out.println("doSend event=" + ev);    
 
     ServiceReference sr = Activator.getBC().getServiceReference(EventAdmin.class.getName());
     if(sr != null) {

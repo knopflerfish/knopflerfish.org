@@ -175,7 +175,6 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
           try {
             if(filterS.length() > 0) {
               Filter f = org.knopflerfish.bundle.desktop.swing.Activator.getBC().createFilter(filterS);
-              System.out.println("made filter " + f);
             }
             filterC.setToolTipText("Event filter");
             filterC.setForeground(txtColor);
@@ -260,7 +259,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
             sendFrame.setVisible(false);
           }
         });
-      sendPanel = new JSendEventPanel(allTopics) {
+      sendPanel = new JSendEventPanel(table, allTopics) {
           public void doClose() {
             sendFrame.setVisible(false);
           }
