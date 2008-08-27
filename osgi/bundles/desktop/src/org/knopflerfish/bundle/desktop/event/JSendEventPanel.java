@@ -89,7 +89,7 @@ public class JSendEventPanel extends JPanel  {
     tPanel.add(topicC, BorderLayout.CENTER);
     
     tPanel.setBorder(BorderFactory.createTitledBorder("Event topic"));
-    add(tPanel, BorderLayout.NORTH);
+
 
     JButton sendButton = new JButton("Send");
     sendButton.addActionListener(new ActionListener() {
@@ -105,7 +105,7 @@ public class JSendEventPanel extends JPanel  {
         }
       });
 
-    JButton copyButton = new JButton("Copy value from selected");
+    JButton copyButton = new JButton("Copy info from selected");
     copyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           int ix = table.getSelectedRow();
@@ -128,7 +128,7 @@ public class JSendEventPanel extends JPanel  {
         }
       });
 
-    JButton addButton = new JButton("Add row");
+    JButton addButton = new JButton("Add property");
     addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           data[0].add("");
@@ -139,9 +139,6 @@ public class JSendEventPanel extends JPanel  {
                                  
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-    buttonPanel.add(copyButton);
-    buttonPanel.add(addButton);
-    buttonPanel.add(clearButton);
     buttonPanel.add(sendButton);
     buttonPanel.add(closeButton);
 
@@ -152,14 +149,27 @@ public class JSendEventPanel extends JPanel  {
           return getDefaultRenderer(val != null ? val.getClass() : String.class);    
         }
       };
-    
-    // propTable.setEditable(true);
+
     makeModel(null);
 
-    JScrollPane scroll = new JScrollPane(propTable);
-    scroll.setBorder(BorderFactory.createTitledBorder("Event properties"));
+    JPanel propPanel = new JPanel();
+    propPanel.setLayout(new BoxLayout(propPanel, BoxLayout.Y_AXIS));
+    propPanel.setBorder(BorderFactory.createTitledBorder("Event properties"));
 
-    add(scroll, BorderLayout.CENTER);
+    JPanel tableButtonPanel = new JPanel();
+    tableButtonPanel.setLayout(new BoxLayout(tableButtonPanel, BoxLayout.X_AXIS));
+    tableButtonPanel.add(copyButton);
+    tableButtonPanel.add(addButton);
+    tableButtonPanel.add(clearButton);
+
+    JScrollPane scroll = new JScrollPane(propTable);
+    
+    propPanel.add(scroll);
+    propPanel.add(tableButtonPanel);
+
+
+    add(tPanel,      BorderLayout.NORTH);
+    add(propPanel,   BorderLayout.CENTER);
     add(buttonPanel, BorderLayout.SOUTH);
   }
 
