@@ -86,14 +86,14 @@ public class ExecutableBundleActivator implements BundleActivator {
   /**
    * Manifest header (named &quot;Bundle-Start-Executable-Args&quot;)
    * specifying the (space-separated) process arguments to the executable
-   * specified by BUNDLE_START_EXECUTABLE.
+   * specified by {@link ExecutableBundleActivator#BUNDLE_START_EXECUTABLE}.
    */
   public static final String BUNDLE_START_EXECUTABLE_ARGS = "Bundle-Start-Executable-Args";
 
   /**
    * Manifest header (named &quot;Bundle-Start-Executable-Args&quot;)
    * specifying the (space-separated) process arguments to the executable
-   * specified by BUNDLE_START_EXECUTABLE.
+   * specified by {@link ExecutableBundleActivator#BUNDLE_START_EXECUTABLE}.
    */
   public static final String BUNDLE_STOP_EXECUTABLE_ARGS = "Bundle-Stop-Executable-Args";
 
