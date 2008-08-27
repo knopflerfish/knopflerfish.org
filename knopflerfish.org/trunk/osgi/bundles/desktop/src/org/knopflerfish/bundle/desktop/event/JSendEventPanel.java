@@ -215,6 +215,9 @@ public class JSendEventPanel extends JPanel  {
         public Object getValueAt(int row, int col) { 
           return data[col].get(row);
         }
+        public void setValueAt(Object val, int row, int col) { 
+          data[col].set(row, val);
+        }
       };
 
     propTable.setModel(model);
