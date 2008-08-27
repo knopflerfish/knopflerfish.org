@@ -153,12 +153,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     topicC.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String topicS = topicC.getSelectedItem().toString();
-          if(-1 == topicModel.getIndexOf(topicS)) {
-            topicModel.addElement(topicS);
-          }
-
-          JEventPanel.this.model.getDispatcher().setTopic(topicS);
-          JEventPanel.this.model.clear();
+          setTopic(topicS);
         }
       });
 
@@ -242,6 +237,15 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     add(scrollpane, BorderLayout.CENTER);
     add(p2, BorderLayout.NORTH);
+  }
+
+  public void setTopic(String topicS) {
+    if(-1 == topicModel.getIndexOf(topicS)) {
+      topicModel.addElement(topicS);
+    }
+    
+    JEventPanel.this.model.getDispatcher().setTopic(topicS);
+    JEventPanel.this.model.clear();
   }
 
   JFrame sendFrame;
@@ -352,7 +356,9 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     }
     cbModel.setSelectedItem(topicModel.getSelectedItem());
     topicModel = cbModel;
-    topicC.setModel(cbModel);
+    if(topicC != null) {
+      topicC.setModel(cbModel);
+    }
   }
 
   public void newWindow() {

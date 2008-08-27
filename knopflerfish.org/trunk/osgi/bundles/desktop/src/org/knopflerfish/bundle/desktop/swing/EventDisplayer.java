@@ -62,6 +62,8 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   DefaultListModel          allKeys   = new DefaultListModel();
 
   Set selectedKeys = new LinkedHashSet();
+
+  Set views = new HashSet();
   
   public EventDisplayer(BundleContext bc) {
     super(bc, "Events", "Show events", true); 
@@ -138,6 +140,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   }
 
 
+
   
   public void close() {
 
@@ -146,7 +149,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
       reg = null;
     }
 
-    for(Iterator it = views.iterator(); it.hasNext(); ) {
+   for(Iterator it = views.iterator(); it.hasNext(); ) {
       JEvent je = (JEvent)it.next();
       je.close();
     }
@@ -156,7 +159,28 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   }
   
   public JComponent newJComponent() {
-    return new JEvent();
+    JEvent je = new JEvent();
+    views.add(je);
+    return je;
+  }
+
+  public void newFramedJComponent() {
+    JFrame frame = new JFrame();
+    final JEvent je = new JEvent(frame);
+
+    frame.setTitle("Events: *");
+    frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    frame.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          je.close();
+        }
+      });
+    frame.getContentPane().add(je);
+    
+    frame.pack();
+    frame.setVisible(true);
+
+    views.add(je);
   }
 
   public void valueChanged(long  bid) {
@@ -168,18 +192,24 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
   
-  Set views = new HashSet();
+
 
   class JEvent extends JPanel {
     JEventPanel           eventPanel;
 
     JEventEntryDetail     eventDetail;
-    // FilterEventTableModel filterEventModel;
     EventTableModel       eventModel;
     EventReaderDispatcher eventDispatcher;
     JFrame frame;
+    Set panels = new HashSet();
 
     JEvent() {
+      this(null);
+    }
+
+    JEvent(JFrame _frame) {
+      this.frame = _frame;
+      
       setLayout(new BorderLayout());
 
       eventModel = new EventTableModel();
@@ -188,28 +218,21 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
       eventDispatcher.open();
       eventDispatcher.getAll();
 
-      // filterEventModel = new FilterEventTableModel(eventModel);
-      // filterEventModel.setBundles(null);
-
       // construct in two steps
       eventDetail = new JEventEntryDetail(null, null);
       eventPanel  = new JEventPanel(allTopics, 
                                     allKeys, 
                                     selectedKeys,
                                     eventModel, eventDetail, false) {
-          public void newWindow() {
-            frame = new JFrame();
-            JEvent newPanel = new JEvent();
-            frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-            frame.addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                  frame.dispose();
-                }
-              });
-            frame.getContentPane().add(newPanel);
+          public void setTopic(String topicS) {
+            super.setTopic(topicS);
+            if(frame != null) {
+              frame.setTitle("Events: " + topicS);
+            }
+          }
 
-            frame.pack();
-            frame.setVisible(true);
+          public void newWindow() {
+            newFramedJComponent();
           }
         };
 
@@ -224,28 +247,21 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
       splitPane.setDividerLocation(170);
 
       add(splitPane, BorderLayout.CENTER);
-
-      views.add(this);
     }
 
     public void close() {
       eventDispatcher.close();
+      eventPanel.close();
+      eventDetail.close();
       if(frame != null) {
         frame.setVisible(false);
+        frame.dispose();
       }
       frame = null;
     }
 
     public void valueChanged(Bundle[] bl) {
-      /*
-      filterEventModel.setBundles(bl);
-
-      JTable table = eventPanel.getJEventTable();
-
-      if(table.getRowCount() > 0) {
-	table.setRowSelectionInterval(0, 0);
-      }
-      */
+      // NOOP
     }
   }
 }
