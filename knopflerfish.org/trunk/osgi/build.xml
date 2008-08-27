@@ -6,6 +6,7 @@
 
   <property name="topdir"          location="."/>
   <property name="osgi.dir"        location="."/>
+  <property name="ant.dir"         location="${topdir}/../ant"/>
   <property name="jars.dir"        location="jars"/>
   <property name="javadoc.out.dir" location="out/javadoc"/>
 
@@ -17,7 +18,7 @@
   <property name = "base.url" value="http://www.knopflerfish.org/releases"/>
 
 
-  <import file="${topdir}/../ant/bundletasks.xml"/>
+  <import file="${ant.dir}/bundletasks.xml"/>
 
   <!-- targets -->
   <target name="init">
@@ -188,7 +189,7 @@
     <!-- Explicit list of non-bundle source tree roots. -->
     <path id="sources.path">
       <pathelement location="framework/src"/>
-      <pathelement location="../ant/src"/>
+      <pathelement location="${ant.dir}/src"/>
     </path>
     <!-- Add in source roots for all compiled bundles. -->
     <bundle_javadoc_helper srcRootsFile="${sources.file}"
@@ -238,6 +239,21 @@
              footer        = "${javadoc.footer}"
 	     packagenames  = "${javadoc.packages}"
 	     excludepackagenames = "${javadoc.excludepackages}">	   
+      <classpath>
+	<fileset dir="${ant.home}/lib/">
+	  <include name="**/*.jar"/>
+	</fileset>
+	<fileset dir="${ant.dir}/lib/">
+	  <include name="**/*.jar"/>
+	</fileset>
+	<pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
+	<pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>
+	<pathelement location="${osgi.dir}/bundles/component/resources/kxml2.jar"/> 
+	<pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-core.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-ext.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/serial/comm-win32/resources/comm.jar"/>
+      </classpath>
     </javadoc>
  </target>
  
@@ -406,7 +422,7 @@
   <delete file="framework.jar"/>
   <delete dir="out"/>
   <delete dir="jars"/>
-  <delete dir="../ant/classes"/>
+  <delete dir="${ant.dir}/classes"/>
   <delete file="minimal.xargs"/>
   <delete file="remote-init.xargs"/>
   <delete file="init.xargs"/>
