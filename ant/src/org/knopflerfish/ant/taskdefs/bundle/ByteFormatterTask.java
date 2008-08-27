@@ -38,7 +38,7 @@ import org.apache.tools.ant.Task;
 
 
 /**
- * Sets a property to a formated value in ki, Mi, Gi, ... with an
+ * Sets a property to a formatted value in ki, Mi, Gi, ... with an
  * optional unit. Here <tt>ki</tt> is short for <tt>kibi</tt>, (a
  * contraction of kilo binary) see <a
  * href="http://en.wikipedia.org/wiki/Kibibyte">http://en.wikipedia.org/wiki/Kibibyte</a>
@@ -56,7 +56,7 @@ import org.apache.tools.ant.Task;
  *  <tr>
  *    <td valign="top">property</td>
  *    <td valign="top">
- *      The name of the property to assign the foramted value to.</td>
+ *      The name of the property to assign the formatted value to.</td>
  *    <td valign="top" align="center">Yes.</td>
  *  </tr>
  *  <tr>
@@ -69,7 +69,7 @@ import org.apache.tools.ant.Task;
  *  </tr>
  *  <tr>
  *    <td valign="top">unit</td>
- *    <td valign="top">The unit to append to the formated value. E.g., byte</td>
+ *    <td valign="top">The unit to append to the formatted value. E.g., byte</td>
  *    <td valign="top" align="center">
  *      No, default is the empty string.</td>
  *  </tr>
@@ -131,9 +131,9 @@ public class ByteFormatterTask extends Task {
 
   private String property;
   /**
-   * The name of the property to save the foramted value to.
+   * The name of the property to save the formatted value to.
    *
-   * @param f the propety name.
+   * @param property the name of the property to set.
    */
   public void setProperty(String property) {
     this.property = property;
@@ -142,9 +142,9 @@ public class ByteFormatterTask extends Task {
 
   private String unit = "";
   /**
-   * The unit to append to the formated value.
+   * The unit to append to the formatted value.
    *
-   * @param u the unit name
+   * @param unit the unit text to append to the formatted value.
    */
   public void setUnit(String unit) {
     this.unit = unit;
@@ -156,7 +156,7 @@ public class ByteFormatterTask extends Task {
   /**
    * The URL that explains binary prefixes.
    *
-   * @param url The url to let the binare prefix point to.
+   * @param url The url to let the binary prefix point to.
    */
   public void setBinaryPrefixURL(String url) {
     this.binaryPrefixURL = url;
@@ -167,7 +167,7 @@ public class ByteFormatterTask extends Task {
   /**
    * The separator between the numeral and the prefixed unit.
    *
-   * @param sep the sepeartor string.
+   * @param sep the separator string.
    */
   public void setSep(String sep) {
     this.sep = sep;
@@ -189,7 +189,7 @@ public class ByteFormatterTask extends Task {
   /**
    * Set the file to get the size of as the the value to format.
    *
-   * @param file the file to return a formated file size for.
+   * @param file the file to return a formatted file size for.
    */
   public void setFile(File file) {
     this.file = file;
