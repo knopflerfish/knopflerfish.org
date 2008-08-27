@@ -250,6 +250,9 @@ public class JEventEntryDetail extends JPanel {
     }
   }
 
+  public void close() {
+  }
+
 }
 
 class JDetail extends JTextPane {
