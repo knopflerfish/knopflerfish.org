@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, KNOPFLERFISH project
+ * Copyright (c) 2007-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,14 +84,14 @@ public class ExecutableBundleActivator implements BundleActivator {
    */
   public static final String BUNDLE_START_EXECUTABLE = "Bundle-Start-Executable";
   /**
-   * Manifest header (named &quot;Bundle-Start-Executable-Args&quot;) 
+   * Manifest header (named &quot;Bundle-Start-Executable-Args&quot;)
    * specifying the (space-separated) process arguments to the executable
    * specified by BUNDLE_START_EXECUTABLE.
    */
   public static final String BUNDLE_START_EXECUTABLE_ARGS = "Bundle-Start-Executable-Args";
 
   /**
-   * Manifest header (named &quot;Bundle-Start-Executable-Args&quot;) 
+   * Manifest header (named &quot;Bundle-Start-Executable-Args&quot;)
    * specifying the (space-separated) process arguments to the executable
    * specified by BUNDLE_START_EXECUTABLE.
    */
@@ -117,8 +117,8 @@ public class ExecutableBundleActivator implements BundleActivator {
   public static final String BUNDLE_EXTRACT_FILES   = "Bundle-Extract-Files";
 
   /**
-   * Manifest header (named 
-   * &quot;Bundle-Start-Executable-Exit-Means-Bundle-Stop"&quot;) 
+   * Manifest header (named
+   * &quot;Bundle-Start-Executable-Exit-Means-Bundle-Stop"&quot;)
    * specifying of the the process exit of the start executable should
    * stop the bundle too. Set to "true" if the bundle should be stopped.
    * Default is "true"
@@ -126,7 +126,7 @@ public class ExecutableBundleActivator implements BundleActivator {
    * <p>
    * </p>
    */
-  public static final String BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP = 
+  public static final String BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP =
     "Bundle-Start-Executable-Exit-Means-Bundle-Stop";
 
   public ExecutableBundleActivator() {
@@ -137,31 +137,31 @@ public class ExecutableBundleActivator implements BundleActivator {
     debug("start " + this);
     try {
       initFiles();
-      
+
       if(startFile != null) {
         String args = (String)bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_ARGS);
-        runProcess = runFile(startFile, args, false, 
+        runProcess = runFile(startFile, args, false,
                              isProcessExitMeansStopBundle());
       }
     } catch (IOException e) {
       throw new BundleException("Failed to init", e);
     }
   }
-  
-  
+
+
   public void stop(BundleContext bc) throws BundleException {
     try {
       debug("stop " + this);
-      
+
       String stopS = (String)bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP);
-      
+
       bProcessExitMeansStopBundle = stopS == null || "true".equals(stopS);
-      
+
       if(runProcess != null) {
         runProcess.destroy();
         runProcess = null;
       }
-      
+
       if(stopFile != null) {
         String args = (String)bc.getBundle().getHeaders().get(BUNDLE_STOP_EXECUTABLE_ARGS);
         runFile(stopFile, args, true, false);
@@ -183,23 +183,21 @@ public class ExecutableBundleActivator implements BundleActivator {
 
   /**
    * Get the base directory for extract files to be executed.
-   * 
+   *
    * <p>
    * Override to change.
    * Default is <tt>BundleContext.getDataFile(getBaseDirName())</tt>
    * </p>
    */
-  public File getBaseDir() {   
+  public File getBaseDir() {
     return bc.getDataFile(getBaseDirName());
   }
 
 
   /**
-   * Return true if exit of start process should stop bundle too.
-   * The initial value of this is set by reading the 
-   * BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP manifest header.
-   *
-   * @see BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP
+   * Return true if exit of start process should stop bundle too.  The
+   * initial value of this is set by reading the {@link
+   * #BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP} manifest header.
    */
   public boolean isProcessExitMeansStopBundle() {
     return bProcessExitMeansStopBundle;
@@ -207,15 +205,15 @@ public class ExecutableBundleActivator implements BundleActivator {
 
 
   /**
-   * Set if exit of start process should stop bundle too.     
+   * Set if exit of start process should stop bundle too.
    */
   public void setProcessExitMeansStopBundle(boolean b) {
     bProcessExitMeansStopBundle = b;
   }
-  
+
 
   /**
-   * Flag which controls if logging should be done. 
+   * Flag which controls if logging should be done.
    * The default implementation returns true.
    * Override if necessary.
    */
@@ -254,11 +252,11 @@ public class ExecutableBundleActivator implements BundleActivator {
    * @param bStopBundle if true, stop bundle after process has exited.
    * @return the created process instance
    */
-  protected Process runFile(File f, 
-                            String args, 
-                            boolean bWaitForExit, 
+  protected Process runFile(File f,
+                            String args,
+                            boolean bWaitForExit,
                             boolean bStopBundle) {
-    
+
     debug("runFile " + f + ", wait=" + bWaitForExit);
 
     Process p = null;
@@ -283,7 +281,7 @@ public class ExecutableBundleActivator implements BundleActivator {
         }
       }
       cmd[0] = f.getAbsolutePath();
-      
+
       if(isDebug()) {
         for(int i = 0; i < cmd.length; i++) {
           debug("cmd[" + i + "]=" + cmd[i]);
@@ -295,10 +293,10 @@ public class ExecutableBundleActivator implements BundleActivator {
       String baseName = bc.getBundle().getBundleId() + ":" + getName(f.getAbsolutePath());
 
       ProcessThread t = new ProcessThread(baseName,
-                                          p, 
+                                          p,
                                           bWaitForExit,
                                           bStopBundle);
-      
+
       t.start();
       return p;
     } catch (Exception e) {
@@ -308,15 +306,15 @@ public class ExecutableBundleActivator implements BundleActivator {
       throw new RuntimeException("failed to start " + f, e);
     }
   }
-                               
+
   void initFiles() throws IOException {
     initFiles((String)bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE),
               (String)bc.getBundle().getHeaders().get(BUNDLE_STOP_EXECUTABLE),
               (String)bc.getBundle().getHeaders().get(BUNDLE_EXTRACT_FILES)
               );
   }
-  
-  protected void initFiles(String startChoices, 
+
+  protected void initFiles(String startChoices,
                            String stopChoices,
                            String extractNames) throws IOException {
     String startName = null;
@@ -325,47 +323,47 @@ public class ExecutableBundleActivator implements BundleActivator {
     if(map != null && map.size() > 0) {
       startName = (String)map.iterator().next();
     }
-    
+
     String stopName = null;
     map = getNativeCode(stopChoices);
     // debug("stopMap=" + map);
     if(map != null && map.size() > 0) {
       stopName = (String)map.iterator().next();
     }
-    
+
     initFiles2(startName, stopName, extractNames);
   }
 
 
-  public void initFiles2(String startName, 
-                         String stopName, 
+  public void initFiles2(String startName,
+                         String stopName,
                          String extractNames) throws IOException {
     debug("startName=" + startName + ", stopName=" + stopName);
     this.startName = startName;
     this.stopName  = stopName;
-    
-    
+
+
     if(extractNames != null) {
       String[] names = Text.splitwords(extractNames, ",", '\"');
-      
+
       debug(extractNames + "->" + names.length);
       for(int i = 0; i < names.length; i++) {
         extractResource(names[i]);
       }
     }
-    
+
     if(startName != null) {
       startFile = extractResource(startName);
       setExecutable(startFile);
     }
-    
+
     if(stopName != null) {
       stopFile = extractResource(stopName);
       setExecutable(stopFile);
     }
   }
 
-  void setExecutable(File f) {   
+  void setExecutable(File f) {
     File cmdFile = findOSCommand("chmod");
     if(cmdFile == null) {
       debug("No chmod command found, ignoring setExecutable");
@@ -378,7 +376,7 @@ public class ExecutableBundleActivator implements BundleActivator {
     };
     Process p = null;
     try {
-	  p = Runtime.getRuntime().exec(cmd, null, null);      
+	  p = Runtime.getRuntime().exec(cmd, null, null);
 	  p.waitFor();
     } catch (Exception e) {
       debug("failed to set executable " + f, e);
@@ -388,7 +386,7 @@ public class ExecutableBundleActivator implements BundleActivator {
   }
 
   File findOSCommand(String cmd) {
-	String[] paths = new String[] { 
+	String[] paths = new String[] {
       "/bin", "/usr/bin", "/bin/local", "/usr/bin/local",
 	};
 
@@ -449,7 +447,7 @@ public class ExecutableBundleActivator implements BundleActivator {
     return s;
   }
 
-  
+
 
   // This is more or less copied from BundleArchiveImpl
   // It should rather be moved to the Util class
@@ -457,13 +455,13 @@ public class ExecutableBundleActivator implements BundleActivator {
     if (bnc != null) {
       Bundle b = bc.getBundle();
       Hashtable fwprops = new Hashtable();
-      fwprops.put(Constants.FRAMEWORK_PROCESSOR, 
+      fwprops.put(Constants.FRAMEWORK_PROCESSOR,
                 bc.getProperty(Constants.FRAMEWORK_PROCESSOR));
-      fwprops.put(Constants.FRAMEWORK_OS_NAME, 
+      fwprops.put(Constants.FRAMEWORK_OS_NAME,
                 bc.getProperty(Constants.FRAMEWORK_OS_NAME));
-      fwprops.put(Constants.FRAMEWORK_OS_VERSION, 
+      fwprops.put(Constants.FRAMEWORK_OS_VERSION,
                 bc.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      fwprops.put(Constants.FRAMEWORK_LANGUAGE, 
+      fwprops.put(Constants.FRAMEWORK_LANGUAGE,
                 bc.getProperty(Constants.FRAMEWORK_LANGUAGE));
 
       String  proc  = bc.getProperty(Constants.FRAMEWORK_PROCESSOR);
@@ -536,7 +534,7 @@ public class ExecutableBundleActivator implements BundleActivator {
           if (!matchLang) {
             continue;
           }
-        } 
+        }
 
         List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
@@ -605,7 +603,7 @@ public class ExecutableBundleActivator implements BundleActivator {
       this.bWait       = bWait;
       this.bStopBundle = bStopBundle;
     }
-    
+
     public void run() {
       try {
         debug("waitFor " + getName());
@@ -695,6 +693,6 @@ public class ExecutableBundleActivator implements BundleActivator {
         };
       t.start();
       return t;
-    }    
+    }
   }
 }
