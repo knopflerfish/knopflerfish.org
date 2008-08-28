@@ -32,7 +32,9 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ import java.util.Vector;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 
@@ -92,7 +95,7 @@ public class BIndexTask extends Task {
 
     Set jarSet = new HashSet();
 
-    System.out.println("loading bundle info...");
+    log("loading bundle info...", Project.MSG_VERBOSE);
 
     try {
       for (int i = 0; i < filesets.size(); i++) {
@@ -117,12 +120,12 @@ public class BIndexTask extends Task {
         if(-1 != name.indexOf("_all-")) {
           File f2 = new File(Util.replace(name, "_all-", "-"));
           removeSet.add(f2);
-          System.out.println("skip " + f2);
+          log("skip " + f2, Project.MSG_VERBOSE);
         }
       }
 
       if(removeSet.size() > 0) {
-        System.out.println("skipping " + removeSet.size() + " bundles");
+        log("skipping " + removeSet.size() + " bundles", Project.MSG_INFO);
       }
 
       for(Iterator it = removeSet.iterator(); it.hasNext();) {
@@ -130,8 +133,7 @@ public class BIndexTask extends Task {
         jarSet.remove(f);
       }
 
-      System.out.println("writing bundle BR to " + outFile);
-
+      log("writing bundle repository to " + outFile, Project.MSG_VERBOSE);
       List cmdList = new ArrayList( 10 + jarSet.size() );
 
       // Don't print the resulting XML documnet on System.out.
@@ -151,32 +153,69 @@ public class BIndexTask extends Task {
         cmdList.add(file);
       }
 
-      String[] args = (String[]) cmdList.toArray(new String[cmdList.size()]);
       try {
-        // Call org.osgi.impl.bundle.bindex.Index.main(args), but
-        // first set the value of the field
-        // org.osgi.impl.bundle.bindex.Index.rootFile to baseDir to
-        // get correctly computed paths in the bundle URLs.
-
-        // Load the Index class and change the rootFile variable to
-        // the specified baseDir. This is a hack to get correct
-        // relative paths without doing a chdir (will not work on some
-        // windows JVMs since the URL class does not obey user.dir).
+        // Call org.osgi.impl.bundle.bindex.Index.main(args) to
+        // generate the bindex.xml file.
         Class bIndexClazz = Class.forName("org.osgi.impl.bundle.bindex.Index");
-        // Set the rootFile field.
-        Field rootFileField = bIndexClazz.getDeclaredField("rootFile");
-        rootFileField.setAccessible(true);
-        rootFileField.set(null, baseDir.getAbsoluteFile());
+
+        if (isBindexRootFileSettable(bIndexClazz)) {
+          cmdList.add("-d");
+          cmdList.add(baseDir.getAbsolutePath());
+        } else {
+          // Hack for older binded without -d option. Use reflection
+          // to set org.osgi.impl.bundle.bindex.Index.rootFile to
+          // baseDir to get correctly computed paths in the bundle
+          // URLs.
+          Field rootFileField = bIndexClazz.getDeclaredField("rootFile");
+          rootFileField.setAccessible(true);
+          rootFileField.set(null, baseDir.getAbsoluteFile());
+        }
+
         // Call the main method
+        String[] args = (String[]) cmdList.toArray(new String[cmdList.size()]);
         Method mainMethod
           = bIndexClazz.getDeclaredMethod("main",
                                           new Class[]{args.getClass()});
         mainMethod.invoke(null, new Object[]{args});
       } catch (Exception e) {
-        System.err.println("Failed to execute BIndex: " +e.getMessage());
+        log("Failed to execute BIndex: " +e.getMessage(), Project.MSG_ERR);
         e.printStackTrace();
       }
 
     } catch (Exception e) { e.printStackTrace(); }
   }
+
+  private boolean isBindexRootFileSettable(Class bIndexClazz)
+  {
+    boolean res = false;
+
+    try {
+      // Call org.osgi.impl.bundle.bindex.Index.main("-q -help") to
+      // determine if "-d" option is present or not.
+
+      String[] args = new String[]{ "-q", "-help"};
+      Method mainMethod
+        = bIndexClazz.getDeclaredMethod("main",
+                                        new Class[]{args.getClass()});
+      PrintStream orgErr = System.err;
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+      System.setErr(new PrintStream(baos, false, "UTF-8"));
+      mainMethod.invoke(null, new Object[]{args});
+      System.setErr(orgErr);
+      String bIndexUsageMessage = baos.toString("UTF-8");
+      log("bindex usage message is: '" + bIndexUsageMessage +"'.",
+          Project.MSG_DEBUG);
+      res = bIndexUsageMessage.indexOf("[-d rootFile]") > -1;
+      log("Using 'bindex -d rootFile' is " +(res?"":"not ") +"supported. ",
+          Project.MSG_INFO);
+    } catch (Exception e) {
+      log("Failed to execute BIndex: " +e.getMessage(), Project.MSG_ERR);
+      e.printStackTrace();
+    }
+
+    return res;
+  }
+
+
 }
