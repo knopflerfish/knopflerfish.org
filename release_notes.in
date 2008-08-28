@@ -29,6 +29,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
+  Desktop Bundle 2.1.0
+
+  A view for events handled by the OSGi event service have been added
+  to the desktop. The presentation part of the view can filtered
+  events both on topic and event details. It is also possible to
+  create and post new events or re-send old ones with or without
+  modification. When re-sending an old event a time stamp (with key
+  "timestamp.generated") is added to the event dictionary to make the
+  event unique.
+
+
   Bundle Repository Bundle
 
   The Desktop plugin provided by this bundle now presents the version
