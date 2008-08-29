@@ -25,6 +25,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Fix file separator issue for unpacked bundle-jar files. Reported in
   https://sourceforge.net/forum/forum.php?thread_id=2071337&forum_id=328005
 
+  Fixed an issue with system property initialization causing extension
+  bundles to be marked as unsupported, reported in
+  http://sourceforge.net/tracker/index.php?func=detail&aid=2042769&group_id=82798&atid=567241
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
@@ -46,6 +50,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   of all bundles in the tree on the left hand side. URLs for the
   default repositories as well as the Knopflerfish repositories are
   now included by default.
+
+
+  X10 Bundle
+
+  Updated to use tjx10 v1.3, the closing serial ports when stopping.
+  Reported in
+  http://sourceforge.net/tracker/index.php?func=detail&aid=2080527&group_id=82798&atid=567241
+  http://sourceforge.net/tracker/index.php?func=detail&aid=2080521&group_id=82798&atid=567241
 
 
   Build System
