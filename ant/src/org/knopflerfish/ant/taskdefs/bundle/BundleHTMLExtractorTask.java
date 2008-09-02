@@ -143,7 +143,17 @@ import org.apache.tools.ant.util.FileUtils;
  *   </td>
  *   <td valign=top>No.<br>
  * Default value is "Manifest-Version,Ant-Version,Bundle-Config,Created-By,Built-From"
- </td>
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *   <td valign=top>includeSourceFiles</td>
+ *   <td valign=top>
+ *    Controls if java source files shall be copied and linked into the html structure.
+ *   </td>
+ *   <td valign=top>No.<br>
+ *   Default value "False"
+ *   </td>
+ *  </tr>
  *
  * </table>
  *
@@ -205,7 +215,8 @@ public class BundleHTMLExtractorTask extends Task {
     "${namelink} ${version}<br>";
 
   private boolean bCheckJavaDoc  = true;
-
+  private boolean include_source_files  = false;
+  
   Map     jarMap     = new TreeMap();
   Map     globalVars = new TreeMap();
 
@@ -268,6 +279,9 @@ public class BundleHTMLExtractorTask extends Task {
     }
   }
 
+  public void setIncludeSourceFiles(String s) {
+    this.include_source_files = "true".equals(s);
+  }
 
   File getBundleInfoTemplate() {
     return new File(templateHTMLDir, "bundle_info.html");
@@ -353,8 +367,14 @@ public class BundleHTMLExtractorTask extends Task {
         }
       }
 
-      System.out.println("analyzing " + jarMap.size() + " bundles");
-
+      log("analyzing " + jarMap.size() + " bundles");
+      if (include_source_files) {
+	log("including source files in jardoc");
+      }
+      else {
+	log("includeSourceFiles is not set, skipping sources");
+      }
+      
       for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
         File       file = (File)it.next();
         BundleInfo info = (BundleInfo)jarMap.get(file);
@@ -567,7 +587,11 @@ public class BundleHTMLExtractorTask extends Task {
     boolean bSourceInside = false;
 
     void extractSource(JarFile jarFile, File destDir) throws IOException {
-
+      
+      if (!include_source_files) {
+	return;
+      }
+      
       String prefix = "OSGI-OPT/src";
 
       int count = 0;
