@@ -519,13 +519,13 @@ class BundleImpl implements Bundle {
                 boolean allRemoved = bpkgs.unregisterPackages(false);
 
                 // Loose old bundle if no exporting packages left
-                if (classLoader != null) {
-                  if (allRemoved) {
+                if (allRemoved) {
+                  if (classLoader != null) {
                     classLoader.purge();
-                  } else {
-                    saveZombiePackages();
+                    classLoader = null;
                   }
-                  classLoader = null;
+                } else {
+                  saveZombiePackages();
                 }
 
 
@@ -633,7 +633,6 @@ class BundleImpl implements Bundle {
           });
       } else {
         saveZombiePackages();
-        classLoader = null;
       }
       bpkgs = null;
       bactivator = null;
@@ -1097,6 +1096,7 @@ class BundleImpl implements Bundle {
       PkgEntry pkg = (PkgEntry)i.next();
       oldClassLoaders.put(pkg.name, getClassLoader());
     }
+    classLoader = null;
   }
 
 
