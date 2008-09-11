@@ -88,12 +88,20 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   /**
    * Send a value changed event to all <tt>BundleSelectionListener</tt>
    */
+  boolean bInFireChange = false;
   public void fireChange(long bid) {
     synchronized(listeners) {
-      for(Iterator it = listeners.iterator(); it.hasNext();) {
-	BundleSelectionListener l = (BundleSelectionListener)it.next();
-	l.valueChanged(bid);
-      }
+      try {
+        if(!bInFireChange) {
+          bInFireChange = true;
+          for(Iterator it = listeners.iterator(); it.hasNext();) {
+            BundleSelectionListener l = (BundleSelectionListener)it.next();
+            l.valueChanged(bid);
+          }
+        } 
+      } finally {
+        bInFireChange = false;
+      }      
     }
   }
 }

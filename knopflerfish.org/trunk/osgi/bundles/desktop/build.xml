@@ -30,6 +30,7 @@
    <pathelement location="cm_api-N.N.N.jar"/>
    <pathelement location="util-N.N.N.jar"/>
    <pathelement location="event_api-N.N.N.jar"/>
+  <pathelement location="prefs_api-N.N.N.jar"/>
   </path>
 
   &bundlebuild_include;

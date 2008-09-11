@@ -190,6 +190,7 @@ public class Activator implements BundleActivator {
       PackageHTMLDisplayer.class.getName(),
       LogDisplayer.class.getName(),
       EventDisplayer.class.getName(),
+      PrefsDisplayer.class.getName(),
     };
     
     String dispsS = Util.getProperty("org.knopflerfish.desktop.displays", "").trim();
