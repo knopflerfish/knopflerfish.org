@@ -29,6 +29,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   bundles to be marked as unsupported, reported in
   http://sourceforge.net/tracker/index.php?func=detail&aid=2042769&group_id=82798&atid=567241
 
+  Added the R4.1 method Bundle.getBundleContext() + support for 
+  creating matching AdminPermission.
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
