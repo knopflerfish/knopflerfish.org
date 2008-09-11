@@ -18,6 +18,7 @@
 -install @console_all-N.N.N.jar@
 -install @component_all-N.N.N.jar@
 -install @event_all-N.N.N.jar@
+-install @prefs_all-N.N.N.jar@
 
 
 ## Some library bundles
@@ -69,6 +70,7 @@ $(WINDOWS_BUNDLES)
 -start @console_all-N.N.N.jar@
 -start @component_all-N.N.N.jar@
 -start @event_all-N.N.N.jar@
+-start @prefs_all-N.N.N.jar@
 -start @device_all-N.N.N.jar@
 -start @useradmin_all-N.N.N.jar@
 -start @bundlerepository_all-N.N.N.jar@
