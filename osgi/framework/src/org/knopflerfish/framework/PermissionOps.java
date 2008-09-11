@@ -94,6 +94,13 @@ class PermissionOps {
   boolean okResourceAdminPerm(Bundle b) {
     return true;
   }
+
+  void checkContextAdminPerm(Bundle b) {
+  }
+  
+  boolean okContextAdminPerm(Bundle b) {
+    return true;
+  }
   
   void checkStartLevelAdminPerm() {
   }
@@ -234,6 +241,10 @@ class PermissionOps {
 
   ClassLoader callGetClassLoader0(final BundleImpl b) {
     return b.getClassLoader0();
+  }
+
+  BundleContext callGetBundleContext0(final BundleImpl b) {
+    return b.getBundleContext0();
   }
 
 

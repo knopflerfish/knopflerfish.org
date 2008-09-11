@@ -57,7 +57,8 @@ class SecurePermissionOps extends PermissionOps {
   private static final int AP_LISTENER = 4;
   private static final int AP_METADATA = 5;
   private static final int AP_RESOURCE = 6;
-  private static final int AP_MAX = 7;
+  private static final int AP_CONTEXT = 7;
+  private static final int AP_MAX = 8;
 
   private static String [] AP_TO_STRING = new String [] {
     AdminPermission.CLASS,
@@ -67,6 +68,7 @@ class SecurePermissionOps extends PermissionOps {
     AdminPermission.LISTENER,
     AdminPermission.METADATA,
     AdminPermission.RESOURCE,
+    AdminPermission.CONTEXT, 
   };
 
   private final Framework framework;
@@ -188,6 +190,27 @@ class SecurePermissionOps extends PermissionOps {
     } catch (SecurityException ignore) {
       if (Debug.bundle_resource) {
         Debug.printStackTrace("No permission to access resources in bundle #"
+                              +b.getBundleId(),
+                              ignore );
+      }
+      return false;
+    }
+  }
+
+  void checkContextAdminPerm(Bundle b) {
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(getAdminPermission(b, AP_CONTEXT));
+    }
+  }
+
+  boolean okContextAdminPerm(Bundle b) {
+    try {
+      checkContextAdminPerm(b);
+      return true;
+    } catch (SecurityException ignore) {
+      if (Debug.bundle_context) {
+        Debug.printStackTrace("No permission to access context in bundle #"
                               +b.getBundleId(),
                               ignore );
       }
@@ -498,6 +521,16 @@ class SecurePermissionOps extends PermissionOps {
           return null;
         }
       });
+  }
+
+
+  BundleContext callGetBundleContext0(final BundleImpl b) {
+    return (BundleContext)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return b.getBundleContext0();
+          }
+        });
   }
 
 

@@ -951,4 +951,27 @@ public interface Bundle {
 	 */
 	public Enumeration findEntries(String path, String filePattern,
 			boolean recurse);
+
+	/**
+	 * Returns this bundle's {@link BundleContext}. The returned
+	 * <code>BundleContext</code> can be used by the caller to act on behalf
+	 * of this bundle.
+	 * 
+	 * <p>
+	 * If this bundle is not in the {@link #STARTING}, {@link #ACTIVE}, or
+	 * {@link #STOPPING} states or this bundle is a fragment bundle, then this
+	 * bundle has no valid <code>BundleContext</code>. This method will
+	 * return <code>null</code> if this bundle has no valid
+	 * <code>BundleContext</code>.
+	 * 
+	 * @return A <code>BundleContext</code> for this bundle or
+	 *         <code>null</code> if this bundle has no valid
+	 *         <code>BundleContext</code>.
+	 * @throws java.lang.SecurityException If the caller does not have the
+	 *         appropriate <code>AdminPermission[this,CONTEXT]</code>, and
+	 *         the Java Runtime Environment supports permissions.
+	 * @since 1.4
+	 */
+	public BundleContext getBundleContext();
+
 }

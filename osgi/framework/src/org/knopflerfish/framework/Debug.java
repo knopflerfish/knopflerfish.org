@@ -92,6 +92,13 @@ public class Debug {
   static boolean bundle_resource = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
 
   /**
+   * When security is enabled, print information about context
+   * lookups that are rejected due to missing permissions for the
+   * calling bundle.
+   */
+  static boolean bundle_context = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.bundle_context"));
+
+  /**
    * Report Class patching handling
    */
   static boolean patch = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.patch"));
