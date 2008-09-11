@@ -33,7 +33,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.1.0
+  Desktop Bundle 2.2.0
 
   A view for events handled by the OSGi event service have been added
   to the desktop. The presentation part of the view can filtered
@@ -43,6 +43,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   "timestamp.generated") is added to the event dictionary to make the
   event unique.
 
+  Also, a view for OSGi and java.util preferences has been added. This
+  view can be used to edit both JVM preferences and bundle preferences.  
 
   Bundle Repository Bundle
 
