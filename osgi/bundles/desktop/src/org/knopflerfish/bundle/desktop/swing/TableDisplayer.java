@@ -73,15 +73,20 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   public void valueChanged(long bid) {
-    int row = model.getRowFromBID(bid);
-    
-    if(row == -1) {
-      return;
-    }
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JBundleTable comp = (JBundleTable)it.next();
+    try {
+      bInValueChanged = true;
+      int row = model.getRowFromBID(bid);
       
-      comp.table.setRowSelectionInterval(row, row);
+      if(row == -1) {
+        return;
+      }
+      for(Iterator it = components.iterator(); it.hasNext(); ) {
+        JBundleTable comp = (JBundleTable)it.next();
+        
+        comp.table.setRowSelectionInterval(row, row);
+      }
+    } finally {
+      bInValueChanged = false;
     }
   }
 
@@ -128,9 +133,11 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 	      int row = lsm.getMinSelectionIndex();
 	      
 	      Bundle b = model.getBundle(row);
-	      bundleSelModel.clearSelection();
-	      bundleSelModel.setSelected(b.getBundleId(), true);
-	    }
+              if(!bInValueChanged) {
+                bundleSelModel.clearSelection();
+                bundleSelModel.setSelected(b.getBundleId(), true);
+              }
+            }
 	  }
 	});
 

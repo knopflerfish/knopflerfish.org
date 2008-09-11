@@ -212,6 +212,8 @@ public abstract class DefaultSwingBundleDisplayer
 
   }
 
+  protected boolean bInValueChanged = false;
+
   public void valueChanged(long bid) {
     //    System.out.println(getClass().getName() + ".valueChanged " + (b != null ? ("#" + b.getBundleId()) : "null"));
     repaintComponents();

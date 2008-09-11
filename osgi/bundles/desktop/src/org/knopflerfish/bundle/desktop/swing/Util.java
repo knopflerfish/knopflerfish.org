@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.Constants;
@@ -46,6 +47,8 @@ import org.osgi.service.packageadmin.*;
 import java.awt.Color;
 import java.io.*;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
@@ -769,5 +772,41 @@ public class Util {
   }
 
 
+  /**
+   * Try to get the BundleContext from a Bundle instance using
+   * various known backdoors (we don't really rely on R4.1 yet)
+   */
+  public static BundleContext getBundleContext(Bundle b) {
+    Class clazz = b.getClass();
+    try {      
+      // getBundleContext() is an R4.1 method, but try to grab it 
+      // using reflection and punch a hole in the method modifiers. 
+      // Should work on recent KF and recent Felix.
+      Method m =  clazz.getMethod("getBundleContext", new Class[] { });
+      
+      m.setAccessible(true);
+      return (BundleContext)m.invoke(b, new Object[] { });
+    } catch (Exception e) {
+      Activator.log.debug("Failed to call Bundle.getBundleContext()", e);
 
+      // Try some known private fields. 
+      String[] fieldNames = new String[] {
+        "bundleContext", // available in KF
+        "context",       // available in Equinox and Concierge
+      };
+      for(int i = 0; i < fieldNames.length; i++) {
+        try {
+          Activator.log.debug("Try field " + clazz.getName() + "." + fieldNames[i]);
+          
+          Field field = clazz.getDeclaredField(fieldNames[i]);
+          field.setAccessible(true);
+          return (BundleContext)field.get(b);
+        } catch (Exception e2) {
+          Activator.log.info("Failed: field " + clazz.getName() + "." + fieldNames[i], e2);
+        }
+      }
+    }
+    Activator.log.warn("Failed to get BundleContext from " + clazz.getName());
+    return null;
+  }
 }
