@@ -158,6 +158,12 @@ public final class AdminPermission extends BasicPermission {
 	 */
 	public final static String			STARTLEVEL			= "startlevel";
 
+	/**
+	 * The action string <code>context</code> (Value is "context").
+	 * @since 1.4
+	 */
+        public final static String			CONTEXT			= "context";
+
 	
 	LDAPExpr ldap;
 	
@@ -176,10 +182,11 @@ public final class AdminPermission extends BasicPermission {
 	private static final int RESOLVE_BIT             = 64;
 	private static final int RESOURCE_BIT            = 128;
 	private static final int STARTLEVEL_BIT          = 256;
+	private static final int CONTEXT_BIT             = 512;
 	private static final int ALL_BITS                = CLASS_BIT  | EXECUTE_BIT  | 
 	                                                   EXTENSIONLIFECYCLE_BIT  | LIFECYCLE_BIT  | 
 	                                                   LISTENER_BIT  | METADATA_BIT  | 
-	                                                   RESOLVE_BIT  | RESOURCE_BIT  | STARTLEVEL_BIT ;
+	                                                   RESOLVE_BIT  | RESOURCE_BIT  | STARTLEVEL_BIT | CONTEXT_BIT;
 	 
 	/**
 	 * Creates a new <code>AdminPermission</code> object that matches all
@@ -215,8 +222,9 @@ public final class AdminPermission extends BasicPermission {
 	 * @param actions <code>class</code>, <code>execute</code>,
 	 *        <code>extensionLifecycle</code>, <code>lifecycle</code>,
 	 *        <code>listener</code>, <code>metadata</code>,
-	 *        <code>resolve</code>, <code>resource</code>, or
-	 *        <code>startlevel</code>. A value of "*" or <code>null</code>
+	 *        <code>resolve</code>, <code>resource</code> 
+	 *        or <code>startlevel</code>.
+         *        A value of "*" or <code>null</code>
 	 *        indicates all actions
 	 */
 	public AdminPermission(String filter, String actions) {
@@ -294,6 +302,9 @@ public final class AdminPermission extends BasicPermission {
 			}
 			else if(tok.equals(STARTLEVEL)){
 				actionMask |= STARTLEVEL_BIT ;
+			}
+			else if(tok.equals(CONTEXT)){
+				actionMask |= CONTEXT_BIT ;
 			}
 			else if(tok.equals("*")){
 				actionMask = ALL_BITS ;
@@ -395,6 +406,10 @@ public final class AdminPermission extends BasicPermission {
 		}
 		if((actionMask & STARTLEVEL_BIT ) != 0){
 			sb.append(STARTLEVEL);
+			sb.append(',');
+		}
+		if((actionMask & CONTEXT_BIT ) != 0){
+			sb.append(CONTEXT);
 			sb.append(',');
 		}
 		
