@@ -68,6 +68,10 @@ public class BundleImpl implements Bundle {
     sids = fw.getRegisteredServices(bid);
   }
 
+  public BundleContext getBundleContext() {
+    return fw.remoteBC;
+  }
+
   public Dictionary getHeaders() {
     Hashtable props = new Hashtable();
     Vector vector = fw.getBundleManifest(bid);
