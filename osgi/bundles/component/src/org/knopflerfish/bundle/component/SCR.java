@@ -117,6 +117,11 @@ class SCR implements SynchronousBundleListener {
     switch (event.getType()) {
     case BundleEvent.STARTED:
 
+      if(manifestEntry.length() == 0) {
+        Activator.log.error("bundle #" + bundle.getBundleId() + ": header " + ComponentConstants.SERVICE_COMPONENT + " present but empty");
+        return;
+      }
+      
       // Create components
       Collection addedConfigs = new ArrayList();
       String[] manifestEntries = Parser.splitwords(manifestEntry, ",");
@@ -130,14 +135,13 @@ class SCR implements SynchronousBundleListener {
         try {
           Collection configs = Parser.readXML(bundle, resourceURL);
           if (configs.isEmpty()) {
-            System.err.println("Declarative Services: Warning: xml-file did not contain any valid component declarations");
-
+            Activator.log.warn("bundle #" + bundle.getBundleId() + ": xml-file did not contain any valid component declarations");
+            
           }
           addedConfigs.addAll(configs);
 
         } catch (Throwable e) {
-          Activator.log.error("Failed to parse " + resourceURL +": " + e.getCause());
-          e.printStackTrace();
+          Activator.log.error("bundle #" + bundle.getBundleId() + ": Failed to parse " + resourceURL +": " + e.getCause(), e);
         }
       }
 
@@ -174,7 +178,7 @@ class SCR implements SynchronousBundleListener {
                 message += " references " + cycleItem.getName();
               }
             }
-            Activator.log.error(message);
+            Activator.log.error("bundle #" + bundle.getBundleId() + ": " + message);
           }
         }
       }
@@ -186,7 +190,7 @@ class SCR implements SynchronousBundleListener {
       break;
     case BundleEvent.STOPPING:
       if (Activator.log.doDebug()) {
-        Activator.log.debug("Bundle is STOPPING. Disable components.");
+        Activator.log.debug("bundle #" + bundle.getBundleId() + ": Bundle is STOPPING. Disable components.");
       }
 
       Collection removedConfigs = (Collection) bundleConfigs.remove(bundle);
