@@ -67,7 +67,8 @@ public class Framework {
    * <tt>Framework.setProperty(String,String)</tt> to add values to
    * this map.
    */
-  protected static Map/*<String, String>*/ props = new HashMap/*<String, String>*/();
+  protected static Map/*<String, String>*/ props
+    = new HashMap/*<String, String>*/();
 
   /**
    * The set of properties that must not be present in props, since a
@@ -173,7 +174,8 @@ public class Framework {
   final static boolean EXIT_ON_SHUTDOWN =
     TRUE.equals(Framework.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
 
-  final static boolean USING_WRAPPER_SCRIPT = TRUE.equals(Framework.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
+  final static boolean USING_WRAPPER_SCRIPT
+    = TRUE.equals(Framework.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
 
 
   static {
@@ -429,15 +431,15 @@ public class Framework {
           }
         }
       }
-      systemBundle.systemActive();
-
       // start level open is delayed to this point to
       // correctly work at restart
       if (startLevelService != null) {
         startLevelService.open();
       }
 
-      listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, systemBundle, null));
+      systemBundle.systemActive();
+      listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED,
+                                                  systemBundle, null));
     }
   }
 
