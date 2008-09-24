@@ -32,6 +32,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Added the R4.1 method Bundle.getBundleContext() + support for 
   creating matching AdminPermission.
 
+  The state of the system bundle is now moved from STARTING to ACTIVE
+  right before sending out the framework event STARTED. I.e., after
+  that the target runlevel have been reached.
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
