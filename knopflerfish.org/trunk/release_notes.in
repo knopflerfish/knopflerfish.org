@@ -69,6 +69,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   http://sourceforge.net/tracker/index.php?func=detail&aid=2080521&group_id=82798&atid=567241
 
 
+  Console Bundle 2.0.1
+
+  Removed the built in alias "cd" (Oscar compatibility) since it hides
+  "cd" commands in other command groups causing huge confusion.
+
+
   Build System
 
   The task that generates the OSCAR Bundle Repository description now
