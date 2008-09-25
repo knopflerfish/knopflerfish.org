@@ -40,6 +40,8 @@
  <property name="ant.lib"     location="${ant.dir}/lib"/>
  <property name="antclasses"  location="${ant.dir}/classes"/>
 
+ <property name="osgi.dir"    location="${ant.dir}/../osgi"/>
+
  <path id="bcel.path">
   <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
  </path>
@@ -107,13 +109,15 @@
          description = "Compile and link the custom bundle tasks">
    <mkdir dir = "${antclasses}"/>
    <javac destdir      = "${antclasses}"
-          srcdir       = "${ant.dir}/src"
 	  classpathref = "bundle_tasks.path"
 	  target       = "1.4"
           source       = "1.4"
           debug        = "on">
-     <!-- Bundle.java requires Ant 1.6+ -->
-     <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
+     <src path="${ant.dir}/src"/>
+     <!-- org.osgi.framework.Version is used by BundleLocator. -->
+     <src path="${osgi.dir}/framework/src"/>
+     <include name="org/knopflerfish/ant/**"/>
+     <include name="org/osgi/framework/Version.java"/>
    </javac>
 
    <taskdef name         = "bundleinfo" 
