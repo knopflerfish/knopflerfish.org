@@ -55,7 +55,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Bundle Repository Bundle
 
-  The Desktop plugin provided by this bundle now presents the version
+  The Desktop plug in provided by this bundle now presents the version
   of all bundles in the tree on the left hand side. URLs for the
   default repositories as well as the Knopflerfish repositories are
   now included by default.
@@ -106,7 +106,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Bundle manifest files with an empty "Export-Package" or
   "Import-Package" attribute should no longer be generated.
 
-  The requirement on having a both a "src" and a "resoruces" directory
+  The requirement on having a both a "src" and a "resources" directory
   in each bundle directory (if they where missing they where created
   during the build) have been removed.
 
