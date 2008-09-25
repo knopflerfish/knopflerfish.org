@@ -243,7 +243,7 @@ public class BundleLocator extends Task {
    * Traverses the given file sets, adding an entry to the returned
    * map for each bundle with a name on the form
    * <tt><it>bundleName</it>-<it>Version</it>.jar</tt>. The version
-   * must be a valid version accoring to the OSGi version specifivation.
+   * must be a valid version according to the OSGi version specifivation.
    *
    * The key of the entry in the returned map is the
    * <tt><it>bundleName</it></tt> and the value is the corresponding
@@ -298,6 +298,7 @@ public class BundleLocator extends Task {
                 log("Found bundle " +fileName, Project.MSG_VERBOSE);
               } else if (newVersion.compareTo(bi.version)>0) {
                 bi.version = newVersion;
+                bi.relPath = srcFiles[j];
                 bi.file = file;
                 log("Found better version " +fileName, Project.MSG_VERBOSE);
               }
