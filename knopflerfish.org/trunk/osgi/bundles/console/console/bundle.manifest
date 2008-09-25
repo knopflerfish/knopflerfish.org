@@ -12,10 +12,10 @@ Bundle-Activator: org.knopflerfish.bundle.console.Activator
 Bundle-Category: service
 Export-Service: org.knopflerfish.service.console.ConsoleService
 Import-Service: org.knopflerfish.service.console.CommandGroup,
-                org.osgi.service.log.LogService
+ org.osgi.service.log.LogService
 Import-Package: org.knopflerfish.service.console,
-                org.osgi.framework,
-		org.osgi.service.log
+ org.osgi.framework,
+ org.osgi.service.log
 Export-Package: org.knopflerfish.service.console;specification-version=1.0.0
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-APIVendor: Knopflerfish
