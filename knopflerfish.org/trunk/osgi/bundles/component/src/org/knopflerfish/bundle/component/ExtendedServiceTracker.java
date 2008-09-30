@@ -105,7 +105,7 @@ class ExtendedServiceTracker implements ServiceListener {
 
   public void serviceChanged(ServiceEvent event) {
     ServiceReference ref = event.getServiceReference();
-    
+
     switch (event.getType()) {
     case ServiceEvent.REGISTERED: {
       Object cache = null;
@@ -205,6 +205,12 @@ class ExtendedServiceTracker implements ServiceListener {
 
   void ungetService(ServiceReference ref) {
     synchronized(tracking) {
+      if(ref == null) {
+        if(Activator.log.doDebug()) {
+          Activator.log.debug("Trying to remove null ref");
+        }
+        return;
+      }
       objects.remove(ref);
       context.ungetService(ref);
     }

@@ -216,6 +216,14 @@ public class Reference extends ExtendedServiceTracker {
   private void invokeEventMethod(Object instance,
                                  String methodName, 
                                  ServiceReference ref) {
+
+    if(ref == null) {
+      if(Activator.log.doDebug()) {
+        Activator.log.debug("ignore invokeMethod due to NULL reference when calling " + instance + "." + methodName + ", bundle=" + config.getBundle().getBundleId());
+      }
+      return;
+    }
+
     if (methodName == null) {
       return ;
     }
