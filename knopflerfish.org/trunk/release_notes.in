@@ -36,6 +36,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   right before sending out the framework event STARTED. I.e., after
   that the target runlevel have been reached.
 
+  Fixed a problem with fragment handling when updating a bundle with
+  attached fragments. Also fixed a problem where require bundle could
+  lead to a loop in the bundle class loader.
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
