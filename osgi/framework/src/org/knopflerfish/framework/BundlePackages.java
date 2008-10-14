@@ -585,7 +585,7 @@ class BundlePackages {
 
 
   /**
-   * Attach a fragment bundle packages.
+   * Detach a fragment bundle's packages.
    */
   void detachFragment(BundleImpl fb) {
     if (registered) {

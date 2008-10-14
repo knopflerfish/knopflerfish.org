@@ -633,6 +633,7 @@ class BundleImpl implements Bundle {
 
       // Loose old bundle if no exporting packages left
       if (allRemoved) {
+        detachFragments();
         if (classLoader != null) {
           if(classLoader instanceof BundleClassLoader) {
             ((BundleClassLoader)classLoader).close();
@@ -642,6 +643,12 @@ class BundleImpl implements Bundle {
         purgeOld = true;
       } else {
         saveZombiePackages();
+        detachFragments();
+        if (fragments != null) {
+          // No fragments attached to the new bundle vesion, but we
+          // must keep them in the pkgs.
+          fragments.clear();
+        }
         purgeOld = false;
       }
     }
@@ -890,7 +897,7 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Returns this bundle’s BundleContext. This method will be 
+   * Returns this bundle’s BundleContext. This method will be
    * introduced in OSGi R4.1 but included here as a migration step.
    *
    * @see org.osgi.framework.Bundle#getBundleContext
@@ -2006,6 +2013,11 @@ class BundleImpl implements Bundle {
       throw new IllegalStateException(failReason);
     }
 
+    if(Debug.packages) {
+      Debug.println("BundleImpl.attachFragment(" +fragmentBundle.getBundleId()
+                    +") to (id=" +bpkgs.bundle.id
+                    +",gen=" +bpkgs.generation +")");
+    }
     if (fragments == null) {
       fragments = new ArrayList();
     }
@@ -2030,7 +2042,26 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Detach all fragments from this bundle.
+   * Detach all fragments from this bundle but leave them attached on
+   * the bundle packages level so that the old still exported
+   * generation of the bundle packages continues to work.
+   */
+  private void detachFragments()
+  {
+    if (fragments != null) {
+      for (Iterator fi = fragments.iterator(); fi.hasNext();) {
+        BundleImpl fb = (BundleImpl)fi.next();
+        if(Debug.packages) {
+          Debug.println("BundleImpl.detachFragment(" +fb.getBundleId() +")");
+        }
+      }
+      fragments.clear();
+    }
+  }
+
+
+  /**
+   * Detach all fragments from this bundle and its bundle packages.
    */
   private void detachFragments(boolean sendEvent) {
     if (fragments != null) {
@@ -2045,9 +2076,14 @@ class BundleImpl implements Bundle {
    * Detach fragment from this bundle.
    */
   private void detachFragment(BundleImpl fb, boolean sendEvent) {
+    if(Debug.packages) {
+      Debug.println("BundleImpl.detachFragment(" +fb.getBundleId()
+                    +") from (id=" +bpkgs.bundle.id
+                    +",gen=" +bpkgs.generation +")");
+    }
+
     // NYI! extensions
     if (fragments.remove(fb)) {
-      // NYI purge control
       bpkgs.detachFragment(fb);
       if (fb.state != UNINSTALLED) {
         fb.setStateInstalled(sendEvent);
