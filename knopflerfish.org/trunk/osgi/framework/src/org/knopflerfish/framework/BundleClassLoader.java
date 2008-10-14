@@ -670,14 +670,18 @@ final public class BundleClassLoader extends ClassLoader {
 
         } else {
           BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
-          if (cl != this) {
+          // Second check avoids a loop when a required bundle imports a
+          // package from its requiring host that it self should
+          // provide contents for to the requiring bundle.
+          if (cl != this
+              && (visited==null || (cl!=null && !visited.contains(cl))) ) {
             if (cl != null) {
               if (debug) {
                 Debug.println(this + " Import search: " + path +
-                    " from #" + pbp.bundle.id);
+                              " from #" + pbp.bundle.id);
               }
               return secure.callSearchFor(cl, name, pkg, path, action,
-                  onlyFirst, requestor, visited);
+                                          onlyFirst, requestor, visited);
             }
             if (debug) {
               Debug.println(this + " No import found: " + path);

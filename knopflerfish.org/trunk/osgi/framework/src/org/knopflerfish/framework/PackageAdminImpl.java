@@ -45,7 +45,7 @@ import org.osgi.service.packageadmin.*;
  *
  * If present, there will only be a single instance of this service
  * registered in the framework.
- * 
+ *
  * <p> The term <i>exported package</i> (and the corresponding interface
  * {@link ExportedPackage}) refers to a package that has actually been
  * exported (as opposed to one that is available for export).
@@ -54,7 +54,7 @@ import org.osgi.service.packageadmin.*;
  * service is valid only until the next time {@link #refreshPackages} is
  * called.
  * If an ExportedPackage becomes stale, (that is, the package it references
- * has been updated or removed as a result of calling 
+ * has been updated or removed as a result of calling
  * PackageAdmin.refreshPackages()),
  * its getName() and getSpecificationVersion() continue to return their
  * old values, isRemovalPending() returns true, and getExportingBundle()
@@ -73,7 +73,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
   private Framework framework;
 
-  
+
   PackageAdminImpl(Framework fw) {
     framework = fw;
   }
@@ -122,9 +122,9 @@ public class PackageAdminImpl implements PackageAdmin {
 
   /**
    * Gets the exported packages for the specified package name.
-   * 
+   *
    * @param name The name of the exported packages to be returned.
-   * 
+   *
    * @return An array of the exported packages, or <code>null</code> if no
    *         exported packages with the specified name exists.
    */
@@ -146,10 +146,10 @@ public class PackageAdminImpl implements PackageAdmin {
     return res;
   }
 
-  
+
   /**
-   * Gets the ExportedPackage with the specified package name.  All exported 
-   * packages 
+   * Gets the ExportedPackage with the specified package name.  All exported
+   * packages
    * will be checked for the specified name.  In an environment where the
    * exhaustive list of packages on the system classpath is not known in
    * advance, this method attempts to see if the named package is on the
@@ -173,7 +173,7 @@ public class PackageAdminImpl implements PackageAdmin {
     }
     return null;
   }
-  
+
 
   /**
    * Forces the update (replacement) or removal of packages exported by
@@ -183,7 +183,7 @@ public class PackageAdminImpl implements PackageAdmin {
    */
   public void refreshPackages(final Bundle[] bundles) {
     framework.perm.checkResolveAdminPerm();
-    
+
     boolean restart = false;
     if (bundles != null) {
       for (int i = 0; i < bundles.length; i++) {
@@ -226,6 +226,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   void refreshPackages0(final Bundle[] bundles) {
+    if(Debug.packages) {
+      Debug.println("PackageAdminImpl.refreshPackages() starting");
+    }
+
     BundleImpl bi[] = (BundleImpl[])framework.packages
       .getZombieAffected(bundles).toArray(new BundleImpl[0]);
     ArrayList startList = new ArrayList();
@@ -286,10 +290,18 @@ public class PackageAdminImpl implements PackageAdmin {
         }
       }
     }
+    if(Debug.packages) {
+      Debug.println("PackageAdminImpl.refreshPackages() "
+                    +"all affected bundles now in state INSTALLED");
+    }
 
     // Restart previously active bundles in normal start order
     framework.bundles.startBundles(startList);
     framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
+
+    if(Debug.packages) {
+      Debug.println("PackageAdminImpl.refreshPackages() done.");
+    }
   }
 
   public boolean resolveBundles(Bundle[] bundles) {
@@ -382,7 +394,7 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     BundleImpl b = (BundleImpl)bundle;
-    if (b.isFragment() && 
+    if (b.isFragment() &&
         b.isAttached()) {
       return new Bundle[]{b.getFragmentHost()};
     }
