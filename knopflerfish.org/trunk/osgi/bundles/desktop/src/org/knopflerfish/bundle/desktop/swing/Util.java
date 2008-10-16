@@ -206,6 +206,10 @@ public class Util {
     return null != getHeader(b, "Bundle-Activator");
   }
 
+  public static boolean hasComponent(Bundle b) {
+    return null != getHeader(b, "Service-Component");
+  }
+
   public static boolean hasMainClass(Bundle b) {
     return null != getHeader(b, "Main-class");
   }
