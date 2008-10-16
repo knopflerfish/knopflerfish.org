@@ -118,6 +118,10 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
              "Import-Service".equals(key) ||
              "Export-Package".equals(key)) {
             value = Strings.replace(value, ",", "<br>");
+          } else if("Service-Component".equals(key)) {
+            StringBuffer sb2 = new StringBuffer();
+            Util.resourceLink(sb2, value);
+            value = sb2.toString();
           } else {
             if(value.startsWith("http:") ||
                value.startsWith("https:") ||
