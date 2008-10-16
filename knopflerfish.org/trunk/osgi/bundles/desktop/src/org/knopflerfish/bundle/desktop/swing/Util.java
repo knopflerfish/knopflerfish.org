@@ -197,9 +197,9 @@ public class Util {
 
     return s;
   }
-
+  
   public static boolean canBeStarted(Bundle b) {
-    return hasActivator(b) || hasMainClass(b);
+    return hasActivator(b) || hasMainClass(b) || hasComponent(b);
   }
 
   public static boolean hasActivator(Bundle b) {
