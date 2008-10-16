@@ -62,7 +62,7 @@ public class Strings {
 	{
 	  put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
 	  put("menu_quit",         "Quit");
-	  put("menu_openbundles",  "Open bundle(s)...");
+	  put("menu_openbundles",  "Open bundle file...");
 	  put("menu_save",         "Save deploy archive...");
 	  put("menu_file",         "File");
 	  put("menu_edit",         "Edit");
@@ -72,10 +72,10 @@ public class Strings {
 	  put("menu_help",         "Help");
 	  put("menu_view_bundles",   "Bundles");
 	  put("menu_view_console",   "Console");
-	  put("menu_view_info",      "Bundle info");
+	  put("menu_view_info",      "Bundle Info");
 	  put("menu_view_toolbar",   "Toolbar");
 	  put("menu_view_statusbar", "Statusbar");
-	  put("menu_view_log",       "Log window");
+	  put("menu_view_log",       "Log Window");
 	  put("menu_lookandfeel",    "Look and Feel");
 	  put("menu_errordialog",     "Error Dialog");
 	  put("menu_errordialog_use", "Use Error Dialog");
@@ -103,9 +103,9 @@ public class Strings {
 	  put("remote_connect_msg",     "Enter address to remote framework");
 	  put("remote_connect_title",   "Connect to remote framework");
 
-	  put("menu_openbundleurl",        "Add bundle URL...");
-	  put("dialog_addbundleurl_msg",   "Enter bundle URL");
-	  put("dialog_addbundleurl_title", "Add bundle URL");
+	  put("menu_openbundleurl",        "Open Bundle Location...");
+	  put("dialog_addbundleurl_msg",   "Enter bundle location");
+	  put("dialog_addbundleurl_title", "Open Bundle Location");
 
 	  put("bundleinfo_startup", 
 	      "<html>Select on or more bundles to " + 
@@ -148,7 +148,7 @@ public class Strings {
 	  put("str_about", "About");
 	  put("str_abouttext", 
 	      "Knopflerfish OSGi desktop, version $(1)\n" + 
-	      "Knopflerfish Release 2.0.0\n" + 
+	      "Framework: $(2) $(3)\n" + 
 	      "(c) 2003-2006 Knopflerfish.\n\n" + 
 	      "See\n" + 
 	      "  http://www.knopflerfish.org\n" + 
@@ -213,6 +213,11 @@ public class Strings {
   public static String fmt(String key, Object arg1, Object arg2) {
     return replace(fmt(key, arg1), "$(2)", 
 		   arg2 != null ? arg2.toString() : "null");
+  }
+
+  public static String fmt(String key, Object arg1, Object arg2, Object arg3) {
+    return replace(fmt(key, arg1, arg2), "$(3)", 
+		   arg3 != null ? arg3.toString() : "null");
   }
 
 
