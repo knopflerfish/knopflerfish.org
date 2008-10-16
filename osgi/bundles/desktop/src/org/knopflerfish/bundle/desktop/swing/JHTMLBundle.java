@@ -248,7 +248,7 @@ public abstract class JHTMLBundle extends JPanel  {
     sb.append("<tr>");
     sb.append("<td>");
     sb.append("<pre>");
-    startFont(sb, "-1");
+    sb.append("<font size=\"-1\">");
     try {
       byte[] bytes = Util.readStream(url.openStream());
       String value = new String(bytes);

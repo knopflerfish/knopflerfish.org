@@ -1094,7 +1094,7 @@ public class Desktop
               }});
           add(new JMenuItem(Strings.get("menu_openbundleurl"), openURLIcon) {
               {
-                setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U,
+                setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
                                                       mask));
                 setMnemonic(KeyEvent.VK_U);
 
@@ -2444,8 +2444,11 @@ public class Desktop
   void showVersion() {
     BundleContext bc = Activator.getBC();
     String version = (String)bc.getBundle().getHeaders().get("Bundle-Version");
-    String txt = Strings.fmt("str_abouttext", version);
-
+    String txt = Strings.fmt("str_abouttext", 
+                             version,
+                             bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR),
+                             bc.getBundle(0).getHeaders().get("Bundle-Version"));
+    
     ImageIcon icon =
       new ImageIcon(getClass().getResource("/kf_300x170.png"));
 
