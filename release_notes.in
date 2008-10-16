@@ -44,7 +44,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.2.0
+  Desktop Bundle 2.2.1
 
   A view for events handled by the OSGi event service have been added
   to the desktop. The presentation part of the view can filtered
@@ -57,6 +57,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Also, a view for OSGi and java.util preferences has been added. This
   view can be used to edit both JVM preferences and bundle preferences.  
 
+  Bundles opened via the desktop's "Open" menu is no longer autostarted.
+
+  Bundles having using Declarative Services are now displayed using
+  a special icon.
+
   Bundle Repository Bundle
 
   The Desktop plug in provided by this bundle now presents the version
@@ -64,6 +69,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   default repositories as well as the Knopflerfish repositories are
   now included by default.
 
+  
 
   X10 Bundle
 
