@@ -218,6 +218,10 @@ public class Util {
     return s;
   }
   
+  public static boolean doAutostart() {
+    return "true".equals(Util.getProperty("org.knopflerfish.desktop.autostart", "false"));
+  }
+
   public static boolean canBeStarted(Bundle b) {
     return hasActivator(b) || hasMainClass(b) || hasComponent(b);
   }
