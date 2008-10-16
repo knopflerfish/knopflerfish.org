@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.awt.Toolkit;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -1075,12 +1076,14 @@ public class Desktop
   }
 
   JMenu makeFileMenu() {
+    final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
     return new JMenu(Strings.get("menu_file")) {
         {
           add(new JMenuItem(Strings.get("menu_openbundles"), openIcon) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_O);
 
                 addActionListener(new ActionListener() {
@@ -1092,7 +1095,7 @@ public class Desktop
           add(new JMenuItem(Strings.get("menu_openbundleurl"), openURLIcon) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_U);
 
                 addActionListener(new ActionListener() {
@@ -1104,7 +1107,7 @@ public class Desktop
           add(new JMenuItem(Strings.get("menu_save"), saveIcon) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_S);
 
                 addActionListener(new ActionListener() {
@@ -1117,7 +1120,7 @@ public class Desktop
           add(menuRemote = new JMenuItem(Strings.get("menu_remotefw"), connectIcon) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_F);
 
                 addActionListener(new ActionListener() {
@@ -1131,7 +1134,7 @@ public class Desktop
           add(new JMenuItem("Quit framework...") {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_Q);
                 addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent ev) {
@@ -1149,6 +1152,7 @@ public class Desktop
   JMenuItem itemUninstallBundles;
 
   JMenu makeBundleMenu() {
+    final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     return new JMenu(Strings.get("menu_bundles")) {
         {
           add(itemStopBundles = new JMenuItem(Strings.get("item_stopbundles"),
@@ -1198,7 +1202,7 @@ public class Desktop
           add(new JMenuItem(Strings.get("menu_refreshbundles")) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_R);
 
                 addActionListener(new ActionListener() {
@@ -1259,6 +1263,7 @@ public class Desktop
 
   JMenu makeViewMenu(JMenu oldMenu) {
     JMenu menu;
+    final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     if(oldMenu != null) {
       oldMenu.removeAll();
@@ -1338,7 +1343,7 @@ public class Desktop
       menu.add(new JRadioButtonMenuItem(name) {
           {
             setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1 + c2,
-                                                  ActionEvent.CTRL_MASK));
+                                                  mask));
             setMnemonic(KeyEvent.VK_1 + c2);
             addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ev) {
@@ -1485,7 +1490,7 @@ public class Desktop
           /*add(new JMenuItem(Strings.get("item_selectall")) {
               {
                 setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
-                                                      ActionEvent.CTRL_MASK));
+                                                      mask));
                 setMnemonic(KeyEvent.VK_A);
 
                 addActionListener(new ActionListener() {
@@ -1590,11 +1595,9 @@ public class Desktop
 
       if(lastBundleLocation != null && !"".equals(lastBundleLocation)) {
         Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
-        Dictionary headers = b.getHeaders();
-        if("true".equals(Util.getProperty("org.knopflerfish.desktop.autostart", "false"))) {
-          if(Util.canBeStarted(b)) {
-            startBundle(b);
-          }
+        Dictionary headers = b.getHeaders(); 
+        if(Util.doAutostart() && Util.canBeStarted(b)) {
+          startBundle(b);
         }
       }
     } catch (Exception e) {
@@ -2258,7 +2261,7 @@ public class Desktop
       String location = "file:" + file.getAbsolutePath();
       Bundle b = Activator.getTargetBC().installBundle(location);
 
-      if(Util.canBeStarted(b)) {
+      if(Util.doAutostart() && Util.canBeStarted(b)) {
         startBundle(b);
       }
     } catch (Exception e) {
