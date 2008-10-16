@@ -68,7 +68,7 @@ class SecurePermissionOps extends PermissionOps {
     AdminPermission.LISTENER,
     AdminPermission.METADATA,
     AdminPermission.RESOURCE,
-    AdminPermission.CONTEXT, 
+    "context", // AdminPermission.CONTEXT, 
   };
 
   private final Framework framework;
