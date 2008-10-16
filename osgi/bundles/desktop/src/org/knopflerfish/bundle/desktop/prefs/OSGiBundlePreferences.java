@@ -64,7 +64,7 @@ public class OSGiBundlePreferences extends MountedPreferences
     this.bc     = Util.getBundleContext(bundle);
 
     if(bc == null) {
-      Activator.log.info("No BC for " + Util.getBundleName(bundle));
+      Activator.log.debug("No BC for " + Util.getBundleName(bundle));
     } else {
       psTracker = new ServiceTracker(bc, 
                                      PreferencesService.class.getName(), 
@@ -91,6 +91,9 @@ public class OSGiBundlePreferences extends MountedPreferences
   }
 
   public void open() {
+    if(bundle == null) {
+      throw new IllegalStateException("Bundle = null");
+    }
     if(psTracker != null) {
       psTracker.open();
     }
@@ -98,8 +101,24 @@ public class OSGiBundlePreferences extends MountedPreferences
 
   public void close() {
     if(psTracker != null) {
-      psTracker.close();
+      int state = bundle.getState();
+      if(0 != (state & (Bundle.ACTIVE | Bundle.STARTING | Bundle.STOPPING))) {        
+        try {
+          Activator.log.debug("close tracker for " + bundle + ", state=" + state);
+          psTracker.close();        
+        } catch (Exception e) {
+          Activator.log.debug("Failed to close tracker", e);
+        }
+      } else {
+        Activator.log.debug("skip tracker close since state=" + state);
+      }
     }
+    bundle    = null;
+    bc        = null;
+    psTracker = null;
+    ps        = null;
+    sysNode   = null;
+    usersNode = null;
   }
 
   void unmountService() {
