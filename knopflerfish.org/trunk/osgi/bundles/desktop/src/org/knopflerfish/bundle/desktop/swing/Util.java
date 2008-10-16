@@ -75,6 +75,7 @@ public class Util {
 
   public static final String URL_BUNDLE_PREFIX = "http://desktop/bid/";
   public static final String URL_SERVICE_PREFIX = "http://desktop/sid/";
+  public static final String URL_RESOURCE_PREFIX = "http://desktop/resource/";
 
   public static void bundleLink(StringBuffer sb, Bundle b) {
     sb.append("<a href=\"" + URL_BUNDLE_PREFIX + b.getBundleId() + "\">");
@@ -91,12 +92,31 @@ public class Util {
     sb.append("</a>");
   }
 
+  public static void resourceLink(StringBuffer sb,
+                                  String path) {
+    sb.append("<a href=\"" + URL_RESOURCE_PREFIX + path + "\">");
+    sb.append(path);
+    sb.append("</a>");
+  }
+
   public static boolean isBundleLink(URL url) {
     return url.toString().startsWith(URL_BUNDLE_PREFIX);
   }
 
   public static boolean isServiceLink(URL url) {
     return url.toString().startsWith(URL_SERVICE_PREFIX);
+  }
+
+  public static boolean isResourceLink(URL url) {
+    return url.toString().startsWith(URL_RESOURCE_PREFIX);
+  }
+
+  public static String resourcePathFromURL(URL url) {
+    if(!isResourceLink(url)) {
+      throw new RuntimeException("URL '" + url + "' does not start with " +
+                                 URL_RESOURCE_PREFIX);
+    }
+    return url.toString().substring(URL_RESOURCE_PREFIX.length());
   }
 
   public static long bidFromURL(URL url) {

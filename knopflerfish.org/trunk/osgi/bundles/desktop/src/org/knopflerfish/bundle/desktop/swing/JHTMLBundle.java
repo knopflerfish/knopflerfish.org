@@ -132,6 +132,19 @@ public abstract class JHTMLBundle extends JPanel  {
 
 		setServiceHTML(sid);
 
+	      } else if(Util.isResourceLink(url)) {
+		String path = Util.resourcePathFromURL(url);
+
+                
+
+		if(getCurrentBID() != -1) {
+		  historyBack.add(new Long(getCurrentBID()));
+		  
+		  backButton.setEnabled(!historyBack.isEmpty());
+
+                  setResourceHTML(Activator.getBC().getBundle(getCurrentBID()), path);
+		}
+
 	      } else {
 		try {
 		  Util.openExternalURL(url);
@@ -214,6 +227,50 @@ public abstract class JHTMLBundle extends JPanel  {
   void gotoBid(long bid) {
     displayer.getBundleSelectionModel().clearSelection();
     displayer.getBundleSelectionModel().setSelected(bid, true);
+  }
+
+  void setResourceHTML(Bundle bundle, String path) {
+    StringBuffer sb = new StringBuffer();
+
+    sb.append("<html>");
+
+    URL url = bundle.getResource(path);
+    
+    sb.append("<table border=0>");
+    
+    sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+    startFont(sb, "-1");
+    sb.append("#" + bundle.getBundleId() + " " + path);
+    sb.append("</font>\n");
+    sb.append("</td>\n");
+    sb.append("</tr>\n");
+
+    sb.append("<tr>");
+    sb.append("<td>");
+    sb.append("<pre>");
+    startFont(sb, "-1");
+    try {
+      byte[] bytes = Util.readStream(url.openStream());
+      String value = new String(bytes);
+      value = Strings.replace(value, "<", "&lt;");
+      value = Strings.replace(value, ">", "&gt;");
+
+      sb.append(value);
+    } catch (Exception e) {
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
+      sb.append(sw.toString());
+    }
+    sb.append("</font>\n");
+    sb.append("</pre>");
+    sb.append("</td>");
+    sb.append("</tr>");
+
+    sb.append("</table>");
+    sb.append("</html>");
+
+    setHTML(sb.toString());
   }
 
   void setServiceHTML(long sid) {
