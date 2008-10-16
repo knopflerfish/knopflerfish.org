@@ -1591,8 +1591,10 @@ public class Desktop
       if(lastBundleLocation != null && !"".equals(lastBundleLocation)) {
         Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
         Dictionary headers = b.getHeaders();
-        if(Util.canBeStarted(b)) {
-          startBundle(b);
+        if("true".equals(Util.getProperty("org.knopflerfish.desktop.autostart", "false"))) {
+          if(Util.canBeStarted(b)) {
+            startBundle(b);
+          }
         }
       }
     } catch (Exception e) {
