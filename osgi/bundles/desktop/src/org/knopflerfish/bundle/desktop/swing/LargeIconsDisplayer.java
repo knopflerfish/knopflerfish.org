@@ -378,6 +378,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           } else if(Util.hasActivator(b)) {
             icon = new BundleImageIcon(b,
                                        appURL != null ? appURL : getClass().getResource("/bundle.png"));
+          } else if(Util.hasComponent(b)) {
+            icon = new BundleImageIcon(b,
+                                       appURL != null ? appURL : getClass().getResource("/component.png"));
           } else {
             icon = new BundleImageIcon(b,
                                        appURL != null ? appURL : getClass().getResource("/lib.png"));
