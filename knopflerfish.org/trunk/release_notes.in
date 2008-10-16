@@ -62,6 +62,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Bundles having using Declarative Services are now displayed using
   a special icon.
 
+  Menu shortcuts now uses the system menu shortcut (looks better on
+  OS X).  
+
   Bundle Repository Bundle
 
   The Desktop plug in provided by this bundle now presents the version
