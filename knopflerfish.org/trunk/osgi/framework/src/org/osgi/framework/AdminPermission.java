@@ -162,7 +162,7 @@ public final class AdminPermission extends BasicPermission {
 	 * The action string <code>context</code> (Value is "context").
 	 * @since 1.4
 	 */
-        private final static String			CONTEXT			= "context";
+        public final static String			CONTEXT			= "context";
 
 	
 	LDAPExpr ldap;
