@@ -1,3 +1,867 @@
+2008-10-17 16:06:12 +0200 (Fri, 17 Oct 2008), revision 2527, ekolin
+Spelling
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-10-17 16:04:00 +0200 (Fri, 17 Oct 2008), revision 2526, ekolin
+Restore AdminPermission.CONTEXT
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/osgi/framework/AdminPermission.java
+
+2008-10-17 14:43:05 +0200 (Fri, 17 Oct 2008), revision 2525, ekolin
+Add support for version ranges in exports.
+D   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ArrayInt.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/OBRExtractorTask.java
+A   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/VersionRange.java
+
+2008-10-17 11:54:51 +0200 (Fri, 17 Oct 2008), revision 2524, ekolin
+Quick fix to allow version ranges in import/export packages
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ArrayInt.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+
+2008-10-17 11:31:48 +0200 (Fri, 17 Oct 2008), revision 2523, ekolin
+Include sources in bundle docs when building KF distrib.
+U   knopflerfish.org/trunk/build.xml
+
+2008-10-17 11:31:09 +0200 (Fri, 17 Oct 2008), revision 2522, ekolin
+Improve javadoc
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+
+2008-10-16 16:00:11 +0200 (Thu, 16 Oct 2008), revision 2521, wistrand
+various UI fixes
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Strings.java
+
+2008-10-16 15:57:03 +0200 (Thu, 16 Oct 2008), revision 2520, wistrand
+various UI fixes
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Strings.java
+
+2008-10-16 15:27:19 +0200 (Thu, 16 Oct 2008), revision 2519, wistrand
+desktop system menu shortcut mask
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-10-16 15:25:35 +0200 (Thu, 16 Oct 2008), revision 2518, wistrand
+use system mask for menu shortcuts
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+
+2008-10-16 15:03:09 +0200 (Thu, 16 Oct 2008), revision 2517, wistrand
+changes in Desktop 2.2.1
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-10-16 13:15:18 +0200 (Thu, 16 Oct 2008), revision 2516, wistrand
+changed public constant AdminPermission.CONTEXT to private
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/osgi/framework/AdminPermission.java
+
+2008-10-16 12:23:36 +0200 (Thu, 16 Oct 2008), revision 2515, wistrand
+new version 2.2.1
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+
+2008-10-16 12:23:22 +0200 (Thu, 16 Oct 2008), revision 2514, wistrand
+show contents of component.xml via manifest view link
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+
+2008-10-16 11:46:37 +0200 (Thu, 16 Oct 2008), revision 2513, wistrand
+fixed stale BC exceptions in prefs displayer
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiBundlePreferences.java
+
+2008-10-16 11:46:05 +0200 (Thu, 16 Oct 2008), revision 2512, wistrand
+fixed transparency
+U   knopflerfish.org/trunk/osgi/bundles/desktop/resources/component.png
+
+2008-10-16 10:55:07 +0200 (Thu, 16 Oct 2008), revision 2511, wistrand
+no autostart of bundles with activators
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+
+2008-10-16 10:40:32 +0200 (Thu, 16 Oct 2008), revision 2510, wistrand
+added icon for component bundles
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/component.png
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LargeIconsDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+
+2008-10-14 10:22:54 +0200 (Tue, 14 Oct 2008), revision 2509, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-10-14 10:01:01 +0200 (Tue, 14 Oct 2008), revision 2508, ekolin
+The update operation for a bundle with attached fragments did not remove the fragments attached to the old version of the bundle from the new one, causing a null-pointer exception when doing a package refresh after the update. A required bundle that imports one of it exports from the requireing bundle caused a loop in the bundle classloader when the requiering bundle tried to load one of the classes in the package imported by the required bundle.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+
+2008-09-30 15:19:31 +0200 (Tue, 30 Sep 2008), revision 2507, wistrand
+fix for NPE bug when removing services
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ExtendedServiceTracker.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+
+2008-09-30 15:17:09 +0200 (Tue, 30 Sep 2008), revision 2506, wistrand
+use better getBundleContext backdoor
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Backdoor.java
+
+2008-09-25 12:33:07 +0200 (Thu, 25 Sep 2008), revision 2505, ekolin
+Fixed a bug in BundleLocator (when more than one version was found the generated replace filter file did not allways point to the bundle with the highest vesion number. Removed the copy of org.osgi.framework.Version from the ant source tree. The build file now uses a source path to the actual osgi sources under osgi.dir.
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+D   knopflerfish.org/trunk/ant/src/org/osgi/
+
+2008-09-25 12:28:33 +0200 (Thu, 25 Sep 2008), revision 2504, ekolin
+Spelling corrections.
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-09-25 10:17:51 +0200 (Thu, 25 Sep 2008), revision 2503, ekolin
+To many spaces on some lines...
+U   knopflerfish.org/trunk/osgi/bundles/console/console/bundle.manifest
+
+2008-09-25 10:14:44 +0200 (Thu, 25 Sep 2008), revision 2502, ekolin
+Removed the built in alias 'cd' from the console since it hides commands named 'cd' in other command groups, causing huge confusion.
+U   knopflerfish.org/trunk/osgi/bundles/console/console/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/console/console/src/org/knopflerfish/bundle/console/Alias.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-09-24 10:21:30 +0200 (Wed, 24 Sep 2008), revision 2501, ekolin
+Do not change the state of the system bundle from STARTING to ACTIVE untill the target runlevel have been reached (right before sending out the framework event STARTED).
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/resources/version
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-09-23 18:26:54 +0200 (Tue, 23 Sep 2008), revision 2500, ekolin
+Remove requirement that the System bundle is in state ACTIVE, since
+the tests currently are executed from some
+BundleActivator.start()-method we should expect the System bundle
+state to be STARTING.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/src/org/knopflerfish/bundle/restart_test/RestartTestSuite.java
+
+2008-09-18 13:34:19 +0200 (Thu, 18 Sep 2008), revision 2499, wistrand
+better error messages to catch component configuration mistakes
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+
+2008-09-12 09:37:45 +0200 (Fri, 12 Sep 2008), revision 2498, wistrand
+added getBundleContext method
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/client/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/client/BundleImpl.java
+
+2008-09-12 07:48:31 +0200 (Fri, 12 Sep 2008), revision 2497, ekolin
+Fix build order, the desktop bundle now depends on prefs_api thus build the prefs bundle before the desktop.
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+
+2008-09-11 15:53:55 +0200 (Thu, 11 Sep 2008), revision 2496, wistrand
+added info about Bundle.getBundleContext
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-09-11 15:50:42 +0200 (Thu, 11 Sep 2008), revision 2495, wistrand
+added info about desktop prefs displayer
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-09-11 15:47:43 +0200 (Thu, 11 Sep 2008), revision 2494, wistrand
+added new preferences displayer and bumped to version 2.2.0
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/prefs/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/prefs/Default.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/prefs/folder16x16.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/prefs/folder16x16.png
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/prefs/folder_open16x16.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/resources/prefs/folder_open16x16.png
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/Colors.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/ExtPreferences.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsEditor.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsPanel.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsTree.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValue.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueBoolean.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueColor.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueDouble.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueFactory.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueInteger.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueLong.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueString.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/MountedPreferences.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiBundlePreferences.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiBundlesPreferences.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiPreferences.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiUsersPreferences.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/PrefsTreeModel.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/PrefsTreeNode.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/TreeUtils.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/package.html
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/prefsedit.png
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/DefaultSwingBundleDisplayer.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PrefsDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/TableDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/service/desktop/DefaultBundleSelectionModel.java
+
+2008-09-11 15:21:03 +0200 (Thu, 11 Sep 2008), revision 2493, wistrand
+added start of prefs_all bundle
+U   knopflerfish.org/trunk/osgi/template.xargs.in
+
+2008-09-11 10:30:53 +0200 (Thu, 11 Sep 2008), revision 2492, wistrand
+added R4.1 method Bundle.getBundleContext
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/osgi/framework/AdminPermission.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/osgi/framework/Bundle.java
+
+2008-09-03 12:02:44 +0200 (Wed, 03 Sep 2008), revision 2489, cl
+Fixes for better distrib builds
+U   knopflerfish.org/trunk/ant/docbuild_include.xml
+U   knopflerfish.org/trunk/ant/html_template/bundledoc_ext.html
+
+2008-09-02 12:00:39 +0200 (Tue, 02 Sep 2008), revision 2488, cl
+Made it default not to include src files when generating jardoc
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+
+2008-08-29 09:42:20 +0200 (Fri, 29 Aug 2008), revision 2487, ekolin
+Add recently fixed bugs to the releasenote.
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-08-28 17:50:04 +0200 (Thu, 28 Aug 2008), revision 2486, wistrand
+fix for bug #2080527
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/build.xml
+D   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/resources/tjx10p-12src.zip
+A   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/resources/tjx10p-13src.zip
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/resources/x10.jar
+
+2008-08-28 17:48:34 +0200 (Thu, 28 Aug 2008), revision 2485, wistrand
+fix for bug #2080521
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/src/org/knopflerfish/bundle/x10/tj/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/src/org/knopflerfish/bundle/x10/tj/Config.java
+
+2008-08-28 14:44:14 +0200 (Thu, 28 Aug 2008), revision 2484, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-08-28 14:32:53 +0200 (Thu, 28 Aug 2008), revision 2483, ekolin
+Use the new option, "-d rootFile", to bindex if available.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BIndexTask.java
+
+2008-08-27 17:02:18 +0200 (Wed, 27 Aug 2008), revision 2482, wistrand
+fix of type handling in property events
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JSendEventPanel.java
+
+2008-08-27 15:30:32 +0200 (Wed, 27 Aug 2008), revision 2481, wistrand
+fixed bug causing preventing event properties change in send event window
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JSendEventPanel.java
+
+2008-08-27 14:34:35 +0200 (Wed, 27 Aug 2008), revision 2480, wistrand
+layout change in send event window
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JSendEventPanel.java
+
+2008-08-27 14:30:44 +0200 (Wed, 27 Aug 2008), revision 2479, ekolin
+Make references to constants klickable
+U   knopflerfish.org/trunk/osgi/bundles/util/src/org/knopflerfish/util/framework/ExecutableBundleActivator.java
+
+2008-08-27 14:26:30 +0200 (Wed, 27 Aug 2008), revision 2478, ekolin
+Fix broken javadoc comment.
+U   knopflerfish.org/trunk/osgi/bundles/util/src/org/knopflerfish/util/framework/ExecutableBundleActivator.java
+
+2008-08-27 14:23:43 +0200 (Wed, 27 Aug 2008), revision 2477, ekolin
+Fix broken @param tag.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/service/bundlerepository/PackageDeclaration.java
+
+2008-08-27 14:23:00 +0200 (Wed, 27 Aug 2008), revision 2476, ekolin
+Fix broken @param tag.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/service/bundlerepository/BundleRepositoryService.java
+
+2008-08-27 14:09:53 +0200 (Wed, 27 Aug 2008), revision 2475, ekolin
+Fix spelling errors in javadoc and invalid @param tags.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+
+2008-08-27 14:04:19 +0200 (Wed, 27 Aug 2008), revision 2474, ekolin
+Remove a number of javadoc warning caused by jar-files not on the
+classpath during doc generation.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-08-27 13:33:46 +0200 (Wed, 27 Aug 2008), revision 2473, ekolin
+Fix broken @param tag.
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/src/org/knopflerfish/service/junit/JUnitService.java
+
+2008-08-27 12:29:47 +0200 (Wed, 27 Aug 2008), revision 2472, wistrand
+new version number 2.1.0 -- added event displayer
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+
+2008-08-27 12:18:17 +0200 (Wed, 27 Aug 2008), revision 2471, wistrand
+added copy-event to send event window
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JSendEventPanel.java
+
+2008-08-27 09:36:14 +0200 (Wed, 27 Aug 2008), revision 2470, wistrand
+fixed cleanup of multiple event displays
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventEntryDetail.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/EventDisplayer.java
+
+2008-08-26 20:40:41 +0200 (Tue, 26 Aug 2008), revision 2469, wistrand
+support for manual event posting
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JSendEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/EventDisplayer.java
+
+2008-08-26 17:41:45 +0200 (Tue, 26 Aug 2008), revision 2468, ekolin
+Use the Export-Package header that was written to the actual manifest
+when saving its value to the exported packages file used for javadoc
+package selection.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+
+2008-08-26 17:41:17 +0200 (Tue, 26 Aug 2008), revision 2467, wistrand
+fixed broken blacklisting of event handlers when the same event handler instance was registered multiple times
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/DeliverSession.java
+
+2008-08-26 17:35:23 +0200 (Tue, 26 Aug 2008), revision 2466, wistrand
+removed stacktrace stderr printout when filter comparison fails
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/LDAPExpr.java
+
+2008-08-26 13:51:02 +0200 (Tue, 26 Aug 2008), revision 2465, wistrand
+layout fixes
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/EventDisplayer.java
+
+2008-08-26 11:30:42 +0200 (Tue, 26 Aug 2008), revision 2464, wistrand
+better event display
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/EventTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/FilterEventTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventEntryDetail.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventTable.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/StringCellRenderer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/EventDisplayer.java
+
+2008-08-25 14:10:30 +0200 (Mon, 25 Aug 2008), revision 2463, ekolin
+Link to the same favicon as the pages on the KF-web-site does.
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-08-22 15:32:04 +0200 (Fri, 22 Aug 2008), revision 2462, wistrand
+new event displayer
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/DateCellRenderer.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/EventReaderDispatcher.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/EventTableModel.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/FilterEventTableModel.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JDetailFrame.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventEntryDetail.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventTable.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/TableMap.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/TableSorter.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/EventDisplayer.java
+
+2008-08-21 12:08:51 +0200 (Thu, 21 Aug 2008), revision 2461, wistrand
+fix for bug #2042769
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+
+2008-07-18 15:35:39 +0200 (Fri, 18 Jul 2008), revision 2460, ekolin
+The set of packages documented on the javadoc is now determined by the set of packages exported from bundles that are built.
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+A   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleJavadocHelperTask.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-07-18 15:25:49 +0200 (Fri, 18 Jul 2008), revision 2459, ekolin
+A resources directory is no longer created by bundlebuild_include.xml if it is not present. I.e., a resources directory is no longer required.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleClasspathTask.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-07-18 15:23:56 +0200 (Fri, 18 Jul 2008), revision 2458, ekolin
+Use the improved intermediate build file in all bundles directories. Add a directory to bundles/build.xml that was mising in the previous checkin
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/demos/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/jini/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/examples/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/demos/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/build.xml
+
+2008-07-18 15:18:54 +0200 (Fri, 18 Jul 2008), revision 2457, ekolin
+Avoid haning the desktop UI when www.makewave.com is unreachable.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+
+2008-07-16 18:00:28 +0200 (Wed, 16 Jul 2008), revision 2456, ekolin
+Improve structure of build.xml in intermediate source directories that groups bundles.
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/io/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/xml/build.xml
+
+2008-07-15 14:17:39 +0200 (Tue, 15 Jul 2008), revision 2455, ekolin
+Minor rewrite to allow for bundles without a src-directory. E.g., fragment bundles with resources only.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+
+2008-07-15 11:12:55 +0200 (Tue, 15 Jul 2008), revision 2454, ekolin
+Don not fail on bundles with a name that conatins a "-" but without
+parsable version after the "-". Assume version is 0.0.0 in this case.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+
+2008-07-10 14:59:56 +0200 (Thu, 10 Jul 2008), revision 2453, ekolin
+Improve parameter name.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-07-10 14:35:52 +0200 (Thu, 10 Jul 2008), revision 2452, ekolin
+More parametrization
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-07-10 14:01:03 +0200 (Thu, 10 Jul 2008), revision 2451, ekolin
+Make it uniform with the soap-bundle doc page
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/doc/index.html
+
+2008-07-10 11:21:53 +0200 (Thu, 10 Jul 2008), revision 2450, ekolin
+Update copyright year
+U   knopflerfish.org/trunk/tools/jarunpacker/license.txt
+
+2008-07-10 11:18:03 +0200 (Thu, 10 Jul 2008), revision 2449, ekolin
+Remove unused ant property
+U   knopflerfish.org/trunk/tools/jarunpacker/build.xml
+
+2008-07-09 17:03:33 +0200 (Wed, 09 Jul 2008), revision 2448, ekolin
+Make it possible to contgrol where the output of the xargs target is placed.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-07-09 17:02:27 +0200 (Wed, 09 Jul 2008), revision 2447, ekolin
+Make it possible to build the overwiev bundle doc without building bundle doc for all the child bundles.
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/build.xml
+
+2008-07-08 14:45:54 +0200 (Tue, 08 Jul 2008), revision 2446, ekolin
+Update svn:ignore property to match new name convention for embedded dependenies
+_U  knopflerfish.org/trunk/osgi/bundles/bundlerepository/resources/
+_U  knopflerfish.org/trunk/osgi/bundles_opt/desktop_awt/resources/
+
+2008-07-01 15:29:02 +0200 (Tue, 01 Jul 2008), revision 2445, ekolin
+Add missing token-marker around the trayicon-bundle names
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-06-30 16:01:38 +0200 (Mon, 30 Jun 2008), revision 2444, ekolin
+Add support for building fragment bundles to bundlebuild_include.xml. Fix some problems with Export/Import package derivation (if the computed set of packages was empty an invalid, empty Import/Export-Package header was added).
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleManifestTask.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/RequireBundleTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/bundle.manifest
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-30 14:09:36 +0200 (Mon, 30 Jun 2008), revision 2443, ekolin
+The API-version of this bundle does not provide the
+javax.microedition.io package (only the OSGi io-package).
+U   knopflerfish.org/trunk/osgi/bundles/io/io/bundle.manifest
+
+2008-06-30 10:16:55 +0200 (Mon, 30 Jun 2008), revision 2442, ekolin
+Ensure that the directory of the out file argument in
+writeStringToFile() exists by calling mkdirs on it.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/Util.java
+
+2008-06-28 08:40:28 +0200 (Sat, 28 Jun 2008), revision 2441, ekolin
+Fix the missing fade in the header of the snapshotbuilds index page.
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-06-26 07:15:08 +0200 (Thu, 26 Jun 2008), revision 2440, ekolin
+Add missing ()
+U   knopflerfish.org/trunk/osgi/bundles/io/io/src/org/knopflerfish/bundle/io/ConnectorServiceImpl.java
+
+2008-06-25 16:42:55 +0200 (Wed, 25 Jun 2008), revision 2439, ekolin
+Bundle user doc build improvements, to allow for building bundle user docs using a subant task.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+U   knopflerfish.org/trunk/ant/docbuild_include.xml
+U   knopflerfish.org/trunk/osgi/bundles/osgiapi/permissionadmin/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/osgiapi/servicetracker/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/xml/jaxp/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/depchecker/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/build.xml
+
+2008-06-25 09:36:03 +0200 (Wed, 25 Jun 2008), revision 2438, ekolin
+Throw an IllegalArgumentException and not NullPointerException when
+the uri to open is null or empty.
+U   knopflerfish.org/trunk/osgi/bundles/io/io/src/org/knopflerfish/bundle/io/ConnectorServiceImpl.java
+
+2008-06-24 12:52:04 +0200 (Tue, 24 Jun 2008), revision 2437, ekolin
+xargs-files must be regenerated by both the bundles_opt and bundles_test targets. Removed dupplicated build from kf-test-* targets (the all-target builds both bundles_opt and bundles_test).
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-06-23 17:25:50 +0200 (Mon, 23 Jun 2008), revision 2436, ekolin
+Must surround bundle names with a '@'-char in the xargs-template files since we do have at least one bundle with name that is contained in the name of another bundle. E.g., E.g., the expansion of xml-N.N.N.jar may be used when actually looking for kxml-N.N.N.jar.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs.in
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs.in
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/test-restart1.xargs.in
+U   knopflerfish.org/trunk/osgi/framework/resources/version
+U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs.in
+U   knopflerfish.org/trunk/osgi/init-tests.xargs.in
+U   knopflerfish.org/trunk/osgi/minimal.xargs.in
+U   knopflerfish.org/trunk/osgi/template.xargs.in
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-23 16:17:56 +0200 (Mon, 23 Jun 2008), revision 2435, ekolin
+Fixed  an issue with normalization of relative bundle URLs reported in SF-buggtracker: https://sourceforge.net/tracker/index.php?func=detail&aid=2000856&group_id=82798&atid=567241
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleURLStreamHandler.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-19 14:28:52 +0200 (Thu, 19 Jun 2008), revision 2434, ekolin
+Fix change log and other stuff that was broken by the documentation reorganization in the 2.1 release.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/build.sh
+
+2008-06-19 12:26:03 +0200 (Thu, 19 Jun 2008), revision 2433, ekolin
+Backport the BundleLocator.task to Ant 1.6.5.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+
+2008-06-18 17:02:06 +0200 (Wed, 18 Jun 2008), revision 2432, ekolin
+Add missing compile path.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/build.xml
+
+2008-06-18 16:36:55 +0200 (Wed, 18 Jun 2008), revision 2431, ekolin
+Generate all xargs-files from templates expanding bundle names to the highest version available.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/build.xml
+D   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+A   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs.in
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/build.xml
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs.in
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/test-restart1.xargs
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/test-restart1.xargs.in
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/test-restart2.xargs
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/restart_test/test-restart2.xargs.in
+D   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
+A   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs.in
+D   knopflerfish.org/trunk/osgi/init-tests.xargs
+A   knopflerfish.org/trunk/osgi/init-tests.xargs.in
+D   knopflerfish.org/trunk/osgi/minimal.xargs
+A   knopflerfish.org/trunk/osgi/minimal.xargs.in
+D   knopflerfish.org/trunk/osgi/template.xargs
+A   knopflerfish.org/trunk/osgi/template.xargs.in
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-18 11:57:31 +0200 (Wed, 18 Jun 2008), revision 2430, ekolin
+Fixed a couple of problems in the bundle_location task that expands bundle names to full path of the matching bundle with the highest version. Updated all build-files to take advantage of this new feature.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm_cmd/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/component/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/console/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletcp/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletty/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/demos/demo1client/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/basicdriverlocator/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/device/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httproot/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/io/connectors/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/io/io/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/log/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/kf_metatype/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/metatype_demo/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/position/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/prefs/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_awt/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/boing/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/desktop_jvm/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/jini/jinidriver/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/examples/example1/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/junit/junit_runner/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-linux/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-win32/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/serialportdevice/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_commandgroup/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_A/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/require-bundle/rb_C/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-17 20:46:15 +0200 (Tue, 17 Jun 2008), revision 2429, ekolin
+Extended build system with bundle version expansion selecting the bundle with the highest version for bundles on the compile path with names ending with '-N.N.N.jar'. This will remove the need for updating lots of build files when the version of a bundle is bumped.
+U   knopflerfish.org/trunk/ant/bundlebuild_include.xml
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+A   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleLocator.java
+A   knopflerfish.org/trunk/ant/src/org/osgi/
+A   knopflerfish.org/trunk/ant/src/org/osgi/framework/
+A   knopflerfish.org/trunk/ant/src/org/osgi/framework/Version.java
+U   knopflerfish.org/trunk/osgi/bundles/sslj2sp/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-17 15:57:10 +0200 (Tue, 17 Jun 2008), revision 2428, ekolin
+Bundle repository link on snapshot builds page now points to the
+latest snapshot build on the trunk.
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-06-17 12:19:17 +0200 (Tue, 17 Jun 2008), revision 2427, ekolin
+OBR improvements.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/OBRExtractorTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-17 09:46:14 +0200 (Tue, 17 Jun 2008), revision 2426, ekolin
+The release page shall link to the repository of the current release
+and not to the top level repository.
+U   knopflerfish.org/trunk/htdocs/html_src/release_page.html.in
+
+2008-06-16 11:45:41 +0200 (Mon, 16 Jun 2008), revision 2425, ekolin
+Make the bundle version visible in the bundle repository bundles desktop plugin.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/desktop/OBRDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/desktop/Util.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+U   knopflerfish.org/trunk/osgi/props.xargs
+U   knopflerfish.org/trunk/osgi/template.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-15 22:20:53 +0200 (Sun, 15 Jun 2008), revision 2423, cl
+Updated bundle repo to new L&F
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/css/knopflerfish.css
+U   knopflerfish.org/trunk/htdocs/css/repository.xsl
+
+2008-06-15 19:03:25 +0200 (Sun, 15 Jun 2008), revision 2422, ekolin
+Replace calls to System.getProperty() with BundleContext.getProperty(). Bump micro-revision of changed bundles.
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm_cmd/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/component/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/console/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletcp/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletty/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/basicdriverlocator/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/basicdriverlocator/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/device/basicdriverlocator/src/org/knopflerfish/bundle/basicdriverlocator/BasicDriverLocator.java
+U   knopflerfish.org/trunk/osgi/bundles/device/device/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/DeliverSession.java
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/src/org/knopflerfish/bundle/httpconsole/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/src/org/knopflerfish/bundle/httpconsole/ConsoleServlet.java
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/src/org/knopflerfish/bundle/httpconsole/InfoCommand.java
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/src/org/knopflerfish/bundle/httpconsole/Login.java
+U   knopflerfish.org/trunk/osgi/bundles/http/httproot/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httproot/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/io/io/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/log/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/log/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogConfigImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/service/log/LogRef.java
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/src/org/knopflerfish/bundle/desktop/cm/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/src/org/knopflerfish/bundle/desktop/cm/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/metatype/kf_metatype/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/metatype/kf_metatype/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/bundle/metatype/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/metatype/metatype_demo/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/prefs/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/prefs/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/prefs/src/org/knopflerfish/bundle/prefs/PrefsStorageFile.java
+U   knopflerfish.org/trunk/osgi/bundles/sslj2sp/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/src/org/knopflerfish/bundle/trayicon/TrayIconWrapper.java
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/src/org/knopflerfish/bundle/trayicons/framework/FrameworkTrayIcon.java
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UserAdminImpl.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/boing/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_displayers/desktop_jvm/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/jini/jinidriver/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-linux/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-win32/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/serialportdevice/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap-osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_commandgroup/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/test.xargs
+U   knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/endurance_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/eventadmin_test/build.xml
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/event_api-2.0.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/event_api-2.0.1.jar
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/log_api-2.0.0.jar
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/lib/log_api-2.0.1.jar
+U   knopflerfish.org/trunk/osgi/init-osgi-test-target.xargs
+U   knopflerfish.org/trunk/osgi/init-tests.xargs
+U   knopflerfish.org/trunk/osgi/minimal.xargs
+U   knopflerfish.org/trunk/osgi/template.xargs
+
+2008-06-15 09:44:04 +0200 (Sun, 15 Jun 2008), revision 2421, ekolin
+
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-06-15 09:26:46 +0200 (Sun, 15 Jun 2008), revision 2420, ekolin
+Fix transposed char.
+U   knopflerfish.org/trunk/tools/nightlybuild/build.sh
+
+2008-06-15 09:24:51 +0200 (Sun, 15 Jun 2008), revision 2419, ekolin
+Nightly build now self-updates the Makefile.
+U   knopflerfish.org/trunk/tools/nightlybuild/build.sh
+
+2008-06-15 09:16:44 +0200 (Sun, 15 Jun 2008), revision 2418, ekolin
+The 'Source (subversion)' link on the left side menu now points to the correct repository URL.
+U   knopflerfish.org/trunk/htdocs/html_src/release_page.html.in
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-06-12 16:02:40 +0200 (Thu, 12 Jun 2008), revision 2417, ekolin
+Replace calls to System.getProperty() with BundleContext.getProperty().
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ErrorMessageDialog.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LFManager.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/SwingIO.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/fwspin/GameFrame.java
+
+2008-06-11 13:11:57 +0200 (Wed, 11 Jun 2008), revision 2416, ekolin
+Replace calls to System.getProperty() with BundleContext.getProperty().
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/src/org/knopflerfish/bundle/consoletelnet/TelnetConfig.java
+U   knopflerfish.org/trunk/osgi/bundles/console/consoletelnet/src/org/knopflerfish/bundle/consoletelnet/TelnetServer.java
+
+2008-06-11 08:19:13 +0200 (Wed, 11 Jun 2008), revision 2415, ekolin
+Fix file separator issue for unwrapped jars. See https://sourceforge.net/forum/forum.php?thread_id=2071337&forum_id=328005
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-10 16:23:13 +0200 (Tue, 10 Jun 2008), revision 2414, ekolin
+PreferencesService.getUsers() now returns all users that have a preference tree associated with them (note only those that are loaded into memory.
+U   knopflerfish.org/trunk/osgi/bundles/prefs/src/org/knopflerfish/bundle/prefs/PreferencesServiceImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/prefs/src/org/knopflerfish/bundle/prefs/PrefsStorageFile.java
+
+2008-06-10 13:13:18 +0200 (Tue, 10 Jun 2008), revision 2413, ekolin
+Replace calls to System.getProperty() with BundleContext.getProperty().
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/src/org/knopflerfish/bundle/cm/Activator.java
+
+2008-06-10 11:32:02 +0200 (Tue, 10 Jun 2008), revision 2412, ekolin
+Replace usage of System.getProperty() with BundelContext.getProperty().
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/src/org/ungoverned/osgi/bundle/bundlerepository/BundleRepositoryServiceImpl.java
+
+2008-06-10 09:32:24 +0200 (Tue, 10 Jun 2008), revision 2411, ekolin
+Update download URL in remote xargs file to match new release structure.
+U   knopflerfish.org/trunk/osgi/build.xml
+
+2008-06-10 09:30:33 +0200 (Tue, 10 Jun 2008), revision 2410, ekolin
+Fix broken XML.
+U   knopflerfish.org/trunk/build.xml
+
+2008-06-09 19:45:44 +0200 (Mon, 09 Jun 2008), revision 2409, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/build.xml
+
+2008-06-09 19:26:32 +0200 (Mon, 09 Jun 2008), revision 2408, ekolin
+Rework the bundledocs handling, bundle-jars are now allways in osgi/jars, documentation in docs.
+U   knopflerfish.org/trunk/ant/html_template/bundle_info.html
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/html_src/release_page.html.in
+
+2008-06-09 07:03:27 +0200 (Mon, 09 Jun 2008), revision 2407, ekolin
+Fix broken link.
+U   knopflerfish.org/trunk/htdocs/html_src/release_page.html.in
+
+2008-06-08 22:58:25 +0200 (Sun, 08 Jun 2008), revision 2406, ekolin
+Move build date to heading
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-06-08 22:55:58 +0200 (Sun, 08 Jun 2008), revision 2405, ekolin
+Fix image link.
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-06-08 22:41:13 +0200 (Sun, 08 Jun 2008), revision 2404, ekolin
+Update nightly build list page template to use the new profile.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2008-06-08 22:38:36 +0200 (Sun, 08 Jun 2008), revision 2403, ekolin
+Update nightly build list page template to use the new profile.
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.post
+U   knopflerfish.org/trunk/tools/nightlybuild/snap_index.html.pre
+
+2008-06-08 22:26:21 +0200 (Sun, 08 Jun 2008), revision 2402, ekolin
+Post 2.1.0 release update.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2008-06-08 22:13:46 +0200 (Sun, 08 Jun 2008), revision 2401, ekolin
+Must copy out jars-dir to the release dir.
+U   knopflerfish.org/trunk/build.xml
+
+2008-06-08 21:35:39 +0200 (Sun, 08 Jun 2008), revision 2399, ekolin
+Update changelog for the 2.1.0 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2008-06-08 21:34:12 +0200 (Sun, 08 Jun 2008), revision 2398, ekolin
 Relax last modified test to allow for a difference of 1.
 U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
@@ -578,7 +1442,7 @@ Add misssing packages.
 U   knopflerfish.org/trunk/osgi/framework/resources/packages1.6.txt
 
 2008-03-18 04:48:53 +0100 (Tue, 18 Mar 2008), revision 2287, cl
-Changed to <h3 class="man">
+Changed to &lt;h3 class="man"&gt;
 U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
 
 2008-03-17 12:08:32 +0100 (Mon, 17 Mar 2008), revision 2286, ekolin
@@ -1427,7 +2291,7 @@ Add target that simplifies executing the JUnit based KF-test suite.
 U   knopflerfish.org/trunk/osgi/build.xml
 
 2008-01-18 10:35:12 +0100 (Fri, 18 Jan 2008), revision 2172, ekolin
-Include optional bundles when in the htdocs/releases/<M.N.U.>/jars
+Include optional bundles when in the htdocs/releases/&lt;M.N.U.&gt;/jars
 direcotry and on the index.html there.
 U   knopflerfish.org/trunk/build.xml
 
@@ -1445,7 +2309,7 @@ The package1.M.txt files shall not be installed any more (they are placed as res
 U   knopflerfish.org/trunk/build.xml
 
 2008-01-17 09:23:39 +0100 (Thu, 17 Jan 2008), revision 2166, ekolin
-Increase embeddability of the framework by moving the packages.<M>.<N>.txt files inside framework.jar and adding a system property that when set automatically makes the framework load the apropriate packages.<M>.<N>.txt file. Added packages1.6.txt.
+Increase embeddability of the framework by moving the packages.&lt;M>.&lt;N>.txt files inside framework.jar and adding a system property that when set automatically makes the framework load the apropriate packages.&lt;M>.&lt;N>.txt file. Added packages1.6.txt.
 U   knopflerfish.org/trunk/osgi/framework/build.xml
 U   knopflerfish.org/trunk/osgi/framework/readme.txt
 _U  knopflerfish.org/trunk/osgi/framework/resources/
