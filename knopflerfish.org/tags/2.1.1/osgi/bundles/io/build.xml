@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<project name="io-dir" default="all">
+
+  <!-- Internal target that calls a specified target in all sub-dirs. -->
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="io"/>
+    <ant target="${the.target}" dir="connectors"/>
+  </target>
+
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean" 
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+  </target>
+  
+  <target name="bundle_doc" 
+	  description="Builds doc for all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+</project>

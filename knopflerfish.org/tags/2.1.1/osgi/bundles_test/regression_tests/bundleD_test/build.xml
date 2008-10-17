@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+
+<project name="bundleD_test" default="all">
+
+  <property name="topdir"       location=".."/>
+
+  <property name="bundle.version" value="1.0.0"/>
+
+
+<!-- osgi.jar should be set to your preferred jar containing -->
+<!-- the org.osg.* APIs                                      -->
+<property name     = "osgi.jar"
+          location = "${topdir}/../../framework.jar"/>
+
+<property name     = "bundle.version" 
+          value    = "1.0.0"/>
+
+<property name     = "bundle.name" 
+          value    = "${ant.project.name}"/>
+
+<property name     = "classes.out.dir" 
+          location = "${topdir}/out/${ant.project.name}/classes"/>
+
+<property name     = "jar.out.dir" 
+          location = "${topdir}/jars/"/>
+
+<property name     = "src.dir"
+          location = "src"/>
+
+<property name     = "resources.dir"
+          location = "resources"/>
+
+<property name     = "javac.target"
+          value    = "1.2"/>
+
+<property name     = "javac.source"
+          value    = "1.2"/>
+
+<property name     = "manifest.file"
+          location = "all.mf"/>
+
+<property name     = "jar.file"
+          location = "${jar.out.dir}/${ant.project.name}-${bundle.version}.jar"/>
+
+<path id="bundle.path">
+  <pathelement location="${osgi.jar}"/>
+</path>
+
+<target name="all">
+ <echo message="${ant.project.dir}"/>
+ <antcall target="compile"/>
+ <antcall target="jar"/>
+</target>
+
+<target name="compile">
+  <mkdir dir="${classes.out.dir}"/>
+
+  <javac destdir       = "${classes.out.dir}" 
+           debug         = "on"
+           srcdir        = "${src.dir}"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           classpathref  = "bundle.path"
+           includes      = "**/*.java"
+  >
+  </javac>
+</target>
+
+<target name="jar">
+  <mkdir dir="${jar.out.dir}"/>
+
+  <tstamp>
+   <format property = "bundle.date" 
+          pattern  = "EE MMMM d yyyy, HH:mm:ss"
+          locale   = "en"/>
+  </tstamp>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${jar.file}"
+    >
+     <fileset dir = "${resources.dir}"/>
+
+    </jar>  
+</target>
+
+<target name="clean">
+  <delete file = "${jar.file}"        />
+  <delete dir  = "${classes.out.dir}" />
+</target>
+
+</project>
+
+
+

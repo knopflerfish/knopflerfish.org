@@ -1,0 +1,38 @@
+<h1>SOAP Object</h1>
+
+<div class="abstract">
+This is an example of a server side SOAP object.
+</div>
+
+<p> The bundle is part of the <a href="../soap/index.html#axis1">The
+Knopflerfish Axis 1</a> package.  </p>
+
+
+<h2>Description</h2>
+
+<p>
+The soapobject bundle installs a service object into the service registry and
+sets its SOAP_SERVICE_NAME property to "remoteFW". This will make the axis-osgi
+bundle (must be run prior to start of the soapobject bundle) create an Axis 
+SOAP service named "remoteFW". Use the following URLs from a Web browser to 
+explore the service.
+</p>
+<pre>
+   http://localhost:8080/axis/services
+
+   http://localhost:8080/axis/services?list
+
+   http://localhost:8080/axis/services/remoteFW?method=getBundles
+
+   http://localhost:8080/axis/services/remoteFW?wsdl
+</pre>
+
+<p>
+Beware of caching made by the browser, ensure that you are not viewing 
+cached content by performing explicit refresh requests.
+</p>
+
+
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a>
+

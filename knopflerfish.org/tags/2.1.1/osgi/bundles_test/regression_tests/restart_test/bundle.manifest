@@ -1,0 +1,12 @@
+Bundle-Name: restart_test
+Bundle-SymbolicName: restart_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework restart
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.restart_test.Activator
+Bundle-Category: test
+Import-Package: junit.framework,org.osgi.framework,org.osgi.service.st
+ artlevel
+Bundle-UUID: org.knopflerfish:restart_test:1.0.0:all

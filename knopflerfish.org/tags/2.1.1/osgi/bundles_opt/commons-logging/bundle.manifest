@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Commons-Logging
+Bundle-SymbolicName: org.knopflerfish.bundle.commons-logging
+Bundle-Version: 2.0.0
+Bundle-UUID: org.knopflerfish:commons-logging:2.0.0
+Bundle-Category: lib
+Bundle-Description: Apache Commons logging. Publishced under Apache Li
+ cense. See http://www.apache.org/licenses/LICENSE-2.0
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish/Apache
+Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/commons-logging/readme.txt
+Bundle-ContactAddress: http://www.knopflerfish.orgB
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
+ g/trunk/osgi/bundles_opt/commons-logging/
+Bundle-Classpath: .,log_api-2.0.1.jar
+Bundle-Activator: org.knopflerfish.bundle.commons.logging.Activator
+Export-Package: org.osgi.service.log;specification-version=1.2,
+ org.knopflerfish.service.log;specification-version=1.1,
+ org.apache.commons.logging;specification-version=1.0.3
+Import-Package: org.osgi.framework

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="junit_runner" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.all"  value="true"/>
+  <property name = "bundle.build.impl" value="false"/>
+  <property name = "bundle.build.lib"  value="false"/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/junit_runner/**"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/junit_runner/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="junit_all-N.N.N.jar"/>
+   <pathelement location="../junit/resources/junit.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="connectors" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/connectors/**" />
+
+  <path id="bundle.compile.path">
+   <pathelement location="io_all-N.N.N.jar"/>
+   <pathelement location="${topdir}/bundles/io/io/resources/javax.microedition.io.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

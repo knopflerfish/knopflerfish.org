@@ -1,0 +1,53 @@
+#
+# Patch list for classload patcher (org.knopflerfish.framework.ClassPatcher)
+#
+# Each patch substitutes a method in a class with a 
+# wrapper method having the same return value and arguments, plus
+# two extra arguments, a long bundle id and a java.lang.Object caller context object
+#
+# from         - Signature of method to be wrapped
+# to           - Signature of wrapper method (type info not necessary)
+# active       - if true, default is to actually use this patch
+# static       - if true, the method to be wrapped is static
+#
+# Note: The target method type signature is automatically
+#       derived. 
+#
+# Example: 
+#  wrap    java.lang.System
+#            static void exit(int code)
+#
+#  to      org.knopflerfish.framework.ClassPatcherWrappers
+#            static void systemExitWrapper(int code, long bid, Object context)
+#
+#
+# patch.1.from=java/lang/System.exit(I)V
+# patch.1.to=org/knopflerfish/framework/ClassPatcherWrappers.systemExitWrapper
+# patch.1.active=true
+# patch.1.static=true
+#
+
+# only patch non-kf and non-osgi classes
+patches.filter=(&(!(classname=org.knopflerfish.*))(!(classname=org.osgi.*))(location=*))
+
+patch.0.from=java/lang/ClassLoader.getSystemClassLoader ()Ljava/lang/ClassLoader;
+patch.0.to=org/knopflerfish/framework/ClassPatcherWrappers.getSystemClassLoaderWrapper
+patch.0.active=true
+patch.0.static=true
+
+patch.1.from=java/lang/System.exit(I)V
+patch.1.to=org/knopflerfish/framework/ClassPatcherWrappers.systemExitWrapper
+patch.1.active=false
+patch.1.static=true
+
+patch.2.from=java/lang/Class.forName(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;
+patch.2.to=org/knopflerfish/framework/ClassPatcherWrappers.forName3Wrapper
+patch.2.active=true
+patch.2.static=true
+
+
+patch.3.from=java/lang/Class.forName(Ljava/lang/String;)Ljava/lang/Class;
+patch.3.to=org/knopflerfish/framework/ClassPatcherWrappers.forName1Wrapper
+patch.3.active=true
+patch.3.static=true
+

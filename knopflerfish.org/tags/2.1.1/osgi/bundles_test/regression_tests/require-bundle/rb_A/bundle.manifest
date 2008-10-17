@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-Version: 0.1.0
+Bundle-Name: rb_A
+Bundle-SymbolicName: test.rb_A
+Import-Package: org.osgi.framework
+Require-Bundle: test.rb_B-API;visibility:=reexport;resolution:=mandatory,
+ test.rb_X;visibility:=reexport;resolution:=optional
