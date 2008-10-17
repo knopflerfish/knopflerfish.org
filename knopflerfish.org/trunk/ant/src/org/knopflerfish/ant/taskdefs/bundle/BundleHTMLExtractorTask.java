@@ -40,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.SortedSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -63,20 +65,18 @@ import org.apache.tools.ant.util.FileUtils;
 import org.osgi.framework.Version;
 
 /**
- * <p>
  * Task that analyzes a set of bundle jar files and builds HTML documentation
  * from these bundles. Also creates cross-references to bundle dependencies.
- * </p>
  *
  * <p>
  * All generated HTML will be stored in the same directory structure as
  * the scanned jars, e.g a jar file
  * <pre>
- *  jars/log/log-api.jar
+ *  <it>baseDir</it>/log/log-api.jar
  * </pre>
  * will have a corresponding
  * <pre>
- *  jars/log/log-api.html
+ *  <it>outDir</it>/log/log-api.html
  * </pre>
  * in the directory specified with the attribute <code>outDir</code>.
  * The part of the original bundle jar path to remove when creating
@@ -214,6 +214,9 @@ public class BundleHTMLExtractorTask extends Task {
   private String bundleRow    =
     "<tr><td><a href=\"${bundledoc}\">${FILE.short}</a></td><td>${what}</td></tr>\n";
 
+  private String packageListRow   =
+    "<tr><td>${package.name}&nbsp;${package.version}</td><td>${providers}</td></tr>\n";
+
   private String missingRow   =
     "<tr><td>${name}</td><td>${version}</td></tr>\n";
 
@@ -226,7 +229,7 @@ public class BundleHTMLExtractorTask extends Task {
   private boolean bCheckJavaDoc  = true;
   private boolean include_source_files  = false;
 
-  Map     jarMap     = new TreeMap();
+  Map     jarMap     = new TreeMap(new FileNameComparator());
   Map     globalVars = new TreeMap();
 
 
@@ -302,6 +305,10 @@ public class BundleHTMLExtractorTask extends Task {
 
   File getBundleListTemplate() {
     return new File(templateHTMLDir, "bundle_list.html");
+  }
+
+  File getPackageListTemplate() {
+    return new File(templateHTMLDir, "package_list.html");
   }
 
   File getBundleMainTemplate() {
@@ -407,6 +414,10 @@ public class BundleHTMLExtractorTask extends Task {
                    new File(outDir, "list.html"),
                    indexListRow);
 
+      makePackageListPage(getPackageListTemplate(),
+                          new File(outDir, "package_list.html"),
+                          packageListRow);
+
       copyFile(getBundleIndexTemplate(),
                new File(outDir, "index.html"));
 
@@ -500,6 +511,64 @@ public class BundleHTMLExtractorTask extends Task {
 
   }
 
+  void makePackageListPage(File templateFile,
+                           File outFile,
+                           String rowTemplate)
+    throws IOException
+  {
+    String html = Util.loadFile(templateFile.getAbsolutePath());
+
+    SortedSet pkgs = new TreeSet();
+    for (Iterator it=jarMap.values().iterator(); it.hasNext();) {
+      BundleInfo info = (BundleInfo) it.next();
+      pkgs.addAll(info.pkgExportMap.keySet());
+    }
+
+    StringBuffer sb = new StringBuffer();
+    for(Iterator it = pkgs.iterator(); it.hasNext();) {
+      String pkg = (String) it.next();
+
+      String row = rowTemplate;
+      row = replace(row, "${package.name}", pkg);
+
+      TreeMap pkgVersions = new TreeMap();
+      for (Iterator it2=jarMap.values().iterator(); it2.hasNext();) {
+        BundleInfo info = (BundleInfo) it2.next();
+        Version ver = (Version) info.pkgExportMap.get(pkg);
+        if (null!=ver) {
+          TreeSet providers = (TreeSet) pkgVersions.get(ver);
+          if (null==providers) {
+            providers = new TreeSet(new BundleInfoComparator());
+          }
+          providers.add(info);
+          pkgVersions.put(ver,providers);
+        }
+      }
+      for (Iterator it3=pkgVersions.keySet().iterator(); it3.hasNext();) {
+        Version ver = (Version) it3.next();
+        String verRow = replace(row, "${package.version}", ver.toString());
+        TreeSet providers = (TreeSet) pkgVersions.get(ver);
+        StringBuffer sbProviders = new StringBuffer();
+        for (Iterator it4=providers.iterator(); it4.hasNext();) {
+          BundleInfo info = (BundleInfo) it4.next();
+          String providerRow = indexListRow;
+          providerRow = info.stdReplace(providerRow, false);
+          providerRow = replace(providerRow,
+                                "${bundledoc}",
+                                info.relPath +".html");
+          sbProviders.append(providerRow);
+        }
+        verRow = replace(verRow, "${providers}", sbProviders.toString());
+        sb.append(verRow);
+      }
+    }
+
+    html = replace(html, "${package.list}", sb.toString());
+
+    Util.writeStringToFile(outFile, html);
+    System.out.println("wrote " + outFile);
+  }
+
   void copyFile(File templateFile, File outFile)
     throws IOException {
 
@@ -540,41 +609,57 @@ public class BundleHTMLExtractorTask extends Task {
 
       String filePath = file.getCanonicalPath();
       String basePath = baseDir.getCanonicalPath();
-      //System.out.println("basePath: "+basePath);
-      //System.out.println("filePath: "+filePath);
-      if (!filePath.startsWith(basePath)) {
-        throw new BuildException("The file '"+filePath
-                                 +"' does not reside in baseDir ("
-                                 +basePath +")!");
-      }
-      relPath = filePath.substring(basePath.length()+1);
-      if (relPath.endsWith(".jar"))
-        relPath = relPath.substring(0,relPath.length()-4);
-      path = outDir.getCanonicalPath() + File.separator + relPath;
-      int sepIx = relPath.indexOf(File.separator);
-      while (sepIx>-1) {
-        relPathUp += ".." +File.separator;;
-        sepIx = relPath.indexOf(File.separator,sepIx+1);
-      }
 
-      //System.out.println("path:      "+path);
-      //System.out.println("relPath:   "+relPath);
-      //System.out.println("relPathUp: "+relPathUp);
-
-      File htmlPath = new File(path).getParentFile();
-      while (htmlPath!=null && !filePath.startsWith(htmlPath.toString())) {
-        if (jarRelPath.length()>0) {
-          jarRelPath += File.separator;
+      if (filePath.startsWith(basePath)) {
+        relPath = filePath.substring(basePath.length()+1);
+        if (relPath.endsWith(".jar")) {
+          relPath = relPath.substring(0,relPath.length()-4);
         }
-        jarRelPath += "..";
-        htmlPath = htmlPath.getParentFile();
+        path = outDir.getCanonicalPath() + File.separator + relPath;
+        int sepIx = relPath.indexOf(File.separator);
+        while (sepIx>-1) {
+          relPathUp += ".." +File.separator;;
+          sepIx = relPath.indexOf(File.separator,sepIx+1);
+        }
+        jarRelPath = createRelPath(new File(path).getParentFile(), filePath);
+      } else {
+        String fileDir = file.getParentFile().getCanonicalPath();
+        if (basePath.startsWith(fileDir)) {
+          // Outside baseDir, place resulting file directly in outDir
+          relPath    = file.getName();
+          if (relPath.endsWith(".jar")) {
+            relPath = relPath.substring(0,relPath.length()-4);
+          }
+          path       = outDir.getCanonicalPath() + File.separator + relPath;
+          relPathUp  = "";
+          jarRelPath = createRelPath(new File(path).getParentFile(), filePath);
+        } else {
+          throw new BuildException("The file '"+filePath
+                                   +"' does not reside in baseDir ("
+                                   +basePath +")!");
+        }
       }
-      //System.out.println("jarRelPath: "+jarRelPath);
-      if (jarRelPath.length()>0) {
-        jarRelPath += File.separator;
+    }
+
+    /**
+     * Derive relative path from <tt>fromDir</tt> to the file given by
+     * <tt>filePath</tt>.
+     */
+    private String createRelPath(File fromDir, String filePath)
+    {
+      String res = "";
+      while (fromDir!=null && !filePath.startsWith(fromDir.toString())) {
+        if (res.length()>0) {
+          res += File.separator;
+        }
+        res += "..";
+        fromDir = fromDir.getParentFile();
       }
-      jarRelPath += filePath.substring(htmlPath.toString().length()+1);
-      //System.out.println("jarRelPath: "+jarRelPath);
+      if (res.length()>0) {
+        res += File.separator;
+      }
+      res += filePath.substring(fromDir.toString().length()+1);
+      return res;
     }
 
     public void load() throws Exception {
@@ -1122,5 +1207,42 @@ public class BundleHTMLExtractorTask extends Task {
     return Util.replace(src, a, b == null ? "" : b);
   }
 
+  /**
+   * Comparator that sorts file objects based on their file name.
+   */
+  class FileNameComparator
+    implements Comparator
+  {
+    public int compare(Object o1, Object o2)
+    {
+      File f1 = (File) o1;
+      File f2 = (File) o2;
+      return f1.getName().compareTo(f2.getName());
+    }
+
+    public boolean equals(Object obj)
+    {
+      return this==obj;
+    }
+  }
+
+  /**
+   * Comparator that sorts BundleInfo objects based on their file name.
+   */
+  class BundleInfoComparator
+    implements Comparator
+  {
+    public int compare(Object o1, Object o2)
+    {
+      BundleInfo info1 = (BundleInfo) o1;
+      BundleInfo info2 = (BundleInfo) o2;
+      return info1.file.getName().compareTo(info2.file.getName());
+    }
+
+    public boolean equals(Object obj)
+    {
+      return this==obj;
+    }
+  }
 
 }
