@@ -749,6 +749,8 @@ public class BundleHTMLExtractorTask extends Task {
             if(info.length == 2) {
               if("specification-version".equals(info[0].trim())) {
                 spec = info[1].trim();
+              } else if("version".equals(info[0].trim())) {
+                spec = info[1].trim();
               }
             }
           }
