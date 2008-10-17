@@ -63,11 +63,11 @@ import org.apache.tools.ant.util.FileUtils;
 /**
  * <p>
  * Task that analyzes a set of bundle jar files and builds HTML documentation
- * from these bundles. Also creates cross-references to bundle dependecies.
+ * from these bundles. Also creates cross-references to bundle dependencies.
  * </p>
  *
  * <p>
- * All generated HTML will be stored in the same directory stucture as
+ * All generated HTML will be stored in the same directory structure as
  * the scanned jars, e.g a jar file
  * <pre>
  *  jars/log/log-api.jar
@@ -76,6 +76,10 @@ import org.apache.tools.ant.util.FileUtils;
  * <pre>
  *  jars/log/log-api.html
  * </pre>
+ * in the directory specified with the attribute <code>outDir</code>.
+ * The part of the original bundle jar path to remove when creating
+ * the output directory structure in <code>outDir</code> is specified
+ * by the <code>baseDir</code> attribute.
  *
  * <p>
  * Bundle jar files files are analyzed using the static manifest attributes.
@@ -128,27 +132,30 @@ import org.apache.tools.ant.util.FileUtils;
  *  <tr>
  *   <td valign=top>systemPackageSet</td>
  *   <td valign=top>
- *    Comma-spearated set of packages which are system packages and
+ *    Comma-separated set of packages which are system packages and
  *    thus globally available.
  *    These are not cross-referenced.
  *   </td>
  *   <td valign=top>No.<br>
- * Default value is "javax.swing,javax.accessibility,javax.servlet,javax.xml,org.xml,org.w3c,java,com.sun"
- </td>
+ *     Default value is <code>javax.swing, javax.accessibility,
+ *     javax.servlet, javax.xml,org.xml, org.w3c, java, com.sun</code>
+ *   </td>
  *
  *  <tr>
  *   <td valign=top>skipAttribSet</td>
  *   <td valign=top>
- *    Comma-spearated set of manifest attributes which shouldn't be printed.
+ *    Comma-separated set of manifest attributes which shouldn't be printed.
  *   </td>
  *   <td valign=top>No.<br>
- * Default value is "Manifest-Version,Ant-Version,Bundle-Config,Created-By,Built-From"
+ *     Default value is <code>Manifest-Version, Ant-Version,
+ *     Bundle-Config, Created-By, Built-From</code>
  *   </td>
  *  </tr>
  *  <tr>
  *   <td valign=top>includeSourceFiles</td>
  *   <td valign=top>
- *    Controls if java source files shall be copied and linked into the html structure.
+ *    Controls if Java source files shall be copied and linked into
+ *    the HTML structure.
  *   </td>
  *   <td valign=top>No.<br>
  *   Default value "False"
