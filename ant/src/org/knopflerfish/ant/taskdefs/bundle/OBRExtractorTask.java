@@ -324,7 +324,7 @@ public class OBRExtractorTask extends Task {
           if(words.length < 1) {
             throw new RuntimeException("bad package spec '" + s + "'");
           }
-          String spec = ArrayInt.UNDEF;
+          String spec = "0";
           String name = words[0].trim();
 
           for(int j = 1; j < words.length; j++) {
@@ -346,9 +346,7 @@ public class OBRExtractorTask extends Task {
             }
           }
 
-          ArrayInt version = new ArrayInt(spec);
-
-          map.put(name, spec);
+          map.put(name, new VersionRange(spec));
         }
       }
 
@@ -392,12 +390,12 @@ public class OBRExtractorTask extends Task {
     void dumpPackages(PrintStream out, String tag, Map map) {
       for(Iterator it = map.keySet().iterator(); it.hasNext();) {
         String pkg  = (String)it.next();
-        String spec = (String)map.get(pkg);
+        VersionRange spec = (VersionRange) map.get(pkg);
         boolean bSkip = false;
         String  skipReason = null;
         if("import-package".equals(tag)) {
-          String exportSpec = (String)pkgExportMap.get(pkg);
-          if(exportSpec != null && spec.equals(exportSpec)) {
+          VersionRange exportSpec = (VersionRange) pkgExportMap.get(pkg);
+          if(exportSpec != null && spec.contains(exportSpec.lowerBound)) {
             // Skip import of exported packages
             bSkip = true;
             skipReason = "own import since exported with same version ";
