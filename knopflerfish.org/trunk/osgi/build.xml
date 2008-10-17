@@ -67,6 +67,7 @@
   <target name="xargs" depends="init,bundle_tasks">
     <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
     <property name="xargs.jars.pattern"  value="**/*.jar"/>
+    <property name="xargs.out.dir"       location="${osgi.dir}"/>
     <bundle_locator replacefilterfile="${bundleVersionFilter}">
       <fileset dir="${jars.dir}">
 	<include name="${xargs.jars.pattern}"/>
@@ -81,9 +82,9 @@
 
   <target name="minimal_xargs">
    <copy file="minimal.xargs.in"
-	 tofile="${osgi.dir}/minimal.xargs"
+	 tofile="${xargs.out.dir}/minimal.xargs"
 	 overwrite="true"/>
-   <replace file="${osgi.dir}/minimal.xargs"
+   <replace file="${xargs.out.dir}/minimal.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "file:jars/"/>
@@ -94,9 +95,9 @@
 
   <target name="remote_xargs">
    <copy file="template.xargs.in"
-	 tofile="${osgi.dir}/remote-init.xargs"
+	 tofile="${xargs.out.dir}/remote-init.xargs"
 	 overwrite="true"/>
-   <replace file="${osgi.dir}/remote-init.xargs"
+   <replace file="${xargs.out.dir}/remote-init.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "${base.url}/${version}/osgi/jars/"/>
@@ -107,10 +108,10 @@
 
   <target name="init_xargs">
    <copy file="template.xargs.in"
-	 tofile="${osgi.dir}/init.xargs"
+	 tofile="${xargs.out.dir}/init.xargs"
 	 overwrite="true"/>
 
-   <replace file="${osgi.dir}/init.xargs"
+   <replace file="${xargs.out.dir}/init.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "file:jars/"/>
@@ -130,9 +131,9 @@
   <target name="init_xargs_windows">
    <echo message="create init_${osname}.xargs"/>
    <copy file="template.xargs.in"
-	 tofile="${osgi.dir}/init_${osname}.xargs"
+	 tofile="${xargs.out.dir}/init_${osname}.xargs"
 	 overwrite="true"/>
-   <replace file="${osgi.dir}/init_${osname}.xargs"
+   <replace file="${xargs.out.dir}/init_${osname}.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
      <replacefilter token = "$(JAR_PREFIX)" 
                     value = "file:jars/"/>
@@ -151,9 +152,9 @@
 
   <target name="osgi_test_xargs">
    <copy file="init-osgi-test-target.xargs.in"
-	 tofile="${osgi.dir}/init-osgi-test-target.xargs"
+	 tofile="${xargs.out.dir}/init-osgi-test-target.xargs"
 	 overwrite="true"/>
-   <replace file="${osgi.dir}/init-osgi-test-target.xargs"
+   <replace file="${xargs.out.dir}/init-osgi-test-target.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
    </replace>	  
   </target>
@@ -172,9 +173,9 @@
       </fileset>
     </bundle_locator>
     <copy file="init-tests.xargs.in"
-	  tofile="${osgi.dir}/init-tests.xargs"
+	  tofile="${xargs.out.dir}/init-tests.xargs"
 	  overwrite="true"/>
-    <replace file="${osgi.dir}/init-tests.xargs"
+    <replace file="${xargs.out.dir}/init-tests.xargs"
 	     replacefilterfile="${bundleVersionFilterTest}">
       <replacefilter token="$(JAR_PREFIX)"      value="file:"/>
       <replacefilter token="$(VERSION)"         value=""/>
