@@ -60,6 +60,8 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
 
+import org.osgi.framework.Version;
+
 /**
  * <p>
  * Task that analyzes a set of bundle jar files and builds HTML documentation
@@ -223,7 +225,7 @@ public class BundleHTMLExtractorTask extends Task {
 
   private boolean bCheckJavaDoc  = true;
   private boolean include_source_files  = false;
-  
+
   Map     jarMap     = new TreeMap();
   Map     globalVars = new TreeMap();
 
@@ -376,12 +378,12 @@ public class BundleHTMLExtractorTask extends Task {
 
       log("analyzing " + jarMap.size() + " bundles");
       if (include_source_files) {
-	log("including source files in jardoc");
+        log("including source files in jardoc");
       }
       else {
-	log("includeSourceFiles is not set, skipping sources");
+        log("includeSourceFiles is not set, skipping sources");
       }
-      
+
       for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
         File       file = (File)it.next();
         BundleInfo info = (BundleInfo)jarMap.get(file);
@@ -475,8 +477,8 @@ public class BundleHTMLExtractorTask extends Task {
           for(Iterator it2 = info.unresolvedMap.keySet().iterator();
               it2.hasNext();)
             {
-              String   pkgName = (String)it2.next();
-              ArrayInt version = (ArrayInt)info.unresolvedMap.get(pkgName);
+              String pkgName = (String)it2.next();
+              Object version = info.unresolvedMap.get(pkgName);
 
               sb.append(pkgName + " " + version + "<br>\n");
             }
@@ -501,10 +503,10 @@ public class BundleHTMLExtractorTask extends Task {
   void copyFile(File templateFile, File outFile)
     throws IOException {
 
-      String src = Util.loadFile(templateFile.getAbsolutePath());
+    String src = Util.loadFile(templateFile.getAbsolutePath());
 
-      Util.writeStringToFile(outFile, src);
-      System.out.println("copied " + outFile);
+    Util.writeStringToFile(outFile, src);
+    System.out.println("copied " + outFile);
   }
 
   interface MapSelector {
@@ -517,10 +519,13 @@ public class BundleHTMLExtractorTask extends Task {
     Attributes attribs;
     Map        vars      = new TreeMap();
 
-    // String (package name) -> ArrayInt (version)
-    Map        pkgImportMap = new TreeMap();
+    // String (package name) -> Version
     Map        pkgExportMap = new TreeMap();
+    // String (package name) -> VersionRange
+    Map        pkgImportMap = new TreeMap();
+    // String (package name) -> Version
     Map        serviceExportMap = new TreeMap();
+    // String (package name) -> VersionRange
     Map        serviceImportMap = new TreeMap();
 
     String     relPath   = "";
@@ -580,10 +585,10 @@ public class BundleHTMLExtractorTask extends Task {
       vars.put("html.file", path +".html");
       vars.put("html.uri",  replace(relPath, "\\", "/"));
 
-      pkgExportMap     = parseNames(attribs.getValue("Export-Package"));
-      pkgImportMap     = parseNames(attribs.getValue("Import-Package"));
-      serviceExportMap = parseNames(attribs.getValue("Export-Service"));
-      serviceImportMap = parseNames(attribs.getValue("Import-Service"));
+      pkgExportMap     = parseNames(attribs.getValue("Export-Package"), false);
+      pkgImportMap     = parseNames(attribs.getValue("Import-Package"), true);
+      serviceExportMap = parseNames(attribs.getValue("Export-Service"), false);
+      serviceImportMap = parseNames(attribs.getValue("Import-Service"), true);
 
       extractSource(jarFile, new File( path +"/src"));
     }
@@ -594,11 +599,11 @@ public class BundleHTMLExtractorTask extends Task {
     boolean bSourceInside = false;
 
     void extractSource(JarFile jarFile, File destDir) throws IOException {
-      
+
       if (!include_source_files) {
-	return;
+        return;
       }
-      
+
       String prefix = "OSGI-OPT/src";
 
       int count = 0;
@@ -727,7 +732,7 @@ public class BundleHTMLExtractorTask extends Task {
 
 
 
-    Map parseNames(String s) {
+    Map parseNames(String s, boolean range) {
 
       Map map = new TreeMap();
 
@@ -740,7 +745,7 @@ public class BundleHTMLExtractorTask extends Task {
           if(words.length < 1) {
             throw new RuntimeException("bad package spec '" + s + "'");
           }
-          String spec = ArrayInt.UNDEF;
+          String spec = "0";
           String name = words[0].trim();
 
           for(int j = 1; j < words.length; j++) {
@@ -754,11 +759,11 @@ public class BundleHTMLExtractorTask extends Task {
               }
             }
           }
-
-          //System.out.println(" " + i + ": " + name + ", version=" + spec);
-          ArrayInt version = new ArrayInt(spec);
-
-          map.put(name, version);
+          if (range) {
+            map.put(name, new VersionRange(spec));
+          } else {
+            map.put(name, new Version(spec));
+          }
         }
       }
 
@@ -895,15 +900,15 @@ public class BundleHTMLExtractorTask extends Task {
                            "${depending.list}",
                            getDepend(
                                      new MapSelector() {
-                                         public Map getMap(BundleInfo info) {
-                                           return info.pkgExportMap;
-                                         }
-                                       },
+                                       public Map getMap(BundleInfo info) {
+                                         return info.pkgExportMap;
+                                       }
+                                     },
                                      new MapSelector() {
-                                         public Map getMap(BundleInfo info) {
-                                           return info.pkgImportMap;
-                                         }
-                                       },
+                                       public Map getMap(BundleInfo info) {
+                                         return info.pkgImportMap;
+                                       }
+                                     },
                                      null,
                                      false));
 
@@ -911,15 +916,15 @@ public class BundleHTMLExtractorTask extends Task {
                            "${depends.list}",
                            getDepend(
                                      new MapSelector() {
-                                         public Map getMap(BundleInfo info) {
-                                           return info.pkgImportMap;
-                                         }
-                                       },
+                                       public Map getMap(BundleInfo info) {
+                                         return info.pkgImportMap;
+                                       }
+                                     },
                                      new MapSelector() {
-                                         public Map getMap(BundleInfo info) {
-                                           return info.pkgExportMap;
-                                         }
-                                       },
+                                       public Map getMap(BundleInfo info) {
+                                         return info.pkgExportMap;
+                                       }
+                                     },
                                      unresolvedMap,
                                      true));
 
@@ -975,9 +980,10 @@ public class BundleHTMLExtractorTask extends Task {
         unresolvedMapDest = new TreeMap();
       }
 
-      for(Iterator it = importMap.getMap(this).keySet().iterator(); it.hasNext(); ) {
-        String   name    = (String)it.next();
-        ArrayInt version = (ArrayInt)importMap.getMap(this).get(name);
+      for(Iterator it = importMap.getMap(this).keySet().iterator();
+          it.hasNext(); ) {
+        String name    = (String)it.next();
+        Object version = importMap.getMap(this).get(name);
 
         boolean bFound = false;
         for(Iterator it2 = jarMap.keySet().iterator(); it2.hasNext();) {
@@ -985,15 +991,21 @@ public class BundleHTMLExtractorTask extends Task {
           BundleInfo info = (BundleInfo)jarMap.get(jarFile);
 
           for(Iterator it3 = exportMap.getMap(info).keySet().iterator(); it3.hasNext(); ) {
-            String   name2    = (String)it3.next();
-            ArrayInt version2 = (ArrayInt)exportMap.getMap(info).get(name);
+            String name2    = (String) it3.next();
+            Object version2 = exportMap.getMap(info).get(name);
 
             if(name.equals(name2)) {
-              if(version2.compareTo(version) >= 0) {
+              VersionRange versions = (version instanceof VersionRange)
+                ? (VersionRange) version : (VersionRange) version2;
+              Version ver = (version instanceof Version)
+                ? (Version) version : (Version) version2;
+
+              if(versions.contains(ver)) {
                 bFound = true;
                 map.put(jarFile, name);
               } else {
-                System.out.println(file + ": need " + name + " version " + version + ", found version " + version2);
+                System.out.println(file +": need " +name +" version "
+                                   +version +", found version " +version2);
               }
             }
           }
@@ -1033,8 +1045,8 @@ public class BundleHTMLExtractorTask extends Task {
             sb.append(row);
           }
           for(Iterator it = unresolvedMapDest.keySet().iterator(); it.hasNext();) {
-            String   name    = (String)it.next();
-            ArrayInt version = (ArrayInt)unresolvedMapDest.get(name);
+            String name    = (String) it.next();
+            Object version = unresolvedMapDest.get(name);
 
             String row = missingRow;
 
@@ -1056,8 +1068,8 @@ public class BundleHTMLExtractorTask extends Task {
       StringBuffer sb = new StringBuffer();
 
       for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
-        String   name    = (String)it.next();
-        ArrayInt version = (ArrayInt)map.get(name);
+        String name    = (String)it.next();
+        Object version = map.get(name);
 
         String html = pkgHTML;
 
@@ -1075,7 +1087,7 @@ public class BundleHTMLExtractorTask extends Task {
             missingDocs.put(name, this);
           } else {
             html = replace(html,
-                         "${namelink}", "<a href=\"${javadoc}\">${name}</a>");
+                           "${namelink}", "<a href=\"${javadoc}\">${name}</a>");
           }
         } else {
           html = replace(html, "${namelink}", "${name}");
