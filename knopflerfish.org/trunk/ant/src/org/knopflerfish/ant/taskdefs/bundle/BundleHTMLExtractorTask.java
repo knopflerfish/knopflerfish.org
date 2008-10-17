@@ -215,7 +215,7 @@ public class BundleHTMLExtractorTask extends Task {
     "<tr><td><a href=\"${bundledoc}\">${FILE.short}</a></td><td>${what}</td></tr>\n";
 
   private String packageListRow   =
-    "<tr><td>${package.name}&nbsp;${package.version}</td><td>${providers}</td></tr>\n";
+    "<tr><td>${namelink}&nbsp;${version}</td><td>${providers}</td></tr>\n";
 
   private String missingRow   =
     "<tr><td>${name}</td><td>${version}</td></tr>\n";
@@ -224,7 +224,7 @@ public class BundleHTMLExtractorTask extends Task {
     "<a href=\"${bundle.uri}\">${FILE.short}</a><br>\n";
 
   private String pkgHTML      =
-    "${namelink} ${version}<br>";
+    "${namelink}&nbsp;${version}<br>";
 
   private boolean bCheckJavaDoc  = true;
   private boolean include_source_files  = false;
@@ -528,9 +528,6 @@ public class BundleHTMLExtractorTask extends Task {
     for(Iterator it = pkgs.iterator(); it.hasNext();) {
       String pkg = (String) it.next();
 
-      String row = rowTemplate;
-      row = replace(row, "${package.name}", pkg);
-
       TreeMap pkgVersions = new TreeMap();
       for (Iterator it2=jarMap.values().iterator(); it2.hasNext();) {
         BundleInfo info = (BundleInfo) it2.next();
@@ -545,9 +542,33 @@ public class BundleHTMLExtractorTask extends Task {
         }
       }
       for (Iterator it3=pkgVersions.keySet().iterator(); it3.hasNext();) {
-        Version ver = (Version) it3.next();
-        String verRow = replace(row, "${package.version}", ver.toString());
-        TreeSet providers = (TreeSet) pkgVersions.get(ver);
+        String  row = rowTemplate;
+        Version version = (Version) it3.next();
+
+        String docFile = replace(pkg, ".", "/") +"/package-summary.html";
+        String docPath = javadocRelPath +"/index.html?" +docFile;
+
+        File f = new File(outDir +File.separator
+                          +javadocRelPath +File.separator +docFile);
+
+        if(javadocRelPath != null && !"".equals(javadocRelPath)) {
+          if( isSystemPackage(pkg) ) {
+            row = replace(row, "${namelink}", "${name}");
+          } else if ( (bCheckJavaDoc && !f.exists()) ) {
+            row = replace(row, "${namelink}", "${name}");
+          } else {
+            row = replace(row,
+                          "${namelink}",
+                          "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
+          }
+        } else {
+          row = replace(row, "${namelink}", "${name}");
+        }
+        row = replace(row, "${name}", pkg);
+        row = replace(row, "${version}", version.toString());
+        row = replace(row, "${javadoc}", docPath);
+
+        TreeSet providers = (TreeSet) pkgVersions.get(version);
         StringBuffer sbProviders = new StringBuffer();
         for (Iterator it4=providers.iterator(); it4.hasNext();) {
           BundleInfo info = (BundleInfo) it4.next();
@@ -558,8 +579,8 @@ public class BundleHTMLExtractorTask extends Task {
                                 info.relPath +".html");
           sbProviders.append(providerRow);
         }
-        verRow = replace(verRow, "${providers}", sbProviders.toString());
-        sb.append(verRow);
+        row = replace(row, "${providers}", sbProviders.toString());
+        sb.append(row);
       }
     }
 
@@ -923,24 +944,24 @@ public class BundleHTMLExtractorTask extends Task {
 
       template = replace(template,
                          "${Export-Package}",
-                         getPackageString(pkgExportMap,
-                                          "/package-summary.html"));
+                         getPackagesString(pkgExportMap,
+                                           "/package-summary.html"));
 
       template = replace(template,
                          "${Import-Package}",
-                         getPackageString(pkgImportMap,
-                                          "/package-summary.html"));
+                         getPackagesString(pkgImportMap,
+                                           "/package-summary.html"));
 
 
       template = replace(template,
                          "${Export-Service}",
-                         getPackageString(serviceExportMap,
-                                          ".html"));
+                         getPackagesString(serviceExportMap,
+                                           ".html"));
 
       template = replace(template,
                          "${Import-Service}",
-                         getPackageString(serviceImportMap,
-                                          ".html"));
+                         getPackagesString(serviceImportMap,
+                                           ".html"));
 
 
       for(Iterator it = alwaysPropSet.iterator(); it.hasNext(); ) {
@@ -1148,42 +1169,46 @@ public class BundleHTMLExtractorTask extends Task {
     }
 
 
+    String getPackageString(String pkg, Object version, String linkSuffix)
+    {
+      String row = pkgHTML;
 
-    String getPackageString(Map map, String linkSuffix) {
+      String docFile = replace(pkg, ".", "/") + linkSuffix;
+      String docPath = relPathUp + javadocRelPath + "/index.html?" + docFile;
+
+      File f = new File(outDir + File.separator
+                        + javadocRelPath + File.separator + docFile);
+
+      if(javadocRelPath != null && !"".equals(javadocRelPath)) {
+        if( isSystemPackage(pkg) ) {
+          row = replace(row, "${namelink}", "${name}");
+        } else if ( (bCheckJavaDoc && !f.exists()) ) {
+          row = replace(row, "${namelink}", "${name}");
+          missingDocs.put(pkg, this);
+        } else {
+          row = replace(row,
+                        "${namelink}",
+                        "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
+        }
+      } else {
+        row = replace(row, "${namelink}", "${name}");
+      }
+
+      row = replace(row, "${name}", pkg);
+      row = replace(row, "${version}", version.toString());
+      row = replace(row, "${javadoc}", docPath);
+
+      return row;
+    }
+
+    String getPackagesString(Map map, String linkSuffix) {
       StringBuffer sb = new StringBuffer();
 
       for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
         String name    = (String)it.next();
         Object version = map.get(name);
 
-        String html = pkgHTML;
-
-        String docFile = replace(name, ".", "/") + linkSuffix;
-        String docPath = relPathUp + javadocRelPath + "/" + docFile;
-
-        File f = new File(outDir + File.separator
-                          + javadocRelPath + File.separator + docFile);
-
-        if(javadocRelPath != null && !"".equals(javadocRelPath)) {
-          if( isSystemPackage(name) ) {
-            html = replace(html, "${namelink}", "${name}");
-          } else if ( (bCheckJavaDoc && !f.exists()) ) {
-            html = replace(html, "${namelink}", "${name}");
-            missingDocs.put(name, this);
-          } else {
-            html = replace(html,
-                           "${namelink}", "<a href=\"${javadoc}\">${name}</a>");
-          }
-        } else {
-          html = replace(html, "${namelink}", "${name}");
-        }
-
-        String row     = replace(html, "${name}", name);
-
-        row = replace(row, "${version}", version.toString());
-        row = replace(row, "${javadoc}", docPath);
-
-        sb.append(row);
+        sb.append(getPackageString(name, version, linkSuffix));
       }
 
       return sb.toString();
