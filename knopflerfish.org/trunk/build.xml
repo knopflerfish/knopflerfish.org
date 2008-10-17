@@ -214,7 +214,8 @@
     <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
                 outDir             = "${jardocs.dir}"
                 baseDir            = "${release.dir}/osgi/jars"
-                javadocRelPath     = "../javadoc" >
+                javadocRelPath     = "../javadoc"
+		includeSourceFiles = "true">
       <fileset dir="${release.dir}/osgi/jars">
         <include name = "**/*.jar"/>
       </fileset>
