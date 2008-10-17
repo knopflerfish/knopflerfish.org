@@ -217,7 +217,11 @@
                 javadocRelPath     = "../javadoc"
 		includeSourceFiles = "true">
       <fileset dir="${release.dir}/osgi/jars">
-        <include name = "**/*.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+      <!-- Include framework.jar to get a provider of org.osgi.framework. -->
+      <fileset dir="${release.dir}/osgi/">
+        <include name="framework.jar"/>
       </fileset>
    </bundlehtml>
   </target>
@@ -351,7 +355,6 @@
       <fileset dir="${bindex.jars.dir}">
 	<include name = "*/*.jar"/>
 	<exclude name = "*/*_api-*.jar"/>
-	<exclude name = "framework.jar"/>
       </fileset> 
     </bindex>
   </target>
@@ -401,7 +404,6 @@
       <fileset dir="${obr.base.dir}">
         <include name = "**/*.jar"/>
         <exclude name = "**/*_api-*.jar"/>
-        <exclude name = "framework.jar"/>
       </fileset>
     </bundleobr>
     <!-- Generate HTML-page from repository.xml -->
@@ -476,9 +478,7 @@
     <copy todir="${release.dir}/osgi/jars">
      <fileset dir="osgi/jars"/>
     </copy>
-    <!-- this is just copied to allow cross-reference to the framework -->
-    <copy file   = "osgi/framework.jar"
-          tofile = "${release.dir}/osgi/jars/framework.jar"/>
+    <copy todir="${release.dir}/osgi/" file="osgi/framework.jar"/>
     <antcall target     = "jardocs"/>
 
     <antcall target     = "bundle_doc"/>
@@ -980,9 +980,7 @@
     <copy todir="${release.dir}/osgi/jars">
      <fileset dir="osgi/jars"/>
     </copy>
-    <!-- this is just copied to allow cross-reference to the framework -->
-    <copy file   = "osgi/framework.jar"
-          tofile = "${release.dir}/osgi/jars/framework.jar"/>
+    <copy todir="${release.dir}/osgi/" file="osgi/framework.jar"/>
     <antcall target     = "jardocs"/>
 
     <delete file        ="${distribfile_opt}"/>
