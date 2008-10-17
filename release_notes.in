@@ -8,6 +8,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+
+========================================================================
+
+
+Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
+--------------------------------
+
+  Maintenance release of Knopflerfish available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the 
+  last release.
+
+
 === General (non-optional bundles) ===
 
   Direct usage of System.getProperty() have been replaced with calls
