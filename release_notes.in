@@ -34,7 +34,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   The state of the system bundle is now moved from STARTING to ACTIVE
   right before sending out the framework event STARTED. I.e., after
-  that the target runlevel have been reached.
+  that the target run-level have been reached.
 
   Fixed a problem with fragment handling when updating a bundle with
   attached fragments. Also fixed a problem where require bundle could
@@ -57,7 +57,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Also, a view for OSGi and java.util preferences has been added. This
   view can be used to edit both JVM preferences and bundle preferences.  
 
-  Bundles opened via the desktop's "Open" menu is no longer autostarted.
+  Bundles opened via the desktop's "Open" menu is no longer auto started.
 
   Bundles having using Declarative Services are now displayed using
   a special icon.
@@ -109,10 +109,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   It is now possible to use bundlebuild_include.xml to build fragment
   bundles. The recommended build file setting for fragment bundles is:
 
-  <property name = "bundle.build.lib"   value = "false"/>
-  <property name = "bundle.build.api"   value = "false"/>
-  <property name = "bundle.build.impl"  value = "false"/>
-  <property name = "bundle.build.all"   value = "true"/>
+  &lt;property name = "bundle.build.lib"   value = "false"/&gt;
+  &lt;property name = "bundle.build.api"   value = "false"/&gt;
+  &lt;property name = "bundle.build.impl"  value = "false"/&gt;
+  &lt;property name = "bundle.build.all"   value = "true"/&gt;
 
   I.e., build it as an "all"-bunlde.
 
@@ -357,9 +357,9 @@ Release Notes Knopflerfish 2.0.4
   Added system property
     org.knopflerfish.framework.system.export.all
   If set to true the system bundle will export all standard packages
-  provided by the JRE. The files packages<M><N>.txt specifying the set
-  of packages to export for JRE <M>.<N> have been moved inside
-  framework.jar to simplify embedding. A file named packages<M><N>.txt
+  provided by the JRE. The files packages&lt;M&gt;&lt;N&gt;.txt specifying the set
+  of packages to export for JRE &lt;M&gt;.&lt;N&gt; have been moved inside
+  framework.jar to simplify embedding. A file named packages&lt;M&gt;&lt;N&gt;.txt
   in the current working directory will override the embedded file
   with the same name.
 
@@ -410,8 +410,8 @@ Release Notes Knopflerfish 2.0.4
     
   Start of the Framework
 
-  The command line option "--xargs <FILE>" was added. Loads the
-  named file like "-xargs <FILE>" if the file can be found, but does
+  The command line option "--xargs &lt;FILE&gt;" was added. Loads the
+  named file like "-xargs &lt;FILE&gt;" if the file can be found, but does
   not abort startup of the framework if the file cannot be read.
 
 
@@ -427,7 +427,7 @@ Release Notes Knopflerfish 2.0.4
   Build System
 
   Building a distribution from the top level directory places all
-  output in the directory htdocs/releases/<VERSION>.
+  output in the directory htdocs/releases/&lt;VERSION&gt;.
   New items that that are placed here:
 
    index.html file with links to all products, release note, test
