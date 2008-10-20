@@ -136,6 +136,14 @@ public class BIndexTask extends Task {
       log("writing bundle repository to " + outFile, Project.MSG_VERBOSE);
       List cmdList = new ArrayList( 10 + jarSet.size() );
 
+      cmdList.add("-t");
+      cmdList.add(baseURL +"/%p/%f ");
+
+      // -d <rootFile> here
+
+      cmdList.add("-r");
+      cmdList.add(outFile);
+
       // Don't print the resulting XML documnet on System.out.
       cmdList.add("-q");
 
@@ -143,11 +151,6 @@ public class BIndexTask extends Task {
         cmdList.add("-n");
         cmdList.add(repoName);
       }
-      cmdList.add("-r");
-      cmdList.add(outFile);
-      cmdList.add("-t");
-      cmdList.add(baseURL +"/%p/%f ");
-
       for (Iterator iter = jarSet.iterator(); iter.hasNext(); ) {
         String file = ((File) iter.next()).getAbsolutePath();
         cmdList.add(file);
@@ -158,11 +161,14 @@ public class BIndexTask extends Task {
         // generate the bindex.xml file.
         Class bIndexClazz = Class.forName("org.osgi.impl.bundle.bindex.Index");
 
-        if (isBindexRootFileSettable(bIndexClazz)) {
-          cmdList.add("-d");
-          cmdList.add(baseDir.getAbsolutePath());
-        } else {
-          // Hack for older binded without -d option. Use reflection
+        //if (isBindexRootFileSettable(bIndexClazz))
+        {
+          // Prepend the -d <rootFile> option
+          cmdList.add(2,baseDir.getAbsolutePath());
+          cmdList.add(2,"-d");
+        } //else
+        {
+          // Hack for older bindex without -d option. Use reflection
           // to set org.osgi.impl.bundle.bindex.Index.rootFile to
           // baseDir to get correctly computed paths in the bundle
           // URLs.
@@ -173,9 +179,15 @@ public class BIndexTask extends Task {
 
         // Call the main method
         String[] args = (String[]) cmdList.toArray(new String[cmdList.size()]);
-        Method mainMethod
-          = bIndexClazz.getDeclaredMethod("main",
-                                          new Class[]{args.getClass()});
+        Method mainMethod = bIndexClazz
+          .getDeclaredMethod("main", new Class[]{args.getClass()});
+        {
+          StringBuffer argSb = new StringBuffer();
+          for (int ix=0; ix<args.length; ix++){
+            argSb.append(" \"").append(args[ix]).append("\"");
+          }
+          log("Calling bindex with args: "+argSb, Project.MSG_VERBOSE);
+        }
         mainMethod.invoke(null, new Object[]{args});
       } catch (Exception e) {
         log("Failed to execute BIndex: " +e.getMessage(), Project.MSG_ERR);
