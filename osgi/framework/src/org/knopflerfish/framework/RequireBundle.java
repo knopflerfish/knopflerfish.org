@@ -46,8 +46,29 @@ class RequireBundle {
   final VersionRange bundleRange;
   BundlePackages bpkgs = null;
 
-  RequireBundle(BundlePackages requestor, String name, String visibility,
-          String resolution, String range) {
+  /**
+   * A re-required bundle for fragment hosts.
+   * @param requestor The bundle packages of the fragment host that
+   *                  re-requires a required bundle from one of its
+   *                  fragments.
+   * @param parent    The fragment require bundle object to re-require.
+   */
+  RequireBundle(BundlePackages requestor,
+                RequireBundle  parent)
+  {
+    this.requestor  = requestor;
+    this.name       = parent.name;
+    this.visibility = parent.visibility;
+    this.resolution = parent.resolution;
+    this.bundleRange= parent.bundleRange;
+  }
+
+  RequireBundle(BundlePackages requestor,
+                String name,
+                String visibility,
+                String resolution,
+                String range)
+  {
     this.requestor = requestor;
     this.name = name;
     if (visibility != null) {

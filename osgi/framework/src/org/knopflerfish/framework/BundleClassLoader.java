@@ -485,6 +485,10 @@ final public class BundleClassLoader extends ClassLoader {
   void close() {
     archive = null;
     bpkgs.invalidateClassLoader();
+    if (fragments!=null) {
+      fragments.clear();
+      fragments = null;
+    }
     if (debug) {
       Debug.println(this + " Cleared archives");
     }

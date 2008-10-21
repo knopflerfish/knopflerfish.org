@@ -185,7 +185,10 @@ class Packages {
    * @return True if all packages were succesfully unregistered,
    *         otherwise false.
    */
-  synchronized boolean unregisterPackages(List exports, List imports, boolean force) {
+  synchronized boolean unregisterPackages(List exports,
+                                          List imports,
+                                          boolean force)
+  {
     // Check if somebody other than ourselves use our exports
     if (!force) {
       for (Iterator i = exports.iterator(); i.hasNext(); ) {
@@ -193,8 +196,8 @@ class Packages {
         // Is the exporting bundle wired to any bundle via Require-Bundle
         if (ep.bpkgs.requiredBy!=null && ep.bpkgs.requiredBy.size()>0) {
           if (Debug.packages) {
-            Debug.println("unregisterPackages: Failed to unregister, " + ep +
-                          " is still in use via Require-Bundle.");
+            Debug.println("unregisterPackages: Failed to unregister, "
+                          +ep +" is still in use via Require-Bundle.");
           }
           markAsZombies(exports);
           return false;
@@ -205,8 +208,8 @@ class Packages {
             ImportPkg ip = (ImportPkg) ii.next();
             if (ep == ip.provider && ep.bpkgs != ip.bpkgs) {
               if (Debug.packages) {
-                Debug.println("unregisterPackages: Failed to unregister, " + ep +
-                              " is still in use via import-package.");
+                Debug.println("unregisterPackages: Failed to unregister, "
+                              +ep +" is still in use via import-package.");
               }
               markAsZombies(exports);
               return false;
@@ -232,7 +235,8 @@ class Packages {
       ImportPkg ip = (ImportPkg)i.next();
       Pkg p = ip.pkg;
       if (Debug.packages) {
-        Debug.println("unregisterPackages: unregister import - " + ip.pkgString());
+        Debug.println("unregisterPackages: unregister import - "
+                      +ip.pkgString());
       }
       p.removeImporter(ip);
       if (p.isEmpty()) {
@@ -799,7 +803,8 @@ class Packages {
 
 
   /**
-   * Check that the bundle specified can resolve all its Require-Bundle constraints.
+   * Check that the bundle specified can resolve all its
+   * Require-Bundle constraints.
    *
    * @param b Bundle to check, must be in INSTALLED state
    * @return Symbolic name of bundle blocking resolve, otherwise null.
@@ -878,7 +883,8 @@ class Packages {
         Debug.println("registerNewProviders: '"
                       +Constants.REQUIRE_BUNDLE +": " + br.name
                       +"' for " +br.requestor.bundle.getBundleId()
-                      +" bound to " +bpkgs.bundle.getBundleId());
+                      +" bound to (id=" +bpkgs.bundle.getBundleId()
+                      +",gen=" + bpkgs.generation + ")");
       }
       if (br.visibility == Constants.VISIBILITY_REEXPORT) {
         // Create necessary re-export entries

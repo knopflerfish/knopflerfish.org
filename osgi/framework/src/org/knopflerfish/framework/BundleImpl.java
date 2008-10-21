@@ -633,7 +633,6 @@ class BundleImpl implements Bundle {
 
       // Loose old bundle if no exporting packages left
       if (allRemoved) {
-        detachFragments();
         if (classLoader != null) {
           if(classLoader instanceof BundleClassLoader) {
             ((BundleClassLoader)classLoader).close();
@@ -643,13 +642,11 @@ class BundleImpl implements Bundle {
         purgeOld = true;
       } else {
         saveZombiePackages();
-        detachFragments();
-        if (fragments != null) {
-          // No fragments attached to the new bundle vesion, but we
-          // must keep them in the pkgs.
-          fragments.clear();
-        }
         purgeOld = false;
+      }
+
+      if (isFragmentHost()) {
+        detachFragments(true);
       }
     }
 
@@ -749,8 +746,12 @@ class BundleImpl implements Bundle {
           secure.purge(this, protectionDomain);
           archive.purge();
         }
-      } else {
-        if (bpkgs.unregisterPackages(false)) {
+      } else { // Non-fragment bundle
+        // Try to unregister this bundle's packages
+        boolean pkgsUnregistered = bpkgs.unregisterPackages(false);
+
+        if (pkgsUnregistered) {
+          // No exports in use, clean up.
           if (classLoader != null) {
             if(classLoader instanceof BundleClassLoader) {
               ((BundleClassLoader)classLoader).purge();
@@ -761,9 +762,10 @@ class BundleImpl implements Bundle {
             archive.purge();
           }
         } else {
+          // Exports are in use, save as zombie packages
           saveZombiePackages();
-          classLoader = null;
         }
+
         if (isFragmentHost()) {
           detachFragments(true);
         }
@@ -791,9 +793,11 @@ class BundleImpl implements Bundle {
       modified();
 
       if (wasResolved) {
-        framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+        framework.listeners
+          .bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
       }
-      framework.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
+      framework.listeners
+        .bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
       break;
     case STARTING:
       // Wait for RUNNING state, this doesn't happen now
@@ -982,16 +986,19 @@ class BundleImpl implements Bundle {
               if (fragments != null) {
                 for (Iterator i = fragments.iterator(); i.hasNext(); ) {
                   BundleImpl b = (BundleImpl)i.next();
-                  framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, b));
+                  framework.listeners
+                    .bundleChanged(new BundleEvent(BundleEvent.RESOLVED, b));
                 }
               }
-              framework.listeners.bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
+              framework.listeners
+                .bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
 
               if (id != 0) { // this is not applicable to system bundle.
                 List fe = archive.getFailedClassPathEntries();
                 if (fe != null) {
                   for (Iterator i = fe.iterator(); i.hasNext(); ) {
-                    Exception e = new IOException("Failed to classpath entry: " + i.next());
+                    Exception e = new IOException
+                      ("Failed to classpath entry: " + i.next());
                     framework.listeners.frameworkInfo(this, e);
                   }
                 }
@@ -2014,8 +2021,8 @@ class BundleImpl implements Bundle {
     }
 
     if(Debug.packages) {
-      Debug.println("BundleImpl.attachFragment(" +fragmentBundle.getBundleId()
-                    +") to (id=" +bpkgs.bundle.id
+      Debug.println("Fragment(id=" +fragmentBundle.getBundleId()
+                    +") attached to host(id=" +bpkgs.bundle.id
                     +",gen=" +bpkgs.generation +")");
     }
     if (fragments == null) {
@@ -2042,25 +2049,6 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Detach all fragments from this bundle but leave them attached on
-   * the bundle packages level so that the old still exported
-   * generation of the bundle packages continues to work.
-   */
-  private void detachFragments()
-  {
-    if (fragments != null) {
-      for (Iterator fi = fragments.iterator(); fi.hasNext();) {
-        BundleImpl fb = (BundleImpl)fi.next();
-        if(Debug.packages) {
-          Debug.println("BundleImpl.detachFragment(" +fb.getBundleId() +")");
-        }
-      }
-      fragments.clear();
-    }
-  }
-
-
-  /**
    * Detach all fragments from this bundle and its bundle packages.
    */
   private void detachFragments(boolean sendEvent) {
@@ -2076,15 +2064,14 @@ class BundleImpl implements Bundle {
    * Detach fragment from this bundle.
    */
   private void detachFragment(BundleImpl fb, boolean sendEvent) {
-    if(Debug.packages) {
-      Debug.println("BundleImpl.detachFragment(" +fb.getBundleId()
-                    +") from (id=" +bpkgs.bundle.id
-                    +",gen=" +bpkgs.generation +")");
-    }
-
     // NYI! extensions
     if (fragments.remove(fb)) {
       bpkgs.detachFragment(fb);
+      if(Debug.packages) {
+        Debug.println("Fragment(id=" +fb.getBundleId()
+                      +") detached from host(id=" +bpkgs.bundle.id
+                      +",gen=" +bpkgs.generation +")");
+      }
       if (fb.state != UNINSTALLED) {
         fb.setStateInstalled(sendEvent);
       }

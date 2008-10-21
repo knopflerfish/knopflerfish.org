@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006, KNOPFLERFISH project
+ * Copyright (c) 2005-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,19 +69,19 @@ class ExportPkg {
       throw new IllegalArgumentException("You can not export a java.* package");
     }
     this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE,
-				      (String)tokens.remove(Constants.USES_DIRECTIVE));
+                                      (String)tokens.remove(Constants.USES_DIRECTIVE));
     this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE,
-					   (String)tokens.remove(Constants.MANDATORY_DIRECTIVE));
+                                           (String)tokens.remove(Constants.MANDATORY_DIRECTIVE));
     this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
-					 (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
+                                         (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
     this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
-					 (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
+                                         (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
     String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
     String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
-        throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
+        throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
                                            "and " + Constants.PACKAGE_SPECIFICATION_VERSION +
                                            "are specified, and differs");
       }
@@ -92,11 +92,11 @@ class ExportPkg {
     }
     if (tokens.containsKey(Constants.BUNDLE_VERSION_ATTRIBUTE)) {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
-					 Constants.BUNDLE_VERSION_ATTRIBUTE);
+                                         Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
     if (tokens.containsKey(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE)) {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
-					 Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+                                         Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
     }
     this.attributes = tokens;
   }
@@ -104,6 +104,9 @@ class ExportPkg {
 
   /**
    * Create an export package entry with a new name from an export template.
+   *
+   * @param ep The export template to create an export package entry for.
+   * @param name The name of the export package entry created from the template.
    */
   ExportPkg(ExportPkg ep, String name) {
     this.name = name;
@@ -118,7 +121,10 @@ class ExportPkg {
 
 
   /**
-   * Create a re-export package entry with a new bundle owner from an existing export.
+   * Create a re-export package entry with a new bundle owner from an
+   * existing export.
+   * @param ep The ExportPkg to create a re-export package entry for.
+   * @param b  The BundlePackages that owns this re-exprot entry.
    */
   ExportPkg(ExportPkg ep, BundlePackages b) {
     this.name = ep.name;
@@ -226,7 +232,7 @@ class ExportPkg {
 
   //
   // Private
-  //    
+  //
 
   /**
    * String describing package name and specification version, if specified.
