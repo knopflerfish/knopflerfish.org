@@ -1,0 +1,29 @@
+<project name="xargs" basedir=".">
+  
+  <import file="${ant.dir}/bundletasks.xml"/>
+  
+  <target name="xargs" depends="bundle_tasks">
+    <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
+    <property name="xargs.jars.pattern"  value="**/*.jar"/>
+
+    <bundle_locator replacefilterfile="${bundleVersionFilter}">
+      <fileset dir="${jars.dir}">
+	<include name="${xargs.jars.pattern}"/>
+      </fileset>
+    </bundle_locator>
+    
+    <copy file="${xargs.template.in}"
+	  tofile="${xargs.out.file}"
+	  overwrite="true"/>
+    
+    <replace file="${xargs.out.file}"
+	     replacefilterfile="${bundleVersionFilter}">
+      <replacefilter token = "$(JAR_PREFIX)" 
+                     value = "file:jars/"/>
+      <replacefilter token="$(VERSION)"         value="${version}"/>
+      <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
+    </replace>	  
+  </target>
+  
+</project>
+  
