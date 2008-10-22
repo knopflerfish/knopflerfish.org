@@ -208,3 +208,12 @@ TD.fancy_row {
   border-bottom: 2px solid #A3A3A3;
   border-top: 2px solid #A3A3A3;
 }
+
+
+#release_notes dt {
+  font-weight: bold;
+}
+
+#release_notes dd {
+  margin-bottom: 10px;
+}
