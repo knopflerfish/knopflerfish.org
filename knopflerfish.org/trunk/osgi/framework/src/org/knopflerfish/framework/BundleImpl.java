@@ -622,6 +622,8 @@ class BundleImpl implements Bundle {
 
     if (isFragment()) {
       if (isAttached()) {
+        BundleImpl host = getFragmentHost();
+        host.bpkgs.fragmentIsZombie(this);
         fragment.setHost(null);
         purgeOld = false;
       } else {
@@ -740,8 +742,10 @@ class BundleImpl implements Bundle {
 
       if (isFragment()) {
         if (isAttached()) {
-          classLoader = null;
+          BundleImpl host = getFragmentHost();
+          host.bpkgs.fragmentIsZombie(this);
           fragment.setHost(null);
+          classLoader = null;
         } else {
           secure.purge(this, protectionDomain);
           archive.purge();
@@ -2024,6 +2028,8 @@ class BundleImpl implements Bundle {
       Debug.println("Fragment(id=" +fragmentBundle.getBundleId()
                     +") attached to host(id=" +bpkgs.bundle.id
                     +",gen=" +bpkgs.generation +")");
+
+
     }
     if (fragments == null) {
       fragments = new ArrayList();

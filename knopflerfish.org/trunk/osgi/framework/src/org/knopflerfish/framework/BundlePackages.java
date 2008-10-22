@@ -620,6 +620,28 @@ class BundlePackages {
 
 
   /**
+   * An attached fragment is now a zombie since it have been updated
+   * or uninstalled. Mark all packages exported by this host as
+   * zombies, since their contents may have changed.
+   *
+   * @param fb The fragment bundle that have been updated or uninstalled.
+   */
+  void fragmentIsZombie(BundleImpl fb)
+  {
+    if (null!=exports) {
+      if(Debug.packages) {
+        Debug.println("Marking all packages exported by host bundle(id="
+                      +bundle.id +",gen=" +generation
+                      +") as zombies since the attached fragment (id="
+                      +fb.getBundleId() +") was updated/uninstalled.");
+      }
+      for (Iterator eiter = exports.iterator(); eiter.hasNext(); ) {
+        ((ExportPkg)eiter.next()).zombie = true;
+      }
+    }
+  }
+
+  /**
    * Detach all remaining fragments.
    */
   private void detachFragments() {
