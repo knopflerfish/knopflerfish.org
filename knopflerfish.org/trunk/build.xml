@@ -364,22 +364,29 @@
     <!-- The top level REPO file -->
     <antcall target="obr_bare">
       <param name="obr.dest.dir"  location="repo"/>
-      <param name="obr.base.url"  value="http://www.knopflerfish.org/repo"/>
+      <param name="obr.dest.url"  value="http://www.knopflerfish.org/repo"/>
+      <param name="obr.base.url"  value="${obr.dest.url}"/>
       <param name="obr.html.file" value="index.html"/>
-      <param name="obr.doc.root"   value="http://www.knopflerfish.org"/>
+      <param name="obr.doc.root"  value="http://www.knopflerfish.org"/>
       <param name="obr.css.url"   value="http://www.knopflerfish.org/css/knopflerfish2.css"/>
     </antcall>
     <!-- The release directory REPO file -->
     <antcall target="obr_bare">
       <param name="obr.dest.dir"  location="${release.dir}"/>
+      <param name="obr.dest.url"  value="${base.url}/${version}"/>
       <param name="obr.base.url"  value="${base.url}/${version}/osgi"/>
       <param name="obr.html.file" value="repository.html"/>
-      <param name="obr.doc.root"   value="docs"/>
+      <param name="obr.doc.root"  value="docs"/>
       <param name="obr.css.url"   value="docs/css/knopflerfish.css"/>
     </antcall>
   </target>
 
-  <!-- Parameters: obr.dest.dir, obr.base.url and obr.html.file  -->
+  <!-- Parameters:  -->
+  <!--  obr.dest.dir  Location to place the repository.xml file in. -->
+  <!--  obr.dest.url  The external URL form of obr.dest.dir.        -->
+  <!--  obr.base.url  The initial part of the repository bundle URL -->
+  <!--                that replaces obr.base.dir in the location.   -->
+  <!--  obr.html.file Name of the XSLT output file.                 -->
   <target name="obr_bare">
     <property name="obr.name"
 	      value="Knopflerfish bundle repository - ${version}"/>
@@ -412,8 +419,9 @@
 	  overwrite="true">
       <filterset begintoken="@@" endtoken="@@">
 	<filter token="obr.base.url" value="${obr.base.url}"/>
+	<filter token="obr.dest.url" value="${obr.dest.url}"/>
 	<filter token="obr.doc.root" value="${obr.doc.root}"/>
-	<filter token="obr.css.url" value="${obr.css.url}"/>
+	<filter token="obr.css.url"  value="${obr.css.url}"/>
       </filterset>
     </copy>
     <!-- Use fork here since the value of "-OUT" must be relative to CWD -->

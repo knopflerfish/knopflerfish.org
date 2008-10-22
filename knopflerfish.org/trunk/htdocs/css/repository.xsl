@@ -57,11 +57,11 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	  </p>
 
 	  <p>
-	    The repository URL is <a href="@@obr.base.url@@/repository.xml">@@obr.base.url@@/repository.xml</a>.
+	    The repository URL is <a href="@@obr.dest.url@@/repository.xml">@@obr.dest.url@@/repository.xml</a>.
 	  </p>
 
 	  <p>
-	    You can find a <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">RFC-0112</a> compatible repository at <a href="@@obr.base.url@@/bindex.xml">@@obr.base.url@@/bindex.xml</a>.
+	    You can find a <a href="http://bundles.osgi.org/rfc-0112_BundleRepository.pdf">RFC-0112</a> compatible repository at <a href="@@obr.dest.url@@/bindex.xml">@@obr.dest.url@@/bindex.xml</a>.
 	  </p>
 
 	  <p>
