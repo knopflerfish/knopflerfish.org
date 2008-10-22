@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: comm-win32
 Bundle-SymbolicName: org.knopflerfish.bundle.comm-win32
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:comm-win32:2.0.0
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:comm-win32:2.0.1
 Bundle-Category: service
 Bundle-Description: Native driver for win32 javax.comm using Sun's COM
  M library
@@ -14,10 +14,14 @@ Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles_opt/serial/comm-win32/
-Bundle-NativeCode: win32com.dll ; processor = x86 ; osname = Windows N
- T, win32com.dll ; processor = x86 ; osname = Windows 98 ,win32com.dll
-  ; processor = x86 ; osname = Windows 95, win32com.dll ; processor = 
- x86 ; osname = Windows 2000; processor = x86 ; osname = Windows XP
+Bundle-NativeCode: win32com.dll ; 
+ processor = x86 ;
+ osname = Windows NT ; 
+ osname = Windows 98 ; 
+ osname = Windows 95 ; 
+ osname = Windows 2000 ; 
+ osname = Windows XP ;
+ osname = Windows Vista
 Bundle-Activator: org.knopflerfish.bundle.comm.w32.Activator
 Bundle-Classpath: .,comm.jar
 Export-Package: javax.comm;specification-version=2.0
