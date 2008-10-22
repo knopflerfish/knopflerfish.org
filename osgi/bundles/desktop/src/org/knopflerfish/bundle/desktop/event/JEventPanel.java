@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import org.osgi.framework.Filter;
 
 
 public class JEventPanel extends JPanel implements ClipboardOwner {
-  
+
   JTextArea text;
   JComboBox topicC;
   JTextField filterC;
@@ -69,10 +69,10 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
   boolean popupOK = false;
 
-  public JEventPanel(DefaultListModel allTopics, 
-                     DefaultListModel allKeys, 
+  public JEventPanel(DefaultListModel allTopics,
+                     DefaultListModel allKeys,
                      Set              selectedKeys,
-                     EventTableModel   model, 
+                     EventTableModel   model,
                      JEventEntryDetail logEntryDetail,
                      boolean         bSort) {
     super(new BorderLayout());
@@ -80,68 +80,67 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     this.allKeys   = allKeys;
     this.selectedKeys = new LinkedHashSet();
     this.selectedKeys.addAll(selectedKeys);
+    this.model = model;
+
+    topicModel = new DefaultComboBoxModel();
+    topicC     = new JComboBox(topicModel);
+    topicC.setEditable(true);
 
     allTopics.addListDataListener(new ListDataListener() {
-        public void 	contentsChanged(ListDataEvent e) {
+        public void     contentsChanged(ListDataEvent e) {
           updateTopics();
         }
-        public void 	intervalAdded(ListDataEvent e) {
+        public void     intervalAdded(ListDataEvent e) {
           updateTopics();
         }
-        public void 	intervalRemoved(ListDataEvent e) {
+        public void     intervalRemoved(ListDataEvent e) {
           updateTopics();
         }
       });
 
     allKeys.addListDataListener(new ListDataListener() {
-        public void 	contentsChanged(ListDataEvent e) {
+        public void     contentsChanged(ListDataEvent e) {
           updateKeys();
         }
-        public void 	intervalAdded(ListDataEvent e) {
+        public void     intervalAdded(ListDataEvent e) {
           updateKeys();
         }
-        public void 	intervalRemoved(ListDataEvent e) {
+        public void     intervalRemoved(ListDataEvent e) {
           updateKeys();
         }
       });
 
-    this.model = model;
-    
     table = new JEventTable(model, logEntryDetail, bSort);
     scrollpane = new JScrollPane(table);
 
     popup = new JPopupMenu();
 
     MouseListener ml = new MouseAdapter() {
-	public void mousePressed(MouseEvent e) {
-	  maybeShowPopup(e);
-	}
-	
-	public void mouseReleased(MouseEvent e) {
-	  maybeShowPopup(e);
-	}
-	
-	private void maybeShowPopup(MouseEvent e) {
-	  if (e.isPopupTrigger()) {
+        public void mousePressed(MouseEvent e) {
+          maybeShowPopup(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+          maybeShowPopup(e);
+        }
+
+        private void maybeShowPopup(MouseEvent e) {
+          if (e.isPopupTrigger()) {
             makePopup();
-	    popup.show(e.getComponent(), e.getX(), e.getY());
-	  }
-	}
+            popup.show(e.getComponent(), e.getX(), e.getY());
+          }
+        }
       };
-    
+
     getJEventTable().addMouseListener(ml);
     getJEventTable().getTableHeader().addMouseListener(ml);
-    
-    JLabel jl;    
+
+    JLabel jl;
     JPanel tPanel = new JPanel(new BorderLayout());
 
     jl = new JLabel("Topic:");
     jl.setSize(new Dimension(100, jl.getSize().height));
     tPanel.add(jl, BorderLayout.WEST);
-
-    topicModel = new DefaultComboBoxModel();
-    topicC = new JComboBox(topicModel); 
-    topicC.setEditable(true);
 
     updateTopics();
 
@@ -166,7 +165,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     jl.setSize(new Dimension(100, jl.getSize().height));
 
     fPanel.add(jl, BorderLayout.WEST);
-    
+
     filterC = new JTextField(model.getDispatcher().getFilter(), 8);
     txtColor = filterC.getForeground();
     filterC.addActionListener(new ActionListener() {
@@ -192,7 +191,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     fPanel.add(filterC, BorderLayout.CENTER);
 
 
-    
+
     JButton newButton = new JButton("New");
     newButton.setToolTipText("New event view window");
     newButton.addActionListener(new ActionListener() {
@@ -227,7 +226,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     JPanel p3 = new JPanel();
     p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
 
-    p3.add(fPanel);    
+    p3.add(fPanel);
     p3.add(newButton);
     p3.add(clearButton);
     p3.add(sendButton);
@@ -242,7 +241,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     if(-1 == topicModel.getIndexOf(topicS)) {
       topicModel.addElement(topicS);
     }
-    
+
     JEventPanel.this.model.getDispatcher().setTopic(topicS);
     JEventPanel.this.model.clear();
   }
@@ -311,7 +310,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
       }
       cbList.add(cb);
       cb.addItemListener(new ItemListener() {
-          public void 	itemStateChanged(ItemEvent e) {
+          public void   itemStateChanged(ItemEvent e) {
             if(cb.getState()) {
               selectedKeys.add(val);
             } else {
@@ -377,8 +376,8 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
   public void lostOwnership(Clipboard clipboard, Transferable contents) {
   }
-  
-  
+
+
   void setClipboardContents( String str ){
     StringSelection stringSelection = new StringSelection( str );
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
