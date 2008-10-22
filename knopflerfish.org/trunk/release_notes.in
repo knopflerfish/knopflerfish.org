@@ -38,6 +38,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 
+  Event-Admin 2.0.2
+
+  Waits for the asynchronous event dispatcher to terminate when 
+  stopping the bundle.
+
+
+
+  comm-win32 2.0.1
+
+  Added Windows Vista as supported osname.
+
+
+
 ========================================================================
 
 
