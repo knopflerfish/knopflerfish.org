@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="desktop_awt" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+  <property name = "javac.target"          value = "1.1"/>
+
+  <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+    <bundle_locator bundleName="console_api" property="console_api">
+      <fileset dir="${topdir}/jars">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy file="${console_api}"  
+          tofile="resources/console_api.jar"/>
+  </target>
+
+  <path id="bundle.compile.path">
+   <pathelement location="console_api-N.N.N.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<metatype:metatype
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
+        xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
+
+  <xsd:schema >
+   <xsd:complexType name="org.knopflerfish.bundle.consoletelnet.TelnetServer">
+    <xsd:annotation>
+     <xsd:documentation>Properties for the telnet console
+     </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element  name = "port"             type="xsd:int"/>
+    <xsd:element  name = "host"             type="xsd:string"/>
+
+   </xsd:complexType> 
+  </xsd:schema>
+
+ <metatype:values>
+
+  <org.knopflerfish.bundle.consoletelnet.TelnetServer>
+   <port>23</port>
+   <host>localhost</host>
+  </org.knopflerfish.bundle.consoletelnet.TelnetServer>
+  
+ </metatype:values>
+
+</metatype:metatype>

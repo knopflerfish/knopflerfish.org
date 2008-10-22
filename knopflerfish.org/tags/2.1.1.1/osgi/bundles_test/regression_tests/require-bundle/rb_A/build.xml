@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="rb_A" default="all">
+
+  <property name="topdir"     location="../.."/>
+  <property name="osgi.dir"   location="${topdir}/../.."/>
+  <property name="ant.dir"    location="${osgi.dir}/../ant"/>
+
+
+  <property name = "bundle.build.all"  value="false"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "api.pattern"
+            value = ""/>
+  <property name  = "impl.pattern"
+            value = "test_rb/A/**"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="rb_B_api-N.N.N.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>
+
+
+

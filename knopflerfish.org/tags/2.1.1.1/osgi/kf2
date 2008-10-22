@@ -1,0 +1,94 @@
+#!/bin/sh
+
+JAVA=java 					# the default java command
+BOOTCLASSPATH_FLAG="-Xbootclasspath/a:"		# the bootclass path flag for the specific
+CLASSPATH_FLAG="-classpath "			# the class path flag for the specific
+
+# constants
+KF_MAIN_CLASS=org.knopflerfish.framework.Main			   # path to main class
+KF_CLASSPATH=framework.jar:$CLASSPATH				   # the class path to use 
+
+# args always sent to the JRE
+KF_JRE_ARGS="-Dorg.knopflerfish.framework.usingwrapperscript=true -Dorg.knopflerfish.framework.exitonshutdown=true"
+
+EXIT_CODE_RESTART=200				
+
+# Read all the args.
+args_orig="" 		# all -xargs and -init args
+args=""     		# like args excepts for -xargs and -init args
+jre_args="" 		# arguments for the jre
+fwdir="`pwd`/fwdir"	# default framework dir
+init=0			# whether the -init flag has been given or not.
+
+# read the arguments
+while [ -n "$1" ] 
+do
+  case "$1" in
+      "-init"  ) init=1; args_orig=$args_orig" "$1;;
+      "-xargs" ) shift; args_orig=$args_orig" -xargs "$1;;
+      "--" ) shift; break;;
+      "---" ) break;;
+      * ) args=$args" "$1;;
+  esac
+  shift
+done
+# the rest is jre-specific args
+while [ -n "$1" ]
+do
+  case "$1" in
+      "-Dorg.osgi.framework.dir="* ) fwdir=`echo $1 | cut -c26-`;; # store fwdir.
+      "---" ) shift; break ;;
+  esac
+  jre_args=$jre_args" "$1
+  shift
+done
+
+# command line options
+while [ -n "$1" ] 
+do
+  case "$1" in
+      "-java" )  shift; JAVA="$1" ;;
+      "-clean" ) shift; CLEAN_FWDIR=1 ;;
+      "-classpathflag" ) shift; CLASSPATH_FLAG="$1" ;; 	# *	
+      "-bootclasspathflag" ) shift ; BOOTCLASSPATH_FLAG="$1" ;;
+      * ) echo "Error: unknown option: $1"
+          echo "Use option -help to see all options"
+          exit 1 ;;
+  esac
+  shift 
+done
+# *: are these needed? or are they standard?
+
+
+if [ $init == 1 ] ; then
+
+    if [ -d $fwdir ] ; then
+        rm -rf $fwdir 
+        
+        if [ $? == 0 ] ; then
+            echo "Removed existing fwdir $fwdir"
+        else 
+            echo "Failed to remove existing fwdir $fwdir"
+        fi
+    fi
+        
+fi
+
+retval=$EXIT_CODE_RESTART
+while [ "$retval" -eq $EXIT_CODE_RESTART ]
+do
+  if [ -r $fwdir/classpath/boot ] ; then
+      bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/classpath/boot`
+  fi
+  if [ -r $fwdir/classpath/framework ] ; then
+      classpath=$CLASSPATH_FLAG$KF_CLASSPATH:`cat $fwdir/classpath/framework`
+  else
+      classpath=$CLASSPATH_FLAG$KF_CLASSPATH
+  fi
+  $JAVA $bootclasspath $jre_args $KF_JRE_ARGS $classpath $KF_MAIN_CLASS $args_orig $args
+  retval=$?
+  # only use args_orig the first time
+  args_orig=
+done
+
+exit $retval

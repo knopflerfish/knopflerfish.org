@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
+<project name="endurance_test" default="all">
+
+  <property name="topdir"       location="../"/>
+
+  <property name="bundle.version" value="1.0.0"/>
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+
+   <copy file  = "${topdir}/jars/bundleEnd1_test-1.0.0.jar"         
+         todir = "resources"/>
+
+   <copy file  = "${topdir}/jars/bundleEnd5_test-1.0.0.jar"         
+         todir = "resources"/>
+
+   <copy file  = "${topdir}/jars/bundleEnd7_test-1.0.0.jar"         
+         todir = "resources"/>
+
+   <copy file  = "${topdir}/jars/bundleEnd101_test-1.0.0.jar"         
+         todir = "resources"/>
+
+   <copy file  = "${topdir}/jars/bundleEnd102_test-1.0.0.jar"         
+         todir = "resources"/>
+
+
+   <copy file  = "${topdir}/jars/bundleEnd151_test-1.0.0.jar"         
+         todir = "resources"/>
+
+   <copy file  = "${topdir}/jars/bundleEnd152_test-1.0.0.jar"         
+         todir = "resources"/>
+
+
+  </target>
+
+  <path id = "bundle.compile.path">
+      <pathelement location="${topdir}/jars/bundleEnd7_test-1.0.0.jar"/>
+      <pathelement location="${topdir}/jars/bundleEnd101_test-1.0.0.jar"/>
+      <pathelement location="${topdir}/jars/bundleEnd102_test-1.0.0.jar"/>
+      <pathelement location="${topdir}/jars/bundleEnd151_test-1.0.0.jar"/>
+      <pathelement location="${topdir}/jars/bundleEnd152_test-1.0.0.jar"/>
+      <pathelement location="${topdir}/lib/log_api-2.0.1.jar"/>
+  </path>
+
+  &test_include;
+
+
+</project>
+
+
+

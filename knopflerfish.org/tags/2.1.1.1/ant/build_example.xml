@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<!-- Name of generated jar files will be:  -->
+<!--  ${ant.project.name}-${version}.jar     (refered to as impl-bundle) -->
+<!--  ${ant.project.name}_api-${version}.jar  (refered to as api-bundle) -->
+<!--  ${ant.project.name}_all-${version}.jar  (refered to as all-bundle) -->
+
+<project name="build_example" default="all">
+
+  <!-- Set to top directory of OSGi code -->
+  <property name="topdir"       location="../.."/>
+
+  <!-- Code which belong to bundle implementation, included in      -->
+  <!-- impl-bundle and in all-bundle.                               -->
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/httptest/**"/>
+
+  <!-- Code which belong to the bundle API, i.e., to be included in   -->
+  <!-- and exported by api-bundle, all-bundle but not the impl-bundle.-->
+  <!--
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/http/**"/>
+  -->
+
+  <!-- Code which belongs to implementation but shall be exported -->
+  <!-- since it will be shared between this bundle and other      -->
+  <!-- related bundles. To be included in (and exported by)       -->
+  <!-- all-bundle, and _impl bundles but not by the api-bundle.   -->
+  <!--
+  <property name  = "impl-api.pattern"
+            value = "org/knopflerfish/bundle/shared/http/**"/>
+  -->
+
+  <!-- explicit paths to compile-time jar files -->
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api.jar"/>
+   <pathelement location="../jsdk/resources/servlet.jar"/>
+  </path>
+
+
+  <!-- Activator, imports, exports etc are automatically found but    -->
+  <!-- can be specified explicitly with properties or by providing a  -->
+  <!-- template bundle manifest file, named "bundle.manifest".        -->
+  <!-- See bundlebuild_include.xml for details                        -->
+
+  <!-- The default bundle name (property "bmfa.Bundle-Name") will be: -->
+  <!--   ${ant.project.name}                                          -->
+  <!-- The default bundle symbolic name (property                     -->
+  <!-- "bmfa.Bundle-SymbolicName") will be:                           -->
+  <!--   ${domain.reverse}.bundle.${ant.project.name}                 -->
+
+  <property name="domain.reverse"          value="org.knopflerfish"/>
+
+  <property name="bmfa.Bundle-Description" value="HTTP test servlet"/>
+  <property name="bmfa.Bundle-Vendor"      value="Knopflerfish"/>
+
+  &bundlebuild_include;
+
+</project>
