@@ -5,6 +5,9 @@
   <!-- build properties -->
 
   <property name="topdir"        location=".."/>
+  <property name="osgi.dir"      location="${top.dir}"/>
+  <property name="ant.dir"       location="${top.dir}/../ant"/>
+
   <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
   <property name="classout"      location="${outdir}/classes"/>
   <property name="docdir"        location="${ant.project.name}/apidoc"/>
