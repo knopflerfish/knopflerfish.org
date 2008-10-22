@@ -34,34 +34,31 @@
 
 <project name="bundletasks" basedir="." default="default">
 
- <property name = "bcel.version"        value    = "5.2"/> 
-
  <dirname  property="ant.dir" file="${ant.file.bundletasks}"/>
+
  <property name="ant.lib"     location="${ant.dir}/lib"/>
  <property name="antclasses"  location="${ant.dir}/classes"/>
-
  <property name="osgi.dir"    location="${ant.dir}/../osgi"/>
 
+
+ <!-- Download and install Apache Byte Code Engineering Library -->
+ <property name="bcel.version" value="5.2"/> 
  <path id="bcel.path">
-  <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
+   <pathelement location="${ant.lib}/bcel-${bcel.version}.jar"/>
  </path>
- <available classname    = "org.apache.bcel.classfile.JavaClass"
-            classpathref = "bcel.path"
-            property     = "bcel.available"/>
+ <available classname="org.apache.bcel.classfile.JavaClass"
+            classpathref="bcel.path"
+            property="bcel.present"/>
 
  <target name="check_bcel">
-   <fail unless  = "bcel.available" 
+   <fail unless  = "bcel.present" 
          message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel' which will download bcel and then install it in ${ant.lib}"/>
  </target>
 
- <target name="maybe_install_bcel" unless="bcel.available">
-   <antcall target="install_bcel"/>
- </target>
-
- <target name="install_bcel"
+ <target name="install_bcel" unless="bcel.present"
 	 description="Installs BCEL ${bcel-version} in ${ant.lib}">
-   <antcall target="download_bcel" />
-   <antcall target="unpack_bcel"   />
+   <antcall target="download_bcel"/>
+   <antcall target="unpack_bcel"/>
  </target>
 
  <target name="download_bcel">
@@ -84,29 +81,31 @@
  </target>
 
 
+ <!-- Download and install BIndex the RFC-0112 Bundle Repository creator.  -->
  <path id="bindex.path">
   <pathelement location = "${ant.lib}/bindex.jar"/>
  </path>
 
- <available classname    = "org.osgi.impl.bundle.bindex.Index"
-            classpathref = "bindex.path"
-            property     = "bindex.available"/>
+ <available classname="org.osgi.impl.bundle.bindex.Index"
+            classpathref="bindex.path"
+            property="bindex.present"/>
 
- <target name="install_bindex" unless="bindex.available">
+ <target name="install_bindex" unless="bindex.present">
    <get src="http://www.osgi.org/download/bindex.jar" 
-        dest="${ant.lib}/bindex.jar"
-	/>
+        dest="${ant.lib}/bindex.jar"/>
  </target>
 
- <path id="bundle_tasks.path">
-   <pathelement location="${antclasses}"/>
-   <path refid="bcel.path"/>
-   <path refid="bindex.path"/>
- </path>
 
- <target name        = "bundle_tasks" 
-         depends     = "maybe_install_bcel,install_bindex"
-         description = "Compile and link the custom bundle tasks">
+ <!-- Compile and pack the Knopflerfish bundle tasks.  -->
+ <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
+ <condition property="bundle_tasks.src.present">
+   <and>
+     <available type="dir" file="${ant.dir}/src"/>
+     <available type="dir" file="${osgi.dir}/framework/src"/>
+   </and>
+ </condition>
+
+ <target name="build_bundle_tasks" if="bundle_tasks.src.present">
    <mkdir dir = "${antclasses}"/>
    <javac destdir      = "${antclasses}"
 	  classpathref = "bundle_tasks.path"
@@ -119,6 +118,26 @@
      <include name="org/knopflerfish/ant/**"/>
      <include name="org/osgi/framework/Version.java"/>
    </javac>
+
+   <jar destfile="${bundle_tasks.jar}"
+        compress="true">
+     <manifest>
+       <attribute name="knopflerfish-version" value="${version}"/>
+     </manifest>
+     <zipfileset dir="${antclasses}"/>
+   </jar>	
+ </target>
+
+ <path id="bundle_tasks.path">
+   <pathelement location="${antclasses}"/>
+   <pathelement location="${bundle_tasks.jar}"/>
+   <path refid="bcel.path"/>
+   <path refid="bindex.path"/>
+ </path>
+
+ <target name        = "bundle_tasks" 
+         depends     = "install_bcel,install_bindex,build_bundle_tasks"
+         description = "Defines the custom Knopflerfish bundle tasks">
 
    <taskdef name         = "bundleinfo" 
             classpathref = "bundle_tasks.path"
