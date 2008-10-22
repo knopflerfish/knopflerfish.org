@@ -374,19 +374,24 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     if (packageAdmin == null) {
       return "";
     }
-    String retVal = "";
+    StringBuffer sb = new StringBuffer();
     Bundle[] fragments = packageAdmin.getFragments(bundle);
     if (fragments != null && fragments.length > 0) {
-      retVal += "h"; // host
+      sb.append("h:"); // host
+      for (int i=0; i<fragments.length;i++){
+        if (i>0) sb.append(",");
+        sb.append(fragments[i].getBundleId());
+      }
     }
     Bundle[] hosts = packageAdmin.getHosts(bundle);
     if (hosts != null && hosts.length > 0) {
-      retVal += "f"; // fragment
+      sb.append("f:"); // fragment
+      for (int i=0; i<hosts.length;i++){
+        if (i>0) sb.append(",");
+        sb.append(hosts[i].getBundleId());
+      }
     }
-    if (retVal.length() > 0) {
-      retVal = " (" + retVal + ")";
-    }
-    return retVal;
+    return sb.length()>0 ? (" (" +sb.toString() + ")" ) : "";
   }
 
 

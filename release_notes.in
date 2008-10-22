@@ -8,6 +8,35 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Framework (Core) ===
+
+  Fixed a problem with fragment handling when uninstalling a bundle
+  with attached fragments. Using package admin refresh on a fragment
+  host bundle after update or uninstall of one of its attached
+  fragments now results in a re-resolve operation of the host bundle.
+
+
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Desktop Bundle 2.2.2
+
+  Corrected a NPE in the event view during start up; a listener was
+  registered before one of the objects used in its call-back was
+  created.
+
+  The packages view now presents the relation between host bundles and
+  attached fragments.
+
+
+
+  Framwork commands 2.0.2
+
+  The command "bundles -l" now presents the relation between host
+  bundles and attached fragments.
+
+
 
 ========================================================================
 
