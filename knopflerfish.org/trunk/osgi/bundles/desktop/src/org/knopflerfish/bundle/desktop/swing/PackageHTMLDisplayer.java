@@ -89,11 +89,62 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       if(pkgAdmin == null) {
         sb.append("No PackageAdmin service found");
       } else {
-        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);
+        // Array with all bundles that can be required.
+        RequiredBundle[] rbl = pkgAdmin.getRequiredBundles(null);
+        boolean useParagraph = false;
 
+        Bundle[] fragmentBundles = pkgAdmin.getFragments(b);
+        if (fragmentBundles!=null && fragmentBundles.length>0) {
+          if (useParagraph) sb.append("<p>");
+          sb.append("<b>Host bundle with attached fragments</b>");
+          for (int j=0; fragmentBundles!=null && j<fragmentBundles.length; j++){
+            sb.append("<br>");
+            sb.append("&nbsp;&nbsp");
+            Util.bundleLink(sb, fragmentBundles[j]);
+            Bundle[] hosts = pkgAdmin.getHosts(fragmentBundles[j]);
+            if (hosts==null || b.getBundleId()!=hosts[0].getBundleId()) {
+              sb.append("&nbsp;<i>pending refresh</i>");
+            }
+          }
+          if (useParagraph) sb.append("</p>");
+          useParagraph = true;
+        }
+
+        Bundle[] hostBundles = pkgAdmin.getHosts(b);
+        if (hostBundles!=null && hostBundles.length>0) {
+          if (useParagraph) sb.append("<p>");
+          sb.append("<b>Fragment attached to</b>");
+          for (int j=0; hostBundles!=null && j<hostBundles.length; j++){
+            sb.append("<br>");
+            sb.append("&nbsp;&nbsp");
+            Util.bundleLink(sb, hostBundles[j]);
+          }
+          if (useParagraph) sb.append("</p>");
+          useParagraph = true;
+        }
+
+        RequiredBundle rb = getRequiredBundle(rbl, b);
+        Bundle[] requiringBundles = rb!=null ? rb.getRequiringBundles() : null;
+        if (requiringBundles!=null && requiringBundles.length>0) {
+          if (useParagraph) sb.append("<p>");
+          sb.append("<b>Required by</b>");
+          if (rb.isRemovalPending()) {
+            sb.append(" (<i>pending removal on refresh</i>)");
+          }
+          for (int j=0; requiringBundles!=null && j<requiringBundles.length;
+               j++) {
+            sb.append("<br>");
+            sb.append("&nbsp;&nbsp");
+            Util.bundleLink(sb, requiringBundles[j]);
+          }
+          if (useParagraph) sb.append("</p>");
+          useParagraph = true;
+        }
+
+        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);
+        if (useParagraph) sb.append("<p>");
         if(pkgs != null && pkgs.length > 0) {
           sb.append("<b>Exported packages</b>");
-
           List exportDescr  = new ArrayList();
           for (int i = 0; i < pkgs.length; i++) {
             StringBuffer sb1 = new StringBuffer();
@@ -118,13 +169,11 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
           for (Iterator it = exportDescr.iterator(); it.hasNext(); ) {
             sb.append(it.next());
           }
-
         } else {
           sb.append("<b>No exported packages</b>");
         }
-
-        // Array with all bundles that can be required.
-        RequiredBundle[] rbl = pkgAdmin.getRequiredBundles(null);
+        if (useParagraph) sb.append("</p>");
+        useParagraph = true;
 
         List importedPkgs = new ArrayList();
         List requiredPkgs = new ArrayList();
@@ -145,7 +194,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
           }
         }
 
-        sb.append("<p>");
+        if (useParagraph) sb.append("<p>");
         if(importedPkgs.size() > 0) {
           sb.append("<b>Imported packages</b>");
           Collections.sort(importedPkgs, new ExportedPackageComparator());
@@ -155,35 +204,21 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
         } else {
           sb.append("<b>No imported packages</b>");
         }
-        sb.append("</p>");
+        if (useParagraph) sb.append("</p>");
+        useParagraph = true;
 
         if(requiredPkgs.size() > 0) {
-          sb.append("<p>");
+          if (useParagraph) sb.append("<p>");
           sb.append("<b>Packages available from required bundles</b>");
           Collections.sort(requiredPkgs, new ExportedPackageComparator());
           for (Iterator it = requiredPkgs.iterator(); it.hasNext(); ) {
             ExportedPackage epkg = (ExportedPackage) it.next();
             sb.append(formatPackage( epkg, isPkgInList(epkg, importedPkgs)));
           }
-          sb.append("</p>");
+          if (useParagraph) sb.append("</p>");
+          useParagraph = true;
         }
 
-        RequiredBundle rb = getRequiredBundle(rbl, b);
-        Bundle[] requiringBundles = rb!=null ? rb.getRequiringBundles() : null;
-        if (requiringBundles!=null && requiringBundles.length>0) {
-          sb.append("<p>");
-          sb.append("<b>Required by</b>");
-          if (rb.isRemovalPending()) {
-            sb.append(" (<i>pending removal on refresh</i>)");
-          }
-          for (int j=0; requiringBundles!=null && j<requiringBundles.length;
-               j++) {
-            sb.append("<br>");
-            sb.append("&nbsp;&nbsp");
-            Util.bundleLink(sb, requiringBundles[j]);
-          }
-          sb.append("</p>");
-        }
       }
 
       sb.append("</font>");
