@@ -207,13 +207,16 @@
     </copy>
   </target>
 
-  <target name          = "jardocs"
-          depends       = "bundle_tasks">
+  <target name="jardocs"
+	  depends="bundle_tasks">
     <property name="jardocs.dir" location="${release.doc.dir}/jars"/>
+    <property name="bundle.list.header"
+	      value="Knopflerfish OSGi ${version} Bundles"/>
     <mkdir dir="${jardocs.dir}"/>
     <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
                 outDir             = "${jardocs.dir}"
                 baseDir            = "${release.dir}/osgi/jars"
+		listHeader         = "${bundle.list.header}"
                 javadocRelPath     = "../javadoc"
 		includeSourceFiles = "true">
       <fileset dir="${release.dir}/osgi/jars">

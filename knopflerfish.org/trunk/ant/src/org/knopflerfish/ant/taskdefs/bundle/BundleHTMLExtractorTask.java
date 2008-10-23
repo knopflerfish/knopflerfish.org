@@ -116,6 +116,7 @@ import org.osgi.framework.Version;
  *   </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
+ *  <tr>
  *   <td valign=top>templateHTMLDir</td>
  *   <td valign=top>
  *   Directory containing HTML template files. This directory must
@@ -153,6 +154,7 @@ import org.osgi.framework.Version;
  *     Bundle-Config, Created-By, Built-From</code>
  *   </td>
  *  </tr>
+ *
  *  <tr>
  *   <td valign=top>includeSourceFiles</td>
  *   <td valign=top>
@@ -162,6 +164,15 @@ import org.osgi.framework.Version;
  *   <td valign=top>No.<br>
  *   Default value "False"
  *   </td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>listHeader</td>
+ *   <td valign=top>
+ *    Heading to print at the top of the bundle list in the left frame
+ *    of the page.
+ *   </td>
+ *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
  *
  * </table>
@@ -200,7 +211,9 @@ public class BundleHTMLExtractorTask extends Task {
   private File   outDir              = new File(".");
   private File   baseDir             = null;
   private String javadocRelPath      = null;
+  private String listHeader          = "";
 
+  private String indexListHeader = "<h2>${bundle.list.header}</h2>";
 
   private String indexListRow =
     "<a target=\"bundle_main\" href=\"${bundledoc}\">${FILE.short}</a><br>";
@@ -360,6 +373,10 @@ public class BundleHTMLExtractorTask extends Task {
     systemPackageSet = Util.makeSetFromStringList(s);
   }
 
+  public void setListHeader(String s) {
+    listHeader = s;
+  }
+
   // Implements Task
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
@@ -448,6 +465,12 @@ public class BundleHTMLExtractorTask extends Task {
     int unresolvedCount = 0;
 
     String html = Util.loadFile(templateFile.getAbsolutePath());
+
+    String listHeaderRow
+      = (null!=listHeader && listHeader.length()>0)
+      ? replace(indexListHeader, "${bundle.list.header}", listHeader)
+      : listHeader;
+    html = replace(html, "${bundle.list.header}", listHeaderRow);
 
     StringBuffer sb = new StringBuffer();
     for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
