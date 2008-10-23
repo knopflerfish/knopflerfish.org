@@ -230,12 +230,14 @@
   </target>
 
   
-  <target name          = "bundle_doc"
-	  description	= "Creates bundle specific documentaion"
-          depends       = "bundle_tasks">
-    <mkdir dir="${bundledoc.dir}"/>
+  <target name="bundle_doc"
+	  description="Creates bundle specific documentaion"
+          depends="bundle_tasks">
+    <property name="bundledoc.list.header"
+	      value="Knopflerfish OSGi ${version}"/>
 
-    <ant dir = "osgi"	target="bundle_doc"/>
+    <mkdir dir="${bundledoc.dir}"/>
+    <ant   dir="osgi"	target="bundle_doc"/>
     
     <copy todir="${bundledoc.dir}">
       <!-- The generated bundle_doc files -->
@@ -247,8 +249,11 @@
       <fileset dir="htdocs/html_templates/bundle_doc">
 	<include name="*.html" />
       </fileset>
-
     </copy>
+    <replace file="${bundledoc.dir}/bundledoc_list.html">
+      <replacefilter token="@BUNDLEDOC_LIST_HEADER@"
+		     value="${bundledoc.list.header}"/>
+    </replace>
   </target>
 
   <!-- Runs the kf-test suites and copies the test result to the release.-->
