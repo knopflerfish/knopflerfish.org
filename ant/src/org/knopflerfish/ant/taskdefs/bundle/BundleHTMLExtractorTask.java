@@ -1086,11 +1086,12 @@ public class BundleHTMLExtractorTask extends Task {
       if(bSourceInside && sourceMap.size() > 0) {
         template = replace(template,
                            "${FILEINFO}",
-                           file.length() + " bytes, includes <a href=\"#source\">source</a>");
+                           file.length()
+                           +" bytes, includes <a href=\"#source\">source</a>");
       } else {
         template = replace(template,
                            "${FILEINFO}",
-                           file.length() + " bytes");
+                           file.length() +" bytes");
       }
 
 
@@ -1131,7 +1132,9 @@ public class BundleHTMLExtractorTask extends Task {
 
               if(versions.contains(ver)) {
                 bFound = true;
-                map.put(jarFile, name);
+                String pkgNames = (String) map.get(jarFile);
+                pkgNames = null==pkgNames ? name : (pkgNames +", "+name);
+                map.put(jarFile, pkgNames);
               } else {
                 System.out.println(file +": need " +name +" version "
                                    +version +", found version " +version2);
