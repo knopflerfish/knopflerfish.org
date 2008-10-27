@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import java.util.zip.*;
  * JAR file handling.
  *
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision$
  */
 class Archive {
 
@@ -94,6 +94,9 @@ class Archive {
    * @exception IOException if failed to read Jar file.
    */
   Archive(Archive a, String path) throws IOException {
+    if (null!=path && path.length()>0 && '/'==path.charAt(0)) {
+      path = path.substring(1);
+    }
     byte [] bs = (byte [])a.content.remove(path);
     if (bs != null) {
       JarInputStream ji = new JarInputStream(new ByteArrayInputStream(bs));
@@ -113,7 +116,7 @@ class Archive {
   String getAttribute(String key) {
     return manifest.getMainAttributes().getValue(key);
   }
-  
+
 
   /**
    * Get all attributes from the manifest of the archive.
@@ -123,7 +126,7 @@ class Archive {
   Attributes getAttributes() {
     return manifest.getMainAttributes();
   }
-  
+
 
   /**
    * Get a byte array containg the contents of named file from
