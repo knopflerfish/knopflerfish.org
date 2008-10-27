@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import java.util.jar.*;
  *
  * @author Jan Stein
  * @author Philippe Laporte
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision$
  */
 class Archive {
 
@@ -66,9 +66,9 @@ class Archive {
    * If not null, it is a sub jar instead.
    */
   protected HashMap /* String -> byte[] */ content;
-  
+
   ArrayList subDirs/*= null*/;
-  
+
   /**
    * Create an Archive based on contents of an InputStream,
    * get file object for the stream and use it. Native code
@@ -100,6 +100,9 @@ class Archive {
    * @exception IOException if failed to read Jar file.
    */
   Archive(Archive a, String path) throws IOException {
+    if (null!=path && path.length()>0 && '/'==path.charAt(0)) {
+      path = path.substring(1);
+    }
     byte [] bs = (byte [])a.content.remove(path);
     if (bs != null) {
       JarInputStream ji = new JarInputStream(new ByteArrayInputStream(bs));
@@ -119,7 +122,7 @@ class Archive {
   String getAttribute(String key) {
     return manifest.getMainAttributes().getValue(key);
   }
-  
+
 
   /**
    * Get a byte array containg the contents of named file from
@@ -170,8 +173,8 @@ class Archive {
       return null;
     }
   }
-  
-  //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest 
+
+  //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest
   //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
   //investigate further later
   Enumeration findResourcesPath(String path) {

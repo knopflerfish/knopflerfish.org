@@ -10,10 +10,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Framework 4.0.11
+
+  Fix an issue with paths in the BundleClassPath manifest attirbute
+  that starts with a '/' when using memory storage. Reported in
+  https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
+
   Fixed a problem with fragment handling when uninstalling a bundle
   with attached fragments. Using package admin refresh on a fragment
   host bundle after update or uninstall of one of its attached
   fragments now results in a re-resolve operation of the host bundle.
+
 
 
 
