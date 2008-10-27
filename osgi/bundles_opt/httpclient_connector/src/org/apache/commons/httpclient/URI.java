@@ -26,6 +26,10 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
+ * Knopflerfish changes: Fix handling of numeric IPv6 addresses, like
+ * [::1]. The '[]' surrounding the address was encoded into the _host
+ * variable which did break parsing when a new URI instance was
+ * created from the return value of getHost().
  */
 
 package org.apache.commons.httpclient;
@@ -2196,14 +2200,16 @@ public class URI implements Cloneable, Comparable, Serializable {
         if (next >= from) {
             next = original.indexOf(']', from);
             if (next == -1) {
-                throw new URIException(URIException.PARSING, "IPv6reference");
+                throw new URIException(URIException.PARSING,
+                                       "IPv6reference '" +original +"'.");
             } else {
                 next++;
             }
             // In IPv6reference, '[', ']' should be excluded
-            _host = (escaped) ? original.substring(from, next).toCharArray() 
-                : encode(original.substring(from, next), allowed_IPv6reference,
-                        charset);
+            _host = (escaped)
+              ? original.substring(from+1, next-1).toCharArray()
+              : encode(original.substring(from+1, next-1),
+                       allowed_IPv6reference, charset);
             // Set flag
             _is_IPv6reference = true;
         } else { // only for !_is_IPv6reference
@@ -2256,7 +2262,9 @@ public class URI implements Cloneable, Comparable, Serializable {
                 buf.append('@');
             }
             if (_host != null) {
+              if (_is_IPv6reference) buf.append('[');
                 buf.append(_host);
+              if (_is_IPv6reference) buf.append(']');
                 if (_port != -1) {
                     buf.append(':');
                     buf.append(_port);
@@ -2774,7 +2782,13 @@ public class URI implements Cloneable, Comparable, Serializable {
      * @see #getAuthority
      */
     public char[] getRawHost() {
-        return _host;
+      if (_is_IPv6reference) {
+        char[] res = new char[_host.length+2];
+        res[0] = '[';
+        res[res.length-1] = ']';
+        System.arraycopy(_host,0,res,1,_host.length);
+      }
+      return _host;
     }
 
 
@@ -2790,6 +2804,9 @@ public class URI implements Cloneable, Comparable, Serializable {
      */
     public String getHost() throws URIException {
         if (_host != null) {
+            if (_is_IPv6reference) {
+               return "[" +decode(_host, getProtocolCharset()) +"]";
+            }
             return decode(_host, getProtocolCharset());
         } else {
             return null;
