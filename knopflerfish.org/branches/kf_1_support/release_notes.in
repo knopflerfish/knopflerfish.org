@@ -14,7 +14,10 @@ Release Notes Knopflerfish @VERSION@
   unexpected failures to find classes in packages imported by the
   updated bundle. Corrected in framework revision 3.3.9.
   
-
+  Fix an issue with paths in the BundleClassPath manifest attirbute
+  that starts with a '/' when using memory storage. Reported in
+  https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
+  Corrected in framework version 3.3.10, subversion revision 2560.
 
 
 ========================================================================
