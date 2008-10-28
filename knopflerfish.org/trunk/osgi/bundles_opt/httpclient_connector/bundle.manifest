@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: httpclient_connector
 Bundle-SymbolicName: org.knopflerfish.bundle.httpclient_connector
-Bundle-Version: 2.0.2
-Bundle-UUID: org.knopflerfish:httpclient_connector:2.0.2
+Bundle-Version: 2.1.0
+Bundle-UUID: org.knopflerfish:httpclient_connector:2.1.0
 Bundle-Activator: org.knopflerfish.bundle.httpclient_connector.Activator
 Bundle-Classpath: .,codec/commons-codec-1.3.jar,
  httpclient/commons-httpclient-3.1.jar
