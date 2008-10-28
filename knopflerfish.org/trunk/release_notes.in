@@ -23,6 +23,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 
+=== Services (Compendium) ===
+      
+  Http Service 2.1.1
+
+  Allow configurations with port.http=0 / port.https=0, ensure that
+  the service properties port.http / port.https for the HttpService
+  instance shows the actual port obtained from the OS and not 0.
+
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
