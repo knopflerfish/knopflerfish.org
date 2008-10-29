@@ -173,8 +173,10 @@ public class BIndexTask extends Task {
           // baseDir to get correctly computed paths in the bundle
           // URLs.
           Field rootFileField = bIndexClazz.getDeclaredField("rootFile");
-          rootFileField.setAccessible(true);
-          rootFileField.set(null, baseDir.getAbsoluteFile());
+          if (null!=rootFileField) {
+            rootFileField.setAccessible(true);
+            rootFileField.set(null, baseDir.getAbsoluteFile());
+          }
         }
 
         // Call the main method
