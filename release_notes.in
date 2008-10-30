@@ -12,9 +12,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Framework 4.0.11
 
-  The native code OS-name alias handling was wrong for 'Mac OS X'.
+  The native code OS-name alias handling was wrong for "Mac OS X".
+  Added missing OS-name aliases for "Windows 2003", "symbianos", "hp-ux".
+  Added missing processor aliases for "em64t" and "x86_64".
   Reported in
   https://sourceforge.net/tracker2/?func=detail&aid=1615910&group_id=82798&atid=567241
+  https://sourceforge.net/tracker2/?func=detail&aid=1620734&group_id=82798&atid=567241
 
   Fix an issue with paths in the BundleClassPath manifest attirbute
   that starts with a '/' when using memory storage. Reported in
