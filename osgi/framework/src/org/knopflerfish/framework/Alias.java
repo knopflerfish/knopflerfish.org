@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class Alias {
    * All aliases must be in lowercase.
    */
   final public static String[][] osNameAliases = {
-    { "MacOSX", "Mac OS X" },
+    { "MacOSX", "mac os x" },
     { "OS2", "os/2" },
     { "QNX", "procnto" },
     { "windows95", "windows 95", "win95" },
@@ -83,10 +83,10 @@ public class Alias {
     ArrayList res = new ArrayList(2);
     for (int i = 0; i < processorAliases.length; i++) {
       for (int j = 1; j < processorAliases[i].length; j++) {
-	if (name.equalsIgnoreCase(processorAliases[i][j])) {
-	  res.add(processorAliases[i][0]);
+        if (name.equalsIgnoreCase(processorAliases[i][j])) {
+          res.add(processorAliases[i][0]);
           break;
-	}
+        }
       }
     }
     res.add(name);
@@ -106,14 +106,14 @@ public class Alias {
     for (int i = 0; i < osNameAliases.length; i++) {
       for (int j = 1; j < osNameAliases[i].length; j++) {
         int last = osNameAliases[i][j].length() - 1;
-	if (lname.equals(osNameAliases[i][j]) ||
+        if (lname.equals(osNameAliases[i][j]) ||
             osNameAliases[i][j].charAt(last) == '*' &&
             lname.startsWith(osNameAliases[i][j].substring(0, last))) {
           if (!lname.equals(osNameAliases[i][0])) {
             res.add(osNameAliases[i][0]);
           }
           break;
-	}
+        }
       }
     }
     res.add(name);
