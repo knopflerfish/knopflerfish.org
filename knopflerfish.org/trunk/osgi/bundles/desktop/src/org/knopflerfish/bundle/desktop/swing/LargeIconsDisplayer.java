@@ -352,45 +352,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       c.setToolTipText(Util.bundleInfo(b));
 
-      Icon icon = (Icon)icons.get(b);
-
-      if(icon == null) {
-        URL appURL = null;
-        String iconName = (String)b.getHeaders().get("Application-Icon");
-        if(iconName == null) {
-          iconName = "";
-        }
-        iconName = iconName.trim();
-
-        if(iconName != null && !"".equals(iconName)) {
-          try {
-            appURL = b.getResource(iconName);
-          } catch (Exception e) {
-            Activator.log.error("Failed to load icon", e);
-          }
-        }
-
-        //        System.out.println("#" + b.getBundleId() + ", appURL=" + appURL);
-        try {
-          if(Util.hasMainClass(b)) {
-            icon = new BundleImageIcon(b,
-                                       appURL != null ? appURL : getClass().getResource("/jarexec.gif"));
-          } else if(Util.hasActivator(b)) {
-            icon = new BundleImageIcon(b,
-                                       appURL != null ? appURL : getClass().getResource("/bundle.png"));
-          } else if(Util.hasComponent(b)) {
-            icon = new BundleImageIcon(b,
-                                       appURL != null ? appURL : getClass().getResource("/component.png"));
-          } else {
-            icon = new BundleImageIcon(b,
-                                       appURL != null ? appURL : getClass().getResource("/lib.png"));
-          }
-        } catch (Exception e) {
-          Activator.log.error("Failed to load icon, appURL=" + appURL);
-          icon = new BundleImageIcon(b, getClass().getResource("/bundle.png"));
-        }
-        icons.put(b, icon);
-      }
+      Icon icon = Util.getBundleIcon(b);
 
       c.setIcon(icon);
 
