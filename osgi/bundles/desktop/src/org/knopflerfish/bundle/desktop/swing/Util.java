@@ -51,6 +51,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
+import javax.swing.*;
 
 import org.knopflerfish.util.Text;
 
@@ -230,6 +231,10 @@ public class Util {
     return null != getHeader(b, "Bundle-Activator");
   }
 
+  public static boolean hasFragment(Bundle b) {
+    return null != getHeader(b, "Fragment-Host");
+  }
+
   public static boolean hasComponent(Bundle b) {
     return null != getHeader(b, "Service-Component");
   }
@@ -260,6 +265,59 @@ public class Util {
     return sb.toString();
   }
 
+  // Bundle -> Icon
+  static Map iconMap = new HashMap();
+
+  public static Icon getBundleIcon(Bundle b) {
+    synchronized(iconMap) {
+      Class clazz = Util.class;
+      Icon icon = (Icon)iconMap.get(b);
+      if(icon != null) {
+        return icon;
+      }
+      
+      URL appURL = null;
+      String iconName = (String)b.getHeaders().get("Application-Icon");
+      if(iconName == null) {
+        iconName = "";
+      }
+      iconName = iconName.trim();
+      
+      if(iconName != null && !"".equals(iconName)) {
+        try {
+          appURL = b.getResource(iconName);
+        } catch (Exception e) {
+          Activator.log.error("Failed to load icon", e);
+        }
+      }
+      
+      try {
+        if(Util.hasMainClass(b)) {
+          icon = new BundleImageIcon(b,
+                                     appURL != null ? appURL : clazz.getResource("/jarexec.gif"));
+        } else if(Util.hasFragment(b)) {
+          icon = new BundleImageIcon(b,
+                                     appURL != null ? appURL : clazz.getResource("/frag.png"));
+        } else if(Util.hasComponent(b)) {
+          icon = new BundleImageIcon(b,
+                                     appURL != null ? appURL : clazz.getResource("/component.png"));
+        } else if(Util.hasActivator(b)) {
+          icon = new BundleImageIcon(b,
+                                     appURL != null ? appURL : clazz.getResource("/bundle.png"));
+        } else {
+          icon = new BundleImageIcon(b,
+                                     appURL != null ? appURL : clazz.getResource("/lib.png"));
+        }
+      } catch (Exception e) {
+        Activator.log.error("Failed to load icon, appURL=" + appURL);
+        icon = new BundleImageIcon(b, clazz.getResource("/bundle.png"));
+      }
+      // icon = new GlowIcon(icon);
+      iconMap.put(b, icon);
+      return icon;
+    }
+  }
+
   public static Comparator bundleIdComparator = new BundleIdComparator();
 
   public static class BundleIdComparator implements Comparator {
@@ -281,7 +339,7 @@ public class Util {
 
   static int maxK = 256;
 
-  static Color rgbInterPolate(Color c1, Color c2, double k) {
+  public static Color rgbInterPolate(Color c1, Color c2, double k) {
 
     int K = (int)(maxK * k);
 
@@ -289,8 +347,8 @@ public class Util {
       return Color.gray;
     }
 
-    if(k == 0.0) return c1;
-    if(k == 1.0) return c2;
+    if(k <= 0.0) return c1;
+    if(k >= 1.0) return c2;
 
     int r1 = c1.getRed();
     int g1 = c1.getGreen();
@@ -837,4 +895,46 @@ public class Util {
     Activator.log.warn("Failed to get BundleContext from " + clazz.getName());
     return null;
   }
+
+  public static String getServiceInfo(ServiceReference sr) {
+    StringBuffer sb = new StringBuffer();
+
+    sb.append(sr.getProperty("service.id") + ": " + getClassNames(sr));
+    sb.append("\n");
+    sb.append("from #" + sr.getBundle().getBundleId());
+    sb.append(" " + Util.getBundleName(sr.getBundle()));
+
+    
+
+    Bundle[] bl = sr.getUsingBundles();
+    if(bl != null) {
+      sb.append("\nto ");
+      for(int i = 0; i < bl.length; i++) {
+        sb.append("#" + bl[i].getBundleId());
+        sb.append(" " + Util.getBundleName(bl[i]));
+        if(i < bl.length -1) {
+          sb.append("\n");
+        }
+      }
+    }
+    return sb.toString();
+  }
+
+  public static String getClassNames(ServiceReference sr) {
+    return getClassNames(sr, "\n");
+  }
+
+  public static String getClassNames(ServiceReference sr, String sep) {
+
+    StringBuffer sb = new StringBuffer();
+    String sa[] = (String[])sr.getProperty("objectClass");
+    for(int j = 0; j < sa.length; j++) {
+      sb.append(sa[j]);
+      if(j < sa.length - 1) {
+        sb.append(sep);
+      }
+    }
+    return sb.toString();
+  }
+
 }
