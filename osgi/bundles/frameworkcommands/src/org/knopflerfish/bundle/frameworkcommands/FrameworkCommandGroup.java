@@ -446,7 +446,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     methodArgs = new Object[args.length];
 
     try {
-      Method m = findMethod(s.getClass(), method, args.length);
+      Method m = findMethod(si, s.getClass(), method, args.length);
 
       if (m != null) {
         parameterTypes = m.getParameterTypes();
@@ -514,8 +514,35 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     }
   }
 
-  Method findMethod(Class clazz, String name, int nArgs) {
-    Method[] methods = clazz.getDeclaredMethods();
+  /**
+   * Find the class object for the named interface/class that the
+   * specified class implements.
+   * @param type  The full name of the class / interface that we are
+   *              looking for.
+   * @param clazz The class to investigate.
+   * @return class object for the specified type.
+   */
+  Class findClass(final String type, final Class clazz)
+  {
+    if (type.equals(clazz.getName())) return clazz;
+
+    Class[] clazzes = clazz.getInterfaces();
+    for (int i=0; i<clazzes.length; i++) {
+      if (type.equals(clazzes[i].getName())) return clazzes[i];
+    }
+    return findClass(type, clazz.getSuperclass());
+  }
+
+  Method findMethod(final String si,
+                    final Class clazz,
+                    final String name,
+                    final int nArgs)
+  {
+    Class ifClass = findClass(si, clazz);
+    // Fallback to use the original class if the one given by si was not found.
+    if (null==ifClass) ifClass = clazz;
+
+    Method[] methods = ifClass.getDeclaredMethods();
     Vector v = new Vector();
     for (int i = 0; i < methods.length; i++) {
       if (methods[i].getName().equals(name)
