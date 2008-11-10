@@ -54,13 +54,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 
-  Framwork commands 2.0.3
+  Framwork commands 2.0.4
 
   The command "bundles -l" now presents the relation between host
   bundles and attached fragments.
 
   The command "call" no longer requires the implementation class of
   a service to be public.
+
+  Added filter option to the command "services" (aka "lss").
+
+
 
   Event-Admin 2.0.2
 
