@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: FW-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.frameworkcommands
-Bundle-Version: 2.0.3
-Bundle-UUID: org.knopflerfish:frameworkcommands:2.0.3:impl
+Bundle-Version: 2.0.4
+Bundle-UUID: org.knopflerfish:frameworkcommands:2.0.4:impl
 Bundle-Description: Framework commands
 Bundle-Vendor: Knopflerfish
 Bundle-DocURL: http://www.knopflerfish.org

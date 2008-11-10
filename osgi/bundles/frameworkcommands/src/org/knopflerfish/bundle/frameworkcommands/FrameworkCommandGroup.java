@@ -60,6 +60,7 @@ import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -1157,60 +1158,140 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
 
   public final static String USAGE_SERVICES
-    = "[-i] [-l] [-r] [-u] [<bundle>] ...";
+    = "[-i] [-l] [-f #filter#] [-r] [-u] [<bundle>] ...";
 
   public final static String[] HELP_SERVICES = new String[] {
-    "List registered services", "-i       Sort on bundle id",
-    "-l       Verbose output",
-    "-r       Show services registered by named bundles (default)",
-    "-u       Show services used by named bundles",
-    "<bundle> Name or id of bundle" };
+    "List registered services",
+    "-i          Sort on bundle id",
+    "-l          Verbose output",
+    "-r          Show services registered by named bundles (default)",
+    "-u          Show services used by named bundles",
+    "-f #filter# Show all services that matches the specified filter.",
+    "<bundle>    Name or id of bundle" };
 
   public int cmdServices(final Dictionary opts, Reader in,
                          final PrintWriter out, Session session) {
     final Bundle[] b = getBundles((String[]) opts.get("bundle"), opts
                                   .get("-i") != null);
-    AccessController.doPrivileged(new PrivilegedAction() {
+    Integer res = (Integer) AccessController.doPrivileged(new PrivilegedAction()
+      {
         public Object run() {
+          boolean useDefaultOper = opts.get("-r") == null
+            && opts.get("-u") == null;
+          ServiceReference[] fs = null;
+          if (opts.get("-f") != null) {
+            try {
+              fs = bc.getServiceReferences(null, (String) opts.get("-f"));
+              if (null==fs) {
+                out.println("No services matching '"+opts.get("-f") +"'.");
+                return new Integer(0);
+              }
+            } catch (InvalidSyntaxException ise) {
+              out.println("Invalid filter found: "+ise.getMessage());
+              return new Integer(1);
+            }
+          }
+
           for (int i = 0; i < b.length; i++) {
             if (b[i] != null) {
               out.println("Bundle: " + showBundle(b[i]));
-              if (opts.get("-r") != null || opts.get("-u") == null) {
-                ServiceReference[] s = b[i].getRegisteredServices();
-                if (s != null && s.length > 0) {
-                  out.print("  registered:");
-                  for (int j = 0; j < s.length; j++) {
-                    if (opts.get("-l") != null) {
-                      out.print("\n    ");
-                      showLongService(s[j], "    ", out);
-                    } else {
-                      out.print(" "+ Util.showServiceClasses(s[j]));
-                    }
-                  }
-                  out.println("");
-                }
+              if (opts.get("-r") != null || useDefaultOper) {
+                showServices(getServicesRegisteredBy(b[i],fs),
+                             out,
+                             "  registered:",
+                             opts.get("-l") != null);
               }
               if (opts.get("-u") != null) {
-                ServiceReference[] s = b[i].getServicesInUse();
-                if (s != null && s.length > 0) {
-                  out.print("  uses:");
-                  for (int j = 0; j < s.length; j++) {
-                    if (opts.get("-l") != null) {
-                      out.print("\n    ");
-                      showLongService(s[j], "    ", out);
-                    } else {
-                      out.print(" "+ Util.showServiceClasses(s[j]));
-                    }
-                  }
-                }
-                out.println("");
+                showServices(getServicesUsedBy(b[i],fs),
+                             out,
+                             "  uses:",
+                             opts.get("-l") != null);
               }
             }
           }
-          return null;
+          return new Integer(0);
         }
       });
-    return 0;
+    return res.intValue();
+  }
+
+  ServiceReference[] getServicesRegisteredBy(Bundle b,
+                                             ServiceReference[] services)
+  {
+    if (services==null) {
+      return b.getRegisteredServices();
+    }
+    // Filter the given services on registered by.
+    long bid = b.getBundleId();
+    int count = 0;
+    for (int j = 0; j<services.length; j++) {
+      if (bid==services[j].getBundle().getBundleId()) {
+        count++;
+      }
+    }
+    if (0==count) return null;
+    ServiceReference[] res = new ServiceReference[count];
+    int ix = 0;
+    for (int j = 0; j<services.length; j++) {
+      if (bid==services[j].getBundle().getBundleId()) {
+        res[ix++] = services[j];
+      }
+    }
+    return res;
+  }
+
+  ServiceReference[] getServicesUsedBy(Bundle b,
+                                       ServiceReference[] services)
+  {
+    if (null==services) {
+      return b.getServicesInUse();
+    }
+    // Filter the given services on using bundle.
+    long bid = b.getBundleId();
+    int count = 0;
+    for (int j = 0; j<services.length; j++) {
+      Bundle[] usingBundles = services[j].getUsingBundles();
+      for (int k=0; usingBundles!=null && k<usingBundles.length; k++) {
+        if (bid==usingBundles[k].getBundleId()) {
+          count++;
+          break;
+        }
+      }
+    }
+    if (0==count) return null;
+    ServiceReference[] res = new ServiceReference[count];
+    int ix = 0;
+    for (int j = 0; j<services.length; j++) {
+      Bundle[] usingBundles = services[j].getUsingBundles();
+      for (int k=0; usingBundles!=null && k<usingBundles.length; k++) {
+        if (bid==usingBundles[k].getBundleId()) {
+          res[ix++] = services[j];
+          break;
+        }
+      }
+    }
+    return res;
+  }
+
+  void showServices(final ServiceReference[] services,
+                    final PrintWriter out,
+                    final String title,
+                    final boolean detailed)
+  {
+    if (services != null && services.length > 0) {
+      out.print(title);
+      for (int j = 0; j<services.length; j++) {
+        if (null!=services[j]) {
+          if (detailed) {
+            out.print("\n    ");
+            showLongService(services[j], "    ", out);
+          } else {
+            out.print(" "+ Util.showServiceClasses(services[j]));
+          }
+        }
+      }
+    }
+    out.println("");
   }
 
   void showLongService(ServiceReference s, String pad, PrintWriter out) {
