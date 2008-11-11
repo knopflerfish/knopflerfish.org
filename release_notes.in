@@ -39,6 +39,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   instance shows the actual port obtained from the OS and not 0.
 
 
+  Event Admin 2.0.3
+
+  Add the missing mapping of Framework event of type INFO to events on
+  the topic "org/osgi/framework/FrameworkEvent/INFO".
+
+
 
 === Misc (KF specific, start scripts, build system etc ===
 

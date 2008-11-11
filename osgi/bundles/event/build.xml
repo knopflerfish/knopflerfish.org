@@ -26,7 +26,7 @@
   <property name="bmfa.Bundle-Name"           value="Event-Admin"/>
   <property name="bmfa.Bundle-Description"    value="Event Admin"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="2.0.2"/>
+  <property name="bmfa.Bundle-Version"        value="2.0.3"/>
   <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
 

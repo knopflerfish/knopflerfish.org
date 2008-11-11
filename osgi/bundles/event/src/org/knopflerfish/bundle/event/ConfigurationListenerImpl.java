@@ -109,7 +109,8 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
         log.error("EXCEPTION in configurationEvent()", e);
       }
     } else {
-      log.error("Recieved unknown message, discarding");
+      log.error("Recieved unknown configuration event (type="
+                +event.getType() +"), discarding");
     }
   }
 
