@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,7 +151,8 @@ public class MultiListener implements LogListener,
       }
     } else {
       /* Logs an error if the event, which arrived, were of an unknown type */
-      log.error("Recieved unknown message, discarding");
+      log.error("Recieved unknown bundle event message (type="
+                +bundleEvent.getType() +"), discarding");
     }
     // }
   }
@@ -300,7 +301,8 @@ public class MultiListener implements LogListener,
       }
     } else {
       /* Logs an error if the event, which arrived, were of an unknown type */
-      log.error("Recieved unknown message, discarding");
+      log.error("Recieved unknown service event message (type="
+                +serviceEvent.getType() +"), discarding");
     }
   }
 
@@ -325,6 +327,9 @@ public class MultiListener implements LogListener,
     case FrameworkEvent.ERROR:
       topic += "ERROR";
       break;
+    case FrameworkEvent.INFO:
+      topic += "INFO";
+      break;
     case FrameworkEvent.PACKAGES_REFRESHED:
       topic += "PACKAGES_REFRESHED";
       break;
@@ -337,20 +342,25 @@ public class MultiListener implements LogListener,
       break;
     }
 
-    /* Stores the properties of the event in the dictionary, if the event is known */
+    /* Stores the properties of the event in the dictionary, if the
+     * event is known */
     if (knownMessageType) {
       putProp(props, "event", frameworkEvent);
       /* If the event contains a bundle, further properties shall be set */
       if (frameworkEvent.getBundle() != null) {
         putProp(props, "bundle.id", new Long(bundle.getBundleId()));
-        putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());
+        putProp(props,
+                EventConstants.BUNDLE_SYMBOLICNAME,
+                bundle.getLocation());
         putProp(props, "bundle", bundle);
       }
 
       /* If the event contains an exception, further properties shall be set */
       if (frameworkEvent.getThrowable() != null) {
         Throwable e = frameworkEvent.getThrowable();
-        putProp(props, EventConstants.EXECPTION_CLASS, Throwable.class.getName());
+        putProp(props,
+                EventConstants.EXECPTION_CLASS,
+                Throwable.class.getName());
         putProp(props, EventConstants.EXCEPTION_MESSAGE, e.getMessage());
         putProp(props, EventConstants.EXCEPTION, e);
       }
@@ -362,7 +372,8 @@ public class MultiListener implements LogListener,
         log.error("Exception in frameworkEvent() :", e);
       }
     } else {
-      log.error("Recieved unknown message, discarding");
+      log.error("Recieved unknown framework event (type="
+                +frameworkEvent.getType() +"), discarding");
     }
   }
 
