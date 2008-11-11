@@ -400,11 +400,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   // Call command
   //
 
-  public final static String USAGE_CALL = "<interface> <method> [<args>] ...";
+  public final static String USAGE_CALL
+    = "[-f #filter#] <interface> <method> [<args>] ...";
 
   public final static String[] HELP_CALL = new String[] {
     "Call a method with zero or more java.lang.String",
     "arguments in a registered service.",
+    "-f #filter# Filter to select service, the condition",
+    "            '(objectClass=<interface>) is allways added to the filter",
     "<interface> Service interface",
     "<method>    Method in service to call",
     "<args>      Arguments to method. If arguments",
@@ -412,18 +415,47 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     "            will be attempted to created as the",
     "            specified type", };
 
-  public int cmdCall(Dictionary opts, Reader in, PrintWriter out,
-                     Session session) {
+  public int cmdCall(final Dictionary opts,
+                     final Reader in,
+                     final PrintWriter out,
+                     final Session session)
+  {
     int res = 1;
     final String si = (String) opts.get("interface");
+    final String filterArg = (String) opts.get("-f");
+    final String filter = null==filterArg
+      ? null
+      : "(&(objectClass=" +si +")" +filterArg +")";
     final ServiceReference sr = (ServiceReference) AccessController
       .doPrivileged(new PrivilegedAction() {
           public Object run() {
-            return bc.getServiceReference(si);
+            ServiceReference res = null;
+            if (null==filter) {
+              res = bc.getServiceReference(si);
+              if (null==res) {
+                out.println("No service with interface '" + si +"'.");
+              }
+            } else {
+              try {
+                ServiceReference[] srs = bc.getServiceReferences(si,filter);
+                if (null==srs) {
+                  out.println("No service that matches the filter '"
+                              +filter +"'.");
+                } else if (1==srs.length) {
+                  res = srs[0];
+                } else {
+                  out.println("Multiple service matches the filter '"
+                              +filter +"' please narrow it down.");
+                }
+              } catch (InvalidSyntaxException ise) {
+                out.println("Invalid filter '" +filter +"': "
+                            +ise.getMessage());
+              }
+            }
+            return res;
           }
         });
     if (sr == null) {
-      out.println("No such service reference class: " + si);
       return 1;
     }
     Object s = AccessController.doPrivileged(new PrivilegedAction() {
