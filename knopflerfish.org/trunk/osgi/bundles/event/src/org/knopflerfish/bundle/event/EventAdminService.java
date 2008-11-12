@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ import org.knopflerfish.service.log.LogRef;
  * published event the EventAdmin service will put the event on one of the two internal sendstacks
  * depending on what type of deliverance the event requires.
  *
- * @author Magnus Klack (refactoring by Björn Andersson)
+ * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
 public class EventAdminService implements EventAdmin {
 

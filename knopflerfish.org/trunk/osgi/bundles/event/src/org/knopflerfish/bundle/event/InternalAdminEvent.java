@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import org.osgi.service.event.TopicPermission;
  * A wrapper class for events. Connects an event with ServiceReferences to
  * the EventHandlers it should be delivered to.
  *
- * @author Magnus Klack (refactoring by Björn Andersson)
+ * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
 public class InternalAdminEvent {
 
@@ -54,8 +54,8 @@ public class InternalAdminEvent {
   /**
    * Standard constructor of the InternalAdminEvent
    * @param event the event to be stored
-   * @param references ServiceReference to the EventHandlers this event should be
-   *                   delivered to.
+   * @param references ServiceReference to the EventHandlers this
+   *                   event should be delivered to.
    */
   public InternalAdminEvent(Event event, ServiceReference[] references){
     this.event = event;
