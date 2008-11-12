@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,13 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
 /**
- * this class will send the events synchronus and asynchronus to the event handlers it contains
- * one internal class doing a producer consumer algorithm between itself and the mainclass.
- * the internal worker class will pick the first element in the queue and create a deliver session.
+ * This class will send the events synchronus and asynchronus to the
+ * event handlers. It contains one internal class doing a producer
+ * consumer algorithm between itself and the mainclass.  The internal
+ * worker class will pick the first element in the queue and create a
+ * deliver session.
  *
- * @author Magnus Klack (refactoring by Björn Andersson)
+ * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
 public class QueueHandler extends Thread {
 
@@ -84,7 +86,9 @@ public class QueueHandler extends Thread {
         }
       }
       if (event != null) {
-        event.deliver(); // Must be outside synchronized since the delivery can cause new events.
+        // Must be outside synchronized since the delivery can cause
+        // new events.
+        event.deliver();
       } else {
         synchronized (this) {
           try {

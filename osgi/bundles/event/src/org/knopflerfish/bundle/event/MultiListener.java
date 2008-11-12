@@ -60,7 +60,7 @@ import org.knopflerfish.service.log.LogRef;
 /**
  * Listen for LogEntries, ServiceEvents, FrameworkEvents, BundleEvents
  *
- * @author Magnus Klack,Martin Berg (refactoring by Björn Andersson)
+ * @author Magnus Klack, Martin Berg (refactoring by Bj\u00f6rn Andersson)
  */
 public class MultiListener implements LogListener,
                                       ServiceListener,
