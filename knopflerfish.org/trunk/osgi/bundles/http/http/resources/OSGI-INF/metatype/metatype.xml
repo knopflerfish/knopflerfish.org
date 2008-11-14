@@ -6,14 +6,14 @@
 
 <OCD id="1.1.1.1" name="OCD for factory.HttpServer">
  
-  <AD name="port.http" type="Integer" id="1.1.1.1.1"  default="8080" />
-  <AD name="host" type="String" id="1.1.1.1.2" />
-  <AD name="session.timeout.default" type="Integer" id="1.1.1.1.3" default="1200 "/>
-  <AD name="connection.max" type="Integer" id="1.1.1.1.4"  dedfault="50" />
-  <AD name="connection.timeout" type="Integer" id="1.1.1.1.5"  default="30" />
-  <AD name="response.buffer.size.default" type="Integer" id="1.1.1.1.6"  default="16384" />
-  <AD name="service.ranking" type="Integer" id="1.1.1.1.7" default="1" />
-  <AD name="dns.lookup" type="Boolean" id="1.1.1.1.8" default="false" />
+  <AD name="port.http" type="Integer" id="port.http"  default="8080" />
+  <AD name="host" type="String" id="host" />
+  <AD name="session.timeout.default" type="Integer" id="session.timeout.default" default="1200 "/>
+  <AD name="connection.max" type="Integer" id="connection.max"  dedfault="50" />
+  <AD name="connection.timeout" type="Integer" id="connection.timeout"  default="30" />
+  <AD name="response.buffer.size.default" type="Integer" id="response.buffer.size.default"  default="16384" />
+  <AD name="service.ranking" type="Integer" id="service.ranking" default="1" />
+  <AD name="dns.lookup" type="Boolean" id="dns.lookup" default="false" />
 
 </OCD>
 
