@@ -52,6 +52,7 @@ import org.osgi.service.metatype.*;
 
 public class JCMService extends JPanel {
   ObjectClassDefinition ocd;
+  String	designatedPid;
   JPanel    main;
 
   boolean   isService = true;
@@ -72,8 +73,9 @@ public class JCMService extends JPanel {
   }
 
 
-  void setServiceOCD(ObjectClassDefinition ocd) {
+  void setServiceOCD(String pid, ObjectClassDefinition ocd) {
     this.ocd = ocd;
+    this.designatedPid = pid;
     isService  = ocd != null;
     isFactory  =false;
     lastPID = null;
@@ -81,8 +83,9 @@ public class JCMService extends JPanel {
 
   }
 
-  void setFactoryOCD(ObjectClassDefinition ocd) {
+  void setFactoryOCD(String pid, ObjectClassDefinition ocd) {
     this.ocd = ocd;
+    this.designatedPid = pid;
     isService = false;
     isFactory = ocd != null;
     lastPID = null;
@@ -97,7 +100,7 @@ public class JCMService extends JPanel {
     factoryPid  = null;
 
     if(ocd != null) {
-      main.setBorder(JCMInfo.makeBorder(this, ocd.getID()));
+      main.setBorder(JCMInfo.makeBorder(this, designatedPid));
       
       mainPanel = new JPanel(new BorderLayout());
       
@@ -108,7 +111,7 @@ public class JCMService extends JPanel {
       Dictionary configProps = null;
       
       try {
-	Configuration conf = CMDisplayer.getConfig(ocd.getID());
+	Configuration conf = CMDisplayer.getConfig(designatedPid);
 	configProps = conf.getProperties();
 	//	System.out.println("using conf values");
 	
@@ -152,7 +155,7 @@ public class JCMService extends JPanel {
       JButton applyButton = new JButton("Apply");
       applyButton.addActionListener(new ActionListener() {
 	  public void actionPerformed(ActionEvent ev) {
-	    applyConfig(ocd.getID());
+	    applyConfig(designatedPid);
 	  }
 	});
       applyButton.setToolTipText("Applies and stores the configuration changes");
@@ -163,7 +166,7 @@ public class JCMService extends JPanel {
 	try {
 	  configs = 
 	    CMDisplayer.getCA().listConfigurations("(service.factoryPid=" + 
-						   ocd.getID() + ")");
+						   designatedPid + ")");
 	} catch (Exception e) {
 	}
 	
@@ -172,7 +175,7 @@ public class JCMService extends JPanel {
 	
 	newButton.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent ev) {
-	      newFactoryConfig(ocd.getID());
+	      newFactoryConfig(designatedPid);
 	    }
 	  });
 	ctrlPanel.add(newButton);
@@ -229,12 +232,12 @@ public class JCMService extends JPanel {
 	  }
 	}
       } else {
-	if(CMDisplayer.configExists(ocd.getID())) {
+	if(CMDisplayer.configExists(designatedPid)) {
 	  JButton delButton   = new JButton("Delete");
 	  delButton.setToolTipText("Delete configuration");
 	  delButton.addActionListener(new ActionListener() {
 	      public void actionPerformed(ActionEvent ev) {
-		deleteConfig(ocd.getID());
+		deleteConfig(designatedPid);
 	      }
 	    });
 	  ctrlPanel.add(applyButton);
@@ -245,7 +248,7 @@ public class JCMService extends JPanel {
 	  createButton.setToolTipText("Create configuration from values below");
 	  createButton.addActionListener(new ActionListener() {
 	      public void actionPerformed(ActionEvent ev) {
-		createConfig(ocd.getID());
+		createConfig(designatedPid);
 	      }
 	    });
 
@@ -255,7 +258,7 @@ public class JCMService extends JPanel {
 	}
       }
       
-      //      ctrlPanel.add(new JLabel(ocd.getID()), BorderLayout.CENTER);
+      //      ctrlPanel.add(new JLabel(designatedPid), BorderLayout.CENTER);
       
       scroll.setBorder(null);
       mainPanel.add(scroll, BorderLayout.CENTER);

@@ -202,7 +202,7 @@ public class JCMInfo extends JPanel {
       ObjectClassDefinition ocd = 
 	(ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
       
-      jcmService.setServiceOCD(ocd);
+      jcmService.setServiceOCD(pid, ocd);
     } catch (Throwable t) {
       Activator.log.error("Failed to set service pid=" + pid, t);
     }
@@ -212,7 +212,7 @@ public class JCMInfo extends JPanel {
     ObjectClassDefinition ocd = 
       (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
 
-    jcmService.setFactoryOCD(ocd);
+    jcmService.setFactoryOCD(pid, ocd);
   }
 }
 
