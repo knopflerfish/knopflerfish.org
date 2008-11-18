@@ -243,9 +243,11 @@
       <classpath>
 	<fileset dir="${ant.home}/lib/">
 	  <include name="**/*.jar"/>
+	  <exclude name="bindex.jar"/>
 	</fileset>
 	<fileset dir="${ant.dir}/lib/">
 	  <include name="**/*.jar"/>
+	  <exclude name="bindex.jar"/>
 	</fileset>
 	<pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
 	<pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>
