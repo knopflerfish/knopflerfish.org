@@ -81,6 +81,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 
+  Telnet-Console 2.0.2
+
+  Improved error messages in the log when receiving a broken configuration.
+
+
+
   comm-win32 2.0.1
 
   Added Windows Vista as supported osname.

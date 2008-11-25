@@ -180,8 +180,9 @@ public class TelnetConfig {
 
   public InetAddress getAddress() {
     InetAddress inetAddress = null;
+    String addressStr = null;
     try {
-      String addressStr = (String) configuration.get(HOST_KEY);
+      addressStr = (String) configuration.get(HOST_KEY);
       if (addressStr != null) {
         addressStr = addressStr.trim();
         if ("".equals(addressStr)) {
@@ -193,9 +194,12 @@ public class TelnetConfig {
         inetAddress = null;
       }
     } catch (ClassCastException cce) {
-      throw new IllegalArgumentException("Wrong type for " + HOST_KEY);
+      throw new IllegalArgumentException
+        ("Wrong type for " + HOST_KEY +", expected String found '"
+         +configuration.get(HOST_KEY).getClass().getName() +"'.");
     } catch (UnknownHostException uhe) {
-      throw new IllegalArgumentException("Cannot resolve " + HOST_KEY);
+      throw new IllegalArgumentException
+        ("Cannot resolve " + HOST_KEY +" '" +addressStr +"'.");
     }
 
     return inetAddress;
