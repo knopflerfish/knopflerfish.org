@@ -89,7 +89,7 @@ class SocketConnectionImpl implements SocketConnection {
   throws IllegalArgumentException, IOException {
 		switch (option) {
 		case DELAY:
-			socket.setTcpNoDelay(value != 0);// TODO: verify
+			socket.setTcpNoDelay(value != 0);
 			break;
 		case LINGER:
 			socket.setSoLinger(value != 0, value);
@@ -114,7 +114,7 @@ class SocketConnectionImpl implements SocketConnection {
 			IOException {
 		switch (option) {
 		case DELAY:
-			return socket.getTcpNoDelay() ? 1 : 0;// TODO: verify
+			return socket.getTcpNoDelay() ? 1 : 0;
 		case LINGER:
 			return socket.getSoLinger();
 		case KEEPALIVE:
