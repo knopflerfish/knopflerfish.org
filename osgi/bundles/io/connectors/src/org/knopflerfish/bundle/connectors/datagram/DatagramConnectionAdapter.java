@@ -44,9 +44,9 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 import javax.microedition.io.Datagram;
-import javax.microedition.io.DatagramConnection;
+import javax.microedition.io.UDPDatagramConnection;
 
-class DatagramConnectionAdapter implements DatagramConnection {
+class DatagramConnectionAdapter implements UDPDatagramConnection {
         
   private final DatagramSocket socket;
   private final String address;
@@ -139,6 +139,16 @@ class DatagramConnectionAdapter implements DatagramConnection {
   public void close() throws IOException {
     factory.unregisterConnection(this);
     socket.close();
+  }
+  
+  public String getLocalAddress()
+  	throws IOException {
+	  return socket.getLocalAddress().getHostAddress();
+  }
+
+  public int getLocalPort()
+  	throws IOException {
+	  return socket.getLocalPort();
   }
 }
 
