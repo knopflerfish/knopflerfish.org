@@ -31,38 +31,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
 package org.knopflerfish.bundle.connectors.socket;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
-import javax.microedition.io.InputConnection;
-
+import javax.microedition.io.SocketConnection;
 
 /**
- * @author Kaspar Weilenmann &lt;kaspar@gatespacetelematics.com&gt;
+ * @author perg@makewave.com
  */
-class InputConnectionAdapter implements InputConnection {
+class SocketConnectionImpl implements SocketConnection {
 
   // private fields
 
   private Socket socket;
   private SocketConnectionFactory factory;
 
+
   // constructors
 
-  public InputConnectionAdapter(SocketConnectionFactory factory, Socket socket) {
+  public SocketConnectionImpl(SocketConnectionFactory factory, Socket socket) {
     this.socket = socket;
     this.factory = factory;
     factory.registerConnection(this);
   }
 
 
-  // implements InputConnection
+  // implements StreamConnection
 
   public DataInputStream openDataInputStream() throws IOException {
     return new DataInputStream(socket.getInputStream());
@@ -72,9 +72,81 @@ class InputConnectionAdapter implements InputConnection {
     return openDataInputStream();
   }
 
+  public DataOutputStream openDataOutputStream() throws IOException {
+    return new DataOutputStream(socket.getOutputStream());
+  }
+
+  public OutputStream openOutputStream() throws IOException {
+    return openDataOutputStream();
+  }
+
   public void close() throws IOException {
     socket.close();
     factory.unregisterConnection(this);
   }
+  
+  public void setSocketOption(byte option, int value)
+  throws IllegalArgumentException, IOException {
+		switch (option) {
+		case DELAY:
+			socket.setTcpNoDelay(value != 0);// TODO: verify
+			break;
+		case LINGER:
+			socket.setSoLinger(value != 0, value);
+			break;
+		case KEEPALIVE:
+			socket.setKeepAlive(value != 0);
+			break;
+		case RCVBUF:
+			socket.setReceiveBufferSize(value);
+			break;
+		case SNDBUF:
+			socket.setSendBufferSize(value);
+			break;
+		default:
+			throw new IllegalArgumentException("Illegal option (" + option
+					+ ") for SocketConnection.setOption(byte, int)");
+		}
+			  
+  }
 
-} // InputConnectionAdapter
+	public int getSocketOption(byte option) throws IllegalArgumentException,
+			IOException {
+		switch (option) {
+		case DELAY:
+			return socket.getTcpNoDelay() ? 1 : 0;// TODO: verify
+		case LINGER:
+			return socket.getSoLinger();
+		case KEEPALIVE:
+			return socket.getKeepAlive() ? 1 : 0;
+		case RCVBUF:
+			return socket.getReceiveBufferSize();
+		case SNDBUF:
+			return socket.getSendBufferSize();
+		default:
+			throw new IllegalArgumentException("Illegal option (" + option
+					+ ") for SocketConnection.getOption(byte)");
+		}
+	}
+
+	public String getLocalAddress() throws IOException {
+		return socket.getLocalAddress().getHostAddress();
+
+	}
+
+	public int getLocalPort() throws IOException {
+		return socket.getLocalPort();
+
+	}
+
+	public String getAddress() throws IOException {
+		return socket.getInetAddress().getHostAddress();
+
+	}
+
+	public int getPort() throws IOException {
+		return socket.getPort();
+
+	}
+
+}

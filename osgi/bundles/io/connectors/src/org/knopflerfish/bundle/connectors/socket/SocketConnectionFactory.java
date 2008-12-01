@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.connectors.socket;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
-//import java.net.URISyntaxException;
 
 import javax.microedition.io.Connection;
 
@@ -56,30 +55,19 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
   }
 
   public Connection createConnection(String name, int mode, boolean timeouts) throws IOException {
+    if (mode != ConnectorService.READ &&
+        mode != ConnectorService.WRITE &&
+        mode != ConnectorService.READ_WRITE) { 
+          throw new IOException("Illegal value for mode: " + mode);
+    }
     try {
-        
-      //comment by pl: I don't think this works, see Datagram code      
       URI uri = new URI(name);
-      Connection retval;
       Socket socket = new Socket(uri.getHost(), uri.getPort());
       if (!timeouts) socket.setSoTimeout(0);
-      if (mode == ConnectorService.READ) {
-        retval = new InputConnectionAdapter(this, socket);
-      } else if (mode == ConnectorService.WRITE) {
-        retval = new OutputConnectionAdapter(this, socket);
-      } else if (mode == ConnectorService.READ_WRITE) {
-        retval = new StreamConnectionAdapter(this, socket);
-      } else {
-        throw new IllegalArgumentException("Illegal value for mode: " + mode);
-      }
-
-      return retval;
-      
+      return new SocketConnectionImpl(this, socket);
     } catch (Exception urise) { // was URISyntaxException
       throw new IOException("Invalid URL syntax: " + urise.getMessage());
     }
-
-    
   }
 
 } // SocketConnectionFactory
