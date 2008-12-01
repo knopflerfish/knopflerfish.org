@@ -36,7 +36,7 @@ package org.knopflerfish.bundle.connectors.socket;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.URI;
+import java.net.ServerSocket;
 
 import javax.microedition.io.Connection;
 
@@ -61,13 +61,26 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
           throw new IOException("Illegal value for mode: " + mode);
     }
     try {
-      URI uri = new URI(name);
-      if(uri.getHost() == null || "".equals(uri.getHost())) {
-    	  ServerSocket socket = new ServerSocket(uri.getPort() > 0 ? uri.getPort() : 0);
+      final String scheme = "socket://";
+      if(!name.startsWith(scheme)) {
+    	  throw new Exception("Invalid scheme: " + name);
+      }
+      int portSeparatorPosition = name.indexOf(":", scheme.length());
+      String host = name.substring(scheme.length(), portSeparatorPosition);
+
+      String portString = name.substring(portSeparatorPosition + 1);
+
+      int port = 0;
+      if(portString != null && portString.length() > 0) {
+    	  port = Integer.parseInt(portString);
+      }
+
+      if(host == null || "".equals(host)) {
+    	  ServerSocket socket = new ServerSocket(port);
     	  if (!timeouts) socket.setSoTimeout(0);
           return new ServerSocketConnectionImpl(this, socket);
       } else {
-    	  Socket socket = new Socket(uri.getHost(), uri.getPort());
+    	  Socket socket = new Socket(host, port);
           if (!timeouts) socket.setSoTimeout(0);
           return new SocketConnectionImpl(this, socket);
       }
