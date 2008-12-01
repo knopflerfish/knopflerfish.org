@@ -62,9 +62,15 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
     }
     try {
       URI uri = new URI(name);
-      Socket socket = new Socket(uri.getHost(), uri.getPort());
-      if (!timeouts) socket.setSoTimeout(0);
-      return new SocketConnectionImpl(this, socket);
+      if(uri.getHost() == null || "".equals(uri.getHost())) {
+    	  ServerSocket socket = new ServerSocket(uri.getPort() > 0 ? uri.getPort() : 0);
+    	  if (!timeouts) socket.setSoTimeout(0);
+          return new ServerSocketConnectionImpl(this, socket);
+      } else {
+    	  Socket socket = new Socket(uri.getHost(), uri.getPort());
+          if (!timeouts) socket.setSoTimeout(0);
+          return new SocketConnectionImpl(this, socket);
+      }
     } catch (Exception urise) { // was URISyntaxException
       throw new IOException("Invalid URL syntax: " + urise.getMessage());
     }
