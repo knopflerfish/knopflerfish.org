@@ -51,42 +51,56 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
   // implements ConnectionFactory
 
   public String[] getSupportedSchemes() {
-    return new String[]{"socket"};
+    return new String[] { "socket" };
   }
 
-  public Connection createConnection(String name, int mode, boolean timeouts) throws IOException {
-    if (mode != ConnectorService.READ &&
-        mode != ConnectorService.WRITE &&
-        mode != ConnectorService.READ_WRITE) { 
-          throw new IOException("Illegal value for mode: " + mode);
+  public Connection createConnection(String uri, int mode, boolean timeouts)
+      throws IOException {
+    if (mode != ConnectorService.READ && mode != ConnectorService.WRITE
+        && mode != ConnectorService.READ_WRITE) {
+      throw new IOException("Illegal value for mode: " + mode);
     }
     try {
       final String scheme = "socket://";
-      if(!name.startsWith(scheme)) {
-    	  throw new Exception("Invalid scheme: " + name);
-      }
-      int portSeparatorPosition = name.indexOf(":", scheme.length());
-      String host = name.substring(scheme.length(), portSeparatorPosition);
-
-      String portString = name.substring(portSeparatorPosition + 1);
-
-      int port = 0;
-      if(portString != null && portString.length() > 0) {
-    	  port = Integer.parseInt(portString);
+      if (!uri.startsWith(scheme)) {
+        throw new Exception("Invalid scheme: " + uri);
       }
 
-      if(host == null || "".equals(host)) {
-    	  ServerSocket socket = new ServerSocket(port);
-    	  if (!timeouts) socket.setSoTimeout(0);
-          return new ServerSocketConnectionImpl(this, socket);
+      String hostPort = uri.substring(scheme.length());
+      String host = null;
+      String port = null;
+      int portAsInt = 0;
+
+      int portSeparatorPosition = hostPort.lastIndexOf(":");
+
+      if (portSeparatorPosition > -1) {
+        host = hostPort.substring(0, portSeparatorPosition);
+
+        port = hostPort.substring(portSeparatorPosition + 1);
+
+        if (port != null && port.length() > 0) {
+          portAsInt = Integer.parseInt(port);
+          if (portAsInt < 0) {
+            portAsInt = 0;
+          }
+
+        }
+      }
+
+      if (host == null || host.length() == 0) {
+        ServerSocket socket = new ServerSocket(portAsInt);
+        if (!timeouts)
+          socket.setSoTimeout(0);
+        return new ServerSocketConnectionImpl(this, socket);
       } else {
-    	  Socket socket = new Socket(host, port);
-          if (!timeouts) socket.setSoTimeout(0);
-          return new SocketConnectionImpl(this, socket);
+        Socket socket = new Socket(host, portAsInt);
+        if (!timeouts)
+          socket.setSoTimeout(0);
+        return new SocketConnectionImpl(this, socket);
       }
     } catch (Exception urise) { // was URISyntaxException
+      urise.printStackTrace();
       throw new IOException("Invalid URL syntax: " + urise.getMessage());
     }
   }
-
 } // SocketConnectionFactory
