@@ -33,9 +33,9 @@
 # exported by system classloader.
 #-Dorg.osgi.framework.system.packages=
 
-# Comma-separated list of packages that may be loaded by system classloader
+# Comma-separated list of packages that must be loaded by system classloader
 -Dorg.osgi.framework.bootdelegation=*
-#-Dorg.osgi.framework.bootdelegation=sun.*,com.sun.*
+#-Dorg.osgi.framework.bootdelegation=sun.*,com.sun.*,apple.laf.*
 
 # Web server properties
 -Dorg.knopflerfish.http.dnslookup=false
