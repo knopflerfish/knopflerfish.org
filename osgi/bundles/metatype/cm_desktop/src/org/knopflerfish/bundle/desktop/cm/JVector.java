@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -281,12 +281,12 @@ public class JVector extends JPanel {
     int row = table.getSelectedRow();
     String[] def = ad.getDefaultValue();
     if(def == null) {
-      System.out.println("No default values in " + ad);
+      //System.out.println("No default values in " + ad);
       return;
     }
 
     if(def.length == 0) {
-      System.out.println("Zero default values in " + ad);
+      //System.out.println("Zero default values in " + ad);
       return;
     }
 
