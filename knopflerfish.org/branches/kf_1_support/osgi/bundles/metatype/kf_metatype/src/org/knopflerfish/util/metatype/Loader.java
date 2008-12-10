@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -624,7 +624,7 @@ public class Loader {
 	  }
 	  list.add(ad);
 	} catch (XMLException ex) {
-	  System.out.println("Failed in " + el.getFullName() + 
+	  System.err.println("Failed in " + el.getFullName() + 
 			     ", name=" + el.getAttribute(ATTR_NAME) + 
 			     ", line=" + el.getLineNr() + ", " + ex);
 	  throw ex;
@@ -663,7 +663,7 @@ public class Loader {
 	}
 	attr = parseSequence(childEl, el.getAttribute(ATTR_NAME));
       } else if(isName(childEl, XSD_NS, TAG_RESTRICTION)) {
-	System.out.println("skip restriction");
+	//System.out.println("skip restriction");
       } else if(isName(childEl, XSD_NS, TAG_ANNOTATION)) {
 	// parse later
       }

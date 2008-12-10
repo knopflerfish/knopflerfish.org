@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -424,19 +424,19 @@ public class SystemMetatypeProvider extends MTP {
 	}
       }
 
-      System.out.println("getObjectClassDefinition " + pid);
+      //System.out.println("getObjectClassDefinition " + pid);
       synchronized(mtMap) {
 	for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
 	  ServiceReference sr = (ServiceReference)it.next();
 	  MetaTypeProvider mt = (MetaTypeProvider)mtMap.get(sr);
 	  ObjectClassDefinition ocd = mt.getObjectClassDefinition(pid, locale);
 	  if(ocd != null) {
-	    System.out.println("found getObjectClassDefinition " + pid);
+	    //System.out.println("found getObjectClassDefinition " + pid);
 	    return ocd;
 	  }
 	}
       }
-      System.out.println("no pid found getObjectClassDefinition " + pid);
+      //System.out.println("no pid found getObjectClassDefinition " + pid);
       return null;
     }
   }
