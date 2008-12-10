@@ -27,7 +27,7 @@ Release Notes Knopflerfish @VERSION@
   Removed a number of calls to System.out from the metatype bundles.
   Reported in 
   https://sourceforge.net/tracker2/?func=detail&aid=2406160&group_id=82798&atid=567241
-
+  Subversion revision 2588.
 
 
 ========================================================================
