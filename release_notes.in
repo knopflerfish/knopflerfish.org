@@ -20,6 +20,16 @@ Release Notes Knopflerfish @VERSION@
   Corrected in framework version 3.3.10, subversion revision 2560.
 
 
+=== Services (Compendium) ===
+      
+  Meta type
+
+  Removed a number of calls to System.out from the metatype bundles.
+  Reported in 
+  https://sourceforge.net/tracker2/?func=detail&aid=2406160&group_id=82798&atid=567241
+
+
+
 ========================================================================
 
 

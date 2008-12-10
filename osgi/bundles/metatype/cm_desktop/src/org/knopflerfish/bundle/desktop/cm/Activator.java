@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,21 +94,20 @@ public class Activator implements BundleActivator {
   void test() {
     ManagedService ms = new ManagedService() {
 	public void updated(Dictionary props) {
-	  System.out.println("managedservice service got " + props);
+	  //System.out.println("managedservice service got " + props);
 	}
       };
 
     ManagedServiceFactory mf = new ManagedServiceFactory() {
 	public void deleted(java.lang.String pid) {
-	  System.out.println("factory deleted " + pid);
+	  //System.out.println("factory deleted " + pid);
 	}
 	public java.lang.String getName() {
 	  return "my factory";
 	}
 
 	public void updated(String pid, Dictionary props) {
-	  System.out.println("factory updated pid=" + pid + 
-			     ", props=" + props);
+	  //System.out.println("factory updated pid=" + pid + ", props=" + props);
 	}
       };
 
