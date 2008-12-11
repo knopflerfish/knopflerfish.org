@@ -45,6 +45,9 @@ import org.osgi.service.packageadmin.*;
 
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Graphics;
+import java.awt.RenderingHints;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -208,6 +211,9 @@ public class Util {
   }
 
   public static String getBundleName(Bundle b) {
+    if(b == null) {
+      return "null";
+    }
     String s = getHeader(b, "Bundle-Name", "");
     if(s == null || "".equals(s) || s.startsWith("%")) {
       String loc = b.getLocation();
@@ -218,7 +224,24 @@ public class Util {
 
     return s;
   }
-  
+
+  public static Bundle findBundleByHeader(BundleContext bc, String headerName, String headerValue) {
+    if(headerName == null) {
+      throw new NullPointerException("headerName cannot be null");
+    }
+    if(headerValue == null) {
+      throw new NullPointerException("headerValue cannot be null");
+    }
+    Bundle[] bl = bc.getBundles();
+    for(int i = 0; bl != null && i < bl.length; i++) {
+      String v = getHeader(bl[i], headerName);
+      if(headerValue.equals(v)) {
+        return bl[i];
+      }
+    }
+    return null;
+  }
+
   public static boolean doAutostart() {
     return "true".equals(Util.getProperty("org.knopflerfish.desktop.autostart", "false"));
   }
@@ -297,7 +320,7 @@ public class Util {
                                      appURL != null ? appURL : clazz.getResource("/jarexec.gif"));
         } else if(Util.hasFragment(b)) {
           icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/frag.png"));
+                                     appURL != null ? appURL : clazz.getResource("/frag.gif"));
         } else if(Util.hasComponent(b)) {
           icon = new BundleImageIcon(b,
                                      appURL != null ? appURL : clazz.getResource("/component.png"));
@@ -312,7 +335,6 @@ public class Util {
         Activator.log.error("Failed to load icon, appURL=" + appURL);
         icon = new BundleImageIcon(b, clazz.getResource("/bundle.png"));
       }
-      // icon = new GlowIcon(icon);
       iconMap.put(b, icon);
       return icon;
     }
@@ -339,8 +361,7 @@ public class Util {
 
   static int maxK = 256;
 
-  public static Color rgbInterPolate(Color c1, Color c2, double k) {
-
+  public static Color rgbInterpolate(Color c1, Color c2, double k) {
     int K = (int)(maxK * k);
 
     if(c1 == null || c2 == null) {
@@ -371,7 +392,7 @@ public class Util {
     return c;
   }
 
-  static Color rgbInterPolate2(Color c1, Color c2, double k) {
+  static Color rgbInterpolate2(Color c1, Color c2, double k) {
 
     if(c1 == null || c2 == null) {
       return Color.gray;
@@ -422,14 +443,17 @@ public class Util {
      *                   null or empty set on top level call
      * @return           Set of <tt>Bundle</tt>
      */
-    static public Set getPackageClosure(PackageAdmin pkgAdmin,
-                                        Bundle[]     allBundles,
+    static public Set getPackageClosure(PackageManager pm,
+                                        // PackageAdmin pkgAdmin,
+                                        // Bundle[]     allBundles,
                                         Bundle       target,
                                         Set          handled) {
 
+      /*
       if(pkgAdmin == null) {
         throw new IllegalArgumentException("pkgAdmin argument cannot be null");
       }
+      */
 
       if(handled == null) {
         handled = new HashSet();
@@ -437,6 +461,25 @@ public class Util {
 
       Set closure = new TreeSet(Util.bundleIdComparator);
 
+      Collection importedPkgs = pm.getImportedPackages(target);
+      
+      for(Iterator it = importedPkgs.iterator(); it.hasNext();) {
+        ExportedPackage pkg = (ExportedPackage)it.next();
+
+        Bundle exporter = pkg.getExportingBundle();
+        closure.add(exporter);
+
+        // Then, get closure from the exporter, if not already
+        // handled. Add that closure set to the target closure.
+        if(!handled.contains(exporter)) {
+          handled.add(exporter);
+
+          // call recursivly with exporter as target
+          Set trans = getPackageClosure(pm, exporter, handled);
+          closure.addAll(trans);
+        }
+      }
+      /*
       // This is O(n2) at least, possibly O(n3). Should be improved
       for(int i = 0; i < allBundles.length; i++) {
         ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(allBundles[i]);
@@ -464,7 +507,7 @@ public class Util {
           }
         }
       }
-
+      */
       return closure;
     }
 
@@ -920,6 +963,7 @@ public class Util {
     return sb.toString();
   }
 
+
   public static String getClassNames(ServiceReference sr) {
     return getClassNames(sr, "\n");
   }
@@ -935,6 +979,17 @@ public class Util {
       }
     }
     return sb.toString();
+  }
+
+  static public void setAntialias(Graphics g, boolean b) {
+    Graphics2D g2 = (Graphics2D)g;
+    if(b) {
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                          RenderingHints.VALUE_ANTIALIAS_ON);
+    } else {
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                          RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
   }
 
 }

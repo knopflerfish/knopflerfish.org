@@ -56,6 +56,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -619,14 +620,14 @@ public class TimeLineDisplayer extends DefaultSwingBundleDisplayer {
 
 	  g.setColor(bundleEventColor);
 	  
-	  ImageIcon icon = desktop.getBundleEventIcon(fwe.getType());
+	  Icon icon = desktop.getBundleEventIcon(fwe.getType());
 	  
 	  if(icon != null) {
 	    if(imageSize == -1) {
-	      g.drawImage(icon.getImage(), x, y, null);
+	      // g.drawImage(icon.getImage(), x, y, null);
 	    } else {
-	      g.drawImage(icon.getImage(), 
-			  x-10, y-11, 16, 16, null);
+	      // g.drawImage(icon.getImage(), 
+              // x-10, y-11, 16, 16, null);
 	    }
 	  } else {
 	    g.drawLine(x, y, x, y-3);

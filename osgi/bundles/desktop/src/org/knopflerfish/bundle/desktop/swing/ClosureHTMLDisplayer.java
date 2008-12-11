@@ -145,8 +145,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         Set pkgClosure = new TreeSet(Util.bundleIdComparator);
         
         for(int i = 0; i < targets.length; i++) {
-          pkgClosure.addAll(Util.getPackageClosure(pkgAdmin, 
-                                                   bl, 
+          pkgClosure.addAll(Util.getPackageClosure(Activator.desktop.pm,
                                                    targets[i], 
                                                    null));
         }

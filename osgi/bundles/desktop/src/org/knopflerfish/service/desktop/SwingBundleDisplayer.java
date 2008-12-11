@@ -35,6 +35,7 @@
 package org.knopflerfish.service.desktop;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Bundle;
 
 import javax.swing.JComponent;
 import javax.swing.Icon;
@@ -200,6 +201,12 @@ public interface SwingBundleDisplayer {
    * </p>
    */
   public void       setTargetBundleContext(BundleContext bc);
+
+  /**
+   * Attempt to show the specified bundle.
+   */
+  public void showBundle(Bundle b);
+
 }
 
 

@@ -68,9 +68,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +86,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.swing.AbstractButton;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
@@ -114,6 +119,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import java.util.prefs.Preferences;
+import javax.swing.ToolTipManager;
 
 import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
@@ -149,6 +155,7 @@ public class Desktop
     BundleSelectionListener
 {
 
+  PackageManager   pm;
   JFrame           frame;
 
   Container        contentPane;
@@ -159,38 +166,38 @@ public class Desktop
   JTabbedPane        detailPanel;
   JTabbedPane        consolePanel;
 
-  ImageIcon          updateIcon;
-  ImageIcon          startIcon;
-  ImageIcon          emptyIcon;
-  ImageIcon          stopIcon;
-  ImageIcon          uninstallIcon;
-  ImageIcon          installIcon;
+  static Icon          updateIcon;
+  static Icon          startIcon;
+  static ImageIcon          emptyIcon;
+  static Icon          stopIcon;
+  static ImageIcon          uninstallIcon;
+  static ImageIcon          installIcon;
 
-  ImageIcon          magPlusIcon;
-  ImageIcon          magMinusIcon;
-  ImageIcon          magFitIcon;
-  ImageIcon          mag1to1Icon;
-  ImageIcon          reloadIcon;
+  static ImageIcon          magPlusIcon;
+  static ImageIcon          magMinusIcon;
+  static ImageIcon          magFitIcon;
+  static ImageIcon          mag1to1Icon;
+  static ImageIcon          reloadIcon;
 
-  ImageIcon          arrowUpIcon;
-  ImageIcon          arrowDownIcon;
+  static ImageIcon          arrowUpIcon;
+  static ImageIcon          arrowDownIcon;
 
-  ImageIcon          arrowUp2Icon;
-  ImageIcon          arrowDown2Icon;
+  static ImageIcon          arrowUp2Icon;
+  static ImageIcon          arrowDown2Icon;
 
-  ImageIcon          viewIcon;
+  static ImageIcon          viewIcon;
 
-  ImageIcon          openIcon;
-  ImageIcon          openURLIcon;
-  ImageIcon          saveIcon;
+  static ImageIcon          openIcon;
+  static ImageIcon          openURLIcon;
+  static ImageIcon          saveIcon;
 
-  ImageIcon          prevIcon;
-  ImageIcon          nextIcon;
-  ImageIcon          connectIcon;
-  ImageIcon          connectIconLarge;
+  static ImageIcon          prevIcon;
+  static ImageIcon          nextIcon;
+  static ImageIcon          connectIcon;
+  static ImageIcon          connectIconLarge;
 
-  ImageIcon          tipIcon;
-  ImageIcon          floatIcon;
+  static ImageIcon          tipIcon;
+  static ImageIcon          floatIcon;
 
   JToolBar           toolBar;
   StatusBar          statusBar;
@@ -223,7 +230,10 @@ public class Desktop
   static Point     frameLocation = null;
   static Dimension frameSize     = null;
 
+  static Desktop theDesktop;
+
   public Desktop() {
+    theDesktop = this;
   }
 
   /* We use a comparator to make sure that the ordering of
@@ -256,40 +266,43 @@ public class Desktop
     pkgTracker.open();
 
 
-    emptyIcon     = new ImageIcon(getClass().getResource("/empty.gif"));
-    startIcon     = new ImageIcon(getClass().getResource("/player_play.png"));
-    stopIcon      = new ImageIcon(getClass().getResource("/player_stop.png"));
-    uninstallIcon = new ImageIcon(getClass().getResource("/player_eject.png"));
-    installIcon = new ImageIcon(getClass().getResource("/player_install.png"));
-    updateIcon    = new ImageIcon(getClass().getResource("/update.png"));
 
-    viewIcon      = new ImageIcon(getClass().getResource("/view_select.png"));
+    if(emptyIcon == null) {
+      emptyIcon     = new ImageIcon(getClass().getResource("/empty.gif"));
+      startIcon     = new ImageIcon(getClass().getResource("/player_play.png"));
+      stopIcon      = new ImageIcon(getClass().getResource("/player_stop.png"));
+      uninstallIcon = new ImageIcon(getClass().getResource("/player_eject.png"));
+      installIcon = new ImageIcon(getClass().getResource("/player_install.png"));
+      updateIcon    = new ImageIcon(getClass().getResource("/update.png"));
 
-    magPlusIcon    = new ImageIcon(getClass().getResource("/viewmag+.png"));
-    magMinusIcon   = new ImageIcon(getClass().getResource("/viewmag-.png"));
-    magFitIcon     = new ImageIcon(getClass().getResource("/viewmagfit.png"));
-    mag1to1Icon    = new ImageIcon(getClass().getResource("/viewmag1.png"));
+      viewIcon      = new ImageIcon(getClass().getResource("/view_select.png"));
+      
+      magPlusIcon    = new ImageIcon(getClass().getResource("/viewmag+.png"));
+      magMinusIcon   = new ImageIcon(getClass().getResource("/viewmag-.png"));
+      magFitIcon     = new ImageIcon(getClass().getResource("/viewmagfit.png"));
+      mag1to1Icon    = new ImageIcon(getClass().getResource("/viewmag1.png"));
+      
+      reloadIcon     = new ImageIcon(getClass().getResource("/reload_green.png"));
 
-    reloadIcon     = new ImageIcon(getClass().getResource("/reload_green.png"));
+      arrowUpIcon    = new ImageIcon(getClass().getResource("/1uparrow.png"));
+      arrowUp2Icon   = new ImageIcon(getClass().getResource("/2uparrow.png"));
+      arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
+      arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
+      
+      openIcon     = new ImageIcon(getClass().getResource("/open.png"));
+      openURLIcon  = new ImageIcon(getClass().getResource("/bundle_small.png"));
+      saveIcon     = new ImageIcon(getClass().getResource("/save.png"));
+      
+      connectIcon  = new ImageIcon(getClass().getResource("/connect.png"));
+      connectIconLarge  = new ImageIcon(getClass().getResource("/connect48x48.png"));
+      
+      prevIcon  = new ImageIcon(getClass().getResource("/player_prev.png"));
+      nextIcon  = new ImageIcon(getClass().getResource("/player_next.png"));
+      
 
-    arrowUpIcon    = new ImageIcon(getClass().getResource("/1uparrow.png"));
-    arrowUp2Icon   = new ImageIcon(getClass().getResource("/2uparrow.png"));
-    arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
-    arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
-
-    openIcon     = new ImageIcon(getClass().getResource("/open.png"));
-    openURLIcon  = new ImageIcon(getClass().getResource("/bundle_small.png"));
-    saveIcon     = new ImageIcon(getClass().getResource("/save.png"));
-
-    connectIcon  = new ImageIcon(getClass().getResource("/connect.png"));
-    connectIconLarge  = new ImageIcon(getClass().getResource("/connect48x48.png"));
-
-    prevIcon  = new ImageIcon(getClass().getResource("/player_prev.png"));
-    nextIcon  = new ImageIcon(getClass().getResource("/player_next.png"));
-
-
-    tipIcon     = new ImageIcon(getClass().getResource("/idea.png"));
-    floatIcon   = new ImageIcon(getClass().getResource("/float.png"));
+      tipIcon     = new ImageIcon(getClass().getResource("/idea.png"));
+      floatIcon   = new ImageIcon(getClass().getResource("/float.png"));
+    }
 
     lfManager = new LFManager();
     lfManager.init();
@@ -309,8 +322,14 @@ public class Desktop
     }
 
 
-    frame       = new JFrame(Strings.fmt("frame_title", rName, spid));
+    try {
+      ToolTipManager.sharedInstance().setInitialDelay(50);
+    } catch (Exception e) {
+      Activator.log.warn("Failed to change tooltip manager", e);
+    }
 
+    frame       = new JFrame(Strings.fmt("frame_title", rName, spid));
+    
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
@@ -382,6 +401,8 @@ public class Desktop
     for(int i = 0; i  < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
+    
+    pm = new PackageManager(pkgTracker);
 
     if(frameLocation != null) {
       frame.setLocation(frameLocation);
@@ -489,7 +510,6 @@ public class Desktop
                   comp = detailPanel.getComponentAt(i);
                 }
               }
-
               if(comp != null) {
                 // Make sure floating windows are closed
                 if(comp instanceof JFloatable) {
@@ -497,11 +517,17 @@ public class Desktop
                   ((JFloatable)comp).doUnfloat();
                 }
                 detailPanel.remove(comp);
+                detailMap.remove(sr);
               }
-              detailMap.remove(sr);
-
             } else {
-
+              Component comp = bundlePanel.getTab(name);
+              if(comp != null) {
+                if(comp instanceof JFloatable) {
+                  ((JFloatable)comp).setAutoClose(true);
+                  ((JFloatable)comp).doUnfloat();
+                }
+              }
+                
               displayMap.remove(sr);
               bundlePanel.removeTab(name);
 
@@ -586,7 +612,6 @@ public class Desktop
   JButton toolStopBundles;
   JButton toolUpdateBundles;
   JButton toolUninstallBundles;
-
 
   void setRemote(boolean b) {
     menuRemote.setEnabled(b);
@@ -1067,12 +1092,19 @@ public class Desktop
     return new JMenuBar() {
         {
           add(makeFileMenu());
-          add(makeEditMenu());
+          add(editMenu = makeEditMenu());
           add(makeBundleMenu());
           add(viewMenu = makeViewMenu(null));
           add(makeHelpMenu());
         }
       };
+  }
+
+  void updateMenus() {
+    if(editMenu != null) {
+      editMenu.removeAll();
+      updateEditMenu(editMenu);
+    }
   }
 
   JMenu makeFileMenu() {
@@ -1150,67 +1182,60 @@ public class Desktop
   JMenuItem itemStartBundles;
   JMenuItem itemUpdateBundles;
   JMenuItem itemUninstallBundles;
+  JMenuItem itemRefreshBundles;
+
+  Action actionStartBundles;
+  Action actionStopBundles;
+  Action actionUninstallBundles;
+  Action actionRefreshBundles;
+  Action actionUpdateBundles;
 
   JMenu makeBundleMenu() {
     final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+    actionStartBundles = 
+      new AbstractAction(Strings.get("item_startbundles"), startIcon) {
+        public void actionPerformed(ActionEvent ev) {
+          startBundles(getSelectedBundles());
+        }
+      };
+    actionStopBundles = 
+      new AbstractAction(Strings.get("item_stopbundles"), stopIcon) {
+        public void actionPerformed(ActionEvent ev) {
+          stopBundles(getSelectedBundles());
+        }
+      };
+    actionUpdateBundles = 
+      new AbstractAction(Strings.get("item_updatebundles"), updateIcon) {
+        public void actionPerformed(ActionEvent ev) {
+          updateBundles(getSelectedBundles());
+        }
+      };
+    actionUninstallBundles = 
+      new AbstractAction(Strings.get("item_uninstallbundles"), uninstallIcon) {
+        public void actionPerformed(ActionEvent ev) {
+          uninstallBundles(getSelectedBundles());
+        }
+      };
+
+    actionRefreshBundles = 
+      new AbstractAction(Strings.get("menu_refreshbundles")) {
+        {
+          putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask));
+        }
+        public void actionPerformed(ActionEvent ev) {
+          refreshBundle(getSelectedBundles());
+        }
+      };
+    
+
     return new JMenu(Strings.get("menu_bundles")) {
         {
-          add(itemStopBundles = new JMenuItem(Strings.get("item_stopbundles"),
-                                              stopIcon) {
-              {
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      stopBundles(getSelectedBundles());
-                    }
-                  });
-              }
-            });
-
-          add(itemStartBundles = new JMenuItem(Strings.get("item_startbundles"),
-                                               startIcon) {
-              {
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      startBundles(getSelectedBundles());
-                    }
-                  });
-              }
-            });
-
-          add(itemUpdateBundles = new JMenuItem(Strings.get("item_updatebundles"),
-                                                updateIcon) {
-              {
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      updateBundles(getSelectedBundles());
-                    }
-                  });
-              }
-            });
-
-          add(itemUninstallBundles = new JMenuItem(Strings.get("item_uninstallbundles"),
-                                                   uninstallIcon) {
-              {
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      uninstallBundles(getSelectedBundles());
-                    }
-                  });
-              }
-            });
-
-          add(new JMenuItem(Strings.get("menu_refreshbundles")) {
-              {
-                setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
-                                                      mask));
-                setMnemonic(KeyEvent.VK_R);
-
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      refreshBundle(null);
-                    }
-                  });
-              }});
+          add(itemStopBundles   = new JMenuItem(actionStopBundles));
+          add(itemStartBundles  = new JMenuItem(actionStartBundles));
+          add(itemUpdateBundles = new JMenuItem(actionUpdateBundles));
+          add(itemUninstallBundles = new JMenuItem(actionUninstallBundles));
+          add(itemRefreshBundles   = new JMenuItem(actionRefreshBundles));
 
           StartLevel sls = (StartLevel)slTracker.getService();
           if(sls != null) {
@@ -1260,6 +1285,7 @@ public class Desktop
 
 
   JMenu viewMenu = null;
+  JMenu editMenu = null;
 
   JMenu makeViewMenu(JMenu oldMenu) {
     JMenu menu;
@@ -1484,45 +1510,115 @@ public class Desktop
       };
   }
 
-  JMenu makeEditMenu() {
-    return new JMenu(Strings.get("menu_edit")) {
-        {
-          /*add(new JMenuItem(Strings.get("item_selectall")) {
-              {
-                setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
-                                                      mask));
-                setMnemonic(KeyEvent.VK_A);
-
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      contentPane.invalidate();
-                      new ErrorMessageDialog(frame, "Not implemented", Strings.get("item_selectall") + " is not implemented.", null, null).show();
-                    }
-                  });
-              }
-            });*/
-          add(new JMenuItem(Strings.get("item_unselectall")) {
-              {
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      bundleSelModel.clearSelection();
-                      contentPane.invalidate();
-                    }
-                  });
-              }
-            });
-          add(new JMenuItem(Strings.get("item_clear_console")) {
-              {
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      consoleSwing.clearConsole();
-                    }
-                  });
-              }
-            });
-
+  Map makeBundleBuckets() {
+    Map buckets;
+    
+    Bundle[] bl      = Activator.getBundles();
+    Map bundles = new HashMap();
+    for(int i = 0; bl != null && i < bl.length; i++) {
+      Object key = new Long(bl[i].getBundleId());
+      bundles.put(key, bl[i]);
+    }
+    
+    if(bundles.size() > 12) {
+      // make alphabetical submenu grouping
+      // if number of bundles is large
+      buckets = new TreeMap();
+      for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
+        Object key = it.next();
+        Bundle bundle = (Bundle)bundles.get(key);
+        String s = Util.getBundleName(bundle);
+        String f = s.length() > 0 
+          ? s.substring(0, 1).toUpperCase()
+          : "--";
+        Collection bucket = (Collection)buckets.get(f);
+        if(bucket == null) {
+          bucket = new ArrayList();
+          buckets.put(f, bucket);
         }
-      };
+        bucket.add(bundle);
+      }
+    } else {
+      buckets = new LinkedHashMap();
+      for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
+        Object key = it.next();
+        Bundle bundle = (Bundle)bundles.get(key);
+        
+        String f = "#" + bundle.getBundleId() + " " + Util.getBundleName(bundle);
+        buckets.put(f, bundle);
+      }
+    }
+    return buckets;
+  }
+
+
+  JMenu makeEditMenu() {
+    JMenu menu = new JMenu(Strings.get("menu_edit"));
+    updateEditMenu(menu);
+    return menu;
+  }
+
+  void updateEditMenu(JMenu editMenu) {
+    editMenu.add(new JMenuItem(Strings.get("item_unselectall")) {
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                bundleSelModel.clearSelection();
+                contentPane.invalidate();
+              }
+            });
+        }
+      });
+    editMenu.add(new JMenuItem(Strings.get("item_clear_console")) {
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                consoleSwing.clearConsole();
+              }
+            });
+        }
+      });
+    
+    editMenu.add(new JSeparator());
+
+    JMenu selectMenu = new JMenu("Select bundle");
+    editMenu.add(selectMenu);
+    
+    Map buckets = makeBundleBuckets();
+    
+    for(Iterator it = buckets.keySet().iterator(); it.hasNext(); ) {
+      Object key = it.next();
+      Object val = buckets.get(key);
+      if(val instanceof Collection) {
+        Collection bucket = (Collection)val;
+        JMenu subMenu = new JMenu(key.toString());
+        for(Iterator it2 = bucket.iterator(); it2.hasNext(); ) {
+          Bundle bundle = (Bundle)it2.next();
+          JMenuItem item = makeSelectBundleItem(bundle);
+          subMenu.add(item);
+        }
+        selectMenu.add(subMenu);
+      } else if(val instanceof Bundle) {
+        Bundle bundle = (Bundle)val;
+        JMenuItem item = makeSelectBundleItem(bundle);
+        selectMenu.add(item);
+      } else {
+        throw new RuntimeException("Unknown object=" + val);
+      }
+    }
+  }
+
+
+  JMenuItem makeSelectBundleItem(final Bundle bundle) {
+    JMenuItem item = new JMenuItem(bundle.getBundleId() + " " + Util.getBundleName(bundle));
+    
+    item.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent ev) {
+          bundleSelModel.clearSelection();
+          bundleSelModel.setSelected(bundle.getBundleId(), true);
+        }
+      });
+    return item;
   }
 
   /**
@@ -1595,6 +1691,8 @@ public class Desktop
 
       if(lastBundleLocation != null && !"".equals(lastBundleLocation)) {
         Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
+        setSelected(b);
+        showBundle(b);
         Dictionary headers = b.getHeaders(); 
         if(Util.doAutostart() && Util.canBeStarted(b)) {
           startBundle(b);
@@ -1786,14 +1884,13 @@ public class Desktop
       return;
     }
 
-    Bundle[] allBundles = Activator.getTargetBC().getBundles();
+    Bundle[] allBundles = Activator.getBundles();
 
 
     Set pkgClosure = new TreeSet(Util.bundleIdComparator);
 
     for(int i = 0; i < targets.length; i++) {
-      pkgClosure.addAll(Util.getPackageClosure(pkgAdmin,
-                                               allBundles,
+      pkgClosure.addAll(Util.getPackageClosure(pm,
                                                targets[i],
                                                null));
     }
@@ -2261,6 +2358,8 @@ public class Desktop
       String location = "file:" + file.getAbsolutePath();
       Bundle b = Activator.getTargetBC().installBundle(location);
 
+      setSelected(b);
+      showBundle(b);
       if(Util.doAutostart() && Util.canBeStarted(b)) {
         startBundle(b);
       }
@@ -2270,6 +2369,15 @@ public class Desktop
       } else {
         showErr("The file is not a bundle.", e);
       }
+    }
+  }
+
+  // try to show a bundle in displayers
+  public void showBundle(Bundle b) {
+    Object[] disps = dispTracker.getServices();
+    for(int i = 0; disps != null && i < disps.length; i++) {
+      SwingBundleDisplayer disp = (SwingBundleDisplayer)disps[i];
+      disp.showBundle(b);
     }
   }
 
@@ -2308,6 +2416,7 @@ public class Desktop
       frame = null;
     }
 
+    
   }
 
   public void valueChanged(long bid) {
@@ -2336,9 +2445,13 @@ public class Desktop
       return;
     }
 
-    bundleCache = Activator.getTargetBC().getBundles();
+    if(pm != null) {
+      pm.refresh();
+    }
+    bundleCache = Activator.getBundles();
 
     updateStatusBar();
+    updateMenus();
     toolBar.revalidate();
     toolBar.repaint();
   }
@@ -2482,7 +2595,7 @@ public class Desktop
     }
   }
 
-  public ImageIcon getBundleEventIcon(int type) {
+  public Icon getBundleEventIcon(int type) {
     switch(type) {
     case BundleEvent.INSTALLED:   return installIcon;
     case BundleEvent.STARTED:     return startIcon;

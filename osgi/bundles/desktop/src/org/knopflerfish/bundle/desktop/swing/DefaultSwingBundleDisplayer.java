@@ -43,6 +43,7 @@ import java.util.TreeSet;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
@@ -75,7 +76,9 @@ public abstract class DefaultSwingBundleDisplayer
 
   ServiceRegistration  reg  = null;
 
-  boolean bUseListeners = true;
+  boolean bUseListeners           = true;
+  boolean bUpdateOnBundleChange   = false;
+  boolean bUpdateOnServiceChange  = false;
 
   BundleContext bc;
 
@@ -178,7 +181,7 @@ public abstract class DefaultSwingBundleDisplayer
     try {
       int delay = 0;
       
-      Bundle[] bl = Activator.getTargetBC().getBundles();
+      Bundle[] bl = Activator.getBundles();
       
       // do something reasonable with bundles already installed
       for(int i = 0; bl != null && i < bl.length; i++) {
@@ -210,6 +213,11 @@ public abstract class DefaultSwingBundleDisplayer
     Activator.getTargetBC().removeBundleListener(this);
     Activator.getTargetBC().removeServiceListener(this);
 
+    for(Iterator it = components.iterator(); it.hasNext();) {
+      JComponent comp = (JComponent)it.next();
+      disposeJComponent(comp);
+    }
+    components.clear();
   }
 
   protected boolean bInValueChanged = false;
@@ -219,16 +227,49 @@ public abstract class DefaultSwingBundleDisplayer
     repaintComponents();
   }
 
+  // BundleListener interface, only called when bUseListeners = true
   public void bundleChanged(BundleEvent ev) {
     if(!bAlive) {
       return;
     }
 
     bundles = getAndSortBundles();
+    
+    if(bUpdateOnBundleChange) {
+      updateComponents(Activator.desktop.getSelectedBundles());
+    }    
+  }
+
+  // ServiceListener interface, only called when bUseListeners = true
+  public void serviceChanged(ServiceEvent ev) {
+    if(!bAlive) {
+      return;
+    }
+
+    if(bUpdateOnServiceChange) {
+      if(Activator.desktop != null) {
+        updateComponents(Activator.desktop.getSelectedBundles());
+      }
+    }
+    
+  }
+
+  void updateComponents(final Bundle[] bl) {
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for(Iterator it = components.iterator(); it.hasNext(); ) {
+            Object comp = it.next();
+            if(comp instanceof JHTMLBundle) {
+              JHTMLBundle jhtml = (JHTMLBundle)comp;
+              jhtml.valueChanged(bl);
+            }
+          }
+        }          
+      });
   }
 
   protected Bundle[] getAndSortBundles() {
-    Bundle[] bl = Activator.getTargetBC().getBundles();
+    Bundle[] bl = Activator.getBundles();
     SortedSet set = new TreeSet(Util.bundleIdComparator);
     for(int i = 0; i < bl.length; i++) {
       set.add(bl[i]);
@@ -239,14 +280,7 @@ public abstract class DefaultSwingBundleDisplayer
     return bl;
   }
 
- 
 
-
-  public void serviceChanged(ServiceEvent ev) {
-    if(!bAlive) {
-      return;
-    }
-  }
 
   public void setBundleSelectionModel(BundleSelectionModel model) {
     if(bundleSelModel != null) {
@@ -300,4 +334,8 @@ public abstract class DefaultSwingBundleDisplayer
   public void       setTargetBundleContext(BundleContext bc) {
     this.bc = bc;
   }
+
+  public void showBundle(Bundle b) {
+  }
+  
 }

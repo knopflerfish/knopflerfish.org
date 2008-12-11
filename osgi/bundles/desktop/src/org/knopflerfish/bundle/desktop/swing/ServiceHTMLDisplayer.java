@@ -49,6 +49,10 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   public ServiceHTMLDisplayer(BundleContext bc) {
     super(bc, "Services", "Shows bundle services", true); 
+
+    bUseListeners          = true;
+    bUpdateOnBundleChange  = true;
+    bUpdateOnServiceChange = true;
   }
 
   public JComponent newJComponent() {

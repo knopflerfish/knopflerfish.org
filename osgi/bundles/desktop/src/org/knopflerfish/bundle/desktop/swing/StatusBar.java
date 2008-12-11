@@ -284,7 +284,7 @@ public class StatusBar extends JComponent
     if(mode == MODE_PERCENTAGE) {
       for(int x = x0; x < xmax; x = x + block + pad) {
 	double k = (x - x0) / (double)diff;
-	Color c = Util.rgbInterPolate(lowColor, highColor, k);
+	Color c = Util.rgbInterpolate(lowColor, highColor, k);
 	memG.setColor(c);
 	
 	memG.fillRect(x, 3, block, h - 6);
@@ -296,7 +296,7 @@ public class StatusBar extends JComponent
 	if(xstart < x0) xstart = x0;
 	for(int x = xstart; x < xmax; x++) {
 	  double k = (x - xstart) / (double)trail;
-	  Color c = Util.rgbInterPolate(getBackground(), highColor, k);
+	  Color c = Util.rgbInterpolate(getBackground(), highColor, k);
 	  memG.setColor(c);
 	  memG.fillRect(x, 3, 1, h - 6);
 	}
@@ -305,7 +305,7 @@ public class StatusBar extends JComponent
 	if(xend > x1) xend = x1;
 	for(int x = xend; x > xmax; x--) {
 	  double k = (xend - x) / (double)trail;
-	  Color c = Util.rgbInterPolate(getBackground(), highColor, k);
+	  Color c = Util.rgbInterpolate(getBackground(), highColor, k);
 	  memG.setColor(c);
 	  memG.fillRect(x, 3, 1, h - 6);
 	}

@@ -53,8 +53,7 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   public DefaultBundleSelectionModel() {
 
   }
-  
-  
+
   public void    clearSelection() {
     selection.clear();
     fireChange(-1);
@@ -94,11 +93,22 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
       try {
         if(!bInFireChange) {
           bInFireChange = true;
+          long t0_a = System.currentTimeMillis();
           for(Iterator it = listeners.iterator(); it.hasNext();) {
             BundleSelectionListener l = (BundleSelectionListener)it.next();
+            long t0 = System.currentTimeMillis();
             l.valueChanged(bid);
+            long t1 = System.currentTimeMillis();
+            if(t1 - t0 > 500) {
+              System.out.println(" " + (t1-t0) + "ms, " + l.getClass().getName());
+            }
           }
-        } 
+          long t1_a = System.currentTimeMillis();
+          if(t1_a-t0_a> 1000) {
+            // System.out.println("fireChange took " + (t1_a-t0_a) + "ms");
+          }
+        } else {
+        }
       } finally {
         bInFireChange = false;
       }      

@@ -39,6 +39,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -74,14 +75,14 @@ import org.osgi.framework.BundleEvent;
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
+  public static final String NAME = "Large Icons";
+
   public LargeIconsDisplayer(BundleContext bc) {
-    super(bc, "Large Icons", "Large icon display of bundles", false);
+    super(bc, NAME, "Large icon display of bundles", false);
   }
 
   public void bundleChanged(BundleEvent ev) {
     super.bundleChanged(ev);
-
-    //    System.out.println(getClass().getName() + ": #" + ev.getBundle().getBundleId());
 
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JLargeIcons comp = (JLargeIcons)it.next();
@@ -100,6 +101,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     repaintComponents();
   }
+  
+  public void showBundle(Bundle b) {
+    for(Iterator it = components.iterator(); it.hasNext(); ) {
+      JLargeIcons comp = (JLargeIcons)it.next();
+      comp.showBundle(b);
+    }
+  }
+
 
   public JComponent newJComponent() {
     return new JLargeIcons();
@@ -186,15 +195,60 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               rebuildPanel();
             }
           }
+
+          public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if(compToShow != null) {
+              JComponent c = compToShow;
+              compToShow = null;
+              scroll.getViewport().scrollRectToVisible(c.getBounds());
+            }
+          }
+
         };
 
       add(scroll, BorderLayout.CENTER);
     }
 
+    public void showBundle(final Bundle b) {
+      if(SwingUtilities.isEventDispatchThread()) {
+        showBundle0(b);
+      } else {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              showBundle0(b);
+            }
+          });
+      }
+    }
+
+    JComponent compToShow = null;
+    public void showBundle0(final Bundle b) {
+      JComponent c = getBundleComponent(b);
+      if(c != null) {
+        compToShow = c;
+        revalidate();
+        invalidate();
+        repaint();
+      }
+    }
+
+
     public void addBundle(final Bundle b) {
-
+      if(SwingUtilities.isEventDispatchThread()) {
+        addBundle0(b);
+      } else {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              addBundle0(b);
+            }
+          });
+      }
+    }
+                                 
+    public void addBundle0(final Bundle b) {
       final long bid = b.getBundleId();
-
+      
       if(null == getBundleComponent(b)) {
         JLabel c = new JLabel(Util.getBundleName(b),
                               bundleIcon,
@@ -217,132 +271,116 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               setOpaque(true);
               setBackground(Color.yellow);
             }
-
-
+            
+            
             public Color getBackground() {
-
+              
               try {
                 boolean bSel = bundleSelModel != null
                   ? bundleSelModel.isSelected(b.getBundleId())
                   : false;
-
+                      
                 return bSel
-                  ? selColor
+                        ? selColor
                   : JLargeIcons.this.getBackground();
               } catch (Exception e) {
                 return Color.black;
               }
             }
           };
-
-        //        System.out.println("created icon " + c.getText());
-
+        
+        
         c.setToolTipText(Util.bundleInfo(b));
         c.setVerticalTextPosition(AbstractButton.BOTTOM);
         c.setHorizontalTextPosition(AbstractButton.CENTER);
-
+        
         c.setPreferredSize(new Dimension(96, 64));
         c.setBorder(null);
         c.setFont(getFont());
-
-        synchronized(bundleMap) {
-          bundleMap.put(new Long(b.getBundleId()), c);
-        }
-
+        
+        bundleMap.put(new Long(b.getBundleId()), c);
+        
         updateBundleComp(b);
-
-        rebuildPanel();
-
+        
+        rebuildPanel();        
       }
-
     }
 
-    Comparator nameComparator = new Comparator() {
-        public int compare(Object o1, Object o2) {
-          Bundle b1 =
-            Activator.getTargetBC().getBundle(((Long)o1).longValue());
-          Bundle b2 =
-            Activator.getTargetBC().getBundle(((Long)o2).longValue());
-
-          if(b1 == b2) {
-            return 0;
-          }
-          if(b1 == null) {
-            return -1;
-          }
-          if(b2 == null) {
-            return 1;
-          }
-
-          return
-            Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
-        }
-      };
 
     Comparator iconComparator = null;
 
     void rebuildPanel() {
-      SwingUtilities.invokeLater(new Runnable() {
-          public void run() {
-            synchronized(bundleMap) {
-              panel.removeAll();
-
-              //            Comparator comp = nameComparator;
-
-              Set set = new TreeSet(iconComparator);
-              set.addAll(bundleMap.keySet());
-
-              int w = 0;
-              int h = 0;
-              for(Iterator it = set.iterator(); it.hasNext(); ) {
-                Long      bid = (Long)it.next();
-                JComponent c   = (JComponent)bundleMap.get(bid);
-                Dimension size = c.getPreferredSize();
-                w = Math.max(w, size.width);
-                h = Math.max(h, size.height);
-              }
-
-
-              Dimension size = scroll.getViewport().getExtentSize();
-
-              if(size.width != 0) {
-                grid.setColumns(size.width<w ? 1 : size.width / w);
-                grid.setRows(0);
-              }
-
-              for(Iterator it = set.iterator(); it.hasNext(); ) {
-                Long      bid = (Long)it.next();
-                Component c   = (Component)bundleMap.get(bid);
-                panel.add(c);
-              }
+      if(SwingUtilities.isEventDispatchThread()) {
+        rebuildPanel0();
+      } else {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              rebuildPanel0();
             }
-
-
-            revalidate();
-            repaint();
-          }
-        });
+          });
+      }
+    }
+    
+    void rebuildPanel0() {
+      panel.removeAll();
+      
+      Set set = new TreeSet(iconComparator);
+      set.addAll(bundleMap.keySet());
+      
+      int w = 0;
+      int h = 0;
+      for(Iterator it = set.iterator(); it.hasNext(); ) {
+        Long      bid = (Long)it.next();
+        JComponent c   = (JComponent)bundleMap.get(bid);
+        Dimension size = c.getPreferredSize();
+        w = Math.max(w, size.width);
+        h = Math.max(h, size.height);
+      }
+      
+      
+      Dimension size = scroll.getViewport().getExtentSize();
+      
+      if(size.width != 0) {
+        grid.setColumns(size.width<w ? 1 : size.width / w);
+          grid.setRows(0);
+      }
+      
+      for(Iterator it = set.iterator(); it.hasNext(); ) {
+        Long      bid = (Long)it.next();
+        Component c   = (Component)bundleMap.get(bid);
+        panel.add(c);
+      }
+      
+      revalidate();
+      repaint();
     }
 
-    public void removeBundle(Bundle b) {
-      synchronized(bundleMap) {
-        bundleMap.remove(new Long(b.getBundleId()));
-        icons.remove(b);
+    public void removeBundle(final Bundle b) {
+      if(SwingUtilities.isEventDispatchThread()) {
+        removeBundle0(b);
+      } else {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              removeBundle0(b);
+            }
+          });
       }
+    }
+
+    public void removeBundle0(Bundle b) {
+      bundleMap.remove(new Long(b.getBundleId()));
+      icons.remove(b);
       rebuildPanel();
     }
-
+    
     JComponent getBundleComponent(Bundle b) {
-      synchronized(bundleMap) {
-        return (JComponent)bundleMap.get(new Long(b.getBundleId()));
-      }
+      return (JComponent)bundleMap.get(new Long(b.getBundleId()));
     }
 
     // Bundle -> BundleImageIcon
     Map icons = new HashMap();
-
+    
     public void updateBundleComp(Bundle b) {
-
       JLabel c = (JLabel)getBundleComponent(b);
 
       if(c == null) {
@@ -356,13 +394,34 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       c.setIcon(icon);
 
-
       c.invalidate();
       c.repaint();
       invalidate();
       repaint();
     }
   }
+
+  static Comparator nameComparator = new Comparator() {
+      public int compare(Object o1, Object o2) {
+        Bundle b1 =
+          Activator.getTargetBC().getBundle(((Long)o1).longValue());
+        Bundle b2 =
+          Activator.getTargetBC().getBundle(((Long)o2).longValue());
+        
+        if(b1 == b2) {
+          return 0;
+        }
+        if(b1 == null) {
+          return -1;
+        }
+        if(b2 == null) {
+          return 1;
+        }
+        
+        return
+          Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
+      }
+    };
 }
 
 
