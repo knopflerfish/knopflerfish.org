@@ -142,7 +142,25 @@ Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.2.1
+  Desktop Bundle 2.3.0
+
+  The desktop bundle is now packaged as a self-contained bundle
+  containing all necessary packages (as log/cm/event/prefs apis, 
+  kf util etc). 
+  
+  A new graph view showing bundle relationships has been added.
+  Select "Graph" from the view drop-down menu.
+
+  Missing imports are now displayed in the package view (and
+  in the graph view)
+
+  Major performance enhancements in package dependency 
+  calculations.
+
+  Detail views are now updated on bundle events.
+
+  Installing new bundles using the desktop UI now displays
+  the newly added bundles automatically.
 
   A view for events handled by the OSGi event service have been added
   to the desktop. The presentation part of the view can filtered
