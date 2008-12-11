@@ -121,18 +121,20 @@ public abstract class JSoftGraph extends JPanel {
         public void 	mouseMoved(MouseEvent ev) {
           mouseObject = null;
           mousePoint = new Point2D.Double(ev.getX(), ev.getY());
-          double dist = mousePoint.distance(currentNode.getPoint());
-          if(dist < arcRadius) {
-            if(currentNode.getPoint().getY() < ev.getY()) {
-              outArcActive = false;
-              inArcActive  = true;
+          if(currentNode == null) {            
+            double dist = mousePoint.distance(currentNode.getPoint());
+            if(dist < arcRadius) {
+              if(currentNode.getPoint().getY() < ev.getY()) {
+                outArcActive = false;
+                inArcActive  = true;
+              } else {
+                outArcActive = true;
+                inArcActive  = false;
+              }
             } else {
-              outArcActive = true;
+              outArcActive = false;
               inArcActive  = false;
             }
-          } else {
-            outArcActive = false;
-            inArcActive  = false;
           }
           hoverNode = findNearestNode(mousePoint);
           repaint();
