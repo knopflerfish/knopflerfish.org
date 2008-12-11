@@ -34,6 +34,8 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
+import org.knopflerfish.bundle.desktop.swing.Colors;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;

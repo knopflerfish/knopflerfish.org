@@ -32,61 +32,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.bundle.desktop.swing;
+package org.knopflerfish.service.desktop;
 
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.util.HashMap;
-import java.util.Map;
+import org.osgi.framework.Bundle;
 
-import javax.swing.JPanel;
-
-public class JCardPane extends JPanel {
-
-  Map tabs = new HashMap();
-  CardLayout card;
-
-  public JCardPane() {
-    card = new CardLayout();
-
-    setLayout(card);
-  }
-
-  public Component addTab(String name, Component comp) {
-    add(comp, name);
-    card.addLayoutComponent(comp, name);
-    
-    tabs.put(name, comp);
-    revalidate();
-
-    return comp;
-  }
-
-  public void removeTab(String name) {
-    Component comp = getTab(name);
-
-    remove(comp);
-  }
-
-  public void remove(Component comp) {
-    super.remove(comp);
-    card.removeLayoutComponent(comp);
-
-    revalidate();
-  }
-
-  public void showTab(String name) {
-    if(null != getTab(name)) {
-      card.show(this, name);
-    }
-  }
-
-  public int getTabCount() {
-    return tabs.size();
-  }
-
-  public Component getTab(String name) {
-    return (Component)tabs.get(name);
-  }
+public interface BundleFilter {
+  public boolean accept(Bundle b);
 }
-

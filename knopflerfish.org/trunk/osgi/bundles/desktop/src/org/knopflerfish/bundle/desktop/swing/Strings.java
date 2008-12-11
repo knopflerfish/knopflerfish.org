@@ -167,6 +167,10 @@ public class Strings {
 	  put("menu_startlevel",      "Start level");
 	  put("nostartlevel.label",   "");
 	  put("str_checkupdate",      "Check for update");
+	  put("item_newwindow",      "New window");
+	  put("str_services",      "Services");
+	  put("str_packages",      "Packages");
+	  put("item_newgraphwindow",      "New graph window");
 	}
       };
   }

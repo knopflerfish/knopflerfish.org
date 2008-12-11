@@ -38,12 +38,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Vector;
 import java.lang.reflect.Constructor;
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.remotefw.RemoteFramework;
+import org.knopflerfish.service.desktop.BundleFilter;
 import org.osgi.framework.BundleActivator;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -62,6 +65,29 @@ public class Activator implements BundleActivator {
 
   public static BundleContext getBC() {
     return bc;
+  }
+
+  static BundleFilter bundleFilter = null;
+
+  public static void setBundleFilter(BundleFilter bf) {
+    bundleFilter = bf;
+  }
+  
+  public static Bundle[] getBundles() {
+    BundleContext bc = getBC();
+    Bundle[] bl = bc.getBundles();
+    if(bundleFilter != null) {
+      ArrayList al = new ArrayList();
+      for(int i = 0; bl != null && i < bl.length; i++) {
+        if(bundleFilter.accept(bl[i])) {
+          al.add(bl[i]);
+        }        
+      }
+      Bundle[] bl2 = new Bundle[al.size()];
+      al.toArray(bl2);
+      bl = bl2;
+    }
+    return bl;
   }
 
   /**
@@ -138,8 +164,17 @@ public class Activator implements BundleActivator {
   static ServiceTracker remoteTracker;
 
   Map displayers = new HashMap();
-
+  
   public void start(BundleContext _bc) {
+    try { 
+      // try to enable swing antialiased text
+      if(null == System.getProperty("swing.aatext")) {
+        System.setProperty("swing.aatext","true"); 
+      } 
+    } catch (Exception ignored) { 
+    }
+      
+
     Activator.bc        = _bc;
     Activator.log       = new LogRef(bc);
     Activator.myself    = this;
@@ -181,9 +216,10 @@ public class Activator implements BundleActivator {
 
     String[] dispClassNames = new String[] {
       LargeIconsDisplayer.class.getName(), 
-      TimeLineDisplayer.class.getName(),
+      GraphDisplayer.class.getName(), 
+      // TimeLineDisplayer.class.getName(),
       TableDisplayer.class.getName(),
-      SpinDisplayer.class.getName(),
+      // SpinDisplayer.class.getName(),
       ManifestHTMLDisplayer.class.getName(),
       ClosureHTMLDisplayer.class.getName(),
       ServiceHTMLDisplayer.class.getName(),
@@ -215,65 +251,13 @@ public class Activator implements BundleActivator {
       }
     }
 
-    // bundle displayers
-    /*
-    disp = new LargeIconsDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    disp = new TimeLineDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    disp = new TableDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    disp = new SpinDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    // detail displayers
-    disp = new ManifestHTMLDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    disp = new ClosureHTMLDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    disp = new ServiceHTMLDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-    disp = new PackageHTMLDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-
-
-    //if(getBC() == getTargetBC()) {
-    disp = new LogDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-    //}
     
-    disp = new EventDisplayer(getTargetBC());
-    disp.open();
-    reg = disp.register();
-    displayers.put(disp, reg);
-    */
-
+    String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
+                                      LargeIconsDisplayer.NAME);
+    
     // We really want this one to be displayed.
-    desktop.bundlePanelShowTab("Large Icons");
+    desktop.bundlePanelShowTab(defDisp);
+
     int ix = desktop.detailPanel.indexOfTab("Manifest");
     if(ix != -1) {
       desktop.detailPanel.setSelectedIndex(ix);
@@ -285,6 +269,7 @@ public class Activator implements BundleActivator {
 
       if(desktop != null) {
         desktop.stop();
+        desktop.theDesktop = null;
         desktop = null;
       }
 

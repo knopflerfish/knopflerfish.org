@@ -69,7 +69,7 @@ public class JFloatable extends JPanel {
   Dimension  frameSize     = null;
 
 
-  JFloatable(JComponent main, String title) {
+  public JFloatable(JComponent main, String title) {
     super(new BorderLayout());
     this.main   = main;
     this.title  = title;
