@@ -109,6 +109,11 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
     cmAdmin.stop();    
   }
 
+  public void showBundle(Bundle b) {
+      // NYI
+  }
+
+
   public void valueChanged(final long bid) {
     super.valueChanged(bid);
 
