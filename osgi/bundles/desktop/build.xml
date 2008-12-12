@@ -23,7 +23,7 @@
 	<patternset><exclude name="META-INF/*"/></patternset>
       </zipfileset>
       
-      <zipfileset src="${topdir}/jars/console/console_api-2.0.0.jar">
+      <zipfileset src="${topdir}/jars/console/console_api-2.0.1.jar">
 	<patternset><exclude name="META-INF/*"/></patternset>
       </zipfileset>
       
@@ -39,7 +39,7 @@
 	<patternset><exclude name="META-INF/*"/></patternset>
       </zipfileset>
       
-      <zipfileset src="${topdir}/jars/event/event_api-2.0.1.jar">
+      <zipfileset src="${topdir}/jars/event/event_api-2.0.3.jar">
 	<patternset><exclude name="META-INF/*"/></patternset>
       </zipfileset>
 
