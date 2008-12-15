@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ import org.osgi.framework.*;
  * </p>
  *
  * <p>
- * This class will only get commands on demand (help and execute), and 
+ * This class will only get commands on demand (help and execute), and
  * will not keep them for longer than necessary.
  * </p>
  */
@@ -83,21 +83,21 @@ public class OscarShellCommandGroup implements CommandGroup {
       StringBuffer line = new StringBuffer();
       line.append(" ");
       try {
-	Command cmd = (Command)Activator.bc.getService(srl[i]);
+        Command cmd = (Command)Activator.bc.getService(srl[i]);
 
-	line.append(cmd.getName());
+        line.append(cmd.getName());
 
-	while(line.length() < 12) {
-	  line.append(" ");
-	}
-	line.append(" - ");
-	line.append(cmd.getShortDescription());
+        while(line.length() < 12) {
+          line.append(" ");
+        }
+        line.append(" - ");
+        line.append(cmd.getShortDescription());
 
 
       } catch (Exception e) {
-	sb.append("Failed to get command service #" + srl[i].getProperty("service.id"));
+        sb.append("Failed to get command service #" + srl[i].getProperty("service.id"));
       } finally {
-	Activator.bc.ungetService(srl[i]);
+        Activator.bc.ungetService(srl[i]);
       }
       sb.append(line.toString());
 
@@ -122,12 +122,17 @@ public class OscarShellCommandGroup implements CommandGroup {
    * output stream and return 1.
    * </p>
    */
-  public int execute(String[] args, 
-		     Reader in, 
-		     PrintWriter out, Session session) {
+  public int execute(String[] args,
+                     Reader in,
+                     PrintWriter out, Session session) {
+    if (args.length<1) {
+      out.println("ERROR: No oscar command specified.");
+      return 1;
+    }
+
     String name = args[0].trim();
     ServiceReference[] srl = getCommandReferences(name);
-    
+
     if(srl == null || srl.length == 0) {
       out.println("ERROR: No oscar command: " + name);
       return 1;
@@ -136,14 +141,14 @@ public class OscarShellCommandGroup implements CommandGroup {
     for(int i = 0; i < args.length; i++) {
       boolean bCit = -1 != args[i].indexOf(" ");
       if(bCit) {
-	sb.append("\"");
+        sb.append("\"");
       }
       sb.append(args[i]);
       if(bCit) {
-	sb.append("\"");
+        sb.append("\"");
       }
       if(i < args.length - 1) {
-	sb.append(" ");
+        sb.append(" ");
       }
     }
 
@@ -171,7 +176,7 @@ public class OscarShellCommandGroup implements CommandGroup {
     }
     return 0;
   }
-  
+
 
   /**
    * <p>
@@ -186,9 +191,9 @@ public class OscarShellCommandGroup implements CommandGroup {
    *
    */
   protected ServiceReference[] getCommandReferences(String name) {
-    String filter = 
+    String filter =
       "(objectclass=" + Command.class.getName() + ")";
-      
+
     ServiceReference[] srl = null;
 
     Vector v = new Vector();
@@ -196,19 +201,19 @@ public class OscarShellCommandGroup implements CommandGroup {
       // Get all services, then filter if necessary.
       srl = Activator.bc.getServiceReferences(null, filter);
       if(name != null) {
-	for(int i = 0; srl != null && i < srl.length; i++) {
-	  Command cmd = (Command)Activator.bc.getService(srl[i]);
-	  if(name.equals(cmd.getName())) {
-	    v.addElement(srl[i]);
-	  }
-	}
-	srl = new ServiceReference[v.size()];
-	v.copyInto(srl);
+        for(int i = 0; srl != null && i < srl.length; i++) {
+          Command cmd = (Command)Activator.bc.getService(srl[i]);
+          if(name.equals(cmd.getName())) {
+            v.addElement(srl[i]);
+          }
+        }
+        srl = new ServiceReference[v.size()];
+        v.copyInto(srl);
       }
     } catch(InvalidSyntaxException e) {
       throw new RuntimeException("Bad filter: " + filter + ", " + e);
     }
-    
+
     if(srl == null) {
       srl = new ServiceReference[0];
     }
