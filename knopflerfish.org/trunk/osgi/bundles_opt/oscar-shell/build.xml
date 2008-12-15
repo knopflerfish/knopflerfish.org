@@ -30,7 +30,7 @@
   <property name="bmfa.Bundle-Description"
             value="Compatability layer for bundles using the Oscar shell API. See readme.txt for details."/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
+  <property name="bmfa.Bundle-Version"        value="1.0.1"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-APIVendor"      value="Oscar"/>
   <property name="bmfa.Export-Package"  
