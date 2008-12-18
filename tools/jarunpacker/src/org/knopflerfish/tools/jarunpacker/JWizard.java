@@ -204,7 +204,9 @@ public class JWizard extends JFrame implements InstallUI {
     container.add(wizardPanel, BorderLayout.CENTER);
     container.add(statusBar,   BorderLayout.SOUTH);
     if (defaultIcon instanceof ImageIcon) {
+      Color defColor = container.getBackground();
       container.setBackground(getBgColor(((ImageIcon)defaultIcon).getImage()));
+      statusBar.setBackground(defColor);
     }
 
     Dimension size = new Dimension(400, 250);
