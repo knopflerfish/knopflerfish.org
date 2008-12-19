@@ -167,7 +167,7 @@ public class BIndexTask extends Task {
           cmdList.add(2,baseDir.getAbsolutePath());
           cmdList.add(2,"-d");
         } //else
-        {
+        try {
           // Hack for older bindex without -d option. Use reflection
           // to set org.osgi.impl.bundle.bindex.Index.rootFile to
           // baseDir to get correctly computed paths in the bundle
@@ -177,6 +177,7 @@ public class BIndexTask extends Task {
             rootFileField.setAccessible(true);
             rootFileField.set(null, baseDir.getAbsoluteFile());
           }
+        } catch (NoSuchFieldException _nsfe) {
         }
 
         // Call the main method
