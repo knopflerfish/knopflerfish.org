@@ -19,6 +19,8 @@ Release Notes Knopflerfish @VERSION@
   https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
   Corrected in framework version 3.3.10, subversion revision 2560.
 
+  Rearranged synchronized code to avoid dead lock between registerService and
+  refreshPackages. Corrected in framework version 3.3.11.
 
 === Services (Compendium) ===
       
