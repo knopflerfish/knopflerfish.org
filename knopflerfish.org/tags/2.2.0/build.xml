@@ -373,7 +373,7 @@
     <antcall target="obr_bare">
       <param name="obr.dest.dir"  location="repo"/>
       <param name="obr.dest.url"  value="http://www.knopflerfish.org/repo"/>
-      <param name="obr.base.url"  value="${obr.dest.url}"/>
+      <param name="obr.base.url"  value="http://www.knopflerfish.org/repo"/>
       <param name="obr.html.file" value="index.html"/>
       <param name="obr.doc.root"  value="http://www.knopflerfish.org"/>
       <param name="obr.css.url"   value="http://www.knopflerfish.org/css/knopflerfish2.css"/>
