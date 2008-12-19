@@ -91,49 +91,49 @@ class Services {
     if (service == null) {
       throw new IllegalArgumentException("Can't register null as service");
     }
-    ServiceRegistration res;
-    synchronized (this) {
-      // Check if service implements claimed classes and that they exists.
-      ClassLoader bcl = bundle.getClassLoader();
-      for (int i = 0; i < classes.length; i++) {
-        if (classes[i] == null) {
-          throw new IllegalArgumentException("Can't register as null class");
-        }
-
-        //      Debug.println("#" + bundle.getBundleId() + " registred " + i + ": " + classes[i] + " " + properties);
-
-        if (bundle.framework.bPermissions) {
-          SecurityManager sm = System.getSecurityManager();
-          if (null!=sm) {
-            sm.checkPermission
-              (new ServicePermission(classes[i], ServicePermission.REGISTER));
-          }
-          if (bundle.id != 0
-              && classes[i].equals(PermissionAdmin.class.getName())) {
-            throw new IllegalArgumentException
-              ("Registeration of a PermissionAdmin service is not allowed");
-          }
-
-        }
-        if (bundle.id != 0 && classes[i].equals(PackageAdmin.class.getName())) {
-          throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
-        }
-        Class c;
-        try {
-          if (bcl != null) {
-            c = bcl.loadClass(classes[i]);
-          } else {
-            c = Class.forName(classes[i]);
-          }
-        } catch (ClassNotFoundException e) {
-          throw new IllegalArgumentException("Class does not exist: " + classes[i]);
-        }
-        if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
-          throw new IllegalArgumentException("Object " + service + " is not an instance of " + classes[i]);
-        }
+    // Check if service implements claimed classes and that they exists.
+    ClassLoader bcl = bundle.getClassLoader();
+    for (int i = 0; i < classes.length; i++) {
+      if (classes[i] == null) {
+        throw new IllegalArgumentException("Can't register as null class");
       }
-      res = new ServiceRegistrationImpl(bundle, service,
-                                        new PropertiesDictionary(properties, classes, null));
+
+      //      Debug.println("#" + bundle.getBundleId() + " registred " + i + ": " + classes[i] + " " + properties);
+
+      if (bundle.framework.bPermissions) {
+        SecurityManager sm = System.getSecurityManager();
+        if (null!=sm) {
+          sm.checkPermission
+            (new ServicePermission(classes[i], ServicePermission.REGISTER));
+        }
+        if (bundle.id != 0
+            && classes[i].equals(PermissionAdmin.class.getName())) {
+          throw new IllegalArgumentException
+            ("Registeration of a PermissionAdmin service is not allowed");
+        }
+
+      }
+      if (bundle.id != 0 && classes[i].equals(PackageAdmin.class.getName())) {
+        throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
+      }
+      Class c;
+      try {
+        if (bcl != null) {
+          c = bcl.loadClass(classes[i]);
+        } else {
+          c = Class.forName(classes[i]);
+        }
+      } catch (ClassNotFoundException e) {
+        throw new IllegalArgumentException("Class does not exist: " + classes[i]);
+      }
+      if (!(service instanceof ServiceFactory) && !c.isInstance(service)) {
+        throw new IllegalArgumentException("Object " + service + " is not an instance of " + classes[i]);
+      }
+    }
+    ServiceRegistration res =
+      new ServiceRegistrationImpl(bundle, service,
+                                  new PropertiesDictionary(properties, classes, null));
+    synchronized (this) {
       services.add(res);
       for (int i = 0; i < classes.length; i++) {
         ArrayList s = (ArrayList) classServices.get(classes[i]);
