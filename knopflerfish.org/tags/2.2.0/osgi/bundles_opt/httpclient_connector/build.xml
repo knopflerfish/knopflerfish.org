@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="httpclient_connector" default="all">
+  <property name="topdir"       location="../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/**,org/apache/commons/httpclient/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="io_all-N.N.N.jar"/>
+   <pathelement location="commons-logging_all-N.N.N.jar"/>
+   <pathelement location="${topdir}/bundles/io/io/resources/javax.microedition.io.jar"/>
+   <pathelement location="resources/httpclient/commons-httpclient-3.1.jar"/>
+   <pathelement location="resources/codec/commons-codec-1.3.jar"/>
+  </path>
+
+
+  &bundlebuild_include;
+
+</project>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="bundlerepository" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name = "bundle.build.api"      value = "false"/>
+  <property name = "bundle.build.impl"     value = "false"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/**/*,org/**,fr/**,kxml/**"/>
+
+  <property name="api.pattern"
+            value="org/ungoverned/osgi/service/bundlerepository/**"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+    <bundle_locator bundleName="console_api" property="console_api">
+      <fileset dir="${topdir}/jars">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy file="${console_api}"  
+          tofile="resources/console_api.jar"/>
+  </target>
+
+  <path id="bundle.compile.path">
+    <pathelement location="desktop_api-N.N.N.jar"/>  
+    <pathelement location="resources/console_api.jar"/>
+    <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
+    <pathelement location="resources/kxml-min.jar"/>
+<!--
+    <pathelement location="resources/oscar-bundlerepository.jar"/>
+-->
+  </path>
+
+  &bundlebuild_include;
+
+</project>

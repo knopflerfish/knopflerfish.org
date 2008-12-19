@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="console" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+
+  <property name = "bundle.build.doc"   value = "true"/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="api.pattern"  value="org/knopflerfish/service/console/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/bundle/console/**"/> 
+
+  <path id="impl.src">
+   <pathelement location="src/org/knopflerfish/bundle/console"/>
+  </path>
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>

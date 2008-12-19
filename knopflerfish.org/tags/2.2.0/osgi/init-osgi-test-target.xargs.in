@@ -1,0 +1,55 @@
+#
+# Startup file for executing the OSGi RI test suite
+#
+
+-Dapple.laf.useScreenMenuBar=true
+
+#
+# Act as an OSGi test director target
+#
+-Dorg.osgi.test.target.port=3191
+-Dorg.osgi.test.broadcast=localhost
+#-Dorg.osgi.test.seewait=false
+#-Dorg.osgi.test.testcase.timeout=60000
+-Dorg.osgi.test.watchdog=120
+-Dscr.bundle.name=org.knopflerfish.bundle.component
+
+# Specify the BundleSignerCondition.getCondition() implementation to use
+-Dorg.osgi.vendor.condpermadmin=org.knopflerfish.framework
+
+# EE used for testing
+-Dorg.osgi.framework.executionenvironment=J2SE-1.4
+
+#-install file:../../osgi.ri-tck/osgi.core.impls.jar
+-install file:../../osgi/tck-4.0.1/osgi.core.impls.jar
+#-install file:../../osgi.ri-tck/testcond.jar
+#-install file:../../osgi.ri-tck/osgi.target.jar
+-install file:../../osgi/tck-4.0.1/osgi.target.jar
+
+# Load the default configuration
+-xargs init.xargs
+
+# The system bundle MUST NOT export package except those starting with "java.*"
+-Dorg.knopflerfish.framework.system.export.all=false
+
+# These bundles intefere with testing
+-stop @desktop_all-N.N.N.jar@
+-stop @httproot-N.N.N.jar@
+
+-Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
+-istart  @prefs_all-N.N.N.jar@
+-istart  @event_all-N.N.N.jar@
+-install @kxml-N.N.N.jar@
+-install @metatype-N.N.N.jar@
+-istart  @kf_metatype_all-N.N.N.jar@
+-istart  @measurement-N.N.N.jar@
+-istart  @io_all-N.N.N.jar@
+-istart  @position-N.N.N.jar@
+-istart  @provisioning_api-N.N.N.jar@
+-istart  @upnp_api-N.N.N.jar@
+-istart  @wireadmin_api-N.N.N.jar@
+
+#-start  file:../../osgi.ri-tck/osgi.target.jar
+-start file:../../osgi/tck-4.0.1/osgi.target.jar
+
+

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="desktop" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name="ee.check.foundation"   value="false"/>
+  <property name="bundle.extraimports"	 value="javax.swing.plaf.basic"/>
+
+  <property name="api.pattern"  value="org/knopflerfish/service/desktop/**,org/knopflerfish/service/**,org/knopflerfish/util/**,org/knopflerfish/shared/cm/**,org/osgi/service/event/**,org/osgi/service/prefs/**,org/osgi/service/log/**,org/osgi/service/cm/**"/> 
+  <property name="impl.pattern" value="**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${topdir}/jars/remotefw/remotefw_api-2.0.0.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+      
+      <zipfileset src="${topdir}/jars/console/console_api-2.0.1.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+      
+      <zipfileset src="${topdir}/jars/log/log_api-2.0.1.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+      
+      <zipfileset src="${topdir}/jars/util/util-2.0.0.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+      
+      <zipfileset src="${topdir}/jars/cm/cm_api-2.0.1.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+      
+      <zipfileset src="${topdir}/jars/event/event_api-2.0.3.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+
+      <zipfileset src="${topdir}/jars/prefs/prefs_api-2.0.1.jar">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+    </copy>
+
+   </target>
+
+
+  <path id="bundle.compile.path">
+  </path>
+
+  &bundlebuild_include;
+
+</project>

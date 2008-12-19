@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="axis2_soapobject" default="all">
+
+  <property name="topdir"     location=".."/>
+  <property name="osgi.dir"   location="${topdir}/../.."/>
+  <property name="ant.dir"    location="${osgi.dir}/../ant"/>
+
+  <property name = "bundle.build.all"  value="true"/>
+  <property name = "bundle.build.api"  value="true"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/**"/>
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/**"/>
+
+  <path id = "bundle.compile.path">
+   <pathelement location="axis2-osgi_all-N.N.N.jar"/>
+  </path>
+
+  &bundlebuild_include;
+
+</project>
+
+
+

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
+<project name="http_test" default="all">
+
+  <property name="topdir"       location=".."/>
+
+  <property name="bundle.version" value="1.0.0"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="${topdir}/lib/jsdk_api-2.5.jar"/>
+    <pathelement location="${topdir}/lib/http_api-2.1.0.jar"/>
+  </path>
+
+  &test_include;
+
+</project>
+
+
+

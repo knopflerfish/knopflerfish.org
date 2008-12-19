@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Console
+Bundle-SymbolicName: org.knopflerfish.bundle.console
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:console:2.0.1
+Bundle-Description: Service system console
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/readme.txt
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.console.Activator
+Bundle-Category: service
+Export-Service: org.knopflerfish.service.console.ConsoleService
+Import-Service: org.knopflerfish.service.console.CommandGroup,
+ org.osgi.service.log.LogService
+Import-Package: org.knopflerfish.service.console,
+ org.osgi.framework,
+ org.osgi.service.log
+Export-Package: org.knopflerfish.service.console;specification-version=1.0.0
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-APIVendor: Knopflerfish
+
