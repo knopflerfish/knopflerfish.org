@@ -44,6 +44,7 @@ import java.util.Iterator;
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 
 
 /**
@@ -98,60 +99,63 @@ class Services {
     if (service == null) {
       throw new IllegalArgumentException("Can't register null as a service");
     }
-    ServiceRegistration res;
-    synchronized (this) {
-      // Check if service implements claimed classes and that they exist.
-      Class sc = service.getClass();
-      ClassLoader scl = sc.getClassLoader();
-      for (int i = 0; i < classes.length; i++) {
-        String cls = classes[i];
-	if (cls == null) {
-	  throw new IllegalArgumentException("Can't register as null class");
-	}
-	secure.checkRegisterServicePerm(cls);
-	if (bundle.id != 0) {
-          if (cls.equals(PackageAdmin.class.getName())) {
-            throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
-          }
-          if (cls.equals(PermissionAdmin.class.getName())) {
-            throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
-          }
-        }
-	if (!(service instanceof ServiceFactory)) {
-          ClassLoader cl = sc.getClassLoader();
-          Class c = null;
-          boolean ok = false;
-          try {
-            if (cl != null) {
-              c = cl.loadClass(cls);
-            } else {
-              c = Class.forName(cls);
-            }
-            ok = c.isInstance(service);
-          } catch (ClassNotFoundException e) {
-            for (Class csc = sc; csc != null; csc = csc.getSuperclass()) {
-              if (cls.equals(csc.getName())) {
-                ok = true;
-                break;
-              } else {
-                Class [] ic = csc.getInterfaces();
-                for (int iic = ic.length - 1; iic >= 0; iic--) {
-                  if (cls.equals(ic[iic].getName())) {
-                    ok = true;
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          if (!ok) {
-            throw new IllegalArgumentException("Service object is not an instance of " + cls);
-          }
-        }
+    // Check if service implements claimed classes and that they exist.
+    Class sc = service.getClass();
+    ClassLoader scl = sc.getClassLoader();
+    for (int i = 0; i < classes.length; i++) {
+      String cls = classes[i];
+      if (cls == null) {
+	throw new IllegalArgumentException("Can't register as null class");
       }
+      secure.checkRegisterServicePerm(cls);
+      if (bundle.id != 0) {
+	if (cls.equals(PackageAdmin.class.getName())) {
+	  throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
+	}
+	if (cls.equals(PermissionAdmin.class.getName())) {
+	  throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
+	}
+	if (cls.equals(ConditionalPermissionAdmin.class.getName())) {
+	  throw new IllegalArgumentException("Registeration of a ConditionalPermissionAdmin service is not allowed");
+	}
+      }
+      if (!(service instanceof ServiceFactory)) {
+	ClassLoader cl = sc.getClassLoader();
+	Class c = null;
+	boolean ok = false;
+	try {
+	  if (cl != null) {
+	    c = cl.loadClass(cls);
+	  } else {
+	    c = Class.forName(cls);
+	  }
+	  ok = c.isInstance(service);
+	} catch (ClassNotFoundException e) {
+	  for (Class csc = sc; csc != null; csc = csc.getSuperclass()) {
+	    if (cls.equals(csc.getName())) {
+	      ok = true;
+	      break;
+	    } else {
+	      Class [] ic = csc.getInterfaces();
+	      for (int iic = ic.length - 1; iic >= 0; iic--) {
+		if (cls.equals(ic[iic].getName())) {
+		  ok = true;
+		  break;
+		}
+	      }
+	    }
+	  }
+	}
+	if (!ok) {
+	  throw new IllegalArgumentException("Service object is not an instance of " + cls);
+	}
+      }
+    }
 
-      res = new ServiceRegistrationImpl(bundle, service,
-					new PropertiesDictionary(properties, classes, null));
+    ServiceRegistration res =
+      new ServiceRegistrationImpl(bundle, service,
+				  new PropertiesDictionary(properties, classes, null));
+    synchronized (this) {
       services.put(res, classes);
       for (int i = 0; i < classes.length; i++) {
 	ArrayList s = (ArrayList) classServices.get(classes[i]);

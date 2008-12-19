@@ -10,7 +10,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
-  Framework 4.0.11
+  Framework 4.0.12
 
   The native code OS-name alias handling was wrong for "Mac OS X".
   Added missing OS-name aliases for "Windows 2003", "symbianos", "hp-ux".
@@ -28,6 +28,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   host bundle after update or uninstall of one of its attached
   fragments now results in a re-resolve operation of the host bundle.
 
+  Rearranged synchronized code to avoid dead lock between registerService and
+  refreshPackages.
 
 
 === Services (Compendium) ===
