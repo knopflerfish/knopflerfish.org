@@ -40,7 +40,7 @@
 
   <!-- The version of this build -->
   <property name  = "version"
-            value = "2.1.2.svn-XXXX"/>
+            value = "2.2.0.svn-XXXX"/>
   <!-- The SVN-repository URL -->
   <property name="svn.repo.url"
 	    value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
