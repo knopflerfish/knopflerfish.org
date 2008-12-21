@@ -65,7 +65,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	  </p>
 
 	  <p>
-	    This repository is generated on <xsl:value-of select="bundles/date"/>
+	    This repository is generated on <xsl:value-of select="bundles/repository/date"/>
 	  </p>
 
 
