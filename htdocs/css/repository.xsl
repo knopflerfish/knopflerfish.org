@@ -22,12 +22,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	    content    = "NO-CACHE"/>
       
       <meta name       = "description"
-	    content    = "{bundles/repository-bundle-name}"/>
+	    content    = "{bundles/repository/name}"/>
       
       <meta name       = "title"
-	    content    = "{bundles/repository-bundle-name}"/>
+	    content    = "{bundles/repository/name}"/>
 
-      <title><xsl:value-of select="bundles/repository-bundle-name"/></title>
+      <title><xsl:value-of select="bundles/repository/name"/></title>
       <LINK href="@@obr.css.url@@" rel="stylesheet" type="text/css"/>
     </head>
 
@@ -42,7 +42,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	  <div id="header_fade"></div>
 	</div>
 	<div id="mainblock_obr">
-	  <h2><xsl:value-of select="bundles/repository-bundle-name"/></h2>
+	  <h2><xsl:value-of select="bundles/repository/name"/></h2>
 	  <div style="font-style: italic; margin-left: 20px; margin-right: 20px; margin-top: 5px; margin-bottom: 5px;">
 	    This is an OBR compatible bundle repository.
 	  </div>
