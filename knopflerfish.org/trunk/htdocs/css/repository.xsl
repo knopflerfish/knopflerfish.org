@@ -70,11 +70,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 
 	  <p>
-	    <b>Important</b>: You need either the latest bundlerepository.jar from
-	    the Oscar distribution, or
-	    the <a href="@@obr.base.url@@/jars/bundlerepository/bundlerepository_all-1.1.0.jar">KF
-	      bundlerepository</a> bundle. The KF bundlerepository bundle also
-	    integrates into the KF desktop and console.
+	    <b>Important</b>: You need either the latest bundlerepository.jar
+            from the Oscar distribution, or the KF bundlerepository bundle
+            listed below. The KF bundlerepository bundle also integrates
+            into the KF desktop and console.
 	  </p>
 
 	  <br clear="all"/>
