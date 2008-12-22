@@ -37,6 +37,7 @@ package org.knopflerfish.framework.bundlestorage.memory;
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
+import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -382,6 +383,17 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   public String getJarLocation() {
+    return null;
+  }
+
+
+  /**
+   * Get certificates associated with with bundle archive.
+   *
+   * @return All certificates or null if bundle is unsigned.
+   */
+  public Certificate [] getCertificates() {
+    // NYI
     return null;
   }
 }

@@ -58,21 +58,27 @@ public class PermissionsWrapper extends PermissionCollection {
 
   String location;
 
+  private Bundle bundle;
   private PermissionInfoStorage pinfos;
+  private ConditionalPermissionInfoStorage cpinfos;
   private PermissionCollection implicitPermissions;
   private PermissionCollection localPermissions;
   private volatile PermissionCollection systemPermissions;
   private File dataRoot;
   private boolean readOnly = false;
+  private ArrayList condPermList = null;
 
 
   PermissionsWrapper(Framework fw,
                      PermissionInfoStorage pis,
+                     ConditionalPermissionInfoStorage cpis,
                      String loc,
                      Bundle b,
                      InputStream localPerms) {
     pinfos = pis;
+    cpinfos = cpis;
     location = loc;
+    bundle = b;
     dataRoot = fw.getDataStorage(b.getBundleId());
     if (localPerms != null) {
       localPermissions = makeLocalPermissionCollection(localPerms);
@@ -85,14 +91,24 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   public void add(Permission permission) {
-    getPerms().add(permission);
+    PermissionCollection p = getPerms();
+    if (p != null) {
+      p.add(permission);
+    } else {
+      throw new RuntimeException("Using Conditional Permissions, what to do");
+    }
   }
 
 
   public Enumeration elements() {
+    final PermissionCollection p = getPerms();
+    if (p == null) {
+      throw new RuntimeException("Using Conditional Permissions, what to do 2");
+    }
+
     return new Enumeration() {
         private Enumeration implicitElements = implicitPermissions.elements();
-        private Enumeration systemElements = getPerms().elements();
+        private Enumeration systemElements = p.elements();
 
         public boolean hasMoreElements() {
           if (implicitElements != null) {
@@ -124,7 +140,12 @@ public class PermissionsWrapper extends PermissionCollection {
     } else if (localPermissions != null && !localPermissions.implies(permission)) {
       return false;
     } else {
-      return getPerms().implies(permission);
+      PermissionCollection p = getPerms();
+      if (p != null) {
+	return p.implies(permission);
+      } else {
+	return conditionalPermissionImplies(permission);
+      }
     }
   }
 
@@ -137,7 +158,12 @@ public class PermissionsWrapper extends PermissionCollection {
   public void setReadOnly() {
     if (!readOnly) {
       readOnly = true;
-      getPerms().setReadOnly();
+      PermissionCollection p = getPerms();
+      if (p != null) {
+	p.setReadOnly();
+      } else {
+	// NYI! What to do
+      }
     }
   }
 
@@ -159,7 +185,7 @@ public class PermissionsWrapper extends PermissionCollection {
   private PermissionCollection getPerms0() {
     if (systemPermissions == null) {
       PermissionCollection p = makePermissionCollection();
-      if (readOnly) {
+      if (readOnly && p != null) {
         p.setReadOnly();
       }
       systemPermissions = p;
@@ -193,7 +219,7 @@ public class PermissionsWrapper extends PermissionCollection {
           continue;
         }
         try {
-          Permission p = makePermission(new PermissionInfo(l), false);
+          Permission p = PermUtil.makePermission(new PermissionInfo(l), null);
           if (p != null) {
             res.add(p);
           }
@@ -241,16 +267,20 @@ public class PermissionsWrapper extends PermissionCollection {
    */
   private PermissionCollection makePermissionCollection() {
     PermissionInfo[] pi = pinfos.get(location, this);
-    boolean usingDefault;
-    if (pi == null) {
-      pi = pinfos.getDefault(this);
-      usingDefault = true;
-    } else {
-      usingDefault = false;
-    }
+    final boolean useDefault = (pi == null);
     Permissions res = new Permissions();
+    if (useDefault) {
+      if (cpinfos != null && cpinfos.size() > 0) {
+	// If we are using CPA with rules added do not use default.
+	// If we have CPA without rules, use default. This isn't correct
+	// way according to the standard. But it helps bootstrapping the
+	// system.
+	return null;
+      }
+      pi = pinfos.getDefault(this);
+    }
     for (int i = pi.length - 1; i >= 0; i--) {
-      Permission p = makePermission(pi[i], usingDefault);
+      Permission p = PermUtil.makePermission(pi[i], useDefault ? null : dataRoot);
       if (p != null) {
         res.add(p);
       }
@@ -261,36 +291,38 @@ public class PermissionsWrapper extends PermissionCollection {
 
   /**
    *
-   * @param pi PermissionInfo to enter into the PermissionCollection.
-   *
-   * @return
    */
-  private Permission makePermission(PermissionInfo pi, boolean usingDefault) {
-    String a = pi.getActions();
-    String n = pi.getName();
-    String t = pi.getType();
-    try {
-      Class pc = Class.forName(t);
-      Constructor c = pc.getConstructor(new Class[] { String.class, String.class });
-      if (FilePermission.class.equals(pc)) {
-        File f = new File(n);
-        // NYI! How should we handle different seperator chars.
-        if (!f.isAbsolute()) {
-          if (usingDefault) {
-            return null;
-          }
-          f = new File(dataRoot, n);
-        }
-        n = f.getPath();
+  private boolean conditionalPermissionImplies(Permission permission) {
+    if (condPermList == null) {
+      condPermList = new ArrayList();
+      for (Enumeration e = cpinfos.getAll(); e.hasMoreElements(); ) {
+	ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) e.nextElement();
+	if (Debug.permissions) {
+	  Debug.println("conditionalPermissionImplies: " + cpi);
+	}
+	condPermList.add(cpi.getConditionalPermission(bundle));
       }
-      return (Permission) c.newInstance(new Object[] { n, a });
-    } catch (ClassNotFoundException e) {
-      return new UnresolvedPermission(t, n, a, null);
-    } catch (NoSuchMethodException ignore) {
-    } catch (InstantiationException ignore) {
-    } catch (IllegalAccessException ignore) {
-    } catch (InvocationTargetException ignore) {
     }
-    return null;
+    for (Iterator i = condPermList.iterator(); i.hasNext(); ) {
+      ConditionalPermission cp = (ConditionalPermission)i.next();
+      int res = cp.check(permission);
+      if (res == ConditionalPermission.IMPLIED) {
+	if (cp.getPermissions().implies(permission)) {
+	  // NYI! Invalidate only when necessary
+	  condPermList = null;
+	  return true;
+	}
+      } else if (res == ConditionalPermission.FAILED) {
+	continue;
+      } else if (res == ConditionalPermission.POSTPONED) {
+	throw new RuntimeException("NYI POSTPONED");
+      } else {
+	throw new RuntimeException("Should not happen");
+      }
+    }
+    // NYI! Invalidate only when necessary
+    condPermList = null;
+    return false;
   }
+
 }

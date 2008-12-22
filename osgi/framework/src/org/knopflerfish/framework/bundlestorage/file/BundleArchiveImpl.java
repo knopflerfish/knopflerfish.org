@@ -38,6 +38,7 @@ import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -130,11 +131,11 @@ class BundleArchiveImpl implements BundleArchive
     } catch (Exception e) {
     }
     bundleDir       = dir;
-    archive         = new Archive(bundleDir, 0, is, source, bundleLocation);
     storage         = bundleStorage;
     id              = bundleId;
     location        = bundleLocation;
     startOnLaunch   = false;
+    archive         = new Archive(bundleDir, 0, is, source, location);
     nativeLibs      = getNativeCode();
     setClassPath();
     putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
@@ -179,10 +180,10 @@ class BundleArchiveImpl implements BundleArchive
         catch (NumberFormatException ignore) {}
     }
 
-    archive       = new Archive(bundleDir, rev, location);
     id            = bundleId;
     storage       = bundleStorage;
     startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();
+    archive       = new Archive(bundleDir, rev, location);
     nativeLibs    = getNativeCode();
     setClassPath();
   }
@@ -201,7 +202,7 @@ class BundleArchiveImpl implements BundleArchive
     startOnLaunch = old.startOnLaunch;
     bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
-    archive = new Archive(bundleDir, rev, is, location);
+    archive = new Archive(bundleDir, rev, is, null, location);
     nativeLibs = getNativeCode();
     setClassPath();
     putContent(REV_FILE, Integer.toString(rev));
@@ -293,13 +294,13 @@ class BundleArchiveImpl implements BundleArchive
 
 
   public long getLastModified() {
-                return lastModified;
+    return lastModified;
   }
 
 
   public void setLastModified(long timemillisecs) throws IOException{
-          lastModified = timemillisecs;
-          putContent(LAST_MODIFIED_FILE, Long.toString(timemillisecs));
+    lastModified = timemillisecs;
+    putContent(LAST_MODIFIED_FILE, Long.toString(timemillisecs));
   }
 
 
@@ -493,6 +494,12 @@ class BundleArchiveImpl implements BundleArchive
    */
   public List getFailedClassPathEntries() {
     return failedPath;
+  }
+
+  /**
+   */
+  public Certificate [] getCertificates() {
+    return archive.getCertificates();
   }
 
   //

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -291,9 +291,14 @@ class PermissionInfoStorage {
    * Load all saved permission data.
    */
   private void load() {
-    File[] files = getSortedFiles();
+    File[] files = PermUtil.getSortedFiles(permDir);
     for (int i = 0; i < files.length; i++) {
       load(files[i]);
+    }
+    try {
+      lastPermFile = Long.parseLong(files[files.length - 1].getName());
+    } catch (Exception e) {
+      lastPermFile = -1;
     }
   }
 
@@ -384,7 +389,7 @@ class PermissionInfoStorage {
    */
   private void purge() {
     HashMap foundTwo = new HashMap();
-    File[] files = getSortedFiles();
+    File[] files = PermUtil.getSortedFiles(permDir);
     for (int i = files.length - 1; i >= 0; i--) {
       String loc;
       BufferedReader in = null;
@@ -414,44 +419,6 @@ class PermissionInfoStorage {
     }
   }
 
-  /**
-   * Get permission data files sorted, first all nonnumeric
-   * and then the numeric in ascending order.
-   */
-  private File[] getSortedFiles() {
-    String[] files = permDir.list();
-    File[] res = new File[files.length];
-    long[] lfiles = new long[files.length];
-    int lf = -1;
-    int pos = 0;
-    for (int i = 0; i < files.length; i++) {
-      try {
-        long fval = Long.parseLong(files[i]);
-        int j;
-        for (j = lf; j >= 0; j--) {
-          if (fval > lfiles[j]) {
-            break;
-          }
-        }
-        if (j >= lf) {
-          lfiles[++lf] = fval;
-        } else {
-          lf++;
-          j++;
-          System.arraycopy(lfiles, j, lfiles, j+1, lf-j);
-          lfiles[j] = fval;
-        }
-        files[i] = null;
-      } catch (NumberFormatException ignore) {
-        res[pos++] = new File(permDir, files[i]);
-      }
-    }
-    for (int i = 0; i <= lf; i++) {
-      res[pos++] = new File(permDir, Long.toString(lfiles[i]));
-    }
-    lastPermFile = (lf >= 0) ? lfiles[lf] : -1;
-    return res;
-  }
 
   class Element {
     PermissionInfo[] pi;

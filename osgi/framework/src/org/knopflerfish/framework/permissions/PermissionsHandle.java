@@ -56,14 +56,24 @@ public class PermissionsHandle {
   Framework framework;
 
   private PermissionInfoStorage pinfos;
+  private ConditionalPermissionInfoStorage cpinfos;
   private Hashtable /* Long -> PermissionCollection */ pcCache = new Hashtable();
   private PermissionAdminImpl pa;
+  private ConditionalPermissionAdminImpl cpa;
 
 
   public PermissionsHandle(Framework fw) {
     framework = fw;
     pinfos = new PermissionInfoStorage();
     pa = new PermissionAdminImpl(pinfos);
+    //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
+    if (System.getSecurityManager() instanceof SecurityManager) {
+      cpinfos = new ConditionalPermissionInfoStorage();
+      cpa = new ConditionalPermissionAdminImpl(cpinfos);
+    } else {
+      cpinfos = null;
+      cpa = null;
+    }
     Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(), this));
   }
 
@@ -75,6 +85,16 @@ public class PermissionsHandle {
    */
   public PermissionAdminImpl getPermissionAdminService() {
     return pa;
+  }
+
+
+  /**
+   * Get ConditionalPermissionAdmin service.
+   *
+   * @return ConditionalPermissionAdmin service object.
+   */
+  public ConditionalPermissionAdminImpl getConditionalPermissionAdminService() {
+    return cpa;
   }
 
 
@@ -109,7 +129,7 @@ public class PermissionsHandle {
                                                           Bundle b,
                                                           InputStream localPerms) {
     Long bid = new Long(b.getBundleId());
-    PermissionCollection pc = new PermissionsWrapper(framework, pinfos, loc, b, localPerms);
+    PermissionCollection pc = new PermissionsWrapper(framework, pinfos, cpinfos, loc, b, localPerms);
     pcCache.put(bid, pc);
     return pc;
   }

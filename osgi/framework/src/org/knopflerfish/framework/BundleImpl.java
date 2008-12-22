@@ -905,7 +905,7 @@ class BundleImpl implements Bundle {
 
 
   /**
-   * Returns this bundle’s BundleContext. This method will be
+   * Returns this bundle's BundleContext. This method will be
    * introduced in OSGi R4.1 but included here as a migration step.
    *
    * @see org.osgi.framework.Bundle#getBundleContext

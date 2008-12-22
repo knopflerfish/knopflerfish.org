@@ -7,6 +7,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Here follows a breakdown of the most important changes since the 
   last release.
 
+=== Framework (Core) ===
+
+  Framework 4.0.13
+
+  Started work on Conditional Permissions and signed bundles. This is a
+  work in progress and this is the first check in that saves the current
+  state before the christmas. It should not interfere if you do not try
+  to use Conditional Permissions.
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
