@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ** Copyright (c) 2003-2008, KNOPFLERFISH project
   ** All rights reserved.
@@ -56,7 +57,7 @@
  </target>
 
  <target name="install_bcel" unless="bcel.present"
-	 description="Installs BCEL ${bcel-version} in ${ant.lib}">
+	 description="Installs BCEL in ant/lib">
    <antcall target="download_bcel"/>
    <antcall target="unpack_bcel"/>
  </target>

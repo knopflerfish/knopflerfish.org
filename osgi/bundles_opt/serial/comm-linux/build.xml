@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="comm-linux" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.comm-linux}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name = "bundle.build.api"      value = "false"/>
   <property name = "bundle.build.impl"     value = "false"/>
@@ -21,8 +18,6 @@
   <property name="api.pattern"
             value="dummy"/>
 
-
-
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
 <!--   <pathelement location="device_api-N.N.N.jar"/>-->
@@ -30,6 +25,6 @@
    <pathelement location="resources/comm.jar"/>
   </path>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="soap_desktop" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.soap_desktop}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
 
@@ -29,7 +26,7 @@
    <pathelement location="../axis-osgi/resources/jaxrpc.jar"/>
   </path>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
   <target name="run">
    <property name="wdsl.url"  value="sample.wsdl"/>

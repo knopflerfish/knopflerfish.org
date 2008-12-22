@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="desktop_boing" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.desktop_boing}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/desktop/**"/>
@@ -23,7 +20,7 @@
   <property name="bmfa.Bundle-Category"    value="service"/>
   <property name="bmfa.Bundle-Version"     value="1.0.0"/>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
 

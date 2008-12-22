@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="tjx10" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.tjx10}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name = "include.source"       value = "true"/>
 
@@ -45,6 +42,6 @@
 
   <property name="bmfa.Export-Package"   value="x10;specification-version=1.3,x10.net;specification-version=1.3,x10.awt;specification-version=1.3,x10.util;specification-version=1.3"/>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

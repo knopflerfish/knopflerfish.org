@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="http" default="all">
 
-  <property name  = "topdir"                location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.http}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name  = "ee.check.foundation"   value="true"/>
 
@@ -44,7 +41,7 @@
 	    failonerror="false"/>
   </target>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
 
