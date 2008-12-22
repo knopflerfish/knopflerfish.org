@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
   ** Copyright (c) 2004-2008, KNOPFLERFISH project
@@ -37,41 +37,42 @@
 
 <project name="knopflerfish" default="default">
 
+  <!-- The default version of this build -->
+  <property name="version"            value="2.2.1.svn-XXXX"/>
 
-  <!-- The version of this build -->
-  <property name  = "version"
-            value = "2.2.1.svn-XXXX"/>
   <!-- The SVN-repository URL -->
   <property name="svn.repo.url"
 	    value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
+
   <!-- The subversion tag / branch that this build is made on -->
   <!-- E.g., "trunk", "tags/2.0.4", "branches/kf_1_support". -->
-  <property name  = "svn.tag"    value="tags/${version}"/>
+  <property name="svn.tag"    value="tags/${version}"/>
+
   <!-- The kind of build, used on the index page for the release. -->
-  <property name  = "build.kind" value="release build"/>
+  <property name="build.kind" value="release build"/>
 
   <!-- ONLY set this for public releases! -->
-  <property name  = "release" value="${version}"/>
+  <property name="release" value="${version}"/>
 
   <property environment="sysprops"/>
 
-  <property name = "ee.check.foundation"   value = "true"/>
+  <property name="ee.check.foundation"   value="true"/>
 
   <!-- The directory to place the results of a distrib build in. -->
-  <property name="release.dir" location = "htdocs/releases/${version}"/>
+  <property name="release.dir"     location="htdocs/releases/${version}"/>
 
   <!-- The directory to place the distrib build docs in. -->
-  <property name="release.doc.dir" location = "${release.dir}/docs"/>
+  <property name="release.doc.dir" location="${release.dir}/docs"/>
 
   <!-- The URL that this release will be available on after installation. -->
-  <property name="base.url" value = "http://www.knopflerfish.org/releases"/>
+  <property name="base.url"      value="http://www.knopflerfish.org/releases"/>
 
   <!-- A directory to place intermediate files for a distib build in. -->
-  <property name = "distrib.out.dir" location = "out"/>
+  <property name="distrib.out.dir" location="out"/>
 
-  <property name="bundledoc.dir" location="${release.doc.dir}/bundledoc"/>
+  <property name="bundledoc.dir"   location="${release.doc.dir}/bundledoc"/>
 
-  <property name = "javadoc.out.dir" location = "javadoc"/>
+  <property name="javadoc.out.dir" location="javadoc"/>
 
   <property name     = "distribfile"
             location = "${release.dir}/knopflerfish_osgi_${version}.jar"/>
@@ -103,35 +104,36 @@
             location="${jarunpacker}/strings.properties"/>
 
 
-  <target name        = "default"
-          description = "Builds entire platform except optional and test bundels" >
+  <target name="default"
+          description="Builds entire platform except optional and test bundels" >
     <delete file="htdocs/bundles.html"/>
-    <ant dir = "ant"                 target = "all" />
-    <ant dir = "tools/jarunpacker"   target = "jar"/>
-    <ant dir = "osgi"                target = "default" />
+    <ant dir="ant"                 target="all" />
+    <ant dir="tools/jarunpacker"   target="jar"/>
+    <ant dir="osgi"                target="default" />
   </target>
 
-  <target name        = "all"
-          description = "Builds entire platform including optional and test bundles" >
+  <target name="all"
+          description="Builds entire platform including optional and test bundles" >
     <delete file="htdocs/bundles.html"/>
-    <ant dir = "ant"                 target = "all" />
-    <ant dir = "tools/jarunpacker"   target = "jar"/>
-    <ant dir = "osgi"                target = "all" />
+    <ant dir="ant"                 target="all" />
+    <ant dir="tools/jarunpacker"   target="jar"/>
+    <ant dir="osgi"                target="all" />
   </target>
 
 
-  <target name        = "xargs">
-    <ant dir = "osgi"    target = "xargs" />
+  <target name="xargs">
+    <ant dir="osgi" target="xargs" />
   </target>
 
   <target name        = "clean"
            description = "Removes all generated files" >
-    <ant    dir = "ant"    target = "clean" />
-    <ant    dir = "osgi"   target = "clean" />
-    <ant    dir = "htdocs" target = "clean" />
-    <delete dir = "${javadoc.out.dir}"      />
-    <delete dir = "${distrib.out.dir}"      />
-    <delete dir = "repo"/>
+    <delete dir="repo"/>
+    <delete dir="${distrib.out.dir}"      />
+    <delete dir="${javadoc.out.dir}"      />
+    <ant    dir="htdocs"            target="clean" />
+    <ant    dir="osgi"              target="clean" />
+    <ant    dir="tools/jarunpacker" target="clean"/>
+    <ant    dir="ant"               target="clean" />
   </target>
 
   <target name = "version"
