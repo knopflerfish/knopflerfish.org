@@ -1,14 +1,11 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="axis2_soapclient_adb" default="all">
 
-  <property name="topdir"     location=".."/>
-  <property name="osgi.dir"   location="${topdir}/../.."/>
-  <property name="ant.dir"    location="${osgi.dir}/../ant"/>
+  <dirname  property="proj.dir" file="${ant.file.axis2_soapclient_adb}"/>
+  <property name="topdir"       location="${proj.dir}/.."/>
+  <property name="osgi.dir"     location="${topdir}/../.."/>
+  <property name="ant.dir"      location="${osgi.dir}/../ant"/>
 
   <property name = "bundle.build.all"  value="false"/>
   <property name = "bundle.build.api"  value="false"/>
@@ -61,8 +58,7 @@
     </replace>	  
   </target>
 
-
-  &bundlebuild_include;
+  <import file="${ant.dir}/bundlebuild.xml"/>
 
   <!-- This requires that the axis2_soapobject bundle is up and running. -->
  <target name="get"

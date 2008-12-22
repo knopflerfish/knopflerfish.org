@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="desktop_awt" default="all">
 
-  <property name="topdir"       location="../.."/>
+  <dirname  property="proj.dir" file="${ant.file.desktop_awt}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
   <property name = "javac.target"          value = "1.1"/>
@@ -30,6 +27,6 @@
    <pathelement location="console_api-N.N.N.jar"/>
   </path>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

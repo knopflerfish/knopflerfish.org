@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="axis-osgi" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.axis-osgi}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name  = "impl.pattern"
             value = "org/knopflerfish/**"/>
@@ -31,7 +28,7 @@
    <pathelement location="resources/saaj.jar"/>
   </path>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
 

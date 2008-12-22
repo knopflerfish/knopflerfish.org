@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="kf_metatype" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.kf_metatype}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name  = "api.pattern"
             value = "org/knopflerfish/util/metatype/**"/>
@@ -29,7 +26,7 @@
    <pathelement location="${topdir}/bundles/component/resources/kxml2.jar"/> 
   </path>
   
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
 

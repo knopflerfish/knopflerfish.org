@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="jaxp" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.jaxp}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name = "bundle.build.lib"   value = "true"/>
   <property name = "bundle.build.api"   value = "false"/>
@@ -23,6 +20,6 @@
 
   <property name="bmfa.Export-Package"        value="com.sun.xml.parser ; specification-version=1.0, com.sun.xml.tree ; specification-version=1.0, com.sun.xml.util ; specification-version=1.0, org.w3c.dom ; specification-version=2.0, org.xml.sax ; specification-version=2.0, org.xml.sax.helpers ; specification-version=2.0, javax.xml.parsers ; specification-version=2.0"/>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

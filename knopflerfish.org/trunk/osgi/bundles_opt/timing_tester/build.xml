@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="tester" default="all">
 
-  <property name="topdir"       location="../.."/>
+  <dirname  property="proj.dir" file="${ant.file.tester}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
 
   <property name="impl.pattern" value="org/knopflerfish/**"/> 
 
@@ -44,7 +41,7 @@
     </replace>	  
   </target>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
   <property name="log.file.name" value="log.csv"/>
   <property name="fw.storage"    value="file"/>

@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="oscar-shell" default="all">
 
-  <property name="topdir"       location="../.."/>
+  <dirname  property="proj.dir" file="${ant.file.oscar-shell}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
 
   <property name = "ee.check.foundation"   value = "true"/>
 
@@ -21,11 +18,9 @@
   <property name="api.pattern"
             value="org/ungoverned/osgi/service/shell/*"/>
 
-
   <path id="bundle.compile.path">
     <pathelement location="console_api-N.N.N.jar"/>
   </path>
-
 
   <property name="bmfa.Bundle-Description"
             value="Compatability layer for bundles using the Oscar shell API. See readme.txt for details."/>
@@ -38,6 +33,6 @@
   <property name = "bmfa.Bundle-DocURL"
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/readme.txt"/>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

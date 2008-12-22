@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="commons-logging" default="all">
 
-  <property name="topdir"       location="../.."/>
+  <dirname  property="proj.dir" file="${ant.file.commons-logging}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
 
   <property name = "bundle.build.api"   value = "false"/>
   <property name = "bundle.build.impl"  value = "false"/>
@@ -26,6 +23,6 @@
    <pathelement location="resources/log_api-2.0.1.jar"/>
   </path>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

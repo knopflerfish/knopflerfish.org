@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="event" default="all">
 
-  <property name="topdir"       location="../.."/>
+  <dirname  property="proj.dir" file="${ant.file.event}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
 
   <property name = "ee.check.foundation"   value = "true"/>
 
@@ -33,6 +30,6 @@
   <property name="bmfa.Export-Package"
             value="org.osgi.service.event;specification-version=1.1"/>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

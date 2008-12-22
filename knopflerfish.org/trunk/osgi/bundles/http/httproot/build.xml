@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE project [
-  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
-]>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project name="httproot" default="all">
 
-  <property name="topdir"       location="../../.."/>
+  <dirname  property="proj.dir" file="${ant.file.httproot}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/httproot/**"/>
@@ -18,6 +15,6 @@
    <pathelement location="http_api-N.N.N.jar"/>
   </path>
 
-  &bundlebuild_include;
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

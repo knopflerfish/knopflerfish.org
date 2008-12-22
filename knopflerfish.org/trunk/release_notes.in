@@ -8,6 +8,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Build System
+
+  The ant include file "bundlebuild_include.xml" that all KF-ant build
+  files imported using an external entity is now replaced with a
+  proper include filen named "bundlebuild.xml" that can be included
+  using the ant 1.6+ command &lt;import file="bundlebuild.xml"&gt;
+  Upgrade instructions for users of the old
+  "bundlebuild_include.xml"-file are available in that file. I.e., in
+  "ant/bundlebuild_incldue.xml".
+
 
 ========================================================================
 
