@@ -34,15 +34,14 @@
 
 <!-- This file is now deprecated please use the new "bundlebuild.xml". -->
 <!-- See "build_example.xml" for usage details and a brief documentation. -->
-<!-- To upgrade: Remove the old doctype-line at the begining of your --
-  -- build file. Insert the following lines:                         --
-  --    <dirname  property="proj.dir" file="${ant.file.desktop}"/>   --
-  --    <property name="topdir"       location="${proj.dir}/../.."/> --
-  -- after the project-line                                          --
-  -- Replace the   &amp;bundlebuild_include; line at the end of the  --
-  -- file with                                                       --
-  --   <import file="${topdir}/../ant/bundlebuild.xml"/>             --
-  -->
+<!-- To upgrade: Remove the old doctype-line at the begining of your -->
+<!-- build file. Insert the following lines:                         -->
+<!--    <dirname  property="proj.dir" file="${ant.file.desktop}"/>   -->
+<!--    <property name="topdir"       location="${proj.dir}/../.."/> -->
+<!-- after the project-line                                          -->
+<!-- Replace the   &amp;bundlebuild_include; line at the end of the  -->
+<!-- file with                                                       -->
+<!--   <import file="${topdir}/../ant/bundlebuild.xml"/>             -->
  
 
  <property name="topdir"   location="."/>
