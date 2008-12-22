@@ -42,9 +42,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import org.knopflerfish.framework.permissions.PermissionAdminImpl;
+import org.knopflerfish.framework.permissions.ConditionalPermissionAdminImpl;
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
@@ -179,6 +181,12 @@ public class SystemBundle extends BundleImpl {
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" +  PermissionAdminImpl.SPEC_VERSION);
+
+    // Set up conditionalpermissionadmin package
+    name = ConditionalPermissionAdmin.class.getName();
+    name = name.substring(0, name.lastIndexOf('.'));
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  ConditionalPermissionAdminImpl.SPEC_VERSION);
 
     // Set up startlevel package
     name = StartLevel.class.getName();

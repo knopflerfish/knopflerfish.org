@@ -306,8 +306,9 @@
  <target name="run-osgi-test-target-secure"
          description="Start the framework with security enabled in OSGi test target mode.">
   <java fork="true"
-        jar="framework.jar"
-  >
+	classname="org.knopflerfish.framework.Main">
+    <classpath path="../../osgi/tck-4.0.1/testcond.jar"/>
+    <classpath path="./framework.jar"/>
     <jvmarg value="-Djava.security.manager"/>
     <jvmarg value="-Djava.security.policy=file:framework.policy"/>
     <arg line="-xargs init-osgi-test-target.xargs"/>

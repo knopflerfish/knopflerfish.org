@@ -67,6 +67,9 @@ import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionInfo;
+import org.osgi.service.condpermadmin.ConditionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.startlevel.StartLevel;
 
 // ******************** FrameworkCommandGroup ********************
@@ -84,6 +87,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   private PackageAdmin packageAdmin = null;
 
   private PermissionAdmin permissionAdmin = null;
+
+  private ConditionalPermissionAdmin condPermAdmin = null;
 
   private StartLevel startLevel = null;
 
@@ -112,6 +117,11 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     sr = bc.getServiceReference(PermissionAdmin.class.getName());
     if (sr != null) {
       permissionAdmin = (PermissionAdmin) bc.getService(sr);
+    }
+
+    sr = bc.getServiceReference(ConditionalPermissionAdmin.class.getName());
+    if (sr != null) {
+      condPermAdmin = (ConditionalPermissionAdmin) bc.getService(sr);
     }
 
     sr = bc.getServiceReference(StartLevel.class.getName());
@@ -754,6 +764,48 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     return 0;
   }
 
+
+  //
+  // CondPermission command
+  //
+
+  public final static String USAGE_CONDPERMISSION
+    = "[<name>] ...";
+
+  public final static String[] HELP_CONDPERMISSION = new String[] {
+    "Get conditional permissions",
+    "<name>               Name of conditional permission" };
+
+  public int cmdCondpermission(Dictionary opts, Reader in, PrintWriter out,
+				  Session session) {
+    if (condPermAdmin == null) {
+      out.println("Conditional Permission Admin service is not available");
+      return 1;
+    }
+    String [] names = (String []) opts.get("name");
+    Enumeration e;
+    if (names != null) {
+      Vector cpis = new Vector();
+      for (int i = 0; i < names.length; i++ ) {
+	ConditionalPermissionInfo cpi = condPermAdmin.getConditionalPermissionInfo(names[i]);
+	if (cpi != null) {
+	  cpis.addElement(cpi);
+	} else {
+	  out.println("Didn't find ConditionalPermissionInfo named: " + names[i]);
+	}
+      }
+      e = cpis.elements();
+    } else {
+      e = condPermAdmin.getConditionalPermissionInfos();
+    }
+    while (e.hasMoreElements()) {
+      // NYI! pretty print
+      out.println(e.nextElement().toString());
+    }
+    return 0;
+  }
+
+
   //
   // Deletepermission command
   //
@@ -1333,6 +1385,66 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       out.print("\n  " + pad + k[i] + " = "
                 + Util.showObject(s.getProperty(k[i])));
     }
+  }
+
+
+  //
+  // SetCondPermission command
+  //
+
+  public final static String USAGE_SETCONDPERMISSION
+    = "[-name #name] <conditional_permission_info>...";
+
+  public final static String[] HELP_SETCONDPERMISSION = new String[] {
+    "Set conditional permission",
+    "-name #name                     Name of conditional permission",
+    "<conditional_permission_info>   ConditionalPermissionInfo string" };
+
+  public int cmdSetcondpermission(Dictionary opts, Reader in, PrintWriter out,
+				  Session session) {
+    if (condPermAdmin == null) {
+      out.println("Conditional Permission Admin service is not available");
+      return 1;
+    }
+    String loc = null;
+    Vector /* ConditionInfo */ cis = new Vector();
+    Vector /* PermissionInfo */ pis = new Vector();
+    String name = (String) opts.get("-name");
+    String [] cpis = (String []) opts.get("conditional_permission_info");
+    String endChar = null;
+    StringBuffer buf = new StringBuffer();
+    for (int i = 0; i < cpis.length; ) {
+      String cpi = cpis[i];
+      if (endChar != null) {
+	buf.append(cpi);
+	i++;
+	if (cpi.endsWith(endChar)) {
+	  try {
+	    if (endChar == "]") {
+	      cis.addElement(new ConditionInfo(buf.toString()));
+	    } else {
+	      pis.addElement(new PermissionInfo(buf.toString()));
+	    }
+	  } catch (IllegalArgumentException e) {
+	    out.println("ERROR! Failed to instanciate: " + buf.toString());
+	    return 1;
+	  }
+	  endChar = null;
+	  buf.setLength(0);
+	}
+      } else if (cpi.startsWith("[")) {
+	endChar = "]";
+      } else if (cpi.startsWith("(")) {
+	endChar = ")";
+      } else {
+	out.println("ERROR! Expected start char '(' or '[', got: " + cpi);
+	return 1;
+      }
+    }
+    ConditionInfo [] cia = (ConditionInfo []) cis.toArray(new ConditionInfo [cis.size()]);
+    PermissionInfo [] pia = (PermissionInfo []) pis.toArray(new PermissionInfo [pis.size()]);
+    condPermAdmin.setConditionalPermissionInfo(name, cia, pia);
+    return 0;
   }
 
   //

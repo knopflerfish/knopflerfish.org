@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,63 +32,69 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework;
+package org.knopflerfish.framework.permissions;
 
-import java.io.InputStream;
-import java.util.List;
+import java.security.*;
+
+import org.osgi.service.condpermadmin.*;
 
 /**
- * Interface for managing all bundles jar content.
- *
- * @author Jan Stein
+ * A binding of a set of Conditions to a set of Permissions.
+ * 
+ * @version $Revision: 1.11 $
  */
-public interface BundleStorage {
+public class ConditionalPermission
+{
+  final static int FAILED = 0;
+  final static int IMPLIED = 1;
+  final static int POSTPONED = 2;
+
+  final private Condition [] conditions;
+  final private PermissionCollection permissions;
+
 
   /**
-   * Insert bundle into persistent storagedata.
-   *
-   * @param key Name of attribute to get.
-   * @return 
    */
-  BundleArchive insertBundleJar(String location, InputStream is)
-    throws Exception;
+  ConditionalPermission(Condition [] conds, PermissionCollection perms) {
+    conditions = conds;
+    permissions = perms;
+  }
+
 
   /**
-   * Insert a new jar file into persistent storagedata as an update
-   * to an existing bundle archive. To commit this data a call to
-   * <code>replaceBundleArchive</code> is needed.
    *
-   * @param old BundleArchive to be replaced.
-   * @param is Inputstrem with bundle content.
-   * @return Bundle archive object.
    */
-  BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
-    throws Exception;
+  int check(Permission perm) {
+    for (int i = 0; i < conditions.length; i++) {
+      Condition c = conditions[i];
+      if (c == null) {
+	// Immutable condition has been removed
+	continue;
+      }
+      if (!c.isPostponed()) {
+	if (c.isSatisfied()) {
+	  if (!c.isMutable()) {
+	    conditions[i] = null;
+	  }
+	} else {
+	  if (!c.isMutable()) {
+	    // NYI! Save failed
+	  }
+	  return FAILED;
+	}
+      } else {
+	throw new RuntimeException("NYI! Handle postponed");
+      }
+    }
+    return IMPLIED;
+  }
+
 
   /**
-   * Replace old bundle archive with a new updated bundle archive, that
-   * was created with updateBundleArchive.
    *
-   * @param oldBA BundleArchive to be replaced.
-   * @param newBA Inputstrem with bundle content.
-   * @return New bundle archive object.
    */
-  void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
-    throws Exception;
-
-  /**
-   * Get all bundle archive objects.
-   *
-   * @return Private copy of a List with bundle id's.
-   */
-  BundleArchive [] getAllBundleArchives();
-
-  /**
-   * Get all bundles tagged to start at next launch of framework.
-   * This list is sorted in suggest start order.
-   *
-   * @return Private copy of a List with bundle id's.
-   */
-  List getStartOnLaunchBundles();
+  PermissionCollection getPermissions() {
+    return permissions;
+  }
 
 }

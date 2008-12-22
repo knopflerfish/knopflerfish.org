@@ -43,6 +43,7 @@ import java.util.*;
 
 import org.osgi.framework.*;
 import org.osgi.service.permissionadmin.PermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 
 import org.knopflerfish.framework.PermissionOps;
 import org.knopflerfish.framework.permissions.PermissionsHandle;
@@ -78,6 +79,18 @@ class SecurePermissionOps extends PermissionOps {
   private AdminPermission ap_startlevel_perm = null;
 
 
+  /**
+   * Controls if we should register PermisionAdminService.
+   */
+  final private static boolean regPA = new Boolean(Framework.getProperty("org.knopflerfish.framework.service.permissionadmin", "true")).booleanValue();
+
+
+  /**
+   * Controls if we should register ConditionalPermisionAdminService.
+   */
+  final private static boolean regCPA = new Boolean(Framework.getProperty("org.knopflerfish.framework.service.conditionalpermissionadmin", "true")).booleanValue();
+
+
   Hashtable /* Bundle -> AdminPermission [] */ adminPerms = new Hashtable();
 
 
@@ -88,9 +101,18 @@ class SecurePermissionOps extends PermissionOps {
 
 
   void registerService() {
-    String[] classes = new String [] { PermissionAdmin.class.getName() };
-    framework.services.register(framework.systemBundle, classes,
-                                ph.getPermissionAdminService(), null);
+    if (regPA) {
+      String[] classes = new String [] { PermissionAdmin.class.getName() };
+      framework.services.register(framework.systemBundle, classes,
+                                  ph.getPermissionAdminService(), null);
+    }
+    if (regCPA) {
+      ConditionalPermissionAdmin cpa = ph.getConditionalPermissionAdminService();
+      if (cpa != null) {
+        String[] classes = new String [] { ConditionalPermissionAdmin.class.getName() };
+        framework.services.register(framework.systemBundle, classes, cpa, null);
+      }
+    }
   }
 
 
@@ -690,7 +712,7 @@ class SecurePermissionOps extends PermissionOps {
     try {
       // We cannot use getBundleURL() here because that will
       // trigger a persmission check while we're still in
-      // the pahse of building permissions
+      // the phase of building permissions
       URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
                               Long.toString(b.id) + "." + Long.toString(b.generation),
                               -1,
@@ -699,7 +721,7 @@ class SecurePermissionOps extends PermissionOps {
 
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
-      return new ProtectionDomain(new CodeSource(bundleUrl, (Certificate[])null), pc);
+      return new ProtectionDomain(new CodeSource(bundleUrl, b.archive.getCertificates()), pc);
     } catch (MalformedURLException _ignore) { }
     return null;
   }

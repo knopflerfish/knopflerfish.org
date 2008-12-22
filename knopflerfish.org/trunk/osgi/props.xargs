@@ -10,8 +10,15 @@
 -Dorg.knopflerfish.verbosity=0
 
 # Security
+#-Djava.security.manager=org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager
 #-Djava.security.manager=
 #-Djava.security.policy=file:framework.policy
+
+# File storage properties
+-Dorg.knopflerfish.framework.bundlestorage.file.trusted=true
+#-Dorg.knopflerfish.framework.bundlestorage.file.unpack=false
+#-Dorg.knopflerfish.framework.bundlestorage.file.always_unpack=true
+#-Dorg.knopflerfish.framework.bundlestorage.file.all_signed=true
 
 # URL to bundle repository
 #-Doscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
