@@ -343,11 +343,7 @@ class Archive {
     }
     if (doVerify) {
       if (jar == null) {
-	if (trustedStorage) {
-	  loadCertificates();
-	} else {
-	  throw new IOException("Tried to load unpacked signed bundles from untrusted storage");
-	}
+	loadCertificates();
       } else {
 	manifest = new AutoManifest(processSignedJar(file), location);
       }
@@ -929,6 +925,7 @@ class Archive {
    * 
    */
   private void loadCertificates() {
+    // NYI! load certificates from both trusted and untrusted storage.
   }
 
 
