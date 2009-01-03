@@ -582,10 +582,8 @@
   </target>
 
   <target name="add_dex" if="android.exists">
-    <tempfile destdir="${outdir}" prefix="dex-${jarfile}" property="temp.dir"/>
+    <tempfile destdir="${outdir}" prefix="dex" property="temp.dir"/>
     <mkdir dir="${temp.dir}"/>
-    
-    <echo message="*****ADD_DEX temp.dir=${temp.dir}"/>    
     
     <property name     = "android.libdir" 
               location = "${ANDROID_HOME}/tools/lib"/>
