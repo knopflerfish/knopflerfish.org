@@ -316,6 +316,8 @@
     <property name="all.jar"
               location="${jardir}/${ant.project.name}${all.suffix}.jar"/>
 
+    <available property="android.exists" file="${ANDROID_HOME}"/>
+
     <path id = "bundle.api.path">
       <pathelement location = "${api.jar}"/>
     </path>
@@ -505,6 +507,11 @@
     <antcall target="save_javadoc_data" inheritRefs="true">
       <param name="manifest.file"  value="${outdir}/impl.mf"/>
     </antcall>
+
+   <antcall target="add_dex" inheritRefs="true">
+     <param name="jarfile" value="${impl.jar}"/>
+   </antcall>
+
   </target>
 
 
@@ -567,8 +574,53 @@
     <antcall target="save_javadoc_data" inheritRefs="true">
       <param name="manifest.file"  value="${outdir}/api.mf"/>
     </antcall>
+
+   <antcall target="add_dex" inheritRefs="true">
+     <param name="jarfile" value="${api.jar}"/>
+   </antcall>
+
   </target>
 
+  <target name="add_dex" if="android.exists">
+    <tempfile destdir="${outdir}" prefix="dex-${jarfile}" property="temp.dir"/>
+    <mkdir dir="${temp.dir}"/>
+    
+    <echo message="*****ADD_DEX temp.dir=${temp.dir}"/>    
+    
+    <property name     = "android.libdir" 
+              location = "${ANDROID_HOME}/tools/lib"/>
+    
+    <property name     = "dexlib.jar" 
+              location = "${android.libdir}/dx.jar"/>
+    
+    <property name="classes.dex" value="classes.dex"/>
+    
+    <echo message="add_dex ${jarfile}"/>
+    
+
+    
+    <property name="dx.cmd" value="${ANDROID_HOME}/tools/dx.bat"/>
+    
+    <java fork="true" jar="${dexlib.jar}">
+      <arg value="--dex"/>
+      <arg value="--output=${classes.dex}"/>
+      <arg value="${jarfile}"/>
+    </java>
+    
+    <property name="aapt.cmd" value="${ANDROID_HOME}/tools/aapt"/>
+    
+    <exec executable = "${aapt.cmd}">
+      <arg value="add"/>
+      <arg value="-f"/>
+      <arg value="${jarfile}"/>
+      <arg value="${classes.dex}"/>
+    </exec>
+    
+<!--
+    <delete dir="${temp.dir}"/>
+-->
+  </target>
+  
 
   <!-- ============================= LIB =============================== -->
   <target name    = "jar_lib"
@@ -629,6 +681,11 @@
     <antcall target="save_javadoc_data" inheritRefs="true">
       <param name="manifest.file"  value="${outdir}/lib.mf"/>
     </antcall>
+
+   <antcall target="add_dex" inheritRefs="true">
+     <param name="jarfile" value="${lib.jar}"/>
+   </antcall>
+
   </target>
 
 
@@ -702,6 +759,11 @@
     <antcall target="save_javadoc_data" inheritRefs="true">
       <param name="manifest.file"  value="${outdir}/all.mf"/>
     </antcall>
+
+   <antcall target="add_dex" inheritRefs="true">
+     <param name="jarfile" value="${all.jar}"/>
+   </antcall>
+
   </target>
 
 
