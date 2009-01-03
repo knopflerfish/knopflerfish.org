@@ -16,6 +16,7 @@ Import-Package: org.osgi.framework,
  org.knopflerfish.service.console,
  org.osgi.service.packageadmin,
  org.osgi.service.permissionadmin,
- org.osgi.service.startlevel
+ org.osgi.service.startlevel,
+ org.osgi.service.condpermadmin
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 
