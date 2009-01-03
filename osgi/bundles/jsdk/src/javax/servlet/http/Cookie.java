@@ -18,6 +18,7 @@ package javax.servlet.http;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
+import java.util.Locale;
 
 /**
  *
@@ -68,7 +69,9 @@ public class Cookie implements Cloneable {
     private static final String LSTRING_FILE =
 	"javax.servlet.http.LocalStrings";
     private static ResourceBundle lStrings =
-	ResourceBundle.getBundle(LSTRING_FILE);
+	// Workaround to solve dalvik classloading bug, see 
+	// http://code.google.com/p/android/issues/detail?id=917
+	ResourceBundle.getBundle(LSTRING_FILE, Locale.getDefault(), HttpServlet.class.getClassLoader());
     
     //
     // The value of the cookie itself.
