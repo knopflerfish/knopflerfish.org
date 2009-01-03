@@ -25,6 +25,7 @@ import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.ListResourceBundle;
 
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
@@ -96,10 +97,10 @@ public abstract class HttpServlet extends GenericServlet
     private static final String LSTRING_FILE =
 	"javax.servlet.http.LocalStrings";
     private static ResourceBundle lStrings =
-	ResourceBundle.getBundle(LSTRING_FILE);
-   
-   
-   
+	// Workaround to solve dalvik classloading bug, see 
+	// http://code.google.com/p/android/issues/detail?id=917
+	ResourceBundle.getBundle(LSTRING_FILE, Locale.getDefault(), HttpServlet.class.getClassLoader());
+      
     
     /**
      * Does nothing, because this is an abstract class.
@@ -987,7 +988,10 @@ class NoBodyOutputStream extends ServletOutputStream {
     private static final String LSTRING_FILE =
 	"javax.servlet.http.LocalStrings";
     private static ResourceBundle lStrings =
-	ResourceBundle.getBundle(LSTRING_FILE);
+	// Workaround to solve dalvik classloading bug, see 
+	// http://code.google.com/p/android/issues/detail?id=917
+	ResourceBundle.getBundle(LSTRING_FILE, Locale.getDefault(), HttpServlet.class.getClassLoader());
+
 
     private int		contentLength = 0;
 

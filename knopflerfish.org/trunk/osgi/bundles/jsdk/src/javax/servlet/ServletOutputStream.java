@@ -44,8 +44,11 @@ public abstract class ServletOutputStream extends OutputStream {
 
     private static final String LSTRING_FILE = "javax.servlet.LocalStrings";
     private static ResourceBundle lStrings =
-	ResourceBundle.getBundle(LSTRING_FILE);
-
+	// Workaround to solve dalvik classloading bug, see 
+	// http://code.google.com/p/android/issues/detail?id=917
+	ResourceBundle.getBundle(LSTRING_FILE, java.util.Locale.getDefault(), ServletOutputStream.class.getClassLoader());    
+    // ResourceBundle.getBundle(LSTRING_FILE);
+    
 
     
     /**

@@ -19,6 +19,7 @@ package javax.servlet.http;
 
 import javax.servlet.ServletInputStream;
 import java.util.Hashtable;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.io.IOException;
@@ -37,7 +38,10 @@ public class HttpUtils {
     private static final String LSTRING_FILE =
 	"javax.servlet.http.LocalStrings";
     private static ResourceBundle lStrings =
-	ResourceBundle.getBundle(LSTRING_FILE);
+	// Workaround to solve dalvik classloading bug, see 
+	// http://code.google.com/p/android/issues/detail?id=917
+	ResourceBundle.getBundle(LSTRING_FILE, Locale.getDefault(), HttpServlet.class.getClassLoader());
+
         
     
     
