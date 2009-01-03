@@ -89,6 +89,8 @@
     <antcall target="writerelease"/>
 
    
+    <delete file="${classout}/classes.dex"/>
+
     <jar basedir="${classout}"
          jarfile="${jarfile}"
     >
@@ -110,7 +112,35 @@
       <attribute name = "Build-Date"             value="${framework.tstamp}"/>
      </manifest>
     </jar>  
+
+  <available property="android.exists" file="${ANDROID_HOME}"/>
+  <antcall target="add_dex" inheritRefs="true">
+     <param name="jarfile" value="${jarfile}"/>
+   </antcall>
+
  </target>  
+
+ <target name="add_dex" if="android.exists">
+  <property name="dexlib.jar" location="${ANDROID_HOME}/tools/lib/dx.jar"/>
+  <property name="classes.dex" value="classes.dex"/>
+
+  <java fork  = "true" 
+        jar   = "${dexlib.jar}"
+        dir   = "${classout}">
+    <arg value="--dex"/>
+    <arg value="--output=${classes.dex}"/>
+    <arg value="${jarfile}"/>
+  </java>
+
+  <property name="aapt.cmd" location="${ANDROID_HOME}/tools/aapt"/>
+
+  <exec executable="${aapt.cmd}" dir   = "${classout}">
+    <arg value="add"/>
+    <arg value="${jarfile}"/>
+    <arg value="${classes.dex}"/>
+  </exec>
+
+ </target>
  
  <target name="run">
   <java fork="true"

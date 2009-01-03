@@ -111,7 +111,11 @@ class BundleURLConnection extends URLConnection {
       }
       if (is != null) {
         connected = true;
-        contentLength = is.available();
+	if(BundleClassLoader.bDalvik) {
+          contentLength = -1;
+	} else {
+          contentLength = is.available();
+        }
         contentType = URLConnection.guessContentTypeFromName(url.getFile());
         lastModified = a.getLastModified();
       } else {

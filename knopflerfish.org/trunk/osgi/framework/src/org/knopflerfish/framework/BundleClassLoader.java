@@ -42,10 +42,13 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.osgi.framework.*;
 
@@ -57,7 +60,6 @@ import org.osgi.framework.*;
  * @author Mats-Ola Persson
  */
 final public class BundleClassLoader extends ClassLoader {
-
   /**
    * Debug
    */
@@ -99,6 +101,54 @@ final public class BundleClassLoader extends ClassLoader {
 
   static {
     buildBootDelegationPatterns();
+  }
+
+  // android/dalvik VM stuff
+  private static Constructor dexFileClassCons;
+  private static Method      dexFileClassLoadClassMethod;
+
+  // bDalvik will be set to true if we're running on the android
+  // dalvik VM. 
+  // package protected to enable other parts of framework to check 
+  // for dalvik VM
+  static boolean bDalvik = false;
+  
+  private Object dexFile = null;
+  
+  static {
+    try {
+      Class dexFileClass;
+      try {
+        dexFileClass = Class.forName("android.dalvik.DexFile");
+      } catch( Exception ex ) {
+        dexFileClass = Class.forName("dalvik.system.DexFile");
+      }
+      
+      dexFileClassCons = 
+        dexFileClass.getConstructor( new Class[] { File.class });
+      
+      dexFileClassLoadClassMethod = 
+        dexFileClass.getMethod("loadClass", 
+                               new Class[] { String.class, 
+                                             ClassLoader.class 
+                               });
+      
+      bDalvik = true;
+      if(Debug.classLoader) {
+	  Debug.println("running on dalvik VM");
+      }
+    } catch(Exception e) {
+      dexFileClassCons            = null;
+      dexFileClassLoadClassMethod = null;
+    }
+  }
+
+
+  // oota add for debug 
+  private static void dprintln( String msg ) {
+    if(true) {
+      Debug.println(msg);
+    }
   }
 
 
@@ -172,6 +222,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
     return false;
   }
+
 
 
   /**
@@ -851,12 +902,25 @@ final public class BundleClassLoader extends ClassLoader {
                                    null, null, null);
                 }
               }
-              if (cl.protectionDomain == null) {
-                // Kaffe can't handle null protectiondomain
-                c = cl.defineClass(name, bytes, 0, bytes.length);
-              } else {
-                c = cl.defineClass(name, bytes, 0, bytes.length,
+
+	      // Use dalvik DexFile class loading when running
+	      // on the dalvik VM
+              if(bDalvik) {
+		  try {
+		      c = cl.getDexFileClass(name);
+		  } catch (Exception e) {
+		      throw new IOException("Failed to load dex class '" + name + "', " + e);
+		  }
+	      }
+              
+              if(c == null) {
+                if (cl.protectionDomain == null) {
+                  // Kaffe can't handle null protectiondomain
+                  c = cl.defineClass(name, bytes, 0, bytes.length);
+                } else {
+                  c = cl.defineClass(name, bytes, 0, bytes.length,
                                    cl.protectionDomain);
+                }
               }
             }
             return c;
@@ -866,7 +930,44 @@ final public class BundleClassLoader extends ClassLoader {
       }
     };
 
+  
+    /**
+     * Load a class using the Dalvik DexFile API.
+     * <p>
+     * This relies in the bundle having a "classes.dex"
+     * in its root
+     * <p>
+     * 
+     * To create such a bundle, do
+     * <ol>
+     *  <li><code>dx --dex --output=classes.dex bundle.jar</code>
+     *  <li><code>aapt add bundle.jar classes.dex</code>
+     * </ol>
+     */
+    private Class getDexFileClass(String name) 
+	throws Exception {
+	
+	if (debug) {
+	    Debug.println("loading dex class " + name);
+	}
+	
+	if (dexFile == null) {
+	    File f  = new File(archive.getJarLocation());
+	    dexFile = dexFileClassCons.newInstance(new Object[] { f });
+	    if(debug) {
+		Debug.println("created DexFile from " + f);
+	    }
+	}
+    
+	String path = name.replace('.','/');
 
+	return (Class)dexFileClassLoadClassMethod
+	    .invoke(dexFile, new Object[] { path, this });
+    }
+
+
+
+  
   /**
    *  Search action for resource searching
    */
