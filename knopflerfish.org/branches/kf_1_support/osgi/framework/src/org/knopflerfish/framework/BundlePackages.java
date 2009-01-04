@@ -219,20 +219,22 @@ class BundlePackages {
    * @param pkg Package name
    * @return Bundle exporting
    */
-  synchronized BundleImpl getProviderBundle(String pkg) {
-    if (okImports == null) {
-      return null;
-    }
-    PkgEntry pe = (PkgEntry)okImports.get(pkg);
-    if (pe != null) {
-      Pkg p = pe.pkg;
-      if (p != null) {
-	PkgEntry ppe = p.provider;
-	if (ppe != null) {
-	  return ppe.bundle;
-	}
+  BundleImpl getProviderBundle(String pkg) {
+    synchronized (this) {
+      if (okImports == null) {
+	return null;
       }
-      return null;
+      PkgEntry pe = (PkgEntry)okImports.get(pkg);
+      if (pe != null) {
+	Pkg p = pe.pkg;
+	if (p != null) {
+	  PkgEntry ppe = p.provider;
+	  if (ppe != null) {
+	    return ppe.bundle;
+	  }
+	}
+	return null;
+      }
     }
     boolean match = false;
     if (dImportPatterns == null) {
@@ -247,11 +249,15 @@ class BundlePackages {
       }
     }
     if (match && checkPackagePermission(pkg, PackagePermission.IMPORT)) {
-      pe = new PkgEntry(pkg, (String)null, bundle);
-      PkgEntry ppe = bundle.framework.packages.registerDynamicImport(pe);
-      if (ppe != null) {
-	okImports.put(pkg, pe);
-	return ppe.bundle;
+      synchronized (bundle.framework.packages) {
+	synchronized (this) {
+	  PkgEntry pe = new PkgEntry(pkg, (String)null, bundle);
+	  PkgEntry ppe = bundle.framework.packages.registerDynamicImport(pe);
+	  if (ppe != null) {
+	    okImports.put(pkg, pe);
+	    return ppe.bundle;
+	  }
+	}
       }
     }
     return null;
@@ -283,7 +289,7 @@ class BundlePackages {
    *
    * @return A error message string.
    */
-  synchronized String getResolveFailReason() {
+  String getResolveFailReason() {
     return failReason;
   }
 

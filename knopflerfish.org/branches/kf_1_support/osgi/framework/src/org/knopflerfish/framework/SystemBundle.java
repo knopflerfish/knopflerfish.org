@@ -199,7 +199,7 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#start
    */
-  synchronized public void start() throws BundleException {
+  public void start() throws BundleException {
     framework.checkAdminPermission();
   }
 
@@ -210,8 +210,9 @@ public class SystemBundle extends BundleImpl {
    * @see org.osgi.framework.Bundle#stop
    */
   synchronized public void stop() throws BundleException {
-    if (restarting) return;
     framework.checkAdminPermission();
+    if (restarting)
+      return;
     Main.shutdown(0);
   }
 
@@ -241,7 +242,7 @@ public class SystemBundle extends BundleImpl {
    *
    * @see org.osgi.framework.Bundle#uninstall
    */
-  synchronized public void uninstall() throws BundleException {
+  public void uninstall() throws BundleException {
     framework.checkAdminPermission();
     throw new BundleException("uninstall of System bundle is not allowed");
   }
