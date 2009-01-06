@@ -15,8 +15,11 @@ build() {
     TAG=$1
     TAGs=`echo ${TAG} | tr "/" "_"`
 
-    # Append all output to the file build.log
-    exec >>build_${TAGs}.log  2>&1 
+    # Name of the build log file is build_<TAG>_<DayOfWeek>.log
+    LOG_FILE_NAME=build_${TAGs}_`date +"%u"`.log
+
+    # Write all output to ${LOG_FILE_NAME}
+    exec >${LOG_FILE_NAME} 2>&1 
 
     echo "= `date +"%C%y-%m-%d %H:%M:%S"` Clean ================================="
 
