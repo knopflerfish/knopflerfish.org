@@ -35,7 +35,7 @@ public abstract class JSoftGraph extends JPanel {
   Node hoverNode = null;
 
   Color topColor    =  getBackground();
-  Color bottomColor =  Util.rgbInterpolate(topColor, new Color(50, 120, 120), .9);
+  Color bottomColor =  Util.rgbInterpolate(topColor, new Color(50, 120, 200), .9);
 
   double outMinDragStart = 0;
   double outMaxDragStart = 0;
