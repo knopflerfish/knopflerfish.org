@@ -25,6 +25,9 @@ Release Notes Knopflerfish @VERSION@
   Rearranged synchronized code to avoid dead lock between Bundles and Package handling.
   Corrected in framework version 3.3.12.
 
+  Changed synchronization code to avoid dead lock in BundleClassLoader.
+  Corrected in framework version 3.3.13.
+
 === Services (Compendium) ===
       
   Meta type
