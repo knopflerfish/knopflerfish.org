@@ -99,6 +99,11 @@ class BundleImpl implements Bundle {
   private volatile BundleClassLoader classLoader = null;
 
   /**
+   * Classloader variable lock.
+   */
+  final private Object classLoaderLock = new Object();
+
+  /**
    * Zombie classloaders for bundle.
    */
   private Map /* String -> BundleClassLoader */ oldClassLoaders = null;
@@ -522,9 +527,9 @@ class BundleImpl implements Bundle {
 
 		    // Loose old bundle if no exporting packages left
 		    if (allRemoved) {
-		      if (classLoader != null) {
-			classLoader.purge();
-			classLoader = null;
+		      BundleClassLoader cl = resetClassLoader();
+		      if (cl != null) {
+			cl.purge();
 		      }
 		    } else {
 		      saveZombiePackages();
@@ -628,9 +633,9 @@ class BundleImpl implements Bundle {
 	  if (bpkgs.unregisterPackages(false)) {
 	    AccessController.doPrivileged(new PrivilegedAction() {
 		public Object run() {
-		  if (classLoader != null) {
-		    classLoader.purge();
-		    classLoader = null;
+		  BundleClassLoader cl = resetClassLoader();
+		  if (cl != null) {
+		    cl.purge();
 		  } else {
 		    archive.purge();
 		  }
@@ -862,18 +867,12 @@ class BundleImpl implements Bundle {
    * Create the classloader if we haven't done this previously.
    */
   ClassLoader getClassLoader() {
-    if (Framework.isDoubleCheckedLockingSafe) {
-      if (classLoader == null) {
-        synchronized (this) {
-          return getClassLoader0();
-        }
-      }
-      return classLoader;
-    } else {
-      synchronized(this) {
-        return getClassLoader0();
+    if (!Framework.isDoubleCheckedLockingSafe || classLoader == null) {
+      synchronized (classLoaderLock) {
+	return getClassLoader0();
       }
     }
+    return classLoader;
   }
 
 
@@ -885,9 +884,9 @@ class BundleImpl implements Bundle {
   void setStateInstalled() {
     synchronized (framework.packages) {
       synchronized (this) {
-	if (classLoader != null) {
-	  classLoader.close();
-	  classLoader = null;
+	BundleClassLoader cl = resetClassLoader();
+	if (cl != null) {
+	  cl.close();
 	}
 	bpkgs.unregisterPackages(true);
 	bpkgs.registerPackages();
@@ -1109,9 +1108,21 @@ class BundleImpl implements Bundle {
       PkgEntry pkg = (PkgEntry)i.next();
       oldClassLoaders.put(pkg.name, getClassLoader());
     }
-    classLoader = null;
+    resetClassLoader();
   }
 
+
+  /**
+   * Reset classloader for bundle.
+   *
+   */
+  private BundleClassLoader resetClassLoader() {
+    synchronized(classLoaderLock) {
+      BundleClassLoader old = classLoader;
+      classLoader = null;
+      return old;
+    }
+  }
 
  // Start level related
 
