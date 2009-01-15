@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,8 +96,7 @@ public class PackageAdminImpl implements PackageAdmin {
    * or <tt>null</tt> if the specified bundle has not exported any packages.
    */
   public ExportedPackage[] getExportedPackages(Bundle bundle) {
-    final Packages packages = framework.packages;
-    Collection pkgs = packages.getPackagesProvidedBy(bundle);
+    Collection pkgs = framework.packages.getPackagesProvidedBy(bundle);
     int size = pkgs.size();
     if (size > 0) {
       ExportedPackage[] res = new ExportedPackage[size];
@@ -205,17 +204,17 @@ public class PackageAdminImpl implements PackageAdmin {
    */
   public void refreshPackages(final Bundle[] bundles) {
     framework.checkAdminPermission();
-//XXX - begin L-3 modification
     Thread t = new Thread() {
 	public void run() {
-	  final BundleImpl bi[] = (BundleImpl[])framework.packages
-	    .getZombieAffected(bundles).toArray(new BundleImpl[0]);
-	  AccessController.doPrivileged(new PrivilegedAction() {
-	      public Object run() {
+	  synchronized (framework.packages) {
+	    final BundleImpl bi[] = (BundleImpl[])framework.packages
+	      .getZombieAffected(bundles).toArray(new BundleImpl[0]);
+	    AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
 		ArrayList startList = new ArrayList();
-		synchronized (framework.packages) {
 
-		  // Stop affected bundles and remove their classloaders		  // in reverse start order
+		  // Stop affected bundles and remove their classloaders
+		  // in reverse start order
 		  for (int bx = bi.length; bx-- > 0; ) {
 		    synchronized (bi[bx]) {
 		      if ((bi[bx].state & (Bundle.STARTING|Bundle.ACTIVE)) != 0) {
@@ -226,8 +225,8 @@ public class PackageAdminImpl implements PackageAdmin {
 			    // start order by using insertion sort
 			    Iterator it = startList.iterator();
 			    while(it.hasNext()) {
-			      BundleImpl bi = (BundleImpl)it.next();
-			      if(bi.getBundleId() < bi.getBundleId()) {
+			      BundleImpl sbi = (BundleImpl)it.next();
+			      if(bi[bx].getBundleId() < sbi.getBundleId()) {
 				break;
 			      }
 			      ix++;
@@ -268,11 +267,12 @@ public class PackageAdminImpl implements PackageAdmin {
 		  framework.bundles.startBundles(startList);
 		  framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
 		  return null;
-		}	      }
-	    });
+		}
+	      }
+	      );
+	  }
 	}
       };
-//XXX - end L-3 modification
     t.setDaemon(false);
     t.start();
   }

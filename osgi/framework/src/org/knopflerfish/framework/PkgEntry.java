@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,8 @@ class PkgEntry {
   final VersionNumber version;
 
   // Link to pkg entry
-  Pkg pkg = null;
+  private Pkg pkg = null;
+
 
   /**
    * Create package entry.
@@ -79,6 +80,26 @@ class PkgEntry {
     this.name = pe.name;
     this.version = pe.version;
     this.bundle = pe.bundle;
+  }
+
+
+  /**
+   * Get Pkg object.
+   *
+   * @return Pkg object associated with this PkgEntry.
+   */
+  Pkg getPkg() {
+    return pkg;
+  }
+
+
+  /**
+   * Set Pkg object.
+   *
+   * @param Pkg to set for this PkgEntry.
+   */
+  synchronized void setPkg(Pkg p) {
+    pkg = p;
   }
 
 
@@ -118,6 +139,26 @@ class PkgEntry {
     } else {
       return name;
     }
+  }
+
+
+  /**
+   * Check if PkgEntry is provider of a package.
+   *
+   * @return True if this entry exports the package.
+   */
+  synchronized boolean isProvider() {
+    return pkg != null && pkg.getProvider() == this;
+  }
+
+
+  /**
+   * Check if a package is in zombie state.
+   *
+   * @return True if this package is a zombie exported.
+   */
+  synchronized boolean isZombiePackage() {
+    return pkg != null && pkg.isZombie();
   }
 
 
