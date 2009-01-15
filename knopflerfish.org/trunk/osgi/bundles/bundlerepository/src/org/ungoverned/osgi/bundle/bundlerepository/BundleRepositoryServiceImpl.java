@@ -684,6 +684,11 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             // Do it the manual way to have a chance to
             // set request properties as proxy auth (EW).
             URL url = new URL(urlStr);
+
+            // This repository is no more. Silently ignore it.
+            if("update.cainenable.org".equals(url.getHost())) {
+              return;
+            }
             URLConnection conn = url.openConnection();
 
             // Support for http proxy authentication
