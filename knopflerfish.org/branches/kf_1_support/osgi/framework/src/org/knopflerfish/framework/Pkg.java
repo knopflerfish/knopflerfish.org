@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,19 +46,60 @@ class Pkg {
 
   final String pkg;
 
-  boolean zombie = false;
+  private PkgEntry provider = null;
 
-  PkgEntry provider = null;
+  private boolean zombie = false;
 
   ArrayList /* PkgEntry */ exporters = new ArrayList(1);
 
   ArrayList /* PkgEntry */ importers = new ArrayList();
 
+
   /**
-   * Create package entry.
+   * Create package object.
    */
   Pkg(String pkg) {
     this.pkg = pkg;
+  }
+
+
+  /**
+   * Get provider.
+   *
+   * @return PkgEntry object for provider of this package.
+   */
+  PkgEntry getProvider() {
+    return provider;
+  }
+
+
+  /**
+   * Set provider for this package.
+   *
+   * @param Provider for this package.
+   */
+  synchronized void setProvider(PkgEntry p) {
+    provider = p;
+    zombie = false;
+  }
+
+
+  /**
+   * Mark package as a zombie.
+   *
+   */
+  synchronized void setZombie() {
+    zombie = true;
+  }
+
+
+  /**
+   * Check if a package is in zombie state.
+   *
+   * @return True if this package is a zombie exported.
+   */
+  synchronized boolean isZombie() {
+    return zombie;
   }
 
 
@@ -70,7 +111,7 @@ class Pkg {
   synchronized void addExporter(PkgEntry pe) {
     int i = Math.abs(binarySearch(exporters, pe) + 1);
     exporters.add(i, pe);
-    pe.pkg = this;
+    pe.setPkg(this);
   }
 
 
@@ -86,7 +127,7 @@ class Pkg {
     for (int i = exporters.size() - 1; i >= 0; i--) {
       if (p == exporters.get(i)) {
 	exporters.remove(i);
-	p.pkg = null;
+	p.setPkg(null);
 	break;
       }
     }
@@ -102,7 +143,7 @@ class Pkg {
   synchronized void addImporter(PkgEntry pe) {
     int i = Math.abs(binarySearch(importers, pe) + 1);
     importers.add(i, pe);
-    pe.pkg = this;
+    pe.setPkg(this);
   }
 
 
@@ -115,7 +156,7 @@ class Pkg {
     for (int i = importers.size() - 1; i >= 0; i--) {
       if (p == importers.get(i)) {
 	importers.remove(i);
-	p.pkg = null;
+	p.setPkg(null);
 	break;
       }
     }

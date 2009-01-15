@@ -28,6 +28,13 @@ Release Notes Knopflerfish @VERSION@
   Changed synchronization code to avoid dead lock in BundleClassLoader.
   Corrected in framework version 3.3.13.
 
+  Modify synchronization code to avoid dead lock when using the PackageAdmin service from
+  start and stop methods. Fixed ordering bug in PackageAdmin.refreshPackages().
+  Corrected in framework version 3.3.14.
+  Fixed so that property assignments on the command line is evaluated in the correct
+  order when used together with -xargs. Added support for running OSGi test suite.
+
+
 === Services (Compendium) ===
       
   Meta type

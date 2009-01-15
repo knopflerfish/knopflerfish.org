@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ class Packages {
   /**
    * All exported and imported packages.
    */
-  private HashMap /* String->Pkg */ packages = new HashMap();
+  private Hashtable /* String->Pkg */ packages = new Hashtable();
 
   /**
    * List of temporary resolved bundles.
@@ -133,7 +133,8 @@ class Packages {
     }
     Pkg p = (Pkg)packages.get(pe.name);
     if (p != null) {
-      if(p.provider != null) {
+      PkgEntry provider = p.getProvider();
+      if(provider != null) {
 	if((pe.bundle.getState() & RESOLVED_FLAGS) != 0) {
 	  p.addImporter(pe);
 	  if (Debug.packages) {
@@ -144,7 +145,7 @@ class Packages {
 	    Debug.println("dynamicImportPackage: skip add since bundle is not resolved " + pe);
 	  }
 	}
-	return p.provider;
+	return provider;
       } else {
 	// If the bundle trying to use dynamic import is resolved but 
 	// potential providers are yet not resolved check for providers 
@@ -159,7 +160,7 @@ class Packages {
 	    int state = pe2.bundle.getUpdatedState();
 	    if((state & RESOLVED_FLAGS) != 0) {
 	      p.addImporter(pe);
-	      return p.provider;
+	      return p.getProvider();
 	    } else {
 	      // add to set, to be able to give informative debug info in 
 	      // the case of all exporters fail to resolve
@@ -199,24 +200,21 @@ class Packages {
     boolean allRemoved = true;
     while (exports.hasNext()) {
       PkgEntry pe = (PkgEntry)exports.next();
-      Pkg p = pe.pkg;
+      Pkg p = pe.getPkg();
       if (p != null) {
 	if (Debug.packages) {
 	  Debug.println("unregisterPackages: unregister export - " + pe);
 	}
 	if (!p.removeExporter(pe)) {
 	  if (force) {
-	    p.provider = null;
+	    p.setProvider(null);
 	    p.removeExporter(pe);
-//XXX - begin L-3 modification
-	    p.zombie = false;
-//XXX - end L-3 modification
 	    if (Debug.packages) {
 	      Debug.println("unregisterPackages: forced unregister - " + pe);
 	    }
 	  } else {
 	    allRemoved = false;
-	    p.zombie = true;
+	    p.setZombie();
 	    if (Debug.packages) {
 	      Debug.println("unregisterPackages: failed to unregister - " + pe);
 	    }
@@ -231,7 +229,7 @@ class Packages {
     if (allRemoved) {
       while (imports.hasNext()) {
 	PkgEntry pe = (PkgEntry)imports.next();
-	Pkg p = pe.pkg;
+	Pkg p = pe.getPkg();
 	if (p != null) {
 	  if (Debug.packages) {
 	    Debug.println("unregisterPackages: unregister import - " + pe.pkgString());
@@ -276,7 +274,7 @@ class Packages {
     if (res.size() == 0) {
       for (Iterator i = tempProvider.values().iterator(); i.hasNext();) {
 	PkgEntry pe = (PkgEntry)i.next();
-	pe.pkg.provider = pe;
+	pe.getPkg().setProvider(pe);
       }
       tempResolved.remove(0);
       for (Iterator i = tempResolved.iterator(); i.hasNext();) {
@@ -300,35 +298,13 @@ class Packages {
    * @param pkg Exported package.
    * @return PkgEntry that exports the package, null if no provider.
    */
-  synchronized PkgEntry getProvider(String pkg) {
+  PkgEntry getProvider(String pkg) {
     Pkg p = (Pkg)packages.get(pkg);
     if (p != null) {
-      return p.provider;
+      return p.getProvider();
     } else {
       return null;
     }
-  }
-    
-    
-  /**
-   * Check if PkgEntry is provider of a package.
-   *
-   * @param pe Exported package.
-   * @return True if pkg exports the package.
-   */
-  synchronized boolean isProvider(PkgEntry pe) {
-    return pe.pkg != null && pe.pkg.provider == pe;
-  }
-    
-    
-  /**
-   * Check if a package is in zombie state.
-   *
-   * @param pe Package to check.
-   * @return True if pkg is zombie exported.
-   */
-  synchronized boolean isZombiePackage(PkgEntry pe) {
-    return pe.pkg != null && pe.pkg.zombie;
   }
     
     
@@ -337,16 +313,18 @@ class Packages {
    *
    * @return Export-package string for system bundle.
    */
-  synchronized String systemPackages() {
+  String systemPackages() {
     StringBuffer res = new StringBuffer();
-    for (Iterator i = packages.values().iterator(); i.hasNext();) {
-      Pkg p = (Pkg)i.next();
-      PkgEntry pe = p.provider;
-      if (pe != null && framework.systemBundle == pe.bundle) {
-	if (res.length() > 0) {
-	  res.append(", ");
+    synchronized (packages) {
+      for (Iterator i = packages.values().iterator(); i.hasNext();) {
+	Pkg p = (Pkg)i.next();
+	PkgEntry pe = p.getProvider();
+	if (pe != null && framework.systemBundle == pe.bundle) {
+	  if (res.length() > 0) {
+	    res.append(", ");
+	  }
+	  res.append(pe.pkgString());
 	}
-	res.append(pe.pkgString());
       }
     }
     return res.toString();
@@ -360,9 +338,9 @@ class Packages {
    * @param bundle Exporting bundle.
    * @return Version of package or null if unspecified.
    */
-  synchronized String getPackageVersion(String pkg) {
+  String getPackageVersion(String pkg) {
     Pkg p = (Pkg)packages.get(pkg);
-    PkgEntry pe = p.provider;
+    PkgEntry pe = p.getProvider();
     return pe != null && pe.version.isSpecified() ? pe.version.toString() : null;
   }
 
@@ -373,12 +351,15 @@ class Packages {
    * @param b Bundle exporting packages.
    * @return List of packages exported by bundle.
    */
-  synchronized Collection getPackagesProvidedBy(Bundle b) {
+  Collection getPackagesProvidedBy(Bundle b) {
     ArrayList res = new ArrayList();
-    for (Iterator i = packages.values().iterator(); i.hasNext();) {
-      Pkg p = (Pkg) i.next();
-      if (p.provider != null && (b == null || b == p.provider.bundle)) {
-	res.add(p.provider);
+    synchronized (packages) {
+      for (Iterator i = packages.values().iterator(); i.hasNext();) {
+	Pkg p = (Pkg) i.next();
+	PkgEntry provider = p.getProvider();
+	if (provider != null && (b == null || b == provider.bundle)) {
+	  res.add(provider);
+	}
       }
     }
     return res;
@@ -391,15 +372,19 @@ class Packages {
    * @param pkg Package.
    * @return List of bundles importering.
    */
-  synchronized Collection getPackageImporters(String pkg) {
+  Collection getPackageImporters(String pkg) {
     Pkg p = (Pkg)packages.get(pkg);
     Set res = new HashSet();
-    if (p != null && p.provider != null) {
-      List i = p.importers;
-      for (int x =  0; x < i.size(); x++ ) {
-	PkgEntry pe = (PkgEntry)i.get(x);
-	if (pe.bundle.state != Bundle.INSTALLED) {
-	  res.add(pe.bundle);
+    if (p != null) {
+      synchronized (p) {
+	if (p.getProvider() != null) {
+	  List i = p.importers;
+	  for (int x =  0; x < i.size(); x++ ) {
+	    PkgEntry pe = (PkgEntry)i.get(x);
+	    if (pe.bundle.state != Bundle.INSTALLED) {
+	      res.add(pe.bundle);
+	    }
+	  }
 	}
       }
     }
@@ -423,7 +408,6 @@ class Packages {
    * @return List of bundles affected.
    */
   synchronized Collection getZombieAffected(Bundle [] bundles) {
-//XXX - begin L-3 modification
     // set of affected bundles will be in start-level/bundle-id order  
     TreeSet affected = new TreeSet(new Comparator() {
       public int compare(Object o1, Object o2) {
@@ -439,15 +423,15 @@ class Packages {
 	return ((o != null) && getClass().equals(o.getClass()));
       }
     });
-//XXX - end L-3 modification
+
     if (bundles == null) {
       if (Debug.packages) {
 	Debug.println("getZombieAffected: check - null");
       }
       for (Iterator i = packages.values().iterator(); i.hasNext();) {
 	Pkg p = (Pkg)i.next();
-	PkgEntry pe = p.provider;
-	if (pe != null && p.zombie) {
+	PkgEntry pe = p.getProvider();
+	if (pe != null && p.isZombie()) {
 	  if (Debug.packages) {
 	    Debug.println("getZombieAffected: found zombie - " + pe.bundle);
 	  }
@@ -469,7 +453,7 @@ class Packages {
       BundleImpl b = (BundleImpl)moreBundles.get(i);
       for (Iterator j = b.getExports(); j.hasNext(); ) {
 	PkgEntry pe = (PkgEntry)j.next();
-	if (pe.pkg != null && pe.pkg.provider == pe) {
+	if (pe.isProvider()) {
 	  for (Iterator k = getPackageImporters(pe.name).iterator(); k.hasNext(); ) {
 	    Bundle ib = (Bundle)k.next();
 	    if (!affected.contains(ib)) {
@@ -503,11 +487,12 @@ class Packages {
       if (Debug.packages) {
 	Debug.println("resolvePackages: check - " + pe.pkgString());
       }
-      PkgEntry provider = pe.pkg.provider;
+      Pkg pkg = pe.getPkg();
+      PkgEntry provider = pkg.getProvider();
       if (provider == null) {
 	provider = (PkgEntry)tempProvider.get(pe.name);
 	if (provider == null) {
-	  provider = pickProvider(pe.pkg);
+	  provider = pickProvider(pkg);
 	} else if (Debug.packages) {
 	  Debug.println("resolvePackages: " + pe.name + " - has temporay provider - "
 			+ provider);

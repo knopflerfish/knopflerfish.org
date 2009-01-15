@@ -226,9 +226,9 @@ class BundlePackages {
       }
       PkgEntry pe = (PkgEntry)okImports.get(pkg);
       if (pe != null) {
-	Pkg p = pe.pkg;
+	Pkg p = pe.getPkg();
 	if (p != null) {
-	  PkgEntry ppe = p.provider;
+	  PkgEntry ppe = p.getProvider();
 	  if (ppe != null) {
 	    return ppe.bundle;
 	  }

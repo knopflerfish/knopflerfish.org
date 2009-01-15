@@ -57,6 +57,7 @@
   <target name="xargs">
    <antcall target="init_xargs"/>
    <antcall target="remote_xargs"/>
+   <antcall target="osgi_test_xargs"/>
   </target>
 
   <target name="remote_xargs">
@@ -104,10 +105,20 @@
 -istart trayicon_fw/trayicon_fw-1.0.0.jar
 ]]></replacevalue>
 
-   </replace>	  
-
-
+   </replace>
  </target>
+
+  <target name="osgi_test_xargs">
+   <copy file="init-osgi-test-target.xargs.in"
+	 tofile="init-osgi-test-target.xargs"
+	 overwrite="true"/>
+   <replace file="init-osgi-test-target.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
+     <replacefilter token="$(VERSION)"         value="${version}"/>
+   </replace>	  
+  </target>
+
 
  <target name="javadoc">
   <mkdir dir="${javadoc.out.dir}"/>
@@ -248,16 +259,38 @@
    <echo message="Test results are available in junit_grunt/index.xml."/>
  </target>
 
+ <target name="run-osgi-test-target"
+         description="Start the framework in OSGi test target mode.">
+  <java fork="true"
+	classname="org.knopflerfish.framework.Main">
+    <classpath path="./framework.jar"/>
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
+
+ <target name="run-osgi-test-target-secure"
+         description="Start the framework with security enabled in OSGi test target mode.">
+  <java fork="true"
+	classname="org.knopflerfish.framework.Main">
+    <classpath path="./framework.jar"/>
+    <jvmarg value="-Djava.security.manager"/>
+    <jvmarg value="-Djava.security.policy=file:framework.policy"/>
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
 
  <target name="install_bcel"
          description="Download and install bcel in ../ant/lib.">
    <ant dir="bundles/log" target="install_bcel" />
  </target>
 
-
-
  <target name="clean" description="removes all generated files">
    <delete file="framework.jar"/>
+   <delete file="init.xargs"/>
+   <delete file="remote-init.xargs"/>
+   <delete file="init_Windows2000.xargs"/>
+   <delete file="init_WindowsXP.xargs"/>
+   <delete file="init-osgi-test-target.xargs"/>
    <delete dir="out"/>
    <delete dir="jars"/>
    <delete dir="../ant/classes"/>

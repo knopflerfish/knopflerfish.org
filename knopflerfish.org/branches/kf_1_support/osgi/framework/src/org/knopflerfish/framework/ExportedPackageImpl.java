@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    *         has become stale.
    */
   public Bundle getExportingBundle() {
-    if (pkg.bundle.framework.packages.isProvider(pkg)) {
+    if (pkg.isProvider()) {
       return pkg.bundle;
     } else {
       return null;
@@ -116,14 +116,12 @@ public class ExportedPackageImpl implements ExportedPackage {
    */
   public Bundle[] getImportingBundles() {
     Packages packages = pkg.bundle.framework.packages;
-    synchronized (packages) {
-      if (packages.isProvider(pkg)) {
-	Collection imps = packages.getPackageImporters(pkg.name);
-	Bundle[] res = new Bundle[imps.size()];
-	return (Bundle[])imps.toArray(res);
-      } else {
-	return null;
-      }
+    if (pkg.isProvider()) {
+      Collection imps = packages.getPackageImporters(pkg.name);
+      Bundle[] res = new Bundle[imps.size()];
+      return (Bundle[])imps.toArray(res);
+    } else {
+      return null;
     }
   }
 
@@ -149,14 +147,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    * <tt>false</tt> otherwise.
    */
   public boolean isRemovalPending() {
-    Packages packages = pkg.bundle.framework.packages;
-    synchronized (packages) {
-      if (packages.isProvider(pkg)) {
-	return packages.isZombiePackage(pkg);
-      } else {
-	return true;
-      }
-    }
+    return pkg.isZombiePackage();
   }
 
 }

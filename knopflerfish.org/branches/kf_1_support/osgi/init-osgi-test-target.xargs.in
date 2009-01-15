@@ -1,0 +1,70 @@
+#
+# Startup file for executing the OSGi RI test suite
+#
+# Knopflerfish release $(VERSION)
+#
+
+-Dapple.laf.useScreenMenuBar=true
+
+#
+# Act as an OSGi test director target
+#
+-Dorg.osgi.test.target.port=3191
+-Dorg.osgi.test.broadcast=localhost
+#-Dorg.osgi.test.seewait=false
+#-Dorg.osgi.test.testcase.timeout=60000
+-Dorg.osgi.test.watchdog=4
+-Dscr.bundle.name=org.knopflerfish.bundle.component
+
+# EE used for testing
+-Dorg.osgi.framework.executionenvironment=J2SE-1.4
+
+# load common properties
+-xargs props.xargs
+
+# Prefix for searching for bundle URLs from console or command line
+-Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
+
+# Ref. test specific changes
+-Dorg.knopflerfish.prefs.dir=fwdir/prefsdir
+-Dorg.knopflerfish.osgi.r3.testcompliant=true
+-Dorg.knopflerfish.log.grabio=false
+
+-init
+
+## Basic KF bundles
+-install file:../../osgi/tck-3/osgi-target.jar
+-install log/log_all-1.0.1.jar
+-install cm/cm_all-1.0.1.jar
+-install console/console_all-1.0.0.jar
+-install util/util-1.0.0.jar
+-install crimson/crimson-1.1.3.jar
+-install jsdk/jsdk-2.2.jar
+-install device/device_all-1.0.0.jar
+-install useradmin/useradmin_all-1.0.0.jar
+-install http/http_all-1.1.0.jar
+-install frameworkcommands/frameworkcommands-1.0.0.jar
+-install logcommands/logcommands-1.0.1.jar
+-install cm_cmd/cm_cmd-1.0.1.jar
+-install consoletty/consoletty-1.0.1.jar
+-install prefs/prefs_all-1.0.0.jar
+-install kf_metatype/kf_metatype_all-1.0.0.jar
+
+-launch
+
+# Start of these bundles are delayed since thise makes start
+# order dependencies much easier
+
+-start log/log_all-1.0.1.jar
+-start crimson/crimson-1.1.3.jar
+-start cm/cm_all-1.0.1.jar
+-start console/console_all-1.0.0.jar
+-start device/device_all-1.0.0.jar
+-start useradmin/useradmin_all-1.0.0.jar
+-start consoletty/consoletty-1.0.1.jar
+-start frameworkcommands/frameworkcommands-1.0.0.jar
+-start logcommands/logcommands-1.0.1.jar
+-start cm_cmd/cm_cmd-1.0.1.jar
+-start http/http_all-1.1.0.jar
+-start prefs/prefs_all-1.0.0.jar
+-start file:../../osgi/tck-3/osgi-target.jar

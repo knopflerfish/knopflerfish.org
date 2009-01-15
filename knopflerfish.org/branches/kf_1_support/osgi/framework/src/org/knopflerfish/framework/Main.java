@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,7 +142,10 @@ public class Main {
     }
 
     // expand all -xargs options
-    args = expandArgs(args);
+    Properties sysProps = System.getProperties();
+    args = expandArgs(args, sysProps);
+    setSecurityManager(sysProps);
+    System.setProperties(sysProps);
 
     if(verbosity > 5) {
       for(int i = 0; i < args.length; i++) {
@@ -601,18 +604,40 @@ public class Main {
 
   /**
    * Expand all occurance of -xargs URL into a new
-   * array without any -xargs
+   * array without any -xargs.
+   * Each argument starting with '-D' and containing an '=' is set as a system property.
+   * Example "-Dorg.knopflerfish.test=apa" is equivalent
+   * to <code>System.setProperty("org.knopflerfish.test", "apa");</code>
    */
-  static String[] expandArgs(String[] argv) {
+  static String[] expandArgs(String[] argv, Properties sysProps) {
     Vector v = new Vector();
     int i = 0;
     while(i < argv.length) {
-      if ("-xargs".equals(argv[i])) {
+      if(argv[i].startsWith("-D")) {
+	// Set system property
+	int ix = argv[i].indexOf("=");
+	if(ix != -1) {
+	  String name = argv[i].substring(2, ix);
+	  String val  = argv[i].substring(ix + 1);
+
+	  // replace "${syspropname}" with system prop value if found
+	  if(-1 != val.indexOf("${")) {
+	    for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
+	      String k = (String)e.nextElement();
+	      if(-1 != val.indexOf(k)) {
+		String sv = (String)sysProps.get(k);
+		val = Util.replace(val, "${" + k + "}", sv);
+	      }
+	    }
+	  }
+	  sysProps.put(name, val);
+	}
+      } else if ("-xargs".equals(argv[i])) {
         if (i+1 < argv.length) {
           String   xargsPath = argv[i+1];
           String[] moreArgs = loadArgs(xargsPath, argv);
           i++;
-          String[] r = expandArgs(moreArgs);
+          String[] r = expandArgs(moreArgs, sysProps);
           for(int j = 0; j < r.length; j++) {
             v.addElement(r[j]);
           }
@@ -898,10 +923,6 @@ public class Main {
    * File format:<br>
    *
    * <ul>
-   *  <li>Each line starting with '-D' and containing an '=' is set as
-   *      a system property.
-   *      Example "-Dorg.knopflerfish.test=apa" is equivalent
-   *      to <code>System.setProperty("org.knopflerfish.test", "apa");</code>
    *  <li>Each line of length zero is ignored.
    *  <li>Each line starting with '#' is ignored.
    *  <li>Lines starting with '-' is used a command with optional argument
@@ -922,8 +943,6 @@ public class Main {
     if(XARGS_DEFAULT.equals(xargsPath)) {
       xargsPath = getDefaultXArgs(oldArgs);
     }
-
-
 
     // out result
     Vector v = new Vector();
@@ -952,7 +971,6 @@ public class Main {
       }
 
 
-      Properties   sysProps = System.getProperties();
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -988,26 +1006,7 @@ public class Main {
           }
         }
 
-        if(line.startsWith("-D")) {
-          // Set system property
-          int ix = line.indexOf("=");
-          if(ix != -1) {
-            String name = line.substring(2, ix);
-            String val  = line.substring(ix + 1);
-
-            // replace "${syspropname}" with system prop value if found
-            if(-1 != val.indexOf("${")) {
-              for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
-                String k = (String)e.nextElement();
-                if(-1 != val.indexOf(k)) {
-                  String sv = (String)sysProps.get(k);
-                  val = Util.replace(val, "${" + k + "}", sv);
-                }
-              }
-            }
-            sysProps.put(name, val);
-          }
-        } else if(line.startsWith("#")) {
+	if(line.startsWith("#")) {
           // Ignore comments
         } else if(line.startsWith("-")) {
           int i = line.indexOf(' ');
@@ -1025,8 +1024,6 @@ public class Main {
           v.addElement(line);
         }
       }
-      setSecurityManager(sysProps);
-      System.setProperties(sysProps);
     } catch (Exception e) {
       throw new IllegalArgumentException("xargs loading failed: " + e);
     }
