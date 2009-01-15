@@ -60,6 +60,18 @@ import org.osgi.framework.*;
  * @author Mats-Ola Persson
  */
 final public class BundleClassLoader extends ClassLoader {
+
+  // If set to true, use strict rules for loading classes from the boot class loader.
+  // If false, accept class loading from the boot class path from classes themselves
+  // on the boot class, but which incorrectly assumes they may access all of the boot
+  // classes on any class loader (such as the bundle class loader).
+  // 
+  // Setting this to TRUE will, for example, result in broken serialization on the Sun JVM
+  // It's debatable what is the correct OSGi R4 behavior.
+  static boolean STRICTBOOTCLASSLOADING = 
+    Framework.TRUE.equals(Framework.getProperty("org.knopflerfish.framework.strictbootclassloading", Framework.FALSE));
+
+
   /**
    * Debug
    */
@@ -310,6 +322,22 @@ final public class BundleClassLoader extends ClassLoader {
         return res;
       }
     }
+
+    if(!STRICTBOOTCLASSLOADING) {
+      if(isBootClassContext(name)) {
+        if(debug) {
+          Debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
+        }
+        Class res = parent.loadClass(name);
+        if(res != null) {
+          if(debug) {
+            Debug.println(this + " loaded " + name + " from " + parent);
+          }
+        }
+        return res;
+      }
+    }
+
     throw new ClassNotFoundException(name);
   }
 
@@ -351,6 +379,45 @@ final public class BundleClassLoader extends ClassLoader {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Wrapper class around SecurityManager which exposes
+   * the getClassLoader() method.
+   */
+  static class SecurityManagerExposer extends SecurityManager {
+    public Class[] getClassContext() {
+      return super.getClassContext();
+    }
+  }
+    
+  static protected SecurityManagerExposer smex = new SecurityManagerExposer();
+  
+  /**
+   * Check if the current call is made from a class loaded on the 
+   * boot class path (or rather, on a class loaded from something else
+   * than a bundle class loader)
+   */
+  public boolean isBootClassContext(String msg) {
+    Class[] classStack = smex.getClassContext();
+
+    for (int i = 1; i < classStack.length; i++) {
+      if ((this.getClass().getClassLoader() != classStack[i].getClassLoader())
+          && !ClassLoader.class.isAssignableFrom(classStack[i])
+          && !Class.class.equals(classStack[i])) {
+        
+        // If any of the classloaders for the caller's class is
+        // a BundleClassLoader, we're not in a VM class context
+        for (ClassLoader cl = classStack[i].getClassLoader(); 
+             cl != null; cl = cl.getClass().getClassLoader()) {
+          if (BundleClassLoader.class.isInstance(cl)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
 

@@ -9,12 +9,29 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Framework 4.0.16
+  Added support for handling cases where classes on the boot class path 
+  needs access to other boot classes, even when they're not exposed
+  directly via OSGi boot delegation.
+
+  Since this is the default, the property org.osgi.framework.bootdelegation 
+  is now unset in the included props.xargs
+
+  See the property org.knopflerfish.framework.strictbootclassloading
+  in the framework readme.txt for more info
+
+  Also added support for "dexified" Android bundles, see 
+  http://knopflerfish.blogspot.com/2009/01/knopflerfish-on-androiddalvik-vm.html
+          
   Framework 4.0.14
 
   Started work on Conditional Permissions and signed bundles. This is a
   work in progress and this is the first check in that saves the current
   state before the christmas. It should not interfere if you do not try
   to use Conditional Permissions.
+
+  Bundlerepository 2.0.3
+  Blacklisted repository at update.cainenable.org
 
 
 === Misc (KF specific, start scripts, build system etc ===
