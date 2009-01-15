@@ -41,8 +41,13 @@
 #-Dorg.osgi.framework.system.packages=
 
 # Comma-separated list of packages that must be loaded by system classloader
--Dorg.osgi.framework.bootdelegation=*
-#-Dorg.osgi.framework.bootdelegation=sun.*,com.sun.*,apple.laf.*
+#-Dorg.osgi.framework.bootdelegation=*
+
+# If set to true, use strict rules for loading classes from the boot class loader.
+# If false, accept class loading from the boot class path from classes themselves
+# on the boot class. Default is false
+#-Dorg.knopflerfish.framework.strictbootclassloading=false
+
 
 # Web server properties
 -Dorg.knopflerfish.http.dnslookup=false

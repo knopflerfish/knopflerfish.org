@@ -537,7 +537,18 @@ Framework System Properties
    exported as system properties or not.
   Default: true (i.e., create a system property for each property).
 
-   
+
+  org.knopflerfish.framework.strictbootclassloading
+    If set to true, use strict rules for loading classes from the boot class loader.
+    If false, accept class loading from the boot class path from classes themselves
+    on the boot class, but which incorrectly assumes they may access all of the boot
+    classes on any class loader (such as the bundle class loader).
+    
+    Setting this to true will, for example, result in broken serialization on the Sun 
+    JVM if bootdelegation does not exposes sun.* classes
+
+    Default: false
+
 
 Using a HTTP proxy
 ==================
