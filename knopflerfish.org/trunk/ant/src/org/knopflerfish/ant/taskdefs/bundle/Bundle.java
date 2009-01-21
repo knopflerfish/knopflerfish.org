@@ -293,7 +293,6 @@ public class Bundle extends Jar {
             ZipFile zipFile = new ZipFile(srcFile);
             DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
             String[] entries = ds.getIncludedFiles();
-            log("Files matching for "+srcFile, Project.MSG_WARN);
             for (int kk = 0; kk<entries.length; kk++) {
               if (entries[kk].endsWith(".class")) {
                 try {
