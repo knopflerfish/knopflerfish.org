@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ZipFileSet;
+//import org.apache.tools.zip.ZipFile;
 
 
 /**
@@ -281,27 +282,36 @@ public class Bundle extends Jar {
               try {
                 analyzeClass(new ClassParser(file.getAbsolutePath()));
               } catch (IOException ioe) {
-                throw new BuildException("Failed to parse class file: " + file.getAbsolutePath(), ioe);
+                throw new BuildException
+                  ("Failed to parse class file: " +file.getAbsolutePath(),
+                   ioe);
               }
             }
           }
         } else {
           try {
             ZipFile zipFile = new ZipFile(srcFile);
-            Enumeration files = zipFile.entries();
-            while (files.hasMoreElements()) {
-              ZipEntry entry = (ZipEntry) files.nextElement();
-              String name = entry.getName();
-              if (name.endsWith(".class")) {
+            DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+            String[] entries = ds.getIncludedFiles();
+            log("Files matching for "+srcFile, Project.MSG_WARN);
+            for (int kk = 0; kk<entries.length; kk++) {
+              if (entries[kk].endsWith(".class")) {
                 try {
-                  analyzeClass(new ClassParser(zipFile.getInputStream(entry), name));
+                  ZipEntry entry = zipFile.getEntry(entries[kk]);
+                  analyzeClass(new ClassParser(zipFile.getInputStream(entry),
+                                               entries[kk]));
                 } catch (IOException ioe) {
-                  throw new BuildException("Failed to parse class file: " + name, ioe);
+                  throw new BuildException
+                    ("Failed to parse class file " +entries[kk]
+                     +" from zip file: " +srcFile.getAbsolutePath(),
+                     ioe);
                 }
               }
             }
           } catch (IOException ioe) {
-            throw new BuildException("Failed to read zip file: " + zipFile.getAbsolutePath(), ioe);
+            throw new BuildException
+              ("Failed to read zip file: " +srcFile.getAbsolutePath(),
+               ioe);
           }
         }
       }
