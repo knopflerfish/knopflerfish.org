@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: prefs
 Bundle-SymbolicName: org.knopflerfish.bundle.prefs
-Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:prefs:2.0.1
+Bundle-Version: 2.0.2
+Bundle-UUID: org.knopflerfish:prefs:2.0.2
 Bundle-Description: Preferences
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi

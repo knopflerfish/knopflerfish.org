@@ -30,11 +30,25 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   state before the christmas. It should not interfere if you do not try
   to use Conditional Permissions.
 
-  Bundlerepository 2.0.3
-  Blacklisted repository at update.cainenable.org
+
+
+=== Services (Compendium) ===
+
+      
+  Preferences 2.0.2
+
+  Remove prefrences for a bundle when it is uninstalled.  Refactored
+  parts of the code to make it reusable when implementing other kinds
+  of storage.
+
 
 
 === Misc (KF specific, start scripts, build system etc ===
+
+
+  Bundlerepository 2.0.3
+
+  Blacklisted repository at update.cainenable.org
 
 
   Build System
