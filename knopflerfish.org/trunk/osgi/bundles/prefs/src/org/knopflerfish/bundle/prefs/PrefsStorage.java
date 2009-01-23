@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,7 @@
 
 package org.knopflerfish.bundle.prefs;
 
-import org.osgi.framework.*;
-import org.osgi.service.prefs.*;
-import org.knopflerfish.service.log.LogRef;
-import java.util.*;
+import org.osgi.service.prefs.Preferences;
 
 
 /**
@@ -49,20 +46,28 @@ import java.util.*;
  */
 public interface PrefsStorage {
   /**
+   * @returns <tt>true</tt> if the preferences tree that the storage
+   * object represents have been removed.
+   */
+  boolean     isStale();
+  /**
    * Get list of childrens to a given path.
    */
-  public String[]    getChildrenNames(String path);
+  String[]    getChildrenNames(final String path);
 
-  public void        removeKey(String path, String key);
-  public void        removeNode(String path);
+  void        removeKey(final String path, final String key);
+  void        removeNode(final String path);
 
-  public void        put(String path, String key, String val);
-  public String      get(String path, String key, String def);
-  public String[]    getKeys(String path);
+  void        put(final String path, final String key, final String val);
+  String      get(final String path, final String key, final String def);
+  String[]    getKeys(final String path);
 
-  public Preferences getNode(String path, boolean bCreate);
-  public boolean     nodeExists(String path);
-  public void        removeAllKeys(String path);
+  Preferences getNode(final String path, boolean bCreate);
+  boolean     nodeExists(final String path);
+  void        removeAllKeys(final String path);
 
-  public void        flush(String path);
+  void        flush(final String path);
+  void        sync(final String path);
+
+  void        logWarn(final String msg, final Throwable t);
 }

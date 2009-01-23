@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,9 @@ public class PreferencesImpl implements Preferences {
   String       parentPath;
   String       name;
 
-  boolean      bStale = false;
-  boolean      bDirty = false;
+  public boolean bStale = false;
 
-  PreferencesImpl(PrefsStorage storage, String path) {
+  public PreferencesImpl(PrefsStorage storage, String path) {
     this.storage = storage;
     this.path    = path;
 
@@ -109,7 +108,7 @@ public class PreferencesImpl implements Preferences {
       try {
         return Base64.decode(s.getBytes());
       } catch (IOException e) {
-        Activator.log.warn("Failed to decode byte array", e);
+        storage.logWarn("Failed to decode byte array", e);
         return def;
       }
     }
@@ -151,7 +150,7 @@ public class PreferencesImpl implements Preferences {
     try {
       return storage.getKeys(path);
     } catch (Exception e) {
-      Activator.log.warn("keys: Failed to get keys for " + path);
+      storage.logWarn("keys: Failed to get keys for " + path, null);
       throw new BackingStoreException(e.getMessage());
     }
   }
@@ -259,7 +258,8 @@ public class PreferencesImpl implements Preferences {
   }
 
   public void sync() {
-    flush();
+    assertValid();
+    storage.sync(path);
   }
 
   protected String absPath(String pathName) {

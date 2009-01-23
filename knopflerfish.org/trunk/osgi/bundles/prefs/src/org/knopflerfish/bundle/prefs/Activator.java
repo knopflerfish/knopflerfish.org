@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,9 @@ public class Activator implements BundleActivator {
     prefsFactory.register();
 
   }
-  
+
   public void stop(BundleContext bc) {
+    prefsFactory.unregister();
     log = null;
     this.bc = null;
   }
