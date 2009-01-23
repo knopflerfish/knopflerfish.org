@@ -40,7 +40,7 @@
 	<patternset><exclude name="META-INF/*"/></patternset>
       </zipfileset>
 
-      <zipfileset src="${topdir}/jars/prefs/prefs_api-2.0.1.jar">
+      <zipfileset src="${topdir}/jars/prefs/prefs_api-2.0.2.jar">
 	<patternset><exclude name="META-INF/*"/></patternset>
       </zipfileset>
     </copy>
