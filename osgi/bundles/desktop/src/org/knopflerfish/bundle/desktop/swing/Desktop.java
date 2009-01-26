@@ -559,6 +559,10 @@ public class Desktop
     checkUpdate(false);
   }
 
+  // Assumes that the current Knopflerfish version can be found
+  // directly after the text "Knopflerfish " on the first line of the
+  // release note at
+  // http://www.knopflerfish.org/releases/current/release_notes.txt
   void checkUpdate(final boolean bForce) {
     // Run in threads, to avoid startup delay caused by network problems.
     new Thread() {
@@ -583,13 +587,20 @@ public class Desktop
           int ix = notes.indexOf("\n");
           if(ix != -1) {
             String line = notes.substring(0, ix);
-            ix = line.lastIndexOf(" ");
+            final String keyWord = "Knopflerfish ";
+            ix = line.lastIndexOf(keyWord);
             if(ix != -1) {
-              Version version = new Version(line.substring(ix + 1));
+              line = line.substring(ix + keyWord.length()).trim();
+              ix = line.indexOf(" ");
+              if (ix!=-1) {
+                line = line.substring(0, ix);
+              }
+              Version version = new Version(line);
               Bundle sysBundle = Activator.getBC().getBundle(0);
               Version sysVersion = new Version((String)sysBundle.getHeaders().get("Bundle-Version"));
 
-              Activator.log.info("sysVersion=" + sysVersion + ", version=" + version);
+              Activator.log.info("sysVersion=" + sysVersion
+                                 +", version=" + version);
               if(sysVersion.compareTo(version) < 0) {
                 showUpdate(sysVersion, version, notes);
               }
