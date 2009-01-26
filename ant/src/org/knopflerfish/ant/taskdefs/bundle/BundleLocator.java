@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.osgi.framework.Version;
@@ -58,14 +59,22 @@ import org.apache.tools.ant.util.FileUtils;
 /**
  * A task that given a partial bundle name and a fileset with
  * bundles, will select the bundle with the highest version number and
- * a name that matches. Bundles names are supposed to be on the form
+ * name that matches. Bundles names are supposed to be on the form
  * <tt>name-<it>Major</it>.<it>Minor</it>.<it>Micro</it>.<it>sub</it>.jar</tt>,
- * i.e., a name followed by '-' then a valid OSGi version number.
+ * i.e., a name followed by '-' then a valid OSGi version number
+ * followed by the suffix <tt>.jar</tt>.
  *
  * This task can also iterate over a path and replace all
  * non-exisiting file resources in it that has a name ending with
  * <tt>-N.N.N.jar</tt> with the corresponding bundle with the highest
  * version from the given file set.
+ *
+ * Finally this task may also be used to create a properties file
+ * suitable for using as a replacement filter that will replace bundle
+ * names on the form <tt>@name-N.N.N.jar@</tt> with the relative
+ * path within the given file set of the bundle with the given name
+ * and the highest version.
+ *
  *
  * <h3>Parameters</h3>
  *
@@ -80,10 +89,28 @@ import org.apache.tools.ant.util.FileUtils;
  *   <td valign=top>bundleName</td>
  *   <td valign=top>
  *   The name of the bundle to look for. I.e., the full name up to
- *   the last '-'-character (excluded).
+ *   the last '-'-character (excluded). The property given by
+ *   <it>property</it> will hold the resulting location (absolute path).
  *   </td>
- *   <td valign=top>Either <tt>bundleName</tt> or
- *   <tt>classPathRef</tt> must be given.</td>
+ *   <td valign=top>No. No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>bundleNames</td>
+ *   <td valign=top>
+ *
+ *   A comma separated list of bundle names to look for. I.e., the
+ *   full name up to the last '-'-character (excluded). The resulting
+ *   Bundle Absolute Path is stored in a property named
+ *   <tt>bap.<it>bundleName</it></tt>.
+ *
+ *   <p>
+ *
+ *   If <tt>property</tt> is set its value will be used as prefix for
+ *   the property names in stead of the default <tt>bap.</tt>
+ *
+ *   </td>
+ *   <td valign=top>No. No default value.</td>
  *  </tr>
  *
  *  <tr>
@@ -101,8 +128,7 @@ import org.apache.tools.ant.util.FileUtils;
  *   <td valign=top>
  *   The reference name (id) of a path-structure to transform.
  *   </td>
- *   <td valign=top>Either <tt>bundleName</tt> or
- *   <tt>classPathRef</tt> must be given.</td>
+ *   <td valign=top>No. No default value.</td>
  *  </tr>
  *
  *  <tr>
@@ -156,10 +182,13 @@ import org.apache.tools.ant.util.FileUtils;
  */
 public class BundleLocator extends Task {
 
+  private final static String PROPS_PREFIX = "bap.";
+
   private final Vector    filesets = new Vector();
   private final FileUtils fileUtils;
 
   private String    bundleName           = null;
+  private String    bundleNames          = null;
   private String    property             = null;
   private Reference classPathRef         = null;
   private String    newClassPathId       = null;
@@ -176,6 +205,10 @@ public class BundleLocator extends Task {
 
   public void setBundleName(String s) {
     this.bundleName = s;
+  }
+
+  public void setBundleNames(String s) {
+    this.bundleNames = s;
   }
 
   public void addFileset(FileSet set) {
@@ -212,6 +245,10 @@ public class BundleLocator extends Task {
 
     if (null!=bundleName) {
       setProperty(bundleMap);
+    }
+
+    if (null!=bundleNames) {
+      setProperties(bundleMap);
     }
 
     if (classPathRef!=null && newClassPathId!=null) {
@@ -295,12 +332,12 @@ public class BundleLocator extends Task {
                 bi.version = newVersion;
                 bi.file = file;
                 map.put(bundleName, bi);
-                log("Found bundle " +fileName, Project.MSG_VERBOSE);
+                log("Found bundle " +fileName, Project.MSG_DEBUG);
               } else if (newVersion.compareTo(bi.version)>0) {
                 bi.version = newVersion;
                 bi.relPath = srcFiles[j];
                 bi.file = file;
-                log("Found better version " +fileName, Project.MSG_VERBOSE);
+                log("Found better version " +fileName, Project.MSG_DEBUG);
               }
             }
           }
@@ -313,24 +350,56 @@ public class BundleLocator extends Task {
     return map;
   }
 
-  private void setProperty(Map bundleMap)
+  private void setProperty(final Map bundleMap,
+                           final String bn,
+                           final String propName)
   {
-    log("Searching for a versioned bundle named '" +bundleName +"'.",
-        Project.MSG_VERBOSE);
-    final BundleInfo bi = (BundleInfo) bundleMap.get(bundleName);
+    log("Searching for a versioned bundle with name '" +bn +"'.",
+        Project.MSG_DEBUG);
+    final BundleInfo bi = (BundleInfo) bundleMap.get(bn);
 
-    if (bi!=null && property!=null) {
-      project.setProperty(property,bi.file.getAbsolutePath());
-      log("Selected " +bi.file, Project.MSG_VERBOSE);
+    if (bi!=null) {
+      project.setProperty(propName, bi.file.getAbsolutePath());
+      log(propName +" = " +bi.file, Project.MSG_VERBOSE);
+    } else {
+      final int logLevel = failOnMissingBundles
+        ? Project.MSG_ERR : Project.MSG_INFO;
+      log("No versioned bundle with name '" +bn +"' found.",   logLevel);
+      log("Known versioned bundles are: " +bundleMap.keySet(), logLevel);
+      if (failOnMissingBundles) {
+        throw new BuildException
+          ("No versioned bundle with name '" +bn+"' found.");
+      }
+    }
+  }
+
+  private void setProperty(final Map bundleMap)
+  {
+    if (null!=property) {
+      setProperty(bundleMap, bundleName, property);
+    } else {
+      throw new BuildException
+        ("The attribute 'bundleName' requires 'property'");
+    }
+  }
+
+  private void setProperties(final Map bundleMap)
+  {
+    final String prefix = null==property ? PROPS_PREFIX : property;
+
+    final StringTokenizer st = new StringTokenizer(bundleNames, ",");
+    while (st.hasMoreTokens()) {
+      final String bn = st.nextToken().trim();
+
+      setProperty(bundleMap, bn, prefix +bn);
     }
   }
 
   private void transformPath(Map bundleMap)
   {
     final Path newPath = new Path(project);
-    log("Updating bundle paths in class path reference '"
-        +classPathRef +"'.",
-        Project.MSG_VERBOSE);
+    log("Updating bundle paths in class path reference '" +classPathRef +"'.",
+        Project.MSG_DEBUG);
 
     String[] pathElements = null;
     try {
@@ -375,7 +444,7 @@ public class BundleLocator extends Task {
                 throw new BuildException
                   ("No bundle with name like '" +fileName+"' found.");
               }
-              }
+            }
           }
         }
         if (!added) {
@@ -408,6 +477,7 @@ public class BundleLocator extends Task {
     } finally {
       if (null!=out) {
         try { out.close(); } catch (IOException _ioe) {}
+        log("Created: "+replacefilterfile, Project.MSG_VERBOSE);
       }
     }
   }
