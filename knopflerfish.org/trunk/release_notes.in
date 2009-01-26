@@ -61,6 +61,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   "bundlebuild_include.xml"-file are available in that file. I.e., in
   "ant/bundlebuild_incldue.xml".
 
+  The ant task bundle_locator now accepts a comma separated list of
+  bundle names to locate. Also improved the logging and error handling.
+
 
 ========================================================================
 
