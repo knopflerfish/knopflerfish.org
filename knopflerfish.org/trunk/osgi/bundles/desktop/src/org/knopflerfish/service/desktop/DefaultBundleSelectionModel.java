@@ -99,9 +99,11 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
             long t0 = System.currentTimeMillis();
             l.valueChanged(bid);
             long t1 = System.currentTimeMillis();
+            /*
             if(t1 - t0 > 500) {
               System.out.println(" " + (t1-t0) + "ms, " + l.getClass().getName());
             }
+            */
           }
           long t1_a = System.currentTimeMillis();
           if(t1_a-t0_a> 1000) {
