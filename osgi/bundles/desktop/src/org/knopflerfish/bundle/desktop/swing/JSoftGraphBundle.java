@@ -146,22 +146,26 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
 
   BundleListener bundleListener = new BundleListener() {
       public void bundleChanged(BundleEvent ev) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              JSoftGraphBundle.this.bundleChanged();
-              startFade();
-            }
-          });
+        if(jmb.isAutoRefresh()) {
+          SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                JSoftGraphBundle.this.bundleChanged();
+                startFade();
+              }
+            });
+        }
       }
     };
 
   ServiceListener serviceListener = new ServiceListener() {
       public void serviceChanged(ServiceEvent ev) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              startFade();
-            }
-          });
+        if(jmb.isAutoRefresh()) {
+          SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                startFade();
+              }
+            });
+        }
       }
     };
 

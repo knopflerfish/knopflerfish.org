@@ -51,9 +51,15 @@ import org.knopflerfish.bundle.desktop.swing.graph.*;
 import org.knopflerfish.service.desktop.*;
 public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
+  ButtonModel autorefreshModel = new JToggleButton.ToggleButtonModel();
+
   public GraphDisplayer(BundleContext bc) {
     super(bc, "Graph", "Graph display of bundles", false);
+
+    autorefreshModel.setSelected(true);
   }
+
+
 
   public void bundleChanged(BundleEvent ev) {
     super.bundleChanged(ev);
@@ -127,7 +133,8 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     JBundleHistory bundleHistory;
 
     JPopupMenu    contextPopupMenu;
-    
+    JCheckBoxMenuItem autorefreshCB;
+
     MouseAdapter contextMenuListener = new MouseAdapter() {
         public void mousePressed(MouseEvent e) {
           maybeShowPopup(e);
@@ -180,9 +187,28 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       menu.add(new JMenuItem(Activator.desktop.actionUpdateBundles));
       menu.add(new JMenuItem(Activator.desktop.actionUninstallBundles));
       menu.add(new JMenuItem(Activator.desktop.actionRefreshBundles));
-      
 
+      menu.add(new JPopupMenu.Separator());
 
+      autorefreshCB = new JCheckBoxMenuItem("Automatic view refresh", true);
+      autorefreshCB.setModel(autorefreshModel);
+
+      JMenuItem refreshItem = new JMenuItem("Refresh view");
+      refreshItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            if(Activator.desktop != null &&
+               Activator.desktop.pm != null) {
+              Activator.desktop.pm.refresh();
+              for(Iterator it = views.iterator(); it.hasNext(); ) {
+                JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+                view.startFade();
+              }            
+            }
+          }
+        });
+
+      menu.add(autorefreshCB);
+      menu.add(refreshItem);
 
       menu.add(new JPopupMenu.Separator());
 
@@ -218,6 +244,10 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       return menu;
     }
     
+    boolean isAutoRefresh() {
+      return autorefreshCB == null || autorefreshCB.isSelected();
+    }
+
     JMenuItem makeBundleItem(final Bundle bundle, String txt) {
       JMenuItem item = new JMenuItem(txt != null 
                                      ? txt 
