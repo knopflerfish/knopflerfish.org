@@ -120,11 +120,19 @@ public class PreferencesServiceImpl implements PreferencesService {
 
   public void flush() {
     if (null!=systemStorage) {
-      systemStorage.flush(null);
+      try {
+        systemStorage.flush(null);
+      } catch (BackingStoreException bse) {
+        // Ignore, is logged by the actual storage impl.
+      }
     }
     for (Iterator it = userStorage.values().iterator(); it.hasNext(); ) {
       PrefsStorage storage = (PrefsStorage) it.next();
-      storage.flush(null);
+      try {
+        storage.flush(null);
+      } catch (BackingStoreException bse) {
+        // Ignore, is logged by the actual storage impl.
+      }
     }
   }
 }

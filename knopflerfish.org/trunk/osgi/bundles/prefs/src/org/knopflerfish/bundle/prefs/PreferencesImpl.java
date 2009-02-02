@@ -81,7 +81,7 @@ public class PreferencesImpl implements Preferences {
     storage.removeAllKeys(path);
   }
 
-  public void flush() {
+  public void flush() throws BackingStoreException {
     assertValid();
     storage.flush(path);
   }
@@ -257,7 +257,7 @@ public class PreferencesImpl implements Preferences {
     bStale = true;
   }
 
-  public void sync() {
+  public void sync() throws BackingStoreException {
     assertValid();
     storage.sync(path);
   }
