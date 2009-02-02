@@ -147,41 +147,48 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
 
     void setColumnWidth() {
-
-      totalWidth = 0;
-      setColWidth(COL_ID,         15);
-      setColWidth(COL_NAME,       80);
-      setColWidth(COL_STATE,      40);
-      setColWidth(COL_STARTLEVEL, 20);
-      setColWidth(COL_DESC,       100);
-      setColWidth(COL_LOCATION,   80);
-      setColWidth(COL_VENDOR,     60);
+      SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            totalWidth = 0;
+            setColWidth(COL_ID,         15);
+            setColWidth(COL_NAME,       80);
+            setColWidth(COL_STATE,      40);
+            setColWidth(COL_STARTLEVEL, 20);
+            setColWidth(COL_DESC,       100);
+            setColWidth(COL_LOCATION,   80);
+            setColWidth(COL_VENDOR,     60);
+          }
+        });
     }
 
     int totalWidth = 0;
 
     void setColWidth(int col, int w) {
-      TableModel  model  = table.getModel();
-      TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-
-      if(col < model.getColumnCount()) {
-	TableColumn column = table.getColumnModel().getColumn(col);
-
-	Component headerComp = 
-	  headerRenderer
-	  .getTableCellRendererComponent(null, column.getHeaderValue(),
-					 false, false, 0, 0);
-	int headerWidth = headerComp.getPreferredSize().width;
-	
-	
-	w = Math.max(headerWidth, w);
-	
-	totalWidth += w;
-	
-	column.setMinWidth(10);
-	column.setMaxWidth(300);
-
-	column.setPreferredWidth(w);
+      try {
+        TableModel  model  = table.getModel();
+        TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
+        
+        if(col < model.getColumnCount()) {
+          TableColumn column = table.getColumnModel().getColumn(col);
+          
+          Component headerComp = 
+            headerRenderer
+            .getTableCellRendererComponent(null, column.getHeaderValue(),
+                                           false, false, 0, 0);
+          int headerWidth = headerComp.getPreferredSize().width;
+          
+          
+          w = Math.max(headerWidth, w);
+          
+          totalWidth += w;
+          
+          column.setMinWidth(10);
+          column.setMaxWidth(300);
+          
+          column.setPreferredWidth(w);
+        }
+      } catch (Exception e) {
+        Activator.log.warn("Failed to set column #" + col + " to width=" + w);
       }
     }
   }
