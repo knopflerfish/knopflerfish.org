@@ -118,6 +118,26 @@ public class JPrefsTree extends JTree {
     menuItemsRO.add(mi);
     popup.add(mi);
 
+    mi = new JMenuItem("Sync") {{
+      addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            doSync();
+          }
+        });
+    }};
+    menuItemsRO.add(mi);
+    popup.add(mi);
+
+    mi = new JMenuItem("Flush") {{
+      addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            doFlush();
+          }
+        });
+    }};
+    menuItemsRO.add(mi);
+    popup.add(mi);
+
 
     popup.add(new JPopupMenu.Separator());
 
@@ -294,6 +314,33 @@ public class JPrefsTree extends JTree {
     }
   }
 
+
+  void doSync() {
+    TreePath tp = getSelectionPath();    
+    if(tp == null) {
+      return;
+    }
+    try {
+      PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
+      node.getPrefs().sync();
+    } catch (Exception e) {
+      Activator.log.warn("Failed to sync", e);
+    }
+  }
+
+  void doFlush() {
+    TreePath tp = getSelectionPath();    
+    if(tp == null) {
+      return;
+    }
+
+    try {
+      PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
+      node.getPrefs().sync();
+    } catch (Exception e) {
+      Activator.log.warn("Failed to flush", e);
+    }
+  }
 
   void doRemove() {
     TreePath tp = getSelectionPath();
