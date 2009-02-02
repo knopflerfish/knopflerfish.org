@@ -77,6 +77,9 @@ public class  PrefsStorageFile implements PrefsStorage {
    */
   private static File getRootDir()
   {
+    if (null==Activator.bc) {
+      throw new IllegalStateException("PreferencesService has been stopped!");
+    }
     String prefsDir = Activator.bc.getProperty("org.knopflerfish.prefs.dir");
     if (null==prefsDir || prefsDir.length()==0 ) {
       prefsDir = "prefsdir";
