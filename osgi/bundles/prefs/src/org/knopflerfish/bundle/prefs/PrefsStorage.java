@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.prefs;
 
+import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 
@@ -66,8 +67,8 @@ public interface PrefsStorage {
   boolean     nodeExists(final String path);
   void        removeAllKeys(final String path);
 
-  void        flush(final String path);
-  void        sync(final String path);
+  void        flush(final String path) throws BackingStoreException;
+  void        sync(final String path)  throws BackingStoreException;
 
   void        logWarn(final String msg, final Throwable t);
 }

@@ -428,7 +428,9 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public void flush(final String path) {
+  public void flush(final String path)
+    throws BackingStoreException
+  {
     synchronized(lock) {
       // allways save all dirty nodes to the storage
       synchronized(dirtySet) {
@@ -441,6 +443,9 @@ public class  PrefsStorageFile implements PrefsStorage {
             try {
               saveProps(p, props);
             } catch (Exception e) {
+              final String msg = "Failed to flush, baseDir="
+                +baseDir +"; "+e;
+              throw new BackingStoreException(msg);
             }
           }
         }
@@ -449,7 +454,9 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public void sync(final String path) {
+  public void sync(final String path)
+    throws BackingStoreException
+  {
     // Save any local changes
     flush(path);
     // Fetch changes from backing store.

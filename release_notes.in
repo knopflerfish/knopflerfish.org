@@ -35,11 +35,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Services (Compendium) ===
 
       
-  Preferences 2.0.2
+  Preferences 2.0.3
 
-  Remove prefrences for a bundle when it is uninstalled.  Refactored
+  Remove preferences for a bundle when it is uninstalled.  Re-factored
   parts of the code to make it reusable when implementing other kinds
-  of storage.
+  of storage. The local, file based, implementation now throws
+  BackingStoreException when a file write operation fails.
 
 
 
