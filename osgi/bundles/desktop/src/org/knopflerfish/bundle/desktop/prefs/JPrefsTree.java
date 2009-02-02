@@ -336,7 +336,7 @@ public class JPrefsTree extends JTree {
 
     try {
       PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
-      node.getPrefs().sync();
+      node.getPrefs().flush();
     } catch (Exception e) {
       Activator.log.warn("Failed to flush", e);
     }
