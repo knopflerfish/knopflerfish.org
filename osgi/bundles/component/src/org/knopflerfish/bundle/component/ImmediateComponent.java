@@ -25,10 +25,10 @@ public class ImmediateComponent extends Component {
   }
 
   public void satisfied() {
-    registerService();
     if (!isActivated()) {
       activate();
     }
+    registerService();
   }
 
   public void unsatisfied() {
