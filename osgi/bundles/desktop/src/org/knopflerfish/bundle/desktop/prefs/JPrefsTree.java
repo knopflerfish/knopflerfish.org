@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ public class JPrefsTree extends JTree {
       });
 
     popup = new JPopupMenu();
-    
+
     JMenuItem mi;
 
     mi = new JMenuItem("Search...") {{
@@ -160,7 +160,7 @@ public class JPrefsTree extends JTree {
     // menuItemsRO.add(mi);
     // popup.add(mi);
 
-    
+
     addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
           if(e.getButton() == MouseEvent.BUTTON1) {
@@ -170,11 +170,11 @@ public class JPrefsTree extends JTree {
           if(tp != null) {
             setSelectionPath(tp);
           }
-          popup.show(e.getComponent(), e.getX(), e.getY());    
+          popup.show(e.getComponent(), e.getX(), e.getY());
         }
       });
   }
-  
+
   Preferences node;
 
   public void setPreferences(Preferences node) {
@@ -184,7 +184,7 @@ public class JPrefsTree extends JTree {
 
 
   JFileChooser fc;
-  
+
   void doImport() {
     if(fc == null) {
       fc = new JFileChooser();
@@ -214,7 +214,7 @@ public class JPrefsTree extends JTree {
   }
 
   void doSearch() {
-    String name = JOptionPane.showInputDialog(this, 
+    String name = JOptionPane.showInputDialog(this,
                                               "Search for node or value",
                                               "Search",
                                               JOptionPane.OK_CANCEL_OPTION);
@@ -230,19 +230,19 @@ public class JPrefsTree extends JTree {
       Collection paths = new LinkedHashSet();
       TreePath tp = new TreePath(getModel().getRoot());
       search(tp, paths, name.toLowerCase(), true, 0, maxLevel);
-      
+
       for(Iterator it = paths.iterator(); it.hasNext(); ) {
         TreePath p = (TreePath)it.next();
         // Activator.log.info("" + p);
       }
-      TreeUtils.expandPaths(this, paths); 
+      TreeUtils.expandPaths(this, paths);
     } catch (Exception e) {
       Activator.log.warn("Failed to search", e);
     }
   }
-  
-  
-  void search(TreePath tp, Collection paths, 
+
+
+  void search(TreePath tp, Collection paths,
               String q,
               boolean bMatchValues,
               int level,
@@ -252,7 +252,7 @@ public class JPrefsTree extends JTree {
     if(level > maxLevel) {
       return;
     }
-    
+
     Object obj = tp.getLastPathComponent();
     if(!(obj instanceof PrefsTreeNode)) {
       return;
@@ -262,7 +262,7 @@ public class JPrefsTree extends JTree {
     node.assertLoad();
 
     Preferences p = node.getPrefs();
-    
+
     if(-1 != p.name().toLowerCase().indexOf(q)) {
       paths.add(tp);
     }
@@ -283,28 +283,28 @@ public class JPrefsTree extends JTree {
       search(tp.pathByAddingChild(child), paths, q, bMatchValues, level + 1, maxLevel);
     }
   }
-  
+
 
   void doCreate() {
     TreePath tp = getSelectionPath();
-    
+
     if(tp == null) {
       return;
     }
     try {
       PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
-      String name = JOptionPane.showInputDialog(this, 
+      String name = JOptionPane.showInputDialog(this,
                                                 "New node name",
                                                 "New node...",
                                                 JOptionPane.YES_NO_OPTION);
-      
+
       if(name != null && !"".equals(name)) {
         Collection oldPaths = TreeUtils.getExpandedPaths(this);
         Preferences p = node.getPrefs().node(name);
         PrefsTreeNode pNode = new PrefsTreeNode(p);
         oldPaths.add(tp);
         oldPaths.add(tp.pathByAddingChild(pNode));
-        node.getPrefs().flush();
+        node.getPrefs().sync();
         node.rescan();
         setModel(getModel());
         TreeUtils.expandPaths(this, oldPaths);
@@ -316,20 +316,24 @@ public class JPrefsTree extends JTree {
 
 
   void doSync() {
-    TreePath tp = getSelectionPath();    
+    TreePath tp = getSelectionPath();
     if(tp == null) {
       return;
     }
     try {
+      Collection oldPaths = TreeUtils.getExpandedPaths(this);
       PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
       node.getPrefs().sync();
+      node.rescan();
+      setModel(getModel());
+      TreeUtils.expandPaths(this, oldPaths);
     } catch (Exception e) {
       Activator.log.warn("Failed to sync", e);
     }
   }
 
   void doFlush() {
-    TreePath tp = getSelectionPath();    
+    TreePath tp = getSelectionPath();
     if(tp == null) {
       return;
     }
@@ -344,7 +348,7 @@ public class JPrefsTree extends JTree {
 
   void doRemove() {
     TreePath tp = getSelectionPath();
-    
+
     if(tp == null) {
       return;
     }
@@ -361,16 +365,16 @@ public class JPrefsTree extends JTree {
 
   protected void doAddKey() {
     TreePath tp = getSelectionPath();
-    
+
     if(tp == null) {
       return;
     }
     try {
-      String name = JOptionPane.showInputDialog(this, 
+      String name = JOptionPane.showInputDialog(this,
                                                 "New key name",
                                                 "New key...",
                                                 JOptionPane.YES_NO_OPTION);
-      if(name != null && !"".equals(name)) {  
+      if(name != null && !"".equals(name)) {
         PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
         node.getPrefs().put(name, node.getPrefs().get(name, ""));
         node.getPrefs().flush();
@@ -396,11 +400,11 @@ public class JPrefsTree extends JTree {
     fc.setApproveButtonText("Export");
     int returnVal = fc.showOpenDialog(this);
     if(returnVal == JFileChooser.APPROVE_OPTION) {
-      
+
       OutputStream out = null;
       try {
         PrefsTreeNode node = (PrefsTreeNode)paths[0].getLastPathComponent();
-      
+
         File f = fc.getSelectedFile();
         out = new FileOutputStream(f);
         node.getPrefs().exportSubtree(out);
@@ -414,17 +418,17 @@ public class JPrefsTree extends JTree {
 
   protected void onExpand(TreePath path) {
     // log.info("expand " + path);
-    
+
     Object node = path.getLastPathComponent();
-    
+
     if(node instanceof PrefsTreeNode) {
       PrefsTreeNode pNode = (PrefsTreeNode)node;
 
       try {
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));      
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         pNode.setHasBeenExpanded(true);
         pNode.rescan();
-        
+
         TreeModel model = getModel();
         if(model instanceof DefaultTreeModel) {
           // log.info("changed " + pNode);
@@ -443,7 +447,7 @@ public class JPrefsTree extends JTree {
 }
 
 class PrefsTreeRenderer extends DefaultTreeCellRenderer {
-  
+
   static Icon leafIcon = null;
   static Icon nodeOpenIcon = null;
   static Icon nodeClosedIcon = null;
@@ -459,7 +463,7 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
     }
     //setOpaque(false);
   }
-  
+
   public void setBackground(Color c) {
     super.setBackground(c);
     this.bgColor = c;
@@ -476,7 +480,7 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
     if(!bSel) {
       g.setColor(bgColor);
       g.fillRect(0, 0, size.width-1, size.height - 1);
-      
+
       g.setColor(Color.black);
     }
     super.paintComponent(g);
@@ -489,21 +493,21 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
                                                 boolean bLeaf,
                                                 int row,
                                                 boolean bFocus) {
-    
+
     this.node = node;
     this.bSel = bSel;
 
-    Component c = 
+    Component c =
       (DefaultTreeCellRenderer)super.getTreeCellRendererComponent(tree, node,
-                                                                  bSel,bExpanded, bLeaf, 
+                                                                  bSel,bExpanded, bLeaf,
                                                                   row, bFocus);
-    
+
 
     // c.setFont(Util.getFont(.8));
     //     setBackground(tree.getBackground());
 
     setOpaque(false);
-    
+
     setLeafIcon(null);
     setClosedIcon(null);
     setOpenIcon(null);
@@ -524,7 +528,7 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
             setIcon(nodeClosedIcon);
           }
         }
-        
+
         setToolTipText(prefs.absolutePath());
       } catch(Exception ignored) {
         // log.warn("oups", e);
@@ -534,4 +538,3 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
     return this;
   }
 }
-

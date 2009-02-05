@@ -47,6 +47,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
+  Desktop Bundle 2.3.1
+
+  The preferences tab now offers the sync and flush operations when
+  right clicking on a node in the preferences tree.
+
+
+
   Bundlerepository 2.0.3
 
   Blacklisted repository at update.cainenable.org
