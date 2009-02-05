@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop
-Bundle-Version: 2.3.0
-Bundle-UUID: org.knopflerfish:desktop:2.3.0
+Bundle-Version: 2.3.1
+Bundle-UUID: org.knopflerfish:desktop:2.3.1
 Bundle-Category: console
 Bundle-Description: Swing framework desktop
 Bundle-Vendor: Knopflerfish
