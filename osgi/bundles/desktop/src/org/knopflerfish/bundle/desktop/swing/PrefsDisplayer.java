@@ -46,11 +46,14 @@ import org.osgi.service.prefs.PreferencesService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 
 import org.knopflerfish.bundle.desktop.prefs.*;
 import javax.swing.tree.*;
 
 public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
+
+  ServiceTracker psTracker;
 
   public PrefsDisplayer(BundleContext bc) {
     super(bc, "Prefs", "Show preferences", true); 
@@ -62,16 +65,46 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   public void open() {
     super.open();
 
+    psTracker = new ServiceTracker(bc, 
+                                   PreferencesService.class.getName(), 
+                                   null) {
+        public Object addingService(ServiceReference sr) {
+          Object obj = super.addingService(sr);
+          reinit();
+          return obj;
+        }
+        public void removedService(ServiceReference sr, Object service) {
+          reinit();
+          super.removedService(sr, service);
+        }
+      };    
+    psTracker.open();
   }
 
 
   public void close() {
+    for(Iterator it = components.iterator(); it.hasNext(); ) {
+      JPrefs comp = (JPrefs)it.next();
+      comp.close();
+    }
+    psTracker.close();
     super.close();
   }
   
   public JComponent newJComponent() {
     JPrefs comp = new JPrefs();
     return comp;
+  }
+  
+  void reinit() {
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for(Iterator it = components.iterator(); it.hasNext(); ) {
+            JPrefs comp = (JPrefs)it.next();
+            comp.init();
+          }
+        }
+      });
   }
 
   public void valueChanged(long  bid) {
@@ -91,8 +124,23 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
     JPrefsEditor editor;
     MountedPreferences jvmNode;
 
+
     JPrefs() {
       super(new BorderLayout());
+
+      init();
+    }
+
+    void init() {
+      if(editor != null) {
+        remove(editor);
+        editor = null;
+      }
+
+      if(bundlesNode != null) {
+        bundlesNode.close();
+        bundlesNode = null;
+      }
 
       editor = new JPrefsEditor();
 
@@ -102,7 +150,6 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
       editor.getJPrefsTree().setRootVisible(false);
 
       add(editor, BorderLayout.CENTER);
-
     }
     
     void valueChanged(final Bundle[] bl) {
@@ -151,17 +198,29 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
       
       rootNode.mount(jvmNode, JVM_NAME);
 
-      bundlesNode = 
-        new OSGiBundlesPreferences(bl != null ? bl : (new Bundle[0]));
-
-      rootNode.mount(bundlesNode, BUNDLES_NAME);
+      boolean hasPS = psTracker.getService() != null;
+      
+      if(hasPS) {
+        bundlesNode = 
+          new OSGiBundlesPreferences(bl != null ? bl : (new Bundle[0]));
+        
+        
+        rootNode.mount(bundlesNode, BUNDLES_NAME);
+      }
 
       editor.setPreferences(rootNode);
-
-      editor.getJPrefsTree().searchAndExpand(BUNDLES_NAME, 3);
-      editor.getJPrefsTree().searchAndExpand(JVM_NAME, 3);
-
       
+      if(hasPS) {
+        editor.getJPrefsTree().searchAndExpand(BUNDLES_NAME, 3);
+      }
+      editor.getJPrefsTree().searchAndExpand(JVM_NAME, 3);
+      
+      editor.setPreferences(rootNode);
+
+    }
+
+    void close() {
+      // 
     }
   }
 }
