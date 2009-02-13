@@ -161,7 +161,7 @@ public class Bundles {
       }
 
       /* Commit bundle to storage */
-      ba.setLastModified(System.currentTimeMillis());
+      ba.setLastModified(res.getLastModified());
 
       bundles.put(location, res);
 
