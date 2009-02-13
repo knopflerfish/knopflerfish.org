@@ -310,8 +310,33 @@ public class Framework {
       perm = new PermissionOps();
     }
 
+    // Set up URL handlers before creating the storage implementation, 
+    // with the exception of the bundle: URL handler, since this
+    // requires an intialized framework to work
+    urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
+    contentHandlerFactory   = new ServiceContentHandlerFactory(this);
+
+
+    urlStreamHandlerFactory
+      .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
+                           new ReferenceURLStreamHandler());
+
+    // Install service based URL stream handler. This can be turned
+    // off if there is need
+    if(REGISTERSERVICEURLHANDLER) {
+      try {
+        URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+
+        URLConnection.setContentHandlerFactory(contentHandlerFactory);
+      } catch (Throwable e) {
+        Debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
+        e.printStackTrace();
+      }
+    }
+
 
     Class storageImpl = Class.forName(whichStorageImpl);
+
     storage           = (BundleStorage)storageImpl.newInstance();
 
     dataStorage       = Util.getFileStorage("data");
@@ -334,30 +359,13 @@ public class Framework {
                       new PackageAdminImpl(this),
                       null);
 
-    registerStartLevel();
-
-    urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
-    contentHandlerFactory   = new ServiceContentHandlerFactory(this);
-
+    // ...and create the bundle URL handle, now that we have the set of bundles
     urlStreamHandlerFactory
       .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
                            new BundleURLStreamHandler(bundles, perm));
-    urlStreamHandlerFactory
-      .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
-                           new ReferenceURLStreamHandler());
 
-    // Install service based URL stream handler. This can be turned
-    // off if there is need
-    if(REGISTERSERVICEURLHANDLER) {
-      try {
-        URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+    registerStartLevel();
 
-        URLConnection.setContentHandlerFactory(contentHandlerFactory);
-      } catch (Throwable e) {
-        Debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
-        e.printStackTrace();
-      }
-    }
     bundles.load();
 
     mainHandle = m;
