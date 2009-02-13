@@ -589,7 +589,21 @@ class BundleImpl implements Bundle {
           // Take original location
           update = location;
         }
-        bin = (new URL(update)).openStream();
+        URL url = new URL(update);
+
+        // Handle case where bundle location is a reference and/or a directory
+        // URL. In these cases, send a NULL input stream to the archive
+        // indicating that is should re-use the old bundle location
+        String fname = url.getFile(); // if reference URL, the getFile() result may be a file: string
+        if(fname.startsWith("file:")) {
+          fname = fname.substring(5);
+        }
+        File file = new File(fname);
+        if(file.isDirectory()) {
+          bin = null;
+        } else {
+          bin = url.openStream();
+        }
       } else {
         bin = in;
       }
@@ -1297,6 +1311,7 @@ class BundleImpl implements Bundle {
       u.append(path);
       return secure.getBundleURL(this, u.toString());
     } catch (MalformedURLException e) {
+      e.printStackTrace();
       return null;
     }
   }
