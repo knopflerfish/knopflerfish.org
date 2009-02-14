@@ -203,13 +203,17 @@ class BundleArchiveImpl implements BundleArchive
     bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
     URL source = null;
-    if(is == null) {        
+
+    boolean bReference = (is == null);
+    if(bReference) {        
       source = new URL(location);
     }
     archive = new Archive(bundleDir, rev, is, source, location);
     nativeLibs = getNativeCode();
     setClassPath();
-    putContent(REV_FILE, Integer.toString(rev));
+    if(!bReference) {
+      putContent(REV_FILE, Integer.toString(rev));
+    }
   }
 
 
