@@ -9,7 +9,7 @@
   <AD name="port.http" type="Integer" id="port.http"  default="8080" />
   <AD name="host" type="String" id="host" />
   <AD name="session.timeout.default" type="Integer" id="session.timeout.default" default="1200 "/>
-  <AD name="connection.max" type="Integer" id="connection.max"  dedfault="50" />
+  <AD name="connection.max" type="Integer" id="connection.max"  default="50" />
   <AD name="connection.timeout" type="Integer" id="connection.timeout"  default="30" />
   <AD name="response.buffer.size.default" type="Integer" id="response.buffer.size.default"  default="16384" />
   <AD name="service.ranking" type="Integer" id="service.ranking" default="1" />
