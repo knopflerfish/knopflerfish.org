@@ -42,6 +42,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.osgi.framework.Version;
 
@@ -51,29 +54,102 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.Reference;
 import org.apache.tools.ant.types.Resource;
 //import org.apache.tools.ant.types.resources.FileResource;
 import org.apache.tools.ant.util.FileUtils;
 
 /**
- * A task that given a partial bundle name and a fileset with
- * bundles, will select the bundle with the highest version number and
- * name that matches. Bundles names are supposed to be on the form
- * <tt>name-<it>Major</it>.<it>Minor</it>.<it>Micro</it>.<it>sub</it>.jar</tt>,
- * i.e., a name followed by '-' then a valid OSGi version number
- * followed by the suffix <tt>.jar</tt>.
+ * Determines a set of matching bundles from a given file set. The
+ * resulting bundle set will only contain the highest version of each
+ * matching bundle. A bundle matches if its file name starts with a
+ * bundle name followed by a dash, a valid OSGi version number and
+ * ends with <tt>.jar</tt>. That is the bundle name must be on the
+ * form
+ * <tt>bundleName&#x2011;<it>Major</it>.<it>Minor</it>.<it>Micro</it>.<it>sub</it>.jar</tt>,
+ * where the minor, micro, and sub parts are optional.
+ *
+ * <p>
+ *
+ * Given a partial bundle name and a fileset with bundles, this task
+ * may be used to select the bundle with the highest version number
+ * and name that matches. E.g.,
+ *
+ * <pre>
+ *   &lt;bundle_locator bundleName="http" property="http.path"&gt;
+ *     &lt;fileset dir="${jars.dir}"&gt;
+ *       &lt;include name="**&#x002f;*.jar"/&gt;
+ *     &lt;/fileset&gt;
+ *   &lt;/bundle_locator&gt;
+ * </pre>
+ *
+ * will set the project property <tt>http.path</tt> to the absolute
+ * path of the highest version of the bundle named <tt>http</tt>
+ * within the given file set.
+ *
+ * <p>
  *
  * This task can also iterate over a path and replace all
  * non-exisiting file resources in it that has a name ending with
  * <tt>-N.N.N.jar</tt> with the corresponding bundle with the highest
  * version from the given file set.
  *
+ * <pre>
+ *   &lt;bundle_locator classPathRef="bundle.path"
+ *                   newClassPathId="bundle.path.Expanded"
+ *                   failOnMissingBundles="true"&gt;
+ *     &lt;fileset dir="${jars.dir}"&gt;
+ *       &lt;include name="**&#x002f;*.jar"/&gt;
+ *     &lt;/fileset&gt;
+ *   &lt;/bundle_locator&gt;
+ * </pre>
+ *
+ * this will build a new path added to the project with the id
+ * <tt>bundle.path.Expanded</tt>. The new path will be a copy of the
+ * original, <tt>bundle.path</tt>, but with all path elements with a
+ * name ending in <tt>-N.N.N.jar</tt> replaced with the corresponding
+ * match or removed if no match was found.
+ *
+ * <p>
+ *
+ * Another usage of this task is to ensure that only the highest
+ * version of a bundle is matched by a certain pattern set.
+ *
+ * <pre>
+ *   &lt;bundle_locator patternSetId="my.ps.exact"&gt;
+ *     &lt;fileset dir="${jars.dir}"&gt;
+ *       &lt;patternset refid="my.ps"/&gt;
+ *     &lt;/fileset&gt;
+ *   &lt;/bundle_locator&gt;
+ * </pre>
+ *
+ * Here the original pattern set <tt>my.ps</tt> is used to find
+ * bundles in the directory <tt>jars.dir</tt>, if more than one
+ * version of a bundle matches then only the one with the highest
+ * version (in the bundle name) will be selected. A new pattern set
+ * based on the matches is created and saved in the project under the
+ * name <tt>my.ps.exact</tt>. This pattern set will contain one
+ * include pattern for each matching bundle. The value of the include
+ * pattern is the relative path of that bundle (relative to the root
+ * directory of the file set that the matching bundle originates
+ * from).
+ *
+ * <p>
+ *
  * Finally this task may also be used to create a properties file
  * suitable for using as a replacement filter that will replace bundle
  * names on the form <tt>@name-N.N.N.jar@</tt> with the relative
  * path within the given file set of the bundle with the given name
  * and the highest version.
+ *
+ * <pre>
+ *   &lt;bundle_locator replacefilterfile="my.filter"&gt;
+ *     &lt;fileset dir="${jars.dir}"&gt;
+ *       &lt;patternset refid="my.ps"/&gt;
+ *     &lt;/fileset&gt;
+ *   &lt;/bundle_locator&gt;
+ * </pre>
  *
  *
  * <h3>Parameters</h3>
@@ -142,29 +218,98 @@ import org.apache.tools.ant.util.FileUtils;
  *  </tr>
  *
  *  <tr>
+ *   <td valign=top>patternSetId</td>
+ *   <td valign=top>
+ *     Create a pattern set from the set of bundles that are selected
+ *     by the nested file set(s) and add it to the project using this
+ *     name (id).
+ *   </td>
+ *   <td valign=top>No. No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>failOnMissingBundles</td>
  *   <td valign=top>
  *     If a file with name <tt><it>bundleName</it>-N.N.N.jar</tt> is
  *     found on the classpath to transform and there is no matching
  *     bundle in the file set then fail the build if set to
- *     <tt>true</tt>. Same applies if the given <tt>bundleName</tt>
- *     can not be transformed.
+ *     <tt>true</tt>. Same applies if the given <tt>bundleName</tt> or
+ *     one of the given <tt>bundleNames</tt> can not be transformed.
  *   </td>
  *   <td valign=top>No.<br>Defaults to <tt>true</tt>.</td>
  *  </tr>
  *
  *  <tr>
+ *   <td valign=top>extendedReplaceFilter</td>
+ *   <td valign=top>
+ *
+ *     If set to <tt>true</tt> then the replace filter generated by
+ *     the <tt>replacefilter</tt> attribute will be extended with the
+ *     following set of replacements for each matching bundle.
+ *
+ *     <table>
+ *       <tr><th>Key</th><th>Value</th></tr>
+ *       <tr>
+ *         <td valign="top">
+ *           <tt>@<it>bundleName</it>&#x2011;N.N.N.name@</tt>
+ *         </td>
+ *         <td valign="top">
+ *
+ *           The bundle symbolic name from the manifest. For bundles
+ *           with manifest version 1 (i.e., pre OSGi R4 bundles) the
+ *           bundle name.
+ *
+ *         </td>
+ *       <tr>
+ *       <tr>
+ *         <td valign="top">
+ *           <tt>@<it>bundleName</it>&#x2011;N.N.N.version@</tt>
+ *         </td>
+ *         <td valign="top">
+ *
+ *           The bundle version from the manifest.
+ *
+ *         </td>
+ *       <tr>
+ *       <tr>
+ *         <td valign="top">
+ *           <tt>@<it>bundleName</it>&#x2011;N.N.N.location@</tt>
+ *         </td>
+ *         <td valign="top">
+ *
+ *           The absolute path of the bundle.
+ *
+ *         </td>
+ *       <tr>
+ *     </table>
+ *
+ *   </td>
+ *   <td valign=top>No.<br>Defaults to <tt>false</tt>.</td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>replacefilterfile</td>
  *   <td valign=top>
+ *
  *     Creates a property file suitable for use as the
- *     replacefilterfile argument in the replace-task. Keys in the
- *     property file will be the bundle name on the form
- *     <tt><it>@bundleName</it>-N.N.N.jar@</tt>, values is the expanded
- *     file path relative to the root-directory of the file set that
- *     the expansion orginates from. The "@" surrounding the key are
- *     needede to avoid problem if the name of one bundle is contained
- *     within the name of another bundle. E.g.,
- *     <tt>kxml-N.N.N.jar</tt> and <tt>xml-N.N.N.jar</tt>.
+ *     replacefilterfile argument in the replace-task. The generated
+ *     file will contain one entry for each matching bundle.
+ *
+ *     <table>
+ *       <tr><th>Key</th><th>Value</th></tr>
+ *       <tr>
+ *         <td valign="top">
+ *           <tt>@<it>bundleName</it>&#x2011;N.N.N.jar@</tt>
+ *         </td>
+ *         <td valign="top">
+ *
+ *           The relative path to the bundle from the root-directory
+ *           of the file set that the matching bundle orginates from.
+ *
+ *         </td>
+ *       <tr>
+ *     </table>
+ *
  *   </td>
  *   <td valign=top>No.<br>No default value.</td>
  *  </tr>
@@ -192,8 +337,10 @@ public class BundleLocator extends Task {
   private String    property             = null;
   private Reference classPathRef         = null;
   private String    newClassPathId       = null;
+  private String    patternSetId         = null;
   private boolean   failOnMissingBundles = true;
   private File      replacefilterfile    = null;
+  private boolean   extendedReplaceFilter= false;
 
   public BundleLocator() {
     fileUtils = FileUtils.newFileUtils();
@@ -223,8 +370,16 @@ public class BundleLocator extends Task {
     newClassPathId = s;
   }
 
+  public void setPatternSetId(String s) {
+    patternSetId = s;
+  }
+
   public void setFailOnMissingBundles(boolean b) {
     failOnMissingBundles = b;
+  }
+
+  public void setExtendedReplaceFilter(boolean b) {
+    extendedReplaceFilter = b;
   }
 
   public void setReplacefilterfile(File f) {
@@ -253,6 +408,10 @@ public class BundleLocator extends Task {
 
     if (classPathRef!=null && newClassPathId!=null) {
       transformPath(bundleMap);
+    }
+
+    if (patternSetId!=null) {
+      createPatternSet(bundleMap);
     }
 
     if (null!=replacefilterfile) {
@@ -457,6 +616,20 @@ public class BundleLocator extends Task {
   } // end of transform path structure.
 
 
+  private void createPatternSet(Map bundleMap)
+  {
+    final PatternSet patternSet = new PatternSet();
+
+    log("Creating a patternset for the bundles in.", Project.MSG_WARN);
+
+    for (Iterator it=bundleMap.values().iterator(); it.hasNext();) {
+      BundleInfo bi = (BundleInfo) it.next();
+      patternSet.setIncludes(bi.relPath);
+    }
+    project.addReference(patternSetId, patternSet);
+  } // end of create pattern set for bundles
+
+
   private void writeReplaceFilterFile(Map bundleMap)
   {
     final Properties props = new Properties();
@@ -464,6 +637,9 @@ public class BundleLocator extends Task {
       final BundleInfo bi = (BundleInfo) it.next();
       //Note: since the path is an URL we must ensure that '/' is used.
       props.put("@" +bi.name +"-N.N.N.jar@", bi.relPath.replace('\\','/'));
+      if (extendedReplaceFilter) {
+        addExtendedProps(props, bi);
+      }
     }
     OutputStream out = null;
     try {
@@ -480,6 +656,114 @@ public class BundleLocator extends Task {
         log("Created: "+replacefilterfile, Project.MSG_VERBOSE);
       }
     }
+  }
+
+  private void addExtendedProps(final Properties props, final BundleInfo bi)
+  {
+    final String prefix = "@" +bi.name +"-N.N.N.";
+    props.put(prefix +"location@", bi.file.getAbsolutePath());
+    JarFile bundle = null;
+    try {
+      bundle = new JarFile(bi.file);
+      final Manifest manifest = bundle.getManifest();
+      final Attributes mainAttributes = manifest.getMainAttributes();
+      addNameProperty(props, prefix, mainAttributes);
+      addVersionProperty(props, prefix, mainAttributes);
+    } catch (IOException ioe) {
+      log("Failed to create extended filter properties, "
+          +"could not read manifest from " +bi.file.getAbsolutePath()
+          +", reason: "+ioe,
+          Project.MSG_ERR);
+      throw new BuildException("Failed to create extended replacefilterfile",
+                               ioe);
+    } finally {
+      if (null!=bundle) {
+        try { bundle.close(); } catch (IOException _ioe) {}
+      }
+    }
+  }
+
+  private static String replace(String source,
+                                String target,
+                                String replacement)
+  {
+    int index = source.indexOf(target);
+    if (index == -1) return source;
+
+    int targetLength = target.length();
+    StringBuffer sb = new StringBuffer();
+
+    int position = 0;
+    do {
+      sb.append(source.substring(position, index));
+      sb.append(replacement);
+      position = index + targetLength;
+      index = source.indexOf(target, position);
+    } while (index != -1);
+    sb.append(source.substring(position));
+
+    return sb.toString();
+  }
+
+  /**
+   * Add the bundle's symbolic name to the filter.
+   *
+   * If Bundle-SymbolicName is present in the manifest use it,
+   * otherwise use the Bundle-Name.
+   * Any ':' in the name is replaced by a '.' and any ' ' whitespace
+   * with a '_'.
+   *
+   * @param props The properties object to add filter term to.
+   * @param prefix The initial part of the properties key to add.
+   * @param attributes The main attributes from the bundle's manifest.
+   */
+  private void addNameProperty(final Properties props,
+                               final String     prefix,
+                               final Attributes attributes)
+  {
+    String name = attributes.getValue("Bundle-SymbolicName");
+    if (null==name) name = attributes.getValue("Bundle-Name");
+
+    if (null!=name) {
+      name = name.replace(':', '.');
+      name = name.replace(' ', '_');
+      props.put(prefix +"name@", name);
+    }
+  }
+
+  /**
+   * Add version to the props map. The version number is unified to
+   * the format <tt>Major.Minor.Micro</tt> by adding as many ".0" as
+   * needed.
+   *
+   * @param props The properties object to add filter term to.
+   * @param prefix The initial part of the properties key to add.
+   * @param attributes The main attributes from the bundle's manifest.
+   */
+  private void addVersionProperty(final Properties props,
+                                  final String     prefix,
+                                  final Attributes attributes)
+  {
+    String version = attributes.getValue("Bundle-Version");
+    { // Ugly hack to unify version format
+      if (version == null) {
+        version = "0.0.0";
+      } else {
+        int count = 0;
+        int index = 0;
+        do {
+          count++;
+          index = version.indexOf('.', index) + 1;
+        } while (index > 0);
+        if (version.charAt(version.length() - 1) == '.') {
+          version = version + "0";
+        }
+        while (count++ < 3) {
+          version = version + ".0";
+        }
+      }
+    }
+    props.put(prefix +"version@", version);
   }
 
 }
