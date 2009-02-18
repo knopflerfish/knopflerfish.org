@@ -102,6 +102,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
 
       try {
         pa.refreshPackages(null);
+	Thread.sleep(1000);
       } catch (Exception e) {
         fail("Failed to refresh packages");
       }

@@ -108,16 +108,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
 
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
-      PackageAdmin pa = (PackageAdmin) bc.getService(bc.getServiceReference(packServiceName));
-      if (pa == null) {
-        fail("Failed to get PackageAdmin service");
-      }
-
-      try {
-        pa.refreshPackages(null);
-      } catch (Exception e) {
-        fail("Failed to refresh packages");
-      }
+      refreshPackages(bc, null);
 
       buA = Util.installBundle(bc, "bundleA_test-1.0.0.jar");
       assertNotNull(buA);
