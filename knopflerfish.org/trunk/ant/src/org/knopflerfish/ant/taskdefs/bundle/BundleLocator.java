@@ -459,6 +459,8 @@ public class BundleLocator extends Task {
               +"' since that directory does not exist.",
               Project.MSG_WARN);
           continue;
+        } else {
+          log( "Examinig file set rooted at " +projDir, Project.MSG_DEBUG);
         }
         final DirectoryScanner ds      = fs.getDirectoryScanner(project);
 
@@ -620,7 +622,8 @@ public class BundleLocator extends Task {
   {
     final PatternSet patternSet = new PatternSet();
 
-    log("Creating a patternset for the bundles in.", Project.MSG_WARN);
+    log("Creating a patternset for the bundles with id='" +patternSetId +"'.",
+        Project.MSG_DEBUG);
 
     for (Iterator it=bundleMap.values().iterator(); it.hasNext();) {
       BundleInfo bi = (BundleInfo) it.next();
