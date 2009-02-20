@@ -72,9 +72,14 @@ import org.apache.tools.ant.util.FileUtils;
  * <p>
  *
  * An <em>OSGi version spec</em> used below is a string on the format
- * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>.<em>sub</em></tt>
+ * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>.<em>Qualifier</em></tt>
  * where major, minor and micro are integers, and all parts of the
- * version except major are optional.
+ * version except major are optional. See {@link
+ * org.osgi.framework.Version#Version(java.lang.String) org.osgi.framework.Version}
+ * for details. The version formatting used by Maven 2 is also
+ * recognized, i.e., a '&#x2011;' between the micro and qualifier
+ * fields:
+ * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>&#x2011;<em>Qualifier</em></tt>.
  *
  * <p>
  *
@@ -515,6 +520,25 @@ public class BundleLocator extends Task {
   }
 
   /**
+   * Format the OSGi version as Maven 2 does in versioned file names.
+   */
+  private String toMavenVersion(final Version version)
+  {
+    final StringBuffer sb = new StringBuffer(40);
+
+    sb.append(String.valueOf(version.getMajor())).append(".");
+    sb.append(String.valueOf(version.getMinor())).append(".");
+    sb.append(String.valueOf(version.getMicro()));
+
+    final String qualifier = version.getQualifier();
+    if (0<qualifier.length()) {
+      sb.append("-").append(qualifier);
+    }
+
+    return sb.toString();
+  }
+
+  /**
    * Get the bundle symbolic name from the manifest. If the
    * <tt>Bundle-SymbolicName</tt> attribute is missing use the
    * <tt>Bundle-Name</tt> but replace all ':' with '.' and all '&nbsp;'
@@ -581,7 +605,7 @@ public class BundleLocator extends Task {
               Project.MSG_VERBOSE);
         }
       }
-      JarFile bundle  = new JarFile(file);
+      final JarFile bundle  = new JarFile(file);
       String  bsn     = null;
       Version version = null;
       try {
@@ -603,6 +627,17 @@ public class BundleLocator extends Task {
             Project.MSG_VERBOSE);
       }
 
+      if (0<version.getQualifier().length()) {
+        // Maven uses '-' and not '.' as separator for the qualifier
+        // in its bundle names. Check if bundleName needs to be
+        // updated.
+        final String mavenSuffix = "-" +toMavenVersion(version) +".jar";
+        if (fileName.endsWith(mavenSuffix)) {
+          bundleName
+            = fileName.substring(0, fileName.length() -mavenSuffix.length());
+        }
+      }
+
       bi = new BundleInfo();
       bi.name     = bundleName;
       bi.bsn      = bsn;
@@ -611,6 +646,7 @@ public class BundleLocator extends Task {
       bi.relPath  = relPath;
       bi.file     = file;
       log("Found " +bi, Project.MSG_DEBUG);
+      log("" +bi, Project.MSG_INFO);
     }
     return bi;
   }
