@@ -646,7 +646,6 @@ public class BundleLocator extends Task {
       bi.relPath  = relPath;
       bi.file     = file;
       log("Found " +bi, Project.MSG_DEBUG);
-      log("" +bi, Project.MSG_INFO);
     }
     return bi;
   }
