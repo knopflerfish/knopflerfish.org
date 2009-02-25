@@ -46,11 +46,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.Code;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
+import org.apache.bcel.classfile.DescendingVisitor;
+import org.apache.bcel.classfile.EmptyVisitor;
+import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.Utility;
+import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.FileScanner;
@@ -379,8 +391,75 @@ public class Bundle extends Jar {
     }
   }
 
+  /**
+   * Get package name of class string representation.
+   */
+  private static String packageName(String s) {
+    s = s.trim();
+    int ix = s.lastIndexOf('.');
+    if(ix != -1) {
+      s = s.substring(0, ix);
+    } else {
+      s = "";
+    }
+    return s;
+  }
+
+  /**
+   * Add a type's package name to the list of imported packages.
+   *
+   * @param t Type of an object.
+   */
+  protected void addImportedType(Type t) {
+    if(t instanceof BasicType) {
+      log("   " +t +" skiped; basic", Project.MSG_DEBUG);
+    } else {
+      addImportedString(t.toString());
+    }
+  }
+
+  /**
+   * Add package names of all types in <code>ts</code> to the list of
+   * imported packages.
+   *
+   * @param ts Array with Type objects.
+   */
+  protected void addImportedType(Type[] ts) {
+    for (int i = ts.length-1; i>-1; i-- ) {
+      addImportedType(ts[i]);
+    }
+  }
+
+  /**
+   * Add a class' package name to the list of imported packages.
+   *
+   * @param className Class name of an object. The class name is stripped
+   *                  from the part after the last '.' and added to set
+   *                  of imported packages, if its not one of the standard
+   *                  packages. Primitive class names are ignore.
+   */
+  protected void addImportedString(String className) {
+
+    if(className == null) {
+      return;
+    }
+
+    String packageName = packageName(className);
+
+    if("".equals(packageName)) {
+      log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
+      return;
+    }
+
+    referencedPackages.add(packageName);
+  }
+
+
   private void analyzeClass(ClassParser parser) throws IOException {
-    JavaClass javaClass = parser.parse();
+    final JavaClass javaClass = parser.parse();
+    final ConstantPool    constant_pool    = javaClass.getConstantPool();
+    final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
+
     availablePackages.add(javaClass.getPackageName());
 
     String[] interfaces = javaClass.getInterfaceNames();
@@ -391,25 +470,129 @@ public class Bundle extends Jar {
       }
     }
 
-    ConstantPool constantPool = javaClass.getConstantPool();
-    Constant[] constants = constantPool.getConstantPool();
-    for (int i = 0; i < constants.length; i++) {
-      Constant constant = constants[i];
-      if (constant instanceof ConstantClass) {
-        ConstantClass constantClass = (ConstantClass) constant;
-        String referencedClass = constantClass.getBytes(constantPool);
-        if (referencedClass.charAt(0) == '[') {
-          referencedClass = Utility.signatureToString(referencedClass, false);
-        } else {
-          referencedClass = Utility.compactClassName(referencedClass, false);
+    /**
+     * Use a descending visitor to find all classes that the given
+     * clazz refers to and add them to the set of imported classes.
+     */
+    DescendingVisitor v = new DescendingVisitor(javaClass, new EmptyVisitor() {
+        /**
+         * Keep track of the signatures visited to avoid processing
+         * them more than once. The same signature may apply to
+         * many methods or fields.
+         */
+        boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
+
+        /**
+         * Add the class that the given ConstantClass object
+         * represents to the set of imported classes.
+         *
+         * @param obj The ConstantClass object
+         */
+        public void visitConstantClass( ConstantClass obj ) {
+          log(" visit constant class " +obj, Project.MSG_DEBUG);
+
+          String referencedClass = obj.getBytes(constant_pool);
+          referencedClass = referencedClass.charAt(0) == '['
+            ? Utility.signatureToString(referencedClass, false)
+            : Utility.compactClassName(referencedClass,  false);
+          addImportedString(referencedClass);
         }
-        int lastDotIndex = referencedClass.lastIndexOf('.');
-        if (lastDotIndex >= 0) {
-          String packageName = referencedClass.substring(0, lastDotIndex);
-          referencedPackages.add(packageName);
+
+        /**
+         * Add the class used as types for the given field.
+         * This is necessary since if no method is applied to an
+         * object valued field there will be no ConstantClass object
+         * in the ConstantPool for the class that is the type of the
+         * field.
+         *
+         * @param obj A Field object
+         */
+        public void visitField( Field obj ) {
+          if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit field " +obj, Project.MSG_DEBUG);
+
+            visitedSignatures[obj.getSignatureIndex()] = true;
+            String signature = obj.getSignature();
+            Type type = Type.getType(signature);
+            addImportedType(type);
+          }
         }
-      }
-    }
+
+        /**
+         * Add all classes used as types for a local variable in the
+         * class we are analyzing. This is necessary since if no
+         * method is applied to an object valued local variable
+         * there will be no ConstantClass object in the ConstantPool
+         * for the class that is the type of the local variable.
+         *
+         * @param obj A LocalVariable object
+         */
+        public void visitLocalVariable( LocalVariable obj ) {
+          if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit local variable " +obj, Project.MSG_DEBUG);
+
+            visitedSignatures[obj.getSignatureIndex()] = true;
+            String signature = obj.getSignature();
+            Type type = Type.getType(signature);
+            addImportedType(type);
+          }
+        }
+
+        /**
+         * Add all classes mentioned in the signature of the given
+         * method. This is necessary since if no method is applied
+         * to a parameter (return type) there will be no
+         * ConstantClass object in the ConstantPool for the class
+         * that is the type of that parameter (return type).
+         *
+         * @param obj A Method object
+         */
+        public void visitMethod( Method obj ) {
+          if (!visitedSignatures[obj.getSignatureIndex()]) {
+            log(" visit method " +obj, Project.MSG_DEBUG);
+
+            visitedSignatures[obj.getSignatureIndex()] = true;
+            String signature = obj.getSignature();
+            Type returnType = Type.getReturnType(signature);
+            Type[] argTypes = Type.getArgumentTypes(signature);
+            addImportedType(returnType);
+            addImportedType(argTypes);
+          }
+        }
+
+        /**
+         * Look for packages for types in signatures of methods
+         * invoked from code in the class.
+         *
+         * This typically finds packages from arguments in calls to a
+         * superclass method in the current class where no local
+         * variable (or field) was used for intermediate storage of
+         * the parameter.
+         *
+         * @param obj The Code object to visit
+         */
+        public void visitCode( Code obj ) {
+          InstructionList il = new InstructionList(obj.getCode());
+          for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
+            Instruction inst = ih.getInstruction();
+            if (inst instanceof InvokeInstruction) {
+              InvokeInstruction ii = (InvokeInstruction) inst;
+              log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
+
+              // These signatures have no index in the constant pool
+              // thus no check/update in visitedSignatures[].
+              String signature = ii.getSignature(constant_poolGen);
+              Type returnType = Type.getReturnType(signature);
+              Type[] argTypes = Type.getArgumentTypes(signature);
+              addImportedType(returnType);
+              addImportedType(argTypes);
+            }
+          }
+        }
+
+      } );
+    // Run the scanner on the loaded class
+    v.visit();
   }
 
   private boolean isStandardPackage(String packageName) {
