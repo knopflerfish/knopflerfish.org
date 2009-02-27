@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -252,7 +252,7 @@ public class BundleJavadocHelperTask extends Task {
           ("export.package", line.trim(), true, true, false );
         while (expIt.hasNext()) {
           Map expEntry = (Map) expIt.next();
-          String exPkg = (String) expEntry.get("key");
+          String exPkg = (String) expEntry.get("$key");
           pkgs.add(exPkg);
         }
       }

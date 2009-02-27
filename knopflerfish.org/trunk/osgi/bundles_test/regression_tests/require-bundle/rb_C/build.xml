@@ -18,6 +18,10 @@
   <property name  = "impl.pattern"
             value = "test_rb/bundle/**"/>
 
+  <!-- Don't complain about the follwoing intentionally missing imports.-->
+  <!-- They are imported from rb_D via Require-Package. -->
+  <property name="bundle.stdimports"  value="java.,test_rb.D"/>
+
   <path id = "bundle.compile.path">
     <pathelement location="rb_D_api-N.N.N.jar"/>
   </path>

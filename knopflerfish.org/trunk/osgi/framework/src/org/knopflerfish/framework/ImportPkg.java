@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006, KNOPFLERFISH project
+ * Copyright (c) 2005-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,12 +72,12 @@ class ImportPkg {
     String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
     if (res != null) {
       if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
-	this.resolution = Constants.RESOLUTION_OPTIONAL;
+        this.resolution = Constants.RESOLUTION_OPTIONAL;
       }  else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
-	this.resolution = Constants.RESOLUTION_MANDATORY;
+        this.resolution = Constants.RESOLUTION_MANDATORY;
       } else {
-	throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
-					   ", unexpected value: " + res);
+        throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
+                                           ", unexpected value: " + res);
       }
     } else {
       this.resolution = Constants.RESOLUTION_MANDATORY;
@@ -88,9 +88,9 @@ class ImportPkg {
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
-	throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
+        throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
                                            " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
-					   "are specified, but differs");
+                                           "are specified, but differs");
       }
     } else if (versionStr != null) {
       this.packageRange = new VersionRange(versionStr);
@@ -103,6 +103,15 @@ class ImportPkg {
     } else {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
+    // Remove all meta-data and all directives from the set of tokens.
+    Set directiveNames = (Set) tokens.remove("$directives");
+    if (null!=directiveNames) {
+      for (Iterator dit=directiveNames.iterator(); dit.hasNext();) {
+        tokens.remove((String) dit.next());
+      }
+    }
+    tokens.remove("$key");
+    tokens.remove("$keys");
     this.attributes = tokens;
   }
 

@@ -72,6 +72,23 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   The ant task bundle_locator now accepts a comma separated list of
   bundle names to locate. Also improved the logging and error handling.
 
+  The ant taks bundle-info can now add "uses" directives to packages
+  in the Export-Packages manifest header. This is turned on by default
+  in bundlebuild.xml (to disable it set the ant property
+  "bundleinfo.uses" to false before importing bundlebuild.xml).
+
+  When bundle-info detects a missing import it will now trigger a
+  build exception (may be disabled by setting the ant property
+  "bundleinfo.failOnImports" to false before importing
+  bundlebuild.xml).
+
+  When bundle-info detects an export of package that is not provided
+  by the bundle it will now trigger a build exception (may be disabled
+  by setting the ant property "bundleinfo.failOnExports" to false
+  before importing bundlebuild.xml).
+
+
+
 
 ========================================================================
 

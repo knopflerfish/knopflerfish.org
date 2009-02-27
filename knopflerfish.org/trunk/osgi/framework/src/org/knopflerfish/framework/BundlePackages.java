@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,7 +102,7 @@ class BundlePackages {
     Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
-      Iterator pi = ((List)e.remove("keys")).iterator();
+      Iterator pi = ((List)e.remove("$keys")).iterator();
       ImportPkg ip = new ImportPkg((String)pi.next(), e, this);
       for (;;) {
         int ii = Util.binarySearch(imports, ipComp, ip);
@@ -122,7 +122,7 @@ class BundlePackages {
     i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
-      Iterator pi = ((List)e.remove("keys")).iterator();
+      Iterator pi = ((List)e.remove("$keys")).iterator();
       ExportPkg ep = new ExportPkg((String)pi.next(), e, this);
       for (;;) {
         int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
@@ -152,7 +152,7 @@ class BundlePackages {
                                            " directive.");
       }
       ImportPkg tmpl = null;
-      for (Iterator pi = ((List)e.remove("keys")).iterator(); pi.hasNext(); ) {
+      for (Iterator pi = ((List)e.remove("$keys")).iterator(); pi.hasNext(); ) {
         String key = (String)pi.next();
         if (key.equals("*")) {
           key = EMPTY_STRING;
@@ -179,7 +179,7 @@ class BundlePackages {
       do {
         Map e = (Map)i.next();
         require.add(new RequireBundle(this,
-                                      (String)e.get("key"),
+                                      (String)e.get("$key"),
                                       (String)e.get(Constants.VISIBILITY_DIRECTIVE),
                                       (String)e.get(Constants.RESOLUTION_DIRECTIVE),
                                       (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
