@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,15 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Vector;
-import java.util.Iterator;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
 
 public class Util {
   /**
@@ -175,6 +177,9 @@ public class Util {
       do {
         ArrayList keys = new ArrayList();
         HashMap params = new HashMap();
+        Set directives = new TreeSet();
+        params.put("$directives", directives); // $ is not allowed in
+                                               // param names...
         String key = at.getKey();
         if (key == null) {
           throw new IllegalArgumentException("Definition, " + a + ", expected key at: " + at.getRest());
@@ -201,6 +206,7 @@ public class Util {
           if (is_directive) {
             // NYI Handle directives and check them
             // This method has become very ugly, please rewrite.
+            directives.add(param);
           }
           if (unique) {
             params.put(param, value);
@@ -214,9 +220,9 @@ public class Util {
         }
         if (at.getEntryEnd()) {
           if (single) {
-            params.put("key", key);
+            params.put("$key", key);
           } else {
-            params.put("keys", keys);
+            params.put("$keys", keys);
           }
           result.add(params);
         } else {

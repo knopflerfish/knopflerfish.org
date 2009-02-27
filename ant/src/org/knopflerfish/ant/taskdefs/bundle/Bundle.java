@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -271,6 +272,17 @@ public class Bundle extends Jar {
     standardPackagePrefixes.add("java.");
   }
 
+  /**
+   * The set of classes that are refrenced from the included classes.
+   * May be used to check execution environment, see {@link BundleInfo}.
+   */
+  private Set classSet             = new TreeSet();
+  /**
+   * A mapping from package name of included classes to a set of
+   * package names that the classes in the key package references.
+   */
+  private Map packageUsingMap      = new HashMap();
+
 
   // private methods
 
@@ -406,63 +418,76 @@ public class Bundle extends Jar {
   }
 
   /**
-   * Add a type's package name to the list of imported packages.
+   * Add a type's package name to the list of referenced packages.
    *
+   * @param usingPackage The package that the class referencing
+   *                     <tt>t</tt> belongs to.
    * @param t Type of an object.
    */
-  protected void addImportedType(Type t) {
+  protected void addReferencedType(String usingPackage, Type t) {
     if(t instanceof BasicType) {
       log("   " +t +" skiped; basic", Project.MSG_DEBUG);
     } else {
-      addImportedString(t.toString());
+      addReferencedClass(usingPackage, t.toString());
     }
   }
 
   /**
    * Add package names of all types in <code>ts</code> to the list of
-   * imported packages.
+   * referenced packages.
    *
+   * @param usingPackage The package that the class referencing
+   *                  <tt>ts</tt> belongs to.
    * @param ts Array with Type objects.
    */
-  protected void addImportedType(Type[] ts) {
+  protected void addReferencedType(String usingPackage, Type[] ts) {
     for (int i = ts.length-1; i>-1; i-- ) {
-      addImportedType(ts[i]);
+      addReferencedType(usingPackage, ts[i]);
     }
   }
 
   /**
-   * Add a class' package name to the list of imported packages.
+   * Add data for a referenced class.
    *
-   * @param className Class name of an object. The class name is stripped
-   *                  from the part after the last '.' and added to set
-   *                  of imported packages, if its not one of the standard
-   *                  packages. Primitive class names are ignore.
+   * @param usingPackage
+   *                  The package that the class referencing
+   *                  <tt>className</tt> belongs to.
+   * @param className Name of the referenced class.
    */
-  protected void addImportedString(String className) {
-
+  protected void addReferencedClass(String usingPackage, String className)
+  {
     if(className == null) {
       return;
     }
 
     String packageName = packageName(className);
-
     if("".equals(packageName)) {
       log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
       return;
     }
 
+    classSet.add(className);
     referencedPackages.add(packageName);
+    if (null!=usingPackage) {
+      Set usingSet = (Set) packageUsingMap.get(usingPackage);
+      if (null==usingSet) {
+        usingSet = new TreeSet();
+        packageUsingMap.put(usingPackage, usingSet);
+      }
+      usingSet.add(packageName);
+    }
   }
 
 
   private void analyzeClass(ClassParser parser) throws IOException {
-    final JavaClass javaClass = parser.parse();
+    final JavaClass       javaClass        = parser.parse();
+    final String          javaPackage      = javaClass.getPackageName();
     final ConstantPool    constant_pool    = javaClass.getConstantPool();
     final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
 
     availablePackages.add(javaClass.getPackageName());
 
-    String[] interfaces = javaClass.getInterfaceNames();
+    final String[] interfaces = javaClass.getInterfaceNames();
     for (int i = 0; i < interfaces.length; i++) {
       if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
         activatorClasses.add(javaClass.getClassName());
@@ -495,7 +520,7 @@ public class Bundle extends Jar {
           referencedClass = referencedClass.charAt(0) == '['
             ? Utility.signatureToString(referencedClass, false)
             : Utility.compactClassName(referencedClass,  false);
-          addImportedString(referencedClass);
+          addReferencedClass(javaPackage,referencedClass);
         }
 
         /**
@@ -512,9 +537,9 @@ public class Bundle extends Jar {
             log(" visit field " +obj, Project.MSG_DEBUG);
 
             visitedSignatures[obj.getSignatureIndex()] = true;
-            String signature = obj.getSignature();
-            Type type = Type.getType(signature);
-            addImportedType(type);
+            final String signature = obj.getSignature();
+            final Type type = Type.getType(signature);
+            addReferencedType(javaPackage, type);
           }
         }
 
@@ -532,9 +557,9 @@ public class Bundle extends Jar {
             log(" visit local variable " +obj, Project.MSG_DEBUG);
 
             visitedSignatures[obj.getSignatureIndex()] = true;
-            String signature = obj.getSignature();
-            Type type = Type.getType(signature);
-            addImportedType(type);
+            final String signature = obj.getSignature();
+            final Type type = Type.getType(signature);
+            addReferencedType(javaPackage, type);
           }
         }
 
@@ -552,11 +577,11 @@ public class Bundle extends Jar {
             log(" visit method " +obj, Project.MSG_DEBUG);
 
             visitedSignatures[obj.getSignatureIndex()] = true;
-            String signature = obj.getSignature();
-            Type returnType = Type.getReturnType(signature);
-            Type[] argTypes = Type.getArgumentTypes(signature);
-            addImportedType(returnType);
-            addImportedType(argTypes);
+            final String signature = obj.getSignature();
+            final Type returnType = Type.getReturnType(signature);
+            final Type[] argTypes = Type.getArgumentTypes(signature);
+            addReferencedType(javaPackage, returnType);
+            addReferencedType(javaPackage, argTypes);
           }
         }
 
@@ -572,20 +597,20 @@ public class Bundle extends Jar {
          * @param obj The Code object to visit
          */
         public void visitCode( Code obj ) {
-          InstructionList il = new InstructionList(obj.getCode());
+          final InstructionList il = new InstructionList(obj.getCode());
           for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
-            Instruction inst = ih.getInstruction();
+            final Instruction inst = ih.getInstruction();
             if (inst instanceof InvokeInstruction) {
-              InvokeInstruction ii = (InvokeInstruction) inst;
+              final InvokeInstruction ii = (InvokeInstruction) inst;
               log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
 
               // These signatures have no index in the constant pool
               // thus no check/update in visitedSignatures[].
-              String signature = ii.getSignature(constant_poolGen);
-              Type returnType = Type.getReturnType(signature);
-              Type[] argTypes = Type.getArgumentTypes(signature);
-              addImportedType(returnType);
-              addImportedType(argTypes);
+              final String signature = ii.getSignature(constant_poolGen);
+              final Type returnType = Type.getReturnType(signature);
+              final Type[] argTypes = Type.getArgumentTypes(signature);
+              addReferencedType(javaPackage, returnType);
+              addReferencedType(javaPackage, argTypes);
             }
           }
         }
@@ -597,7 +622,7 @@ public class Bundle extends Jar {
 
   private boolean isStandardPackage(String packageName) {
     for (Iterator i = standardPackagePrefixes.iterator(); i.hasNext();) {
-      String prefix = (String) i.next();
+      final String prefix = (String) i.next();
       if (packageName.startsWith(prefix)) {
         return true;
       }
@@ -635,7 +660,7 @@ public class Bundle extends Jar {
   }
 
   private void handleClassPath() throws ManifestException {
-    StringBuffer value = new StringBuffer();
+    final StringBuffer value = new StringBuffer();
 
     boolean rootIncluded = false;
     if (baseDir != null || classes.size() == 0) {
@@ -645,8 +670,8 @@ public class Bundle extends Jar {
 
     Iterator i = classes.iterator();
     while (i.hasNext()) {
-      ZipFileSet zipFileSet = (ZipFileSet) i.next();
-      String prefix = zipFileSet.getPrefix(getProject());
+      final ZipFileSet zipFileSet = (ZipFileSet) i.next();
+      final String prefix = zipFileSet.getPrefix(getProject());
       if (prefix.length() > 0) {
         value.append(prefix);
         value.append(',');
@@ -658,13 +683,13 @@ public class Bundle extends Jar {
 
     i = libs.iterator();
     while (i.hasNext()) {
-      ZipFileSet fileset = (ZipFileSet) i.next();
+      final ZipFileSet fileset = (ZipFileSet) i.next();
       if (fileset.getSrc(getProject()) == null) {
-        DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
-        String[] files = ds.getIncludedFiles();
+        final DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+        final String[] files = ds.getIncludedFiles();
         if (files.length != 0) {
           zipgroups.add(fileset);
-          String prefix = fixPrefix(fileset.getPrefix(getProject()));
+          final String prefix = fixPrefix(fileset.getPrefix(getProject()));
           for (int j = 0; j < files.length; j++) {
             value.append(prefix.replace('\\', '/'));
             value.append(files[j].replace('\\', '/'));
@@ -681,7 +706,7 @@ public class Bundle extends Jar {
 
   private static String fixPrefix(String prefix) {
     if (prefix.length() > 0) {
-      char c = prefix.charAt(prefix.length() - 1);
+      final char c = prefix.charAt(prefix.length() - 1);
       if (c != '/' && c != '\\') {
         prefix = prefix + "/";
       }
@@ -690,13 +715,13 @@ public class Bundle extends Jar {
   }
 
   private void addPackageHeader(String headerName, Map packageMap) throws ManifestException {
-    Iterator i = packageMap.entrySet().iterator();
+    final Iterator i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
-      StringBuffer valueBuffer = new StringBuffer();
+      final StringBuffer valueBuffer = new StringBuffer();
       while (i.hasNext()) {
         Map.Entry entry = (Map.Entry) i.next();
-        String name = (String) entry.getKey();
-        String version = (String) entry.getValue();
+        final String name = (String) entry.getKey();
+        final String version = (String) entry.getValue();
         valueBuffer.append(name);
         if (version != null) {
           valueBuffer.append(";specification-version=");
@@ -705,14 +730,14 @@ public class Bundle extends Jar {
         valueBuffer.append(',');
       }
       valueBuffer.setLength(valueBuffer.length() - 1);
-      String value = valueBuffer.toString();
+      final String value = valueBuffer.toString();
       generatedManifest.addConfiguredAttribute(createAttribute(headerName, value));
       log(headerName + ": " + value, Project.MSG_INFO);
     }
   }
 
   private static Manifest.Attribute createAttribute(String name, String value) {
-    Manifest.Attribute attribute = new Manifest.Attribute();
+    final Manifest.Attribute attribute = new Manifest.Attribute();
     attribute.setName(name);
     attribute.setValue(value);
     return attribute;
@@ -745,8 +770,8 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredStandardPackage(OSGiPackage osgiPackage) {
-    String name = osgiPackage.getName();
-    String prefix = osgiPackage.getPrefix();
+    final String name = osgiPackage.getName();
+    final String prefix = osgiPackage.getPrefix();
     if (name != null && prefix == null) {
       availablePackages.add(name);
     } else if (prefix != null && name == null) {
@@ -757,7 +782,7 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredImportPackage(OSGiPackage osgiPackage) {
-    String name = osgiPackage.getName();
+    final String name = osgiPackage.getName();
     if (name == null) {
       throw new BuildException("ImportPackage must have a name");
     } else if (osgiPackage.getPrefix() != null) {
@@ -768,7 +793,7 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredExportPackage(OSGiPackage osgiPackage) {
-    String name = osgiPackage.getName();
+    final String name = osgiPackage.getName();
     if (name == null) {
       throw new BuildException("ExportPackage must have a name");
     } else if (osgiPackage.getPrefix() != null) {

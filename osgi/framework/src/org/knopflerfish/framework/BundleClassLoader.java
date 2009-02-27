@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,7 +175,7 @@ final public class BundleClassLoader extends ClassLoader {
 
       while (i.hasNext()) {
         Map e = (Map)i.next();
-        String key = (String)e.get("key");
+        String key = (String)e.get("$key");
         if (key.equals("*")) {
           bootDelegationPatterns = null;
           //in case funny person puts a * amongst other things

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,16 @@ class ExportPkg {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
                                          Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
     }
+    // Remove all meta-data and all directives from the set of tokens.
+    Set directiveNames = (Set) tokens.remove("$directives");
+    if (null!=directiveNames) {
+      for (Iterator dit=directiveNames.iterator(); dit.hasNext();) {
+        tokens.remove((String) dit.next());
+      }
+    }
+    tokens.remove("$key");
+    tokens.remove("$keys");
+
     this.attributes = tokens;
   }
 

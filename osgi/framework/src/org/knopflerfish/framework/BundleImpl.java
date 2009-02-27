@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1333,7 +1333,7 @@ class BundleImpl implements Bundle {
     Map e = null;
     if (i.hasNext()) {
       e = (Map)i.next();
-      symbolicName = (String)e.get("key");
+      symbolicName = (String)e.get("$key");
     } else {
       if (v2Manifest) {
         throw new IllegalArgumentException("Bundle has no symbolic name, location=" +
@@ -1387,7 +1387,7 @@ class BundleImpl implements Bundle {
 
       e = (Map)i.next();
       String extension = (String)e.get(Constants.EXTENSION_DIRECTIVE);
-      String key = (String)e.get("key");
+      String key = (String)e.get("$key");
 
       if (Constants.EXTENSION_FRAMEWORK.equals(extension) ||
           Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {

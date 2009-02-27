@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -654,7 +654,7 @@ class BundleArchiveImpl implements BundleArchive
         boolean matchLang = false;
         Map params = (Map)i.next();
 
-        List keys = (List)params.get("keys");
+        List keys = (List)params.get("$keys");
         if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
           optional = true;
           break;

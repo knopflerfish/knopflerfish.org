@@ -117,7 +117,7 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer {
              "Classpath".equals(key) ||
              "Import-Service".equals(key) ||
              "Export-Package".equals(key)) {
-            value = Strings.replace(value, ",", "<br>");
+            value = Strings.replaceWordSep(value,",", "<br>", '"');
           } else if("Service-Component".equals(key)) {
             StringBuffer sb2 = new StringBuffer();
             Util.resourceLink(sb2, value);
