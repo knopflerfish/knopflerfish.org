@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,8 +75,10 @@ class SecurePermissionOps extends PermissionOps {
   private final Framework framework;
   private final PermissionsHandle ph;
 
-  private AdminPermission ap_resolve_perm = null;
-  private AdminPermission ap_startlevel_perm = null;
+  private AdminPermission ap_resolve = null;
+  private AdminPermission ap_startlevel = null;
+
+  private RuntimePermission rp_getprotectiondomain = null;
 
 
   /**
@@ -188,13 +190,13 @@ class SecurePermissionOps extends PermissionOps {
   }
 
   void checkResolveAdminPerm() {
-    if (ap_resolve_perm == null) {
-      ap_resolve_perm = new AdminPermission(framework.systemBundle,
+    if (ap_resolve == null) {
+      ap_resolve = new AdminPermission(framework.systemBundle,
                                             AdminPermission.RESOLVE);
     }
     SecurityManager sm = System.getSecurityManager();
     if(null!=sm){
-      sm.checkPermission(ap_resolve_perm);
+      sm.checkPermission(ap_resolve);
     }
   }
 
@@ -241,13 +243,23 @@ class SecurePermissionOps extends PermissionOps {
   }
 
   void checkStartLevelAdminPerm(){
-    if (ap_startlevel_perm == null) {
-      ap_startlevel_perm = new AdminPermission(framework.systemBundle,
+    if (ap_startlevel == null) {
+      ap_startlevel = new AdminPermission(framework.systemBundle,
                                                AdminPermission.STARTLEVEL);
     }
     SecurityManager sm = System.getSecurityManager();
     if(null!=sm){
-      sm.checkPermission(ap_startlevel_perm);
+      sm.checkPermission(ap_startlevel);
+    }
+  }
+
+  void checkGetProtectionDomain() {
+    if (rp_getprotectiondomain == null) {
+      rp_getprotectiondomain = new RuntimePermission("getProtectionDomain");
+    }
+    SecurityManager sm = System.getSecurityManager();
+    if(null!=sm){
+      sm.checkPermission(rp_getprotectiondomain);
     }
   }
 

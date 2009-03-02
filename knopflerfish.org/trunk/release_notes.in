@@ -9,6 +9,24 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Framework 4.1.0
+  Almost complete support for Conditional Permissions added. Things missing
+  are:
+
+  * ConditionalPermissionAdmin.getAccessControlContext() not implemented.
+
+  * Certificate chains are not validated.
+
+  * Restart of framework with signed bundles that contains subjars or native code
+    are not handled correctly.
+
+  * Logging of faults are not implemented.
+
+  * Documentation of security configuration and extensions.
+
+  The code is not fully tested (but it passes OSGi TCK) and a security audit
+  needs to be done.
+
   Framework 4.0.16
   Added support for handling cases where classes on the boot class path 
   needs access to other boot classes, even when they're not exposed

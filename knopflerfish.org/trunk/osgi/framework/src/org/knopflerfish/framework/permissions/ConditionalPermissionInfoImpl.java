@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,11 +42,10 @@ import org.osgi.framework.Bundle;
 import org.osgi.service.condpermadmin.*;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
+
 /**
- * A binding of a set of Conditions to a set of Permissions. Instances of this
- * interface are obtained from the Conditional Permission Admin service.
+ * A binding of a set of Conditions to a set of Permissions.
  * 
- * @version $Revision: 1.11 $
  */
 public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 {
@@ -195,10 +194,16 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
   static final Class[] argClasses = new Class[] {Bundle.class, ConditionInfo.class};
 
+  /**
+   *
+   */
   ConditionalPermission getConditionalPermission(Bundle bundle) {
-    Condition[] conds = new Condition[conditionInfos.length];
+    String me = "ConditionalPermissionInfoImpl.getConditionalPermission: ";
+
+    ArrayList conds = new ArrayList(conditionInfos.length);
     for (int i = 0; i < conditionInfos.length; i++) {
       Class clazz;
+      Condition c;
       try {
 	clazz = Class.forName(conditionInfos[i].getType());
 	Constructor cons = null;
@@ -209,29 +214,48 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 	    method = null;
 	  }
 	} catch (NoSuchMethodException ignore) { }
-	try {
-	  cons = clazz.getConstructor(argClasses);
-	} catch (NoSuchMethodException ignore) { }
-	if (method != null && cons == null) {
-	  conds[i] = (Condition) method.invoke(null, new Object [] {bundle, conditionInfos[i]});
-	} else if (method == null && cons != null) {
-	  conds[i] = (Condition) cons.newInstance(new Object [] {bundle, conditionInfos[i]});
-	} else {
-	  if (method == null && cons == null) {
-	    // NYI! Log this
-	  } else {
-	    // NYI! Log this
+	if (method != null) {
+	  if (Debug.permissions) {
+	    Debug.println(me + "Invoke, " + method);
 	  }
-	  conds[i] = Condition.FALSE;
+	  c = (Condition) method.invoke(null, new Object [] {bundle, conditionInfos[i]});
+	} else {
+	  try {
+	    cons = clazz.getConstructor(argClasses);
+	  } catch (NoSuchMethodException ignore) { }
+	  if (cons != null) {
+	    if (Debug.permissions) {
+	      Debug.println(me + "Construct, " + cons);
+	    }
+	    c = (Condition) cons.newInstance(new Object [] {bundle, conditionInfos[i]});
+	  } else {
+	    Debug.println("NYI! Log faulty ConditionInfo object!?");
+	    continue;
+	  }
 	}
-      } catch (Throwable ignore) {
-	// NYI! Log this
-	conds[i] = Condition.FALSE;
+	if (!c.isMutable()) {
+	  if (!c.isPostponed() || Debug.tck401compat) {
+	    if (c.isSatisfied()) {
+	      continue;
+	    } else {
+	      return null;
+	    }
+	  }
+	}
+	conds.add(c);
+      } catch (Throwable t) {
+	Debug.printStackTrace("NYI! Log failed Condition creation", t);
+	return null;
       }
     }
-    return new ConditionalPermission(conds, getPermissions());
+    return new ConditionalPermission((Condition [])conds.toArray(new Condition[conds.size()]),
+				     getPermissions(), this);
   }
 
+
+  /**
+   *
+   */
   PermissionCollection getPermissions() {
     if (permissions == null) {
       permissions = PermUtil.makePermissionCollection(permissionInfos, null);

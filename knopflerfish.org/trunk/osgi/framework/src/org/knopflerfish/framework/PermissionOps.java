@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,6 +103,9 @@ class PermissionOps {
   }
   
   void checkStartLevelAdminPerm() {
+  }
+
+  void checkGetProtectionDomain() {
   }
 
   //

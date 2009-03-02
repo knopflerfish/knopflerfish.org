@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,66 +35,122 @@
 package org.knopflerfish.framework.permissions;
 
 import java.security.*;
+import java.util.*;
 
 import org.osgi.service.condpermadmin.*;
+
 
 /**
  * A binding of a set of Conditions to a set of Permissions.
  * 
- * @version $Revision: 1.11 $
  */
 public class ConditionalPermission
 {
-  final static int FAILED = 0;
-  final static int IMPLIED = 1;
-  final static int POSTPONED = 2;
-
-  final private Condition [] conditions;
+  private ConditionalPermissionInfoImpl parent;
+  private Condition [] conditions;
   final private PermissionCollection permissions;
+  private List postponed = null;
 
 
   /**
    */
-  ConditionalPermission(Condition [] conds, PermissionCollection perms) {
+  ConditionalPermission(Condition [] conds, PermissionCollection perms,
+			ConditionalPermissionInfoImpl cpi) {
+    parent = cpi;
     conditions = conds;
     permissions = perms;
   }
 
 
   /**
+   * Check immediate conditions and if asked save postponed conditions.
+   * If conditions are fulfilled check permission is ok.
    *
    */
-  int check(Permission perm) {
+  boolean checkImmediateOk(Permission perm, boolean checkPostponed) {
+    if (conditions == null) {
+      return false;
+    }
+    postponed = new ArrayList(1);
     for (int i = 0; i < conditions.length; i++) {
       Condition c = conditions[i];
       if (c == null) {
 	// Immutable condition has been removed
 	continue;
       }
-      if (!c.isPostponed()) {
+      if (checkPostponed || !c.isPostponed()) {
+	boolean mutable = c.isMutable(); // TCK wrongly requires mutable before isSatisfied.
 	if (c.isSatisfied()) {
-	  if (!c.isMutable()) {
+	  if (!mutable) {
+	    // Mark always ok by clearing condition element.
 	    conditions[i] = null;
 	  }
 	} else {
-	  if (!c.isMutable()) {
-	    // NYI! Save failed
+	  if (!mutable) {
+	    // Mark always fail by clearing conditions.
+	    conditions = null;
 	  }
-	  return FAILED;
+	  return false;
 	}
       } else {
-	throw new RuntimeException("NYI! Handle postponed");
+	postponed.add(c);
       }
     }
-    return IMPLIED;
+    return permissions.implies(perm);
+  }
+
+
+  /**
+   * Check if we have saved any postponements in last
+   * checkImmediateOk call.
+   */
+  boolean hasPostponed() {
+    return !postponed.isEmpty();
+  }
+
+
+  /**
+   * Get all saved postponements in last checkImmediateOk call.
+   *
+   */
+  Iterator getPostponed() {
+    return postponed.iterator();
   }
 
 
   /**
    *
    */
-  PermissionCollection getPermissions() {
-    return permissions;
+  void setImmutable(Condition c, boolean result) {
+    if (conditions == null) {
+      return;
+    }
+    if (result) {
+      for (int i = 0; i < conditions.length; i++) {
+	if (c == conditions[i]) {
+	  conditions[i] = null;
+	  break;
+	}
+      }
+    } else {
+      conditions = null;
+    }
+  }
+
+
+  /**
+   *
+   */
+  boolean isParent(ConditionalPermissionInfoImpl cpi) {
+    return cpi == parent;
+  }
+
+
+  /**
+   *
+   */
+  public String toString() {
+    return "HASH: " + hashCode() + " INFO: " + parent.toString();
   }
 
 }

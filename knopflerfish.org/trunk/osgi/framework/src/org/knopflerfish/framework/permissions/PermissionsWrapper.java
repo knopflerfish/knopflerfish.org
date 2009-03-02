@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,9 @@ public class PermissionsWrapper extends PermissionCollection {
   private ArrayList condPermList = null;
 
 
+  /**
+   *
+   */
   PermissionsWrapper(Framework fw,
                      PermissionInfoStorage pis,
                      ConditionalPermissionInfoStorage cpis,
@@ -86,24 +89,31 @@ public class PermissionsWrapper extends PermissionCollection {
       localPermissions = null;
     }
     implicitPermissions = makeImplicitPermissionCollection(fw, b);
+    initCondPermList();
     systemPermissions = makePermissionCollection();
   }
 
 
+  /**
+   *
+   */
   public void add(Permission permission) {
     PermissionCollection p = getPerms();
     if (p != null) {
       p.add(permission);
     } else {
-      throw new RuntimeException("Using Conditional Permissions, what to do");
+      throw new RuntimeException("NYI! Using Conditional Permissions");
     }
   }
 
 
+  /**
+   *
+   */
   public Enumeration elements() {
     final PermissionCollection p = getPerms();
     if (p == null) {
-      throw new RuntimeException("Using Conditional Permissions, what to do 2");
+      throw new RuntimeException("NYI! Using Conditional Permissions 2");
     }
 
     return new Enumeration() {
@@ -134,27 +144,51 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
+  /**
+   *
+   */
   public boolean implies(Permission permission) {
+    String me = "PermissionWrapper.implies: ";
     if (implicitPermissions.implies(permission)) {
+      if (Debug.permissions) {
+	Debug.println(me + "Implicitly OK for, " + permission);
+      }
       return true;
     } else if (localPermissions != null && !localPermissions.implies(permission)) {
+      if (Debug.permissions) {
+	Debug.println(me + "No localpermissions for, " + permission);
+      }
       return false;
     } else {
       PermissionCollection p = getPerms();
+      boolean res;
       if (p != null) {
-	return p.implies(permission);
+	res = p.implies(permission);
+	if (Debug.permissions) {
+	  Debug.println(me + (res ? "OK" : "No") +  " framework permission for," + permission);
+	}
       } else {
-	return conditionalPermissionImplies(permission);
+	res = conditionalPermissionImplies(permission);
+	if (Debug.permissions) {
+	  Debug.println(me + (res ? "OK" : "No") +  " conditional permission for," + permission);
+	}
       }
+      return res;
     }
   }
 
 
+  /**
+   *
+   */
   public boolean isReadOnly() {
     return readOnly;
   }
 
 
+  /**
+   *
+   */
   public void setReadOnly() {
     if (!readOnly) {
       readOnly = true;
@@ -168,11 +202,17 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
+  /**
+   *
+   */
   synchronized void invalidate() {
     systemPermissions = null;
   }
 
 
+  /**
+   *
+   */
   synchronized void updateLocalPermissions(InputStream localPerms) {
     if (localPerms != null) {
       localPermissions = makeLocalPermissionCollection(localPerms);
@@ -182,6 +222,9 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
+  /**
+   *
+   */
   private PermissionCollection getPerms0() {
     if (systemPermissions == null) {
       PermissionCollection p = makePermissionCollection();
@@ -193,6 +236,10 @@ public class PermissionsWrapper extends PermissionCollection {
     return systemPermissions;
   }
 
+
+  /**
+   *
+   */
   private PermissionCollection getPerms() {
     if (Framework.isDoubleCheckedLockingSafe) {
        if (systemPermissions == null) {
@@ -208,6 +255,10 @@ public class PermissionsWrapper extends PermissionCollection {
     }
   }
 
+
+  /**
+   *
+   */
   private PermissionCollection makeLocalPermissionCollection(InputStream localPerms) {
     try {
       DataInputStream dis = new DataInputStream(localPerms);
@@ -239,6 +290,9 @@ public class PermissionsWrapper extends PermissionCollection {
   }
 
 
+  /**
+   *
+   */
   private PermissionCollection makeImplicitPermissionCollection(Framework fw, Bundle b) {
     Permissions pc = new Permissions();
     if (dataRoot != null) {
@@ -270,12 +324,18 @@ public class PermissionsWrapper extends PermissionCollection {
     final boolean useDefault = (pi == null);
     Permissions res = new Permissions();
     if (useDefault) {
-      if (cpinfos != null && cpinfos.size() > 0) {
-	// If we are using CPA with rules added do not use default.
-	// If we have CPA without rules, use default. This isn't correct
-	// way according to the standard. But it helps bootstrapping the
-	// system.
-	return null;
+      if (Debug.tck401compat) {
+	if (condPermList.size() > 0) {
+	  // If we are using CPA with rules added do not use default.
+	  // If we have CPA without rules, use default. This isn't correct
+	  // way according to the standard. But it helps bootstrapping the
+	  // system and is required for passing OSGi test suite.
+	  return null;
+	}
+      } else {
+	if (cpinfos != null && cpinfos.size() > 0) {
+	  return null;
+	}
       }
       pi = pinfos.getDefault(this);
     }
@@ -293,36 +353,82 @@ public class PermissionsWrapper extends PermissionCollection {
    *
    */
   private boolean conditionalPermissionImplies(Permission permission) {
-    if (condPermList == null) {
-      condPermList = new ArrayList();
-      for (Enumeration e = cpinfos.getAll(); e.hasMoreElements(); ) {
-	ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) e.nextElement();
-	if (Debug.permissions) {
-	  Debug.println("conditionalPermissionImplies: " + cpi);
-	}
-	condPermList.add(cpi.getConditionalPermission(bundle));
-      }
-    }
+    List postponement = null;
+    SecurityManager sm = System.getSecurityManager();
+    ConditionalPermissionSecurityManager cpsm =
+      (sm instanceof ConditionalPermissionSecurityManager) ?
+      (ConditionalPermissionSecurityManager)sm :
+      null;
+
     for (Iterator i = condPermList.iterator(); i.hasNext(); ) {
       ConditionalPermission cp = (ConditionalPermission)i.next();
-      int res = cp.check(permission);
-      if (res == ConditionalPermission.IMPLIED) {
-	if (cp.getPermissions().implies(permission)) {
-	  // NYI! Invalidate only when necessary
-	  condPermList = null;
+      if (cp.checkImmediateOk(permission, cpsm == null)) {
+	if (cp.hasPostponed()) {
+	  if (Debug.permissions) {
+	    Debug.println("conditionalPermissionImplies: " + cp + " with postponement implies " + permission + " for " + bundle);
+	  }
+	  if (postponement == null) {
+	    postponement = new ArrayList();
+	  }
+	  postponement.add(cp);
+	} else {
+	  if (Debug.permissions) {
+	    Debug.println("conditionalPermissionImplies: " + cp + " implies " + permission + " for " + bundle);
+	  }
 	  return true;
 	}
-      } else if (res == ConditionalPermission.FAILED) {
-	continue;
-      } else if (res == ConditionalPermission.POSTPONED) {
-	throw new RuntimeException("NYI POSTPONED");
       } else {
-	throw new RuntimeException("Should not happen");
+	if (Debug.permissions) {
+	  Debug.println("conditionalPermissionImplies: " + cp + " does NOT imply " + permission + " for " + bundle);
+	}
+      }  
+    }
+    if (postponement != null) {
+      cpsm.savePostponement(postponement);
+      return true;
+    }
+    return false;
+  }
+
+
+  /**
+   *
+   */
+  synchronized void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
+						       ConditionalPermissionInfoImpl old) {
+    ConditionalPermission new_cp = cpi != null ? cpi.getConditionalPermission(bundle) : null;
+    if (old != null) {
+      for (int i = condPermList.size() - 1; i >= 0; i--) {
+	ConditionalPermission cp = (ConditionalPermission)condPermList.get(i);
+	if (cp.isParent(old)) {
+	  if (new_cp != null) {
+	    condPermList.set(i, new_cp);
+	  } else {
+	    condPermList.remove(i);
+	  }
+	  return;
+	}
       }
     }
-    // NYI! Invalidate only when necessary
-    condPermList = null;
-    return false;
+    if (new_cp != null) {
+      condPermList.add(new_cp);
+    }
+    invalidate();
+  }
+
+
+  /**
+   *
+   */
+  private void initCondPermList() {
+    condPermList = new ArrayList();
+    for (Enumeration e = cpinfos.getAll(); e.hasMoreElements(); ) {
+      ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) e.nextElement();
+      if (Debug.permissions) {
+	Debug.println("conditionalPermissionImplies: " + cpi + " Bundle#" + bundle.getBundleId());
+      }
+      updateChangedConditionalPermission(cpi, null);
+    }
   }
 
 }

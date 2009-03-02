@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,43 @@ import org.knopflerfish.framework.Framework;
 public class Debug {
 
   /**
+   * Controls if we should configure conditional permission so that it passes tck-4.0.1.
+   */
+  final static boolean tck401compat = new Boolean(Framework.getProperty("org.knopflerfish.framework.tck401compat", "false")).booleanValue();
+
+  /**
    * Report Permission handling
    */
-  final static boolean permissions = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.permissions"));
+  final static boolean permissions = new Boolean(Framework.getProperty("org.knopflerfish.framework.debug.permissions", "false")).booleanValue();
 
 
+  /**
+   * Thread local storage to prevent recursive debug message
+   * in permission checks
+   */
+  private static ThreadLocal insideDebug = new ThreadLocal() {
+      protected synchronized Object initialValue() {
+	return new Boolean(false);
+      }
+    };
+
+
+  /**
+   * Are we already inside a debug print?
+   */
+  private static void inside(boolean b) {
+    insideDebug.set(new Boolean(b));
+  }
+
+  
+  /**
+   * Are we already inside a debug print?
+   */
+  private static boolean isInside() {
+    return ((Boolean) (insideDebug.get())).booleanValue();
+  }
+
+  
   /**
    * The actual println implementation.
    *
@@ -67,12 +99,16 @@ public class Debug {
    * @param str the message to print.
    */
   static void println(final String str) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  println0(str);
-	  return null;
-	}
-      });
+    if (!isInside()) {
+      AccessController.doPrivileged(new PrivilegedAction() {
+	  public Object run() {
+	    inside(true);
+	    println0(str);
+	    inside(false);
+	    return null;
+	  }
+	});
+    }
   }
 
   /**
@@ -100,12 +136,16 @@ public class Debug {
    * @param t   the throwable to print a stack trace for.
    */
   static void printStackTrace(final String str, final Throwable t) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-	public Object run() {
-	  printStackTrace0(str,t);
-	  return null;
-	}
-      });
+    if (!isInside()) {
+      AccessController.doPrivileged(new PrivilegedAction() {
+	  public Object run() {
+	    inside(true);
+	    printStackTrace0(str,t);
+	    inside(false);
+	    return null;
+	  }
+	});
+    }
   }
 
 }

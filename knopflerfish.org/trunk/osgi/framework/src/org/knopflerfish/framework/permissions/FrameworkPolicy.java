@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.lang.reflect.Method;
 import java.net.*;
 import java.security.*;
 
@@ -60,100 +59,35 @@ class FrameworkPolicy extends Policy {
 
   private PermissionsHandle ph;
 
+
+  /**
+   */
   FrameworkPolicy(Policy policy, PermissionsHandle ph) {
     this.defaultPolicy = policy;
     this.ph = ph;
-  }
-
-  //
-  // Policy methods
-  //
-  /** The Policy.implies(ProtectionDomain,Permission) method if running
-   *  in JDK 1.4 or above. */
-  private static Method impliesPDPermMethod;
-  /** The Policy.getPermissions(ProtectionDomain) method if running
-   *  in JDK 1.4 or above. */
-  private static Method getPermissionsPDMethod;
-  static {
-    try {
-      impliesPDPermMethod = Policy.class
-        .getDeclaredMethod("implies",
-                           new Class[] {ProtectionDomain.class,
-                                        Permission.class});
-      getPermissionsPDMethod = Policy.class
-        .getDeclaredMethod("getPermissions",
-                           new Class[] {ProtectionDomain.class});
-    } catch (NoSuchMethodException ignore) {
-      impliesPDPermMethod    = null;
-      getPermissionsPDMethod = null;
-    }
-  }
-
-  /**
-   * If the method Policy#getPermissions(ProtectionDomain pd) is
-   * available use it on the <tt>defaultPolicy</tt> object, otherwise
-   * return an empty permission collection.
-   *
-   * @param policy the policy object to use.
-   * @param pd     the protection domain to ask about.
-   * @return The permissions for the given protection domain.
-   */
-  private boolean implies0(Policy policy,
-                           ProtectionDomain pd,
-                           Permission permission) {
-    if (null!=impliesPDPermMethod) {
-      try {
-        return ((Boolean)
-          impliesPDPermMethod.invoke(policy,
-                                     new Object[] {pd, permission})
-                ).booleanValue();
-      } catch (Exception e) {
-      }
-    }
-    return false;
-  }
-
-  /**
-   * If the method Policy#getPermissions(ProtectionDomain pd) is
-   * available use it on the <tt>defaultPolicy</tt> object, otherwise
-   * return an empty permission collection.
-   *
-   * @param policy the policy object to use.
-   * @param pd     the protection domain to ask about.
-   * @return The permissions for the given protection domain.
-   */
-  private PermissionCollection getPermissions0(Policy policy,
-                                               ProtectionDomain pd) {
-    if (null!=getPermissionsPDMethod) {
-      try {
-        return (PermissionCollection)
-          getPermissionsPDMethod.invoke(policy,
-                                        new Object[] {pd});
-      } catch (Exception e) {
-      }
-    }
-    return new Permissions();
   }
 
 
   // Delegate to the wrapped defaultPolicy for all non-bundle domains.
   public PermissionCollection getPermissions(ProtectionDomain pd) {
     if (null==pd)
-      return getPermissions0(defaultPolicy, pd);
+      return defaultPolicy.getPermissions(pd);
 
     CodeSource cs = pd.getCodeSource();
     if (null==cs)
-      return getPermissions0(defaultPolicy, pd);
+      return defaultPolicy.getPermissions(pd);
 
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       return getPermissions(cs);
     } else {
-      return getPermissions0(defaultPolicy, pd);
+      return defaultPolicy.getPermissions(pd);
     }
   }
 
 
+  /**
+   */
   public PermissionCollection getPermissions(CodeSource cs) {
     if (null==cs) {
       // Not a code source for a bundle, delegate to the default policy
@@ -174,23 +108,29 @@ class FrameworkPolicy extends Policy {
     }
   }
 
-  public boolean implies(ProtectionDomain pd, Permission p) {
-    if (null==pd)
-      return implies0(defaultPolicy,pd,p);
 
-    CodeSource cs = pd.getCodeSource();
-    if (null==cs)
-      return implies0(defaultPolicy,pd,p);
-
-    URL u = cs.getLocation();
+  /**
+   */
+  public boolean implies(final ProtectionDomain pd, final Permission p) {
+    // NYI! Optimize here for framework.jar + bootclasses?
+    CodeSource cs = null == pd ? pd.getCodeSource() : null;
+    URL u = null != cs ? cs.getLocation() : null;
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       PermissionCollection pc = getPermissions(cs);
       return (pc == null) ? false : pc.implies(p);
     } else {
-      return implies0(defaultPolicy,pd,p);
+      Boolean res = (Boolean)AccessController.doPrivileged(new PrivilegedAction() {
+	  public Object run() {
+	    return new Boolean(defaultPolicy.implies(pd, p));
+	  }
+	});
+      return res.booleanValue();
     }
   }
 
+
+  /**
+   */
   public void refresh() {
     // A bundle permissions is allways up to date, but we must
     // propagate to the wrapped defaultPolicy.

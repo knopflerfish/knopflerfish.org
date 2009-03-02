@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,7 @@ import java.io.*;
 import java.net.URL;
 import java.security.*;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.*;
 
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
@@ -51,6 +47,9 @@ import org.knopflerfish.framework.Framework;
 import org.knopflerfish.framework.Util;
 
 
+/**
+ *
+ */
 public class PermissionsHandle {
 
   Framework framework;
@@ -62,13 +61,16 @@ public class PermissionsHandle {
   private ConditionalPermissionAdminImpl cpa;
 
 
+  /**
+   *
+   */
   public PermissionsHandle(Framework fw) {
     framework = fw;
     pinfos = new PermissionInfoStorage();
     pa = new PermissionAdminImpl(pinfos);
     //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
     if (System.getSecurityManager() instanceof SecurityManager) {
-      cpinfos = new ConditionalPermissionInfoStorage();
+      cpinfos = new ConditionalPermissionInfoStorage(this);
       cpa = new ConditionalPermissionAdminImpl(cpinfos);
     } else {
       cpinfos = null;
@@ -150,6 +152,15 @@ public class PermissionsHandle {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Get itertor over all active PermissionWrappers.
+   *
+   * @return Iterator of PermissionWrappers
+   */
+  Iterator getPermissionWrappers() {
+    return pcCache.values().iterator();
   }
 
 }

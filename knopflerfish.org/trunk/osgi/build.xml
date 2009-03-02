@@ -156,6 +156,8 @@
 	 overwrite="true"/>
    <replace file="${xargs.out.dir}/init-osgi-test-target.xargs"
 	    replacefilterfile="${bundleVersionFilter}">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
    </replace>	  
   </target>
 
@@ -271,7 +273,7 @@
          description="(Re)start framework with security enabled.">
   <java fork="true"
         jar="framework.jar">
-    <jvmarg value="-Djava.security.manager"/>
+    <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
     <jvmarg value="-Djava.security.policy=framework.policy"/>
   </java>
  </target>
@@ -288,7 +290,7 @@
          description="Initial start with security enabled and default set of bundles.">
    <java fork="true"
          jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-init"/>
    </java>
@@ -309,7 +311,7 @@
 	classname="org.knopflerfish.framework.Main">
     <classpath path="../../osgi/tck-4.0.1/testcond.jar"/>
     <classpath path="./framework.jar"/>
-    <jvmarg value="-Djava.security.manager"/>
+    <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
     <jvmarg value="-Djava.security.policy=file:framework.policy"/>
     <arg line="-xargs init-osgi-test-target.xargs"/>
   </java>
@@ -378,7 +380,7 @@
 	 output="junit_grunt/out.txt"
 	 append="false"
 	 jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-xargs"/>
      <arg value="init-tests.xargs"/>
@@ -389,7 +391,7 @@
 	 output="junit_grunt/out.txt"
 	 append="true"
          jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-xargs"/>
      <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
@@ -400,7 +402,7 @@
 	 output="junit_grunt/out.txt"
 	 append="true"
 	 jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-xargs"/>
      <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
@@ -411,7 +413,7 @@
 	 output="junit_grunt/out.txt"
 	 append="true"
 	 jar="framework.jar">
-     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-xargs"/>
      <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
