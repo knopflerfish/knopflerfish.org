@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,23 +32,53 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework;
+package org.knopflerfish.framework.permissions;
 
-import org.osgi.framework.Bundle;
-import org.osgi.service.condpermadmin.Condition;
-import org.osgi.service.condpermadmin.ConditionInfo;
+import java.security.*;
+import java.util.List;
 
-  // TBD: Placeholder untill we implement ConditionalPermissionAdmin
 
-  // This class / method  is used by
-  // org.osgi.service.condpermadmin.BundleSignerCondition when the
-  // sytem property org.osgi.vendor.condpermadmin is set to
-  // org.knopflerfish.framework
+public class KFSecurityManager
+  extends SecurityManager
+  implements ConditionalPermissionSecurityManager {
 
-public class BundleSignerCondition {
+  private final ThreadLocal postponementCheck = new ThreadLocal();
 
-  static public Condition getCondition(Bundle bundle, ConditionInfo info) {
-    return null;
+
+  /**
+   */
+  public void checkPermission(Permission perm, Object context) {
+    if (!(context instanceof AccessControlContext)) {
+      throw new SecurityException("context not an AccessControlContext");
+    }
+    PostponementCheck old = (PostponementCheck) postponementCheck.get();
+    PostponementCheck pc = new PostponementCheck((AccessControlContext) context, perm, old);
+    postponementCheck.set(pc);
+    try {
+      AccessController.doPrivileged(pc);
+    } finally {
+      postponementCheck.set(old);
+    }
+  }
+
+
+  /**
+   */
+  public void checkPermission(Permission perm) {
+    checkPermission(perm, getSecurityContext());
+  }
+
+
+  /**
+   * NYI! Think about security here!
+   */
+  public void savePostponement(List postponement) {
+    PostponementCheck pc = (PostponementCheck) postponementCheck.get();
+    if (pc == null) {
+      Debug.printStackTrace("Should not happen!? How did we get here", new Throwable());
+      // NYI! When can this happen, What to do
+    }
+    pc.savePostponement(postponement);
   }
 
 }

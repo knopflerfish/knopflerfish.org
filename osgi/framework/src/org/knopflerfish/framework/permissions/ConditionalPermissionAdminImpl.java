@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ import org.osgi.service.condpermadmin.*;
  * Framework service to administer Conditional Permissions. Conditional
  * Permissions can be added to, retrieved from, and removed from the framework.
  * 
- * @version $Revision: 1.13 $
  */
 public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmin {
 

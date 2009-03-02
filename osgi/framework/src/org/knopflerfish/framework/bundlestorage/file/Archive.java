@@ -38,14 +38,11 @@ import org.knopflerfish.framework.*;
 import org.osgi.framework.*;
 import java.io.*;
 import java.net.*;
-import java.security.cert.Certificate;
-import java.util.Enumeration;
-import java.util.StringTokenizer;
-import java.util.Iterator;
-import java.util.Vector;
+import java.security.cert.*;
+import java.util.*;
 import java.util.jar.*;
 import java.util.zip.*;
-import java.util.Hashtable;
+
 
 /**
  * JAR file handling.
@@ -114,7 +111,7 @@ class Archive {
   private ZipFile jar;
 
 
-  private String location;
+  final private String location;
 
   /**
    * Certificates for this archive.
@@ -245,23 +242,7 @@ class Archive {
             }
           }
         }
-        if (certs != null) {
-          if (!trustedStorage) {
-            // TBD? Which exception to use?
-            throw new IOException("Framework storage must be trusted we want to unpack bundle.");
-          }
-          if (foundUnsigned) { 
-            // TBD? Which exception to use?
-            throw new IOException("All entry must be signed in a signed bundle.");
-          }
-          if (certs.length == 0) { 
-            // TBD? Which exception to use?
-            throw new IOException("All entry must be signed by a common certificate.");
-          }
-        } else if (allSigned && foundUnsigned) {
-          // TBD? Which exception to use?
-          throw new IOException("Install requires signed bundle.");
-        }
+	certs = checkCertificates(certs, foundUnsigned);
         jar = null;
       } 
     }
@@ -970,20 +951,57 @@ class Archive {
 	}
       }
     }
+    checkCertificates(certs, foundUnsigned);
+    return manifest;
+  }
+
+
+  /**
+   * Check that certificates are valid:
+   * 
+   */
+  private Certificate [] checkCertificates(Certificate [] certs, boolean foundUnsigned)
+    throws IOException {
+    Certificate [] res = null;
     if (certs != null) {
       if (foundUnsigned) { 
-	// TBD? Which exception to use?
-	throw new IOException("All entry must be signed in a signed bundle.");
+	// NYI! Log, ("All entry must be signed in a signed bundle.");
+      } else if (certs.length == 0) { 
+	// NYI! Log ("All entry must be signed by a common certificate.");
+      } else {
+	int ok = 0;
+	for (int i = 0; i < certs.length; i++) {
+	  if (certs[i] instanceof X509Certificate) {
+	    try {
+	      ((X509Certificate)certs[i]).checkValidity();
+	      // NYI! Check cert chain
+	      ok++;
+	    } catch (Exception ignore) {
+	      certs[i] = null;
+	    }	  
+	  } else {
+	    // Certificate type not handled remove.
+	    certs[i] = null;
+	  }
+	}
+	if (ok == certs.length) {
+	  res = certs;
+	} else if (ok > 0) {
+	  res = new Certificate[ok];
+	  int j = 0;
+	  for (int i = 0; i < certs.length; i++) {
+	    if (certs[i] != null) {
+	      res[j++] = certs[i];
+	    }
+	  }
+	}
       }
-      if (certs.length == 0) { 
-	// TBD? Which exception to use?
-	throw new IOException("All entry must be signed by a common certificate.");
-      }
-    } else if (allSigned && foundUnsigned) {
-      // TBD? Which exception to use?
-      throw new IOException("All bundles must be signed.");
     }
-    return manifest;
+    if (res == null && allSigned) {
+      // TBD? Which exception to use?
+      throw new IOException("Install requires signed bundle.");
+    }
+    return res;
   }
 
 

@@ -216,6 +216,10 @@ Framework System Properties
      Print debug information about class patching
      Default: false
 
+   org.knopflerfish.framework.debug.permissions
+     Print debug information about permission evaluation.
+     Default: false
+
    org.knopflerfish.framework.ldap.nocache
      Disable LDAP caching for simple filters. LDAP caching
      speeds up framework filters considerably, but uses
@@ -338,6 +342,8 @@ Framework System Properties
      Class name of security manager. If set to empty string, uses
      "java.lang.SecurityManager". If unset, do not use any security
      manager.
+     To use postponement features in Conditional Permission you need
+     to set is to "org.knopflerfish.framework.permissions.KFSecurityManager".
 
      Default: unset
 
@@ -355,14 +361,9 @@ Framework System Properties
      Default: true
 
 
-   org.knopflerfish.osgi.r3.testcompliant
-     If set to "true", make sure that all test in the OSGi R3 test 
+   org.knopflerfish.framework.tck401compat
+     If set to "true", make sure that all test in the OSGi R4.0.1 test 
      suite pass, even if the tests are buggy and break the spec itself.
-
-     This affects some very special (due to bugs in the test) handling 
-     of filters and conflict between the spec concerning CM and the actual
-     tests. Bundles knowning abouth these conflicts should check the 
-     testcompliant flag and act appropiately.
     
      Default: false. 
      Default is a Good Thing since it means follow the spec, not the 

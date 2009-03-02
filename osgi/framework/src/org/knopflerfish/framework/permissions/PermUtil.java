@@ -49,6 +49,7 @@ class PermUtil {
     if (out == null) {
       out = new StringBuffer();
     }
+    out.append('"');
     int len = str.length();
     for (int i = 0; i < len; i++) {
       char c = str.charAt(i);
@@ -68,6 +69,7 @@ class PermUtil {
 	break;
       }
     }
+    out.append('"');
     return out;
   }
 

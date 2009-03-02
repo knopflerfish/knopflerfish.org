@@ -63,7 +63,7 @@ import org.osgi.framework.*;
  * @author Mats-Ola Persson
  */
 
-class BundleImpl implements Bundle {
+public class BundleImpl implements Bundle {
 
   /**
    * Union of flags allowing bundle package access.
@@ -963,6 +963,15 @@ class BundleImpl implements Bundle {
    */
   public String getSymbolicName() {
     return symbolicName;
+  }
+
+
+  /**
+   * Get protection domain for bundle. Used by BundleSignerCondition.
+   */
+  public ProtectionDomain getProtectionDomain() {
+    secure.checkGetProtectionDomain();
+    return protectionDomain;
   }
 
 

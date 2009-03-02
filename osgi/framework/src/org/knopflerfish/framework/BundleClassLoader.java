@@ -305,22 +305,20 @@ final public class BundleClassLoader extends ClassLoader {
         return bootDelegationCls;
       } catch (ClassNotFoundException e) { }
     }
-    if (secure.okClassAdminPerm(bpkgs.bundle)) {
-      String path;
-      String pkg;
-      int pos = name.lastIndexOf('.');
-      if (pos != -1) {
-        path = name.replace('.', '/');
-        pkg = name.substring(0, pos);
-      } else {
-        path = name;
-        pkg = null;
-      }
-      Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class",
-                                              classSearch, true, this, null);
-      if (res != null) {
-        return res;
-      }
+    String path;
+    String pkg;
+    int pos = name.lastIndexOf('.');
+    if (pos != -1) {
+      path = name.replace('.', '/');
+      pkg = name.substring(0, pos);
+    } else {
+      path = name;
+      pkg = null;
+    }
+    Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class",
+					    classSearch, true, this, null);
+    if (res != null) {
+      return res;
     }
 
     if(!STRICTBOOTCLASSLOADING) {
@@ -328,7 +326,7 @@ final public class BundleClassLoader extends ClassLoader {
         if(debug) {
           Debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
         }
-        Class res = parent.loadClass(name);
+	res = parent.loadClass(name);
         if(res != null) {
           if(debug) {
             Debug.println(this + " loaded " + name + " from " + parent);
