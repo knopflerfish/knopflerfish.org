@@ -76,7 +76,7 @@
              locale   = "en"/>
     </tstamp>
 
-    <property name="fw.impl.version" value="4.0.16"/>
+    <property name="fw.impl.version" value="4.1.0"/>
 
     <echo message="${fw.impl.version}"  file="resources/version"/>
     <echo message="${framework.tstamp}" file="resources/tstamp"/>
