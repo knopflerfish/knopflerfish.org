@@ -73,6 +73,7 @@ import java.util.LinkedHashMap;
 import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -118,6 +119,9 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import java.util.prefs.Preferences;
 import javax.swing.ToolTipManager;
 
@@ -232,6 +236,8 @@ public class Desktop
 
   static Desktop theDesktop;
 
+  Set sizesavers = new HashSet();
+
   public Desktop() {
     theDesktop = this;
   }
@@ -340,23 +346,39 @@ public class Desktop
 
 
     contentPane = frame.getContentPane();
-
     contentPane.setLayout(new BorderLayout());
-    contentPane.setSize(new Dimension(800, 450));
+
+    SizeSaver ss = new SizeSaver("top", new Dimension(900, 600), -1);
+
+    ss.attach(frame);
+    sizesavers.add(ss);
 
     bundlePanel = new JCardPane();
-    bundlePanel.setPreferredSize(new Dimension(400, 300));
+    // bundlePanel.setPreferredSize(new Dimension(400, 300));    
 
     toolBar       = makeToolBar();
 
 
     detailPanel   = new JTabbedPane();
-
-    detailPanel.setPreferredSize(new Dimension(400, 300));
+    // detailPanel.setPreferredSize(new Dimension(400, 300));
 
     detailPanel.setTabPlacement(JTabbedPane.BOTTOM);
 
     detailPanel.setBorder(null);
+
+    detailPanel.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+          for(Iterator it = detailMap.keySet().iterator(); it.hasNext();) {
+            ServiceReference sr = (ServiceReference)it.next();            
+            Object obj = detailMap.get(sr);
+
+            if(obj instanceof DefaultSwingBundleDisplayer) {
+              
+              ((DefaultSwingBundleDisplayer)obj).setTabSelected();
+            }
+          }
+        }
+      });
 
     //    displayHTML = new BundleInfoDisplayerHTML(this);
 
@@ -369,7 +391,13 @@ public class Desktop
                                     bundlePanel,
                                     detailPanel);
 
-    splitPaneHoriz.setDividerLocation(bundlePanel.getPreferredSize().width);
+    ss = new SizeSaver("splitPaneHoriz", 
+                       null, // new Dimension(700, 400), 
+                       350); 
+    ss.attach(splitPaneHoriz);
+    sizesavers.add(ss);
+    // splitPaneHoriz.setDividerLocation(bundlePanel.getPreferredSize().width);
+
     splitPaneHoriz.setOneTouchExpandable(false);
 
 
@@ -380,7 +408,13 @@ public class Desktop
                                splitPaneHoriz,
                                consoleWrapper);
 
-    splitPane.setDividerLocation(300);
+    ss = new SizeSaver("splitPaneVertical", 
+                       null, // new Dimension(800, 600), 
+                       300);
+    ss.attach(splitPane);
+    sizesavers.add(ss);
+
+    // splitPane.setDividerLocation(300);
     splitPane.setOneTouchExpandable(false);
 
 
@@ -610,8 +644,6 @@ public class Desktop
           } else {
             Activator.log.warn("No version line");
           }
-          // System.out.println("read " + notes);
-
         } catch (Exception e) {
           Activator.log.warn("Failed to read update info", e);
         }
@@ -965,12 +997,6 @@ public class Desktop
 
     if(levelBox != null) {
       DefaultComboBoxModel model = new DefaultComboBoxModel(levelItems);
-      /*
-      if(selObj != null) {
-        System.out.println("model with selected " + selObj);
-        model.setSelectedItem(selObj);
-      }
-      */
       levelBox.setModel(model);
     }
   }
@@ -1944,10 +1970,8 @@ public class Desktop
 
         if(jarunpackerURL != null) {
           jarunpacker_in = jarunpackerURL.openStream();
-          //          System.out.println("using local jarunpacker");
         } else if(jarunpackerFile.exists()) {
           jarunpacker_in = new FileInputStream(jarunpackerFile);
-          //          System.out.println("using file jarunpacker");
         }
 
         if(jarunpacker_in != null) {
@@ -2093,7 +2117,7 @@ public class Desktop
           try { jar_in.close();  } catch (Exception ignored) {  }
         }
       } else {
-        System.out.println("No jarunpacker available");
+        Activator.log.warn("No jarunpacker available");
       }
       // end of jarunpacker copy
 
@@ -2393,6 +2417,12 @@ public class Desktop
   }
 
   public void stop() {
+    for(Iterator it = sizesavers.iterator(); it.hasNext(); ) {
+      SizeSaver ss = (SizeSaver)it.next();
+      ss.detach();
+    }
+    sizesavers.clear();
+
     if(tips != null) {
       tips.setVisible(false);
       tips = null;
@@ -2510,7 +2540,7 @@ public class Desktop
                  "\n</pre>");
 
     final JScrollPane scroll = new JScrollPane(html);
-    scroll.setPreferredSize(new Dimension(500, 300));
+    // scroll.setPreferredSize(new Dimension(500, 300));
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JViewport vp = scroll.getViewport();
@@ -2547,7 +2577,7 @@ public class Desktop
     html.setText(Util.getSystemInfo());
 
     final JScrollPane scroll = new JScrollPane(html);
-    scroll.setPreferredSize(new Dimension(420, 300));
+    // scroll.setPreferredSize(new Dimension(420, 300));
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JViewport vp = scroll.getViewport();

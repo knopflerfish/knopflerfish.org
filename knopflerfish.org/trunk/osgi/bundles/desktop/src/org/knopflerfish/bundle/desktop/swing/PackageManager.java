@@ -136,7 +136,6 @@ public class PackageManager  {
         set.add(pkgName);
       }
     }
-    // System.out.println(v + "->" + set.size() + " = " + set);
     return set;
   }
 
@@ -171,7 +170,6 @@ public class PackageManager  {
   protected boolean accept(ExportedPackage pkg) {
     if(packageFilter != null) {
       boolean b = packageFilter.accept(pkg);
-      // System.out.println("filter said " + b + " on " + pkg.getName());
       return b;
     } else {
       return true;
@@ -261,9 +259,6 @@ public class PackageManager  {
       }
       
       long t1 = System.currentTimeMillis();
-      if(t1 - t0 > 10000) {
-        System.out.println("PM.refresh took " + (t1-t0) + "ms");
-      }
     }
   }
 

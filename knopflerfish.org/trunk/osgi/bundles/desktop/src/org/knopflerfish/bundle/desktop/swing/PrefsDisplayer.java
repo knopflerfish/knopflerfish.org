@@ -107,7 +107,7 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
       });
   }
 
-  public void valueChanged(long  bid) {
+  public void valueChangedLazy(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
     
     for(Iterator it = components.iterator(); it.hasNext(); ) {
@@ -144,7 +144,12 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
 
       editor = new JPrefsEditor();
 
-      mountBundles(Activator.desktop.getSelectedBundles());
+      if(Activator.desktop != null) {
+        Bundle[] bl = Activator.desktop.getSelectedBundles();
+        if(bl != null) {
+          mountBundles(bl);
+        }
+      }
       
       editor.setEditable(true);
       editor.getJPrefsTree().setRootVisible(false);
