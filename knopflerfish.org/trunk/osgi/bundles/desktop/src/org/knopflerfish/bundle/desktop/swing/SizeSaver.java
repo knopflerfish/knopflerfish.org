@@ -48,6 +48,7 @@ public class SizeSaver extends ComponentAdapter {
   public static final String KEY_Y        = "y";
   public static final String KEY_WIDTH    = "width";
   public static final String KEY_HEIGHT   = "height";
+  public static final String KEY_STATE    = "state";
   public static final String KEY_SPLITPOS = "splitpos";
 
   public static final String NODE_NAME    = "sizes";
@@ -90,6 +91,13 @@ public class SizeSaver extends ComponentAdapter {
     Preferences prefs = getPrefs();
 
     if(comp instanceof JFrame) {
+      Toolkit tk = Toolkit.getDefaultToolkit();
+      if(tk.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
+         tk.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
+         tk.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
+        int state = prefs.getInt(KEY_STATE, Frame.NORMAL);
+        ((Frame)comp).setExtendedState(state);
+      }
       int x = prefs.getInt(KEY_X, 0);
       int y = prefs.getInt(KEY_Y, 0);
       // System.out.println("attach " + id + " pos=" + x + ", " + y);
@@ -179,6 +187,15 @@ public class SizeSaver extends ComponentAdapter {
         // System.out.println(id + ": store pos " + p);
         prefs.put(KEY_X, Integer.toString((int)p.getX()));
         prefs.put(KEY_Y, Integer.toString((int)p.getY()));
+
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        if(tk.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
+           tk.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
+           tk.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
+          int state = ((Frame)comp).getExtendedState();
+          prefs.put(KEY_STATE, Integer.toString(state));
+        }
+
       }
 
       // System.out.println(id + ": store " + size);    
