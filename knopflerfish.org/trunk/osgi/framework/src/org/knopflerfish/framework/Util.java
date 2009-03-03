@@ -182,7 +182,10 @@ public class Util {
                                                // param names...
         String key = at.getKey();
         if (key == null) {
-          throw new IllegalArgumentException("Definition, " + a + ", expected key at: " + at.getRest());
+          throw new IllegalArgumentException
+            ("Definition, " + a + ", expected key at: " + at.getRest()
+             +". Key values are terminated by a ';' or a ',' and may not "
+             +"contain ':', '='.");
         }
         if (!single) {
           keys.add(key);

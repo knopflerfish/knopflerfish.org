@@ -16,16 +16,17 @@
   <property name="topdir"       location="${proj.dir}/../.."/>
 
   <!-- Pattern that must match all private code to be included in     -->
-  <!-- the bundle. Used when compiling, and when packing the          -->
-  <!-- impl-, all- variant of the bundle.                             -->
+  <!-- the bundle. The value may contain several comma separated      -->
+  <!-- patterns. Used when compiling, and when packing the impl-,     -->
+  <!-- all- variant of the bundle.                                    -->
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/httptest/**"/>
 
   <!-- Pattern that must match all exported (API) code to be included -->
-  <!-- in the bundle. Used when compiling, and when packing the       -->
-  <!-- api-, lib-, and all- variant of the bundle. Also used to       -->
-  <!-- derive the Export-Package manifest header if not explicitly    -->
-  <!-- given.                                                         -->
+  <!-- in the bundle. The value may contain several comma separated   -->
+  <!-- patterns. Used when compiling, and when packing the api-,      -->
+  <!-- lib-, and all- variant of the bundle. Also used to derive the  -->
+  <!-- Export-Package manifest header if not explicitly given.        -->
 <!--
   <property name  = "api.pattern"
             value = "org/knopflerfish/service/http/**"/>
