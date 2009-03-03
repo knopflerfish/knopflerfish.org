@@ -47,7 +47,6 @@ public class JPackageView extends JSoftGraphBundle {
   }
   
   void bundleChanged() {
-    // System.out.println("bundleChanged");
   }
 
   public void close() {        

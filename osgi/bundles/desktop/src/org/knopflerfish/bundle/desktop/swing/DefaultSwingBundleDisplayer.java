@@ -222,10 +222,31 @@ public abstract class DefaultSwingBundleDisplayer
 
   protected boolean bInValueChanged = false;
 
-  public void valueChanged(long bid) {
-    //    System.out.println(getClass().getName() + ".valueChanged " + (b != null ? ("#" + b.getBundleId()) : "null"));
+  public void valueChangedLazy(long bid) {
     repaintComponents();
   }
+
+  long lastBID = -1;
+  public void valueChanged(long bid) {
+    boolean bHasVisible = false;
+    for(Iterator it = components.iterator(); it.hasNext(); ) {
+      JComponent comp = (JComponent)it.next();
+      if(comp.isVisible() && comp.isShowing()) {
+        bHasVisible = true;
+        break;
+      }
+    }
+    lastBID = bid;
+
+    if(bHasVisible) {
+      valueChangedLazy(bid);
+    }
+  }
+  
+  public void setTabSelected() {
+    valueChangedLazy(lastBID);
+  }
+
 
   // BundleListener interface, only called when bUseListeners = true
   public void bundleChanged(BundleEvent ev) {
@@ -258,10 +279,12 @@ public abstract class DefaultSwingBundleDisplayer
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           for(Iterator it = components.iterator(); it.hasNext(); ) {
-            Object comp = it.next();
-            if(comp instanceof JHTMLBundle) {
-              JHTMLBundle jhtml = (JHTMLBundle)comp;
-              jhtml.valueChanged(bl);
+            JComponent comp = (JComponent)it.next();
+            if(comp.isVisible()) {
+              if(comp instanceof JHTMLBundle) {
+                JHTMLBundle jhtml = (JHTMLBundle)comp;
+                jhtml.valueChanged(bl);
+              }
             }
           }
         }          
@@ -304,7 +327,6 @@ public abstract class DefaultSwingBundleDisplayer
 
     getAllBundles();
 
-    //    System.out.println("createJComponent " + comp);
     return comp;
   }
 
@@ -315,7 +337,6 @@ public abstract class DefaultSwingBundleDisplayer
   void repaintComponents() {
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JComponent comp = (JComponent)it.next();
-      //      System.out.println("repaint "+ comp.getClass().getName());
       comp.invalidate();
       comp.repaint();
     }

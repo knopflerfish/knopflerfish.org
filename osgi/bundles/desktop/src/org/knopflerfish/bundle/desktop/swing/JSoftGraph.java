@@ -289,9 +289,6 @@ public abstract class JSoftGraph extends JPanel {
         }
       }
     }
-    if(bPrint) {
-      System.out.println("nothing near " + mp + ", mouseObject=" + mouseObject);
-    }
     return minNode;
     
   }
@@ -407,7 +404,6 @@ public abstract class JSoftGraph extends JPanel {
     Map newNodePos  = new HashMap();
     
     int nAdds = 0;
-    // System.out.println("curr.size=" + currentLinkMap.size());
     for(Iterator it = currentLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
@@ -417,14 +413,10 @@ public abstract class JSoftGraph extends JPanel {
       if(!allLinkMap.containsKey(link)) {
         allLinkMap.put(link, link);
         nAdds++;
-      } else {
-        // System.out.println(" skip current " + link.toString());
       }
     }
-    // System.out.println("nAdds=" + nAdds);
     
     nAdds = 0;
-    // System.out.println("new.size=" + currentLinkMap.size());
     for(Iterator it = newLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
@@ -434,11 +426,8 @@ public abstract class JSoftGraph extends JPanel {
       if(!allLinkMap.containsKey(link)) {
         allLinkMap.put(link, link);
         nAdds++;
-      } else {
-        // System.out.println(" skip new " + link.toString());
       }
     }
-    // System.out.println("nAdds=" + nAdds);
     
     
     for(Iterator it = allLinkMap.keySet().iterator(); it.hasNext(); ) {

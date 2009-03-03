@@ -203,7 +203,7 @@ public class Activator implements BundleActivator {
 
   void openDesktop() {
     if(desktop != null) {
-      System.out.println("openDesktop: desktop already open");
+      Activator.log.warn("openDesktop: desktop already open");
       return;
     }
 

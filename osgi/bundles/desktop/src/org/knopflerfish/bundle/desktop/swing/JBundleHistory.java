@@ -217,7 +217,6 @@ public class JBundleHistory extends JPanel {
       double fx = (double)width / icon.getIconWidth();
       double fy = (double)height / icon.getIconHeight();
       
-      // System.out.println("paint #" + b.getBundleId() + ", " + width + "x" + height + ", " + fx + "x" + fy);
       AffineTransform oldTrans = g.getTransform();
       g.scale(fx, fy);
 

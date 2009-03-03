@@ -178,7 +178,6 @@ public abstract class JHTMLBundle extends JPanel  {
 			  historyFwd.add(new Long(getCurrentBID()));
 			}
 
-			//			System.out.println("back to " + bid);
 			gotoBid(bid.longValue());
 		      }
 		      backButton.setEnabled(historyBack.size() > 0);
@@ -201,7 +200,6 @@ public abstract class JHTMLBundle extends JPanel  {
 			  historyBack.add(new Long(getCurrentBID()));
 			}
 
-			//			System.out.println("fwd to " + bid);
 			gotoBid(bid.longValue());
 		      }
 		      backButton.setEnabled(historyBack.size() > 0);
@@ -463,8 +461,6 @@ public abstract class JHTMLBundle extends JPanel  {
   public void valueChanged(Bundle[] bl) {
     StringBuffer sb = new StringBuffer("<html>\n");
     
-    //    System.out.println("valueChanged bl=" + (bl != null ? ("#" + bl.length) : "null"));
-    
     if(bl == null || bl.length == 0) {
       sb.append("<html>\n");
       sb.append("<table border=\"0\">\n");
@@ -488,8 +484,6 @@ public abstract class JHTMLBundle extends JPanel  {
 	  //	  return;
 	}
       }
-
-      //      System.out.println("new bundle " + bl[0].getBundleId());
 
       setCurrentBID(bl[0].getBundleId());
 

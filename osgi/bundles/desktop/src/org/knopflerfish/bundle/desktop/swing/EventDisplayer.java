@@ -108,8 +108,6 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
       props.put(EventConstants.EVENT_TOPIC,  new String[] { "*" });
       reg = bc.registerService(EventHandler.class.getName(), eventHandler, props);
     }
-
-    // System.out.println("****** open: " + eventModel + ", " + eventModel.getDispatcher());
   }
 
 
