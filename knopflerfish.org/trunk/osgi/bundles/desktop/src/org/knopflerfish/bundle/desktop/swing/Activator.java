@@ -168,8 +168,8 @@ public class Activator implements BundleActivator {
   public void start(BundleContext _bc) {
     try { 
       // try to move Mac OS menu bar
-      if(null == System.getProperty("com.apple.macos.useScreenMenuBar")) {
-        System.setProperty("com.apple.macos.useScreenMenuBar","true"); 
+      if(null == System.getProperty("apple.laf.useScreenMenuBar")) {
+        System.setProperty("apple.laf.useScreenMenuBar","true"); 
       }
       // try to enable swing antialiased text
       if(null == System.getProperty("swing.aatext")) {
