@@ -85,7 +85,9 @@ public class SizeSaver extends ComponentAdapter {
     if(size != null) {
       // System.out.println("attach " + id + " size=" + size);
       comp.setSize(size);
-      comp.setPreferredSize(size);
+      if(comp instanceof JComponent) {
+        ((JComponent)comp).setPreferredSize(size);
+      }
     }
 
     Preferences prefs = getPrefs();
