@@ -85,6 +85,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.lang.reflect.Constructor;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractAction;
@@ -231,9 +232,6 @@ public class Desktop
 
   JButton viewSelection;
 
-  static Point     frameLocation = null;
-  static Dimension frameSize     = null;
-
   static Desktop theDesktop;
 
   Set sizesavers = new HashSet();
@@ -260,6 +258,8 @@ public class Desktop
   Map displayMap = new TreeMap(referenceComparator);
   Map menuMap    = new HashMap();
   Map detailMap  = new HashMap();
+
+  Object macApp;
 
   public void start() {
 
@@ -342,6 +342,19 @@ public class Desktop
           stopFramework();
         }
       });
+
+    // If running on Mac OS, create eawt Application to catch Mac OS
+    // quit events
+    if(System.getProperty("mrj.version") != null) {   
+      try {
+        Class clazz = Class.forName("org.knopflerfish.bundle.desktop.swing.MacApp");
+        Constructor cons = clazz.getConstructor(new Class[] { Desktop.class });    
+        macApp = cons.newInstance(new Object[] { this });
+      } catch (Exception e) {
+        Activator.log.warn("Failed to make MacApp", e);
+      }
+    }
+
 
 
 
@@ -438,12 +451,6 @@ public class Desktop
     
     pm = new PackageManager(pkgTracker);
 
-    if(frameLocation != null) {
-      frame.setLocation(frameLocation);
-    }
-    if(frameSize != null) {
-      frame.setSize(frameSize);
-    }
     frame.setJMenuBar(menuBar = makeMenuBar());
 
 
@@ -451,7 +458,8 @@ public class Desktop
 
     setIcon(frame, "/kf_");
 
-    frame.pack();
+    // frame.pack() not used since SizeSaver(frame) does a setSize()
+    // frame.pack();
     frame.setVisible(true);
     frame.toFront();
 
@@ -1689,6 +1697,18 @@ public class Desktop
 
 
   public void stopFramework() {
+    if(SwingUtilities.isEventDispatchThread()) {
+      stopFramework0();
+    } else {
+      SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            stopFramework0();
+          }
+        });
+    }
+  }
+
+  protected void stopFramework0() {
 
     Object[] options = {Strings.get("yes"),
                         Strings.get("cancel")};
@@ -2427,8 +2447,6 @@ public class Desktop
       tips.setVisible(false);
       tips = null;
     }
-    frameLocation = frame.getLocationOnScreen();
-    frameSize     = frame.getSize();
 
     alive = false;
 
