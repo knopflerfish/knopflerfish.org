@@ -235,8 +235,14 @@ public class Desktop
   static Desktop theDesktop;
 
   Set sizesavers = new HashSet();
+  boolean bMacOS = false;
 
   public Desktop() {
+    try {
+      bMacOS = System.getProperty("mrj.version") != null;
+    } catch (Exception ignored) {
+    }
+
     theDesktop = this;
   }
 
@@ -345,13 +351,14 @@ public class Desktop
 
     // If running on Mac OS, create eawt Application to catch Mac OS
     // quit events
-    if(System.getProperty("mrj.version") != null) {   
+    if(bMacOS) {
       try {
         Class clazz = Class.forName("org.knopflerfish.bundle.desktop.swing.MacApp");
         Constructor cons = clazz.getConstructor(new Class[] { Desktop.class });    
         macApp = cons.newInstance(new Object[] { this });
       } catch (Exception e) {
         Activator.log.warn("Failed to make MacApp", e);
+        bMacOS = false;
       }
     }
 
@@ -1208,17 +1215,19 @@ public class Desktop
               }
             });
 
-          add(new JMenuItem("Quit framework...") {
-              {
-                setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
-                                                      mask));
-                setMnemonic(KeyEvent.VK_Q);
-                addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent ev) {
-                      stopFramework();
-                    }
-                  });
-              }});
+          if(!bMacOS) {
+            add(new JMenuItem("Quit framework...") {
+                {
+                  setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
+                                                        mask));
+                  setMnemonic(KeyEvent.VK_Q);
+                  addActionListener(new ActionListener() {
+                      public void actionPerformed(ActionEvent ev) {
+                        stopFramework();
+                      }
+                    });
+                }});
+          }
         }
       };
   }
