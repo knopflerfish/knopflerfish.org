@@ -698,6 +698,10 @@ class LogConfigImpl implements ManagedService, LogConfig {
                                                     IllegalArgumentException {
     String filter = null;
     Object obj = cfg.get(L_FILTER);
+    if (obj == null) {
+      throw new IllegalArgumentException(
+                                         "No log level given. Please supply a valid log level.");
+    }
     try {
       filter = ((String) obj).trim();
     } catch (ClassCastException cce) {
@@ -705,10 +709,6 @@ class LogConfigImpl implements ManagedService, LogConfig {
                                          "Wrong type supplied when attempting to set log level."
                                          + " Correct type to use is String. " + obj + " "
                                          + obj.getClass().getName());
-    }
-    if (filter == null) {
-      throw new IllegalArgumentException(
-                                         "No log level given. Please supply a valid log level.");
     }
     int filterVal = LogUtil.toLevel(filter, -1);
     if (filterVal == -1) {
