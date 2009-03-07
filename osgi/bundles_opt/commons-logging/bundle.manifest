@@ -14,7 +14,7 @@ Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-ContactAddress: http://www.knopflerfish.orgB
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles_opt/commons-logging/
-Bundle-Classpath: .,log_api-2.0.1.jar
+Bundle-Classpath: .
 Bundle-Activator: org.knopflerfish.bundle.commons.logging.Activator
 Export-Package: org.osgi.service.log;specification-version=1.2,
  org.knopflerfish.service.log;specification-version=1.1,

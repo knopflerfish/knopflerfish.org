@@ -44,7 +44,7 @@
       <pathelement location="${topdir}/jars/bundleEnd102_test-1.0.0.jar"/>
       <pathelement location="${topdir}/jars/bundleEnd151_test-1.0.0.jar"/>
       <pathelement location="${topdir}/jars/bundleEnd152_test-1.0.0.jar"/>
-      <pathelement location="${topdir}/lib/log_api-2.0.1.jar"/>
+      <pathelement location="${topdir}/lib/log_api-2.0.2.jar"/>
   </path>
 
   &test_include;

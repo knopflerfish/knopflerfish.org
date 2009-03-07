@@ -12,7 +12,7 @@
 
   <path id = "bundle.compile.path">
     <pathelement location="${topdir}/lib/event_api-2.0.1.jar"/>
-    <pathelement location="${topdir}/lib/log_api-2.0.1.jar"/>
+    <pathelement location="${topdir}/lib/log_api-2.0.2.jar"/>
   </path>
 
   &test_include;
