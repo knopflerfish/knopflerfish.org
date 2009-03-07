@@ -68,9 +68,14 @@ public class HttpUtil {
             new SimpleDateFormat("EEEEEE, dd-MMM-yy HH:mm:ss zzz", Locale.US),
             new SimpleDateFormat("EEE MMMM d HH:mm:ss yyyy", Locale.US) };
 
+    static boolean OLD_STYLE_ROOT_ALIAS = false;
     static {
         for (int i = 0; i < DATE_FORMATS.length; i++)
             DATE_FORMATS[i].setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        try {
+          OLD_STYLE_ROOT_ALIAS = "true".equals(System.getProperty("org.knopflerfish.service.http.oldstylerootalias", "false"));
+        } catch (Exception ignored) { }
     }
 
     public final static Enumeration EMPTY_ENUMERATION = new Enumeration() {
@@ -363,5 +368,21 @@ public class HttpUtil {
     }
     return sb.toString();
   }
-
+  
+  /**
+   * Get the resource target string from an uri, removing
+   * the initial alias part, except in the case when
+   * the alias is equal to "/".
+   *
+   * @param uri URI path to convert to a target path
+   * @param alias initial alias part of uri.
+   * @return if alias equals "/" return uri unchanged, otherwise
+   *         return uri with initial alias part stripped.
+   */
+  public static String makeTarget(String uri, String alias) {
+    return (!OLD_STYLE_ROOT_ALIAS && "/".equals(alias)) 
+      ? uri 
+      : uri.substring(alias.length());
+  }
+  
 } // HttpUtil
