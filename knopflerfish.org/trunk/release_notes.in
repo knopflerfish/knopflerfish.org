@@ -17,8 +17,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   * Certificate chains are not validated.
 
-  * Restart of framework with signed bundles that contains subjars or native code
-    are not handled correctly.
+  * Restart of framework with signed bundles that contains subjars or
+    native code are not handled correctly.
 
   * Logging of faults are not implemented.
 
@@ -59,6 +59,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   parts of the code to make it reusable when implementing other kinds
   of storage. The local, file based, implementation now throws
   BackingStoreException when a file write operation fails.
+
+
+  Log 2.0.2
+
+  Improved error handling when receiving broken configurations.
 
 
 
