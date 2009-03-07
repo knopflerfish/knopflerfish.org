@@ -153,8 +153,7 @@ public class RequestDispatcherImpl implements RequestDispatcher {
         if (uri.endsWith(".shtml")) {
             serviceSSIResource(uri, response, config);
         } else {
-
-            String target = uri.substring(servletPath.length());
+            String target = HttpUtil.makeTarget(uri, servletPath);
             ServletContext context = config.getServletContext();
             URL url = context.getResource(target);
             URLConnection resource = url.openConnection();
@@ -188,7 +187,7 @@ public class RequestDispatcherImpl implements RequestDispatcher {
     private void serviceSSIResource(String uri, HttpServletResponse response,
             ServletConfig config) throws IOException {
 
-        String target = uri.substring(servletPath.length());
+        String target = HttpUtil.makeTarget(uri, servletPath);
         ServletContext context = config.getServletContext();
 
         String contentType = context.getMimeType(uri);
@@ -318,7 +317,7 @@ public class RequestDispatcherImpl implements RequestDispatcher {
         String decodedURI = HttpUtil.decodeURLEncoding(uri);
         if (decodedURI != null && decodedURI.length() > servletPath.length()
                 && decodedURI.startsWith(servletPath))
-            this.pathInfo = decodedURI.substring(servletPath.length());
+            this.pathInfo = HttpUtil.makeTarget(decodedURI, servletPath);
         else
             this.pathInfo = null;
     }

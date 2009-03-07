@@ -376,7 +376,7 @@ public class RequestImpl implements Request, PoolableObject {
     String decodedURI = HttpUtil.decodeURLEncoding(base.getURI());
     if (decodedURI != null && decodedURI.length() > servletPath.length()
         && decodedURI.startsWith(servletPath)) {
-      return decodedURI.substring(servletPath.length());
+      return HttpUtil.makeTarget(decodedURI, servletPath);
     }
     return null;
   }
@@ -556,7 +556,6 @@ public class RequestImpl implements Request, PoolableObject {
 
   public RequestDispatcher getRequestDispatcher(String uri) {
     RequestDispatcher rd = registrations.getRequestDispatcher(uri);
-    //System.out.println("*** No RequestDispatcher for '" + uri +"'.");
     return rd;
   }
 
