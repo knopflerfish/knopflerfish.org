@@ -74,7 +74,7 @@ public class HttpUtil {
             DATE_FORMATS[i].setTimeZone(TimeZone.getTimeZone("GMT"));
 
         try {
-          OLD_STYLE_ROOT_ALIAS = "true".equals(System.getProperty("org.knopflerfish.service.http.oldstylerootalias", "false"));
+          OLD_STYLE_ROOT_ALIAS = "true".equals(Activator.bc.getProperty("org.knopflerfish.service.http.oldstylerootalias"));
         } catch (Exception ignored) { }
     }
 
