@@ -152,7 +152,7 @@ public class BundleStorageImpl implements BundleStorage {
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
-      if (archives.get(pos) == ba) {
+      if (pos < archives.size() && archives.get(pos) == ba) {
 	archives.remove(pos);
 	return true;
       } else {
