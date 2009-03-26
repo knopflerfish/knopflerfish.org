@@ -136,7 +136,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
   }
 
   private void initDir() {
-    dir = bc.getDataFile("/"); // default location
+    dir = bc.getDataFile(""); // default location
     String d = (String)configCollection.get(DIR);
     if (d != null) {
       dir = new File(d);     // location from config

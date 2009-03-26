@@ -24,7 +24,7 @@
   <property name="bmfa.Bundle-Description"
             value="The Knopflerfish OSGi log service"/>
   <property name="bmfa.Bundle-Category"  value="service"/>
-  <property name="bmfa.Bundle-Version"   value="2.0.1"/>
+  <property name="bmfa.Bundle-Version"   value="2.0.2"/>
   <property name="bmfa.Bundle-Name"      value="Log-Service"/>
   <property name="bmfa.Bundle-APIVendor" value="OSGi/Knopflerfish"/>
   <property name="bmfa.Export-Package"
