@@ -24,14 +24,14 @@ build() {
     echo "= `date +"%C%y-%m-%d %H:%M:%S"` Clean ================================="
 
     # Remove old build result and update to the current level.
-    gmake TAG=${TAG} update
+    make -f Makefile_${TAG} TAG=${TAG} update
 
     # Update the Makefile
-    cp -pf ${TAGs}/tools/nightlybuild/Makefile Makefile
+    cp -pf ${TAG}/tools/nightlybuild/Makefile Makefile_${TAG}
 
     echo "= `date +"%C%y-%m-%d %H:%M:%S"` Build ================================="
     # Start build (separate command to ensure that everything can be updated).
-    gmake TAG=${TAG} all
+    make -f Makefile_${TAG} TAG=${TAG} all
 }
 
 # Build for all tags listed in TAGS

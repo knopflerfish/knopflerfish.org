@@ -1,5 +1,5 @@
 
-KF_HOME=/home/wistrand/knopflerfish.org
+KF_HOME=/home/knopflerfish
 WWW_DIR=${KF_HOME}/www
 WWW_PATH=snapshots
 OUT_DIR=${WWW_DIR}/${WWW_PATH}
@@ -13,20 +13,20 @@ BUILD_KIND  = "snapshot build"
 CHANGE_LOG=${KF_HOME}/ChangeLog_${TAG}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
-ANT	= /usr/pkg/bin/ant
+ANT	= /usr/bin/ant
 AWK     = /usr/bin/awk
 CAT     = /bin/cat
 CP      = /bin/cp 
-GREP    = /usr/bin/grep
+GREP    = /bin/grep
 LN      = /bin/ln
 MKDIR   = /bin/mkdir
 RM      = /bin/rm
-SED     = /usr/bin/sed
-SVN     = /usr/pkg/bin/svn
+SED     = /bin/sed
+SVN     = /usr/bin/svn
 
 #JAVA      = java
-JAVA      = /usr/pkg/java/sun-1.4/bin/java
-JAVA_HOME = /usr/pkg/java/sun-1.4
+JAVA      = /usr/local/j2sdk1.4/bin/java
+export JAVA_HOME = /usr/local/j2sdk1.4
 
 DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
 # The Major.Minor.Micro part of the current (upcomming) Knopflerfish
