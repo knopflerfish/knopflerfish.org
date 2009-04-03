@@ -24,9 +24,9 @@ RM      = /bin/rm
 SED     = /usr/bin/sed
 SVN     = /usr/pkg/bin/svn
 
-JAVA    = java
-#JAVA    = /usr/pkg/java/sun-1.3.1/bin/java
-#JAVA_HOME = /usr/pkg/java/sun-1.3.1
+#JAVA      = java
+JAVA      = /usr/pkg/java/sun-1.4/bin/java
+JAVA_HOME = /usr/pkg/java/sun-1.4
 
 DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
 # The Major.Minor.Micro part of the current (upcomming) Knopflerfish
