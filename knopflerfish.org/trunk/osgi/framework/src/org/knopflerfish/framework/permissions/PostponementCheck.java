@@ -114,28 +114,28 @@ class PostponementCheck implements PrivilegedAction {
       HashMap res = new HashMap();
       boolean increment = true;
       for (int i = 0; i < curr.length; i++) {
-	ConditionalPermission cp = (ConditionalPermission)((List)ppList.get(i)).get(curr[i]);
-	for (Iterator pi = cp.getPostponed(); pi.hasNext();) {
-	  Object o = pi.next();
-	  Class co = o.getClass();
-	  ArrayList x = (ArrayList)res.get(co);
-	  if (x == null) {
-	    x = new ArrayList(2);
-	  }
-	  x.add(0, o);
-	  x.add(cp);
-	  res.put(co, x);
-	}
-	if (increment) {
-	  if (++curr[i] == perms[i]) {
-	    curr[i] = 0;
-	  } else {
-	    increment = false;
-	  }
-	}
+        ConditionalPermission cp = (ConditionalPermission)((List)ppList.get(i)).get(curr[i]);
+        for (Iterator pi = cp.getPostponed(); pi.hasNext();) {
+          Object o = pi.next();
+          Class co = o.getClass();
+          ArrayList x = (ArrayList)res.get(co);
+          if (x == null) {
+            x = new ArrayList(2);
+          }
+          x.add(0, o);
+          x.add(cp);
+          res.put(co, x);
+        }
+        if (increment) {
+          if (++curr[i] == perms[i]) {
+            curr[i] = 0;
+          } else {
+            increment = false;
+          }
+        }
       }
       if (increment) {
-	curr = null;
+        curr = null;
       }
       return res;
     }
@@ -151,59 +151,59 @@ class PostponementCheck implements PrivilegedAction {
       HashMap condDict = new HashMap();
       Map cm;
       if (checkedClasses == null) {
-	checkedClasses = new ArrayList();
+        checkedClasses = new ArrayList();
       }
       initPermutations();
       int permcount = 1;
       while ((cm = getNextPermutation()) != null) {
-	boolean ok = true;
-	for (Iterator i = cm.entrySet().iterator(); i.hasNext();) {
-	  Map.Entry me = (Map.Entry)i.next();
-	  Class cc = (Class)me.getKey();
-	  if (checkedClasses.contains(cc)) {
-	    ok = false;
-	    break;
-	  }
-	  ArrayList cs = (ArrayList)me.getValue();
-	  Dictionary d = (Dictionary)condDict.get(cc);
-	  if (d == null) {
-	    d = new Hashtable();
-	    condDict.put(cc, d);
-	  }
-	  checkedClasses.add(cc);
-	  try {
-	    int size = cs.size() / 2;
-	    Condition [] conditions = new Condition[size];
-	    ConditionalPermission [] immutables = new ConditionalPermission[size];
-	    for (int j = 0; j < size; j++) {
-	      Condition ce = (Condition)cs.get(size - j - 1);
-	      conditions[j] = ce;
-	      immutables[j] = ce.isMutable() ? null : (ConditionalPermission)cs.get(size + j);
-	    }
-	    ok = conditions[0].isSatisfied(conditions, d);
-	    for (int j = 0; j < size; j++) {
-	      if (immutables[j] != null) {
-		immutables[j].setImmutable(conditions[j], ok);
-	      }
-	    }
-	  } catch (Throwable t) {
-	    // NYI, Log this
-	    ok = false;
-	  }
-	  checkedClasses.remove(checkedClasses.size() - 1);
-	  if (!ok) {
-	    break;
-	  }
-	}
-	if (ok) {
-	  if (Debug.permissions) {
-	    Debug.println("CHECK_POSTPONE: postponement ok");
-	  }
-	  return;
-	}
+        boolean ok = true;
+        for (Iterator i = cm.entrySet().iterator(); i.hasNext();) {
+          Map.Entry me = (Map.Entry)i.next();
+          Class cc = (Class)me.getKey();
+          if (checkedClasses.contains(cc)) {
+            ok = false;
+            break;
+          }
+          ArrayList cs = (ArrayList)me.getValue();
+          Dictionary d = (Dictionary)condDict.get(cc);
+          if (d == null) {
+            d = new Hashtable();
+            condDict.put(cc, d);
+          }
+          checkedClasses.add(cc);
+          try {
+            int size = cs.size() / 2;
+            Condition [] conditions = new Condition[size];
+            ConditionalPermission [] immutables = new ConditionalPermission[size];
+            for (int j = 0; j < size; j++) {
+              Condition ce = (Condition)cs.get(size - j - 1);
+              conditions[j] = ce;
+              immutables[j] = ce.isMutable() ? null : (ConditionalPermission)cs.get(size + j);
+            }
+            ok = conditions[0].isSatisfied(conditions, d);
+            for (int j = 0; j < size; j++) {
+              if (immutables[j] != null) {
+                immutables[j].setImmutable(conditions[j], ok);
+              }
+            }
+          } catch (Throwable t) {
+            // NYI, Log this
+            ok = false;
+          }
+          checkedClasses.remove(checkedClasses.size() - 1);
+          if (!ok) {
+            break;
+          }
+        }
+        if (ok) {
+          if (Debug.permissions) {
+            Debug.println("CHECK_POSTPONE: postponement ok");
+          }
+          return;
+        }
       }
       if (Debug.permissions) {
-	Debug.println("CHECK_POSTPONE: postponement failed");
+        Debug.println("CHECK_POSTPONE: postponement failed");
       }
       throw new SecurityException("Postponed conditions failed");
     }

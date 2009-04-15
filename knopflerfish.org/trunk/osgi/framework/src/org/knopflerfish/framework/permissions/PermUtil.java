@@ -55,18 +55,18 @@ class PermUtil {
       char c = str.charAt(i);
       switch (c) {
       case '"' : case '\\' :
-	out.append('\\');
-	out.append(c);
-	break;
+        out.append('\\');
+        out.append(c);
+        break;
       case '\r' :
-	out.append("\\r");
-	break;
+        out.append("\\r");
+        break;
       case '\n' :
-	out.append("\\n");
-	break;
+        out.append("\\n");
+        break;
       default :
-	out.append(c);
-	break;
+        out.append(c);
+        break;
       }
     }
     out.append('"');
@@ -94,25 +94,25 @@ class PermUtil {
     while (ca[pos] != '"') {
       char c = ca[pos++];
       if (c == '\\') {
-	switch (ca[pos++]) {
-	case '"' :
-	  c = '"';
-	  break;
-	case '\\' :
-	  c = '\\';
-	  break;
-	case 'n' :
-	  c = '\n';
-	  break;
-	case 'r' :
-	  c = '\r';
-	  break;
-	default :
-	  throw new IllegalArgumentException("Illegal escape char in quoted string: \\" + ca[pos-1]);
-	}
+        switch (ca[pos++]) {
+        case '"' :
+          c = '"';
+          break;
+        case '\\' :
+          c = '\\';
+          break;
+        case 'n' :
+          c = '\n';
+          break;
+        case 'r' :
+          c = '\r';
+          break;
+        default :
+          throw new IllegalArgumentException("Illegal escape char in quoted string: \\" + ca[pos-1]);
+        }
       }
       if (out != null) {
-	out.append(c);
+        out.append(c);
       }
     }
     return pos + 1;
@@ -162,7 +162,7 @@ class PermUtil {
    */
   static PermissionCollection makePermissionCollection(PermissionInfo[] pi, File dataRoot) {
     Permissions res = new Permissions();
-    for (int i = pi.length - 1; i >= 0; i--) {
+    for (int i = 0; i < pi.length; i++) {
       Permission p = makePermission(pi[i], dataRoot);
       if (p != null) {
         res.add(p);

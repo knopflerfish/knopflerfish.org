@@ -742,7 +742,8 @@
 		uses              = "${bundleinfo.uses}"
 		failOnExports     = "${bundleinfo.failOnExports}"
 		failOnImports     = "${bundleinfo.failOnImports}"
-		checkFoundationEE = "${ee.check.foundation}">
+		checkFoundationEE = "${ee.check.foundation}"
+		importsOnly       = "true">
       <fileset dir      = "${classes.out.dir}"
                includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
       </fileset>
@@ -860,7 +861,16 @@
 
   <target name="clean" description="Deletes all generated files.">
     <delete dir="${outdir}"/>
-    <delete dir="${jardir}"/>
+    <delete includeEmptyDirs="true" verbose="true">
+      <fileset dir="${jardir}">
+	<include name="${ant.project.name}.jar" />
+	<include name="${ant.project.name}-*.jar" />
+	<include name="${ant.project.name}_all-*.jar" />
+	<include name="${ant.project.name}_api-*.jar" />
+	<include name="${ant.project.name}_lib-*.jar" />
+      </fileset>
+      <dirset dir="${jardir}" excludes="*,**/*"/>
+    </delete>
   </target>
 
 </project>

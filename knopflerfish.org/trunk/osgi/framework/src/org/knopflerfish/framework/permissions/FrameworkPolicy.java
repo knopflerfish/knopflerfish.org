@@ -120,10 +120,10 @@ class FrameworkPolicy extends Policy {
       return (pc == null) ? false : pc.implies(p);
     } else {
       Boolean res = (Boolean)AccessController.doPrivileged(new PrivilegedAction() {
-	  public Object run() {
-	    return new Boolean(defaultPolicy.implies(pd, p));
-	  }
-	});
+          public Object run() {
+            return new Boolean(defaultPolicy.implies(pd, p));
+          }
+        });
       return res.booleanValue();
     }
   }

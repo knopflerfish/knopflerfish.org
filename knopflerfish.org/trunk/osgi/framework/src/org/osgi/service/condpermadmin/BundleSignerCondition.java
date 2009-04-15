@@ -68,14 +68,12 @@ public class BundleSignerCondition {
     if (args.length != 1) {
       throw new IllegalArgumentException("Illegal number of args: " + args.length);
     }
-    ProtectionDomain pd = ((BundleImpl)bundle).getProtectionDomain();
-    if (pd != null) {
-      Certificate [] certs = pd.getCodeSource().getCertificates();
-      if (CertificateUtil.matchCertificates(certs, args[0]) >= 0) {
-	return Condition.TRUE;
-      }
+    Certificate [] certs = ((BundleImpl)bundle).getCertificates();
+    if (CertificateUtil.matchCertificates(certs, args[0]) >= 0) {
+      return Condition.TRUE;
+    } else {
+      return Condition.FALSE;
     }
-    return Condition.FALSE;
   }
 
   private BundleSignerCondition() {

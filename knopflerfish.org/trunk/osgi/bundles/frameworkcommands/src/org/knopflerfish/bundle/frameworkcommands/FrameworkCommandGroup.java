@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
+import java.security.CodeSource;
 import java.security.PrivilegedAction;
+import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Dictionary;
@@ -630,6 +632,55 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   }
 
   //
+  // Certificates command
+  //
+
+  public final static String USAGE_CERTIFICATES
+    = "[ -i ] <bundle> ...";
+
+  public final static String[] HELP_CERTIFICATES = new String[] {
+    "List certificates for bundles",
+    "-i           Sort on bundle id",
+    "<bundle>     Name or id of bundle" };
+
+  public int cmdCertificates(Dictionary opts, Reader in, PrintWriter out,
+                              Session session) {
+    Bundle[] b = getBundles((String[]) opts.get("bundle"),
+                            opts.get("-i") != null);
+    boolean match = false;
+    for (int i = 0; i < b.length; i++) {
+      if (b[i] != null) {
+        try {
+          boolean found = false;
+          Method m = b[i].getClass().getMethod("getCertificates", null);
+          Certificate [] cs = (Certificate [])m.invoke(b[i], null);
+          out.println("Bundle: " + showBundle(b[i]));
+          if (cs != null) {
+            for (int j = 0; j < cs.length; j++) {
+              out.println("Certificate " + j + ":");
+              out.println(cs[j].toString());
+              found = true;
+            }
+          }
+          if (!found) {
+            out.println("  Not a signed bundle.");
+          }
+        } catch (Exception e) {
+          out.println("This command only works on a Knopflefish framework");
+          return 1;
+        }
+        match = true;
+      }
+    }
+    if (!match) {
+      out.println("ERROR! No matching bundle");
+      return 1;
+    }
+    return 0;
+  }
+
+
+  //
   // Closure command
   //
 
@@ -777,7 +828,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     "<name>               Name of conditional permission" };
 
   public int cmdCondpermission(Dictionary opts, Reader in, PrintWriter out,
-				  Session session) {
+                                  Session session) {
     if (condPermAdmin == null) {
       out.println("Conditional Permission Admin service is not available");
       return 1;
@@ -787,12 +838,12 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     if (names != null) {
       Vector cpis = new Vector();
       for (int i = 0; i < names.length; i++ ) {
-	ConditionalPermissionInfo cpi = condPermAdmin.getConditionalPermissionInfo(names[i]);
-	if (cpi != null) {
-	  cpis.addElement(cpi);
-	} else {
-	  out.println("Didn't find ConditionalPermissionInfo named: " + names[i]);
-	}
+        ConditionalPermissionInfo cpi = condPermAdmin.getConditionalPermissionInfo(names[i]);
+        if (cpi != null) {
+          cpis.addElement(cpi);
+        } else {
+          out.println("Didn't find ConditionalPermissionInfo named: " + names[i]);
+        }
       }
       e = cpis.elements();
     } else {
@@ -1401,7 +1452,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     "<conditional_permission_info>   ConditionalPermissionInfo string" };
 
   public int cmdSetcondpermission(Dictionary opts, Reader in, PrintWriter out,
-				  Session session) {
+                                  Session session) {
     if (condPermAdmin == null) {
       out.println("Conditional Permission Admin service is not available");
       return 1;
@@ -1416,29 +1467,29 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     for (int i = 0; i < cpis.length; ) {
       String cpi = cpis[i];
       if (endChar != null) {
-	buf.append(cpi);
-	i++;
-	if (cpi.endsWith(endChar)) {
-	  try {
-	    if (endChar == "]") {
-	      cis.addElement(new ConditionInfo(buf.toString()));
-	    } else {
-	      pis.addElement(new PermissionInfo(buf.toString()));
-	    }
-	  } catch (IllegalArgumentException e) {
-	    out.println("ERROR! Failed to instanciate: " + buf.toString());
-	    return 1;
-	  }
-	  endChar = null;
-	  buf.setLength(0);
-	}
+        buf.append(cpi);
+        i++;
+        if (cpi.endsWith(endChar)) {
+          try {
+            if (endChar == "]") {
+              cis.addElement(new ConditionInfo(buf.toString()));
+            } else {
+              pis.addElement(new PermissionInfo(buf.toString()));
+            }
+          } catch (IllegalArgumentException e) {
+            out.println("ERROR! Failed to instanciate: " + buf.toString());
+            return 1;
+          }
+          endChar = null;
+          buf.setLength(0);
+        }
       } else if (cpi.startsWith("[")) {
-	endChar = "]";
+        endChar = "]";
       } else if (cpi.startsWith("(")) {
-	endChar = ")";
+        endChar = ")";
       } else {
-	out.println("ERROR! Expected start char '(' or '[', got: " + cpi);
-	return 1;
+        out.println("ERROR! Expected start char '(' or '[', got: " + cpi);
+        return 1;
       }
     }
     ConditionInfo [] cia = (ConditionInfo []) cis.toArray(new ConditionInfo [cis.size()]);

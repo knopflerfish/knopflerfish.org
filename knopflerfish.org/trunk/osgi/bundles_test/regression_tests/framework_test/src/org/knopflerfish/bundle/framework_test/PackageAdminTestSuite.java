@@ -411,7 +411,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
-      String packageName = "org.knopflerfish.bundle.bundleP1_test";
+      String packageName = "org.knopflerfish.service.bundleP1_test";
       String expectedVersion = "1.0";
       PackageAdmin packService = null;
       Bundle fw_test = bc.getBundle();    // this bundle
@@ -575,7 +575,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       // String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
-      String packageName = "org.knopflerfish.bundle.bundleP1_test";
+      String packageName = "org.knopflerfish.service.bundleP1_test";
       String expectedVersion = "3.0.0";
       // PackageAdmin packService = null;
       // Bundle fw_test = bc.getBundle();    // this bundle

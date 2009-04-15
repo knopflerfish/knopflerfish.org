@@ -34,7 +34,7 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.security.AccessControlContext;
+import java.security.*;
 import java.util.Enumeration;
 
 import org.osgi.service.permissionadmin.PermissionInfo;
@@ -148,7 +148,18 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
    *         associated with the signer.
    */
   public AccessControlContext getAccessControlContext(String[] signers) {
-    throw new RuntimeException("NYI getAccessControlContext");
+    Permissions perms = new Permissions();
+    if (signers != null && signers.length > 0) {
+      for (Enumeration e = cpis.getAll(); e.hasMoreElements(); ) {
+	ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) e.nextElement();
+	if (cpi.hasSigners(signers)) {
+	  for (Enumeration e2 = cpi.getPermissions().elements(); e2.hasMoreElements(); ) {
+	    perms.add((Permission)e2.nextElement());
+	  }
+	}
+      }
+    }
+    return new AccessControlContext(new ProtectionDomain[] {new ProtectionDomain(null, perms)});
   }
 
 }

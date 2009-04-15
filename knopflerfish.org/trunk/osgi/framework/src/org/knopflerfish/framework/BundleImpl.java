@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.security.cert.Certificate;
 import java.security.*;
 
 import java.util.Enumeration;
@@ -969,9 +970,10 @@ public class BundleImpl implements Bundle {
   /**
    * Get protection domain for bundle. Used by BundleSignerCondition.
    */
-  public ProtectionDomain getProtectionDomain() {
+  public Certificate [] getCertificates() {
+    // If we have protection domain priviledges then we can get certs.
     secure.checkGetProtectionDomain();
-    return protectionDomain;
+    return archive.getCertificates();
   }
 
 
