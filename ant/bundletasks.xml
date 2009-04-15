@@ -64,7 +64,7 @@
 
  <target name="download_bcel">
    <mkdir dir = "${ant.lib}"/>
-   <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
+   <get src = "http://apache.org/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
         dest = "${ant.lib}/bcel-${bcel.version}.zip"/>
  </target>
 
