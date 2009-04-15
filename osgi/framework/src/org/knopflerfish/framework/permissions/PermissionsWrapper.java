@@ -151,27 +151,27 @@ public class PermissionsWrapper extends PermissionCollection {
     String me = "PermissionWrapper.implies: ";
     if (implicitPermissions.implies(permission)) {
       if (Debug.permissions) {
-	Debug.println(me + "Implicitly OK for, " + permission);
+        Debug.println(me + "Implicitly OK for, " + permission);
       }
       return true;
     } else if (localPermissions != null && !localPermissions.implies(permission)) {
       if (Debug.permissions) {
-	Debug.println(me + "No localpermissions for, " + permission);
+        Debug.println(me + "No localpermissions for, " + permission);
       }
       return false;
     } else {
       PermissionCollection p = getPerms();
       boolean res;
       if (p != null) {
-	res = p.implies(permission);
-	if (Debug.permissions) {
-	  Debug.println(me + (res ? "OK" : "No") +  " framework permission for," + permission);
-	}
+        res = p.implies(permission);
+        if (Debug.permissions) {
+          Debug.println(me + (res ? "OK" : "No") +  " framework permission for," + permission);
+        }
       } else {
-	res = conditionalPermissionImplies(permission);
-	if (Debug.permissions) {
-	  Debug.println(me + (res ? "OK" : "No") +  " conditional permission for," + permission);
-	}
+        res = conditionalPermissionImplies(permission);
+        if (Debug.permissions) {
+          Debug.println(me + (res ? "OK" : "No") +  " conditional permission for," + permission);
+        }
       }
       return res;
     }
@@ -194,9 +194,9 @@ public class PermissionsWrapper extends PermissionCollection {
       readOnly = true;
       PermissionCollection p = getPerms();
       if (p != null) {
-	p.setReadOnly();
+        p.setReadOnly();
       } else {
-	// NYI! What to do
+        // NYI! What to do
       }
     }
   }
@@ -325,17 +325,17 @@ public class PermissionsWrapper extends PermissionCollection {
     Permissions res = new Permissions();
     if (useDefault) {
       if (Debug.tck401compat) {
-	if (condPermList.size() > 0) {
-	  // If we are using CPA with rules added do not use default.
-	  // If we have CPA without rules, use default. This isn't correct
-	  // way according to the standard. But it helps bootstrapping the
-	  // system and is required for passing OSGi test suite.
-	  return null;
-	}
+        if (condPermList.size() > 0) {
+          // If we are using CPA with rules added do not use default.
+          // If we have CPA without rules, use default. This isn't correct
+          // way according to the standard. But it helps bootstrapping the
+          // system and is required for passing OSGi test suite.
+          return null;
+        }
       } else {
-	if (cpinfos != null && cpinfos.size() > 0) {
-	  return null;
-	}
+        if (cpinfos != null && cpinfos.size() > 0) {
+          return null;
+        }
       }
       pi = pinfos.getDefault(this);
     }
@@ -362,25 +362,28 @@ public class PermissionsWrapper extends PermissionCollection {
 
     for (Iterator i = condPermList.iterator(); i.hasNext(); ) {
       ConditionalPermission cp = (ConditionalPermission)i.next();
+      if (Debug.permissions) {
+        Debug.println("conditionalPermissionImplies: Check if " + cp + " implies " + permission + " for " + bundle);
+      }
       if (cp.checkImmediateOk(permission, cpsm == null)) {
-	if (cp.hasPostponed()) {
-	  if (Debug.permissions) {
-	    Debug.println("conditionalPermissionImplies: " + cp + " with postponement implies " + permission + " for " + bundle);
-	  }
-	  if (postponement == null) {
-	    postponement = new ArrayList();
-	  }
-	  postponement.add(cp);
-	} else {
-	  if (Debug.permissions) {
-	    Debug.println("conditionalPermissionImplies: " + cp + " implies " + permission + " for " + bundle);
-	  }
-	  return true;
-	}
+        if (cp.hasPostponed()) {
+          if (Debug.permissions) {
+            Debug.println("conditionalPermissionImplies: " + cp + " with postponement implies " + permission + " for " + bundle);
+          }
+          if (postponement == null) {
+            postponement = new ArrayList();
+          }
+          postponement.add(cp);
+        } else {
+          if (Debug.permissions) {
+            Debug.println("conditionalPermissionImplies: " + cp + " implies " + permission + " for " + bundle);
+          }
+          return true;
+        }
       } else {
-	if (Debug.permissions) {
-	  Debug.println("conditionalPermissionImplies: " + cp + " does NOT imply " + permission + " for " + bundle);
-	}
+        if (Debug.permissions) {
+          Debug.println("conditionalPermissionImplies: " + cp + " does NOT imply " + permission + " for " + bundle);
+        }
       }  
     }
     if (postponement != null) {
@@ -395,19 +398,19 @@ public class PermissionsWrapper extends PermissionCollection {
    *
    */
   synchronized void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
-						       ConditionalPermissionInfoImpl old) {
+                                                       ConditionalPermissionInfoImpl old) {
     ConditionalPermission new_cp = cpi != null ? cpi.getConditionalPermission(bundle) : null;
     if (old != null) {
       for (int i = condPermList.size() - 1; i >= 0; i--) {
-	ConditionalPermission cp = (ConditionalPermission)condPermList.get(i);
-	if (cp.isParent(old)) {
-	  if (new_cp != null) {
-	    condPermList.set(i, new_cp);
-	  } else {
-	    condPermList.remove(i);
-	  }
-	  return;
-	}
+        ConditionalPermission cp = (ConditionalPermission)condPermList.get(i);
+        if (cp.isParent(old)) {
+          if (new_cp != null) {
+            condPermList.set(i, new_cp);
+          } else {
+            condPermList.remove(i);
+          }
+          return;
+        }
       }
     }
     if (new_cp != null) {
@@ -425,7 +428,7 @@ public class PermissionsWrapper extends PermissionCollection {
     for (Enumeration e = cpinfos.getAll(); e.hasMoreElements(); ) {
       ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) e.nextElement();
       if (Debug.permissions) {
-	Debug.println("conditionalPermissionImplies: " + cpi + " Bundle#" + bundle.getBundleId());
+        Debug.println("conditionalPermissionImplies: " + cpi + " Bundle#" + bundle.getBundleId());
       }
       updateChangedConditionalPermission(cpi, null);
     }

@@ -49,6 +49,8 @@ import org.osgi.service.permissionadmin.PermissionInfo;
  */
 public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 {
+  static final private String SIGNER_CONDITION_TYPE = "org.osgi.service.condpermadmin.BundleSignerCondition";
+
   final private ConditionalPermissionInfoStorage cps;
   final private String name;
 
@@ -60,7 +62,7 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   /**
    */
   ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cps, String name,
-				ConditionInfo [] conds, PermissionInfo [] perms) {
+                                ConditionInfo [] conds, PermissionInfo [] perms) {
     this.cps = cps;
     this.name = name;
     conditionInfos = conds;
@@ -89,28 +91,28 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       char c = eca[pos];
       char ec;
       if (c == '[') {
-	ec = ']';
+        ec = ']';
       } else if (c == '(') {
-	ec = ')';
+        ec = ')';
       } else if (c == '}') {
-	break;
+        break;
       } else {
-	throw new IllegalArgumentException("Unexpected char '" + c + "' at pos " + pos);
+        throw new IllegalArgumentException("Unexpected char '" + c + "' at pos " + pos);
       }
       buf.setLength(0);
       do {
-	c = eca[pos];
-	if (c == '"') {
-	  pos = PermUtil.unquote(eca, pos, buf);
-	} else {
-	  buf.append(c);
-	}
-	pos++;
+        c = eca[pos];
+        if (c == '"') {
+          pos = PermUtil.unquote(eca, pos, buf);
+        } else {
+          buf.append(c);
+        }
+        pos++;
       } while(c != ec);
       if (c == ']') {
-	cal.add(new ConditionInfo(buf.toString()));
+        cal.add(new ConditionInfo(buf.toString()));
       } else {
-	pal.add(new PermissionInfo(buf.toString()));
+        pal.add(new PermissionInfo(buf.toString()));
       }
     }
     conditionInfos = (ConditionInfo [])cal.toArray(new ConditionInfo [cal.size()]);
@@ -174,14 +176,14 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
     res.append(" { ");
     if (conditionInfos != null) {
       for (int i = 0; i < conditionInfos.length; i++) {
-	res.append(conditionInfos[i].getEncoded());
-	res.append(' ');
+        res.append(conditionInfos[i].getEncoded());
+        res.append(' ');
       }
     }
     if (permissionInfos != null) {
       for (int i = 0; i < permissionInfos.length; i++) {
-	res.append(permissionInfos[i].getEncoded());
-	res.append(' ');
+        res.append(permissionInfos[i].getEncoded());
+        res.append(' ');
       }
     }
     res.append('}');
@@ -205,51 +207,57 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       Class clazz;
       Condition c;
       try {
-	clazz = Class.forName(conditionInfos[i].getType());
-	Constructor cons = null;
-	Method method = null;
-	try {
-	  method = clazz.getMethod("getCondition", argClasses);
-	  if ((method.getModifiers() & Modifier.STATIC) == 0) {
-	    method = null;
-	  }
-	} catch (NoSuchMethodException ignore) { }
-	if (method != null) {
-	  if (Debug.permissions) {
-	    Debug.println(me + "Invoke, " + method);
-	  }
-	  c = (Condition) method.invoke(null, new Object [] {bundle, conditionInfos[i]});
-	} else {
-	  try {
-	    cons = clazz.getConstructor(argClasses);
-	  } catch (NoSuchMethodException ignore) { }
-	  if (cons != null) {
-	    if (Debug.permissions) {
-	      Debug.println(me + "Construct, " + cons);
-	    }
-	    c = (Condition) cons.newInstance(new Object [] {bundle, conditionInfos[i]});
-	  } else {
-	    Debug.println("NYI! Log faulty ConditionInfo object!?");
-	    continue;
-	  }
-	}
-	if (!c.isMutable()) {
-	  if (!c.isPostponed() || Debug.tck401compat) {
-	    if (c.isSatisfied()) {
-	      continue;
-	    } else {
-	      return null;
-	    }
-	  }
-	}
-	conds.add(c);
+        clazz = Class.forName(conditionInfos[i].getType());
+        Constructor cons = null;
+        Method method = null;
+        try {
+          method = clazz.getMethod("getCondition", argClasses);
+          if ((method.getModifiers() & Modifier.STATIC) == 0) {
+            method = null;
+          }
+        } catch (NoSuchMethodException ignore) { }
+        if (method != null) {
+          if (Debug.permissions) {
+            Debug.println(me + "Invoke, " + method + " for bundle " + bundle);
+          }
+          c = (Condition) method.invoke(null, new Object [] {bundle, conditionInfos[i]});
+        } else {
+          try {
+            cons = clazz.getConstructor(argClasses);
+          } catch (NoSuchMethodException ignore) { }
+          if (cons != null) {
+            if (Debug.permissions) {
+              Debug.println(me + "Construct, " + cons + " for bundle " + bundle);
+            }
+            c = (Condition) cons.newInstance(new Object [] {bundle, conditionInfos[i]});
+          } else {
+            Debug.println("NYI! Log faulty ConditionInfo object!?");
+            continue;
+          }
+        }
+        if (!c.isMutable()) {
+          if (!c.isPostponed() || Debug.tck401compat) {
+            if (c.isSatisfied()) {
+              if (Debug.permissions) {
+                Debug.println(me + "Immutable condition ok, continue");
+              }
+              continue;
+            } else {
+              if (Debug.permissions) {
+                Debug.println(me + "Immutable condition NOT ok, abort");
+              }
+              return null;
+            }
+          }
+        }
+        conds.add(c);
       } catch (Throwable t) {
-	Debug.printStackTrace("NYI! Log failed Condition creation", t);
-	return null;
+        Debug.printStackTrace("NYI! Log failed Condition creation", t);
+        return null;
       }
     }
     return new ConditionalPermission((Condition [])conds.toArray(new Condition[conds.size()]),
-				     getPermissions(), this);
+                                     getPermissions(), this);
   }
 
 
@@ -261,6 +269,24 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       permissions = PermUtil.makePermissionCollection(permissionInfos, null);
     }
     return permissions;
+  }
+
+
+  /**
+   *
+   */
+  boolean hasSigners(String [] signers) {
+    for (int i = 0; i < conditionInfos.length; i++) {
+      if (SIGNER_CONDITION_TYPE.equals(conditionInfos[i].getType())) {
+        String[] args = conditionInfos[i].getArgs();
+        if (args.length != 1 || CertificateUtil.matchSigners(signers, args[0]) < 0) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+    return true;
   }
 
 }

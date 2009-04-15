@@ -210,6 +210,15 @@ import org.osgi.framework.Version;
  *  </tr>
  *
  *  <tr>
+ *   <td valign=top>importsOnly</td>
+ *   <td valign=top>
+ *       If set to <tt>true</tt> then do not update Export-Package
+ *       manifest header.
+ *  </td>
+ *   <td valign=top>No.<br>Default value is "false".</td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>implicitImports</td>
  *   <td valign=top>
  *       Flag for adding all exported packages to the import list.
@@ -424,6 +433,7 @@ public class BundleInfoTask extends Task {
   private boolean bSetActivator      = true;
   private boolean failOnExports      = true;
   private boolean failOnImports      = true;
+  private boolean bImportsOnly        = false;
 
   /** The set of packages that are provided by the inlcuded classes. */
   private Set providedSet          = new TreeSet();
@@ -608,6 +618,13 @@ public class BundleInfoTask extends Task {
     filesets.addElement(set);
   }
 
+  /**
+   * Shall uses directives be added to the Export-Package header or not.
+   */
+  public void setImportsOnly(boolean importsOnly) {
+    this.bImportsOnly = importsOnly;
+  }
+
   // Implements Task
   //
   // Scan all files in fileset and delegate to analyze()
@@ -683,21 +700,23 @@ public class BundleInfoTask extends Task {
     if(!"".equals(exportsProperty)) {
       String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
-        if (0==providedSet.size()) {
-          proj.setProperty(exportsProperty,
-                           BundleManifestTask.BUNDLE_EMPTY_STRING);
-          log("No packages exported, leaving \"" +exportsProperty +"\" empty.",
-              Project.MSG_VERBOSE);
-        } else {
-          exportsVal = buildExportPackagesValue();
-          log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
-              Project.MSG_VERBOSE);
-          proj.setProperty(exportsProperty, exportsVal);
-        }
+	if (!bImportsOnly) {
+	  if (0==providedSet.size()) {
+	    proj.setProperty(exportsProperty,
+			     BundleManifestTask.BUNDLE_EMPTY_STRING);
+	    log("No packages exported, leaving \"" +exportsProperty +"\" empty.",
+		Project.MSG_VERBOSE);
+	  } else {
+	    exportsVal = buildExportPackagesValue();
+	    log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
+		Project.MSG_VERBOSE);
+	    proj.setProperty(exportsProperty, exportsVal);
+	  }
+	}
       } else {
         // Export-Package given; check that they are provided.
         final String newExportsVal = validateExportPackagesValue(exportsVal);
-        log("Updating \"" +exportsProperty +"\" to \""+exportsVal +"\"",
+        log("Updating \"" +exportsProperty +"\" to \""+newExportsVal +"\"",
             Project.MSG_VERBOSE);
         proj.setProperty(exportsProperty, newExportsVal);
       }

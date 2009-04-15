@@ -278,7 +278,7 @@ class PermissionInfoStorage {
                 } catch (IOException ignore) { }
                 f.delete();
               }
-              // NYI! Report error
+              Debug.printStackTrace("NYI! Report error", e);
             }
             return null;
           }
@@ -359,7 +359,7 @@ class PermissionInfoStorage {
           in.close();
         } catch (IOException ignore) { }
       }
-      // NYI! Report error
+      Debug.printStackTrace("NYI! Report error", e);
     }
   }
 

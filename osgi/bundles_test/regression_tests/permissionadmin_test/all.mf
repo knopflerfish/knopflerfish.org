@@ -1,6 +1,4 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.5.4 
-Created-By: 1.4.2_03-b02 (Sun Microsystems Inc.)
+Bundle-ManifestVersion: 2
 Bundle-Name: permissionadmin_test
 Bundle-SymbolicName: permissionadmin_test
 Bundle-Version: 1.0.0
@@ -10,13 +8,5 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.permissionadmin_test.Activator
 Bundle-Category: test
-Export-Package: 
 Import-Package: junit.framework,org.osgi.framework,org.osgi.service.pe
  rmissionadmin
-Bundle-UUID: org.knopflerfish:permissionadmin_test:1.0.0:all
-Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
- n_tests\permissionadmin_test
-Build-Date: Mon August 16 2004, 12:01:38
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Bundle-APIVendor: 
-

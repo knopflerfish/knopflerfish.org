@@ -63,7 +63,7 @@ public class Debug {
    */
   private static ThreadLocal insideDebug = new ThreadLocal() {
       protected synchronized Object initialValue() {
-	return new Boolean(false);
+        return new Boolean(false);
       }
     };
 
@@ -101,13 +101,13 @@ public class Debug {
   static void println(final String str) {
     if (!isInside()) {
       AccessController.doPrivileged(new PrivilegedAction() {
-	  public Object run() {
-	    inside(true);
-	    println0(str);
-	    inside(false);
-	    return null;
-	  }
-	});
+          public Object run() {
+            inside(true);
+            println0(str);
+            inside(false);
+            return null;
+          }
+        });
     }
   }
 
@@ -138,13 +138,13 @@ public class Debug {
   static void printStackTrace(final String str, final Throwable t) {
     if (!isInside()) {
       AccessController.doPrivileged(new PrivilegedAction() {
-	  public Object run() {
-	    inside(true);
-	    printStackTrace0(str,t);
-	    inside(false);
-	    return null;
-	  }
-	});
+          public Object run() {
+            inside(true);
+            printStackTrace0(str,t);
+            inside(false);
+            return null;
+          }
+        });
     }
   }
 

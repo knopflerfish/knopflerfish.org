@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,41 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework.permissions;
+package org.knopflerfish.bundle.condpermadmin_test;
 
-import java.security.*;
-import java.util.List;
+import java.util.*;
+import java.io.*;
+import java.net.*;
+import org.osgi.framework.*;
 
-
-public class KFSecurityManager
-  extends SecurityManager
-  implements ConditionalPermissionSecurityManager {
-
-  private final ThreadLocal postponementCheck = new ThreadLocal();
-
+/**
+ * Misc static utility methods.
+ */
+public class Util {
 
   /**
+   * Install a bundle from a resource file.
+   *
+   * @param bc context owning both resources and to install bundle from
+   * @param resource resource name of bundle jar file
+   * @return the installed bundle
+   * @throws BundleException if no such resource is found or if
+   *                         installation fails.
    */
-  public void checkPermission(Permission perm, Object context) {
-    if (!(context instanceof AccessControlContext)) {
-      throw new SecurityException("context not an AccessControlContext");
-    }
-    PostponementCheck old = (PostponementCheck) postponementCheck.get();
-    PostponementCheck pc = new PostponementCheck((AccessControlContext) context, perm, old);
-    postponementCheck.set(pc);
+  public static Bundle installBundle(BundleContext bc, String resource) throws BundleException {
     try {
-      AccessController.doPrivileged(pc);
-    } finally {
-      postponementCheck.set(old);
+      System.out.println("installBundle(" + resource + ")");
+      URL url = bc.getBundle().getResource(resource);
+      if(url == null) {
+	throw new BundleException("No resource " + resource);
+      }
+      InputStream in = url.openStream();
+      if(in == null) {
+	throw new BundleException("No resource " + resource);
+      }
+      return bc.installBundle("internal:" + resource, in);
+    } catch (IOException e) {
+      throw new BundleException("Failed to get input stream for " + resource + ": " + e);
     }
   }
-
-
-  /**
-   */
-  public void checkPermission(Permission perm) {
-    checkPermission(perm, getSecurityContext());
-  }
-
-
-  /**
-   * NYI! Think about security here!
-   */
-  public void savePostponement(List postponement) {
-    PostponementCheck pc = (PostponementCheck) postponementCheck.get();
-    if (pc == null) {
-      Debug.printStackTrace("TBD! Should not happen!? How did we get here", new Throwable());
-    }
-    pc.savePostponement(postponement);
-  }
-
 }

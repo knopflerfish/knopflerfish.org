@@ -1,5 +1,5 @@
 Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
---------------------------------
+----------------------------------------------
 
   Maintenance release of Knopflerfish available from
   @DOWNLOAD_URL@
@@ -7,27 +7,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Here follows a breakdown of the most important changes since the 
   last release.
 
+
 === Framework (Core) ===
 
-  Framework 4.1.0
-  Almost complete support for Conditional Permissions added. Things missing
-  are:
+  Framework 4.1.1
 
-  * ConditionalPermissionAdmin.getAccessControlContext() not implemented.
+  We now implement the things we were missing in the framework,
+  Conditional Permissions and certificates. There are some internal
+  things missing, logging of some faults, documentation of new features
+  and a connection to a keystore for validating certificates. This will
+  improve in the near future.
 
-  * Certificate chains are not validated.
-
-  * Restart of framework with signed bundles that contains subjars or
-    native code are not handled correctly.
-
-  * Logging of faults are not implemented.
-
-  * Documentation of security configuration and extensions.
-
-  The code is not fully tested (but it passes OSGi TCK) and a security audit
-  needs to be done.
-
-  Framework 4.0.16
   Added support for handling cases where classes on the boot class path 
   needs access to other boot classes, even when they're not exposed
   directly via OSGi boot delegation.
@@ -40,15 +30,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Also added support for "dexified" Android bundles, see 
   http://knopflerfish.blogspot.com/2009/01/knopflerfish-on-androiddalvik-vm.html
-          
-  Framework 4.0.14
-
-  Started work on Conditional Permissions and signed bundles. This is a
-  work in progress and this is the first check in that saves the current
-  state before the christmas. It should not interfere if you do not try
-  to use Conditional Permissions.
-
-
+ 
+  NOTE! You can not use SUN JDK 1.5.0_16 can not be used if you want to handle
+        certificates. There is a bug in the CodeSource API. 
 
 === Services (Compendium) ===
 
@@ -66,7 +50,6 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Improved error handling when receiving broken configurations.
 
 
-
 === Misc (KF specific, start scripts, build system etc ===
 
 
@@ -74,7 +57,6 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   The preferences tab now offers the sync and flush operations when
   right clicking on a node in the preferences tree.
-
 
 
   Bundlerepository 2.0.3
@@ -117,10 +99,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 Release Notes Knopflerfish 2.2.0 (OSGi R4.0.1)
---------------------------------
+----------------------------------------------
 
   Maintenance release of Knopflerfish available from
-  @DOWNLOAD_URL@
+  http://www.knopflerfish.org/releases/2.2.0
 
   Here follows a breakdown of the most important changes since the 
   last release.
@@ -235,7 +217,7 @@ Release Notes Knopflerfish 2.2.0 (OSGi R4.0.1)
 
 
 Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
---------------------------------
+----------------------------------------------
 
   Maintenance release of Knopflerfish available from
   http://www.knopflerfish.org/releases/2.1.1/

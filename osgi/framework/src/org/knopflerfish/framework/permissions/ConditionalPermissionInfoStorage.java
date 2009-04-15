@@ -64,7 +64,7 @@ class ConditionalPermissionInfoStorage {
     condPermDir = Util.getFileStorage("condperm");
     if (condPermDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
-			 "conditional permission info will not be saved between sessions");
+                         "conditional permission info will not be saved between sessions");
     } else {
       load();
     }
@@ -114,9 +114,9 @@ class ConditionalPermissionInfoStorage {
     ConditionalPermissionInfoImpl old = (ConditionalPermissionInfoImpl)cpiMap.put(name, res);
     save(name, res);
     if (Debug.permissions) {
-      Debug.println("PERMISSIONADMIN set " + res);
+      Debug.println("CondPermStorage set " + res);
       if (old != null) {
-	Debug.println("PERMISSIONADMIN replaced " + old);
+        Debug.println("CondPermStorage replaced " + old);
       }
     }
     updateChangedConditionalPermission(res, old);
@@ -131,11 +131,13 @@ class ConditionalPermissionInfoStorage {
    */
   synchronized void remove(String name) {
     ConditionalPermissionInfoImpl old = (ConditionalPermissionInfoImpl)cpiMap.remove(name);
-    save(name, null);
-    if (Debug.permissions) {
-      Debug.println("PERMISSIONADMIN removed " + old);
+    if (old != null) {
+      save(name, null);
+      if (Debug.permissions) {
+        Debug.println("CondPermStorage removed " + old);
+      }
+      updateChangedConditionalPermission(null, old);
     }
-    updateChangedConditionalPermission(null, old);
   }
 
 
@@ -169,7 +171,7 @@ class ConditionalPermissionInfoStorage {
    * Update cached information.
    */
   private void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
-						  ConditionalPermissionInfoImpl old) {
+                                                  ConditionalPermissionInfoImpl old) {
     for (Iterator i = ph.getPermissionWrappers(); i.hasNext();) {
       ((PermissionsWrapper)i.next()).updateChangedConditionalPermission(cpi, old);
     }
@@ -183,22 +185,22 @@ class ConditionalPermissionInfoStorage {
     if (condPermDir != null) {
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-	    if (lastFile % 20 == 0) {
-	      purge();
-	    }
+            if (lastFile % 20 == 0) {
+              purge();
+            }
             File f = new File(condPermDir, Long.toString(++lastFile));
-	    StringBuffer buf = new StringBuffer();
-	    if (cpi != null) {
-	      buf.append(cpi.toString());
-	    } else {
-	      buf.append('!');
-	      PermUtil.quote(name, buf);
-	    }
-	    buf.append('\n');
+            StringBuffer buf = new StringBuffer();
+            if (cpi != null) {
+              buf.append(cpi.toString());
+            } else {
+              buf.append('!');
+              PermUtil.quote(name, buf);
+            }
+            buf.append('\n');
             BufferedWriter out = null;
             try {
               out = new BufferedWriter(new FileWriter(f));
-	      out.write(buf.toString());
+              out.write(buf.toString());
               out.close();
             } catch (IOException e) {
               if (out != null) {
@@ -207,7 +209,7 @@ class ConditionalPermissionInfoStorage {
                 } catch (IOException ignore) { }
                 f.delete();
               }
-              // NYI! Report error
+              Debug.printStackTrace("NYI! Report error", e);
             }
             return null;
           }
@@ -240,17 +242,17 @@ class ConditionalPermissionInfoStorage {
     try {
       in = new BufferedReader(new FileReader(fh));
       for (String l = in.readLine(); l != null; l = in.readLine()) {
-	l = l.trim();
-	if (l.equals("") || l.startsWith("#")) {
-	  continue;
-	} else if (l.startsWith("!")) {
-	  StringBuffer buf = new StringBuffer();
-	  PermUtil.unquote(l.toCharArray(), 1, buf);
-	  cpiMap.remove(buf.toString());
+        l = l.trim();
+        if (l.equals("") || l.startsWith("#")) {
+          continue;
+        } else if (l.startsWith("!")) {
+          StringBuffer buf = new StringBuffer();
+          PermUtil.unquote(l.toCharArray(), 1, buf);
+          cpiMap.remove(buf.toString());
         } else {
-	  ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l);
-	  cpiMap.put(res.getName(), res);
-	}
+          ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l);
+          cpiMap.put(res.getName(), res);
+        }
       }
       in.close();
     } catch (IOException e) {
@@ -259,7 +261,7 @@ class ConditionalPermissionInfoStorage {
           in.close();
         } catch (IOException ignore) { }
       }
-      // NYI! Report error
+      Debug.printStackTrace("NYI! Report error", e);
     }
   }
 
@@ -277,18 +279,18 @@ class ConditionalPermissionInfoStorage {
       BufferedReader in = null;
       try {
         in = new BufferedReader(new FileReader(files[i]));
-	for (String l = in.readLine(); l != null; l = in.readLine()) {
-	  l = l.trim();
-	  if (l.equals("") || l.startsWith("#")) {
-	    continue;
-	  } else {
-	    empty = l.startsWith("!");
-	    PermUtil.unquote(l.toCharArray(), empty ? 1 : 0, buf);
-	    break;
-	  }
-	}
+        for (String l = in.readLine(); l != null; l = in.readLine()) {
+          l = l.trim();
+          if (l.equals("") || l.startsWith("#")) {
+            continue;
+          } else {
+            empty = l.startsWith("!");
+            PermUtil.unquote(l.toCharArray(), empty ? 1 : 0, buf);
+            break;
+          }
+        }
       } catch (IOException ignore) {
-	// Remove faulty file, should we log?
+        // Remove faulty file, should we log?
         files[i].delete();
         continue;
       } finally {
@@ -299,18 +301,18 @@ class ConditionalPermissionInfoStorage {
         }
       }
       if (buf.length() > 0) {
-	if (found.add(buf.toString())) {
-	  if (empty) {
-	    remove.add(files[i]);
-	  }
-	} else {
-	  // Already found entry for this name remove old file
-	  if (!files[i].delete()) {
-	    // Don't remove active empty entry if we failed too remove old.
-	    remove.remove(files[i]);
-	  }
-	}
-	buf.setLength(0);
+        if (found.add(buf.toString())) {
+          if (empty) {
+            remove.add(files[i]);
+          }
+        } else {
+          // Already found entry for this name remove old file
+          if (!files[i].delete()) {
+            // Don't remove active empty entry if we failed too remove old.
+            remove.remove(files[i]);
+          }
+        }
+        buf.setLength(0);
       }
     }
     for (Iterator i = remove.iterator(); i.hasNext(); ) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,24 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework.permissions;
+package org.knopflerfish.bundle.condpermadmin_test;
 
-import java.security.*;
-import java.util.List;
+import java.util.*;
+import org.osgi.framework.*;
 
+import junit.framework.*;
 
-public class KFSecurityManager
-  extends SecurityManager
-  implements ConditionalPermissionSecurityManager {
+public class Activator implements org.osgi.framework.BundleActivator {
+  
+  ServiceRegistration sr = null;
 
-  private final ThreadLocal postponementCheck = new ThreadLocal();
-
-
-  /**
-   */
-  public void checkPermission(Permission perm, Object context) {
-    if (!(context instanceof AccessControlContext)) {
-      throw new SecurityException("context not an AccessControlContext");
-    }
-    PostponementCheck old = (PostponementCheck) postponementCheck.get();
-    PostponementCheck pc = new PostponementCheck((AccessControlContext) context, perm, old);
-    postponementCheck.set(pc);
-    try {
-      AccessController.doPrivileged(pc);
-    } finally {
-      postponementCheck.set(old);
-    }
+  public void start(BundleContext bc) {
+    TestSuite suite = new CondPermAdminTestSuite(bc);
+    Hashtable props = new Hashtable();
+    props.put("service.pid", suite.getName());
+    sr = bc.registerService(TestSuite.class.getName(), suite, props);
   }
 
-
-  /**
-   */
-  public void checkPermission(Permission perm) {
-    checkPermission(perm, getSecurityContext());
+  public void stop(BundleContext bc) {
   }
-
-
-  /**
-   * NYI! Think about security here!
-   */
-  public void savePostponement(List postponement) {
-    PostponementCheck pc = (PostponementCheck) postponementCheck.get();
-    if (pc == null) {
-      Debug.printStackTrace("TBD! Should not happen!? How did we get here", new Throwable());
-    }
-    pc.savePostponement(postponement);
-  }
-
 }

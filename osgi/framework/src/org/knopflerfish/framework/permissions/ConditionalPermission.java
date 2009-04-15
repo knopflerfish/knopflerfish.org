@@ -55,7 +55,7 @@ public class ConditionalPermission
   /**
    */
   ConditionalPermission(Condition [] conds, PermissionCollection perms,
-			ConditionalPermissionInfoImpl cpi) {
+                        ConditionalPermissionInfoImpl cpi) {
     parent = cpi;
     conditions = conds;
     permissions = perms;
@@ -75,25 +75,25 @@ public class ConditionalPermission
     for (int i = 0; i < conditions.length; i++) {
       Condition c = conditions[i];
       if (c == null) {
-	// Immutable condition has been removed
-	continue;
+        // Immutable condition has been removed
+        continue;
       }
       if (checkPostponed || !c.isPostponed()) {
-	boolean mutable = c.isMutable(); // TCK wrongly requires mutable before isSatisfied.
-	if (c.isSatisfied()) {
-	  if (!mutable) {
-	    // Mark always ok by clearing condition element.
-	    conditions[i] = null;
-	  }
-	} else {
-	  if (!mutable) {
-	    // Mark always fail by clearing conditions.
-	    conditions = null;
-	  }
-	  return false;
-	}
+        boolean mutable = c.isMutable(); // TCK wrongly requires mutable before isSatisfied.
+        if (c.isSatisfied()) {
+          if (!mutable) {
+            // Mark always ok by clearing condition element.
+            conditions[i] = null;
+          }
+        } else {
+          if (!mutable) {
+            // Mark always fail by clearing conditions.
+            conditions = null;
+          }
+          return false;
+        }
       } else {
-	postponed.add(c);
+        postponed.add(c);
       }
     }
     return permissions.implies(perm);
@@ -127,10 +127,10 @@ public class ConditionalPermission
     }
     if (result) {
       for (int i = 0; i < conditions.length; i++) {
-	if (c == conditions[i]) {
-	  conditions[i] = null;
-	  break;
-	}
+        if (c == conditions[i]) {
+          conditions[i] = null;
+          break;
+        }
       }
     } else {
       conditions = null;

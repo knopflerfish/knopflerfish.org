@@ -49,23 +49,47 @@ public class CertificateUtil {
   static public int matchCertificates(Certificate [] certs, String pattern) {
     if (certs != null) {
       if (Debug.permissions) {
-	Debug.println("CHECK: " + certs.length + " number of certs with " + pattern);
+        Debug.println("MatchCertificates: " + certs.length + " number of certs with " + pattern);
       }
       ArrayList pat = parseDNs(pattern);
       for (int i = 0; i < certs.length; i++) {
-	if (certs[i] instanceof X509Certificate) {
-	  X509Certificate	c = (X509Certificate)certs[i];
-	  if (Debug.permissions) {
-	    Debug.println("SUBJECT " + i  + ": " + c.getSubjectX500Principal());
-	  }
-	  // NYI! Handle certificate chains
-	  ArrayList dn = parseDNs(c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
-	  if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
-	    return i;
-	  }
-	} else {
-	  throw new RuntimeException("Unknown Certificate type");
-	}
+        if (certs[i] instanceof X509Certificate) {
+          X509Certificate c = (X509Certificate)certs[i];
+          if (Debug.permissions) {
+            Debug.println("SUBJECT " + i  + ": " +
+                          c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
+          }
+          // NYI! Handle certificate chains
+          ArrayList dn = parseDNs(c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
+          if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
+            return i;
+          }
+        } else {
+          throw new RuntimeException("Unknown Certificate type");
+        }
+      }
+    }
+    return -1;
+  }
+
+
+  /**
+   *
+   */
+  static public int matchSigners(String [] signers, String pattern) {
+    if (Debug.permissions) {
+      Debug.println("MatchSigners: " + signers.length + " number of certs with " + pattern);
+    }
+    ArrayList pat = parseDNs(pattern);
+    for (int i = 0; i < signers.length; i++) {
+      if (signers[i] != null) {
+        ArrayList dn = parseDNs(signers[i]);
+        if (Debug.permissions) {
+          Debug.println("SUBJECT " + i  + ": " + signers[0]);
+        }
+        if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
+          return i;
+        }
       }
     }
     return -1;
@@ -89,16 +113,16 @@ public class CertificateUtil {
     if (dn.charAt(0) == '*') {
       res.add("*");
       if (len == 1) {
-	return res;
+        return res;
       }
       int pos = 1;
       while (dn.charAt(pos) == ' ') {
-	pos++;
+        pos++;
       }
       if (dn.charAt(pos) == ',') {
-	dn = dn.substring(pos + 1);
+        dn = dn.substring(pos + 1);
       } else {
-	throw new IllegalArgumentException("wildcard has trailing characters: " + dn);
+        throw new IllegalArgumentException("wildcard has trailing characters: " + dn);
       }
     }
     dn = new X500Principal(dn).getName(X500Principal.CANONICAL);
@@ -109,20 +133,20 @@ public class CertificateUtil {
       boolean multi_rdn = false;
       int start = end;
       while (!quit && end < len) {
-	switch (dn.charAt(end)) {
-	case '+':
-	  multi_rdn = true;
-	  // Fall through
-	case ',':
-	  quit = true;
-	  break;
-	case '\\':
-	  end+=2;
-	  break;
-	default:
-	  end++;
-	  break;
-	}
+        switch (dn.charAt(end)) {
+        case '+':
+          multi_rdn = true;
+          // Fall through
+        case ',':
+          quit = true;
+          break;
+        case '\\':
+          end+=2;
+          break;
+        default:
+          end++;
+          break;
+        }
       }
       res.add(new RDN(dn, start, end, multi_rdn));
       end++;
@@ -143,19 +167,19 @@ public class CertificateUtil {
     while (end < len) {
       switch (dns.charAt(end)) {
       case '"' :
-	quote = !quote;
-	break;
+        quote = !quote;
+        break;
       case '\\' :
-	if (++end == len) {
-	  throw new IllegalArgumentException("Escape character at end of string");
-	}
-	break;
+        if (++end == len) {
+          throw new IllegalArgumentException("Escape character at end of string");
+        }
+        break;
       case ';' :
-	if (!quote) {
-	  res.add(parseDN(dns.substring(start, end)));
-	  start = end + 1;
-	}
-	break;
+        if (!quote) {
+          res.add(parseDN(dns.substring(start, end)));
+          start = end + 1;
+        }
+        break;
       }
       end++;
     }
@@ -176,11 +200,11 @@ public class CertificateUtil {
     if (dn.size() == 1) {
       Object o = dn.get(0);
       if (o instanceof String) {
-	if ("-".equals(o)) {
-	  return Integer.MAX_VALUE;
-	} else if ("*".equals(o)) {
-	  return 1;
-	}
+        if ("-".equals(o)) {
+          return Integer.MAX_VALUE;
+        } else if ("*".equals(o)) {
+          return 1;
+        }
       }
     }
     return 0;
@@ -199,7 +223,7 @@ public class CertificateUtil {
     if (pattern.get(0) instanceof String) {
       // All strings are assumed to contain a "*"
       if (d_end < p_end - 1) {
-	return false;
+        return false;
       }
       p_base = 1;
     } else if (d_end == p_end) {
@@ -212,7 +236,7 @@ public class CertificateUtil {
       Object p = pattern.get(p_end--);
       Object d = dn.get(d_end--);
       if (!((RDN)d).match((RDN)p)) {
-	return false;
+        return false;
       }
     }
     // Check that the wildcard doesn't match part of a multiRDN.
@@ -228,7 +252,7 @@ public class CertificateUtil {
    *
    */
   static private boolean matchDNs(ArrayList dns, int dns_ix,
-				  ArrayList patterns, int patterns_ix) {
+                                  ArrayList patterns, int patterns_ix) {
     if (dns_ix < 0) {
       return patterns_ix < 0;
     }
@@ -239,9 +263,9 @@ public class CertificateUtil {
     int x = wildcardDN(pat);
     if (x > 0) {
       for (int i = 0; i <= x; i++) {
-	if (matchDNs(dns, dns_ix - i, patterns, patterns_ix)) {
-	  return true;
-	}
+        if (matchDNs(dns, dns_ix - i, patterns, patterns_ix)) {
+          return true;
+        }
       }
       return false;
     }

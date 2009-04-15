@@ -435,7 +435,7 @@
   <delete file="init_Windows2000.xargs"/>
   <delete file="init_WindowsXP.xargs"/>
   <delete file="init-tests.xargs"/>
-  <delete file="init-osgi-tests-target.xargs"/>
+  <delete file="init-osgi-test-target.xargs"/>
  </target>
 
  <target name="clean_bundles_test" if="dir.bundles_test.present">

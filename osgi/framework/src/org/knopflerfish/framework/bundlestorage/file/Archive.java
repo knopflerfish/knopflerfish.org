@@ -63,6 +63,11 @@ class Archive {
    */
   final private static String SUBDIR = "sub";
 
+  /**
+   * File suffix for certificates.
+   */
+  final private static String CERTS_SUFFIX = ".crt";
+
   // Directory where optional bundle files are stored
   // these need not be unpacked locally
   final private static String OSGI_OPT_DIR = "OSGI-OPT/";
@@ -88,7 +93,7 @@ class Archive {
   /**
    * Controls if we should trust file storage to be secure.
    */
-  final private static boolean trustedStorage = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.trusted", "false")).booleanValue();
+  final private static boolean trustedStorage = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.trusted", "true")).booleanValue();
 
   /**
    * Controls if we should require signed bundles.
@@ -129,6 +134,12 @@ class Archive {
    */
   private ZipEntry subJar /*= null*/;
 
+  /**
+   * Is Archive closed.
+   */
+  private boolean bClosed = false;
+
+
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -165,7 +176,7 @@ class Archive {
     BufferedInputStream bis =  null;
     JarInputStream ji = null;
     //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
-    if(mf == null){
+    if (mf == null) {
       if (Framework.getProperty("java.vendor").startsWith("Skelmir")){
         bis = new BufferedInputStream(is, is.available());
       } else {
@@ -242,18 +253,19 @@ class Archive {
             }
           }
         }
-	certs = checkCertificates(certs, foundUnsigned);
+        certs = checkCertificates(certs, foundUnsigned);
         jar = null;
-      } 
+      }
+      saveCertificates();
     }
-    if(ji == null)	{
+    if (ji == null) {
       // Only copy to storage when applicable, otherwise
       // use reference
       if (isReference(source)) {
         file = new FileTree(getFile(source));
 
         // this tells the purge() method not to remove the original
-        bKeepFile = true; 
+        bKeepFile = true;
       } else {
         if(isDirectory){
           // if directory, copy the directory to bundle storage
@@ -376,9 +388,9 @@ class Archive {
     }
     if (doVerify) {
       if (jar == null) {
-	loadCertificates();
+        loadCertificates();
       } else {
-	manifest = new AutoManifest(processSignedJar(file), location);
+        manifest = new AutoManifest(processSignedJar(file), location);
       }
     }
     if (manifest == null) {
@@ -709,9 +721,11 @@ class Archive {
 
     // Remove any cached sub files
     getSubFileTree(this).delete();
+
+    // Remove any saved certificates.
+    removeCertificates();
   }
 
-  boolean bClosed = false;
 
   /**
    * Close archive and all open sub-archives.
@@ -789,7 +803,7 @@ class Archive {
       if (jar != null) {
         manifest.addZipFile(jar);
       } else if (file != null && file.isDirectory()) {
-	manifest.addFile(file.getAbsolutePath(), file);
+        manifest.addFile(file.getAbsolutePath(), file);
       }
     }
   }
@@ -898,30 +912,32 @@ class Archive {
     for (int i = 0; i < a.length; i++) {
       boolean ok = false;
       for (int j = 0; j < b.length; j++) {
-	if (a[i] == b[j]) {
-	  ok = true;
-	  break;
-	}
+        if (a[i] == b[j]) {
+          ok = true;
+          break;
+        }
       }
       if (ok) {
-	len++;
+        len++;
       } else {
-	certs[i] = null;
+        certs[i] = null;
       }
     }
     if (len != a.length) {
       Certificate [] nc = new Certificate[len];
       int j = 0;
       for (int i = 0; i < a.length; i++) {
-	if (a[i] != null) {
-	  nc[j++] = a[i];
-	}
+        if (a[i] != null) {
+          nc[j++] = a[i];
+        }
       }
       return nc;
     } else {
       return a;
     }
   }
+
+
   /**
    * Go through jar file and check signatures.
    */
@@ -935,20 +951,20 @@ class Archive {
 
     while ((je = ji.getNextJarEntry()) != null) {
       if (!je.isDirectory()) {
-	String name = je.getName();
-	if (!name.startsWith("META-INF/")) {
-	  ji.closeEntry();
-	  Certificate [] c = je.getCertificates();
-	  if (c != null) {
-	    if (certs != null) {
-	      certs = intersectCerts(certs, c);
-	    } else {
-	      certs = c;
-	    }
-	  } else {
-	    foundUnsigned = true;
-	  }
-	}
+        String name = je.getName();
+        if (!name.startsWith("META-INF/")) {
+          ji.closeEntry();
+          Certificate [] c = je.getCertificates();
+          if (c != null) {
+            if (certs != null) {
+              certs = intersectCerts(certs, c);
+            } else {
+              certs = c;
+            }
+          } else {
+            foundUnsigned = true;
+          }
+        }
       }
     }
     checkCertificates(certs, foundUnsigned);
@@ -964,37 +980,37 @@ class Archive {
     throws IOException {
     Certificate [] res = null;
     if (certs != null) {
-      if (foundUnsigned) { 
-	// NYI! Log, ("All entry must be signed in a signed bundle.");
+      if (foundUnsigned) {
+        // NYI! Log, ("All entry must be signed in a signed bundle.");
       } else if (certs.length == 0) { 
-	// NYI! Log ("All entry must be signed by a common certificate.");
+        // NYI! Log ("All entry must be signed by a common certificate.");
       } else {
-	int ok = 0;
-	for (int i = 0; i < certs.length; i++) {
-	  if (certs[i] instanceof X509Certificate) {
-	    try {
-	      ((X509Certificate)certs[i]).checkValidity();
-	      // NYI! Check cert chain
-	      ok++;
-	    } catch (Exception ignore) {
-	      certs[i] = null;
-	    }	  
-	  } else {
-	    // Certificate type not handled remove.
-	    certs[i] = null;
-	  }
-	}
-	if (ok == certs.length) {
-	  res = certs;
-	} else if (ok > 0) {
-	  res = new Certificate[ok];
-	  int j = 0;
-	  for (int i = 0; i < certs.length; i++) {
-	    if (certs[i] != null) {
-	      res[j++] = certs[i];
-	    }
-	  }
-	}
+        int ok = 0;
+        for (int i = 0; i < certs.length; i++) {
+          if (certs[i] instanceof X509Certificate) {
+            try {
+              ((X509Certificate)certs[i]).checkValidity();
+              // NYI! Check cert chain
+              ok++;
+            } catch (Exception ignore) {
+              certs[i] = null;
+            }
+          } else {
+            // Certificate type not handled, remove.
+            certs[i] = null;
+          }
+        }
+        if (ok == certs.length) {
+          res = certs;
+        } else if (ok > 0) {
+          res = new Certificate[ok];
+          int j = 0;
+          for (int i = 0; i < certs.length; i++) {
+            if (certs[i] != null) {
+              res[j++] = certs[i];
+            }
+          }
+        }
       }
     }
     if (res == null && allSigned) {
@@ -1008,8 +1024,50 @@ class Archive {
   /**
    * 
    */
-  private void loadCertificates() {
+  public void saveCertificates() throws IOException {
+    File f = new File(getPath() + CERTS_SUFFIX);
+    if (certs != null) {
+      try {
+        FileOutputStream fos = new FileOutputStream(f);
+        for (int i = 0; i < certs.length; i++) {
+          fos.write(certs[i].getEncoded());
+        }
+        fos.close();
+      } catch (CertificateEncodingException e) {
+        // NYI! Log or fail
+      }
+    }
+  }
+
+
+  /**
+   * 
+   */
+  private void loadCertificates() throws IOException {
+    File f = new File(getPath() + CERTS_SUFFIX);
+    if (f.canRead()) {
+      try {
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        FileInputStream fis = new FileInputStream(f);
+        Collection c = cf.generateCertificates(fis);
+        if (c.size() > 0) {
+          certs = new Certificate[c.size()];
+          c.toArray(certs);
+        }
+      } catch (CertificateException ioe) {
+        // NYI! Log or fail
+      }
+    }
     // NYI! load certificates from both trusted and untrusted storage.
+  }
+
+
+  /**
+   * 
+   */
+  public void removeCertificates() {
+    File f = new File(getPath() + CERTS_SUFFIX);
+    f.delete();
   }
 
 
