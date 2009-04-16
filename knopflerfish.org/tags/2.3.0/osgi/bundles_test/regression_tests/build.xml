@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="regression_tests" default="all">
+
+  <target name="all">
+    <ant dir="bundleA_test"             target="all"/>
+    <ant dir="bundleA1_test"            target="all"/>
+    <ant dir="bundleA2_test"            target="all"/>
+    <ant dir="bundleB_test"             target="all"/>
+    <ant dir="bundleC_test"             target="all"/>
+    <ant dir="bundleD_test"             target="all"/>
+    <ant dir="bundleD1_test"            target="all"/>
+    <ant dir="bundleE_test"             target="all"/>
+    <ant dir="bundleF_test"             target="all"/>
+    <ant dir="bundleG_test"             target="all"/>
+    <ant dir="bundleH_test"             target="all"/>
+    <ant dir="bundleJ_test"             target="all"/>
+    <ant dir="bundleP_test"             target="all"/>
+    <ant dir="bundleP1_test"            target="all"/>
+    <ant dir="bundleP2_test"            target="all"/>
+    <ant dir="bundleP3_test"            target="all"/>
+    <ant dir="bundlePT1_test"           target="all"/>
+    <ant dir="bundlePT2_test"           target="all"/>
+    <ant dir="bundlePT3_test"           target="all"/>
+    <ant dir="bundleR_test"             target="all"/>
+    <ant dir="bundleQ_test"             target="all"/>
+    <ant dir="bundleR1_test"            target="all"/>
+    <ant dir="bundleR2_test"            target="all"/>
+    <ant dir="bundleR3_test"            target="all"/>
+    <ant dir="bundleR4_test"            target="all"/>
+    <ant dir="bundleR5_test"            target="all"/>
+    <ant dir="bundleR6_test"            target="all"/>
+    <ant dir="bundleS_test"             target="all"/>
+    <ant dir="bundleU_test"             target="all"/>
+    <ant dir="bundleV_test"             target="all"/>
+    <ant dir="bundleW_test"             target="all"/>
+    <ant dir="bundleW1_test"            target="all"/>
+    <ant dir="resexp_test"              target="all"/>
+    <ant dir="resimp_test"              target="all"/>
+    <ant dir="require-bundle"	        target="all"/>
+    <ant dir="framework_test"           target="all"/>
+    <ant dir="filter_test"              target="all"/>
+    <ant dir="constants_test"           target="all"/>
+    <ant dir="servicetracker_test"      target="all"/>
+    <ant dir="http_test"                target="all"/>
+    <ant dir="registryperformance_test" target="all"/>
+    <ant dir="restart_test"             target="all"/>
+    <ant dir="eventadmin_test"          target="all"/>
+    <ant dir="connectorservice_test"    target="all"/>
+    <ant dir="component-api_test"       target="all"/>
+    <ant dir="componentA_test"          target="all"/>
+    <ant dir="component_test"           target="all"/>
+    <ant dir="bundleEnd1_test"		target="all"/>
+    <ant dir="bundleEnd5_test"		target="all"/>
+    <ant dir="bundleEnd7_test"		target="all"/>
+    <ant dir="bundleEnd101_test"	target="all"/>
+    <ant dir="bundleEnd102_test"	target="all"/>
+    <ant dir="bundleEnd151_test"	target="all"/>
+    <ant dir="bundleEnd152_test"	target="all"/>
+    <ant dir="endurance_test"		target="all"/>
+    <ant dir="bundleExt1_test"		target="all"/>
+    <ant dir="bundleExt2_test"		target="all"/>
+    <ant dir="extension_test"		target="all"/>
+    <ant dir="condpermadmin_test"	target="all"/>
+    <ant dir="axis2_soapobject"		target="all"/>
+    <ant dir="axis2_soapclient_adb"	target="all"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="out"/>
+    <delete dir="jars"/>
+    <ant dir="." antfile="build_keystore.xml" target="clean"/>
+  </target>
+
+</project>

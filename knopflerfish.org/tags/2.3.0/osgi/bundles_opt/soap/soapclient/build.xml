@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="soapclient" default="all">
+
+  <path id="axis.classpath">
+    <fileset dir="lib">
+      <include name="**/*.jar" />
+    </fileset>
+  </path>
+
+  <taskdef resource="axis-tasks.properties" classpathref="axis.classpath" />
+
+
+  <target name="gensrc">
+    <mkdir dir="generated"/>
+    <axis-wsdl2java
+         output="generated"
+         verbose="true"
+         url="http://localhost:8080/axis/services/remoteFW?wsdl" >
+      <mapping
+        namespace="http://localhost:8080/axis/services/remoteFW"
+        package="org.knopflerfish.client" />
+    </axis-wsdl2java>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="classes"/>
+    <javac srcdir="generated"
+         destdir="classes"
+         classpath="lib/axis.jar:lib/jaxrpc.jar"
+    />
+    <javac srcdir="src"
+         destdir="classes"
+         classpath="lib/axis.jar:lib/jaxrpc.jar"
+    />
+  </target>
+
+   <target name="run">
+     <java classname="Test">
+         <classpath>
+           <pathelement location="lib/axis.jar"/>
+           <pathelement location="lib/commons-logging.jar"/>
+           <pathelement location="lib/commons-discovery.jar"/>
+           <pathelement location="lib/jaxrpc.jar"/>
+           <pathelement location="lib/saaj.jar"/>
+           <pathelement location="lib/xercesImpl.jar"/>
+           <pathelement location="classes"/>
+         </classpath>
+    </java>
+  </target> 
+ 
+  <target  name="all">
+    <antcall target="gensrc"/>
+    <antcall target="compile"/>
+    <antcall target="run"/>
+  </target>
+
+</project>
