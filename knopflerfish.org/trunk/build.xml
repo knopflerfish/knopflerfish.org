@@ -981,18 +981,20 @@
 
   </target>
 
-  <target   name        = "distrib_tests"
-            description = "Builds test distribution file"
-	    depends     = "mkreldir">
+  <target    name        = "distrib_tests"
+             description = "Builds test distribution file"
+	     depends     = "mkreldir">
 
-    <ant    dir         = "osgi/framework"
-            target      = "all"/>
+    <ant     dir         = "osgi/framework"
+             target      = "all"/>
 
-    <ant    dir         = "osgi/bundles_opt/junit"
-            target      = "all"/>
+    <ant     dir         = "osgi/bundles_opt/junit"
+             target      = "all"/>
 
-    <ant    dir         = "osgi/bundles_test/regression_tests"
-            target      = "all"/>
+    <ant     dir         = "osgi/bundles_test/regression_tests"
+             target      = "all"/>
+
+    <antcall target      = "xargs"/>
 
     <delete file        ="${distribfile_tests}"/>
 
@@ -1007,14 +1009,13 @@
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/init-tests.xargs"/>
 
-           <include name = "osgi/bundles_test/regression_tests/**"/>
+           <include name = "osgi/bundles_test/**"/>
            <exclude name = "osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
            <include name = "osgi/bundles_opt/junit/**"/>
            <include name = "ant/**"/>
-           <include name = "osgi/bundles_test/regression_tests/jars/*_test*.jar"/>
            <include name = "osgi/jars/junit/*.jar"/>
            <include name = "osgi/jars/junit_runner/*.jar"/>
-           <exclude name = "**/*.class"/>
+           <exclude name = "osgi/bundles_test/regression_tests/out/**"/>
 
 
            <exclude name = "**/CVS"/>
