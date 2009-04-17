@@ -1,3 +1,129 @@
+2009-04-17 15:01:21 +0200 (Fri, 17 Apr 2009), revision 2692, jan
+Fixed build distribution and clean problems.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+
+2009-04-17 14:04:14 +0200 (Fri, 17 Apr 2009), revision 2691, jan
+Fixed build and test problem for release 1.3.7.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/trayicon/trayicon/src/org/knopflerfish/bundle/trayicon/TrayIconWrapper.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/license.html
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/license.txt
+
+2009-03-13 15:34:36 +0100 (Fri, 13 Mar 2009), revision 2681, jan
+Added missing array range check
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleStorageImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/BundleStorageImpl.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2009-01-15 15:24:12 +0100 (Thu, 15 Jan 2009), revision 2632, jan
+Modify synchronization code to avoid dead lock when using the PackageAdmin service from start and stop methods. Fixed ordering bug in PackageAdmin.refreshPackages().
+Fixed so that property assignments on the command line is evaluated in the correct order when used together with -xargs. Added support for running OSGi test suite.
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/ExportedPackageImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Packages.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Pkg.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PkgEntry.java
+A   knopflerfish.org/branches/kf_1_support/osgi/init-osgi-test-target.xargs.in
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2009-01-09 11:08:21 +0100 (Fri, 09 Jan 2009), revision 2631, jan
+Changed synchronization code to avoid dead lock in BundleClassLoader.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2009-01-05 00:25:16 +0100 (Mon, 05 Jan 2009), revision 2628, jan
+Fixed dead lock between BundleImpl objects and Packages object.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-12-19 12:42:45 +0100 (Fri, 19 Dec 2008), revision 2605, jan
+Updated release notes and framework version for fix in rev 2602.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-12-19 11:19:37 +0100 (Fri, 19 Dec 2008), revision 2602, jan
+Rearranged synchronized code to avoid dead lock between registerService and refreshPackages.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Services.java
+
+2008-12-10 09:46:19 +0100 (Wed, 10 Dec 2008), revision 2589, ekolin
+*** empty log message ***
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-12-10 09:45:54 +0100 (Wed, 10 Dec 2008), revision 2588, ekolin
+Fix SF KF-bugs issue with ID 2406160. Annoying System.out messages in SystemMetaProvider.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/cm_desktop/src/org/knopflerfish/bundle/desktop/cm/Activator.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/cm_desktop/src/org/knopflerfish/bundle/desktop/cm/JVector.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/util/metatype/Loader.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/util/metatype/Main.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/util/metatype/SystemMetatypeProvider.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/readme.html
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-10-27 11:16:47 +0100 (Mon, 27 Oct 2008), revision 2561, ekolin
+*** empty log message ***
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-10-27 11:05:19 +0100 (Mon, 27 Oct 2008), revision 2560, ekolin
+Fix issue https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+UU  knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/Archive.java
+
+2008-09-05 09:39:49 +0200 (Fri, 05 Sep 2008), revision 2491, ekolin
+Fix problem encountered when updating a bundle in state INSTALLED (or
+RESOLVED without a classloader).
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-09-04 20:58:22 +0200 (Thu, 04 Sep 2008), revision 2490, ekolin
+Update of a resolved (or installed) bundle wihtout a class loader instance did not mark old exported packages as zombie-packages, resulting in failures to access classes in packages it imported when re-resolved after the update.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+
+2008-04-07 10:22:41 +0200 (Mon, 07 Apr 2008), revision 2321, ekolin
+Improved error message for missing bcel lib when building from scratch.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+
+2008-04-07 10:13:43 +0200 (Mon, 07 Apr 2008), revision 2320, ekolin
+Add expected (empty) direcotry
+A   knopflerfish.org/branches/kf_1_support/ant/lib/
+
+2008-03-31 16:08:56 +0200 (Mon, 31 Mar 2008), revision 2313, ekolin
+Post 1.3.6 release update of default version in build.xml to 1.3.7
+U   knopflerfish.org/branches/kf_1_support/build.xml
+
+2008-03-31 15:47:58 +0200 (Mon, 31 Mar 2008), revision 2312, ekolin
+Add release notes and change log to the "tiny" deliverable.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+
+2008-03-31 14:04:24 +0200 (Mon, 31 Mar 2008), revision 2310, ekolin
+Copy the change log to the expected file name.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+
+2008-03-31 13:45:42 +0200 (Mon, 31 Mar 2008), revision 2309, ekolin
+Backport fix for hard-coded File.separator
+U   knopflerfish.org/branches/kf_1_support/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+
+2008-03-31 12:12:10 +0200 (Mon, 31 Mar 2008), revision 2307, ekolin
+Finalize change log for 1.3.6 release.
+U   knopflerfish.org/branches/kf_1_support/changelog.txt
+
 2008-03-31 12:09:23 +0200 (Mon, 31 Mar 2008), revision 2306, ekolin
 Update build system for 1.3.6 release.
 U   knopflerfish.org/branches/kf_1_support/README.txt
