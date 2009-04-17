@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ** Copyright (c) 2004-2008, KNOPFLERFISH project
+  ** Copyright (c) 2004-2009, KNOPFLERFISH project
   ** All rights reserved.
   ** 
   ** Redistribution and use in source and binary forms, with or without 
@@ -327,6 +327,7 @@
            <include name = "osgi/restart.xargs"/>
            <include name = "osgi/template.xargs"/>
            <include name = "osgi/props.xargs"/>
+           <include name = "osgi/init-osgi-test-target.xargs.in"/>
 
            <include name = "build.xml"/>
            <include name = "tools/**"/>
@@ -693,7 +694,7 @@
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/init-tests.xargs"/>
 
-           <include name = "osgi/bundles_test/regression_tests/**"/>
+           <include name = "osgi/bundles_test/**"/>
            <exclude name = "osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
            <include name = "osgi/bundles_opt/junit/**"/>
            <include name = "ant/**"/>

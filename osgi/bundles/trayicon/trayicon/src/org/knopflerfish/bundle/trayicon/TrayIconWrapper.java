@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,12 @@ package org.knopflerfish.bundle.trayicon;
 
 import org.osgi.framework.*;
 import com.jeans.trayicon.*;
-import java.awt.*;
+// import java.awt.*;   --- Can not use this because it TrayIcon collision in J2SE 6.0
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.*;
 import java.awt.image.ImageObserver;
 import java.io.*;
