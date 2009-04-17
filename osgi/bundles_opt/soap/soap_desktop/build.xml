@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="soap_desktop" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.soap_desktop}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
 
@@ -11,22 +14,30 @@
   <property name = "bundle.build.impl"     value = "true"/>
   <property name = "bundle.build.lib"      value = "false"/>
   <property name = "bundle.build.all"      value = "false"/>
-  <property name = "bundle.build.doc"      value = "true"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
 
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="desktop_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
+   <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>
    <pathelement location="../axis-osgi/resources/wsdl4j.jar"/>
    <pathelement location="../axis-osgi/resources/qname.jar"/>
    <pathelement location="../axis-osgi/resources/axis.jar"/>
    <pathelement location="../axis-osgi/resources/jaxrpc.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="bundle.description"    value="SOAP Services desktop plugin"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="SOAP desktop"/>
+
+  <property name="import.package"
+            value="org.knopflerfish.service.desktop,javax.wsdl,javax.wsdl.extensions,javax.wsdl.factory,javax.wsdl.xml,javax.xml.namespace,javax.xml.rpc,org.apache.axis.client,org.osgi.framework,org.w3c.dom"/>
+
+  &bundlebuild_include;
 
   <target name="run">
    <property name="wdsl.url"  value="sample.wsdl"/>

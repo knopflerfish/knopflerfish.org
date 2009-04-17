@@ -77,8 +77,6 @@ public class StatusCommand implements Command {
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_OS_NAME));
     out.print("/");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_OS_VERSION));
-    out.print("/");
-    out.print(Activator.bc.getProperty("java.vm.name"));
     out.print("</nobr>");
   }
   

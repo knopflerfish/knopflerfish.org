@@ -1,20 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="jsdk" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.jsdk}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
-  <property name = "bundle.build.lib"   value = "false"/>
-  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.lib"   value = "true"/>
+  <property name = "bundle.build.api"   value = "false"/>
   <property name = "bundle.build.impl"  value = "false"/>
   <property name = "bundle.build.all"   value = "false"/>
 
-  <property name="api.pattern"  value="javax/servlet/**"/> 
+  <property name="bundle.version"        value="2.2"/>
+  <property name="bundle.category"       value="lib"/>
+  <property name="bundle.description"    value="The servlet.jar from SUN jsdk lib"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Sun"/>
+  <property name="bundle.apivendor"      value="Sun"/>
+  <property name="bundle.name"           value="JSDK lib"/>
+  <property name="bundle.classpath"      value="servlet.jar"/>
 
-  <path id="bundle.compile.path">
-  </path>
+  <property name="export.package"        value="javax.servlet ; specification-version=2.2,javax.servlet.http ; specification-version=2.2,javax.servlet.jsp ; specification-version=2.2"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  &bundlebuild_include;
 
 </project>

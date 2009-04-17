@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  */
 
 package org.knopflerfish.bundle.httpconsole;
-
+	
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
@@ -43,10 +43,10 @@ import org.osgi.framework.*;
 
 public class InfoCommand extends IconCommand {
   public InfoCommand() {
-    super("cmd_info",
-          "Info",
-          "Show info for selected bundles",
-          Activator.RES_ALIAS + "/info.gif");
+    super("cmd_info", 
+	  "Info",
+	  "Show info for selected bundles",
+	  Activator.RES_ALIAS + "/info.gif");
 
     displayFlags = DISPLAY_COMPACTLIST;
   }
@@ -66,44 +66,37 @@ public class InfoCommand extends IconCommand {
       addProp(props, Constants.FRAMEWORK_OS_VERSION);
       addProp(props, Constants.FRAMEWORK_PROCESSOR);
       addProp(props, Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-
-      // There is no way to access the key-set of the framework
-      // properties in OSGi R4; use the key set of the system
-      // properties as a substitute.
-      Dictionary sysProps = System.getProperties();
-      for(Enumeration e = sysProps.keys(); e.hasMoreElements(); ) {
-        addProp(props, (String) e.nextElement());
-      }
+      
       printDictionary(props, sb);
 
       sb.append("<div class=\"shadow\">System properties</div>");
-      printDictionary(sysProps, sb);
-
+      printDictionary(System.getProperties(), sb);
+      
     } else {
 
       for(int i = 0; i < bids.length; i++) {
-        Bundle b = Activator.bc.getBundle(bids[i]);
-        sb.append("<div class=\"shadow\">");
-        sb.append("#" + bids[i] +
-                  " " + Util.getName(b) +
-                  ", " + Util.getStateString(b.getState()));
-        sb.append("</div>");
+	Bundle b = Activator.bc.getBundle(bids[i]);
+	sb.append("<div class=\"shadow\">");
+	sb.append("#" + bids[i] + 
+		  " " + Util.getName(b) + 
+		  ", " + Util.getStateString(b.getState()));
+	sb.append("</div>");
+	
+	Dictionary headers = b.getHeaders();
+	
+	sb.append("Location: " + b.getLocation());
 
-        Dictionary headers = b.getHeaders();
+	sb.append("<div class=\"shadow\">Manifest</div>");
+	printDictionary(headers, sb);
 
-        sb.append("Location: " + b.getLocation());
+	printServices(sb, 
+		      "Registered services", 
+		      b.getRegisteredServices());
 
-        sb.append("<div class=\"shadow\">Manifest</div>");
-        printDictionary(headers, sb);
-
-        printServices(sb,
-                      "Registered services",
-                      b.getRegisteredServices());
-
-        printServices(sb,
-                      "Used services",
-                      b.getServicesInUse());
-
+	printServices(sb, 
+		      "Used services", 
+		      b.getServicesInUse());
+	
       }
     }
 
@@ -111,8 +104,8 @@ public class InfoCommand extends IconCommand {
   }
 
   void printServices(StringBuffer sb,
-                     String header,
-                     ServiceReference[] srl) {
+		     String header,
+		     ServiceReference[] srl) {
 
     if(srl == null || srl.length == 0) {
       return;
@@ -130,16 +123,16 @@ public class InfoCommand extends IconCommand {
 
       sb.append("  <td style=\"background: #efefef;\">");
       try {
-        StringWriter sw = new StringWriter();
-        Util.printObject(new PrintWriter(sw), srl[i].getProperty("objectclass"));
-
-        sb.append("<a href=\"" + Activator.SERVLET_ALIAS +
-                  "?service.id=" + srl[i].getProperty("service.id") +
-                  "\">");
-        sb.append(sw.toString());
-        sb.append("</a>");
+	StringWriter sw = new StringWriter();
+	Util.printObject(new PrintWriter(sw), srl[i].getProperty("objectclass"));
+	
+	sb.append("<a href=\"" + Activator.SERVLET_ALIAS + 
+		  "?service.id=" + srl[i].getProperty("service.id") + 
+		  "\">");
+	sb.append(sw.toString());
+	sb.append("</a>");
       } catch (Exception e) {
-        sb.append(Util.toHTML(e));
+	sb.append(Util.toHTML(e));
       }
       sb.append("</td>");
 
@@ -147,9 +140,9 @@ public class InfoCommand extends IconCommand {
       Bundle[] using = findUsingBundles(srl[i]);
 
       for(int j = 0; j < using.length; j++) {
-        sb.append(Util.infoLink(using[j]));
-        sb.append(Util.getName(using[j]));
-        sb.append("</a><br/>");
+	sb.append(Util.infoLink(using[j]));
+	sb.append(Util.getName(using[j]));
+	sb.append("</a><br/>");
       }
       sb.append("  </td>");
 
@@ -164,9 +157,9 @@ public class InfoCommand extends IconCommand {
     for(int i = 0; i < bundles.length; i++) {
       Bundle[] using = sr.getUsingBundles();
       for(int j = 0; using != null && j < using.length; j++) {
-        if(bundles[i] == using[j]) {
-          set.put(bundles[i], "");
-        }
+	if(bundles[i] == using[j]) {
+	  set.put(bundles[i], "");
+	}
       }
     }
 
@@ -175,7 +168,7 @@ public class InfoCommand extends IconCommand {
     for(Enumeration e = set.keys(); e.hasMoreElements(); ) {
       r[n++] = (Bundle)e.nextElement();
     }
-
+    
     return r;
   }
 
@@ -194,11 +187,11 @@ public class InfoCommand extends IconCommand {
     for(int i = 0; i < keys.size(); i++) {
       String key = (String)keys.elementAt(i);
       String val = (String)dict.get(key);
-
+      
       val = Util.replace(val, ",", ", ");
       val = Util.replace(val, "/", "/ ");
       val = Util.replace(val, "\\", "\\ ");
-
+      
       sb.append("<tr>");
       sb.append("<td>" + key + "</td>");
       sb.append("<td>" + val + "</td>");

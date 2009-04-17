@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="metatype" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.metatype}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
+
 
   <property name="api.pattern" value="org/osgi/**"/> 
 
@@ -15,6 +19,15 @@
   <path id="bundle.compile.path">
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Metatype API"/>
+  <property name="bundle.category"       value="API"/>
+  <property name="bundle.vendor"         value="OSGi"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+
+  <property name="export.package"        value="org.osgi.service.metatype;specification-version=1.0"/>
+
+  &bundlebuild_include;
 
 </project>

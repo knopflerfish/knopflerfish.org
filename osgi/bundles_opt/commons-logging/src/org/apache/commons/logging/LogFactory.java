@@ -73,14 +73,13 @@ import java.security.PrivilegedAction;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
-import java.security.*;
 
 
 /**
  * <p>Factory for creating {@link Log} instances, with discovery and
  * configuration features similar to that employed by standard Java APIs
  * such as JAXP.</p>
- *
+ * 
  * <p><strong>IMPLEMENTATION NOTE</strong> - This implementation is heavily
  * based on the SAXParserFactory and DocumentBuilderFactory implementations
  * (corresponding to the JAXP pluggability APIs) found in Apache Xerces.</p>
@@ -118,7 +117,7 @@ public abstract class LogFactory {
         "commons-logging.properties";
 
     /**
-     * JDK1.3+ 'Service Provider' specification
+     * JDK1.3+ 'Service Provider' specification 
      * ( http://java.sun.com/j2se/1.3/docs/guide/jar/jar.html )
      */
     protected static final String SERVICE_ID =
@@ -263,31 +262,26 @@ public abstract class LogFactory {
 
       // Allow bypass of context classloader, and use
       // this commons-logging bundle class loader instead
-      // if
+      // if 
       //   org.knopflerfish.log.grabcommons=false
       // use the "standard context class loader instaed
       //
-      String grab =
-        (String)AccessController.doPrivileged
-        ( new PrivilegedAction() {
-            public Object run() {
-              return System.getProperty("org.knopflerfish.log.grabcommons");
-            }
-          });
-      if(null == grab || "true".equals(grab)) {
-        Class clazz = org.knopflerfish.bundle.commons.logging.Activator.class;
-        contextClassLoader = clazz.getClassLoader();
-      } else {
+      String grab = System.getProperty("org.knopflerfish.log.grabcommons");
+      if(null == grab || "true".equals(grab)) 
+	{
+	  Class clazz = org.knopflerfish.bundle.commons.logging.Activator.class;
+	  contextClassLoader = clazz.getClassLoader();
+	} else {
         // Identify the class loader we will be using
         contextClassLoader =
-          (ClassLoader)AccessController.doPrivileged(
-                                                     new PrivilegedAction() {
-                                                       public Object run() {
+	  (ClassLoader)AccessController.doPrivileged(
+						     new PrivilegedAction() {
+						       public Object run() {
                         return getContextClassLoader();
-                                                       }
-                                                     });
+						       }
+						     });
       }
-
+      
         // Return any previously registered factory for this class loader
         LogFactory factory = getCachedFactory(contextClassLoader);
         if (factory != null)
@@ -312,7 +306,7 @@ public abstract class LogFactory {
         } catch (SecurityException e) {
         }
 
-
+        
         // First, try the system property
         try {
             String factoryClass = System.getProperty(FACTORY_PROPERTY);
@@ -344,13 +338,13 @@ public abstract class LogFactory {
                     } catch (java.io.UnsupportedEncodingException e) {
                         rd = new BufferedReader(new InputStreamReader(is));
                     }
-
+                    
                     String factoryClassName = rd.readLine();
                     rd.close();
-
+                    
                     if (factoryClassName != null &&
                         ! "".equals(factoryClassName)) {
-
+                        
                         factory= newFactory( factoryClassName, contextClassLoader );
                     }
                 }
@@ -360,7 +354,7 @@ public abstract class LogFactory {
         }
 
 
-        // Third try a properties file.
+        // Third try a properties file. 
         // If the properties file exists, it'll be read and the properties
         // used. IMHO ( costin ) System property and JDK1.3 jar service
         // should be enough for detecting the class name. The properties
@@ -381,7 +375,7 @@ public abstract class LogFactory {
         if (factory == null) {
             factory = newFactory(FACTORY_DEFAULT, LogFactory.class.getClassLoader());
         }
-
+        
         if (factory != null) {
             /**
              * Always cache using context class loader..
@@ -397,7 +391,7 @@ public abstract class LogFactory {
                 }
             }
         }
-
+        
         return factory;
     }
 
@@ -487,7 +481,7 @@ public abstract class LogFactory {
     /**
      * Return the thread context class loader if available.
      * Otherwise return null.
-     *
+     * 
      * The thread context class loader is available for JDK 1.2
      * or later, if certain security conditions are met.
      *
@@ -514,12 +508,12 @@ public abstract class LogFactory {
                  * InvocationTargetException is thrown by 'invoke' when
                  * the method being invoked (getContextClassLoader) throws
                  * an exception.
-                 *
+                 * 
                  * getContextClassLoader() throws SecurityException when
                  * the context class loader isn't an ancestor of the
                  * calling class's class loader, or if security
                  * permissions are restricted.
-                 *
+                 * 
                  * In the first case (not related), we want to ignore and
                  * keep going.  We cannot help but also ignore the second
                  * with the logic below, but other calls elsewhere (to
@@ -550,13 +544,13 @@ public abstract class LogFactory {
     private static LogFactory getCachedFactory(ClassLoader contextClassLoader)
     {
         LogFactory factory = null;
-
+        
         if (contextClassLoader != null)
             factory = (LogFactory) factories.get(contextClassLoader);
-
+        
         return factory;
     }
-
+    
     private static void cacheFactory(ClassLoader classLoader, LogFactory factory)
     {
         if (classLoader != null && factory != null)
@@ -587,7 +581,7 @@ public abstract class LogFactory {
                         if (classLoader != null) {
                             try {
                                 // first the given class loader param (thread class loader)
-
+                                
                                 // warning: must typecast here & allow exception
                                 // to be generated/caught & recast propertly.
                                 return (LogFactory)classLoader.loadClass(factoryClass).newInstance();
@@ -602,22 +596,22 @@ public abstract class LogFactory {
                                     // Nothing more to try, onwards.
                                     throw e;
                                 }
-
+                              
                             }catch(ClassCastException e){
-
+                                
                               if (classLoader == LogFactory.class.getClassLoader()) {
                                     // Nothing more to try, onwards (bug in loader implementation).
                                     throw e;
                                }
                             }
-                            // ignore exception, continue
+                            // ignore exception, continue  
                         }
-
+            
                         /* At this point, either classLoader == null, OR
                          * classLoader was unable to load factoryClass..
                          * try the class loader that loaded this class:
                          * LogFactory.getClassLoader().
-                         *
+                         * 
                          * Notes:
                          * a) LogFactory.class.getClassLoader() may return 'null'
                          *    if LogFactory is loaded by the bootstrap classloader.
@@ -635,10 +629,10 @@ public abstract class LogFactory {
 
         if (result instanceof LogConfigurationException)
             throw (LogConfigurationException)result;
-
+            
         return (LogFactory)result;
     }
-
+    
     private static InputStream getResourceAsStream(final ClassLoader loader,
                                                    final String name)
     {

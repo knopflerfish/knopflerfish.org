@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,20 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.*;
+import java.io.*;
 
-import javax.swing.JComponent;
-import javax.swing.JLabel;
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.console.*;
 
-import org.knopflerfish.service.console.ConsoleService;
-import org.knopflerfish.service.console.Session;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
-import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
-public class ConsoleSwing
-  implements org.osgi.util.tracker.ServiceTrackerCustomizer
-{
+public class ConsoleSwing {
+
+
   final static private String logServiceName     = LogService.class.getName();
   final static private String consoleServiceName = ConsoleService.class.getName();
 
@@ -60,28 +57,60 @@ public class ConsoleSwing
   static Config         config = new Config();
   public static SwingIO swingIO  = null;
 
-  ServiceTracker        consoleTracker;
-  ConsoleService        consoleService = null;
+  ServiceReference      srefConsole    = null;
+  ConsoleService        sConsole       = null;
   Session               consoleSession = null;
 
-
+  
   public ConsoleSwing(BundleContext bc)  {
     this.bc              = bc;
     this.theConsoleSwing = this;
-    // Set up service tracker for the console service.
-    consoleTracker = new ServiceTracker(bc, consoleServiceName, this);
   }
 
   public void start() {
-
+    
     log(LogService.LOG_INFO, "Starting");
 
+    // Get console service
+    srefConsole = bc.getServiceReference(consoleServiceName);
+    if(srefConsole == null) {
+      log(LogService.LOG_ERROR, "No console service");
+      return;
+    }
+
+    sConsole    = (ConsoleService) bc.getService(srefConsole);
+    if (sConsole == null) {
+      log(LogService.LOG_ERROR, "Failed to get ConsoleService, can not continue");
+    }
+    
+    /*
+    new Thread("console swing init thread") 
+    {
+      { this.start(); }
+      public void run() {
+    */
+    
     swingIO = new SwingIO();
     swingIO.start();
-    swingIO.disableInput("No Console Service Available.");
-    consoleTracker.open();
+    
+    if(sConsole != null) {
+      try {
+	consoleSession = 
+	  sConsole.runSession("ConsoleSwing",
+			      swingIO.in,
+			      new PrintWriter(swingIO.out));
+      } catch (IOException ioe) {
+	log(LogService.LOG_ERROR, "Failed to start console session");
+      }
+    } else {
+      log(LogService.LOG_WARNING, "No console service - skipping session");
+    }
+    /*
   }
-
+    };
+    */
+  }
+  
   public void clearConsole() {
     if(swingIO != null) {
       swingIO.clear();
@@ -89,6 +118,7 @@ public class ConsoleSwing
   }
 
   void close() {
+    
     closeSession();
     closeSwing();
   }
@@ -100,7 +130,7 @@ public class ConsoleSwing
       return swingIO;
     } else {
       if(fallBack == null) {
-        fallBack = new JLabel("No console available");
+	fallBack = new JLabel("No console available");
       }
       return fallBack;
     }
@@ -115,11 +145,10 @@ public class ConsoleSwing
 
   public synchronized void stop() {
     log(LogService.LOG_INFO, "Stopping");
-    consoleTracker.close();
     close();
     this.bc           = null;
   }
-
+  
 
   void closeSwing() {
     if(swingIO != null) {
@@ -132,60 +161,12 @@ public class ConsoleSwing
   void closeSession() {
     if (consoleSession != null) {
       try {
-
-        consoleSession.close();
-        consoleSession = null;
+	
+	consoleSession.close();
+	consoleSession = null;
       } catch(Exception e) {
-        log(LogService.LOG_WARNING, "session close failed", e);
+	log(LogService.LOG_WARNING, "session close failed", e);
       }
-    }
-  }
-
-
-  /*------------------------------------------------------------------------*
-   *			  ServiceTrackerCustomizer implementation
-   *------------------------------------------------------------------------*/
-
-  public Object addingService(ServiceReference reference) {
-    if (null==consoleService) {
-      log(LogService.LOG_INFO, "New console service selected.");
-
-      consoleService  = (ConsoleService) bc.getService(reference);
-
-      if (swingIO==null) swingIO = new SwingIO();
-
-      if(consoleService != null) {
-        try {
-          swingIO.start();
-          consoleSession =
-            consoleService.runSession("ConsoleSwing",
-                                      swingIO.in,
-                                      new PrintWriter(swingIO.out));
-        } catch (IOException ioe) {
-          swingIO.disableInput("No Console Service Available.");
-          log(LogService.LOG_ERROR, "Failed to start console session");
-        }
-      } else {
-        swingIO.disableInput("No Console Service Available.");
-        log(LogService.LOG_WARNING, "No console service - skipping session");
-      }
-      return consoleService;
-    } else {
-      return null;
-    }
-  }
-
-  public void modifiedService(ServiceReference reference, Object service) {
-  }
-
-  public void removedService(ServiceReference reference, Object service) {
-    if (consoleService == service) {
-      if (null!=consoleSession) {
-        log(LogService.LOG_INFO, "Console service closed.");
-        closeSession();
-        swingIO.disableInput("No Console Service Available.");
-      }
-      consoleService = null;
     }
   }
 
@@ -196,16 +177,17 @@ public class ConsoleSwing
 
   public static void log(int level, String msg, Exception e) {
     ServiceReference srLog = bc.getServiceReference(logServiceName);
-    if (srLog != null) {
+    if (srLog != null) {  
       LogService sLog = (LogService)bc.getService(srLog);
       if (sLog != null) {
-        if(e != null) {
-          sLog.log(level, msg, e);
-        } else {
-          sLog.log(level, msg);
-        }
+	if(e != null) {
+	  sLog.log(level, msg, e);
+	} else {
+	  sLog.log(level, msg);
+	}
       }
-      bc.ungetService(srLog);
+     bc.ungetService(srLog);
     }
   }
 }
+

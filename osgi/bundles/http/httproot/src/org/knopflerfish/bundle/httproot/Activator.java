@@ -114,11 +114,20 @@ public class Activator implements BundleActivator {
 	
 	public URL getResource(String name) {
 
+	  // when registering the root, it seems
+	  // like we get no separator before the file.
+	  // Is that a bug?? Code below is a workaround	  
+	  if(name.startsWith(RES_DIR) && 
+	     name.length() > RES_DIR.length() &&
+	     '/' != name.charAt(RES_DIR.length())) {
+	    name = RES_DIR + "/" + name.substring(RES_DIR.length());
+	  }
+
 	  // default to index.html
-	  if(name.equals(RES_DIR) || name.equals(RES_DIR + "/")) {
+	  if(name.equals(RES_DIR)) {
 	    name = "/www/index.html";
 	  }
-          
+
 	  // and send the plain file
 	  URL url = getClass().getResource(name);
 

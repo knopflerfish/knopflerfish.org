@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.http_test;
 import org.knopflerfish.service.http_test.*;
 
 import java.io.*;
-import java.net.*;
 import java.util.*;
 import org.osgi.framework.*;
 import org.osgi.framework.ServiceReference;
@@ -88,10 +87,8 @@ public class HttpTestSuite extends TestSuite  {
       addTest(new Http006a());
       addTest(new Http010a());
       addTest(new Http015a());
-      addTest(new Http015b());
       addTest(new Http020a());
       addTest(new Http025a());
-      addTest(new Http029a());
       addTest(new Http030a());
       addTest(new Http035a());
       addTest(new Http040a());
@@ -101,43 +98,12 @@ public class HttpTestSuite extends TestSuite  {
       addTest(new Http060a());
       addTest(new Http065a());
       addTest(new Http085a());
+      addTest(new Http090a());
+      addTest(new Http105a());
       addTest(new Cleanup());
     }
     catch (Throwable t) {
       t.printStackTrace();
-    }
-  }
-
-  void checkAlias(PrintStream out, String alias) throws Exception {
-    checkAlias(out, alias, true);
-  }
-
-  void checkAlias(PrintStream out, String alias, boolean bRead) throws Exception {
-    URL url = new URL("http://" + hostname + ":" + port + alias);
-    out.println("checkAlias " + alias + ", " + url);
-    
-    if(bRead) {
-      boolean bOK = false;
-      InputStream is = null;
-      try {
-        is = url.openStream();
-        byte[] buf = new byte[1024];
-        int n;
-        int total = 0;
-        while(-1 != (n = is.read(buf))) {
-          total += n;
-        }
-        out.println(" -> " + total + " bytes");
-        bOK = total > 0;
-      } catch (Exception e) {
-        out.println(" -> " + e);
-        throw e;
-      } finally {
-        try { is.close(); } catch (Exception ignored) { }
-      }
-      if(!bOK) {
-        throw new RuntimeException("No data from alias=" + alias + ", url=" + url);
-      }
     }
   }
 
@@ -165,19 +131,8 @@ public class HttpTestSuite extends TestSuite  {
       assertNotNull("Setup: no http service object available", httpService);
       System.out.println("HttpService.class.getName():" + HttpService.class.getName());
       
-      Object hostObj = httpSR.getProperty("host");
-      if(hostObj != null) {
-        String s = hostObj.toString();
-        if(s.length() > 0) {
-          hostname = s;
-        }
-      }
-
       // Now let's get on with the port...
-      obj = httpSR.getProperty("port.http");
-      if(obj == null) {
-        obj = httpSR.getProperty("openPort");
-      }
+      obj = httpSR.getProperty("port");
       if (obj != null) {
 	port = obj.toString();
       } else {
@@ -185,7 +140,7 @@ public class HttpTestSuite extends TestSuite  {
 	
 	// Dump the properties as known by the http service
 	String[] keys = httpSR.getPropertyKeys();
-	System.out.println("--- Propetry keys ---");
+	System.out.println("--- Propery keys ---");
 	for (int i=0; i<keys.length; i++) {
 	  System.out.println(i + ": " + keys[i] + " --> "+ httpSR.getProperty(keys[i]));
 	}
@@ -200,7 +155,7 @@ public class HttpTestSuite extends TestSuite  {
   
   class Http006a extends FWTestCase {
     public void runTest() throws Throwable {
-      Object obj = httpSR.getProperty("openPort");
+      Object obj = httpSR.getProperty("port");
 
       assertNotNull("No 'port' property set on http server", obj);
       
@@ -213,15 +168,18 @@ public class HttpTestSuite extends TestSuite  {
       boolean teststatus = true;
       String alias = "/index.html";
       String resourceName = "/http_test/index.html";
+      String internalName = "n1";
       
-      HttpTestContext hc1 = new HttpTestContext("005A");
+      HttpTestContext hc1 = new HttpTestContext(resourceName);
       try {
-	httpService.registerResources(alias, resourceName, hc1);
+	httpService.registerResources(alias, internalName, hc1);
       }
       catch (NamespaceException ne) {
+	teststatus = false;
 	fail("HTTP Exception " + ne);
       }
-      checkAlias (out, alias);
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
     }
   }
 
@@ -233,6 +191,7 @@ public class HttpTestSuite extends TestSuite  {
 
   class Http010a extends FWTestCase {
     public void runTest() throws Throwable {
+      boolean teststatus = true;
       String alias = "/index.html";
       try {
 	httpService.unregister(alias);
@@ -240,7 +199,8 @@ public class HttpTestSuite extends TestSuite  {
       catch (IllegalArgumentException ne) {
 	fail("HTTP Exception at unregistering  " + ne);
       }
-      checkAlias (out, alias, false);
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
     }
   }
 
@@ -253,12 +213,13 @@ public class HttpTestSuite extends TestSuite  {
 
   class Http015a extends FWTestCase {
     public void runTest() throws Throwable {
+      boolean teststatus = true;
       String alias = "/index2.html";
       String resourceName = "/http_test/index.html";
       String internalName = "n1";
       Dictionary d1 = new Hashtable();
       
-      HttpTestContext hc2 = new HttpTestContext("015A");
+      HttpTestContext hc2 = new HttpTestContext(resourceName);
       
       Servlet serv1 = new HttpTestServlet();
       try {
@@ -270,37 +231,8 @@ public class HttpTestSuite extends TestSuite  {
       catch (ServletException se) {
 	fail("HTTP Exception " + se);
       }
-      checkAlias (out, alias);
-    }
-  }
-
-  public final static String USAGE_HTTP015B = "";
-  public final static String [] HELP_HTTP015B = {
-    "Register a test root servlet on the server, respond with its URI"
-  };
-
-  class Http015b extends FWTestCase {
-    public void runTest() throws Throwable {
-      String alias = "/";
-      String resourceName = "/http_test";
-      Dictionary d1 = new Hashtable();
-      
-      HttpTestContext hc = new HttpTestContext("015B");
-      
-      Servlet serv1 = new HttpTestServlet();
-      try {
-        out.println("### 15ba");
-	httpService.registerServlet(alias, serv1, d1, hc);
-        checkAlias (out, alias);
-      } catch (Exception ne) {
-	fail("Exception " + ne);
-      } finally {
-        try {
-          httpService.unregister(alias);
-        } catch (Exception ignored) {
-        }
-      }
-
+      String uri = "URI: " + ":"+port+alias;  // create the URI
+      out.println (uri);
     }
   }
   
@@ -313,14 +245,17 @@ public class HttpTestSuite extends TestSuite  {
 
   class Http020a extends FWTestCase {
     public void runTest() throws Throwable {
+      boolean teststatus = true;
       String alias = "/index2.html";
       try {
 	httpService.unregister(alias);
       }
       catch (IllegalArgumentException ne) {
 	fail("HTTP Exception at unregistering  " + ne);
+	teststatus = false;
       }
-      checkAlias (out, alias, false);
+      String uri = "URI: " + ":"+port+alias;  // create the URI
+      out.println (uri);
     }
   }
 
@@ -337,6 +272,10 @@ public class HttpTestSuite extends TestSuite  {
 
   class Http025a extends FWTestCase {
     public void runTest() throws Throwable {
+      boolean teststatus = true;
+      boolean except1 = true;
+      boolean except2 = true;
+      boolean except3 = true;
       String alias = "/index.html";
       String ba1 = "index.html";
       String ba2 = "index.html/";
@@ -344,57 +283,69 @@ public class HttpTestSuite extends TestSuite  {
       String bin1 = "n1/";
       
       String resourceName = "/http_test/index.html";
-      HttpTestContext hc1 = new HttpTestContext("025A");
+      HttpTestContext hc1 = new HttpTestContext(resourceName);
       
       try {
 	httpService.registerResources(ba1, internalName, hc1);
-        fail("register should not succeed");
-      } catch (Exception e) {
-        // expected
+	except1 = false;
+      }
+      catch (NamespaceException ne) {
+	fail("HTTP NameSpaceException " + ne + "in HTTP025A");
+	teststatus = false;
+      }
+      catch (IllegalArgumentException ne) {
+	except1 = true;
+      }
+      
+      if (except1 == false) {
+	teststatus = false;
+	fail("HTTP Missing IllgalArgumentException in HTTP025A");
       }
       
       try {
 	httpService.registerResources(ba2, internalName, hc1);
-        fail("register should not succeed");
-      }  catch (Exception ne) {
-        // expected
+	except2 = false;
       }
-
+      catch (NamespaceException ne) {
+	fail("HTTP NameSpaceException " + ne + "in HTTP025A");
+	teststatus = false;
+      }
+      catch (IllegalArgumentException ne) {
+	except2 = true;
+      }
+      
+      if (except2 == false) {
+	teststatus = false;
+	fail("HTTP Missing IllgalArgumentException in HTTP025A");
+      }
       
       try {
 	httpService.registerResources(alias, bin1, hc1);
-        fail("register should not succeed");
-      }  catch (Exception ne) {
-        // expected
+	except3 = false;
       }
-
+      catch (NamespaceException ne) {
+	fail("HTTP NameSpaceException " + ne + "in HTTP025A");
+	teststatus = false;
+      }
+      catch (IllegalArgumentException ne) {
+	except3 = true;
+      }
+      
+      if (except3 == false) {
+	teststatus = false;
+	fail("HTTP Missing IllgalArgumentException in HTTP025A");
+      }
+      
+      if (teststatus == true ) {
+	out.println("### Log test bundle :HTTP025A: PASS");
+      }
+      else {
+	fail("### Log test bundle :HTTP025A: FAIL");
+      }
     }
   }
   
-  public final static String USAGE_HTTP029A = "";
-  public final static String [] HELP_HTTP029A = {
-    "Register a as root and test a few resources"
-  };
-
-  class Http029a extends FWTestCase {
-    public void runTest() throws Throwable {
-      String alias = "/";
-      
-      HttpTestContext hc = new HttpTestContext("029A");
-      try {
-        out.println("### 29a");
-	httpService.registerResources(alias, "/http_test", hc);
-        checkAlias (out, "/index.html");
-        checkAlias (out, "/A/index.html");
-      } finally {
-        try {
-          httpService.unregister(alias);
-        } catch (Exception ignored) {
-        }
-      }
-    }
-  }
-
+  // 6. Register a test page on the server
 
   public final static String USAGE_HTTP030A = "";
   public final static String [] HELP_HTTP030A = {
@@ -407,15 +358,18 @@ public class HttpTestSuite extends TestSuite  {
       boolean teststatus = true;
       String alias = "/index.html";
       String resourceName = "/http_test/index.html";
+      String internalName = "n1";
       
-      HttpTestContext hc1 = new HttpTestContext("030A");
+      HttpTestContext hc1 = new HttpTestContext(resourceName);
       try {
-	httpService.registerResources(alias, resourceName, hc1);
+	httpService.registerResources(alias, internalName, hc1);
       }
       catch (NamespaceException ne) {
 	fail("HTTP Exception " + ne);
+	teststatus = false;
       }
-      checkAlias (out, alias);
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
     }
   }
 
@@ -427,16 +381,31 @@ public class HttpTestSuite extends TestSuite  {
   
   class Http035a extends FWTestCase {
     public void runTest() throws Throwable {
+      boolean teststatus = true;
+      boolean exception = false;
       String alias = "/index.html";
       String resourceName = "/http_test/index.html";
       String internalName = "n1";
       
-      HttpTestContext hc1 = new HttpTestContext("035A");
+      HttpTestContext hc1 = new HttpTestContext(resourceName);
       try {
 	httpService.registerResources(alias, internalName, hc1);
-        fail("register should not succeed");
-      } catch (NamespaceException ne) {
-        // expected
+	exception = false;
+	teststatus = false;
+      }
+      catch (NamespaceException ne) {
+	exception = true;
+      }
+      if (exception == false) {
+	teststatus = false;
+	fail("HTTP Missing NameSpaceException in HTTP035A");
+      }
+      
+      if (teststatus == true ) {
+	out.println("### Log test bundle :HTTP035A: PASS");
+      }
+      else {
+	fail("### Log test bundle :HTTP035A: FAIL");
       }
     }
   }
@@ -463,26 +432,57 @@ public class HttpTestSuite extends TestSuite  {
       Dictionary d1 = new Hashtable();
       
       String resourceName = "/http_test/index.html";
-      HttpTestContext hc1 = new HttpTestContext("040A");
+      HttpTestContext hc1 = new HttpTestContext(resourceName);
       Servlet serv1 = new HttpTestServlet();
       
       try {
 	httpService.registerServlet(ba1, serv1, d1, hc1);
-        fail("register should not succeed");
-      } catch (NamespaceException ne) {
-      } catch (ServletException se) {
-      } catch (IllegalArgumentException ne) {
+	except1 = false;
+	teststatus = false;
       }
-
+      catch (NamespaceException ne) {
+	out.println("HTTP NameSpaceException " + ne + "in HTTP040A");
+	except1 = false;
+      }
+      catch (ServletException se) {
+	out.println("HTTP ServletException " + se + "in HTTP040A");
+	except1 = false;
+      }
+      catch (IllegalArgumentException ne) {
+	except1 = true;
+      }
+      if (except1 == false) {
+	teststatus = false;
+	fail("HTTP Missing IllegalArgumentException in HTTP040A");
+      }
       
       try {
 	httpService.registerServlet(ba2, serv1, d1, hc1);
-        fail("register should not succeed");
-      } catch (NamespaceException ne) {
-      } catch (ServletException se) {
-      } catch (IllegalArgumentException ne) {
+	except2 = false;
+	teststatus = false;
       }
-
+      catch (NamespaceException ne) {
+	out.println("HTTP NameSpaceException " + ne + "in HTTP040A");
+	except2 = false;
+      }
+      catch (ServletException se) {
+	out.println("HTTP ServletException " + se + "in HTTP040A");
+	except2 = false;
+      }
+      catch (IllegalArgumentException ne) {
+	except2 = true;
+      }
+      if (except2 == false) {
+	teststatus = false;
+	out.println("HTTP Missing IllegalArgumentException in HTTP040A");
+      }
+      
+      if (teststatus == true ) {
+	out.println("### Log test bundle :HTTP040A: PASS");
+      }
+      else {
+	fail("### Log test bundle :HTTP040A: FAIL");
+      }
     }
   }
   
@@ -501,17 +501,22 @@ public class HttpTestSuite extends TestSuite  {
       String internalName = "n1";
       Dictionary d1 = new Hashtable();
       
-      HttpTestContext hc2 = new HttpTestContext("045A");
+      HttpTestContext hc2 = new HttpTestContext(resourceName);
       
       Servlet serv1 = new HttpTestServlet();
       try {
 	httpService.registerServlet(alias, serv1, d1, hc2);
-        checkAlias (out, alias);
       }
-      catch (Exception ne) {
-	fail("HTTP Exception " + ne);
+      catch (NamespaceException ne) {
+	out.println("HTTP NameSpaceException " + ne + "in HTTP045A");
+	teststatus = false;
       }
-
+      catch (ServletException se) {
+	out.println("HTTP ServletException " + se + "in HTTP045A");
+	teststatus = false;
+      }
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
     }
   }
     
@@ -533,7 +538,7 @@ public class HttpTestSuite extends TestSuite  {
       String internalName = "n1";
       Dictionary d1 = new Hashtable();
       
-      HttpTestContext hc2 = new HttpTestContext("050A");
+      HttpTestContext hc2 = new HttpTestContext(resourceName);
       
       Servlet serv1 = new HttpTestServlet();
       try {
@@ -545,18 +550,27 @@ public class HttpTestSuite extends TestSuite  {
 	except1 = true;
       }
       catch (ServletException se) {
-	fail("HTTP ServletException " + se);
+	out.println("HTTP ServletException " + se + "in HTTP050A");
+	teststatus = false;
       }
       if (except1 == false) {
-	fail("HTTP Missing NamespaceIllegalArgumentException in HTTP050A");
-      }      
+	out.println("HTTP Missing NamespaceIllegalArgumentException in HTTP050A");
+	teststatus = false;
+      }
+      
+      if (teststatus == true ) {
+	out.println("### Log test bundle :HTTP050A: PASS");
+      }
+      else {
+	out.println("### Log test bundle :HTTP050A: FAIL");
+      }
     }
   }
 
   // 11. Register a new test servlet with permission that are false
   public final static String USAGE_HTTP055A = "";
   public final static String [] HELP_HTTP055A = {
-    "Register a servlet with permission that are false."
+    "Register a servlet with persmission that are false."
   };
 
   class Http055a extends FWTestCase {
@@ -567,7 +581,7 @@ public class HttpTestSuite extends TestSuite  {
       String internalName = "n1";
       Dictionary d1 = new Hashtable();
       
-      HttpTestContext hc3 = new HttpTestContext("055A");
+      HttpTestContext hc3 = new HttpTestContext(resourceName);
       hc3.setSecurity(false);
       
       Servlet serv1 = new HttpTestServlet();
@@ -582,16 +596,8 @@ public class HttpTestSuite extends TestSuite  {
 	out.println("HTTP ServletException " + se + "in HTTP055A");
 	teststatus = false;
       }
-      if(teststatus == false) {
-        fail("Failed to register servlet");
-      }
-
-      try {
-        checkAlias (out, alias, true);
-        fail("Servlet should not return any result");
-      } catch (Exception expected_failure) {
-        // this is success
-      }
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
     }
   }
 
@@ -606,60 +612,63 @@ public class HttpTestSuite extends TestSuite  {
       boolean teststatus = true;
       String alias3 = "/A/index.html";
       String resourceName3 = "/http_test/A/index.html";
+      String internalName3 = "nameA";
       
-      out.println("### 060A-1");
-      HttpTestContext hc1 = new HttpTestContext("060A-1");
+      HttpTestContext hc1 = new HttpTestContext(resourceName3);
       try {
-        out.println("### 060A-1 a");
-	httpService.registerResources(alias3, resourceName3, hc1);
-        out.println("### 060A-1 b");
-        checkAlias (out, alias3);
-        out.println("### 060A-1 c");
+	httpService.registerResources(alias3, internalName3, hc1);
       }
       catch (NamespaceException ne) {
-	fail("HTTP Exception " + ne);
+	out.println("HTTP Exception " + ne);
+	teststatus = false;
       }
-
-      out.println("## 060A-2");
+      String uri = "URI: " + ":"+port+alias3;  // create the probable URI
+      out.println (uri);
       
       String alias4 = "/A/B/index.html";
       String resourceName4 = "/http_test/B/index.html";
+      String internalName4 = "name4";
       
-      HttpTestContext hc4 = new HttpTestContext("060A-2");
+      HttpTestContext hc4 = new HttpTestContext(resourceName4);
       try {
-	httpService.registerResources(alias4, resourceName4, hc4);
-        checkAlias (out, alias4);
+	httpService.registerResources(alias4, internalName4, hc4);
       }
       catch (NamespaceException ne) {
-	fail("HTTP Exception " + ne);
+	out.println("HTTP Exception " + ne);
+	teststatus = false;
       }
-
-      out.println("## 060A-3");
+      uri = "URI: " + ":"+port+alias4;  // create the probable URI
+      out.println (uri);
       
       String alias5 = "/A/B/C/index.html";
       String resourceName5 = "/http_test/C/index.html";
+      String internalName5 = "name5";
       
-      HttpTestContext hc5 = new HttpTestContext("060A-3");
+      HttpTestContext hc5 = new HttpTestContext(resourceName5);
       try {
-	httpService.registerResources(alias5, resourceName5, hc5);
-        checkAlias (out, alias5);
+	httpService.registerResources(alias5, internalName5, hc5);
       }
       catch (NamespaceException ne) {
-	fail("HTTP Exception " + ne);
+	out.println("HTTP Exception " + ne);
+	teststatus = false;
       }
-
-      out.println("## 060A-4");
+      uri = "URI: " + ":"+port+alias5;  // create the probable URI
+      out.println (uri);
+      
       String alias6 = "/A";
       String resourceName6 = "/http_test/D/index.html";
+      String internalName6 = "name6";
       
-      HttpTestContext hc6 = new HttpTestContext("060A-4");
+      HttpTestContext hc6 = new HttpTestContext(resourceName6);
       try {
-	httpService.registerResources(alias6, resourceName6, hc6);
-        checkAlias (out, alias6);
+	httpService.registerResources(alias6, internalName6, hc6);
       }
       catch (NamespaceException ne) {
-	fail("HTTP Exception " + ne);
+	out.println("HTTP Exception " + ne);
+	teststatus = false;
       }
+      uri = "URI: " + ":"+port+alias6;  // create the probable URI
+      out.println (uri);
     }
   }
 
@@ -679,7 +688,7 @@ public class HttpTestSuite extends TestSuite  {
       String internalName = "n6";
       Dictionary d1 = new Hashtable();
       
-      HttpTestContext hc2 = new HttpTestContext("065A");
+      HttpTestContext hc2 = new HttpTestContext(resourceName);
       
       Servlet serv1 = new HttpBadTestServlet();
       try {
@@ -735,20 +744,62 @@ public class HttpTestSuite extends TestSuite  {
       }
       catch (NamespaceException ne) {
 	out.println("HTTP Exception " + ne);
-        fail("Failed to register resource: " + ne);
 	teststatus = false;
       }
-
-      try {
-        checkAlias (out, alias);
-        fail("No data should be returned from HttpTestNullContext");
-      } catch (Exception expected_failure) {
-        // this is ok
-      }
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
     }
   }
 
 
+  // 18. Register a test page on the server, respond with its URI
+
+  public final static String USAGE_HTTP090A = "";
+  public final static String [] HELP_HTTP090A = {
+    "Register a test page (from inside the http_test.jar) on the server, respond with its URI"
+  };
+
+  class Http090a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+      String alias = "/file";
+      String resourceName = "/http_test/externalfile";
+      String internalName = "n18";
+      
+      HttpTest2Context hc22 = new HttpTest2Context(resourceName);
+      try {
+	httpService.registerResources(alias, internalName, hc22);
+      }
+      catch (NamespaceException ne) {
+	out.println("HTTP Exception " + ne);
+	teststatus = false;
+      }
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
+    }
+  }
+
+  // 21. Test the dynamic port allocation (get port numbers from both server and system)
+
+  public final static String USAGE_HTTP105A = "";
+  public final static String [] HELP_HTTP105A = {
+    "Gets used port number from both http server and system properties"
+  };
+
+  class Http105a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+      String alias = "/index.html";
+      String systemPort = (String)System.getProperty("org.osgi.service.http.port");
+      
+      out.println("Http server system port: " + systemPort);
+      out.println("Http server actual port: " + port);
+      
+      // Reused some stuff from test 005 - get something to look at.
+      String uri = "URI: " + ":"+port+alias;  // create the probable URI
+      out.println (uri);
+    }
+  }
 
 
   class Cleanup extends FWTestCase {

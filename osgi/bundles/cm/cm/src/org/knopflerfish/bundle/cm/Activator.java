@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,13 +58,17 @@ public class Activator implements BundleActivator {
 
     static LogRef log;
 
-    static ServiceRegistration serviceRegistration;
+    private ServiceRegistration serviceRegistration;
 
-    static ConfigurationAdminFactory configAdminFactory = null;
-
+    static boolean R3_TESTCOMPLIANT = false;
 
     public void start(BundleContext bc) {
         Activator.bc = bc;
+
+        R3_TESTCOMPLIANT = "true".equals(System.getProperty(
+                "org.knopflerfish.osgi.r3.testcompliant", "false")
+                .toLowerCase());
+
         throwIfBundleContextIsNull();
         createLogRef();
         createAndRegisterConfigurationAdminFactory();
@@ -89,9 +93,9 @@ public class Activator implements BundleActivator {
 
     private void createAndRegisterConfigurationAdminFactory() {
         throwIfBundleContextIsNull();
-        configAdminFactory = new ConfigurationAdminFactory(getStoreDir());
-        serviceRegistration = bc.registerService(ConfigurationAdmin.class.getName(),
-                                                 configAdminFactory, null);
+        File storeDir = getStoreDir();
+        serviceRegistration = bc.registerService(ConfigurationAdmin.class
+                .getName(), new ConfigurationAdminFactory(storeDir), null);
     }
 
     private void unregisterConfigurationAdminFactory() {
@@ -99,14 +103,11 @@ public class Activator implements BundleActivator {
             serviceRegistration.unregister();
             serviceRegistration = null;
         }
-        if (configAdminFactory != null) {
-          configAdminFactory.stop();
-        }
     }
 
     private File getStoreDir() {
         throwIfBundleContextIsNull();
-        String storeDirName = bc.getProperty(STORE_DIR_PROP);
+        String storeDirName = System.getProperty(STORE_DIR_PROP);
         File storeDir = null;
         if (storeDirName == null || "".equals(storeDirName)) {
             storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
@@ -122,4 +123,7 @@ public class Activator implements BundleActivator {
         }
     }
 
+    static boolean r3TestCompliant() {
+        return R3_TESTCOMPLIANT;
+    }
 }

@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="provisioning" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.provisioning}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name="api.pattern" value="org/osgi/service/**"/> 
 
@@ -15,6 +18,13 @@
   <path id="bundle.compile.path">
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Initial Provisioning"/>
+  <property name="bundle.category"       value="API"/>
+  <property name="bundle.vendor"         value="OSGi"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+  <property name="export.package"        value="org.osgi.service.provisioning; specification-version=1.0"/>
+
+  &bundlebuild_include;
 
 </project>

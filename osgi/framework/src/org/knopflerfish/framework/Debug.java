@@ -38,6 +38,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import org.osgi.framework.BundleException;
 
+
 /**
  * Static variables that controls debugging of the framework code.
  *
@@ -48,77 +49,61 @@ public class Debug {
   /**
    * Report whenever the bundle classloader does something.
    */
-  static boolean classLoader = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.classloader"));
+  static boolean classLoader = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.classloader"));
 
 
   /**
    * Report event handling events.
    */
-  static boolean errors = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.errors"));
+  static boolean errors = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.errors"));
 
 
   /**
    * Report package handling events.
    */
-  static boolean packages = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.packages"));
+  static boolean packages = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.packages"));
 
   /**
    * Report startlevel.
    */
-  static boolean startlevel = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.startlevel"));
+  static boolean startlevel = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.startlevel"));
 
   /**
    * Report url
    */
-  static boolean url = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.url"));
+  static boolean url = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.url"));
 
   /**
    * Report LDAP handling
    */
-  static boolean ldap = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.ldap"));
+  static boolean ldap = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.ldap"));
+
 
   /**
    * When security is enabled, print information about service
    * reference lookups that are rejected due to missing permissions
    * for calling bundle.
    */
-  static boolean service_reference = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.service_reference"));
+  static boolean service_reference = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.service_reference"));
+
 
   /**
    * When security is enabled, print information about resource
    * lookups that are rejected due to missing permissions for the
    * calling bundle.
    */
-  static boolean bundle_resource = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
-
-  /**
-   * When security is enabled, print information about context
-   * lookups that are rejected due to missing permissions for the
-   * calling bundle.
-   */
-  static boolean bundle_context = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.bundle_context"));
-
-  /**
-   * Report Class patching handling
-   */
-  static boolean patch = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.patch"));
-
-  /**
-   * Report Automanifest handling
-   */
-  static boolean automanifest = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.automanifest"));
-
+  static boolean bundle_resource = "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
 
 
   /**
    * When security is enabled, use a doPrivileged() around
    * the actual call to System.out.println() to allow for PrintStream
    * implementations that does not handle the case with limited
-   * priviledges themselfs.
+   * privileges them self.
    */
   static boolean use_do_privilege
     = System.getSecurityManager() != null
-    && "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
+    && "true".equalsIgnoreCase(System.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","false"));
 
 
   /**
@@ -154,6 +139,7 @@ public class Debug {
       println0(str);
     }
   }
+
 
   /**
    * The actual printStackTrace() implementation.

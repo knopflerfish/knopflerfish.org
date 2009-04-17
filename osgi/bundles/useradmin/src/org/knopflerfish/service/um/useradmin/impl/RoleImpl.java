@@ -34,7 +34,6 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.io.Serializable;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -47,7 +46,8 @@ import org.osgi.service.useradmin.Role;
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
-class RoleImpl implements Role, Serializable {
+class RoleImpl implements Role {
+    UserAdminImpl uai;
 
     Vector /* RoleImpl */basicMemberOf = new Vector();
 
@@ -57,7 +57,8 @@ class RoleImpl implements Role, Serializable {
 
     protected UAProperties props;
 
-    RoleImpl(String name) {
+    RoleImpl(String name, UserAdminImpl uai) {
+        this.uai = uai;
         this.name = name;
         props = new UAProperties(this);
     }
@@ -96,8 +97,8 @@ class RoleImpl implements Role, Serializable {
         }
 
         // check if the predefined role has the role
-        if (!name.equals(Role.USER_ANYONE))
-            if (Activator.uai.anyone.hasRole(roleName, user, context, visited))
+        if (!name.equals(UserAdminImpl.ANYONE))
+            if (uai.anyone.hasRole(roleName, user, context, visited))
                 return true;
 
         return false;
@@ -119,7 +120,7 @@ class RoleImpl implements Role, Serializable {
         // System.out.print( name + "-Role.hasMember user: " + user );
         // System.out.println( " visited: " + visited );
 
-        if (name.equals(user) || name.equals(Role.USER_ANYONE)) {
+        if (name.equals(user) || name.equals(UserAdminImpl.ANYONE)) {
             return true;
         }
 

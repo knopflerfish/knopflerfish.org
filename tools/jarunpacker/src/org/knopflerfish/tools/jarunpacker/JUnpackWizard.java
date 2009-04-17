@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,28 +60,28 @@ public class JUnpackWizard extends JWizard {
   JCheckBox compHtdocsCB;
   JLabel    bytesLabel;
 
-  public JUnpackWizard(final ZipFile file,
-                       final File destDir,
-                       final long nBytes,
-                       final int nFiles) {
-    super(Main.theMain.windowTitle != null
-          ? Main.theMain.windowTitle
-          : Strings.fmt("frame_title", Main.theMain.version));
-
+  public JUnpackWizard(final ZipFile file, 
+		       final File destDir, 
+		       final long nBytes, 
+		       final int nFiles) {
+    super(Main.theMain.windowTitle != null 
+	  ? Main.theMain.windowTitle
+	  : Strings.fmt("frame_title", Main.theMain.version));
+    
     this.nBytes = nBytes;
-
+    
     info = new JTextPane();
     info.setContentType("text/html");
     info.setFont(getFont());
     doOpenCheckBox = new JCheckBox(Strings.get("cb_open_dir"), true);
 
     jf = new JFile(destDir.getAbsolutePath(), true) {
-        public void textChanged() {
-          setInfoText();
-        }
+	public void textChanged() {
+	  setInfoText();
+	}
       };
 
-
+    
     compSelPanel = new JPanel();
     BoxLayout bl = new BoxLayout(compSelPanel, BoxLayout.Y_AXIS);
     compSelPanel.setLayout(bl);
@@ -89,19 +89,19 @@ public class JUnpackWizard extends JWizard {
     bytesLabel = new JLabel();
 
     final ActionListener compUpdateAction = new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          updateBytes(file);
-        }
+	public void actionPerformed(ActionEvent ev) {
+	  updateBytes(file);
+	}
       };
-
+    
     compBaseCB   = new JCheckBoxTT("install_comp_base")
-        {{  addActionListener(compUpdateAction); }};
+	{{  addActionListener(compUpdateAction); }};
 
     compSrcCB    = new JCheckBoxTT("install_comp_src")
-        {{  addActionListener(compUpdateAction); }};
+	{{  addActionListener(compUpdateAction); }};
 
     compHtdocsCB = new JCheckBoxTT("install_comp_htdocs")
-        {{  addActionListener(compUpdateAction); }};
+	{{  addActionListener(compUpdateAction); }};
 
     updateBytes(file);
 
@@ -118,119 +118,119 @@ public class JUnpackWizard extends JWizard {
     compSelPanel.add(bytesLabel);
 
     addPage(new JWizardPage("license") {
-        {
-          StringBuffer lic = new StringBuffer();
+	{
+	  StringBuffer lic = new StringBuffer();
+	  
+	  BufferedReader in = null;
+	  String licName = Main.theMain.licenseResName;
+	  if(licName == null || "".equals(licName)) {
+	    licName = Strings.get("license_res_name");
+	  }
+	  try {
+	    in = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(licName)));
+	    
+	    String line;
+	    while(null != (line = in.readLine())) {
+	      lic.append(line);
+	      lic.append("\n");
+	    }
+	  } catch (Exception e) {
+	    System.err.println("no license resource file=" + licName);
+	    e.printStackTrace();
+	  } finally {
+	    try {  in.close(); } catch (Exception ignored) {  }
+	  }
 
-          BufferedReader in = null;
-          String licName = Main.theMain.licenseResName;
-          if(licName == null || "".equals(licName)) {
-            licName = Strings.get("license_res_name");
-          }
-          try {
-            in = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(licName)));
+	  JTextPane txt = new JTextPane();
+	  txt.setEditable(false);
+	  txt.setContentType(licName.endsWith(".html") ? "text/html" : "text/plain");
+	  String s = Strings.replace(lic.toString(), "$(face)", getFont().getFontName());
+	  txt.setText(s);
 
-            String line;
-            while(null != (line = in.readLine())) {
-              lic.append(line);
-              lic.append("\n");
-            }
-          } catch (Exception e) {
-            System.err.println("no license resource file=" + licName);
-            e.printStackTrace();
-          } finally {
-            try {  in.close(); } catch (Exception ignored) {  }
-          }
-
-          JTextPane txt = new JTextPane();
-          txt.setEditable(false);
-          txt.setContentType(licName.endsWith(".html") ? "text/html" : "text/plain");
-          String s = Strings.replace(lic.toString(), "$(face)", getFont().getFontName());
-          txt.setText(s);
-
-          JScrollPane scroll = new JScrollPane(txt);
-          add(scroll, BorderLayout.CENTER);
-        }
-        public boolean canStepBack() {
-          return false;
-        }
-        public boolean canStepForward() {
-          return true;
-        }
-        public boolean canFinish() {
-          return false;
-        }
-        public String getDescription() {
-          return
-            Main.theMain.licenseTitle != null
-            ? Main.theMain.licenseTitle
-            : Strings.get("page_license_title");
-        }
+	  JScrollPane scroll = new JScrollPane(txt);
+	  add(scroll, BorderLayout.CENTER);
+	}
+	public boolean canStepBack() {
+	  return false;
+	}
+	public boolean canStepForward() {
+	  return true;
+	}
+	public boolean canFinish() {
+	  return false;
+	}
+	public String getDescription() {
+	  return 
+	    Main.theMain.licenseTitle != null
+	    ? Main.theMain.licenseTitle
+	    : Strings.get("page_license_title");
+	}
 
       });
     addPage(new JWizardPage("installdir") {
-        {
-          add(jf, BorderLayout.NORTH);
-          setInfoText();
-          info.setEditable(false);
-          info.setBackground(getBackground());
+	{
+	  add(jf, BorderLayout.NORTH);
+	  setInfoText();
+	  info.setEditable(false);
+	  info.setBackground(getBackground());
 
-          add(info, BorderLayout.CENTER);
-          if(Util.isWindows()) {
-            add(doOpenCheckBox, BorderLayout.SOUTH);
-          }
-        }
-        public boolean canStepBack() {
-          return true;
-        }
-        public boolean canStepForward() {
-          return true;
-        }
-        public boolean canFinish() {
-          return true;
-        }
-        public String getDescription() {
-          return Strings.get("page_installdir_title");
-        }
+	  add(info, BorderLayout.CENTER);
+	  if(Util.isWindows()) {
+	    add(doOpenCheckBox, BorderLayout.SOUTH);
+	  }
+	}
+	public boolean canStepBack() {
+	  return true;
+	}
+	public boolean canStepForward() {
+	  return true;
+	}
+	public boolean canFinish() {
+	  return true;
+	}
+	public String getDescription() {
+	  return Strings.get("page_installdir_title");
+	}
       });
     addPage(new JWizardPage("installselection") {
-        {
-          add(compSelPanel, BorderLayout.CENTER);
-        }
-        public boolean canStepBack() {
-          return true;
-        }
-        public boolean canStepForward() {
-          return false;
-        }
-        public boolean canFinish() {
-          return true;
-        }
-        public String getDescription() {
-          return Strings.get("page_installselection_title");
-        }
+	{
+	  add(compSelPanel, BorderLayout.CENTER);
+	}
+	public boolean canStepBack() {
+	  return true;
+	}
+	public boolean canStepForward() {
+	  return false;
+	}
+	public boolean canFinish() {
+	  return true;
+	}
+	public String getDescription() {
+	  return Strings.get("page_installselection_title");
+	}
       });
     addPage(new JWizardPage("finish") {
-        public boolean canCancel() {
-          return false;
-        }
-        public boolean canStepBack() {
-          return false;
-        }
-        public boolean canStepForward() {
-          return false;
-        }
-        public boolean canFinish() {
-          return false;
-        }
-        public String getDescription() {
-          return Strings.get("page_finish_title");
-        }
+	public boolean canCancel() {
+	  return false;
+	}
+	public boolean canStepBack() {
+	  return false;
+	}
+	public boolean canStepForward() {
+	  return false;
+	}
+	public boolean canFinish() {
+	  return false;
+	}
+	public String getDescription() {
+	  return Strings.get("page_finish_title");
+	}
       });
   }
 
   void updateBytes(ZipFile jarFile) {
     long nBytes = Main.theMain.calcSize(jarFile);
-
+    
     bytesLabel.setText(Strings.fmt("comp_size", Long.toString(nBytes / 1024)));
   }
 
@@ -239,36 +239,32 @@ public class JUnpackWizard extends JWizard {
 
     if(!compBaseCB.isSelected()) {
       if(name.startsWith("knopflerfish.org/osgi/jars") ||
-         name.startsWith("knopflerfish.org/osgi/framework.jar") ||
-         name.endsWith(".xargs"))
-        {
-          //      System.out.println("skip " + name + " since no base");
-          b = true;
-        }
+	 name.startsWith("knopflerfish.org/osgi/framework.jar") ||
+	 name.endsWith(".xargs"))
+	{
+	  //	  System.out.println("skip " + name + " since no base");
+	  b = true;
+	}
     }
 
     if(!compSrcCB.isSelected()) {
       if(name.startsWith("knopflerfish.org/osgi/bundles") ||
-         name.startsWith("knopflerfish.org/osgi/framework/") ||
-         name.startsWith("knopflerfish.org/tools") ||
-         name.startsWith("knopflerfish.org/ant") ||
-         name.startsWith("knopflerfish.org/keystore") ||
-         name.endsWith("build.xml") ||
-         name.endsWith(".java"))
-        {
-          //      System.out.println("skip " + name + " since no source");
-          b = true;
-        }
-    } else if (name.endsWith(".xargs")) {
-      // If source is selected do not exclude .xargs-files; needed to
-      // undo the exclude done above when compBaseCB i de-selected.
-      b = false;
+	 name.startsWith("knopflerfish.org/osgi/framework/") ||
+	 name.startsWith("knopflerfish.org/tools") ||
+	 name.startsWith("knopflerfish.org/ant") ||
+	 name.startsWith("knopflerfish.org/keystore") ||
+	 name.endsWith("build.xml") ||
+	 name.endsWith(".java"))
+	{
+	  //	  System.out.println("skip " + name + " since no source");
+	  b = true;
+	}
     }
 
     if(!compHtdocsCB.isSelected()) {
       if(name.startsWith("knopflerfish.org/htdocs")) {
-        //      System.out.println("skip " + name + " since no htdocs");
-        b = true;
+	//	System.out.println("skip " + name + " since no htdocs");
+	b = true;
       }
     }
 
@@ -276,16 +272,16 @@ public class JUnpackWizard extends JWizard {
        !compHtdocsCB.isSelected()) {
       b = true;
     }
-
+       
     return b;
   }
 
   void setInfoText() {
     String s = Strings.fmt("fmt_install_info",
-                           "" + (nBytes/1024),
-                           Strings.replace(jf.getText(), "/", File.separator),
-                           getFont().getFontName());
-
+			   "" + (nBytes/1024),
+			   Strings.replace(jf.getText(), "/", File.separator),
+			   getFont().getFontName());
+    
     s = Strings.replace(s, "$(sep)", File.separator);
     info.setText(s);
   }

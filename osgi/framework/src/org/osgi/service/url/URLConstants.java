@@ -1,44 +1,45 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.url/src/org/osgi/service/url/URLConstants.java,v 1.8 2006/06/16 16:31:31 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) 2002 - IBM Corporation
+ * All Rights Reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * These materials have been contributed to the Open Services Gateway
+ * Initiative (OSGi) as "MEMBER LICENSED MATERIALS" as defined in, and
+ * subject to the terms of, the OSGi Member Agreement by and between OSGi and
+ * IBM, specifically including but not limited to, the license
+ * rights and warranty disclaimers as set forth in Sections 3.2 and 12.1
+ * thereof.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All company, brand and product names contained within this document may be
+ * trademarks that are the sole property of the respective owners.
+ *
+ * The above notice must be included on all copies of this document that are
+ * made.
  */
 
 package org.osgi.service.url;
 
 /**
- * Defines standard names for property keys associated with
- * {@link URLStreamHandlerService}and <code>java.net.ContentHandler</code>
- * services.
- * 
- * <p>
- * The values associated with these keys are of type <code>java.lang.String[]</code>,
+ * Defines standard names for property keys associated
+ * with {@link URLStreamHandlerService} and
+ * <tt>java.net.ContentHandler</tt> services.
+ *
+ * <p>The values associated with these keys are of type <tt>java.lang.String[]</tt>,
  * unless otherwise indicated.
- * 
- * @version $Revision: 1.8 $
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Ben Reed, IBM Corporation (breed@almaden.ibm.com)
  */
-public interface URLConstants {
-	/**
-	 * Service property naming the protocols serviced by a
-	 * URLStreamHandlerService. The property's value is an array of protocol
-	 * names.
-	 */
-	public static final String	URL_HANDLER_PROTOCOL	= "url.handler.protocol";
-	/**
-	 * Service property naming the MIME types serviced by a
-	 * java.net.ContentHandler. The property's value is an array of MIME types.
-	 */
-	public static final String	URL_CONTENT_MIMETYPE	= "url.content.mimetype";
+public interface URLConstants
+{
+    /**
+     * Service property naming the protocols serviced by a URLStreamHandlerService.
+     * The property's value is an array of protocol names.
+     */
+    public static final String URL_HANDLER_PROTOCOL = "url.handler.protocol";
+
+    /**
+     * Service property naming the MIME types serviced by a java.net.ContentHandler.
+     * The property's value is an array of MIME types.
+     */
+    public static final String URL_CONTENT_MIMETYPE = "url.content.mimetype";
 }

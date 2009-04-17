@@ -25,7 +25,6 @@ public class Activator implements BundleActivator {
   }
 
   public void stop(BundleContext bc) {
-    config.stop();
     this.log = null;
     this.bc  = null;
   }

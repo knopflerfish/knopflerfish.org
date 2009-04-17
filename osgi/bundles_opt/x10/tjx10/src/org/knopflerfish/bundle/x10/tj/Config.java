@@ -54,19 +54,6 @@ public class Config implements ManagedServiceFactory {
     }
   }
 
-  
-  public void stop() { 
-    synchronized(controllers) { 
-      Iterator iter=controllers.values().iterator(); 
-      while(iter.hasNext()) { 
-        ControllerWrap wrap = (ControllerWrap)iter.next(); 
-        if(wrap != null) 
-          wrap.stop();           
-      } 
-      controllers.clear(); 
-    } 
-  } 
-
   public String getName() {
     return "Creates instances of x10.Controller";
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public class FilterImpl implements Filter {
   private LDAPExpr ldap;
 
 
-  public FilterImpl(String filter) throws InvalidSyntaxException {
+  protected FilterImpl(String filter) throws InvalidSyntaxException {
     ldap = new LDAPExpr(filter);
   }
 
@@ -53,27 +53,22 @@ public class FilterImpl implements Filter {
   public boolean match(ServiceReference reference) {
     if(reference instanceof ServiceReferenceImpl) {
       // This is the normal case
-      return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties(), false);
+      return ldap.evaluate(((ServiceReferenceImpl)reference).getProperties());
     } else {
       // This might happen if we live in a remote framework world
       // Copy the properties the hard way
       Hashtable props = new Hashtable();
       String[] keys = reference.getPropertyKeys();
       for(int i = 0; i < keys.length; i++) {
-    	  props.put(keys[i], reference.getProperty(keys[i]));
+	props.put(keys[i], reference.getProperty(keys[i]));
       }
-      return ldap.evaluate(props, false);
+      return ldap.evaluate(props);
     }
   }
 
 
   public boolean match(Dictionary dictionary) {
-    return ldap.evaluate(new PropertiesDictionary(dictionary), false);
-  }
-
-  
-  public boolean matchCase(Dictionary dictionary) {
-	  return ldap.evaluate(new PropertiesDictionary(dictionary), true);
+    return ldap.evaluate(new PropertiesDictionary(dictionary));
   }
 
 

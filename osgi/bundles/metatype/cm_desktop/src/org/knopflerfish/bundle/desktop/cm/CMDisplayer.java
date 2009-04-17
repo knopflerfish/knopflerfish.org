@@ -109,11 +109,6 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
     cmAdmin.stop();    
   }
 
-  public void showBundle(Bundle b) {
-      // NYI
-  }
-
-
   public void valueChanged(final long bid) {
     super.valueChanged(bid);
 
@@ -154,11 +149,11 @@ public class CMDisplayer extends DefaultSwingBundleDisplayer {
 
     public void setBundle(Bundle b) {
       try {
-	MetaTypeInformation mtp = Activator.getMTP(b);
-	jcmInfo.setProvider(mtp, b);
+	MTP mtp = Activator.getMTP(b);
+	jcmInfo.setProvider(mtp, mtp, b);
       } catch (Exception e) {
 	e.printStackTrace();
-	Activator.log.error("Failed to get MetaTypeInformation from bundle " + 
+	Activator.log.error("Failed to get MTP from bundle " + 
 			    b.getBundleId(), e);
       }
     }

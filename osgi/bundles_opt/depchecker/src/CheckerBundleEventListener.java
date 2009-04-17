@@ -37,7 +37,7 @@ public class CheckerBundleEventListener
       ArrayList installList = new ArrayList();
 
 // fill of available packages
-      ExportedPackage[] ep = pa.getExportedPackages((Bundle)null);
+      ExportedPackage[] ep = pa.getExportedPackages(null);
       if (ep != null) {
         for (int i = 0; i < ep.length; i++) {
           availablePackages.add(ep[i].getName());

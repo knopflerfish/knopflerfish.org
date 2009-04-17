@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,8 +65,6 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
 
     private final BundleContext bc;
 
-    private final HttpServer httpServer;
-
     private ServiceTracker securityTracker = null;
 
     private int port = -1;
@@ -90,18 +88,13 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
 
     // constructors
 
-    public SocketListener(final HttpConfigWrapper httpConfig,
-                          final LogRef log,
-                          final TransactionManager transactionManager,
-                          final BundleContext bc,
-                          final HttpServer httpServer)
-  {
+    public SocketListener(final HttpConfigWrapper httpConfig, final LogRef log,
+            final TransactionManager transactionManager, final BundleContext bc) {
 
         this.httpConfig = httpConfig;
         this.log = log;
         this.transactionManager = transactionManager;
         this.bc = bc;
-        this.httpServer = httpServer;
     }
 
     public void updated() throws ConfigurationException {
@@ -138,7 +131,7 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
          * not be the case for HTTPs, which might happen on different threads.
          * Therefore, try to throw any ConfigurationEx as early as possible
          */
-        if ((port < 0) || (port > 0xFFFF)) {
+        if ((port < 1) || (port > 0xFFFF)) {
             throw new ConfigurationException(
                     (httpConfig.isSecure() ? HttpConfig.HTTPS_PORT_KEY
                             : HttpConfig.HTTP_PORT_KEY), "invalid value="
@@ -191,8 +184,8 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
 
         if (this.socket != null) {
             if (log.doWarn())
-                log.warn("SEVERAL  SSLServerSocketFactories are available,"
-                         +" selection random");
+                log
+                        .warn("SEVERAL  SSLServerSocketFactories are available, selection random");
             return null; // do not track
         }
 
@@ -259,6 +252,7 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
         if (socket != null) {
             try {
                 init();
+
             } catch (Exception e) {
                 log.error("Can not initialize", e);
                 socket = null;
@@ -292,19 +286,9 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
         // socket exists, otherwise not called
         done = false;
 
-        port = socket.getLocalPort();
-        if (port!=httpConfig.getPort()) {
-          // Update config to reflect the actual port used (if port was
-          // specified as 0 this will make a difference).
-          httpConfig.setPort(port);
-
-          if (isSecure) {
-            // Make sure that the service property port.https is
-            // correct. Only needed for https, since init() is called
-            // asynchroneous in that case.
-            httpServer.doHttpReg();
-          }
-        }
+        // port = socket.getLocalPort();
+        // TE not sure what this setting the port is for
+        // httpConfig.setPort(port);
 
         String sch = httpConfig.getScheme().toUpperCase();
 

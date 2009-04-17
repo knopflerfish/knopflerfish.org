@@ -254,7 +254,7 @@ public class BundleContextImpl implements BundleContext {
         ServiceListener l = (ServiceListener)it.next();
         Filter filter     = (Filter)serviceListeners.get(l);
 
-        if(filter == null || filter.match(props)) {
+        if(filter.match(props)) {
           try {
             l.serviceChanged(ev);
           } catch (Exception e) {
@@ -467,9 +467,4 @@ public class BundleContextImpl implements BundleContext {
     }
     return false;
   }
-
-public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
-	// TODO Auto-generated method stub
-	return null;
-}
 }

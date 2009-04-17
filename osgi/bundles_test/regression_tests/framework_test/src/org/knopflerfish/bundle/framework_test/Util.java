@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-//import java.util.*;
+import java.util.*;
 import java.io.*;
 import java.net.*;
 import org.osgi.framework.*;
@@ -53,46 +53,20 @@ public class Util {
    * @throws BundleException if no such resource is found or if
    *                         installation fails.
    */
-  public static Bundle installBundle(BundleContext bc, String resource)
-    throws BundleException
-  {
+  public static Bundle installBundle(BundleContext bc, String resource) throws BundleException {
     try {
       System.out.println("installBundle(" + resource + ")");
       URL url = bc.getBundle().getResource(resource);
       if(url == null) {
-        throw new BundleException("No resource " + resource);
+	throw new BundleException("No resource " + resource);
       }
       InputStream in = url.openStream();
       if(in == null) {
-        throw new BundleException("No resource " + resource);
+	throw new BundleException("No resource " + resource);
       }
       return bc.installBundle("internal:" + resource, in);
     } catch (IOException e) {
-      throw new BundleException
-        ("Failed to get input stream for " + resource + ": " + e);
-    }
-  }
-
-  public static void updateBundle(BundleContext bc,
-                                  Bundle bu,
-                                  String resource)
-    throws BundleException
-  {
-    try {
-      System.out.println("updateBundle(" +bu.getSymbolicName()
-                         +", " + resource + ")");
-      URL url = bc.getBundle().getResource(resource);
-      if(url == null) {
-        throw new BundleException("No resource " + resource);
-      }
-      InputStream in = url.openStream();
-      if(in == null) {
-        throw new BundleException("No resource " + resource);
-      }
-      bu.update(in);
-    } catch (IOException e) {
-      throw new BundleException
-        ("Failed to get input stream for " + resource + ": " + e);
+      throw new BundleException("Failed to get input stream for " + resource + ": " + e);
     }
   }
 

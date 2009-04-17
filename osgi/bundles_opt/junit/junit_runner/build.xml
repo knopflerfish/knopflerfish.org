@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="junit_runner" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.junit_runner}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name = "bundle.build.api"  value="false"/>
   <property name = "bundle.build.all"  value="true"/>
@@ -20,10 +23,27 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="junit_all-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
    <pathelement location="../junit/resources/junit.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="bundle.description"    value="Grunt, the JUnit test runner. Runs JUnit tests registered in the framework and dumps results to XML files."/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="JUnitRunner"/>
+
+  <property name="bundle.docurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/junit_runner/readme.txt"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/junit_runner/"/>
+
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="export.package" value="[bundle.emptystring]"/>
+  <property name="import.package" value="org.knopflerfish.service.junit,org.osgi.framework,junit.framework"/>
+
+  &bundlebuild_include;
 
 </project>

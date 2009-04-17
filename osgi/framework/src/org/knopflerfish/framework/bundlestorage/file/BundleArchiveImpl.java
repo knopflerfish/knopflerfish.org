@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,14 @@ import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
 import java.lang.reflect.Method;
-import java.security.cert.Certificate;
-import java.util.Enumeration;
 import java.util.Vector;
-import java.util.Hashtable;
+import java.util.Dictionary;
 import java.util.StringTokenizer;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.net.URL;
 
 /**
@@ -57,8 +54,6 @@ import java.net.URL;
  * @author Jan Stein
  * @author Erik Wistrand
  * @author Robert Shelley
- * @author Philippe Laporte
- * @author Mats-Ola Persson
  */
 class BundleArchiveImpl implements BundleArchive
 {
@@ -66,12 +61,11 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Bundle status files
    */
-  private final static String LOCATION_FILE      = "location";
-  private final static String REV_FILE           = "revision";
-  private final static String STOP_FILE          = "stopped";
-  private final static String STARTLEVEL_FILE    = "startlevel";
-  private final static String PERSISTENT_FILE    = "persistent";
-  private final static String LAST_MODIFIED_FILE = "lastModifed";
+  private final static String LOCATION_FILE   = "location";
+  private final static String REV_FILE        = "revision";
+  private final static String STOP_FILE       = "stopped";
+  private final static String STARTLEVEL_FILE = "startlevel";
+  private final static String PERSISTENT_FILE = "persistent";
 
   /**
    * Method mapLibraryName if we run in a Java 2 environment.
@@ -95,15 +89,15 @@ class BundleArchiveImpl implements BundleArchive
 
   private Map nativeLibs;
 
+  //XXX - start L-3 modification
   private Map renameLibs;
+  //XXX - end L-3 modification
+
+  private boolean bFake = false;
 
   private int startLevel = -1;
 
-  private boolean bPersistent;
-
-  private long lastModified = 0;
-
-  private ArrayList failedPath = null;
+  private boolean bPersistent = false;
 
   static {
     try {
@@ -131,13 +125,17 @@ class BundleArchiveImpl implements BundleArchive
     } catch (Exception e) {
     }
     bundleDir       = dir;
+    archive         = new Archive(bundleDir, 0, is, source);
     storage         = bundleStorage;
     id              = bundleId;
     location        = bundleLocation;
     startOnLaunch   = false;
-    archive         = new Archive(bundleDir, 0, is, source, location);
     nativeLibs      = getNativeCode();
+
+    bFake           = isFake();
+
     setClassPath();
+
     putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
@@ -147,7 +145,9 @@ class BundleArchiveImpl implements BundleArchive
    * Construct new bundle archive based on saved data.
    *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage, FileTree dir, long bundleId)
+  BundleArchiveImpl(BundleStorageImpl bundleStorage,
+                    FileTree dir,
+                    long bundleId)
     throws Exception
   {
     bundleDir = dir;
@@ -156,35 +156,33 @@ class BundleArchiveImpl implements BundleArchive
       throw new IOException("No bundle location information found");
     }
     int rev = -1;
-    String s = getContent(REV_FILE);
-    if (s != null) {
+    String revS = getContent(REV_FILE);
+    if (revS != null) {
       try {
-        rev = Integer.parseInt(s);
+        rev = Integer.parseInt(revS);
       } catch (NumberFormatException e) { }
     }
 
-    s = getContent(STARTLEVEL_FILE);
-    if (s != null) {
+    String slS = getContent(STARTLEVEL_FILE);
+    if (slS != null) {
       try {
-        startLevel = Integer.parseInt(s);
+        startLevel = Integer.parseInt(slS);
       } catch (NumberFormatException e) { }
     }
 
-    bPersistent = "true".equals(getContent(PERSISTENT_FILE));
-
-    s = getContent(LAST_MODIFIED_FILE);
-    if (s != null) {
-        try {
-                lastModified = Long.parseLong(s);
-        }
-        catch (NumberFormatException ignore) {}
+    String pS = getContent(PERSISTENT_FILE);
+    if (pS != null) {
+      bPersistent = "true".equals(pS);
     }
 
+    archive       = new Archive(bundleDir, rev, location);
     id            = bundleId;
     storage       = bundleStorage;
     startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();
-    archive       = new Archive(bundleDir, rev, location);
     nativeLibs    = getNativeCode();
+
+    bFake         = isFake();
+
     setClassPath();
   }
 
@@ -200,22 +198,43 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     startOnLaunch = old.startOnLaunch;
-    bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
-    URL source = null;
-
-    boolean bReference = (is == null);
-    if(bReference) {        
-      source = new URL(location);
-    }
-    archive = new Archive(bundleDir, rev, is, source, location);
+    archive = new Archive(bundleDir, rev, is);
     nativeLibs = getNativeCode();
+
+    bFake = isFake();
+
     setClassPath();
-    if(!bReference) {
-      putContent(REV_FILE, Integer.toString(rev));
-    }
+    putContent(REV_FILE, Integer.toString(rev));
   }
 
+  boolean isFake() {
+    // What the f**k is this? Test case seem to require it!
+    //
+    // OK. Some background story might me good here:
+    //
+    // The R3 tests are not compatible with the R3 spec (sic)
+    //
+    // However to be R3, you have to pass the tests.
+    // Thus, KF uses a system property to determine if
+    // it should be compartible with the spec or the tests.
+    // Framework.R3_TESTCOMPLIANT reflects this state.
+    //
+    // One such difference is the "fakeheader" manifest
+    // (another on is the buggy filter test, see LDAPEpr.java)
+    // attribute that the test suite at one stage uses
+    // to read a "bad" manifest, but still pass the
+    // installBundle stage. When this header is present
+    // AND we run in test compliant mode, we skip some
+    // sanity checks on manifests
+    if(Framework.R3_TESTCOMPLIANT) {
+      String fake = getAttribute("fakeheader");
+      if(fake != null) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Get an attribute from the manifest of a bundle.
@@ -228,32 +247,13 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   /**
-   * returns the localization entries of this archive.
+   * Get all attributes from the manifest of a bundle.
+   *
+   * @return All attributes, null if bundle doesn't exists.
    */
-  public Hashtable getLocalizationEntries(String localeFile) {
-    Archive.InputFlow aif = archive.getInputFlow(localeFile);
-    if (aif != null) {
-      Properties l = new Properties();
-      try {
-        l.load(aif.is);
-      } catch (IOException _ignore) { }
-      try {
-        aif.is.close();
-      } catch (IOException _ignore) { }
-      return l;
-    } else {
-      return null;
-    }
+  public Dictionary getAttributes() {
+    return new HeaderDictionary(archive.getAttributes());
   }
-
-
-  /**
-   * returns the raw unlocalized entries of this archive.
-   */
-  public HeaderDictionary getUnlocalizedAttributes() {
-    return new HeaderDictionary(archive.manifest.getMainAttributes());
-  }
-
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -264,7 +264,6 @@ class BundleArchiveImpl implements BundleArchive
     return id;
   }
 
-
   /**
    * Get bundle location for this bundle archive.
    *
@@ -274,11 +273,9 @@ class BundleArchiveImpl implements BundleArchive
     return location;
   }
 
-
   public int getStartLevel() {
     return startLevel;
   }
-
 
   public void setStartLevel(int level) throws IOException {
     if (startLevel != level) {
@@ -286,7 +283,6 @@ class BundleArchiveImpl implements BundleArchive
       putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
     }
   }
-
 
   public void setPersistent(boolean b) throws IOException {
     if (bPersistent != b) {
@@ -301,28 +297,24 @@ class BundleArchiveImpl implements BundleArchive
   }
 
 
-  public long getLastModified() {
-    return lastModified;
-  }
-
-
-  public void setLastModified(long timemillisecs) throws IOException{
-    lastModified = timemillisecs;
-    putContent(LAST_MODIFIED_FILE, Long.toString(timemillisecs));
-  }
-
 
   /**
    * Get a byte array containg the contents of named file from a bundle
    * archive.
    *
-   * @param sub index of jar, 0 means the top level.
-   * @param path Path to class file.
+   * @param clazz Class to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  public byte[] getClassBytes(Integer sub, String path) throws IOException {
-    return archives[sub.intValue()].getClassBytes(path);
+  public byte[] getClassBytes(String clazz) throws IOException {
+    String cp = clazz.replace('.', '/') + ".class";
+    for (int i = 0; i < archives.length; i++) {
+      byte [] res = archives[i].getBytes(cp);
+      if (res != null) {
+        return res;
+      }
+    }
+    return null;
   }
 
 
@@ -331,39 +323,26 @@ class BundleArchiveImpl implements BundleArchive
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  public Vector componentExists(String component, boolean onlyFirst) {
+  public Vector componentExists(String component) {
     Vector v = null;
+
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    if (0==component.length()) {
-      // The special case asking for "/"
-      v = new Vector();
-      for (int i = 0; i < archives.length; i++) {
+
+
+    for (int i = 0; i < archives.length; i++) {
+      InputStream is = archives[i].getInputStream(component);
+      if (is != null) {
+        if(v == null) {
+           v = new Vector();
+        }
         v.addElement(new Integer(i));
-        if (onlyFirst) {
-          break;
-        }
-      }
-    } else {
-      for (int i = 0; i < archives.length; i++) {
-        Archive.InputFlow aif = archives[i].getInputFlow(component);
-        if (aif != null) {
-          if (v == null) {
-            v = new Vector();
-          }
-          v.addElement(new Integer(i));
-          try {
-            if(aif.is != null) aif.is.close();
-          }
-          catch (IOException ignore) { }
-          if (onlyFirst) {
-            break;
-          }
-        }
+        try {
+          is.close();
+        } catch (IOException ignore) { }
       }
     }
     return v;
@@ -371,38 +350,50 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
+   * Same as getInputStream(component, -1)
+   */
+  public InputStream getInputStream(String component) {
+    return getInputStream(component, -1);
+  }
+
+  /**
    * Get an specific InputStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param ix index of sub archives. A postive number is the classpath entry
-   *            index. -1 means look in the main bundle.
+   * @param ix index of jar. 0 means the top level. -1 means any
    * @return InputStream to entry or null if it doesn't exist.
    */
   public InputStream getInputStream(String component, int ix) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    Archive.InputFlow aif;
-    if (ix == -1) {
-      aif = archive.getInputFlow(component);
+
+    if(ix == -1) {
+      for (int i = 0; i < archives.length; i++) {
+        InputStream res = archives[i].getInputStream(component);
+        if (res != null) {
+          return res;
+        }
+      }
+      return null;
     } else {
-      aif = archives[ix].getInputFlow(component);
+      return archives[ix].getInputStream(component);
     }
-    return aif != null ? aif.is : null;
   }
 
 
   /**
    * Get native library from JAR.
    *
-   * @param libName Name of Jar file to get.
-   * @return A string with the path to the native library.
+   * @param component Name of Jar file to get.
+   * @return A string with path to native library.
    */
-  public String getNativeLibrary(String libName) {
+  public String getNativeLibrary(String component) {
     if (nativeLibs != null) {
       try {
-        String key = (String)mapLibraryName.invoke(null, new Object[] {libName});
+//XXX - start L-3 modification
+        String key = (String)mapLibraryName.invoke(null, new Object[] {component});
         String val = (String)nativeLibs.get(key);
         File file1 = new File(val);
         if (file1.exists() && file1.isFile()) {
@@ -420,20 +411,17 @@ class BundleArchiveImpl implements BundleArchive
             try {
               int prefix = Integer.parseInt(val.substring(index0, index1));
               rename.replace(index0, index1, Integer.toString(prefix + 1));
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
               rename.insert(index0, "0_");
             }
-          }
-          else {
+          } else {
             rename.insert(index0, "0_");
           }
           renameLibs.put(key, rename.toString());
         }
         return val;
-      }
-      catch (Exception ignore) {
-      }
+//XXX - end L-3 modification
+      } catch (Exception ignore) { }
     }
     return null;
   }
@@ -474,7 +462,6 @@ class BundleArchiveImpl implements BundleArchive
       (new File(bundleDir, REV_FILE)).delete();
       (new File(bundleDir, STARTLEVEL_FILE)).delete();
       (new File(bundleDir, PERSISTENT_FILE)).delete();
-      (new File(bundleDir, LAST_MODIFIED_FILE)).delete();
     }
     archive.purge();
     if (bundleDir.list().length == 0) {
@@ -494,22 +481,6 @@ class BundleArchiveImpl implements BundleArchive
     archive.close();
   }
 
-
-  /**
-   * Get a list with all classpath entries we failed to locate.
-   *
-   * @return A List with all failed classpath entries, null if no failures.
-   */
-  public List getFailedClassPathEntries() {
-    return failedPath;
-  }
-
-  /**
-   */
-  public Certificate [] getCertificates() {
-    return archive.getCertificates();
-  }
-
   //
   // Private methods
   //
@@ -518,7 +489,7 @@ class BundleArchiveImpl implements BundleArchive
    * Read content of file as a string.
    *
    * @param f File to read from
-   * @return contents of the file as a single String
+   * @return contents of the file as a single string
    */
   private String getContent(String f) {
     DataInputStream in = null;
@@ -541,16 +512,11 @@ class BundleArchiveImpl implements BundleArchive
    * is uninstalled.
    *
    * <p>
-   * Uninstalled is marked via a startlevel of -2. If last modified
-   * file is not available then the bundle is not complete.
+   * Uninstalled is marked via a startlevel of -2
    * </p>
    */
   static boolean isUninstalled(File dir) {
-    String s = getContent(dir, LAST_MODIFIED_FILE);
-    if (s == null || s.length() == 0) {
-      return true;
-    }
-    s = getContent(dir, STARTLEVEL_FILE);
+    String s = getContent(dir, STARTLEVEL_FILE);
     int n = -1;
     try {
       n = Integer.parseInt(s);
@@ -599,7 +565,7 @@ class BundleArchiveImpl implements BundleArchive
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
 
-    if (bcp != null) {
+    if (!bFake && (bcp != null)) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {
@@ -607,19 +573,11 @@ class BundleArchiveImpl implements BundleArchive
         if (".".equals(path)) {
           a.add(archive);
         } else {
-          try {
-            a.add(archive.getSubArchive(path));
-          } catch (IOException ioe) {
-            if (failedPath == null) {
-              failedPath = new ArrayList(1);
-            }
-            failedPath.add(path);
-          }
+          a.add(archive.getSubArchive(path));
         }
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
-    }
-    else {
+    } else {
       archives = new Archive[] { archive };
     }
 
@@ -640,129 +598,92 @@ class BundleArchiveImpl implements BundleArchive
       if (mapLibraryName == null) {
         throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
       }
-      String proc = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
-      String os =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
-      Version osVer = new Version(Framework.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      String osLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
-      boolean optional = false;
-      List best = null;
-      VersionRange bestVer = null;
-      boolean bestLang = false;
-
-      for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
-        VersionRange matchVer = null;
-        boolean matchLang = false;
+      Map best = null;
+      List perfectVer = new ArrayList();
+      List okVer = new ArrayList();
+      List noVer = new ArrayList();
+      for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false); i.hasNext(); ) {
         Map params = (Map)i.next();
-
-        List keys = (List)params.get("$keys");
-        if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
-          optional = true;
-          break;
-        }
-
+        String p = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
         List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
-        if (pl != null) {
-          if (!containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
-            continue;
-          }
-        } else {
-          // NYI! Handle null
-          continue;
-        }
-
+        String o =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
         List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
-        if (ol != null) {
-          if (!containsIgnoreCase(ol, Alias.unifyOsName(os))) {
-            continue;
-          }
-        } else {
-          // NYI! Handle null
-          continue;
-        }
-
-        List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
-        if (ver != null) {
-          boolean okVer = false;
-          for (Iterator v = ver.iterator(); v.hasNext(); ) {
-            // NYI! Handle format Exception
-            matchVer = new VersionRange((String)v.next());
-            if (matchVer.withinRange(osVer)) {
-              okVer = true;
-              break;
-            }
-          }
-          if (!okVer) {
-            continue;
-          }
-        }
-
-        List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
-        if (lang != null) {
-          for (Iterator l = lang.iterator(); l.hasNext(); ) {
-            if (osLang.equalsIgnoreCase((String)l.next())) {
-              // Found specfied language version, search no more
-              matchLang = true;
-              break;
-            }
-          }
-          if (!matchLang) {
-            continue;
-          }
-        }
-
-        List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
-        if (sf != null) {
-          if (sf.size() == 1) {
-            FilterImpl filter = new FilterImpl((String)sf.get(0));
-            if (!filter.match(Framework.getProperties())) {
-              continue;
+        if ((containsIgnoreCase(pl, p) ||
+             containsIgnoreCase(pl, Alias.unifyProcessor(p))) &&
+            (containsIgnoreCase(ol, o) ||
+             containsIgnoreCase(ol, Alias.unifyOsName(o)))) {
+          String fosVer = Framework.getProperty(Constants.FRAMEWORK_OS_VERSION);
+          List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+          // Skip if we require a newer OS version.
+          if (ver != null) {
+            for (Iterator v = ver.iterator(); v.hasNext(); ) {
+              String nov = (String)v.next();
+              int cmp = Util.compareStringVersion(nov, fosVer);
+              if (cmp == 0) {
+                // Found perfect OS version
+                perfectVer.add(params);
+                break;
+              }
+              if (cmp < 0 && !okVer.contains(params)) {
+                // Found lower OS version
+                okVer.add(params);
+              }
             }
           } else {
-            //NYI! complain about faulty selection
+            // Found unspecfied OS version
+            noVer.add(params);
           }
         }
+      }
 
-        // Compare to previous best
-        if (best != null) {
-          boolean verEqual = false;
-          if (bestVer != null) {
-            if (matchVer == null) {
-              continue;
+      List langSearch = null;
+      if (perfectVer.size() == 1) {
+        best = (Map)perfectVer.get(0);
+      } else if (perfectVer.size() > 1) {
+        langSearch = perfectVer;
+      } else if (okVer.size() == 1) {
+        best = (Map)okVer.get(0);
+      } else if (okVer.size() > 1) {
+        langSearch = okVer;
+      } else if (noVer.size() == 1) {
+        best = (Map)noVer.get(0);
+      } else if (noVer.size() > 1) {
+        langSearch = noVer;
+      }
+      if (langSearch != null) {
+        String fosLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
+        lloop: for (Iterator i = langSearch.iterator(); i.hasNext(); ) {
+          Map params = (Map)i.next();
+          List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+          if (lang != null) {
+            for (Iterator l = lang.iterator(); l.hasNext(); ) {
+              if (fosLang.equalsIgnoreCase((String)l.next())) {
+                // Found specfied language version, search no more
+                best = params;
+                break lloop;
+              }
             }
-            int d = bestVer.compareTo(matchVer);
-            if (d == 0) {
-              verEqual = true;
-            } else if (d > 0) {
-              continue;
-            }
-          } else if (matchVer == null) {
-            verEqual = true;
-          }
-          if (verEqual && (!matchLang || bestLang)) {
-            continue;
+          } else {
+            // Found unspecfied language version
+            best = params;
           }
         }
-        best = keys;
-        bestVer = matchVer;
-        bestLang = matchLang;
       }
       if (best == null) {
-        if (optional) {
-          return null;
-        } else {
-          throw new BundleException("Native-Code: No matching libraries found.");
-        }
+        throw new Exception("Native-Code: No matching libraries found.");
       }
+//XXX - start L-3 modification
       renameLibs  = new HashMap();
+//XXX - end L-3 modification
       HashMap res = new HashMap();
-      for (Iterator p = best.iterator(); p.hasNext();) {
+      for (Iterator p = ((List)best.get("keys")).iterator(); p.hasNext();) {
         String name = (String)p.next();
         int sp = name.lastIndexOf('/');
         String key = (sp != -1) ? name.substring(sp+1) : name;
         res.put(key, archive.getNativeLibrary(name));
       }
       return res;
-    }  else {
+    } else {
       // No native code in this bundle
       return null;
     }
@@ -771,26 +692,13 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  private boolean containsIgnoreCase(List l, List l2) {
+  private boolean containsIgnoreCase(List l, String s) {
     for (Iterator i = l.iterator(); i.hasNext(); ) {
-      String s = (String)i.next();
-      for (Iterator j = l2.iterator(); j.hasNext(); ) {
-        if (s.equalsIgnoreCase((String)j.next())) {
-          return true;
-        }
+      if (s.equalsIgnoreCase((String)i.next())) {
+        return true;
       }
     }
     return false;
   }
 
-
-  public Enumeration findResourcesPath(String path) {
-    return archive.findResourcesPath(path);
-  }
-
-
-  public String getJarLocation() {
-    return archive.getPath();
-  }
-
-}//class
+}

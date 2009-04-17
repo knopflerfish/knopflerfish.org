@@ -53,8 +53,8 @@ public class GroupImpl extends UserImpl implements Group {
 
     protected Vector reqMembers = new Vector();
 
-    GroupImpl(String name) {
-        super(name);
+    GroupImpl(String name, UserAdminImpl uai) {
+        super(name, uai);
     }
 
     boolean hasRole(String roleName, String user, Dictionary context,
@@ -65,9 +65,8 @@ public class GroupImpl extends UserImpl implements Group {
         // System.out.println( " visited: " + visited );
 
         if (visited.contains(this)) {
-            // with Role.USER_ANYONE, we get loops as sone as
-            // Role.USER_ANYONE is added to a group stop and return
-            // false
+            // with ANYONE, we get loops as sone as ANYONE is added to a group
+            // stop and return false
             return false;
         }
         visited.addElement(this);
@@ -137,7 +136,7 @@ public class GroupImpl extends UserImpl implements Group {
     // -----------------------------
     public boolean addMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
+        if (null!=sm) {
           sm.checkPermission(UserAdminImpl.adminPermission);
         }
         if (basicMembers.contains(role)) {
@@ -152,7 +151,7 @@ public class GroupImpl extends UserImpl implements Group {
 
     public boolean addRequiredMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
+        if (null!=sm) {
           sm.checkPermission(UserAdminImpl.adminPermission);
         }
         if (reqMembers.contains(role)) {
@@ -167,7 +166,7 @@ public class GroupImpl extends UserImpl implements Group {
 
     public boolean removeMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
+        if (null!=sm) {
           sm.checkPermission(UserAdminImpl.adminPermission);
         }
         if (basicMembers.removeElement(role)) {

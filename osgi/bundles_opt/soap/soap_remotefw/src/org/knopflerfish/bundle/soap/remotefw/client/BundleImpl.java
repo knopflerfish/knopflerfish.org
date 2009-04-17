@@ -4,7 +4,6 @@ import org.osgi.framework.*;
 import org.osgi.util.tracker.*;
 
 import java.util.*;
-
 import org.knopflerfish.service.log.LogRef;
 import org.osgi.service.startlevel.*;
 
@@ -33,10 +32,6 @@ public class BundleImpl implements Bundle {
 
   void load() {
     sids = fw.getRegisteredServices(bid);
-  }
-
-  public BundleContext getBundleContext() {
-    return fw.remoteBC;
   }
 
   public Dictionary getHeaders() {
@@ -122,44 +117,4 @@ public class BundleImpl implements Bundle {
     }
     return bid == ((BundleImpl)other).bid;
   }
-
-public Enumeration findEntries(String path, String filePattern, boolean recurse) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public URL getEntry(String name) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public Enumeration getEntryPaths(String path) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public Dictionary getHeaders(String locale) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public long getLastModified() {
-	// TODO Auto-generated method stub
-	return 0;
-}
-
-public Enumeration getResources(String name) throws IOException {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public String getSymbolicName() {
-	// TODO Auto-generated method stub
-	return null;
-}
-
-public Class loadClass(String name) throws ClassNotFoundException {
-	// TODO Auto-generated method stub
-	return null;
-}
 }

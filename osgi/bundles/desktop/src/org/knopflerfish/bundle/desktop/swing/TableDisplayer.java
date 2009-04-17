@@ -41,10 +41,25 @@ import javax.swing.table.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import java.awt.event.*;
+import java.awt.Container;
+import java.awt.GridLayout;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
 import java.awt.Color;
+
+import java.util.List;
+import java.util.Dictionary;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.Iterator;
+import java.io.*;
+import java.net.URL;
 
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
@@ -73,20 +88,15 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   public void valueChanged(long bid) {
-    try {
-      bInValueChanged = true;
-      int row = model.getRowFromBID(bid);
+    int row = model.getRowFromBID(bid);
+    
+    if(row == -1) {
+      return;
+    }
+    for(Iterator it = components.iterator(); it.hasNext(); ) {
+      JBundleTable comp = (JBundleTable)it.next();
       
-      if(row == -1) {
-        return;
-      }
-      for(Iterator it = components.iterator(); it.hasNext(); ) {
-        JBundleTable comp = (JBundleTable)it.next();
-        
-        comp.table.setRowSelectionInterval(row, row);
-      }
-    } finally {
-      bInValueChanged = false;
+      comp.table.setRowSelectionInterval(row, row);
     }
   }
 
@@ -104,7 +114,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 	};
 
       table.setModel(model);
-      table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
       
       //      Dimension size = new Dimension(500, 300);
       
@@ -133,11 +143,9 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 	      int row = lsm.getMinSelectionIndex();
 	      
 	      Bundle b = model.getBundle(row);
-              if(!bInValueChanged) {
-                bundleSelModel.clearSelection();
-                bundleSelModel.setSelected(b.getBundleId(), true);
-              }
-            }
+	      bundleSelModel.clearSelection();
+	      bundleSelModel.setSelected(b.getBundleId(), true);
+	    }
 	  }
 	});
 
@@ -147,48 +155,41 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
 
     void setColumnWidth() {
-      SwingUtilities.invokeLater(new Runnable() {
-          public void run() {
-            totalWidth = 0;
-            setColWidth(COL_ID,         15);
-            setColWidth(COL_NAME,       80);
-            setColWidth(COL_STATE,      40);
-            setColWidth(COL_STARTLEVEL, 20);
-            setColWidth(COL_DESC,       100);
-            setColWidth(COL_LOCATION,   80);
-            setColWidth(COL_VENDOR,     60);
-          }
-        });
+
+      totalWidth = 0;
+      setColWidth(COL_ID,         15);
+      setColWidth(COL_NAME,       80);
+      setColWidth(COL_STATE,      40);
+      setColWidth(COL_STARTLEVEL, 20);
+      setColWidth(COL_DESC,       100);
+      setColWidth(COL_LOCATION,   80);
+      setColWidth(COL_VENDOR,     60);
     }
 
     int totalWidth = 0;
 
     void setColWidth(int col, int w) {
-      try {
-        TableModel  model  = table.getModel();
-        TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-        
-        if(col < model.getColumnCount()) {
-          TableColumn column = table.getColumnModel().getColumn(col);
-          
-          Component headerComp = 
-            headerRenderer
-            .getTableCellRendererComponent(null, column.getHeaderValue(),
-                                           false, false, 0, 0);
-          int headerWidth = headerComp.getPreferredSize().width;
-          
-          
-          w = Math.max(headerWidth, w);
-          
-          totalWidth += w;
-          
-          column.setMinWidth(10);
-          column.setMaxWidth(300);
-          
-          column.setPreferredWidth(w);
-        }
-      } catch (Exception e) {
-        Activator.log.warn("Failed to set column #" + col + " to width=" + w);
+      TableModel  model  = table.getModel();
+      TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
+
+      if(col < model.getColumnCount()) {
+	TableColumn column = table.getColumnModel().getColumn(col);
+
+	Component headerComp = 
+	  headerRenderer
+	  .getTableCellRendererComponent(null, column.getHeaderValue(),
+					 false, false, 0, 0);
+	int headerWidth = headerComp.getPreferredSize().width;
+	
+	
+	w = Math.max(headerWidth, w);
+	
+	totalWidth += w;
+	
+	column.setMinWidth(10);
+	column.setMaxWidth(300);
+
+	column.setPreferredWidth(w);
       }
     }
   }

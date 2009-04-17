@@ -34,12 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.Font;
-
-import javax.swing.plaf.ColorUIResource;
-import javax.swing.plaf.FontUIResource;
-import javax.swing.plaf.metal.DefaultMetalTheme;
-import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.plaf.*;
+import javax.swing.plaf.basic.*;
+import javax.swing.plaf.metal.*;
+import java.awt.*;
 
 public class KnopflerfishTheme extends DefaultMetalTheme {
   final ColorUIResource primary1 = new ColorUIResource(160, 133, 95);

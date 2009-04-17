@@ -1,5 +1,5 @@
 Bundle-Name: bundleC_test
-Bundle-SymbolicName: org.knopflerfish.bundle.bundleC_test
+Bundle-SymbolicName: bundleC_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for framework, bundleC_test
 Bundle-Vendor: Knopflerfish/Gatespace Telematics

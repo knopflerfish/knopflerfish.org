@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,11 @@ final class Update {
         if (configuration == null) {
             targetService.deleted(pid);
         } else if (processedConfiguration == null) {
-            targetService.deleted(pid);
+            if (Activator.r3TestCompliant()) {
+                targetService.updated(pid, null);
+            } else {
+                targetService.deleted(pid);
+            }
         } else {
             targetService.updated(pid, configuration);
         }

@@ -34,9 +34,13 @@
 
 package org.knopflerfish.service.desktop;
 
+import org.osgi.framework.Bundle;
+
+import javax.swing.JComponent;
+import javax.swing.ListSelectionModel;
+import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Default implementation of BundleSelectionModel.
@@ -53,7 +57,8 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   public DefaultBundleSelectionModel() {
 
   }
-
+  
+  
   public void    clearSelection() {
     selection.clear();
     fireChange(-1);
@@ -87,21 +92,12 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   /**
    * Send a value changed event to all <tt>BundleSelectionListener</tt>
    */
-  boolean bInFireChange = false;
   public void fireChange(long bid) {
     synchronized(listeners) {
-      try {
-        if(!bInFireChange) {
-          bInFireChange = true;
-          for(Iterator it = listeners.iterator(); it.hasNext();) {
-            BundleSelectionListener l = (BundleSelectionListener)it.next();
-            l.valueChanged(bid);
-          }
-        } else {
-        }
-      } finally {
-        bInFireChange = false;
-      }      
+      for(Iterator it = listeners.iterator(); it.hasNext();) {
+	BundleSelectionListener l = (BundleSelectionListener)it.next();
+	l.valueChanged(bid);
+      }
     }
   }
 }

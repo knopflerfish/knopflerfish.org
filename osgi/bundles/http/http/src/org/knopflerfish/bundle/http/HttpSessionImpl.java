@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.http;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
@@ -78,11 +77,6 @@ public class HttpSessionImpl implements HttpSession {
         lastAccessedTime = accessedTime;
         accessedTime = System.currentTimeMillis();
     }
-
-  public ServletContext getServletContext() {
-    System.err.println("***NYI." + getClass().getName());
-    throw new RuntimeException("NYI");
-  }
 
     public boolean isExpired() {
         return invalid

@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="oscar-shell" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.oscar-shell}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "true"/>
 
@@ -18,21 +21,21 @@
   <property name="api.pattern"
             value="org/ungoverned/osgi/service/shell/*"/>
 
+
   <path id="bundle.compile.path">
-    <pathelement location="console_api-N.N.N.jar"/>
+    <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
   </path>
 
-  <property name="bmfa.Bundle-Description"
-            value="Compatability layer for bundles using the Oscar shell API. See readme.txt for details."/>
-  <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.1"/>
-  <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
-  <property name="bmfa.Bundle-APIVendor"      value="Oscar"/>
-  <property name="bmfa.Export-Package"  
-            value="org.ungoverned.osgi.service.shell; specification-version=1.0.0"/>
-  <property name = "bmfa.Bundle-DocURL"
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/readme.txt"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Compatability layer for bundles using the Oscar shell API. See readme.txt for details."/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Oscar"/>
+
+  <property name="export.package"  
+            value="org.ungoverned.osgi.service.shell; specification-version=1.0.0"/>
+   <property name = "bundle.docurl"      value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/readme.txt"/>
+  &bundlebuild_include;
 
 </project>

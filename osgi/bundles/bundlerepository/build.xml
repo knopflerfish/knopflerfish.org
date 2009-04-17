@@ -1,11 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="bundlerepository" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.bundlerepository}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
-  <property name = "ee.check.foundation"   value = "false"/>
+  <property name = "ee.check.foundation"   value = "true"/>
 
   <property name = "bundle.build.api"      value = "false"/>
   <property name = "bundle.build.impl"     value = "false"/>
@@ -16,30 +19,49 @@
             value="org/knopflerfish/**/*,org/**,fr/**,kxml/**"/>
 
   <property name="api.pattern"
-            value="org/ungoverned/osgi/service/bundlerepository/**"/>
+            value=""/>
+
 
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-    <bundle_locator bundleName="console_api" property="console_api">
-      <fileset dir="${topdir}/jars">
-	<include name="**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy file="${console_api}"  
-          tofile="resources/console_api.jar"/>
+   <copy file  = "${topdir}/jars/console/console_api-1.0.0.jar"  
+         todir = "resources"/>
   </target>
 
   <path id="bundle.compile.path">
-    <pathelement location="desktop_api-N.N.N.jar"/>  
-    <pathelement location="resources/console_api.jar"/>
+    <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>  
+    <pathelement location="resources/console_api-1.0.0.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
-    <pathelement location="resources/kxml-min.jar"/>
+    <pathelement location="resources/kxml-min.zip"/>
 <!--
     <pathelement location="resources/oscar-bundlerepository.jar"/>
 -->
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="bundle.description"    value="OBR bundle repository using the KF console and desktop"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.1.2"/>
+  <property name="bundle.vendor"         value="Oscar/Knopflerfish"/>
+
+  <property name="bundle.apivendor"      value="Oscar/Knopflerfish"/>
+
+  <property name="bundle.activator"      value="org.knopflerfish.osgi.bundle.bundlerepository.Activator"/>
+  <property name="bundle.classpath"      value=".,console_api-1.0.0.jar,kxml-min.zip"/>
+
+  <property name="export.package"  
+            value="org.knopflerfish.service.console;specification-version=1.0.0,org.ungoverned.osgi.service.bundlerepository; specification-version=1.1.0"/>
+
+  <!-- dynamic import to optionally register command/shell/desktop services -->
+  <property name="dynamicimport.package" value="*"/>
+
+  <!-- set explicitly to avoid havin build system sniffing out the imports -->
+  <property name="import.package"  
+            value="org.osgi.framework"/>
+
+   <property name = "bundle.docurl"      value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/bundlerepository/readme.txt"/>
+
+  &bundlebuild_include;
 
 </project>

@@ -34,13 +34,11 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.io.PrintWriter;
+import org.osgi.service.log.*;
+import org.osgi.framework.*;
 import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.util.Date;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogEntry;
 
 /**
  * LogEntry implementation with an extra ID field.

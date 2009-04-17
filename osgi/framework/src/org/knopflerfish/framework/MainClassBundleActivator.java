@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,13 @@ import org.osgi.framework.*;
  *
  * <p>
  * When the <tt>start</tt> method is called, a new thread is started for
- * the bundle and the static <tt>main</tt> method is called with zero
+ * the bundle and the static <tt>main</tt> method is called with zero 
  * arguments.
  * </p>
  *
  * <p>
  * When the <tt>stop</tt> method is called, any static method named "stop"
- * is called.
+ * is called. 
  * </p>
  */
 public class MainClassBundleActivator implements BundleActivator, Runnable {
@@ -65,35 +65,52 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
   String[] argv = new String[] { };
 
   public MainClassBundleActivator(Class clazz) throws Exception {
-    this.clazz = clazz;
+    this.clazz = clazz; 
 
-    startMethod = clazz.getMethod("main", new Class[] { argv.getClass() });
-
+    startMethod = clazz.getMethod("start", new Class[] { argv.getClass() });
+    
     // Check for optional stop method
-    try {
+    try { 
       stopMethod  = clazz.getMethod("stop", new Class[] { });
     } catch (Exception ignored) {
     }
   }
 
-  public void start(BundleContext bc) throws BundleException {
+  public static MainClassBundleActivator create(ClassLoader cl, Class mainClazz) throws BundleException {
 
     try {
-      runner = new Thread(this,
-                          "start thread for executable jar file, bundle id="
-                          + bc.getBundle().getBundleId());
+      Class           baClass = cl.loadClass(MainClassBundleActivator.class.getName()); 
+      Constructor     cons    = baClass.getConstructor(new Class[] 
+	{ Class.class });
+      
+      MainClassBundleActivator ba  = (MainClassBundleActivator)cons.newInstance(new Object[] 
+	{ mainClazz   });
+
+
+      return ba;
+    } catch (Exception e) {
+      throw new BundleException("Failed to create main class activator", e);
+    }
+  }
+
+
+  
+  public void start(BundleContext bc) throws BundleException {
+    
+    try {
+      runner = new Thread(this, "start thread for executable jar file, bundle id=" + bc.getBundle().getBundleId());
       runner.start();
     } catch (Exception e) {
       throw new BundleException("Failed to start main class", e);
     }
   }
-
+  
   public void stop(BundleContext bc) throws BundleException {
     if(stopMethod != null) {
       try {
-        stopMethod.invoke(null, new Object[] { } );
+	stopMethod.invoke(null, new Object[] { } );
       } catch (Exception e) {
-        throw new BundleException("Failed to stop main class", e);
+	throw new BundleException("Failed to stop main class", e);
       }
     }
   }

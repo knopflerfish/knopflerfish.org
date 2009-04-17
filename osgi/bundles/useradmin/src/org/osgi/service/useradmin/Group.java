@@ -1,55 +1,64 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.useradmin/src/org/osgi/service/useradmin/Group.java,v 1.8 2006/06/16 16:31:41 hargrave Exp $
+ * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/bundles/useradmin/src/org/osgi/service/useradmin/Group.java,v 1.1.1.1 2004/03/05 20:35:16 wistrand Exp $
  *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Copyright (c) The Open Services Gateway Initiative (2001).
+ * All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
+
 package org.osgi.service.useradmin;
 
 /**
- * A named grouping of roles (<code>Role</code> objects).
+ * A named grouping of roles (<tt>Role</tt> objects).
  * <p>
- * Whether or not a given <code>Authorization</code> context implies a
- * <code>Group</code> object depends on the members of that <code>Group</code>
+ * Whether or not a given <tt>Authorization</tt> context implies a
+ * <tt>Group</tt> object depends on the members of that <tt>Group</tt>
  * object.
  * <p>
- * A <code>Group</code> object can have two kinds of members: <i>basic </i> and
- * <i>required </i>. A <code>Group</code> object is implied by an
- * <code>Authorization</code> context if all of its required members are implied
+ * A <tt>Group</tt> object can have two kinds of members: <i>basic</i> and
+ * <i>required</i>. A <tt>Group</tt> object is implied by an
+ * <tt>Authorization</tt> context if all of its required members are implied
  * and at least one of its basic members is implied.
  * <p>
- * A <code>Group</code> object must contain at least one basic member in order to
- * be implied. In other words, a <code>Group</code> object without any basic
- * member roles is never implied by any <code>Authorization</code> context.
+ * A <tt>Group</tt> object must contain at least one basic member in order to
+ * be implied. In other words, a <tt>Group</tt> object without any basic
+ * member roles is never implied by any <tt>Authorization</tt> context.
  * <p>
- * A <code>User</code> object always implies itself.
+ * A <tt>User</tt> object always implies itself.
  * <p>
- * No loop detection is performed when adding members to <code>Group</code>
+ * No loop detection is performed when adding members to <tt>Group</tt>
  * objects, which means that it is possible to create circular implications.
  * Loop detection is instead done when roles are checked. The semantics is that
  * if a role depends on itself (i.e., there is an implication loop), the role is
  * not implied.
  * <p>
- * The rule that a <code>Group</code> object must have at least one basic member
+ * The rule that a <tt>Group</tt> object must have at least one basic member
  * to be implied is motivated by the following example:
  * 
  * <pre>
- * 
- *  group foo
- *    required members: marketing
- *    basic members: alice, bob
- *  
+ *    group foo
+ *      required members: marketing
+ *      basic members: alice, bob
  * </pre>
  * 
  * Privileged operations that require membership in "foo" can be performed only
@@ -57,20 +66,18 @@ package org.osgi.service.useradmin;
  * <p>
  * If "alice" and "bob" ever transfer to a different department, anybody in
  * marketing will be able to assume the "foo" role, which certainly must be
- * prevented. Requiring that "foo" (or any <code>Group</code> object for that
+ * prevented. Requiring that "foo" (or any <tt>Group</tt> object for that
  * matter) must have at least one basic member accomplishes that.
  * <p>
- * However, this would make it impossible for a <code>Group</code> object to be
+ * However, this would make it impossible for a <tt>Group</tt> object to be
  * implied by just its required members. An example where this implication might
  * be useful is the following declaration: "Any citizen who is an adult is
  * allowed to vote." An intuitive configuration of "voter" would be:
  * 
  * <pre>
- * 
- *  group voter
- *    required members: citizen, adult
- *       basic members:
- *  
+ *    group voter
+ *      required members: citizen, adult
+ *         basic members:
  * </pre>
  * 
  * However, according to the above rule, the "voter" role could never be assumed
@@ -80,81 +87,85 @@ package org.osgi.service.useradmin;
  * specifying "user.anyone" as its basic member, as follows:
  * 
  * <pre>
- * 
- *  group voter
- *    required members: citizen, adult
- *       basic members: user.anyone
- *  
+ *    group voter
+ *      required members: citizen, adult
+ *         basic members: user.anyone
  * </pre>
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  */
+
 public interface Group extends User {
-	/**
-	 * Adds the specified <code>Role</code> object as a basic member to this
-	 * <code>Group</code> object.
-	 * 
-	 * @param role The role to add as a basic member.
-	 * 
-	 * @return <code>true</code> if the given role could be added as a basic
-	 *         member, and <code>false</code> if this <code>Group</code> object
-	 *         already contains a <code>Role</code> object whose name matches that
-	 *         of the specified role.
-	 * 
-	 * @throws SecurityException If a security manager exists and the caller
-	 *         does not have the <code>UserAdminPermission</code> with name
-	 *         <code>admin</code>.
-	 */
-	public boolean addMember(Role role);
 
-	/**
-	 * Adds the specified <code>Role</code> object as a required member to this
-	 * <code>Group</code> object.
-	 * 
-	 * @param role The <code>Role</code> object to add as a required member.
-	 * 
-	 * @return <code>true</code> if the given <code>Role</code> object could be
-	 *         added as a required member, and <code>false</code> if this
-	 *         <code>Group</code> object already contains a <code>Role</code> object
-	 *         whose name matches that of the specified role.
-	 * 
-	 * @throws SecurityException If a security manager exists and the caller
-	 *         does not have the <code>UserAdminPermission</code> with name
-	 *         <code>admin</code>.
-	 */
-	public boolean addRequiredMember(Role role);
+    /**
+     * Adds the specified <tt>Role</tt> object as a basic member to this
+     * <tt>Group</tt> object.
+     * 
+     * @param role
+     *            The role to add as a basic member.
+     * 
+     * @return <tt>true</tt> if the given role could be added as a basic
+     *         member, and <tt>false</tt> if this <tt>Group</tt> object
+     *         already contains a <tt>Role</tt> object whose name matches that
+     *         of the specified role.
+     * 
+     * @throws SecurityException
+     *             If a security manager exists and the caller does not have the
+     *             <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
+     */
+    public boolean addMember(Role role);
 
-	/**
-	 * Removes the specified <code>Role</code> object from this <code>Group</code>
-	 * object.
-	 * 
-	 * @param role The <code>Role</code> object to remove from this <code>Group</code>
-	 *        object.
-	 * 
-	 * @return <code>true</code> if the <code>Role</code> object could be removed,
-	 *         otherwise <code>false</code>.
-	 * 
-	 * @throws SecurityException If a security manager exists and the caller
-	 *         does not have the <code>UserAdminPermission</code> with name
-	 *         <code>admin</code>.
-	 */
-	public boolean removeMember(Role role);
+    /**
+     * Adds the specified <tt>Role</tt> object as a required member to this
+     * <tt>Group</tt> object.
+     * 
+     * @param role
+     *            The <tt>Role</tt> object to add as a required member.
+     * 
+     * @return <tt>true</tt> if the given <tt>Role</tt> object could be
+     *         added as a required member, and <tt>false</tt> if this
+     *         <tt>Group</tt> object already contains a <tt>Role</tt> object
+     *         whose name matches that of the specified role.
+     * 
+     * @throws SecurityException
+     *             If a security manager exists and the caller does not have the
+     *             <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
+     */
+    public boolean addRequiredMember(Role role);
 
-	/**
-	 * Gets the basic members of this <code>Group</code> object.
-	 * 
-	 * @return The basic members of this <code>Group</code> object, or
-	 *         <code>null</code> if this <code>Group</code> object does not contain
-	 *         any basic members.
-	 */
-	public Role[] getMembers();
+    /**
+     * Removes the specified <tt>Role</tt> object from this <tt>Group</tt>
+     * object.
+     * 
+     * @param role
+     *            The <tt>Role</tt> object to remove from this <tt>Group</tt>
+     *            object.
+     * 
+     * @return <tt>true</tt> if the <tt>Role</tt> object could be removed,
+     *         otherwise <tt>false</tt>.
+     * 
+     * @throws SecurityException
+     *             If a security manager exists and the caller does not have the
+     *             <tt>UserAdminPermission</tt> with name <tt>admin</tt>.
+     */
+    public boolean removeMember(Role role);
 
-	/**
-	 * Gets the required members of this <code>Group</code> object.
-	 * 
-	 * @return The required members of this <code>Group</code> object, or
-	 *         <code>null</code> if this <code>Group</code> object does not contain
-	 *         any required members.
-	 */
-	public Role[] getRequiredMembers();
+    /**
+     * Gets the basic members of this <tt>Group</tt> object.
+     * 
+     * @return The basic members of this <tt>Group</tt> object, or
+     *         <tt>null</tt> if this <tt>Group</tt> object does not contain
+     *         any basic members.
+     */
+    public Role[] getMembers();
+
+    /**
+     * Gets the required members of this <tt>Group</tt> object.
+     * 
+     * @return The required members of this <tt>Group</tt> object, or
+     *         <tt>null</tt> if this <tt>Group</tt> object does not contain
+     *         any required members.
+     */
+    public Role[] getRequiredMembers();
 }

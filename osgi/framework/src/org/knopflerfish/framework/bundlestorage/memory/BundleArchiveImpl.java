@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, Knopflerfish project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,22 +37,21 @@ package org.knopflerfish.framework.bundlestorage.memory;
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
-import java.security.cert.Certificate;
-import java.util.Enumeration;
 import java.util.Vector;
-import java.util.Hashtable;
+import java.util.Dictionary;
 import java.util.StringTokenizer;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
+import java.net.URL;
 
 
 /**
  * Interface for managing bundle data.
  *
  * @author Jan Stein
- * @author Philippe Laporte
  * @version $Revision: 1.2 $
  */
 class BundleArchiveImpl implements BundleArchive
@@ -70,20 +69,19 @@ class BundleArchiveImpl implements BundleArchive
 
   private Archive [] archives;
 
-  private int startLevel = -1;
-  private boolean bPersistent = false;
-  private long lastModified;
+  private boolean bFake;
 
-  private ArrayList failedPath = null;
+  private int startLevel = -1;
+  private boolean bPersistant = false;
 
   /**
    * Construct new bundle archive.
    *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage,
-                    InputStream       is,
-                    String            bundleLocation,
-                    long bundleId)
+  BundleArchiveImpl(BundleStorageImpl bundleStorage, 
+		    InputStream       is,
+		    String            bundleLocation, 
+		    long bundleId)
     throws Exception
   {
     archive       = new Archive(is);
@@ -91,6 +89,9 @@ class BundleArchiveImpl implements BundleArchive
     id            = bundleId;
     location      = bundleLocation;
     startOnLaunch = false;
+
+    bFake = isFake();
+
     setClassPath();
   }
 
@@ -106,11 +107,23 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     startOnLaunch = old.startOnLaunch;
-    bPersistent = old.bPersistent;
     archive = new Archive(is);
+
+    bFake = isFake();
+
     setClassPath();
   }
 
+  boolean isFake() {
+    // What the f**k is this? R3 rest case seem to require it!
+    if(Framework.R3_TESTCOMPLIANT) {
+      String fake = getAttribute("fakeheader");
+      if(fake != null) {
+	return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Get an attribute from the manifest of a bundle.
@@ -122,34 +135,14 @@ class BundleArchiveImpl implements BundleArchive
     return archive.getAttribute(key);
   }
 
-
   /**
-   * returns the localization entries of this archive.
+   * Get all attributes from the manifest of a bundle.
+   *
+   * @return All attributes, null if bundle doesn't exists.
    */
-  public Hashtable getLocalizationEntries(String localeFile) {
-    InputStream is = archive.getInputStream(localeFile);
-    if (is != null) {
-      Properties l = new Properties();
-      try {
-        l.load(is);
-      } catch (IOException _ignore) { }
-      try {
-        is.close();
-      } catch (IOException _ignore) { }
-      return l;
-    } else {
-      return null;
-    }
+  public Dictionary getAttributes() {
+    return new HeaderDictionary(archive.getAttributes());
   }
-
-
-  /**
-   * returns the raw unlocalized entries of this archive.
-   */
-  public HeaderDictionary getUnlocalizedAttributes() {
-    return new HeaderDictionary(archive.manifest.getMainAttributes());
-  }
-
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -169,101 +162,84 @@ class BundleArchiveImpl implements BundleArchive
     return location;
   }
 
-
   public int getStartLevel() {
     return startLevel;
   }
-
-
+  
   public void setStartLevel(int level) {
     startLevel = level;
   }
 
-
   public void setPersistent(boolean b) {
-    bPersistent = b;
+    bPersistant = b;
   }
 
 
   public boolean isPersistent() {
-    return bPersistent;
+    return bPersistant;
   }
-
-
-  public long getLastModified() {
-    return lastModified;
-  }
-
-
-  public void setLastModified(long timemillisecs) throws IOException{
-          lastModified = timemillisecs;
-  }
-
-
+  
   /**
    * Get a byte array containg the contents of named file from a bundle
    * archive.
    *
-   * @param sub index of jar, 0 means the top level.
-   * @param path Path to class file.
+   * @param clazz Class to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  public byte[] getClassBytes(Integer sub, String path) throws IOException {
-    return archives[sub.intValue()].getClassBytes(path);
+  public byte[] getClassBytes(String clazz) throws IOException {
+    String cp = clazz.replace('.', '/') + ".class";
+    for (int i = 0; i < archives.length; i++) {
+      byte [] res = archives[i].getBytes(cp);
+      if (res != null) {
+	return res;
+      }
+    }
+    return null;
   }
 
 
   /**
-   * Check if named entry exist in bundles classpath.
+   * Check if named entry exist in bundles archive.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  public Vector componentExists(String component, boolean onlyFirst) {
+  public Vector componentExists(String component) {
     Vector v = null;
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    if (0==component.length()) {
-      // The special case asking for "/"
-      v = new Vector();
-      for (int i = 0; i < archives.length; i++) {
-        v.addElement(new Integer(i));
-        if (onlyFirst) {
-          break;
-        }
-      }
-    } else {
-      for (int i = 0; i < archives.length; i++) {
-        InputStream is = archives[i].getInputStream(component);
-        if (is != null) {
-          if(v == null) {
-            v = new Vector();
-          }
-          v.addElement(new Integer(i));
-          try {
-            is.close();
-          } catch (IOException ignore) { }
-          if (onlyFirst) {
-            break;
-          }
-        }
+    for (int i = 0; i < archives.length; i++) {
+      InputStream is = archives[i].getInputStream(component);
+      if (is != null) {
+	if(v == null) {
+	  v = new Vector();
+	}
+	v.addElement(new Integer(i));
+	try {
+	    is.close();
+	} catch (IOException ignore) { }
       }
     }
     return v;
   }
+    
 
+  /**
+   * Same as getInputStream(component, -1)
+   */
+  public InputStream getInputStream(String component) {
+    return getInputStream(component, -1);
+  }
 
   /**
    * Get an specific InputStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param ix index of sub archives. A postive number is the classpath entry
-   *            index. -1 means look in the main bundle.
+   * @param ix index of jar. 0 means the top level. -1 means any
    * @return InputStream to entry or null if it doesn't exist.
    */
   public InputStream getInputStream(String component, int ix) {
@@ -272,7 +248,13 @@ class BundleArchiveImpl implements BundleArchive
     }
 
     if(ix == -1) {
-      return archive.getInputStream(component);
+      for (int i = 0; i < archives.length; i++) {
+        InputStream res = archives[i].getInputStream(component);
+        if (res != null) {
+          return res;
+        }
+      }
+      return null;
     } else {
       return archives[ix].getInputStream(component);
     }
@@ -282,10 +264,10 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Get native library from JAR.
    *
-   * @param libName Name of Jar file to get.
+   * @param component Name of Jar file to get.
    * @return A string with path to native library.
    */
-  public String getNativeLibrary(String libName) {
+  public String getNativeLibrary(String component) {
     return null;
   }
 
@@ -328,48 +310,23 @@ class BundleArchiveImpl implements BundleArchive
   public void close() {
   }
 
-
-  /**
-   * Get a list with all classpath entries we failed to locate.
-   *
-   * @return A List with all failed classpath entries, null if no failures.
-   */
-  public List getFailedClassPathEntries() {
-    return failedPath;
-  }
-
   //
   // Private methods
   //
 
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
-
-    if (bcp != null) {
+    
+    if (!bFake && (bcp != null)) {
       ArrayList a = new ArrayList();
       StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {
-        String path = st.nextToken().trim();
-        if (".".equals(path)) {
-                  a.add(archive);
-          }
-          else if (path.endsWith(".jar")){
-            try {
-              a.add(archive.getSubArchive(path));
-            } catch (IOException ioe) {
-              if (failedPath == null) {
-                failedPath = new ArrayList(1);
-              }
-              failedPath.add(path);
-            }
-          }
-          else{
-            if(archive.subDirs == null){
-              archive.subDirs = new ArrayList(1);
-            }
-          // NYI Check that it exists!
-            archive.subDirs.add(path);
-          }
+	String path = st.nextToken().trim();
+	if (".".equals(path)) {
+	  a.add(archive);
+	} else {
+	  a.add(archive.getSubArchive(path));
+	}
       }
       archives = (Archive [])a.toArray(new Archive[a.size()]);
     } else {
@@ -377,23 +334,4 @@ class BundleArchiveImpl implements BundleArchive
     }
   }
 
-
-  public Enumeration findResourcesPath(String path) {
-    return archive.findResourcesPath(path);
-  }
-
-  public String getJarLocation() {
-    return null;
-  }
-
-
-  /**
-   * Get certificates associated with with bundle archive.
-   *
-   * @return All certificates or null if bundle is unsigned.
-   */
-  public Certificate [] getCertificates() {
-    // NYI
-    return null;
-  }
 }

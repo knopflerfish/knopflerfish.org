@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2007, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,21 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.security.AccessController;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.um.useradmin.Condition;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.useradmin.Authorization;
 import org.osgi.service.useradmin.Role;
 import org.osgi.service.useradmin.User;
@@ -62,8 +56,6 @@ import org.osgi.service.useradmin.UserAdmin;
 import org.osgi.service.useradmin.UserAdminEvent;
 import org.osgi.service.useradmin.UserAdminListener;
 import org.osgi.service.useradmin.UserAdminPermission;
-import org.osgi.util.tracker.ServiceTracker;
-
 
 /**
  * Implementation of UserAdmin.
@@ -73,6 +65,8 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class UserAdminImpl implements ServiceFactory, UserAdmin,
         ServiceListener {
+    static final String ANYONE = "user.anyone";
+
     static final UserAdminPermission adminPermission;
 
     protected ServiceReference uasr; // our service ref
@@ -83,25 +77,23 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     RoleImpl anyone; // predefined role
 
-    EventQueue eventQueue;
+    BundleContext bc;
 
-    ServiceTracker eventAdminTracker;
+    LogRef log;
 
     static {
         adminPermission = new UserAdminPermission(UserAdminPermission.ADMIN,
-                                                  null);
+                null);
     }
 
-    UserAdminImpl() {
-        revert(); // Read saved roles
-        if (roles == null) {
-          zap(); // Create "empty" roles table
-        }
+    UserAdminImpl(BundleContext bc) {
+        this.bc = bc;
+        roles = new Hashtable();
         listeners = new Vector();
+        log = new LogRef(bc);
 
-        eventAdminTracker
-          = new ServiceTracker(Activator.bc, EventAdmin.class.getName(), null );
-        eventQueue = new EventQueue(Activator.bc);
+        // create the special roles (no events for these)
+        roles.put(ANYONE, anyone = new RoleImpl(ANYONE, this));
     }
 
     /**
@@ -116,30 +108,20 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         // Listen for UserAdminListeners, collect those already registered
         try {
             String clazz = UserAdminListener.class.getName();
-            Activator.bc.addServiceListener(this, "(objectClass=" + clazz + ")");
-            ServiceReference[] srs = Activator.bc.getServiceReferences(clazz, null);
+            bc.addServiceListener(this, "(objectClass=" + clazz + ")");
+            ServiceReference[] srs = bc.getServiceReferences(clazz, null);
             if (srs != null) {
                 for (int i = 0; i < srs.length; i++) {
                     listeners.addElement(srs[i]);
-                    if (Activator.log.doDebug())
-                        Activator.log.debug("UserAdminListener found: " + srs[i]);
+                    if (log.doDebug())
+                        log.debug("UserAdminListener found: " + srs[i]);
                 }
             }
         } catch (InvalidSyntaxException ex) {
         }
-        eventAdminTracker.open();
 
-        if (Activator.log.doInfo())
-            Activator.log.info("Service initialized", uasr);
-    }
-
-
-    /**
-     * The bundle owning this service is stopping; terminate the worker
-     * thread.
-     */
-    void stop() {
-      save(); // Try to save roles table
+        if (log.doInfo())
+            log.info("Service initialized", uasr);
     }
 
     /**
@@ -153,18 +135,21 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
      */
     void sendEvent(int type, Role role) {
         // dont send event if type = CHANGED and role has been removed
-        if (!(type == UserAdminEvent.ROLE_CHANGED
-              && roles.get(role.getName()) == null)) {
+        if (!(type == UserAdminEvent.ROLE_CHANGED && roles.get(role.getName()) == null)) {
             UserAdminEvent event = new UserAdminEvent(uasr, type, role);
-            eventQueue.enqueue( new SendUserAdminEventJob(Activator.bc,
-                                                          eventAdminTracker,
-                                                          event,
-                                                          listeners) );
-            if (Activator.log.doDebug())
-                Activator.log.debug(event.toString(), uasr);
+            for (Enumeration en = listeners.elements(); en.hasMoreElements();) {
+                ServiceReference sr = (ServiceReference) en.nextElement();
+                UserAdminListener ual = (UserAdminListener) bc.getService(sr);
+                if (ual != null) {
+                    ual.roleChanged(event);
+                }
+                bc.ungetService(sr);
+            }
+            if (log.doDebug())
+                log.debug(event.toString(), uasr);
         } else {
-            if (Activator.log.doDebug())
-                Activator.log.debug("Event not sent, " + role.getName()
+            if (log.doDebug())
+                log.debug("Event not sent, " + role.getName()
                         + " has been removed.", uasr);
         }
     }
@@ -193,8 +178,8 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     // -------------------------
     public Role createRole(String name, int type) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
-            sm.checkPermission(adminPermission);
+        if (null!=sm) {
+          sm.checkPermission(adminPermission);
         }
         if (roles.get(name) != null) {
             // role 'name' already exists, abort and return null
@@ -204,13 +189,13 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         Role role;
         switch (type) {
         case Role.USER:
-            role = new UserImpl(name);
+            role = new UserImpl(name, this);
             break;
         case Role.GROUP:
-            role = new GroupImpl(name);
+            role = new GroupImpl(name, this);
             break;
         case Condition.CONDITION:
-            role = new ConditionImpl(name);
+            role = new ConditionImpl(name, this);
             break;
         default:
             throw new IllegalArgumentException("UserAdminImpl: Unknown type '"
@@ -225,11 +210,11 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     public boolean removeRole(String name) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
-            sm.checkPermission(adminPermission);
+        if (null!=sm) {
+          sm.checkPermission(adminPermission);
         }
 
-        if (Role.USER_ANYONE.equals(name)) {
+        if (ANYONE.equals(name)) {
             // not OK to remove the predefined role
             return false;
         }
@@ -292,7 +277,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     public Authorization getAuthorization(User user) {
         RoleImpl role = user != null ? (UserImpl) user : anyone;
 
-        return new AuthorizationImpl(role);
+        return new AuthorizationImpl(role, this);
     }
 
     // - interface org.osgi.framework.ServiceListener --------------------------
@@ -301,12 +286,12 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         switch (event.getType()) {
         case ServiceEvent.REGISTERED:
             listeners.addElement(sr);
-            if (Activator.log.doDebug())
-                Activator.log.debug("UserAdminListener found: " + sr);
+            if (log.doDebug())
+                log.debug("UserAdminListener found: " + sr);
             break;
         case ServiceEvent.UNREGISTERING:
-            if (listeners.removeElement(sr) && Activator.log.doDebug())
-                Activator.log.debug("UserAdminListener gone: " + sr);
+            if (listeners.removeElement(sr) && log.doDebug())
+                log.debug("UserAdminListener gone: " + sr);
             break;
         }
     }
@@ -315,75 +300,6 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     protected void zap() {
         roles = new Hashtable();
         // create the special roles (no events for these)
-        roles.put(Role.USER_ANYONE,
-                  anyone = new RoleImpl(Role.USER_ANYONE));
+        roles.put(ANYONE, anyone = new RoleImpl(ANYONE, this));
     }
-
-    // Revert to the saved state
-    protected void revert() {
-      if (Boolean.getBoolean("org.knopflerfish.useradmin.dontsave")) {
-        if (Activator.log.doDebug()) Activator.log.debug("read skipped");
-        return;
-      }
-      String path
-        = Activator.bc.getProperty("org.knopflerfish.useradmin.store");
-      String oldPath
-        = Activator.bc.getProperty("org.knopflerfish.useradmin.oldstore");
-      File file;
-      if (path == null) {
-        file = Activator.bc.getDataFile("ua_store");
-      } else {
-        file = new File(path);
-        if (file == null || !file.exists()) {
-          file = new File(oldPath);
-        }
-      }
-      try {
-        if (file != null && file.exists()) {
-          ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
-          Object obj = ois.readObject();
-          ois.close();
-          if (obj instanceof Hashtable) {
-            roles = (Hashtable) obj;
-            if (Activator.log.doDebug()) Activator.log.debug("roles reverted");
-          } else {
-            Activator.log.error("ua_store corrupted");
-          }
-        } else {
-          if (Activator.log.doDebug()) Activator.log.debug("ua_store not found");
-        }
-      } catch (ClassNotFoundException e) {
-        Activator.log.error("Failed to instantiate saved roles", e);
-      } catch (IOException e) {
-        Activator.log.error("Failed to read saved roles", e);
-      }
-    }
-
-    // Save the current state
-    protected void save() {
-      if (Boolean.getBoolean("org.knopflerfish.useradmin.dontsave")) {
-        if (Activator.log.doDebug()) Activator.log.debug("save skipped");
-        return;
-      }
-      String path
-        = Activator.bc.getProperty("org.knopflerfish.useradmin.store");
-      File file;
-      if (path == null) {
-        file = Activator.bc.getDataFile("ua_store");
-        if (file == null) {
-          Activator.log.info("The platform cannot provide a data file. Cannot save roles.");
-          return;
-        }
-      } else {
-        file = new File(path);
-      }
-      try {
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
-        oos.writeObject(roles);
-        oos.close();
-      } catch (IOException e) {
-        Activator.log.error("Failed to save roles", e);
-      }
-    }
-
 }

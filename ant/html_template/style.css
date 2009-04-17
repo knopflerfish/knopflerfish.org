@@ -4,7 +4,7 @@ BODY  {
  color:000000;
  text-align:left;
  font-weight:normal;
- background:#fff;
+ background:#ffffdd;
 }
 
 
@@ -29,10 +29,7 @@ TD A  {
  vertical-align:top;
  font-size:11px;
  font-weight:bold;
- background:   #805362;
- color: #fff;
- padding-top:         2px;
- padding-bottom:      2px;
+ background: #dddddd;
 }
 
 TH  {
@@ -62,36 +59,36 @@ PRE {
 H1  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:19px;
- font-weight:bold;
+ font-weight:bold
  background: #dddddd;
 }
 
+H2  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:15px;
+ font-weight:bold
+ background: #dddddd;
+}
 
 H3  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:13px;
- font-weight:bold;
- background:	#805362;
- color:		#fff;
- padding:	2px 0px 2px 3px;
+ font-weight:bold
+ background-color: #dddddd;
 }
 
 H4  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:11px;
- font-weight:bold;
- background:	#805362;
- color:		#fff;
- padding:	2px 0px 2px 3px;
+ font-weight:bold
+ background: #dddddd;
 }
 
 H5  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
  font-size:9px;
- font-weight:bold;
- background:	#805362;
- color:		#fff;
- padding:	2px 0px 2px 3px;
+ font-weight:bold
+ background: #dddddd;
 }
 
 H6  {

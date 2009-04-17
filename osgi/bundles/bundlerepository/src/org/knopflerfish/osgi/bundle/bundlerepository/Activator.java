@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,60 +41,48 @@ import org.ungoverned.osgi.bundle.bundlerepository.*;
 import org.ungoverned.osgi.service.bundlerepository.BundleRepositoryService;
 
 
-public class Activator implements BundleActivator, Runnable
+public class Activator implements BundleActivator
 {
-  public static final String KF_SNAPSHOT_REPO
-    = "http://www.knopflerfish.org/releases/current/repository.xml";
-  public static final String KF_RELEASE_REPO
-    = "http://www.knopflerfish.org/snapshots/current_trunk/repository.xml";
-
   private transient BundleContext               bc = null;
   private transient BundleRepositoryServiceImpl m_brs = null;
-
+  
   public void start(BundleContext context) {
     bc = context;
-
-    // register Knopflerfish desktop plugin service if possible
-    tryObject("org.knopflerfish.osgi.bundle.bundlerepository.desktop.OBRDisplayer",
-              "register");
-
-    // register Knopflerfish console service if possible
-    tryObject("org.knopflerfish.osgi.bundle.bundlerepository.ObrCommandGroup",
-              "register");
-
-
-    // Do all the initialization of the OBR on a separate thread since
-    // it may hang due to unreachable hosts.
-    new Thread(this).start();
-  }
-
-  public void stop(BundleContext context) {
-  }
-
-  public void run()
-  {
+    
+    
     m_brs = new BundleRepositoryServiceImpl(bc);
 
     try {
       // when running on KF, default to KF repo if nothing else is specified
-      String[] repoURLs = m_brs.getRepositoryURLs();
-      Set repoURLSet = new HashSet();
-      for (int i=0; repoURLs!=null && i<repoURLs.length; i++) {
-        repoURLSet.add(repoURLs[i]);
+      if("knopflerfish".equals(context.getProperty(Constants.FRAMEWORK_VENDOR).toLowerCase())) {
+	String repoURL = System.getProperty("oscar.repository.url");
+	if(repoURL == null || "".equals(repoURL)) {      
+	  m_brs.setRepositoryURLs(new String[] {
+	    "http://www.knopflerfish.org/repo/repository.xml"
+	  });
+	}
       }
-      repoURLSet.add(KF_SNAPSHOT_REPO);
-      repoURLSet.add(KF_RELEASE_REPO);
-      repoURLs = (String[]) repoURLSet.toArray(new String[repoURLSet.size()]);
-      m_brs.setRepositoryURLs(repoURLs);
-    } catch (Throwable ignored) {
+    } catch (Throwable ignored) { 
     }
 
 
-    bc.registerService(BundleRepositoryService.class.getName(),
-                       m_brs,
-                       null);
+    bc.
+      registerService(BundleRepositoryService.class.getName(),
+		      m_brs, 
+		      null);
 
     registerOscarShell();
+
+    // register Knopflerfish console service if possible
+    tryObject("org.knopflerfish.osgi.bundle.bundlerepository.ObrCommandGroup",
+	      "register");
+    
+    // register Knopflerfish desktop plugin service if possible
+    tryObject("org.knopflerfish.osgi.bundle.bundlerepository.desktop.OBRDisplayer",
+	      "register");
+  }
+
+  public void stop(BundleContext context) {
   }
 
   void registerOscarShell() {
@@ -102,11 +90,11 @@ public class Activator implements BundleActivator, Runnable
     try {
       Class clazz = Class.forName("org.ungoverned.osgi.bundle.bundlerepository.ObrCommandImpl");
       Constructor cons = clazz.getConstructor(new Class[] {
-          BundleContext.class,
-          BundleRepositoryService.class,
-        });
+	BundleContext.class,
+	BundleRepositoryService.class,
+      });
       Object obj = cons.newInstance(new Object[] { bc, m_brs });
-
+      
       bc.registerService("org.ungoverned.osgi.service.shell.Command", obj, null);
       //      System.out.println("Registered oscar shell service");
     }  catch (Throwable th)  {
@@ -126,8 +114,8 @@ public class Activator implements BundleActivator, Runnable
     try {
       Class clazz = Class.forName(className);
       Constructor cons = clazz.getConstructor(new Class[] {
-          BundleContext.class
-        });
+	BundleContext.class 
+      });
       Object obj = cons.newInstance(new Object[] { bc });
       Method m = clazz.getMethod(methodName, null);
       m.invoke(obj, null);
@@ -135,6 +123,6 @@ public class Activator implements BundleActivator, Runnable
       //      System.out.println("invoked " + m);
     }  catch (Throwable th) {
       //      System.out.println("No " + className + " available: " + th);
-    }
+    }    
   }
 }

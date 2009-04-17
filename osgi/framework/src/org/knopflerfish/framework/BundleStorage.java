@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
+import java.io.IOException;
+import java.util.Dictionary;
 import java.util.List;
 
 /**
@@ -45,7 +47,7 @@ import java.util.List;
 public interface BundleStorage {
 
   /**
-   * Insert bundle into persistent storagedata.
+   * Insert bundle into persistent storagedataGet an attribute from the manifest of a bundle.
    *
    * @param key Name of attribute to get.
    * @return 
@@ -54,26 +56,13 @@ public interface BundleStorage {
     throws Exception;
 
   /**
-   * Insert a new jar file into persistent storagedata as an update
-   * to an existing bundle archive. To commit this data a call to
-   * <code>replaceBundleArchive</code> is needed.
+   * Replace jar content for bundle in persistent storage.
    *
    * @param old BundleArchive to be replaced.
    * @param is Inputstrem with bundle content.
-   * @return Bundle archive object.
-   */
-  BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
-    throws Exception;
-
-  /**
-   * Replace old bundle archive with a new updated bundle archive, that
-   * was created with updateBundleArchive.
-   *
-   * @param oldBA BundleArchive to be replaced.
-   * @param newBA Inputstrem with bundle content.
    * @return New bundle archive object.
    */
-  void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
+  BundleArchive replaceBundleJar(BundleArchive old, InputStream is)
     throws Exception;
 
   /**
@@ -90,5 +79,4 @@ public interface BundleStorage {
    * @return Private copy of a List with bundle id's.
    */
   List getStartOnLaunchBundles();
-
 }

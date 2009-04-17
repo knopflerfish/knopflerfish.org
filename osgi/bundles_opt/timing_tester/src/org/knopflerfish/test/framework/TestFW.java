@@ -1,4 +1,5 @@
-package org.knopflerfish.test.framework;
+package org.knopflerfish.test.framework
+;
 
 import org.knopflerfish.framework.Main;
 import org.osgi.framework.*;
@@ -7,17 +8,35 @@ import java.util.*;
 
 public class TestFW  {
 
-  public Main fwMain;
   public Object notifier = new Object();
+  public Main fwMain;
 
-  public static TestFW tester = new TestFW();
+  public static File logFile = null;
+  public static PrintStream logWriter;
+
+  public static TestFW tester;
+
+  public static String logPrefix = "";
 
   TestFW() {
+    try {
+      logPrefix = System.getProperty("test.log.prefix", "test");
+
+      logFile = new File(System.getProperty("test.log.file", "log.csv"));
+      
+      logWriter = new PrintStream(new FileOutputStream(logFile, true), true);
+    } catch (Exception e) {
+      e.printStackTrace();
+      logWriter = System.out;
+    }
     log("fwtest", "starting new test");
     tester = this;
   }
 
   public static void main(String[] argv) {
+
+    TestFW tester = new TestFW();
+    
     tester.start(argv);
 
     System.exit(0);
@@ -25,59 +44,59 @@ public class TestFW  {
 
   void start(final String[] argv) {
 
-    boolean bDelete = "true".equals(System.getProperty("fwdir.delete",
-                                                       "true"));
+    boolean bDelete = "true".equals(System.getProperty("fwdir.delete", 
+						       "true"));
     if(bDelete) {
       log(new TimedTask("fwtest", "delete fwdir") {
-          public Object run() {
-            deleteTree(new File("fwdir"));
-            return null;
-          }
-        });
+	  public Object run() {
+	    deleteTree(new File("fwdir"));
+	    return null;
+	  }
+	});
     }
 
     runStartupTest(argv);
-
+    
   }
 
   void runStartupTest(final String[] argv) {
 
     log(new TimedTask("fwtest", "run fw main") {
-        public Object run() {
-          Thread t = new Thread() {
-              public void run() {
-                //              log("runStartup", "creating Main");
-                fwMain = new Main();
-                //              log("runStartup", "launching Main");
-                fwMain.main(argv);
-                //              log("runStartup", "launched Main");
-              }
-            };
-          t.start();
+	public Object run() {
+	  Thread t = new Thread() {
+	      public void run() {
+		//		log("runStartup", "creating Main");
+		fwMain = new Main();
+		//		log("runStartup", "launching Main");
+		fwMain.main(argv);
+		//		log("runStartup", "launched Main");
+	      }
+	    };
+	  t.start();
 
-          synchronized(notifier) {
-            try {
-              log("runStartup", "wait for notify");
-              notifier.wait();
-              log("runStartup", "got notify");
-            } catch (Exception e) {
-              log("runStartup", "wait failed", e);
-            }
-          }
+	  synchronized(notifier) {
+	    try {
+	      log("runStartup", "wait for notify");
+	      notifier.wait();
+	      log("runStartup", "got notify");
+	    } catch (Exception e) {
+	      log("runStartup", "wait failed", e);
+	    }
+	  }
 
-          return null;
-        }
-
+	  return null;
+	}
+	
       });
   }
-
+  
   static void deleteTree(File f) {
     if(f.exists()) {
       if(f.isDirectory()) {
-        String[] children = f.list();
-        for(int i = 0; i < children.length; i++) {
-          deleteTree(new File(f, children[i]));
-        }
+	String[] children = f.list();
+	for(int i = 0; i < children.length; i++) {
+	  deleteTree(new File(f, children[i]));
+	}
       }
       f.delete();
     }
@@ -97,9 +116,9 @@ public class TestFW  {
 
     task.time = System.currentTimeMillis() - now;
     task.mem  = free - Runtime.getRuntime().freeMemory();
-
+    
     log(task.module, task.msg, task.time, task.mem, null);
-
+    
     return r;
   }
 
@@ -127,7 +146,7 @@ public class TestFW  {
     sb.append("" + logId);
 
     sb.append(", ");       // prefix
-    sb.append(System.getProperty("test.log.prefix", "test"));
+    sb.append(logPrefix);
 
     sb.append(", ");       // module
     sb.append("\"" + module + "\"");
@@ -147,17 +166,13 @@ public class TestFW  {
     sb.append(e != null ? e.toString() : "none");
     sb.append("\"");
 
-    System.out.println("-- fwtest log: " + sb);
-    try {
-      File logFile = new File(System.getProperty("test.log.file", "log.csv"));
-      System.out.println("-- logFile: " + logFile);
-      PrintWriter logWriter = new PrintWriter(new FileWriter(logFile, true));
-      logWriter.println(sb.toString());
-      logWriter.flush();
-      logWriter.close();
-    } catch (Exception e1) {
-      e1.printStackTrace();
+    logWriter.println(sb.toString());
+
+    if(logWriter != System.out) {
+      System.out.println("-- fwtest log: " + sb);
     }
+    logWriter.flush();
   }
 
 }
+

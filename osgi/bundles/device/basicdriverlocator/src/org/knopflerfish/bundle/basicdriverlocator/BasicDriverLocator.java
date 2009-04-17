@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,24 +50,24 @@ import org.osgi.service.device.DriverLocator;
 
 /**
  * Basic implementation of a DriverLocator.
- *
+ * 
  * Uses a text-based driver database in Properties format. The driver is named
  * <code>driverDB.props</code> and should reside in the bundle jar file.
- *
+ * 
  * <p>
  * Database file format:
- *
+ * 
  * <pre>
  *       count=&lt;number of drivers&gt;
- *       &lt;number&gt;.id=&lt;driver id&gt;
+ *       &lt;number&gt;.id=&lt;driver id&gt; 
  *       &lt;number&gt;.category=&lt;driver category&gt;
  *       &lt;number&gt;.product=&lt;driver product&gt;
  *       &lt;number&gt;.vendor=&lt;driver vendor&gt;
- *       &lt;number&gt;.url=&lt;driver url&gt;
+ *       &lt;number&gt;.url=&lt;driver url&gt; 
  *       &lt;number&gt;.desc=&lt;driver description&gt;
  * </pre>
- *
- *
+ * 
+ * 
  */
 public class BasicDriverLocator implements DriverLocator {
 
@@ -87,13 +87,12 @@ public class BasicDriverLocator implements DriverLocator {
         // Try to get log service and handle it's life cycle
         log = new LogRef(bc);
 
-        String jars = bc.getProperty("org.knopflerfish.gosg.jars");
-        jarbase = (null==jars || jars.length()==0) ? "file:" : jars;
+        jarbase = System.getProperty("org.knopflerfish.gosg.jars", "file:");
     }
 
     /**
      * Implements DriverLocator.
-     *
+     * 
      * Loads driver DB, then calls match()
      */
     public String[] findDrivers(Dictionary dict) {
@@ -104,9 +103,9 @@ public class BasicDriverLocator implements DriverLocator {
 
     /**
      * Implements DriverLocator.
-     *
+     * 
      * Load a driver bundle using URL info.
-     *
+     * 
      * @return Stream to driver bundle, null if no driver is found.
      */
     public InputStream loadDriver(String id) throws IOException {
@@ -142,7 +141,7 @@ public class BasicDriverLocator implements DriverLocator {
 
     /**
      * Load driver database.
-     *
+     * 
      * @return Hashtable String (driver id) -> DriverInfo
      */
     Hashtable loadDriverDB() {
@@ -199,7 +198,7 @@ public class BasicDriverLocator implements DriverLocator {
 
     /**
      * Check all Drivers in drivers for match agains props.
-     *
+     * 
      * @param drivers
      *            String (driver ID) -> DriverInfo
      * @param props
@@ -244,10 +243,10 @@ class DriverInfo {
 
     /**
      * Create from Properties.
-     *
+     * 
      * Values of the form <code>number</code>.key are get() from props to
      * build the DriverInfo.
-     *
+     * 
      * @param p
      *            Properties containing driver info
      * @param number
@@ -264,7 +263,7 @@ class DriverInfo {
 
     /**
      * Matching method used by locator.
-     *
+     * 
      * @return true if DriverInfo matches props, false otherwise
      */
     boolean match(Dictionary props) {
@@ -277,9 +276,9 @@ class DriverInfo {
 
     /**
      * Compare method which allows empty strings and simple wildcards.
-     *
+     * 
      * null, "" and "*" are match-all wildcards.
-     *
+     * 
      * @param s1
      *            string to compare to s2
      * @param s2
@@ -293,7 +292,7 @@ class DriverInfo {
 
     /**
      * Convert to string.
-     *
+     * 
      * @return Human-readable string representation
      */
     public String toString() {

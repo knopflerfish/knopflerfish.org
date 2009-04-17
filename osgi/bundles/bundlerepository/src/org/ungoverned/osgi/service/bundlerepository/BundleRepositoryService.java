@@ -52,7 +52,7 @@ public interface BundleRepositoryService
 
     /**
      * Set URL list of repositories.
-     * @param urls a space separated list of URLs to use or <tt>null</tt>
+     * @param url a space separated list of URLs to use or <tt>null</tt>
      *        to refresh the cached list of bundles.
     **/
     public void setRepositoryURLs(String[] urls);

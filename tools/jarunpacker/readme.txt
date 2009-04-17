@@ -22,13 +22,9 @@ Version string for distrib
   knopflerfish-version
 
 
-Path to image resource for icon logo.
+Path to image resource for left icon logo.
 If unset, use default icon
   jarunpacker-iconpath
-
-Placement of icon logo.
-If true place icon on left side, otherwise at the top.
-  jarunpacker-iconleft
 
 Path to resource with licenset text.
 If unset, use default license -->

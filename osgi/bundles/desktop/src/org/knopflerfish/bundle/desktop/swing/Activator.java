@@ -34,24 +34,15 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Properties;
-import java.util.Vector;
-import java.lang.reflect.Constructor;
-import org.knopflerfish.service.log.LogRef;
+import org.osgi.framework.*;
+import org.osgi.util.tracker.*;
+import org.osgi.service.packageadmin.*;
+import org.knopflerfish.service.log.*;
+
+import java.util.*;
+import org.knopflerfish.service.desktop.*;
+
 import org.knopflerfish.service.remotefw.RemoteFramework;
-import org.knopflerfish.service.desktop.BundleFilter;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.util.tracker.ServiceTracker;
-import org.knopflerfish.util.Text;
 
 public class Activator implements BundleActivator {
 
@@ -61,33 +52,11 @@ public class Activator implements BundleActivator {
   static private BundleContext remoteBC;
   static public Desktop desktop;
 
+  static ServiceTracker pkgTracker;
   static Activator      myself;
 
   public static BundleContext getBC() {
     return bc;
-  }
-
-  static BundleFilter bundleFilter = null;
-
-  public static void setBundleFilter(BundleFilter bf) {
-    bundleFilter = bf;
-  }
-  
-  public static Bundle[] getBundles() {
-    BundleContext bc = getBC();
-    Bundle[] bl = bc.getBundles();
-    if(bundleFilter != null) {
-      ArrayList al = new ArrayList();
-      for(int i = 0; bl != null && i < bl.length; i++) {
-        if(bundleFilter.accept(bl[i])) {
-          al.add(bl[i]);
-        }        
-      }
-      Bundle[] bl2 = new Bundle[al.size()];
-      al.toArray(bl2);
-      bl = bl2;
-    }
-    return bl;
   }
 
   /**
@@ -111,16 +80,12 @@ public class Activator implements BundleActivator {
       RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
       return rc.getSystemProperties(getTargetBC());
     } else {
-      // There is no method in BundleContext that enumerates
-      // properties, thus use the set of keys from the system properties.
       Properties props = System.getProperties();
       Map map = new HashMap();
 
       for(Enumeration e = props.keys(); e.hasMoreElements();) {
         String key = (String)e.nextElement();
-        // We want local property values that applies to this instance
-        // of the framework.
-        String val = Util.getProperty(key, (String) props.get(key));
+        String val = (String)props.get(key);
         map.put(key, val);
       }
       return map;
@@ -164,24 +129,11 @@ public class Activator implements BundleActivator {
   static ServiceTracker remoteTracker;
 
   Map displayers = new HashMap();
-  
-  public void start(BundleContext _bc) {
-    try { 
-      // try to move Mac OS menu bar
-      if(null == System.getProperty("apple.laf.useScreenMenuBar")) {
-        System.setProperty("apple.laf.useScreenMenuBar","true"); 
-      }
-      // try to enable swing antialiased text
-      if(null == System.getProperty("swing.aatext")) {
-        System.setProperty("swing.aatext","true"); 
-      } 
-    } catch (Exception ignored) { 
-    }
-      
 
-    Activator.bc        = _bc;
-    Activator.log       = new LogRef(bc);
-    Activator.myself    = this;
+  public void start(BundleContext _bc) {
+    this.bc        = _bc;
+    this.log       = new LogRef(bc);
+    this.myself    = this;
 
     remoteTracker = new ServiceTracker(bc, RemoteFramework.class.getName(), null) {
         public Object addingService(ServiceReference sr) {
@@ -196,6 +148,9 @@ public class Activator implements BundleActivator {
       };
     remoteTracker.open();
 
+    pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
+    pkgTracker.open();
+
     // Spawn to avoid race conditions in resource loading
     Thread t = new Thread() {
         public void run() {
@@ -207,7 +162,7 @@ public class Activator implements BundleActivator {
 
   void openDesktop() {
     if(desktop != null) {
-      Activator.log.warn("openDesktop: desktop already open");
+      System.out.println("openDesktop: desktop already open");
       return;
     }
 
@@ -218,50 +173,58 @@ public class Activator implements BundleActivator {
 
     ServiceRegistration reg;
 
-    String[] dispClassNames = new String[] {
-      LargeIconsDisplayer.class.getName(), 
-      GraphDisplayer.class.getName(), 
-      // TimeLineDisplayer.class.getName(),
-      TableDisplayer.class.getName(),
-      // SpinDisplayer.class.getName(),
-      ManifestHTMLDisplayer.class.getName(),
-      ClosureHTMLDisplayer.class.getName(),
-      ServiceHTMLDisplayer.class.getName(),
-      PackageHTMLDisplayer.class.getName(),
-      LogDisplayer.class.getName(),
-      EventDisplayer.class.getName(),
-      PrefsDisplayer.class.getName(),
-    };
-    
-    String dispsS = Util.getProperty("org.knopflerfish.desktop.displays", "").trim();
-    
-    if(dispsS != null && dispsS.length() > 0) {
-      dispClassNames = Text.splitwords(dispsS, "\n\t ", '\"');
-    }
+    // bundle displayers
+    disp = new LargeIconsDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
 
-    for(int i = 0; i < dispClassNames.length; i++) {
-      String className = dispClassNames[i];
-      
-      try {
-        Class       clazz = Class.forName(className);
-        Constructor cons  = clazz.getConstructor(new Class[] { BundleContext.class });
+    disp = new TimeLineDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
 
-        disp = (DefaultSwingBundleDisplayer)cons.newInstance(new Object[] { getTargetBC() });
-        disp.open();
-        reg = disp.register();
-        displayers.put(disp, reg);        
-      } catch (Exception e) {
-        log.warn("Failed to create displayer " + className, e);
-      }
-    }
+    disp = new TableDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
 
-    
-    String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
-                                      LargeIconsDisplayer.NAME);
-    
+    disp = new SpinDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+
+    // detail displayers
+    disp = new ManifestHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+
+    disp = new ClosureHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+
+    disp = new ServiceHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+
+    disp = new PackageHTMLDisplayer(getTargetBC());
+    disp.open();
+    reg = disp.register();
+    displayers.put(disp, reg);
+
+    //if(getBC() == getTargetBC()) {
+      disp = new LogDisplayer(getTargetBC());
+      disp.open();
+      reg = disp.register();
+      displayers.put(disp, reg);
+    //}
+
+
     // We really want this one to be displayed.
-    desktop.bundlePanelShowTab(defDisp);
-
+    desktop.bundlePanel.showTab("Large Icons");
     int ix = desktop.detailPanel.indexOfTab("Manifest");
     if(ix != -1) {
       desktop.detailPanel.setSelectedIndex(ix);
@@ -273,7 +236,6 @@ public class Activator implements BundleActivator {
 
       if(desktop != null) {
         desktop.stop();
-        desktop.theDesktop = null;
         desktop = null;
       }
 
@@ -310,6 +272,11 @@ public class Activator implements BundleActivator {
       if(remoteTracker != null) {
         remoteTracker.close();
         remoteTracker = null;
+      }
+
+      if(pkgTracker != null) {
+        pkgTracker.close();
+        pkgTracker = null;
       }
 
       this.bc     = null;

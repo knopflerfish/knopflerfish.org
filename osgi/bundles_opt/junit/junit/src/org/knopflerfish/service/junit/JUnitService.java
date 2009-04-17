@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,14 +43,14 @@ public interface JUnitService {
   /**
    * Run a specified test and dump the result as XML to the specified writer.
    *
-   * @param out         writer to which XML formatted results should be
+   * @param out         writer to which XML formatted results should be 
    *                    written.
    * @param suite       The test suite to run
    * @throws IOException if result cannot be written to the writer
    */
-  public void runTest(PrintWriter out,
-                      TestSuite suite) throws IOException;
-
+  public void runTest(PrintWriter out, 
+		      TestSuite suite) throws IOException;
+  
   /**
    * Get a specified test (which is registered in the Framework).
    *
@@ -59,12 +59,12 @@ public interface JUnitService {
    * plain Tests.
    * </p>
    *
-   * @param id     service.pid which Test (or TestSuite) is registered as
-   * @param subid  optional subtest name of TestSuites.
-   *               Can be <tt>null</tt>
+   * @param servicePID  service.pid which Test (or TestSuite) is registered as
+   * @param subid       optional subtest name of TestSuites. 
+   *                    Can be <tt>null</tt>
    */
-  public TestSuite getTestSuite(String id,
-                                String subid);
+  public TestSuite getTestSuite(String id, 
+				String subid);
 
-
+  
 }

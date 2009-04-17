@@ -1,92 +1,94 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.url/src/org/osgi/service/url/URLStreamHandlerService.java,v 1.8 2006/06/16 16:31:31 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) 2002 - IBM Corporation
+ * All Rights Reserved.
+ * 	
+ * These materials have been contributed to the Open Services Gateway
+ * Initiative (OSGi) as "MEMBER LICENSED MATERIALS" as defined in, and
+ * subject to the terms of, the OSGi Member Agreement by and between OSGi and
+ * IBM, specifically including but not limited to, the license
+ * rights and warranty disclaimers as set forth in Sections 3.2 and 12.1
+ * thereof.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * All company, brand and product names contained within this document may be
+ * trademarks that are the sole property of the respective owners.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * The above notice must be included on all copies of this document that are
+ * made.
  */
 
 package org.osgi.service.url;
 
-import java.net.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.InetAddress;
 
 /**
- * Service interface with public versions of the protected
- * <code>java.net.URLStreamHandler</code> methods.
+ * Service interface with public versions of the protected <tt>java.net.URLStreamHandler</tt>
+ * methods.
  * <p>
- * The important differences between this interface and the
- * <code>URLStreamHandler</code> class are that the <code>setURL</code> method is
- * absent and the <code>parseURL</code> method takes a
- * {@link URLStreamHandlerSetter}object as the first argument. Classes
- * implementing this interface must call the <code>setURL</code> method on the
- * <code>URLStreamHandlerSetter</code> object received in the <code>parseURL</code>
- * method instead of <code>URLStreamHandler.setURL</code> to avoid a
- * <code>SecurityException</code>.
- * 
+ * The important differences between this interface and the <tt>URLStreamHandler</tt> class
+ * are that the <tt>setURL</tt> method is absent and the <tt>parseURL</tt> method takes a
+ * {@link URLStreamHandlerSetter} object as the first argument.
+ * Classes implementing this interface must call the <tt>setURL</tt> method on the <tt>URLStreamHandlerSetter</tt>
+ * object received in the <tt>parseURL</tt> method instead of <tt>URLStreamHandler.setURL</tt> to avoid a
+ * <tt>SecurityException</tt>.
  * @see AbstractURLStreamHandlerService
- * 
- * @version $Revision: 1.8 $
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Ben Reed, IBM Corporation (breed@almaden.ibm.com)
  */
-public interface URLStreamHandlerService {
-	/**
-	 * @see "java.net.URLStreamHandler.openConnection"
-	 */
-	public URLConnection openConnection(URL u) throws java.io.IOException;
+public interface URLStreamHandlerService
+{
+    /**
+     * @see "java.net.URLStreamHandler.openConnection"
+     */
+    public URLConnection openConnection(URL u) throws java.io.IOException;
 
-	/**
-	 * Parse a URL. This method is called by the <code>URLStreamHandler</code>
-	 * proxy, instead of <code>java.net.URLStreamHandler.parseURL</code>, passing
-	 * a <code>URLStreamHandlerSetter</code> object.
-	 * 
-	 * @param realHandler The object on which <code>setURL</code> must be invoked
-	 *        for this URL.
-	 * @see "java.net.URLStreamHandler.parseURL"
-	 */
-	public void parseURL(URLStreamHandlerSetter realHandler, URL u,
-			String spec, int start, int limit);
+    /**
+     * Parse a URL.
+     * This method is called by the <tt>URLStreamHandler</tt> proxy, instead of
+     * <tt>java.net.URLStreamHandler.parseURL</tt>, passing a
+     * <tt>URLStreamHandlerSetter</tt> object.
+     *
+     * @param realHandler The object on which <tt>setURL</tt> must be invoked for
+     *        this URL.
+     * @see "java.net.URLStreamHandler.parseURL"
+     */
+    public void parseURL(URLStreamHandlerSetter realHandler,
+			             URL u, String spec, int start, int limit);
 
-	/**
-	 * @see "java.net.URLStreamHandler.toExternalForm"
-	 */
-	public String toExternalForm(URL u);
+    /**
+     * @see "java.net.URLStreamHandler.toExternalForm"
+     */
+    public String toExternalForm(URL u);
 
-	/**
-	 * @see "java.net.URLStreamHandler.equals(URL, URL)"
-	 */
-	public boolean equals(URL u1, URL u2);
+    /**
+     * @see "java.net.URLStreamHandler.equals(URL, URL)"
+     */
+    public boolean equals(URL u1, URL u2);
 
-	/**
-	 * @see "java.net.URLStreamHandler.getDefaultPort"
-	 */
-	public int getDefaultPort();
+    /**
+     * @see "java.net.URLStreamHandler.getDefaultPort"
+     */
+    public int getDefaultPort();
 
-	/**
-	 * @see "java.net.URLStreamHandler.getHostAddress"
-	 */
-	public InetAddress getHostAddress(URL u);
+    /**
+     * @see "java.net.URLStreamHandler.getHostAddress"
+     */
+    public InetAddress getHostAddress(URL u);
 
-	/**
-	 * @see "java.net.URLStreamHandler.hashCode(URL)"
-	 */
-	public int hashCode(URL u);
+    /**
+     * @see "java.net.URLStreamHandler.hashCode(URL)"
+     */
+    public int hashCode(URL u);
 
-	/**
-	 * @see "java.net.URLStreamHandler.hostsEqual"
-	 */
-	public boolean hostsEqual(URL u1, URL u2);
+    /**
+     * @see "java.net.URLStreamHandler.hostsEqual"
+     */
+    public boolean hostsEqual(URL u1, URL u2);
 
-	/**
-	 * @see "java.net.URLStreamHandler.sameFile"
-	 */
-	public boolean sameFile(URL u1, URL u2);
+    /**
+     * @see "java.net.URLStreamHandler.sameFile"
+     */
+    public boolean sameFile(URL u1, URL u2);
 }

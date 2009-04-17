@@ -76,7 +76,7 @@ public class ResourceRegistration implements Registration {
 
         if (path.startsWith(alias)) {
             try {
-                return context.getResource(HttpUtil.makeTarget(path, alias)) != null;
+                return context.getResource(path.substring(alias.length())) != null;
             } catch (MalformedURLException ignore) {
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,30 +34,16 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.InputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
 import java.util.Vector;
+import java.io.*;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+import java.net.URL;
 
 import org.osgi.service.log.LogService;
-
-import org.knopflerfish.bundle.desktop.swing.Util;
 
 public class SwingIO extends JPanel {
 
@@ -89,14 +75,11 @@ public class SwingIO extends JPanel {
 
   boolean bGrabbed = false;
 
-  int maxLines
-    = Util.getIntProperty("org.knopflerfish.desktop.console.maxlines", 5000);
+  int maxLines = new Integer(System.getProperty("org.knopflerfish.desktop.console.maxlines", "5000")).intValue();
 
   void setSystemIO() {
 
-    boolean bDebugClass
-      = Util.getBooleanProperty("org.knopflerfish.framework.debug.classloader",
-                                false);
+    boolean bDebugClass = "true".equals(System.getProperty("org.knopflerfish.framework.debug.classloader", "false"));
 
     if(!bDebugClass) {
       if(!bGrabbed) {
@@ -328,23 +311,9 @@ public class SwingIO extends JPanel {
   void start() {
     stop();
     in         = new TextReader();
-    tfCmd.setText("");
-    tfCmd.setEnabled(true);
     setVisible(true);
     if(ConsoleSwing.config.grabSystemIO) {
       setSystemIO();
-    }
-  }
-
-  void disableInput(String reason) {
-    if(ConsoleSwing.config.grabSystemIO) {
-      restoreSystemIO();
-    }
-    tfCmd.setEnabled(false);
-    tfCmd.setText(reason);
-    if(in != null) {
-      in.close();
-      in = null;
     }
   }
 

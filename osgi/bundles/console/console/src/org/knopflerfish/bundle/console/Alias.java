@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,7 +128,8 @@ class Alias extends Hashtable {
         clear();
 
         cgalias("/session", new String[] { "alias", "echo", "enter", "leave",
-                "help", "quit", "source", "unalias" });
+                "help", "prompt", "quit", "source", "unalias", "save",
+                "restore", });
 
         String aliasFile = System
                 .getProperty("org.knopflerfish.console.alias.file");
@@ -161,6 +162,7 @@ class Alias extends Hashtable {
         // Oscar compatability
         put("exports", new String[] { "/framework", "package", "-b" });
         put("ps", new String[] { "/framework", "bundles", "-i" });
+        put("cd", new String[] { "/framework", "cd" });
 
         // JES compatability
         put("manifest", new String[] { "/framework", "headers" });

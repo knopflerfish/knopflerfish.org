@@ -1,11 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="soapobject" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.soapobject}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
-
-  <property name = "bundle.build.doc"   value = "true"/>
+  <property name="topdir"       location="../../.."/>
 
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/soapobject/**"/>
@@ -14,17 +15,28 @@
   <path id="bundle.compile.path">
   </path>
 
-  <!-- set do.bundle.custom.post to anything to trigger post target --> 
-  <property name="do.bundle.custom.post" value="do"/>
+  <!--property name="import.package" value ="javax.servlet,javax.servlet.http,org.osgi.framework,org.osgi.service.http"/-->
 
-  <target name="bundle.custom.post">
+
+  <property name="bundle.description"    value="SOAP objects"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="experiment"/>
+  <property name="bundle.version"        value="0.0.2"/>
+  <!--property name="bundle.classpath"      value = ".,spheon-jsoap.jar"/-->
+
+ <!-- set do.bundle.custom.post to anything to trigger post target --> 
+<property name="do.bundle.custom.post" value="do"/>
+
+<target name="bundle.custom.post">
    <jar jarfile  = "${impl.jar}"  update   = "true">
     <manifest>
       <attribute name = "Export-Package"        value = "org.knopflerfish.bundle.soapobject"/>
     </manifest>
    </jar>
-  </target>
+</target>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+
+  &bundlebuild_include;
 
 </project>

@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="soap_demoservice" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.soap_demoservice}"/>
-  <property name="topdir"       location="${proj.dir}/../../../.."/>
+  <property name="topdir"       location="../../../.."/>
+
 
   <property name  = "bundle.build.all"  value="true"/>
   <property name  = "bundle.build.lib"  value="false"/>
@@ -16,14 +20,16 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/soap/demo1/*"/>
 
+
   <path id="bundle.compile.path">
   </path>
 
-  <property name="bmfa.Bundle-Description"    value="SOAP demo bundle"/>
-  <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
-  <property name="bmfa.Bundle-Category"       value="example"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="SOAP demo bundle"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+  &bundlebuild_include;
 
 </project>

@@ -35,14 +35,13 @@
 package org.knopflerfish.bundle.bundleP2_test;
 
 import org.osgi.framework.*;
-import org.knopflerfish.service.bundleP1_test.BundleP1;
 
 /*
    This bundle is used to check the package refesh mechanisms 
    in the framework
 */
 
-public class BundP2 implements BundleP1 {
+public class BundP2 {
   BundleContext bc;
 
   public BundP2 (BundleContext bc) {

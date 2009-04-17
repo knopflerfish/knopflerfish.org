@@ -1,4 +1,6 @@
 Bundle-Name: bundleQ_test
+Bundle-SymbolicName: bundleQ_test
+Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for framework, bundleQ_test
 Bundle-Vendor: Knopflerfish/Gatespace Telematics
 Bundle-DocURL: http://www.knopflerfish.org

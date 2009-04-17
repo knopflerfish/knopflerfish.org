@@ -55,17 +55,24 @@ public class HttpTestContext implements HttpContext {
 
   public HttpTestContext (String name) {
     this.name = name;
+    //URL url = getClass().getResource(name);
+    //System.out.println("URL= "+ url);
   }
 
   public String getMimeType(String name) {
-    return null;
+    String mime = "text/html";
+    // return mime;
+    return null;  // allow web server to select type
+                        // Changed as Christer assumed that this could cause the 
+                        // web server to misinterpret pages.
   }
 
-  public URL getResource(String path) {
-    System.out.println(name + ": getResource "+ path);
-    URL url = getClass().getResource(path);
-    System.out.println(" -> " + url);
+  public URL getResource(String name) {
+    // System.out.println("name = "+ name);
+    URL url = getClass().getResource(this.name);
+    // System.out.println("URL= "+ url);
     return url;
+    //return getClass().getResource(name);
   }
 
   public boolean handleSecurity(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) {

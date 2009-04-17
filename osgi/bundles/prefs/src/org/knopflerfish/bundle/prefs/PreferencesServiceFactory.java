@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,78 +40,51 @@ import org.knopflerfish.service.log.LogRef;
 import java.util.*;
 
 
-public class PreferencesServiceFactory
-  implements ServiceFactory, BundleListener
-{
+public class PreferencesServiceFactory implements ServiceFactory {
   ServiceRegistration reg = null;
 
   // Bundle -> PreferencesServiceImpl
   Map prefsMap = new HashMap();
-
+  
   PreferencesServiceFactory() {
   }
-
-  public Object getService(Bundle bundle,
-                           ServiceRegistration reg) {
+  
+  public Object getService(Bundle bundle, 
+			   ServiceRegistration reg) {
     synchronized(prefsMap) {
-      PreferencesServiceImpl prefs
-        = (PreferencesServiceImpl)prefsMap.get(bundle);
-
+      PreferencesServiceImpl prefs 
+	= (PreferencesServiceImpl)prefsMap.get(bundle);
+      
       if(prefs == null) {
-        prefs = new PreferencesServiceImpl(bundle);
-        prefsMap.put(bundle, prefs);
+	prefs = new PreferencesServiceImpl(bundle);
+	prefsMap.put(bundle, prefs);
       }
       return prefs;
     }
   }
 
-  public void ungetService(Bundle bundle,
-                           ServiceRegistration registration,
-                           Object service) {
+  public void ungetService(Bundle bundle, 
+			   ServiceRegistration registration, 
+			   Object service) {
     synchronized(prefsMap) {
-      PreferencesServiceImpl prefs
-        = (PreferencesServiceImpl)prefsMap.get(bundle);
-
+      PreferencesServiceImpl prefs 
+	= (PreferencesServiceImpl)prefsMap.get(bundle);
+      
       if(prefs != null) {
-        prefs.flush();
-        prefsMap.remove(bundle);
+	prefs.flush();
+	prefsMap.remove(bundle);
       } else {
-        Activator.log.warn("No prefs for unget from bundle #"
-                           +bundle.getBundleId());
-      }
-    }
-  }
-
-  // Trigger removal of preferences when a bundle is uninstalled.
-  public void bundleChanged(BundleEvent event)
-  {
-    if (BundleEvent.UNINSTALLED==event.getType()) {
-      synchronized(prefsMap) {
-        PreferencesServiceImpl prefs
-          = (PreferencesServiceImpl)prefsMap.get(event.getBundle());
-        if(prefs != null) {
-          prefs.cleanup();
-        }
+	Activator.log.warn("No prefs for unget from bundle #" + bundle.getBundleId());
       }
     }
   }
 
   void register() {
     if(reg == null) {
-      Activator.bc.addBundleListener(this);
-
       Hashtable props = new Hashtable();
       reg = Activator.bc.registerService(PreferencesService.class.getName(),
-                                         this,
-                                         props);
-    }
-  }
-
-  void unregister() {
-    if(reg!= null) {
-      Activator.bc.removeBundleListener(this);
-      reg.unregister();
-      reg = null;
+					 this, 
+					 props);
     }
   }
 }

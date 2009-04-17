@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,45 +36,30 @@ package org.knopflerfish.framework;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.security.cert.Certificate;
-import java.util.Hashtable;
-import java.util.Enumeration;
+import java.util.Dictionary;
 import java.util.Vector;
-import java.util.List;
 
 /**
  * Interface for managing bundle data.
  *
  * @author Jan Stein
- * @author Philippe Laporte
- * @author Mats-Ola Persson
  */
 public interface BundleArchive {
 
   /**
    * Get an attribute from the manifest of a bundle.
    *
-   * Not localized
-   *
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
   String getAttribute(String key);
 
-
   /**
-   * Gets all localization entries from this bundle. Will typically
-   * read the file OSGI-INF/bundle_&lt;locale&gt;.properties.
+   * Get all attributes from the manifest of a bundle.
    *
-   * @param localeFile Filename within archive for localization properties.
-   * @return null or a mapping of the entries.
+   * @return All attributes, null if bundle doesn't exists.
    */
-  Hashtable getLocalizationEntries(String localeFile);
-
-  /**
-   * @returns the (raw/unlocalized) attributes
-   */
-  HeaderDictionary getUnlocalizedAttributes();
+  Dictionary getAttributes();
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -93,122 +78,84 @@ public interface BundleArchive {
   /**
    * Get stored bundle start level.
    */
-  int getStartLevel();
+  int getStartLevel(); 
 
   /**
    * Set stored bundle start level.
    */
-  void setStartLevel(int level) throws IOException;
+  void setStartLevel(int level) throws IOException; 
 
   void setPersistent(boolean b)  throws IOException;
 
   boolean isPersistent();
 
-  long getLastModified();
-
-  void setLastModified(long timemillisecs)throws IOException;
-
   /**
    * Get a byte array containg the contents of named file from a bundle
    * archive.
    *
-   * @param Integer From which sub archive to get.
    * @param component File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getClassBytes(Integer sub, String component) throws IOException;
+  byte[] getClassBytes(String component) throws IOException;
+
 
 
   /**
-   * Check if named entry exists in the bundle's classpath.
+   * Check if named entry exist in bundles archive.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param onlyFirst End search when we find first entry if this is true.
-   * @return Vector of classpath entry numbers, or null if it doesn't exist.
+   * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  Vector componentExists(String component, boolean onlyFirst);
+  Vector componentExists(String component);
 
+
+  /**
+   * Same as getInputStream(component, -1)
+   */
+  InputStream getInputStream(String component);
 
   /**
    * Get an specific InputStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
-   * @param ix index of sub archives. A postive number is the classpath entry
-   *            index. -1 means look in the main bundle.
+   * @param ix index of jar. 0 means the top level. -1 means any archive.
    * @return InputStream to entry or null if it doesn't exist.
    */
   InputStream getInputStream(String component, int ix);
 
-
   /**
    * Extract native library from JAR.
    *
-   * @param libName Name of Jar file to get.
+   * @param component Name of Jar file to get.
    * @return A string with path to native library.
    */
-  String getNativeLibrary(String libName);
-
+  String getNativeLibrary(String component);
 
   /**
-   * Get state of start-on-launch flag.
+   * Get state of start on launch flag.
    *
    * @return Boolean value for start on launch flag.
    */
   boolean getStartOnLaunchFlag();
 
-
   /**
-   * Set state of start-on-launch flag.
+   * Set state of start on launch flag.
    *
    * @param value Boolean value for start on launch flag.
    */
   void setStartOnLaunchFlag(boolean value) throws IOException;
-
 
   /**
    * Remove bundle archive from persistent storage.
    */
   void purge();
 
-
   /**
    * Close archive and all its open files.
    */
   void close();
 
-
-  /**
-   * Get a list with all classpath entries we failed to locate.
-   *
-   * @return A List with all failed classpath entries, null if no failures.
-   */
-  List getFailedClassPathEntries();
-
-
-  /**
-   * Returns an Enumeration of all the paths (<code>String</code> objects)
-   * to entries within the bundle whose longest sub-path matches the supplied
-   * path argument.
-   *
-   * @param name
-   * @return
-   */
-  Enumeration findResourcesPath(String path);
-
-
-  /**
-   * @return the location of the cached bundle.
-   */
-  String getJarLocation();
-
-
-  /**
-   * Get certificates associated with with bundle archive.
-   *
-   * @return All certificates or null if bundle is unsigned.
-   */
-  Certificate [] getCertificates();
 }

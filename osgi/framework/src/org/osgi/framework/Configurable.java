@@ -1,53 +1,59 @@
 /*
- * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/Configurable.java,v 1.11 2006/06/16 16:31:18 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) The Open Services Gateway Initiative (2000-2001).
+ * All Rights Reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
+ *
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
 
 package org.osgi.framework;
 
 /**
  * Supports a configuration object.
- * 
- * <p>
- * <code>Configurable</code> is an interface that should be used by a bundle
- * developer in support of a configurable service. Bundles that need to
- * configure a service may test to determine if the service object is an
- * <code>instanceof Configurable</code>.
- * 
- * @version $Revision: 1.11 $
- * @deprecated As of 1.2. Please use Configuration Admin service.
+ *
+ * <p><tt>Configurable</tt> is an interface that should be used by a bundle developer in support
+ * of a configurable service.
+ * Bundles that need to configure a service may test to determine
+ * if the service object is an <tt>instanceof Configurable</tt>.
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  */
-public interface Configurable {
-	/**
-	 * Returns this service's configuration object.
-	 * 
-	 * <p>
-	 * Services implementing <code>Configurable</code> should take care when
-	 * returning a service configuration object since this object is probably
-	 * sensitive.
-	 * <p>
-	 * If the Java Runtime Environment supports permissions, it is recommended
-	 * that the caller is checked for some appropriate permission before
-	 * returning the configuration object.
-	 * 
-	 * @return The configuration object for this service.
-	 * @throws java.lang.SecurityException If the caller does not have an
-	 *         appropriate permission and the Java Runtime Environment supports
-	 *         permissions.
-	 * @deprecated As of 1.2. Please use Configuration Admin service.
-	 */
-	public Object getConfigurationObject();
+public abstract interface Configurable
+{
+    /**
+     * Returns this service's configuration object.
+     *
+     * <p>Services implementing <tt>Configurable</tt> should take care when returning a
+     * service configuration object since this object is probably sensitive.
+     * <p>If the Java Runtime Environment supports permissions, it is recommended that
+     * the caller is checked for the appropriate permission before returning the configuration object.
+     * It is recommended that callers possessing the appropriate
+     * {@link AdminPermission} always be allowed to get the configuration object.
+     *
+     * @return The configuration object for this service.
+     * @exception java.lang.SecurityException If the caller does not have
+     * an appropriate permission and the Java Runtime Environment supports permissions.
+     */
+    public abstract Object getConfigurationObject();
 }
+
+

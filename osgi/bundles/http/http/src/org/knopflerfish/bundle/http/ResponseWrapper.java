@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,18 +78,6 @@ public class ResponseWrapper implements Response {
 
     public int getBufferSize() {
         return response.getBufferSize();
-    }
-
-    public void resetBuffer() {
-      response.resetBuffer();
-    }
-
-    public String getContentType() {
-      return response.getContentType();
-    }
-
-    public void setCharacterEncoding(String enc) {
-      response.setCharacterEncoding(enc);
     }
 
     public String getCharacterEncoding() {

@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="desktop_awt" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.desktop_awt}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
   <property name = "javac.target"          value = "1.1"/>
@@ -11,22 +14,30 @@
   <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
 
+  <property name="bundle.subversionurl" value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop_awt/"/> 
+
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-    <bundle_locator bundleName="console_api" property="console_api">
-      <fileset dir="${topdir}/jars">
-	<include name="**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy file="${console_api}"  
-          tofile="resources/console_api.jar"/>
+   <copy file  = "${topdir}/jars/console/console_api-1.0.0.jar"  
+         todir = "resources"/>
   </target>
 
   <path id="bundle.compile.path">
-   <pathelement location="console_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="AWT framework desktop"/>
+  <property name="bundle.category"       value="console"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="KF AWT Desktop"/>
+
+  <property name="import.package"        value="org.osgi.framework;specification-version=1.2,org.osgi.service.packageadmin,org.knopflerfish.service.console"/>
+
+  <property name="export.package"  
+            value="org.knopflerfish.service.console;specification-version=1.0.0"/>
+  &bundlebuild_include;
 
 </project>

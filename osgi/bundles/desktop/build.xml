@@ -1,60 +1,57 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="desktop" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.desktop}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
-  <property name="ee.check.foundation"   value="false"/>
-  <property name="bundle.extraimports"	 value="javax.swing.plaf.basic"/>
+  <property name = "bundle.icon"           value = "app.png"/>
+  <property name = "ee.check.foundation"   value = "false"/>
 
-  <property name="api.pattern"  value="org/knopflerfish/service/desktop/**,org/knopflerfish/service/**,org/knopflerfish/util/**,org/knopflerfish/shared/cm/**,org/osgi/service/event/**,org/osgi/service/prefs/**,org/osgi/service/log/**,org/osgi/service/cm/**"/> 
-  <property name="impl.pattern" value="org/knopflerfish/**"/> 
+  <property name="api.pattern"  value="org/knopflerfish/service/desktop/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
+
+  <property name="include.source" value="true"/>
+
+  <property name="bundle.subversionurl" value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/desktop/"/> 
 
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-    <bundle_locator bundleNames="remotefw_api,console_api,log_api,util,cm_api,event_api,prefs_api">
-      <fileset dir="${jars.dir}">
-	<include name="**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-
-    <copy todir="${classes.out.dir}">
-      <zipfileset src="${bap.remotefw_api}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-      
-      <zipfileset src="${bap.console_api}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-      
-      <zipfileset src="${bap.log_api}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-      
-      <zipfileset src="${bap.util}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-      
-      <zipfileset src="${bap.cm_api}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-      
-      <zipfileset src="${bap.event_api}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-
-      <zipfileset src="${bap.prefs_api}">
-	<patternset><exclude name="META-INF/*"/></patternset>
-      </zipfileset>
-    </copy>
-
-   </target>
+   <copy file  = "${topdir}/jars/log/log_api-1.0.1.jar"         
+         todir = "resources"/>
+   <copy file  = "${topdir}/jars/console/console_api-1.0.0.jar"  
+         todir = "resources"/>
+   <copy file  = "${topdir}/jars/remotefw/remotefw_api-1.0.0.jar"  
+         todir = "resources"/>
+   <copy file  = "${topdir}/../tools/jarunpacker/out/jarunpacker/jarunpacker.jar"  
+         todir = "resources"/>
+  </target>
 
   <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/remotefw/remotefw_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Swing framework desktop"/>
+  <property name="bundle.category"       value="console"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.version"        value="1.1.0"/>
+  <property name="bundle.name"           value="Desktop"/>
+  <property name="bundle.docurl"         value="http://www.knopflerfish.org/desktop.html"/>
+  <property name="bundle.classpath"      value=".,log_api-1.0.1.jar,console_api-1.0.0.jar,remotefw_api-1.0.0.jar"/>
+  <property name="export.package"        value="org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.desktop;specification-version=1.0,org.knopflerfish.service.log;specification-version=1.1,org.knopflerfish.service.console;specification-version=1.0.0,org.knopflerfish.service.remotefw"/>
+
+  <property name="import.package"        value="org.osgi.framework;specification-version=1.2,org.osgi.util.tracker,org.knopflerfish.util,org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.desktop;specification-version=1.0,org.knopflerfish.service.log;specification-version=1.1,org.knopflerfish.service.console,org.osgi.service.packageadmin;specification-version=1.1,org.osgi.service.startlevel;specification-version=1.0,org.knopflerfish.service.remotefw"/>
+
+
+  &bundlebuild_include;
 
 </project>

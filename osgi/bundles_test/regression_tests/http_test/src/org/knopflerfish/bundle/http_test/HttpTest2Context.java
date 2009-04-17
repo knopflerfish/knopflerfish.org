@@ -54,7 +54,6 @@ public class HttpTest2Context implements HttpContext {
 
   public HttpTest2Context (String name) {
     this.name = name;
-    System.out.println("HttpTest2Context " + name);
   }
 
   public String getMimeType(String name) {
@@ -66,32 +65,26 @@ public class HttpTest2Context implements HttpContext {
   }
 
   public URL getResource(String name) {
-    System.out.println("HttpTest2Context.getResource " + name + ", this.name=" + this.name);
-    try {
-      int p1 = name.indexOf("/");
-      String s1 = name.substring(p1);
-      String s2;
-      if (s1.equals("/")) {
-        s2 = this.name;
-      } else {
-        s2 = this.name + s1;
-      }
-      
-      System.out.println("");
-      System.out.println("Initial name = " + name );
-      System.out.println("Substring = " + s1 );
-      System.out.println("Final name = "+ s2);
-      URL url = getClass().getResource(s2);
-      if (url != null) {
-        System.out.println("URL = " + url.toString());
-      } else {
-        System.out.println("URL = null");
-      }
-      return url;
-    } catch (Exception e) {
-      e.printStackTrace();
+    int p1 = name.indexOf("/");
+    String s1 = name.substring(p1);
+    String s2;
+    if (s1.equals("/")) {
+      s2 = this.name;
+    } else {
+      s2 = this.name + s1;
     }
-    return null;
+    
+    System.out.println("");
+    System.out.println("Initial name = " + name );
+    System.out.println("Substring = " + s1 );
+    System.out.println("Final name = "+ s2);
+    URL url = getClass().getResource(s2);
+    if (url != null) {
+      System.out.println("URL = " + url.toString());
+    } else {
+      System.out.println("URL = null");
+    }
+    return url;
   }
 
   public boolean handleSecurity(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) {
