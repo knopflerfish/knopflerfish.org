@@ -12,30 +12,21 @@ Release Notes Knopflerfish @VERSION@
   Updating a resolved bundle for which a bundle class loader was not
   yet created messed up the book-keeping of packages causing
   unexpected failures to find classes in packages imported by the
-  updated bundle. Corrected in framework revision 3.3.9.
+  updated bundle.
   
   Fix an issue with paths in the BundleClassPath manifest attirbute
   that starts with a '/' when using memory storage. Reported in
   https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
-  Corrected in framework version 3.3.10, subversion revision 2560.
 
   Rearranged synchronized code to avoid dead lock between registerService and
-  refreshPackages. Corrected in framework version 3.3.11.
-
-  Rearranged synchronized code to avoid dead lock between Bundles and Package handling.
-  Corrected in framework version 3.3.12.
-
+  refreshPackages, between Bundles and Package handling.
   Changed synchronization code to avoid dead lock in BundleClassLoader.
-  Corrected in framework version 3.3.13.
 
   Modify synchronization code to avoid dead lock when using the PackageAdmin service from
   start and stop methods. Fixed ordering bug in PackageAdmin.refreshPackages().
-  Corrected in framework version 3.3.14.
-  Fixed so that property assignments on the command line is evaluated in the correct
-  order when used together with -xargs. Added support for running OSGi test suite.
 
-  Added missing array range check.
-  Corrected in framework version 3.3.15.
+  Fixed so that property assignments on the command line is evaluated in the correct
+  order when used together with -xargs. Added missing array range check.
 
 
 === Services (Compendium) ===
@@ -45,7 +36,6 @@ Release Notes Knopflerfish @VERSION@
   Removed a number of calls to System.out from the metatype bundles.
   Reported in 
   https://sourceforge.net/tracker2/?func=detail&aid=2406160&group_id=82798&atid=567241
-  Subversion revision 2588.
 
 
 ========================================================================
