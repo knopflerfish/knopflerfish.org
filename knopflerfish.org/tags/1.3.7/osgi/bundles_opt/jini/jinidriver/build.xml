@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="jinidriver" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+  <property name = "bundle.build.lib"   value = "false"/>
+
+  <property name="api.pattern" value="org/osgi/service/jini/**"/> 
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>
+   <pathelement location="resources/lib/jini-core.jar"/>
+   <pathelement location="resources/lib/jini-ext.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="Jini driver (experimental) using Sun's jini impl. jini-core.jar and jini-ext.jar, see http://wwws.sun.com/software/jini/licensing/SCSL3_JiniTSA1.html"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="0.1.0"/>
+  <property name="bundle.vendor"          value="Knopflerfish/Nico Goeminne"/>
+  <property name="bundle.description"    value="Jini Driver (experimental implementation)"/>
+
+  <property name="bundle.name"           value="Jini Driver"/>
+  <property name="bundle.classpath"      value=".,lib/jini-core.jar,lib/jini-ext.jar"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+
+  <property name="dynamicimport.package" value="*"/>
+
+  <property name="export.package" value="net.jini.core.lookup,net.jini.core.entry,net.jini.core.event,net.jini.core.lease,net.jini.core.discovery,net.jini.admin,net.jini.discovery,net.jini.lookup,net.jini.lookup.entry,net.jini.lease,org.osgi.service.jini;specification-version=1.0"/>
+  <property name="import.package" value="org.osgi.service.http, javax.servlet, javax.servlet.http, org.osgi.service.cm"/>
+
+
+  &bundlebuild_include;
+
+</project>

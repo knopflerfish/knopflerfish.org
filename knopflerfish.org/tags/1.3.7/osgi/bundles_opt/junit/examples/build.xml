@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<project name="junit" default="all">
+
+   <target name="all">
+    <ant dir="example1"   target="all"/>
+  </target>
+
+   <target name="clean">
+    <ant dir="example1"   target="clean"/>
+  </target>
+
+</project>

@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+
+<project name="framework" default="all">
+
+  <!-- build properties -->
+
+  <property name="topdir"        location=".."/>
+  <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
+  <property name="classout"      location="${outdir}/classes"/>
+  <property name="docdir"        location="${ant.project.name}/apidoc"/>
+
+  <property name="jarfile"       location="${topdir}/${ant.project.name}.jar"/>
+
+
+  <property name = "ant.dir"         location="${topdir}/../ant"/>
+  <property name = "ant.lib"         location="${ant.dir}/lib"/>
+  <property name = "antclasses"      location="${ant.dir}/classes"/>
+  <property name = "javac.target"    value="1.1"/>
+  <property name = "javac.source"    value="1.2"/>
+
+  <property name="src.dir" location = "src"/>
+
+  <property name="printClasses" location = "true"/>
+
+  <!-- targets -->
+  <target name="all" depends="compile,jar">
+   <antcall target="list"/>
+  </target>
+
+  <target name        = "compile">
+   <antcall target="compile_full"/>
+   <antcall target="compile_compact"/>
+  </target>
+
+  <target name        = "compile_full" 
+          unless      = "compact"
+          description = "compiles all java sources">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+    >
+   </javac>
+  </target>
+
+  <target name = "compile_compact" 
+          if   = "compact"
+          description="compiles with file storage only">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+           excludes      = "org/knopflerfish/framework/bundlestorage/memory/*.java"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+    >
+   </javac>
+  </target>
+
+ <target name="jar" depends="compile" description="build jar">
+    <tstamp>
+     <format property = "framework.tstamp" 
+             pattern  = "'Build' EE MMMM d yyyy, HH:mm:ss"
+             locale   = "en"/>
+    </tstamp>
+
+    <property name="fw.impl.version" value="3.3.15"/>
+
+    <echo message="${fw.impl.version}"  file="resources/version"/>
+    <echo message="${framework.tstamp}" file="resources/tstamp"/>
+
+    <jar basedir="${classout}"
+         jarfile="${jarfile}"
+    >
+     <fileset dir="resources"/>
+     <manifest>
+      <attribute name = "Main-class"             value="org.knopflerfish.framework.Main"/>
+      <attribute name = "Specification-Title"    value="OSGi Framework API"/>
+      <attribute name = "Specification-Version"  value="1.2"/>
+      <attribute name = "Specification-Vendor"   value="Open Service Gateway initiative"/>
+      <attribute name = "Implementation-Title"   value="Knopflerfish OSGi Framework"/>
+      <attribute name = "Implementation-Version" value="${fw.impl.version}" />
+      <attribute name = "Implementation-Vendor"  value="Knopflerfish"/>
+      <attribute name = "Bundle-Vendor"          value="Knopflerfish"/>
+      <attribute name = "Bundle-Version"         value="1.2"/>
+      <attribute name = "Bundle-Name"            value="frameworkbundle"/>
+      <attribute name = "Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
+      <attribute name = "Export-Package"         value="org.osgi.framework;specification-version=1.2,org.osgi.service.packageadmin;specification-version=1.1,org.osgi.service.permissionadmin;specification-version=1.1,org.osgi.util.tracker;specification-version=1.2,org.osgi.service.startlevel;specification-version=1.0"/>
+      <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org"/>
+      <attribute name = "Build-Date"            value = "${framework.tstamp}"/>
+     </manifest>
+    </jar>  
+ </target>  
+ 
+ <target name="run">
+  <java fork="true"
+        jar="${outdir}/${ant.project.name}.jar"
+>
+  </java>
+ </target>
+
+
+ <target name="clean" description="removes all generated files">
+  <delete dir  = "${outdir}"/>
+  <delete file = "${jarfile}"/>
+ </target>
+
+ <path id="bcel.path">
+   <fileset dir="${ant.lib}"   includes="bcel-*.jar"/>
+ </path>
+
+ <!-- Class path with BCEL and local ant tasks. -->
+ <path id="bundle_tasks.path">
+   <path refid="bcel.path"/>
+   <pathelement location="${antclasses}"/>
+ </path>
+
+
+ <target name        = "compile_ant" 
+         description = "Compile and link the custom bundleinfo task">
+   <available classname    = "org.apache.bcel.classfile.JavaClass" 
+	      classpathref = "bcel.path"
+              property     = "bcel.available"/>
+
+   <fail unless  = "bcel.available" 
+         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel'"/>
+
+   <mkdir dir = "${antclasses}"/>
+
+   <javac destdir      = "${antclasses}"
+          srcdir       = "${ant.dir}/src" 
+          classpathref = "bundle_tasks.path" 
+          debug        = "on">
+     <!-- Bundle.java requires Ant 1.6+ -->
+     <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
+   </javac>
+
+   <taskdef name         = "bundleinfo" 
+            classpathref = "bundle_tasks.path" 
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
+
+   <taskdef name         = "bundlehtml" 
+            classpathref = "bundle_tasks.path" 
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
+     
+ </target>
+
+ <target name="list" depends="compile_ant">
+  <bundleinfo checkFoundationEE = "true" 
+              checkMinimumEE = "true" >
+    <fileset dir      = "${classout}" 
+             includes = "**/*.class">
+    </fileset>
+  </bundleinfo>
+ </target>
+</project>

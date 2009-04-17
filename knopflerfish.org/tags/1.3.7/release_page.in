@@ -1,0 +1,127 @@
+	      <h2>Knopflerfish @VERSION@ @BUILD_KIND@ from @TAG@, @DATE@</h2>
+
+	      <h3>Documentation</h3>
+
+	      <a href="changelog.html">Change Log</a>
+	      <p>
+	      <a href="release_notes.html">Release Notes</a>
+	      <p>
+	      <a href="javadoc/index.html">API documentation</a>
+	      <p>
+	      <a href="jars/index.html">Bundle jar docs</a>
+
+	      <h3>Downloads</h3>
+
+	      <table cellpadding="2">
+		<tr>
+		  <th>Name</th>
+		  <th>Size</th>
+		  <th>Description</th>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_osgi_@VERSION@.jar">
+		      knopflerfish_osgi_@VERSION@.jar</a>
+		  </td>
+		  <td>
+		      @DISTRIBFILE_LENGTH@
+		  </td>
+		  <td>
+		      Complete framework, including source code and
+		      docs. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_fullbin_osgi_@VERSION@.jar">
+		      knopflerfish_fullbin_osgi_@VERSION@.jar</a>
+		  </td>
+		  <td>
+		      @DISTRIBFILE_FULLBIN_LENGTH@
+		  </td>
+		  <td>
+		      Full binary framework and bundles. No source or
+		      docs. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_bin_osgi_@VERSION@.jar">
+		      knopflerfish_bin_osgi_@VERSION@.jar</a><br>
+		  </td> 
+		  <td>
+		      @DISTRIBFILE_BIN_LENGTH@
+		  </td>
+		  <td>
+		      Core binary framework and some bundles. No
+		      source or docs. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_opt_@VERSION@.jar">
+		      knopflerfish_opt_@VERSION@.jar</a><br> 
+		  </td>
+		  <td>
+		      @DISTRIBFILE_OPT_LENGTH@
+		  </td>
+		  <td>
+		      A set of optional bundles, including SOAP
+		      support for any OSGi service. See 
+		      <a href="bundledoc">Bundle User Documentation</a>
+		      for details. Also includes support for OSGi <a
+		      href="http://www.knopflerfish.org/XMLMetatype">
+		      Metatype</a> data and a desktop UI for CM. This
+		      download should be installed on top of a
+		      previous installation. Self-extracting.
+		  </td>
+		</tr>
+
+		<tr>
+		  <td>
+		      <a href="knopflerfish_osgi_tiny_@VERSION@.zip">
+		      knopflerfish_osgi_tiny_@VERSION@.zip</a><br> 
+		  </td>
+		  <td>
+		      @DISTRIBFILE_TINY_LENGTH@
+		  </td>
+		  <td>
+		      Remotely loading framework, no source, no docs,
+		      just framework.jar and config files for loading
+		      all bundles from the web.
+		  </td>
+		</tr>
+		
+		<tr>
+		  <td>
+		      <a href="knopflerfish_osgi_tests_@VERSION@.zip">
+		      knopflerfish_osgi_tests_@VERSION@.zip</a><br> 
+		  </td>
+		  <td>
+		      @DISTRIBFILE_TESTS_LENGTH@
+		  </td>
+		  <td>
+		      Bundles for testing the framework and selected
+		      services using JUnit.
+		  </td>
+		</tr>
+	  </table>
+
+	  <p>
+	  <b>Note</b>: Sizes are measured using binary bytes
+	  (kiB, MiB, ...), see <a
+	  href="http://en.wikipedia.org/wiki/Kibibyte"
+	  >http://en.wikipedia.org/wiki/Kibibyte</a> for a
+	  detailed explanation and motivation of this unit.
+
+
+	  <h3>Test results</h3>
+	  <a href="junit_grunt/index.xml">Test results (XML)</a>
+
+
+	    <p>
+	    <a class=top href="#top">top</a>

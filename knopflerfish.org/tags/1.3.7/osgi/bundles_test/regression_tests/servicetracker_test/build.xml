@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
+<project name="servicetracker_test" default="all">
+
+  <property name="topdir"       location=".."/>
+
+  <property name="bundle.version" value="1.0.0"/>
+
+  <path id = "bundle.compile.path">
+  </path>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+   <copy file  = "${topdir}/jars/bundleS_test-1.0.0.jar"         
+         todir = "resources"/>
+  </target>
+
+  &test_include;
+
+</project>
+
+
+

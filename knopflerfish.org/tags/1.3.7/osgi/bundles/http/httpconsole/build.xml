@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="httpconsole" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/httpconsole/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/http/http_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="Simple HTTP/HTML console allowing framework management"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="HTTP-console"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/readme.html"/>
+
+  &bundlebuild_include;
+
+</project>

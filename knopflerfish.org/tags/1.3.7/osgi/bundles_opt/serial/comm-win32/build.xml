@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="comm-win32" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "bundle.build.api"      value = "false"/>
+  <property name = "bundle.build.impl"     value = "false"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/bundle/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>
+   <pathelement location="resources/comm.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="Native driver for win32 javax.comm using Sun's COMM library"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Sun"/>
+  <property name="bundle.apivendor"      value="Knopflerfish/Sun"/>
+
+  <property name="bundle.docurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/serial/readme.txt"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-win32/"/>
+
+
+  <property name="bundle.classpath"      value=".,comm.jar"/>
+  <property name="bundle.nativecode" 
+            value="win32com.dll ; processor = x86 ; osname = Windows NT, win32com.dll ; processor = x86 ; osname = Windows 98 ,win32com.dll ; processor = x86 ; osname = Windows 95, win32com.dll ; processor = x86 ; osname = Windows 2000; processor = x86 ; osname = Windows XP"/>
+
+  <property name="import.package" value="org.osgi.framework"/>
+  <property name="export.package" value="javax.comm;specification-version=2.0"/> 
+
+  &bundlebuild_include;
+
+</project>

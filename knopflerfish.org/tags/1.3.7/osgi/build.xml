@@ -1,0 +1,299 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+  <!-- build properties -->
+
+  <property name = "topdir"          location = "."/>
+  <property name = "javadoc.out.dir" location = "out/javadoc"/>
+
+
+ <path id="sources.path">
+  <pathelement location="framework/src"/>
+  <pathelement location="bundles/log/src"/>
+  <pathelement location="bundles/cm/cm/src"/>
+  <pathelement location="bundles/cm/cm_cmd/src"/>
+  <pathelement location="bundles/device/device/src"/>
+  <pathelement location="bundles/useradmin/src"/>
+  <pathelement location="bundles/wireadmin/src"/>
+  <pathelement location="bundles/console/console/src"/>
+  <pathelement location="bundles/console/consoletcp/src"/>
+  <pathelement location="bundles/console/consoletty/src"/>
+  <pathelement location="bundles/desktop/src"/>
+  <pathelement location="bundles/http/http/src"/>
+  <pathelement location="bundles/util/src"/>
+  <pathelement location="bundles/demos/demo1/src"/>
+  <pathelement location="bundles/position/src"/>
+  <pathelement location="bundles/measurement/src"/>
+  <pathelement location="bundles/provisioning/src"/>
+  <pathelement location="bundles/prefs/src"/>
+  <pathelement location="bundles/upnp/src"/>
+  <pathelement location="bundles/metatype/metatype_api/src"/>
+  <pathelement location="bundles/xml/xml/src"/>
+  <pathelement location="bundles/trayicon/trayicon/src"/>
+  <pathelement location="bundles/remotefw/src"/>
+  <pathelement location="../ant/src"/>
+
+  <pathelement location="bundles/metatype/kf_metatype/src"/>
+
+  <pathelement location="bundles_opt/jini/jinidriver/src"/>
+ </path>
+
+ <property name  = "javadoc.packages"
+           value = "org.osgi.framework,org.osgi.util,org.osgi.util.tracker,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.log,org.osgi.service.device,org.osgi.service.useradmin,org.knopflerfish.service.log,org.osgi.service.cm,org.knopflerfish.service.console,org.osgi.service.http,org.knopflerfish.util.http,org.knopflerfish.util,org.knopflerfish.service.trayicon,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.osgi.service.useradmin,org.knopflerfish.service.um.useradmin,org.knopflerfish.service.um.ipam,org.knopflerfish.shared.cm,org.knopflerfish.util.cm,org.knopflerfish.service.demo1,org.knopflerfish.ant.taskdefs.bundle,org.osgi.util.xml,org.osgi.service.startlevel,org.osgi.util.position,org.osgi.service.wireadmin,org.osgi.util.measurement,org.osgi.service.metatype,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.upnp,org.knopflerfish.service.desktop,org.knopflerfish.service.remotefw,org.osgi.service.jini,org.knopflerfish.util.metatype"/>
+
+<property name  = "javadoc.packages"
+           value = "net.jini.core.entry,net.n3.nanoxml"
+/>
+
+  <!-- targets -->
+  <target name="all"
+	  description="Builds the framework and bundles in bundles-directory">
+    <antcall target="xargs"/>
+    <ant dir="framework"    target="all"/>
+    <ant dir="bundles"      target="all"/>
+  </target>
+
+  <target name="xargs">
+   <antcall target="init_xargs"/>
+   <antcall target="remote_xargs"/>
+   <antcall target="osgi_test_xargs"/>
+  </target>
+
+  <target name="remote_xargs">
+   <copy file="template.xargs" tofile="remote-init.xargs" overwrite="true"/>
+   <replace file="remote-init.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "http://www.knopflerfish.org/releases/${version}/jars/"/>
+     <replacefilter token="$(VERSION)"     value="${version}"/>
+     <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
+   </replace>	  
+ </target>
+
+  <target name="init_xargs">
+   <copy file="template.xargs" tofile="init.xargs" overwrite="true"/>
+
+   <replace file="init.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
+     <replacefilter token="$(VERSION)"         value="${version}"/>
+     <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
+   </replace>	  
+
+   <antcall target="init_xargs_windows">
+    <param name="osname" value="WindowsXP"/>
+   </antcall>
+
+   <antcall target="init_xargs_windows">
+    <param name="osname" value="Windows2000"/>
+   </antcall>
+  </target>
+
+  <target name="init_xargs_windows">
+   <echo message="create init_${osname}.xargs"/>
+   <copy file="template.xargs" tofile="init_${osname}.xargs" overwrite="true"/>
+   <replace file="init_${osname}.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
+     <replacefilter token="$(VERSION)"     value="${version}"/>
+
+     <replacetoken><![CDATA[$(WINDOWS_BUNDLES)]]></replacetoken>
+     <replacevalue><![CDATA[
+## Windows platforms are likely to support tray icons
+-initlevel 1
+-istart trayicon/trayicon_all-1.0.0.jar
+-istart trayicon_fw/trayicon_fw-1.0.0.jar
+]]></replacevalue>
+
+   </replace>
+ </target>
+
+  <target name="osgi_test_xargs">
+   <copy file="init-osgi-test-target.xargs.in"
+	 tofile="init-osgi-test-target.xargs"
+	 overwrite="true"/>
+   <replace file="init-osgi-test-target.xargs">
+     <replacefilter token = "$(JAR_PREFIX)" 
+                    value = "file:jars/"/>
+     <replacefilter token="$(VERSION)"         value="${version}"/>
+   </replace>	  
+  </target>
+
+
+ <target name="javadoc">
+  <mkdir dir="${javadoc.out.dir}"/>
+
+  <property name  = "javadoc.header"
+            value = "&lt;a target=_top href=http://www.knopflerfish.org&gt;Knopflerfish OSGi ${version}&lt;/a&gt;"/>
+	    
+  <property name  = "javadoc.footer"
+            value = "${javadoc.header}"/>
+
+  <javadoc sourcepathref = "sources.path"
+           destdir       = "${javadoc.out.dir}"
+           header        = "${javadoc.header}"
+           footer        = "${javadoc.footer}"
+	   packagenames  = "${javadoc.packages}"
+	   excludepackagenames = "${javadoc.excludepackages}"
+   >	   
+  </javadoc>
+ </target>
+ 
+ <target name="run"
+         description="(Re)start the framework.">
+   <java fork="true"
+         jar="framework.jar">
+   </java>
+ </target>
+ <target name="run-secure"
+         description="(Re)start framework with security enabled.">
+   <java fork="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+   </java>
+ </target>
+
+ <target name="run-init"
+         description="Initial start with default set of bundles.">
+   <java fork="true"
+         jar="framework.jar" >
+     <arg value="-init"/>
+   </java>
+ </target>
+
+ <target name="run-secure-init"
+         description="Initial start with security enabled and default set of bundles.">
+   <java fork="true"
+         jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-init"/>
+   </java>
+ </target>
+
+
+ <target name="run-kf-tests"
+         description="Builds then executes the KF testsuite."
+	 depends="all">
+   <ant dir="bundles_opt/junit"   target="all"/>
+   <ant dir="bundles_test"        target="all"
+	inheritAll="false"        inheritRefs="false"/>
+   <antcall target="run-kf-tests-bare"/>
+ </target>
+
+ <target name="run-kf-tests-bare">
+   <mkdir dir="junit_grunt"/>
+   <echo message="Running the main test suite..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="false"
+         jar="framework.jar">
+     <arg line="-xargs init-tests.xargs"/>
+   </java>
+   <!-- Set up for the restart test suite. -->
+   <echo message="Running the restart test suite, part 1..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+   </java>
+   <!-- Restart and check that the same set of bundles are started. -->
+   <echo message="Running the restart test suite, part 2..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
+   </java>
+   <echo message="Test output is available in junit_grunt/out.txt."/>
+   <echo message="Test results are available in junit_grunt/index.xml"/>
+ </target>
+
+ <target name="run-kf-tests-secure"
+         description="Builds then executes the KF testsuite with security enabled."
+	 depends="all">
+   <ant dir="bundles_opt/junit"   target="all"/>
+   <ant dir="bundles_test"        target="all"
+	inheritAll="false"        inheritRefs="false"/>
+   <antcall target="run-kf-tests-secure-bare"/>
+ </target>
+
+ <target name="run-kf-tests-secure-bare">
+   <mkdir dir="junit_grunt"/>
+   <echo message="Running the main test suite..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="false"
+	 jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg line="-xargs init-tests.xargs"/>
+   </java>
+   <!-- Set up for the restart test suite. -->
+   <echo message="Running the restart test suite, part 1..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+   </java>
+   <!-- Restart and check that the same set of bundles are started. -->
+   <echo message="Running the restart test suite, part 2..."/>
+   <java fork="true"
+	 output="junit_grunt/out.txt"
+	 append="true"
+	 jar="framework.jar">
+     <jvmarg value="-Djava.security.manager"/>
+     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-xargs"/>
+     <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
+   </java>
+   <echo message="Test output is available in junit_grunt/out.txt."/>
+   <echo message="Test results are available in junit_grunt/index.xml."/>
+ </target>
+
+ <target name="run-osgi-test-target"
+         description="Start the framework in OSGi test target mode.">
+  <java fork="true"
+	classname="org.knopflerfish.framework.Main">
+    <classpath path="./framework.jar"/>
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
+
+ <target name="run-osgi-test-target-secure"
+         description="Start the framework with security enabled in OSGi test target mode.">
+  <java fork="true"
+	classname="org.knopflerfish.framework.Main">
+    <classpath path="./framework.jar"/>
+    <jvmarg value="-Djava.security.manager"/>
+    <jvmarg value="-Djava.security.policy=file:framework.policy"/>
+    <arg line="-xargs init-osgi-test-target.xargs"/>
+  </java>
+ </target>
+
+ <target name="install_bcel"
+         description="Download and install bcel in ../ant/lib.">
+   <ant dir="bundles/log" target="install_bcel" />
+ </target>
+
+ <target name="clean" description="removes all generated files">
+   <delete file="framework.jar"/>
+   <delete file="init.xargs"/>
+   <delete file="remote-init.xargs"/>
+   <delete file="init_Windows2000.xargs"/>
+   <delete file="init_WindowsXP.xargs"/>
+   <delete file="init-osgi-test-target.xargs"/>
+   <delete dir="out"/>
+   <delete dir="jars"/>
+   <delete dir="../ant/classes"/>
+ </target>
+
+</project>

@@ -1,0 +1,208 @@
+The Knopflerfish release contains:
+<ul>
+ <li><a href="#osgi">Components defined by OSGi R3</a>
+ <li><a href="#knopflerfish">Knopflerfish components</a>
+ <li><a href="#knopflerfish_opt">Knopflerfish optional components</a>	
+</ul>
+
+<p>
+See <a href="releases/$(VERSION)/jars/index.html">bundle docs</a> for detail 
+information on all bundles.
+</p>
+
+<p>
+Also, the source code kit includes an easy-to use Ant
+<a href="programming.html">build system</a> for creating
+bundles.
+</p>
+
+<a name="osgi"></a>
+<h3>Components defined by OSGi R3</h3>
+<p>      
+The OSGi R3 specification defines several components, which could be 
+expected to exist in OSGi implementations. However, it should be noted that no
+service is required to be present.
+</p>
+<p>
+The OSGi specification currently supported by Knopflerfish is R3 and includes
+the the R3 components listed below.
+</p>
+
+<ul>
+  <li><b>Base framework</b> The framework allows installing, start, stop,
+  update and uninstalling of program or data components called
+  <i>bundles</i>. Bundles are standard jar files
+
+
+  <br/>
+
+  The framework contains the following internal components:
+   <ul>
+    <li><b>PackageAdmin service</b>. The PackageAdmin service allows
+    bundles to inspect other bundles packages.
+
+    <li><b>PermissionAdmin service</b>. The PermissionAdmin service allows
+    bundles to manage the permissions of other bundles.
+
+    <li><b>StartLevel service</b>. (new in R3) 
+    The StartLevel service allows grouping of bundles into startlevels.
+
+    <li><b>URL service</b>. (new in R3) 
+    The URL service allows bundles to safely add URL schemas to
+    the framework.
+
+   </ul>
+
+  <li><b>ServiceTracker utility</b> The ServiceTracker provides utilities
+  for handling dynamic services.
+
+  <li><b>Log service</b> The log service provides logging functions for
+  other bundles.
+
+  <li><b>HTTP service</b> The HTTP service provides a web server where
+  applications can publish servlets or data.
+
+  <li><b>Configuration Manager</b> The Configuration Manager
+  manages persistant storage of application data.
+
+  <li><b>Device Manager</b> The Device Manager manages software
+  components related to physical device drivers.
+
+  <li><b>UserAdmin service</b> The UserAdmin service provides functionality
+  for users, groups and access control.
+
+  <li><b>Preferences service</b> (new in R3) 
+  The Preferences service provides API and
+  functionality for storing bundle preferences.
+
+  <li><b>Position API</b> (new in R3) 
+  The Position API allows applications to
+  handle position-ralated data in a uniform way.
+
+  <li><b>Measurement API</b> (new in R3) 
+  The Measurement API allows applications to
+  handle measurements in well-defined units.
+
+  <li><b>Metatype API</b> 
+  The Metatype API allows applications to publish typing information
+  for configuration data.
+
+  <li><b>XML utility</b> 
+  The XML utility class privides a template class for publishing
+  XML parsers.
+</ul>
+
+<p>
+<b>Note</b>: All components following the OSGi R3 specification has been 
+known to pass the OSGi R3 tests (in external tests performed by Gatespace Teletics).
+The Knopflerfish distributions cannot formally call itself "OSGi R3 certified", since only OSGi members are allowed to use this term. Instead, we use the term "designed to be compliant with OSGi R3", which is an allowed term.
+</p>
+
+<a name="knopflerfish"></a>
+<h3>Knopflerfish components</h3>
+
+The Knopflerfish distributions contains a set of other useful components:
+
+<ul>
+ <li><b>Desktop</b>
+  The desktop is a graphical tool for managing a running framework. The
+  desktop can be extended using plugins.
+
+  <li><b>Log utilities</b>
+  Utility classes for easier logging.
+
+  <li><b>Misc utilities</b>
+  Misc utility classes for text, job and IO handling.
+
+  <li><b>Console</b>
+  The Console service provides means for command-based tools to 
+  publish their commands. Any bundle can provide commands.
+
+  <br/>
+  Included in the console component is:
+  <ul>
+   <li><b>TTY Console</b>
+   Console using stdin/stdout
+
+   <li><b>TCP Console</b>
+   Console listening to a TCP port
+
+   <li><b>Log commands</b>
+   Command for handling the OSGi log
+
+   <li><b>Framework commands</b>
+   Command for handling basic OSGi lifecycles
+
+   <li><b>CM commands</b>
+   Command for handling the Configuration Management data
+  </ul>
+
+ <li><b>OSGi Metatype XML</b>
+        The OSGi Metatype XML implementations defines
+        a platform-neutral format for metatype information, which can be used
+        by CM and other services needing such information.
+<p>
+See <a href="http://www.knopflerfish.org/XMLMetatype">http://www.knopflerfish.org/XMLMetatype</a> for OSGi Metatype XML specification.
+</p>
+<p>
+Also see <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype</a> for implementation details.
+</p>
+
+
+ </ul>
+
+<a name="knopflerfish_opt"></a>
+<h3>Knopflerfish optional components</h3>
+
+The Knopflerfish optional distributions contains a set of optional 
+bundles:
+
+<ul>
+ <li><b>Commons logging</b> The Commons logging bundle wraps the Apache
+     Commons Logging API over the OSGi log. <br>
+     See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt</a>
+ <li><b>SOAP</b> The SOAP connectivity kit allows for easy export of
+     OSGi services as SOAP services, using the Apache Axis SOAP lib.
+<br>
+See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt</a>
+
+
+
+     
+
+ <li><b>Serial port support</b>
+     Serial ports are supported via the OSGi device model and the 
+     <code>javax.comm</code> API. Implementations from Sun (win32) and
+     RXTX (linux) are used for the included bundles.
+
+ <li><b>JUnit</b>. Developers can install JUnit test cases in a running
+     framework, and test them remotely. 
+<br>
+     See the JUnit <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/">readme</a> for more info.
+
+</ul>
+
+<a name="knopflerfish_svn"></a>
+<h3>Knopflerfish components available from SVN</h3>
+
+<p>
+Some components in Knopflerfish are currently only available as source code
+in the Subversion repository. These components can be checked out by anyone
+and installed into a previously installed KF distribution.
+</p>
+
+<ul>
+ <li><b>OSGi Jini support</b>
+     The Jini support follows the R3 Jini API. It uses Sun's reference
+     implementation for the Jini core and Nico Goeminne's driver
+     code.
+<p>
+     See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/jini/">Jini</a>
+</p>
+ <li><b>X10 support</b>
+     The X10 support uses code from the Java X10 Project, <a href="http://x10.homelinux.org">http://x10.homelinux.org</a>.
+<p>
+see <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/index.html">x10<a/>
+</p>
+
+</ul>

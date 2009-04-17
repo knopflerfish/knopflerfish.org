@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="desktop_jvm" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/desktop/**"/>
+
+
+<!--
+  <property name = "bundle.icon" value="boing32x32.png"/>
+-->
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>
+  </path>
+  
+  
+  <property name="bundle.description"    value="JVM info desktop plugin"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+  <property name="import.package" value="org.knopflerfish.service.desktop,org.knopflerfish.service.log,org.osgi.framework"/>
+
+  &bundlebuild_include;
+
+</project>
+
+
+

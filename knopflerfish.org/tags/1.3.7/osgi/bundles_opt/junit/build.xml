@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<project name="junit" default="all">
+
+   <target name="all">
+    <ant dir="junit"         target="all"/>
+    <ant dir="junit_runner"  target="all"/>
+    <ant dir="examples"      target="all"/>
+  </target>
+
+   <target name="clean">
+    <ant dir="junit"        target="clean"/>
+    <ant dir="junit_runner" target="clean"/>
+    <ant dir="examples"     target="clean"/>
+  </target>
+
+</project>

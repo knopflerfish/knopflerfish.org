@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<!-- Name of generated jar files will be:  -->
+<!--  ${ant.project.name}-${version}.jar              -->
+<!--  ${ant.project.name}_api-${version}.jar          -->
+<!--  ${ant.project.name}_all-${version}.jar          -->
+
+<project name="build_example" default="all">
+
+  <!-- Set to top directory of OSGi code -->
+  <property name="topdir"       location="../.."/>
+
+  <!-- Code which belong to bundle implementation -->
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/httptest/**"/>
+
+
+  <!-- explicit paths to compile-time jar files -->
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api.jar"/>
+   <pathelement location="${topdir}/jars/http/http_api.jar"/>
+   <pathelement location="../jsdk/resources/servlet.jar"/>
+  </path>
+
+
+  <!-- Activator, imports, exports etc are automatically found       -->
+  <!-- but can be specified explicitly. See bundlebuild_include.xml  -->
+  <!-- for details                                                   -->
+
+  <property name="bundle.description"    value="HTTP test servlet"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
+
+  &bundlebuild_include;
+
+</project>

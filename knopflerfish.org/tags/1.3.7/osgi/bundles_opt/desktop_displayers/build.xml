@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<project name="desktop_displayers" default="all">
+
+   <target name="all">
+     <ant dir="desktop_jvm"              target="all"/>
+  </target>
+
+   <target name="clean">
+     <ant dir="desktop_jvm"              target="clean"/>
+  </target>
+
+</project>

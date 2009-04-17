@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="cm_desktop" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/desktop/**"/>
+
+
+<!--
+  <property name = "bundle.icon" value="boing32x32.png"/>
+-->
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/desktop/desktop_api-1.1.0.jar"/>
+   <pathelement location="${topdir}/jars/metatype/metatype-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/kf_metatype/kf_metatype-1.0.0.jar"/>
+  </path>
+  
+  
+  <property name="bundle.description"    value="CM desktop plugin"/>
+  <property name="bundle.name"           value="CM desktop"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+ <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/readme.html"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/cm_desktop/"/>
+
+  <property name="import.package" value="org.osgi.service.cm,org.knopflerfish.service.desktop,org.knopflerfish.util,org.knopflerfish.util.metatype,org.knopflerfish.service.log,org.osgi.framework,org.osgi.util.tracker,org.osgi.service.metatype"/>
+  &bundlebuild_include;
+
+</project>
+
+
+

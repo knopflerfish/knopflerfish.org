@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<project name="soap_demos" default="all">
+
+   <target name="all">
+    <ant dir="soap_demoservice"   target="all"/>
+   </target>
+
+   <target name="clean">
+    <ant dir="soap_demoservice"   target="clean"/>
+   </target>
+
+
+</project>

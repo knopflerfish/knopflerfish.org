@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="basicdriverlocator" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>
+  </path>
+
+
+  <property name="impl.pattern"  value="org/knopflerfish/bundle/**"/>
+
+  <property name="bundle.description"    value="Basic device driver locator"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.subversionurl"  value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/device/basicdriverlocator/"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+
+  &bundlebuild_include;
+
+</project>

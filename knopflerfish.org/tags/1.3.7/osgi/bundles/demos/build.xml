@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+   <target name="all">
+    <ant dir="demo1"                target="all"/>
+    <ant dir="demo1client"          target="all"/>
+  </target>
+
+   <target name="clean">
+    <ant dir="demo1"                target="clean"/>
+    <ant dir="demo1client"          target="clean"/>
+  </target>
+
+</project>

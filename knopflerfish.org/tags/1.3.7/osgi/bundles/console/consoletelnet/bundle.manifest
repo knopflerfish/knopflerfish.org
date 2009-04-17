@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-Name: TelnetConsole
+Bundle-SymbolicName: org.knopflerfish.consoletelnet
+Bundle-Version: 1.0.0
+Bundle-Description: Telnet console 
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/console/consoletelnet/readme.txt
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.consoletelnet.TelnetServer
+Bundle-Category: console
+Import-Package: org.knopflerfish.service.console,org.knopflerfish.serv
+ ice.log,org.knopflerfish.service.um.useradmin,org.osgi.framework,org.
+ osgi.service.cm,org.osgi.service.useradmin
+
+

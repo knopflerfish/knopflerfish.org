@@ -1,0 +1,213 @@
+<p>
+The Knopflerfish Eclipse Plugin is available under a <a href="license.txt">BSD style license</a>. 
+<p>
+
+<p>
+You can download the latest release from the link below or from the Knoplferfish update site using the Eclipse software update mechanism.
+</p>
+<table>
+ <tr>
+  <td>Update site URL</td>
+  <td>http://www.knopflerfish.org/eclipse-update/</td>
+ </tr>
+</table>
+<p>
+<b>Note:</b> The plugin requires <a href="http://www.eclipse.org">eclipse 3.1</a> or later to work.
+</p>
+
+<p>
+<a href="eclipse_changelog.html">Eclipse Plugin Changelog</a>
+</p>
+
+
+<h3>Contents</h3>
+<ol>
+  <li><a href="eclipse_install.html">Installing the Knopflerfish Eclipse Plugin</a>
+  <li><a href="eclipse_preferences.html">Setting Preferences for Plugin</a>
+</ol>
+
+
+
+<h2>Creating a bundle project</h2>
+
+
+<h3>Creating a new bundle project</h3>
+
+<ol>
+ <li>Select File/New/Project...
+ <li>Select Bundle Project and enter project info.
+ <li>A new project is created. 
+</ol>
+
+
+<h3>Editing Bundle Manifest</h3>
+Double click on the bundle.manifest file in your project. The file will be opened in a special editor, which has one tab 
+for a graphical view of the manifest and one tab for a text view. Not all attributes can yet be set through the
+graphical view, e.g. Import-Package, Export-Package etc. For now you will have to set these attributes in the text
+view.
+
+<p>
+<b>TODO:</b> Add attributes to the graphical view and help setting them.
+</p>
+
+<h3>Using Services</h3>
+This is not yet supported in the plugin. For now you will have to manually add the JAR file containing the service API 
+to your classpath and also edit the bundle manifest Import-Package attribute, see above.
+
+<p>
+<b>TODO:</b> Support usage of services, by given the service package, automatically find bundle JARs exporting this 
+package, add it to the build classpath and also update the manifest attribute Import-Package.
+</p>
+
+
+<h3>Running/Debugging</h3>
+
+Create a new launch configuration by selecting 'Run...' or 'Debug...' from the Run menu and thereafter select
+Knopflerfish from the confiurations list and press 'New'.
+
+<h4>Launch Configuration</h4>
+
+
+<h5>Main Tab</h5>
+<p>
+The main tab is used for setting which framework to run and where to store
+the instance data (the .xargs files and the fwdir).
+</p>
+<p>
+In the main tab a list of known system properties are listed and their default values.
+When a predefined property is selected a short description is shown. The value can be 
+changed either by double-clicking or selecting 'Edit...'. When a predefined property
+is changed from its default value it is marked in bold. To restore a property to its
+default value, edit the property and in the edit dialog select 'Restore Default'. 
+When running/debugging a framework, only properties
+that differ from their default values are included in the generated .xargs file.
+</p>
+<p>
+User properties can be added or removed using the 'Add...' or 'Remove' button. 
+</p>
+<p>
+<b>Known Bug:</b> User properties can not be removed.
+</p>
+
+
+<h5>Bundles Tab</h5>
+<p>
+Under this tab you specify the set of bundles that should be launched together with the
+framework.
+</p>
+<p>
+Available Bundles is a tree listing all bundles that are either part of the workspace
+or available through an installed Knopflerfish distribution. Bundles already
+selected are filtered from the 'Available' tree. Bundles are added to the 
+selected list by selecting them and pressing 'Add'.
+</p>
+<p>
+Selected Bundles shows a list of the bundles that are currently selected. 
+For each bundle, the start level, mode and missing packages problems are shown.
+</p>
+<p>
+By default the start level is set to 1 for Knopflerfish bundles and to 2 for
+workspace bundles. The start level of a bundle can be changed by selecting
+the start level cell (click on it).
+</p>
+<p>
+The default value for mode is determined by the bundle's manifest; if a bundle activator exists,
+mode is set to 'Start'; otherwise it is set to 'Install'. To change the mode of a bundle, select
+the mode cell for that bundle by clicking on it.
+</p>
+<p>
+If a bundle imports packages which are not exported by any of the selected bundles, 
+a red error message will be shown in the 'Missing Packages' column indicating the
+missing package(s).  
+</p>
+
+<h4>Basic configurations</h4>
+<p>
+This section lists sets of bundles that are needed to run some commonly used applications.
+</p>
+<p>
+Log
+<ul>
+ <li>log_all-1.0.0.jar</li>
+ <li>console_api-1.0.0.jar</li>
+ <li>cm_api-1.0.0.jar</li>
+</ul>
+</p>
+<p>
+Log and TTY console 
+<ul>
+ <li>log_all-1.0.0.jar</li>
+ <li>console_all-1.0.0.jar (Note: console_all is used instead of console_api)</li>
+ <li>cm_api-1.0.0.jar</li>
+ <li>consoletty-1.0.0.jar</li>
+ <li>frameworkcommands-1.0.0.jar</li>
+ <li>logcommands-1.0.0.jar</li>
+</ul>
+</p>
+<p>
+Log, TTY console and CM
+<ul>
+ <li>log_all-1.0.0.jar</li>
+ <li>console_all-1.0.0.jar</li>
+ <li>cm_all-1.0.0.jar  (Note: cm_all is used instead of cm_api)</li>
+ <li>consoletty-1.0.0.jar</li>
+ <li>frameworkcommands-1.0.0.jar</li>
+ <li>logcommands-1.0.0.jar</li>
+ <li>crimson-1.1.3.jar (Note: any XML implementation exporting org.xml.sax packages can be used)</li>
+</ul>
+</p>
+<p>
+Log, TTY console, CM and desktop
+<ul>
+ <li>log_all-1.0.0.jar</li>
+ <li>console_all-1.0.0.jar</li>
+ <li>cm_all-1.0.0.jar</li>
+ <li>consoletty-1.0.0.jar</li>
+ <li>frameworkcommands-1.0.0.jar</li>
+ <li>logcommands-1.0.0.jar</li>
+ <li>crimson-1.1.3.jar</li>
+ <li>desktop_all-1.1.0.jar</li>
+ <li>util-1.0.0.jar</li>
+</ul>
+
+<b>Note:</b> The desktop can show a busy-wait mouse cursor, if this happens position the cursor last in the 
+Eclipse Console and press return a few times. 
+</p>
+
+
+
+<h3>Packaging Bundle</h3>
+
+<p>
+The contents of the bundle  is specified by the bundle.jar file. A special editor is linked to this file, which is opened when the file is selected. The editor allows the contents to be specified either through a graphical view or by directly editing the underlying XML file.
+</p>
+<p>
+The graphical view has two sections:
+<ul>
+ <li>Export</li>
+ <li>Contents</li> 
+</ul>
+
+<h4>Export</h4>
+By selecting export the bundle is packaged and exported to the selected destination. The contents of the bundle is set in the contents section.
+
+<h4>Contents</h4>
+The contents section specifies all resources that shall be included and where to store them in the bundle JAR file. Each row in the contents table shows a resource that shall be included and consists of the following:
+<ul>
+ <li><b>Resource</b> - The path to a file or folder in the current workspace.</li>
+ <li><b>Destination</b> - The path to store the resource in the JAR file. The resource contents is stored in the JAR entry specified by destination. If destination is empty it means the JAR root.</li>
+ <li><b>Pattern</b> - An regular expression can be specified to filter the resources to be included</li>
+</ul>
+<p>
+By default the bundle.jar specifies the class-files from the output directory to be included in the JAR file.
+</p>
+<pre>
+ &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+ &lt;bundlejar&gt;
+ &lt;resource dst="" pattern=".*\.class" src="/positron/out"/&gt;
+ &lt;/bundlejar&gt;
+
+</pre>
+
+
+

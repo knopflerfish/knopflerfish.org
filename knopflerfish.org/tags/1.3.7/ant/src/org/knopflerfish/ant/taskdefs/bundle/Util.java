@@ -1,0 +1,273 @@
+/*
+ * Copyright (c) 2003, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * - Redistributions of source code must retain the above copyright notice, 
+ *   this list of conditions and the following disclaimer. 
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice, 
+ *   this list of conditions and the following disclaimer in the documentation 
+ *   and/or other materials provided with the distribution. 
+ * 
+ * - Neither the name of the KNOPFLERFISH project nor the names of its 
+ *   contributors may be used to endorse or promote products derived 
+ *   from this software without specific prior written permission. 
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.knopflerfish.ant.taskdefs.bundle;
+
+import java.net.*;
+import java.io.*;
+import java.util.*;
+
+/**
+ * Misc static utility code.
+ */
+public class Util {
+  public static byte [] loadURL(URL url) throws IOException {
+    int     bufSize = 1024 * 2;
+    byte [] buf     = new byte[bufSize];
+    
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    BufferedInputStream   in   = new BufferedInputStream(url.openStream());
+    int n;
+    while ((n = in.read(buf)) > 0) {
+      bout.write(buf, 0, n);
+    }
+    try { in.close(); } catch (Exception ignored) { } 
+    return bout.toByteArray();
+  }
+
+  public static String loadFile(String fname) throws IOException {
+    byte[] bytes = loadURL(new URL("file:" + fname));
+    return new String(bytes);
+  }
+
+
+  /**
+   * Load entire contents of a file or URL into a string.
+   */
+  public static String load(String fileOrURL) throws IOException {
+    try {
+      URL url = new URL(fileOrURL);
+      
+      return new String(loadURL(url));
+    } catch (Exception e) {
+      return loadFile(fileOrURL);
+    }
+  }
+
+  /**
+   * Create a Set from a comma-separated string.
+   */
+  public static Set makeSetFromStringList(String s) {
+    Set set = new HashSet();
+
+    String[] sa = Util.splitwords(s, ",", '"');
+    for(int i = 0; i < sa.length; i++) {
+      set.add(sa[i]);
+    }
+    
+    return set;
+  }
+
+
+
+  public static String getRelativePath(File fromFile,
+				       File toFile) {
+    File fromDir = fromFile.isDirectory() 
+      ? fromFile
+      : fromFile.getParentFile();
+
+    File toDir = toFile.isDirectory() 
+      ? toFile
+      : toFile.getParentFile();
+    
+
+    File dir = fromDir;
+
+    String relPath = "";
+
+    while(dir != null && !dir.equals(toDir)) {
+      relPath += "../";
+      dir = dir.getParentFile();
+    }
+
+    if(dir == null) {
+      throw new RuntimeException(toFile + " is not in parent of " + fromFile);
+    }
+    return relPath + toFile.toString();
+  }
+
+  // String manipulation functions below by Erik Wistrand
+  
+  
+  /**
+   * Replace all occurences of a substring with another string.
+   *
+   * <p>
+   * If no replacements are needed, the methods returns the original string.
+   * </p>
+   *
+   * @param s  Source string which will be scanned and modified. 
+   *           If <tt>null</tt>, return <tt>null</tt>
+   * @param v1 String to be replaced with <tt>v2</tt>.
+   *           If <tt>null</tt>, return original string.
+   * @param v2 String replacing <tt>v1</tt>. 
+   *           If <tt>null</tt>, return original string.
+   * @return   Modified string.
+   */
+  public static String replace(final String s, 
+			       final String v1, 
+			       final String v2) {
+
+    if(s == null 
+       || v1 == null 
+       || v2 == null 
+       || v1.length() == 0 
+       || v1.equals(v2)) {
+      return s;
+    }
+
+    int ix       = 0;
+    int v1Len    = v1.length(); 
+    int n        = 0;
+
+    while(-1 != (ix = s.indexOf(v1, ix))) {
+      n++;
+      ix += v1Len;
+    }
+    
+    if(n == 0) {
+      return s;
+    }
+    
+    int     start  = 0;
+    int     v2Len  = v2.length();
+    char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
+    int     rPos   = 0;
+    
+    while(-1 != (ix = s.indexOf(v1, start))) {
+      while(start < ix) r[rPos++] = s.charAt(start++);
+      for(int j = 0; j < v2Len; j++) {
+	r[rPos++] = v2.charAt(j);
+      }
+      start += v1Len;
+    }
+    
+    ix = s.length(); 
+    while(start < ix) r[rPos++] = s.charAt(start++);
+    
+    return new String(r);
+  }
+
+  /**
+   * Split a string into words separated by whitespace 
+   * SPACE | TAB | NEWLINE | CR
+
+   * Citation chars '"' may be used to group words 
+   * with embedded whitespace.
+   * </p>
+   */
+  public static String [] splitwords(String s) {
+    return splitwords(s, " \t\n\r", '"');
+  }
+  
+  /**
+   * Split a string into words separated by whitespace.
+   * Citation chars '"' may be used to group words with embedded
+   * whitespace.
+   *
+   * @param s          String to split.
+   * @param whiteSpace whitespace to use for splitting. Any of the
+   *                   characters in the whiteSpace string are considered
+   *                   whitespace between words and will be removed
+   *                   from the result.
+   * @param citchar    citation char used for enclosing words containing
+   *                   whitespace
+   */
+  public static String [] splitwords(String s, 
+				     String whiteSpace,
+				     char   citchar) {
+    boolean       bCit  = false;        // true when inside citation chars.
+    Vector        v     = new Vector(); // (String) individual words after splitting
+    StringBuffer  buf   = null; 
+    int           i     = 0; 
+    
+    while(i < s.length()) {
+      char c = s.charAt(i);
+
+      if(bCit || whiteSpace.indexOf(c) == -1) {
+	// Build up word until we breaks on 
+	// either a citation char or whitespace
+	if(c == citchar) {
+	  bCit = !bCit;
+	} else {
+	  if(buf == null) {
+	    buf = new StringBuffer();
+	  }
+	  buf.append(c);
+	}
+	i++;
+      } else {	
+	// found whitespace or end of citation, append word if we have one
+	if(buf != null) {
+	  v.addElement(buf.toString());
+	  buf = null;
+	}
+
+	// and skip whitespace so we start clean on a word or citation char
+	while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
+	  i++;
+	}
+      }
+    }
+    // Add possible remaining word
+    if(buf != null) {
+      v.addElement(buf.toString());
+    }
+    
+    // Copy back into an array
+    String [] r = new String[v.size()];
+    v.copyInto(r);
+    
+    return r;
+  }
+
+
+  
+  static void writeStringToFile(File outFile, String s) throws IOException {
+    FileWriter writer   = null;
+    
+    try {
+      writer = new FileWriter(outFile);
+      writer.write(s, 0, s.length());
+      //      System.out.println("wrote " + outFile);
+      
+    } finally {
+      try { writer.close(); } catch (Exception ignored) { }
+    }
+  }
+
+}
+
+
+
+
+

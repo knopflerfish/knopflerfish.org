@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+   <target name="all">
+    <ant dir="xml"              target="all"/>
+    <ant dir="crimson"          target="all"/>
+  </target>
+
+  <target name="clean">
+    <ant dir="xml"              target="clean"/>
+    <ant dir="crimson"          target="clean"/>
+  </target>
+
+</project>

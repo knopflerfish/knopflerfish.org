@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Export-Package: javax.servlet ; specification-version=2.2,javax.servle
+ t.http ; specification-version=2.2,javax.servlet.jsp ; specification-
+ version=2.2
+Bundle-Version: 2.2
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Name: JSDK
+Bundle-Description: The servlet.jar from SUN jsdk lib
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-Vendor: Knopflerfish/Sun
+Bundle-APIVendor: Sun
+Bundle-SymbolicName: org.knopflerfish.jsdk
+Bundle-Category: lib
+Bundle-ClassPath: ., servlet.jar
+

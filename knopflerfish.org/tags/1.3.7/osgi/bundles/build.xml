@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+    <!-- build properties -->
+
+   <!-- some bundles only build on 1.4 -->
+
+   <target name="build14" if="is14">
+    <echo message="** Building 1.4 specific bundles **"/>
+    <ant dir="sslj2sp"           target="all"/>
+   </target>
+
+   <target name="all">
+
+    <condition property="is14">
+     <equals arg1="${ant.java.version}" arg2="1.4"/>
+    </condition>
+
+    <ant dir="log"               target="jar_api"/>
+    <ant dir="cm/cm"             target="all"/>
+    <ant dir="console/console"   target="all"/>
+    <ant dir="log"               target="all"/>
+    <ant dir="frameworkcommands" target="all"/>
+    <ant dir="logcommands"       target="all"/>
+    <ant dir="jsdk"              target="all"/>
+
+    <antcall target="build14"/>
+
+    <ant dir="http"              target="all"/>
+    <ant dir="util"              target="all"/>
+    <ant dir="xml"               target="all"/>
+    <ant dir="useradmin"         target="all"/>
+    <ant dir="cm/cm_cmd"         target="all"/>
+    <ant dir="console"           target="all"/>
+    <ant dir="device"            target="all"/>
+    <ant dir="wireadmin"         target="all"/>
+    <ant dir="demos"             target="all"/>
+
+    <ant dir="measurement"           target="all"/>
+    <ant dir="position"              target="all"/>
+    <ant dir="metatype/metatype_api" target="all"/>
+
+    <ant dir="remotefw"              target="all"/>
+    <ant dir="desktop"               target="all"/>
+
+    <ant dir="metatype/kf_metatype"  target="all"/>
+    <ant dir="metatype/cm_desktop"   target="all"/>
+
+    <ant dir="trayicon"          target="all"/>
+    <ant dir="upnp"              target="all"/>
+    <ant dir="provisioning"      target="all"/>
+    <ant dir="prefs"             target="all"/>
+    <ant dir="bundlerepository"  target="all"/>
+  </target>
+
+</project>

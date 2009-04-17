@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-Name: TTYConsole
+Bundle-SymbolicName: org.knopflerfish.consoletty
+Bundle-Version: 1.0.1
+Bundle-Description: Command line system console
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.consoletty.ConsoleTty
+Bundle-Category: console
+Import-Package: org.knopflerfish.service.console,org.osgi.framework,or
+ g.osgi.service.cm,org.osgi.service.log,org.osgi.util.tracker
+
+
