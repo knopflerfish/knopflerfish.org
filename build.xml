@@ -319,6 +319,7 @@
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/framework.policy"/>
 
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
@@ -464,6 +465,7 @@
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/framework.policy"/>
 
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
@@ -584,6 +586,7 @@
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/framework.policy"/>
 
            <include name = "osgi/init.xargs"/>
            <include name = "osgi/init_*.xargs"/>
@@ -640,6 +643,7 @@
 
            <include name = "osgi/framework.jar"/>
            <include name = "osgi/packages1.3.txt"/>
+           <include name = "osgi/framework.policy"/>
 
            <include name = "osgi/remote-init.xargs"/>
            <include name = "osgi/restart.xargs"/>

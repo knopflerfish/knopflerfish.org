@@ -294,8 +294,6 @@
    <delete dir="out"/>
    <delete dir="jars"/>
    <delete dir="../ant/classes"/>
-   <ant dir="bundles_test"        target="clean"
-	inheritAll="false"        inheritRefs="false"/>
  </target>
 
 </project>
