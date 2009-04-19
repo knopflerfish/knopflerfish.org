@@ -217,3 +217,11 @@ TD.fancy_row {
 #release_notes dd {
   margin-bottom: 10px;
 }
+
+.release_notes dt {
+  font-weight: bold;
+}
+
+.release_notes dd {
+  margin-bottom: 10px;
+}
