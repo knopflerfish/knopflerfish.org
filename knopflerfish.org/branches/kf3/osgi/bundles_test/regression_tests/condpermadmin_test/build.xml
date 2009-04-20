@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="condpermadmin_test" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.condpermadmin_test}"/>
+  <property name="topdir"       location="${proj.dir}/.."/>
+  <property name="osgi.dir"     location="${topdir}/../.."/>
+  <property name="ant.dir"      location="${osgi.dir}/../ant"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+  <property name="jardir"            location="${topdir}/jars"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"  value="org/knopflerfish/service/**"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+   <property name="tb.dir" location="${topdir}/jars"/>
+   <copy file="${tb.dir}/bundleP1_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleP2_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleP3_test-1.0.0.jar"  todir="resources"/>
+  </target>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${topdir}/lib/junit.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

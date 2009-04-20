@@ -1,0 +1,15 @@
+Bundle-Name: resimp_test
+Bundle-SymbolicName: resimp_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, resource import.
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.resimp_test.impl.Activator
+Bundle-Category: test
+Import-Package: org.knopflerfish.bundle.resexp_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:resimp_test:1.0.0:all
+Built-From: C:\work\knopflerfish.org\trunk\osgi\bundles_test\regressio
+ n_tests\resimp_test
+Build-Date: Wed August 25 2004, 19:57:13
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/

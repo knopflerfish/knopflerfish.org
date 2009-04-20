@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<metatype:metatype
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
+        xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
+
+  <xsd:schema >
+   <xsd:complexType name="org.knopflerfish.bundle.log.LogConfig">
+    <xsd:annotation>
+     <xsd:documentation>The log configuration sets properties for the 
+                        Knopflerfish log.
+     </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:simpleType name = "default.level">
+     <xsd:annotation>
+      <xsd:documentation>Set the default log level, when not set for specific
+                         bundles.
+      </xsd:documentation>
+     </xsd:annotation>
+
+
+
+     <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="debug">
+       <xsd:annotation>
+         <xsd:documentation>Debug</xsd:documentation>
+       </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="info"/>
+      <xsd:enumeration value="warning"/>
+      <xsd:enumeration value="error"/>
+     </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name = "bundle.log.level">
+     <xsd:sequence array="false">
+      <xsd:simpleType name = "item">
+        <restriction base="xsd:string"/>
+      </xsd:simpleType>
+     </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element  name = "file"             type="xsd:boolean"/>
+    <xsd:element  name = "file.dir"         type="xsd:string"/>
+    <xsd:element  name = "file.flush"       type="xsd:boolean"/>
+    <xsd:element  name = "file.generations" type="xsd:int"/>
+    <xsd:element  name = "memory.size"      type="xsd:int"/>
+
+    <xsd:element  name = "log.out"          type="xsd:boolean"/>
+
+   </xsd:complexType> 
+  </xsd:schema>
+
+</metatype:metatype>
