@@ -8,6 +8,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Framework (Core) ===
+
+  Fixed parsing exception of saved ConditionalPermissionInfo data
+  during restart of framework. Fixed persistent saving of
+  initialBundleStartLevel in start level service.
+  Available in framework version 4.1.2.
+  
 
 ========================================================================
 
