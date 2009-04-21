@@ -99,20 +99,20 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       } else {
         throw new IllegalArgumentException("Unexpected char '" + c + "' at pos " + pos);
       }
-      buf.setLength(0);
+      int start_pos = pos++;
       do {
         c = eca[pos];
         if (c == '"') {
-          pos = PermUtil.unquote(eca, pos, buf);
+          pos = PermUtil.unquote(eca, pos, null);
         } else {
-          buf.append(c);
+          pos++;
         }
-        pos++;
       } while(c != ec);
+      String info = new String(eca, start_pos, pos - start_pos);
       if (c == ']') {
-        cal.add(new ConditionInfo(buf.toString()));
+        cal.add(new ConditionInfo(info));
       } else {
-        pal.add(new PermissionInfo(buf.toString()));
+        pal.add(new PermissionInfo(info));
       }
     }
     conditionInfos = (ConditionInfo [])cal.toArray(new ConditionInfo [cal.size()]);

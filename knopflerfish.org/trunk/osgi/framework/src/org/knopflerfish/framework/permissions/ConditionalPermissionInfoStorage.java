@@ -255,7 +255,7 @@ class ConditionalPermissionInfoStorage {
         }
       }
       in.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       if (in != null) {
         try {
           in.close();
