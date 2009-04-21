@@ -1449,7 +1449,10 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   public final static String[] HELP_SETCONDPERMISSION = new String[] {
     "Set conditional permission",
     "-name #name                     Name of conditional permission",
-    "<conditional_permission_info>   ConditionalPermissionInfo string" };
+    "<conditional_permission_info>   ConditionalPermissionInfo string",
+    "",
+    "Example that grants all bundles installed with a file-url all permissions:",
+    "> setcondpermission '[org.osgi.service.condpermadmin.BundleLocationCondition \"file:*\"]' (java.security.AllPermission)" };
 
   public int cmdSetcondpermission(Dictionary opts, Reader in, PrintWriter out,
                                   Session session) {
@@ -1482,6 +1485,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
           }
           endChar = null;
           buf.setLength(0);
+        } else {
+          buf.append(' ');
         }
       } else if (cpi.startsWith("[")) {
         endChar = "]";
