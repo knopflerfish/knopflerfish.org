@@ -81,6 +81,7 @@ checkout:
 
 update:
 	(cd ${TAGs} && ${ANT} clean)
+	-${RM} -f ${TAGs}/changelog.txt
 	(cd ${TAGs} && ${SVN} update)
 	[ -r ${CHANGE_LOG} ] && cp ${CHANGE_LOG} ${TAGs}/changelog.txt
 
