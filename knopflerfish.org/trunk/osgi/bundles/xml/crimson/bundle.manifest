@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Crimson-XML
 Bundle-SymbolicName: org.knopflerfish.bundle.crimson
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:crimson:2.0.0
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:crimson:2.0.1
 Bundle-Category: lib
 Bundle-Description: The Crimson XML parser
 Bundle-Vendor: Apache/Knopflerfish
