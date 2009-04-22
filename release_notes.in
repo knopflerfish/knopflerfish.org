@@ -16,6 +16,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Available in framework version 4.1.2.
   
 
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Crimson 2.0.1
+
+  Fixed a class-loader issue that made it impossible to directly use
+  the DocumentBuilderFactory to create new instances. Note that this
+  bundle is not needed on new Java releases (the recommendation is to
+  use the XML-parsing that is provided by the JRE, or the
+  Xerces-bundle).
+
+
+
 ========================================================================
 
 
