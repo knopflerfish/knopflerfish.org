@@ -2567,7 +2567,7 @@ public class Desktop
                  "\n</pre>");
 
     final JScrollPane scroll = new JScrollPane(html);
-    // scroll.setPreferredSize(new Dimension(500, 300));
+    scroll.setPreferredSize(new Dimension(500, 300));
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JViewport vp = scroll.getViewport();
@@ -2604,7 +2604,7 @@ public class Desktop
     html.setText(Util.getSystemInfo());
 
     final JScrollPane scroll = new JScrollPane(html);
-    // scroll.setPreferredSize(new Dimension(420, 300));
+    scroll.setPreferredSize(new Dimension(420, 300));
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JViewport vp = scroll.getViewport();
