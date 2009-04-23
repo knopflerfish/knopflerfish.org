@@ -135,7 +135,7 @@ class BundleArchiveImpl implements BundleArchive
     id              = bundleId;
     location        = bundleLocation;
     startOnLaunch   = false;
-    archive         = new Archive(bundleDir, 0, is, source, location);
+    archive         = new Archive(storage, bundleDir, 0, is, source, location);
     nativeLibs      = getNativeCode();
     setClassPath();
     putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
@@ -183,7 +183,7 @@ class BundleArchiveImpl implements BundleArchive
     id            = bundleId;
     storage       = bundleStorage;
     startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();
-    archive       = new Archive(bundleDir, rev, location);
+    archive       = new Archive(storage, bundleDir, rev, location);
     nativeLibs    = getNativeCode();
     setClassPath();
   }
@@ -208,7 +208,7 @@ class BundleArchiveImpl implements BundleArchive
     if(bReference) {        
       source = new URL(location);
     }
-    archive = new Archive(bundleDir, rev, is, source, location);
+    archive = new Archive(storage, bundleDir, rev, is, source, location);
     nativeLibs = getNativeCode();
     setClassPath();
     if(!bReference) {
@@ -640,10 +640,10 @@ class BundleArchiveImpl implements BundleArchive
       if (mapLibraryName == null) {
         throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
       }
-      String proc = Framework.getProperty(Constants.FRAMEWORK_PROCESSOR);
-      String os =  Framework.getProperty(Constants.FRAMEWORK_OS_NAME);
-      Version osVer = new Version(Framework.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      String osLang = Framework.getProperty(Constants.FRAMEWORK_LANGUAGE);
+      String proc = storage.framework.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      String os =  storage.framework.props.getProperty(Constants.FRAMEWORK_OS_NAME);
+      Version osVer = new Version(storage.framework.props.getProperty(Constants.FRAMEWORK_OS_VERSION));
+      String osLang = storage.framework.props.getProperty(Constants.FRAMEWORK_LANGUAGE);
       boolean optional = false;
       List best = null;
       VersionRange bestVer = null;
@@ -714,7 +714,7 @@ class BundleArchiveImpl implements BundleArchive
         if (sf != null) {
           if (sf.size() == 1) {
             FilterImpl filter = new FilterImpl((String)sf.get(0));
-            if (!filter.match(Framework.getProperties())) {
+            if (!filter.match(storage.framework.props.getProperties())) {
               continue;
             }
           } else {

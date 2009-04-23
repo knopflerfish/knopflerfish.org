@@ -71,10 +71,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.2";
 
-  private Framework framework;
+  private FrameworkImpl framework;
 
 
-  PackageAdminImpl(Framework fw) {
+  PackageAdminImpl(FrameworkImpl fw) {
     framework = fw;
   }
 
@@ -207,7 +207,7 @@ public class PackageAdminImpl implements PackageAdmin {
     if (restart) {
       try {
         // will restart the framework.
-        framework.systemBundle.stop(Framework.EXIT_CODE_RESTART);
+        framework.systemBundle.stop(FrameworkImpl.EXIT_CODE_RESTART);
       } catch (BundleException ignored) {
         /* this can't be happening. */
       }
@@ -226,8 +226,8 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   void refreshPackages0(final Bundle[] bundles) {
-    if(Debug.packages) {
-      Debug.println("PackageAdminImpl.refreshPackages() starting");
+    if(framework.props.debug.packages) {
+      framework.props.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
     BundleImpl bi[] = (BundleImpl[])framework.packages
@@ -290,8 +290,8 @@ public class PackageAdminImpl implements PackageAdmin {
         }
       }
     }
-    if(Debug.packages) {
-      Debug.println("PackageAdminImpl.refreshPackages() "
+    if(framework.props.debug.packages) {
+      framework.props.debug.println("PackageAdminImpl.refreshPackages() "
                     +"all affected bundles now in state INSTALLED");
     }
 
@@ -299,8 +299,8 @@ public class PackageAdminImpl implements PackageAdmin {
     framework.bundles.startBundles(startList);
     framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
 
-    if(Debug.packages) {
-      Debug.println("PackageAdminImpl.refreshPackages() done.");
+    if(framework.props.debug.packages) {
+      framework.props.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
 

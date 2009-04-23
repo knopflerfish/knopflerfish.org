@@ -56,13 +56,13 @@ public class URLStreamHandlerWrapper
   implements URLStreamHandlerSetter
 {
 
-  Framework              framework;
+  FrameworkImpl          framework;
   String                 protocol;
   String                 filter;
   
   private ServiceReference best;
 
-  URLStreamHandlerWrapper(Framework  fw,
+  URLStreamHandlerWrapper(FrameworkImpl  fw,
 			  String     proto) {
 
     this.framework = fw;
@@ -112,8 +112,8 @@ public class URLStreamHandlerWrapper
       throw new IllegalArgumentException("Could not register service listener for url handler: " + e);
     }
     
-    if(Debug.url) {
-      Debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
+    if(framework.props.debug.url) {
+      framework.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
     }
   }
 

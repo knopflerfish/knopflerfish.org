@@ -72,7 +72,10 @@ class Services {
   private PermissionOps secure;
 
 
-  Services(PermissionOps perm) {
+  FrameworkImpl framework;
+  
+  Services(FrameworkImpl framework, PermissionOps perm) {
+    this.framework = framework;
     secure = perm;
   }
 

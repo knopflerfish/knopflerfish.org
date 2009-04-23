@@ -55,7 +55,7 @@ import java.lang.reflect.Constructor;
  */
 public class Main {
 
-  static Framework framework;
+  static FrameworkImpl framework;
 
   static long bootMgr/* = 0*/;
 
@@ -114,7 +114,7 @@ public class Main {
   public static void main(String[] args) {
     try {
       verbosity =
-        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     try {
@@ -162,7 +162,7 @@ public class Main {
     // redo this since it might have changed
     try {
       verbosity =
-        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
     } catch (Exception ignored) { }
 
     if(bZeroArgs) {
@@ -185,7 +185,8 @@ public class Main {
     }
 
     try {
-      framework = new Framework(new Main());
+      framework = new FrameworkImpl(new Main());
+      framework.props.setProperties(System.getProperties());
     } catch (Exception e) {
       e.printStackTrace();
       error("New Framework failed!");
@@ -204,7 +205,7 @@ public class Main {
   static String[] initBase   = null;
 
   static void doInit() {
-    String d = Framework.getProperty(FWDIR_PROP);
+    String d = System.getProperty(FWDIR_PROP);
 
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
@@ -220,7 +221,7 @@ public class Main {
   }
 
   static String[] getJarBase() {
-    String jars = Framework.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
     String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
@@ -381,8 +382,8 @@ public class Main {
             int n = Integer.parseInt(args[i+1]);
             if(framework.startLevelService != null) {
               if(n == 1) {
-                if(Debug.startlevel) {
-                  Debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
+                if(framework.props.debug.startlevel) {
+                  framework.props.debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
                 }
                 framework.startLevelService.bCompat = true;
               }
@@ -535,7 +536,7 @@ public class Main {
             }
           }
           framework.shutdown();
-          if("true".equals(Framework.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
+          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
             System.exit(exitcode);
           } else {
             println("Framework shutdown, skipped System.exit()", 0);
@@ -660,7 +661,7 @@ public class Main {
   static void printJVMInfo() {
 
     try {
-      Properties props = Framework.getSystemProperties();
+      Properties props = System.getProperties();
       System.out.println("--- System properties ---");
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
         String key = (String)e.nextElement();
@@ -668,7 +669,7 @@ public class Main {
       }
       System.out.println("\n--- Framework properties ---");
       for(int i = 0; i < FWPROPS.length; i++) {
-        System.out.println(FWPROPS[i] + ": " + framework.getProperty(FWPROPS[i]));
+        System.out.println(FWPROPS[i] + ": " + framework.props.getProperty(FWPROPS[i]));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -708,7 +709,7 @@ public class Main {
       }
     }
 
-    String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+    String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
     // avoid getAbsoluteFile since some profiles don't have this
     File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
     File xargsFile  = null;
@@ -727,7 +728,7 @@ public class Main {
       topDir = defDir + File.separator;
 
       try {
-        String osName = (String)Alias.unifyOsName(Framework.getProperty("os.name")).get(0);
+        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();
@@ -807,28 +808,28 @@ public class Main {
 
     // Make modifications to temporary dictionary and write
     // it back in end of this method
-    Properties sysProps = Framework.getSystemProperties();
+    Properties sysProps = System.getProperties();
 
     println("setDefaultSysProps", 1);
     for(int i = 0; i < defaultSysProps.length; i++) {
-      if(null == Framework.getProperty(defaultSysProps[i][0])) {
+      if(null == System.getProperty(defaultSysProps[i][0])) {
         println("Using default " + defaultSysProps[i][0] + "=" +
                 defaultSysProps[i][1], 1);
         sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
       } else {
-        println("system prop " + defaultSysProps[i][0] + "=" + Framework.getProperty(defaultSysProps[i][0]), 1);
+        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1);
       }
     }
 
     // Set version info
-    if(null == Framework.getProperty(PRODVERSION_PROP)) {
+    if(null == System.getProperty(PRODVERSION_PROP)) {
       sysProps.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = Framework.getProperty(JARDIR_PROP, null);
+    String jars = System.getProperty(JARDIR_PROP, null);
 
     if(jars == null || "".equals(jars)) {
       String jarBaseDir = topDir + "jars";
@@ -867,11 +868,11 @@ public class Main {
 
     // Write to framework properties. This should be the primary
     // source for all code, including the framework itself.
-    Framework.setProperties(sysProps);
+    // framework.props.setProperties(sysProps);
   }
 
   static void mergeSystemProperties(Properties props) {
-    Properties p = Framework.getSystemProperties();
+    Properties p = System.getProperties();
     p.putAll(props);
     System.setProperties(p);
   }
@@ -993,7 +994,7 @@ public class Main {
       println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
-      String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+      String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
       // avoid getAbsoluteFile since some profiles don't have this
       File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
       // avoid getParentFile since some profiles don't have this
@@ -1038,7 +1039,7 @@ public class Main {
       }
 
 
-      Properties   sysProps = Framework.getSystemProperties();
+      Properties   sysProps = System.getProperties();
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -1119,9 +1120,12 @@ public class Main {
 
       // Write to framework properties. This should be the primary
       // source for all code, including the framework itself.
-      Framework.setProperties(sysProps);
+      // framework.props.setProperties(sysProps);
 
     } catch (Exception e) {
+      if(e instanceof RuntimeException) {
+        throw (RuntimeException)e;
+      } 
       throw new IllegalArgumentException("xargs loading failed: " + e);
     }
     String [] args2 = new String[v.size()];

@@ -61,7 +61,7 @@ public class BundleStorageImpl implements BundleStorage {
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl() {
+  public BundleStorageImpl(FrameworkImpl framework) {
   }
 
   /**

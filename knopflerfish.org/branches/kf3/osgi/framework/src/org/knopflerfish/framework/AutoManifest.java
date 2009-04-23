@@ -159,6 +159,7 @@ import java.net.URL;
  * @author Erik Wistrand
  */
 public class AutoManifest extends Manifest {
+  FrameworkImpl framework;
   Manifest   mf;
   String     location;
   AutoInfo   autoInfo;
@@ -186,7 +187,7 @@ public class AutoManifest extends Manifest {
    * @param mf original manifest. Must not be null.
    * @param location bundle location. Must not be null.
    */
-  public AutoManifest(Manifest mf, String location) {
+  public AutoManifest(FrameworkImpl framework, Manifest mf, String location) {
     if(mf == null) {
       throw new NullPointerException("Manifest cannot be null");
     }
@@ -195,25 +196,26 @@ public class AutoManifest extends Manifest {
       throw new NullPointerException("location cannot be null");
     }
 
+    this.framework = framework;
     this.mf       = mf;
     this.location = location;
 
     // just read the config once
     if(configs == null) {
-      boolean bActive   = "true".equals(Framework.getProperty("org.knopflerfish.framework.automanifest","false"));
+      boolean bActive   = "true".equals(framework.props.getProperty("org.knopflerfish.framework.automanifest","false"));
       String  defSource = bActive ? "!!/automanifest.props" : null;
-      configSource = Framework.getProperty("org.knopflerfish.framework.automanifest.config", defSource);
+      configSource = framework.props.getProperty("org.knopflerfish.framework.automanifest.config", defSource);
       configs      = loadConfig(configSource);
 
-      if(Debug.automanifest) {
-        Debug.println("Loaded auto manifest config from " + configSource);
+      if(framework.props.debug.automanifest) {
+        framework.props.debug.println("Loaded auto manifest config from " + configSource);
       }
     }
 
     autoInfo = findConfig();
 
-    if(isAuto() && Debug.automanifest) {
-      Debug.println("Using auto manifest for bundlelocation " + location);
+    if(isAuto() && framework.props.debug.automanifest) {
+      framework.props.debug.println("Using auto manifest for bundlelocation " + location);
     }
   }
 
@@ -321,8 +323,8 @@ public class AutoManifest extends Manifest {
           } else if("[autoexport]".equals(val)) {
             String exports = getExports();
 
-            if(Debug.automanifest) {
-              Debug.println("Auto exports for " + location + ": " + exports);
+            if(framework.props.debug.automanifest) {
+              framework.props.debug.println("Auto exports for " + location + ": " + exports);
             }
 
             if(exports.length() > 0) {
@@ -481,7 +483,7 @@ public class AutoManifest extends Manifest {
         is = url.openStream();
         return loadConfigFromInputStream(is);
       } catch (Exception e) {
-        Debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
+        framework.props.debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
       } finally {
         try { is.close(); } catch (Exception ignored) { }
       }

@@ -63,7 +63,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   int targetStartLevel = currentLevel;
   boolean acceptChanges = true;
 
-  Framework framework;
+  FrameworkImpl framework;
 
   FileTree storage;
 
@@ -74,7 +74,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   public static final String SPEC_VERSION = "1.0";
   
 
-  public StartLevelImpl(Framework framework) {
+  public StartLevelImpl(FrameworkImpl framework) {
     this.framework = framework;
     
     storage = Util.getFileStorage("startlevel");
@@ -82,8 +82,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
   
   void open() {
     
-    if(Debug.startlevel) {
-      Debug.println("startlevel: open");
+    if(framework.props.debug.startlevel) {
+      framework.props.debug.println("startlevel: open");
     }
 
     if (jobQueue.isEmpty()) {
@@ -118,12 +118,12 @@ public class StartLevelImpl implements StartLevel, Runnable {
    * </p>
    */
   void restoreState() {
-    if (Debug.startlevel) {
-      Debug.println("startlevel: restoreState");
+    if (framework.props.debug.startlevel) {
+      framework.props.debug.println("startlevel: restoreState");
     }
     // Skip level load in mem storage since bundle levels
     // isn't saved anyway
-    if (!Framework.bIsMemoryStorage) {
+    if (!framework.props.bIsMemoryStorage) {
       try {
         String s = Util.getContent(new File(storage, LEVEL_FILE));
         if (s != null) {
@@ -138,8 +138,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 
   void close() {
-    if (Debug.startlevel) {
-      Debug.println("*** closing startlevel service");
+    if (framework.props.debug.startlevel) {
+      framework.props.debug.println("*** closing startlevel service");
     }
 
     bRun = false;
@@ -197,8 +197,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 
   private void setStartLevel0(final int startLevel, final boolean notifyFw, final boolean notifyWC, final boolean storeLevel) {
-    if (Debug.startlevel) {
-      Debug.println("startlevel: setStartLevel " + startLevel);
+    if (framework.props.debug.startlevel) {
+      framework.props.debug.println("startlevel: setStartLevel " + startLevel);
     }
 
     jobQueue.insert(new Runnable() {
@@ -216,7 +216,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 	  // Skip level save in mem storage since bundle levels
 	  // won't be saved anyway
-	  if (storeLevel && !Framework.bIsMemoryStorage) {
+	  if (storeLevel && !framework.props.bIsMemoryStorage) {
             try {
               Util.putContent(new File(storage, LEVEL_FILE), 
                               Integer.toString(currentLevel));
@@ -245,8 +245,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       currentLevel++;
 
-      if (Debug.startlevel) {
-	Debug.println("startlevel: increaseStartLevel currentLevel=" + currentLevel);
+      if (framework.props.debug.startlevel) {
+	framework.props.debug.println("startlevel: increaseStartLevel currentLevel=" + currentLevel);
       }
       Vector set = new Vector();
 
@@ -272,8 +272,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	BundleImpl bs = (BundleImpl)set.elementAt(i);
 	try {
 	  if (bs.archive.isPersistent()) {
-	    if (Debug.startlevel) {
-	      Debug.println("startlevel: start " + bs);
+	    if (framework.props.debug.startlevel) {
+	      framework.props.debug.println("startlevel: start " + bs);
 	    }
 	    bs.start();
 	  }
@@ -310,8 +310,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
         BundleException saved = null;
         synchronized (bs) {
           if (bs.getState() == Bundle.ACTIVE) {
-	    if (Debug.startlevel) {
-	      Debug.println("startlevel: stop " + bs);
+	    if (framework.props.debug.startlevel) {
+	      framework.props.debug.println("startlevel: stop " + bs);
 	    }
             saved = bs.stop0(false);
           }
@@ -387,8 +387,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
 	if (canStart(bs)) {
 	  if (bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
 	    try {
-              if (Debug.startlevel) {
-                Debug.println("startlevel: start " + bs);
+              if (framework.props.debug.startlevel) {
+                framework.props.debug.println("startlevel: start " + bs);
               }
 	      bs.start();
 	    } catch (Exception e) {
@@ -402,8 +402,8 @@ public class StartLevelImpl implements StartLevel, Runnable {
         BundleException saved = null;
         synchronized (bs) {
           if (bs.getState() == Bundle.ACTIVE) {
-	    if (Debug.startlevel) {
-	      Debug.println("startlevel: stop " + bs);
+	    if (framework.props.debug.startlevel) {
+	      framework.props.debug.println("startlevel: stop " + bs);
 	    }
             saved = bs.stop0(false);
 	  }

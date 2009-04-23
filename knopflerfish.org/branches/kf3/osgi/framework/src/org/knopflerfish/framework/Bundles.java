@@ -66,13 +66,13 @@ public class Bundles {
   /**
    * Link to framework object.
    */
-  private Framework framework;
+  private FrameworkImpl framework;
 
 
   /**
    * Create a container for all bundles in this framework.
    */
-  Bundles(Framework fw) {
+  Bundles(FrameworkImpl fw) {
     framework = fw;
     bundles.put(fw.systemBundle.location, fw.systemBundle);
   }
@@ -110,7 +110,7 @@ public class Bundles {
 
         // Support for http proxy authentication
         //TODO put in update as well
-        String auth = Framework.getProperty("http.proxyAuth");
+        String auth = framework.props.getProperty("http.proxyAuth");
         if (auth != null && !"".equals(auth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -120,7 +120,7 @@ public class Bundles {
           }
         }
         // Support for http basic authentication
-        String basicAuth = Framework.getProperty("http.basicAuth");
+        String basicAuth = framework.props.getProperty("http.basicAuth");
         if (basicAuth != null && !"".equals(basicAuth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -142,8 +142,8 @@ public class Bundles {
 
       String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
       if (ee != null) {
-        if (Debug.packages) {
-          Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+        if (framework.props.debug.packages) {
+          framework.props.debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
         }
         if (!framework.isValidEE(ee)) {
           throw new RuntimeException("Execution environment '" + ee +

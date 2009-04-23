@@ -629,8 +629,8 @@ class BundlePackages {
   void fragmentIsZombie(BundleImpl fb)
   {
     if (null!=exports) {
-      if(Debug.packages) {
-        Debug.println("Marking all packages exported by host bundle(id="
+      if(bundle.framework.props.debug.packages) {
+        bundle.framework.props.debug.println("Marking all packages exported by host bundle(id="
                       +bundle.id +",gen=" +generation
                       +") as zombies since the attached fragment (id="
                       +fb.getBundleId() +") was updated/uninstalled.");

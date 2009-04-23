@@ -55,7 +55,7 @@ public class BundleContextImpl
   /**
    * Reference to current framework object.
    */
-  private final Framework framework;
+  private final FrameworkImpl framework;
 
   /**
    * Reference to bundleImpl for this context.
@@ -82,7 +82,7 @@ public class BundleContextImpl
    */
   public String getProperty(String key) {
     isBCvalid();
-    return Framework.getProperty(key);
+    return framework.props.getProperty(key);
   }
 
 
