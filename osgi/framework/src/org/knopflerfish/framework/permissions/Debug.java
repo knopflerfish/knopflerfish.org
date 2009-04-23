@@ -37,7 +37,7 @@ package org.knopflerfish.framework.permissions;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import org.osgi.framework.BundleException;
-import org.knopflerfish.framework.Framework;
+import org.knopflerfish.framework.FrameworkImpl;
 
 /**
  * Static variables that controls debugging of the framework code.
@@ -49,12 +49,12 @@ public class Debug {
   /**
    * Controls if we should configure conditional permission so that it passes tck-4.0.1.
    */
-  final static boolean tck401compat = new Boolean(Framework.getProperty("org.knopflerfish.framework.tck401compat", "false")).booleanValue();
+  final static boolean tck401compat = new Boolean(System.getProperty("org.knopflerfish.framework.tck401compat", "false")).booleanValue();
 
   /**
    * Report Permission handling
    */
-  final static boolean permissions = new Boolean(Framework.getProperty("org.knopflerfish.framework.debug.permissions", "false")).booleanValue();
+  final static boolean permissions = new Boolean(System.getProperty("org.knopflerfish.framework.debug.permissions", "false")).booleanValue();
 
 
   /**

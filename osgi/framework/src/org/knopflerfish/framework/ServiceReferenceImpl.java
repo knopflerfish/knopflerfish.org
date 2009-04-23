@@ -170,7 +170,7 @@ public class ServiceReferenceImpl implements ServiceReference
     synchronized (registration.properties) {
       if (registration.available
           && (!registration.unregistering
-              || Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+              || bundle.framework.props.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
         Integer ref = (Integer)registration.dependents.get(bundle);
         if (ref == null) {
           String[] classes =

@@ -77,7 +77,7 @@ public class BundleImpl implements Bundle {
   /**
    * Framework for bundle.
    */
-  final Framework framework;
+  final FrameworkImpl framework;
 
   /**
    * Handle to secure operations.
@@ -210,7 +210,7 @@ public class BundleImpl implements Bundle {
    *
    * @param fw Framework for this bundle.
    */
-  BundleImpl(Framework fw, long id, String loc, ProtectionDomain pd, String sym, Version ver) {
+  BundleImpl(FrameworkImpl fw, long id, String loc, ProtectionDomain pd, String sym, Version ver) {
     this.framework = fw;
     this.secure = fw.perm;
     this.id = id;
@@ -236,9 +236,9 @@ public class BundleImpl implements Bundle {
    * @exception SecurityException If we don't have permission to import and export
    *            bundle packages.
    */
-  BundleImpl(Framework fw, BundleArchive ba) {
+  BundleImpl(FrameworkImpl fw, BundleArchive ba) {
     framework = fw;
-    secure = fw.perm;
+    secure = framework.perm;
     id = ba.getBundleId();
     location = ba.getBundleLocation();
     archive = ba;
@@ -246,7 +246,7 @@ public class BundleImpl implements Bundle {
     checkManifestHeaders();
     protectionDomain = secure.getProtectionDomain(this);
     doExportImport();
-    bundleDir = fw.getDataStorage(id);
+    bundleDir = framework.getDataStorage(id);
 
     int oldStartLevel = archive.getStartLevel();
     try {
@@ -258,7 +258,7 @@ public class BundleImpl implements Bundle {
         }
       }
     } catch (Exception e) {
-      Debug.println("Failed to set start level on #" + id + ": " + e);
+      framework.props.debug.println("Failed to set start level on #" + id + ": " + e);
     }
 
     // Activate extension as soon as they are installed so that
@@ -354,7 +354,7 @@ public class BundleImpl implements Bundle {
 
     ClassLoader oldLoader = null;
 
-    if (Framework.SETCONTEXTCLASSLOADER) {
+    if (framework.props.SETCONTEXTCLASSLOADER) {
       oldLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -363,7 +363,7 @@ public class BundleImpl implements Bundle {
       // class loader to the bundle class loader. This
       // is useful for debugging external libs using
       // the context class loader.
-      if (Framework.SETCONTEXTCLASSLOADER) {
+      if (framework.props.SETCONTEXTCLASSLOADER) {
         Thread.currentThread().setContextClassLoader(getClassLoader());
       }
 
@@ -382,7 +382,7 @@ public class BundleImpl implements Bundle {
         // Main-Class when the bundle is started, and if the
         // Main-Class contains a method named stop() call that
         // method when the bundle is stopped.
-        String locations = Framework.getProperty
+        String locations = framework.props.getProperty
           ("org.knopflerfish.framework.main.class.activation");
         if (locations != null) {
           final String mc = archive.getAttribute("Main-Class");
@@ -391,8 +391,8 @@ public class BundleImpl implements Bundle {
             String[] locs = Util.splitwords(locations, ",");
             for (int i = 0; i < locs.length; i++) {
               if (locs[i].equals(location)) {
-                if(Debug.packages) {
-                  Debug.println("starting main class " + mc);
+                if(framework.props.debug.packages) {
+                  framework.props.debug.println("starting main class " + mc);
                 }
                 Class mainClass = getClassLoader().loadClass(mc.trim());
                 bactivator = new MainClassBundleActivator(mainClass);
@@ -418,7 +418,7 @@ public class BundleImpl implements Bundle {
     } catch (Throwable t) {
       throw new BundleException("BundleActivator start failed", t);
     } finally {
-      if (Framework.SETCONTEXTCLASSLOADER) {
+      if (framework.props.SETCONTEXTCLASSLOADER) {
         Thread.currentThread().setContextClassLoader(oldLoader);
       }
     }
@@ -706,8 +706,8 @@ public class BundleImpl implements Bundle {
   void checkEE(BundleArchive ba) throws BundleException {
     String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
     if (ee != null) {
-      if (Debug.packages) {
-        Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+      if (framework.props.debug.packages) {
+        framework.props.debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
       }
       if (!framework.isValidEE(ee)) {
         throw new BundleException("Execution environment '" + ee + "' is not supported");
@@ -799,7 +799,7 @@ public class BundleImpl implements Bundle {
           try {
             archive.setStartLevel(-2); // Mark as uninstalled
           } catch (Exception e) {
-            Debug.println("Failed to mark bundle " + id +
+            framework.props.debug.println("Failed to mark bundle " + id +
                           " as uninstalled, " + bundleDir +
                           " must be deleted manually: " + e);
           }
@@ -1423,13 +1423,13 @@ public class BundleImpl implements Bundle {
                                              Constants.DYNAMICIMPORT_PACKAGE + " or " +
                                              Constants.BUNDLE_ACTIVATOR);
         }
-        if (!Framework.SUPPORTS_EXTENSION_BUNDLES) {
-          if (Framework.bIsMemoryStorage) {
+        if (!framework.props.SUPPORTS_EXTENSION_BUNDLES) {
+          if (framework.props.bIsMemoryStorage) {
             throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
-          } else if (!Framework.EXIT_ON_SHUTDOWN) {
+          } else if (!framework.props.EXIT_ON_SHUTDOWN) {
             throw new UnsupportedOperationException("Extension bundles require that the property " +
                                                     Main.EXITONSHUTDOWN_PROP + " is set to \"true\"");
-          } else if (!Framework.USING_WRAPPER_SCRIPT) {
+          } else if (!framework.props.USING_WRAPPER_SCRIPT) {
             throw new UnsupportedOperationException("Extension bundles require the use of a wrapper script. " +
                                                     "Consult the documentation");
           } else {
@@ -1568,7 +1568,7 @@ public class BundleImpl implements Bundle {
       try {
         archive.setStartLevel(n);
       } catch (Exception e) {
-        Debug.println("Failed to set start level on #" + getBundleId());
+        framework.props.debug.println("Failed to set start level on #" + getBundleId());
       }
     }
   }
@@ -2050,8 +2050,8 @@ public class BundleImpl implements Bundle {
       throw new IllegalStateException(failReason);
     }
 
-    if(Debug.packages) {
-      Debug.println("Fragment(id=" +fragmentBundle.getBundleId()
+    if(framework.props.debug.packages) {
+      framework.props.debug.println("Fragment(id=" +fragmentBundle.getBundleId()
                     +") attached to host(id=" +bpkgs.bundle.id
                     +",gen=" +bpkgs.generation +")");
 
@@ -2099,8 +2099,8 @@ public class BundleImpl implements Bundle {
     // NYI! extensions
     if (fragments.remove(fb)) {
       bpkgs.detachFragment(fb);
-      if(Debug.packages) {
-        Debug.println("Fragment(id=" +fb.getBundleId()
+      if(framework.props.debug.packages) {
+        framework.props.debug.println("Fragment(id=" +fb.getBundleId()
                       +") detached from host(id=" +bpkgs.bundle.id
                       +",gen=" +bpkgs.generation +")");
       }

@@ -53,12 +53,12 @@ import org.osgi.framework.*;
   extends ContentHandler 
 {
 
-  Framework              framework;
+  FrameworkImpl          framework;
   String                 mimetype;
   String                 filter;
   ServiceReference       best;
 
-  ContentHandlerWrapper(Framework              framework,
+  ContentHandlerWrapper(FrameworkImpl          framework,
 			String                 mimetype) {
     
     this.framework = framework;
@@ -109,8 +109,8 @@ import org.osgi.framework.*;
       throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
     }
     
-    if(Debug.url) {
-      Debug.println("created wrapper for " + mimetype + ", filter=" + filter);
+    if(framework.props.debug.url) {
+      framework.props.debug.println("created wrapper for " + mimetype + ", filter=" + filter);
     }
   }
   

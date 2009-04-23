@@ -47,7 +47,7 @@ import java.util.HashMap;
 public class ServiceURLStreamHandlerFactory 
   implements URLStreamHandlerFactory
 {
-  Framework framework;
+  FrameworkImpl framework;
 
   //
   // Special framework handlers 
@@ -67,18 +67,18 @@ public class ServiceURLStreamHandlerFactory
   Map wrapMap   = new HashMap();
 
 
-  ServiceURLStreamHandlerFactory(Framework fw) {
+  ServiceURLStreamHandlerFactory(FrameworkImpl fw) {
     this.framework = fw;
 
     // Initialize JVM classpath packages
-    String s = Framework.getProperty("java.protocol.handler.pkgs", "");
+    String s = framework.props.getProperty("java.protocol.handler.pkgs", "");
     
     jvmPkgs = Util.splitwords(s, "|");
 
     for(int i = 0; i < jvmPkgs.length; i++) {
       jvmPkgs[i] = jvmPkgs[i].trim();
-      if(Debug.url) {
-	Debug.println("JVMClassPath - URLHandler jvmPkgs[" + i + "]=" + jvmPkgs[i]);
+      if(framework.props.debug.url) {
+	framework.props.debug.println("JVMClassPath - URLHandler jvmPkgs[" + i + "]=" + jvmPkgs[i]);
       }
     }
   }
@@ -86,8 +86,8 @@ public class ServiceURLStreamHandlerFactory
   public URLStreamHandler createURLStreamHandler(String protocol) {
     synchronized(handlers) {
 
-      if(Debug.url) {
-	Debug.println("createURLStreamHandler protocol=" + protocol);
+      if(framework.props.debug.url) {
+	framework.props.debug.println("createURLStreamHandler protocol=" + protocol);
       }
 
       // Check for
@@ -98,8 +98,8 @@ public class ServiceURLStreamHandlerFactory
 
       URLStreamHandler handler = getJVMClassPathHandler(protocol);
       if(handler != null) {
-	if(Debug.url) {
-	  Debug.println("using JVMClassPath handler for " + protocol);
+	if(framework.props.debug.url) {
+	  framework.props.debug.println("using JVMClassPath handler for " + protocol);
 	}
 	return handler;
       }
@@ -107,22 +107,22 @@ public class ServiceURLStreamHandlerFactory
 	
       handler = (URLStreamHandler)handlers.get(protocol);
       if(handler != null) {
-	if(Debug.url) {
-	  Debug.println("using predefined handler for " + protocol);
+	if(framework.props.debug.url) {
+	  framework.props.debug.println("using predefined handler for " + protocol);
 	}
 	return handler;
       }
 
       handler = getServiceHandler(protocol);
       if(handler != null) {
-	if(Debug.url) {
-	  Debug.println("Using service URLHandler for " + protocol);
+	if(framework.props.debug.url) {
+	  framework.props.debug.println("Using service URLHandler for " + protocol);
 	}
 	return handler;
       }
 
-      if(Debug.url) {
-	Debug.println("Using default URLHandler for " + protocol);
+      if(framework.props.debug.url) {
+	framework.props.debug.println("Using default URLHandler for " + protocol);
       }
       return null;
     }
@@ -167,26 +167,26 @@ public class ServiceURLStreamHandlerFactory
     for(int i = 0; i < jvmPkgs.length; i++) {
       String className = jvmPkgs[i] + "." + protocol + ".Handler";
       try { 
-	if(Debug.url) {
-	  Debug.println("JVMClassPath - trying URLHandler class=" + className);
+	if(framework.props.debug.url) {
+	  framework.props.debug.println("JVMClassPath - trying URLHandler class=" + className);
 	}
 	Class clazz = Class.forName(className);
 	URLStreamHandler handler = (URLStreamHandler)clazz.newInstance();
 
-	if(Debug.url) {
-	  Debug.println("JVMClassPath - created URLHandler class=" + className);
+	if(framework.props.debug.url) {
+	  framework.props.debug.println("JVMClassPath - created URLHandler class=" + className);
 	}
 
 	return handler;
       } catch (Throwable t) {
-	if(Debug.url) {
-	  Debug.println("JVMClassPath - no URLHandler class " + className);
+	if(framework.props.debug.url) {
+	  framework.props.debug.println("JVMClassPath - no URLHandler class " + className);
 	}
       }
     }
     
-    if(Debug.url) {
-      Debug.println("JVMClassPath - no URLHandler for " + protocol);
+    if(framework.props.debug.url) {
+      framework.props.debug.println("JVMClassPath - no URLHandler for " + protocol);
     }
     
     return null;

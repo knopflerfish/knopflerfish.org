@@ -42,14 +42,17 @@ import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.lang.reflect.Constructor;
 
 import org.osgi.framework.*;
+import org.osgi.framework.launch.Framework;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
@@ -60,33 +63,12 @@ import org.osgi.service.startlevel.StartLevel;
  * @author Jan Stein, Erik Wistrand, Philippe Laporte,
  *         Mats-Ola Persson, Gunnar Ekolin
  */
-public class Framework {
-
-  /**
-   * The "System" properties for this framework instance.  Allways use
-   * <tt>Framework.setProperty(String,String)</tt> to add values to
-   * this map.
-   */
-  protected static Map/*<String, String>*/ props
-    = new HashMap/*<String, String>*/();
-
-  /**
-   * The set of properties that must not be present in props, since a
-   * bundle is allowed to update them and such updates are required to
-   * be visible when calling <tt>BundleContext.getProperty(String)</tt>.
-   */
-  private static Set volatileProperties = new HashSet();
-  static
-  {
-    // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
-    volatileProperties.add(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-  }
-
+public class FrameworkImpl  {
 
   /**
    * Specification version for this framework.
    */
-  static final String SPEC_VERSION = "1.3";
+  static final String SPEC_VERSION = "1.4";
 
   /**
    * Boolean indicating that framework is running.
@@ -162,52 +144,6 @@ public class Framework {
    */
   ServiceContentHandlerFactory   contentHandlerFactory;
 
-  /**
-   * Property constants for the framework.
-   */
-  final static String TRUE   = "true";
-  final static String FALSE  = "false";
-
-  // EXIT_ON_SHUTDOWN and USING_WRAPPER_SCRIPT  must be initialized 
-  // before initProperties(). Thus, they are *not* possible
-  // to set on a per-framework basis (which wouldn't make sense anyway).
-  final static boolean EXIT_ON_SHUTDOWN =
-    TRUE.equals(Framework.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
-
-  final static boolean USING_WRAPPER_SCRIPT
-    = TRUE.equals(Framework.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
-
-
-  static {
-    initProperties();
-  }
-
-  final static String osArch = Framework.getProperty("os.arch");
-  final static String osName = Framework.getProperty("os.name");
-  static String osVersion;
-
-  // If set to true, then during the UNREGISTERING event the Listener
-  // can use the ServiceReference to receive an instance of the service.
-  public final static boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
-    TRUE.equals(Framework.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
-                                     TRUE));
-
-  // If set to true, set the bundle startup thread's context class
-  // loader to the bundle class loader. This is useful for tests
-  // but shouldn't really be used in production.
-  final static boolean SETCONTEXTCLASSLOADER =
-    TRUE.equals(Framework.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
-
-  final static boolean REGISTERSERVICEURLHANDLER =
-    TRUE.equals(Framework.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
-
-
-
-  static boolean bIsMemoryStorage /*= false*/;
-
-  static String whichStorageImpl;
-
-  private static final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
   /**
    * The file where we store the class path
@@ -217,92 +153,35 @@ public class Framework {
   private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
 
   /** Cached value of
-   * Framework.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+   * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
   private Set    eeCacheSet = new HashSet();
   private String eeCache = null;
 
-  /**
-   * Whether the framework supports extension bundles or not.
-   * This will be false if bIsMemoryStorage is false.
-   */
-  static boolean SUPPORTS_EXTENSION_BUNDLES;
-
-
   final static int EXIT_CODE_NORMAL  = 0;
   final static int EXIT_CODE_RESTART = 200;
 
-
-  public static int javaVersionMajor = -1;
-  public static int javaVersionMinor = -1;
-  public static int javaVersionMicro = -1;
-  static {
-    String javaVersion = Framework.getProperty("java.version");
-    // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
-    if (null!=javaVersion) {
-      int startPos = 0;
-      int endPos   = 0;
-      int max      = javaVersion.length();
-      while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
-        endPos++;
-      }
-      if (startPos<endPos) {
-        try {
-          javaVersionMajor
-            = Integer.parseInt(javaVersion.substring(startPos,endPos));
-          startPos = endPos +1;
-          endPos   = startPos;
-          while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
-            endPos++;
-          }
-          if (startPos<endPos) {
-            javaVersionMinor
-              = Integer.parseInt(javaVersion.substring(startPos,endPos));
-            startPos = endPos +1;
-            endPos   = startPos;
-            while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))){
-              endPos++;
-            }
-            if (startPos<endPos) {
-              javaVersionMicro
-                = Integer.parseInt(javaVersion.substring(startPos,endPos));
-            }
-          }
-        } catch (NumberFormatException _nfe) {
-        }
-      }
-    }
-  }
-
-  /**
-   * Is it safe to use double-checked locking or not.
-   * It is safe if JSR 133 is included in the running JRE.
-   * I.e., for Java SE if version is 1.5 or higher.
-   */
-  public final static boolean isDoubleCheckedLockingSafe
-    = "true".equals(Framework.getProperty
-                    ("org.knopflerfish.framework.is_doublechecked_locking_safe",
-                     (javaVersionMajor>=1 && javaVersionMinor>=5
-                      ? "true" : "false")));
-
-
+  public FWProps props;
 
   /**
    * Contruct a framework.
    *
    */
-  public Framework(Object m) throws Exception {
+  public FrameworkImpl(Object m) throws Exception {
+    this(m, null);
+  }
 
-
+  public FrameworkImpl(Object m, FrameworkImpl parent) throws Exception {
+    props = new FWProps(parent);
 
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
       try {
         pd = getClass().getProtectionDomain();
       } catch (Throwable t) {
-        if(Debug.classLoader) {
-          Debug.println("Failed to get protection domain: " + t);
+        if(props.debug.classLoader) {
+          props.debug.println("Failed to get protection domain: " + t);
         }
       }
       perm = new SecurePermissionOps(this);
@@ -323,27 +202,28 @@ public class Framework {
 
     // Install service based URL stream handler. This can be turned
     // off if there is need
-    if(REGISTERSERVICEURLHANDLER) {
+    if(props.REGISTERSERVICEURLHANDLER) {
       try {
         URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
 
         URLConnection.setContentHandlerFactory(contentHandlerFactory);
       } catch (Throwable e) {
-        Debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
+        props.debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
         e.printStackTrace();
       }
     }
 
 
-    Class storageImpl = Class.forName(whichStorageImpl);
+    Class storageImpl = Class.forName(props.whichStorageImpl);
 
-    storage           = (BundleStorage)storageImpl.newInstance();
+    Constructor cons  = storageImpl.getConstructor(new Class[] { FrameworkImpl.class });
+    storage           = (BundleStorage)cons.newInstance(new Object[] { this });
 
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
 
-    listeners         = new Listeners(perm);
-    services          = new Services(perm);
+    listeners         = new Listeners(this, perm);
+    services          = new Services(this, perm);
 
     systemBundle      = new SystemBundle(this, pd);
     systemBC          = new BundleContextImpl(systemBundle);
@@ -373,13 +253,14 @@ public class Framework {
 
 
 
+  private final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
   private void registerStartLevel(){
-    String useStartLevel = Framework.getProperty(USESTARTLEVEL_PROP, TRUE);
+    String useStartLevel = props.getProperty(USESTARTLEVEL_PROP, FWProps.TRUE);
 
-    if(TRUE.equals(useStartLevel)) {
-      if(Debug.startlevel) {
-        Debug.println("[using startlevel service]");
+    if(FWProps.TRUE.equals(useStartLevel)) {
+      if(props.debug.startlevel) {
+        props.debug.println("[using startlevel service]");
       }
       startLevelService = new StartLevelImpl(this);
 
@@ -397,12 +278,12 @@ public class Framework {
 
 
   /**
-   * Start this Framework.
+   * Start this FrameworkImpl.
    * This method starts all the bundles that were started at
    * the time of the last shutdown.
    *
-   * <p>If the Framework is already started, this method does nothing.
-   * If the Framework is not started, this method will:
+   * <p>If the FrameworkImpl is already started, this method does nothing.
+   * If the FrameworkImpl is not started, this method will:
    * <ol>
    * <li>Enable event handling. At this point, events can be delivered to
    * listeners.</li>
@@ -410,15 +291,15 @@ public class Framework {
    * {@link Bundle#start} method.
    * Reports any exceptions that occur during startup using
    * <code>FrameworkErrorEvents</code>.</li>
-   * <li>Set the state of the Framework to <i>active</i>.</li>
+   * <li>Set the state of the FrameworkImpl to <i>active</i>.</li>
    * <li>Broadcasting a <code>FrameworkEvent</code> through the
    * <code>FrameworkListener.frameworkStarted</code> method.</li>
    * </ol></p>
    *
-   * <p>If this Framework is not launched, it can still install,
+   * <p>If this FrameworkImpl is not launched, it can still install,
    * uninstall, start and stop bundles.  (It does these tasks without
-   * broadcasting events, however.)  Using Framework without launching
-   * it allows for off-line debugging of the Framework.</p>
+   * broadcasting events, however.)  Using FrameworkImpl without launching
+   * it allows for off-line debugging of the FrameworkImpl.</p>
    *
    * @param startBundle If it is specified with a value larger than 0,
    *                    then the bundle with that id is started.
@@ -453,14 +334,14 @@ public class Framework {
 
 
   /**
-   * Stop this Framework, suspending all started contexts.
+   * Stop this FrameworkImpl, suspending all started contexts.
    * This method suspends all started contexts so that they can be
-   * automatically restarted when this Framework is next launched.
+   * automatically restarted when this FrameworkImpl is next launched.
    *
    * <p>If the framework is not started, this method does nothing.
    * If the framework is started, this method will:
    * <ol>
-   * <li>Set the state of the Framework to <i>inactive</i>.</li>
+   * <li>Set the state of the FrameworkImpl to <i>inactive</i>.</li>
    * <li>Suspended all started bundles as described in the
    * {@link Bundle#stop} method except that the persistent
    * state of the bundle will continue to be started.
@@ -679,7 +560,7 @@ public class Framework {
       return true;
     }
 
-    String fwEE = Framework.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
       // If EE is not set, allow everything
@@ -703,124 +584,6 @@ public class Framework {
     return false;
   }
 
-  //
-  // Static package methods
-  //
-
-
-  /**
-   * Retrieve the value of the named framework property.
-   *
-   */
-  public static String getProperty(String key) {
-    return getProperty(key, null);
-  }
-
-  /**
-   * Retrieve the value of the named framework property, with a default value.
-   *
-   */
-  public static String getProperty(String key, String def) {
-    String v = (String)props.get(key);
-    if(v != null) {
-      return v;
-    } else {
-      // default to system property
-      return System.getProperty(key, def);
-    }
-  }
-
-  public static void setProperty(String key, String val) {
-    if (volatileProperties.contains(key)) {
-      System.setProperty(key,val);
-    } else {
-      props.put(key, val);
-    }
-  }
-
-  public static void setProperties(Dictionary newProps) {
-    for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
-      String key = (String)it.nextElement();
-      setProperty(key, (String)newProps.get(key));
-    }
-  }
-
-  public static Dictionary getProperties(){
-    Hashtable p = new Hashtable();
-    p.putAll(System.getProperties());
-    p.putAll(props);
-    return p;
-  }
-
-  /**
-   * Get a copy of the current system properties.
-   */
-  public static java.util.Properties getSystemProperties() {
-    return (java.util.Properties)System.getProperties().clone();
-  }
-
-
-  protected static void initProperties() {
-    props = new HashMap();
-
-
-
-
-    whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
-      Framework.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
-      ".BundleStorageImpl";
-
-    bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
-    if (bIsMemoryStorage ||
-        !EXIT_ON_SHUTDOWN ||
-        !USING_WRAPPER_SCRIPT) {
-      SUPPORTS_EXTENSION_BUNDLES = false;
-      // we can not support this in this mode.
-    } else {
-      SUPPORTS_EXTENSION_BUNDLES = true;
-    }
-    // The name of the operating system of the hosting computer.
-    setProperty(Constants.FRAMEWORK_OS_NAME, System.getProperty("os.name"));
-
-
-    // The name of the processor of the hosting computer.
-    setProperty(Constants.FRAMEWORK_PROCESSOR, System.getProperty("os.arch"));
-
-    String ver = System.getProperty("os.version");
-    if (ver != null) {
-      int dots = 0;
-      int i = 0;
-      for ( ; i < ver.length(); i++) {
-        char c = ver.charAt(i);
-        if (Character.isDigit(c)) {
-          continue;
-        } else if (c == '.') {
-          if (++dots < 3) {
-            continue;
-          }
-        }
-        break;
-      }
-      osVersion = ver.substring(0, i);
-    }
-    setProperty(Constants.FRAMEWORK_OS_VERSION, osVersion);
-    setProperty(Constants.FRAMEWORK_VERSION,   SPEC_VERSION);
-    setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
-    setProperty(Constants.FRAMEWORK_LANGUAGE,
-                Locale.getDefault().getLanguage());
-
-    // Various framework properties
-    setProperty(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
-    setProperty(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
-                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-    setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
-                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-
-    Dictionary sysProps = getSystemProperties();
-
-    setProperties(sysProps);
-  }
 
   /**
    * Get the bundle context used by the system bundle.
@@ -828,4 +591,80 @@ public class Framework {
   public BundleContext getSystemBundleContext() {
     return systemBC;
   }
+
+  ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
+  boolean bootDelegationUsed /*= false*/;
+
+  void buildBootDelegationPatterns() {
+    String bootDelegationString = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
+    bootDelegationUsed = (bootDelegationString != null);
+    
+    try {
+      Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
+                                     bootDelegationString,
+                                     true, true, false);
+
+      while (i.hasNext()) {
+        Map e = (Map)i.next();
+        String key = (String)e.get("$key");
+        if (key.equals("*")) {
+          bootDelegationPatterns = null;
+          //in case funny person puts a * amongst other things
+          break;
+        }
+        else if (key.endsWith(".*")) {
+          bootDelegationPatterns.add(key.substring(0, key.length() - 1));
+        }
+        else if (key.endsWith(".")) {
+          listeners.frameworkError(systemBundle, new IllegalArgumentException(
+                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
+        }
+        else if (key.indexOf("*") != - 1) {
+          listeners.frameworkError(systemBundle, new IllegalArgumentException(
+                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
+        }
+        else {
+          bootDelegationPatterns.add(key);
+        }
+      }
+    }
+    catch (IllegalArgumentException e) {
+      listeners.frameworkError(systemBundle, e);
+    }
+  }
+
+  boolean isBootDelegatedResource(String name) {
+    // Convert resource name to class name format, preserving the
+    // package part of the path/name.
+    int pos = name.lastIndexOf('/');
+    return pos != -1
+      ? isBootDelegated(name.substring(0,pos).replace('/','.')+".X")
+      : false;
+  }
+
+  boolean isBootDelegated(String className){
+    if(!bootDelegationUsed){
+      return false;
+    }
+    int pos = className.lastIndexOf('.');
+    if (pos != -1) {
+      String classPackage = className.substring(0, pos);
+      if (bootDelegationPatterns == null) {
+        return true;
+      }
+      else {
+        for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
+          String ps = (String)i.next();
+          if ((ps.endsWith(".") &&
+               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
+               classPackage.equals(ps)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
 }

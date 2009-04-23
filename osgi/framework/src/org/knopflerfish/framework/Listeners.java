@@ -68,16 +68,22 @@ public class Listeners
   /**
    * All service event listeners.
    */
-  private ServiceListenerState serviceListeners = new ServiceListenerState();
+  private ServiceListenerState serviceListeners;
 
   /**
    * Handle to secure call class.
    */
   private PermissionOps secure;
+  
+  FrameworkImpl framework;
 
+  boolean nocacheldap;
 
-  Listeners(PermissionOps perm) {
+  Listeners(FrameworkImpl framework, PermissionOps perm) {
+    this.framework = framework;
     secure = perm;
+    nocacheldap = "true".equals(framework.props.getProperty("org.knopflerfish.framework.ldap.nocache"));
+    serviceListeners = new ServiceListenerState(this);
   }
 
 
@@ -266,10 +272,10 @@ public class Listeners
    * @see org.osgi.framework.FrameworkListener#frameworkEvent
    */
   public void frameworkEvent(final FrameworkEvent evt) {
-    if (Debug.errors) {
+    if (framework.props.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
-	Debug.println("errors - FrameworkErrorEvent bundle #" + evt.getBundle().getBundleId());
-	Debug.printStackTrace("errors - FrameworkErrorEvent throwable: ", evt.getThrowable());
+	framework.props.debug.println("errors - FrameworkErrorEvent bundle #" + evt.getBundle().getBundleId());
+	framework.props.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ", evt.getThrowable());
       }
     }
     ListenerEntry [] fl;
@@ -330,8 +336,8 @@ public class Listeners
         frameworkError(l.bundle, le);
       }
     }//for
-    if (Debug.ldap) {
-      Debug.println("Notified " + n + " listeners");
+    if (framework.props.debug.ldap) {
+      framework.props.debug.println("Notified " + n + " listeners");
     }
   }
 
@@ -356,280 +362,4 @@ public class Listeners
     }
   }
 
-  static boolean nocacheldap = 
-    "true".equals(Framework.getProperty("org.knopflerfish.framework.ldap.nocache"));
-}
-
-/**
- * Data structure for saving listener info. Contains bundle
- * who registered listener, listener object and if a service
- * listener any associated filter.
- */
-class ListenerEntry {
-  Bundle bundle;
-  EventListener listener;
-
-  ListenerEntry(Bundle b, EventListener l) {
-    bundle = b;
-    listener = l;
-  }
-
-  public boolean equals(Object o) {
-    if (o instanceof ListenerEntry) {
-      return bundle == ((ListenerEntry)o).bundle &&
-	listener == ((ListenerEntry)o).listener;
-    }
-    return false;
-  }
-
-  public int hashCode() {
-    return bundle.hashCode();
-  }
-}
-
-/**
- * Data structure for saving service listener info. Contains
- * the optional service listener filter, in addition to the info 
- * in ListenerEntry.
- */
-class ServiceListenerEntry extends ListenerEntry {
-  LDAPExpr ldap;
-
-  /**
-   * The elements of "simple" filters are cached, for easy lookup.
-   * 
-   * The grammar for simple filters is as follows:
-   *
-   * <pre>
-   * Simple = '(' attr '=' value ')'
-   *        | '(' '|' Simple+ ')'
-   * </pre>
-   * where <code>attr</code> is one of {@link Constants#OBJECTCLASS}, 
-   * {@link Constants#SERVICE_ID} or {@link Constants#SERVICE_PID}, and
-   * <code>value</code> must not contain a wildcard character.
-   * <p>
-   * The index of the vector determines which key the cache is for
-   * (see {@link ServiceListenerState#hashedKeys}). For each key, there is
-   * a vector pointing out the values which are accepted by this
-   * ServiceListenerEntry's filter. This cache is maintained to make
-   * it easy to remove this service listener.
-   */
-  List[] local_cache;
-
-  ServiceListenerEntry(Bundle b, EventListener l, String filter) 
-    throws InvalidSyntaxException {
-    super(b, l);
-    if (filter != null) {
-      ldap = new LDAPExpr(filter);
-    } else {
-      ldap = null;
-    }
-  }
-
-  ServiceListenerEntry(Bundle b, EventListener l) {
-    super(b, l);
-    ldap = null;
-  }
-
-}
-
-/**
- * Container of all service listeners.
- */
-class ServiceListenerState {
-  protected final static String[] hashedKeys = 
-    new String[] { Constants.OBJECTCLASS.toLowerCase(),
-		   Constants.SERVICE_ID.toLowerCase(),
-		   Constants.SERVICE_PID.toLowerCase()
-    };
-  private final static int OBJECTCLASS_IX = 0;
-  private final static int SERVICE_ID_IX  = 1;
-  private final static int SERVICE_PID_IX = 2;
-  protected static List hashedKeysV;
-
-  /* Service listeners with complicated or empty filters */
-  List complicatedListeners = new ArrayList();
-
-  /* Service listeners with "simple" filters are cached. */
-  Map[] /* [Value -> List(ServiceListenerEntry)] */
-    cache = new HashMap[hashedKeys.length];
-
-  Set /* ServiceListenerEntry */ serviceSet = new HashSet();
-
-  ServiceListenerState() {
-    hashedKeysV = new ArrayList();
-    for (int i = 0; i < hashedKeys.length; i++) {
-      hashedKeysV.add(hashedKeys[i]);    
-      cache[i] = new HashMap();
-    }
-  }
-
-  /**
-   * Add a new service listener. If an old one exists, and it has the
-   * same owning bundle, the old listener is removed first.
-   *
-   * @param bundle The bundle adding this listener.
-   * @param listener The service listener to add.
-   * @param filter An LDAP filter string to check when a service is modified.
-   * @exception org.osgi.framework.InvalidSyntaxException
-   * If the filter is not a correct LDAP expression.
-   */
-  synchronized void add(Bundle bundle, ServiceListener listener, String filter)
-  throws InvalidSyntaxException {
-    ServiceListenerEntry sle = new ServiceListenerEntry(bundle, listener, filter);
-    if (serviceSet.contains(sle)) {
-      remove(bundle, listener);
-    }
-    serviceSet.add(sle);
-    checkSimple(sle);
-  }
-
-  /**
-   * Remove a service listener.
-   * 
-   * @param bundle The bundle removing this listener.
-   * @param listener The service listener to remove.
-   */
-  synchronized void remove(Bundle bundle, ServiceListener listener) {
-    for (Iterator it = serviceSet.iterator(); it.hasNext();) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.bundle == bundle && sle.listener == listener) {
-	removeFromCache(sle);
-	it.remove();
-	break;
-      }
-    }
-  }
-
-  /**
-   * Remove all references to a service listener from the service listener
-   * cache.
-   */
-  private void removeFromCache(ServiceListenerEntry sle) {
-    if (sle.local_cache != null) {
-      for (int i = 0; i < hashedKeys.length; i++) {
-	HashMap keymap = (HashMap)cache[i];
-	List l = (List)sle.local_cache[i];
-	if (l != null) {
-	  for (Iterator it = l.iterator(); it.hasNext();) {
-	    Object value = it.next();
-	    List sles = (List)keymap.get(value);
-	    sles.remove(sles.indexOf(sle));
-	    if (sles.isEmpty()) {
-	      keymap.remove(value);
-	    }
-	  }	  
-	}
-      }
-    } else {
-      complicatedListeners.remove(sle);
-    }
-  }
-
-  /**
-   * Remove all service listeners registered by the specified bundle.
-   *
-   * @param bundle The bundle to remove listeners for.
-   */
-  synchronized void removeAll(Bundle bundle) {
-    for (Iterator it = serviceSet.iterator(); it.hasNext();) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.bundle == bundle) {
-	removeFromCache(sle);
-	it.remove();
-      }
-    }
-  }
-
-  /**
-   * Checks if the specified service listener's filter is simple enough 
-   * to cache.
-   */
-  public void checkSimple(ServiceListenerEntry sle) {
-    if (sle.ldap == null || Listeners.nocacheldap) {
-      complicatedListeners.add(sle);
-    } else {
-      List[] /* Value */ local_cache = new List[hashedKeys.length];
-      if (sle.ldap.isSimple(hashedKeysV, local_cache)) {
-	sle.local_cache = local_cache;
-	for (int i = 0; i < hashedKeys.length; i++) {
-	  if (local_cache[i] != null) {
-	    for (Iterator it = local_cache[i].iterator(); it.hasNext();) {
-	      Object value = it.next();
-	      List sles = (List)cache[i].get(value);
-	      if (sles == null)
-		cache[i].put(value, sles = new ArrayList());
-	      sles.add(sle);
-	    }
-	  }
-	}
-      } else {
-	if (Debug.ldap)
-	  Debug.println("Too complicated filter: " + sle.ldap);
-	complicatedListeners.add(sle);
-      }
-    }
-  }
-
-  /**
-   * Gets the listeners interested in modifications of the service reference
-   *
-   * @param The reference related to the event describing the service modification.
-   * @return A set of listeners to notify.
-   */
-  synchronized Set getMatchingListeners(ServiceReferenceImpl sr) {
-    Set set = new HashSet();    
-    // Check complicated or empty listener filters
-    int n = 0;
-    for (Iterator it = complicatedListeners.iterator(); it.hasNext(); n++) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.ldap == null || sle.ldap.evaluate(sr.getProperties(), false)) {
-	set.add(sle);
-      }
-    }
-    if (Debug.ldap) {
-      Debug.println("Added " + set.size() + " out of " + n + " listeners with complicated filters");
-    }
-    // Check the cache
-    String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
-    for (int i = 0; i < c.length; i++) {
-      if (Debug.ldap) {
-	System.err.print("objectclass matches: ");
-      }
-      addToSet(set, (List)cache[OBJECTCLASS_IX].get(c[i]));
-    }
-    Long service_id = (Long)sr.getProperty(Constants.SERVICE_ID);
-    if (service_id != null) {
-      if (Debug.ldap) {
-	System.err.print("service_id matches: ");
-      }
-      addToSet(set, (List)cache[SERVICE_ID_IX].get(service_id.toString()));
-    }
-    Object service_pid = sr.getProperty(Constants.SERVICE_PID);
-    if (service_pid != null && service_pid instanceof String) {
-      if (Debug.ldap) {
-	System.err.print("service_pid matches: ");
-      }
-      addToSet(set, (List)cache[SERVICE_PID_IX].get(service_pid));
-    }
-    return set;
-  }
-
-  /**
-   * Add all members of the specified list to the specified set.
-   */
-  private void addToSet(Set set, List l) {
-    if (l != null) {
-      if (Debug.ldap) {
-	Debug.println(Integer.toString(l.size()));
-      }
-      for (Iterator it = l.iterator(); it.hasNext();) {
-	set.add(it.next());
-      }
-    } else {
-      if (Debug.ldap) { 
-	Debug.println("0");
-      }
-    }
-  }
 }

@@ -76,29 +76,29 @@ class Archive {
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  final private static boolean unpack = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
+  private boolean unpack;
 
   /**
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  final private static boolean alwaysUnpack = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
+  private boolean alwaysUnpack;
 
   /**
    * Controls if file: URLs should be referenced only, not copied
    * to bundle storage dir
    */
-  final private static boolean fileReference = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
+  private boolean fileReference;
 
   /**
    * Controls if we should trust file storage to be secure.
    */
-  final private static boolean trustedStorage = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.trusted", "true")).booleanValue();
+  private boolean trustedStorage;
 
   /**
    * Controls if we should require signed bundles.
    */
-  final private static boolean allSigned = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.all_signed", "false")).booleanValue();
+  private boolean allSigned;
 
   /**
    * File handle for file that contains current archive.
@@ -139,7 +139,15 @@ class Archive {
    */
   private boolean bClosed = false;
 
+  BundleStorageImpl storage;
 
+  void initProps() {
+    unpack = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
+    alwaysUnpack = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
+    fileReference = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();    
+    trustedStorage = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.trusted", "true")).booleanValue();
+    allSigned = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.all_signed", "false")).booleanValue();
+  }
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -153,10 +161,12 @@ class Archive {
    * @param url URL to use to CodeSource.
    * @param location Location for archive
    */
-  Archive(File dir, int rev, InputStream is, URL source, String location) throws IOException
+  Archive(BundleStorageImpl storage, File dir, int rev, InputStream is, URL source, String location) throws IOException
   {
     final boolean doVerify = System.getSecurityManager() != null;
     this.location = location;
+    this.storage  = storage;
+    initProps();
     Manifest mf = null;
 
     boolean isDirectory = false;
@@ -177,7 +187,7 @@ class Archive {
     JarInputStream ji = null;
     //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
     if (mf == null) {
-      if (Framework.getProperty("java.vendor").startsWith("Skelmir")){
+      if (storage.framework.props.getProperty("java.vendor").startsWith("Skelmir")){
         bis = new BufferedInputStream(is, is.available());
       } else {
         bis = new BufferedInputStream(is, 8192);
@@ -285,7 +295,7 @@ class Archive {
       }
     }
     if (mf != null) {
-      manifest = new AutoManifest(mf, location);
+      manifest = new AutoManifest(storage.framework, mf, location);
     } else {
       manifest = getManifest();
     }
@@ -326,9 +336,11 @@ class Archive {
    * Take lowest versioned archive and remove rest.
    *
    */
-  Archive(File dir, int rev, String location) throws IOException {
+  Archive(BundleStorageImpl storage, File dir, int rev, String location) throws IOException {
     final boolean doVerify = System.getSecurityManager() != null;
     this.location = location;
+    this.storage  = storage;
+    initProps();
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
@@ -390,7 +402,7 @@ class Archive {
       if (jar == null) {
         loadCertificates();
       } else {
-        manifest = new AutoManifest(processSignedJar(file), location);
+        manifest = new AutoManifest(storage.framework, processSignedJar(file), location);
       }
     }
     if (manifest == null) {
@@ -412,6 +424,8 @@ class Archive {
    */
   Archive(Archive a, String path) throws IOException {
     this.location = a.location;
+    this.storage  = a.storage;
+    initProps();
     if (a.jar != null) {
       jar = a.jar;
       // Try a directory first, make sure that path ends with "/"
@@ -831,7 +845,7 @@ class Archive {
     // TBD: Should recognize entry with lower case?
     InputFlow mif = getInputFlow("META-INF/MANIFEST.MF");
     if (mif != null) {
-      return new AutoManifest(new Manifest(mif.is), location);
+      return new AutoManifest(storage.framework, new Manifest(mif.is), location);
     } else {
       throw new IOException("Manifest is missing");
     }
