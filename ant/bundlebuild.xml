@@ -860,7 +860,7 @@
   </target>
 
   <target name="clean" description="Deletes all generated files.">
-    <delete dir="${outdir}"/>
+    <delete dir="${outdir}" failonerror="false"/>
     <delete includeEmptyDirs="true" verbose="true" failonerror="false">
       <fileset dir="${jardir}">
 	<include name="${ant.project.name}.jar" />
