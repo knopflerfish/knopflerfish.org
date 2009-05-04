@@ -291,11 +291,13 @@ class PermissionOps {
   //
 
   void callMainRestart() {
-     Main.restart();
+    throw new RuntimeException("NYI");
+    // Main.restart();
   }
 
-  void callMainShutdown(final int exitcode) {
-     Main.shutdown(exitcode);
+  void callShutdown(SystemBundle bundle, final int exitcode) {
+    // Main.shutdown(exitcode);
+    bundle.shutdown(exitcode);
   }
 
   //
@@ -343,7 +345,7 @@ class PermissionOps {
    * </p>
    */
   URL getBundleURL(BundleImpl b, String s) throws MalformedURLException {
-    return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+    return new URL(null, s, b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
 
   //

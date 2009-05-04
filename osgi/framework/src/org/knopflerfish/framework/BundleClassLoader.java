@@ -139,9 +139,9 @@ final public class BundleClassLoader extends ClassLoader {
    */
   BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags,
                     ProtectionDomain pd, PermissionOps secure) {
-    super(bpkgs.bundle.framework.getClass().getClassLoader()); //otherwise getResource will bypass OUR parent
-    this.debug = bpkgs.bundle.framework.props.debug;
-    this.parent = bpkgs.bundle.framework.getClass().getClassLoader();
+    super(bpkgs.bundle.fwCtx.getClass().getClassLoader()); //otherwise getResource will bypass OUR parent
+    this.debug = bpkgs.bundle.fwCtx.props.debug;
+    this.parent = bpkgs.bundle.fwCtx.getClass().getClassLoader();
     this.secure = secure;
     protectionDomain = pd;
     this.bpkgs = bpkgs;
@@ -179,7 +179,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
 
     return bHasASM &&
-      "true".equals(bpkgs.bundle.framework.props.getProperty("org.knopflerfish.framework.patch",
+      "true".equals(bpkgs.bundle.fwCtx.props.getProperty("org.knopflerfish.framework.patch",
                                                              "false"));
   }
 
@@ -194,7 +194,7 @@ final public class BundleClassLoader extends ClassLoader {
     if (name.startsWith("java.")) {
       return parent.loadClass(name);
     }
-    if (bpkgs.bundle.framework.isBootDelegated(name)) {
+    if (bpkgs.bundle.fwCtx.isBootDelegated(name)) {
       try {
         Class bootDelegationCls = parent.loadClass(name);
         if (debug.classLoader && bootDelegationCls!=null) {
@@ -220,7 +220,7 @@ final public class BundleClassLoader extends ClassLoader {
       return res;
     }
 
-    if(!bpkgs.bundle.framework.props.STRICTBOOTCLASSLOADING) {
+    if(!bpkgs.bundle.fwCtx.props.STRICTBOOTCLASSLOADING) {
       if(isBootClassContext(name)) {
         if(debug.classLoader) {
           debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
@@ -368,7 +368,7 @@ final public class BundleClassLoader extends ClassLoader {
       return res;
     }
 
-    if (bpkgs.bundle.framework.isBootDelegatedResource(name)) {
+    if (bpkgs.bundle.fwCtx.isBootDelegatedResource(name)) {
       res = parent.getResource(name);
       if (res!=null) {
         if (debug.classLoader) {
@@ -418,7 +418,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
 
     Enumeration res = null;
-    if (bpkgs.bundle.framework.isBootDelegatedResource(name)) {
+    if (bpkgs.bundle.fwCtx.isBootDelegatedResource(name)) {
       res = parent.getResources(name);
     }
 
@@ -518,7 +518,7 @@ final public class BundleClassLoader extends ClassLoader {
   void purge() {
     bpkgs.unregisterPackages(true);
     if (protectionDomain != null) {
-      bpkgs.bundle.framework.perm.purge(bpkgs.bundle, protectionDomain);
+      bpkgs.bundle.fwCtx.perm.purge(bpkgs.bundle, protectionDomain);
     }
     if (archive != null) {
       archive.purge();
@@ -527,7 +527,7 @@ final public class BundleClassLoader extends ClassLoader {
       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
         // NYI improve this solution
         BundleArchive ba = (BundleArchive)i.next();
-        BundleImpl b = (BundleImpl)bpkgs.bundle.framework.bundles.getBundle(ba.getBundleLocation());
+        BundleImpl b = (BundleImpl)bpkgs.bundle.fwCtx.bundles.getBundle(ba.getBundleLocation());
         if (b == null || b.archive != ba) {
           ba.purge();
         }
@@ -682,7 +682,7 @@ final public class BundleClassLoader extends ClassLoader {
 
         if (isSystemBundle(pbp.bundle)) {
           try {
-            return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
+            return pbp.bundle.fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
@@ -774,7 +774,7 @@ final public class BundleClassLoader extends ClassLoader {
       try {
         return action.get(sais, path, name, pkg, this );
       } catch (IOException ioe) {
-        bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
+        bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
         return null;
       }
     }
@@ -790,7 +790,7 @@ final public class BundleClassLoader extends ClassLoader {
         /* 9 */
         if (isSystemBundle(pbp.bundle)) {
           try {
-            return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
+            return pbp.bundle.fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
@@ -815,7 +815,7 @@ final public class BundleClassLoader extends ClassLoader {
 
 
   private static boolean isSystemBundle(BundleImpl bundle) {
-    return bundle == bundle.framework.systemBundle;
+    return bundle == bundle.fwCtx.systemBundle;
   }
 
 

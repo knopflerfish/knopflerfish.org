@@ -47,7 +47,7 @@ import java.util.HashMap;
 public class ServiceURLStreamHandlerFactory 
   implements URLStreamHandlerFactory
 {
-  FrameworkImpl framework;
+  FrameworkContext framework;
 
   //
   // Special framework handlers 
@@ -67,7 +67,7 @@ public class ServiceURLStreamHandlerFactory
   Map wrapMap   = new HashMap();
 
 
-  ServiceURLStreamHandlerFactory(FrameworkImpl fw) {
+  ServiceURLStreamHandlerFactory(FrameworkContext fw) {
     this.framework = fw;
 
     // Initialize JVM classpath packages

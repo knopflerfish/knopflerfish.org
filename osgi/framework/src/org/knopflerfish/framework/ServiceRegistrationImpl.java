@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,7 +150,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           throw new IllegalStateException("Service is unregistered");
         }
       }
-      bundle.framework.listeners
+      bundle.fwCtx.listeners
         .serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
     }
   }
@@ -169,7 +169,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       synchronized (properties) {
         if (available) {
           if (null!=bundle)
-            bundle.framework.services.removeServiceRegistration(this);
+            bundle.fwCtx.services.removeServiceRegistration(this);
         } else {
           throw new IllegalStateException("Service is unregistered");
         }
@@ -177,7 +177,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
 
     if (null!=bundle) {
-      bundle.framework.listeners
+      bundle.fwCtx.listeners
         .serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING,
                                          reference));
     }
@@ -185,7 +185,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       synchronized (properties) {
         available = false;
         if (null!=bundle)
-          bundle.framework.perm.callUnregister0(this);
+          bundle.fwCtx.perm.callUnregister0(this);
         bundle = null;
         dependents = null;
         reference = null;
@@ -207,7 +207,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
                                                this,
                                                e.getValue());
       } catch (Throwable ue) {
-        bundle.framework.listeners
+        bundle.fwCtx.listeners
           .frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
       }
     }

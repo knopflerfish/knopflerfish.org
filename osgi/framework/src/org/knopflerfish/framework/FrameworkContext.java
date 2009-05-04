@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ import org.osgi.service.startlevel.StartLevel;
  * @author Jan Stein, Erik Wistrand, Philippe Laporte,
  *         Mats-Ola Persson, Gunnar Ekolin
  */
-public class FrameworkImpl  {
+public class FrameworkContext  {
 
   /**
    * Specification version for this framework.
@@ -124,11 +124,6 @@ public class FrameworkImpl  {
   FileTree dataStorage /*= null*/;
 
   /**
-   * Main handle so that main doesn't get GCed.
-   */
-  Object mainHandle;
-
-  /**
    * The start level service.
    */
   StartLevelImpl startLevelService;
@@ -165,15 +160,13 @@ public class FrameworkImpl  {
   public FWProps props;
 
   /**
-   * Contruct a framework.
+   * Contruct a framework context
    *
    */
-  public FrameworkImpl(Object m) throws Exception {
-    this(m, null);
-  }
-
-  public FrameworkImpl(Object m, FrameworkImpl parent) throws Exception {
-    props = new FWProps(parent);
+  public FrameworkContext(Map initProps, FrameworkContext parent)  {
+    props = new FWProps(initProps, parent);
+    
+    buildBootDelegationPatterns();
 
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
@@ -214,11 +207,14 @@ public class FrameworkImpl  {
     }
 
 
-    Class storageImpl = Class.forName(props.whichStorageImpl);
-
-    Constructor cons  = storageImpl.getConstructor(new Class[] { FrameworkImpl.class });
-    storage           = (BundleStorage)cons.newInstance(new Object[] { this });
-
+    try {
+      Class storageImpl = Class.forName(props.whichStorageImpl);
+      
+      Constructor cons  = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+      storage           = (BundleStorage)cons.newInstance(new Object[] { this });
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to initialize storage " + props.whichStorageImpl + ": " + e);
+    }
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
 
@@ -247,8 +243,6 @@ public class FrameworkImpl  {
     registerStartLevel();
 
     bundles.load();
-
-    mainHandle = m;
   }
 
 
@@ -278,12 +272,12 @@ public class FrameworkImpl  {
 
 
   /**
-   * Start this FrameworkImpl.
+   * Start this FrameworkContext.
    * This method starts all the bundles that were started at
    * the time of the last shutdown.
    *
-   * <p>If the FrameworkImpl is already started, this method does nothing.
-   * If the FrameworkImpl is not started, this method will:
+   * <p>If the FrameworkContext is already started, this method does nothing.
+   * If the FrameworkContext is not started, this method will:
    * <ol>
    * <li>Enable event handling. At this point, events can be delivered to
    * listeners.</li>
@@ -291,15 +285,15 @@ public class FrameworkImpl  {
    * {@link Bundle#start} method.
    * Reports any exceptions that occur during startup using
    * <code>FrameworkErrorEvents</code>.</li>
-   * <li>Set the state of the FrameworkImpl to <i>active</i>.</li>
+   * <li>Set the state of the FrameworkContext to <i>active</i>.</li>
    * <li>Broadcasting a <code>FrameworkEvent</code> through the
    * <code>FrameworkListener.frameworkStarted</code> method.</li>
    * </ol></p>
    *
-   * <p>If this FrameworkImpl is not launched, it can still install,
+   * <p>If this FrameworkContext is not launched, it can still install,
    * uninstall, start and stop bundles.  (It does these tasks without
-   * broadcasting events, however.)  Using FrameworkImpl without launching
-   * it allows for off-line debugging of the FrameworkImpl.</p>
+   * broadcasting events, however.)  Using FrameworkContext without launching
+   * it allows for off-line debugging of the FrameworkContext.</p>
    *
    * @param startBundle If it is specified with a value larger than 0,
    *                    then the bundle with that id is started.
@@ -334,14 +328,14 @@ public class FrameworkImpl  {
 
 
   /**
-   * Stop this FrameworkImpl, suspending all started contexts.
+   * Stop this FrameworkContext, suspending all started contexts.
    * This method suspends all started contexts so that they can be
-   * automatically restarted when this FrameworkImpl is next launched.
+   * automatically restarted when this FrameworkContext is next launched.
    *
    * <p>If the framework is not started, this method does nothing.
    * If the framework is started, this method will:
    * <ol>
-   * <li>Set the state of the FrameworkImpl to <i>inactive</i>.</li>
+   * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
    * <li>Suspended all started bundles as described in the
    * {@link Bundle#stop} method except that the persistent
    * state of the bundle will continue to be started.

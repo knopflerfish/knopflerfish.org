@@ -63,14 +63,14 @@ public class BundleStorageImpl implements BundleStorage {
   private ArrayList /* BundleArchive */ archives = new ArrayList();
 
   // package protected to allow BundleArchiveImpl to get framework
-  FrameworkImpl     framework;
+  FrameworkContext     framework;
 
   /**
    * Create a container for all bundle data in this framework.
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl(FrameworkImpl     framework) {
+  public BundleStorageImpl(FrameworkContext     framework) {
     this.framework = framework;
     // See if we have a storage directory
     bundlesDir = Util.getFileStorage("bs");

@@ -248,7 +248,7 @@ public class Util {
   static byte[] readResource(String name) throws IOException  {
     byte[] buf = new byte[1024];
 
-    InputStream           in = Main.class.getResourceAsStream(name);
+    InputStream           in = Util.class.getResourceAsStream(name);
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     int n;
     while ((n = in.read(buf)) > 0) {

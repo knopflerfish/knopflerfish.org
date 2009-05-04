@@ -197,7 +197,7 @@ class BundlePackages {
    *
    */
   void registerPackages() {
-    bundle.framework.packages.registerPackages(exports.iterator(), imports.iterator());
+    bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
     registered = true;
   }
 
@@ -209,7 +209,7 @@ class BundlePackages {
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
       List i = okImports != null ? okImports : imports;
-      if (bundle.framework.packages.unregisterPackages(exports, i, force)) {
+      if (bundle.fwCtx.packages.unregisterPackages(exports, i, force)) {
         okImports = null;
         registered = false;
         unRequireBundles();
@@ -231,11 +231,11 @@ class BundlePackages {
    */
   boolean resolvePackages() {
     ArrayList permImports = new ArrayList(imports.size());
-    failReason = bundle.framework.perm.missingMandatoryPackagePermissions(this, permImports);
+    failReason = bundle.fwCtx.perm.missingMandatoryPackagePermissions(this, permImports);
     if (failReason != null) {
       return false;
     }
-    failReason = bundle.framework.packages.resolve(bundle, permImports.iterator());
+    failReason = bundle.fwCtx.packages.resolve(bundle, permImports.iterator());
     if (failReason == null) {
       for (Iterator i = permImports.iterator(); i.hasNext(); ) {
         ImportPkg ip = (ImportPkg)i.next();
@@ -295,14 +295,14 @@ class BundlePackages {
     if (ii >= 0) {
       return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
     }
-    if (bundle.framework.perm.hasImportPackagePermission(bundle, pkg)) {
+    if (bundle.fwCtx.perm.hasImportPackagePermission(bundle, pkg)) {
       for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
         ImportPkg ip = (ImportPkg)i.next();
         if (ip.name == EMPTY_STRING ||
             (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
             pkg.equals(ip.name)) {
           ImportPkg nip = new ImportPkg(ip, pkg);
-          ExportPkg ep = bundle.framework.packages.registerDynamicImport(nip);
+          ExportPkg ep = bundle.fwCtx.packages.registerDynamicImport(nip);
           if (ep != null) {
             nip.provider = ep;
             okImports.add(-ii - 1, nip);
@@ -611,7 +611,7 @@ class BundlePackages {
       }
     }
 
-    bundle.framework.packages.registerPackages(newExports.iterator(),
+    bundle.fwCtx.packages.registerPackages(newExports.iterator(),
                                                newImports.iterator());
     fragments.put(fbpkgs.bundle,
                   new ArrayList [] { newRequired, newExports, newImports });
@@ -629,8 +629,8 @@ class BundlePackages {
   void fragmentIsZombie(BundleImpl fb)
   {
     if (null!=exports) {
-      if(bundle.framework.props.debug.packages) {
-        bundle.framework.props.debug.println("Marking all packages exported by host bundle(id="
+      if(bundle.fwCtx.props.debug.packages) {
+        bundle.fwCtx.props.debug.println("Marking all packages exported by host bundle(id="
                       +bundle.id +",gen=" +generation
                       +") as zombies since the attached fragment (id="
                       +fb.getBundleId() +") was updated/uninstalled.");
@@ -699,7 +699,7 @@ class BundlePackages {
           imports.remove(iiter.next());
         }
         if (unregister) {
-          bundle.framework.packages.unregisterPackages(added[1], added[2],true);
+          bundle.fwCtx.packages.unregisterPackages(added[1], added[2],true);
         }
       }
     }

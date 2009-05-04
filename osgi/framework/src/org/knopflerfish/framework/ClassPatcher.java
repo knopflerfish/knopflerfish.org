@@ -107,10 +107,10 @@ public class ClassPatcher {
   // to be applied.
   protected Map      wrappers      = new HashMap();
 
-  FrameworkImpl framework;
+  FrameworkContext framework;
   protected ClassPatcher(BundleClassLoader classLoader) {
     this.classLoader = classLoader;
-    this.framework = classLoader.bpkgs.bundle.framework;
+    this.framework = classLoader.bpkgs.bundle.fwCtx;
     init();
   }
 
@@ -410,7 +410,7 @@ class ClassAdapterPatcher extends ClassAdapter {
   // magic name of bundle id field added to all processed classes.
   static final String FIELD_BID = "__kf_asm_bid_" + ClassPatcher.class.hashCode()+ "__";
 
-  FrameworkImpl framework;
+  FrameworkContext framework;
 
   ClassAdapterPatcher(ClassVisitor      cv,
                       String            className,
@@ -422,7 +422,7 @@ class ClassAdapterPatcher extends ClassAdapter {
     this.bcl       = bcl;
     this.bid       = bid;
     this.cp        = cp;
-    this.framework = bcl.bpkgs.bundle.framework;
+    this.framework = bcl.bpkgs.bundle.fwCtx;
   }
 
   public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -448,7 +448,7 @@ class ClassAdapterPatcher extends ClassAdapter {
 
     super.visitEnd();
 
-    if(bcl.bpkgs.bundle.framework.props.debug.patch) {
+    if(bcl.bpkgs.bundle.fwCtx.props.debug.patch) {
       cp.dumpInfo();
     }
   }
@@ -472,7 +472,7 @@ class ClassAdapterPatcher extends ClassAdapter {
 class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
   ClassAdapterPatcher ca;
   int access;
-  FrameworkImpl framework;
+  FrameworkContext framework;
   public ReplaceMethodAdapter(MethodVisitor mv, ClassAdapterPatcher ca) {
     super(mv);
     this.ca = ca;

@@ -71,10 +71,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.2";
 
-  private FrameworkImpl framework;
+  private FrameworkContext framework;
 
 
-  PackageAdminImpl(FrameworkImpl fw) {
+  PackageAdminImpl(FrameworkContext fw) {
     framework = fw;
   }
 
@@ -207,7 +207,7 @@ public class PackageAdminImpl implements PackageAdmin {
     if (restart) {
       try {
         // will restart the framework.
-        framework.systemBundle.stop(FrameworkImpl.EXIT_CODE_RESTART);
+        framework.systemBundle.stop(FrameworkContext.EXIT_CODE_RESTART);
       } catch (BundleException ignored) {
         /* this can't be happening. */
       }

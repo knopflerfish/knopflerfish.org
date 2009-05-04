@@ -59,7 +59,6 @@ import org.osgi.service.startlevel.StartLevel;
  */
 public class FWProps  {
 
-
   public Debug debug;
 
   public final static String TRUE   = "true";
@@ -93,13 +92,6 @@ public class FWProps  {
   protected Map/*<String, String>*/ props
     = new HashMap/*<String, String>*/();
   
-  /**
-   * The set of properties that must not be present in props, since a
-   * bundle is allowed to update them and such updates are required to
-   * be visible when calling <tt>BundleContext.getProperty(String)</tt>.
-   */
-  private Set volatileProperties = new HashSet();
-
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -184,17 +176,14 @@ public class FWProps  {
                       ? "true" : "false")));
 
 
-  FrameworkImpl parent;
+  FrameworkContext parent;
   
-  public FWProps(FrameworkImpl parent) {
+  public FWProps(Map initProps, FrameworkContext parent) {
     this.parent = parent;    
     // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
-    volatileProperties.add(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-    initProperties();
+    initProperties(initProps);
     debug = new Debug(this);
   }
-
-
 
   /**
    * Retrieve the value of the named framework property.
@@ -213,17 +202,12 @@ public class FWProps  {
     if(v != null) {
       return v;
     } else {
-      // default to system property
       return System.getProperty(key, def);
     }
   }
 
   public void setProperty(String key, String val) {
-    if (volatileProperties.contains(key)) {
-      System.setProperty(key,val);
-    } else {
-      props.put(key, val);
-    }
+    props.put(key, val);
   }
 
   public void setProperties(Dictionary newProps) {
@@ -240,6 +224,38 @@ public class FWProps  {
     return p;
   }
 
+  public void printProps() {
+    int n = 0;
+    System.out.println("**** Own ****");
+    Map p = new java.util.TreeMap(props);
+    for(Iterator it = p.keySet().iterator(); it.hasNext(); ) {
+      String key = (String)it.next();
+      Object v   = p.get(key);
+      Object v2  = System.getProperty(key);
+      if(v.equals(v2)) {
+        System.out.println("  " + n + ": " + key + ": " + v);
+      } else {
+        System.out.println(" *" + n + ": " + key + ": " + v + "/" + v2);
+      }
+      n++;
+    }
+    n = 0;
+    System.out.println("**** System ****");
+    p = new java.util.TreeMap();
+    p.putAll(System.getProperties());
+    for(Iterator it = p.keySet().iterator(); it.hasNext(); ) {
+      String key = (String)it.next();
+      Object v   = System.getProperty(key);
+      Object v2  = props.get(key); 
+      if(v.equals(v2)) {
+        System.out.println("  " + n + ": " + key + ": " + v);
+      } else {
+        System.out.println(" *" + n + ": " + key + ": " + v + "/" + v2);
+      }
+      n++;
+    }
+  }
+
   /**
    * Get a copy of the current system properties.
    */
@@ -249,9 +265,10 @@ public class FWProps  {
 
 
 
-  protected void initProperties() {
+  protected void initProperties(Map initProps) {
     props = new HashMap();
-    
+    props.putAll(initProps);
+
     whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
       getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
@@ -292,7 +309,7 @@ public class FWProps  {
       osVersion = ver.substring(0, i);
     }
     setProperty(Constants.FRAMEWORK_OS_VERSION, osVersion);
-    setProperty(Constants.FRAMEWORK_VERSION,   FrameworkImpl.SPEC_VERSION);
+    setProperty(Constants.FRAMEWORK_VERSION,   FrameworkContext.SPEC_VERSION);
     setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
     setProperty(Constants.FRAMEWORK_LANGUAGE,
                 Locale.getDefault().getLanguage());

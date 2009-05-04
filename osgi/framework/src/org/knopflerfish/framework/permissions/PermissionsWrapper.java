@@ -43,7 +43,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.AdminPermission;
 import org.osgi.service.permissionadmin.*;
 
-import org.knopflerfish.framework.FrameworkImpl;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 /**
@@ -67,12 +67,12 @@ public class PermissionsWrapper extends PermissionCollection {
   private File dataRoot;
   private boolean readOnly = false;
   private ArrayList condPermList = null;
-  private FrameworkImpl framework;
+  private FrameworkContext framework;
 
   /**
    *
    */
-  PermissionsWrapper(FrameworkImpl fw,
+  PermissionsWrapper(FrameworkContext fw,
                      PermissionInfoStorage pis,
                      ConditionalPermissionInfoStorage cpis,
                      String loc,
@@ -294,7 +294,7 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
-  private PermissionCollection makeImplicitPermissionCollection(FrameworkImpl fw, Bundle b) {
+  private PermissionCollection makeImplicitPermissionCollection(FrameworkContext fw, Bundle b) {
     Permissions pc = new Permissions();
     if (dataRoot != null) {
       pc.add(new FilePermission(dataRoot.getPath(), "read,write"));

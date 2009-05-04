@@ -53,11 +53,6 @@ public class BundleContextImpl
 {
 
   /**
-   * Reference to current framework object.
-   */
-  private final FrameworkImpl framework;
-
-  /**
    * Reference to bundleImpl for this context.
    */
   private BundleImpl bundle;
@@ -68,7 +63,6 @@ public class BundleContextImpl
    */
   public BundleContextImpl(BundleImpl bundle) {
     this.bundle = bundle;
-    framework = bundle.framework;
   }
 
   //
@@ -82,7 +76,7 @@ public class BundleContextImpl
    */
   public String getProperty(String key) {
     isBCvalid();
-    return framework.props.getProperty(key);
+    return bundle.fwCtx.props.getProperty(key);
   }
 
 
@@ -93,7 +87,7 @@ public class BundleContextImpl
    */
   public Bundle installBundle(String location) throws BundleException {
     isBCvalid();
-    return framework.bundles.install(location, null);
+    return bundle.fwCtx.bundles.install(location, null);
   }
 
 
@@ -107,7 +101,7 @@ public class BundleContextImpl
   {
     try {
       isBCvalid();
-      return framework.bundles.install(location, in);
+      return bundle.fwCtx.bundles.install(location, in);
     } finally {
       if (in != null) {
 	try {
@@ -135,7 +129,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
-    return framework.bundles.getBundle(id);
+    return bundle.fwCtx.bundles.getBundle(id);
   }
 
 
@@ -145,7 +139,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundles
    */
   public Bundle[] getBundles() {
-    List bl = framework.bundles.getBundles();
+    List bl = bundle.fwCtx.bundles.getBundles();
     return (Bundle[])bl.toArray(new Bundle [bl.size()]);
   }
 
@@ -158,7 +152,7 @@ public class BundleContextImpl
   public void addServiceListener(ServiceListener listener, String filter)
     throws InvalidSyntaxException {
     isBCvalid();
-    framework.listeners.addServiceListener(bundle, listener, filter);
+    bundle.fwCtx.listeners.addServiceListener(bundle, listener, filter);
   }
 
 
@@ -170,7 +164,7 @@ public class BundleContextImpl
   public void addServiceListener(ServiceListener listener) {
     isBCvalid();
     try {
-      framework.listeners.addServiceListener(bundle, listener, null);
+      bundle.fwCtx.listeners.addServiceListener(bundle, listener, null);
     } catch (InvalidSyntaxException neverHappens) { }
   }
 
@@ -182,7 +176,7 @@ public class BundleContextImpl
    */
   public void removeServiceListener(ServiceListener listener) {
     isBCvalid();
-    framework.listeners.removeServiceListener(bundle, listener);
+    bundle.fwCtx.listeners.removeServiceListener(bundle, listener);
   }
 
 
@@ -193,7 +187,7 @@ public class BundleContextImpl
    */
   public void addBundleListener(BundleListener listener) {
     isBCvalid();
-    framework.listeners.addBundleListener(bundle, listener);
+    bundle.fwCtx.listeners.addBundleListener(bundle, listener);
   }
 
 
@@ -204,7 +198,7 @@ public class BundleContextImpl
    */
   public void removeBundleListener(BundleListener listener) {
     isBCvalid();
-    framework.listeners.removeBundleListener(bundle, listener);
+    bundle.fwCtx.listeners.removeBundleListener(bundle, listener);
   }
 
 
@@ -215,7 +209,7 @@ public class BundleContextImpl
    */
   public void addFrameworkListener(FrameworkListener listener) {
     isBCvalid();
-    framework.listeners.addFrameworkListener(bundle, listener);
+    bundle.fwCtx.listeners.addFrameworkListener(bundle, listener);
   }
 
 
@@ -226,7 +220,7 @@ public class BundleContextImpl
    */
   public void removeFrameworkListener(FrameworkListener listener) {
     isBCvalid();
-    framework.listeners.removeFrameworkListener(bundle, listener);
+    bundle.fwCtx.listeners.removeFrameworkListener(bundle, listener);
   }
 
 
@@ -240,7 +234,7 @@ public class BundleContextImpl
 					     Dictionary properties) {
     isBCvalid();
     String [] classes = (String[]) clazzes.clone();
-    return framework.services.register(bundle, classes, service, properties);
+    return bundle.fwCtx.services.register(bundle, classes, service, properties);
   }
 
 
@@ -254,7 +248,7 @@ public class BundleContextImpl
 					     Dictionary properties) {
     isBCvalid();
     String [] classes =  new String [] { clazz };
-    return framework.services.register(bundle, classes, service, properties);
+    return bundle.fwCtx.services.register(bundle, classes, service, properties);
   }
 
 
@@ -266,7 +260,7 @@ public class BundleContextImpl
   public ServiceReference[] getServiceReferences(String clazz, String filter)
     throws InvalidSyntaxException {
     isBCvalid();
-    return framework.services.get(clazz, filter, bundle, true);
+    return bundle.fwCtx.services.get(clazz, filter, bundle, true);
   }
   
   /**
@@ -277,7 +271,7 @@ public class BundleContextImpl
   public ServiceReference[] getAllServiceReferences(String clazz, String filter) 
   throws InvalidSyntaxException {
     isBCvalid();
-    return framework.services.get(clazz, filter, null, false);
+    return bundle.fwCtx.services.get(clazz, filter, null, false);
   }
 
 
@@ -288,8 +282,8 @@ public class BundleContextImpl
    */
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
-    if (framework.perm.okGetServicePerm(clazz)) {
-      return framework.services.get(bundle, clazz);
+    if (bundle.fwCtx.perm.okGetServicePerm(clazz)) {
+      return bundle.fwCtx.services.get(bundle, clazz);
     } else {
       return null;
     }
