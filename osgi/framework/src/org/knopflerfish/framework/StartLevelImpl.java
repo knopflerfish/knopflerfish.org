@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   final static int START_MAX = Integer.MAX_VALUE;
 
   final static String LEVEL_FILE = "currentlevel";
+  final static String INITIAL_LEVEL_FILE = "initiallevel";
 
   int currentLevel     = 0;
   int initStartLevel   = 1;
@@ -131,6 +132,12 @@ public class StartLevelImpl implements StartLevel, Runnable {
           if (oldStartLevel != -1) {
             setStartLevel0(oldStartLevel, false, false, true);
           }
+        }
+      } catch (Exception _ignored) { }
+      try {
+        String s = Util.getContent(new File(storage, INITIAL_LEVEL_FILE));
+        if (s != null) {
+          setInitialBundleStartLevel0(Integer.parseInt(s), false);
         }
       } catch (Exception _ignored) { }
     }
@@ -423,13 +430,24 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
   public void setInitialBundleStartLevel(int startLevel) {
     framework.perm.checkStartLevelAdminPerm();  
-	  
+    setInitialBundleStartLevel0(startLevel, true);
+  }
+
+
+  private void setInitialBundleStartLevel0(int startLevel, boolean save) {
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
     initStartLevel = bCompat ? 1 : startLevel;
+    if (!framework.props.bIsMemoryStorage && save) {
+      try {
+        Util.putContent(new File(storage, INITIAL_LEVEL_FILE), 
+                        Integer.toString(initStartLevel));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
-
   
   public boolean isBundlePersistentlyStarted(Bundle bundle) {
     return ((BundleImpl)bundle).isPersistent();

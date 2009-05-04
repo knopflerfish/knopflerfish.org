@@ -197,12 +197,11 @@ public class Activator implements BundleActivator {
     remoteTracker.open();
 
     // Spawn to avoid race conditions in resource loading
-    Thread t = new Thread() {
+    javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           openDesktop();
         }
-      };
-    t.start();
+      });
   }
 
   void openDesktop() {
@@ -272,9 +271,13 @@ public class Activator implements BundleActivator {
     try {
 
       if(desktop != null) {
-        desktop.stop();
-        desktop.theDesktop = null;
-        desktop = null;
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+              desktop.stop();
+              desktop.theDesktop = null;
+              desktop = null;
+            }
+          });
       }
 
       for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
@@ -294,6 +297,9 @@ public class Activator implements BundleActivator {
         }
         remoteBC = null;
       }
+
+      log = null;
+
     } catch (Exception e) {
       log.error("Failed to close desktop", e);
     }
@@ -302,10 +308,6 @@ public class Activator implements BundleActivator {
   public void stop(BundleContext bc) {
     try {
       closeDesktop();
-
-      if(log != null) {
-        log = null;
-      }
 
       if(remoteTracker != null) {
         remoteTracker.close();

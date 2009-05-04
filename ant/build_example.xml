@@ -13,7 +13,9 @@
   <!-- Set to top directory, this is the root of the temporary out    -->
   <!-- directory for compilation output named "out" and also the root -->
   <!-- for the bundle repository directory, named "jars".             -->
+<!--
   <property name="topdir"       location="${proj.dir}/../.."/>
+-->
 
   <!-- Pattern that must match all private code to be included in     -->
   <!-- the bundle. The value may contain several comma separated      -->
@@ -72,6 +74,6 @@
   <property name="bmfa.Bundle-Vendor"      value="Knopflerfish"/>
 
   <!-- Import the master build file that defines everything else. -->
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <import file="${proj.dir}/../../../ant/bundlebuild.xml"/>
 
 </project>
