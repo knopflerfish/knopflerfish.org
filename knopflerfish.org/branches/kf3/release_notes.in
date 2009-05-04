@@ -8,6 +8,41 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Framework (Core) ===
+
+  Fixed parsing exception of saved ConditionalPermissionInfo data
+  during restart of framework. Fixed persistent saving of
+  initialBundleStartLevel in start level service.
+  Available in framework version 4.1.2.
+  
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Crimson 2.0.1
+
+  Fixed a class-loader issue that made it impossible to directly use
+  the DocumentBuilderFactory to create new instances. Note that this
+  bundle is not needed on new Java releases (the recommendation is to
+  use the XML-parsing that is provided by the JRE, or the
+  Xerces-bundle).
+
+
+  Xalan 2.7.1.1
+
+  This bundle now exports the javax.xml.transform.* packages. This makes
+  it possible to use the method TranformerFactory.newInstance() to get
+  a transformer-factory instance when the javax.xml.transform package
+  have been imported from the Xalan-bundle.
+
+  Note that these packages are exported with a version with the
+  qualifier set to ".1" (1.3.0.1 to be precise) this makes them
+  "better" than the version exported by the Xerces-bundle even though
+  that they actually are identical. This trick makes the Xalan
+  provided version of the packages the preferred one when bundles are
+  resolved, thus hiding the version exported by the Xerces-bundle.
+
+
 
 ========================================================================
 

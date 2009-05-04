@@ -27,7 +27,7 @@
   <target name="bundle.custom.post">
     <ant dir="${topdir}" antfile="build_keystore.xml"/>
     <signjar
-       alias="kftest2" keystore="${topdir}/test.keystore" storepass="kftest"
+       alias="kftest2" keystore="${jars.dir}/test.keystore" storepass="kftest"
        jar="${all.jar}"
        />
   </target>

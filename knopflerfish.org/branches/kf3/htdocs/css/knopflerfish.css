@@ -225,3 +225,11 @@ TD.fancy_row {
 .release_notes dd {
   margin-bottom: 10px;
 }
+
+.kf dt {
+  font-weight: bold;
+}
+
+.kf dd {
+    margin-bottom: 10px;
+}
