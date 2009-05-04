@@ -170,18 +170,18 @@ public class ServiceReferenceImpl implements ServiceReference
     synchronized (registration.properties) {
       if (registration.available
           && (!registration.unregistering
-              || bundle.framework.props.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+              || bundle.fwCtx.props.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
         Integer ref = (Integer)registration.dependents.get(bundle);
         if (ref == null) {
           String[] classes =
             (String[])registration.properties.get(Constants.OBJECTCLASS);
-          bundle.framework.perm.checkGetServicePerms(classes);
+          bundle.fwCtx.perm.checkGetServicePerms(classes);
           if (registration.service instanceof ServiceFactory) {
             try {
-              s = bundle.framework.perm.callGetService
+              s = bundle.fwCtx.perm.callGetService
                 ((ServiceFactory)registration.service, bundle, registration);
             } catch (Throwable pe) {
-              bundle.framework.listeners.frameworkError(registration.bundle,
+              bundle.fwCtx.listeners.frameworkError(registration.bundle,
                                                         pe);
               return null;
             }
@@ -196,7 +196,7 @@ public class ServiceReferenceImpl implements ServiceReference
                 c = bcl.loadClass(classes[i], true);
               } catch (ClassNotFoundException ignore) { } // Already checked
               if (!c.isInstance(s)) {
-                bundle.framework.listeners.frameworkError(registration.bundle, new BundleException("ServiceFactory produced an object that did not implement: " + classes[i]));
+                bundle.fwCtx.listeners.frameworkError(registration.bundle, new BundleException("ServiceFactory produced an object that did not implement: " + classes[i]));
                 return null;
               }
             }
@@ -259,7 +259,7 @@ public class ServiceReferenceImpl implements ServiceReference
               ((ServiceFactory) registration.service).ungetService(bundle,
                   registration, sfi);
             } catch (Throwable e) {
-              bundle.framework.listeners.frameworkError(registration.bundle,
+              bundle.fwCtx.listeners.frameworkError(registration.bundle,
                   e);
             }
           }
@@ -330,7 +330,7 @@ public class ServiceReferenceImpl implements ServiceReference
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
       String name = className.substring(0, pos);
-      Pkg p = registration.bundle.framework.packages.getPkg(name);
+      Pkg p = registration.bundle.fwCtx.packages.getPkg(name);
       if (p != null) {
         if (p.providers.size() > 1) {
           BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);

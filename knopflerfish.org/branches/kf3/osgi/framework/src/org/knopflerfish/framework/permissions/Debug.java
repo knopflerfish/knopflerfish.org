@@ -37,7 +37,7 @@ package org.knopflerfish.framework.permissions;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import org.osgi.framework.BundleException;
-import org.knopflerfish.framework.FrameworkImpl;
+import org.knopflerfish.framework.FrameworkContext;
 
 /**
  * Static variables that controls debugging of the framework code.

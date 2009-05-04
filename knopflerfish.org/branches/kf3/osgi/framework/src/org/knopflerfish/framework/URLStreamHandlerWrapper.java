@@ -56,13 +56,13 @@ public class URLStreamHandlerWrapper
   implements URLStreamHandlerSetter
 {
 
-  FrameworkImpl          framework;
+  FrameworkContext          framework;
   String                 protocol;
   String                 filter;
   
   private ServiceReference best;
 
-  URLStreamHandlerWrapper(FrameworkImpl  fw,
+  URLStreamHandlerWrapper(FrameworkContext  fw,
 			  String     proto) {
 
     this.framework = fw;

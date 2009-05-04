@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,8 @@ import java.net.URL;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import org.osgi.framework.*;
-
+import org.osgi.framework.launch.*;
+import org.osgi.service.startlevel.StartLevel;
 import java.lang.reflect.Constructor;
 
 /**
@@ -54,64 +55,65 @@ import java.lang.reflect.Constructor;
  * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
  */
 public class Main {
-
-  static FrameworkImpl framework;
-
-  static long bootMgr/* = 0*/;
-
+  
   // Verbosity level of printouts. 0 is low.
-  static int verbosity /*= 0*/;
+  int verbosity /*= 0*/;
 
   // Will be filled in from manifest entry during startup
-  static String version = "<unknown>";
+  String version = "<unknown>";
 
   // Top directory (including any trailing /)
-  static String topDir              = "";
+  String topDir              = "";
 
   // Xargs to use for FW init
-  static String defaultXArgsInit    = "init.xargs";
+  String defaultXArgsInit    = "init.xargs";
 
   // Xargs to use for FW init
-  static final String defaultXArgsInit2   = "remote-init.xargs";
+  final String defaultXArgsInit2   = "remote-init.xargs";
 
   // Xargs to use for FW restart
-  static final String defaultXArgsStart   = "restart.xargs";
+  final String defaultXArgsStart   = "restart.xargs";
 
 
   // Set to true if JVM is started without any arguments
-  static boolean bZeroArgs     /*     = false*/;
+  boolean bZeroArgs     /*     = false*/;
 
   // will be initialized by main() - up for anyone for grabbing
-  public static String bootText = "";
+  public String bootText = "";
 
-  public static boolean bWriteSysProps = true;
-
-
-  public static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
-  public static final String JARDIR_DEFAULT = "file:";
-
-  public static final String FWDIR_PROP    = "org.osgi.framework.dir";
-  public static final String FWDIR_DEFAULT = "fwdir";
-  public static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
-  public static final String CMDIR_DEFAULT = "cmdir";
-
-  public static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
-  public static final String VERBOSITY_DEFAULT = "0";
+  public boolean bWriteSysProps = true;
 
 
-  public static final String XARGS_DEFAULT     = "default";
+  static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
+  static public final String JARDIR_DEFAULT = "file:";
 
-  public static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
-  public static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
+  static public final String FWDIR_PROP    = "org.osgi.framework.dir";
+  static public final String FWDIR_DEFAULT = "fwdir";
+  static public final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
+  static public final String CMDIR_DEFAULT = "cmdir";
 
-  public static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+  static public final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
+  static public final String VERBOSITY_DEFAULT = "0";
 
-  static boolean restarting = false;
+
+  static public final String XARGS_DEFAULT     = "default";
+
+  static public final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
+  static public final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
+
+  static public final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+
+  boolean restarting = false;
 
   /**
    * Help class for starting the OSGi framework.
    */
   public static void main(String[] args) {
+    Main main = new Main();
+    main.start(args);
+  }
+
+  protected void start(String[] args) {
     try {
       verbosity =
         Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
@@ -184,13 +186,6 @@ public class Main {
       }
     }
 
-    try {
-      framework = new FrameworkImpl(new Main());
-      framework.props.setProperties(System.getProperties());
-    } catch (Exception e) {
-      e.printStackTrace();
-      error("New Framework failed!");
-    }
 
     // Save these for possible restart()
     initArgs    = args;
@@ -200,11 +195,44 @@ public class Main {
     handleArgs(args, initOffset, base);
   }
 
-  static String[] initArgs   = null;
-  static int      initOffset = 0;
-  static String[] initBase   = null;
+  String[] initArgs   = null;
+  int      initOffset = 0;
+  String[] initBase   = null;
 
-  static void doInit() {
+  FrameworkFactory getFrameworkFactory() {
+    try {
+      String factoryS = new String(Util.readResource("/META-INF/services/org.osgi.framework.launch.FrameworkFactory"), "UTF-8");
+      String factoryClassName = FrameworkFactoryImpl.class.getName();
+      String[] w = Util.splitwords(factoryS, "\n\r");
+      for(int i = 0; i < w.length; i++) {
+        if(w[i].length() > 0 && !w[i].startsWith("#")) {
+          factoryClassName = w[i].trim();
+          break;
+        }
+      }
+
+      return getFrameworkFactory(factoryClassName);
+    } catch (Exception e) {
+      error("failed to getFrameworkFactory", e);
+      throw new RuntimeException("failed to getFrameworkFactory: " + e);
+    }
+  }
+
+
+  FrameworkFactory getFrameworkFactory(String factoryClassName) {
+    try {
+      println("getFrameworkFactory(" + factoryClassName + ")", 0);
+      Class            clazz = Class.forName(factoryClassName);
+      Constructor      cons  = clazz.getConstructor(new Class[] { });
+      FrameworkFactory ff    = (FrameworkFactory)cons.newInstance(new Object[] { });
+      return ff;
+    } catch (Exception e) {
+      error("failed to create " + factoryClassName, e);
+      throw new RuntimeException("failed to create " + factoryClassName + ": " + e);
+    }
+  }
+
+  void doInit() {
     String d = System.getProperty(FWDIR_PROP);
 
     FileTree dir = (d != null) ? new FileTree(d) : null;
@@ -220,7 +248,7 @@ public class Main {
     }
   }
 
-  static String[] getJarBase() {
+  String[] getJarBase() {
     String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
 
     String[] base = Util.splitwords(jars, ";");
@@ -235,6 +263,19 @@ public class Main {
     return base;
   }
 
+
+  FrameworkFactory ff; 
+  Framework framework; 
+
+  void assertFramework() {
+    if(ff == null) {
+      ff = getFrameworkFactory();
+    }
+    if(framework == null) {
+      framework = ff.newFramework(System.getProperties());
+    }
+  }
+
   /**
    * Handle arg line options.
    *
@@ -242,10 +283,11 @@ public class Main {
    * @param startOffset index to start from in argv
    */
 
-  private static void handleArgs(String[] args,
+  private void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
     boolean doNotLaunch = false;
+    boolean bLaunched = false;
 
     for (int i = startOffset; i < args.length; i++) {
       try {
@@ -266,41 +308,52 @@ public class Main {
           printResource("/readme.txt");
           System.exit(0);
         } else if ("-jvminfo".equals(args[i])) {
-          printJVMInfo();
+          assertFramework();
+          printJVMInfo(framework);
           System.exit(0);
+        } else if ("-ff".equals(args[i])) {
+          if (i+1 < args.length) {
+            i++;
+            ff = getFrameworkFactory(args[i]);
+          } else {
+            throw new IllegalArgumentException("No framework factory argument");
+          }
         } else if ("-install".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
             String bundle = args[i+1];
-            long id = framework.installBundle(completeLocation(base,bundle), null);
-            println("Installed: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            Bundle b = framework.getBundleContext().installBundle(completeLocation(base,bundle), null);
+            println("Installed: ", b);
             i++;
           } else {
             error("No URL for install command");
           }
         } else if ("-istart".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
             String bundle = args[i+1];
-            long id = framework.installBundle(completeLocation(base,bundle), null);
-            framework.startBundle(id);
-            println("Installed and started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            Bundle b = framework.getBundleContext().installBundle(completeLocation(base,bundle), null);
+            b.start();
+            println("Installed and started: ", b);
             i++;
           } else {
             error("No URL for install command");
           }
         } else if ("-launch".equals(args[i])) {
-          if (i+1 < args.length && !args[i+1].startsWith("-")) {
-            bootMgr = Long.parseLong(args[i+1]);
-            framework.launch(bootMgr);
-            i++;
-          } else {
-            framework.launch(0);
-          }
+          assertFramework();
+          framework.start();
+          bLaunched = true;
           doNotLaunch = true;
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
+          assertFramework();
           doNotLaunch = true;
-          framework.shutdown();
-          println("Framework shutdown", 0);
+          try {
+            framework.stop();
+            println("Framework shutdown", 0);
+          } catch (Exception e) {
+            error("Failed to shutdown", e);
+          }
         } else if ("-sleep".equals(args[i])) {
           if (i+1 < args.length) {
             long t = Long.parseLong(args[i+1]);
@@ -315,61 +368,71 @@ public class Main {
             error("No time for sleep command");
           }
         } else if ("-start".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(base,args[i+1]);
-            framework.startBundle(id);
-            println("Started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            long id = getBundleID(framework, base,args[i+1]);
+            Bundle b = framework.getBundleContext().getBundle(id);
+            b.start();
+            println("Started: ", b);
             i++;
           } else {
             error("No ID for start command");
           }
         } else if ("-stop".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(base,args[i+1]);
-            framework.stopBundle(id);
-            println("Stopped: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            long id = getBundleID(framework, base,args[i+1]);
+            Bundle b = framework.getBundleContext().getBundle(id);
+            try {
+              b.stop();
+              println("Stopped: ", b);
+            } catch (Exception e) {
+              error("Failed to stop", e);
+            }
             i++;
           } else {
             error("No ID for stop command");
           }
         } else if ("-uninstall".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(base,args[i+1]);
-            String loc = framework.getBundleLocation(id);
-            framework.uninstallBundle(id);
-            println("Uninstalled: " + loc + " (id#" + id + ")", 0);
+            long id = getBundleID(framework, base,args[i+1]);
+            Bundle b = framework.getBundleContext().getBundle(id);
+            b.uninstall();
+            println("Uninstalled: ", b);
             i++;
           } else {
             error("No id for uninstall command");
           }
         } else if ("-update".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long[] ids = null;
+            Bundle[] bl = null;
             if("ALL".equals(args[i+1])) {
-              List bl = framework.bundles.getBundles();
-              ids = new long[bl.size()];
-              for(int n = bl.size() - 1; n >= 0; n--) {
-                ids[n] = ((BundleImpl)bl.get(n)).getBundleId();
-              }
+              bl = framework.getBundleContext().getBundles();
             } else {
-              ids = new long[] { getBundleID(base,args[i+1]) };
+              bl = new Bundle[] { framework.getBundleContext().getBundle(getBundleID(framework, base,args[i+1])) };
             }
-            for(int n = 0; n < ids.length; n++) {
-              long id = ids[n];
-              if(id != 0) {
-                framework.updateBundle(id);
-                println("Updated: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-              }
+            for(int n = 0; bl != null && n < bl.length; n++) {
+              Bundle b = bl[i];
+              b.update();                
+              println("Updated: ", b);
             }
             i++;
           } else {
             error("No id for update command");
           }
         } else if ("-initlevel".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
             int n = Integer.parseInt(args[i+1]);
-            if(framework.startLevelService != null) {
-              framework.startLevelService.setInitialBundleStartLevel(n);
+            ServiceReference sr = framework.getBundleContext().getServiceReference(StartLevel.class.getName());
+            
+            if(sr != null) {
+              StartLevel ss = (StartLevel)framework.getBundleContext().getService(sr);
+              ss.setInitialBundleStartLevel(n);
+              
+              framework.getBundleContext().ungetService(sr);
             } else {
               println("No start level service - ignoring init bundle level " + n, 0);
             }
@@ -378,17 +441,16 @@ public class Main {
             error("No integer level for initlevel command");
           }
         } else if ("-startlevel".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
             int n = Integer.parseInt(args[i+1]);
-            if(framework.startLevelService != null) {
-              if(n == 1) {
-                if(framework.props.debug.startlevel) {
-                  framework.props.debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
-                }
-                framework.startLevelService.bCompat = true;
-              }
+            ServiceReference sr = framework.getBundleContext().getServiceReference(StartLevel.class.getName());
+            
+            if(sr != null) {
+              StartLevel ss = (StartLevel)framework.getBundleContext().getService(sr);
+              ss.setStartLevel(n);
 
-              framework.startLevelService.setStartLevel(n);
+              framework.getBundleContext().ungetService(sr);
             } else {
               println("No start level service - ignoring start level " + n, 0);
             }
@@ -422,9 +484,11 @@ public class Main {
       }
     }
 
-    if (!framework.active && !doNotLaunch) {
+    assertFramework();
+
+    if (!bLaunched && !doNotLaunch) {
       try {
-        framework.launch(0);
+        framework.start();
         println("Framework launched", 0);
       } catch (Throwable t) {
         if (t instanceof BundleException) {
@@ -446,13 +510,16 @@ public class Main {
    * @param base Base URL to complete locations with.
    * @param idLocation bundle id or location of the bundle to lookup
    */
-  static private long getBundleID(String[] base, String idLocation ) {
+  private long getBundleID(Framework fw, String[] base, String idLocation ) {
     try {
       return Long.parseLong(idLocation);
     } catch (NumberFormatException nfe) {
-      long id = framework.getBundleId( completeLocation( base, idLocation ) );
-      if (id!=-1) {
-        return id;
+      Bundle[] bl = fw.getBundleContext().getBundles();
+      String loc = completeLocation( base, idLocation);
+      for(int i = 0; bl != null && i < bl.length; i++) {
+        if(loc.equals(bl[i].getLocation())) {
+          return bl[i].getBundleId();
+        }
       }
       throw new IllegalArgumentException
         ("Invalid bundle id/location: " +idLocation);
@@ -464,7 +531,7 @@ public class Main {
    ** @param base Base URLs to complete with; first match is used.
    ** @param location The location to be completed.
    **/
-  static private String completeLocation( String[] base, String location )
+  private String completeLocation( String[] base, String location )
   {
     // Handle file: case where topDir is not ""
     if(bZeroArgs && location.startsWith("file:jars/") && !topDir.equals("")) {
@@ -523,19 +590,16 @@ public class Main {
    * preferred way to shut down the framework.
    * </p>
    */
-  static public void shutdown(final int exitcode) {
+  /*
+  public void shutdown(final int exitcode) {
     if (restarting) return;
     Thread t = new Thread() {
         public void run() {
-          if (bootMgr != 0) {
-            try {
-              framework.stopBundle(bootMgr);
-            } catch (BundleException e) {
-              System.err.println("Stop of BootManager failed, " +
-                                 e.getNestedException());
-            }
+          try {
+            framework.stop();
+          } catch (Exception e) {
+            e.printStackTrace();
           }
-          framework.shutdown();
           if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
             System.exit(exitcode);
           } else {
@@ -546,38 +610,28 @@ public class Main {
     t.setDaemon(false);
     t.start();
   }
-
-
+  */
+  
   /**
    * Restart framework.
    * <p>
    * This code is called in SystemBundle.update()
    * </p>
    */
-  static public void restart() {
+  /*
+  public void restart() {
     restarting = true;
     Thread t = new Thread() {
         public void run() {
           try {
-            if (bootMgr != 0) {
-              try {
-                framework.stopBundle(bootMgr);
-              } catch (BundleException e) {
-                System.err.println("Stop of BootManager failed, " +
-                                   e.getNestedException());
-              }
-            }
-            framework.shutdown();
-
+            framework.stop();
             try {
-              if (bootMgr != 0) {
-                framework.launch(bootMgr);
-              } else {
-                framework.launch(0);
-              }
+              framework.start();
             } catch (Exception e) {
               println("Failed to restart framework", 0);
             }
+          } catch (Exception e) {
+            e.printStackTrace();
           } finally {
             restarting = false;
           }
@@ -586,7 +640,7 @@ public class Main {
     t.setDaemon(false);
     t.start();
   }
-
+  */
   /**
    * Expand all occurance of <tt>-xarg &lt;URL&gt;</tt> and <tt>--xarg
    * &lt;URL&gt;</tt> into a new array without any <tt>-xargs</tt>,
@@ -597,7 +651,7 @@ public class Main {
    * @return New argv array where all <tt>-xarg &lt;URL&gt;</tt>
    *         options have been expanded.
    */
-  static String[] expandArgs(String[] argv) {
+  String[] expandArgs(String[] argv) {
     Vector v = new Vector();
     int i = 0;
     while(i < argv.length) {
@@ -637,7 +691,7 @@ public class Main {
   /**
    * Print help for starting the platform.
    */
-  static void printResource(String name) {
+  void printResource(String name) {
     try {
       System.out.println(new String(Util.readResource(name)));
     } catch (Exception e) {
@@ -645,7 +699,7 @@ public class Main {
     }
   }
 
-  public static final String[] FWPROPS = new String[] {
+  public final String[] FWPROPS = new String[] {
     Constants.FRAMEWORK_VENDOR,
     Constants.FRAMEWORK_VERSION,
     Constants.FRAMEWORK_LANGUAGE,
@@ -658,7 +712,7 @@ public class Main {
   /**
    * Print help for starting the platform.
    */
-  static void printJVMInfo() {
+  void printJVMInfo(Framework framework) {
 
     try {
       Properties props = System.getProperties();
@@ -669,7 +723,7 @@ public class Main {
       }
       System.out.println("\n--- Framework properties ---");
       for(int i = 0; i < FWPROPS.length; i++) {
-        System.out.println(FWPROPS[i] + ": " + framework.props.getProperty(FWPROPS[i]));
+        System.out.println(FWPROPS[i] + ": " + framework.getBundleContext().getProperty(FWPROPS[i]));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -678,18 +732,18 @@ public class Main {
 
   // should this be read from the manifest instead?
   static String readVersion() {
-    return readResource("/version", "<no version found>");
+    return readResource("/version", "<no version found>", "UTF-8");
   }
 
   // should this be read from the manifest instead?
   static String readRelease() {
-    return readResource("/release", "0.0.0.snapshot");
+    return readResource("/release", "0.0.0.snapshot", "UTF-8");
   }
 
   // Read version info from manifest
-  static String readResource(String file, String defaultValue) {
+  static String readResource(String file, String defaultValue, String encoding) {
     try {
-      return (new String(Util.readResource(file))).trim();
+      return (new String(Util.readResource(file), encoding)).trim();
     } catch (Exception e) {
       return defaultValue;
     }
@@ -698,7 +752,7 @@ public class Main {
   /**
    * Helper method which tries to find default xargs files.
    */
-  static String getDefaultXArgs(String[] oldArgs) {
+  String getDefaultXArgs(String[] oldArgs) {
     boolean bInit = false;
 
     // If the old args has an -init somewhere, make sure
@@ -783,7 +837,7 @@ public class Main {
   /**
    * Default values for some system properties.
    */
-  static String[][] defaultSysProps = new String[][] {
+  String[][] defaultSysProps = new String[][] {
     {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
     {FWDIR_PROP,    FWDIR_DEFAULT},
     {CMDIR_PROP,    CMDIR_DEFAULT},
@@ -804,7 +858,7 @@ public class Main {
    *
    * @see defaultSysProps
    */
-  static void setDefaultSysProps() {
+  void setDefaultSysProps() {
 
     // Make modifications to temporary dictionary and write
     // it back in end of this method
@@ -871,7 +925,7 @@ public class Main {
     // framework.props.setProperties(sysProps);
   }
 
-  static void mergeSystemProperties(Properties props) {
+  void mergeSystemProperties(Properties props) {
     Properties p = System.getProperties();
     p.putAll(props);
     System.setProperties(p);
@@ -889,7 +943,7 @@ public class Main {
    *
    * @return new, fixed args array.
    */
-  static String [] sanityArgs(String[] args) {
+  String [] sanityArgs(String[] args) {
     Vector v = new Vector();
 
     // First, clone everything
@@ -921,7 +975,7 @@ public class Main {
    * @param args The vector to add elements to.
    * @param arg  The element to add.
    */
-  private static void addArg(Vector args, String arg)
+  private void addArg(Vector args, String arg)
   {
     if (0==args.size()) {
       args.addElement(arg);
@@ -958,6 +1012,8 @@ public class Main {
    *      a system property.
    *      Example "-Dorg.knopflerfish.test=apa" is equivalent
    *      to <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
+   *  <li>Each line starting with '-F' and containing an '=' is set as
+   *      a framework property.
    *  <li>Each line of length zero is ignored.
    *  <li>Each line starting with '#' is ignored.
    *  <li>Lines starting with '-' is used a command with optional argument
@@ -978,7 +1034,7 @@ public class Main {
    *         <tt>xargsPath</tt> suitable to be merged into
    *         <tt>argv</tt> by the caller.
    */
-  static String [] loadArgs(String xargsPath, String[] oldArgs) {
+  String [] loadArgs(String xargsPath, String[] oldArgs) {
 
     if(XARGS_DEFAULT.equals(xargsPath)) {
       xargsPath = getDefaultXArgs(oldArgs);
@@ -1141,11 +1197,15 @@ public class Main {
    * @param s String to print.
    * @param level print level.
    */
-  static void println(String s, int level) {
+  void println(String s, int level) {
     println(s, level, null);
   }
 
-  static void println(String s, int level, Exception e) {
+  void println(String s, Bundle b) {
+    println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 0);
+  }
+
+  void println(String s, int level, Exception e) {
     if(verbosity >= level) {
       System.out.println((level > 0 ? ("#" + level + ": ") : "") + s);
       if(e != null) {
@@ -1154,7 +1214,7 @@ public class Main {
     }
   }
 
-  static void setSecurityManager(Properties props) {
+  void setSecurityManager(Properties props) {
     try {
       String manager  = (String)props.get("java.security.manager");
       String policy   = (String)props.get("java.security.policy");
@@ -1189,11 +1249,11 @@ public class Main {
   /**
    * Report error and exit.
    */
-  static void error(String s) {
+  void error(String s) {
     error(s, null);
   }
 
-  static void error(String s, Exception e) {
+  void error(String s, Exception e) {
     System.err.println("Error: " + s);
     if(e != null) {
       e.printStackTrace();

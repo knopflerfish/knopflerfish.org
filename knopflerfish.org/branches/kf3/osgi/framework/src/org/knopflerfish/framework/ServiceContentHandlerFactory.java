@@ -47,7 +47,7 @@ import org.osgi.framework.*;
 public class ServiceContentHandlerFactory 
   implements ContentHandlerFactory 
 {
-  FrameworkImpl framework;
+  FrameworkContext framework;
 
   // JVM classpath handlers. Initialized once at startup
   String[] jvmPkgs = null;
@@ -55,7 +55,7 @@ public class ServiceContentHandlerFactory
   // String (mimetype) -> ContentHandlerWrapper
   Map wrapMap   = new HashMap();
 
-  ServiceContentHandlerFactory(FrameworkImpl fw) {
+  ServiceContentHandlerFactory(FrameworkContext fw) {
     this.framework = fw;
 
     // Initialize JVM classpath handlers

@@ -50,7 +50,7 @@ class Packages {
   /**
    * Framework for bundle.
    */
-  final FrameworkImpl framework;
+  final FrameworkContext framework;
 
   /**
    * All exported and imported packages.
@@ -90,7 +90,7 @@ class Packages {
   /**
    * Construct Packages object.
    */
-  Packages(FrameworkImpl fw) {
+  Packages(FrameworkContext fw) {
     framework = fw;
   }
 

@@ -110,17 +110,19 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Construct the System Bundle handle.
    *
    */
-  SystemBundle(FrameworkImpl fw, ProtectionDomain pd) {
+  SystemBundle(FrameworkContext fw, ProtectionDomain pd) {
     super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
           Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
+    // fw.props.printProps();
+
     state = STARTING;
-    StringBuffer sp = new StringBuffer(framework.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
+    StringBuffer sp = new StringBuffer(fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
     if (sp.length() > 0) {
       sp.append(",");
     }
 
-    if ("true".equals(framework.props.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
-      String jv = framework.props.getProperty("java.version", null);
+    if ("true".equals(fwCtx.props.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
+      String jv = fwCtx.props.getProperty("java.version", null);
       if (null!=jv) { // Extract <M>.<N> part of the version string
         int end = jv.indexOf('.');
         if (end>-1) {
@@ -132,25 +134,25 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     } else {
 
-      if("true".equals(framework.props.getProperty(EXPORT13, "").trim())) {
+      if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.3.txt");
       }
 
-      if("true".equals(framework.props.getProperty(EXPORT14, "").trim())) {
+      if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.4.txt");
       }
 
-      if("true".equals(framework.props.getProperty(EXPORT15, "").trim())) {
+      if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.5.txt");
       }
 
-      if("true".equals(framework.props.getProperty(EXPORT16, "").trim())) {
+      if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
         addSysPackagesFromFile(sp, "packages1.6.txt");
       }
 
     }
 
-    addSysPackagesFromFile(sp, framework.props.getProperty(SYSPKG_FILE, null));
+    addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
     addSystemPackages(sp);
 
     exportPackageString = sp.toString();
@@ -169,7 +171,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     String name = Bundle.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" + FrameworkImpl.SPEC_VERSION);
+          "=" + FrameworkContext.SPEC_VERSION);
 
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
@@ -221,8 +223,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
     if (null==sysPkgFile || 0==sysPkgFile.length() ) return;
 
-    if(framework.props.debug.packages) {
-      framework.props.debug.println("Will add system packages from file " + sysPkgFile);
+    if(fwCtx.props.debug.packages) {
+      fwCtx.props.debug.println("Will add system packages from file " + sysPkgFile);
     }
 
     URL  url = null;
@@ -234,7 +236,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
       if (null==url) {
-        framework.props.debug.println("Could not add system bundle package exports from '"
+        fwCtx.props.debug.println("Could not add system bundle package exports from '"
                       + sysPkgFile +"', file not found.");
       }
     }
@@ -251,8 +253,8 @@ public class SystemBundle extends BundleImpl implements Framework {
         source = url.toString();
       }
       in = new BufferedReader(reader);
-      if(framework.props.debug.packages) {
-        framework.props.debug.println("\treading from " +source);
+      if(fwCtx.props.debug.packages) {
+        fwCtx.props.debug.println("\treading from " +source);
       }
 
       String line;
@@ -289,6 +291,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   synchronized public void start() throws BundleException
   {
     secure.checkExecuteAdminPerm(this);
+    fwCtx.launch(0);
   }
  
   synchronized public void start(int options) throws BundleException {
@@ -317,9 +320,29 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   synchronized public void stop(int exitcode) throws BundleException {
     secure.checkExecuteAdminPerm(this);
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
-    secure.callMainShutdown(exitcode);
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+    secure.callShutdown(this, exitcode);
   }
+
+  void shutdown(final int exitcode) {
+    Thread t = new Thread() {
+        public void run() {
+          try {
+            // bundle.stop();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          if("true".equals(System.getProperty("doexit" /* EXITONSHUTDOWN_PROP */, "true"))) {
+            System.exit(exitcode);
+          } else {
+            // println("Framework shutdown, skipped System.exit()", 0);
+          }
+        }
+      };
+    t.setDaemon(false);
+    t.start();
+  }
+
 
 
   /**
@@ -429,7 +452,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   private boolean isInClassPath(BundleImpl extension) {
     String cps = extension.isBootClassPathExtension() ?
       "sun.boot.class.path" : "java.class.path";
-    String cp = framework.props.getProperty(cps);
+    String cp = fwCtx.props.getProperty(cps);
     String[] scp = Util.splitwords(cp, ":");
     String path = extension.archive.getJarLocation();
 

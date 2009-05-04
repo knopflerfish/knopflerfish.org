@@ -72,7 +72,7 @@ class SecurePermissionOps extends PermissionOps {
     AdminPermission.CONTEXT,
   };
 
-  private final FrameworkImpl framework;
+  private final FrameworkContext framework;
   private final PermissionsHandle ph;
 
   private AdminPermission ap_resolve = null;
@@ -95,7 +95,7 @@ class SecurePermissionOps extends PermissionOps {
   Hashtable /* Bundle -> AdminPermission [] */ adminPerms = new Hashtable();
 
 
-  SecurePermissionOps(FrameworkImpl fw) {
+  SecurePermissionOps(FrameworkContext fw) {
     framework = fw;
 
 
@@ -664,17 +664,20 @@ class SecurePermissionOps extends PermissionOps {
   void callMainRestart() {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          Main.restart();
-          return null;
+          throw new RuntimeException("NYI");
+          // Main.restart();
+          // return null;
         }
       });
   }
 
-  void callMainShutdown(final int exitcode) {
+  void callShutdown(final SystemBundle bundle, final int exitcode) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          Main.shutdown(exitcode);
+          bundle.shutdown(exitcode);
           return null;
+          //  Main.shutdown(exitcode);
+          // return null;
         }
       });
   }
@@ -736,7 +739,7 @@ class SecurePermissionOps extends PermissionOps {
                               Long.toString(b.id) + "." + Long.toString(b.generation),
                               -1,
                               "",
-                              b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+                              b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
 
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
@@ -749,7 +752,7 @@ class SecurePermissionOps extends PermissionOps {
     try {
       return (URL)AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws MalformedURLException {
-            return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+            return new URL(null, s, b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
           }
         });
     } catch (PrivilegedActionException e) {

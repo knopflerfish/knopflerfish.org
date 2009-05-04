@@ -66,14 +66,14 @@ public class Bundles {
   /**
    * Link to framework object.
    */
-  private FrameworkImpl framework;
+  private FrameworkContext fwCtx;
 
 
   /**
    * Create a container for all bundles in this framework.
    */
-  Bundles(FrameworkImpl fw) {
-    framework = fw;
+  Bundles(FrameworkContext fw) {
+    fwCtx = fw;
     bundles.put(fw.systemBundle.location, fw.systemBundle);
   }
 
@@ -90,9 +90,9 @@ public class Bundles {
       if (b != null) {
         return b;
       }
-      b = framework.perm.callInstall0(this, location, in);
+      b = fwCtx.perm.callInstall0(this, location, in);
     }
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
     return b;
   }
 
@@ -110,7 +110,7 @@ public class Bundles {
 
         // Support for http proxy authentication
         //TODO put in update as well
-        String auth = framework.props.getProperty("http.proxyAuth");
+        String auth = fwCtx.props.getProperty("http.proxyAuth");
         if (auth != null && !"".equals(auth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -120,7 +120,7 @@ public class Bundles {
           }
         }
         // Support for http basic authentication
-        String basicAuth = framework.props.getProperty("http.basicAuth");
+        String basicAuth = fwCtx.props.getProperty("http.basicAuth");
         if (basicAuth != null && !"".equals(basicAuth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -135,26 +135,26 @@ public class Bundles {
       }
       BundleImpl res = null;
       try {
-        ba = framework.storage.insertBundleJar(location, bin);
+        ba = fwCtx.storage.insertBundleJar(location, bin);
       } finally {
         bin.close();
       }
 
       String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
       if (ee != null) {
-        if (framework.props.debug.packages) {
-          framework.props.debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
+        if (fwCtx.props.debug.packages) {
+          fwCtx.props.debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
         }
-        if (!framework.isValidEE(ee)) {
+        if (!fwCtx.isValidEE(ee)) {
           throw new RuntimeException("Execution environment '" + ee +
                                      "' is not supported");
         }
       }
-      res = new BundleImpl(framework, ba);
+      res = new BundleImpl(fwCtx, ba);
 
-      framework.perm.checkLifecycleAdminPerm(res, checkContext);
+      fwCtx.perm.checkLifecycleAdminPerm(res, checkContext);
       if (res.isExtension()) {
-        framework.perm.checkExtensionLifecycleAdminPerm(res, checkContext);
+        fwCtx.perm.checkExtensionLifecycleAdminPerm(res, checkContext);
         if (!res.hasPermission(new AllPermission())) {
           throw new SecurityException();
         }
@@ -326,10 +326,10 @@ public class Bundles {
    *
    */
   synchronized void load() {
-    BundleArchive [] bas = framework.storage.getAllBundleArchives();
+    BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
     for (int i = 0; i < bas.length; i++) {
       try {
-        BundleImpl b = new BundleImpl(framework, bas[i]);
+        BundleImpl b = new BundleImpl(fwCtx, bas[i]);
         bundles.put(b.location, b);
       } catch (Exception e) {
         try {
@@ -360,7 +360,7 @@ public class Bundles {
         try {
           rb.start();
         } catch (BundleException be) {
-          rb.framework.listeners.frameworkError(rb, be);
+          rb.fwCtx.listeners.frameworkError(rb, be);
         }
       }
     }

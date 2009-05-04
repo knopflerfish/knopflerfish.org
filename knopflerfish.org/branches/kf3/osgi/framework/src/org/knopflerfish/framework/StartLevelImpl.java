@@ -64,7 +64,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
   int targetStartLevel = currentLevel;
   boolean acceptChanges = true;
 
-  FrameworkImpl framework;
+  FrameworkContext framework;
 
   FileTree storage;
 
@@ -75,9 +75,10 @@ public class StartLevelImpl implements StartLevel, Runnable {
   public static final String SPEC_VERSION = "1.0";
   
 
-  public StartLevelImpl(FrameworkImpl framework) {
+  public StartLevelImpl(FrameworkContext framework) {
     this.framework = framework;
-    
+    bCompat = "true".equals(framework.props.getProperty("org.knopflerfish.framework.startlevel.compat", "false"));
+
     storage = Util.getFileStorage("startlevel");
   }
   

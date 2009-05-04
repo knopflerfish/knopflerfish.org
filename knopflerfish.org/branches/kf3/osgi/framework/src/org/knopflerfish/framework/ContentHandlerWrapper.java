@@ -53,12 +53,12 @@ import org.osgi.framework.*;
   extends ContentHandler 
 {
 
-  FrameworkImpl          framework;
+  FrameworkContext       framework;
   String                 mimetype;
   String                 filter;
   ServiceReference       best;
 
-  ContentHandlerWrapper(FrameworkImpl          framework,
+  ContentHandlerWrapper(FrameworkContext       framework,
 			String                 mimetype) {
     
     this.framework = framework;

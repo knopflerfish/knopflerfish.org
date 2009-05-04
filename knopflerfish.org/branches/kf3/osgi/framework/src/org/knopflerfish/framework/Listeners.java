@@ -75,11 +75,11 @@ public class Listeners
    */
   private PermissionOps secure;
   
-  FrameworkImpl framework;
+  FrameworkContext framework;
 
   boolean nocacheldap;
 
-  Listeners(FrameworkImpl framework, PermissionOps perm) {
+  Listeners(FrameworkContext framework, PermissionOps perm) {
     this.framework = framework;
     secure = perm;
     nocacheldap = "true".equals(framework.props.getProperty("org.knopflerfish.framework.ldap.nocache"));

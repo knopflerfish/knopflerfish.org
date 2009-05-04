@@ -72,10 +72,10 @@ class Services {
   private PermissionOps secure;
 
 
-  FrameworkImpl framework;
+  FrameworkContext framework;
   
-  Services(FrameworkImpl framework, PermissionOps perm) {
-    this.framework = framework;
+  Services(FrameworkContext fwCtx, PermissionOps perm) {
+    this.framework = fwCtx;
     secure = perm;
   }
 
@@ -169,7 +169,7 @@ class Services {
 	s.add(res);
       }
     }
-    bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
+    bundle.fwCtx.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
     return res;
   }
 
