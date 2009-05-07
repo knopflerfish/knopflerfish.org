@@ -102,12 +102,18 @@ public class PackageAdminImpl implements PackageAdmin {
     ArrayList pkgs = new ArrayList();
     if (bundle != null) {
       for (Iterator i = ((BundleImpl)bundle).getExports(); i.hasNext(); ) {
-        pkgs.add(new ExportedPackageImpl((ExportPkg)i.next()));
+        ExportPkg ep = (ExportPkg)i.next();
+        if (ep.isExported()) {
+          pkgs.add(new ExportedPackageImpl(ep));
+        }
       }
     } else {
       for (Iterator bi = framework.bundles.getBundles().iterator(); bi.hasNext(); ) {
         for (Iterator i = ((BundleImpl)bi.next()).getExports(); i.hasNext(); ) {
-          pkgs.add(new ExportedPackageImpl((ExportPkg)i.next()));
+          ExportPkg ep = (ExportPkg)i.next();
+          if (ep.isExported()) {
+            pkgs.add(new ExportedPackageImpl(ep));
+          }
         }
       }
     }

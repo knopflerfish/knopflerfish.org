@@ -210,12 +210,27 @@ class ExportPkg {
   synchronized boolean isProvider() {
     if (pkg != null) {
       synchronized (pkg) {
-        return pkg.providers.contains(this);
+        return pkg.providers.contains(this) || bpkgs.isRequired();
       }
     }
     return false;
   }
 
+
+  /**
+   * Check if ExportPkg is exported from its bundle. A package is deemed to
+   * be exported if its bundle is resolved and hasn't been replaced by a
+   * conflicting import (see resolving process chapter in core spec.).
+   *
+   * @return True if pkg exports the package.
+   */
+  synchronized boolean isExported() {
+    if (pkg != null && ((bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
+      BundlePackages bp = bpkgs.getProviderBundlePackages(name);
+      return bp == null || bp.bundle == bpkgs.bundle;
+    }
+    return false;
+  }
 
 
   /**

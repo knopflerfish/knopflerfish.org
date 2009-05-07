@@ -1782,6 +1782,8 @@ public class BundleImpl implements Bundle {
    * @param locale locale == "" the bundle.properties will be read
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
+   * @param baseName the basename for localization properties,
+   *        <code>null</code> will choose OSGi default
    */
   protected void readLocalization(String locale,
                                   Hashtable localization_entries,
@@ -1802,11 +1804,8 @@ public class BundleImpl implements Bundle {
       if ((state & RESOLVED_FLAGS) != 0) {
         tmp = ((BundleClassLoader)getClassLoader()).getLocalizationEntries(tmploc +
                                                                            ".properties");
-      } else if (archive != null) { // archive == null if this == systemBundle
-        tmp = archive.getLocalizationEntries(tmploc  + ".properties");
       } else {
-        // No where to search, return.
-        return;
+        tmp = archive.getLocalizationEntries(tmploc  + ".properties");
       }
       if (tmp != null) {
         localization_entries.putAll(tmp);
@@ -1963,15 +1962,6 @@ public class BundleImpl implements Bundle {
     return isExtension() &&
       fragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH);
   }
-
-  /**
-   * Checks if this bundle is a framework extension bundle
-   */
-  boolean isFrameworkExtension() {
-    return isExtension() &&
-      fragment.extension.equals(Constants.EXTENSION_FRAMEWORK);
-  }
-
 
   /**
    * Checks if this bundle is attached to a fragment host.

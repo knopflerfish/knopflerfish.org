@@ -871,19 +871,25 @@ class Archive {
   private void loadFile(File output, InputStream is) throws IOException {
     OutputStream os = null;
     try {
-      os = new FileOutputStream(output);
+      if (output != null) {
+        os = new FileOutputStream(output);
+      }
       byte[] buf = new byte[8192];
       int n;
       try {
         while ((n = is.read(buf)) >= 0) {
-          os.write(buf, 0, n);
+          if (os != null)  {
+            os.write(buf, 0, n);
+          }
         }
       } catch (EOFException ignore) {
         // On Pjava we sometimes get a mysterious EOF exception,
         // but everything seems okey. (SUN Bug 4040920)
       }
     } catch (IOException e) {
-      output.delete();
+      if (os != null) {
+        output.delete();
+      }
       throw e;
     } finally {
       if (os != null) {
@@ -953,7 +959,7 @@ class Archive {
       if (!je.isDirectory()) {
         String name = je.getName();
         if (!name.startsWith("META-INF/")) {
-          ji.closeEntry();
+          loadFile(null, ji);
           Certificate [] c = je.getCertificates();
           if (c != null) {
             if (certs != null) {
