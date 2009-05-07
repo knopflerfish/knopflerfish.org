@@ -287,13 +287,17 @@ public class BundleImpl implements Bundle {
     return state;
   }
 
+  synchronized public void start() throws BundleException {
+    start(0);
+  }
+
 
   /**
    * Start this bundle.
    *
    * @see org.osgi.framework.Bundle#start
    */
-  synchronized public void start() throws BundleException {
+  synchronized public void start(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
     if (isFragment()) {
@@ -447,12 +451,16 @@ public class BundleImpl implements Bundle {
     */
   }
 
+  synchronized public void stop() throws BundleException {
+    stop(0);
+  }
+
   /**
    * Stop this bundle.
    *
    * @see org.osgi.framework.Bundle#stop
    */
-  synchronized public void stop() throws BundleException {
+  synchronized public void stop(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
     if (isFragment()) {
@@ -1873,6 +1881,15 @@ public class BundleImpl implements Bundle {
    */
   public long getLastModified() {
     return lastModified;
+  }
+
+
+  public Map/* <X509Certificate, List<X509Certificate>> */getSignerCertificates(int signersType) {
+    throw new RuntimeException("NYI");
+  }
+  
+  public Version getVersion() {
+    throw new RuntimeException("NYI");
   }
 
 
