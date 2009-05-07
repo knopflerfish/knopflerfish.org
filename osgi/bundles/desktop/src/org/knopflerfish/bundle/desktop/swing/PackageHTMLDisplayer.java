@@ -305,7 +305,12 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       sb.append("</font>");
       sb.append("<br>");
       sb.append("&nbsp;&nbsp;");
-      Util.bundleLink(sb, epkg.getExportingBundle());
+      Bundle b = epkg.getExportingBundle();
+      if (b != null) {
+        Util.bundleLink(sb, b);
+      } else {
+        sb.append("STALE");
+      }
       return sb.toString();
     }
   }

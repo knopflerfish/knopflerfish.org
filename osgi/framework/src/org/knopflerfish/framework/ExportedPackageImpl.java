@@ -143,8 +143,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    * <tt>false</tt> otherwise.
    */
   public boolean isRemovalPending() {
-    if (pkg.isProvider()
-        || (pkg.bpkgs.requiredBy!=null && pkg.bpkgs.requiredBy.size()>0)) {
+    if (pkg.isProvider()) {
       return pkg.zombie;
     } else {
       return false;
