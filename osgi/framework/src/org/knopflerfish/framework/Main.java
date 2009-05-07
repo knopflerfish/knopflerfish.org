@@ -286,7 +286,6 @@ public class Main {
   private void handleArgs(String[] args,
                                  int startOffset,
                                  String[] base) {
-    boolean doNotLaunch = false;
     boolean bLaunched = false;
 
     for (int i = startOffset; i < args.length; i++) {
@@ -343,16 +342,24 @@ public class Main {
           assertFramework();
           framework.start();
           bLaunched = true;
-          doNotLaunch = true;
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
-          assertFramework();
-          doNotLaunch = true;
-          try {
-            framework.stop();
-            println("Framework shutdown", 0);
-          } catch (Exception e) {
-            error("Failed to shutdown", e);
+          if (i+1 < args.length) {
+            i++;
+            long timeout = Long.parseLong(args[i]);
+            try {
+              if(framework != null) {
+                framework.waitForStop(timeout);
+                framework = null;
+                println("Framework shutdown", 0);
+              } else {
+                throw new IllegalArgumentException("No framework to shutdown");
+              }
+            } catch (Exception e) {
+              error("Failed to shutdown", e);
+            }
+          } else {
+            error("No timout for shutdown command");
           }
         } else if ("-sleep".equals(args[i])) {
           if (i+1 < args.length) {
@@ -484,20 +491,22 @@ public class Main {
       }
     }
 
-    assertFramework();
-
-    if (!bLaunched && !doNotLaunch) {
-      try {
-        framework.start();
-        println("Framework launched", 0);
-      } catch (Throwable t) {
-        if (t instanceof BundleException) {
-          BundleException be = (BundleException) t;
-          Throwable ne = be.getNestedException();
-          if (ne != null) t = ne;
+    if (framework == null) {
+      println("No framework created", 0);
+    } else {
+      if(!bLaunched) {
+        try {
+          framework.start();
+          println("Framework launched", 0);
+        } catch (Throwable t) {
+          if (t instanceof BundleException) {
+            BundleException be = (BundleException) t;
+            Throwable ne = be.getNestedException();
+            if (ne != null) t = ne;
+          }
+          t.printStackTrace(System.err);
+          error("Framework launch failed, " + t.getMessage());
         }
-        t.printStackTrace(System.err);
-        error("Framework launch failed, " + t.getMessage());
       }
     }
   }

@@ -326,6 +326,10 @@ public class ServiceReferenceImpl implements ServiceReference
     return val;
   }
 
+  public int compareTo(Object obj) {
+    throw new RuntimeException("NYI");
+  }
+
   public boolean isAssignableTo(Bundle bundle, String className) {
     int pos = className.lastIndexOf('.');
     if (pos != -1) {

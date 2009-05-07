@@ -103,7 +103,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Export-Package string for system packages
    */
-  private final String exportPackageString;
+  private String exportPackageString;
 
 
   /**
@@ -113,6 +113,9 @@ public class SystemBundle extends BundleImpl implements Framework {
   SystemBundle(FrameworkContext fw, ProtectionDomain pd) {
     super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
           Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
+  }
+  
+  public void init() throws BundleException {
     // fw.props.printProps();
 
     state = STARTING;
@@ -279,6 +282,15 @@ public class SystemBundle extends BundleImpl implements Framework {
     return true;
   }
 
+  void startOnLaunch(boolean value) {
+    // override with noop on system bundle
+  }
+
+  void setPersistent(final boolean value) {
+    // override noop on system bundle
+  }
+
+
   //
   // Bundle interface
   //
@@ -291,6 +303,9 @@ public class SystemBundle extends BundleImpl implements Framework {
   synchronized public void start() throws BundleException
   {
     secure.checkExecuteAdminPerm(this);
+    if(getState() != STARTING) {
+      init();
+    }
     fwCtx.launch(0);
   }
  
@@ -302,11 +317,14 @@ public class SystemBundle extends BundleImpl implements Framework {
     throw new RuntimeException("NYI");
   }
 
-  public void init() throws BundleException {
-    throw new RuntimeException("NYI");
+  public void shutdown(int exitcode) {
+    try {
+      stop();
+    } catch (Exception e) {
+      // NYI
+      e.printStackTrace();
+    }
   }
-
-
 
   /**
    * Stop this bundle.
@@ -314,33 +332,24 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @see org.osgi.framework.Bundle#stop
    */
   public void stop() throws BundleException {
-    stop(0);
+    super.stop();
   }
 
-
-  synchronized public void stop(int exitcode) throws BundleException {
-    secure.checkExecuteAdminPerm(this);
-    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
-    secure.callShutdown(this, exitcode);
+  public void stop(int options) throws BundleException {
+    super.stop(options);
   }
 
-  void shutdown(final int exitcode) {
-    Thread t = new Thread() {
-        public void run() {
-          try {
-            // bundle.stop();
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-          if("true".equals(System.getProperty("doexit" /* EXITONSHUTDOWN_PROP */, "true"))) {
-            System.exit(exitcode);
-          } else {
-            // println("Framework shutdown, skipped System.exit()", 0);
-          }
-        }
-      };
-    t.setDaemon(false);
-    t.start();
+  synchronized BundleException stop0(boolean resetPersistent) {
+    try {
+      super.stop0(resetPersistent);
+      fwCtx.shutdown();
+      return null;
+    } catch (Exception e) {
+      if(e instanceof BundleException) {
+        return (BundleException)e;
+      }
+      return new BundleException("Failed to stop", e);
+    }
   }
 
 
