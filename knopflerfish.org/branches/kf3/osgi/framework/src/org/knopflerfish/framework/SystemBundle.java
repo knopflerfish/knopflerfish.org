@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -198,7 +198,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     name = StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  StartLevelImpl.SPEC_VERSION);
+          "=" +  StartLevelController.SPEC_VERSION);
 
     // Set up tracker package
     name = ServiceTracker.class.getName();

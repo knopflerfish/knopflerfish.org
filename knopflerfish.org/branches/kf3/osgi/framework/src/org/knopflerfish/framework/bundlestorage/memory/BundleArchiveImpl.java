@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, Knopflerfish project
+ * Copyright (c) 2003-2009, Knopflerfish project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private boolean startOnLaunch;
+  private int autostartSetting;
 
   private BundleStorageImpl storage;
 
@@ -90,7 +90,7 @@ class BundleArchiveImpl implements BundleArchive
     storage       = bundleStorage;
     id            = bundleId;
     location      = bundleLocation;
-    startOnLaunch = false;
+    autostartSetting = -1;
     setClassPath();
   }
 
@@ -105,7 +105,7 @@ class BundleArchiveImpl implements BundleArchive
     location = old.location;
     storage = old.storage;
     id = old.id;
-    startOnLaunch = old.startOnLaunch;
+    autostartSetting = old.autostartSetting;
     bPersistent = old.bPersistent;
     archive = new Archive(is);
     setClassPath();
@@ -291,24 +291,23 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
-   * Get state of start on launch flag.
+   * Set autostart setting.
    *
-   * @return Boolean value for start on launch flag.
+   * @param setting the new autostart setting.
    */
-  public boolean getStartOnLaunchFlag() {
-    return startOnLaunch;
+  public void setAutostartSetting(int setting) throws IOException {
+    if (setting != autostartSetting) {
+      autostartSetting = setting;
+    }
   }
 
-
   /**
-   * Set state of start on launch flag.
+   * Get autostart setting.
    *
-   * @param value Boolean value for start on launch flag.
+   * @return the autostart setting.
    */
-  public void setStartOnLaunchFlag(boolean value) throws IOException {
-    if (startOnLaunch != value) {
-      startOnLaunch = value;
-    }
+  public int getAutostartSetting() {
+    return autostartSetting;
   }
 
 

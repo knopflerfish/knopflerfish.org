@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,25 @@ import java.util.List;
  * @author Mats-Ola Persson
  */
 public interface BundleArchive {
+
+  /**
+   * Autostart setting stopped.
+   * @see BundleArchive#setAutostartSetting(String)
+   */
+  public String AUTOSTART_SETTING_STOPPED           = "stopped";
+
+  /**
+   * Autostart setting eager.
+   * @see BundleArchive#setAutostartSetting(String)
+   */
+  public String AUTOSTART_SETTING_EAGER             = "eager";
+
+  /**
+   * Autostart setting declared activation policy.
+   * @see BundleArchive#setAutostartSetting(String)
+   */
+  public String AUTOSTART_SETTING_ACTIVATION_POLICY = "activation_policy";
+
 
   /**
    * Get an attribute from the manifest of a bundle.
@@ -153,19 +172,19 @@ public interface BundleArchive {
 
 
   /**
-   * Get state of start-on-launch flag.
+   * Get auto-start setting.
    *
-   * @return Boolean value for start on launch flag.
+   * @return the autostart setting.
    */
-  boolean getStartOnLaunchFlag();
+  int getAutostartSetting();
 
 
   /**
-   * Set state of start-on-launch flag.
+   * Set the auto-start setting.
    *
-   * @param value Boolean value for start on launch flag.
+   * @param setting the autostart setting ot use.
    */
-  void setStartOnLaunchFlag(boolean value) throws IOException;
+  void setAutostartSetting(int setting) throws IOException;
 
 
   /**
