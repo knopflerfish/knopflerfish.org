@@ -1889,7 +1889,7 @@ public class BundleImpl implements Bundle {
   }
   
   public Version getVersion() {
-    throw new RuntimeException("NYI");
+    return version;
   }
 
 

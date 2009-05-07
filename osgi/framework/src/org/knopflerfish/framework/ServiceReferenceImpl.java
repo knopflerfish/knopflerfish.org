@@ -118,6 +118,35 @@ public class ServiceReferenceImpl implements ServiceReference
     return false;
   }
 
+  /**
+   * Compare two ServiceReferences 
+   *
+   * @see org.osgi.framework.ServiceReference
+   */
+  public int compareTo(Object obj) {
+    ServiceReference that = (ServiceReference)obj;
+    String id1 = (String)this.getProperty(Constants.SERVICE_ID);
+    String id2 = (String)that.getProperty(Constants.SERVICE_ID);
+
+    // equal if IDs are equal
+    if(id1 == id2 || id1.equals(id2)) {
+      return 0;
+    }
+    Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
+    Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
+    int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
+    int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+
+    // use ranking if ranking differs
+    int diff = r1 - r2;
+    if(diff != 0) {
+      return diff;
+    }
+
+    // otherwise compare using ID strings
+    return id1.compareTo(id2);
+  }
+
 
   /**
    * Return a hashcode for the service.
@@ -326,9 +355,6 @@ public class ServiceReferenceImpl implements ServiceReference
     return val;
   }
 
-  public int compareTo(Object obj) {
-    throw new RuntimeException("NYI");
-  }
 
   public boolean isAssignableTo(Bundle bundle, String className) {
     int pos = className.lastIndexOf('.');

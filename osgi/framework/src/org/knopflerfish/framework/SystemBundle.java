@@ -290,6 +290,11 @@ public class SystemBundle extends BundleImpl implements Framework {
     // override noop on system bundle
   }
 
+  boolean allowSetStartOnLaunchFalse() {
+    return false;
+  }
+
+
 
   //
   // Bundle interface
@@ -348,6 +353,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       if(e instanceof BundleException) {
         return (BundleException)e;
       }
+      e.printStackTrace();
       return new BundleException("Failed to stop", e);
     }
   }
