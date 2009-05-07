@@ -211,8 +211,8 @@ class PermissionOps {
   // BundleImpl Secure operations
   //
 
-  void callStart0(final BundleImpl b) throws BundleException {
-    b.start0();
+  void callStart0(final BundleImpl b, final int options) throws BundleException {
+    b.start0(options);
   }
 
 
@@ -232,8 +232,8 @@ class PermissionOps {
   }
 
 
-  void callStartOnLaunch(final BundleImpl b, final boolean flag) {
-    b.startOnLaunch(flag);
+  void callSetAutostartSetting(final BundleImpl b, final int setting) {
+    b.setAutostartSetting(setting);
   }
 
 

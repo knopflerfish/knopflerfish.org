@@ -68,7 +68,7 @@ class BundleArchiveImpl implements BundleArchive
    */
   private final static String LOCATION_FILE      = "location";
   private final static String REV_FILE           = "revision";
-  private final static String STOP_FILE          = "stopped";
+  private final static String AUTOSTART_FILE     = "autostart";
   private final static String STARTLEVEL_FILE    = "startlevel";
   private final static String PERSISTENT_FILE    = "persistent";
   private final static String LAST_MODIFIED_FILE = "lastModifed";
@@ -85,7 +85,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private boolean startOnLaunch;
+  private int autostartSetting;
 
   private FileTree bundleDir;
 
@@ -134,11 +134,11 @@ class BundleArchiveImpl implements BundleArchive
     storage         = bundleStorage;
     id              = bundleId;
     location        = bundleLocation;
-    startOnLaunch   = false;
+    autostartSetting = -1;
     archive         = new Archive(storage, bundleDir, 0, is, source, location);
     nativeLibs      = getNativeCode();
     setClassPath();
-    putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
+    putContent(AUTOSTART_FILE, String.valueOf(autostartSetting));
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
   }
@@ -180,9 +180,15 @@ class BundleArchiveImpl implements BundleArchive
         catch (NumberFormatException ignore) {}
     }
 
+    s = getContent(STARTLEVEL_FILE);
+    if (s != null) {
+      try {
+        autostartSetting = Integer.parseInt(s);
+      } catch (NumberFormatException ignore) {}
+    }
+
     id            = bundleId;
     storage       = bundleStorage;
-    startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();
     archive       = new Archive(storage, bundleDir, rev, location);
     nativeLibs    = getNativeCode();
     setClassPath();
@@ -199,13 +205,13 @@ class BundleArchiveImpl implements BundleArchive
     location = old.location;
     storage = old.storage;
     id = old.id;
-    startOnLaunch = old.startOnLaunch;
+    autostartSetting = old.autostartSetting;
     bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
     URL source = null;
 
     boolean bReference = (is == null);
-    if(bReference) {        
+    if(bReference) {
       source = new URL(location);
     }
     archive = new Archive(storage, bundleDir, rev, is, source, location);
@@ -440,25 +446,24 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
-   * Get state of start on launch flag.
+   * Set autostart setting.
    *
-   * @return Boolean value for start on launch flag.
+   * @param setting the new autostart setting.
    */
-  public boolean getStartOnLaunchFlag() {
-    return startOnLaunch;
+  public void setAutostartSetting(int setting) throws IOException {
+    if (setting != autostartSetting) {
+      autostartSetting = setting;
+      putContent(AUTOSTART_FILE, Integer.toString(autostartSetting));
+    }
   }
 
-
   /**
-   * Set state of start on launch flag.
+   * Get autostart setting.
    *
-   * @param value Boolean value for start on launch flag.
+   * @return the autostart setting.
    */
-  public void setStartOnLaunchFlag(boolean value) throws IOException {
-    if (startOnLaunch != value) {
-      startOnLaunch = value;
-      putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
-    }
+  public int getAutostartSetting() {
+    return autostartSetting;
   }
 
 
@@ -470,7 +475,7 @@ class BundleArchiveImpl implements BundleArchive
     close();
     if (storage.removeArchive(this)) {
       (new File(bundleDir, LOCATION_FILE)).delete();
-      (new File(bundleDir, STOP_FILE)).delete();
+      (new File(bundleDir, AUTOSTART_FILE)).delete();
       (new File(bundleDir, REV_FILE)).delete();
       (new File(bundleDir, STARTLEVEL_FILE)).delete();
       (new File(bundleDir, PERSISTENT_FILE)).delete();

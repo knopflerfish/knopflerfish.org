@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,7 +142,7 @@ public class BundleStorageImpl implements BundleStorage {
     ArrayList res = new ArrayList();
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
-      if (ba.getStartOnLaunchFlag()) {
+      if (ba.getAutostartSetting()!=-1) {
         res.add(ba.getBundleLocation());
       }
     }

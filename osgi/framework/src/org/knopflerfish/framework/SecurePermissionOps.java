@@ -496,11 +496,11 @@ class SecurePermissionOps extends PermissionOps {
   // BundleImpl secure operations
   //
 
-  void callStart0(final BundleImpl b) throws BundleException {
+  void callStart0(final BundleImpl b, final int options) throws BundleException {
     try {
       AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws BundleException {
-            b.start0();
+            b.start0(options);
             return null;
           }
         });
@@ -545,10 +545,10 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  void callStartOnLaunch(final BundleImpl b, final boolean flag) {
+  void callSetAutostartSetting(final BundleImpl b, final int settings) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          b.startOnLaunch(flag);
+          b.setAutostartSetting(settings);
           return null;
         }
       });

@@ -124,9 +124,9 @@ public class FrameworkContext  {
   FileTree dataStorage /*= null*/;
 
   /**
-   * The start level service.
+   * The start level controler.
    */
-  StartLevelImpl startLevelService;
+  StartLevelController startLevelController;
 
 
   /**
@@ -249,23 +249,23 @@ public class FrameworkContext  {
 
   private final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
 
-  private void registerStartLevel(){
+  private void registerStartLevel() {
     String useStartLevel = props.getProperty(USESTARTLEVEL_PROP, FWProps.TRUE);
 
     if(FWProps.TRUE.equals(useStartLevel)) {
       if(props.debug.startlevel) {
         props.debug.println("[using startlevel service]");
       }
-      startLevelService = new StartLevelImpl(this);
+      startLevelController = new StartLevelController(this);
 
       // restoreState just reads from persistent storage
       // open() needs to be called to actually do the work
       // This is done after framework has been launched.
-      startLevelService.restoreState();
+      startLevelController.restoreState();
 
       services.register(systemBundle,
                         new String [] { StartLevel.class.getName() },
-                        startLevelService,
+                        startLevelController,
                         null);
     }
   }
@@ -316,8 +316,8 @@ public class FrameworkContext  {
       }
       // start level open is delayed to this point to
       // correctly work at restart
-      if (startLevelService != null) {
-        startLevelService.open();
+      if (startLevelController != null) {
+        startLevelController.open();
       }
 
       systemBundle.systemActive();
@@ -353,8 +353,8 @@ public class FrameworkContext  {
       List slist = storage.getStartOnLaunchBundles();
       shuttingdown = true;
       systemBundle.systemShuttingdown();
-      if (startLevelService != null) {
-        startLevelService.shutdown();
+      if (startLevelController != null) {
+        startLevelController.shutdown();
       }
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {

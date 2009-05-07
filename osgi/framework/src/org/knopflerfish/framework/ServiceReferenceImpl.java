@@ -210,22 +210,46 @@ public class ServiceReferenceImpl implements ServiceReference
               s = bundle.fwCtx.perm.callGetService
                 ((ServiceFactory)registration.service, bundle, registration);
             } catch (Throwable pe) {
-              bundle.fwCtx.listeners.frameworkError(registration.bundle,
-                                                        pe);
+              bundle.fwCtx.listeners.frameworkError(registration.bundle, pe);
               return null;
             }
             if (s == null) {
               return null;
             }
-            BundleClassLoader bcl
-              = (BundleClassLoader)registration.bundle.getClassLoader();
+            final Class sc = s.getClass();
+            final ClassLoader cl = sc.getClassLoader();
             for (int i = 0; i < classes.length; i++) {
+              final String cls = classes[i];
               Class c = null;
+              boolean ok = false;
               try {
-                c = bcl.loadClass(classes[i], true);
-              } catch (ClassNotFoundException ignore) { } // Already checked
-              if (!c.isInstance(s)) {
-                bundle.fwCtx.listeners.frameworkError(registration.bundle, new BundleException("ServiceFactory produced an object that did not implement: " + classes[i]));
+                if (cl != null) {
+                  c = cl.loadClass(cls);
+                } else {
+                  c = Class.forName(cls);
+                }
+                ok = c.isInstance(s);
+              } catch (ClassNotFoundException e) {
+                for (Class csc = sc; csc!=null; csc=csc.getSuperclass()) {
+                  if (cls.equals(csc.getName())) {
+                    ok = true;
+                    break;
+                  } else {
+                    Class [] ic = csc.getInterfaces();
+                    for (int iic = ic.length - 1; iic >= 0; iic--) {
+                      if (cls.equals(ic[iic].getName())) {
+                        ok = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              if (!ok) {
+                bundle.fwCtx.listeners.frameworkError
+                  (registration.bundle,
+                   new BundleException("ServiceFactory produced an object "
+                                       +"that did not implement: " + cls));
                 return null;
               }
             }

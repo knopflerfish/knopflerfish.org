@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -333,7 +333,7 @@ public class Bundles {
         bundles.put(b.location, b);
       } catch (Exception e) {
         try {
-          bas[i].setStartOnLaunchFlag(false); // Do not start on launch
+          bas[i].setAutostartSetting(-1); // Do not start on launch
           bas[i].setStartLevel(-2); // Mark as uninstalled
         } catch (IOException _ioe) {
         }

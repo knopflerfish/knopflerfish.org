@@ -55,7 +55,7 @@ import java.lang.reflect.Constructor;
  * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
  */
 public class Main {
-  
+
   // Verbosity level of printouts. 0 is low.
   int verbosity /*= 0*/;
 
@@ -264,8 +264,8 @@ public class Main {
   }
 
 
-  FrameworkFactory ff; 
-  Framework framework; 
+  FrameworkFactory ff;
+  Framework framework;
 
   void assertFramework() {
     if(ff == null) {
@@ -422,7 +422,7 @@ public class Main {
             }
             for(int n = 0; bl != null && n < bl.length; n++) {
               Bundle b = bl[i];
-              b.update();                
+              b.update();
               println("Updated: ", b);
             }
             i++;
@@ -434,11 +434,11 @@ public class Main {
           if (i+1 < args.length) {
             int n = Integer.parseInt(args[i+1]);
             ServiceReference sr = framework.getBundleContext().getServiceReference(StartLevel.class.getName());
-            
+
             if(sr != null) {
               StartLevel ss = (StartLevel)framework.getBundleContext().getService(sr);
               ss.setInitialBundleStartLevel(n);
-              
+
               framework.getBundleContext().ungetService(sr);
             } else {
               println("No start level service - ignoring init bundle level " + n, 0);
@@ -452,7 +452,7 @@ public class Main {
           if (i+1 < args.length) {
             int n = Integer.parseInt(args[i+1]);
             ServiceReference sr = framework.getBundleContext().getServiceReference(StartLevel.class.getName());
-            
+
             if(sr != null) {
               StartLevel ss = (StartLevel)framework.getBundleContext().getService(sr);
               ss.setStartLevel(n);
@@ -620,7 +620,7 @@ public class Main {
     t.start();
   }
   */
-  
+
   /**
    * Restart framework.
    * <p>
@@ -1190,7 +1190,7 @@ public class Main {
     } catch (Exception e) {
       if(e instanceof RuntimeException) {
         throw (RuntimeException)e;
-      } 
+      }
       throw new IllegalArgumentException("xargs loading failed: " + e);
     }
     String [] args2 = new String[v.size()];
