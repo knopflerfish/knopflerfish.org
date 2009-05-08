@@ -85,7 +85,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private int autostartSetting;
+  private int autostartSetting = -1;
 
   private FileTree bundleDir;
 
@@ -130,15 +130,13 @@ class BundleArchiveImpl implements BundleArchive
       source = new URL(bundleLocation);
     } catch (Exception e) {
     }
-    bundleDir       = dir;
-    storage         = bundleStorage;
-    id              = bundleId;
-    location        = bundleLocation;
-    autostartSetting = -1;
-    archive         = new Archive(storage, bundleDir, 0, is, source, location);
-    nativeLibs      = getNativeCode();
+    bundleDir        = dir;
+    storage          = bundleStorage;
+    id               = bundleId;
+    location         = bundleLocation;
+    archive          = new Archive(storage, bundleDir, 0, is, source, location);
+    nativeLibs       = getNativeCode();
     setClassPath();
-    putContent(AUTOSTART_FILE, String.valueOf(autostartSetting));
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
   }
@@ -180,7 +178,7 @@ class BundleArchiveImpl implements BundleArchive
         catch (NumberFormatException ignore) {}
     }
 
-    s = getContent(STARTLEVEL_FILE);
+    s = getContent(AUTOSTART_FILE);
     if (s != null) {
       try {
         autostartSetting = Integer.parseInt(s);
@@ -453,7 +451,7 @@ class BundleArchiveImpl implements BundleArchive
   public void setAutostartSetting(int setting) throws IOException {
     if (setting != autostartSetting) {
       autostartSetting = setting;
-      putContent(AUTOSTART_FILE, Integer.toString(autostartSetting));
+      putContent(AUTOSTART_FILE, String.valueOf(autostartSetting));
     }
   }
 

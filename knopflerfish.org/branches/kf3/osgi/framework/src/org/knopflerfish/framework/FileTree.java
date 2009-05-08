@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,32 +85,32 @@ public class FileTree extends File
       copyFile.mkdirs();
       String [] dirs = list();
       for (int i = dirs.length - 1; i >= 0; i--) {
-	(new FileTree(this, dirs[i])).copyTo(new File(copyFile, dirs[i]));
+        (new FileTree(this, dirs[i])).copyTo(new File(copyFile, dirs[i]));
       }
     } else {
-      InputStream is = null; 
+      InputStream is = null;
       OutputStream os = null;
       try {
-	is = new BufferedInputStream(new FileInputStream(this));
-	os = new BufferedOutputStream(new FileOutputStream(copyFile));
-	byte[] buf=new byte[4096];
-	for (;;) {
-	  int n=is.read(buf);
-	  if (n<0) {
-	    break;
-	  }
-	  os.write(buf, 0, n);
-	}
+        is = new BufferedInputStream(new FileInputStream(this));
+        os = new BufferedOutputStream(new FileOutputStream(copyFile));
+        byte[] buf=new byte[4096];
+        for (;;) {
+          int n=is.read(buf);
+          if (n<0) {
+            break;
+          }
+          os.write(buf, 0, n);
+        }
       } finally {
-	try {
-	  if (is != null) {
-	    is.close();
-	  }
-	} finally {
-	  if (os != null) {
-	    os.close();
-	  }
-	}
+        try {
+          if (is != null) {
+            is.close();
+          }
+        } finally {
+          if (os != null) {
+            os.close();
+          }
+        }
       }
     }
   }
@@ -127,9 +127,9 @@ public class FileTree extends File
     if (isDirectory()) {
       String [] dirs = list();
       if(dirs != null) {
-	for (int i = dirs.length - 1; i>= 0; i--) {
-	  allDeleted &= (new FileTree(this, dirs[i])).delete();
-	}
+        for (int i = dirs.length - 1; i>= 0; i--) {
+          allDeleted &= (new FileTree(this, dirs[i])).delete();
+        }
       }
     }
     boolean thisDeleted = super.delete();

@@ -64,7 +64,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private int autostartSetting;
+  private int autostartSetting = -1;
 
   private BundleStorageImpl storage;
 
@@ -86,11 +86,10 @@ class BundleArchiveImpl implements BundleArchive
                     long bundleId)
     throws Exception
   {
-    archive       = new Archive(is);
-    storage       = bundleStorage;
-    id            = bundleId;
-    location      = bundleLocation;
-    autostartSetting = -1;
+    archive  = new Archive(is);
+    storage  = bundleStorage;
+    id       = bundleId;
+    location = bundleLocation;
     setClassPath();
   }
 
