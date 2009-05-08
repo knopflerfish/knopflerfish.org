@@ -119,12 +119,26 @@ public class ServiceReferenceImpl implements ServiceReference
   }
 
   /**
-   * Compare two ServiceReferences 
+   * Compare two ServiceReferences
    *
    * @see org.osgi.framework.ServiceReference
    */
   public int compareTo(Object obj) {
     ServiceReference that = (ServiceReference)obj;
+
+    boolean sameFw = false;
+    if (that instanceof ServiceReferenceImpl) {
+      ServiceReferenceImpl thatImpl = (ServiceReferenceImpl) that;
+      sameFw
+        = this.registration.bundle.fwCtx == thatImpl.registration.bundle.fwCtx;
+    }
+    if (!sameFw) {
+      throw new IllegalArgumentException("Can not compare service references "
+                                         +"belonging to different framework "
+                                         +"instances (this=" +this +", other="
+                                         +that +").");
+    }
+
     String id1 = (String)this.getProperty(Constants.SERVICE_ID);
     String id2 = (String)that.getProperty(Constants.SERVICE_ID);
 
@@ -217,35 +231,9 @@ public class ServiceReferenceImpl implements ServiceReference
               return null;
             }
             final Class sc = s.getClass();
-            final ClassLoader cl = sc.getClassLoader();
             for (int i = 0; i < classes.length; i++) {
               final String cls = classes[i];
-              Class c = null;
-              boolean ok = false;
-              try {
-                if (cl != null) {
-                  c = cl.loadClass(cls);
-                } else {
-                  c = Class.forName(cls);
-                }
-                ok = c.isInstance(s);
-              } catch (ClassNotFoundException e) {
-                for (Class csc = sc; csc!=null; csc=csc.getSuperclass()) {
-                  if (cls.equals(csc.getName())) {
-                    ok = true;
-                    break;
-                  } else {
-                    Class [] ic = csc.getInterfaces();
-                    for (int iic = ic.length - 1; iic >= 0; iic--) {
-                      if (cls.equals(ic[iic].getName())) {
-                        ok = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-              if (!ok) {
+              if (!Services.checkServiceClass(s, cls)) {
                 bundle.fwCtx.listeners.frameworkError
                   (registration.bundle,
                    new BundleException("ServiceFactory produced an object "
