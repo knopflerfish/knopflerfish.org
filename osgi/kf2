@@ -60,12 +60,12 @@ done
 # *: are these needed? or are they standard?
 
 
-if [ $init == 1 ] ; then
+if [ $init = 1 ] ; then
 
     if [ -d $fwdir ] ; then
         rm -rf $fwdir 
         
-        if [ $? == 0 ] ; then
+        if [ $? = 0 ] ; then
             echo "Removed existing fwdir $fwdir"
         else 
             echo "Failed to remove existing fwdir $fwdir"

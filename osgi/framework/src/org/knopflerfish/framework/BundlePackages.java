@@ -341,6 +341,16 @@ class BundlePackages {
 
 
   /**
+   * Check if this BundlePackages is required by another Bundle.
+   *
+   * @return True if is required
+   */
+  boolean isRequired() {
+    return requiredBy != null && !requiredBy.isEmpty();
+  }
+
+
+  /**
    * Get a list of all BundlePackages that requires the exported packages
    * that comes from the bundle owning this object.
    *
@@ -523,7 +533,7 @@ class BundlePackages {
 
       if (ip != null) {
         if (!fip.overlap(ip)) {
-          return "Host bundle import package constraints need to be stricter" +
+          return "Host bundle import package constraints need to be stricter " +
             "then the import package contraints in the attaching fragment.";
         }
       }

@@ -1,65 +1,242 @@
+2009-05-08 12:47:05 +0200 (Fri, 08 May 2009), revision 2732, ekolin
+Add info about the documentation changes. Prepare for 2.3.1 release.
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-05-08 12:37:45 +0200 (Fri, 08 May 2009), revision 2731, ekolin
+Removed un-necessary intermediate targets. Do not try compile API if
+the bundle API pattern is not set.
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+
+2009-05-08 11:46:26 +0200 (Fri, 08 May 2009), revision 2729, cl
+Major doc update. Added tutorals section. Added bundle doc for desktop and remotefw. Corrected incorrect or missing links in htdocs and bundle docs
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+U   knopflerfish.org/trunk/ant/html_template/bundledoc_ext.html
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/build.xml
+U   knopflerfish.org/trunk/htdocs/html_src/components_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/download_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/eclipse_install.html
+U   knopflerfish.org/trunk/htdocs/html_src/eclipse_plugin_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/index_main.html
+U   knopflerfish.org/trunk/htdocs/html_src/osgi_service_tutorial.html
+U   knopflerfish.org/trunk/htdocs/html_src/programming_main.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/bundledoc_list.html
+U   knopflerfish.org/trunk/htdocs/html_templates/bundle_doc/index.html
+U   knopflerfish.org/trunk/htdocs/html_templates/template.html
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/bundle_active.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/bundle_installed.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/desktop_details.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/desktop_details.png
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/desktop_graph.png
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/desktop_icons.gif
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/desktop_main.png
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/desktop_main_300.png
+A   knopflerfish.org/trunk/osgi/bundles/desktop/doc/images/lib_installed.gif
+U   knopflerfish.org/trunk/osgi/bundles/log/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/remotefw/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/remotefw/doc/
+A   knopflerfish.org/trunk/osgi/bundles/remotefw/doc/images/
+A   knopflerfish.org/trunk/osgi/bundles/remotefw/doc/images/no_remote_framework.png
+A   knopflerfish.org/trunk/osgi/bundles/remotefw/doc/images/remote_framework.png
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/doc/index.html
+
+2009-05-08 08:15:23 +0200 (Fri, 08 May 2009), revision 2727, jan
+Changed == (illegal in some shells) to =
+U   knopflerfish.org/trunk/osgi/kf2
+
+2009-05-07 16:37:28 +0200 (Thu, 07 May 2009), revision 2725, jan
+Fixed problems with Extension bundles and getHeaders, rectified PackageAdmin.getExportedPackages and some minor things in the desktop and certificate handling.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/RequireBundleTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ExportPkg.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ExportedPackageImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-05-07 10:14:31 +0200 (Thu, 07 May 2009), revision 2722, wistrand
+fixed broken CSV generation
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/timingtests.sh
+
+2009-05-07 10:13:15 +0200 (Thu, 07 May 2009), revision 2721, wistrand
+fixed broken CSV generation
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/timing_tester/timingtests.sh
+
+2009-05-04 09:48:17 +0200 (Mon, 04 May 2009), revision 2718, wistrand
+open/close desktop omn the swing thread
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+
+2009-04-29 00:57:52 +0200 (Wed, 29 Apr 2009), revision 2717, cl
+htdocs fixes
+A   knopflerfish.org/trunk/htdocs/html_src/tutorials.html
+
+2009-04-29 00:56:25 +0200 (Wed, 29 Apr 2009), revision 2716, cl
+htdocs fixes
+U   knopflerfish.org/trunk/htdocs/css/knopflerfish.css
+U   knopflerfish.org/trunk/htdocs/html_src/programming_main.html
+
+2009-04-29 00:54:22 +0200 (Wed, 29 Apr 2009), revision 2715, cl
+Fixed copyright
+U   knopflerfish.org/trunk/docs/kf_osgi_tutorial/kf_osgi_tutorial.odt
+U   knopflerfish.org/trunk/docs/kf_osgi_tutorial/kf_osgi_tutorial.pdf
+
+2009-04-28 15:57:59 +0200 (Tue, 28 Apr 2009), revision 2714, cl
+Added link to tutorials in KF SVN + added copyright on first page
+U   knopflerfish.org/trunk/docs/kf_osgi_tutorial/kf_osgi_tutorial.odt
+A   knopflerfish.org/trunk/docs/kf_osgi_tutorial/kf_osgi_tutorial.pdf
+
+2009-04-27 09:40:52 +0200 (Mon, 27 Apr 2009), revision 2713, ekolin
+Ignore errors in delete when doing clean (most likely the directory to
+delete stuff from has already been deleted).
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+
+2009-04-27 09:40:29 +0200 (Mon, 27 Apr 2009), revision 2712, ekolin
+Ignore errors in delete when doing clean (most likely the directory to
+delete stuff from has already been deleted).
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+
+2009-04-24 08:59:24 +0200 (Fri, 24 Apr 2009), revision 2711, ekolin
+
+A   knopflerfish.org/trunk/osgi/bundles/xml/xalan/resources/xml-apis.jar
+
+2009-04-23 14:54:39 +0200 (Thu, 23 Apr 2009), revision 2708, ekolin
+Refactoring of the Xalan-bundle so that using javax.xml.transform.TransfromerFactory.newInstance() works when the package javax.xml.transform is imported from the Xalan-bundle.
+U   knopflerfish.org/trunk/osgi/bundles/xml/xalan/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/xml/xerces/bundle.manifest
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-04-23 09:26:17 +0200 (Thu, 23 Apr 2009), revision 2704, wistrand
+fixed too large message dialogs
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+
+2009-04-22 16:28:24 +0200 (Wed, 22 Apr 2009), revision 2703, ekolin
+Fixed a class-loader issue that caused DocumentBuilderFactory.newInstance() to fail when using the crimson bundle.
+U   knopflerfish.org/trunk/ant/build_example.xml
+U   knopflerfish.org/trunk/osgi/bundles/xml/crimson/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/xml/crimson/src/javax/
+A   knopflerfish.org/trunk/osgi/bundles/xml/crimson/src/javax/xml/
+A   knopflerfish.org/trunk/osgi/bundles/xml/crimson/src/javax/xml/parsers/
+A   knopflerfish.org/trunk/osgi/bundles/xml/crimson/src/javax/xml/parsers/FactoryFinder.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-04-22 09:44:52 +0200 (Wed, 22 Apr 2009), revision 2702, jan
+Fixed hanging update of changelog.txt
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2009-04-22 09:16:47 +0200 (Wed, 22 Apr 2009), revision 2701, jan
+Fixed build problem, wrong path to test keystore.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/build.xml
+
+2009-04-21 13:36:32 +0200 (Tue, 21 Apr 2009), revision 2700, jan
+Fixed persistent saving of initialBundleStartLevel in start level service.
+Bumped framework version to 4.1.2.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/StartLevelImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-04-21 10:53:58 +0200 (Tue, 21 Apr 2009), revision 2699, jan
+Fixed parsing error in loading of saved ConditionalPermissions.
+Improved console command, setcondpermission.
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionInfoImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionInfoStorage.java
+
+2009-04-19 17:59:12 +0200 (Sun, 19 Apr 2009), revision 2696, cl
+Fixes for running ant outside knopflerfish.org src tree and using keystore
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build_keystore.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/build.xml
+
+2009-04-19 17:53:54 +0200 (Sun, 19 Apr 2009), revision 2695, cl
+Fix for release doc
+U   knopflerfish.org/trunk/htdocs/css/knopflerfish.css
+
+2009-04-17 07:35:50 +0200 (Fri, 17 Apr 2009), revision 2690, jan
+Post release updates
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-04-16 15:01:57 +0200 (Thu, 16 Apr 2009), revision 2688, jan
+Update changelog for the 2.3.0 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2009-04-16 14:18:37 +0200 (Thu, 16 Apr 2009), revision 2687, jan
 Fixed faulty init-tests.xargs in ..._test.zip
-U knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/build.xml
 
 2009-04-15 14:11:42 +0200 (Wed, 15 Apr 2009), revision 2686, jan
 Fixed licenses files, bcel repository and disabled unstable test case.
-U knopflerfish.org/trunk/ant/bundletasks.xml
-U knopflerfish.org/trunk/osgi/init-tests.xargs.in
-U knopflerfish.org/trunk/tools/jarunpacker/license.html
-U knopflerfish.org/trunk/tools/jarunpacker/license.txt
+U   knopflerfish.org/trunk/ant/bundletasks.xml
+U   knopflerfish.org/trunk/osgi/init-tests.xargs.in
+U   knopflerfish.org/trunk/tools/jarunpacker/license.html
+U   knopflerfish.org/trunk/tools/jarunpacker/license.txt
 
 2009-04-15 09:45:32 +0200 (Wed, 15 Apr 2009), revision 2685, jan
 Preparations for 2.3.0 release, CPA improvement and test cases and build system improvements.
-U knopflerfish.org/trunk/ant/bundlebuild.xml
-U knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
-U knopflerfish.org/trunk/osgi/build.xml
-U knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build.xml
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build_keystore.xml
-D knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/all.mf
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/build.xml
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/bundle.manifest
-D knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/all.mf
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/build.xml
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/bundle.manifest
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/src/org/knopflerfish/bundle/bundleP2_test/BundP2.java
-D knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/all.mf
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/build.xml
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/bundle.manifest
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/build.xml
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/bundle.manifest
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/Activator.java
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/CondPermAdminTestSuite.java
-A knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/Util.java
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/PackageAdminTestSuite.java
-U knopflerfish.org/trunk/osgi/bundles_test/regression_tests/permissionadmin_test/all.mf
-U knopflerfish.org/trunk/osgi/framework/build.xml
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/CertificateUtil.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermission.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionAdminImpl.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionInfoImpl.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionInfoStorage.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/Debug.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/FrameworkPolicy.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/KFSecurityManager.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermUtil.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionInfoStorage.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionsWrapper.java
-U knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PostponementCheck.java
-U knopflerfish.org/trunk/osgi/framework/src/org/osgi/service/condpermadmin/BundleSignerCondition.java
-U knopflerfish.org/trunk/osgi/init-tests.xargs.in
-U knopflerfish.org/trunk/osgi/props.xargs
-U knopflerfish.org/trunk/release_notes.in
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+U   knopflerfish.org/trunk/osgi/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/build_keystore.xml
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP1_test/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP2_test/src/org/knopflerfish/bundle/bundleP2_test/BundP2.java
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/all.mf
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/bundleP3_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/CondPermAdminTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/condpermadmin_test/src/org/knopflerfish/bundle/condpermadmin_test/Util.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/PackageAdminTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/permissionadmin_test/all.mf
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/CertificateUtil.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermission.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionAdminImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionInfoImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/ConditionalPermissionInfoStorage.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/Debug.java
+UU  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/FrameworkPolicy.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/KFSecurityManager.java
+UU  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermUtil.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionInfoStorage.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionsWrapper.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/PostponementCheck.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/osgi/service/condpermadmin/BundleSignerCondition.java
+U   knopflerfish.org/trunk/osgi/init-tests.xargs.in
+U   knopflerfish.org/trunk/osgi/props.xargs
+U   knopflerfish.org/trunk/release_notes.in
 
 2009-04-03 16:34:23 +0200 (Fri, 03 Apr 2009), revision 2684, jan
 Update night builds for new machine
@@ -2242,7 +2419,7 @@ U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desk
 U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageHTMLDisplayer.java
 
 2008-05-07 07:59:22 +0200 (Wed, 07 May 2008), revision 2337, ekolin
-Update number of expected jar entries (new test suite -> new entries).
+Update number of expected jar entries (new test suite -&gt; new entries).
 U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
 
 2008-05-07 07:36:17 +0200 (Wed, 07 May 2008), revision 2336, ekolin

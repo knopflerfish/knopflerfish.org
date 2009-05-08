@@ -38,7 +38,7 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="2.3.1.svn-XXXX"/>
+  <property name="version"            value="2.3.2.svn-XXXX"/>
 
   <!-- The SVN-repository URL -->
   <property name="svn.repo.url"
@@ -179,6 +179,19 @@
       </fileset>
     </copy>
     
+
+
+  </target>
+  
+  <!-- docs, tutorials and other documentation -->
+  <target name="docs">
+    <mkdir dir="${release.doc.dir}/tutorials"/>
+    <copy todir="${release.doc.dir}/tutorials">
+      <fileset dir="docs">
+	<include name="kf_osgi_tutorial/**"/>
+	<exclude name="*.class"/>
+      </fileset>
+    </copy>
   </target>
   
   <target name="check_javadoc" if="javadoc.out.dir.present">
@@ -556,6 +569,8 @@
     <antcall target     = "bundle_doc"/>
 
     <antcall target      = "htdocs"/>
+
+    <antcall target      = "docs"/>
 
     <delete file        ="${distribfile}"/>
 
@@ -1192,6 +1207,28 @@
 
  <target name="build_distrib_docs"
 	 description="Builds the distrib docs"
-	 depends="htdocs, bundle_doc, javadoc, jardocs"/>
+	 depends="htdocs, docs, bundle_doc, javadoc, jardocs"/>
  
+  <!--| 
+      | The program used to check for broken links is the W3C checklink program:
+      | http://validator.w3.org/docs/checklink.html
+      |
+      | It must be locally installed as it checks the generated docs on the local 
+      | file system. Only tested on OS X so far. 
+      | 
+      | The program is perl based. Please note the special step that needs to be 
+      | taken to enable SSL/HTTPS support
+      |
+    -->
+  <target name="docs.checklink"
+	  description="Checks that all links are valid in the generated html documents">
+    <exec executable="checklink"
+	  output="${distrib.out.dir}/checklink.out">
+      <arg value="-qr"/>
+      <arg value="-X"/>
+      <arg value=".*/docs/javadoc/index.html.*"/>	
+      <arg value="${release.doc.dir}/index.html"/>
+    </exec>
+  </target>
+
 </project>

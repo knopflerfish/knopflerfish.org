@@ -505,25 +505,36 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param locale locale == "" the bundle.properties will be read
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
+   * @param baseName the basename for localization properties,
+   *        <code>null</code> will choose OSGi default
    */
-  protected void readLocalization(String locale, Hashtable localization_entries) {
-
+  protected void readLocalization(String locale,
+                                  Hashtable localization_entries,
+                                  String baseName) {
     String[] parts = Util.splitwords(locale, "_");
-    String tmploc = parts[0];
+    String tmploc;
     int o = 0;
 
+    if (baseName == null) {
+      baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
+    }
+    if ("".equals(parts[0])) {
+      tmploc = baseName;
+    } else {
+      tmploc = baseName + "_" + parts[0];
+    }
     do {
       if (fragments != null) {
         for (int i = fragments.size() - 1; i >= 0; i--) {
           BundleImpl b = (BundleImpl)fragments.get(i);
-          // NYI! Get correct archive
-          Hashtable tmp = b.archive.getLocalizationEntries(tmploc);
+          Hashtable tmp = b.archive.getLocalizationEntries(tmploc + ".properties");
           if (tmp != null) {
             localization_entries.putAll(tmp);
           }
         }
       }
-      // NYI! read localization from framework?
+      // NYI! read localization from framework.
+      // There is no need for this now since it isn't used.
 
       if (++o >= parts.length) {
         break;
