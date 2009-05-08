@@ -498,12 +498,12 @@ public abstract class JHTMLBundle extends JPanel  {
 	sb.append("</tr>\n");
 	
 	sb.append("<tr><td bgcolor=\"#ffffff\">");
-        long t0 = System.currentTimeMillis();
+//         long t0 = System.currentTimeMillis();
         StringBuffer bi = bundleInfo(bl[i]);
-        long t1 = System.currentTimeMillis();
-        if(t1 - t0 > 50) {
-          System.out.println("  " + (t1-t0) + "ms " + getClass().getName());
-        }
+//         long t1 = System.currentTimeMillis();
+//         if(t1 - t0 > 50) {
+//           System.out.println("  " + (t1-t0) + "ms " + getClass().getName());
+//         }
 	sb.append(bi.toString());
 	sb.append("</td>\n");
 	sb.append("</tr>\n");

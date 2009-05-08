@@ -290,17 +290,17 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         pa = null;
 
         // Update the required bundle, D, check that there are two
-        // versions of packages exported (one marked as pending removal).
+        // packages exported marked as pending removal.
         out.println("Updating " +buD);
         Util.updateBundle(bc, buD, "rb_D_api-0.1.0.jar");
-        // Must allways fetch a new PackageAdmin after an update!
+        // Must always fetch a new PackageAdmin after an update!
         pa = (PackageAdmin)bc.getService(paSR);
         if (pa == null) {
           fail("Failed to get PackageAdmin service");
         }
         epkgs = pa.getExportedPackages(buD);
         assertNotNull("Packages shall be exported from D",epkgs);
-        assertEquals("Number of packages exported from D",4,epkgs.length);
+        assertEquals("Number of packages exported from D",2,epkgs.length);
         normalPkgs = 0;
         pendingRemovalPkgs = 0;
         for(int i=0; i<epkgs.length; i++) {
@@ -312,7 +312,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
           }
         }
         assertEquals("Pkgs pending removal",2,pendingRemovalPkgs);
-        assertEquals("Pkgs exported",2,normalPkgs);
+        assertEquals("Pkgs exported",0,normalPkgs);
 
         // buD is still required by 2 bundles (buC and buCc).
         rbs = pa.getRequiredBundles(buD.getSymbolicName());

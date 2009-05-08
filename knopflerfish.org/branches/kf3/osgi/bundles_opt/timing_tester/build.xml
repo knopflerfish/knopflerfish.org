@@ -45,10 +45,10 @@
 
   <property name="log.file.name" value="log.csv"/>
   <property name="fw.storage"    value="file"/>
-  <property name="fw.version"    value="2.0"/>
+  <property name="fw.runid"      value="undef"/>
   <property name="fw.jar"        location="${topdir}/framework.jar"/>
   <property name="log.prefix"
-	    value="${fw.version}_${fw.storage}, ${fw.version} ${fw.storage}"/>
+	    value="${fw.runid}, ${fw.storage}"/>
   <target name="run" description="Run the tests.">
     <java fork="true"
 	  classname="org.knopflerfish.test.framework.TestFW">
@@ -56,7 +56,7 @@
 	<pathelement location="${fw.jar}"/>
 	<pathelement location="${topdir}/jars/tester/tester-${bmfa.Bundle-Version}.jar"/>
       </classpath>
-      <jvmarg value="-Dtest.log.prefix=${log.prefix})"/>
+      <jvmarg value="-Dtest.log.prefix=${log.prefix}"/>
       <jvmarg value="-Dtest.log.file=${log.file.name}"/>
       <jvmarg value="-Dorg.knopflerfish.framework.bundlestorage=${fw.storage}"/>
       <jvmarg value="-Dfwdir.delete=true"/>

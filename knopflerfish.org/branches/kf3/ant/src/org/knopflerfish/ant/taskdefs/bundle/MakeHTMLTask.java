@@ -345,10 +345,10 @@ public class MakeHTMLTask extends Task {
 
         // Create links to generated jardoc for this bundle
         StringBuffer sbuf = new StringBuffer();
-        generateJardocPath(sbuf, "bundle.build.lib", lib_suffix);
-        generateJardocPath(sbuf, "bundle.build.api", api_suffix);
-        generateJardocPath(sbuf, "bundle.build.all", all_suffix);
-        generateJardocPath(sbuf, "bundle.build.impl", impl_suffix);
+        generateJardocPath(sbuf, "do_build_lib", lib_suffix);
+        generateJardocPath(sbuf, "do_build_api", api_suffix);
+        generateJardocPath(sbuf, "do_build_all", all_suffix);
+        generateJardocPath(sbuf, "do_build_impl", impl_suffix);
         content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
 
         String epkgs = proj.getProperty("bmfa.Export-Package");

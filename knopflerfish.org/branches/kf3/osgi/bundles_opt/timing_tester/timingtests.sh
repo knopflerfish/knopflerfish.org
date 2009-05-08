@@ -1,17 +1,17 @@
-#!/usr/bin/bash -e
+#!/bin/bash -e
 
 ANT=${ANT:-ant}
 LOGFILE=log.csv
 TOPDIR=../..
 
 function runtest() {
-    VERSION=$1
+    RUNID=$1
     FWJARFILE=$2
     STORAGE=$3
 
     "${ANT}" -Dlog.file.name=${LOGFILE} \
         -Dfw.storage=${STORAGE} \
-        -Dfw.version=${VERSION} \
+        -Dfw.runid=${RUNID} \
         -Dfw.jar=${FWJARFILE} \
         run
 }
@@ -19,14 +19,14 @@ function runtest() {
 
 function runAll() {
 
-  for n in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10; do
-   runtest "2.0" "${TOPDIR}/framework.jar" "file"
-   runtest "2.0" "${TOPDIR}/framework.jar" "memory"
+  for runid in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+   runtest $runid "${TOPDIR}/framework.jar" "file"
+   runtest $runid "${TOPDIR}/framework.jar" "memory"
   done
 }
 
 echo >$LOGFILE \
-    "date, id, runid, version, storage, module, message, time, mem, exception"
+    "date, id, runid, storage, module, message, time, mem, exception"
 ## echo >>$LOGFILE  "int, int, string, string, message, int, int, string"
 
 runAll

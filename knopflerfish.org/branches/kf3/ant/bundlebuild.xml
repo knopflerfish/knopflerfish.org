@@ -371,8 +371,9 @@
    </javac>
   </target>
 
-  <target name="compile_api" description="Compiles api java sources"
-	  if="src.dir.exists">
+  <target name="compile_api"
+	  description="Compiles api java sources"
+	  if="do_compile_api">
     <mkdir dir = "${classes.out.dir}"/>
 
     <bundle_locator classPathRef="bundle.path"
@@ -397,33 +398,43 @@
   </target>
 
   <target name="jars" description="Compile all jars">
-    <antcall target="jar_api0" inheritRefs="true"/>
+    <antcall target="jar_api"  inheritRefs="true"/>
     <antcall target="jar_lib"  inheritRefs="true"/>
     <antcall target="jar_impl" inheritRefs="true"/>
-    <antcall target="jar_all0" inheritRefs="true"/>
-  </target>
-
-  <target name="jar_api0" if="api.pattern">
-    <antcall target="jar_api" inheritRefs="true"/>
-  </target>
-
-  <target name="jar_all0" if="api.pattern">
-    <antcall target="jar_all" inheritRefs="true"/>
+    <antcall target="jar_all"  inheritRefs="true"/>
   </target>
 
   <!-- set up build conditions -->
   <target name="setup_build">
+    <available property="src.dir.exists"       file="${src.dir}"/>
+    <available property="resources.dir.exists" file="${resources.dir}"/>
+
     <condition property="do_build_lib">
       <equals arg1="${bundle.build.lib}"  arg2="true"/>
     </condition>
-    <condition property="do_build_api">
-      <equals arg1="${bundle.build.api}"  arg2="true"/>
+    <condition property="do_build_api" value="true">
+      <and>
+	<equals arg1="${bundle.build.api}"  arg2="true"/>
+	<isset property="api.pattern"/>
+      </and>
+    </condition>
+    <condition property="do_compile_api" value="true">
+      <and>
+	<or>
+	  <isset property="do_build_api"/>
+	  <isset property="do_build_lib"/>
+	</or>
+	<isset property="src.dir.exists"/>
+      </and>
     </condition>
     <condition property="do_build_impl">
       <equals arg1="${bundle.build.impl}" arg2="true"/>
     </condition>
-    <condition property="do_build_all">
-      <equals arg1="${bundle.build.all}"  arg2="true"/>
+    <condition property="do_build_all" value="true">
+      <and>
+	<equals arg1="${bundle.build.all}"  arg2="true"/>
+	<isset property="api.pattern"/>
+      </and>
     </condition>
     <condition property="do_build_doc">
       <equals arg1="${bundle.build.doc}"  arg2="true"/>
@@ -441,9 +452,6 @@
       </and>
     </condition>
     <property name="bundlemanifest.mode" value="replace"/>
-
-    <available property="src.dir.exists"       file="${src.dir}"/>
-    <available property="resources.dir.exists" file="${resources.dir}"/>
 
     <!-- Ensure that the compiler output dir exists (required since -->
     <!-- it is used as the "dir"-attribute in a <fileset>.    -->
