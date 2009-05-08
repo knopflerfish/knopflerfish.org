@@ -114,10 +114,11 @@
 
   <property name="css_navigation_enabled"	value="navigation_enabled"/>
   <property name="css_navigation_disabled"	value="navigation_disabled"/>
-  <property name="navigation_pages"		value="INDEX PROG ECLIPSE LICENSE RUNNING PROG COMP DESKTOP UBICORE CHANGELOG SVN"/>
+  <property name="navigation_pages"		value="INDEX PROG ECLIPSE LICENSE RUNNING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
 
 
    <!-- define the links -->
+   <!-- 
    <property name="htdocs.link.id.0" value="INDEX"/>
    <property name="htdocs.link.type.0" value="link"/>
    <property name="htdocs.link.url.0" value="$(ROOT)/index.html"/>
@@ -185,7 +186,7 @@
    <property name="htdocs.link.type.13" value="link"/>
    <property name="htdocs.link.url.13" value="http://www.knopflerfish.org/repo/index.html"/>
    <property name="htdocs.link.name.13" value="Bundle repository"/>
-   
+   -->
    <antcall target="htdocs"/>
  </target>
 
@@ -316,8 +317,23 @@
              fromfile="${htdocs.dir}/html_src/desktop_main.html"
              disable="DESKTOP"/>
 
-    <echo message="${htdocs.out}"/>
+    <makehtml title="${htdocs.distname} - Tutorials"
+              description="The tutorials shipped with KF"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="tutorials.html"
+              fromfile="${htdocs.dir}/html_src/tutorials.html"
+	      disable="TUTORIALS"/>
+    
+    <makehtml title="${htdocs.distname} - OSGi Service Tutorial"
+              description="The OSGi Service Tutorial"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="osgi_service_tutorial.html"
+              fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
+	      disable="SERVICE_TUTORIAL"/>
 
+    <echo message="${htdocs.out}"/>
   </target>
  
   <target name="clean">

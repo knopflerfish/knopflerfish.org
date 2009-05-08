@@ -416,14 +416,20 @@
     <condition property="do_build_lib">
       <equals arg1="${bundle.build.lib}"  arg2="true"/>
     </condition>
-    <condition property="do_build_api">
-      <equals arg1="${bundle.build.api}"  arg2="true"/>
+    <condition property="do_build_api" value="true">
+      <and>
+	<equals arg1="${bundle.build.api}"  arg2="true"/>
+	<isset property="api.pattern"/>
+      </and>
     </condition>
     <condition property="do_build_impl">
       <equals arg1="${bundle.build.impl}" arg2="true"/>
     </condition>
-    <condition property="do_build_all">
-      <equals arg1="${bundle.build.all}"  arg2="true"/>
+    <condition property="do_build_all" value="true">
+      <and>
+	<equals arg1="${bundle.build.all}"  arg2="true"/>
+	<isset property="api.pattern"/>
+      </and>
     </condition>
     <condition property="do_build_doc">
       <equals arg1="${bundle.build.doc}"  arg2="true"/>
