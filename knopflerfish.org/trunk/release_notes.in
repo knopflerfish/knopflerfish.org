@@ -10,18 +10,25 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Framework 4.1.3
+
   Fixed parsing exception of saved ConditionalPermissionInfo data
   during restart of framework. Fixed persistent saving of
   initialBundleStartLevel in start level service.
-  Available in framework version 4.1.2.
   
-  Fixed ClassCastException in getHeaders() for extension bundles. Rectified
-  PackageAdmin.getExportedPackages() so that doesn't include packages from
-  extension bundles and unresolved bundles.
-  Available in framework version 4.1.3.
+  Fixed ClassCastException in getHeaders() for extension
+  bundles. Rectified PackageAdmin.getExportedPackages() so that
+  doesn't include packages from extension bundles and unresolved
+  bundles.
 
 
 === Misc (KF specific, start scripts, build system etc ===
+
+
+  Major documentation update. A tutorials section have been added. Old
+  desktop and remotefw documentation have been updated and converted
+  to bundle doc. Corrected incorrect or missing links in htdocs and
+  bundle docs
 
 
   Crimson 2.0.1
@@ -50,7 +57,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Desktop 2.3.2
 
-   Fixed a potential NullPointerException and removed a debug print.
+  Fixed a potential NullPointerException and removed a debug print.
+
 
 ========================================================================
 
@@ -58,7 +66,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 Release Notes Knopflerfish 2.3.0 (OSGi R4.0.1)
 ----------------------------------------------
 
-  Maintenance release of Knopflerfish available from
+  Minor release of Knopflerfish available from
   http://www.knopflerfish.org/releases/2.3.0
 
   Here follows a breakdown of the most important changes since the 
