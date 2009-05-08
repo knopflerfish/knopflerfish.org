@@ -111,10 +111,14 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    */
   SystemBundle(FrameworkContext fw, ProtectionDomain pd) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
-          Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
+    super(fw,
+          0,
+          Constants.SYSTEM_BUNDLE_LOCATION,
+          pd,
+          Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
+          new Version(Main.readVersion()));
   }
-  
+
   public void init() throws BundleException {
     // fw.props.printProps();
 
@@ -313,7 +317,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     fwCtx.launch(0);
   }
- 
+
   synchronized public void start(int options) throws BundleException {
     start();
   }

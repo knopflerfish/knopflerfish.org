@@ -222,7 +222,13 @@ public class BundleImpl implements Bundle {
    *
    * @param fw Framework for this bundle.
    */
-  BundleImpl(FrameworkContext fw, long id, String loc, ProtectionDomain pd, String sym, Version ver) {
+  BundleImpl(FrameworkContext fw,
+             long id,
+             String loc,
+             ProtectionDomain pd,
+             String sym,
+             Version ver)
+  {
     this.fwCtx = fw;
     this.secure = fw.perm;
     this.id = id;
@@ -239,14 +245,12 @@ public class BundleImpl implements Bundle {
   /**
    * Construct a new Bundle based on a BundleArchive.
    *
-   * @param bundlesDir Directory where to store the bundles all persistent data.
    * @param fw FrameworkContext for this bundle.
-   * @param loc Location for new bundle.
-   * @param in Bundle JAR as an inputstream.
+   * @param ba Bundle archive with holding the contents of the bundle.
    * @exception IOException If we fail to read and store our JAR bundle or if
    *            the input data is corrupted.
-   * @exception SecurityException If we don't have permission to import and export
-   *            bundle packages.
+   * @exception SecurityException If we don't have permission to
+   *            import and export bundle packages.
    */
   BundleImpl(FrameworkContext fw, BundleArchive ba) {
     fwCtx = fw;
@@ -612,7 +616,9 @@ public class BundleImpl implements Bundle {
       InputStream bin;
       if (in == null) {
         // Try Bundle-UpdateLocation
-        String update = archive.getAttribute(Constants.BUNDLE_UPDATELOCATION);
+        String update = archive!=null
+          ? archive.getAttribute(Constants.BUNDLE_UPDATELOCATION)
+          : null;
         if (update == null) {
           // Take original location
           update = location;
@@ -706,7 +712,7 @@ public class BundleImpl implements Bundle {
     // Purge old archive
     if (purgeOld) {
       secure.purge(this, oldProtectionDomain);
-      oldArchive.purge();
+      if (null!=oldArchive) oldArchive.purge();
     }
 
     // Broadcast updated event
@@ -759,9 +765,12 @@ public class BundleImpl implements Bundle {
   void uninstall0() {
     boolean wasResolved = false;
 
-    try {
-      archive.setStartLevel(-2); // Mark as uninstalled
-    } catch (Exception ignored) {   }
+    if (null!=archive) {
+      try {
+        archive.setStartLevel(-2); // Mark as uninstalled
+      } catch (Exception ignored) {
+      }
+    }
 
     cachedHeaders = getHeaders0(null);
 
@@ -790,7 +799,7 @@ public class BundleImpl implements Bundle {
           classLoader = null;
         } else {
           secure.purge(this, protectionDomain);
-          archive.purge();
+          if (null!=archive) archive.purge();
         }
       } else { // Non-fragment bundle
         // Try to unregister this bundle's packages
@@ -805,7 +814,7 @@ public class BundleImpl implements Bundle {
             classLoader = null;
           } else {
             secure.purge(this, protectionDomain);
-            archive.purge();
+            if (null!=archive) archive.purge();
           }
         } else {
           // Exports are in use, save as zombie packages
@@ -823,12 +832,14 @@ public class BundleImpl implements Bundle {
         if (!bundleDir.delete()) {
           // Bundle dir is not deleted completely, make sure we mark
           // it as uninstalled for next framework restart
-          try {
-            archive.setStartLevel(-2); // Mark as uninstalled
-          } catch (Exception e) {
-            fwCtx.props.debug.println("Failed to mark bundle " + id +
-                          " as uninstalled, " + bundleDir +
-                          " must be deleted manually: " + e);
+          if (null!=archive) {
+            try {
+              archive.setStartLevel(-2); // Mark as uninstalled
+            } catch (Exception e) {
+              fwCtx.props.debug.println("Failed to mark bundle " + id +
+                                        " as uninstalled, " + bundleDir +
+                                        " must be deleted manually: " + e);
+            }
           }
         }
         bundleDir = null;
@@ -1000,7 +1011,7 @@ public class BundleImpl implements Bundle {
   public Certificate [] getCertificates() {
     // If we have protection domain priviledges then we can get certs.
     secure.checkGetProtectionDomain();
-    return archive.getCertificates();
+    return archive!=null ? archive.getCertificates() : null;
   }
 
 
@@ -1049,7 +1060,8 @@ public class BundleImpl implements Bundle {
               fwCtx.listeners
                 .bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
 
-              if (id != 0) { // this is not applicable to system bundle.
+              // This is not applicable to system bundle.
+              if (id!=0 && null!=archive) {
                 List fe = archive.getFailedClassPathEntries();
                 if (fe != null) {
                   for (Iterator i = fe.iterator(); i.hasNext(); ) {
@@ -1363,6 +1375,8 @@ public class BundleImpl implements Bundle {
    * Cache certain manifest headers as variables.
    */
   private void checkManifestHeaders() {
+    if (null==archive) return; // System bundle; nothing to check.
+
     // TBD, v2Manifest unnecessary to cache?
     v2Manifest = "2".equals(archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION));
     Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
@@ -1656,7 +1670,10 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#findEntries
    */
-  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+  public Enumeration findEntries(String path,
+                                 String filePattern,
+                                 boolean recurse)
+  {
     if (secure.okResourceAdminPerm(this)) {
       if (state == INSTALLED) {
         // We need to resolve if there are fragments involved
@@ -1674,7 +1691,10 @@ public class BundleImpl implements Bundle {
   /**
    *
    */
-  Enumeration findEntries0(String path, String filePattern, boolean recurse) {
+  Enumeration findEntries0(String path,
+                           String filePattern,
+                           boolean recurse)
+  {
         Vector res = new Vector();
         addResourceEntries(res, path, filePattern, recurse);
         if (isFragmentHost()) {
@@ -1690,7 +1710,11 @@ public class BundleImpl implements Bundle {
   /**
    *
    */
-  void addResourceEntries(Vector res, String path, String pattern, boolean recurse) {
+  void addResourceEntries(Vector res,
+                          String path,
+                          String pattern,
+                          boolean recurse)
+  {
     Enumeration e = archive.findResourcesPath(path);
     if (e != null) {
       while (e.hasMoreElements()) {
