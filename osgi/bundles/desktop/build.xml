@@ -7,6 +7,7 @@
 
   <property name="ee.check.foundation"   value="false"/>
   <property name="bundle.extraimports"	 value="javax.swing.plaf.basic"/>
+  <property name = "bundle.build.doc"   value = "true"/>
 
   <property name="api.pattern"  value="org/knopflerfish/service/desktop/**,org/knopflerfish/service/**,org/knopflerfish/util/**,org/knopflerfish/shared/cm/**,org/osgi/service/event/**,org/osgi/service/prefs/**,org/osgi/service/log/**,org/osgi/service/cm/**"/> 
   <property name="impl.pattern" value="org/knopflerfish/**"/> 
