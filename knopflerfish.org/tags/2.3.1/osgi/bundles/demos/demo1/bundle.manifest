@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: demo1
+Bundle-SymbolicName: org.knopflerfish.bundle.demo1
+Bundle-Version: 2.0.0
+Bundle-UUID: org.knopflerfish:demo1:2.0.0
+Bundle-Category: example
+Bundle-Description: Demo bundle
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-Activator: org.knopflerfish.service.demo1.impl.Activator
+Export-Package: org.knopflerfish.service.demo1
+Import-Package: org.knopflerfish.service.demo1,org.osgi.framework

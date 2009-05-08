@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
+<project name="framework_test" default="all">
+
+  <property name="topdir"       location=".."/>
+
+  <property name="bundle.version" value="1.0.0"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="buildres">
+   <jar destfile = "resources/res1.jar" 
+        basedir  = "res1"/>
+   <jar destfile = "resources/res2.jar" 
+        basedir  = "res2"/>
+  </target>
+
+  <target name="bundle.custom.pre">
+   <antcall target="buildres"/>
+
+   <property name="tb.dir" location="${topdir}/jars"/>
+   <copy file="${tb.dir}/bundleA_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleA1_test-1.0.1.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleA2_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleB_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleC_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleD_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleD1_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleE_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleF_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleG_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleJ_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleU_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleV_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleW_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleW1_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleH_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleR_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleR1_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleP1_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleP2_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleP3_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundlePT1_test-1.0.0.jar" todir="resources"/>
+   <copy file="${tb.dir}/bundlePT2_test-1.0.0.jar" todir="resources"/>
+   <copy file="${tb.dir}/bundlePT3_test-1.0.0.jar" todir="resources"/>
+   <copy file="${tb.dir}/bundleR_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/bundleR1_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleR2_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleR3_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleR4_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleR5_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleR6_test-1.0.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/bundleQ_test-1.0.0.jar"   todir="resources"/>
+   <copy file="${tb.dir}/resexp_test-1.0.0.jar"    todir="resources"/>
+   <copy file="${tb.dir}/resimp_test-1.0.0.jar"    todir="resources"/>
+   <copy file="${tb.dir}/rb_A/rb_A-0.1.0.jar"      todir="resources"/>
+   <copy file="${tb.dir}/rb_B/rb_B_api-0.1.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/rb_C/rb_C_api-0.1.0.jar"  todir="resources"/>
+   <copy file="${tb.dir}/rb_C/rb_C-0.1.0.jar"      todir="resources"/>
+   <copy file="${tb.dir}/rb_D/rb_D_api-0.1.0.jar"  todir="resources"/>
+  </target>
+
+  <path id = "bundle.compile.path">
+  </path>
+
+  &test_include;
+
+</project>
+
+
+

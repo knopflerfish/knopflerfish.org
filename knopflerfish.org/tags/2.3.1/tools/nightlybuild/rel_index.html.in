@@ -1,0 +1,72 @@
+<html>
+<head>
+<meta http-equiv = "Content-Type"
+      content    = "text/html; charset=ISO-8859-1"/>
+
+<meta http-equiv = "CACHE-CONTROL"
+      content    = "NO-CACHE"/>
+
+<title>Knopflerfish OSGi - @VERSION@ @BUILD_KIND@</title>
+
+<LINK href="/css/knopflerfish.css" rel="stylesheet" type="text/css">
+<link rel="shortcut icon" href="/images/favicon.ico" >
+
+</head>
+
+<body style="background: #ffffff;">
+<a name="top"></a>
+<table border=0 cellpadding=0 cellspacing=0>
+  <tr>
+   <td width="15%" class="leftheader">
+     Knopflerfish<br>
+     @VERSION@<br>
+     @DATE@
+   </td>
+
+   <td width="85" class="pageheader" >
+   <table border=0 cellpadding=0 cellspacing=0 width="100%">
+     <tr>
+     <td width="50%" >
+     <a href="http://www.knopflerfish.org"> 
+       <img src="/images/knopflerfish4_red400pxl.gif" border=0></a>
+     </td>
+     <td>
+     </td>
+     </tr>
+  </table>
+  </td>          
+  </tr>
+  <tr>
+    <td valign="top">
+      <div style="text-align:left; margin-right: 15px; margin-left: 10px; margin-top:10px;">
+
+      <a class="navigation_enabled" href="/index.html">Home</a><br/>
+      </p>
+      <hr>
+      Maintained by</br>
+      <a class="navigation_enabled" href="http://www.makewave.com"><img src="/images/makewave_logo_126x16.gif" border="0"</a><br/><br/>
+      <a class="navigation_enabled" href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro</a><br/>
+      <a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a><br/>
+      <a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_training.shtml">Training</a><br/>
+      </p>
+      <em><b>Services for the OSGi Business User</b></em><br/>
+
+      <hr>
+      </div>
+    </td>
+
+    <td width="85%" valign="top">
+      <table class="bodytable">
+	<tr>
+          <td>
+	    <div id="mainblock">
+@MAINBLOCK@
+	    </div>
+	  </td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

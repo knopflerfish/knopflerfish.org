@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="axis2_soapclient_adb" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.axis2_soapclient_adb}"/>
+  <property name="topdir"       location="${proj.dir}/.."/>
+  <property name="osgi.dir"     location="${topdir}/../.."/>
+  <property name="ant.dir"      location="${osgi.dir}/../ant"/>
+
+  <property name = "bundle.build.all"  value="false"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/**"/>
+
+  <property name="axis2-osgi.home"
+	    location="../../../bundles_opt/soap/axis2-osgi"/>
+
+  <path id="axis2.class.path">
+    <fileset dir="${axis2-osgi.home}">
+      <include name="resources/WEB-INF/lib/*.jar"/>
+    </fileset>
+  </path>
+
+  <path id = "bundle.compile.path">
+    <path refid="axis2.class.path"/>
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${topdir}/lib/junit.jar"/>
+  </path>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+    <ant antfile="gen.xml"/>
+  </target>
+  <target name="gen"
+	  description="Generate support classes for an ADB style WS-client.">
+    <ant antfile="gen.xml"/>
+  </target>
+
+  <property name="xargs" location="soapcline_adb_test.xargs"/>
+  <property name="do.bundle.custom.post" value="true"/>
+  <target name="bundle.custom.post">
+    <property name="bundleVersionFilterTester"
+	      location="${outdir}/${ant.project.name}.props"/>
+    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
+      <fileset dir="${osgi.dir}">
+	<include name="jars/**/*.jar"/>
+	<include name="bundles_test/regression_tests/jars/**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy file="${xargs}.in" tofile="${xargs}" overwrite="true"/>
+    <replace file="${xargs}"
+	     replacefilterfile="${bundleVersionFilterTester}">
+      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
+    </replace>	  
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+  <!-- This requires that the axis2_soapobject bundle is up and running. -->
+ <target name="get"
+	 description="Downloads the WSDL from the server.">
+   <ant antfile="gen.xml" target="get"/>
+ </target>
+
+  <!-- This requires that the axis2_soapobject bundle is up and running. -->
+ <target name="run" description="Execute as stand alone client.">
+   <ant antfile="gen.xml" target="run"/>
+ </target>
+
+</project>
+
+
+

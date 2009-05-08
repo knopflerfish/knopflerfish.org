@@ -1,0 +1,47 @@
+<!-- ============================================================ -->
+<!--			xargs file building			  -->
+<!-- ============================================================ -->
+
+
+<project name="xargs" basedir=".">
+  
+  <import file="${ant.dir}/bundletasks.xml"/>
+  
+  <target name="xargs_build" depends="bundle_tasks">
+    <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
+    <property name="xargs.jars.pattern"  value="**/*.jar"/>
+    <property name="xargs.test.jars.patten" value=""/>
+    <property name="xargs.jar_prefix" value="file:jars/"/>
+
+    <bundle_locator replacefilterfile="${bundleVersionFilter}">
+      <fileset dir="${jars.dir}">
+	<include name="${xargs.jars.pattern}"/>
+	<include name="${xargs.test.jars.pattern}"/>
+      </fileset>
+    </bundle_locator>
+    
+    <available property="xargs.use.os_template"
+	       file="${xargs.os.template}"/>
+    <loadfile property="xargs.os.args"
+	      srcfile="${xargs.os.template}"
+	      quiet="True"/>
+    
+    <!-- Set winbundles to "" if template is not found -->
+    <property name="xargs.os.args" value=""/>
+    
+    <copy file="${xargs.template.in}"
+	  tofile="${xargs.out.file}"
+	  overwrite="true"/>
+    
+    <replace file="${xargs.out.file}"
+	     replacefilterfile="${bundleVersionFilter}">
+      <replacefilter token="$(JAR_PREFIX)"	value="${xargs.jar_prefix}"/>
+      <replacefilter token="$(VERSION)"		value="${version}"/>
+      <replacefilter token="$(OS_ARGS)"		value="${xargs.os.args}"/>
+    </replace>	  
+  </target>
+  
+  
+
+</project>
+  

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="bundleP2_test" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.bundleP2_test}"/>
+  <property name="topdir"       location="${proj.dir}/.."/>
+  <property name="osgi.dir"     location="${topdir}/../.."/>
+  <property name="ant.dir"      location="${osgi.dir}/../ant"/>
+  <property name="jars.dir"     location="${topdir}/jars"/> 
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+  <property name="jardir"            location="${jars.dir}"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"  value="org/knopflerfish/service/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="bundleP1_test-N.N.N.jar"/>
+  </path>
+
+  <property name="do.bundle.custom.post" value="true"/>
+  <target name="bundle.custom.post">
+    <ant dir="${topdir}" antfile="build_keystore.xml"/>
+    <signjar
+       alias="kftest1" keystore="${jars.dir}/test.keystore" storepass="kftest"
+       jar="${all.jar}"
+       />
+    <signjar
+       alias="kftest2" keystore="${jars.dir}/test.keystore" storepass="kftest"
+       jar="${all.jar}"
+       />
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

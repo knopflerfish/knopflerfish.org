@@ -1,0 +1,33 @@
+# default mime type definitions
+au=audio/basic
+bmp=image/bmp
+class=application/octet-stream
+css=text/css
+exe=application/octet-stream
+gif=image/gif
+gz=application/x-compressed
+htm=text/html
+html=text/html
+jar=application/octet-stream
+jpe=image/jpeg
+jpeg=image/jpeg
+jpg=image/jpeg
+mov=video/quicktime
+mp2=audio/mpeg
+mp3=audio/mpeg
+mpe=video/mpeg
+mpeg=video/mpeg
+mpg=video/mpeg
+pdf=application/pdf
+qt=video/quicktime
+shtml=text/html
+snd=audio/basic
+tar=application/octet-stream
+tgz=application/x-compressed
+txt=text/plain
+wav=audio/x-wave
+wbmp=image/vnd.wap.wbmp; level=0
+wml=text/vnd.wap.wml
+xml=text/xml
+xul=text/xul
+zip=application/octet-stream
