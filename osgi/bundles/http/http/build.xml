@@ -36,7 +36,7 @@
   <!-- need to undo the bundle.custom.pre step and do not want to -->
   <!-- overwrite clean                                            -->
   <target name="bundle.custom.post">
-    <delete dir="src/org/knopflerfish/service/log"
+    <delete dir="src/org/knopflerfish/service"
             quiet="true"
 	    failonerror="false"/>
   </target>
