@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,9 +60,9 @@ public class LDAPExpr {
   public static final int APPROX  = 32;
   public static final int COMPLEX = AND | OR | NOT;
   public static final int SIMPLE  = EQ | LE | GE | APPROX;
-  
+
   private static final char WILDCARD = 65535;
-  private static final String WILDCARD_STRING = 
+  private static final String WILDCARD_STRING =
     new String(new char [] { WILDCARD });
 
   private static final String NULL      = "Null query";
@@ -111,19 +111,19 @@ public class LDAPExpr {
     this.attrName = null;
     this.attrValue = null;
   }
-  
+
   private LDAPExpr(int operator, String attrName, String attrValue) {
     this.operator = operator;
     this.args = null;
     this.attrName = attrName;
-    this.attrValue = attrValue;    
+    this.attrValue = attrValue;
   }
-  
+
   /**
    * Checks if this LDAP expression is "simple". The definition of
    * a simple filter is:
    * <ul>
-   *  <li><code>(<it>name</it>=<it>value</it>)</code> is simple if 
+   *  <li><code>(<it>name</it>=<it>value</it>)</code> is simple if
    *      <it>name</it> is a member of the provided <code>keywords</code>,
    *      and <it>value</it> does not contain a wildcard character;</li>
    *  <li><code>(| EXPR+ )</code> is simple if all <code>EXPR</code>
@@ -136,7 +136,7 @@ public class LDAPExpr {
    * satisfy this expression, for the given keywords.
    *
    * @param keywords The keywords to look for.
-   * @param cache An array (indexed by the keyword indexes) of lists to 
+   * @param cache An array (indexed by the keyword indexes) of lists to
    * fill in with values saturating this expression.
    * @return <code>true</code> if this expression is simple,
    * <code>false</code> otherwise.
@@ -144,7 +144,7 @@ public class LDAPExpr {
   public boolean isSimple(List keywords, List[] cache) {
     if (operator == EQ) {
       int index;
-      if ((index = keywords.indexOf(attrName)) >= 0 && 
+      if ((index = keywords.indexOf(attrName)) >= 0 &&
           attrValue.indexOf(WILDCARD) < 0) {
         if (cache[index] == null) {
           cache[index] = new ArrayList();
@@ -163,7 +163,7 @@ public class LDAPExpr {
   }
 
 
-  public static boolean query(String filter, Dictionary pd) 
+  public static boolean query(String filter, Dictionary pd)
     throws InvalidSyntaxException {
     return new LDAPExpr(filter).evaluate(pd, true);
   }
@@ -172,8 +172,8 @@ public class LDAPExpr {
    * Evaluate this LDAP filter.
    */
   public boolean evaluate(Dictionary p, boolean matchCase) {
-    if ((operator & SIMPLE) != 0) {      
-      return compare(p.get(attrName), operator, attrValue, matchCase); 
+    if ((operator & SIMPLE) != 0) {
+      return compare(p.get(attrName), operator, attrValue, matchCase);
     } else { // (operator & COMPLEX) != 0
       switch (operator) {
       case AND:
@@ -195,21 +195,21 @@ public class LDAPExpr {
       }
     }
   }
-  
-  
+
+
 
   /**** Private methods ****/
 
   protected boolean compare(Object obj, int op, String s, boolean matchCase) {
-    if (obj == null) 
+    if (obj == null)
       return false;
-    if (op == EQ && s.equals(WILDCARD_STRING)) 
+    if (op == EQ && s.equals(WILDCARD_STRING))
       return true;
     try {
       if (obj instanceof String) {
-    		return compareString((String)obj, op, s, matchCase);
-      } else if (obj instanceof Character) {  
-    		return compareString(obj.toString(), op, s, matchCase);
+                return compareString((String)obj, op, s, matchCase);
+      } else if (obj instanceof Character) {
+                return compareString(obj.toString(), op, s, matchCase);
       } else if (obj instanceof Boolean) {
         if (op==LE || op==GE)
           return false;
@@ -293,52 +293,52 @@ public class LDAPExpr {
           default: /*APPROX and EQ*/
             return c == 0;
           }
-        } 
+        }
       } else if (obj instanceof Collection) {
         for (Iterator i=((Collection)obj).iterator(); i.hasNext();)
-          if (compare(i.next(), op, s, matchCase)) 
+          if (compare(i.next(), op, s, matchCase))
             return true;
       } else if (obj.getClass().isArray()) {
         int len = Array.getLength(obj);
         for(int i=0; i<len; i++)
-          if (compare(Array.get(obj, i), op, s, matchCase)) 
+          if (compare(Array.get(obj, i), op, s, matchCase))
             return true;
       } else {
-	// Extended comparison
-	// Allow simple EQ comparison on all classes having
-	// a string constructor, and use compareTo if they
-	// implement Comparable
-	Class       clazz = obj.getClass();
-	Constructor cons  = getConstructor(clazz);
+        // Extended comparison
+        // Allow simple EQ comparison on all classes having
+        // a string constructor, and use compareTo if they
+        // implement Comparable
+        Class       clazz = obj.getClass();
+        Constructor cons  = getConstructor(clazz);
 
-	if(cons != null) {
-	  Object     other = cons.newInstance(new Object [] { s } );
-	  if(obj instanceof Comparable) {
-	    int c = ((Comparable)obj).compareTo(other);
-	    switch(op) {
-	    case LE:
-	      return c <= 0;
-	    case GE:
-	      return c >= 0;
-	    default: /*APPROX and EQ*/
-	      return c == 0;
-	    }
-	  } else {
-		boolean b = false;
-	    if(op == LE || op == GE ||op == EQ ||op == APPROX){
-	    	b = obj.equals(other);
-	    }
-	    return b;
-	  }
-	}
+        if(cons != null) {
+          Object     other = cons.newInstance(new Object [] { s } );
+          if(obj instanceof Comparable) {
+            int c = ((Comparable)obj).compareTo(other);
+            switch(op) {
+            case LE:
+              return c <= 0;
+            case GE:
+              return c >= 0;
+            default: /*APPROX and EQ*/
+              return c == 0;
+            }
+          } else {
+                boolean b = false;
+            if(op == LE || op == GE ||op == EQ ||op == APPROX){
+                b = obj.equals(other);
+            }
+            return b;
+          }
+        }
       }
-    } catch (Exception ignored_but_evals_to_false) { 
+    } catch (Exception ignored_but_evals_to_false) {
       // This might happen if a string-to-datatype conversion fails
       // Just consider it a false match and ignore the exception
     }
     return false;
   }
-  
+
   // Clazz -> Constructor(String)
   private static HashMap constructorMap = new HashMap();
 
@@ -350,16 +350,16 @@ public class LDAPExpr {
 
       // This might be null
       Constructor cons = (Constructor)constructorMap.get(clazz);
-      
+
       // ...check if we have tried before. A failed try
       // is stored as null
       if(!constructorMap.containsKey(clazz)) {
-	try {
-	  cons = clazz.getConstructor(new Class [] { String.class });
-	} catch (Exception e) {
-	  // remember by storing null in map
-	}
-	constructorMap.put(clazz, cons);
+        try {
+          cons = clazz.getConstructor(new Class [] { String.class });
+        } catch (Exception e) {
+          // remember by storing null in map
+        }
+        constructorMap.put(clazz, cons);
       }
       return cons;
     }
@@ -408,9 +408,9 @@ public class LDAPExpr {
       if (Character.isWhitespace(c)) {
         isWhite = true;
       } else {
-        if (!isStart && isWhite) 
+        if (!isStart && isWhite)
           sb.append(' ');
-        if (Character.isUpperCase(c)) 
+        if (Character.isUpperCase(c))
           c = Character.toLowerCase(c);
         sb.append(c);
         isStart = false;
@@ -423,9 +423,9 @@ public class LDAPExpr {
   private static boolean patSubstr(String s, String pat, boolean matchCase) {
     return s==null ? false : patSubstr(s.toCharArray(),0,pat.toCharArray(),0, matchCase);
   }
-  
+
   private static boolean patSubstr(char[] s, int si, char[] pat, int pi, boolean matchCase) {
-    if (pat.length-pi == 0) 
+    if (pat.length-pi == 0)
       return s.length-si == 0;
     if (pat[pi] == WILDCARD) {
       pi++;
@@ -437,28 +437,28 @@ public class LDAPExpr {
         si++;
       }
     } else {
-    	if (s.length-si==0){
-    		return false;
-    	}
-    	if(matchCase){
-    		if(s[si]!=pat[pi]){
-    			return false;
-    		}
-    	}
-    	else{
-    		if(Character.toLowerCase(s[si]) != pat[pi] &&
-    		   Character.toUpperCase(s[si]) != pat[pi]){
-    			return false;
-    		}
-    	}
+        if (s.length-si==0){
+                return false;
+        }
+        if(matchCase){
+                if(s[si]!=pat[pi]){
+                        return false;
+                }
+        }
+        else{
+                if(Character.toLowerCase(s[si]) != pat[pi] &&
+                   Character.toUpperCase(s[si]) != pat[pi]){
+                        return false;
+                }
+        }
       return patSubstr( s, ++si, pat, ++pi, matchCase);
     }
   }
 
-  private static LDAPExpr parseExpr(ParseState ps) 
+  private static LDAPExpr parseExpr(ParseState ps)
     throws InvalidSyntaxException {
     ps.skipWhite();
-    if (!ps.prefix("(")) 
+    if (!ps.prefix("("))
       ps.error(MALFORMED);
 
     int operator;
@@ -477,23 +477,23 @@ public class LDAPExpr {
     } while (ps.peek() == '(');
     int n = v.size();
     if (!ps.prefix(")") || n == 0 || (operator == NOT && n > 1))
-      ps.error(MALFORMED);    
+      ps.error(MALFORMED);
     LDAPExpr[] args = new LDAPExpr[n];
     v.toArray(args);
     return new LDAPExpr(operator, args);
   }
 
-  private static LDAPExpr parseSimple(ParseState ps) 
+  private static LDAPExpr parseSimple(ParseState ps)
     throws InvalidSyntaxException {
-    String attrName = ps.getAttributeName(); 
+    String attrName = ps.getAttributeName();
     int operator = 0;
-    if (ps.prefix("=")) 
+    if (ps.prefix("="))
       operator = EQ;
-    else if (ps.prefix("<="))    
+    else if (ps.prefix("<="))
       operator = LE;
-    else if(ps.prefix(">=")) 
+    else if(ps.prefix(">="))
       operator = GE;
-    else if(ps.prefix("~=")) 
+    else if(ps.prefix("~="))
       operator = APPROX;
     else {
       //      System.out.println("undef op='" + ps.peek() + "'");
@@ -501,14 +501,14 @@ public class LDAPExpr {
     }
     String attrValue = ps.getAttributeValue();
     if (!ps.prefix(")"))
-      ps.error(MALFORMED);        
+      ps.error(MALFORMED);
     return new LDAPExpr(operator, attrName, attrValue);
   }
 
   public String toString() {
     StringBuffer res = new StringBuffer();
     res.append("(");
-    if ((operator & SIMPLE) != 0) { 
+    if ((operator & SIMPLE) != 0) {
       res.append(attrName);
       switch (operator) {
       case EQ:
