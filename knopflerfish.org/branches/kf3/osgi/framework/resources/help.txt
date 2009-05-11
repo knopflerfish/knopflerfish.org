@@ -14,12 +14,16 @@
                   if file cannot be loaded (but print error)
    -init          Start an empty platform
    -install URL   Install a bundle
-   -istart URL    Install and start bundle
-   -launch [id]   Launch framework (Default), id = bundle id BootManager
+   -istart URL    Install and start bundle accrding to activation policy
+   -launch        Launch framework (i.e., start it)
    -sleep SEC     Sleep a while before next command
    -shutdown      Shutdown framework
-   -start ID      Start bundle
+   -start ID      Start bundle (according to its activation policy)
+   -start_e ID    Start bundle eagerly (i.e., ignore its activation policy)
+   -start_et ID   Start bundle eagerly and transiently
+   -start_pt ID   Start bundle transiently according to policy
    -stop ID       Stop bundle
+   -stop_t ID     Stop bundle transiently (i.e, non-persistent stop)
    -uninstall ID  Uninstall a bundle
    -update ID     Update a bundle
    -initlevel N   Set initial start level for installed bundles

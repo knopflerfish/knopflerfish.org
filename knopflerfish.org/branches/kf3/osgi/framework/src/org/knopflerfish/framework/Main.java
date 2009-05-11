@@ -297,6 +297,7 @@ public class Main {
           // This is done in an earlier pass, otherwise we
           // shoot the FW in the foot
         } else if ("-version".equals(args[i])) {
+          System.out.println("Knopflerfish version: " +readRelease());
           printResource("/tstamp");
           printResource("/revision");
           System.exit(0);
@@ -320,8 +321,9 @@ public class Main {
         } else if ("-install".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            String bundle = args[i+1];
-            Bundle b = framework.getBundleContext().installBundle(completeLocation(base,bundle), null);
+            final String bundle = args[i+1];
+            final Bundle b = framework.getBundleContext()
+              .installBundle(completeLocation(base,bundle), null);
             println("Installed: ", b);
             i++;
           } else {
@@ -330,10 +332,12 @@ public class Main {
         } else if ("-istart".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            String bundle = args[i+1];
-            Bundle b = framework.getBundleContext().installBundle(completeLocation(base,bundle), null);
-            b.start();
-            println("Installed and started: ", b);
+            final String bundle = args[i+1];
+            final Bundle b = framework.getBundleContext()
+              .installBundle(completeLocation(base,bundle), null);
+
+            b.start(Bundle.START_ACTIVATION_POLICY);
+            println("Installed and started (policy): ", b);
             i++;
           } else {
             error("No URL for install command");
@@ -363,7 +367,7 @@ public class Main {
           }
         } else if ("-sleep".equals(args[i])) {
           if (i+1 < args.length) {
-            long t = Long.parseLong(args[i+1]);
+            final long t = Long.parseLong(args[i+1]);
             try {
               println("Sleeping " + t + " seconds...", 0);
               Thread.sleep(t * 1000);
@@ -377,21 +381,54 @@ public class Main {
         } else if ("-start".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(framework, base,args[i+1]);
-            Bundle b = framework.getBundleContext().getBundle(id);
-            b.start();
-            println("Started: ", b);
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(Bundle.START_ACTIVATION_POLICY);
+            println("Started (policy): ", b);
             i++;
           } else {
             error("No ID for start command");
           }
+        } else if ("-start_e".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(0); // Eager start
+            println("Started (eager): ", b);
+            i++;
+          } else {
+            error("No ID for start_e command");
+          }
+        } else if ("-start_et".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(Bundle.START_TRANSIENT);
+            println("Started (eager,transient): ", b);
+            i++;
+          } else {
+            error("No ID for start_et command");
+          }
+        } else if ("-start_pt".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY);
+            println("Start (policy,transient): ", b);
+            i++;
+          } else {
+            error("No ID for start_pt command");
+          }
         } else if ("-stop".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(framework, base,args[i+1]);
-            Bundle b = framework.getBundleContext().getBundle(id);
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
             try {
-              b.stop();
+              b.stop(0);
               println("Stopped: ", b);
             } catch (Exception e) {
               error("Failed to stop", e);
@@ -400,11 +437,26 @@ public class Main {
           } else {
             error("No ID for stop command");
           }
+        } else if ("-stop_t".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            try {
+              b.stop(Bundle.STOP_TRANSIENT);
+              println("Stopped (transient): ", b);
+            } catch (Exception e) {
+              error("Failed to stop", e);
+            }
+            i++;
+          } else {
+            error("No ID for stop_t command");
+          }
         } else if ("-uninstall".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(framework, base,args[i+1]);
-            Bundle b = framework.getBundleContext().getBundle(id);
+            final long id = getBundleID(framework, base,args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
             b.uninstall();
             println("Uninstalled: ", b);
             i++;
@@ -421,7 +473,7 @@ public class Main {
               bl = new Bundle[] { framework.getBundleContext().getBundle(getBundleID(framework, base,args[i+1])) };
             }
             for(int n = 0; bl != null && n < bl.length; n++) {
-              Bundle b = bl[i];
+              final Bundle b = bl[i];
               b.update();
               println("Updated: ", b);
             }
@@ -432,16 +484,19 @@ public class Main {
         } else if ("-initlevel".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            int n = Integer.parseInt(args[i+1]);
-            ServiceReference sr = framework.getBundleContext().getServiceReference(StartLevel.class.getName());
+            final int n = Integer.parseInt(args[i+1]);
+            final ServiceReference sr = framework.getBundleContext()
+              .getServiceReference(StartLevel.class.getName());
 
             if(sr != null) {
-              StartLevel ss = (StartLevel)framework.getBundleContext().getService(sr);
-              ss.setInitialBundleStartLevel(n);
+              final StartLevel ss = (StartLevel) framework.getBundleContext()
+                .getService(sr);
 
+              ss.setInitialBundleStartLevel(n);
               framework.getBundleContext().ungetService(sr);
             } else {
-              println("No start level service - ignoring init bundle level " + n, 0);
+              println("No start level service - ignoring init bundle level "
+                      + n, 0);
             }
             i++;
           } else {
@@ -450,13 +505,15 @@ public class Main {
         } else if ("-startlevel".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            int n = Integer.parseInt(args[i+1]);
-            ServiceReference sr = framework.getBundleContext().getServiceReference(StartLevel.class.getName());
+            final int n = Integer.parseInt(args[i+1]);
+            final ServiceReference sr = framework.getBundleContext()
+              .getServiceReference(StartLevel.class.getName());
 
             if(sr != null) {
-              StartLevel ss = (StartLevel)framework.getBundleContext().getService(sr);
-              ss.setStartLevel(n);
+              final StartLevel ss = (StartLevel) framework.getBundleContext()
+                .getService(sr);
 
+              ss.setStartLevel(n);
               framework.getBundleContext().ungetService(sr);
             } else {
               println("No start level service - ignoring start level " + n, 0);
@@ -470,7 +527,7 @@ public class Main {
                 "\nUse option -help to see all options");
         }
       } catch (BundleException e) {
-        Throwable ne = e.getNestedException();
+        final Throwable ne = e.getNestedException();
         if (ne != null) {
           e.getNestedException().printStackTrace(System.err);
         } else {
