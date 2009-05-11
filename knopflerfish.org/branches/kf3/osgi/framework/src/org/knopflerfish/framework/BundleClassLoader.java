@@ -96,13 +96,13 @@ final public class BundleClassLoader extends ClassLoader {
   private static Method      dexFileClassLoadClassMethod;
 
   // bDalvik will be set to true if we're running on the android
-  // dalvik VM. 
-  // package protected to enable other parts of framework to check 
+  // dalvik VM.
+  // package protected to enable other parts of framework to check
   // for dalvik VM
   static boolean bDalvik = false;
-  
+
   private Object dexFile = null;
-  
+
   static {
     try {
       Class dexFileClass;
@@ -111,16 +111,16 @@ final public class BundleClassLoader extends ClassLoader {
       } catch( Exception ex ) {
         dexFileClass = Class.forName("dalvik.system.DexFile");
       }
-      
-      dexFileClassCons = 
+
+      dexFileClassCons =
         dexFileClass.getConstructor( new Class[] { File.class });
-      
-      dexFileClassLoadClassMethod = 
-        dexFileClass.getMethod("loadClass", 
-                               new Class[] { String.class, 
-                                             ClassLoader.class 
+
+      dexFileClassLoadClassMethod =
+        dexFileClass.getMethod("loadClass",
+                               new Class[] { String.class,
+                                             ClassLoader.class
                                });
-      
+
       bDalvik = true;
       // if(debug.classLoader) {
       // debug.println("running on dalvik VM");
@@ -215,7 +215,7 @@ final public class BundleClassLoader extends ClassLoader {
       pkg = null;
     }
     Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class",
-					    classSearch, true, this, null);
+                                            classSearch, true, this, null);
     if (res != null) {
       return res;
     }
@@ -225,7 +225,7 @@ final public class BundleClassLoader extends ClassLoader {
         if(debug.classLoader) {
           debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
         }
-	res = parent.loadClass(name);
+        res = parent.loadClass(name);
         if(res != null) {
           if(debug.classLoader) {
             debug.println(this + " loaded " + name + " from " + parent);
@@ -287,11 +287,11 @@ final public class BundleClassLoader extends ClassLoader {
       return super.getClassContext();
     }
   }
-    
+
   static protected SecurityManagerExposer smex = new SecurityManagerExposer();
-  
+
   /**
-   * Check if the current call is made from a class loaded on the 
+   * Check if the current call is made from a class loaded on the
    * boot class path (or rather, on a class loaded from something else
    * than a bundle class loader)
    */
@@ -302,10 +302,10 @@ final public class BundleClassLoader extends ClassLoader {
       if ((this.getClass().getClassLoader() != classStack[i].getClassLoader())
           && !ClassLoader.class.isAssignableFrom(classStack[i])
           && !Class.class.equals(classStack[i])) {
-        
+
         // If any of the classloaders for the caller's class is
         // a BundleClassLoader, we're not in a VM class context
-        for (ClassLoader cl = classStack[i].getClassLoader(); 
+        for (ClassLoader cl = classStack[i].getClassLoader();
              cl != null; cl = cl.getClass().getClassLoader()) {
           if (BundleClassLoader.class.isInstance(cl)) {
             return false;
@@ -867,16 +867,16 @@ final public class BundleClassLoader extends ClassLoader {
                 }
               }
 
-	      // Use dalvik DexFile class loading when running
-	      // on the dalvik VM
+              // Use dalvik DexFile class loading when running
+              // on the dalvik VM
               if(bDalvik) {
-		  try {
-		      c = cl.getDexFileClass(name);
-		  } catch (Exception e) {
-		      throw new IOException("Failed to load dex class '" + name + "', " + e);
-		  }
-	      }
-              
+                  try {
+                      c = cl.getDexFileClass(name);
+                  } catch (Exception e) {
+                      throw new IOException("Failed to load dex class '" + name + "', " + e);
+                  }
+              }
+
               if(c == null) {
                 if (cl.protectionDomain == null) {
                   // Kaffe can't handle null protectiondomain
@@ -894,44 +894,44 @@ final public class BundleClassLoader extends ClassLoader {
       }
     };
 
-  
+
     /**
      * Load a class using the Dalvik DexFile API.
      * <p>
      * This relies in the bundle having a "classes.dex"
      * in its root
      * <p>
-     * 
+     *
      * To create such a bundle, do
      * <ol>
      *  <li><code>dx --dex --output=classes.dex bundle.jar</code>
      *  <li><code>aapt add bundle.jar classes.dex</code>
      * </ol>
      */
-    private Class getDexFileClass(String name) 
-	throws Exception {
-	
-	if (debug.classLoader) {
-	    debug.println("loading dex class " + name);
-	}
-	
-	if (dexFile == null) {
-	    File f  = new File(archive.getJarLocation());
-	    dexFile = dexFileClassCons.newInstance(new Object[] { f });
-	    if(debug.classLoader) {
-		debug.println("created DexFile from " + f);
-	    }
-	}
-    
-	String path = name.replace('.','/');
+    private Class getDexFileClass(String name)
+        throws Exception {
 
-	return (Class)dexFileClassLoadClassMethod
-	    .invoke(dexFile, new Object[] { path, this });
+        if (debug.classLoader) {
+            debug.println("loading dex class " + name);
+        }
+
+        if (dexFile == null) {
+            File f  = new File(archive.getJarLocation());
+            dexFile = dexFileClassCons.newInstance(new Object[] { f });
+            if(debug.classLoader) {
+                debug.println("created DexFile from " + f);
+            }
+        }
+
+        String path = name.replace('.','/');
+
+        return (Class)dexFileClassLoadClassMethod
+            .invoke(dexFile, new Object[] { path, this });
     }
 
 
 
-  
+
   /**
    *  Search action for resource searching
    */
