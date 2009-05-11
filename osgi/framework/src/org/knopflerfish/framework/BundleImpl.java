@@ -205,7 +205,9 @@ public class BundleImpl implements Bundle {
   private HashSet lazyExcludes;
 
 
+  /** True while the activator's start method is running. */
   private boolean activating;
+  /** True while the activator's stop method is running. */
   private boolean deactivating;
 
 
@@ -314,6 +316,10 @@ public class BundleImpl implements Bundle {
       throw new BundleException("Cannot start a fragment bundle");
     }
 
+    if (state == UNINSTALLED) {
+      throw new IllegalStateException("Bundle is uninstalled");
+    }
+
     // The value -1 is used by this implemtation to indicate a bundle
     // that has not been started, thus ensure that options is != -1.
     options &= 0xFF;
@@ -333,43 +339,105 @@ public class BundleImpl implements Bundle {
       }
     }
 
+    // Initialize the activation; checks initialization of lazy
+    // activation.
+
+    //1: If activating or deactivating, wait a litle
+    int k = 0;
+    while ((activating || deactivating) && k<10) {
+      try {
+        this.wait(10L);
+      } catch (InterruptedException _ie) {
+      }
+      k++;
+    }
+    if (activating) {
+      throw new BundleException
+        ("BundleActivator.start called from BundleActivator.start");
+    }
+
+    if (deactivating) {
+      throw new BundleException
+        ("BundleActivator.start called from BundleActivator.stop");
+    }
+
+    //2: start() is idempotent, i.e., nothing to do when already started
+    if (state == ACTIVE) {
+      return;
+    }
+
+    //3: Record non-transient start requests.
+    if ((options & START_TRANSIENT) == 0) {
+      setAutostartSetting(options);
+    }
+
+    //4: Resolve bundle (if needed)
+    if (INSTALLED == getUpdatedState()) {
+      throw new BundleException("Failed, " + bpkgs.getResolveFailReason());
+    }
+
+    //5: Lazy?
+    if ((options & START_ACTIVATION_POLICY) != 0 && lazyActivation ) {
+      if (STARTING == state) return;
+      state = STARTING;
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.LAZY_ACTIVATION,
+                                                    this));
+      bundleContext = new BundleContextImpl(this);
+    } else {
+      finalizeActivation();
+    }
+  }
+
+  // Performs the actual activation.
+  synchronized void finalizeActivation()
+    throws BundleException
+  {
     switch (getUpdatedState()) {
     case INSTALLED:
       throw new BundleException("Failed, " + bpkgs.getResolveFailReason());
+    case STARTING:
+      if (activating) return; // finalization already in progress.
+      // Lazy activation; fall through to RESOLVED.
     case RESOLVED:
+      //6:
+      state = STARTING;
+      //7:
       if (fwCtx.active) {
-        state = STARTING;
         fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING,
                                                       this));
+      }
+
+      if (null==bundleContext) {
         bundleContext = new BundleContextImpl(this);
-        try {
-          secure.callStart0(this,options);
-        } catch (BundleException e) {
-          removeBundleResources();
-          bundleContext.invalidate();
-          bundleContext = null;
-          state = RESOLVED;
-          throw e;
+      }
+
+      try {
+        secure.callStart0(this);
+      } catch (BundleException e) {
+        //8:
+        state = STOPPING;
+        if (fwCtx.active) {
+          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING,
+                                                        this));
         }
+        removeBundleResources();
+        bundleContext.invalidate();
+        bundleContext = null;
+        state = RESOLVED;
+        if (fwCtx.active) {
+          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED,
+                                                        this));
+        }
+        throw e;
+      }
+      //10:
+      if (fwCtx.active) {
         fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED,
                                                       this));
-      } else {
-        if ((options & START_TRANSIENT) != 0) {
-          throw new BundleException
-            ("Can not transiently activate bundle before launch");
-        } else {
-          setAutostartSetting(options);
-          return;
-        }
       }
       break;
     case ACTIVE:
       break;
-    case STARTING:
-      // This happens if call start from inside the
-      // BundleActivator.start method.
-      // Don't allow it.
-      throw new BundleException("called from BundleActivator.start");
     case STOPPING:
       // This happens if call start from inside the BundleActivator.stop method.
       // Don't allow it.
@@ -380,7 +448,8 @@ public class BundleImpl implements Bundle {
   }
 
 
-  void start0(int options) throws BundleException {
+
+  void start0() throws BundleException {
     final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
     boolean bStarted = false;
 
@@ -403,7 +472,9 @@ public class BundleImpl implements Bundle {
         Class c = getClassLoader().loadClass(ba.trim());
         bactivator = (BundleActivator)c.newInstance();
 
+        activating = true;
         bactivator.start(bundleContext);
+        activating = false;
         bStarted = true;
       } else {
         // If the Main-Class manifest attribute is set and this
@@ -428,7 +499,9 @@ public class BundleImpl implements Bundle {
                 }
                 Class mainClass = getClassLoader().loadClass(mc.trim());
                 bactivator = new MainClassBundleActivator(mainClass);
+                activating = true;
                 bactivator.start(bundleContext);
+                activating = false;
                 bStarted = true;
                 break;
               }
@@ -444,13 +517,14 @@ public class BundleImpl implements Bundle {
         // make sure users are aware of the missing activator?
       }
 
-      state = ACTIVE;
-      if ((options & START_TRANSIENT) == 0) {
-        setAutostartSetting0(options);
+      if (UNINSTALLED==state) {
+        throw new Exception("Bundle uninstalled in by start()");
       }
+      state = ACTIVE;
     } catch (Throwable t) {
       throw new BundleException("BundleActivator start failed", t);
     } finally {
+      activating = false;
       if (fwCtx.props.SETCONTEXTCLASSLOADER) {
         Thread.currentThread().setContextClassLoader(oldLoader);
       }
@@ -517,10 +591,13 @@ public class BundleImpl implements Bundle {
     }
 
     if (bactivator != null) {
+      deactivating = true;
       try {
         bactivator.stop(bundleContext);
       } catch (Throwable e) {
         res = new BundleException("Bundle.stop: BundleActivator stop failed", e);
+      } finally {
+        deactivating = false;
       }
       bactivator = null;
     }

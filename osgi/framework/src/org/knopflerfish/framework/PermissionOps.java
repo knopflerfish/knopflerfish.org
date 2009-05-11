@@ -211,8 +211,8 @@ class PermissionOps {
   // BundleImpl Secure operations
   //
 
-  void callStart0(final BundleImpl b, final int options) throws BundleException {
-    b.start0(options);
+  void callStart0(final BundleImpl b) throws BundleException {
+    b.start0();
   }
 
 
