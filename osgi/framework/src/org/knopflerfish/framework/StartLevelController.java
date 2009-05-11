@@ -274,7 +274,7 @@ public class StartLevelController
         BundleImpl bs  = (BundleImpl)i.next();
         if (canStart(bs)) {
           if (bs.getStartLevel() == currentLevel) {
-            if (bs.archive.isPersistent()) {
+            if (bs.archive.getAutostartSetting()!=-1) {
               set.addElement(bs);
             }
           }
@@ -288,7 +288,7 @@ public class StartLevelController
       for(int i = 0; i < set.size(); i++) {
         BundleImpl bs = (BundleImpl)set.elementAt(i);
         try {
-          if (bs.archive.isPersistent()) {
+          if (bs.archive.getAutostartSetting()!=-1) {
             if (framework.props.debug.startlevel) {
               framework.props.debug.println("startlevel: start " + bs);
             }
@@ -408,35 +408,37 @@ public class StartLevelController
     synchronized(lock) {
 
       if (bs.getStartLevel() <= currentLevel) {
-        if (canStart(bs)) {
-          if (bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
+        synchronized(bs) {
+          if ( (bs.getState() == Bundle.INSTALLED
+                || bs.getState() == Bundle.RESOLVED)
+               && bs.archive.getAutostartSetting()!=-1) {
             try {
               if (framework.props.debug.startlevel) {
                 framework.props.debug.println("startlevel: start " + bs);
               }
+              int startOptions = Bundle.START_TRANSIENT;
               if (isBundleActivationPolicyUsed(bs)) {
-                bs.start(Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY);
-              } else {
-                bs.start(Bundle.START_TRANSIENT);
+                startOptions |= Bundle.START_ACTIVATION_POLICY;
               }
+              bs.start(startOptions);
             } catch (Exception e) {
               framework.listeners.frameworkError(bs, e);
             }
-          } else {
-            bs.bDelayedStart = true;
           }
         }
       } else if (bs.getStartLevel() > currentLevel) {
         BundleException saved = null;
         synchronized (bs) {
-          if (bs.getState() == Bundle.ACTIVE) {
+          if (bs.getState() == Bundle.ACTIVE ||
+              (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
+            if (framework.props.debug.startlevel) {
+              framework.props.debug.println("startlevel: stop " + bs);
+            }
+
             try {
-              if (framework.props.debug.startlevel) {
-                framework.props.debug.println("startlevel: stop " + bs);
-              }
-              bs.stop();
-            } catch (Exception e) {
-              framework.listeners.frameworkError(bs, e);
+              bs.stop(Bundle.STOP_TRANSIENT);
+            } catch (Throwable t) {
+              framework.listeners.frameworkError(bs, t);
             }
           }
         }

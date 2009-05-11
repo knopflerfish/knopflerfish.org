@@ -348,9 +348,9 @@ public class SystemBundle extends BundleImpl implements Framework {
     super.stop(options);
   }
 
-  synchronized BundleException stop0(boolean resetPersistent) {
+  synchronized BundleException stop0(int options) {
     try {
-      super.stop0(resetPersistent);
+      super.stop0(options);
       fwCtx.shutdown();
       return null;
     } catch (Exception e) {

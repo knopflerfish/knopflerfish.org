@@ -72,7 +72,7 @@ public class BundleImpl implements Bundle {
    * Value is <tt>Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING</tt>
    * </p>
    */
-  static int RESOLVED_FLAGS = RESOLVED | STARTING | ACTIVE | STOPPING;
+  final static int RESOLVED_FLAGS = RESOLVED | STARTING | ACTIVE | STOPPING;
 
   /**
    * Framework for bundle.
@@ -169,12 +169,6 @@ public class BundleImpl implements Bundle {
    *
    */
   protected long lastModified;
-
-  /**
-   * Set to true of bundle.start() has been called but
-   * current start levels was too low to actually start the bundle.
-   */
-  boolean bDelayedStart = false;
 
   /**
    * All fragment bundles this bundle hosts.
@@ -320,15 +314,20 @@ public class BundleImpl implements Bundle {
       throw new BundleException("Cannot start a fragment bundle");
     }
 
+    // The value -1 is used by this implemtation to indicate a bundle
+    // that has not been started, thus ensure that options is != -1.
+    options &= 0xFF;
+
     if (fwCtx.startLevelController != null) {
       if (state != UNINSTALLED &&
          getStartLevel() > fwCtx.startLevelController.getStartLevel()) {
         if ((options & START_TRANSIENT) != 0) {
-          throw new BundleException("Can not activate bundle in current start level");
+          throw new BundleException
+            ("Can not transiently activate bundle with start level "
+             +getStartLevel() +" when running on start level "
+             +fwCtx.startLevelController.getStartLevel());
         } else {
-          secure.callSetPersistent(this, true);
           setAutostartSetting(options);
-          bDelayedStart = true;
           return;
         }
       }
@@ -340,7 +339,8 @@ public class BundleImpl implements Bundle {
     case RESOLVED:
       if (fwCtx.active) {
         state = STARTING;
-        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING, this));
+        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING,
+                                                      this));
         bundleContext = new BundleContextImpl(this);
         try {
           secure.callStart0(this,options);
@@ -351,16 +351,23 @@ public class BundleImpl implements Bundle {
           state = RESOLVED;
           throw e;
         }
-        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
+        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED,
+                                                      this));
       } else {
-        secure.callSetPersistent(this, true);
-        secure.callSetAutostartSetting(this,options);
+        if ((options & START_TRANSIENT) != 0) {
+          throw new BundleException
+            ("Can not transiently activate bundle before launch");
+        } else {
+          setAutostartSetting(options);
+          return;
+        }
       }
       break;
     case ACTIVE:
       break;
     case STARTING:
-      // This happens if call start from inside the BundleActivator.start method.
+      // This happens if call start from inside the
+      // BundleActivator.start method.
       // Don't allow it.
       throw new BundleException("called from BundleActivator.start");
     case STOPPING:
@@ -438,8 +445,9 @@ public class BundleImpl implements Bundle {
       }
 
       state = ACTIVE;
-      setPersistent(true);
-      setAutostartSetting(options);
+      if ((options & START_TRANSIENT) == 0) {
+        setAutostartSetting0(options);
+      }
     } catch (Throwable t) {
       throw new BundleException("BundleActivator start failed", t);
     } finally {
@@ -449,29 +457,6 @@ public class BundleImpl implements Bundle {
     }
   }
 
-
-  /**
-   * Check if setStartOnLaunch(false) is allowed.
-   */
-  boolean clearAutostartSetting() {
-    /* boolean bCompat =
-       framework.startLevelController == null ||
-       framework.startLevelController.bCompat;
-    */
-    return
-      // never never touch on FW shutdown
-      // archive==null => system bundle.
-      !fwCtx.shuttingdown && (archive!=null && !archive.isPersistent());
-
-    /*
-      &&
-
-      // allow touch if in startlevel compatibility mode
-      (bCompat ||
-      // ...also allow touch if not marked as persistant startlevel active
-      !isPersistent());
-    */
-  }
 
   synchronized public void stop() throws BundleException {
     stop(0);
@@ -489,20 +474,21 @@ public class BundleImpl implements Bundle {
       throw new BundleException("Cannot stop a fragment bundle");
     }
 
-    bDelayedStart = false;
+    // The value -1 is used by this implemtation to indicate a bundle
+    // that has not been started, thus ensure that options is != -1.
+    options &= 0xFF;
 
     switch (state) {
     case INSTALLED:
     case RESOLVED:
-      secure.callSetPersistent(this, false);
-      // We don't want this bundle to start on launch after it has been
-      // stopped. (Don't apply during shutdown
-      if (clearAutostartSetting()) {
-        secure.callSetAutostartSetting(this, options);
+      // Non-transient stop requested; ensure that bundle is not
+      // started again after a framework restart.
+      if ((options & STOP_TRANSIENT) == 0) {
+        setAutostartSetting(-1);
       }
       break;
     case ACTIVE:
-      BundleException savedException = secure.callStop0(this, true);
+      BundleException savedException = secure.callStop0(this, options);
       if (savedException != null) {
         throw savedException;
       }
@@ -520,20 +506,16 @@ public class BundleImpl implements Bundle {
     }
   }
 
-  synchronized BundleException stop0(boolean resetPersistent) {
+  synchronized BundleException stop0(int options) {
     BundleException res = null;
 
     state = STOPPING;
     fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
 
-    if (resetPersistent) {
-      setPersistent(false);
-    }
-
-    if (clearAutostartSetting()) {
-      //setAutostartSetting(options);
+    if ((options & STOP_TRANSIENT) == 0) {
       setAutostartSetting(-1);
     }
+
     if (bactivator != null) {
       try {
         bactivator.stop(bundleContext);
@@ -577,7 +559,7 @@ public class BundleImpl implements Bundle {
 
       switch (getUpdatedState()) {
       case ACTIVE:
-        stop();
+        stop(STOP_TRANSIENT);
         // Fall through
       case RESOLVED:
       case INSTALLED:
@@ -773,8 +755,6 @@ public class BundleImpl implements Bundle {
     }
 
     cachedHeaders = getHeaders0(null);
-
-    bDelayedStart = false;
 
     switch (state) {
     case ACTIVE:
@@ -1494,14 +1474,25 @@ public class BundleImpl implements Bundle {
   }
 
 
+
   /**
-   * Save the start on launch flag to the persistent bundle storage.
+   * Save the autostart setting to the persistent bundle storage.
    *
-   * @param value Boolean state for start on launch flag.
+   * @param setting The autostart options to save.
    */
-  void setAutostartSetting(int value) {
+  void setAutostartSetting(int setting) {
+    secure.callSetAutostartSetting(this, setting);
+  }
+
+  /**
+   * Internal version; only to be used from inside PriviledgedActions
+   * running on the framework's security context.
+   *
+   * @param setting The autostart setting to store.
+   */
+  void setAutostartSetting0(int setting) {
     try {
-      archive.setAutostartSetting(value);
+      archive.setAutostartSetting(setting);
     } catch (IOException e) {
       fwCtx.listeners.frameworkError(this, e);
     }
@@ -1509,16 +1500,14 @@ public class BundleImpl implements Bundle {
 
 
   /**
+   * Get the autostart setting from the bundle storage.
    *
+   * @return the current autostart setting, "-1" if bundle not
+   * started.
    */
-  void setPersistent(final boolean value) {
-    try {
-      archive.setPersistent(value);
-    } catch (Exception e) {
-      fwCtx.listeners.frameworkError(this, e);
-    }
+  int getAutostartSetting() {
+    return archive.getAutostartSetting();
   }
-
 
   /**
    * Look at our manifest and register all our import and export
@@ -1577,15 +1566,6 @@ public class BundleImpl implements Bundle {
 
 
   // Start level related
-
-  /**
-   *
-   */
-  boolean isPersistent() {
-    return bDelayedStart || archive.isPersistent();
-  }
-
-
   /**
    *
    */
@@ -1609,7 +1589,8 @@ public class BundleImpl implements Bundle {
       try {
         archive.setStartLevel(n);
       } catch (Exception e) {
-        fwCtx.props.debug.println("Failed to set start level on #" + getBundleId());
+        fwCtx.props.debug.println("Failed to set start level on #"
+                                  + getBundleId());
       }
     }
   }
@@ -1641,14 +1622,11 @@ public class BundleImpl implements Bundle {
     }
 
     if(detail > 3) {
-      sb.append(", bDelayedStart=" + bDelayedStart);
-    }
-
-    if(detail > 4) {
       try {
-        sb.append(", bPersistant=" + isPersistent());
+        sb.append(", autostart setting=");
+        sb.append(getAutostartSetting());
       }  catch (Exception e) {
-        sb.append(", bPersistant=" + e);
+        sb.append(e.toString());
       }
     }
     if(detail > 4) {

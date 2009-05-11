@@ -247,7 +247,7 @@ public class PackageAdminImpl implements PackageAdmin {
       synchronized (bi[bx]) {
         if (bi[bx].state == Bundle.ACTIVE) {
           startList.add(0, bi[bx]);
-          be = bi[bx].stop0(false);
+          be = bi[bx].stop0(Bundle.STOP_TRANSIENT);
         }
       }
       if (be != null) {
@@ -273,7 +273,7 @@ public class PackageAdminImpl implements PackageAdmin {
           case Bundle.ACTIVE:
             synchronized (bi[bx]) {
               if (bi[bx].state == Bundle.ACTIVE) {
-                be = bi[bx].stop0(false);
+                be = bi[bx].stop0(Bundle.STOP_TRANSIENT);
                 if (nextStart != bi[bx]) {
                   startList.add(startPos + 1, bi[bx]);
                 }
