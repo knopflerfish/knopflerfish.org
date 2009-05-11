@@ -135,7 +135,8 @@ public class StartLevelController
         if (s != null) {
           int oldStartLevel = Integer.parseInt(s);
           if (oldStartLevel != -1) {
-            setStartLevel0(framework.systemBundle, oldStartLevel, false, false, true);
+            setStartLevel0(framework.systemBundle, oldStartLevel,
+                           false, false, true);
           }
         }
       } catch (Exception _ignored) { }
@@ -291,11 +292,11 @@ public class StartLevelController
             if (framework.props.debug.startlevel) {
               framework.props.debug.println("startlevel: start " + bs);
             }
+            int startOptions = Bundle.START_TRANSIENT;
             if (isBundleActivationPolicyUsed(bs)) {
-              bs.start(Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY);
-            } else {
-              bs.start(Bundle.START_TRANSIENT);
+              startOptions |= Bundle.START_ACTIVATION_POLICY;
             }
+            bs.start(startOptions);
           }
         } catch (Exception e) {
           framework.listeners.frameworkError(bs, e);

@@ -39,13 +39,13 @@ import org.osgi.framework.launch.*;
 import java.util.Map;
 
 public class FrameworkFactoryImpl implements FrameworkFactory {
-  
-  public FrameworkFactoryImpl() {    
+
+  public FrameworkFactoryImpl() {
   }
 
   public Framework newFramework(Map configuration) {
     FrameworkContext ctx = new FrameworkContext(configuration, null);
-    
+
     return ctx.systemBundle;
   }
 }
