@@ -68,7 +68,7 @@ public class FrameworkContext  {
   /**
    * Specification version for this framework.
    */
-  static final String SPEC_VERSION = "1.4";
+  static final String SPEC_VERSION = "1.5";
 
   /**
    * Boolean indicating that framework is running.
@@ -165,7 +165,7 @@ public class FrameworkContext  {
    */
   public FrameworkContext(Map initProps, FrameworkContext parent)  {
     props = new FWProps(initProps, parent);
-    
+
     buildBootDelegationPatterns();
 
     ProtectionDomain pd = null;
@@ -182,7 +182,7 @@ public class FrameworkContext  {
       perm = new PermissionOps();
     }
 
-    // Set up URL handlers before creating the storage implementation, 
+    // Set up URL handlers before creating the storage implementation,
     // with the exception of the bundle: URL handler, since this
     // requires an intialized framework to work
     urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
@@ -201,7 +201,9 @@ public class FrameworkContext  {
 
         URLConnection.setContentHandlerFactory(contentHandlerFactory);
       } catch (Throwable e) {
-        props.debug.println("Cannot set global URL handlers, continuing without OSGi service URL handler (" + e + ")");
+        props.debug.println("Cannot set global URL handlers, "
+                            +"continuing without OSGi service URL handler ("
+                            + e + ")");
         e.printStackTrace();
       }
     }
@@ -209,11 +211,14 @@ public class FrameworkContext  {
 
     try {
       Class storageImpl = Class.forName(props.whichStorageImpl);
-      
-      Constructor cons  = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
-      storage           = (BundleStorage)cons.newInstance(new Object[] { this });
+
+      Constructor cons
+        = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+      storage
+        = (BundleStorage) cons.newInstance(new Object[] { this });
     } catch (Exception e) {
-      throw new RuntimeException("Failed to initialize storage " + props.whichStorageImpl + ": " + e);
+      throw new RuntimeException("Failed to initialize storage "
+                                 +props.whichStorageImpl +": " +e);
     }
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
@@ -282,7 +287,7 @@ public class FrameworkContext  {
    * <li>Enable event handling. At this point, events can be delivered to
    * listeners.</li>
    * <li>Attempt to start all bundles marked for starting as described in the
-   * {@link Bundle#start} method.
+   * {@link Bundle#start(int)} method.
    * Reports any exceptions that occur during startup using
    * <code>FrameworkErrorEvents</code>.</li>
    * <li>Set the state of the FrameworkContext to <i>active</i>.</li>
@@ -303,21 +308,28 @@ public class FrameworkContext  {
     if (!active) {
       active = true;
       if (startBundle > 0) {
-        startBundle(startBundle);
+        startBundle(startBundle, 0);
+      } else if (startLevelController != null) {
+        // start level open is delayed to this point to
+        // correctly work at restart
+        startLevelController.open();
       } else {
-        for (Iterator i = storage.getStartOnLaunchBundles().iterator(); i.hasNext(); ) {
-          Bundle b = bundles.getBundle((String)i.next());
+        final Iterator i = storage.getStartOnLaunchBundles().iterator();
+        while (i.hasNext()) {
+          final BundleImpl b = (BundleImpl) bundles.getBundle((String)i.next());
           try {
-            b.start();
+            final int autostartSetting = b.archive.getAutostartSetting();
+            // Launch must not change the autostart setting of a bundle
+            int option = Bundle.START_TRANSIENT;
+            if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
+              // Transient start according to the bundles activation policy.
+              option |= Bundle.START_ACTIVATION_POLICY;
+            }
+            b.start(option);
           } catch (BundleException be) {
             listeners.frameworkError(b, be);
           }
         }
-      }
-      // start level open is delayed to this point to
-      // correctly work at restart
-      if (startLevelController != null) {
-        startLevelController.open();
       }
 
       systemBundle.systemActive();
@@ -337,7 +349,7 @@ public class FrameworkContext  {
    * <ol>
    * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
    * <li>Suspended all started bundles as described in the
-   * {@link Bundle#stop} method except that the persistent
+   * {@link Bundle#stop(int)} method except that the persistent
    * state of the bundle will continue to be started.
    * Reports any exceptions that occur during stopping using
    * <code>FrameworkErrorEvents</code>.</li>
@@ -358,17 +370,19 @@ public class FrameworkContext  {
       }
       // Stop bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
-        Bundle b = bundles.getBundle((String)slist.get(i));
+        BundleImpl b = (BundleImpl) bundles.getBundle((String)slist.get(i));
         try {
           if(b != null) {
             synchronized (b) {
               if (b.getState() == Bundle.ACTIVE) {
-                b.stop();
+                // Stop bundle without changing its autostart setting.
+                b.stop(Bundle.STOP_TRANSIENT);
               }
             }
           }
         } catch (BundleException be) {
-          listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, be));
+          listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
+                                                      b, be));
         }
       }
       shuttingdown = false;
@@ -441,12 +455,15 @@ public class FrameworkContext  {
    * Start a bundle.
    *
    * @param id Id of bundle to start.
+   * @param options The start options to use when starting the bundle.
    * @exception BundleException If start failed.
    */
-  public void startBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
+  public void startBundle(long id, int options)
+    throws BundleException
+  {
+    final Bundle b = bundles.getBundle(id);
     if (b != null) {
-      b.start();
+      b.start(options);
     } else {
       throw new BundleException("No such bundle: " + id);
     }
@@ -457,12 +474,13 @@ public class FrameworkContext  {
    * Stop a bundle.
    *
    * @param id Id of bundle to stop.
+   * @param options The stop options to use when stopping the bundle.
    * @exception BundleException If stop failed.
    */
-  public void stopBundle(long id) throws BundleException {
+  public void stopBundle(long id, int options) throws BundleException {
     Bundle b = bundles.getBundle(id);
     if (b != null) {
-      b.stop();
+      b.stop(options);
     } else {
       throw new BundleException("No such bundle: " + id);
     }
@@ -592,7 +610,7 @@ public class FrameworkContext  {
   void buildBootDelegationPatterns() {
     String bootDelegationString = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
     bootDelegationUsed = (bootDelegationString != null);
-    
+
     try {
       Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
                                      bootDelegationString,
