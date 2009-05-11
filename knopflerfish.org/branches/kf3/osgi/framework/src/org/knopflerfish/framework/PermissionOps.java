@@ -216,8 +216,8 @@ class PermissionOps {
   }
 
 
-  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
-    return b.stop0(resetPersistent);
+  BundleException callStop0(final BundleImpl b, final int options)  {
+    return b.stop0(options);
   }
 
 
@@ -233,12 +233,7 @@ class PermissionOps {
 
 
   void callSetAutostartSetting(final BundleImpl b, final int setting) {
-    b.setAutostartSetting(setting);
-  }
-
-
-  void callSetPersistent(final BundleImpl b, final boolean flag) {
-    b.setPersistent(flag);
+    b.setAutostartSetting0(setting);
   }
 
 

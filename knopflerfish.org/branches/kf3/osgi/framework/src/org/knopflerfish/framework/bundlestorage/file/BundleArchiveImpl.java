@@ -70,7 +70,6 @@ class BundleArchiveImpl implements BundleArchive
   private final static String REV_FILE           = "revision";
   private final static String AUTOSTART_FILE     = "autostart";
   private final static String STARTLEVEL_FILE    = "startlevel";
-  private final static String PERSISTENT_FILE    = "persistent";
   private final static String LAST_MODIFIED_FILE = "lastModifed";
 
   /**
@@ -85,7 +84,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private int autostartSetting = -1;
+  private int autostartSetting = -1; // => not started.
 
   private FileTree bundleDir;
 
@@ -98,8 +97,6 @@ class BundleArchiveImpl implements BundleArchive
   private Map renameLibs;
 
   private int startLevel = -1;
-
-  private boolean bPersistent;
 
   private long lastModified = 0;
 
@@ -168,8 +165,6 @@ class BundleArchiveImpl implements BundleArchive
       } catch (NumberFormatException e) { }
     }
 
-    bPersistent = "true".equals(getContent(PERSISTENT_FILE));
-
     s = getContent(LAST_MODIFIED_FILE);
     if (s != null) {
         try {
@@ -204,7 +199,6 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     autostartSetting = old.autostartSetting;
-    bPersistent = old.bPersistent;
     int rev = old.archive.getRevision() + 1;
     URL source = null;
 
@@ -289,19 +283,6 @@ class BundleArchiveImpl implements BundleArchive
       startLevel = level;
       putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
     }
-  }
-
-
-  public void setPersistent(boolean b) throws IOException {
-    if (bPersistent != b) {
-      bPersistent = b;
-      putContent(PERSISTENT_FILE, b ? "true" : "false");
-    }
-  }
-
-
-  public boolean isPersistent() {
-    return bPersistent;
   }
 
 
@@ -476,7 +457,6 @@ class BundleArchiveImpl implements BundleArchive
       (new File(bundleDir, AUTOSTART_FILE)).delete();
       (new File(bundleDir, REV_FILE)).delete();
       (new File(bundleDir, STARTLEVEL_FILE)).delete();
-      (new File(bundleDir, PERSISTENT_FILE)).delete();
       (new File(bundleDir, LAST_MODIFIED_FILE)).delete();
     }
     archive.purge();

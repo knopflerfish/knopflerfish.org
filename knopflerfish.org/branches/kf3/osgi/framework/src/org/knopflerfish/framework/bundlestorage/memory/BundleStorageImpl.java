@@ -133,7 +133,7 @@ public class BundleStorageImpl implements BundleStorage {
 
 
   /**
-   * Get all bundles tagged to start at next launch of framework.
+   * Get all bundles to start at next launch of framework.
    * This list is sorted in increasing bundle id order.
    *
    * @return Private copy of a List with bundle id's.

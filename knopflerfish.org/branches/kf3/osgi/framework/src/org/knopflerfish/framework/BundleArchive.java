@@ -48,6 +48,7 @@ import java.util.List;
  * @author Jan Stein
  * @author Philippe Laporte
  * @author Mats-Ola Persson
+ * @author Gunnar Ekolin
  */
 public interface BundleArchive {
 
@@ -119,9 +120,6 @@ public interface BundleArchive {
    */
   void setStartLevel(int level) throws IOException;
 
-  void setPersistent(boolean b)  throws IOException;
-
-  boolean isPersistent();
 
   long getLastModified();
 
@@ -174,7 +172,7 @@ public interface BundleArchive {
   /**
    * Get auto-start setting.
    *
-   * @return the autostart setting.
+   * @return the autostart setting. "-1" if bundle not started.
    */
   int getAutostartSetting();
 
@@ -182,7 +180,7 @@ public interface BundleArchive {
   /**
    * Set the auto-start setting.
    *
-   * @param setting the autostart setting ot use.
+   * @param setting the autostart setting to use.
    */
   void setAutostartSetting(int setting) throws IOException;
 

@@ -64,14 +64,13 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private int autostartSetting = -1;
+  private int autostartSetting = -1; // -> not started.
 
   private BundleStorageImpl storage;
 
   private Archive [] archives;
 
   private int startLevel = -1;
-  private boolean bPersistent = false;
   private long lastModified;
 
   private ArrayList failedPath = null;
@@ -105,7 +104,6 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     autostartSetting = old.autostartSetting;
-    bPersistent = old.bPersistent;
     archive = new Archive(is);
     setClassPath();
   }
@@ -176,16 +174,6 @@ class BundleArchiveImpl implements BundleArchive
 
   public void setStartLevel(int level) {
     startLevel = level;
-  }
-
-
-  public void setPersistent(boolean b) {
-    bPersistent = b;
-  }
-
-
-  public boolean isPersistent() {
-    return bPersistent;
   }
 
 

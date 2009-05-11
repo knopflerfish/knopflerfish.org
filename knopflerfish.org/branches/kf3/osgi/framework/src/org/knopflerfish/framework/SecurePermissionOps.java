@@ -510,11 +510,11 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
+  BundleException callStop0(final BundleImpl b, final int options)  {
     return (BundleException)
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-            return b.stop0(resetPersistent);
+            return b.stop0(options);
           }
         });
   }
@@ -548,17 +548,7 @@ class SecurePermissionOps extends PermissionOps {
   void callSetAutostartSetting(final BundleImpl b, final int settings) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          b.setAutostartSetting(settings);
-          return null;
-        }
-      });
-  }
-
-
-  void callSetPersistent(final BundleImpl b, final boolean flag) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          b.setPersistent(flag);
+          b.setAutostartSetting0(settings);
           return null;
         }
       });
