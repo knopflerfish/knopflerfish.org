@@ -216,8 +216,8 @@ class PermissionOps {
   }
 
 
-  BundleException callStop0(final BundleImpl b, final int options)  {
-    return b.stop0(options);
+  BundleException callStop0(final BundleImpl b)  {
+    return b.stop0();
   }
 
 

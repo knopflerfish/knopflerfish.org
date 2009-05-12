@@ -343,23 +343,7 @@ public class BundleImpl implements Bundle {
     // activation.
 
     //1: If activating or deactivating, wait a litle
-    int k = 0;
-    while ((activating || deactivating) && k<10) {
-      try {
-        this.wait(10L);
-      } catch (InterruptedException _ie) {
-      }
-      k++;
-    }
-    if (activating) {
-      throw new BundleException
-        ("BundleActivator.start called from BundleActivator.start");
-    }
-
-    if (deactivating) {
-      throw new BundleException
-        ("BundleActivator.start called from BundleActivator.stop");
-    }
+    waitOnActivation("BundleActivator.start");
 
     //2: start() is idempotent, i.e., nothing to do when already started
     if (state == ACTIVE) {
@@ -518,7 +502,7 @@ public class BundleImpl implements Bundle {
       }
 
       if (UNINSTALLED==state) {
-        throw new Exception("Bundle uninstalled in by start()");
+        throw new Exception("Bundle uninstalled during start()");
       }
       state = ACTIVE;
     } catch (Throwable t) {
@@ -548,68 +532,105 @@ public class BundleImpl implements Bundle {
       throw new BundleException("Cannot stop a fragment bundle");
     }
 
-    // The value -1 is used by this implemtation to indicate a bundle
-    // that has not been started, thus ensure that options is != -1.
-    options &= 0xFF;
-
-    switch (state) {
-    case INSTALLED:
-    case RESOLVED:
-      // Non-transient stop requested; ensure that bundle is not
-      // started again after a framework restart.
-      if ((options & STOP_TRANSIENT) == 0) {
-        setAutostartSetting(-1);
-      }
-      break;
-    case ACTIVE:
-      BundleException savedException = secure.callStop0(this, options);
-      if (savedException != null) {
-        throw savedException;
-      }
-      break;
-    case STARTING:
-      // This happens if we call stop from inside the BundleActivator.start method.
-      // We don't allow it.
-      throw new BundleException("Bundle.start called from BundleActivator.stop");
-    case STOPPING:
-      // This happens if we call stop from inside the BundleActivator.stop method.
-      // We don't allow it.
-      throw new BundleException("Bundle.stop called from BundleActivator.stop");
-    case UNINSTALLED:
-      throw new IllegalStateException("Bundle.stop: Bundle is in UNINSTALLED state");
+    //1:
+    if (state == UNINSTALLED) {
+      throw new IllegalStateException("Bundle is uninstalled");
     }
-  }
 
-  synchronized BundleException stop0(int options) {
-    BundleException res = null;
 
-    state = STOPPING;
-    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+    //2: If activating or deactivating, wait a litle
+    waitOnActivation("BundleActivator.stop");
 
+    //3:
     if ((options & STOP_TRANSIENT) == 0) {
       setAutostartSetting(-1);
     }
 
-    if (bactivator != null) {
+    switch (state) {
+    case INSTALLED:
+    case RESOLVED:
+    case STOPPING:
+    case UNINSTALLED:
+      //4:
+      return;
+
+    case ACTIVE:
+    case STARTING: // Lazy start...
+      //5-13:
+      final BundleException savedException = secure.callStop0(this);
+      if (savedException != null) {
+        throw savedException;
+      }
+      break;
+    }
+  }
+
+  synchronized BundleException stop0() {
+    final boolean wasStarted = ACTIVE == state;
+    BundleException res = null;
+
+    //5:
+    state = STOPPING;
+    //6:
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+
+    //7:
+    if (wasStarted && bactivator != null) {
       deactivating = true;
       try {
         bactivator.stop(bundleContext);
       } catch (Throwable e) {
-        res = new BundleException("Bundle.stop: BundleActivator stop failed", e);
+        res = new BundleException("Bundle.stop: BundleActivator stop failed",
+                                  e);
       } finally {
         deactivating = false;
+        bactivator = null;
       }
-      bactivator = null;
     }
-
-    bundleContext.invalidate();
+    if (null!=bundleContext) bundleContext.invalidate();
     bundleContext = null;
+    //8-10:
     removeBundleResources();
-    state = RESOLVED;
-    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
+    if (UNINSTALLED==state) {
+      //11:
+      res = new BundleException("Bundle uninstalled during stop()");
+    } else {
+      //12:
+      state = RESOLVED;
+      //13:
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
+    }
     return res;
   }
 
+
+  /**
+   * Release monitors and wait a litle for an ongoing activation /
+   * de-activation to finish.
+   *
+   * @param src Caller to inlcude in exception message.
+   * @throws BundleException if the ongoing (de-)activation does not
+   * finish within reasonable time.
+   */
+  private synchronized void waitOnActivation(final String src)
+    throws BundleException
+  {
+    int k = 0;
+    while ((activating || deactivating) && k<10) {
+      try {
+        this.wait(10L);
+      } catch (InterruptedException _ie) {
+      }
+      k++;
+    }
+    if (activating) {
+      throw new BundleException(src +" called from BundleActivator.start");
+    }
+
+    if (deactivating) {
+      throw new BundleException(src +" called from BundleActivator.stop");
+    }
+  }
 
   /**
    * Update this bundle.
@@ -1548,6 +1569,44 @@ public class BundleImpl implements Bundle {
                                 (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
       }
     }
+
+    i = Util.parseEntries(Constants.BUNDLE_ACTIVATIONPOLICY,
+                          archive.getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY),
+                          true, true, true);
+    if (i.hasNext()) {
+      e = (Map)i.next();
+      lazyActivation = Constants.ACTIVATION_LAZY.equals(e.get("$key"));
+
+      if (lazyActivation) {
+        if (e.containsKey(Constants.INCLUDE_DIRECTIVE)) {
+          final ArrayList incs =
+            Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
+                                  (String) e.get(Constants.INCLUDE_DIRECTIVE));
+          lazyIncludes = new HashSet();
+          lazyIncludes.addAll(incs);
+        }
+
+        if (e.containsKey(Constants.EXCLUDE_DIRECTIVE)) {
+          final ArrayList excs =
+            Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
+                                  (String) e.get(Constants.EXCLUDE_DIRECTIVE));
+          lazyExcludes = new HashSet();
+
+          for (Iterator excsIter = excs.iterator(); excsIter.hasNext();) {
+            String entry = (String)excsIter.next();
+            if (lazyIncludes != null && lazyIncludes.contains(entry)) {
+              throw new IllegalArgumentException
+                ("Conflicting " +Constants.INCLUDE_DIRECTIVE
+                 +"/" +Constants.EXCLUDE_DIRECTIVE
+                 +" entries in " +Constants.BUNDLE_ACTIVATIONPOLICY+": '"
+                 +entry +"' both included and excluded");
+            }
+            lazyExcludes.add(entry);
+          }
+        }
+      }
+    }
+
   }
 
 
@@ -1569,7 +1628,9 @@ public class BundleImpl implements Bundle {
    */
   void setAutostartSetting0(int setting) {
     try {
-      archive.setAutostartSetting(setting);
+      if (null!=archive) {
+        archive.setAutostartSetting(setting);
+      }
     } catch (IOException e) {
       fwCtx.listeners.frameworkError(this, e);
     }
@@ -1583,7 +1644,7 @@ public class BundleImpl implements Bundle {
    * started.
    */
   int getAutostartSetting() {
-    return archive.getAutostartSetting();
+    return archive!=null ? archive.getAutostartSetting() : -1;
   }
 
   /**
