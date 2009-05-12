@@ -91,6 +91,10 @@ final public class BundleClassLoader extends ClassLoader {
    */
   BundlePackages bpkgs;
 
+  // Array of bundles for which a classload is triggering activation.
+  private static ThreadLocal tlBundlesToActivate = new ThreadLocal();
+
+
   // android/dalvik VM stuff
   private static Constructor dexFileClassCons;
   private static Method      dexFileClassLoadClassMethod;
@@ -138,8 +142,11 @@ final public class BundleClassLoader extends ClassLoader {
    * Create class loader for specified bundle.
    */
   BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags,
-                    ProtectionDomain pd, PermissionOps secure) {
-    super(bpkgs.bundle.fwCtx.getClass().getClassLoader()); //otherwise getResource will bypass OUR parent
+                    ProtectionDomain pd, PermissionOps secure)
+  {
+    //otherwise getResource will bypass OUR parent
+    super(bpkgs.bundle.fwCtx.getClass().getClassLoader());
+
     this.debug = bpkgs.bundle.fwCtx.props.debug;
     this.parent = bpkgs.bundle.fwCtx.getClass().getClassLoader();
     this.secure = secure;
@@ -335,7 +342,50 @@ final public class BundleClassLoader extends ClassLoader {
     Class c = findLoadedClass(name);
     if (c == null) {
       c = findClass(name);
+    } else {
+      // Handle bundles that are lazely started after having been
+      // stopped. In this case the triggering classes will already
+      // be loaded.
+      BundleImpl b = getBundle();
+      if (b.triggersActivationCls(name)) {
+        if (debug.lazyActivation) {
+          debug.println(this +" lazy activation of #" +b.id +" triggerd by: "
+                        +name);
+        }
+
+        ArrayList bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
+        if (null==bundlesToActivate) {
+          // Not part of a load chain; activate bundle here.
+          if (debug.lazyActivation) {
+            debug.println(this + " requesting lazy activation of #" +b.id);
+          }
+          try {
+            secure.callFinalizeActivation(b);
+          } catch (BundleException e) {
+            b.fwCtx.listeners.frameworkError(b, e);
+          }
+        } else {
+          // add bundle to list of bundles to activate when the
+          // initiator class has been loaded.
+          boolean bundlePresent = false;
+          for (int i = 0, size = bundlesToActivate.size(); i < size; i++) {
+            BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+            if (tmp.id == b.id) {
+              bundlePresent = true;
+              break;
+            }
+          }
+          if (!bundlePresent) {
+            bundlesToActivate.add(b);
+            if (debug.lazyActivation) {
+              debug.println(this + " added #" +b.id
+                            +" to list of bundles to be activated.");
+            }
+          }
+        }
+      }
     }
+
     if (resolve) {
         resolveClass(c);
     }
@@ -604,6 +654,78 @@ final public class BundleClassLoader extends ClassLoader {
   //
   // Private
   //
+  /**
+   * Seraches for and loads classes and resources according to OSGi
+   * search order. When lazy activation of bundles are used this
+   * method will detect and perform the activation. The actual
+   * searching and loading is done in {@link #searchFor0()}
+   *
+   * @param name Name of class or null if we look for a resource
+   * @param pkg Package name for item
+   * @param path File path to item searched ("/" seperated)
+   * @param action Action to be taken when item is found
+   * @param onlyFirst Stop search when first matching item is found.
+   *
+   * @return Object returned from action class.
+   */
+  Object searchFor(String name,
+                   String pkg,
+                   String path,
+                   SearchAction action,
+                   boolean onlyFirst,
+                   BundleClassLoader requestor,
+                   HashSet visited)
+  {
+    final BundleImpl b = getBundle();
+    boolean initiator = false;
+    ArrayList bundlesToActivate = null;
+
+    if (action == classSearch && b.triggersActivationPkg(pkg)) {
+      boolean bundlePresent = false;
+
+      bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
+      initiator = bundlesToActivate == null;
+      if (initiator) {
+        bundlesToActivate = new ArrayList();
+        tlBundlesToActivate.set(bundlesToActivate);
+      } else {
+        for (int i = 0, size = bundlesToActivate.size(); i < size; i++) {
+          BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+          if (tmp.id == b.id) {
+            bundlePresent = true;
+            break;
+          }
+        }
+      }
+      if (!bundlePresent) {
+        bundlesToActivate.add(b);
+        if (debug.lazyActivation) {
+          debug.println(this +" lazy activation of #" +b.id
+                        +" triggerd by load of: " +name);
+        }
+      }
+    }
+
+    final Object res
+      = searchFor0(name, pkg, path, action, onlyFirst, requestor, visited);
+
+    if (initiator) {
+      for (int i = bundlesToActivate.size() - 1; i >= 0; i--) {
+        BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+        if (debug.lazyActivation) {
+          debug.println(this + " requesting lazy activation of #" +b.id);
+        }
+        try {
+          tmp.finalizeActivation();
+        } catch (BundleException e) {
+          b.fwCtx.listeners.frameworkError(b, e);
+        }
+      }
+      tlBundlesToActivate.set(null);
+    }
+
+    return res;
+  }
 
   /**
    * Search for classloader to use according to OSGi search order.
@@ -659,8 +781,14 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @return Object returned from action class.
    */
-  Object searchFor(String name, String pkg, String path, SearchAction action,
-                   boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
+  Object searchFor0(String name,
+                    String pkg,
+                    String path,
+                    SearchAction action,
+                    boolean onlyFirst,
+                    BundleClassLoader requestor,
+                    HashSet visited)
+  {
     BundlePackages pbp;
     ExportPkg ep;
 

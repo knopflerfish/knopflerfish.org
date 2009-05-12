@@ -509,6 +509,20 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
+  void callFinalizeActivation(final BundleImpl b) throws BundleException {
+    try {
+      AccessController.doPrivileged(new PrivilegedExceptionAction() {
+          public Object run() throws BundleException {
+            b.finalizeActivation();
+            return null;
+          }
+        });
+    } catch (PrivilegedActionException e) {
+      throw (BundleException) e.getException();
+    }
+  }
+
+
 
   BundleException callStop0(final BundleImpl b)  {
     return (BundleException)

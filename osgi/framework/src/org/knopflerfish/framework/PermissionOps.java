@@ -216,6 +216,11 @@ class PermissionOps {
   }
 
 
+  void callFinalizeActivation(final BundleImpl b) throws BundleException {
+    b.finalizeActivation();
+  }
+
+
   BundleException callStop0(final BundleImpl b)  {
     return b.stop0();
   }

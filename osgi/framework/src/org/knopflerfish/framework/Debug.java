@@ -44,10 +44,10 @@ import org.osgi.framework.BundleException;
  * @author Jan Stein
  */
 public class Debug {
-  
+
   FWProps props;
 
-  
+
   /**
    * Report whenever the bundle classloader does something.
    */
@@ -107,6 +107,11 @@ public class Debug {
   boolean patch;
 
   /**
+   * Report triggering of lazy activation
+   */
+  boolean lazyActivation;
+
+  /**
    * Report Automanifest handling
    */
   boolean automanifest;
@@ -134,6 +139,7 @@ public class Debug {
     use_do_privilege
       = System.getSecurityManager() != null
       && "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
+    lazyActivation = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.lazy_activation"));
   }
 
   /**
