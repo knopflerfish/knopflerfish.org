@@ -855,11 +855,20 @@ public class BundleImpl implements Bundle {
     cachedHeaders = getHeaders0(null);
 
     switch (state) {
+    case UNINSTALLED:
+      throw new IllegalStateException("Bundle is in UNINSTALLED state");
+
+    case STOPPING:
+      // Wait for RESOLVED state, this doesn't happen now
+      // since we are synchronized.
+      throw new IllegalStateException("Bundle is in STOPPING state");
+
+    case STARTING: // Lazy start
     case ACTIVE:
       try {
         stop();
-      } catch (BundleException be) {
-        fwCtx.listeners.frameworkError(this, be);
+      } catch (Throwable t) {
+        fwCtx.listeners.frameworkError(this, t);
       }
       // Fall through
     case RESOLVED:
@@ -923,7 +932,7 @@ public class BundleImpl implements Bundle {
         bundleDir = null;
       }
 
-      // id, location and headers survices after uninstall.
+      // id, location and headers survives after uninstall.
       state = UNINSTALLED;
       modified();
 
@@ -934,16 +943,6 @@ public class BundleImpl implements Bundle {
       fwCtx.listeners
         .bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
       break;
-    case STARTING:
-      // Wait for RUNNING state, this doesn't happen now
-      // since we are synchronized.
-      throw new IllegalStateException("Bundle is in STARTING state");
-    case STOPPING:
-      // Wait for RESOLVED state, this doesn't happen now
-      // since we are synchronized.
-      throw new IllegalStateException("Bundle is in STOPPING state");
-    case UNINSTALLED:
-      throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
   }
 
@@ -2285,6 +2284,33 @@ public class BundleImpl implements Bundle {
     }
   }
 
+  /**
+   * @param packageName
+   * @return true if this package name should trigger
+   * activation of a lazyBundle
+   */
+  private boolean isPkgActivationTrigger(String packageName) {
+    return (lazyIncludes == null && lazyExcludes == null) ||
+      (lazyIncludes != null && lazyIncludes.contains(packageName)) ||
+      (lazyExcludes != null && !lazyExcludes.contains(packageName));
+  }
+
+  boolean triggersActivationPkg(String pkg) {
+    return state == Bundle.STARTING && lazyActivation
+      && isPkgActivationTrigger(pkg);
+  }
+
+  boolean triggersActivationCls(String name) {
+    if (state == Bundle.STARTING && lazyActivation) {
+      String pkg = "";
+      int pos = name.lastIndexOf('.');
+      if (pos != -1) {
+        pkg = name.substring(0, pos);
+      }
+      return isPkgActivationTrigger(pkg);
+    }
+    return false;
+  }
 
   /**
    */
@@ -2334,6 +2360,6 @@ public class BundleImpl implements Bundle {
 
       return best;
     }
-  }
+  }//class Fragment
 
-}//class
+}//class BundleImpl
