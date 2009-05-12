@@ -348,9 +348,9 @@ public class SystemBundle extends BundleImpl implements Framework {
     super.stop(options);
   }
 
-  synchronized BundleException stop0(int options) {
+  synchronized BundleException stop0() {
     try {
-      super.stop0(options);
+      super.stop0();
       fwCtx.shutdown();
       return null;
     } catch (Exception e) {
