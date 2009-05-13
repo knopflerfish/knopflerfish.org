@@ -326,42 +326,9 @@
  <target name="run-kf-tests-bare">
    <delete dir="junit_grunt"/>
    <mkdir dir="junit_grunt"/>
-   <echo message="Running the main test suite..."/>
-   <!-- Run most of the test suites. -->
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="false"
-         jar="framework.jar">
-     <arg value="-xargs"/>
-     <arg value="init-tests.xargs"/>
-   </java>
-   <!-- Run Axis2 client test. -->
-   <echo message="Running the SOAP-Axis2TestSuite..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-         jar="framework.jar">
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
-   </java>
-   <!-- Set up for the restart test suite. -->
-   <echo message="Running the restart test suite, part 1..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-	 jar="framework.jar">
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
-   </java>
-   <!-- Restart and check that the same set of bundles are started. -->
-   <echo message="Running the restart test suite, part 2..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-	 jar="framework.jar">
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
-   </java>
+   <antcall target="run-kf-tests-bare-main"/>
+   <antcall target="run-kf-tests-bare-axis2"/>
+   <antcall target="run-kf-tests-bare-restart"/>
    <echo message="Test output is available in junit_grunt/out.txt."/>
    <echo message="Test results are available in junit_grunt/index.xml"/>
  </target>
@@ -369,58 +336,74 @@
  <target name="run-kf-tests-secure"
          description="Builds then executes the KF testsuite with security enabled."
 	 depends="clean,all">
-   <antcall target="run-kf-tests-secure-bare"/>
+   <antcall target="run-kf-secure-bare">
+     <param name="run.test.secure" value="true"/>
+   </antcall>
  </target>
 
- <target name="run-kf-tests-secure-bare">
-   <delete dir="junit_grunt"/>
-   <mkdir  dir="junit_grunt"/>
-   <echo message="Running the main test suite..."/>
+
+ <!-- Start the framework with output redirected to junit_grunt/out.txt -->
+ <!-- Parameters: -->
+ <!--  run.test.secure If set execute tests with security enabled -->
+ <!--  run.test.msg    The message (heading) to print             -->
+ <!--  run.test.append Append output to log file or start new log -->
+ <!--  run.test.xargs  The xargs file to load                     -->
+ <target name="run-test">
+   <antcall target="run-test-default"/>
+   <antcall target="run-test-secure"/>
+ </target>
+ <target name="run-test-default" unless="run.test.secure">
+   <echo message="${run.test.msg}"/>
    <java fork="true"
 	 output="junit_grunt/out.txt"
-	 append="false"
-	 jar="framework.jar">
-     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
+	 append="${run.test.append}"
+         jar="framework.jar">
      <arg value="-xargs"/>
-     <arg value="init-tests.xargs"/>
+     <arg value="${run.test.xargs}"/>
    </java>
-   <!-- Run Axis2 client test. -->
-   <echo message="Running the SOAP-Axis2TestSuite..."/>
+ </target>
+ <target name="run-test-secure" if="run.test.secure">
+   <echo message="${run.test.msg}"/>
    <java fork="true"
 	 output="junit_grunt/out.txt"
-	 append="true"
+	 append="${run.test.append}"
          jar="framework.jar">
      <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
      <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
+     <arg value="${run.test.xargs}"/>
    </java>
-   <!-- Set up for the restart test suite. -->
-   <echo message="Running the restart test suite, part 1..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-	 jar="framework.jar">
-     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
-   </java>
-   <!-- Restart and check that the same set of bundles are started. -->
-   <echo message="Running the restart test suite, part 2..."/>
-   <java fork="true"
-	 output="junit_grunt/out.txt"
-	 append="true"
-	 jar="framework.jar">
-     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
-     <arg value="-xargs"/>
-     <arg value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
-   </java>
-   <echo message="Test output is available in junit_grunt/out.txt."/>
-   <echo message="Test results are available in junit_grunt/index.xml."/>
  </target>
+
+ <target name="run-kf-tests-bare-main">
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the main test suite..."/>
+     <param name="run.test.append" value="false"/>
+     <param name="run.test.xargs"  value="init-tests.xargs"/>
+   </antcall>
+ </target>
+
+ <target name="run-kf-tests-bare-axis2">
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the SOAP-Axis2TestSuite..."/>
+     <param name="run.test.append" value="true"/>
+     <param name="run.test.xargs"  value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
+   </antcall>
+ </target>
+
+ <target name="run-kf-tests-bare-restart">
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the restart test suite, part 1..."/>
+     <param name="run.test.append" value="true"/>
+     <param name="run.test.xargs"  value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+   </antcall>
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the restart test suite, part 2..."/>
+     <param name="run.test.append" value="true"/>
+     <param name="run.test.xargs"  value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
+   </antcall>
+ </target>
+
 
  <target name="clean"
 	 description="removes all generated files"
@@ -446,8 +429,6 @@
  <target name="rebuild"
          description="Cleans then build build all">
     <antcall target="clean"/>
-    <ant dir="bundles_test" target="clean"
-         inheritAll="false" inheritRefs="false"/>
     <antcall target="all"/>
  </target>
  

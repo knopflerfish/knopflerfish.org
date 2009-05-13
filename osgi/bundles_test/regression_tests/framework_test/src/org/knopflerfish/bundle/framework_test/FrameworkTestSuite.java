@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,24 +109,24 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame018a());
     addTest(new Frame019a());
     addTest(new Frame020a());
-    addTest(new Frame025a());
-    addTest(new Frame030a());
-    addTest(new Frame035a());
-    addTest(new Frame038a());
+    addTest(new Frame025b());
+    addTest(new Frame030b());
+    addTest(new Frame035b());
+    addTest(new Frame038b());
     //    addTest(new Frame040a()); skipped since not a valid test?
     addTest(new Frame041a());
     addTest(new Frame045a());
     addTest(new Frame050a());
     addTest(new Frame055a());
     addTest(new Frame060a());
-    addTest(new Frame065a());
+    addTest(new Frame065b());
     addTest(new Frame068a());
     addTest(new Frame069a());
     addTest(new Frame070a());
     addTest(new Frame075a());
     addTest(new Frame080a());
-    addTest(new Frame085a());
-    addTest(new Frame110a());
+    addTest(new Frame085b());
+    addTest(new Frame110b());
     addTest(new Frame115a());
     //don't fix up security for now
     //addTest(new Frame120a());
@@ -486,8 +486,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         teststatus = false;
       }
 
-      // check the listeners for events, expect only a bundle event, of type installation
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.INSTALLED, false, 0, buA, sr1);
+      // check the listeners for events, expect only a bundle event,
+      // of type installation
+      boolean lStat
+        = checkListenerEvents(out, false , 0, true , BundleEvent.INSTALLED,
+                              false, 0, buA, sr1);
 
       if (teststatus == true && buA.getState() == Bundle.INSTALLED && lStat == true) {
         out.println("### framework test bundle :FRAME020A:PASS");
@@ -499,184 +502,190 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-  public final static String [] HELP_FRAME025A =  {
+  public final static String [] HELP_FRAME025B =  {
     "Start bundleA_test and check that it gets state ACTIVE",
     "and that the service it registers exist"
   };
 
-  class Frame025a extends FWTestCase {
+  class Frame025b extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
       boolean ungetStat = false;
+
       try {
         buA.start();
-        teststatus = true;
-      }
-      catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME025A:FAIL");
-        teststatus = false;
+        assertTrue("BundleA should be ACTIVE", buA.getState() == Bundle.ACTIVE);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
-      }
-      catch (IllegalStateException ise) {
-        fail("framework test bundle "+ ise +" :FRAME025A:FAIL");
-        teststatus = false;
+        fail("framework test bundle "+ bexcA +" :FRAME025B:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
-      }
-      catch (SecurityException sec) {
-        fail("framework test bundle "+ sec +" :FRAME025A:FAIL");
-        teststatus = false;
+        fail("framework test bundle "+ ise +" :FRAME025B:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
         sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME025B:FAIL");
       }
 
       // Check if testbundleA registered the expected service
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
+      ServiceReference sr1
+        = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
       if (sr1 == null) {
-        fail("framework test bundle, expected service not found :FRAME025A:FAIL");
-        teststatus = false;
-      }
-      else {
+        fail("framework test bundle, "
+             +"expected service not found :FRAME025B:FAIL");
+      } else {
         try {
           Object o1 = bc.getService(sr1);
-          if (o1 == null) {
-            fail("framework test bundle, no service object found :FRAME025A:FAIL");
-            teststatus = false;
-          }
+          assertNotNull("no service object found:FRAME025B:FAIL", o1);
 
           try {
-            ungetStat = bc.ungetService(sr1);
+            assertTrue("Service unget should return true",
+                       bc.ungetService(sr1));
+          } catch (IllegalStateException ise) {
+            out.println("Unexpected illegal state exception: "+ise);
+            ise.printStackTrace();
+            fail("framework test bundle, ungetService exception "
+                 +ise +":FRAME025B:FAIL");
           }
-          catch (IllegalStateException ise) {
-            fail("framework test bundle, ungetService exception " + ise + ":FRAME025A:FAIL");
-          }
-        }
-        catch (SecurityException sek) {
-          fail("framework test bundle, getService " + sek + ":FRAME025A:FAIL");
-          teststatus = false;
+        } catch (SecurityException sek) {
+          out.println("Unexpected security exception: "+sek);
+          sek.printStackTrace();
+          fail("framework test bundle, getService " + sek + ":FRAME025B:FAIL");
         }
       }
-      // check the listeners for events, expect a bundle event of started and a service event of type registered
-      boolean lStat = checkListenerEvents( out, false, 0, true, BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buA, sr1);
 
-      assertTrue("BundleA should be ACTIVE", buA.getState() == Bundle.ACTIVE);
-      assertTrue("Service unget should be true", ungetStat == true); // Changed according to KF bug #1780141
-      assertTrue("Unexpected events", lStat == true);
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.RESOLVED, buA),
+        new BundleEvent(BundleEvent.STARTED,  buA)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
-      if (teststatus == true && buA.getState() == Bundle.ACTIVE && ungetStat == true && lStat == true ) {
-        out.println("### framework test bundle :FRAME025A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME025A:FAIL");
-      }
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buA)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME025B:PASS");
     }
   }
 
-  public final static String [] HELP_FRAME030A =  {
+  public final static String [] HELP_FRAME030B =  {
     "Stop bundleA_test and check that it gets state RESOLVED"
   };
 
-  class Frame030a extends FWTestCase {
+  class Frame030b extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
-      boolean lStatSync = false;
+      ServiceReference sr1
+        = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
 
       try {
         buA.stop();
-        lStatSync = checkSyncListenerEvents(out, true, BundleEvent.STOPPING, buA, null);
-        teststatus = true;
-      }
-      catch (IllegalStateException ise ) {
-        fail("framework test bundle, getService " + ise + ":FRAME030A:FAIL");
-        teststatus = false;
-      }
-      catch (BundleException be ) {
-        fail("framework test bundle, getService " + be + ":FRAME030A:FAIL");
-        teststatus = false;
+        assertTrue("BundleA should be RESOLVED",
+                   buA.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle, stop bundle" + ise + ":FRAME030B:FAIL");
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("framework test bundle, stop bundle " + be + ":FRAME030B:FAIL");
       }
 
-      boolean lStat = checkListenerEvents(out, false, 0, true, BundleEvent.STOPPED, true, ServiceEvent.UNREGISTERING, buA, sr1);
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STOPPED, buA)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STOPPING, buA)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
 
-      if (teststatus == true && buA.getState() == Bundle.RESOLVED && lStat == true && lStatSync == true) {
-        out.println("### framework test bundle :FRAME030A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME030A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME030B:PASS");
     }
   }
 
-  public final static String [] HELP_FRAME035A =  {
-    "Stop bundleA_test and check that it gets state UNINSTALLED"
+  public final static String [] HELP_FRAME035B =  {
+    "Uninstall bundleA_test and check that it gets state UNINSTALLED"
   };
 
-  class Frame035a extends FWTestCase {
+  class Frame035b extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
-
       try {
         buA.uninstall();
-      }
-      catch (IllegalStateException ise ) {
-        fail("framework test bundle, getService " + ise + ":FRAME035A:FAIL");
-        teststatus = false;
-      }
-      catch (BundleException be ) {
-        fail("framework test bundle, getService " + be + ":FRAME035A:FAIL");
-        teststatus = false;
-      }
-
-      boolean lStat = checkListenerEvents(out, false, 0, true, BundleEvent.UNINSTALLED, false, 0, buA, sr1);
-
-      if (teststatus == true && buA.getState() == Bundle.UNINSTALLED && lStat == true) {
-        out.println("### framework test bundle :FRAME035A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME035A:Fail");
+        assertTrue("BundleA should be UNINSTALLED",
+                   buA.getState() == Bundle.UNINSTALLED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle, getService " + ise + ":FRAME035B:FAIL");
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("framework test bundle, getService " + be + ":FRAME035B:FAIL");
       }
 
+
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.UNRESOLVED, buA),
+        new BundleEvent(BundleEvent.UNINSTALLED, buA)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+      };
+      assertTrue("Unexpected sync events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME035B:PASS");
     }
   }
 
-  public final static String [] HELP_FRAME038A =  {
+  public final static String [] HELP_FRAME038B =  {
     "Install a non existent file, check that the right exception is thrown"
   };
 
-  class Frame038a extends FWTestCase {
+  class Frame038b extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      boolean exception;
       buD = null;
       try {
         buD = Util.installBundle(bc, "nonexisting_bundle_file.jar");
-        exception = false;
-      }
-      catch (BundleException bexcA) {
-        // out.println("framework test bundle "+ bexcA +" :FRAME038A:FAIL");
-        exception = true;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME038A:FAIL");
-        teststatus = false;
-        exception = true;
-      }
-
-
-
-      if (exception == false) {
-        teststatus = false;
+        fail("Installing non-existing bundle did not throw exception.");
+      } catch (BundleException bexcA) {
+        assertNotNull("Installation should fail with bundle exception", bexcA);
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle, unexpected exception " +secA
+             +" :FRAME038B:FAIL");
       }
 
       // check the listeners for events, expect nothing
-      boolean lStat = checkListenerEvents(out, false,0, false,0, false,0, buD, null);
+      final BundleEvent[] buEvts = new BundleEvent[]{
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
-      if (teststatus == true && buD == null && lStat == true) {
-        out.println("### framework test bundle :FRAME038A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME038A:FAIL");
-      }
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+      };
+      assertTrue("Unexpected sync events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME038B:PASS");
     }
   }
 
@@ -714,8 +723,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         teststatus = false;
       }
 
-      // check the listeners for events, expect only a bundle event, of type installation
-      boolean lStat = checkListenerEvents(out, false, 0, false , 0, false, 0, buD, null);
+      // check the listeners for events, expect only a bundle event,
+      // of type installation
+      boolean lStat
+        = checkListenerEvents(out, false, 0, false , 0, false, 0, buD, null);
 
       out.println("FRAME040A: lStat=" + lStat);
       if (teststatus == true && buD == null && lStat == true) {
@@ -768,8 +779,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         teststatus = false;
       }
 
-      // check the listeners for events, expect only a bundle event, of type installation
-      boolean lStat = checkListenerEvents(out, false, 0, false , 0, false, 0, buD, null);
+      // check the listeners for events, expect only a bundle event,
+      // of type installation
+      boolean lStat
+        = checkListenerEvents(out, false, 0, false , 0, false, 0, buD, null);
 
       if (teststatus == true && buD == null && lStat == true) {
         out.println("### framework test bundle :FRAME041A:PASS");
@@ -1144,7 +1157,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
             }
           }
           // check the listeners for events, in this case service event MODIFIED
-          lStat = checkListenerEvents(out, false,0,  false,0,  true,ServiceEvent.MODIFIED,  buB, sr1);
+          lStat
+            = checkListenerEvents(out, false,0,  false,0,  true,
+                                  ServiceEvent.MODIFIED,  buB, sr1);
           clearEvents();
 
           // now to get the service reference as well for some manipulation
@@ -1173,7 +1188,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
             out.println("Frame test NoSuchMethodException" +  nme);
           }
 
-          lStat2 = checkListenerEvents(out, false,0,  false,0,  true,ServiceEvent.UNREGISTERING,  buB, sr1);
+          lStat2
+            = checkListenerEvents(out, false,0,  false,0,  true,
+                                  ServiceEvent.UNREGISTERING,  buB, sr1);
 
         }
       }
@@ -1187,80 +1204,83 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  public final static String [] HELP_FRAME065A =  {
+  public final static String [] HELP_FRAME065B =  {
     "Load and try to start bundleE_test, ",
     "It should be possible to load , but should not be possible to start",
     "as the start method in the manifest is not available in the bundle."
   };
 
-  class Frame065a extends FWTestCase {
+  class Frame065b extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      boolean catchstatus = true;
       buE = null;
       try {
         buE = Util.installBundle(bc, "bundleE_test-1.0.0.jar");
-        teststatus = true;
+        clearEvents();
+      } catch (BundleException bexcA) {
+        fail("framework test bundle "+ bexcA +" :FRAME065B:FAIL");
+      } catch (SecurityException secA) {
+        fail("framework test bundle "+ secA +" :FRAME065B:FAIL");
       }
-      catch (BundleException bexcA) {
-        teststatus = false;
-        fail("framework test bundle "+ bexcA +" :FRAME065A:FAIL");
-      }
-      catch (SecurityException secA) {
-        teststatus = false;
-        fail("framework test bundle "+ secA +" :FRAME065A:FAIL");
-      }
-      clearEvents();
 
       // now try and start it, which should generate a BundleException
       try {
         buE.start();
-        catchstatus = false;
-      }
-      catch (BundleException bexcA) {
+        // Unreachable
+        fail("framework test bundle, expected BundleException not thrown "
+             +" :FRAME065B:FAIL");
+      } catch (BundleException bexcA) {
         // the nested exception should be a ClassNotFoundException, check that
         Throwable t1 = bexcA.getNestedException();
-        if (t1 instanceof ClassNotFoundException) {
-          catchstatus = true;
-        }
-        else {
-          catchstatus = false;
+        if ( !(t1 instanceof ClassNotFoundException) ) {
+          System.out.println("framework test bundle, unexpected nested "
+                             +" exception " +t1 +" :FRAME065B:FAIL");
           bexcA.printStackTrace();
-          fail("framework test bundle, unexpected nested exception "+ t1 +" :FRAME065A:FAIL");
+          fail("framework test bundle, unexpected nested exception " +t1
+               +" :FRAME065B:FAIL");
         }
-
-        //System.out.println("framework test bundle "+ bexcA +" :FRAME065A:FAIL");
-      }
-      catch (IllegalStateException ise) {
-        teststatus = false;
+      } catch (IllegalStateException ise) {
+        System.out.println("framework test bundle, unexpected exception "+ise );
         ise.printStackTrace();
-        fail("framework test bundle "+ ise +" :FRAME065A:FAIL");
-      }
-      catch (SecurityException sec) {
-        teststatus = false;
+        fail("framework test bundle "+ ise +" :FRAME065B:FAIL");
+      } catch (SecurityException sec) {
+        System.out.println("framework test bundle, unexpected exception "+sec );
         sec.printStackTrace();
-        fail("framework test bundle "+ sec +" :FRAME065A:FAIL");
+        fail("framework test bundle "+ sec +" :FRAME065B:FAIL");
       }
-      // check the events, only BundleEvent.RESOLVED and BundleEvent.STARTING should have happened
-      boolean lStat = checkListenerEvents(out, false, 0, true, BundleEvent.RESOLVED, false, 0, buE, null);
-      boolean lStatSync = checkSyncListenerEvents(out, true, BundleEvent.STARTING, buE, null);
+      // check the events, BundleEvent.RESOLVED, STARTING, STOPPING
+      // and STOPPED should have happened.
+      final BundleEvent buEvts[] = new BundleEvent[]{
+        new BundleEvent(BundleEvent.RESOLVED, buE),
+        new BundleEvent(BundleEvent.STOPPED, buE)
+      };
+      final boolean lStat = checkListenerEvents(new FrameworkEvent[0],
+                                                buEvts,
+                                                new ServiceEvent[0]);
+      if (!lStat) {
+        fail("### framework test bundle, bundle event error detected"
+             +":FRAME065B:FAIL");
+      }
 
-      if (catchstatus == false) {
-        teststatus = false;
+      final BundleEvent[] buSyncEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buE),
+        new BundleEvent(BundleEvent.STOPPING, buE)
+      };
+      final boolean lStatSync = checkSyncListenerEvents(buSyncEvts);
+      if (!lStatSync) {
+        fail("### framework test bundle, sync bundle event error detected"
+             +":FRAME065B:FAIL");
       }
 
-
-      Dictionary dict = buE.getHeaders();
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleE_test")){
-          fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME065A:FAIL");
+      final Dictionary dict = buE.getHeaders();
+      final String bsn = (String) dict.get(Constants.BUNDLE_SYMBOLICNAME);
+      final String bsnE = "org.knopflerfish.bundle.bundleE_test";
+      if(!bsn.equals(bsnE)){
+        fail("framework test bundle, " +Constants.BUNDLE_SYMBOLICNAME
+             +" header was '" +bsn +"' expected value '" +bsnE
+             +"':FRAME065B:FAIL");
       }
 
-      if (teststatus == true && lStat == true && lStatSync == true) {
-        out.println("### framework test bundle :FRAME065A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME065A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME065B:PASS");
     }
   }
 
@@ -1656,7 +1676,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("After  version = " + versionA1);
 
       // check the events, none should have happened
-      boolean lStat = checkListenerEvents(out, false, 0, true ,BundleEvent.UPDATED , false, 0, buA, null);
+      boolean lStat
+        = checkListenerEvents(out, false, 0, true, BundleEvent.UPDATED,
+                              false, 0, buA, null);
 
       if (versionA1.equals(versionA)) {
         teststatus = false;
@@ -1846,7 +1868,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       // check the events,
-      boolean lStat = checkListenerEvents(out, false, 0, true ,BundleEvent.STOPPED , true, ServiceEvent.UNREGISTERING, buF, sr1);
+      boolean lStat
+        = checkListenerEvents(out, false, 0, true, BundleEvent.STOPPED,
+                              true, ServiceEvent.UNREGISTERING, buF, sr1);
       // out.println("lStat = "+ lStat);
 
       if (catchstatus == false) {
@@ -1865,81 +1889,99 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 17. Install and start testbundle H, a service factory and test that the methods
   //     in that interface works.
 
-  public final static String [] HELP_FRAME085A =  {
+  public final static String [] HELP_FRAME085B =  {
     "Installs and starts bundleH_test, a service factory",
     "and tests that the methods in that API works."
   };
 
-  class Frame085a extends FWTestCase {
+  class Frame085b extends FWTestCase {
     public void runTest() throws Throwable {
       buH = null;
-      boolean teststatus = true;
+      clearEvents();
+
       try {
         buH = Util.installBundle(bc, "bundleH_test-1.0.0.jar");
         buH.start();
-        teststatus = true;
-      }
-      catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME085A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME085A:FAIL");
-        teststatus = false;
+        assertTrue("BundleH should be ACTIVE", buH.getState() == Bundle.ACTIVE);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception in start: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME085B:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception in start: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME085B:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception in start: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME085B:FAIL");
       }
 
       Dictionary dict = buH.getHeaders("en_US");
 
-      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleH_test")){
-          fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have rightt value:FRAME085A:FAIL");
-      }
+      assertEquals(Constants.BUNDLE_SYMBOLICNAME,
+                   "org.knopflerfish.bundle.bundleH_test",
+                   (String) dict.get(Constants.BUNDLE_SYMBOLICNAME));
 
-      if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("Test bundle for framework, bundleH_test")){
-          fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have rightt value:FRAME085A:FAIL");
-      }
+      assertEquals(Constants.BUNDLE_DESCRIPTION,
+                   "Test bundle for framework, bundleH_test",
+                   (String) dict.get(Constants.BUNDLE_DESCRIPTION));
 
-      if(!dict.get(Constants.BUNDLE_NAME).equals("bundle_H")){
-          fail("framework test bundle, " +  Constants.BUNDLE_NAME + " header does not have rightt value:FRAME085A:FAIL");
-      }
+      assertEquals(Constants.BUNDLE_NAME,
+                   "bundle_H",
+                   (String) dict.get(Constants.BUNDLE_NAME));
 
-      if(!dict.get(Constants.BUNDLE_VERSION).equals("2.0.0")){
-          fail("framework test bundle, " +  Constants.BUNDLE_VERSION + " header does not have right value:FRAME085A:FAIL");
-      }
-
+      assertEquals(Constants.BUNDLE_VERSION,
+                   "2.0.0",
+                   (String) dict.get(Constants.BUNDLE_VERSION));
 
       // Check that a service reference exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleH_test.BundleH");
-      if (sr1 == null) {
-        fail("framework test bundle, no service from test bundle H found :FRAME085A:FAIL");
-        teststatus = false;
-      }
+      final ServiceReference sr1 = bc
+        .getServiceReference("org.knopflerfish.service.bundleH_test.BundleH");
+      assertNotNull("Service shall be present.", sr1);
 
-      // check the listeners for events, expect only a bundle event, of type installation
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buH, sr1);
-
-      // Object sf = bc.getService(sr1);
-      // System.out.println("SERVICE = "+ sf);
-      // Object sf1 = bc.getService(sr1);
-      // System.out.println("SERVICE = "+ sf1);
+      final Object service = bc.getService(sr1);
+      assertNotNull("getService()", service);
+      assertTrue("ungetService()", bc.ungetService(sr1));
 
       try {
         buH.stop();
-      }
-      catch (BundleException bexp) {
-        out.println("framework test bundle, exception in stop method :" + bexp + " FRAME085A");
-        teststatus = false;
-      }
-      catch (Throwable thr) {
-        fail("framework test bundle, exception in stop method :" + thr + " :FRAME085A:Fail");
-        teststatus = false;
+        assertTrue("BundleH should be RESOLVED",
+                   buH.getState() == Bundle.RESOLVED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception in stop: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME085B:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception in stop: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME085B:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception in stop: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME085B:FAIL");
       }
 
-      if (teststatus == true && buH.getState() == Bundle.RESOLVED && lStat == true) {
-        out.println("### framework test bundle :FRAME085A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME085A:FAIL");
-      }
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED, buH),
+        new BundleEvent(BundleEvent.RESOLVED,  buH),
+        new BundleEvent(BundleEvent.STARTED,   buH),
+        new BundleEvent(BundleEvent.STOPPED,   buH)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED,    sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buH),
+        new BundleEvent(BundleEvent.STOPPING, buH)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME085B:PASS");
     }
   }
 
@@ -1948,60 +1990,65 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //     then check if the framework removes all traces of the bundle
   //     as it registers one service itself before the bundle exception is thrown
 
-  public final static String [] HELP_FRAME110A =  {
+  public final static String [] HELP_FRAME110B =  {
     "Install and start bundleJ_test, which should throw an exception at start.",
     "then check if the framework removes all traces of the bundle",
     "as it registers one service (itself) before the bundle exception is thrown"
   };
 
-  class Frame110a extends FWTestCase {
+  class Frame110b extends FWTestCase {
     public void runTest() throws Throwable {
       clearEvents();
       buJ = null;
-      boolean lStat1 = false;
 
-      boolean teststatus = true;
-      boolean bex = false;
       try {
         buJ = Util.installBundle(bc, "bundleJ_test-1.0.0.jar");
-        lStat1 = checkListenerEvents(out, false, 0, true, BundleEvent.INSTALLED, false, 0, buJ, null);
         buJ.start();
-        teststatus = false;
-      }
-      catch (BundleException bexcA) {
-        out.println("framework test bundle "+ bexcA +" :FRAME110A:expexted");
-        bex = true;
-      }
-      catch (SecurityException secA) {
-        teststatus = false;
-        fail("framework test bundle "+ secA +" :FRAME110A:FAIL");
-      }
-
-      if (bex != true ) {
-        teststatus = false;
-        fail("framework test bundle, expected bundle exception missing :FRAME110A");
+        fail("framework test bundle, start should fail :FRAME110B:FAIL");
+      } catch (BundleException bexcA) {
+        assertNotNull("Expected bundle exception in start", bexcA);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception in start: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME110B:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception in start: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME110B:FAIL");
       }
 
-      if(buJ == null) {
-        fail("No installed bundle: :FRAME110A:FAIL");
-      }
-
-      // check the listeners for events, expect only a bundle event, of type installation
-      boolean lStat2 = checkListenerEvents(out, false , 0, true , BundleEvent.RESOLVED, true, ServiceEvent.UNREGISTERING, buJ, null);
-
-      if (teststatus == true && buJ.getState() == Bundle.RESOLVED && lStat1 == true && lStat2 == true) {
-        out.println("### framework test bundle :FRAME110A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME110A:FAIL");
-      }
+      assertNotNull("No installed bundle: :FRAME110A:FAIL", buJ);
+      assertTrue("BundleJ should be RESOLVED",
+                 buJ.getState() == Bundle.RESOLVED);
 
       // Check that no service reference exist from the crashed bundle J.
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleJ_test.BundleJ");
-      if (sr1 != null) {
-        fail("framework test bundle, service from test bundle J unexpectedly found :FRAME110A:FAIL");
-      }
+      ServiceReference sr1 = bc
+        .getServiceReference("org.knopflerfish.service.bundleJ_test.BundleJ");
+      assertNull("Service from test bundle J unexpectedly found", sr1);
 
+      // ServiceEvent constructor does not allow null SR...
+      sr1 = sListen.getEvent().getServiceReference();
+
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED, buJ),
+        new BundleEvent(BundleEvent.RESOLVED,  buJ),
+        new BundleEvent(BundleEvent.STOPPED,   buJ)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED,    sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buJ),
+        new BundleEvent(BundleEvent.STOPPING, buJ)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+
+      out.println("### framework test bundle :FRAME110A:PASS");
     }
   }
 
@@ -2225,7 +2272,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame125a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean teststatus = true;
-      String validName = "valid.name.test";
+      String validName  = "valid.name.test";
       String validName1 = "valid.name.test1";
       String validName2 = "valid.name.test2";
       String invalidName = null;
@@ -2243,27 +2290,34 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         pp1 = new PackagePermission(validName,validAction);
       }
       catch (RuntimeException re) {
-        out.println("framework test bundle, PackagePermission constructor("+ validName +"," + validAction + ") failed, in FRAME125A");
+        out.println("framework test bundle, PackagePermission constructor("
+                    +validName +"," + validAction + ") failed, in FRAME125A");
         teststatus = false;
       }
 
       try {
         pp1 = new PackagePermission(invalidName,validAction);
-        out.println("framework test bundle, PackagePermission constructor("+ invalidName +"," + validAction + ") succeded unexpected, in FRAME125A");
+        out.println("framework test bundle, PackagePermission constructor("
+                    +invalidName +"," + validAction
+                    +") succeded unexpected, in FRAME125A");
         teststatus = false;
       }
       catch (RuntimeException re) { }
 
       try {
         pp1 = new PackagePermission(validName,invalidAction);
-        out.println("framework test bundle, PackagePermission constructor("+ validName +"," + invalidAction + ") succeded unexpected, in FRAME125A");
+        out.println("framework test bundle, PackagePermission constructor("
+                    + validName +"," + invalidAction
+                    + ") succeded unexpected, in FRAME125A");
         teststatus = false;
       }
       catch (RuntimeException re) { }
 
       try {
         pp1 = new PackagePermission(invalidName,invalidAction);
-        out.println("framework test bundle, PackagePermission constructor("+ invalidName +"," + invalidAction + ") succeded unexpected, in FRAME125A");
+        out.println("framework test bundle, PackagePermission constructor("
+                    + invalidName +"," + invalidAction
+                    + ") succeded unexpected, in FRAME125A");
         teststatus = false;
       }
       catch (RuntimeException re) { }
@@ -2273,55 +2327,110 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       pp2 = new PackagePermission(validName,validAction);
 
       if (!pp1.equals(pp2)) {
-        out.println("framework test bundle, PackagePermission equals method failed for identical objects, in FRAME125A");
+        out.println("framework test bundle, PackagePermission equals method "
+                    +"failed for identical objects, in FRAME125A");
         teststatus = false;
       }
 
       pp3 = new PackagePermission(validName,PackagePermission.IMPORT);
       if (pp1.equals(pp3)) {
-        out.println("framework test bundle, PackagePermission equals method failed for non identical objects, in FRAME125A");
+        out.println("framework test bundle, PackagePermission equals method "
+                    +"failed for non identical objects, in FRAME125A");
         teststatus = false;
       }
 
       pp3 = new PackagePermission(validName2,validAction);
       if (pp1.equals(pp3)) {
-        out.println("framework test bundle, PackagePermission equals method failed for non identical objects, in FRAME125A");
+        out.println("framework test bundle, PackagePermission equals method "
+                    +"failed for non identical objects, in FRAME125A");
         teststatus = false;
       }
 
       // getActions test
       pp1 = new PackagePermission(validName,PackagePermission.IMPORT);
       pp2 = new PackagePermission(validName,PackagePermission.EXPORT);
-      pp3 = new PackagePermission(validName,PackagePermission.IMPORT+","+PackagePermission.EXPORT);
-      pp4 = new PackagePermission(validName,PackagePermission.EXPORT+","+PackagePermission.IMPORT);
+      pp3 = new PackagePermission(validName,PackagePermission.IMPORT+","
+                                  +PackagePermission.EXPORT);
+      pp4 = new PackagePermission(validName,PackagePermission.EXPORT+","
+                                  +PackagePermission.IMPORT);
 
       if (!pp1.getActions().equals(PackagePermission.IMPORT)) {
-        out.println("framework test bundle, PackagePermission getActions method failed in FRAME125A");
-        out.println("framework test bundle, expected: "+PackagePermission.IMPORT);
+        out.println("framework test bundle, PackagePermission pp1.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.IMPORT);
         out.println("framework test bundle, got:" + pp1.getActions());
         teststatus = false;
       }
 
-      if (!pp2.getActions().equals(PackagePermission.EXPORT+","+PackagePermission.IMPORT)) {
-        out.println("framework test bundle, PackagePermission getActions method failed in FRAME125A");
-        out.println("framework test bundle, expected: "+PackagePermission.EXPORT);
+      if (!pp2.getActions().equals(PackagePermission.EXPORTONLY+","
+                                   +PackagePermission.IMPORT)) {
+        out.println("framework test bundle, PackagePermission pp2.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.EXPORT);
         out.println("framework test bundle, got:" + pp2.getActions());
         teststatus = false;
       }
 
-      if (!pp3.getActions().equals(PackagePermission.EXPORT+","+PackagePermission.IMPORT)) {
-        out.println("framework test bundle, PackagePermission getActions method failed in FRAME125A");
-        out.println("framework test bundle, expected: "+PackagePermission.EXPORT +","+PackagePermission.IMPORT);
+      if (!pp3.getActions().equals(PackagePermission.EXPORTONLY+","
+                                   +PackagePermission.IMPORT)) {
+        out.println("framework test bundle, PackagePermission pp3.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.EXPORTONLY +","
+                    +PackagePermission.IMPORT);
         out.println("framework test bundle, got:" + pp3.getActions());
         teststatus = false;
       }
 
-      if (!pp4.getActions().equals(PackagePermission.EXPORT+","+PackagePermission.IMPORT)) {
-        out.println("framework test bundle, PackagePermission getActions method failed in FRAME125A");
-        out.println("framework test bundle, expected: "+PackagePermission.EXPORT +","+PackagePermission.IMPORT);
+      if (!pp4.getActions().equals(PackagePermission.EXPORTONLY+","
+                                   +PackagePermission.IMPORT)) {
+        out.println("framework test bundle, PackagePermission pp4.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.EXPORTONLY +","
+                    +PackagePermission.IMPORT);
         out.println("framework test bundle, got:" + pp4.getActions());
         teststatus = false;
       }
+
+      pp2 = new PackagePermission(validName,PackagePermission.EXPORTONLY);
+      if (!pp2.getActions().equals(PackagePermission.EXPORTONLY)) {
+        out.println("framework test bundle, PackagePermission pp2.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.EXPORTONLY);
+        out.println("framework test bundle, got:" + pp2.getActions());
+        teststatus = false;
+      }
+
+      pp3 = new PackagePermission(validName,PackagePermission.IMPORT+","
+                                  +PackagePermission.EXPORTONLY);
+      if (!pp3.getActions().equals(PackagePermission.EXPORTONLY+","
+                                   +PackagePermission.IMPORT)) {
+        out.println("framework test bundle, PackagePermission pp3.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.EXPORTONLY +","
+                    +PackagePermission.IMPORT);
+        out.println("framework test bundle, got:" + pp3.getActions());
+        teststatus = false;
+      }
+
+      pp4 = new PackagePermission(validName,PackagePermission.EXPORTONLY+","
+                                  +PackagePermission.IMPORT);
+      if (!pp4.getActions().equals(PackagePermission.EXPORTONLY+","
+                                   +PackagePermission.IMPORT)) {
+        out.println("framework test bundle, PackagePermission pp4.getActions "
+                    +"method failed in FRAME125A");
+        out.println("framework test bundle, expected: "
+                    +PackagePermission.EXPORTONLY +","
+                    +PackagePermission.IMPORT);
+        out.println("framework test bundle, got:" + pp4.getActions());
+        teststatus = false;
+      }
+
 
       // implies test
       boolean impstatus = true;
@@ -3793,8 +3902,35 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-  // Check that the expected events has reached the listeners and reset the events in the listeners
-  private boolean checkListenerEvents(Object _out, boolean fwexp, int fwtype, boolean buexp, int butype, boolean sexp, int stype, Bundle bunX, ServiceReference servX ) {
+  // Check that the expected events has reached the listeners and
+  // reset the events in the listeners
+  private boolean checkListenerEvents(Object _out,
+                                      boolean fwexp,
+                                      int fwtype,
+                                      boolean buexp,
+                                      int butype,
+                                      boolean sexp,
+                                      int stype,
+                                      Bundle bunX,
+                                      ServiceReference servX )
+  {
+    FrameworkEvent[] fwEvts = new FrameworkEvent[fwexp ? 1 : 0];
+    BundleEvent[]    buEvts = new BundleEvent[buexp ? 1 : 0];
+    ServiceEvent[]   seEvts = new ServiceEvent[sexp ? 1 : 0];
+
+    if (fwexp) fwEvts[0] = new FrameworkEvent(fwtype, bunX);
+    if (buexp) buEvts[0] = new BundleEvent(butype, bunX);
+    if (sexp)  seEvts[0] = new ServiceEvent(stype, servX);
+
+    return checkListenerEvents(fwEvts, buEvts, seEvts);
+  }
+
+  // Check that the expected events has reached the listeners and
+  // reset the events in the listeners
+  private boolean checkListenerEvents(FrameworkEvent[] fwEvts,
+                                      BundleEvent[]    buEvts,
+                                      ServiceEvent[]   seEvts )
+  {
     boolean listenState = true; // assume everything will work
 
     // Sleep a while to allow events to arrive
@@ -3805,81 +3941,94 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       return false;
     }
 
-    if (fwexp == true) {
-      if (fListen.getEvent() != null) {
-        if (fListen.getEvent().getType() != fwtype || fListen.getEvent().getBundle() != bunX) {
-          System.out.println("framework test bundle, wrong type of framework event/bundle : " +  fListen.getEvent().getType());
-          System.out.println("framework test bundle, event was from bundle: " + fListen.getEvent().getBundle());
-          Throwable th1 = fListen.getEvent().getThrowable();
-          if (th1 != null) {
-            System.out.println("framework test bundle, exception was: " + th1);
-          }
+    final ArrayList fwEvtsReceived = fListen.getEvents();
+    if (fwEvts.length != fwEvtsReceived.size()) {
+      listenState = false;
+      System.out.println("*** Framework event mismatch: expected "
+                         +fwEvts.length +" event(s), found "
+                         +fwEvtsReceived.size() +" event(s).");
+      final int max = fwEvts.length>fwEvtsReceived.size()
+        ? fwEvts.length : fwEvtsReceived.size();
+      for (int i=0; i<max; i++) {
+        final FrameworkEvent fwE = i<fwEvts.length ? fwEvts[i] : null;
+        final FrameworkEvent fwR = i<fwEvtsReceived.size()
+          ? (FrameworkEvent) fwEvtsReceived.get(i) : null;
+        System.out.println( "    " +FrameworkTestSuite.toString(fwE)
+                            +" - " +FrameworkTestSuite.toString(fwR));
+      }
+    } else {
+      for (int i=0; i<fwEvts.length; i++) {
+        final FrameworkEvent feE = fwEvts[i];
+        final FrameworkEvent feR = (FrameworkEvent) fwEvtsReceived.get(i);
+        if (feE.getType() != feR.getType()
+            || feE.getBundle() != feR.getBundle()) {
           listenState = false;
-        }
-      }
-      else {
-        System.out.println("framework test bundle, missing framework event");
-        listenState = false;
-      }
-    }
-    else {
-      if (fListen.getEvent() != null) {
-        listenState = false;
-        System.out.println("framework test bundle, unexpected framework event: " +  fListen.getEvent().getType());
-        System.out.println("framework test bundle, event was from bundle: " + fListen.getEvent().getBundle());
-        Throwable th1 = fListen.getEvent().getThrowable();
-        if (th1 != null) {
-          System.out.println("framework test bundle, exception was: " + th1);
+          System.out.println("*** Wrong framework event: "
+                             +FrameworkTestSuite.toString(feR)
+                             +" expected "
+                             +FrameworkTestSuite.toString(feE));
         }
       }
     }
 
-    if (buexp == true) {
-      if (bListen.getEvent() != null) {
-        if (bListen.getEvent().getType() != butype || bListen.getEvent().getBundle() != bunX) {
-          System.out.println("framework test bundle, wrong type of bundle event/bundle: " +  bListen.getEvent().getType());
-          System.out.println("framework test bundle, event was from bundle: " + bListen.getEvent().getBundle().getLocation());
+    final ArrayList buEvtsReceived = bListen.getEvents();
+    if (buEvts.length != buEvtsReceived.size()) {
+      listenState = false;
+      System.out.println("*** Bundle event mismatch: expected "
+                         +buEvts.length +" event(s), found "
+                         +buEvtsReceived.size() +" event(s).");
+      final int max = buEvts.length > buEvtsReceived.size()
+        ? buEvts.length : buEvtsReceived.size();
+      for (int i=0; i<max; i++) {
+        final BundleEvent buE = i<buEvts.length ? buEvts[i] : null;
+        final BundleEvent buR = i<buEvtsReceived.size()
+          ? (BundleEvent) buEvtsReceived.get(i) : null;
+        System.out.println( "    " +FrameworkTestSuite.toString(buE)
+                            +" - " +FrameworkTestSuite.toString(buR));
+      }
+    } else {
+      for (int i=0; i<buEvts.length; i++) {
+        final BundleEvent buE = buEvts[i];
+        final BundleEvent buR = (BundleEvent) buEvtsReceived.get(i);
+        if (buE.getType() != buR.getType()
+            || buE.getBundle() != buR.getBundle()) {
           listenState = false;
+          System.out.println("*** Wrong bundle event: "
+                             +FrameworkTestSuite.toString(buR)
+                             +" expected "
+                             +FrameworkTestSuite.toString(buE));
         }
-      }
-      else {
-        System.out.println("framework test bundle, missing bundle event");
-        listenState = false;
-      }
-    }
-    else {
-      if (bListen.getEvent() != null) {
-        listenState = false;
-        System.out.println("framework test bundle, unexpected bundle event: " +  bListen.getEvent().getType());
-        System.out.println("framework test bundle, event was from bundle: " + bListen.getEvent().getBundle());
       }
     }
 
-
-    if (sexp == true) {
-      if (sListen.getEvent() != null) {
-        if (servX != null) {
-          if (sListen.getEvent().getType() != stype || servX != sListen.getEvent().getServiceReference() ) {
-            System.out.println("framework test bundle, wrong type of service event: " +  sListen.getEvent().getType());
-            listenState = false;
-          }
-        }
-        else { // ignore from which service reference the event came
-          if (sListen.getEvent().getType() != stype ) {
-            System.out.println("framework test bundle, wrong type of service event: " +  sListen.getEvent().getType());
-            listenState = false;
-          }
-        }
+    final ArrayList seEvtsReceived = sListen.getEvents();
+    if (seEvts.length != seEvtsReceived.size()) {
+      listenState = false;
+      System.out.println("*** Service event mismatch: expected "
+                         +seEvts.length +" event(s), found "
+                         +seEvtsReceived.size() +" event(s).");
+      final int max = seEvts.length > seEvtsReceived.size()
+        ? seEvts.length : seEvtsReceived.size();
+      for (int i=0; i<max; i++) {
+        final ServiceEvent seE = i<seEvts.length ? seEvts[i] : null;
+        final ServiceEvent seR = i<seEvtsReceived.size()
+          ? (ServiceEvent) seEvtsReceived.get(i) : null;
+        System.out.println( "    " +FrameworkTestSuite.toString(seE)
+                            +" - " +FrameworkTestSuite.toString(seR));
       }
-      else {
-        System.out.println("framework test bundle, missing service event");
-        listenState = false;
-      }
-    }
-    else {
-      if (sListen.getEvent() != null) {
-        listenState = false;
-        System.out.println("framework test bundle, unexpected service event: " +  sListen.getEvent().getType());
+    } else {
+      for (int i=0; i<seEvts.length; i++) {
+        final ServiceEvent seE = seEvts[i];
+        final ServiceEvent seR = (ServiceEvent) seEvtsReceived.get(i);
+        if (seE.getType() != seR.getType()
+            || (seE.getServiceReference()!=null
+                && seE.getServiceReference() != seR.getServiceReference())) {
+              listenState = false;
+              System.out.println("*** Wrong service event: "
+                                 +FrameworkTestSuite.toString(seR)
+                                 +" expected "
+                                 +FrameworkTestSuite.toString(seE));
+        }
       }
     }
 
@@ -3889,8 +4038,25 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     return listenState;
   }
 
-  // Check that the expected events has reached the listeners and reset the events in the listeners
-  private boolean checkSyncListenerEvents(Object _out, boolean buexp, int butype, Bundle bunX, ServiceReference servX ) {
+  // Check that the expected events has reached the listeners and
+  // reset the events in the listeners
+  private boolean checkSyncListenerEvents(Object _out,
+                                          boolean buexp,
+                                          int butype,
+                                          Bundle bunX,
+                                          ServiceReference servX )
+  {
+    BundleEvent[]    buEvts = new BundleEvent[buexp ? 1 : 0];
+
+    if (buexp) buEvts[0] = new BundleEvent(butype, bunX);
+
+    return checkSyncListenerEvents(buEvts);
+  }
+
+  // Check that the expected events has reached the listeners and
+  // reset the events in the listeners
+  private boolean checkSyncListenerEvents(BundleEvent[]    buEvts)
+  {
     boolean listenState = true; // assume everything will work
 
     // Sleep a while to allow events to arrive
@@ -3901,54 +4067,46 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       return false;
     }
 
-    if (buexp == true) {
-      if (syncBListen.getEvent() != null) {
-        if (syncBListen.getEvent().getType() != butype || syncBListen.getEvent().getBundle() != bunX) {
-          System.out.println("framework test bundle, wrong type of sync bundle event/bundle: " +  syncBListen.getEvent().getType());
-          System.out.println("framework test bundle, event was from bundle: " + syncBListen.getEvent().getBundle().getLocation());
+    final ArrayList buEvtsReceived = syncBListen.getEvents();
+    if (buEvts.length != buEvtsReceived.size()) {
+      listenState = false;
+      System.out.println("*** Sync bundle event mismatch: expected "
+                         +buEvts.length +" event(s), found "
+                         +buEvtsReceived.size() +" event(s).");
+      final int max = buEvts.length > buEvtsReceived.size()
+        ? buEvts.length : buEvtsReceived.size();
+      for (int i=0; i<max; i++) {
+        final BundleEvent buE = i<buEvts.length ? buEvts[i] : null;
+        final BundleEvent buR = i<buEvtsReceived.size()
+          ? (BundleEvent) buEvtsReceived.get(i) : null;
+        System.out.println( "    " +FrameworkTestSuite.toString(buE)
+                            +" - " +FrameworkTestSuite.toString(buR));
+      }
+    } else {
+      for (int i=0; i<buEvts.length; i++) {
+        final BundleEvent buE = buEvts[i];
+        final BundleEvent buR = (BundleEvent) buEvtsReceived.get(i);
+        if (buE.getType() != buR.getType()
+            || buE.getBundle() != buR.getBundle()) {
           listenState = false;
+          System.out.println("Wrong sync bundle event: "
+                             +FrameworkTestSuite.toString(buR)
+                             +" expected "
+                             +FrameworkTestSuite.toString(buE));
         }
-      }
-      else {
-        System.out.println("framework test bundle, missing sync bundle event");
-        listenState = false;
-      }
-    }
-    else {
-      if (syncBListen.getEvent() != null) {
-        listenState = false;
-        System.out.println("framework test bundle, unexpected sync bundle event: " +  syncBListen.getEvent().getType());
-        System.out.println("framework test bundle, event was from bundle: " + syncBListen.getEvent().getBundle());
       }
     }
 
     syncBListen.clearEvent();
     return listenState;
   }
+
 
   private void clearEvents() {
     fListen.clearEvent();
     bListen.clearEvent();
     syncBListen.clearEvent();
     sListen.clearEvent();
-  }
-  // Get the bundle that caused the event
-  private Bundle getFEBundle () {
-    if (fListen.getEvent() != null) {
-      return fListen.getEvent().getBundle();
-    }
-    else {
-      return null;
-    }
-  }
-
-  private Bundle getBEBundle () {
-    if (bListen.getEvent() != null) {
-      return bListen.getEvent().getBundle();
-    }
-    else {
-      return null;
-    }
   }
 
   // So that other bundles in the test may get the base url
@@ -4080,69 +4238,178 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     case 0x10: return "STOPPING";
     case 0x20: return "ACTIVE";
 
-    default: return "Unknow state";
+    default: return "Unknow state (" +bundleState +")";
 
     }
   }
 
   class FrameworkListener implements org.osgi.framework.FrameworkListener {
-    FrameworkEvent fwe;
+    ArrayList/*<FrameworkEvent>*/ events = new ArrayList();
     public void frameworkEvent(FrameworkEvent evt) {
-      this.fwe = evt;
-      // System.out.println("FrameworkEvent: "+ evt.getType());
+      events.add(evt);
+      System.out.println("FrameworkEvent: " +FrameworkTestSuite.toString(evt));
     }
     public FrameworkEvent getEvent() {
-      return fwe;
+      return events.size()>0
+        ? (FrameworkEvent) events.get(events.size()-1)
+        : (FrameworkEvent) null;
+    }
+    public ArrayList/*<FrameworkEvent>*/ getEvents() {
+      return events;
     }
     public void clearEvent() {
-      fwe = null;
+      events.clear();
     }
   }
 
   class ServiceListener implements org.osgi.framework.ServiceListener {
-    ServiceEvent serve = null;
+    ArrayList/*<ServiceEvent>*/ events = new ArrayList();
     public void serviceChanged(ServiceEvent evt) {
-      this.serve = evt;
-      // System.out.println("ServiceEvent: " + evt.getType());
+      events.add(evt);
+      System.out.println("ServiceEvent: " +FrameworkTestSuite.toString(evt));
     }
     public ServiceEvent getEvent() {
-      return serve;
+      return events.size()>0
+        ? (ServiceEvent) events.get(events.size()-1)
+        : (ServiceEvent) null;
+    }
+    public ArrayList/*<ServiceEvent>*/ getEvents() {
+      return events;
     }
     public void clearEvent() {
-      serve = null;
+      events.clear();
     }
-
   }
 
   class BundleListener implements org.osgi.framework.BundleListener {
-    BundleEvent bunEvent = null;
+    ArrayList/*<BundleEvent>*/ events = new ArrayList();
 
     public void bundleChanged (BundleEvent evt) {
-      this.bunEvent = evt;
-      // System.out.println("BundleEvent: "+ evt.getType());
+      events.add(evt);
+      System.out.println("BundleEvent: " +FrameworkTestSuite.toString(evt) );
     }
     public BundleEvent getEvent() {
-      return bunEvent;
+      return events.size()>0
+        ? (BundleEvent) events.get(events.size()-1)
+        : (BundleEvent) null;
+    }
+    public ArrayList/*<BundleEvent>*/ getEvents() {
+      return events;
     }
     public void clearEvent() {
-      bunEvent = null;
+      events.clear();
     }
   }
 
   class SyncBundleListener implements SynchronousBundleListener {
-            BundleEvent bunEvent = null;
+    ArrayList/*<BundleEvent>*/ events = new ArrayList();
 
-            public void bundleChanged (BundleEvent evt) {
-              if(evt.getType() == BundleEvent.STARTING || evt.getType() == BundleEvent.STOPPING)
-                  this.bunEvent = evt;
-              // System.out.println("BundleEvent: "+ evt.getType());
-            }
-            public BundleEvent getEvent() {
-              return bunEvent;
-            }
-            public void clearEvent() {
-              bunEvent = null;
-            }
+    public void bundleChanged (BundleEvent evt) {
+      if (evt.getType() == BundleEvent.STARTING
+          || evt.getType() == BundleEvent.STOPPING) {
+        events.add(evt);
+        System.out.println("SynchronousBundleEvent: "
+                           +FrameworkTestSuite.toString(evt) );
+      }
+    }
+    public BundleEvent getEvent() {
+      return events.size()>0
+        ? (BundleEvent) events.get(events.size()-1)
+        : (BundleEvent) null;
+    }
+    public ArrayList/*<BundleEvent>*/ getEvents() {
+      return events;
+    }
+    public void clearEvent() {
+      events.clear();
+    }
+  }
+
+  public static String toString(final BundleEvent be)
+  {
+    if (null==be) return "  NONE  ";
+
+    final Bundle b = be.getBundle();
+
+    return bundleEventTypeToString(be.getType())
+      +" #" +b.getBundleId() +" (" +b.getLocation() +")";
+  }
+
+  public static String toString(final ServiceEvent se)
+  {
+    if (null==se) return "  NONE  ";
+
+    final ServiceReference sr = se.getServiceReference();
+    // Some events will not have service reference in them...
+    final Long sid = null!=sr
+      ? (Long) sr.getProperty(Constants.SERVICE_ID) : new Long(-1);
+    final String[] classes = null!=sr
+      ? (String[]) sr.getProperty(Constants.OBJECTCLASS) : new String[0];
+
+    return serviceEventTypeToString(se.getType())
+      +(null!=sr
+        ? (" " +sid +" objectClass=" +Arrays.asList(classes))
+        : "");
+  }
+
+  public static String toString(final FrameworkEvent fe)
+  {
+    if (null==fe) return "  NONE  ";
+
+    final Bundle b = fe.getBundle();
+    final Throwable t = fe.getThrowable();
+
+    return frameworkEventTypeToString(fe.getType())
+      +" #" +b.getBundleId() +" (" +b.getLocation() +")"
+      +(null!=t ? (" exception: " + t.toString()) : "");
+  }
+
+  public static String bundleEventTypeToString(int eventType)
+  {
+    switch (eventType) {
+    case 0x001: return "INSTALLED";
+    case 0x002: return "STARTED";
+    case 0x004: return "STOPPED";
+    case 0x008: return "UPDATE";
+    case 0x010: return "UNINSTALLED";
+    case 0x020: return "RESOLVED";
+    case 0x040: return "UNRESOLVED";
+    case 0x080: return "STARTING";
+    case 0x100: return "STOPPING";
+    case 0x200: return "LAZY_ACTIVATION";
+
+    default: return "Unknow bundle event type (" +eventType +")";
+    }
+  }
+
+  public static String serviceEventTypeToString(int eventType)
+  {
+    switch (eventType) {
+    case 0x001: return "REGISTERED";
+    case 0x002: return "MODIFIED";
+    case 0x004: return "UNREGISTERING";
+    case 0x008: return "MODIFIED_ENDMATCH";
+
+    default: return "Unknow service event type (" +eventType +")";
+    }
+  }
+
+  public static String frameworkEventTypeToString(int eventType)
+  {
+    switch (eventType) {
+    case 0x001: return "STARTED";
+    case 0x002: return "ERROR";
+    case 0x004: return "PACKAGES_REFRESHED";
+    case 0x008: return "STARTLEVEL_CHANGED";
+    case 0x010: return "WARNING";
+    case 0x020: return "INFO";
+    case 0x040: return "STOPPED";
+    case 0x080: return "STOPPED_UPDATE";
+    case 0x100: return "STOPPED_BOOTCLASPATH_MODIFIED";
+    case 0x200: return "WAIT_TIMEOUT";
+
+    default: return "Unknow framework event type (" +eventType +")";
+    }
   }
 
 }
