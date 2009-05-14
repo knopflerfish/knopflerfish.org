@@ -126,7 +126,7 @@ public class HttpServiceImpl implements HttpService {
         closed = true;
 
         while (!bundleRegistrations.isEmpty())
-            unregister((String) bundleRegistrations.lastElement(), false);
+            unregister((String) bundleRegistrations.lastElement(), true);
     }
 
     // implements HttpService
