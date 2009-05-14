@@ -37,7 +37,7 @@
 
 # Web server properties
 -Dorg.knopflerfish.http.dnslookup=false
--Dorg.osgi.service.http.port=8080
+-Dorg.osgi.service.http.port=0
 
 -Dorg.knopflerfish.startlevel.use=true
 
