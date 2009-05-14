@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ package org.knopflerfish.bundle.http;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.servlet.Servlet;
@@ -45,7 +47,7 @@ public class Registrations {
 
     // private fields
 
-    private final Dictionary registrations = new Hashtable();
+    private final Hashtable registrations = new Hashtable();
 
     private final Vector servlets = new Vector();
 
@@ -61,7 +63,6 @@ public class Registrations {
     // public methods
 
     public void addServlet(Servlet servlet) throws ServletException {
-
         if (servlets.contains(servlet))
             throw new ServletException("Servlet already registered");
 
