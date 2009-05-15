@@ -1,92 +1,57 @@
 <?xml version="1.0"?>
 
 <project name="bundleD_test" default="all">
+  <!-- Bundle with empty manifest -->
 
-  <property name="topdir"       location=".."/>
+  <dirname property="proj.dir" file="${ant.file.bundleD_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
 
   <property name="bundle.version" value="1.0.0"/>
 
+  <property name="osgi.jar" location="${osgi.dir}/framework.jar"/>
+  <property name="classes.out.dir"
+	    location="${topdir}/out/${ant.project.name}/classes"/>
+  <property name="jar.out.dir" 
+            location="${topdir}/jars/${ant.project.name}"/>
+  <property name="src.dir" location="src"/>
+  <property name="resources.dir" location="resources"/>
+  <property name="javac.target" value="1.2"/>
+  <property name="javac.source" value="1.2"/>
+  <property name="jar.file"
+            location="${jar.out.dir}/${ant.project.name}-${bundle.version}.jar"/>
+  <path id="bundle.path">
+    <pathelement location="${osgi.jar}"/>
+  </path>
 
-<!-- osgi.jar should be set to your preferred jar containing -->
-<!-- the org.osg.* APIs                                      -->
-<property name     = "osgi.jar"
-          location = "${topdir}/../../framework.jar"/>
+  <target name="all">
+    <echo message="${ant.project.name}"/>
+    <antcall target="compile"/>
+    <antcall target="jar"/>
+  </target>
 
-<property name     = "bundle.version" 
-          value    = "1.0.0"/>
-
-<property name     = "bundle.name" 
-          value    = "${ant.project.name}"/>
-
-<property name     = "classes.out.dir" 
-          location = "${topdir}/out/${ant.project.name}/classes"/>
-
-<property name     = "jar.out.dir" 
-          location = "${topdir}/jars/"/>
-
-<property name     = "src.dir"
-          location = "src"/>
-
-<property name     = "resources.dir"
-          location = "resources"/>
-
-<property name     = "javac.target"
-          value    = "1.2"/>
-
-<property name     = "javac.source"
-          value    = "1.2"/>
-
-<property name     = "manifest.file"
-          location = "all.mf"/>
-
-<property name     = "jar.file"
-          location = "${jar.out.dir}/${ant.project.name}-${bundle.version}.jar"/>
-
-<path id="bundle.path">
-  <pathelement location="${osgi.jar}"/>
-</path>
-
-<target name="all">
- <echo message="${ant.project.dir}"/>
- <antcall target="compile"/>
- <antcall target="jar"/>
-</target>
-
-<target name="compile">
-  <mkdir dir="${classes.out.dir}"/>
-
-  <javac destdir       = "${classes.out.dir}" 
+  <target name="compile">
+    <mkdir dir="${classes.out.dir}"/>
+    <javac destdir       = "${classes.out.dir}" 
            debug         = "on"
            srcdir        = "${src.dir}"
            target        = "${javac.target}"
            source        = "${javac.source}"
            classpathref  = "bundle.path"
-           includes      = "**/*.java"
-  >
-  </javac>
-</target>
+           includes      = "**/*.java">
+    </javac>
+  </target>
 
-<target name="jar">
-  <mkdir dir="${jar.out.dir}"/>
-
-  <tstamp>
-   <format property = "bundle.date" 
-          pattern  = "EE MMMM d yyyy, HH:mm:ss"
-          locale   = "en"/>
-  </tstamp>
-
-  <jar basedir  = "${classes.out.dir}"
-       jarfile  = "${jar.file}"
-    >
-     <fileset dir = "${resources.dir}"/>
-
+  <target name="jar">
+    <mkdir dir="${jar.out.dir}"/>
+    <jar basedir="${classes.out.dir}" jarfile="${jar.file}">
+      <fileset dir="${resources.dir}"/>
     </jar>  
-</target>
+  </target>
 
-<target name="clean">
-  <delete file = "${jar.file}"        />
-  <delete dir  = "${classes.out.dir}" />
-</target>
+  <target name="clean">
+    <delete dir="${jar.out.dir}"/>
+    <delete dir="${classes.out.dir}"/>
+  </target>
 
 </project>
 

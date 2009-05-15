@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="test_import" default="all">
+
+  <!-- Common definitions for all test bundles. -->
+  <dirname  property="topdir" file="${ant.file.test_import}"/>
+  <property name="osgi.dir"   location="${topdir}/../.."/>
+  <property name="ant.dir"    location="${osgi.dir}/../ant"/>
+  <property name="jars.dir"   location="${topdir}/jars"/> 
+
+</project>
+ 

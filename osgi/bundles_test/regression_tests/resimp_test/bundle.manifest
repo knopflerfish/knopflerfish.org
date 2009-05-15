@@ -1,0 +1,11 @@
+Bundle-Name: resimp_test
+Bundle-SymbolicName: resimp_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, resource import.
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.resimp_test.impl.Activator
+Bundle-Category: test
+Import-Package: org.knopflerfish.bundle.resexp_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:resimp_test:1.0.0:all
