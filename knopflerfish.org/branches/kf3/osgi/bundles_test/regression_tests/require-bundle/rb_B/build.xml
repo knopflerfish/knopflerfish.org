@@ -3,9 +3,7 @@
 <project name="rb_B" default="all">
 
   <dirname  property="proj.dir" file="${ant.file.rb_B}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
-  <property name="osgi.dir"     location="${topdir}/../.."/>
-  <property name="ant.dir"      location="${osgi.dir}/../ant"/>
+  <import  file="${proj.dir}/../../test_import.xml"/>
 
   <property name = "bundle.build.all"  value="false"/>
   <property name = "bundle.build.api"  value="true"/>

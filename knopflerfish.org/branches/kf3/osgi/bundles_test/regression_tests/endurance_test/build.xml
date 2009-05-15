@@ -1,56 +1,53 @@
 <?xml version="1.0"?>
 
-<!DOCTYPE project [
-  <!ENTITY test_include  SYSTEM "../test_include.xml">
-]>
-
 <project name="endurance_test" default="all">
 
-  <property name="topdir"       location="../"/>
+  <dirname property="proj.dir" file="${ant.file.endurance_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
 
-  <property name="bundle.version" value="1.0.0"/>
-  <property name="do.bundle.custom.pre" value="true"/>
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
 
-  <target name="bundle.custom.pre">
+  <property name="all.suffix.name"   value=""/>
 
-   <copy file  = "${topdir}/jars/bundleEnd1_test-1.0.0.jar"         
-         todir = "resources"/>
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/bundle/**"/>
 
-   <copy file  = "${topdir}/jars/bundleEnd5_test-1.0.0.jar"         
-         todir = "resources"/>
-
-   <copy file  = "${topdir}/jars/bundleEnd7_test-1.0.0.jar"         
-         todir = "resources"/>
-
-   <copy file  = "${topdir}/jars/bundleEnd101_test-1.0.0.jar"         
-         todir = "resources"/>
-
-   <copy file  = "${topdir}/jars/bundleEnd102_test-1.0.0.jar"         
-         todir = "resources"/>
-
-
-   <copy file  = "${topdir}/jars/bundleEnd151_test-1.0.0.jar"         
-         todir = "resources"/>
-
-   <copy file  = "${topdir}/jars/bundleEnd152_test-1.0.0.jar"         
-         todir = "resources"/>
-
-
-  </target>
+  <property name="bundle.stdimports"
+	    value="java., org.knopflerfish.service.bundleEnd101_test, org.knopflerfish.service.bundleEnd102_test, org.knopflerfish.service.bundleEnd7_test"/>
 
   <path id = "bundle.compile.path">
-      <pathelement location="${topdir}/jars/bundleEnd7_test-1.0.0.jar"/>
-      <pathelement location="${topdir}/jars/bundleEnd101_test-1.0.0.jar"/>
-      <pathelement location="${topdir}/jars/bundleEnd102_test-1.0.0.jar"/>
-      <pathelement location="${topdir}/jars/bundleEnd151_test-1.0.0.jar"/>
-      <pathelement location="${topdir}/jars/bundleEnd152_test-1.0.0.jar"/>
-      <pathelement location="${topdir}/lib/log_api-2.0.2.jar"/>
+      <pathelement location="bundleEnd7_test-N.N.N.jar"/>
+      <pathelement location="bundleEnd101_test-N.N.N.jar"/>
+      <pathelement location="bundleEnd102_test-N.N.N.jar"/>
+      <pathelement location="bundleEnd151_test-N.N.N.jar"/>
+      <pathelement location="bundleEnd152_test-N.N.N.jar"/>
+      <pathelement location="log_api-N.N.N.jar"/>
   </path>
 
-  &test_include;
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+   <copy file="${jars.dir}/bundleEnd1_test/bundleEnd1_test-1.0.0.jar"
+         todir="resources"/>
+   <copy file="${jars.dir}/bundleEnd5_test/bundleEnd5_test-1.0.0.jar"
+         todir="resources"/>
+   <copy file="${jars.dir}/bundleEnd7_test/bundleEnd7_test-1.0.0.jar"
+         todir="resources"/>
+   <copy file="${jars.dir}/bundleEnd101_test/bundleEnd101_test-1.0.0.jar"
+         todir="resources"/>
+   <copy file="${jars.dir}/bundleEnd102_test/bundleEnd102_test-1.0.0.jar"
+         todir="resources"/>
+   <copy file="${jars.dir}/bundleEnd151_test/bundleEnd151_test-1.0.0.jar"
+         todir="resources"/>
+   <copy file="${jars.dir}/bundleEnd152_test/bundleEnd152_test-1.0.0.jar"
+         todir="resources"/>
+  </target>
 
+  <import file="${ant.dir}/bundlebuild.xml"/>
 
 </project>
-
-
-

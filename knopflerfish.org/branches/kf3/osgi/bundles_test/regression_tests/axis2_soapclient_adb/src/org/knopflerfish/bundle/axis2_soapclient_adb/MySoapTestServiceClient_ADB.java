@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,15 @@ public class MySoapTestServiceClient_ADB {
 
   public MySoapTestServiceClient_ADB()
   {
+    this("8080");
+  }
+
+  public MySoapTestServiceClient_ADB(final String port)
+  {
     try {
-      stub = new MySoapTestServiceStub();
+      final String targetEndpoint
+        = "http://127.0.0.1:" +port +"/axis2/services/MySoapTestService";
+      stub = new MySoapTestServiceStub(targetEndpoint);
     } catch (Exception e) {
       System.err.println("stub creation failed: " +e.getMessage());
       e.printStackTrace();

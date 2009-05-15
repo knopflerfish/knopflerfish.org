@@ -66,9 +66,10 @@
 
   <!-- Import-Package / Export-Package manifest headers that are found -->
   <!-- invalid by the bundleinfo-task shall trigger build error.      -->
-  <property name="bundleinfo.failOnExports" value="true"/>
-  <property name="bundleinfo.failOnImports" value="true"/>
-  <property name="bundleinfo.uses"          value="true"/>
+  <property name="bundleinfo.failOnExports"   value="true"/>
+  <property name="bundleinfo.failOnImports"   value="true"/>
+  <property name="bundleinfo.failOnActivator" value="true"/>
+  <property name="bundleinfo.uses"            value="true"/>
 
   <!-- Bundle manifest attributes corresponds to ant properties with  -->
   <!-- names starting with "bmfa." (short for BundleManiFestAttribute)-->
@@ -484,6 +485,7 @@
 		uses              = "${bundleinfo.uses}"
 		failOnExports     = "${bundleinfo.failOnExports}"
 		failOnImports     = "${bundleinfo.failOnImports}"
+		failOnActivator   = "${bundleinfo.failOnActivator}"
 		checkFoundationEE = "${ee.check.foundation}">
       <fileset dir      = "${classes.out.dir}"
                includes = "${impl.pattern},${impl-api.pattern}">
@@ -561,6 +563,7 @@
 		uses              = "${bundleinfo.uses}"
 		failOnExports     = "${bundleinfo.failOnExports}"
 		failOnImports     = "${bundleinfo.failOnImports}"
+		failOnActivator   = "${bundleinfo.failOnActivator}"
 		checkFoundationEE = "${ee.check.foundation}">
       <fileset dir="${classes.out.dir}" includes="${api.pattern}"/>
       <fileset refid="api.bundleClasspath"/>
@@ -667,6 +670,7 @@
 		uses              = "${bundleinfo.uses}"
 		failOnExports     = "${bundleinfo.failOnExports}"
 		failOnImports     = "${bundleinfo.failOnImports}"
+		failOnActivator   = "${bundleinfo.failOnActivator}"
 		checkFoundationEE = "${ee.check.foundation}">
       <fileset dir="${classes.out.dir}" includes="${api.pattern}"/>
       <fileset refid="lib.bundleClasspath"/>
@@ -731,6 +735,7 @@
 		uses="${bundleinfo.uses}"
 		failOnExports="${bundleinfo.failOnExports}"
 		failOnImports="${bundleinfo.failOnImports}"
+		failOnActivator="${bundleinfo.failOnActivator}"
 		checkFoundationEE="${ee.check.foundation}">
       <fileset dir      = "${classes.out.dir}"
                includes = "${api.pattern},${impl-api.pattern}">
@@ -750,6 +755,7 @@
 		uses              = "${bundleinfo.uses}"
 		failOnExports     = "${bundleinfo.failOnExports}"
 		failOnImports     = "${bundleinfo.failOnImports}"
+		failOnActivator   = "${bundleinfo.failOnActivator}"
 		checkFoundationEE = "${ee.check.foundation}"
 		importsOnly       = "true">
       <fileset dir      = "${classes.out.dir}"

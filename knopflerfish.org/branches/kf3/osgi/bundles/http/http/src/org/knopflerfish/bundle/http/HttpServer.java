@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,9 +69,10 @@ public class HttpServer {
 
     // constructors
 
-    public HttpServer(BundleContext bc, final HttpConfig httpConfig,
-            final LogRef log) {
-
+    public HttpServer(BundleContext bc,
+                      final HttpConfig httpConfig,
+                      final LogRef log)
+  {
         this.bc = bc;
         this.httpConfig = httpConfig;
         registrations = new Registrations();
@@ -122,7 +123,6 @@ public class HttpServer {
     }
 
     public void destroy() {
-
         if (httpSocketListener != null) {
             httpSocketListener.destroy();
         }
@@ -133,7 +133,10 @@ public class HttpServer {
             httpReg.unregister();
             httpReg = null;
         }
-    }
+        if (sessionManager != null) {
+            sessionManager.destroy();
+        }
+     }
 
     synchronized void doHttpReg()
     {
