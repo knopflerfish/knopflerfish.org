@@ -1,14 +1,29 @@
 <?xml version="1.0"?>
 
-<!DOCTYPE project [
-  <!ENTITY test_include  SYSTEM "../test_include.xml">
-]>
-
 <project name="framework_test" default="all">
 
-  <property name="topdir"       location=".."/>
+  <dirname property="proj.dir" file="${ant.file.resimp_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
 
-  <property name="bundle.version" value="1.0.0"/>
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"  value=""/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <property name="bundle.stdimports"   value="javax.microedition.io"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
 
   <property name="do.bundle.custom.pre" value="true"/>
 
@@ -22,54 +37,77 @@
   <target name="bundle.custom.pre">
    <antcall target="buildres"/>
 
-   <property name="tb.dir" location="${topdir}/jars"/>
-   <copy file="${tb.dir}/bundleA_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleA1_test-1.0.1.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleA2_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleB_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleC_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleD_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleD1_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleE_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleF_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleG_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleJ_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleU_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleV_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleW_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleW1_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleH_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleR_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleR1_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleP1_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleP2_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleP3_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundlePT1_test-1.0.0.jar" todir="resources"/>
-   <copy file="${tb.dir}/bundlePT2_test-1.0.0.jar" todir="resources"/>
-   <copy file="${tb.dir}/bundlePT3_test-1.0.0.jar" todir="resources"/>
-   <copy file="${tb.dir}/bundleR_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/bundleR1_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleR2_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleR3_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleR4_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleR5_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleR6_test-1.0.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/bundleQ_test-1.0.0.jar"   todir="resources"/>
-   <copy file="${tb.dir}/resexp_test-1.0.0.jar"    todir="resources"/>
-   <copy file="${tb.dir}/resimp_test-1.0.0.jar"    todir="resources"/>
-   <copy file="${tb.dir}/rb_A/rb_A-0.1.0.jar"      todir="resources"/>
-   <copy file="${tb.dir}/rb_B/rb_B_api-0.1.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/rb_C/rb_C_api-0.1.0.jar"  todir="resources"/>
-   <copy file="${tb.dir}/rb_C/rb_C-0.1.0.jar"      todir="resources"/>
-   <copy file="${tb.dir}/rb_D/rb_D_api-0.1.0.jar"  todir="resources"/>
+   <copy file="${jars.dir}/bundleA_test/bundleA_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleA1_test/bundleA1_test-1.0.1.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleA2_test/bundleA2_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleB_test/bundleB_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleC_test/bundleC_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleD_test/bundleD_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleD1_test/bundleD1_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleE_test/bundleE_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleF_test/bundleF_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleG_test/bundleG_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleJ_test/bundleJ_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleU_test/bundleU_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleV_test/bundleV_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleW_test/bundleW_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleW1_test/bundleW1_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleH_test/bundleH_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleP1_test/bundleP1_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleP2_test/bundleP2_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleP3_test/bundleP3_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundlePT1_test/bundlePT1_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundlePT2_test/bundlePT2_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundlePT3_test/bundlePT3_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR_test/bundleR_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR1_test/bundleR1_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR2_test/bundleR2_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR3_test/bundleR3_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR4_test/bundleR4_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR5_test/bundleR5_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleR6_test/bundleR6_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/bundleQ_test/bundleQ_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/resexp_test/resexp_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/resimp_test/resimp_test-1.0.0.jar"
+	 todir="resources"/>
+   <copy file="${jars.dir}/rb_A/rb_A-0.1.0.jar"      todir="resources"/>
+   <copy file="${jars.dir}/rb_B/rb_B_api-0.1.0.jar"  todir="resources"/>
+   <copy file="${jars.dir}/rb_C/rb_C_api-0.1.0.jar"  todir="resources"/>
+   <copy file="${jars.dir}/rb_C/rb_C-0.1.0.jar"      todir="resources"/>
+   <copy file="${jars.dir}/rb_D/rb_D_api-0.1.0.jar"  todir="resources"/>
   </target>
 
-  <path id = "bundle.compile.path">
-  </path>
-
-  &test_include;
+  <import file="${ant.dir}/bundlebuild.xml"/>
 
 </project>
-
-
-

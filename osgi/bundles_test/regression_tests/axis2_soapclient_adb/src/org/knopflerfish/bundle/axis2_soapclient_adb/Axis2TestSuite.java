@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,30 @@ public class Axis2TestSuite extends TestSuite {
   BundleContext bc;
   MySoapTestServiceClient_ADB client;
 
+  // Get port of the default HttpService.
+  private static String getHttpServerPort(BundleContext bc)
+  {
+    String port = "8080";
+
+    final ServiceReference httpSR
+      = bc.getServiceReference("org.osgi.service.http.HttpService");
+    if (null!=httpSR) {
+      Object obj = httpSR.getProperty("port.http");
+      if(obj == null) {
+        obj = httpSR.getProperty("openPort");
+      }
+      if (null!=obj) {
+        port = obj.toString();
+      }
+    }
+    return port;
+  }
+
   public Axis2TestSuite(BundleContext bc) {
     super("SOAP-Axis2TestSuite");
     this.bc     = bc;
     this.bu     = bc.getBundle();
-    this.client = new MySoapTestServiceClient_ADB();
+    this.client = new MySoapTestServiceClient_ADB(getHttpServerPort(bc));
 
     addTest(new GetName());
     addTest(new Add());

@@ -8,6 +8,38 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Services (Compendium) ===
+
+      
+  Http 2.1.2
+
+  The thread handling timeout of HttpSessions is now destroyed when
+  the HttpService is stopped. Thanks to Paul French for detecting and
+  proposing this fix on the Knopflerfish-users mailing-list.
+
+  HttpServlet.destroy() is now called when the HttpService is
+  stopped. Previously it was only called when the alias the servlet
+  was registered under was unregistered by calling
+  HttpService.unregister(alias).
+
+
+  Build System
+
+  The obsolete build system used by test bundles in the directory
+  "osgi/bundles_test/regression_test" have been removed. All those
+  test bundles are now built using the same build system as all other
+  bundles.
+
+  Some minor changes have been made to the bundle-info task. It is
+  now possible to turn of the build error triggered by a missing
+  bundle activator by setting the ant property
+  "bundleinfo.failOnActivator" to false before importing
+  bundlebuild.xml. White space is now allowed around the comma in the
+  value of the ant properties "bundle.stdimports" and
+  "bundle.extraimports".
+
+
+
 ========================================================================
 
 
@@ -111,6 +143,8 @@ Release Notes Knopflerfish 2.3.0 (OSGi R4.0.1)
  
   NOTE! You can not use SUN JDK 1.5.0_16 can not be used if you want to handle
         certificates. There is a bug in the CodeSource API. 
+
+
 
 === Services (Compendium) ===
 

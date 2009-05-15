@@ -360,6 +360,19 @@ import org.osgi.framework.Version;
  *     Default value is "true"
  *   </td>
  *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>failOnActivator</td>
+ *   <td valign=top>
+ *       If an error is detected in the given bundle activator header
+ *       and this attibute is set to <tt>true</tt> then a build
+ *       failure is trigger.
+ *   </td>
+ *   <td valign=top>
+ *     No.<br>
+ *     Default value is "true"
+ *   </td>
+ *  </tr>
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
@@ -433,7 +446,8 @@ public class BundleInfoTask extends Task {
   private boolean bSetActivator      = true;
   private boolean failOnExports      = true;
   private boolean failOnImports      = true;
-  private boolean bImportsOnly        = false;
+  private boolean failOnActivator    = true;
+  private boolean bImportsOnly       = false;
 
   /** The set of packages that are provided by the inlcuded classes. */
   private Set providedSet          = new TreeSet();
@@ -506,6 +520,10 @@ public class BundleInfoTask extends Task {
     this.failOnImports = b;
   }
 
+  public void setFailOnActivator(boolean b) {
+    this.failOnActivator = b;
+  }
+
   public void setImplicitImports(String s) {
     this.bImplicitImports = "true".equals(s);
   }
@@ -521,7 +539,9 @@ public class BundleInfoTask extends Task {
       packageList = packageList.trim();
       if (0<packageList.length()) {
         Vector v = StringUtils.split(packageList,',');
-        importSet.addAll(v);
+        for (Iterator it = v.iterator(); it.hasNext(); ) {
+          importSet.add(((String)it.next()).trim());
+        }
       }
     }
   }
@@ -538,7 +558,9 @@ public class BundleInfoTask extends Task {
       packageList = packageList.trim();
       if (packageList.length()>0) {
         Vector v = StringUtils.split(packageList,',');
-        extraImportSet.addAll(v);
+        for (Iterator it = v.iterator(); it.hasNext(); ) {
+          extraImportSet.add(((String)it.next()).trim());
+        }
       }
     }
   }
@@ -611,7 +633,10 @@ public class BundleInfoTask extends Task {
   public void setStdImports(String packageList) {
     stdImports.clear();
     stdImports.add("java.");
-    stdImports.addAll(StringUtils.split(packageList.trim(),','));
+    Vector v = StringUtils.split(packageList,',');
+    for (Iterator it = v.iterator(); it.hasNext(); ) {
+      stdImports.add(((String)it.next()).trim());
+    }
   }
 
   public void addFileset(FileSet set) {
@@ -700,19 +725,19 @@ public class BundleInfoTask extends Task {
     if(!"".equals(exportsProperty)) {
       String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
-	if (!bImportsOnly) {
-	  if (0==providedSet.size()) {
-	    proj.setProperty(exportsProperty,
-			     BundleManifestTask.BUNDLE_EMPTY_STRING);
-	    log("No packages exported, leaving \"" +exportsProperty +"\" empty.",
-		Project.MSG_VERBOSE);
-	  } else {
-	    exportsVal = buildExportPackagesValue();
-	    log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
-		Project.MSG_VERBOSE);
-	    proj.setProperty(exportsProperty, exportsVal);
-	  }
-	}
+        if (!bImportsOnly) {
+          if (0==providedSet.size()) {
+            proj.setProperty(exportsProperty,
+                             BundleManifestTask.BUNDLE_EMPTY_STRING);
+            log("No packages exported, leaving \"" +exportsProperty +"\" empty.",
+                Project.MSG_VERBOSE);
+          } else {
+            exportsVal = buildExportPackagesValue();
+            log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
+                Project.MSG_VERBOSE);
+            proj.setProperty(exportsProperty, exportsVal);
+          }
+        }
       } else {
         // Export-Package given; check that they are provided.
         final String newExportsVal = validateExportPackagesValue(exportsVal);
@@ -795,7 +820,10 @@ public class BundleInfoTask extends Task {
           final String msg1 = "Requested to derive Bundle-Activator but "
             +"there is no class implementing BundleActivator.";
           log(msg1, Project.MSG_ERR);
-          throw new BuildException(msg1, getLocation());
+          if (failOnActivator) {
+            throw new BuildException(msg1, getLocation());
+          }
+          break;
         case 1:
           String clazz = (String)activatorSet.iterator().next();
           proj.setProperty(activatorProperty, clazz);
@@ -805,7 +833,9 @@ public class BundleInfoTask extends Task {
             +"is needed since the set of included classes contains "
             +"more than one candidate: "+activatorSet;
           log(msg2, Project.MSG_ERR);
-          throw new BuildException(msg2, getLocation());
+          if (failOnActivator) {
+            throw new BuildException(msg2, getLocation());
+          }
         }
       } else {
         // Bundle-Activator given; check that it is correct.
@@ -818,7 +848,9 @@ public class BundleInfoTask extends Task {
                 +"  implements BundleActivator: " +activatorSet;
           if (!activatorSet.contains(givenClazz)) {
             log(msg, Project.MSG_WARN);
-            throw new BuildException(msg, getLocation());
+            if (failOnActivator) {
+              throw new BuildException(msg, getLocation());
+            }
           }
         }
       }
@@ -1033,7 +1065,7 @@ public class BundleInfoTask extends Task {
         final Set usesPkgs = (Set) packageUsingMap.get(pkgName);
         if (!directives.contains("uses")) {
           // Add a new uses directive.
-          if (0<usesPkgs.size()) {
+          if (null!=usesPkgs && 0<usesPkgs.size()) {
             sb.append(";uses:=");
             if (1<usesPkgs.size()) {
               sb.append("\"");

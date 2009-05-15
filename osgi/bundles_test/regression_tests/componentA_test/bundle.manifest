@@ -1,0 +1,15 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: componentA_test
+Bundle-SymbolicName: componentA_test
+Bundle-Version: 1.0.1
+Bundle-Description: Test bundle for component, componentA1_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.componentA_test.Activator
+Bundle-Category: test
+Import-Package: org.osgi.service.component,
+ org.osgi.framework,
+ org.knopflerfish.service.component_test
+Service-Component: service.xml
+

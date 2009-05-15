@@ -188,7 +188,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Vendor";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Vendor", "Knopflerfish/Gatespace Telematics", info);
+      assertEquals("bad Bundle-Vendor", "Knopflerfish/Makewave AB", info);
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
