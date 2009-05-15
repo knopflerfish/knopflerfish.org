@@ -1,0 +1,9 @@
+Bundle-Name: lifecycle_mem_test
+Bundle-SymbolicName: lifecycle_mem_test
+Bundle-Version: 1.0.0
+Bundle-Description: bundle lifecycle memory test
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.test.memtest.lifecycle.Activator
+Bundle-Category: test

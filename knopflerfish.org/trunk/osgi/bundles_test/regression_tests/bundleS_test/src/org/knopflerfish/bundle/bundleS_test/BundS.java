@@ -6,7 +6,6 @@ import java.security.*;
 import java.io.*;
 import org.knopflerfish.service.bundleS_test.*;
 import org.osgi.framework.*;
-import junit.framework.*;
 
 public class BundS implements BundleS0, BundleS1, BundleS2, BundleS3 {
   BundleContext bc;

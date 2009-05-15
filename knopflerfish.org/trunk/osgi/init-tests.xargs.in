@@ -73,7 +73,8 @@
 -istart @servicetracker_test-N.N.N.jar@
 -istart @constants_test-N.N.N.jar@
 -istart @registryperformance_test-N.N.N.jar@
-#-istart @eventadmin_test-N.N.N.jar@  -- disabled because of timing problems on Linux!?
+## eventadmin_tests are disabled because of timing problems on Linux!?
+#-istart @eventadmin_test-N.N.N.jar@
 -istart @http_test-N.N.N.jar@
 -istart @io_test-N.N.N.jar@
 -istart @condpermadmin_test-N.N.N.jar@
