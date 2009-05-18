@@ -12,6 +12,8 @@
   <property name="bundle.build.doc"  value="false"/>
 
   <property name="all.suffix.name"   value=""/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
@@ -19,17 +21,31 @@
             value="org/knopflerfish/service/**"/>
 
   <path id = "bundle.compile.path">
-      <pathelement location="bundleExt1_test-N.N.N.jar"/>
-      <pathelement location="bundleExt2_test-N.N.N.jar"/>
+    <pathelement location="${resources.dir}/bundleExt1_test-1.0.0.jar"/>
+    <pathelement location="${resources.dir}/bundleExt2_test-1.0.0.jar"/>
   </path>
 
   <property name="do.bundle.custom.pre" value="true"/>
 
   <target name="bundle.custom.pre">
-   <copy file="${jars.dir}/bundleExt1_test/bundleExt1_test-1.0.0.jar"
-         todir="resources"/>
-   <copy file="${jars.dir}/bundleExt2_test/bundleExt2_test-1.0.0.jar"
-         todir="resources"/>
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="bundleExt1_test"/>
+    <antcall target="bundleExt2_test"/>
+  </target>
+
+  <target name="bundleExt1_test">
+    <ant dir="test_target_bundles/bundleExt1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleExt1_test"/>
+    </ant>
+  </target>
+  <target name="bundleExt2_test">
+    <ant dir="test_target_bundles/bundleExt2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleExt2_test"/>
+    </ant>
   </target>
 
   <import file="${ant.dir}/bundlebuild.xml"/>

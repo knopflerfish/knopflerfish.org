@@ -12,19 +12,39 @@
   <property name="bundle.build.doc"  value="false"/>
 
   <property name="all.suffix.name"   value=""/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
 
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
   <property name="api.pattern"  value="org/knopflerfish/service/**"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
-
   <target name="bundle.custom.pre">
-   <copy file="${jars.dir}/bundleP1_test/bundleP1_test-1.0.0.jar"
-	 todir="resources"/>
-   <copy file="${jars.dir}/bundleP2_test/bundleP2_test-1.0.0.jar"
-	 todir="resources"/>
-   <copy file="${jars.dir}/bundleP3_test/bundleP3_test-1.0.0.jar"
-	 todir="resources"/>
+    <antcall target="bundleP1_test"/>
+    <antcall target="bundleP2_test"/>
+    <antcall target="bundleP3_test"/>
+  </target>
+
+  <target name="bundleP1_test">
+    <ant dir="test_target_bundles/bundleP1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP1_test"/>
+    </ant>
+  </target>
+  <target name="bundleP2_test">
+    <ant dir="test_target_bundles/bundleP2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP2_test"/>
+    </ant>
+  </target>
+  <target name="bundleP3_test">
+    <ant dir="test_target_bundles/bundleP3_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP3_test"/>
+    </ant>
   </target>
 
   <path id = "bundle.compile.path">

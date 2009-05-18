@@ -1,0 +1,10 @@
+Bundle-Name: bundleP3_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleP3_test for test
+  of version control of exported packages. Also used for conditional
+  permission tests
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Activator: org.knopflerfish.bundle.bundleP1_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleP1_test;
+ specification-version=3.0

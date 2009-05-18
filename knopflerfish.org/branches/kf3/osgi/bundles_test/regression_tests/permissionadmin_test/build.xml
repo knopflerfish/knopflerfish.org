@@ -12,6 +12,8 @@
   <property name="bundle.build.doc"  value="false"/>
 
   <property name="all.suffix.name"   value=""/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
@@ -24,11 +26,18 @@
   </path>
 
   <property name="do.bundle.custom.pre" value="true"/>
-
   <target name="bundle.custom.pre">
-  <copy file="${jars.dir}/bundleP_test/bundleP_test-1.0.0.jar"
-	todir="resources"/>
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="bundleP_test"/>
   </target>
+  <target name="bundleP_test">
+    <ant dir="test_target_bundles/bundleP_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP_test"/>
+    </ant>
+  </target>
+
 
   <import file="${ant.dir}/bundlebuild.xml"/>
 
