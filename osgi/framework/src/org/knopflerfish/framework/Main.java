@@ -947,7 +947,7 @@ public class Main {
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = null; // (String)props.get(JARDIR_PROP);
+    String jars = System.getProperty("org.knopflerfish.gosg.jars");
 
     if(!(jars == null || "".equals(jars))) {
       println("old jars=" + jars, 1);
