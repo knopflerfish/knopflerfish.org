@@ -11,6 +11,7 @@
   <property name="bundle.build.impl" value="false"/>
   <property name="bundle.build.doc"  value="false"/>
 
+  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
   <property name="all.suffix.name"   value=""/>
 
   <property name="impl.pattern"
@@ -18,15 +19,23 @@
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 
-  <path id = "bundle.compile.path">
+  <path id="bundle.compile.path">
     <pathelement location="junit_all-N.N.N.jar"/>
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
   </path>
 
   <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
-   <copy file  = "${jars.dir}/bundleS_test/bundleS_test-1.0.0.jar"         
-         todir = "resources"/>
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="bundleS_test"/>
+  </target>
+
+  <target name="bundleS_test">
+    <ant dir="test_target_bundles/bundleS_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleS_test"/>
+    </ant>
   </target>
 
   <import file="${ant.dir}/bundlebuild.xml"/>
