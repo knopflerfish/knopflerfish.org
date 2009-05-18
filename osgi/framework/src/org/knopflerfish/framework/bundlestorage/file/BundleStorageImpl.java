@@ -73,7 +73,7 @@ public class BundleStorageImpl implements BundleStorage {
   public BundleStorageImpl(FrameworkContext     framework) {
     this.framework = framework;
     // See if we have a storage directory
-    bundlesDir = Util.getFileStorage("bs");
+    bundlesDir = Util.getFileStorage(framework, "bs");
     if (bundlesDir == null) {
       throw new RuntimeException("No bundle storage area available!");
     }

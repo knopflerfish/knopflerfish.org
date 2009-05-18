@@ -34,13 +34,11 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
-import java.security.*;
 
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,9 +48,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import org.osgi.framework.*;
-import org.osgi.framework.launch.Framework;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
 
 /**
  * This class contains properties used by the framework
@@ -60,6 +55,11 @@ import org.osgi.service.startlevel.StartLevel;
 public class FWProps  {
 
   public Debug debug;
+  
+  /**
+   * Name of special property containing a comma-separated list of all other property names.
+   */
+  public static final String KEY_KEYS = "org.knopflerfish.framework.bundleprops.keys";
 
   public final static String TRUE   = "true";
   public final static String FALSE  = "false";
@@ -85,12 +85,11 @@ public class FWProps  {
 
 
   /**
-   * The "System" properties for this framework instance.  Always use
+   * The properties for this framework instance.  Always use
    * <tt>FWProps.setProperty(String,String)</tt> to add values to
    * this map.
    */
-  protected Map/*<String, String>*/ props
-    = new HashMap/*<String, String>*/();
+  protected Map/*<String, String>*/ props = new TreeMap/*<String, String>*/();
   
 
   // If set to true, then during the UNREGISTERING event the Listener
@@ -179,7 +178,8 @@ public class FWProps  {
   FrameworkContext parent;
   
   public FWProps(Map initProps, FrameworkContext parent) {
-    this.parent = parent;    
+    this.parent = parent; 
+    
     // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
     initProperties(initProps);
     debug = new Debug(this);
@@ -198,30 +198,64 @@ public class FWProps  {
    *
    */
   public String getProperty(String key, String def) {
-    String v = (String)props.get(key);
-    if(v != null) {
-      return v;
-    } else {
-      return System.getProperty(key, def);
+    synchronized(props) {
+      if(KEY_KEYS.equals(key)) {
+        return makeKeys();
+      }
+      String v = (String)props.get(key);
+      if(v != null) {
+        return v;
+      } else {
+        return System.getProperty(key, def);
+      }
     }
   }
 
   public void setProperty(String key, String val) {
-    props.put(key, val);
+    synchronized(props) {
+      if(KEY_KEYS.equals(key)) {
+        throw new IllegalArgumentException(key + " is reserved and cannot be set");
+      }
+      propNames = null; // force re-generation of special property containing all property names
+      props.put(key, val);
+    }
   }
 
   public void setProperties(Dictionary newProps) {
-    for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
-      String key = (String)it.nextElement();
-      setProperty(key, (String)newProps.get(key));
+    synchronized(props) {
+      for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
+        String key = (String)it.nextElement();
+        setProperty(key, (String)newProps.get(key));
+      }
     }
   }
 
   public Dictionary getProperties(){
-    Hashtable p = new Hashtable();
-    p.putAll(System.getProperties());
-    p.putAll(props);
-    return p;
+    synchronized(props) {
+      Hashtable p = new Hashtable();
+      p.putAll(System.getProperties());
+      p.putAll(props);
+      p.put(KEY_KEYS, makeKeys());
+      return p;
+    }
+  }
+
+  String propNames = null;
+
+  protected String makeKeys() {
+    synchronized(props) {
+      if(propNames == null) {
+        StringBuffer sb = new StringBuffer();
+        for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
+          sb.append(it.next().toString());      
+          if(it.hasNext()) {
+            sb.append(",");
+          }
+        }
+        propNames = sb.toString();
+      }
+      return propNames;
+    }
   }
 
   public void printProps() {
@@ -322,8 +356,5 @@ public class FWProps  {
     setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
                 SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
 
-    Dictionary sysProps = getSystemProperties();
-
-    setProperties(sysProps);
   }
 }

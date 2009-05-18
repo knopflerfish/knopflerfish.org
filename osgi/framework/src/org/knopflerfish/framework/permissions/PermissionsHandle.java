@@ -66,7 +66,7 @@ public class PermissionsHandle {
    */
   public PermissionsHandle(FrameworkContext fw) {
     framework = fw;
-    pinfos = new PermissionInfoStorage();
+    pinfos = new PermissionInfoStorage(fw);
     pa = new PermissionAdminImpl(pinfos);
     //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
     if (System.getSecurityManager() instanceof SecurityManager) {

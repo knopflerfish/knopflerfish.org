@@ -120,7 +120,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
   public void init() throws BundleException {
-    // fw.props.printProps();
+    // fwCtx.props.printProps();
 
     state = STARTING;
     StringBuffer sp = new StringBuffer(fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));

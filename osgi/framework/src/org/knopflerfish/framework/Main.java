@@ -36,8 +36,11 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Enumeration;
 import java.net.URL;
 import java.net.HttpURLConnection;
@@ -87,12 +90,10 @@ public class Main {
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
 
-  static public final String FWDIR_PROP    = "org.osgi.framework.dir";
-  static public final String FWDIR_DEFAULT = "fwdir";
   static public final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
   static public final String CMDIR_DEFAULT = "cmdir";
 
-  static public final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
+  static public final String VERBOSITY_PROP    = "org.knopflerfish.framework.main.verbosity";
   static public final String VERBOSITY_DEFAULT = "0";
 
 
@@ -172,34 +173,10 @@ public class Main {
       args = sanityArgs(args);
     }
 
-    // Set default values to something reasonable if not supplied
-    // on the command line (or in xargs)
-    setDefaultSysProps();
-
-    String[] base = getJarBase();
-
-    // Handle -init option before we create the FW, otherwise
-    // we might shoot ourself in the foot. Hard.
-    for(int i = 0; i < args.length; i++) {
-      if("-init".equals(args[i])) {
-        doInit();
-      }
-    }
-
-
-    // Save these for possible restart()
-    initArgs    = args;
-    initOffset  = 0;
-    initBase    = base;
-
-    handleArgs(args, initOffset, base);
+    handleArgs(args, 0);
   }
 
-  String[] initArgs   = null;
-  int      initOffset = 0;
-  String[] initBase   = null;
-
-  FrameworkFactory getFrameworkFactory() {
+  public FrameworkFactory getFrameworkFactory() {
     try {
       String factoryS = new String(Util.readResource("/META-INF/services/org.osgi.framework.launch.FrameworkFactory"), "UTF-8");
       String factoryClassName = FrameworkFactoryImpl.class.getName();
@@ -219,9 +196,9 @@ public class Main {
   }
 
 
-  FrameworkFactory getFrameworkFactory(String factoryClassName) {
+  public FrameworkFactory getFrameworkFactory(String factoryClassName) {
     try {
-      println("getFrameworkFactory(" + factoryClassName + ")", 0);
+      println("getFrameworkFactory(" + factoryClassName + ")", 1);
       Class            clazz = Class.forName(factoryClassName);
       Constructor      cons  = clazz.getConstructor(new Class[] { });
       FrameworkFactory ff    = (FrameworkFactory)cons.newInstance(new Object[] { });
@@ -232,15 +209,15 @@ public class Main {
     }
   }
 
-  void doInit() {
-    String d = System.getProperty(FWDIR_PROP);
+  private void deleteFWDir() {
+    String d = Util.getFrameworkDir(configProps);
 
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
       if(dir.exists()) {
         boolean bOK = dir.delete();
         if(bOK) {
-          println("Removed existing fwdir " + dir.getAbsolutePath(), 0);
+          println("Removed existing fwdir " + dir.getAbsolutePath(), 1);
         } else {
           println("Failed to remove existing fwdir " + dir.getAbsolutePath(), 0);
         }
@@ -249,7 +226,11 @@ public class Main {
   }
 
   String[] getJarBase() {
-    String jars = System.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+    assertFramework();
+    String jars = framework.getBundleContext().getProperty(JARDIR_PROP);
+    if(jars == null) {
+      jars = JARDIR_DEFAULT;
+    }
 
     String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
@@ -267,12 +248,17 @@ public class Main {
   FrameworkFactory ff;
   Framework framework;
 
+  // configuration properties from -Fkey=value
+  Map configProps/* <String, String> */ = new HashMap/*<String, String>*/();
   void assertFramework() {
     if(ff == null) {
       ff = getFrameworkFactory();
+      println("created FrameworkFactory " + ff.getClass().getName(), 1);
     }
     if(framework == null) {
-      framework = ff.newFramework(System.getProperties());
+      addDefaultProps(configProps, defaultProps);
+      framework = ff.newFramework(configProps);
+      println("created Framework " + framework.getClass().getName(), 1);
     }
   }
 
@@ -284,9 +270,9 @@ public class Main {
    */
 
   private void handleArgs(String[] args,
-                                 int startOffset,
-                                 String[] base) {
+                          int startOffset) {
     boolean bLaunched = false;
+    configProps = new HashMap();
 
     for (int i = startOffset; i < args.length; i++) {
       try {
@@ -294,8 +280,7 @@ public class Main {
           println("Exit.", 0);
           System.exit(0);
         } else if ("-init".equals(args[i])) {
-          // This is done in an earlier pass, otherwise we
-          // shoot the FW in the foot
+          deleteFWDir();
         } else if ("-version".equals(args[i])) {
           System.out.println("Knopflerfish version: " +readRelease());
           printResource("/tstamp");
@@ -318,12 +303,23 @@ public class Main {
           } else {
             throw new IllegalArgumentException("No framework factory argument");
           }
+        } else if (args[i].startsWith("-F")) {
+          String s     = args[i].substring(2); // key=value
+          String key   = s;
+          String value = "";
+          int ix = s.indexOf("=");
+          if(ix != -1) {
+            key = s.substring(0, ix);
+            value = s.substring(ix+1);
+          }
+          println("-F" + key + "=" + value, 1);
+          configProps.put(key, value);
         } else if ("-install".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
             final String bundle = args[i+1];
             final Bundle b = framework.getBundleContext()
-              .installBundle(completeLocation(base,bundle), null);
+              .installBundle(completeLocation(bundle), null);
             println("Installed: ", b);
             i++;
           } else {
@@ -334,7 +330,7 @@ public class Main {
           if (i+1 < args.length) {
             final String bundle = args[i+1];
             final Bundle b = framework.getBundleContext()
-              .installBundle(completeLocation(base,bundle), null);
+              .installBundle(completeLocation(bundle), null);
 
             b.start(Bundle.START_ACTIVATION_POLICY);
             println("Installed and started (policy): ", b);
@@ -381,7 +377,7 @@ public class Main {
         } else if ("-start".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             b.start(Bundle.START_ACTIVATION_POLICY);
             println("Started (policy): ", b);
@@ -392,7 +388,7 @@ public class Main {
         } else if ("-start_e".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             b.start(0); // Eager start
             println("Started (eager): ", b);
@@ -403,7 +399,7 @@ public class Main {
         } else if ("-start_et".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             b.start(Bundle.START_TRANSIENT);
             println("Started (eager,transient): ", b);
@@ -414,7 +410,7 @@ public class Main {
         } else if ("-start_pt".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             b.start(Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY);
             println("Start (policy,transient): ", b);
@@ -425,7 +421,7 @@ public class Main {
         } else if ("-stop".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             try {
               b.stop(0);
@@ -440,7 +436,7 @@ public class Main {
         } else if ("-stop_t".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             try {
               b.stop(Bundle.STOP_TRANSIENT);
@@ -455,7 +451,7 @@ public class Main {
         } else if ("-uninstall".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
-            final long id = getBundleID(framework, base,args[i+1]);
+            final long id = getBundleID(framework, args[i+1]);
             final Bundle b = framework.getBundleContext().getBundle(id);
             b.uninstall();
             println("Uninstalled: ", b);
@@ -470,7 +466,7 @@ public class Main {
             if("ALL".equals(args[i+1])) {
               bl = framework.getBundleContext().getBundles();
             } else {
-              bl = new Bundle[] { framework.getBundleContext().getBundle(getBundleID(framework, base,args[i+1])) };
+              bl = new Bundle[] { framework.getBundleContext().getBundle(getBundleID(framework, args[i+1])) };
             }
             for(int n = 0; bl != null && n < bl.length; n++) {
               final Bundle b = bl[i];
@@ -576,12 +572,12 @@ public class Main {
    * @param base Base URL to complete locations with.
    * @param idLocation bundle id or location of the bundle to lookup
    */
-  private long getBundleID(Framework fw, String[] base, String idLocation ) {
+  private long getBundleID(Framework fw, String idLocation ) {
     try {
       return Long.parseLong(idLocation);
     } catch (NumberFormatException nfe) {
       Bundle[] bl = fw.getBundleContext().getBundles();
-      String loc = completeLocation( base, idLocation);
+      String loc = completeLocation(idLocation);
       for(int i = 0; bl != null && i < bl.length; i++) {
         if(loc.equals(bl[i].getLocation())) {
           return bl[i].getBundleId();
@@ -597,8 +593,9 @@ public class Main {
    ** @param base Base URLs to complete with; first match is used.
    ** @param location The location to be completed.
    **/
-  private String completeLocation( String[] base, String location )
+  private String completeLocation(String location )
   {
+    String[] base = getJarBase();
     // Handle file: case where topDir is not ""
     if(bZeroArgs && location.startsWith("file:jars/") && !topDir.equals("")) {
       location = ("file:" + topDir + location.substring(5)).replace('\\', '/');
@@ -718,7 +715,7 @@ public class Main {
    *         options have been expanded.
    */
   String[] expandArgs(String[] argv) {
-    Vector v = new Vector();
+    List v = new ArrayList();
     int i = 0;
     while(i < argv.length) {
       if ("-xargs".equals(argv[i]) || "--xargs".equals(argv[i])) {
@@ -731,7 +728,7 @@ public class Main {
             String[] moreArgs = loadArgs(xargsPath, argv);
             String[] r = expandArgs(moreArgs);
             for(int j = 0; j < r.length; j++) {
-              v.addElement(r[j]);
+              v.add(r[j]);
             }
           } catch (RuntimeException e) {
             if(bIgnoreException) {
@@ -744,13 +741,13 @@ public class Main {
           throw new IllegalArgumentException("-xargs without argument");
         }
       } else {
-        v.addElement(argv[i]);
+        v.add(argv[i]);
       }
       i++;
     }
     String[] r = new String[v.size()];
 
-    v.copyInto(r);
+    v.toArray(r);
     return r;
   }
 
@@ -787,9 +784,15 @@ public class Main {
         String key = (String)e.nextElement();
         System.out.println(key + ": " + props.get(key));
       }
-      System.out.println("\n--- Framework properties ---");
-      for(int i = 0; i < FWPROPS.length; i++) {
-        System.out.println(FWPROPS[i] + ": " + framework.getBundleContext().getProperty(FWPROPS[i]));
+      
+      System.out.println("\n");
+      System.out.println("--- Framework properties ---");      
+
+      String keyStr = framework.getBundleContext().getProperty("org.knopflerfish.framework.bundleprops.keys");
+      String[] keys = Util.splitwords(keyStr != null ? keyStr : "", ",");
+
+      for(int i = 0; i < keys.length; i++) {
+        System.out.println(keys[i] + ": " + framework.getBundleContext().getProperty(keys[i]));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -829,7 +832,7 @@ public class Main {
       }
     }
 
-    String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+    String fwDirStr = Util.getFrameworkDir(configProps);
     // avoid getAbsoluteFile since some profiles don't have this
     File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
     File xargsFile  = null;
@@ -903,19 +906,18 @@ public class Main {
   /**
    * Default values for some system properties.
    */
-  String[][] defaultSysProps = new String[][] {
-    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
-    {FWDIR_PROP,    FWDIR_DEFAULT},
-    {CMDIR_PROP,    CMDIR_DEFAULT},
-    //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
-  };
+  Map defaultProps = new HashMap() {{
+    put(Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree");
+    put(CMDIR_PROP,    CMDIR_DEFAULT);
+    //    put("oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml");
+  }};
 
 
 
   /**
-   * Check current system properties and set default values
+   * Add default properties and set default values
    * if importand ones are missing. The default values
-   * are taken from the <tt>defaultSysProps</tt> variable.
+   * are taken from the <tt>defaultProps</tt> variable.
    *
    * <p>
    * The <tt>org.knopflerfish.gosg.jars</tt> property (if not defined)
@@ -924,34 +926,32 @@ public class Main {
    *
    * @see defaultSysProps
    */
-  void setDefaultSysProps() {
+  protected void addDefaultProps(Map props, Map defaultProps) {
 
-    // Make modifications to temporary dictionary and write
-    // it back in end of this method
-    Properties sysProps = System.getProperties();
-
-    println("setDefaultSysProps", 1);
-    for(int i = 0; i < defaultSysProps.length; i++) {
-      if(null == System.getProperty(defaultSysProps[i][0])) {
-        println("Using default " + defaultSysProps[i][0] + "=" +
-                defaultSysProps[i][1], 1);
-        sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
+    for(Iterator it = defaultProps.keySet().iterator(); it.hasNext();) {
+      String key = (String)it.next();
+      String val = (String)defaultProps.get(key);
+      if(!props.containsKey(key)) {
+        println("Using default " + key + "=" + val, 1);
+        props.put(key, val);
       } else {
-        println("system prop " + defaultSysProps[i][0] + "=" + System.getProperty(defaultSysProps[i][0]), 1);
+        println("system prop " + key + "=" + props.get(key), 1);
       }
     }
 
     // Set version info
-    if(null == System.getProperty(PRODVERSION_PROP)) {
-      sysProps.put(PRODVERSION_PROP, version);
+    if(null == props.get(PRODVERSION_PROP)) {
+      props.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty(JARDIR_PROP, null);
+    String jars = null; // (String)props.get(JARDIR_PROP);
 
-    if(jars == null || "".equals(jars)) {
+    if(!(jars == null || "".equals(jars))) {
+      println("old jars=" + jars, 1);
+    } else {
       String jarBaseDir = topDir + "jars";
       println("jarBaseDir=" + jarBaseDir, 1);
 
@@ -960,15 +960,15 @@ public class Main {
 
         // avoid FileNameFilter since some profiles don't have it
         String [] names = jarDir.list();
-        Vector v = new Vector();
+        List v = new ArrayList();
         for(int i = 0; i < names.length; i++) {
           File f = new File(jarDir, names[i]);
           if(f.isDirectory()) {
-            v.addElement(names[i]);
+            v.add(names[i]);
           }
         }
         String [] subdirs = new String[v.size()];
-        v.copyInto(subdirs);
+        v.toArray(subdirs);
 
         StringBuffer sb = new StringBuffer();
         sb.append("file:" + jarBaseDir + "/");
@@ -976,19 +976,10 @@ public class Main {
           sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
         }
         jars = sb.toString().replace('\\', '/');
-        sysProps.put(JARDIR_PROP, jars);
+        props.put(JARDIR_PROP, jars);
         println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
       }
     }
-
-    // Write back system properties
-    if(bWriteSysProps) {
-      mergeSystemProperties(sysProps);
-    }
-
-    // Write to framework properties. This should be the primary
-    // source for all code, including the framework itself.
-    // framework.props.setProperties(sysProps);
   }
 
   void mergeSystemProperties(Properties props) {
@@ -1010,22 +1001,22 @@ public class Main {
    * @return new, fixed args array.
    */
   String [] sanityArgs(String[] args) {
-    Vector v = new Vector();
+    List v = new ArrayList();
 
     // First, clone everything
     for(int i = 0; i < args.length; i++) {
-      v.addElement(args[i]);
+      v.add(args[i]);
     }
 
     // ...since this is really annoying
     if(!v.contains("-launch")) {
       println("adding last -launch command", 1);
-      v.addElement("-launch");
+      v.add("-launch");
     }
 
     // ...and copy back into array
     String [] arg2 = new String[v.size()];
-    v.copyInto(arg2);
+    v.toArray(arg2);
     return arg2;
   }
 
@@ -1038,23 +1029,23 @@ public class Main {
    * This expansion is necessarry to allow redefinition of a system
    * property after inclusion of xargs-file that sets the same property.
    *
-   * @param args The vector to add elements to.
+   * @param args The list to add elements to.
    * @param arg  The element to add.
    */
-  private void addArg(Vector args, String arg)
+  private void addArg(List args, String arg)
   {
     if (0==args.size()) {
-      args.addElement(arg);
+      args.add(arg);
     } else {
-      String lastArg = (String) args.lastElement();
+      String lastArg = (String) args.get(args.size()-1);
       if ("-xargs".equals(lastArg) || "--xargs".equals(lastArg)) {
         String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
-        args.removeElementAt(args.size()-1);
+        args.remove(args.size()-1);
         for (int i=0; i<exArgs.length; i++) {
-          args.addElement(exArgs[i]);
+          args.add(exArgs[i]);
         }
       } else {
-        args.addElement(arg);
+        args.add(arg);
       }
     }
   }
@@ -1107,7 +1098,7 @@ public class Main {
     }
 
     // out result
-    Vector v = new Vector();
+    List v = new ArrayList();
 
     try {
       BufferedReader in = null;
@@ -1116,9 +1107,11 @@ public class Main {
       println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
-      String fwDirStr = System.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+      String fwDirStr = Util.getFrameworkDir(configProps);
+
       // avoid getAbsoluteFile since some profiles don't have this
       File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
+
       // avoid getParentFile since some profiles don't have this
       String defDirStr = fwDir.getParent();
       File   defDir    = defDirStr != null ? new File(defDirStr) : null;
@@ -1129,7 +1122,7 @@ public class Main {
         File f = new File(new File(defDir,xargsPath).getAbsolutePath());
         println(" trying " +f, 5);
         if(f.exists()) {
-          println("Loading xargs file " + f, 0);
+          println("Loading xargs file " + f, 1);
           in = new BufferedReader(new FileReader(f));
         }
       }
@@ -1142,7 +1135,7 @@ public class Main {
         File f = new File(new File(xargsPath).getAbsolutePath());
         println(" trying " +f, 5);
         if(f.exists()) {
-          println("Loading xargs file " + f, 0);
+          println("Loading xargs file " + f, 1);
           in = new BufferedReader(new FileReader(f));
         }
       }
@@ -1252,7 +1245,7 @@ public class Main {
     }
     String [] args2 = new String[v.size()];
 
-    v.copyInto(args2);
+    v.toArray(args2);
 
     return args2;
   }
@@ -1268,7 +1261,7 @@ public class Main {
   }
 
   void println(String s, Bundle b) {
-    println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 0);
+    println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 1);
   }
 
   void println(String s, int level, Exception e) {

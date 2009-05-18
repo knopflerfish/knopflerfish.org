@@ -218,9 +218,9 @@ public class FrameworkContext  {
         = (BundleStorage) cons.newInstance(new Object[] { this });
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize storage "
-                                 +props.whichStorageImpl +": " +e);
+                                 +props.whichStorageImpl +": ", e);
     }
-    dataStorage       = Util.getFileStorage("data");
+    dataStorage       = Util.getFileStorage(this, "data");
     packages          = new Packages(this);
 
     listeners         = new Listeners(this, perm);
@@ -406,7 +406,7 @@ public class FrameworkContext  {
     }
 
     try {
-      FileTree storage = Util.getFileStorage(CLASSPATH_DIR);
+      FileTree storage = Util.getFileStorage(this, CLASSPATH_DIR);
       File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
       File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
       if (bootClasspath.length() > 0) {
