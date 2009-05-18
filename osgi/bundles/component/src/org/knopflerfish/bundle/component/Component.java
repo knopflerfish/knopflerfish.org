@@ -151,8 +151,7 @@ abstract class Component implements ServiceFactory {
     try {
 
       Bundle bundle = config.getBundle();
-      ClassLoader loader = Backdoor.getClassLoader(bundle);
-      klass = loader.loadClass(config.getImplementation());
+      klass = bundle.loadClass(config.getImplementation());
 
     } catch (ClassNotFoundException e) {
       if (Activator.log.doError())
