@@ -19,18 +19,46 @@
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
   </path>
 
-  <property name="do.bundle.custom.pre" value="true"/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
 
+  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
-   <copy file  = "${jars.dir}/bundleA_test/bundleA_test-1.0.0.jar"
-         todir = "resources"/>
-   <copy file  = "${jars.dir}/bundleB_test/bundleB_test-1.0.0.jar"
-         todir = "resources"/>
-   <copy file  = "${jars.dir}/bundleC_test/bundleC_test-1.0.0.jar"
-         todir = "resources"/>
-   <copy file  = "${jars.dir}/bundleF_test/bundleF_test-1.0.0.jar"
-         todir = "resources"/>
+    <antcall target="bundleA_test"/>
+    <antcall target="bundleB_test"/>
+    <antcall target="bundleC_test"/>
+    <antcall target="bundleF_test"/>
   </target>
+
+  <target name="bundleA_test">
+    <ant dir="test_target_bundles/bundleA_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_test"/>
+    </ant>
+  </target>
+  <target name="bundleB_test">
+    <ant dir="test_target_bundles/bundleB_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleB_test"/>
+    </ant>
+  </target>
+  <target name="bundleC_test">
+    <ant dir="test_target_bundles/bundleC_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleC_test"/>
+    </ant>
+  </target>
+  <target name="bundleF_test">
+    <ant dir="test_target_bundles/bundleF_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleF_test"/>
+    </ant>
+  </target>
+
 
   <property name="do.bundle.custom.post" value="true"/>
   <property name="xargs1" location="test-restart1.xargs"/>
