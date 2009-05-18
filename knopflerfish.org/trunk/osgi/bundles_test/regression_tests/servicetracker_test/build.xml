@@ -11,6 +11,7 @@
   <property name="bundle.build.impl" value="false"/>
   <property name="bundle.build.doc"  value="false"/>
 
+  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
   <property name="all.suffix.name"   value=""/>
 
   <property name="impl.pattern"
@@ -25,13 +26,15 @@
 
   <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
-   <antcall target="bundleS_test"/>
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="bundleS_test"/>
   </target>
 
   <target name="bundleS_test">
     <ant dir="test_target_bundles/bundleS_test" target="all"
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleS_test"/>
     </ant>
   </target>
 
