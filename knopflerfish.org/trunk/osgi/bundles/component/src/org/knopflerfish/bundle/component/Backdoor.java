@@ -82,18 +82,4 @@ public class Backdoor {
     return null;
   }
 
-  public static ClassLoader getClassLoader(Bundle bundle) {
-    try {
-      Class klass = bundle.getClass();
-      Method method = klass.getDeclaredMethod("getClassLoader", new Class[]{});
-      method.setAccessible(true);
-      return (ClassLoader)method.invoke(bundle, new Object[]{});
-      
-    } catch (Exception e) {
-      Activator.log.error("getClassLoader failed", e);
-      return null;
-    }
-  }
-  
-  
 }
