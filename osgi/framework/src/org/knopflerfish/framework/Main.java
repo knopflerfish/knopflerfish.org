@@ -198,7 +198,7 @@ public class Main {
 
   public FrameworkFactory getFrameworkFactory(String factoryClassName) {
     try {
-      println("getFrameworkFactory(" + factoryClassName + ")", 1);
+      println("getFrameworkFactory(" + factoryClassName + ")", 2);
       Class            clazz = Class.forName(factoryClassName);
       Constructor      cons  = clazz.getConstructor(new Class[] { });
       FrameworkFactory ff    = (FrameworkFactory)cons.newInstance(new Object[] { });
@@ -253,12 +253,12 @@ public class Main {
   void assertFramework() {
     if(ff == null) {
       ff = getFrameworkFactory();
-      println("created FrameworkFactory " + ff.getClass().getName(), 1);
+      println("Created FrameworkFactory " + ff.getClass().getName(), 1);
     }
     if(framework == null) {
       addDefaultProps(configProps, defaultProps);
       framework = ff.newFramework(configProps);
-      println("created Framework " + framework.getClass().getName(), 1);
+      println("Created Framework " + framework.getClass().getName(), 1);
     }
   }
 
@@ -953,7 +953,7 @@ public class Main {
       println("old jars=" + jars, 1);
     } else {
       String jarBaseDir = topDir + "jars";
-      println("jarBaseDir=" + jarBaseDir, 1);
+      println("jarBaseDir=" + jarBaseDir, 2);
 
       File jarDir = new File(jarBaseDir).getAbsoluteFile();
       if(jarDir.exists() && jarDir.isDirectory()) {
@@ -977,7 +977,7 @@ public class Main {
         }
         jars = sb.toString().replace('\\', '/');
         props.put(JARDIR_PROP, jars);
-        println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
+        println("scanned org.knopflerfish.gosg.jars=" + jars, 2);
       }
     }
   }
