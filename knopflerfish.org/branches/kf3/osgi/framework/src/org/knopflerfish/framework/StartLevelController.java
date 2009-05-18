@@ -84,7 +84,7 @@ public class StartLevelController
     this.framework = framework;
     bCompat = "true".equals(framework.props.getProperty(COMPAT_PROP, "false"));
 
-    storage = Util.getFileStorage("startlevel");
+    storage = Util.getFileStorage(framework, "startlevel");
   }
 
   void open() {
