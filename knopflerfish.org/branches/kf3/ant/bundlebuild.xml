@@ -98,8 +98,6 @@
             value="http://www.knopflerfish.org"/>
   <property name="bmfa.Bundle-SubversionURL"
             value="https://www.knopflerfish.org/svn/"/>
-  <property name="bmfa.Bundle-UUID"
-            value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
 
   <!-- Define all other known bundle mainfest attribute properties with -->
   <!-- the special empty value so that we do not end up with headers    -->
@@ -305,7 +303,10 @@
                     templateFile="${bundlemanifest.template}">
     </bundlemanifest>
 
-    <!-- Defines properties that depends on bundle manifest header values. -->
+    <!-- Defines default values for properties where the default value depends -->
+    <!-- on another bundle manifest header values, e.g., the bundle version.   -->
+    <property name="bmfa.Bundle-UUID"
+              value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
     <property name="impl.suffix"
               value="${impl.suffix.name}-${bmfa.Bundle-Version}"/>
     <property name="impl.jar"
