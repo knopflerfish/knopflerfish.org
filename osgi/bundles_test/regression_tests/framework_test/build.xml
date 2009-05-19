@@ -72,7 +72,10 @@
     <antcall target="resexp_test"/>
     <antcall target="resimp_test"/>
     <antcall target="require_bundle"/>
-
+    <antcall target="bundleA_lazy"/>
+    <antcall target="bundleA_lazy2"/>
+    <antcall target="bundleA_lazy3"/>
+    <antcall target="bundleA_lazy4"/>
   </target>
 
   <target name="bundleA_test">
@@ -319,6 +322,34 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/rb_C"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy">
+    <ant dir="test_target_bundles/bundleA_lazy" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy2">
+    <ant dir="test_target_bundles/bundleA_lazy2" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy2"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy3">
+    <ant dir="test_target_bundles/bundleA_lazy3" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy3"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy4">
+    <ant dir="test_target_bundles/bundleA_lazy4" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy4"/>
     </ant>
   </target>
 

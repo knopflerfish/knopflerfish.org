@@ -72,6 +72,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   Bundle buP2;
   Bundle buP3;
 
+  // Bundles for activation policy handling check
+  Bundle buAl;
+  Bundle buAl2;
+  Bundle buAl3;
+  Bundle buAl4;
+
   // the three event listeners
   FrameworkListener fListen;
   BundleListener bListen;
@@ -147,6 +153,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame210a());
     addTest(new Frame211a());
 
+    // Bundle activation policy
+    addTest(new Frame260a());
+    addTest(new Frame265a());
+    addTest(new Frame270a());
+    addTest(new Frame275a());
+    addTest(new Frame280a());
+    addTest(new Frame285a());
+
     addTest(new Cleanup());
   }
 
@@ -166,6 +180,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame005a extends FWTestCase {
 
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME005A start");
       Dictionary ai = bu.getHeaders();
 
       // check expected headers
@@ -214,6 +229,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame007a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME007A start");
       String[] NNList = new String[] {
         Constants.FRAMEWORK_OS_VERSION,
         Constants.FRAMEWORK_OS_NAME,
@@ -258,6 +274,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame010a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME010A start");
 
       long contextid = bu.getBundleId();
       out.println("CONTEXT ID: " + contextid);
@@ -275,6 +292,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :Setup start");
       if(nRunCount > 0) {
         fail("The FrameworkTestSuite CANNOT be run reliably more than once. Other test results in this suite are/may not be valid. Restart framework to retest  :Cleanup:FAIL");
       }
@@ -315,6 +333,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Cleanup extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :Cleanup start");
       Bundle[] bundles = new Bundle[] {
         buA ,
         buB ,
@@ -334,6 +353,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buP1 ,
         buP2 ,
         buP3 ,
+        buAl ,
+        buAl2 ,
+        buAl3 ,
+        buAl4 ,
       };
       for(int i = 0; i < bundles.length; i++) {
         try {  bundles[i].uninstall();  }
@@ -364,7 +387,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buP1 = null;
       buP2 = null;
       buP3 = null;
-
+      // Activation policy
+      buAl = null;
+      buAl2 = null;
+      buAl3 = null;
+      buAl4 = null;
 
 
       try   { bc.removeFrameworkListener(fListen); }
@@ -389,6 +416,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame018a extends FWTestCase {
 
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME018A start");
       try {
         Object obj = null;
         obj = bc.getService(null);
@@ -412,6 +440,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame019a extends FWTestCase {
 
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME019A start");
       Bundle bA = null;
       try {
         try {
@@ -457,6 +486,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame020a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME020A start");
       buA = null;
       boolean teststatus = true;
       try {
@@ -509,6 +539,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame025b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME025B start");
       boolean ungetStat = false;
 
       try {
@@ -581,6 +612,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame030b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME030B start");
       ServiceReference sr1
         = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
 
@@ -622,6 +654,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame035b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME035B start");
       try {
         buA.uninstall();
         assertTrue("BundleA should be UNINSTALLED",
@@ -660,6 +693,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame038b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME038B start");
       buD = null;
       try {
         buD = Util.installBundle(bc, "nonexisting_bundle_file.jar");
@@ -694,6 +728,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //    (hmmm...I don't think this is a correct test. /EW)
   class Frame040a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME040A start");
       boolean teststatus = true;
       boolean exception;
       buD = null;
@@ -746,6 +781,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame041a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME041A start");
       boolean teststatus = true;
       boolean exception;
       buD1 = null;
@@ -800,6 +836,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame045a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME045A start");
       ServiceListener sListen1 = new ServiceListener();
       String brokenFilter = "A broken LDAP filter";
 
@@ -824,6 +861,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame050a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME050A start");
       boolean teststatus = true;
       try {
         buB = Util.installBundle(bc, "bundleB_test-1.0.0.jar");
@@ -903,6 +941,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame055a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME055A start");
       boolean teststatus = true;
       try {
         buC = Util.installBundle(bc, "bundleC_test-1.0.0.jar");
@@ -1089,6 +1128,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame060a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME060A start");
       boolean teststatus = true;
       boolean lStat = false;
       boolean lStat2 = false;
@@ -1212,6 +1252,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame065b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME065B start");
       buE = null;
       try {
         buE = Util.installBundle(bc, "bundleE_test-1.0.0.jar");
@@ -1292,6 +1333,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame068a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME068A start");
       int n;
 
       // first check that correct number of files exists
@@ -1527,6 +1569,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame069a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME069A start");
       Hashtable texts = new Hashtable();
       texts.put("This is a resource in the bundle's res2.jar internal jar file",
                 Boolean.FALSE);
@@ -1576,6 +1619,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame070a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME070A start");
       boolean teststatus = true;
       boolean catchstatus = true;
       String jarA = "bundleA_test-1.0.0.jar";
@@ -1705,6 +1749,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame075a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME075A start");
       boolean teststatus = true;
       boolean exep1 = false;
       boolean exep2 = false;
@@ -1786,6 +1831,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame080a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME080A start");
       boolean teststatus = true;
       boolean catchstatus = true;
       buF = null;
@@ -1896,6 +1942,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame085b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME085B start");
       buH = null;
       clearEvents();
 
@@ -1998,6 +2045,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame110b extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME110B start");
       clearEvents();
       buJ = null;
 
@@ -2058,6 +2106,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame115a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME115A start");
 
       boolean teststatus = true;
       String filename = "testfile_1";
@@ -2127,6 +2176,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame120a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME120A start");
       boolean teststatus = true;
       String s1 = null;
       String s2 = null;
@@ -2271,6 +2321,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame125a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME125A start");
       boolean teststatus = true;
       String validName  = "valid.name.test";
       String validName1 = "valid.name.test1";
@@ -2553,6 +2604,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame130a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME130A start");
       boolean teststatus = true;
       String validClass = "valid.class.name";
       String validClass1 = "valid.class.name.1";
@@ -2802,6 +2854,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame160a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME160A start");
       boolean pass = true;
 
       Bundle buR = null;
@@ -2857,6 +2910,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame161a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME161A start");
       boolean pass = true;
 
       String resourceName = "java/lang/Thread.class";
@@ -2890,6 +2944,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame162a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME162A start");
       boolean pass = true;
 
       // The Any class have been present since 1.2
@@ -2923,6 +2978,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame163a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME163A start");
       boolean pass = true;
 
       // The Context class have been present in Java SE since 1.3
@@ -2959,6 +3015,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame164a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME164A start");
 
       // Use the Util-class as test target.
       final String resourceName
@@ -3005,6 +3062,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame170a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME170A start");
+
       ServiceRegistration tsr = null;
       Bundle buQ = null;
       Bundle buQ1 = null;
@@ -3194,6 +3253,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame175a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME175A start");
+
       buR2 = null;
       boolean teststatus = true;
       try {
@@ -3280,6 +3341,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame180a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME180A start");
+
       buR3 = null;
       boolean teststatus = true;
       try {
@@ -3350,6 +3413,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame181a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME181A start");
+
       buR3 = null;
       boolean teststatus = true;
       try {
@@ -3421,6 +3486,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame185a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME185A start");
+
       buR4 = null;
       boolean teststatus = true;
       try {
@@ -3492,6 +3559,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame186a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME186A start");
+
       buR4 = null;
       boolean teststatus = true;
       try {
@@ -3562,6 +3631,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame190a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME190A start");
+
       buR5 = null;
       boolean teststatus = true;
       try {
@@ -3692,6 +3763,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame210a extends FWTestCase {
     public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME210A start");
+
       boolean teststatus = true;
 
       RegServThread rst = null;
@@ -3756,93 +3829,1009 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   class Frame211a extends FWTestCase {
-            public void runTest() throws Throwable {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME211A start");
 
-            //existing directory
-                Enumeration enume = buF.getEntryPaths("/");
-                if(enume == null ){
-                          fail("GetEntryPaths did not retrieve the correct number of elements");
-                    }
-                int i = 0;
-                while(enume.hasMoreElements()){
-                  i++;
-                  enume.nextElement();
-                }
-                if(i != 3 && i != 2){ //manifest gets skipped
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
+      //existing directory
+      Enumeration enume = buF.getEntryPaths("/");
+      if(enume == null ){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
+      int i = 0;
+      while(enume.hasMoreElements()){
+        i++;
+        enume.nextElement();
+      }
+      if(i != 3 && i != 2){ //manifest gets skipped
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
 
-                //another existing directory
-                enume = buF.getEntryPaths("/org/knopflerfish/bundle/");
-                if(enume == null ){
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
-                i = 0;
-                while(enume.hasMoreElements()){
-                  i++;
-                  enume.nextElement();
-                }
-                if(i != 1 ){
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
+      //another existing directory
+      enume = buF.getEntryPaths("/org/knopflerfish/bundle/");
+      if(enume == null ){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
+      i = 0;
+      while(enume.hasMoreElements()){
+        i++;
+        enume.nextElement();
+      }
+      if(i != 1 ){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
 
-                //existing file, non-directory, ending with slash
-                enume = buF.getEntryPaths("/BundF.class/");
-                if(enume != null ){
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
+      //existing file, non-directory, ending with slash
+      enume = buF.getEntryPaths("/BundF.class/");
+      if(enume != null ){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
 
-            //existing file, non-directory
-                enume = buF.getEntryPaths("/BundF.class");
-                if(enume != null ){
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
+      //existing file, non-directory
+      enume = buF.getEntryPaths("/BundF.class");
+      if(enume != null ){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
 
-                //non-existing file
-                enume = buF.getEntryPaths("/e");
-                if(enume != null){
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
+      //non-existing file
+      enume = buF.getEntryPaths("/e");
+      if(enume != null){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
 
-                //dir with only one entry
-                enume = buF.getEntryPaths("/OSGI-INF");
-                if(enume == null ){
-                        fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
-                i = 0;
-                while(enume.hasMoreElements()){
-                  i++;
-                  enume.nextElement();
-                }
-                if(i != 1){
-                  fail("GetEntryPaths did not retrieve the correct number of elements");
-                }
-
-
-                if (buF != null) {
-                        try {
-                            buF.uninstall();
-                        }
-                        catch (BundleException ignore) {
-                        }
-                }
-
-                Dictionary dict = buF.getHeaders();
-                if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleF_test")){
-                  fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME211A:FAIL");
-                }
+      //dir with only one entry
+      enume = buF.getEntryPaths("/OSGI-INF");
+      if(enume == null ){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
+      i = 0;
+      while(enume.hasMoreElements()){
+        i++;
+        enume.nextElement();
+      }
+      if(i != 1){
+        fail("GetEntryPaths did not retrieve the correct number of elements");
+      }
 
 
+      if (buF != null) {
+        try {
+          buF.uninstall();
+        }
+        catch (BundleException ignore) {
+        }
+      }
 
-                dict = buF.getHeaders("");
-                if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("%description")){
-                  fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have raw value, " + dict.get(Constants.BUNDLE_DESCRIPTION) + ":FRAME211A:FAIL");
-                }
+      Dictionary dict = buF.getHeaders();
+      if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleF_test")){
+        fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME211A:FAIL");
+      }
 
 
 
-            }
+      dict = buF.getHeaders("");
+      if(!dict.get(Constants.BUNDLE_DESCRIPTION).equals("%description")){
+        fail("framework test bundle, " +  Constants.BUNDLE_DESCRIPTION + " header does not have raw value, " + dict.get(Constants.BUNDLE_DESCRIPTION) + ":FRAME211A:FAIL");
+      }
+    }
   }
+
+  final static String SERVICE_CLASS_BUNDLE_A_LAZY
+    = "org.knopflerfish.service.bundleA_lazy.BundleA";
+
+  public final static String [] HELP_FRAME260A =  {
+    "Start bundleA_lazy according to its activation policy, check that ",
+    "it gets state STARTING. Then start the bundle eagerly and check that ",
+    "its state is ACTIVE and that the service it registers exist"
+  };
+
+  class Frame260a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME260A start");
+
+      clearEvents();
+      buAl = null;
+      try {
+        buAl = Util.installBundle(bc, "bundleA_lazy-1.0.0.jar");
+        assertTrue("BundleA_lazy should be INSTALLED",
+                   buAl.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME260A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME260A:FAIL");
+      }
+
+      // Start lazy activation
+      try {
+        out.println("Start using bundles activation policy (lazy)");
+        buAl.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA should be STARTING",
+                   buAl.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME260A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME260A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME260A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Starting using lazy activation a second time should be ignored.
+      try {
+        out.println("Start once more using bundles activation policy (lazy)");
+        buAl.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA should be STARTING",
+                   buAl.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME260A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME260A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME260A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Check that bundleA_lazy has not yet registered the expected service
+      ServiceReference sr1
+        = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNull("FRAME260A: expected service not registered.", sr1);
+
+      // Trigger actual start of the lazy bundle by requesting a
+      // transient start of it.
+      try {
+        out.println("Start eager, transient");
+        buAl.start(Bundle.START_TRANSIENT);
+        assertTrue("BundleA should be ACTIVE",
+                   buAl.getState() == Bundle.ACTIVE);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME260A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME260A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME260A:FAIL");
+      }
+
+      // Check that bundleA_lazy registered the expected service
+      sr1 = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNotNull("FRAME260A: expected service not registered.", sr1);
+
+      try {
+        Object o1 = bc.getService(sr1);
+        assertNotNull("no service object found.", o1);
+
+        try {
+          assertTrue("Service unget should return true",
+                     bc.ungetService(sr1));
+        } catch (IllegalStateException ise) {
+          out.println("Unexpected illegal state exception: "+ise);
+          ise.printStackTrace();
+          fail("framework test bundle, ungetService exception "
+               +ise +":FRAME260A:FAIL");
+        }
+      } catch (SecurityException sek) {
+        out.println("Unexpected security exception: "+sek);
+        sek.printStackTrace();
+        fail("framework test bundle, getService " + sek + ":FRAME260A:FAIL");
+      }
+
+      try {
+        buAl.stop();
+        assertTrue("BundleA_lazy should be RESOLVED",
+                   buAl.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("stop bundle" +ise);
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("stop bundle " +be);
+      }
+
+
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED,        buAl),
+        new BundleEvent(BundleEvent.RESOLVED,         buAl),
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
+        new BundleEvent(BundleEvent.STARTED,          buAl),
+        new BundleEvent(BundleEvent.STOPPED,          buAl)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buAl),
+        new BundleEvent(BundleEvent.STOPPING, buAl)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME260A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME265A =  {
+    "Restart bundleA_lazy according to its activation policy, check that ",
+    "it gets state STARTING. Then load a class from it, check that is started",
+    "and its state is ACTIVE and that the service it registers exist"
+  };
+
+  class Frame265a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME265A start");
+
+      clearEvents();
+      assertTrue("BundleA_lazy should be RESOLVED",
+                 buAl.getState() == Bundle.RESOLVED);
+
+      // Start lazy activation
+      try {
+        buAl.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA should be STARTING",
+                   buAl.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME265A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME265A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME265A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Check that bundleA_lazy has not yet registered the expected service
+      ServiceReference sr1
+        = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNull("FRAME265A: expected service not registered.", sr1);
+
+      // Trigger actual start of the lazy bundle by loading a class
+      // from it.
+      try {
+        out.println("loading class, " +SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be ACTIVE",
+                   buAl.getState() == Bundle.ACTIVE);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME265A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME265A:FAIL");
+      }
+
+      // Check that bundleA_lazy registered the expected service
+      sr1 = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNotNull("FRAME265A: expected service not registered.", sr1);
+
+      try {
+        Object o1 = bc.getService(sr1);
+        assertNotNull("no service object found.", o1);
+
+        try {
+          assertTrue("Service unget should return true",
+                     bc.ungetService(sr1));
+        } catch (IllegalStateException ise) {
+          out.println("Unexpected illegal state exception: "+ise);
+          ise.printStackTrace();
+          fail("framework test bundle, ungetService exception "
+               +ise +":FRAME265A:FAIL");
+        }
+      } catch (SecurityException sek) {
+        out.println("Unexpected security exception: "+sek);
+        sek.printStackTrace();
+        fail("framework test bundle, getService " + sek + ":FRAME265A:FAIL");
+      }
+
+      try {
+        buAl.stop();
+        assertTrue("BundleA_lazy should be RESOLVED",
+                   buAl.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("stop bundle" +ise);
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("stop bundle " +be);
+      }
+
+
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
+        new BundleEvent(BundleEvent.STARTED,          buAl),
+        new BundleEvent(BundleEvent.STOPPED,          buAl)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buAl),
+        new BundleEvent(BundleEvent.STOPPING, buAl)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME265A:PASS");
+    }
+  }
+
+  public final static String [] HELP_FRAME270A =  {
+    "Start newly installed bundleA_lazy according to its activation policy, ",
+    "check that it gets state STARTING. Then load a class from it, check that ",
+    "is started and its state is ACTIVE and that the service it registers exist"
+  };
+
+  class Frame270a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME270A start");
+
+      if (buAl != null) {
+        try {
+          buAl.uninstall();
+        }
+        catch (BundleException ignore) {
+        }
+        buAl = null;
+      }
+      clearEvents();
+
+      try {
+        buAl = Util.installBundle(bc, "bundleA_lazy-1.0.0.jar");
+        assertTrue("BundleA_lazy should be INSTALLED",
+                   buAl.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME270A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME270A:FAIL");
+      }
+
+      // Start lazy activation
+      try {
+        buAl.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA should be STARTING",
+                   buAl.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME270A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME270A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME270A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Check that bundleA_lazy has not yet registered the expected service
+      ServiceReference sr1
+        = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNull("FRAME270A: expected service not registered.", sr1);
+
+      // Trigger actual start of the lazy bundle by loading a class
+      // from it.
+      try {
+        out.println("loading class, " +SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be ACTIVE",
+                   buAl.getState() == Bundle.ACTIVE);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME270A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME270A:FAIL");
+      }
+
+      // Check that bundleA_lazy registered the expected service
+      sr1 = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNotNull("FRAME270A: expected service not registered.", sr1);
+
+      try {
+        Object o1 = bc.getService(sr1);
+        assertNotNull("no service object found.", o1);
+
+        try {
+          assertTrue("Service unget should return true",
+                     bc.ungetService(sr1));
+        } catch (IllegalStateException ise) {
+          out.println("Unexpected illegal state exception: "+ise);
+          ise.printStackTrace();
+          fail("framework test bundle, ungetService exception "
+               +ise +":FRAME270A:FAIL");
+        }
+      } catch (SecurityException sek) {
+        out.println("Unexpected security exception: "+sek);
+        sek.printStackTrace();
+        fail("framework test bundle, getService " + sek + ":FRAME270A:FAIL");
+      }
+
+      try {
+        buAl.stop();
+        assertTrue("BundleA_lazy should be RESOLVED",
+                   buAl.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("stop bundle" +ise);
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("stop bundle " +be);
+      }
+
+
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED,        buAl),
+        new BundleEvent(BundleEvent.RESOLVED,         buAl),
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
+        new BundleEvent(BundleEvent.STARTED,          buAl),
+        new BundleEvent(BundleEvent.STOPPED,          buAl)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buAl),
+        new BundleEvent(BundleEvent.STOPPING, buAl)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME270A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME275A =  {
+    "Start newly installed bundleA_lazy according to its activation policy, ",
+    "check that it gets state STARTING. Then load a class from it that shall ",
+    "not trigger activation, check that the bundle is still in state STARTING.",
+    " Load a class that shall trigger activation and check that the state ",
+    "changes to ACTIVE and that the service it registers exist"
+  };
+
+  class Frame275a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME275A start");
+
+      clearEvents();
+      try {
+        buAl2 = Util.installBundle(bc, "bundleA_lazy2-1.0.0.jar");
+        assertTrue("BundleA_lazy2 should be INSTALLED",
+                   buAl2.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME275A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME275A:FAIL");
+      }
+
+      // Start lazy activation
+      try {
+        buAl2.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA_lazy2 should be STARTING",
+                   buAl2.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME275A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME275A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME275A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Check that bundleA_lazy has not yet registered the expected service
+      ServiceReference sr1
+        = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNull("FRAME275A: expected service not registered.", sr1);
+
+      // Load a class that shall not trigger activation. I.e., a class
+      // in a package that that is not listed in the includes
+      // directive.
+      try {
+        out.println("### framework test bundle :FRAME275A "
+                    +"loading non-activation triggering class");
+        String cn = "org.knopflerfish.bundle.bundleA_lazy.BundleActivator";
+        Class clz = buAl2.loadClass(cn);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be STARTING",
+                   buAl2.getState() == Bundle.STARTING);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME275A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME275A:FAIL");
+      }
+
+      // Trigger actual start of the lazy bundle by loading a class
+      // belonging to a package that is listed in the includes
+      // directive from it.
+      try {
+        out.println("loading class that shall trigger activation, "
+                    +SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class clz = buAl2.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be ACTIVE",
+                   buAl2.getState() == Bundle.ACTIVE);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME275A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME275A:FAIL");
+      }
+
+      // Check that bundleA_lazy2 registered the expected service
+      sr1 = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNotNull("FRAME275A: expected service not registered.", sr1);
+
+      try {
+        Object o1 = bc.getService(sr1);
+        assertNotNull("no service object found.", o1);
+
+        try {
+          assertTrue("Service unget should return true",
+                     bc.ungetService(sr1));
+        } catch (IllegalStateException ise) {
+          out.println("Unexpected illegal state exception: "+ise);
+          ise.printStackTrace();
+          fail("framework test bundle, ungetService exception "
+               +ise +":FRAME275A:FAIL");
+        }
+      } catch (SecurityException sek) {
+        out.println("Unexpected security exception: "+sek);
+        sek.printStackTrace();
+        fail("framework test bundle, getService " + sek + ":FRAME275A:FAIL");
+      }
+
+      try {
+        buAl2.stop();
+        assertTrue("BundleA_lazy should be RESOLVED",
+                   buAl2.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("stop bundle" +ise);
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("stop bundle " +be);
+      }
+
+
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED,        buAl2),
+        new BundleEvent(BundleEvent.RESOLVED,         buAl2),
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl2),
+        new BundleEvent(BundleEvent.STARTED,          buAl2),
+        new BundleEvent(BundleEvent.STOPPED,          buAl2)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buAl2),
+        new BundleEvent(BundleEvent.STOPPING, buAl2)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME275A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME280A =  {
+    "Start newly installed bundleA_lazy according to its activation policy, ",
+    "check that it gets state STARTING. Then load a class from it that shall ",
+    "not trigger activation (via excludes directive), this class depends on ",
+    "another class thatt will be loaded and is not mentioned in either the ",
+    "includes nor the excludes directive. Thus this second class will will ",
+    "trigger activation. Check that the state changes to ACTIVE and that the ",
+    "service it registers becomes available."
+  };
+
+  class Frame280a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME280A start");
+
+      clearEvents();
+      try {
+        buAl3 = Util.installBundle(bc, "bundleA_lazy3-1.0.0.jar");
+        assertTrue("BundleA_lazy2 should be INSTALLED",
+                   buAl3.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME280A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME280A:FAIL");
+      }
+
+      // Start lazy activation
+      try {
+        buAl3.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA_lazy2 should be STARTING",
+                   buAl3.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME280A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME280A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME280A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Check that bundleA_lazy has not yet registered the expected service
+      ServiceReference sr1
+        = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNull("FRAME280A: expected service not registered.", sr1);
+
+      // Load a class that shall not trigger activation. I.e., a class
+      // in a package that that is not listed in the includes
+      // directive.
+      try {
+        String cn = "org.knopflerfish.bundle.bundleA_lazy.BundleActivator";
+        out.println("loading non-activation triggering class, "+cn);
+        out.println("that triggers loading of a second class (the "
+                    +"org.osgi.framework.BundleActivator class) "
+                    +"which will trigger activation.");
+        Class clz = buAl3.loadClass(cn);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be ACTIVE",
+                   buAl3.getState() == Bundle.ACTIVE);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME280A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME280A:FAIL");
+      }
+
+      // Check that bundleA_lazy2 registered the expected service
+      sr1 = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNotNull("FRAME280A: expected service not registered.", sr1);
+
+      try {
+        Object o1 = bc.getService(sr1);
+        assertNotNull("no service object found.", o1);
+
+        try {
+          assertTrue("Service unget should return true",
+                     bc.ungetService(sr1));
+        } catch (IllegalStateException ise) {
+          out.println("Unexpected illegal state exception: "+ise);
+          ise.printStackTrace();
+          fail("framework test bundle, ungetService exception "
+               +ise +":FRAME280A:FAIL");
+        }
+      } catch (SecurityException sek) {
+        out.println("Unexpected security exception: "+sek);
+        sek.printStackTrace();
+        fail("framework test bundle, getService " + sek + ":FRAME280A:FAIL");
+      }
+
+      try {
+        buAl3.stop();
+        assertTrue("BundleA_lazy should be RESOLVED",
+                   buAl3.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("stop bundle" +ise);
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("stop bundle " +be);
+      }
+
+
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED,        buAl3),
+        new BundleEvent(BundleEvent.RESOLVED,         buAl3),
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl3),
+        new BundleEvent(BundleEvent.STARTED,          buAl3),
+        new BundleEvent(BundleEvent.STOPPED,          buAl3)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buAl3),
+        new BundleEvent(BundleEvent.STOPPING, buAl3)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME280A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME285A =  {
+    "Start newly installed bundleA_lazy according to its activation policy, ",
+    "check that it gets state STARTING. Then load a class from it that shall ",
+    "not trigger activation (via excludes directive), check that the ",
+    "bundle is still in state STARTING. Load a class that shall trigger ",
+    "activation (via includes directive) and check that the state ",
+    "changes to ACTIVE and that the service it registers exist"
+  };
+
+  class Frame285a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME285A start");
+
+      clearEvents();
+      try {
+        buAl4 = Util.installBundle(bc, "bundleA_lazy4-1.0.0.jar");
+        assertTrue("BundleA_lazy2 should be INSTALLED",
+                   buAl4.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME285A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME285A:FAIL");
+      }
+
+      // Start lazy activation
+      try {
+        buAl4.start(Bundle.START_ACTIVATION_POLICY);
+        assertTrue("BundleA_lazy2 should be STARTING",
+                   buAl4.getState() == Bundle.STARTING);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME285A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME285A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME285A:FAIL");
+      }
+
+      // Sleep a while to stabilize things.
+      try {
+        Thread.sleep(eventDelay);
+      } catch (Exception e) {
+        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+      }
+
+      // Check that bundleA_lazy has not yet registered the expected service
+      ServiceReference sr1
+        = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNull("FRAME285A: expected service not registered.", sr1);
+
+      // Load a class that shall not trigger activation. I.e., a class
+      // in a package that that is not listed in the includes
+      // directive.
+      try {
+        String cn = "org.knopflerfish.bundle.bundleA_lazy.BundleActivator";
+        out.println("loading non-activation triggering class, "+cn);
+        Class clz = buAl4.loadClass(cn);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be STARTING",
+                   buAl4.getState() == Bundle.STARTING);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME285A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME285A:FAIL");
+      }
+
+      // Trigger actual start of the lazy bundle by loading a class
+      // belonging to a package that is listed in the includes
+      // directive from it.
+      try {
+        out.println("loading class that shall trigger activation, "
+                    +SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class clz = buAl4.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        assertNotNull("Service interface class should be loaded.", clz);
+        assertTrue("BundleA should be ACTIVE",
+                   buAl4.getState() == Bundle.ACTIVE);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME285A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME285A:FAIL");
+      }
+
+      // Check that bundleA_lazy2 registered the expected service
+      sr1 = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
+      assertNotNull("FRAME285A: expected service not registered.", sr1);
+
+      try {
+        Object o1 = bc.getService(sr1);
+        assertNotNull("no service object found.", o1);
+
+        try {
+          assertTrue("Service unget should return true",
+                     bc.ungetService(sr1));
+        } catch (IllegalStateException ise) {
+          out.println("Unexpected illegal state exception: "+ise);
+          ise.printStackTrace();
+          fail("framework test bundle, ungetService exception "
+               +ise +":FRAME285A:FAIL");
+        }
+      } catch (SecurityException sek) {
+        out.println("Unexpected security exception: "+sek);
+        sek.printStackTrace();
+        fail("framework test bundle, getService " + sek + ":FRAME285A:FAIL");
+      }
+
+      try {
+        buAl4.stop();
+        assertTrue("BundleA_lazy should be RESOLVED",
+                   buAl4.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise ) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("stop bundle" +ise);
+      } catch (BundleException be ) {
+        out.println("Unexpected bundle exception: "+be);
+        be.printStackTrace();
+        fail("stop bundle " +be);
+      }
+
+
+      // check the listeners for events
+      final BundleEvent[] buEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.INSTALLED,        buAl4),
+        new BundleEvent(BundleEvent.RESOLVED,         buAl4),
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl4),
+        new BundleEvent(BundleEvent.STARTED,          buAl4),
+        new BundleEvent(BundleEvent.STOPPED,          buAl4)
+      };
+      final ServiceEvent[] seEvts = new ServiceEvent[]{
+        new ServiceEvent(ServiceEvent.REGISTERED, sr1),
+        new ServiceEvent(ServiceEvent.UNREGISTERING, sr1)
+      };
+      assertTrue("Unexpected events",
+                 checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
+
+      final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.STARTING, buAl4),
+        new BundleEvent(BundleEvent.STOPPING, buAl4)
+      };
+      assertTrue("Unexpected events", checkSyncListenerEvents(syncBuEvts));
+
+      out.println("### framework test bundle :FRAME285A:PASS");
+    }
+  }
+
+
 
   // General status check functions
   // prevent control characters to be printed

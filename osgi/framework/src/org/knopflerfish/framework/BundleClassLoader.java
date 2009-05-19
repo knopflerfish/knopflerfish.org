@@ -349,8 +349,8 @@ final public class BundleClassLoader extends ClassLoader {
       BundleImpl b = getBundle();
       if (b.triggersActivationCls(name)) {
         if (debug.lazyActivation) {
-          debug.println(this +" lazy activation of #" +b.id +" triggerd by: "
-                        +name);
+          debug.println(this +" lazy activation of #" +b.id
+                        +" triggered by loadClass(" +name +")");
         }
 
         ArrayList bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
@@ -680,7 +680,7 @@ final public class BundleClassLoader extends ClassLoader {
     boolean initiator = false;
     ArrayList bundlesToActivate = null;
 
-    if (action == classSearch && b.triggersActivationPkg(pkg)) {
+    if (action == classSearch) {
       boolean bundlePresent = false;
 
       bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
@@ -697,11 +697,11 @@ final public class BundleClassLoader extends ClassLoader {
           }
         }
       }
-      if (!bundlePresent) {
+      if (!bundlePresent && b.triggersActivationPkg(pkg)) {
         bundlesToActivate.add(b);
         if (debug.lazyActivation) {
           debug.println(this +" lazy activation of #" +b.id
-                        +" triggerd by load of: " +name);
+                        +" triggered by searchFor(" +name +")");
         }
       }
     }
