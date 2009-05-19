@@ -205,9 +205,9 @@ public class BundleImpl implements Bundle {
   private HashSet lazyExcludes;
 
 
-  /** True while the activator's start method is running. */
+  /** True during the finalization of an activation. */
   private boolean activating;
-  /** True while the activator's stop method is running. */
+  /** True during during the state change from active to resolved. */
   private boolean deactivating;
 
 
@@ -385,6 +385,10 @@ public class BundleImpl implements Bundle {
     case RESOLVED:
       //6:
       state = STARTING;
+      activating = true;
+      if (fwCtx.props.debug.lazyActivation) {
+        fwCtx.props.debug.println("activating #" +getBundleId());
+      }
       //7:
       if (fwCtx.active) {
         fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING,
@@ -456,9 +460,7 @@ public class BundleImpl implements Bundle {
         Class c = getClassLoader().loadClass(ba.trim());
         bactivator = (BundleActivator)c.newInstance();
 
-        activating = true;
         bactivator.start(bundleContext);
-        activating = false;
         bStarted = true;
       } else {
         // If the Main-Class manifest attribute is set and this
@@ -483,9 +485,7 @@ public class BundleImpl implements Bundle {
                 }
                 Class mainClass = getClassLoader().loadClass(mc.trim());
                 bactivator = new MainClassBundleActivator(mainClass);
-                activating = true;
                 bactivator.start(bundleContext);
-                activating = false;
                 bStarted = true;
                 break;
               }
@@ -509,6 +509,9 @@ public class BundleImpl implements Bundle {
       throw new BundleException("BundleActivator start failed", t);
     } finally {
       activating = false;
+      if (fwCtx.props.debug.lazyActivation) {
+        fwCtx.props.debug.println("activating #" +getBundleId() +" completed.");
+      }
       if (fwCtx.props.SETCONTEXTCLASSLOADER) {
         Thread.currentThread().setContextClassLoader(oldLoader);
       }
@@ -571,19 +574,19 @@ public class BundleImpl implements Bundle {
 
     //5:
     state = STOPPING;
+    deactivating = true;
+
     //6:
     fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
 
     //7:
     if (wasStarted && bactivator != null) {
-      deactivating = true;
       try {
         bactivator.stop(bundleContext);
       } catch (Throwable e) {
         res = new BundleException("Bundle.stop: BundleActivator stop failed",
                                   e);
       } finally {
-        deactivating = false;
         bactivator = null;
       }
     }
@@ -591,6 +594,7 @@ public class BundleImpl implements Bundle {
     bundleContext = null;
     //8-10:
     removeBundleResources();
+    deactivating = false;
     if (UNINSTALLED==state) {
       //11:
       res = new BundleException("Bundle uninstalled during stop()");
@@ -1605,7 +1609,6 @@ public class BundleImpl implements Bundle {
         }
       }
     }
-
   }
 
 
@@ -2296,12 +2299,12 @@ public class BundleImpl implements Bundle {
   }
 
   boolean triggersActivationPkg(String pkg) {
-    return state == Bundle.STARTING && lazyActivation
+    return state == Bundle.STARTING && !activating && lazyActivation
       && isPkgActivationTrigger(pkg);
   }
 
   boolean triggersActivationCls(String name) {
-    if (state == Bundle.STARTING && lazyActivation) {
+    if (state == Bundle.STARTING && !activating && lazyActivation) {
       String pkg = "";
       int pos = name.lastIndexOf('.');
       if (pos != -1) {

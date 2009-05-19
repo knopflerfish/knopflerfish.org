@@ -30,6 +30,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   test bundles are now built using the same build system as all other
   bundles.
 
+  Test target bundles (bundles installed and manipulated by a
+  test-suite) have been moved from the
+  "osgi/bundles_test/regression_tests" directory into a subdirectory
+  named "test_target_bundles" under the test-suite bundle that uses
+  the test target bundle. This makes the relation between test target
+  bundles and the test-suite it belongs to visible, and it also
+  simplifies the build process when building a particular test-suite.
+
   Some minor changes have been made to the bundle-info task. It is
   now possible to turn of the build error triggered by a missing
   bundle activator by setting the ant property
