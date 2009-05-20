@@ -55,26 +55,28 @@ import org.osgi.framework.*;
 public class FWProps  {
 
   public Debug debug;
-  
+
   /**
-   * Name of special property containing a comma-separated list of all other property names.
+   * Name of special property containing a comma-separated list of all
+   * other property names.
    */
   public static final String KEY_KEYS = "org.knopflerfish.framework.bundleprops.keys";
 
   public final static String TRUE   = "true";
   public final static String FALSE  = "false";
 
-  // If set to true, use strict rules for loading classes from the boot class loader.
-  // If false, accept class loading from the boot class path from classes themselves
-  // on the boot class, but which incorrectly assumes they may access all of the boot
-  // classes on any class loader (such as the bundle class loader).
-  // 
-  // Setting this to TRUE will, for example, result in broken serialization on the Sun JVM
-  // It's debatable what is the correct OSGi R4 behavior.
-  public boolean STRICTBOOTCLASSLOADING = 
-    FWProps.TRUE.equals(System.getProperty("org.knopflerfish.framework.strictbootclassloading", FWProps.FALSE));
+  // If set to true, use strict rules for loading classes from the
+  // boot class loader.  If false, accept class loading from the boot
+  // class path from classes themselves on the boot class, but which
+  // incorrectly assumes they may access all of the boot classes on
+  // any class loader (such as the bundle class loader).
+  //
+  // Setting this to TRUE will, for example, result in broken
+  // serialization on the Sun JVM It's debatable what is the correct
+  // OSGi R4 behavior.
+  public boolean STRICTBOOTCLASSLOADING;
 
-  // EXIT_ON_SHUTDOWN and USING_WRAPPER_SCRIPT  must be initialized 
+  // EXIT_ON_SHUTDOWN and USING_WRAPPER_SCRIPT  must be initialized
   // before initProperties(). Thus, they are *not* possible
   // to set on a per-framework basis (which wouldn't make sense anyway).
   final boolean EXIT_ON_SHUTDOWN =
@@ -90,25 +92,20 @@ public class FWProps  {
    * this map.
    */
   protected Map/*<String, String>*/ props = new TreeMap/*<String, String>*/();
-  
+
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
-  public boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING =
-    TRUE.equals(System.getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
-                                   TRUE));
-  
+  public boolean UNREGISTERSERVICE_VALID_DURING_UNREGISTERING = true;
+
   // If set to true, set the bundle startup thread's context class
   // loader to the bundle class loader. This is useful for tests
   // but shouldn't really be used in production.
-  public boolean SETCONTEXTCLASSLOADER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.setcontextclassloader", FALSE));
+  public boolean SETCONTEXTCLASSLOADER = false;
 
-  public boolean REGISTERSERVICEURLHANDLER =
-    TRUE.equals(System.getProperty("org.knopflerfish.osgi.registerserviceurlhandler", TRUE));
+  public boolean REGISTERSERVICEURLHANDLER = true;
 
 
-  
   boolean bIsMemoryStorage /*= false*/;
 
   String whichStorageImpl;
@@ -168,20 +165,36 @@ public class FWProps  {
    * It is safe if JSR 133 is included in the running JRE.
    * I.e., for Java SE if version is 1.5 or higher.
    */
-  public final static boolean isDoubleCheckedLockingSafe
-    = "true".equals(System.getProperty
-                    ("org.knopflerfish.framework.is_doublechecked_locking_safe",
-                     (javaVersionMajor>=1 && javaVersionMinor>=5
-                      ? "true" : "false")));
+  public boolean isDoubleCheckedLockingSafe;
 
 
   FrameworkContext parent;
-  
+
   public FWProps(Map initProps, FrameworkContext parent) {
-    this.parent = parent; 
-    
+    this.parent = parent;
+
     // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
     initProperties(initProps);
+
+    // Set up some instance variables that depends on the properties
+    UNREGISTERSERVICE_VALID_DURING_UNREGISTERING = FWProps.TRUE.equals
+      (getProperty("org.knopflerfish.servicereference.valid.during.unregistering",
+                   FWProps.TRUE));
+    SETCONTEXTCLASSLOADER = FWProps.TRUE.equals
+      (getProperty("org.knopflerfish.osgi.setcontextclassloader",
+                   FWProps.FALSE));
+    REGISTERSERVICEURLHANDLER = FWProps.TRUE.equals
+      (getProperty("org.knopflerfish.osgi.registerserviceurlhandler",
+                   FWProps.TRUE));
+    STRICTBOOTCLASSLOADING = FWProps.TRUE.equals
+      (getProperty("org.knopflerfish.framework.strictbootclassloading",
+                   FWProps.FALSE));
+
+    isDoubleCheckedLockingSafe = FWProps.TRUE.equals
+      (getProperty("org.knopflerfish.framework.is_doublechecked_locking_safe",
+                   (javaVersionMajor>=1 && javaVersionMinor>=5
+                    ? FWProps.TRUE : FWProps.FALSE)));
+
     debug = new Debug(this);
   }
 
@@ -247,7 +260,7 @@ public class FWProps  {
       if(propNames == null) {
         StringBuffer sb = new StringBuffer();
         for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
-          sb.append(it.next().toString());      
+          sb.append(it.next().toString());
           if(it.hasNext()) {
             sb.append(",");
           }
@@ -280,7 +293,7 @@ public class FWProps  {
     for(Iterator it = p.keySet().iterator(); it.hasNext(); ) {
       String key = (String)it.next();
       Object v   = System.getProperty(key);
-      Object v2  = props.get(key); 
+      Object v2  = props.get(key);
       if(v.equals(v2)) {
         System.out.println("  " + n + ": " + key + ": " + v);
       } else {
@@ -306,7 +319,7 @@ public class FWProps  {
     whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
       getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
-    
+
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
 
     if (bIsMemoryStorage ||

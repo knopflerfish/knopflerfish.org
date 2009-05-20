@@ -55,10 +55,10 @@ import java.lang.reflect.Constructor;
  * basic operations as install, start, stop, uninstall
  * and update.
  *
- * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
+ * @author Jan Stein, Erik Wistrand, Mats-Ola Persson, Gunnar Ekolin
  */
-public class Main {
-
+public class Main
+{
   // Verbosity level of printouts. 0 is low.
   int verbosity /*= 0*/;
 
@@ -84,8 +84,10 @@ public class Main {
   // will be initialized by main() - up for anyone for grabbing
   public String bootText = "";
 
-  public boolean bWriteSysProps = true;
+  public boolean bWriteSysProps = false;
 
+  // configuration properties from -Fkey=value
+  Map configProps/* <String, String> */ = new HashMap/*<String, String>*/();
 
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
@@ -121,7 +123,7 @@ public class Main {
     } catch (Exception ignored) { }
 
     try {
-      bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "true"));
+      bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "false"));
     } catch (Exception ignored) { }
 
     version = readVersion();
@@ -156,24 +158,12 @@ public class Main {
     // expand all -xargs options
     args = expandArgs(args);
 
-    if(verbosity > 5) {
-      for(int i = 0; i < args.length; i++) {
-        println("argv[" + i + "]=" + args[i], 5);
-      }
-    }
-
-    // redo this since it might have changed
-    try {
-      verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
-    } catch (Exception ignored) { }
-
     if(bZeroArgs) {
       // Make sure we have a minimal setup of args
       args = sanityArgs(args);
     }
 
-    handleArgs(args, 0);
+    handleArgs(args);
   }
 
   public FrameworkFactory getFrameworkFactory() {
@@ -245,11 +235,118 @@ public class Main {
   }
 
 
+  /**
+   * Process one command line argument for setting a property.
+   *
+   * If the line contains an '=' then property will be set.
+   *
+   * Example "org.knopflerfish.test=apa" is equivalent to calling
+   * <tt>setProperty("org.knopflerfish.test", "apa")</tt> in the given
+   * props object.
+   *
+   * @param prefix The prefix (<tt>-D</tt>/<tt>-F</tt>) to print in the trace.
+   * @param arg    The command line argument to process.
+   * @param props  The properties object to add the property to.
+   */
+  void setProperty(String prefix, String arg, Properties props)
+  {
+    final int ix = arg.indexOf("=");
+    if(ix != -1) {
+      final String key = arg.substring(2, ix);
+      String value = arg.substring(ix + 1);
+
+      // replace "${propname}" with prop value if found
+      if(-1 != value.indexOf("${")) {
+        for(Enumeration e = props.keys(); e.hasMoreElements();) {
+          final String k = (String) e.nextElement();
+          if(-1 != value.indexOf(k)) {
+            final String sv = (String) props.get(k);
+            value = Util.replace(value, "${" + k + "}", sv);
+          }
+        }
+      }
+      println(prefix +key +"=" +value, 1);
+      props.put(key,value);
+    }
+  }
+
+  /**
+   * Process one command line argument for setting a property.
+   *
+   * If the line contains an '=' then property will be set.
+   *
+   * Example "org.knopflerfish.test=apa" is equivalent to calling
+   * <tt>setProperty("org.knopflerfish.test", "apa")</tt> in the given
+   * props object.
+   *
+   * @param prefix The prefix (<tt>-D</tt>/<tt>-F</tt>) to print in the trace.
+   * @param arg    The command line argument to process.
+   * @param props  The properties object to add the property to.
+   */
+  void setProperty(String prefix, String arg, Map props)
+  {
+    final int ix = arg.indexOf("=");
+    if(ix != -1) {
+      final String key = arg.substring(2, ix);
+      String value = arg.substring(ix + 1);
+
+      // replace "${propname}" with prop value if found
+      if(-1 != value.indexOf("${")) {
+        for(Iterator it = props.entrySet().iterator(); it.hasNext();) {
+          final Map.Entry entry = (Map.Entry) it.next();
+          final String k = (String) entry.getKey();
+          if(-1 != value.indexOf(k)) {
+            final String sv = (String) entry.getValue();
+            value = Util.replace(value, "${" + k + "}", sv);
+          }
+        }
+      }
+      println(prefix +key +"=" +value, 1);
+      props.put(key,value);
+    }
+  }
+
+  /**
+   * Process all command line arguments that starts with either
+   * <tt>-D</tt> or <tt>-F</tt>.
+   *
+   * If the line contains an '=' then a system (for <tt>-D</tt>) /
+   * framework (for <tt>-F</tt>) property will be set. Example
+   * "-Dorg.knopflerfish.test=apa" is equivalent to
+   * <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
+   *
+   * @param args  The command line argument array to process
+   */
+  void processProperties(String[] args)
+  {
+    final Properties sysProps = System.getProperties();
+    for (int i = 0; i < args.length; i++) {
+      try {
+        if(args[i].startsWith("-D")) { // Set system property
+          setProperty("-D", args[i], sysProps);
+        } else if (args[i].startsWith("-F")) { // Set framework property
+          setProperty("-F", args[i], configProps);
+        }
+      } catch (Exception e) {
+        e.printStackTrace(System.err);
+        error("Command \"" +args[i] +"\" failed, " + e.getMessage());
+      }
+    }
+    mergeSystemProperties(sysProps);
+    if(bWriteSysProps) {
+      mergeSystemProperties(configProps);
+    }
+    setSecurityManager(sysProps);
+  }
+
+
   FrameworkFactory ff;
   Framework framework;
 
-  // configuration properties from -Fkey=value
-  Map configProps/* <String, String> */ = new HashMap/*<String, String>*/();
+  /**
+   * Ensure that a framework instance is created and initialized, if
+   * not create one.
+   */
   void assertFramework() {
     if(ff == null) {
       ff = getFrameworkFactory();
@@ -263,22 +360,42 @@ public class Main {
   }
 
   /**
-   * Handle arg line options.
+   * Handle command line options.
    *
    * @param args argument line
-   * @param startOffset index to start from in argv
    */
-
-  private void handleArgs(String[] args,
-                          int startOffset) {
+  private void handleArgs(String[] args)
+  {
     boolean bLaunched = false;
-    configProps = new HashMap();
 
-    for (int i = startOffset; i < args.length; i++) {
+    // Since we must have all framework properties in the
+    // configProps-map before creating the framework instance we must
+    // first handle all args that define proeprties. I.e., args
+    // starting wiht '-D' and '-F'.
+    processProperties(args);
+
+    // redo this here since it might have changed by a -D amongst the args
+    try {
+      verbosity =
+        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
+    } catch (Exception ignored) { }
+
+    if(verbosity > 5) {
+      for(int i = 0; i < args.length; i++) {
+        println("argv[" + i + "]=" + args[i], 5);
+      }
+    }
+
+    // Process all other options.
+    for (int i = 0; i < args.length; i++) {
       try {
         if ("-exit".equals(args[i])) {
           println("Exit.", 0);
           System.exit(0);
+        } else if (args[i].startsWith("-F")) {
+          // Skip, already processed
+        } else if (args[i].startsWith("-D")) {
+          // Skip, already processed
         } else if ("-init".equals(args[i])) {
           deleteFWDir();
         } else if ("-version".equals(args[i])) {
@@ -297,23 +414,16 @@ public class Main {
           printJVMInfo(framework);
           System.exit(0);
         } else if ("-ff".equals(args[i])) {
+          if (null!=framework) {
+            throw new IllegalArgumentException
+              ("Invalid usage of '-ff': framework already created.");
+          }
           if (i+1 < args.length) {
             i++;
             ff = getFrameworkFactory(args[i]);
           } else {
             throw new IllegalArgumentException("No framework factory argument");
           }
-        } else if (args[i].startsWith("-F")) {
-          String s     = args[i].substring(2); // key=value
-          String key   = s;
-          String value = "";
-          int ix = s.indexOf("=");
-          if(ix != -1) {
-            key = s.substring(0, ix);
-            value = s.substring(ix+1);
-          }
-          println("-F" + key + "=" + value, 1);
-          configProps.put(key, value);
         } else if ("-install".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
@@ -784,9 +894,9 @@ public class Main {
         String key = (String)e.nextElement();
         System.out.println(key + ": " + props.get(key));
       }
-      
+
       System.out.println("\n");
-      System.out.println("--- Framework properties ---");      
+      System.out.println("--- Framework properties ---");
 
       String keyStr = framework.getBundleContext().getProperty("org.knopflerfish.framework.bundleprops.keys");
       String[] keys = Util.splitwords(keyStr != null ? keyStr : "", ",");
@@ -935,7 +1045,7 @@ public class Main {
         println("Using default " + key + "=" + val, 1);
         props.put(key, val);
       } else {
-        println("system prop " + key + "=" + props.get(key), 1);
+        println("framework prop " + key + "=" + props.get(key), 1);
       }
     }
 
@@ -947,7 +1057,7 @@ public class Main {
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty("org.knopflerfish.gosg.jars");
+    String jars = System.getProperty(JARDIR_PROP);
 
     if(!(jars == null || "".equals(jars))) {
       println("old jars=" + jars, 1);
@@ -955,7 +1065,8 @@ public class Main {
       String jarBaseDir = topDir + "jars";
       println("jarBaseDir=" + jarBaseDir, 2);
 
-      File jarDir = new File(jarBaseDir).getAbsoluteFile();
+      // avoid getAbsoluteFile since some profiles don't have this
+      File jarDir = new File(new File(jarBaseDir).getAbsolutePath());
       if(jarDir.exists() && jarDir.isDirectory()) {
 
         // avoid FileNameFilter since some profiles don't have it
@@ -977,12 +1088,17 @@ public class Main {
         }
         jars = sb.toString().replace('\\', '/');
         props.put(JARDIR_PROP, jars);
-        println("scanned org.knopflerfish.gosg.jars=" + jars, 2);
+        println("scanned " +JARDIR_PROP +"=" + jars, 2);
       }
     }
   }
 
   void mergeSystemProperties(Properties props) {
+    Properties p = System.getProperties();
+    p.putAll(props);
+    System.setProperties(p);
+  }
+  void mergeSystemProperties(Map props) {
     Properties p = System.getProperties();
     p.putAll(props);
     System.setProperties(p);
@@ -1065,12 +1181,8 @@ public class Main {
    * File format:<br>
    *
    * <ul>
-   *  <li>Each line starting with '-D' and containing an '=' is set as
-   *      a system property.
-   *      Example "-Dorg.knopflerfish.test=apa" is equivalent
-   *      to <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
-   *  <li>Each line starting with '-F' and containing an '=' is set as
-   *      a framework property.
+   *  <li>Each line starting with '-D' or '-F' is used dirctly as an
+   *      entry in the new command line array.
    *  <li>Each line of length zero is ignored.
    *  <li>Each line starting with '#' is ignored.
    *  <li>Lines starting with '-' is used a command with optional argument
@@ -1084,7 +1196,7 @@ public class Main {
    *                  protcoll defaults to "file:". File URLs are
    *                  first search for in the parent directory of the
    *                  current FW-dir, then in the current working directory.
-   * @param argv      The command line arguments as the look before
+   * @param oldArgs   The command line arguments as it looks before
    *                  the file named in <tt>xargsPath</tt> have been
    *                  expanded.
    * @return array with command line options loaded from
@@ -1154,7 +1266,6 @@ public class Main {
       }
 
 
-      Properties   sysProps = System.getProperties();
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -1191,27 +1302,15 @@ public class Main {
         }
 
         if(line.startsWith("-D")) {
-          // Set system property
-          int ix = line.indexOf("=");
-          if(ix != -1) {
-            String name = line.substring(2, ix);
-            String val  = line.substring(ix + 1);
-
-            // replace "${syspropname}" with system prop value if found
-            if(-1 != val.indexOf("${")) {
-              for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
-                String k = (String)e.nextElement();
-                if(-1 != val.indexOf(k)) {
-                  String sv = (String)sysProps.get(k);
-                  val = Util.replace(val, "${" + k + "}", sv);
-                }
-              }
-            }
-            sysProps.put(name, val);
-          }
+          // Preserve System property
+          addArg(v,line);
+        } else if(line.startsWith("-F")) {
+          // Preserve framework property
+          addArg(v,line);
         } else if(line.startsWith("#")) {
           // Ignore comments
         } else if(line.startsWith("-")) {
+          // Split command that contains a ' ' int two args
           int i = line.indexOf(' ');
           if (i != -1) {
             addArg(v, line.substring(0,i));
@@ -1226,11 +1325,6 @@ public class Main {
           // Add argument
           addArg(v,line);
         }
-      }
-      setSecurityManager(sysProps);
-
-      if(bWriteSysProps) {
-        mergeSystemProperties(sysProps);
       }
 
       // Write to framework properties. This should be the primary

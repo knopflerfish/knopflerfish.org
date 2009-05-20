@@ -52,6 +52,8 @@
 # on the boot class. Default is false
 #-Forg.knopflerfish.framework.strictbootclassloading=false
 
+# If set to true, promote all framework properties to system properties.
+#-Dorg.knopflerfish.framework.xargs.writesysprops=false
 
 # Web server properties
 -Forg.knopflerfish.http.dnslookup=false
