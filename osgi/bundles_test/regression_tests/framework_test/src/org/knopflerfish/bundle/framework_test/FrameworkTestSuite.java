@@ -1387,9 +1387,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // framework_tests bundle is changed in such a way that new
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
-      if(i != 43){
+      if(i != 46){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"43 != "+ i);
+               +"46 != "+ i);
       }
 
       //another existing directory
