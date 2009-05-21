@@ -104,9 +104,11 @@ public class QueueHandler extends Thread {
   /**
    * Stop this thread.
    */
-  synchronized void stopIt() {
-    running = false;
-    notifyAll();
+  void stopIt() {
+    synchronized (this) {
+      running = false;
+      notifyAll();
+    }
     try {
       join();
     } catch (InterruptedException e) {
