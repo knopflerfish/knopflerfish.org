@@ -2819,6 +2819,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // The Context class have been present in Java SE since 1.3
       String resourceName = "javax/naming/Context.class";
 
+      if (System.getProperty("java.vendor").equals("/k/ Embedded Java Solutions")) {
+        resourceName = "javax/crypto/Cipher.class";
+      }
+
       URL url1 = bc.getBundle().getResource(resourceName);
       URL url2 = this.getClass().getClassLoader().getResource(resourceName);
 
