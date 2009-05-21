@@ -79,7 +79,7 @@
     2
     3
   </property>
-  <property name="Double1" type="Double" value="2.7182818284590"/>
+  <property name="Double1" type="Double" value="16777216.00390625"/>
   <property name="Doubles" type="Double">
     1.0
     2.0
