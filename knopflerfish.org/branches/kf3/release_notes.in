@@ -23,6 +23,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   HttpService.unregister(alias).
 
 
+  Event 2.0.4
+
+  Fixed a dead lock that could occur when you stopped the event service.
+
+
   Build System
 
   The obsolete build system used by test bundles in the directory
@@ -51,7 +56,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 ========================================================================
 
 
-Release Notes Knopflerfish 2.3.1@ (OSGi R4.0.1)
+Release Notes Knopflerfish 2.3.1 (OSGi R4.0.1)
 ----------------------------------------------
 
   Maintenance release of Knopflerfish available from
