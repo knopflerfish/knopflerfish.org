@@ -297,6 +297,11 @@
              pattern  = "yyyy-MM-dd HH:mm"
              locale   = "en"/>
     </tstamp>
+    <tstamp>
+     <format property = "distrib.tstamp.year" 
+             pattern  = "yyyy"
+             locale   = "en"/>
+    </tstamp>
 
     <byteformatter file="${distribfile}" unit="B"
                    property="distribfile.length"/>
@@ -320,6 +325,8 @@
 		     value="${version}"/>
       <replacefilter token="@DATE@"
 		     value="${distrib.tstamp}"/>
+      <replacefilter token="@YEAR@"
+		     value="${distrib.tstamp.year}"/>
       <replacefilter token="@REPO_URL@"
 		     value="${svn.repo.url}"/>
       <replacefilter token="@TAG@"

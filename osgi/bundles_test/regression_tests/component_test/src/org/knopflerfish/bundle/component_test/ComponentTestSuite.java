@@ -268,7 +268,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Double d1 = (Double) ref.getProperty("Double1");
          System.out.println("Double1= " +d1);
          assertNotNull("Double1 not null", d1);
-         assertEquals("Double1 == 1", new Double(2.7182818284590), d1);
+         assertEquals("Double1 == 2^24 + 2^-8", new Double(16777216.00390625), d1);
 
          double[] da = (double[]) ref.getProperty("Doubles");
          printArray("Doubles= ", da);

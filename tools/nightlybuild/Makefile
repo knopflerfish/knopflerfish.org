@@ -28,6 +28,7 @@ SVN     = /usr/bin/svn
 JAVA      = /usr/local/j2sdk1.4/bin/java
 export JAVA_HOME = /usr/local/j2sdk1.4
 
+YEAR := $(shell /bin/date '+%Y')
 DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
 # The Major.Minor.Micro part of the current (upcomming) Knopflerfish
 # release version.
@@ -133,7 +134,8 @@ outindex:
 	      echo "<a href=\"$$FF\">$$FF</a><br/>"  >> ${OUT_DIR}/index.html; \
 	    fi; \
 	  done)
-	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.post \
+	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.post | \
+            ${SED} -e "s/@YEAR@/${YEAR}/g" \
                                                        >> ${OUT_DIR}/index.html
 	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${CURRENT_LINK})
 
