@@ -86,8 +86,11 @@ public class Main
 
   public boolean bWriteSysProps = false;
 
-  // configuration properties from -Fkey=value
-  Map configProps/* <String, String> */ = new HashMap/*<String, String>*/();
+  // Framwork properties, i.e., configuration properties from -Fkey=value
+  Map fwProps/* <String, String> */ = new HashMap/*<String, String>*/();
+
+  // System properties, i.e., configuration properties from -Dkey=value
+  Map sysProps/* <String, String> */ = new HashMap/*<String, String>*/();
 
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
@@ -114,6 +117,11 @@ public class Main
   public static void main(String[] args) {
     Main main = new Main();
     main.start(args);
+  }
+
+  public Main()
+  {
+    populateSysProps();
   }
 
   protected void start(String[] args) {
@@ -200,7 +208,7 @@ public class Main
   }
 
   private void deleteFWDir() {
-    String d = Util.getFrameworkDir(configProps);
+    String d = Util.getFrameworkDir(fwProps);
 
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
@@ -248,41 +256,6 @@ public class Main
    * @param arg    The command line argument to process.
    * @param props  The properties object to add the property to.
    */
-  void setProperty(String prefix, String arg, Properties props)
-  {
-    final int ix = arg.indexOf("=");
-    if(ix != -1) {
-      final String key = arg.substring(2, ix);
-      String value = arg.substring(ix + 1);
-
-      // replace "${propname}" with prop value if found
-      if(-1 != value.indexOf("${")) {
-        for(Enumeration e = props.keys(); e.hasMoreElements();) {
-          final String k = (String) e.nextElement();
-          if(-1 != value.indexOf(k)) {
-            final String sv = (String) props.get(k);
-            value = Util.replace(value, "${" + k + "}", sv);
-          }
-        }
-      }
-      println(prefix +key +"=" +value, 1);
-      props.put(key,value);
-    }
-  }
-
-  /**
-   * Process one command line argument for setting a property.
-   *
-   * If the line contains an '=' then property will be set.
-   *
-   * Example "org.knopflerfish.test=apa" is equivalent to calling
-   * <tt>setProperty("org.knopflerfish.test", "apa")</tt> in the given
-   * props object.
-   *
-   * @param prefix The prefix (<tt>-D</tt>/<tt>-F</tt>) to print in the trace.
-   * @param arg    The command line argument to process.
-   * @param props  The properties object to add the property to.
-   */
   void setProperty(String prefix, String arg, Map props)
   {
     final int ix = arg.indexOf("=");
@@ -290,19 +263,17 @@ public class Main
       final String key = arg.substring(2, ix);
       String value = arg.substring(ix + 1);
 
-      // replace "${propname}" with prop value if found
-      if(-1 != value.indexOf("${")) {
-        for(Iterator it = props.entrySet().iterator(); it.hasNext();) {
-          final Map.Entry entry = (Map.Entry) it.next();
-          final String k = (String) entry.getKey();
-          if(-1 != value.indexOf(k)) {
-            final String sv = (String) entry.getValue();
-            value = Util.replace(value, "${" + k + "}", sv);
-          }
-        }
-      }
       println(prefix +key +"=" +value, 1);
       props.put(key,value);
+
+      if (VERBOSITY_PROP.equals(key)) {
+        // redo this here since verbosity level may have changed
+        try {
+          verbosity = Integer.parseInt( value.length()==0
+                                        ? VERBOSITY_DEFAULT : value);
+          println("Verbosity changed to "+verbosity, 1);
+        } catch (Exception ignored) {}
+      }
     }
   }
 
@@ -319,24 +290,18 @@ public class Main
    */
   void processProperties(String[] args)
   {
-    final Properties sysProps = System.getProperties();
     for (int i = 0; i < args.length; i++) {
       try {
-        if(args[i].startsWith("-D")) { // Set system property
+        if(args[i].startsWith("-D")) { // A system property
           setProperty("-D", args[i], sysProps);
-        } else if (args[i].startsWith("-F")) { // Set framework property
-          setProperty("-F", args[i], configProps);
+        } else if (args[i].startsWith("-F")) { // A framework property
+          setProperty("-F", args[i], fwProps);
         }
       } catch (Exception e) {
         e.printStackTrace(System.err);
         error("Command \"" +args[i] +"\" failed, " + e.getMessage());
       }
     }
-    mergeSystemProperties(sysProps);
-    if(bWriteSysProps) {
-      mergeSystemProperties(configProps);
-    }
-    setSecurityManager(sysProps);
   }
 
 
@@ -345,7 +310,7 @@ public class Main
 
   /**
    * Ensure that a framework instance is created and initialized, if
-   * not create one.
+   * not finalize properties and create a framework instance.
    */
   void assertFramework() {
     if(ff == null) {
@@ -353,8 +318,12 @@ public class Main
       println("Created FrameworkFactory " + ff.getClass().getName(), 1);
     }
     if(framework == null) {
-      addDefaultProps(configProps, defaultProps);
-      framework = ff.newFramework(configProps);
+      // Expand property values and export them as system properties
+      finalizeProperties();
+      // Must set security manager explicitly if defined by -D option.
+      setSecurityManager();
+
+      framework = ff.newFramework(fwProps);
       println("Created Framework " + framework.getClass().getName(), 1);
     }
   }
@@ -369,16 +338,17 @@ public class Main
     boolean bLaunched = false;
 
     // Since we must have all framework properties in the
-    // configProps-map before creating the framework instance we must
+    // fwProps-map before creating the framework instance we must
     // first handle all args that define proeprties. I.e., args
     // starting wiht '-D' and '-F'.
     processProperties(args);
 
     // redo this here since it might have changed by a -D amongst the args
     try {
-      verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
-    } catch (Exception ignored) { }
+      final String vb = (String) sysProps.get(VERBOSITY_PROP);
+      verbosity = Integer.parseInt( (null==vb || vb.length()==0)
+                                    ? VERBOSITY_DEFAULT : vb);
+    } catch (Exception ignored) {}
 
     if(verbosity > 5) {
       for(int i = 0; i < args.length; i++) {
@@ -942,7 +912,7 @@ public class Main
       }
     }
 
-    String fwDirStr = Util.getFrameworkDir(configProps);
+    String fwDirStr = Util.getFrameworkDir(fwProps);
     // avoid getAbsoluteFile since some profiles don't have this
     File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
     File xargsFile  = null;
@@ -1025,9 +995,9 @@ public class Main
 
 
   /**
-   * Add default properties and set default values
-   * if importand ones are missing. The default values
-   * are taken from the <tt>defaultProps</tt> variable.
+   * Add default properties and set default values if important ones
+   * are missing. The default values are taken from the
+   * <tt>defaultProps</tt> variable.
    *
    * <p>
    * The <tt>org.knopflerfish.gosg.jars</tt> property (if not defined)
@@ -1093,17 +1063,101 @@ public class Main
     }
   }
 
-  void mergeSystemProperties(Properties props) {
-    Properties p = System.getProperties();
-    p.putAll(props);
-    System.setProperties(p);
+  /**
+   * Populates the sysProps Map&lt;String,String&gt; with all entries
+   * from the system properties object.
+   */
+  void populateSysProps()
+  {
+    final Properties systemProperties = System.getProperties();
+    final Enumeration systemPropertiesNames = systemProperties.propertyNames();
+    while (systemPropertiesNames.hasMoreElements()) {
+      try {
+        final String name  = (String) systemPropertiesNames.nextElement();
+        final String value = (String) systemProperties.get(name);
+        sysProps.put(name, value);
+        println("Initial system property: " +name +"=" +value, 3);
+      } catch (Exception e) {
+        println("Failed to process system property: " +e, 1, e);
+      }
+    }
   }
+
+  /**
+   * Add all entires in the given map to the set of system properties.
+   *
+   * @param props The map with name value pairs to add to the system
+   *              properties.
+   */
   void mergeSystemProperties(Map props) {
-    Properties p = System.getProperties();
+    final Properties p = System.getProperties();
     p.putAll(props);
     System.setProperties(p);
   }
 
+
+  /**
+   * Do the final processing of framework and system properties before
+   * creating the framework instance using them.
+   *
+   * <ul>
+   *   <li>Perform variable expansion on property values.
+   *   <li>System properties are then merged into the real system
+   *       properties.
+   *   <li>If <tt>bWriteSysProps</tt> is set to <tt>true</tt> merge
+   *       framework properties into the real system properties.
+   *   <li>Add default properties.
+   * </ul>
+   */
+  void finalizeProperties()
+  {
+    expandPropValues(sysProps, null);
+    expandPropValues(fwProps, sysProps);
+
+    mergeSystemProperties(sysProps);
+    if(bWriteSysProps) {
+      mergeSystemProperties(fwProps);
+    }
+
+    addDefaultProps(fwProps, defaultProps);
+  }
+
+  /**
+   * If any of the values in <tt>toExpand</tt> contains a sub-string
+   * like "<tt>${propname}</tt>" replace it with value of the named
+   * property in the map if found, else if <tt>fallback</tt> is
+   * non-null then replace with the value from that map if any.
+   *
+   * @param toExpand Map in which to expand variables in the values.
+   * @param fallback Optional map to get expansion values from if not
+   *                 found in the map to be expanded.
+   */
+  void expandPropValues(Map toExpand, Map fallback)
+  {
+    Map all = null;
+
+    for (Iterator eit = toExpand.entrySet().iterator(); eit.hasNext();) {
+      final Map.Entry entry = (Map.Entry) eit.next();
+      String value = (String) entry.getValue();
+
+      if(-1 != value.indexOf("${")) {
+        if (null==all) {
+          if (null!=fallback) {
+            all.putAll(fallback);
+          }
+          all.putAll(toExpand);
+        }
+        for(Iterator it = all.entrySet().iterator(); it.hasNext();) {
+          final Map.Entry allEntry = (Map.Entry) it.next();
+          final String rk = "${" + ((String) allEntry.getKey()) + "}";
+          final String rv = (String) allEntry.getValue();
+          value = Util.replace(value, rk, rv);
+        }
+        entry.setValue(value);
+        println("Expanded property: " +entry.getKey() +"=" +value, 1);
+      }
+    }
+  }
 
   /**
    * Loop over args array and check that it looks reasonable.
@@ -1219,7 +1273,7 @@ public class Main
       println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
-      String fwDirStr = Util.getFrameworkDir(configProps);
+      String fwDirStr = Util.getFrameworkDir(fwProps);
 
       // avoid getAbsoluteFile since some profiles don't have this
       File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
@@ -1367,21 +1421,15 @@ public class Main
     }
   }
 
-  void setSecurityManager(Properties props) {
+  void setSecurityManager() {
     try {
-      String manager  = (String)props.get("java.security.manager");
-      String policy   = (String)props.get("java.security.policy");
+      final String manager = System.getProperty("java.security.manager");
+      final String policy  = System.getProperty("java.security.policy");
 
       if(manager != null) {
         if(System.getSecurityManager() == null) {
           println("Setting security manager=" + manager +
                   ", policy=" + policy, 1);
-          System.setProperty("java.security.manager", manager);
-          props.put("java.security.manager", manager);
-          if(policy != null) {
-            System.setProperty("java.security.policy",  policy);
-            props.put("java.security.policy", policy);
-          }
           SecurityManager sm = null;
           if("".equals(manager)) {
             sm = new SecurityManager();
