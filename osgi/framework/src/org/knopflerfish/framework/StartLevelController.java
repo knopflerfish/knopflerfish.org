@@ -93,7 +93,19 @@ public class StartLevelController
     }
 
     if (jobQueue.isEmpty()) {
-      setStartLevel0(framework.systemBundle, 1, false, false, true);
+      int beginningLevel = 1;
+      final String sBeginningLevel
+        = framework.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
+                                      "1");
+      try {
+        beginningLevel = Integer.parseInt(sBeginningLevel);
+      } catch (NumberFormatException nfe) {
+        framework.props.debug.printStackTrace
+          ("Invalid number '" +sBeginningLevel +"' in value of property named '"
+           +Constants.FRAMEWORK_BEGINNING_STARTLEVEL +"'.", nfe);
+      }
+      setStartLevel0(framework.systemBundle, beginningLevel,
+                     false, false, true);
     }
     Runnable firstJob = (Runnable)jobQueue.firstElement();
     wc   = new Thread(this, "startlevel job thread");

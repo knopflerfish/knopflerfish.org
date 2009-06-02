@@ -6,7 +6,7 @@
 
 # The Service Platform ID should be used by bundles needing to
 # a unique ID for the platform itself
--Dorg.osgi.provisioning.spid=knopflerfish
+-Forg.osgi.provisioning.spid=knopflerfish
 
 # Initial startup verbosity, 0 is low verbosity
 -Dorg.knopflerfish.framework.main.verbosity=0

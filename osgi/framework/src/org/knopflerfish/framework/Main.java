@@ -74,17 +74,11 @@ public class Main
   // Xargs to use for FW init
   final String defaultXArgsInit2   = "remote-init.xargs";
 
-  // Xargs to use for FW restart
-  final String defaultXArgsStart   = "restart.xargs";
-
-
   // Set to true if JVM is started without any arguments
   boolean bZeroArgs     /*     = false*/;
 
   // will be initialized by main() - up for anyone for grabbing
   public String bootText = "";
-
-  public boolean bWriteSysProps = false;
 
   // Framwork properties, i.e., configuration properties from -Fkey=value
   Map fwProps/* <String, String> */ = new HashMap/*<String, String>*/();
@@ -94,6 +88,8 @@ public class Main
 
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
+
+  static public final String XARGS_RESTART  = "restart.xargs";
 
   static public final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
   static public final String CMDIR_DEFAULT = "cmdir";
@@ -122,20 +118,14 @@ public class Main
   public Main()
   {
     populateSysProps();
+    try { // Set the initial verbosity level.
+      final String vpv = (String) sysProps.get(VERBOSITY_PROP);
+      verbosity = Integer.parseInt(null==vpv ? VERBOSITY_DEFAULT: vpv);
+    } catch (Exception ignored) { }
   }
 
   protected void start(String[] args) {
-    try {
-      verbosity =
-        Integer.parseInt(System.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
-    } catch (Exception ignored) { }
-
-    try {
-      bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "false"));
-    } catch (Exception ignored) { }
-
     version = readVersion();
-
 
     bootText =
       "Knopflerfish OSGi framework, version " + version + "\n" +
@@ -162,17 +152,24 @@ public class Main
       }
     }
 
-
     // expand all -xargs options
     args = expandArgs(args);
-
-    if(bZeroArgs) {
-      // Make sure we have a minimal setup of args
-      args = sanityArgs(args);
-    }
-
     handleArgs(args);
   }
+
+  /**
+   * Shall framework properties be exported as system properties?
+   */
+  private boolean writeSysProps()
+  {
+    try {
+      final String val = (String)
+        sysProps.get("org.knopflerfish.framework.xargs.writesysprops");
+      return "true".equals(null!=val ? val : "false");
+    } catch (Exception ignored) { }
+    return false;
+  }
+
 
   public FrameworkFactory getFrameworkFactory() {
     try {
@@ -204,22 +201,6 @@ public class Main
     } catch (Exception e) {
       error("failed to create " + factoryClassName, e);
       throw new RuntimeException("failed to create " + factoryClassName + ": " + e);
-    }
-  }
-
-  private void deleteFWDir() {
-    String d = Util.getFrameworkDir(fwProps);
-
-    FileTree dir = (d != null) ? new FileTree(d) : null;
-    if (dir != null) {
-      if(dir.exists()) {
-        boolean bOK = dir.delete();
-        if(bOK) {
-          println("Removed existing fwdir " + dir.getAbsolutePath(), 1);
-        } else {
-          println("Failed to remove existing fwdir " + dir.getAbsolutePath(), 0);
-        }
-      }
     }
   }
 
@@ -342,14 +323,6 @@ public class Main
     // first handle all args that define proeprties. I.e., args
     // starting wiht '-D' and '-F'.
     processProperties(args);
-
-    // redo this here since it might have changed by a -D amongst the args
-    try {
-      final String vb = (String) sysProps.get(VERBOSITY_PROP);
-      verbosity = Integer.parseInt( (null==vb || vb.length()==0)
-                                    ? VERBOSITY_DEFAULT : vb);
-    } catch (Exception ignored) {}
-
     if(verbosity > 5) {
       for(int i = 0; i < args.length; i++) {
         println("argv[" + i + "]=" + args[i], 5);
@@ -367,7 +340,8 @@ public class Main
         } else if (args[i].startsWith("-D")) {
           // Skip, already processed
         } else if ("-init".equals(args[i])) {
-          deleteFWDir();
+          fwProps.put(Constants.FRAMEWORK_STORAGE_CLEAN,
+                      Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
         } else if ("-version".equals(args[i])) {
           System.out.println("Knopflerfish version: " +readRelease());
           printResource("/tstamp");
@@ -909,6 +883,7 @@ public class Main
     for(int i = 0; i < oldArgs.length; i++) {
       if("-init".equals(oldArgs[i])) {
         bInit = true;
+        break;
       }
     }
 
@@ -931,7 +906,8 @@ public class Main
       topDir = defDir + File.separator;
 
       try {
-        String osName = (String)Alias.unifyOsName(System.getProperty("os.name")).get(0);
+        String osName = (String)
+          Alias.unifyOsName(System.getProperty("os.name")).get(0);
         File f = new File(defDir, "init_" + osName + ".xargs");
         if(f.exists()) {
           defaultXArgsInit = f.getName();
@@ -944,7 +920,7 @@ public class Main
 
       if(!bInit && (fwDir.exists() && fwDir.isDirectory())) {
         println("found fwdir at " + fwDir, 1);
-        xargsFile = new File(defDir, defaultXArgsStart);
+        xargsFile = new File(fwDir, XARGS_RESTART);
         if(xargsFile.exists()) {
           println("\n" +
                   "Default restart xargs file: " + xargsFile +
@@ -952,13 +928,29 @@ public class Main
                   "To reinitialize, remove the " + fwDir +" directory\n",
                   5);
         } else {
-          File xargsFile2 = new File(defDir, defaultXArgsInit);
+          File xargsFile2 = new File(defDir, XARGS_RESTART);
           println("No restart xargs file " + xargsFile +
                   ", trying " + xargsFile2 + " instead.", 0);
           xargsFile = xargsFile2;
+          if(xargsFile.exists()) {
+            println("\n" +
+                    "Default restart xargs file: " + xargsFile +
+                    "\n" +
+                    "To reinitialize, remove the " + fwDir +" directory\n",
+                    5);
+          } else {
+            File xargsFile3 = new File(defDir, defaultXArgsInit);
+            println("No restart xargs file " + xargsFile +
+                    ", trying " + xargsFile3 + " instead.", 0);
+            xargsFile = xargsFile3;
+          }
         }
       } else {
-        println("no fwdir at " + fwDir, 1);
+        if (bInit) {
+          println("init requested", 1);
+        } else {
+          println("no fwdir at " + fwDir, 1);
+        }
         xargsFile = new File(defDir, defaultXArgsInit);
         if(xargsFile.exists()) {
           println("\n" +
@@ -1104,7 +1096,7 @@ public class Main
    *   <li>Perform variable expansion on property values.
    *   <li>System properties are then merged into the real system
    *       properties.
-   *   <li>If <tt>bWriteSysProps</tt> is set to <tt>true</tt> merge
+   *   <li>If <tt>writeSysProps()</tt> is <tt>true</tt> merge
    *       framework properties into the real system properties.
    *   <li>Add default properties.
    * </ul>
@@ -1115,7 +1107,7 @@ public class Main
     expandPropValues(fwProps, sysProps);
 
     mergeSystemProperties(sysProps);
-    if(bWriteSysProps) {
+    if(writeSysProps()) {
       mergeSystemProperties(fwProps);
     }
 
@@ -1160,38 +1152,6 @@ public class Main
   }
 
   /**
-   * Loop over args array and check that it looks reasonable.
-   * If really bad things are found, they might be fixed ;)
-   *
-   * <p>
-   * This method is intended to be called in the "zeroargs"
-   * startup case to preserve backwards compatibility.
-   * </p>
-   *
-   * @return new, fixed args array.
-   */
-  String [] sanityArgs(String[] args) {
-    List v = new ArrayList();
-
-    // First, clone everything
-    for(int i = 0; i < args.length; i++) {
-      v.add(args[i]);
-    }
-
-    // ...since this is really annoying
-    if(!v.contains("-launch")) {
-      println("adding last -launch command", 1);
-      v.add("-launch");
-    }
-
-    // ...and copy back into array
-    String [] arg2 = new String[v.size()];
-    v.toArray(arg2);
-    return arg2;
-  }
-
-
-  /**
    * If the last to elements in args "-xargs" or "--xargs" then expand
    * it with arg as argument and replace the last element in args with
    * the expansion. Otherwise just add arg to args.
@@ -1222,7 +1182,7 @@ public class Main
 
   /**
    * Helper method when OS shell does not allow long command lines. This
-   * method has nowadays become the only reasonable way to start the
+   * method has now days become the only reasonable way to start the
    * framework due to the amount of properties.
    *
    * <p>
