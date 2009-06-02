@@ -40,18 +40,19 @@ public class Activator implements BundleActivator {
       bc.registerService(Object.class.getName(), new EchoCmd(), props);
     }
 
-    {
-      Hashtable props = new Hashtable();
-      props.put(CommandProcessor.COMMAND_SCOPE, FrameworkCommands.SCOPE);
-      props.put(CommandProcessor.COMMAND_FUNCTION, FrameworkCommands.FUNCTION);
-      bc.registerService(Object.class.getName(), new FrameworkCommands(bc), props);
-    }
 
     {
       Hashtable props = new Hashtable();
       props.put(CommandProcessor.COMMAND_SCOPE, CommandCommands.SCOPE);
       props.put(CommandProcessor.COMMAND_FUNCTION, CommandCommands.FUNCTION);
       bc.registerService(Object.class.getName(), new CommandCommands(bc), props);
+    }
+
+    if(false) {
+      Hashtable props = new Hashtable();
+      props.put(CommandProcessor.COMMAND_SCOPE, FrameworkCommands.SCOPE);
+      props.put(CommandProcessor.COMMAND_FUNCTION, FrameworkCommands.FUNCTION);
+      bc.registerService(Object.class.getName(), new FrameworkCommands(bc), props);
     }
     
     {
