@@ -179,7 +179,10 @@ public class SystemBundle extends BundleImpl implements Framework {
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" + FrameworkContext.SPEC_VERSION);
-
+    
+    sp.append(",org.osgi.framework.launch;" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.LAUNCH_VERSION);
+    sp.append(",org.osgi.framework.hooks.service;" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.HOOKS_VERSION);
+    
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
@@ -208,7 +211,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  "1.3.1");
+          "=" +  "1.4");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();

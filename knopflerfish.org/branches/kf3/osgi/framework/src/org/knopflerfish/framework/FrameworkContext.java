@@ -71,6 +71,16 @@ public class FrameworkContext  {
   static final String SPEC_VERSION = "1.5";
 
   /**
+   * Specification version for org.osgi.framework.launch
+   */
+  static final String LAUNCH_VERSION = "1.0";
+
+  /**
+   * Specification version for org.osgi.framework.hooks.service
+   */
+  static final String HOOKS_VERSION = "1.0";
+
+  /**
    * Boolean indicating that framework is running.
    */
   boolean active;
