@@ -17,6 +17,7 @@ package org.osgi.service.command;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import org.osgi.service.command.CommandProcessor;
 
 /**
  * A Command Processor is a service that is registered by a script engine that

@@ -139,18 +139,15 @@ public class Program {
       // if no result found, check system properties
       r = System.getProperty(key);
     }
-    // System.out.println("getVar(" + key + ")->" + r);
     return r; 
   }
   
   Object putVar(String key, Object val) {
-    // System.out.println("putVar(" + key + ", " + val + ")");
     varMap.put(key, val);
     return val;
   }
 
   Object removeVar(String key) {
-    //    System.out.println("removeVar(" + key + ")");
     Object old = varMap.get(key);
     varMap.remove(key);
     return old != null ? old : "";    
@@ -239,6 +236,9 @@ public class Program {
               break;
             }
           }
+          if(mName == null) {
+            System.out.println("no matching method");
+          }
         } else {
           mName  = inArgs.get(0).toString();
           inArgs = inArgs.subList(1, inArgs.size());
@@ -258,6 +258,7 @@ public class Program {
         for(int i = 0; i < pTypes.length; i++) {
           Object from = outArgs.get(i);
           params[i] = getCP().convert(pTypes[i], from);
+          System.out.println("params " + i + ": " + from + "->" + params[i]);
           paramList.add(params[i]);
         }
         
@@ -314,7 +315,7 @@ public class Program {
         if(ml[i].getName().equalsIgnoreCase(cmd)) {
           out.clear();
           if(matchMethodAllArgs(ml[i], args, out)) {
-            // System.out.println("found all " + ml[i]);
+            //             System.out.println("found all " + ml[i]);
             return ml[i];
           }
         }
@@ -332,7 +333,7 @@ public class Program {
         if(ml[i].getName().equalsIgnoreCase(cmd)) {
           out.clear();
           if(matchMethodVarArgs(ml[i], args, out)) {
-            // System.out.println("found var " + ml[i]);
+            // System.out.println("found var " + ml[i] + ", out=" + out);
             return ml[i];
           }
         }
@@ -362,7 +363,7 @@ public class Program {
     Class[] pTypes = m.getParameterTypes();
 
     if(args.size() < pTypes.length) {
-      return false;
+      // return false;
     }
 
     int last = pTypes.length-1;
@@ -372,7 +373,7 @@ public class Program {
     }
     
     Class pType = pTypes[last];
-    if(!pType.isArray()) {
+    if(!pType.isArray()) {      
       return false;
     }
     

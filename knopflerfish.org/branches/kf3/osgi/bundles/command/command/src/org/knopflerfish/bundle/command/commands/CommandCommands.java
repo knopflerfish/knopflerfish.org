@@ -10,12 +10,25 @@ import org.osgi.service.command.*;
 public class CommandCommands {
 
   public static String SCOPE = "command";
-  public static String[] FUNCTION = new String[] { "help" };
+  public static String[] FUNCTION = new String[] { 
+    "help", 
+    "alias",
+    "unalias",
+  };
 
   BundleContext bc;
+  Map aliasMap = new HashMap();
 
   public CommandCommands(BundleContext bc) {
     this.bc = bc;
+  }
+  
+  public void alias(String from, String to) {
+    aliasMap.put(from, to);
+  }
+
+  public void unalias(String from) {
+    aliasMap.remove(from);
   }
 
   public Object help(String scope) throws Exception {
