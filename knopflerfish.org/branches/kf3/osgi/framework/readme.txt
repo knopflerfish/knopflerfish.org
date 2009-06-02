@@ -94,9 +94,10 @@ directory used for this is
 
  fwdir
 
-in the currect directory. The "fwdir" directory can also be set specifically
-using the org.osgi.framework.dir system property. Note that moving "fwdir"
-also changes the location for searching for default .xargs files.
+in the currect directory. The "fwdir" directory can also be set
+specifically using the org.osgi.framework.storage system
+property. Note that moving "fwdir" also changes the location for
+searching for default .xargs files.
 
 If no options are specified, or a single "-init" option is present,
 an implicit
@@ -149,14 +150,14 @@ algorithm:
 Framework System Properties
 ===========================
 
-   org.osgi.framework.dir
+   org.osgi.framework.storage
      Where we store persistent data.
 
      On systems not supporting a current working directory,
      as Pocket PC, this path should be set to an explicit
      full path.
 
-     Default: {defaultInstDir}/fwdir
+     Default: {currentWorkingDirectory}/fwdir
 
    org.knopflerfish.gosg.jars
      Base URL for relative install commands
@@ -537,6 +538,13 @@ Framework System Properties
    This property controls weather such properties shall also be
    exported as system properties or not.
   Default: true (i.e., create a system property for each property).
+
+
+  org.knopflerfish.framework.write.restart.xargs
+   Property that tells the Knopflerfish framework if it shall write a
+   restart.xargs file with all framework properties inside the
+   framework directory on startup or not.
+  Default: true (i.e., write all properties to fwdir/restart.xargs).
 
 
   org.knopflerfish.framework.strictbootclassloading

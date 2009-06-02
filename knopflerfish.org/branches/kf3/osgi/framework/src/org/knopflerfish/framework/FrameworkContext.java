@@ -176,6 +176,15 @@ public class FrameworkContext  {
   public FrameworkContext(Map initProps, FrameworkContext parent)  {
     props = new FWProps(initProps, parent);
 
+    if (Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
+        .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
+      deleteFWDir();
+      // Must remove the storage clean property since it should not be
+      // used more than once!
+      props.removeProperty(Constants.FRAMEWORK_STORAGE_CLEAN);
+    }
+    props.save();
+
     buildBootDelegationPatterns();
 
     ProtectionDomain pd = null;
@@ -260,6 +269,21 @@ public class FrameworkContext  {
     bundles.load();
   }
 
+
+  private void deleteFWDir() {
+    String d = Util.getFrameworkDir(this);
+
+    FileTree dir = (d != null) ? new FileTree(d) : null;
+    if (dir != null) {
+      if(dir.exists()) {
+        boolean bOK = dir.delete();
+        if(!bOK) {
+          props.debug.println("Failed to remove existing fwdir "
+                              +dir.getAbsolutePath());
+        }
+      }
+    }
+  }
 
 
   private final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";

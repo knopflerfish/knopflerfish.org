@@ -46,22 +46,32 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.osgi.framework.Constants;
+
 public class Util {
 
-  static public final String FWDIR_PROP    = "org.osgi.framework.dir";
-  static public final String FWDIR_DEFAULT = "fwdir";
+  /** Pre OSGi 4.2 propetry used by KF, replaced by
+   * Constants.FRAMEWORK_STORAGE as of OSGi R4 v4.2. */
+  static public final String FWDIR_PROP      = "org.osgi.framework.dir";
+  static public final String FWDIR_DEFAULT   = "fwdir";
 
   public static String getFrameworkDir(Map props) {
-    String s = (String)props.get(FWDIR_PROP);
-    if(s == null) {
+    String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()>0) {
+      s = (String)props.get(FWDIR_PROP);
+    }
+    if (s==null || s.length()>0) {
       s = FWDIR_DEFAULT;
     }
     return s;
   }
 
   public static String getFrameworkDir(FrameworkContext ctx) {
-    String s = ctx.props.getProperty(FWDIR_PROP);
-    if(s == null) {
+    String s = ctx.props.getProperty(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()>0) {
+      s = ctx.props.getProperty(FWDIR_PROP);
+    }
+    if (s==null || s.length()>0) {
       s = FWDIR_DEFAULT;
     }
     return s;

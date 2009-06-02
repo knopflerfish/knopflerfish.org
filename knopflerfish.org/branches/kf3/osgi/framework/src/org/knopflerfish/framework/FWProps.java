@@ -35,6 +35,11 @@
 package org.knopflerfish.framework;
 
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
@@ -55,6 +60,13 @@ import org.osgi.framework.*;
 public class FWProps  {
 
   public Debug debug;
+
+  /**
+   * Name of framework property controlling wheather to write an
+   * XARGS_RESTART file or not at startup.
+   */
+  public final static String XARGS_RESTART_WRITE_PROP
+    = "org.knopflerfish.framework.write.restart.xargs";
 
   /**
    * Name of special property containing a comma-separated list of all
@@ -227,10 +239,24 @@ public class FWProps  {
   public void setProperty(String key, String val) {
     synchronized(props) {
       if(KEY_KEYS.equals(key)) {
-        throw new IllegalArgumentException(key + " is reserved and cannot be set");
+        throw new IllegalArgumentException
+          (key + " is reserved and cannot be set");
       }
-      propNames = null; // force re-generation of special property containing all property names
+      // force re-generation of special property containing all property names
+      propNames = null;
       props.put(key, val);
+    }
+  }
+
+  public void removeProperty(String key) {
+    synchronized(props) {
+      if(KEY_KEYS.equals(key)) {
+        throw new IllegalArgumentException
+          (key + " is reserved and cannot be removed");
+      }
+      // force re-generation of special property containing all property names
+      propNames = null;
+      props.remove(key);
     }
   }
 
@@ -370,4 +396,47 @@ public class FWProps  {
                 SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
 
   }
+
+  /**
+   * Save all properties as an xargs-file in the framework directory for
+   * restarts.
+   */
+  void save()
+  {
+    final String xrwp = getProperty(XARGS_RESTART_WRITE_PROP);
+    boolean doSave = "true".equals(null==xrwp || xrwp.length()==0
+                                   ? "true" : xrwp);
+    if (!doSave) return;
+
+    PrintWriter pr = null;
+    try {
+      final String fwDirStr = Util.getFrameworkDir(props);
+      final File fwDir      = new File(fwDirStr);
+      fwDir.mkdirs();
+
+      final File restartFile = new File(fwDir, Main.XARGS_RESTART);
+      pr = new PrintWriter(new BufferedWriter(new FileWriter(restartFile)));
+      for (Iterator it = props.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String key   = (String) entry.getKey();
+        final String value = (String) entry.getValue();
+
+        pr.println("-F" +key +"=" +value);
+      }
+
+      // Trigger framework creation.
+      pr.println("-launch");
+    } catch (Exception e) {
+      if(e instanceof RuntimeException) {
+        throw (RuntimeException)e;
+      }
+      throw new IllegalArgumentException("Failed to create "+Main.XARGS_RESTART
+                                         +": " + e);
+    } finally {
+      if (null!=pr) {
+        pr.close();
+      }
+    }
+  }
+
 }
