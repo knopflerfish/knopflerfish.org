@@ -6,7 +6,8 @@
 # load common properties
 -xargs props.xargs
 
-# Prefix for searching for bundle URLs from console or command line
+# Semicolon seprated list of base URLs for searching (completing) bundle URLs
+# in "-install URL" command line options and in the console
 -Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
 
 -init

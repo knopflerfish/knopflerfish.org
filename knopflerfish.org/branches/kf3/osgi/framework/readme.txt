@@ -160,7 +160,7 @@ Framework System Properties
      Default: {currentWorkingDirectory}/fwdir
 
    org.knopflerfish.gosg.jars
-     Base URL for relative install commands
+     Semicolon separated list of base URLs for relative install commands
      Default: file:jars/*
 
    org.osgi.framework.system.packages
@@ -380,17 +380,6 @@ Framework System Properties
 
      Default: true
 
-   org.knopflerfish.framework.exitonshutdown
-     If set to "true", call System.exit() when framework shutdown 
-     is complete.
-
-     If "false", don't do anything after shutdown.
-
-     Must be set to "true" if one wants to use KF2 features such as
-     extension bundles.
-
-     Default: true
-  
   org.knopflerfish.osgi.setcontextclassloader
      If set to "true", set the bundle startup thread's context class
      loader to the bundle's class loader. This is useful for checking

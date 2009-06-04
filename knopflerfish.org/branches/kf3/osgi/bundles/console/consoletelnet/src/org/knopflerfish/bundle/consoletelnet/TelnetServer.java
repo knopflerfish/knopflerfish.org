@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,6 +110,7 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
     public void stop(BundleContext bc) {
         // Stop accepting new connections
         accept = false;
+        telnetServerThread.interrupt();
 
         // Close all pending sessions
 

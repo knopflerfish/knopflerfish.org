@@ -1548,9 +1548,6 @@ public class BundleImpl implements Bundle {
         if (!fwCtx.props.SUPPORTS_EXTENSION_BUNDLES) {
           if (fwCtx.props.bIsMemoryStorage) {
             throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
-          } else if (!fwCtx.props.EXIT_ON_SHUTDOWN) {
-            throw new UnsupportedOperationException("Extension bundles require that the property " +
-                                                    Main.EXITONSHUTDOWN_PROP + " is set to \"true\"");
           } else if (!fwCtx.props.USING_WRAPPER_SCRIPT) {
             throw new UnsupportedOperationException("Extension bundles require the use of a wrapper script. " +
                                                     "Consult the documentation");
@@ -2298,13 +2295,20 @@ public class BundleImpl implements Bundle {
       (lazyExcludes != null && !lazyExcludes.contains(packageName));
   }
 
+  // Lazy bundles in state STARTING must not be actiavted during shutdown
   boolean triggersActivationPkg(String pkg) {
-    return state == Bundle.STARTING && !activating && lazyActivation
+    return Bundle.STOPPING!= fwCtx.systemBundle.getState()
+      && state == Bundle.STARTING
+      && !activating
+      && lazyActivation
       && isPkgActivationTrigger(pkg);
   }
 
+  // Lazy bundles in state STARTING must not be actiavted during shutdown
   boolean triggersActivationCls(String name) {
-    if (state == Bundle.STARTING && !activating && lazyActivation) {
+    if (Bundle.STOPPING!= fwCtx.systemBundle.getState()
+        && state == Bundle.STARTING
+        && !activating && lazyActivation) {
       String pkg = "";
       int pos = name.lastIndexOf('.');
       if (pos != -1) {

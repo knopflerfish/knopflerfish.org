@@ -101,7 +101,6 @@ public class Main
   static public final String XARGS_DEFAULT     = "default";
 
   static public final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
-  static public final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
 
   static public final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
 
@@ -113,6 +112,7 @@ public class Main
   public static void main(String[] args) {
     Main main = new Main();
     main.start(args);
+    System.exit(0);
   }
 
   public Main()
@@ -408,7 +408,32 @@ public class Main
             long timeout = Long.parseLong(args[i]);
             try {
               if(framework != null) {
-                framework.waitForStop(timeout);
+                framework.stop();
+                FrameworkEvent stopEvent = framework.waitForStop(timeout);
+                switch (stopEvent.getType()) {
+                case FrameworkEvent.STOPPED:
+                  // FW terminated, Main is done!
+                  println("Framework terminated", 0);
+                  break;
+                case FrameworkEvent.STOPPED_UPDATE:
+                  // Automatic FW restart, wait again.
+                  println("Framework unexpectedly stopped for update", 0);
+                  break;
+                case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
+                  // A manual FW restart with new boot class path is needed.
+                  println("Framework unexpectedly stopped for update", 0);
+                  break;
+                case FrameworkEvent.ERROR:
+                  // Stop failed or other error, give up.
+                  error("Fatal framework error, terminating.",
+                        stopEvent.getThrowable());
+                  break;
+                case FrameworkEvent.WAIT_TIMEDOUT:
+                  // Should not happen with timeout==0, give up.
+                  error("Framework waitForStop(" +timeout +") timed out!",
+                        stopEvent.getThrowable());
+                  break;
+                }
                 framework = null;
                 println("Framework shutdown", 0);
               } else {
@@ -616,8 +641,36 @@ public class Main
             Throwable ne = be.getNestedException();
             if (ne != null) t = ne;
           }
-          t.printStackTrace(System.err);
-          error("Framework launch failed, " + t.getMessage());
+          error("Framework launch failed, " + t.getMessage(), t);
+        }
+      }
+      FrameworkEvent stopEvent = null;
+      while (true) { // Ignore interrupted exception.
+        try {
+          stopEvent = framework.waitForStop(0L);
+          switch (stopEvent.getType()) {
+          case FrameworkEvent.STOPPED:
+            // FW terminated, Main is done!
+            println("Framework terminated", 0);
+            return;
+          case FrameworkEvent.STOPPED_UPDATE:
+            // Automatic FW restart, wait again.
+            break;
+          case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
+            // A manual FW restart with new boot class path is needed.
+            return; // TODO
+          case FrameworkEvent.ERROR:
+            // Stop failed or other error, give up.
+            error("Fatal framework error, terminating.",
+                  stopEvent.getThrowable());
+            return;
+          case FrameworkEvent.WAIT_TIMEDOUT:
+            // Should not happen with timeout==0, give up.
+            error("Framework waitForStop(0) timed out!",
+                  stopEvent.getThrowable());
+            break;
+          }
+        } catch (InterruptedException ie) {
         }
       }
     }
@@ -981,12 +1034,10 @@ public class Main
   }
 
   /**
-   * Default values for some system properties.
+   * Default values for some framework properties.
    */
-  Map defaultProps = new HashMap() {{
-    put(Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree");
+  Map defaultFwProps = new HashMap() {{
     put(CMDIR_PROP,    CMDIR_DEFAULT);
-    //    put("oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml");
   }};
 
 
@@ -994,37 +1045,37 @@ public class Main
   /**
    * Add default properties and set default values if important ones
    * are missing. The default values are taken from the
-   * <tt>defaultProps</tt> variable.
+   * <tt>defaultFwProps</tt> variable.
    *
-   * <p>
-   * The <tt>org.knopflerfish.gosg.jars</tt> property (if not defined)
-   * is created by scanning the "jars" directory for subdirs.
-   * </p>
+   * <p>The <tt>org.knopflerfish.gosg.jars</tt> system property (if
+   * not defined) is created by scanning the "jars" directory for
+   * subdirs.</p>
    *
    * @see defaultSysProps
    */
-  protected void addDefaultProps(Map props, Map defaultProps) {
+  protected void addDefaultProps() {
 
-    for(Iterator it = defaultProps.keySet().iterator(); it.hasNext();) {
-      String key = (String)it.next();
-      String val = (String)defaultProps.get(key);
-      if(!props.containsKey(key)) {
+    for(Iterator it = defaultFwProps.entrySet().iterator(); it.hasNext();) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final String key = (String) entry.getKey();
+      if(!fwProps.containsKey(key)) {
+        final String val = (String) entry.getValue();
         println("Using default " + key + "=" + val, 1);
-        props.put(key, val);
+        fwProps.put(key, val);
       } else {
-        println("framework prop " + key + "=" + props.get(key), 1);
+        println("framework prop " + key + "=" + fwProps.get(key), 1);
       }
     }
 
     // Set version info
-    if(null == props.get(PRODVERSION_PROP)) {
-      props.put(PRODVERSION_PROP, version);
+    if(null == fwProps.get(PRODVERSION_PROP)) {
+      fwProps.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = System.getProperty(JARDIR_PROP);
+    String jars = (String) sysProps.get(JARDIR_PROP);
 
     if(!(jars == null || "".equals(jars))) {
       println("old jars=" + jars, 1);
@@ -1054,7 +1105,7 @@ public class Main
           sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
         }
         jars = sb.toString().replace('\\', '/');
-        props.put(JARDIR_PROP, jars);
+        sysProps.put(JARDIR_PROP, jars);
         println("scanned " +JARDIR_PROP +"=" + jars, 2);
       }
     }
@@ -1110,13 +1161,13 @@ public class Main
   {
     expandPropValues(sysProps, null);
     expandPropValues(fwProps, sysProps);
+    addDefaultProps();
 
     mergeSystemProperties(sysProps);
     if(writeSysProps()) {
       mergeSystemProperties(fwProps);
     }
 
-    addDefaultProps(fwProps, defaultProps);
   }
 
   /**
@@ -1139,6 +1190,7 @@ public class Main
 
       if(-1 != value.indexOf("${")) {
         if (null==all) {
+          all = new HashMap();
           if (null!=fallback) {
             all.putAll(fallback);
           }
@@ -1363,28 +1415,6 @@ public class Main
     return args2;
   }
 
-  /**
-   * Print string to System.out if level >= current verbosity.
-   *
-   * @param s String to print.
-   * @param level print level.
-   */
-  void println(String s, int level) {
-    println(s, level, null);
-  }
-
-  void println(String s, Bundle b) {
-    println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 1);
-  }
-
-  void println(String s, int level, Exception e) {
-    if(verbosity >= level) {
-      System.out.println((level > 0 ? ("#" + level + ": ") : "") + s);
-      if(e != null) {
-        e.printStackTrace();
-      }
-    }
-  }
 
   void setSecurityManager() {
     try {
@@ -1413,16 +1443,39 @@ public class Main
   }
 
   /**
+   * Print string to System.out if level >= current verbosity.
+   *
+   * @param s String to print.
+   * @param level print level.
+   */
+  void println(String s, int level) {
+    println(s, level, null);
+  }
+
+  void println(String s, Bundle b) {
+    println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 1);
+  }
+
+  void println(String s, int level, Exception e) {
+    if(verbosity >= level) {
+      System.out.println((level > 0 ? ("#" + level + ": ") : "") + s);
+      if(e != null) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  /**
    * Report error and exit.
    */
-  void error(String s) {
+  void error(final String s) {
     error(s, null);
   }
 
-  void error(String s, Exception e) {
+  void error(final String s, final Throwable t) {
     System.err.println("Error: " + s);
-    if(e != null) {
-      e.printStackTrace();
+    if(t != null) {
+      t.printStackTrace();
     }
     System.exit(1);
   }
