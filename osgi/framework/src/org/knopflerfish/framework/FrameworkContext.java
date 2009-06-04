@@ -389,6 +389,7 @@ public class FrameworkContext  {
   }
 
 
+
   /**
    * Stop this FrameworkContext, suspending all started contexts.
    * This method suspends all started contexts so that they can be
@@ -408,6 +409,49 @@ public class FrameworkContext  {
    *
    */
   public void shutdown() {
+    Thread shutdownThread = new Thread("Framework shutdown")
+      {
+        public void run()
+        {
+          shutdown0();
+        }
+      };
+    shutdownThread.setDaemon(false);
+    shutdownThread.start();
+  }
+
+  private void shutdown0()
+  {
+    try {
+      shutdownOld();
+    } catch (Exception e) {
+      systemBundle.stopEvent
+        = new FrameworkEvent(FrameworkEvent.ERROR, systemBundle, e);
+    }
+    systemBundle.systemShuttingdownDone();
+  }
+
+
+
+  /**
+   * Stop this FrameworkContext, suspending all started contexts.
+   * This method suspends all started contexts so that they can be
+   * automatically restarted when this FrameworkContext is next launched.
+   *
+   * <p>If the framework is not started, this method does nothing.
+   * If the framework is started, this method will:
+   * <ol>
+   * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
+   * <li>Suspended all started bundles as described in the
+   * {@link Bundle#stop(int)} method except that the persistent
+   * state of the bundle will continue to be started.
+   * Reports any exceptions that occur during stopping using
+   * <code>FrameworkErrorEvents</code>.</li>
+   * <li>Disable event handling.</li>
+   * </ol></p>
+   *
+   */
+  public void shutdownOld() {
     if (active) {
       // No shuttingdown event specified
       // listeners.frameworkChanged(new FrameworkEvent(FrameworkEvent.SHUTTING_DOWN));
@@ -418,13 +462,13 @@ public class FrameworkContext  {
       if (startLevelController != null) {
         startLevelController.shutdown();
       }
-      // Stop bundles, in reverse start order
+      // Stop persistently started bundles, in reverse start order
       for (int i = slist.size()-1; i >= 0; i--) {
         BundleImpl b = (BundleImpl) bundles.getBundle((String)slist.get(i));
         try {
           if(b != null) {
             synchronized (b) {
-              if (b.getState() == Bundle.ACTIVE) {
+              if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
                 // Stop bundle without changing its autostart setting.
                 b.stop(Bundle.STOP_TRANSIENT);
               }
@@ -475,7 +519,9 @@ public class FrameworkContext  {
   }
 
 
-  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
+  private void saveStringBuffer(File f, StringBuffer content)
+    throws IOException
+  {
     PrintStream out = null;
     try {
       out = new PrintStream(new FileOutputStream(f));

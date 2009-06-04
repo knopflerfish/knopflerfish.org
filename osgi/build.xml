@@ -9,6 +9,7 @@
   <property name="ant.dir"         location="${topdir}/../ant"/>
   <property name="jars.dir"        location="jars"/>
   <property name="javadoc.out.dir" location="out/javadoc"/>
+  <property name="tests.dir"       location="${osgi.dir}/bundles_test/regression_tests"/>
 
   <property name="exported.file" location="out/exported.txt"/>
   <property name="sources.file"  location="out/sources.txt"/>
@@ -164,14 +165,14 @@
   <target name="test_xargs">
     <property name="bundleVersionFilterTest"
 	      location="out/bundleVersionsTest.props"/>
-    <property name="test_xargs.jars.pattern"
-	      value="jars/**/*.jar"/>
-    <property name="test_xargs.test.jars.pattern"
-	      value="bundles_test/regression_tests/jars/**/*.jar"/>
+    <property name="xargs.jars.pattern"
+	      value="**/*.jar"/>
     <bundle_locator replacefilterfile="${bundleVersionFilterTest}">
-      <fileset dir="${osgi.dir}">
-	<include name="${test_xargs.jars.pattern}"/>
-	<include name="${test_xargs.test.jars.pattern}"/>
+      <fileset dir="${jars.dir}">
+	<include name="${xargs.jars.pattern}"/>
+      </fileset>
+      <fileset dir="${tests.dir}/jars">
+	<include name="${xargs.jars.pattern}"/>
       </fileset>
     </bundle_locator>
     <copy file="init-tests.xargs.in"
@@ -179,7 +180,8 @@
 	  overwrite="true"/>
     <replace file="${xargs.out.dir}/init-tests.xargs"
 	     replacefilterfile="${bundleVersionFilterTest}">
-      <replacefilter token="$(JAR_PREFIX)"      value="file:"/>
+      <replacefilter token="$(JAR_PREFIX)"
+		     value="file:${jars.dir}/;file:${tests.dir}/jars/"/>
       <replacefilter token="$(VERSION)"         value=""/>
       <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
     </replace>	  
@@ -387,7 +389,7 @@
    <antcall target="run-test">
      <param name="run.test.msg"    value="Running the SOAP-Axis2TestSuite..."/>
      <param name="run.test.append" value="true"/>
-     <param name="run.test.xargs"  value="bundles_test/regression_tests/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
+     <param name="run.test.xargs"  value="${tests.dir}/axis2_soapclient_adb/soapcline_adb_test.xargs"/>
    </antcall>
  </target>
 
@@ -395,12 +397,12 @@
    <antcall target="run-test">
      <param name="run.test.msg"    value="Running the restart test suite, part 1..."/>
      <param name="run.test.append" value="true"/>
-     <param name="run.test.xargs"  value="bundles_test/regression_tests/restart_test/test-restart1.xargs"/>
+     <param name="run.test.xargs"  value="${tests.dir}/restart_test/test-restart1.xargs"/>
    </antcall>
    <antcall target="run-test">
      <param name="run.test.msg"    value="Running the restart test suite, part 2..."/>
      <param name="run.test.append" value="true"/>
-     <param name="run.test.xargs"  value="bundles_test/regression_tests/restart_test/test-restart2.xargs"/>
+     <param name="run.test.xargs"  value="${tests.dir}/restart_test/test-restart2.xargs"/>
    </antcall>
  </target>
 

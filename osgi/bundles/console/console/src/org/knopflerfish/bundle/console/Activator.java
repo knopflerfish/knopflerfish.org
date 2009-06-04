@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,9 @@
 
 package org.knopflerfish.bundle.console;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -42,27 +45,32 @@ import org.osgi.service.log.LogService;
 
 // ******************** Console ********************
 /**
- * * Bundle activator implementation. * *
- * 
- * @author Anders Rimen *
+ * Bundle activator implementation.
+ *
+ * @author Anders Rimen
  * @version $Revision: 1.1.1.1 $
  */
-public class Activator implements BundleActivator {
-    ServiceRegistration consoleReg;
+public class Activator
+  implements BundleActivator
+{
+    static private final String logServiceName
+      = org.osgi.service.log.LogService.class.getName();
 
-    static private final String logServiceName = org.osgi.service.log.LogService.class
-            .getName();
-
-    static private final String consoleServiceName = org.knopflerfish.service.console.ConsoleService.class
-            .getName();
+    static private final String consoleServiceName
+      = org.knopflerfish.service.console.ConsoleService.class.getName();
 
     BundleContext bc;
 
+    ServiceRegistration consoleReg;
+
+    // The set of active sessions that must be closed when this
+    // bundle is stopped.
+    static final ArrayList /*<SessionImpl>*/ sessions = new ArrayList();
+
     /**
-     * * Called by the framework when this bundle is started. * *
-     * 
-     * @param bc
-     *            Bundle context. *
+     * Called by the framework when this bundle is started.
+     *
+     * @param bc Bundle context.
      */
     public void start(BundleContext bc) {
         this.bc = bc;
@@ -76,23 +84,25 @@ public class Activator implements BundleActivator {
 
     /**
      * * Called by the framework when this bundle is stopped. * *
-     * 
+     *
      * @param bc
      *            Bundle context.
      */
     public void stop(BundleContext bc) {
         log(LogService.LOG_INFO, "Stopping");
+        ArrayList currentSessions = new ArrayList(sessions);
+        for (Iterator it = currentSessions.iterator(); it.hasNext();) {
+          SessionImpl s = (SessionImpl) it.next();
+          s.bundleStopped();
+        }
     }
 
     /**
-     * * Utility method used for logging. * *
-     * 
-     * @param level
-     *            Log level *
-     * @param msg
-     *            Log message
+     * Utility method used for logging.
+     *
+     * @param level Log level
+     * @param msg Log message
      */
-
     void log(int level, String msg) {
         ServiceReference srLog = bc.getServiceReference(logServiceName);
         if (srLog != null) {

@@ -675,17 +675,6 @@ class SecurePermissionOps extends PermissionOps {
       });
   }
 
-  void callShutdown(final SystemBundle bundle, final int exitcode) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          bundle.shutdown(exitcode);
-          return null;
-          //  Main.shutdown(exitcode);
-          // return null;
-        }
-      });
-  }
-
   //
   // PackageAdmin secure operations
   //

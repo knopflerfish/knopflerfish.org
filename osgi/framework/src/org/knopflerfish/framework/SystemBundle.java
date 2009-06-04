@@ -183,10 +183,10 @@ public class SystemBundle extends BundleImpl implements Framework {
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" + FrameworkContext.SPEC_VERSION);
-    
+
     sp.append(",org.osgi.framework.launch;" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.LAUNCH_VERSION);
     sp.append(",org.osgi.framework.hooks.service;" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.HOOKS_VERSION);
-    
+
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
@@ -304,46 +304,32 @@ public class SystemBundle extends BundleImpl implements Framework {
     fwCtx.launch(0);
   }
 
-  public FrameworkEvent waitForStop(long timeout) throws InterruptedException {
-    throw new RuntimeException("NYI");
-  }
-
-  public void shutdown(int exitcode) {
-    try {
-      stop();
-    } catch (Exception e) {
-      // NYI
-      e.printStackTrace();
-    }
-  }
-
   /**
-   * Stop this bundle.
-   *
-   * @see org.osgi.framework.Bundle#stop
+   * The event to return to callers waiting in Framework.waitForStop()
+   * when the framework has been stopped.
    */
-  public void stop() throws BundleException {
-    super.stop();
+  FrameworkEvent stopEvent;
+
+
+  Object waitForStopLock = new Object();
+  public FrameworkEvent waitForStop(long timeout)
+    throws InterruptedException
+  {
+    // Already stopped?
+    if (RESOLVED==state) return stopEvent;
+
+    synchronized (waitForStopLock) {
+      waitForStopLock.wait(timeout);
+    }
+    return RESOLVED==state ? stopEvent
+      : new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
   }
+
 
   public void stop(int options) throws BundleException {
-    super.stop(options);
+    stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
+    fwCtx.shutdown();
   }
-
-  synchronized BundleException stop0() {
-    try {
-      super.stop0();
-      fwCtx.shutdown();
-      return null;
-    } catch (Exception e) {
-      if(e instanceof BundleException) {
-        return (BundleException)e;
-      }
-      e.printStackTrace();
-      return new BundleException("Failed to stop", e);
-    }
-  }
-
 
 
   /**
@@ -428,12 +414,10 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
   void setBundleContext(BundleContextImpl bc) {
-    System.err.println("SystemBundle.setBundleContext("+bc +") called");
     this.bundleContext = bc;
   }
 
   void setPermissionOps(PermissionOps permissionOps) {
-    System.err.println("SystemBundle.setPermissionOps("+permissionOps +") called");
     this.secure = permissionOps;
   }
 
@@ -450,6 +434,17 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   void systemShuttingdown() {
     state = STOPPING;
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+  }
+
+  /**
+   * Shutting down is done.
+   */
+  void systemShuttingdownDone() {
+    state = RESOLVED;
+    synchronized(waitForStopLock) {
+      waitForStopLock.notifyAll();
+    }
   }
 
 

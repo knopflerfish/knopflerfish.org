@@ -48,7 +48,7 @@ import org.osgi.framework.BundleContext;
 
 /**
  * Implementation of the service interface ConsoleService.
- * 
+ *
  * @see org.knopflerfish.service.console.ConsoleService
  * @author Jan Stein
  */
@@ -78,7 +78,7 @@ public class ConsoleServiceImpl implements ConsoleService {
 
     /**
      * Start a command session
-     * 
+     *
      * @param command
      *            Command string to match against
      * @return Session object
@@ -91,7 +91,7 @@ public class ConsoleServiceImpl implements ConsoleService {
 
     /**
      * Run a single command
-     * 
+     *
      * @param commands
      *            String with command to run
      * @return Result of commands

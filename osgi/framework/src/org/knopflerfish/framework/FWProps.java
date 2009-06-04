@@ -88,12 +88,9 @@ public class FWProps  {
   // OSGi R4 behavior.
   public boolean STRICTBOOTCLASSLOADING;
 
-  // EXIT_ON_SHUTDOWN and USING_WRAPPER_SCRIPT  must be initialized
-  // before initProperties(). Thus, they are *not* possible
-  // to set on a per-framework basis (which wouldn't make sense anyway).
-  final boolean EXIT_ON_SHUTDOWN =
-    TRUE.equals(System.getProperty(Main.EXITONSHUTDOWN_PROP, TRUE));
-
+  // USING_WRAPPER_SCRIPT must be initialized before
+  // initProperties(). Thus, it is *not* possible to set on a
+  // per-framework basis (which wouldn't make sense anyway).
   final boolean USING_WRAPPER_SCRIPT
     = TRUE.equals(System.getProperty(Main.USINGWRAPPERSCRIPT_PROP, FALSE));
 
@@ -349,7 +346,6 @@ public class FWProps  {
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
 
     if (bIsMemoryStorage ||
-        !EXIT_ON_SHUTDOWN ||
         !USING_WRAPPER_SCRIPT) {
       SUPPORTS_EXTENSION_BUNDLES = false;
       // we can not support this in this mode.

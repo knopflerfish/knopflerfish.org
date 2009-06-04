@@ -42,7 +42,7 @@
 
 # Comma-separated list of packages to be added to the set of packages
 # exported by system classloader.
-#-Forg.osgi.framework.system.packages=
+#-Forg.osgi.framework.system.packages.extra=
 
 # Comma-separated list of packages that must be loaded by system classloader
 #-Forg.osgi.framework.bootdelegation=*

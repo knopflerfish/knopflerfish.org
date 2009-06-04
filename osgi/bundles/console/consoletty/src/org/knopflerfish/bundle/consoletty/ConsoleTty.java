@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,14 +57,14 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 // ******************** ConsoleTty ********************
 /**
- * * Bundle activator implementation. * *
- * 
- * @author Jan Stein *
+ * Bundle activator implementation.
+ *
+ * @author Jan Stein
  * @version $Revision: 1.1.1.1 $
  */
-public class ConsoleTty implements BundleActivator, ManagedService,
-        ServiceTrackerCustomizer {
-
+public class ConsoleTty
+  implements BundleActivator, ManagedService, ServiceTrackerCustomizer
+{
     final static private String logServiceName = LogService.class.getName();
 
     final static private String consoleServiceName = ConsoleService.class
@@ -91,7 +91,7 @@ public class ConsoleTty implements BundleActivator, ManagedService,
     // ==================== start ====================
     /**
      * * Called by the framework when this bundle is started. * *
-     * 
+     *
      * @param bc
      *            Bundle context. *
      * @exception BundleException
@@ -130,10 +130,9 @@ public class ConsoleTty implements BundleActivator, ManagedService,
 
     // ==================== stop ====================
     /**
-     * * Called by the framework when this bundle is stopped. * *
-     * 
-     * @param bc
-     *            Bundle context.
+     * Called by the framework when this bundle is stopped.
+     *
+     * @param bc Bundle context.
      */
     public synchronized void stop(BundleContext bc) {
         log(LogService.LOG_INFO, "Stopping");
@@ -153,10 +152,9 @@ public class ConsoleTty implements BundleActivator, ManagedService,
 
     // ==================== updated ====================
     /**
-     * * Called by CM when it got this bundles configuration. * *
-     * 
-     * @param cfg
-     *            contains the new configuration properties.
+     * Called by CM when it got this bundles configuration.
+     *
+     * @param cfg contains the new configuration properties.
      */
     public synchronized void updated(Dictionary cfg)
             throws IllegalArgumentException {
@@ -180,7 +178,7 @@ public class ConsoleTty implements BundleActivator, ManagedService,
             consoleSession = console.runSession("console tty", reader, writer);
         } catch (IOException ioe) {
             log(LogService.LOG_ERROR,
-                    "Failed to start console session, can not continue");
+                "Failed to start console session, can not continue");
         }
         return console;
     }
@@ -201,12 +199,10 @@ public class ConsoleTty implements BundleActivator, ManagedService,
 
     // ==================== log ====================
     /**
-     * * Utility method used for logging. * *
-     * 
-     * @param level
-     *            Log level *
-     * @param msg
-     *            Log message
+     * Utility method used for logging.
+     *
+     * @param level Log level
+     * @param msg   Log message
      */
     public void log(int level, String msg) {
         log(level, msg, null);

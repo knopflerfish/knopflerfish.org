@@ -295,11 +295,6 @@ class PermissionOps {
     // Main.restart();
   }
 
-  void callShutdown(SystemBundle bundle, final int exitcode) {
-    // Main.shutdown(exitcode);
-    bundle.shutdown(exitcode);
-  }
-
   //
   // PackageAdmin secure operations
   //
