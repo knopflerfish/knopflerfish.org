@@ -81,6 +81,11 @@ public class FrameworkContext  {
   static final String HOOKS_VERSION = "1.0";
 
   /**
+   * Boolean indicating if the framework has been initialized or not.
+   */
+  boolean initialized = false;
+
+  /**
    * Boolean indicating that framework is running.
    */
   boolean active;
@@ -174,7 +179,15 @@ public class FrameworkContext  {
    *
    */
   public FrameworkContext(Map initProps, FrameworkContext parent)  {
-    props = new FWProps(initProps, parent);
+    props        = new FWProps(initProps, parent);
+    systemBundle = new SystemBundle(this);
+  }
+
+
+  // Initialize the framework, see spec v4.2 sec 4.2.4
+  void init()
+  {
+    if (initialized) return;
 
     if (Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
@@ -200,6 +213,7 @@ public class FrameworkContext  {
     } else {
       perm = new PermissionOps();
     }
+    systemBundle.setPermissionOps(perm);
 
     // Set up URL handlers before creating the storage implementation,
     // with the exception of the bundle: URL handler, since this
@@ -245,11 +259,10 @@ public class FrameworkContext  {
     listeners         = new Listeners(this, perm);
     services          = new Services(this, perm);
 
-    systemBundle      = new SystemBundle(this, pd);
     systemBC          = new BundleContextImpl(systemBundle);
-    bundles           = new Bundles(this);
-
     systemBundle.setBundleContext(systemBC);
+
+    bundles           = new Bundles(this);
 
     perm.registerService();
 
@@ -267,6 +280,8 @@ public class FrameworkContext  {
     registerStartLevel();
 
     bundles.load();
+
+    initialized = true;
   }
 
 
@@ -348,6 +363,7 @@ public class FrameworkContext  {
         // correctly work at restart
         startLevelController.open();
       } else {
+        // Start bundles according to their autostart setting.
         final Iterator i = storage.getStartOnLaunchBundles().iterator();
         while (i.hasNext()) {
           final BundleImpl b = (BundleImpl) bundles.getBundle((String)i.next());
