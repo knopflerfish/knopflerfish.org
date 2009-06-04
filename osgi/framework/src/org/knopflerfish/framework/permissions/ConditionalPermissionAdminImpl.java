@@ -48,7 +48,7 @@ import org.osgi.service.condpermadmin.*;
  */
 public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmin {
 
-  public final static String SPEC_VERSION = "1.0";
+  public final static String SPEC_VERSION = "1.1.0";
 
   private ConditionalPermissionInfoStorage cpis;
 
