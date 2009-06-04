@@ -66,7 +66,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Property name pointing to file listing of system-exported packages
    */
-  private final static String SYSPKG_FILE = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
+  private final static String SYSPKG_FILE
+    = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
 
 
   /**
@@ -110,20 +111,23 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Construct the System Bundle handle.
    *
    */
-  SystemBundle(FrameworkContext fw, ProtectionDomain pd) {
+  SystemBundle(FrameworkContext fw)
+  {
     super(fw,
           0,
           Constants.SYSTEM_BUNDLE_LOCATION,
-          pd,
           Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
           new Version(Main.readVersion()));
   }
 
   public void init() throws BundleException {
-    // fwCtx.props.printProps();
+    if (fwCtx.initialized) return; // Already done.
+
+    fwCtx.init();
 
     state = STARTING;
-    StringBuffer sp = new StringBuffer(fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
+    StringBuffer sp = new StringBuffer
+      (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
     if (sp.length() > 0) {
       sp.append(",");
     }
@@ -289,40 +293,15 @@ public class SystemBundle extends BundleImpl implements Framework {
     return true;
   }
 
-  void startOnLaunch(boolean value) {
-    // override with noop on system bundle
-  }
-
-  void setPersistent(final boolean value) {
-    // override noop on system bundle
-  }
-
-  boolean allowSetStartOnLaunchFalse() {
-    return false;
-  }
-
-
 
   //
-  // Bundle interface
+  // Bundle interface overrides
   //
-
-  /**
-   * Start this bundle.
-   *
-   * @see org.osgi.framework.Bundle#start
-   */
-  synchronized public void start() throws BundleException
-  {
-    secure.checkExecuteAdminPerm(this);
-    if(getState() != STARTING) {
-      init();
-    }
-    fwCtx.launch(0);
-  }
 
   synchronized public void start(int options) throws BundleException {
-    start();
+    secure.checkExecuteAdminPerm(this);
+    init();
+    fwCtx.launch(0);
   }
 
   public FrameworkEvent waitForStop(long timeout) throws InterruptedException {
@@ -449,7 +428,13 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
   void setBundleContext(BundleContextImpl bc) {
-    bundleContext = bc;
+    System.err.println("SystemBundle.setBundleContext("+bc +") called");
+    this.bundleContext = bc;
+  }
+
+  void setPermissionOps(PermissionOps permissionOps) {
+    System.err.println("SystemBundle.setPermissionOps("+permissionOps +") called");
+    this.secure = permissionOps;
   }
 
   /**

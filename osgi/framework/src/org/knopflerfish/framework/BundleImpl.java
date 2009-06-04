@@ -82,7 +82,7 @@ public class BundleImpl implements Bundle {
   /**
    * Handle to secure operations.
    */
-  final PermissionOps secure;
+  protected PermissionOps secure;
 
   /**
    * Bundle identifier.
@@ -135,7 +135,9 @@ public class BundleImpl implements Bundle {
   int generation = 0;
 
   /**
-   * Bundle protect domain.
+   * Bundle protect domain. Will allways be <tt>null</tt> for the
+   * system bundle, methods requireing access to it must be overridden
+   * in the SystemBundle class.
    */
   private ProtectionDomain protectionDomain;
 
@@ -221,15 +223,14 @@ public class BundleImpl implements Bundle {
   BundleImpl(FrameworkContext fw,
              long id,
              String loc,
-             ProtectionDomain pd,
              String sym,
              Version ver)
   {
     this.fwCtx = fw;
-    this.secure = fw.perm;
+    this.secure = null;
     this.id = id;
     this.location = loc;
-    this.protectionDomain = pd;
+    this.protectionDomain = null;
     this.symbolicName = sym;
     this.singleton = false;
     this.version = ver;
@@ -1039,11 +1040,10 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * Returns this bundle's BundleContext. This method will be
-   * introduced in OSGi R4.1 but included here as a migration step.
+   * Returns this bundle's BundleContext.
    *
    * @see org.osgi.framework.Bundle#getBundleContext
-   * @since 1.4
+   * @since org.osgi.framework 1.4
    */
   public BundleContext getBundleContext() {
     secure.checkContextAdminPerm(this);

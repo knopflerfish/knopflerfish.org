@@ -305,6 +305,11 @@ public class Main
       setSecurityManager();
 
       framework = ff.newFramework(fwProps);
+      try {
+        framework.init();
+      } catch (BundleException be) {
+        error("Failed to initialize the framework: " +be.getMessage(), be);
+      }
       println("Created Framework " + framework.getClass().getName(), 1);
     }
   }
