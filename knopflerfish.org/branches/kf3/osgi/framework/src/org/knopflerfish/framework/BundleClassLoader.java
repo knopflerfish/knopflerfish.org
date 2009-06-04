@@ -34,33 +34,37 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 
 /**
  * Classloader for bundle JAR files.
  *
- * @author Jan Stein
- * @author Philippe Laporte
- * @author Mats-Ola Persson
+ * @author Jan Stein, Philippe Laporte, Mats-Ola Persson, Gunna Ekolin
  */
-final public class BundleClassLoader extends ClassLoader {
-
+final public class BundleClassLoader
+  extends ClassLoader
+  implements BundleReference
+{
   /**
    * Framework class loader
    */
@@ -346,7 +350,7 @@ final public class BundleClassLoader extends ClassLoader {
       // Handle bundles that are lazely started after having been
       // stopped. In this case the triggering classes will already
       // be loaded.
-      BundleImpl b = getBundle();
+      BundleImpl b = (BundleImpl) getBundle();
       if (b.triggersActivationCls(name)) {
         if (debug.lazyActivation) {
           debug.println(this +" lazy activation of #" +b.id
@@ -509,17 +513,16 @@ final public class BundleClassLoader extends ClassLoader {
     return "BundleClassLoader(id=" + bpkgs.bundle.id + ",gen=" + bpkgs.generation + ")";
   }
 
-  //
-  // BundleClassLoader specific
-  //
 
-  /**
-   * Get bundle owning this class loader.
-   */
-  BundleImpl getBundle() {
+  // Implements BundleReference
+  public Bundle getBundle() {
     return bpkgs.bundle;
   }
 
+
+  //
+  // BundleClassLoader specific
+  //
 
   /**
    * Get bundle archive belonging to this class loader.
@@ -577,7 +580,8 @@ final public class BundleClassLoader extends ClassLoader {
       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
         // NYI improve this solution
         BundleArchive ba = (BundleArchive)i.next();
-        BundleImpl b = (BundleImpl)bpkgs.bundle.fwCtx.bundles.getBundle(ba.getBundleLocation());
+        BundleImpl b = (BundleImpl) bpkgs.bundle.fwCtx.bundles
+          .getBundle(ba.getBundleLocation());
         if (b == null || b.archive != ba) {
           ba.purge();
         }
@@ -594,7 +598,8 @@ final public class BundleClassLoader extends ClassLoader {
   Enumeration getBundleResources(String name, boolean onlyFirst) {
     if (secure.okResourceAdminPerm(bpkgs.bundle)) {
       if (debug.classLoader) {
-        debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s") + ": " + name);
+        debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s")
+                      + ": " + name);
       }
       String pkg = null;
       int pos = name.lastIndexOf('/');
@@ -604,7 +609,8 @@ final public class BundleClassLoader extends ClassLoader {
       } else {
         pkg = null;
       }
-      return (Enumeration)secure.callSearchFor(this, null, pkg, name, resourceSearch,
+      return (Enumeration)secure.callSearchFor(this, null, pkg, name,
+                                               resourceSearch,
                                                onlyFirst, this, null);
     } else {
       return null;
@@ -676,7 +682,7 @@ final public class BundleClassLoader extends ClassLoader {
                    BundleClassLoader requestor,
                    HashSet visited)
   {
-    final BundleImpl b = getBundle();
+    final BundleImpl b = (BundleImpl) getBundle();
     boolean initiator = false;
     ArrayList bundlesToActivate = null;
 
