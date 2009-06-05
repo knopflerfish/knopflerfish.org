@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
 public abstract class DefaultSwingBundleDisplayer
-  implements 
+  implements
     SwingBundleDisplayer,
     BundleListener,
     ServiceListener,
@@ -83,9 +83,9 @@ public abstract class DefaultSwingBundleDisplayer
   BundleContext bc;
 
   public DefaultSwingBundleDisplayer(BundleContext bc,
-				     String        name,
-				     String        desc,
-				     boolean       bDetail) {
+                                     String        name,
+                                     String        desc,
+                                     boolean       bDetail) {
     this.bc      = bc;
     this.name    = name;
     this.desc    = desc;
@@ -108,19 +108,19 @@ public abstract class DefaultSwingBundleDisplayer
     }
 
     open();
-    
+
     Hashtable props = new Hashtable();
     props.put(SwingBundleDisplayer.PROP_NAME,        getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
-    props.put(SwingBundleDisplayer.PROP_ISDETAIL,    
-	      isDetail() 
-	      ? Boolean.TRUE 
-	      : Boolean.FALSE);
-    
+    props.put(SwingBundleDisplayer.PROP_ISDETAIL,
+              isDetail()
+              ? Boolean.TRUE
+              : Boolean.FALSE);
+
     reg = Activator.getBC()
       .registerService(SwingBundleDisplayer.class.getName(),
-		       this,
-		       props);
+                       this,
+                       props);
 
     return reg;
   }
@@ -167,10 +167,10 @@ public abstract class DefaultSwingBundleDisplayer
 
 
   void getAllServices() {
-    try {      
+    try {
       ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
       for(int i = 0; srl != null && i < srl.length; i++) {
-	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
+        serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -180,24 +180,24 @@ public abstract class DefaultSwingBundleDisplayer
   void getAllBundles() {
     try {
       int delay = 0;
-      
+
       Bundle[] bl = Activator.getBundles();
-      
+
       // do something reasonable with bundles already installed
       for(int i = 0; bl != null && i < bl.length; i++) {
-	BundleEvent ev = null;
-	switch(bl[i].getState()) {
-	case Bundle.ACTIVE: 
-	  ev = new BundleEvent(BundleEvent.STARTED, bl[i]);
-	  break;
-	default:
-	  ev = new BundleEvent(BundleEvent.INSTALLED, bl[i]);
-	  break;
-	}
-	bundleChanged(ev);
-	if(delay > 0) {
-	  Thread.sleep(delay);
-	}
+        BundleEvent ev = null;
+        switch(bl[i].getState()) {
+        case Bundle.ACTIVE:
+          ev = new BundleEvent(BundleEvent.STARTED, bl[i]);
+          break;
+        default:
+          ev = new BundleEvent(BundleEvent.INSTALLED, bl[i]);
+          break;
+        }
+        bundleChanged(ev);
+        if(delay > 0) {
+          Thread.sleep(delay);
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -208,7 +208,7 @@ public abstract class DefaultSwingBundleDisplayer
     bAlive = false;
 
     if(bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this); 
+      bundleSelModel.removeBundleSelectionListener(this);
     }
     Activator.getTargetBC().removeBundleListener(this);
     Activator.getTargetBC().removeServiceListener(this);
@@ -242,7 +242,7 @@ public abstract class DefaultSwingBundleDisplayer
       valueChangedLazy(bid);
     }
   }
-  
+
   public void setTabSelected() {
     valueChangedLazy(lastBID);
   }
@@ -255,10 +255,10 @@ public abstract class DefaultSwingBundleDisplayer
     }
 
     bundles = getAndSortBundles();
-    
+
     if(bUpdateOnBundleChange) {
       updateComponents(Activator.desktop.getSelectedBundles());
-    }    
+    }
   }
 
   // ServiceListener interface, only called when bUseListeners = true
@@ -272,7 +272,7 @@ public abstract class DefaultSwingBundleDisplayer
         updateComponents(Activator.desktop.getSelectedBundles());
       }
     }
-    
+
   }
 
   void updateComponents(final Bundle[] bl) {
@@ -287,7 +287,7 @@ public abstract class DefaultSwingBundleDisplayer
               }
             }
           }
-        }          
+        }
       });
   }
 
@@ -298,7 +298,7 @@ public abstract class DefaultSwingBundleDisplayer
       set.add(bl[i]);
     }
 
-    set.toArray(bl);    
+    set.toArray(bl);
 
     return bl;
   }
@@ -307,7 +307,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   public void setBundleSelectionModel(BundleSelectionModel model) {
     if(bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this); 
+      bundleSelModel.removeBundleSelectionListener(this);
     }
     bundleSelModel = model;
     bundleSelModel.addBundleSelectionListener(this);
@@ -317,7 +317,7 @@ public abstract class DefaultSwingBundleDisplayer
   public BundleSelectionModel getBundleSelectionModel() {
     return bundleSelModel;
   }
-  
+
 
   Set components = new HashSet();
 
@@ -351,12 +351,12 @@ public abstract class DefaultSwingBundleDisplayer
     return null;
   }
 
-  
+
   public void       setTargetBundleContext(BundleContext bc) {
     this.bc = bc;
   }
 
   public void showBundle(Bundle b) {
   }
-  
+
 }
