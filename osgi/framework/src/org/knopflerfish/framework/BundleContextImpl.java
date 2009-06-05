@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ public class BundleContextImpl
    */
   private BundleImpl bundle;
 
-  
+
   /**
    * Create a BundleContext for specified bundle.
    */
@@ -104,9 +104,9 @@ public class BundleContextImpl
       return bundle.fwCtx.bundles.install(location, in);
     } finally {
       if (in != null) {
-	try {
-	  in.close();
-	} catch (IOException ignore) {}
+        try {
+          in.close();
+        } catch (IOException ignore) {}
       }
     }
   }
@@ -230,8 +230,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#registerService
    */
   public ServiceRegistration registerService(String[] clazzes,
-					     Object service,
-					     Dictionary properties) {
+                                             Object service,
+                                             Dictionary properties) {
     isBCvalid();
     String [] classes = (String[]) clazzes.clone();
     return bundle.fwCtx.services.register(bundle, classes, service, properties);
@@ -244,8 +244,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#registerService
    */
   public ServiceRegistration registerService(String clazz,
-					     Object service,
-					     Dictionary properties) {
+                                             Object service,
+                                             Dictionary properties) {
     isBCvalid();
     String [] classes =  new String [] { clazz };
     return bundle.fwCtx.services.register(bundle, classes, service, properties);
@@ -262,13 +262,13 @@ public class BundleContextImpl
     isBCvalid();
     return bundle.fwCtx.services.get(clazz, filter, bundle, true);
   }
-  
+
   /**
    * Get a list of service references.
    *
    * @see org.osgi.framework.BundleContext#getAllServiceReferences
    */
-  public ServiceReference[] getAllServiceReferences(String clazz, String filter) 
+  public ServiceReference[] getAllServiceReferences(String clazz, String filter)
   throws InvalidSyntaxException {
     isBCvalid();
     return bundle.fwCtx.services.get(clazz, filter, null, false);
@@ -299,7 +299,7 @@ public class BundleContextImpl
     isBCvalid();
 
     if(reference == null) {
-      // Throw an NPE with a message to be really clear we do it 
+      // Throw an NPE with a message to be really clear we do it
       // intentionally.
       // A better solution would be to throw IllegalArgumentException,
       // but the OSGi ref impl throws NPE, and we want to keep as
@@ -320,7 +320,7 @@ public class BundleContextImpl
     isBCvalid();
 
     if(reference == null) {
-      // Throw an NPE with a message to be really clear we do it 
+      // Throw an NPE with a message to be really clear we do it
       // intentionally.
       // A better solution would be to throw IllegalArgumentException,
       // but the OSGi ref impl throws NPE, and we want to keep as
@@ -338,12 +338,12 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getDataFile
    */
-  public File getDataFile(String filename) {  
+  public File getDataFile(String filename) {
     isBCvalid();
     File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
       if (!dataRoot.exists()) {
-	dataRoot.mkdirs();
+        dataRoot.mkdirs();
       }
       return new File(dataRoot, filename);
     } else {

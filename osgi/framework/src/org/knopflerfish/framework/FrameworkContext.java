@@ -88,12 +88,12 @@ public class FrameworkContext  {
   /**
    * Boolean indicating that framework is running.
    */
-  boolean active;
+  volatile boolean active;
 
   /**
    * Set during shutdown process.
    */
-  boolean shuttingdown /*= false*/;
+  volatile boolean shuttingdown /*= false*/;
 
   /** Monitot to wait for start completion on when shutting down. */
   private Object startStopLock = new Object();
@@ -222,20 +222,22 @@ public class FrameworkContext  {
     }
     systemBundle.setPermissionOps(perm);
 
-    // Set up URL handlers before creating the storage implementation,
-    // with the exception of the bundle: URL handler, since this
-    // requires an intialized framework to work
-    urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
-    contentHandlerFactory   = new ServiceContentHandlerFactory(this);
-
+    boolean createHandlers = null==urlStreamHandlerFactory;
+    if (createHandlers) {
+      // Set up URL handlers before creating the storage
+      // implementation, with the exception of the bundle: URL
+      // handler, since this requires an intialized framework to work
+      urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
+      contentHandlerFactory   = new ServiceContentHandlerFactory(this);
+    }
 
     urlStreamHandlerFactory
       .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
                            new ReferenceURLStreamHandler());
 
-    // Install service based URL stream handler. This can be turned
-    // off if there is need
-    if(props.REGISTERSERVICEURLHANDLER) {
+    // Install newly created service based URL stream handler. This
+    // can be turned off if there is need
+    if(createHandlers && props.REGISTERSERVICEURLHANDLER) {
       try {
         URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
 
@@ -290,8 +292,58 @@ public class FrameworkContext  {
 
     initialized = true;
     log("inited");
+
+    log("Installed bundles:");
+    final List allBundles = bundles.getBundles();
+    for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
+      final BundleImpl b = (BundleImpl) i.next();
+      log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
+          +b.getVersion() +" location:" +b.getLocation());
+    }
   }
 
+  /**
+   * Undo as much as possible of what init() does.
+   */
+  private void uninit()
+  {
+    initialized = false;
+
+    startLevelController = null;
+
+    bundles.clear();
+    bundles = null;
+
+    systemBC.invalidate();
+    systemBC = null;
+    systemBundle.setBundleContext(systemBC);
+
+    services.clear();
+    services = null;
+
+    listeners.clear();
+    listeners = null;
+
+    packages.clear();
+    packages = null;
+
+    dataStorage = null;
+
+    storage.close();
+    storage = null;
+
+    if(props.REGISTERSERVICEURLHANDLER) {
+      // Since handlers can only be registered once, keep them in this
+      // case.
+    } else {
+      urlStreamHandlerFactory = null;
+      contentHandlerFactory   = null;
+    }
+
+    perm = null;
+    systemBundle.setPermissionOps(perm);
+    bootDelegationPatterns.clear();
+  }
 
   private void deleteFWDir() {
     String d = Util.getFrameworkDir(this);
@@ -299,6 +351,7 @@ public class FrameworkContext  {
     FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
       if(dir.exists()) {
+        log("deleting old framework directory.");
         boolean bOK = dir.delete();
         if(!bOK) {
           props.debug.println("Failed to remove existing fwdir "
@@ -432,6 +485,11 @@ public class FrameworkContext  {
       return;
     }
 
+    if (!active) {
+      log("stop ignored, framework not started.");
+      return;
+    }
+
     log("stopping");
     Thread shutdownThread = new Thread("Framework shutdown")
       {
@@ -445,22 +503,6 @@ public class FrameworkContext  {
     shutdownThread.start();
   }
 
-  private void shutdown0()
-  {
-    try {
-      //If starting wait for it to complete
-
-      shutdownOld();
-    } catch (Exception e) {
-      log("error during stop", e);
-      systemBundle.stopEvent
-        = new FrameworkEvent(FrameworkEvent.ERROR, systemBundle, e);
-    }
-    systemBundle.systemShuttingdownDone();
-    shutdownThread = null;
-  }
-
-
 
   /**
    * Stop this FrameworkContext, suspending all started contexts.
@@ -471,63 +513,96 @@ public class FrameworkContext  {
    * If the framework is started, this method will:
    * <ol>
    * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
-   * <li>Suspended all started bundles as described in the
+   * <li>Stop all started bundles as described in the
    * {@link Bundle#stop(int)} method except that the persistent
    * state of the bundle will continue to be started.
    * Reports any exceptions that occur during stopping using
    * <code>FrameworkErrorEvents</code>.</li>
    * <li>Disable event handling.</li>
-   * </ol></p>
+   * </ol>
+   * </p>
    *
    */
-  public void shutdownOld() {
-    if (active) {
+  private void shutdown0()
+  {
+    try {
+      //If starting wait for it to complete
       synchronized(startStopLock) {
-        log("stopping bundles");
         active = false;
-        List slist = storage.getStartOnLaunchBundles();
         shuttingdown = true;
         systemBundle.systemShuttingdown();
-        if (startLevelController != null) {
-          startLevelController.shutdown();
-        }
-        // Stop persistently started bundles, in reverse start order
-        for (int i = slist.size()-1; i >= 0; i--) {
-          BundleImpl b = (BundleImpl) bundles.getBundle((String)slist.get(i));
-          try {
-            if(b != null) {
-              synchronized (b) {
-                if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
-                  // Stop bundle without changing its autostart setting.
-                  b.stop(Bundle.STOP_TRANSIENT);
-                }
-              }
-            }
-          } catch (BundleException be) {
-            listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
-                                                        b, be));
-          }
-        }
+
+        saveClasspaths();
+        stopAllBundles();
+        uninit();
+
         shuttingdown = false;
-        // Purge any unrefreshed bundles
-        List all = bundles.getBundles();
-        for (Iterator i = all.iterator(); i.hasNext(); ) {
-          ((BundleImpl)i.next()).purge();
-        }
       }
-      log("bundles stopped");
+    } catch (Exception e) {
+      log("error during stop", e);
+      systemBundle.stopEvent
+        = new FrameworkEvent(FrameworkEvent.ERROR, systemBundle, e);
+    }
+    systemBundle.systemShuttingdownDone();
+    shutdownThread = null;
+  }
+
+
+  /**
+   * Stop and unresolve all bundles.
+   */
+  private void stopAllBundles()
+  {
+    log("stopping bundles");
+
+    if (startLevelController != null) {
+      startLevelController.shutdown();
     }
 
+    // Stop all active bundles, in reverse bundle ID order
+    // The list will be empty when the start level service is in use.
+    final List activeBundles = bundles.getActiveBundles();
+    for (int i = activeBundles.size()-1; i >= 0; i--) {
+      final BundleImpl b = (BundleImpl) activeBundles.get(i);
+      try {
+        synchronized (b) {
+          if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
+            // Stop bundle without changing its autostart setting.
+            b.stop(Bundle.STOP_TRANSIENT);
+          }
+        }
+      } catch (BundleException be) {
+        listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
+                                                    b, be));
+      }
+    }
+
+    final List allBundles = bundles.getBundles();
+
+    // Set state to INSTALLED and purge any unrefreshed bundles
+    for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
+      final BundleImpl b = (BundleImpl) i.next();
+      b.setStateInstalled(false);
+      b.purge();
+    }
+    log("bundles stopped");
+  }
+
+
+  public void saveClasspaths()
+  {
     StringBuffer bootClasspath = new StringBuffer();
     StringBuffer frameworkClasspath = new StringBuffer();
-    for (Iterator i = bundles.getFragmentBundles(systemBundle).iterator(); i.hasNext(); ) {
+    for (Iterator i = bundles.getFragmentBundles(systemBundle).iterator();
+         i.hasNext(); ) {
       BundleImpl eb = (BundleImpl)i.next();
       String path = eb.archive.getJarLocation();
-      StringBuffer sb = eb.isBootClassPathExtension() ? bootClasspath : frameworkClasspath;
-      sb.append(path);
-      if (i.hasNext()) {
+      StringBuffer sb = eb.isBootClassPathExtension()
+        ? bootClasspath : frameworkClasspath;
+      if (sb.length()>0) {
         sb.append(File.pathSeparator);
       }
+      sb.append(path);
     }
 
     // Post processing to handle boot class extension

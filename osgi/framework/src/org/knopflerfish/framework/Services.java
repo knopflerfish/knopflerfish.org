@@ -50,14 +50,14 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 /**
  * Here we handle all the services that are registered in framework.
  *
- * @author Jan Stein
- * @author Philippe Laporte
+ * @author Jan Stein, Philippe Laporte, Gunnar Ekolin
  */
 class Services {
 
   /**
    * All registered services in the current framework.
-   * Mapping of registered service to class names under which service is registerd.
+   * Mapping of registered service to class names under which service
+   * is registerd.
    */
   private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
 
@@ -77,6 +77,14 @@ class Services {
   Services(FrameworkContext fwCtx, PermissionOps perm) {
     this.framework = fwCtx;
     secure = perm;
+  }
+
+  void clear()
+  {
+    services.clear();
+    classServices.clear();
+    secure = null;
+    framework = null;
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,10 +49,10 @@ import org.osgi.framework.*;
  * Container of all service listeners.
  */
 class ServiceListenerState {
-  protected final static String[] hashedKeys = 
+  protected final static String[] hashedKeys =
     new String[] { Constants.OBJECTCLASS.toLowerCase(),
-		   Constants.SERVICE_ID.toLowerCase(),
-		   Constants.SERVICE_PID.toLowerCase()
+                   Constants.SERVICE_ID.toLowerCase(),
+                   Constants.SERVICE_PID.toLowerCase()
     };
   private final static int OBJECTCLASS_IX = 0;
   private final static int SERVICE_ID_IX  = 1;
@@ -61,22 +61,33 @@ class ServiceListenerState {
 
   /* Service listeners with complicated or empty filters */
   List complicatedListeners = new ArrayList();
-  
+
   /* Service listeners with "simple" filters are cached. */
   Map[] /* [Value -> List(ServiceListenerEntry)] */
     cache = new HashMap[hashedKeys.length];
-  
+
   Set /* ServiceListenerEntry */ serviceSet = new HashSet();
-  
+
   Listeners listeners;
-  
+
   ServiceListenerState(Listeners listeners) {
     this.listeners = listeners;
     hashedKeysV = new ArrayList();
     for (int i = 0; i < hashedKeys.length; i++) {
-      hashedKeysV.add(hashedKeys[i]);    
+      hashedKeysV.add(hashedKeys[i]);
       cache[i] = new HashMap();
     }
+  }
+
+  void clear()
+  {
+    hashedKeysV.clear();
+    complicatedListeners.clear();
+    for (int i = 0; i < hashedKeys.length; i++) {
+      cache[i].clear();
+    }
+    serviceSet.clear();
+    listeners = null;;
   }
 
   /**
@@ -101,7 +112,7 @@ class ServiceListenerState {
 
   /**
    * Remove a service listener.
-   * 
+   *
    * @param bundle The bundle removing this listener.
    * @param listener The service listener to remove.
    */
@@ -109,9 +120,9 @@ class ServiceListenerState {
     for (Iterator it = serviceSet.iterator(); it.hasNext();) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
       if (sle.bundle == bundle && sle.listener == listener) {
-	removeFromCache(sle);
-	it.remove();
-	break;
+        removeFromCache(sle);
+        it.remove();
+        break;
       }
     }
   }
@@ -123,18 +134,18 @@ class ServiceListenerState {
   private void removeFromCache(ServiceListenerEntry sle) {
     if (sle.local_cache != null) {
       for (int i = 0; i < hashedKeys.length; i++) {
-	HashMap keymap = (HashMap)cache[i];
-	List l = (List)sle.local_cache[i];
-	if (l != null) {
-	  for (Iterator it = l.iterator(); it.hasNext();) {
-	    Object value = it.next();
-	    List sles = (List)keymap.get(value);
-	    sles.remove(sles.indexOf(sle));
-	    if (sles.isEmpty()) {
-	      keymap.remove(value);
-	    }
-	  }	  
-	}
+        HashMap keymap = (HashMap)cache[i];
+        List l = (List)sle.local_cache[i];
+        if (l != null) {
+          for (Iterator it = l.iterator(); it.hasNext();) {
+            Object value = it.next();
+            List sles = (List)keymap.get(value);
+            sles.remove(sles.indexOf(sle));
+            if (sles.isEmpty()) {
+              keymap.remove(value);
+            }
+          }
+        }
       }
     } else {
       complicatedListeners.remove(sle);
@@ -150,14 +161,14 @@ class ServiceListenerState {
     for (Iterator it = serviceSet.iterator(); it.hasNext();) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
       if (sle.bundle == bundle) {
-	removeFromCache(sle);
-	it.remove();
+        removeFromCache(sle);
+        it.remove();
       }
     }
   }
 
   /**
-   * Checks if the specified service listener's filter is simple enough 
+   * Checks if the specified service listener's filter is simple enough
    * to cache.
    */
   public void checkSimple(ServiceListenerEntry sle) {
@@ -166,23 +177,23 @@ class ServiceListenerState {
     } else {
       List[] /* Value */ local_cache = new List[hashedKeys.length];
       if (sle.ldap.isSimple(hashedKeysV, local_cache)) {
-	sle.local_cache = local_cache;
-	for (int i = 0; i < hashedKeys.length; i++) {
-	  if (local_cache[i] != null) {
-	    for (Iterator it = local_cache[i].iterator(); it.hasNext();) {
-	      Object value = it.next();
-	      List sles = (List)cache[i].get(value);
-	      if (sles == null)
-		cache[i].put(value, sles = new ArrayList());
-	      sles.add(sle);
-	    }
-	  }
-	}
-      } else {
-	if (listeners.framework.props.debug.ldap) {
-	  listeners.framework.props.debug.println("Too complicated filter: " + sle.ldap);
+        sle.local_cache = local_cache;
+        for (int i = 0; i < hashedKeys.length; i++) {
+          if (local_cache[i] != null) {
+            for (Iterator it = local_cache[i].iterator(); it.hasNext();) {
+              Object value = it.next();
+              List sles = (List)cache[i].get(value);
+              if (sles == null)
+                cache[i].put(value, sles = new ArrayList());
+              sles.add(sle);
+            }
+          }
         }
-	complicatedListeners.add(sle);
+      } else {
+        if (listeners.framework.props.debug.ldap) {
+          listeners.framework.props.debug.println("Too complicated filter: " + sle.ldap);
+        }
+        complicatedListeners.add(sle);
       }
     }
   }
@@ -194,13 +205,13 @@ class ServiceListenerState {
    * @return A set of listeners to notify.
    */
   synchronized Set getMatchingListeners(ServiceReferenceImpl sr) {
-    Set set = new HashSet();    
+    Set set = new HashSet();
     // Check complicated or empty listener filters
     int n = 0;
     for (Iterator it = complicatedListeners.iterator(); it.hasNext(); n++) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
       if (sle.ldap == null || sle.ldap.evaluate(sr.getProperties(), false)) {
-	set.add(sle);
+        set.add(sle);
       }
     }
     if (listeners.framework.props.debug.ldap) {
@@ -210,21 +221,21 @@ class ServiceListenerState {
     String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
     for (int i = 0; i < c.length; i++) {
       if (listeners.framework.props.debug.ldap) {
-	System.err.print("objectclass matches: ");
+        System.err.print("objectclass matches: ");
       }
       addToSet(set, (List)cache[OBJECTCLASS_IX].get(c[i]));
     }
     Long service_id = (Long)sr.getProperty(Constants.SERVICE_ID);
     if (service_id != null) {
       if (listeners.framework.props.debug.ldap) {
-	System.err.print("service_id matches: ");
+        System.err.print("service_id matches: ");
       }
       addToSet(set, (List)cache[SERVICE_ID_IX].get(service_id.toString()));
     }
     Object service_pid = sr.getProperty(Constants.SERVICE_PID);
     if (service_pid != null && service_pid instanceof String) {
       if (listeners.framework.props.debug.ldap) {
-	System.err.print("service_pid matches: ");
+        System.err.print("service_pid matches: ");
       }
       addToSet(set, (List)cache[SERVICE_PID_IX].get(service_pid));
     }
@@ -237,14 +248,14 @@ class ServiceListenerState {
   private void addToSet(Set set, List l) {
     if (l != null) {
       if (listeners.framework.props.debug.ldap) {
-	listeners.framework.props.debug.println(Integer.toString(l.size()));
+        listeners.framework.props.debug.println(Integer.toString(l.size()));
       }
       for (Iterator it = l.iterator(); it.hasNext();) {
-	set.add(it.next());
+        set.add(it.next());
       }
     } else {
-      if (listeners.framework.props.debug.ldap) { 
-	listeners.framework.props.debug.println("0");
+      if (listeners.framework.props.debug.ldap) {
+        listeners.framework.props.debug.println("0");
       }
     }
   }

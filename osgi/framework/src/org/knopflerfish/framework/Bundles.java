@@ -52,8 +52,7 @@ import org.osgi.framework.*;
  * Also handles load and save of bundle states to file, so that we
  * can restart the platform.
  *
- * @author Jan Stein
- * @author Mats-Ola Persson
+ * @author Jan Stein, Mats-Ola Persson, Gunnar Ekolin
  */
 public class Bundles {
 
@@ -77,6 +76,11 @@ public class Bundles {
     bundles.put(fw.systemBundle.location, fw.systemBundle);
   }
 
+  void clear()
+  {
+    bundles.clear();
+    fwCtx = null;
+  }
 
   /**
    * Install a new bundle.

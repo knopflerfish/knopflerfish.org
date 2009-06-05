@@ -96,6 +96,19 @@ class Packages {
 
 
   /**
+   * Clear all datastructures in this object.
+   */
+  void clear()
+  {
+    packages.clear();
+    if (null!=tempResolved) tempResolved.clear();
+    if (null!=tempProvider) tempProvider.clear();
+    if (null!=tempRequired) tempRequired.clear();
+    if (null!=tempBlackList) tempBlackList.clear();
+    if (null!=tempBackTracked) tempBackTracked.clear();
+  }
+
+  /**
    * Register all packages a bundle needs to export and import.
    * If it is registered by the system bundle, export it immediately.
    *

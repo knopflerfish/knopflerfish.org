@@ -17,7 +17,7 @@
    -istart URL    Install and start bundle accrding to activation policy
    -launch        Launch framework (i.e., start it)
    -sleep SEC     Sleep a while before next command
-   -shutdown      Shutdown framework
+   -shutdown mSEC Shutdown framework, timeout in milliseconds.
    -start ID      Start bundle (according to its activation policy)
    -start_e ID    Start bundle eagerly (i.e., ignore its activation policy)
    -start_et ID   Start bundle eagerly and transiently
