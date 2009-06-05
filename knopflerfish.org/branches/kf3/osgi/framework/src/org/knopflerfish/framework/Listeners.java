@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,11 @@ import org.osgi.framework.*;
 /**
  * Here we handle all listeners that bundles have registered.
  *
- * @author Jan Stein
- * @author Philippe Laporte
+ * @author Jan Stein, Philippe Laporte, Gunnar Ekolin
  */
 public class Listeners
-  implements BundleListener, FrameworkListener, ServiceListener {
-
+  implements BundleListener, FrameworkListener, ServiceListener
+{
   /**
    * All bundle event listeners.
    */
@@ -74,7 +73,7 @@ public class Listeners
    * Handle to secure call class.
    */
   private PermissionOps secure;
-  
+
   FrameworkContext framework;
 
   boolean nocacheldap;
@@ -84,6 +83,16 @@ public class Listeners
     secure = perm;
     nocacheldap = "true".equals(framework.props.getProperty("org.knopflerfish.framework.ldap.nocache"));
     serviceListeners = new ServiceListenerState(this);
+  }
+
+  void clear()
+  {
+    bundleListeners.clear();
+    syncBundleListeners.clear();
+    frameworkListeners.clear();
+    serviceListeners.clear();
+    secure = null;
+    framework = null;
   }
 
 
@@ -98,12 +107,12 @@ public class Listeners
     if (listener instanceof SynchronousBundleListener) {
       secure.checkListenerAdminPerm(bundle);
       synchronized (syncBundleListeners) {
-    	  syncBundleListeners.add(le);
+          syncBundleListeners.add(le);
       }
-    } 
+    }
     else {
       synchronized (bundleListeners) {
-    	  bundleListeners.add(le);
+          bundleListeners.add(le);
       }
     }
   }
@@ -122,11 +131,11 @@ public class Listeners
     if (listener instanceof SynchronousBundleListener) {
       synchronized (syncBundleListeners) {
         secure.checkListenerAdminPerm(bundle);
-	syncBundleListeners.remove(le);
+        syncBundleListeners.remove(le);
       }
     } else {
       synchronized (bundleListeners) {
-	bundleListeners.remove(le);
+        bundleListeners.remove(le);
       }
     }
   }
@@ -235,29 +244,29 @@ public class Listeners
     ListenerEntry [] bl, tmp;
     int type = evt.getType();
     if(type == BundleEvent.STARTING || type == BundleEvent.STOPPING){
-    	synchronized (syncBundleListeners) {
-    		bl = new ListenerEntry[syncBundleListeners.size()];
-    		syncBundleListeners.toArray(bl);
-    	}
+        synchronized (syncBundleListeners) {
+                bl = new ListenerEntry[syncBundleListeners.size()];
+                syncBundleListeners.toArray(bl);
+        }
     }
     else{
-    	synchronized (bundleListeners) {
-    		tmp = new ListenerEntry[bundleListeners.size()];
-    	    bundleListeners.toArray(tmp);
-    	}
-    	synchronized (syncBundleListeners) {
-    		bl = new ListenerEntry[tmp.length + syncBundleListeners.size()];
-    	    syncBundleListeners.toArray(bl);
-    	}
-    	System.arraycopy(tmp, 0, bl, bl.length - tmp.length, tmp.length);
+        synchronized (bundleListeners) {
+                tmp = new ListenerEntry[bundleListeners.size()];
+            bundleListeners.toArray(tmp);
+        }
+        synchronized (syncBundleListeners) {
+                bl = new ListenerEntry[tmp.length + syncBundleListeners.size()];
+            syncBundleListeners.toArray(bl);
+        }
+        System.arraycopy(tmp, 0, bl, bl.length - tmp.length, tmp.length);
     }
-    
+
     for (int i = 0; i < bl.length; i++) {
       final ListenerEntry l = bl[i];
       try {
         secure.callBundleChanged((BundleListener)l.listener, evt);
       } catch (Throwable pe) {
-	frameworkError(l.bundle, pe);
+        frameworkError(l.bundle, pe);
       }
     }
   }
@@ -274,8 +283,8 @@ public class Listeners
   public void frameworkEvent(final FrameworkEvent evt) {
     if (framework.props.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
-	framework.props.debug.println("errors - FrameworkErrorEvent bundle #" + evt.getBundle().getBundleId());
-	framework.props.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ", evt.getThrowable());
+        framework.props.debug.println("errors - FrameworkErrorEvent bundle #" + evt.getBundle().getBundleId());
+        framework.props.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ", evt.getThrowable());
       }
     }
     ListenerEntry [] fl;
@@ -288,10 +297,10 @@ public class Listeners
       try {
         secure.callFrameworkEvent((FrameworkListener)l.listener, evt);
       } catch (Throwable pe) {
-	// Don't report Error events again, since probably would go into an infinite loop.
-	if (evt.getType() != FrameworkEvent.ERROR) {
-	  frameworkError(l.bundle, pe);
-	}
+        // Don't report Error events again, since probably would go into an infinite loop.
+        if (evt.getType() != FrameworkEvent.ERROR) {
+          frameworkError(l.bundle, pe);
+        }
       }
     }
   }
@@ -322,7 +331,7 @@ public class Listeners
           if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
             continue;
           }
-          if (l.bundle.hasPermission(new ServicePermission(classes[i], 
+          if (l.bundle.hasPermission(new ServicePermission(classes[i],
                                                            ServicePermission.GET))) {
             try {
               secure.callServiceChanged((ServiceListener)l.listener, evt);
@@ -355,9 +364,9 @@ public class Listeners
   private void removeAllListeners(Set s, Bundle b) {
     synchronized (s) {
       for (Iterator i = s.iterator(); i.hasNext();) {
-	if (((ListenerEntry)i.next()).bundle == b) {
-	  i.remove();
-	}
+        if (((ListenerEntry)i.next()).bundle == b) {
+          i.remove();
+        }
       }
     }
   }

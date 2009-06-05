@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ public interface BundleStorage {
    * Insert bundle into persistent storagedata.
    *
    * @param key Name of attribute to get.
-   * @return 
+   * @return
    */
   BundleArchive insertBundleJar(String location, InputStream is)
     throws Exception;
@@ -90,5 +90,10 @@ public interface BundleStorage {
    * @return Private copy of a List with bundle id's.
    */
   List getStartOnLaunchBundles();
+
+  /**
+   * Close this bundle storage and all bundles in it.
+   */
+  void close();
 
 }

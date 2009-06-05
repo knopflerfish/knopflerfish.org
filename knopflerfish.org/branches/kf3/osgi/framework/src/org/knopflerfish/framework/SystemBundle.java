@@ -307,8 +307,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   //
 
   synchronized public void start(int options) throws BundleException {
+    if (null==secure) init();
     secure.checkExecuteAdminPerm(this);
-    init();
     fwCtx.launch(0);
   }
 

@@ -41,8 +41,8 @@ import java.util.*;
 /**
  * Storage of all bundles jar content.
  *
- * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
+ * @author Jan Stein, Gunnar Ekolin
+ * @version $Id: $
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -148,6 +148,16 @@ public class BundleStorageImpl implements BundleStorage {
     }
     return res;
   }
+
+  public void close()
+  {
+    for (Iterator i = archives.iterator(); i.hasNext(); ) {
+      BundleArchive ba = (BundleArchive) i.next();
+      ba.close();
+      i.remove();
+    }
+  }
+
 
   //
   // Package methods

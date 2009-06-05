@@ -434,7 +434,6 @@ public class Main
                         stopEvent.getThrowable());
                   break;
                 }
-                framework = null;
                 println("Framework shutdown", 0);
               } else {
                 throw new IllegalArgumentException("No framework to shutdown");
