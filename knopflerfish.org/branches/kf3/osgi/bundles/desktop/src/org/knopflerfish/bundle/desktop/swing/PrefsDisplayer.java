@@ -56,7 +56,7 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   ServiceTracker psTracker;
 
   public PrefsDisplayer(BundleContext bc) {
-    super(bc, "Prefs", "Show preferences", true); 
+    super(bc, "Prefs", "Show preferences", true);
 
     // We're not interested in bundle events, nor in service events
     bUseListeners = false;
@@ -65,8 +65,8 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   public void open() {
     super.open();
 
-    psTracker = new ServiceTracker(bc, 
-                                   PreferencesService.class.getName(), 
+    psTracker = new ServiceTracker(bc,
+                                   PreferencesService.class.getName(),
                                    null) {
         public Object addingService(ServiceReference sr) {
           Object obj = super.addingService(sr);
@@ -77,7 +77,7 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
           reinit();
           super.removedService(sr, service);
         }
-      };    
+      };
     psTracker.open();
   }
 
@@ -90,12 +90,12 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
     psTracker.close();
     super.close();
   }
-  
+
   public JComponent newJComponent() {
     JPrefs comp = new JPrefs();
     return comp;
   }
-  
+
   void reinit() {
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
@@ -108,8 +108,10 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   public void valueChangedLazy(long  bid) {
+    if (null==Activator.desktop) return; // Desktop closed, nothing to do.
+
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JPrefs comp = (JPrefs)it.next();
       comp.valueChanged(bl);
@@ -150,13 +152,13 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
           mountBundles(bl);
         }
       }
-      
+
       editor.setEditable(true);
       editor.getJPrefsTree().setRootVisible(false);
 
       add(editor, BorderLayout.CENTER);
     }
-    
+
     void valueChanged(final Bundle[] bl) {
       SwingUtilities.invokeLater(new Runnable() {
           public void run() {
@@ -164,7 +166,7 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
           }
         });
     }
-    
+
     String BUNDLES_NAME = "OSGi Bundle Prefs";
     String JVM_NAME     = "Java Util Prefs";
 
@@ -193,40 +195,39 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       rootNode = new MountedPreferences();
-      
+
       Preferences sys  = Preferences.systemRoot();
       Preferences user = Preferences.userRoot();
-      
+
       jvmNode = new MountedPreferences();
       jvmNode.mount((AbstractPreferences)user, "user");
       jvmNode.mount((AbstractPreferences)sys, "sys");
-      
+
       rootNode.mount(jvmNode, JVM_NAME);
 
       boolean hasPS = psTracker.getService() != null;
-      
+
       if(hasPS) {
-        bundlesNode = 
+        bundlesNode =
           new OSGiBundlesPreferences(bl != null ? bl : (new Bundle[0]));
-        
-        
+
+
         rootNode.mount(bundlesNode, BUNDLES_NAME);
       }
 
       editor.setPreferences(rootNode);
-      
+
       if(hasPS) {
         editor.getJPrefsTree().searchAndExpand(BUNDLES_NAME, 3);
       }
       editor.getJPrefsTree().searchAndExpand(JVM_NAME, 3);
-      
+
       editor.setPreferences(rootNode);
 
     }
 
     void close() {
-      // 
+      //
     }
   }
 }
-
