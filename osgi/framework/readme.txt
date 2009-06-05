@@ -178,6 +178,11 @@ Framework System Properties
      doPrivileged() wrapper.
      Default: true
 
+   org.knopflerfish.framework.debug.framework
+     Print debug information about life-cycle events for the
+     current framework instance.
+     Default: false
+
    org.knopflerfish.framework.debug.classloader
      Print debug information from classloader
      Default: false

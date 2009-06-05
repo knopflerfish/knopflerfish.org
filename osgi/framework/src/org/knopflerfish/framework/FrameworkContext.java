@@ -95,6 +95,9 @@ public class FrameworkContext  {
    */
   boolean shuttingdown /*= false*/;
 
+  /** Monitot to wait for start completion on when shutting down. */
+  private Object startStopLock = new Object();
+
   /**
    * All bundle in this framework.
    */
@@ -181,6 +184,8 @@ public class FrameworkContext  {
   public FrameworkContext(Map initProps, FrameworkContext parent)  {
     props        = new FWProps(initProps, parent);
     systemBundle = new SystemBundle(this);
+
+    log("created");
   }
 
 
@@ -188,6 +193,8 @@ public class FrameworkContext  {
   void init()
   {
     if (initialized) return;
+
+    log("initializing");
 
     if (Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
@@ -282,6 +289,7 @@ public class FrameworkContext  {
     bundles.load();
 
     initialized = true;
+    log("inited");
   }
 
 
@@ -355,40 +363,50 @@ public class FrameworkContext  {
    */
   public void launch(long startBundle) throws BundleException {
     if (!active) {
-      active = true;
-      if (startBundle > 0) {
-        startBundle(startBundle, 0);
-      } else if (startLevelController != null) {
-        // start level open is delayed to this point to
-        // correctly work at restart
-        startLevelController.open();
-      } else {
-        // Start bundles according to their autostart setting.
-        final Iterator i = storage.getStartOnLaunchBundles().iterator();
-        while (i.hasNext()) {
-          final BundleImpl b = (BundleImpl) bundles.getBundle((String)i.next());
-          try {
-            final int autostartSetting = b.archive.getAutostartSetting();
-            // Launch must not change the autostart setting of a bundle
-            int option = Bundle.START_TRANSIENT;
-            if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
-              // Transient start according to the bundles activation policy.
-              option |= Bundle.START_ACTIVATION_POLICY;
+      synchronized(startStopLock) {
+        log("starting");
+
+        active = true;
+        if (startBundle > 0) {
+          startBundle(startBundle, 0);
+        } else if (startLevelController != null) {
+          // start level open is delayed to this point to
+          // correctly work at restart
+          startLevelController.open();
+        } else {
+          // Start bundles according to their autostart setting.
+          final Iterator i = storage.getStartOnLaunchBundles().iterator();
+          while (i.hasNext()) {
+            final BundleImpl b = (BundleImpl)
+              bundles.getBundle((String)i.next());
+            try {
+              final int autostartSetting = b.archive.getAutostartSetting();
+              // Launch must not change the autostart setting of a bundle
+              int option = Bundle.START_TRANSIENT;
+              if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
+                // Transient start according to the bundles activation policy.
+                option |= Bundle.START_ACTIVATION_POLICY;
+              }
+              b.start(option);
+            } catch (BundleException be) {
+              listeners.frameworkError(b, be);
             }
-            b.start(option);
-          } catch (BundleException be) {
-            listeners.frameworkError(b, be);
           }
         }
-      }
 
-      systemBundle.systemActive();
-      listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED,
-                                                  systemBundle, null));
+        systemBundle.systemActive();
+        log("started");
+        listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED,
+                                                    systemBundle, null));
+      }
     }
   }
 
 
+  /**
+   * The thread that performs shutdown of this framework instance.
+   */
+  private Thread shutdownThread = null;
 
   /**
    * Stop this FrameworkContext, suspending all started contexts.
@@ -409,11 +427,18 @@ public class FrameworkContext  {
    *
    */
   public void shutdown() {
+    if (null!=shutdownThread && shutdownThread.isAlive()) {
+      log("stopping already in progress, ignoreing this request");
+      return;
+    }
+
+    log("stopping");
     Thread shutdownThread = new Thread("Framework shutdown")
       {
         public void run()
         {
           shutdown0();
+          log("stopped");
         }
       };
     shutdownThread.setDaemon(false);
@@ -423,12 +448,16 @@ public class FrameworkContext  {
   private void shutdown0()
   {
     try {
+      //If starting wait for it to complete
+
       shutdownOld();
     } catch (Exception e) {
+      log("error during stop", e);
       systemBundle.stopEvent
         = new FrameworkEvent(FrameworkEvent.ERROR, systemBundle, e);
     }
     systemBundle.systemShuttingdownDone();
+    shutdownThread = null;
   }
 
 
@@ -453,38 +482,40 @@ public class FrameworkContext  {
    */
   public void shutdownOld() {
     if (active) {
-      // No shuttingdown event specified
-      // listeners.frameworkChanged(new FrameworkEvent(FrameworkEvent.SHUTTING_DOWN));
-      active = false;
-      List slist = storage.getStartOnLaunchBundles();
-      shuttingdown = true;
-      systemBundle.systemShuttingdown();
-      if (startLevelController != null) {
-        startLevelController.shutdown();
-      }
-      // Stop persistently started bundles, in reverse start order
-      for (int i = slist.size()-1; i >= 0; i--) {
-        BundleImpl b = (BundleImpl) bundles.getBundle((String)slist.get(i));
-        try {
-          if(b != null) {
-            synchronized (b) {
-              if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
-                // Stop bundle without changing its autostart setting.
-                b.stop(Bundle.STOP_TRANSIENT);
+      synchronized(startStopLock) {
+        log("stopping bundles");
+        active = false;
+        List slist = storage.getStartOnLaunchBundles();
+        shuttingdown = true;
+        systemBundle.systemShuttingdown();
+        if (startLevelController != null) {
+          startLevelController.shutdown();
+        }
+        // Stop persistently started bundles, in reverse start order
+        for (int i = slist.size()-1; i >= 0; i--) {
+          BundleImpl b = (BundleImpl) bundles.getBundle((String)slist.get(i));
+          try {
+            if(b != null) {
+              synchronized (b) {
+                if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
+                  // Stop bundle without changing its autostart setting.
+                  b.stop(Bundle.STOP_TRANSIENT);
+                }
               }
             }
+          } catch (BundleException be) {
+            listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
+                                                        b, be));
           }
-        } catch (BundleException be) {
-          listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
-                                                      b, be));
+        }
+        shuttingdown = false;
+        // Purge any unrefreshed bundles
+        List all = bundles.getBundles();
+        for (Iterator i = all.iterator(); i.hasNext(); ) {
+          ((BundleImpl)i.next()).purge();
         }
       }
-      shuttingdown = false;
-      // Purge any unrefreshed bundles
-      List all = bundles.getBundles();
-      for (Iterator i = all.iterator(); i.hasNext(); ) {
-        ((BundleImpl)i.next()).purge();
-      }
+      log("bundles stopped");
     }
 
     StringBuffer bootClasspath = new StringBuffer();
@@ -499,6 +530,7 @@ public class FrameworkContext  {
       }
     }
 
+    // Post processing to handle boot class extension
     try {
       FileTree storage = Util.getFileStorage(this, CLASSPATH_DIR);
       File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
@@ -516,6 +548,7 @@ public class FrameworkContext  {
     } catch (IOException e) {
       System.err.println("Could not save classpath " + e);
     }
+    log("boot classpath handling done");
   }
 
 
@@ -774,5 +807,19 @@ public class FrameworkContext  {
     return false;
   }
 
+  void log(String msg)
+  {
+    if (props.debug.framework) {
+      props.debug.println("Framework instance " +hashCode() +": " +msg);
+    }
+  }
+
+  void log(String msg, Throwable t)
+  {
+    if (props.debug.framework) {
+      props.debug.printStackTrace("Framework instance " +hashCode() +": "
+                                  +msg, t);
+    }
+  }
 
 }

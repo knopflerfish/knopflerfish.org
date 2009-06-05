@@ -106,6 +106,12 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   private String exportPackageString;
 
+  /**
+   * The event to return to callers waiting in Framework.waitForStop()
+   * when the framework has been stopped.
+   */
+  FrameworkEvent stopEvent;
+
 
   /**
    * Construct the System Bundle handle.
@@ -123,9 +129,11 @@ public class SystemBundle extends BundleImpl implements Framework {
   public void init() throws BundleException {
     if (fwCtx.initialized) return; // Already done.
 
+    state = STARTING;
+    stopEvent = null;
+
     fwCtx.init();
 
-    state = STARTING;
     StringBuffer sp = new StringBuffer
       (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
     if (sp.length() > 0) {
@@ -304,13 +312,6 @@ public class SystemBundle extends BundleImpl implements Framework {
     fwCtx.launch(0);
   }
 
-  /**
-   * The event to return to callers waiting in Framework.waitForStop()
-   * when the framework has been stopped.
-   */
-  FrameworkEvent stopEvent;
-
-
   Object waitForStopLock = new Object();
   public FrameworkEvent waitForStop(long timeout)
     throws InterruptedException
@@ -327,8 +328,15 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   public void stop(int options) throws BundleException {
-    stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
-    fwCtx.shutdown();
+    secure.checkExecuteAdminPerm(this);
+
+    if (STARTING==state || ACTIVE==state) {
+      // There is some work to do.
+      if (null==stopEvent) {
+        stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
+      }
+      fwCtx.shutdown();
+    }
   }
 
 

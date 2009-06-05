@@ -235,6 +235,7 @@ public class BundleImpl implements Bundle {
     this.singleton = false;
     this.version = ver;
     this.v2Manifest = true;
+    this.state = INSTALLED;
     this.attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
     modified();
   }
@@ -300,7 +301,7 @@ public class BundleImpl implements Bundle {
     return state;
   }
 
-  synchronized public void start() throws BundleException {
+  public void start() throws BundleException {
     start(0);
   }
 
@@ -520,7 +521,7 @@ public class BundleImpl implements Bundle {
   }
 
 
-  synchronized public void stop() throws BundleException {
+  public void stop() throws BundleException {
     stop(0);
   }
 

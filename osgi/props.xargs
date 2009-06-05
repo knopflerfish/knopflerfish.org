@@ -35,6 +35,7 @@
 -Forg.knopflerfish.framework.debug.bundle_resource=false
 -Forg.knopflerfish.framework.debug.permissions=false
 -Forg.knopflerfish.framework.debug.lazy_activation=true
+-Forg.knopflerfish.framework.debug.framework=true
 
 # Add all standard packages for the currently running JRE version to
 # the set of packages exported by the system classloader.

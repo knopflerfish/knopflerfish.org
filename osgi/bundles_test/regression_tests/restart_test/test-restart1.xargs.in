@@ -1,6 +1,8 @@
 #
 # Startup file for framework restart testing
 #
+# NOTE: The base URLs for bundles assumes that the current working
+#       directory is the osgi-direcotry when this xargs-file is used.
 #
 
 # List of test IDs

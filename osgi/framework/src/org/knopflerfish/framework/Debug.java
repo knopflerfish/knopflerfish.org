@@ -112,6 +112,11 @@ public class Debug {
   boolean lazyActivation;
 
   /**
+   * Report framework create, init, start, stop
+   */
+  boolean framework;
+
+  /**
    * Report Automanifest handling
    */
   boolean automanifest;
@@ -140,6 +145,7 @@ public class Debug {
       = System.getSecurityManager() != null
       && "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
     lazyActivation = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.lazy_activation"));
+    framework = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.framework"));
   }
 
   /**
