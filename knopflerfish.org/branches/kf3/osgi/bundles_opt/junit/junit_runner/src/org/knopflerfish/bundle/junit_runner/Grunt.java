@@ -49,7 +49,7 @@ class Grunt  {
   static final String DEFAULT_TESTS  = "filter:(objectclass=junit.framework.TestSuite)";
   static final String INDEX_FILE     = "index.xml";
 
-  BundleContext bc;
+  final BundleContext bc;
 
   public Grunt(BundleContext bc) {
     this.bc = bc;

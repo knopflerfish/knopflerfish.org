@@ -61,33 +61,19 @@
 
 
   <property name="do.bundle.custom.post" value="true"/>
-  <property name="xargs1" location="test-restart1.xargs"/>
-  <property name="xargs2" location="test-restart2.xargs"/>
   <target name="bundle.custom.post">
-    <property name="bundleVersionFilterTester"
-	      location="${outdir}/${ant.project.name}.props"/>
-    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
-      <fileset dir="${jars.dir}">
-	<include name="**/*.jar"/>
-      </fileset>
-      <fileset dir="${osgi.dir}/jars">
-	<include name="**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy file="${xargs1}.in" tofile="${xargs1}" overwrite="true"/>
-    <replace file="${xargs1}"
-	     replacefilterfile="${bundleVersionFilterTester}">
-      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
-      <replacefilter token="$(JAR_PREFIX)"
-		     value="file:${jars.dir}/;file:${osgi.dir}/jars/"/>
-    </replace>
-    <copy file="${xargs2}.in" tofile="${xargs2}" overwrite="true"/>
-    <replace file="${xargs2}"
-	     replacefilterfile="${bundleVersionFilterTester}">
-      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
-      <replacefilter token="$(JAR_PREFIX)"
-		     value="file:${jars.dir}/;file:${osgi.dir}/jars/"/>
-    </replace>
+    <antcall target="test-xargs">
+      <param name="xargs.file"
+	     location="test-restart1.xargs"/>
+      <param name="bundleVersionFilterTester"
+	     location="${outdir}/${ant.project.name}.props"/>
+    </antcall>
+    <antcall target="test-xargs">
+      <param name="xargs.file"
+	     location="test-restart2.xargs"/>
+      <param name="bundleVersionFilterTester"
+	     location="${outdir}/${ant.project.name}.props"/>
+    </antcall>
   </target>
 
   <import file="${ant.dir}/bundlebuild.xml"/>
