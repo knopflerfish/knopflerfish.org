@@ -259,7 +259,6 @@ public class Activator implements BundleActivator {
         public void run() {
           String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
                                             LargeIconsDisplayer.NAME);
-
           // We really want this one to be displayed.
           desktop.bundlePanelShowTab(defDisp);
 
@@ -271,17 +270,27 @@ public class Activator implements BundleActivator {
       });
   }
 
+  // Shutdown code that must exectue on the EDT
+  private void closeDesktop0()
+  {
+    desktop.stop();
+    desktop.theDesktop = null;
+    desktop = null;
+  }
+
   void closeDesktop() {
     try {
 
       if(desktop != null) {
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-              desktop.stop();
-              desktop.theDesktop = null;
-              desktop = null;
-            }
-          });
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+          closeDesktop0();
+        } else {
+          javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+              public void run() {
+                closeDesktop0();
+              }
+            });
+        }
       }
 
       for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
