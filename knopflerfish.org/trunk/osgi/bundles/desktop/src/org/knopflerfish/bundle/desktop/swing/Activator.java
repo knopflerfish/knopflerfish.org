@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public class Activator implements BundleActivator {
   public static void setBundleFilter(BundleFilter bf) {
     bundleFilter = bf;
   }
-  
+
   public static Bundle[] getBundles() {
     BundleContext bc = getBC();
     Bundle[] bl = bc.getBundles();
@@ -81,7 +81,7 @@ public class Activator implements BundleActivator {
       for(int i = 0; bl != null && i < bl.length; i++) {
         if(bundleFilter.accept(bl[i])) {
           al.add(bl[i]);
-        }        
+        }
       }
       Bundle[] bl2 = new Bundle[al.size()];
       al.toArray(bl2);
@@ -164,20 +164,20 @@ public class Activator implements BundleActivator {
   static ServiceTracker remoteTracker;
 
   Map displayers = new HashMap();
-  
+
   public void start(BundleContext _bc) {
-    try { 
+    try {
       // try to move Mac OS menu bar
       if(null == System.getProperty("apple.laf.useScreenMenuBar")) {
-        System.setProperty("apple.laf.useScreenMenuBar","true"); 
+        System.setProperty("apple.laf.useScreenMenuBar","true");
       }
       // try to enable swing antialiased text
       if(null == System.getProperty("swing.aatext")) {
-        System.setProperty("swing.aatext","true"); 
-      } 
-    } catch (Exception ignored) { 
+        System.setProperty("swing.aatext","true");
+      }
+    } catch (Exception ignored) {
     }
-      
+
 
     Activator.bc        = _bc;
     Activator.log       = new LogRef(bc);
@@ -218,8 +218,8 @@ public class Activator implements BundleActivator {
     ServiceRegistration reg;
 
     String[] dispClassNames = new String[] {
-      LargeIconsDisplayer.class.getName(), 
-      GraphDisplayer.class.getName(), 
+      LargeIconsDisplayer.class.getName(),
+      GraphDisplayer.class.getName(),
       // TimeLineDisplayer.class.getName(),
       TableDisplayer.class.getName(),
       // SpinDisplayer.class.getName(),
@@ -231,16 +231,16 @@ public class Activator implements BundleActivator {
       EventDisplayer.class.getName(),
       PrefsDisplayer.class.getName(),
     };
-    
+
     String dispsS = Util.getProperty("org.knopflerfish.desktop.displays", "").trim();
-    
+
     if(dispsS != null && dispsS.length() > 0) {
       dispClassNames = Text.splitwords(dispsS, "\n\t ", '\"');
     }
 
     for(int i = 0; i < dispClassNames.length; i++) {
       String className = dispClassNames[i];
-      
+
       try {
         Class       clazz = Class.forName(className);
         Constructor cons  = clazz.getConstructor(new Class[] { BundleContext.class });
@@ -248,16 +248,16 @@ public class Activator implements BundleActivator {
         disp = (DefaultSwingBundleDisplayer)cons.newInstance(new Object[] { getTargetBC() });
         disp.open();
         reg = disp.register();
-        displayers.put(disp, reg);        
+        displayers.put(disp, reg);
       } catch (Exception e) {
         log.warn("Failed to create displayer " + className, e);
       }
     }
 
-    
+
     String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
                                       LargeIconsDisplayer.NAME);
-    
+
     // We really want this one to be displayed.
     desktop.bundlePanelShowTab(defDisp);
 
@@ -267,17 +267,27 @@ public class Activator implements BundleActivator {
     }
   }
 
+  // Shutdown code that must exectue on the EDT
+  private void closeDesktop0()
+  {
+    desktop.stop();
+    desktop.theDesktop = null;
+    desktop = null;
+  }
+
   void closeDesktop() {
     try {
 
       if(desktop != null) {
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-              desktop.stop();
-              desktop.theDesktop = null;
-              desktop = null;
-            }
-          });
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+          closeDesktop0();
+        } else {
+          javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+              public void run() {
+                closeDesktop0();
+              }
+            });
+        }
       }
 
       for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {

@@ -8,6 +8,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+
 === Services (Compendium) ===
 
       
@@ -26,6 +27,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Event 2.0.4
 
   Fixed a dead lock that could occur when you stopped the event service.
+
+
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Desktop Bundle 2.3.3
+
+  The stop()-method in the bundle activator did not check if it was
+  already executing on the EDT (AWT Event Dispatch Thread) before
+  sheduling execution on it using invokeAndWait(), causeing a
+  potential dead-lock. This have now been fixed.
 
 
   Build System
