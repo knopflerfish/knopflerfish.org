@@ -510,7 +510,11 @@ final public class BundleClassLoader
    * @return A message string.
    */
   public String toString() {
-    return "BundleClassLoader(id=" + bpkgs.bundle.id + ",gen=" + bpkgs.generation + ")";
+    return "BundleClassLoader("
+      //+"fw=" +bpkgs.bundle.fwCtx.hashCode()
+      +"id=" + bpkgs.bundle.id
+      +",gen=" + bpkgs.generation
+      +")";
   }
 
 
