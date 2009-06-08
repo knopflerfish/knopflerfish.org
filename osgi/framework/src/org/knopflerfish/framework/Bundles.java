@@ -87,7 +87,13 @@ public class Bundles {
    *
    * @param location The location to be installed
    */
-  BundleImpl install(final String location, final InputStream in) throws BundleException {
+  BundleImpl install(final String location, final InputStream in)
+    throws BundleException
+  {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     BundleImpl b;
     synchronized (this) {
       b = (BundleImpl)bundles.get(location);
@@ -197,6 +203,10 @@ public class Bundles {
    *         if bundle was not found.
    */
   public Bundle getBundle(long id) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
@@ -217,6 +227,10 @@ public class Bundles {
    *         if bundle was not found.
    */
   public Bundle getBundle(String location) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     return (Bundle) bundles.get(location);
   }
 
@@ -229,6 +243,10 @@ public class Bundles {
    * @return BundleImpl for bundle or null.
    */
   BundleImpl getBundle(String name, Version version) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
@@ -247,6 +265,10 @@ public class Bundles {
    * @return A Bundle array with bundles.
    */
   List getBundles() {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     ArrayList res = new ArrayList(bundles.size());
     synchronized (bundles) {
       res.addAll(bundles.values());
@@ -284,6 +306,10 @@ public class Bundles {
    * @return A List of BundleImpl.
    */
   List getBundles(String name, VersionRange range) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     List res = getBundles(name);
     for (int i = 0; i < res.size(); ) {
       BundleImpl b = (BundleImpl)res.remove(i);
@@ -308,6 +334,10 @@ public class Bundles {
    * @return A List of BundleImpl.
    */
   List getActiveBundles() {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     ArrayList slist = new ArrayList();
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {

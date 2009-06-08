@@ -259,12 +259,24 @@ public class Main
   }
 
   /**
-   * Process all command line arguments that starts with either
-   * <tt>-D</tt> or <tt>-F</tt>.
+   * Process all property related command line arguments. I.e.,
+   * arguments on the form
+   * <ul>
    *
-   * If the line contains an '=' then a system (for <tt>-D</tt>) /
-   * framework (for <tt>-F</tt>) property will be set. Example
-   * "-Dorg.knopflerfish.test=apa" is equivalent to
+   *   <li> <tt>-D<it>*</it></tt> a system property definition.
+   *
+   *   <li> <tt>-F<it>*</it></tt> a framework property definition.
+   *
+   *   <li> <tt>-init</it></tt> a request to clear the frameworks
+   *        persistent state on the first call to init(). This will
+   *        set the framework property named
+   *        <tt>org.osgi.framework.storage.clean</tt> to the value
+   *        <tt>onFirstInit</tt>.
+   *
+   * </ul>
+   *
+   * Example
+   * "-Dorg.knopflerfish.test=apa" is equivalent to the code
    * <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
    *
    * @param args  The command line argument array to process
@@ -277,6 +289,9 @@ public class Main
           setProperty("-D", args[i], sysProps);
         } else if (args[i].startsWith("-F")) { // A framework property
           setProperty("-F", args[i], fwProps);
+        } else if ("-init".equals(args[i])) {
+          fwProps.put(Constants.FRAMEWORK_STORAGE_CLEAN,
+                      Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
         }
       } catch (Exception e) {
         e.printStackTrace(System.err);
@@ -341,12 +356,11 @@ public class Main
           println("Exit.", 0);
           System.exit(0);
         } else if (args[i].startsWith("-F")) {
-          // Skip, already processed
+          // Skip, handled in processProperties(String[])
         } else if (args[i].startsWith("-D")) {
-          // Skip, already processed
+          // Skip, handled in processProperties(String[])
         } else if ("-init".equals(args[i])) {
-          fwProps.put(Constants.FRAMEWORK_STORAGE_CLEAN,
-                      Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
+          // Skip, handled in processProperties(String[])
         } else if ("-version".equals(args[i])) {
           System.out.println("Knopflerfish version: " +readRelease());
           printResource("/tstamp");
@@ -365,7 +379,7 @@ public class Main
         } else if ("-ff".equals(args[i])) {
           if (null!=framework) {
             throw new IllegalArgumentException
-              ("Invalid usage of '-ff': framework already created.");
+              ("a framework instance is already created.");
           }
           if (i+1 < args.length) {
             i++;
@@ -373,6 +387,15 @@ public class Main
           } else {
             throw new IllegalArgumentException("No framework factory argument");
           }
+        } else if ("-create".equals(args[i])) {
+          if (null!=framework
+              && ((Bundle.RESOLVED)&framework.getState())==0) {
+            throw new IllegalArgumentException
+              ("a framework instance is already created."
+               +" The '-create' command must either be the first command"
+               +" or come directly after a '-shutdown mSEC' command.");
+          }
+          framework = null;
         } else if ("-install".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
@@ -398,6 +421,10 @@ public class Main
             error("No URL for install command");
           }
         } else if ("-launch".equals(args[i])) {
+          if (null!=framework && (Bundle.ACTIVE&framework.getState())!=0) {
+            throw new IllegalArgumentException
+              ("a framework instance is already active.");
+          }
           assertFramework();
           framework.start();
           bLaunched = true;
