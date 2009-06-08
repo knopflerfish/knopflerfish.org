@@ -243,10 +243,9 @@ public class FrameworkContext  {
 
         URLConnection.setContentHandlerFactory(contentHandlerFactory);
       } catch (Throwable e) {
-        props.debug.println("Cannot set global URL handlers, "
-                            +"continuing without OSGi service URL handler ("
-                            + e + ")");
-        e.printStackTrace();
+        props.debug.printStackTrace
+          ("Cannot set global URL handlers, "
+           +"continuing without OSGi service URL handler (" +e +")", e);
       }
     }
 
@@ -284,7 +283,7 @@ public class FrameworkContext  {
     // ...and create the bundle URL handle, now that we have the set of bundles
     urlStreamHandlerFactory
       .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
-                           new BundleURLStreamHandler(bundles, perm));
+                           new BundleURLStreamHandler(this));
 
     registerStartLevel();
 
@@ -294,9 +293,11 @@ public class FrameworkContext  {
     log("inited");
 
     log("Installed bundles:");
-    final List allBundles = bundles.getBundles();
-    for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
-      final BundleImpl b = (BundleImpl) i.next();
+    // Use the ordering in the bundle storage to get a sorted list of bundles.
+    final BundleArchive [] allBAs = storage.getAllBundleArchives();
+    for (int i = 0; i<allBAs.length; i++) {
+      final BundleArchive ba = allBAs[i];
+      final Bundle b = bundles.getBundle(ba.getBundleLocation());
       log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
           +b.getVersion() +" location:" +b.getLocation());
     }

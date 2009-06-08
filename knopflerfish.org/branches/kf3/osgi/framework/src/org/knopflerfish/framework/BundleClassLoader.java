@@ -1086,8 +1086,8 @@ final public class BundleClassLoader
             if (url != null) {
               if (cl.debug.classLoader) {
                 cl.debug.println("classLoader(#" + cl.bpkgs.bundle.id
-                              + ") - found: " +
-                              path + " -> " + url);
+                                 + ") - found: " +
+                                 path + " -> " + url);
               }
               answer.addElement(url);
             } else {
