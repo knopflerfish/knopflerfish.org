@@ -34,10 +34,7 @@
 
 package org.knopflerfish.framework;
 
-import java.util.HashMap;
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -141,8 +138,11 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   public void setProperties(Dictionary props) {
     synchronized (eventLock) {
+      Set before;
       synchronized (properties) {
         if (available) {
+          // NYI! Optimize the MODIFIED_ENDMATCH code
+          before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
           String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
           Long sid = (Long)properties.get(Constants.SERVICE_ID);
           properties = new PropertiesDictionary(props, classes, sid);
@@ -151,7 +151,13 @@ public class ServiceRegistrationImpl implements ServiceRegistration
         }
       }
       bundle.fwCtx.listeners
-        .serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
+        .serviceChanged(bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                        new ServiceEvent(ServiceEvent.MODIFIED, reference),
+                        before);
+      bundle.fwCtx.listeners
+        .serviceChanged(before,
+                        new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
+                        null);
     }
   }
 
@@ -178,8 +184,9 @@ public class ServiceRegistrationImpl implements ServiceRegistration
 
     if (null!=bundle) {
       bundle.fwCtx.listeners
-        .serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING,
-                                         reference));
+        .serviceChanged(bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                        new ServiceEvent(ServiceEvent.UNREGISTERING, reference),
+                        null);
     }
     synchronized (eventLock) {
       synchronized (properties) {

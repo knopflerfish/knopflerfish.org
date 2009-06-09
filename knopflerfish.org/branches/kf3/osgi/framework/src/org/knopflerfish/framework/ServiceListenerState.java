@@ -34,14 +34,7 @@
 
 package org.knopflerfish.framework;
 
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.EventListener;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -233,11 +226,23 @@ class ServiceListenerState {
       addToSet(set, (List)cache[SERVICE_ID_IX].get(service_id.toString()));
     }
     Object service_pid = sr.getProperty(Constants.SERVICE_PID);
-    if (service_pid != null && service_pid instanceof String) {
+    if (service_pid != null) {
       if (listeners.framework.props.debug.ldap) {
         System.err.print("service_pid matches: ");
       }
-      addToSet(set, (List)cache[SERVICE_PID_IX].get(service_pid));
+      if (service_pid instanceof String) {
+        addToSet(set, (List)cache[SERVICE_PID_IX].get(service_pid));
+      } else if (service_pid instanceof String []) {
+        String [] sa = (String [])service_pid;
+        for (int i = 0; i < sa.length; i++) {
+          addToSet(set, (List)cache[SERVICE_PID_IX].get(sa[i]));
+        }
+      } else if (service_pid instanceof Collection) {
+        String [] sa = (String [])service_pid;
+        for (Iterator i = ((Collection)service_pid).iterator(); i.hasNext(); ) {
+          addToSet(set, (List)cache[SERVICE_PID_IX].get(i.next()));
+        }
+      }
     }
     return set;
   }

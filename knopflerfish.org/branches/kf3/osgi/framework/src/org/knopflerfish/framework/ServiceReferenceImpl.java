@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,8 +236,9 @@ public class ServiceReferenceImpl implements ServiceReference
               if (!Services.checkServiceClass(s, cls)) {
                 bundle.fwCtx.listeners.frameworkError
                   (registration.bundle,
-                   new BundleException("ServiceFactory produced an object "
-                                       +"that did not implement: " + cls));
+                   new ServiceException("ServiceFactory produced an object " +
+                                        "that did not implement: " + cls,
+                                        ServiceException.FACTORY_ERROR));
                 return null;
               }
             }
