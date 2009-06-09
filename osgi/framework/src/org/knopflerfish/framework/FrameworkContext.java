@@ -206,6 +206,7 @@ public class FrameworkContext  {
     props.save();
 
     buildBootDelegationPatterns();
+    selectBootDelegationParentClassLoader();
 
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
@@ -343,6 +344,7 @@ public class FrameworkContext  {
 
     perm = null;
     systemBundle.setPermissionOps(perm);
+    parentClassLoader = null;
     bootDelegationPatterns.clear();
   }
 
@@ -813,7 +815,9 @@ public class FrameworkContext  {
   boolean bootDelegationUsed /*= false*/;
 
   void buildBootDelegationPatterns() {
-    String bootDelegationString = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
+    final String bootDelegationString
+      = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
+
     bootDelegationUsed = (bootDelegationString != null);
 
     try {
@@ -833,12 +837,14 @@ public class FrameworkContext  {
           bootDelegationPatterns.add(key.substring(0, key.length() - 1));
         }
         else if (key.endsWith(".")) {
-          listeners.frameworkError(systemBundle, new IllegalArgumentException(
-                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
+          listeners.frameworkError(systemBundle, new IllegalArgumentException
+                                   (Constants.FRAMEWORK_BOOTDELEGATION
+                                    +" entry ends with '.': " +key));
         }
         else if (key.indexOf("*") != - 1) {
-          listeners.frameworkError(systemBundle, new IllegalArgumentException(
-                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
+          listeners.frameworkError(systemBundle, new IllegalArgumentException
+                                   (Constants.FRAMEWORK_BOOTDELEGATION
+                                    +" entry contains a '*': " + key));
         }
         else {
           bootDelegationPatterns.add(key);
@@ -853,7 +859,7 @@ public class FrameworkContext  {
   boolean isBootDelegatedResource(String name) {
     // Convert resource name to class name format, preserving the
     // package part of the path/name.
-    int pos = name.lastIndexOf('/');
+    final int pos = name.lastIndexOf('/');
     return pos != -1
       ? isBootDelegated(name.substring(0,pos).replace('/','.')+".X")
       : false;
@@ -863,25 +869,51 @@ public class FrameworkContext  {
     if(!bootDelegationUsed){
       return false;
     }
-    int pos = className.lastIndexOf('.');
+    final int pos = className.lastIndexOf('.');
     if (pos != -1) {
-      String classPackage = className.substring(0, pos);
       if (bootDelegationPatterns == null) {
         return true;
       }
-      else {
-        for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
-          String ps = (String)i.next();
-          if ((ps.endsWith(".") &&
-               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
-               classPackage.equals(ps)) {
-            return true;
-          }
+      final String classPackage = className.substring(0, pos);
+      for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
+        String ps = (String)i.next();
+        if ((ps.endsWith(".") &&
+             classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
+            classPackage.equals(ps)) {
+          return true;
         }
       }
     }
     return false;
   }
+
+  /** The parent class loader for to be used by bundle classloaders. */
+  ClassLoader parentClassLoader;
+  void selectBootDelegationParentClassLoader() {
+    final ArrayList cls = new ArrayList();
+    ClassLoader cl = this.getClass().getClassLoader();
+    cls.add(cl);
+    while (null!=cl.getParent()) {
+      cl = cl.getParent();
+      cls.add(cl);
+    }
+
+    final String s = props.getProperty(Constants.FRAMEWORK_BUNDLE_PARENT);
+    if (Constants.FRAMEWORK_BUNDLE_PARENT_EXT.equals(s)) {
+      // Is this what the OSGi spec means by the "extension" loader?
+      parentClassLoader = cls.size()>=1 ?
+        (ClassLoader) cls.get(1) : (ClassLoader) cls.get(0);
+    } else if (Constants.FRAMEWORK_BUNDLE_PARENT_APP.equals(s)) {
+      // Is this what the OSGi spec means by the "application" loader?
+      parentClassLoader = ClassLoader.getSystemClassLoader();
+    } else if (Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK.equals(s)) {
+      parentClassLoader = (ClassLoader) cls.get(cls.size()-1);
+    } else { // Default: use boot class loader as parent
+      parentClassLoader = (ClassLoader) cls.get(0);
+    }
+    cls.clear();
+  }
+
 
   void log(String msg)
   {
