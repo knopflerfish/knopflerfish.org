@@ -387,33 +387,30 @@ class BundleArchiveImpl implements BundleArchive
   public String getNativeLibrary(String libName) {
     if (nativeLibs != null) {
       try {
-        String key = (String)mapLibraryName.invoke(null, new Object[] {libName});
-        String val = (String)nativeLibs.get(key);
+        String key = (String) mapLibraryName.invoke(null,
+                                                    new Object[] {libName});
+        String val = (String) nativeLibs.get(key);
         File file1 = new File(val);
         if (file1.exists() && file1.isFile()) {
-          if (renameLibs.containsKey(key)) {
-            File file2 = new File((String)renameLibs.get(key));
-            if (file1.renameTo(file2)) {
-              val = file2.getAbsolutePath();
-              nativeLibs.put(key, val);
+          val = doRename(key, file1);
+        } else {
+          // Try other non-default lib-extensions
+          final String libExtensions = storage.framework.props
+            .getProperty(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
+          final int pos = key.lastIndexOf(".");
+          if (null!=libExtensions && pos>-1) {
+            final String baseKey = key.substring(0,pos+1);
+            final String[] exts = Util.splitwords(libExtensions, ", \t");
+            for (int i=0; i<exts.length; i++) {
+              key =  baseKey +exts[i];
+              val = (String)nativeLibs.get(key);
+              file1 = new File(val);
+              if (file1.exists() && file1.isFile()) {
+                val = doRename(key, file1);
+                break;
+              }
             }
           }
-          StringBuffer rename = new StringBuffer(val);
-          int index0 = val.lastIndexOf(File.separatorChar) + 1;
-          int index1 = val.indexOf("_", index0);
-          if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
-            try {
-              int prefix = Integer.parseInt(val.substring(index0, index1));
-              rename.replace(index0, index1, Integer.toString(prefix + 1));
-            }
-            catch (Throwable t) {
-              rename.insert(index0, "0_");
-            }
-          }
-          else {
-            rename.insert(index0, "0_");
-          }
-          renameLibs.put(key, rename.toString());
         }
         return val;
       }
@@ -421,6 +418,38 @@ class BundleArchiveImpl implements BundleArchive
       }
     }
     return null;
+  }
+
+  // Renaming to allow multiple versions of the lib when there are
+  // more than one classloader for this bundle. E.g., after a bundle
+  // update.
+  private String doRename(String key, File file1)
+  {
+    String val = file1.getAbsolutePath();
+    if (renameLibs.containsKey(key)) {
+      final File file2 = new File((String) renameLibs.get(key));
+      if (file1.renameTo(file2)) {
+        val = file2.getAbsolutePath();
+        nativeLibs.put(key, val);
+      }
+    }
+    final StringBuffer rename = new StringBuffer(val);
+    final int index0 = val.lastIndexOf(File.separatorChar) + 1;
+    final int index1 = val.indexOf("_", index0);
+    if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
+      try {
+        int prefix = Integer.parseInt(val.substring(index0, index1));
+        rename.replace(index0, index1, Integer.toString(prefix + 1));
+      }
+      catch (Throwable t) {
+        rename.insert(index0, "0_");
+      }
+    }
+    else {
+      rename.insert(index0, "0_");
+    }
+    renameLibs.put(key, rename.toString());
+    return val;
   }
 
 
