@@ -50,6 +50,7 @@ import java.util.zip.*;
  * @author Jan Stein
  * @author Philippe Laporte
  * @author Mats-Ola Persson
+ * @author Gunnar Ekolin
  */
 class Archive {
 
@@ -135,6 +136,11 @@ class Archive {
   private ZipEntry subJar /*= null*/;
 
   /**
+   * Optional OS-command to set executable permission on native code.
+   */
+  private String execPermCmd;
+
+  /**
    * Is Archive closed.
    */
   private boolean bClosed = false;
@@ -144,9 +150,10 @@ class Archive {
   void initProps() {
     unpack = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
     alwaysUnpack = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
-    fileReference = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();    
+    fileReference = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
     trustedStorage = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.trusted", "true")).booleanValue();
     allSigned = new Boolean(storage.framework.props.getProperty("org.knopflerfish.framework.bundlestorage.file.all_signed", "false")).booleanValue();
+    execPermCmd = storage.framework.props.getProperty(Constants.FRAMEWORK_EXECPERMISSION);
   }
 
   /**
@@ -325,11 +332,11 @@ class Archive {
    * Check if an URL is a reference: URL or if we have global references on all file: URLs
    */
   boolean isReference(URL source) {
-    return (source != null) && 
-      ("reference".equals(source.getProtocol()) 
+    return (source != null) &&
+      ("reference".equals(source.getProtocol())
        || (fileReference && isFile(source)));
   }
-  
+
   /**
    * Create an Archive based on contents of a saved
    * archive in the specified directory.
@@ -719,7 +726,93 @@ class Archive {
       }
       //XXX - end L-3 modification
     }
+    setPerm(lib);
     return lib.getAbsolutePath();
+  }
+
+
+  private void setPerm(File f)
+  {
+    if (null==execPermCmd) { // No OS-cmd for setting permissions given.
+      return;
+    }
+    final String abspath = f.getAbsolutePath();
+    final String[] cmdarray = Util.splitwords(execPermCmd);
+    for (int i=0; i<cmdarray.length; i++) {
+      cmdarray[i] = Util.replace(cmdarray[i], "${abspath}", abspath);
+    }
+    try {
+      final Process p = Runtime.getRuntime().exec(cmdarray);
+      final Thread ti = new InputGlobber(null, p.getInputStream());
+      final Thread te = new InputGlobber(cmdarray, p.getErrorStream());
+      ti.start();
+      te.start();
+      while (true) {
+        try {
+          p.waitFor();
+          break;
+        } catch (InterruptedException _ie) {
+          _ie.printStackTrace();
+        }
+      }
+      while (true) {
+        try {
+          ti.join();
+          break;
+        } catch (InterruptedException _ie) {
+          _ie.printStackTrace();
+        }
+      }
+      while (true) {
+        try {
+          te.join();
+          break;
+        } catch (InterruptedException _ie) {
+          _ie.printStackTrace();
+        }
+      }
+    } catch (IOException _ioe) {
+          _ioe.printStackTrace();
+    }
+  }
+
+  // A thread class that consumes all data on an input stream and then
+  // terminates.
+  static class InputGlobber extends Thread
+  {
+    String[] cmd;
+    final InputStream in;
+    boolean copyToStdout;
+
+    InputGlobber(String[] cmd, InputStream in)
+    {
+      this.cmd = cmd;
+      this.in  = in;
+      copyToStdout = cmd!=null;
+    }
+
+    public void run()
+    {
+      BufferedReader br = new BufferedReader(new InputStreamReader(in));
+      try {
+        String line = br.readLine();
+        while (null!=line) {
+          if (null!=cmd) {
+            StringBuffer sb = new StringBuffer();
+            for (int i=0; i<cmd.length; i++) {
+              if (sb.length()>0) sb.append(" ");
+              sb.append(cmd[i]);
+            }
+            System.out.println("Failed to execute: '" +sb.toString() +"':");
+            cmd = null;
+          }
+          if (copyToStdout) System.out.println(line);
+          line = br.readLine();
+        }
+      } catch (IOException _ioe) {
+        _ioe.printStackTrace();
+      }
+    }
   }
 
 
@@ -994,7 +1087,7 @@ class Archive {
 
   /**
    * Check that certificates are valid:
-   * 
+   *
    */
   private Certificate [] checkCertificates(Certificate [] certs, boolean foundUnsigned)
     throws IOException {
@@ -1002,7 +1095,7 @@ class Archive {
     if (certs != null) {
       if (foundUnsigned) {
         // NYI! Log, ("All entry must be signed in a signed bundle.");
-      } else if (certs.length == 0) { 
+      } else if (certs.length == 0) {
         // NYI! Log ("All entry must be signed by a common certificate.");
       } else {
         int ok = 0;
@@ -1042,7 +1135,7 @@ class Archive {
 
 
   /**
-   * 
+   *
    */
   public void saveCertificates() throws IOException {
     File f = new File(getPath() + CERTS_SUFFIX);
@@ -1061,7 +1154,7 @@ class Archive {
 
 
   /**
-   * 
+   *
    */
   private void loadCertificates() throws IOException {
     File f = new File(getPath() + CERTS_SUFFIX);
@@ -1083,7 +1176,7 @@ class Archive {
 
 
   /**
-   * 
+   *
    */
   public void removeCertificates() {
     File f = new File(getPath() + CERTS_SUFFIX);

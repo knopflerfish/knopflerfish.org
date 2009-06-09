@@ -611,9 +611,9 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * Check for native code libraries.
    *
-   * @param bnc Is the Bundle-NativeCode string.
-   * @return A List of Strings with pathname to native code libraries or
-   *         null if input was null.
+   * @return A mapping from library name to location for applicable
+   *         native code libraries. <tt>null</tt> if no native code in
+   *         this bundle.
    * @exception IllegalArgumentException If syntax error in input string.
    * @exception Exception If can not find an entry that match this JVM.
    */
@@ -623,10 +623,14 @@ class BundleArchiveImpl implements BundleArchive
       if (mapLibraryName == null) {
         throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
       }
-      String proc = storage.framework.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
-      String os =  storage.framework.props.getProperty(Constants.FRAMEWORK_OS_NAME);
-      Version osVer = new Version(storage.framework.props.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      String osLang = storage.framework.props.getProperty(Constants.FRAMEWORK_LANGUAGE);
+      final String proc
+        = storage.framework.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      final String os
+        =  storage.framework.props.getProperty(Constants.FRAMEWORK_OS_NAME);
+      final Version osVer
+        = new Version(storage.framework.props.getProperty(Constants.FRAMEWORK_OS_VERSION));
+      final String osLang
+        = storage.framework.props.getProperty(Constants.FRAMEWORK_LANGUAGE);
       boolean optional = false;
       List best = null;
       VersionRange bestVer = null;
