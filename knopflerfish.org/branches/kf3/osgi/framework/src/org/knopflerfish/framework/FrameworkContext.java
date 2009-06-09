@@ -908,7 +908,7 @@ public class FrameworkContext  {
       parentClassLoader = ClassLoader.getSystemClassLoader();
     } else if (Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK.equals(s)) {
       parentClassLoader = (ClassLoader) cls.get(cls.size()-1);
-    } else { // Default: use boot class loader as parent
+    } else { // Default: Constants.FRAMEWORK_BUNDLE_PARENT_BOOT
       parentClassLoader = (ClassLoader) cls.get(0);
     }
     cls.clear();
