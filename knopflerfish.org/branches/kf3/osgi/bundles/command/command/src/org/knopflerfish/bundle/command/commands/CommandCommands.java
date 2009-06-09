@@ -49,10 +49,19 @@ public class CommandCommands {
         System.out.println(obj.getClass().getName());
         System.out.println(" function: " + srl[i].getProperty(CommandProcessor.COMMAND_FUNCTION));
         System.out.println(" scope:    " + srl[i].getProperty(CommandProcessor.COMMAND_SCOPE));
+
+        String[] function = (String[])srl[i].getProperty(CommandProcessor.COMMAND_FUNCTION);
+        for(int j = 0; j < function.length; j++) {
+          System.out.println("  " + function[j]);
+        }
+        /*
         Method[] ml = obj.getClass().getMethods();
         for(int j = 0; ml != null && j < ml.length; j++) {
-          System.out.println(" " + ml[j]);
+          if(ml[i].getDeclaringClass() != Object.class) {
+            System.out.println("  " + ml[j]);
+          }
         }
+        */
       } finally {
         bc.ungetService(srl[i]);
       }
