@@ -149,7 +149,7 @@ final public class BundleClassLoader
                     ProtectionDomain pd, PermissionOps secure)
   {
     //otherwise getResource will bypass OUR parent
-    super(bpkgs.bundle.fwCtx.getClass().getClassLoader());
+    super(bpkgs.bundle.fwCtx.parentClassLoader);
 
     this.debug = bpkgs.bundle.fwCtx.props.debug;
     this.parent = bpkgs.bundle.fwCtx.getClass().getClassLoader();
