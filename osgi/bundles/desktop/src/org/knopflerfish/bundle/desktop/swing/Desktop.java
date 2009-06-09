@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.Toolkit;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -42,6 +41,7 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -65,17 +65,19 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -85,7 +87,6 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import java.lang.reflect.Constructor;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractAction;
@@ -266,6 +267,7 @@ public class Desktop
   Map detailMap  = new HashMap();
 
   Object macApp;
+  Method macAppStop;
 
   public void start() {
 
@@ -288,29 +290,29 @@ public class Desktop
       updateIcon    = new ImageIcon(getClass().getResource("/update.png"));
 
       viewIcon      = new ImageIcon(getClass().getResource("/view_select.png"));
-      
+
       magPlusIcon    = new ImageIcon(getClass().getResource("/viewmag+.png"));
       magMinusIcon   = new ImageIcon(getClass().getResource("/viewmag-.png"));
       magFitIcon     = new ImageIcon(getClass().getResource("/viewmagfit.png"));
       mag1to1Icon    = new ImageIcon(getClass().getResource("/viewmag1.png"));
-      
+
       reloadIcon     = new ImageIcon(getClass().getResource("/reload_green.png"));
 
       arrowUpIcon    = new ImageIcon(getClass().getResource("/1uparrow.png"));
       arrowUp2Icon   = new ImageIcon(getClass().getResource("/2uparrow.png"));
       arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
       arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
-      
+
       openIcon     = new ImageIcon(getClass().getResource("/open.png"));
       openURLIcon  = new ImageIcon(getClass().getResource("/bundle_small.png"));
       saveIcon     = new ImageIcon(getClass().getResource("/save.png"));
-      
+
       connectIcon  = new ImageIcon(getClass().getResource("/connect.png"));
       connectIconLarge  = new ImageIcon(getClass().getResource("/connect48x48.png"));
-      
+
       prevIcon  = new ImageIcon(getClass().getResource("/player_prev.png"));
       nextIcon  = new ImageIcon(getClass().getResource("/player_next.png"));
-      
+
 
       tipIcon     = new ImageIcon(getClass().getResource("/idea.png"));
       floatIcon   = new ImageIcon(getClass().getResource("/float.png"));
@@ -341,7 +343,7 @@ public class Desktop
     }
 
     frame       = new JFrame(Strings.fmt("frame_title", rName, spid));
-    
+
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
@@ -353,8 +355,10 @@ public class Desktop
     // quit events
     if(bMacOS) {
       try {
-        Class clazz = Class.forName("org.knopflerfish.bundle.desktop.swing.MacApp");
-        Constructor cons = clazz.getConstructor(new Class[] { Desktop.class });    
+        Class clazz
+          = Class.forName("org.knopflerfish.bundle.desktop.swing.MacApp");
+        Constructor cons = clazz.getConstructor(new Class[] { Desktop.class });
+        macAppStop = clazz.getMethod("stop", new Class[0]);
         macApp = cons.newInstance(new Object[] { this });
       } catch (Exception e) {
         Activator.log.warn("Failed to make MacApp", e);
@@ -374,7 +378,7 @@ public class Desktop
     sizesavers.add(ss);
 
     bundlePanel = new JCardPane();
-    // bundlePanel.setPreferredSize(new Dimension(400, 300));    
+    // bundlePanel.setPreferredSize(new Dimension(400, 300));
 
     toolBar       = makeToolBar();
 
@@ -389,11 +393,11 @@ public class Desktop
     detailPanel.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
           for(Iterator it = detailMap.keySet().iterator(); it.hasNext();) {
-            ServiceReference sr = (ServiceReference)it.next();            
+            ServiceReference sr = (ServiceReference)it.next();
             Object obj = detailMap.get(sr);
 
             if(obj instanceof DefaultSwingBundleDisplayer) {
-              
+
               ((DefaultSwingBundleDisplayer)obj).setTabSelected();
             }
           }
@@ -411,9 +415,9 @@ public class Desktop
                                     bundlePanel,
                                     detailPanel);
 
-    ss = new SizeSaver("splitPaneHoriz", 
-                       null, // new Dimension(700, 400), 
-                       350); 
+    ss = new SizeSaver("splitPaneHoriz",
+                       null, // new Dimension(700, 400),
+                       350);
     ss.attach(splitPaneHoriz);
     sizesavers.add(ss);
     // splitPaneHoriz.setDividerLocation(bundlePanel.getPreferredSize().width);
@@ -428,8 +432,8 @@ public class Desktop
                                splitPaneHoriz,
                                consoleWrapper);
 
-    ss = new SizeSaver("splitPaneVertical", 
-                       null, // new Dimension(800, 600), 
+    ss = new SizeSaver("splitPaneVertical",
+                       null, // new Dimension(800, 600),
                        300);
     ss.attach(splitPane);
     sizesavers.add(ss);
@@ -455,7 +459,7 @@ public class Desktop
     for(int i = 0; i  < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
-    
+
     pm = new PackageManager(pkgTracker);
 
     frame.setJMenuBar(menuBar = makeMenuBar());
@@ -576,7 +580,7 @@ public class Desktop
                   ((JFloatable)comp).doUnfloat();
                 }
               }
-                
+
               displayMap.remove(sr);
               bundlePanel.removeTab(name);
 
@@ -1247,32 +1251,32 @@ public class Desktop
   JMenu makeBundleMenu() {
     final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-    actionStartBundles = 
+    actionStartBundles =
       new AbstractAction(Strings.get("item_startbundles"), startIcon) {
         public void actionPerformed(ActionEvent ev) {
           startBundles(getSelectedBundles());
         }
       };
-    actionStopBundles = 
+    actionStopBundles =
       new AbstractAction(Strings.get("item_stopbundles"), stopIcon) {
         public void actionPerformed(ActionEvent ev) {
           stopBundles(getSelectedBundles());
         }
       };
-    actionUpdateBundles = 
+    actionUpdateBundles =
       new AbstractAction(Strings.get("item_updatebundles"), updateIcon) {
         public void actionPerformed(ActionEvent ev) {
           updateBundles(getSelectedBundles());
         }
       };
-    actionUninstallBundles = 
+    actionUninstallBundles =
       new AbstractAction(Strings.get("item_uninstallbundles"), uninstallIcon) {
         public void actionPerformed(ActionEvent ev) {
           uninstallBundles(getSelectedBundles());
         }
       };
 
-    actionRefreshBundles = 
+    actionRefreshBundles =
       new AbstractAction(Strings.get("menu_refreshbundles")) {
         {
           putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask));
@@ -1281,7 +1285,7 @@ public class Desktop
           refreshBundle(getSelectedBundles());
         }
       };
-    
+
 
     return new JMenu(Strings.get("menu_bundles")) {
         {
@@ -1566,14 +1570,14 @@ public class Desktop
 
   Map makeBundleBuckets() {
     Map buckets;
-    
+
     Bundle[] bl      = Activator.getBundles();
     Map bundles = new HashMap();
     for(int i = 0; bl != null && i < bl.length; i++) {
       Object key = new Long(bl[i].getBundleId());
       bundles.put(key, bl[i]);
     }
-    
+
     if(bundles.size() > 12) {
       // make alphabetical submenu grouping
       // if number of bundles is large
@@ -1582,7 +1586,7 @@ public class Desktop
         Object key = it.next();
         Bundle bundle = (Bundle)bundles.get(key);
         String s = Util.getBundleName(bundle);
-        String f = s.length() > 0 
+        String f = s.length() > 0
           ? s.substring(0, 1).toUpperCase()
           : "--";
         Collection bucket = (Collection)buckets.get(f);
@@ -1597,7 +1601,7 @@ public class Desktop
       for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
         Object key = it.next();
         Bundle bundle = (Bundle)bundles.get(key);
-        
+
         String f = "#" + bundle.getBundleId() + " " + Util.getBundleName(bundle);
         buckets.put(f, bundle);
       }
@@ -1632,14 +1636,14 @@ public class Desktop
             });
         }
       });
-    
+
     editMenu.add(new JSeparator());
 
     JMenu selectMenu = new JMenu("Select bundle");
     editMenu.add(selectMenu);
-    
+
     Map buckets = makeBundleBuckets();
-    
+
     for(Iterator it = buckets.keySet().iterator(); it.hasNext(); ) {
       Object key = it.next();
       Object val = buckets.get(key);
@@ -1665,7 +1669,7 @@ public class Desktop
 
   JMenuItem makeSelectBundleItem(final Bundle bundle) {
     JMenuItem item = new JMenuItem(bundle.getBundleId() + " " + Util.getBundleName(bundle));
-    
+
     item.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent ev) {
           bundleSelModel.clearSelection();
@@ -1759,7 +1763,7 @@ public class Desktop
         Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
         setSelected(b);
         showBundle(b);
-        Dictionary headers = b.getHeaders(); 
+        Dictionary headers = b.getHeaders();
         if(Util.doAutostart() && Util.canBeStarted(b)) {
           startBundle(b);
         }
@@ -2484,7 +2488,15 @@ public class Desktop
       frame = null;
     }
 
-    
+    // If running on Mac OS, remove eawt Application handlers
+    if(bMacOS && null!=macApp && null!=macAppStop) {
+      try {
+        macAppStop.invoke(macApp, new Object[0]);
+      } catch (Exception e) {
+        Activator.log.warn("Failed to stop make MacApp", e);
+      }
+    }
+
   }
 
   public void valueChanged(long bid) {
@@ -2625,11 +2637,11 @@ public class Desktop
   void showVersion() {
     BundleContext bc = Activator.getBC();
     String version = (String)bc.getBundle().getHeaders().get("Bundle-Version");
-    String txt = Strings.fmt("str_abouttext", 
+    String txt = Strings.fmt("str_abouttext",
                              version,
                              bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR),
                              bc.getBundle(0).getHeaders().get("Bundle-Version"));
-    
+
     ImageIcon icon =
       new ImageIcon(getClass().getResource("/kf_300x170.png"));
 
