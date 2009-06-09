@@ -224,7 +224,12 @@ public class FWProps  {
       if(KEY_KEYS.equals(key)) {
         return makeKeys();
       }
-      String v = (String)props.get(key);
+      if (Constants.FRAMEWORK_EXECUTIONENVIRONMENT.equals(key)) {
+        // Volatile, the system property value has precedence
+        def = (String)  props.get(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+        return System.getProperty(key, def);
+      }
+      String v = (String) props.get(key);
       if(v != null) {
         return v;
       } else {
@@ -382,6 +387,28 @@ public class FWProps  {
     setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
     setProperty(Constants.FRAMEWORK_LANGUAGE,
                 Locale.getDefault().getLanguage());
+
+
+    // Set up the default ExecutionEnvironment
+    String defaultExecutionEnvironment
+      = (String) props.get(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    if (null==defaultExecutionEnvironment) {
+      if (1==javaVersionMajor) {
+        defaultExecutionEnvironment = "";
+        for (int i=javaVersionMinor; i>1; i--) {
+          if (defaultExecutionEnvironment.length()>0) {
+            defaultExecutionEnvironment += ",";
+          }
+          if (i>5) {
+            defaultExecutionEnvironment += "JavaSE-1." +i;
+          } else {
+            defaultExecutionEnvironment += "J2SE-1." +i;
+          }
+        }
+      }
+      props.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+                defaultExecutionEnvironment);
+    }
 
     // Various framework properties
     setProperty(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
