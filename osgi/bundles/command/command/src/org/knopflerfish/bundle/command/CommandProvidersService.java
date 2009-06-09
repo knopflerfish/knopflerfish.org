@@ -81,7 +81,7 @@ public class CommandProvidersService implements CommandProviders {
   static final String OBJ = "obj";
 
   public Collection findCommands(String scope, String name) {
-    System.out.println("findCommands " + scope + ", " + name);
+    // System.out.println("findCommands " + scope + ", " + name);
     Collection candidates = new LinkedHashSet();
     try {
       Filter filter =  Activator.bc

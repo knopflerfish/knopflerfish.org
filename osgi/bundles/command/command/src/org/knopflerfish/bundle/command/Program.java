@@ -176,12 +176,12 @@ public class Program {
   }
 
   Object execStatement(List statement_in)  {
-    System.out.println("execStatement " + statement_in);
+    // System.out.println("execStatement " + statement_in);
     String cmd = null;
     String scope = null;
     String mName = null;
     Object cmdInstance = null;
-    Method m = null;
+    MethodInfo mi = null;
     List paramList = new ArrayList();
 
     try {
@@ -210,7 +210,7 @@ public class Program {
         cmdInstance = first;
       }
 
-      System.out.println(" cmd=" + cmd + ", cmdInstance= " + cmdInstance);
+      // System.out.println(" cmd=" + cmd + ", cmdInstance= " + cmdInstance);
 
       if(inArgs.size() == 100) {
         if(cmd != null) {
@@ -227,12 +227,12 @@ public class Program {
             cmd   = cmd.substring(ix+1);
           }          
           Collection candidates = getCP().findCommands(scope, cmd);
-          System.out.println(" candidates=" + candidates);
+          // System.out.println(" candidates=" + candidates);
           for(Iterator it = candidates.iterator(); it.hasNext(); ) {
             cmdInstance = it.next();      
-            m = findMethod(cmdInstance, cmd, inArgs, outArgs);
-            if(m != null) {
-              mName = m.getName();
+            mi = findMethod(cmdInstance, cmd, inArgs, outArgs);
+            if(mi != null) {
+              mName = mi.m.getName();
               break;
             }
           }
@@ -243,32 +243,46 @@ public class Program {
           mName  = inArgs.get(0).toString();
           inArgs = inArgs.subList(1, inArgs.size());
           // System.out.println("inst=" + cmdInstance + ", mName=" + mName + ", inArgs=" + inArgs);
-          m = findMethod(cmdInstance, 
-                         mName,
-                         inArgs, 
-                         outArgs);
+          mi = findMethod(cmdInstance, 
+                          mName,
+                          inArgs, 
+                          outArgs);
         }
-        if(m == null) {
+        if(mi == null) {
           throw new NoSuchMethodException(cmdInstance.getClass().getName() + 
                                           "." + mName + "(" + inArgs + ")");
         }
-        Class[]  pTypes = m.getParameterTypes();
-        Object[] params = new Object[pTypes.length];
         
-        for(int i = 0; i < pTypes.length; i++) {
+        // System.out.println("mi=" + mi);
+        int offset = 0; // mi.type == MethodInfo.TYPE_MAIN ? 1 : 0;
+        Class[]  pTypes = mi.m.getParameterTypes();
+        Object[] params = new Object[pTypes.length + offset];
+        
+        if(offset == 1) {
+          params[0] = cmd;
+        }
+        for(int i = offset; i < pTypes.length; i++) {
           Object from = outArgs.get(i);
           params[i] = getCP().convert(pTypes[i], from);
-          System.out.println("params " + i + ": " + from + "->" + params[i]);
+          // System.out.println("params " + i + ": " + from + "->" + params[i]);
           paramList.add(params[i]);
         }
         
-        return m.invoke(cmdInstance, params);
+        Class retType = mi.m.getReturnType();
+        if(retType == Void.TYPE) {
+          mi.m.invoke(cmdInstance, params);
+          return "";
+        } else {
+          Object r = mi.m.invoke(cmdInstance, params);
+          return r;
+        }        
       }
     } catch (Exception e) {
-      if(cmdInstance != null && m != null) {
+      e.printStackTrace();
+      if(cmdInstance != null && mi != null) {
         throw new RuntimeException("Failed to exec " + 
                                    cmdInstance.getClass().getName() 
-                                   + "." + m.getName() + 
+                                   + "." + mi.m.getName() + 
                                    "(" + paramList + ")", e);
       } else {
         throw new RuntimeException("Failed to exec " + cmd, e);
@@ -308,15 +322,37 @@ public class Program {
     return (new Program(this)).exec(cs);
   }
 
-  Method findMethod(Object obj, String cmd, List args, List out) {
+  static class MethodInfo {
+    static final int TYPE_ALL          = 1;
+    static final int TYPE_NULL_PADDED  = 2;
+    static final int TYPE_VARARGS      = 3;
+    static final int TYPE_MAIN         = 4;
+    public Method m;
+    public int type;
+    
+    MethodInfo(Method m, int type) {
+      this.m = m;
+      this.type = type;
+    }
+
+    public String toString() {
+      return "MethodInfo[" + 
+        "m=" + m + 
+        ", type=" + type +
+        "]";
+    }
+  }
+
+  MethodInfo findMethod(Object obj, String cmd, List args, List out) {
     try {
+      // System.out.println("findMethod obj=" + obj + ", cmd=" + cmd + ", args=" + args);
       Method[] ml = obj.getClass().getMethods();
       for(int i = 0; i < ml.length; i++) {
         if(ml[i].getName().equalsIgnoreCase(cmd)) {
           out.clear();
           if(matchMethodAllArgs(ml[i], args, out)) {
             //             System.out.println("found all " + ml[i]);
-            return ml[i];
+            new MethodInfo(ml[i], MethodInfo.TYPE_ALL);
           }
         }
       }
@@ -325,7 +361,7 @@ public class Program {
           out.clear();
           if(matchMethodNullPaddedArgs(ml[i], args, out)) {
             // System.out.println("found null " + ml[i]);
-            return ml[i];
+            return new MethodInfo(ml[i], MethodInfo.TYPE_NULL_PADDED);
           }
         }
       }
@@ -334,7 +370,19 @@ public class Program {
           out.clear();
           if(matchMethodVarArgs(ml[i], args, out)) {
             // System.out.println("found var " + ml[i] + ", out=" + out);
-            return ml[i];
+            return new MethodInfo(ml[i], MethodInfo.TYPE_VARARGS);
+          }
+        }
+      }
+      for(int i = 0; i < ml.length; i++) {
+        if(ml[i].getName().equalsIgnoreCase("main")) {
+          out.clear();
+          List mainArgs = new ArrayList();
+          mainArgs.add(cmd);
+          mainArgs.addAll(args);
+          if(matchMethodVarArgs(ml[i], mainArgs, out)) {
+            // System.out.println("found main " + ml[i] + ", out=" + out);
+            return new MethodInfo(ml[i], MethodInfo.TYPE_MAIN);
           }
         }
       }
