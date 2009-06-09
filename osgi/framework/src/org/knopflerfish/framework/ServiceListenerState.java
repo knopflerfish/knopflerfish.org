@@ -213,34 +213,26 @@ class ServiceListenerState {
     // Check the cache
     String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
     for (int i = 0; i < c.length; i++) {
-      if (listeners.framework.props.debug.ldap) {
-        System.err.print("objectclass matches: ");
-      }
-      addToSet(set, (List)cache[OBJECTCLASS_IX].get(c[i]));
+      addToSet(set, OBJECTCLASS_IX, c[i]);
     }
     Long service_id = (Long)sr.getProperty(Constants.SERVICE_ID);
     if (service_id != null) {
-      if (listeners.framework.props.debug.ldap) {
-        System.err.print("service_id matches: ");
-      }
-      addToSet(set, (List)cache[SERVICE_ID_IX].get(service_id.toString()));
+      addToSet(set, SERVICE_ID_IX, service_id.toString());
     }
     Object service_pid = sr.getProperty(Constants.SERVICE_PID);
     if (service_pid != null) {
-      if (listeners.framework.props.debug.ldap) {
-        System.err.print("service_pid matches: ");
-      }
       if (service_pid instanceof String) {
-        addToSet(set, (List)cache[SERVICE_PID_IX].get(service_pid));
+        addToSet(set, SERVICE_PID_IX, service_pid);
       } else if (service_pid instanceof String []) {
         String [] sa = (String [])service_pid;
         for (int i = 0; i < sa.length; i++) {
-          addToSet(set, (List)cache[SERVICE_PID_IX].get(sa[i]));
+          addToSet(set, SERVICE_PID_IX, sa[i]);
         }
       } else if (service_pid instanceof Collection) {
         String [] sa = (String [])service_pid;
         for (Iterator i = ((Collection)service_pid).iterator(); i.hasNext(); ) {
-          addToSet(set, (List)cache[SERVICE_PID_IX].get(i.next()));
+          // TBD should we report if type isn't a String?
+          addToSet(set, SERVICE_PID_IX, i.next());
         }
       }
     }
@@ -250,17 +242,18 @@ class ServiceListenerState {
   /**
    * Add all members of the specified list to the specified set.
    */
-  private void addToSet(Set set, List l) {
+  private void addToSet(Set set, int cache_ix, Object val) {
+    List l = (List)cache[cache_ix].get(val);
     if (l != null) {
       if (listeners.framework.props.debug.ldap) {
-        listeners.framework.props.debug.println(Integer.toString(l.size()));
+        listeners.framework.props.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
       }
       for (Iterator it = l.iterator(); it.hasNext();) {
         set.add(it.next());
       }
     } else {
       if (listeners.framework.props.debug.ldap) {
-        listeners.framework.props.debug.println("0");
+        listeners.framework.props.debug.println(hashedKeys[cache_ix] + " matches none");
       }
     }
   }
