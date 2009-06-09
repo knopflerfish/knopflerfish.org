@@ -96,6 +96,9 @@ public class URLStreamHandlerWrapper
             }
             
           }; break;
+          case ServiceEvent.MODIFIED_ENDMATCH: {
+            // fall through
+          } 
           case ServiceEvent.UNREGISTERING: {
             if (best.equals(ref)) {
               best = null;

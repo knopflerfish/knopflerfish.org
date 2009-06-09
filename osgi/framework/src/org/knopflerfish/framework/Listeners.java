@@ -34,14 +34,7 @@
 
 package org.knopflerfish.framework;
 
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.EventListener;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -50,9 +43,8 @@ import org.osgi.framework.*;
  *
  * @author Jan Stein, Philippe Laporte, Gunnar Ekolin
  */
-public class Listeners
-  implements BundleListener, FrameworkListener, ServiceListener
-{
+class Listeners {
+
   /**
    * All bundle event listeners.
    */
@@ -231,16 +223,12 @@ public class Listeners
     frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t));
   }
 
-  //
-  // BundleListener interface
-  //
-
   /**
    * Receive notification that a bundle has had a change occur in its lifecycle.
    *
    * @see org.osgi.framework.BundleListener#bundleChanged
    */
-  public void bundleChanged(final BundleEvent evt) {
+  void bundleChanged(final BundleEvent evt) {
     ListenerEntry [] bl, tmp;
     int type = evt.getType();
     if(type == BundleEvent.STARTING || type == BundleEvent.STOPPING){
@@ -271,16 +259,13 @@ public class Listeners
     }
   }
 
-  //
-  // FrameworkListener interface
-  //
 
   /**
    * Receive notification of a general framework event.
    *
    * @see org.osgi.framework.FrameworkListener#frameworkEvent
    */
-  public void frameworkEvent(final FrameworkEvent evt) {
+  void frameworkEvent(final FrameworkEvent evt) {
     if (framework.props.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
         framework.props.debug.println("errors - FrameworkErrorEvent bundle #" + evt.getBundle().getBundleId());
@@ -305,22 +290,23 @@ public class Listeners
     }
   }
 
-  //
-  // ServiceListener interface
-  //
 
   /**
    * Receive notification that a service has had a change occur in its lifecycle.
    *
    * @see org.osgi.framework.ServiceListener#serviceChanged
    */
-  public void serviceChanged(final ServiceEvent evt) {
+  void serviceChanged(final Collection receivers,
+                      final ServiceEvent evt,
+                      final Set matchBefore) {
     ServiceReferenceImpl sr = (ServiceReferenceImpl)evt.getServiceReference();
     String[] classes = (String[])sr.getProperty(Constants.OBJECTCLASS);
-    Set sl = serviceListeners.getMatchingListeners(sr);
     int n = 0;
-    for (Iterator it = sl.iterator(); it.hasNext(); n++) {
+    for (Iterator it = receivers.iterator(); it.hasNext(); n++) {
       final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
+      if (matchBefore != null) {
+        matchBefore.remove(l);
+      }
       boolean testAssignable = false;
       if(!(l.listener instanceof AllServiceListener)){
         testAssignable = true;
@@ -348,6 +334,15 @@ public class Listeners
     if (framework.props.debug.ldap) {
       framework.props.debug.println("Notified " + n + " listeners");
     }
+  }
+
+
+  /**
+   *
+   *
+   */
+  Set getMatchingServiceListeners(final ServiceReference sr) {
+    return serviceListeners.getMatchingListeners((ServiceReferenceImpl)sr);
   }
 
   //

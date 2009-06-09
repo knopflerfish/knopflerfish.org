@@ -154,7 +154,11 @@ class Services {
         s.add(res);
       }
     }
-    bundle.fwCtx.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
+    ServiceReference r = res.getReference();
+    Listeners l = bundle.fwCtx.listeners;
+    l.serviceChanged(l.getMatchingServiceListeners(r),
+                     new ServiceEvent(ServiceEvent.REGISTERED, r),
+                     null);
     return res;
   }
 
@@ -257,7 +261,7 @@ class Services {
    * @return An array of {@link ServiceReference} object.
    */
   synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle,
-                                              boolean doAssignableToTest)
+                                      boolean doAssignableToTest)
     throws InvalidSyntaxException {
     Iterator s;
     if (clazz == null) {
