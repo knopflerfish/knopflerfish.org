@@ -182,8 +182,25 @@ public class FWProps  {
   public FWProps(Map initProps, FrameworkContext parent) {
     this.parent = parent;
 
-    // See last paragraph of section 3.3.1 in the R4.0.1 and R4.1 core spec.
-    initProperties(initProps);
+    // Setup default (launch) properties, see OSGi R4 v4.2 sec 4.2.2
+    initProperties();
+
+    // Add explicitly given properties.
+    addProperties(initProps);
+
+    whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
+      getProperty("org.knopflerfish.framework.bundlestorage", "file") +
+      ".BundleStorageImpl";
+
+    bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
+
+    if (bIsMemoryStorage ||
+        !USING_WRAPPER_SCRIPT) {
+      SUPPORTS_EXTENSION_BUNDLES = false;
+      // we can not support this in this mode.
+    } else {
+      SUPPORTS_EXTENSION_BUNDLES = true;
+    }
 
     // Set up some instance variables that depends on the properties
     UNREGISTERSERVICE_VALID_DURING_UNREGISTERING = FWProps.TRUE.equals
@@ -262,14 +279,14 @@ public class FWProps  {
     }
   }
 
-  public void setProperties(Dictionary newProps) {
+  public void addProperties(Map m) {
     synchronized(props) {
-      for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
-        String key = (String)it.nextElement();
-        setProperty(key, (String)newProps.get(key));
-      }
+      props.putAll(m);
+      props.remove(KEY_KEYS);// Ensure that this key is not present!
+      propNames = null;
     }
   }
+
 
   public Dictionary getProperties(){
     synchronized(props) {
@@ -339,24 +356,12 @@ public class FWProps  {
   }
 
 
-
-  protected void initProperties(Map initProps) {
+  /**
+   * Create the default set of framework (launch) properties.
+   */
+  protected void initProperties() {
     props = new HashMap();
-    props.putAll(initProps);
 
-    whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
-      getProperty("org.knopflerfish.framework.bundlestorage", "file") +
-      ".BundleStorageImpl";
-
-    bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
-
-    if (bIsMemoryStorage ||
-        !USING_WRAPPER_SCRIPT) {
-      SUPPORTS_EXTENSION_BUNDLES = false;
-      // we can not support this in this mode.
-    } else {
-      SUPPORTS_EXTENSION_BUNDLES = true;
-    }
     // The name of the operating system of the hosting computer.
     setProperty(Constants.FRAMEWORK_OS_NAME, System.getProperty("os.name"));
 
@@ -385,30 +390,24 @@ public class FWProps  {
     setProperty(Constants.FRAMEWORK_OS_VERSION, osVersion);
     setProperty(Constants.FRAMEWORK_VERSION,   FrameworkContext.SPEC_VERSION);
     setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
-    if (null==getProperty(Constants.FRAMEWORK_LANGUAGE)) {
-      setProperty(Constants.FRAMEWORK_LANGUAGE,
-                  Locale.getDefault().getLanguage());
-    }
+    setProperty(Constants.FRAMEWORK_LANGUAGE,
+                Locale.getDefault().getLanguage());
 
     // Set up the default ExecutionEnvironment
-    String defaultExecutionEnvironment
-      = (String) props.get(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-    if (null==defaultExecutionEnvironment) {
-      if (1==javaVersionMajor) {
-        defaultExecutionEnvironment = "";
-        for (int i=javaVersionMinor; i>1; i--) {
-          if (defaultExecutionEnvironment.length()>0) {
-            defaultExecutionEnvironment += ",";
-          }
-          if (i>5) {
-            defaultExecutionEnvironment += "JavaSE-1." +i;
-          } else {
-            defaultExecutionEnvironment += "J2SE-1." +i;
-          }
+    if (1==javaVersionMajor) {
+      String defaultExecutionEnvironment = "";
+      for (int i=javaVersionMinor; i>1; i--) {
+        if (defaultExecutionEnvironment.length()>0) {
+          defaultExecutionEnvironment += ",";
+        }
+        if (i>5) {
+          defaultExecutionEnvironment += "JavaSE-1." +i;
+        } else {
+          defaultExecutionEnvironment += "J2SE-1." +i;
         }
       }
-      props.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
-                defaultExecutionEnvironment);
+      setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+                  defaultExecutionEnvironment);
     }
 
     // Various framework properties
@@ -418,7 +417,6 @@ public class FWProps  {
                 SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
     setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
                 SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
-
   }
 
   /**
