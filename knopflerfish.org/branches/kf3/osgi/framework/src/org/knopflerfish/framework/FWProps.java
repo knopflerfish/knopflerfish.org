@@ -385,9 +385,10 @@ public class FWProps  {
     setProperty(Constants.FRAMEWORK_OS_VERSION, osVersion);
     setProperty(Constants.FRAMEWORK_VERSION,   FrameworkContext.SPEC_VERSION);
     setProperty(Constants.FRAMEWORK_VENDOR,   "Knopflerfish");
-    setProperty(Constants.FRAMEWORK_LANGUAGE,
-                Locale.getDefault().getLanguage());
-
+    if (null==getProperty(Constants.FRAMEWORK_LANGUAGE)) {
+      setProperty(Constants.FRAMEWORK_LANGUAGE,
+                  Locale.getDefault().getLanguage());
+    }
 
     // Set up the default ExecutionEnvironment
     String defaultExecutionEnvironment
