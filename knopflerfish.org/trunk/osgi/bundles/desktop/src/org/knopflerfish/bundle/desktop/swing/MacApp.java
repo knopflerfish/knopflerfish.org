@@ -39,32 +39,44 @@ import com.apple.eawt.ApplicationListener;
 import com.apple.eawt.ApplicationEvent;
 
 public class MacApp {
-  Application app;
   Desktop desktop;
+  Application app;
+  ApplicationListener quitListener = new ApplicationListener() {
+      public void handleAbout(ApplicationEvent event) {
+        desktop.showVersion();
+        event.setHandled(true);
+      }
+
+      public void handleOpenApplication(ApplicationEvent event) {
+      }
+
+      public void handleOpenFile(ApplicationEvent event) {
+      }
+
+      public void handlePreferences(ApplicationEvent event) {
+      }
+
+      public void handlePrintFile(ApplicationEvent event) {
+      }
+
+      public void handleQuit(ApplicationEvent event) {
+        desktop.stopFramework();
+        event.setHandled(true);
+      }
+    };
 
   public MacApp(Desktop _desktop) {
     this.desktop = _desktop;
     app = new Application();
 
-    app.addApplicationListener(new ApplicationListener() {
-        public void handleAbout(ApplicationEvent event) {
-        }
-
-        public void handleOpenApplication(ApplicationEvent event) {
-        }
-
-        public void handleOpenFile(ApplicationEvent event) {
-        }
-
-        public void handlePreferences(ApplicationEvent event) {
-        }
-
-        public void handlePrintFile(ApplicationEvent event) {
-        }
-
-        public void handleQuit(ApplicationEvent event) {
-          desktop.stopFramework();
-        }
-      });
+    app.addApplicationListener(quitListener);
+    //System.out.println("Mac Application listener installed.");
   }
+
+  public void stop()
+  {
+    if (null!=app) app.removeApplicationListener(quitListener);
+    //System.out.println("Mac Application listener removed.");
+  }
+
 }

@@ -40,6 +40,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   sheduling execution on it using invokeAndWait(), causeing a
   potential dead-lock. This have now been fixed.
 
+  Enhanced MacOS X Application integration, the "About" entry in the
+  application menu now links to the desktops about dialog. Also fixed
+  a bug, the application listener is now removed when the desktop
+  bundle is stopped.
+
 
   Build System
 
