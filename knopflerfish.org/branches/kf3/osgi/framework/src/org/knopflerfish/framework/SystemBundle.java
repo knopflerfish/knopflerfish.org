@@ -309,8 +309,9 @@ public class SystemBundle extends BundleImpl implements Framework {
   synchronized public void start(int options) throws BundleException {
     if (null==secure) init();
     secure.checkExecuteAdminPerm(this);
-    fwCtx.launch(0);
+    fwCtx.launch();
   }
+
 
   Object waitForStopLock = new Object();
   public FrameworkEvent waitForStop(long timeout)

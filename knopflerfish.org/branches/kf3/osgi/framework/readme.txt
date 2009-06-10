@@ -332,7 +332,9 @@ Framework System Properties
      Default: true
 
    org.knopflerfish.startlevel.use
-     Use the Start Level service.
+     Use the Start Level service. If start level is not use then
+     we do not create a non daemon thread that will keep a jvm
+     with only daemon threads alive.
      Default: true
 
    org.knopflerfish.startlevel.level
