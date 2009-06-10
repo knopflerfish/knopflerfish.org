@@ -2043,7 +2043,11 @@ public class BundleImpl implements Bundle {
 
 
   public Map/* <X509Certificate, List<X509Certificate>> */getSignerCertificates(int signersType) {
-    throw new RuntimeException("NYI");
+    if (archive != null && archive.getCertificates() != null) {
+      throw new RuntimeException("NYI");
+    } else {
+      return new HashMap();
+    }
   }
 
   public Version getVersion() {

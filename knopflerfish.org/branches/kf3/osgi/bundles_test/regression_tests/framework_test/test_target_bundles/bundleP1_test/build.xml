@@ -19,15 +19,6 @@
   <path id = "bundle.compile.path">
   </path>
 
-  <property name="do.bundle.custom.post" value="true"/>
-  <target name="bundle.custom.post">
-    <ant dir="${topdir}" antfile="build_keystore.xml"/>
-    <signjar
-       alias="kftest1" keystore="${jars.dir}/test.keystore" storepass="kftest"
-       jar="${all.jar}"
-       />
-  </target>
-
   <import file="${ant.dir}/bundlebuild.xml"/>
 
 </project>
