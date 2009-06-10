@@ -12,9 +12,10 @@ Contents
 Knopflerfish framework.jar startup
 ==================================
 
-This is a startup guide for the KF OSGi framework. Note that startup of the 
-framework is not specified by OSGi, and system integrators often need to
-create a wrapper script for FW startup.
+This is a startup guide for the KF OSGi framework. Note that
+command-line startup of the framework is not specified by OSGi, and
+system integrators often need to create a wrapper script for FW
+startup.
 
 The KF Main startup class is primarily intended to be used in scenarios
 where current working directory is same as the one containing framework.jar,
@@ -75,17 +76,17 @@ The framework can be started using the startup wrapper class
 This class is also set a Main-Class in framework.jar's manifest, meaning 
 framework.jar can be started using 
 
- java -jar framework.jar [options] OR ./kf [options]
+ java -jar framework.jar [options] OR ./kf2 [options]
 
 The Main class supports a number of options, which can be displayed
 using 
 
- java -jar framework.jar -help OR ./kf -help
+ java -jar framework.jar -help OR ./kf2 -help
 
 Options can also be specified using the -xargs option, which specifies
-a .xargs text file containing lines of new options. Typically all options
-are specified in .xargs files. Combining .xargs files and command line
-options is possible but not recommended. .xargs files can also use recursive
+a .xargs text file containing lines of new options. Typically all
+options are specified in .xargs files. Combining .xargs files and
+command line options is possible. .xargs files can also use recursive
 .xargs files.
 
 When the framework is started, it uses a file system directory for
@@ -95,12 +96,12 @@ directory used for this is
  fwdir
 
 in the currect directory. The "fwdir" directory can also be set
-specifically using the org.osgi.framework.storage system
-property. Note that moving "fwdir" also changes the location for
-searching for default .xargs files.
+specifically using the org.osgi.framework.storage property. Note that
+moving "fwdir" also changes the location for searching for default
+.xargs files.
 
-If no options are specified, or a single "-init" option is present,
-an implicit
+If no options are specified (any "-Fx=y", "-Da=b" or "-init" does not
+count as options in this case) an implicit
 
   -xargs "default"
 
@@ -111,29 +112,36 @@ below) is selected.
 Default selection of .xargs
 ===========================
 
-If _no_ args are supplied, or a name of "default" is given as -xargs
-argument, a default .xargs file will be searched for, by the following 
-algorithm:
+If _no_ args are supplied (arguments of the form "-Fx=y", "-Da=b" or
+"-init" does not count in this case), or a name of "default" is given
+as -xargs argument, a default .xargs file will be searched for, by the
+following algorithm:
 
   1. If there exists a previous "fwdir" AND previous options
-     does not contain "-init", use
+     does not contain "-init", search for a file named
 
        restart.xargs 
 
-     ...in the same dir as "fwdir".
-
   2. If no fwdir exist, OR options contain an "-init", 
-     try the first file matching:
+     search for a named:
 
       a) init_[osname].xargs
       b) init.xargs
       c) remote-init.xargs
 
-    ...in the same dir as "fwdir"
+  The search is performed in the following directories: 
+  
+      a) fwdir
+      b) The parent directory of fwdir (if any)
+      c) The current working directory
 
-    [osname] is the unified OS name as specified in Alias.java
-    (see below). Case is important if the file system
-    is case sensitive.
+
+  First match winns.
+
+
+  The [osname]-part of the file name is the unified OS name as
+  specified in Alias.java (see below). Case is important if the file
+  system is case sensitive.
 
     OS aliases:
 
@@ -147,6 +155,13 @@ algorithm:
      WindowsXP
 
 
+The file fwdir/restart.xargs suitable for restarting a framework
+instance is written by the Knopflerfish framework on every startup
+(unless disabled by setting the property
+"org.knopflerfish.framework.write.restart.xargs" to false).
+
+ 
+
 Framework System Properties
 ===========================
 
@@ -156,6 +171,9 @@ Framework System Properties
      On systems not supporting a current working directory,
      as Pocket PC, this path should be set to an explicit
      full path.
+
+     Note: Knopflerfish 1.x and 2.x used the name
+     "org.osgi.framework.dir" for this property.
 
      Default: {currentWorkingDirectory}/fwdir
 
@@ -317,8 +335,10 @@ Framework System Properties
               false otherwise
 
 
-   org.knopflerfish.verbosity
-     Framework verbosity level. 0 means few messages
+   org.knopflerfish.framework.main.verbosity
+     Verbosity level of the Main class starting the framework. 0 means
+     few messages.
+
      Default: 0
 
    org.knopflerfish.servicereference.valid.during.unregistering

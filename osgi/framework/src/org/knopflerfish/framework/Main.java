@@ -68,13 +68,7 @@ public class Main
   // Top directory (including any trailing /)
   String topDir              = "";
 
-  // Xargs to use for FW init
-  String defaultXArgsInit    = "init.xargs";
-
-  // Xargs to use for FW init
-  final String defaultXArgsInit2   = "remote-init.xargs";
-
-  // Set to true if JVM is started without any arguments
+  // Set to true if JRE is started without any arguments
   boolean bZeroArgs     /*     = false*/;
 
   // will be initialized by main() - up for anyone for grabbing
@@ -89,6 +83,7 @@ public class Main
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
 
+  static public final String XARGS_INIT     = "init.xargs";
   static public final String XARGS_RESTART  = "restart.xargs";
 
   static public final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
@@ -138,21 +133,34 @@ public class Main
     // This typically happens when starting with "java -jar framework.jar"
     // or similar (e.g by double-clicking on framework.jar)
     bZeroArgs = (args.length == 0);
-
-    // Check if there is a default xargs file
-    // Uses "init" variant if fwdir exists, otherwise
-    // uses "restart" variant.
-    String xargsPath = getDefaultXArgs(args);
-    if(xargsPath != null) {
-
-      if(bZeroArgs) {
-        args = new String[] {"-xargs", xargsPath};
-      } else if(args.length == 1 && "-init".equals(args[0])) {
-        args = new String[] {"-init", "-xargs", xargsPath};
+    if (!bZeroArgs) {// Also true if started with only -D/-F args
+      bZeroArgs = true;
+      for (int i=0; bZeroArgs && i<args.length; i++) {
+        // -Dx=y, -Fx=y and -init does not count as args
+        bZeroArgs = args[i].startsWith("-D")
+          || args[i].startsWith("-F")
+          || "-init".equals(args[i]);
       }
     }
 
-    // expand all -xargs options
+    if (bZeroArgs) {// Add default xargs file to command line
+      // To determine the fwdir we must process all -D/-F definitions
+      // on the current command line.
+      processProperties(args);
+      String xargsPath = getDefaultXArgs();
+      if(xargsPath != null) {
+        if (0==args.length) {
+          args = new String[] {"-xargs", xargsPath};
+        } else {
+          final String[] newArgs = new String[args.length +2];
+          System.arraycopy(args, 0, newArgs, 0, args.length);
+          newArgs[args.length] = "-xargs";
+          newArgs[args.length+1] = xargsPath;
+          args = newArgs;
+        }
+      }
+    }
+
     args = expandArgs(args);
     handleArgs(args);
   }
@@ -316,8 +324,6 @@ public class Main
     if(framework == null) {
       // Expand property values and export them as system properties
       finalizeProperties();
-      // Must set security manager explicitly if defined by -D option.
-      setSecurityManager();
 
       framework = ff.newFramework(fwProps);
       try {
@@ -735,7 +741,7 @@ public class Main
   {
     String[] base = getJarBase();
     // Handle file: case where topDir is not ""
-    if(bZeroArgs && location.startsWith("file:jars/") && !topDir.equals("")) {
+    if(location.startsWith("file:jars/") && !topDir.equals("")) {
       location = ("file:" + topDir + location.substring(5)).replace('\\', '/');
       println("mangled bundle location to " + location, 2);
     }
@@ -957,106 +963,69 @@ public class Main
   }
 
   /**
-   * Helper method which tries to find default xargs files.
+   * Helper method which tries to find a default xargs files to use.
+   * Note: Make sure that fwProps are up to date by calling
+   * processProperties(args) before calling this method.
    */
-  String getDefaultXArgs(String[] oldArgs) {
-    boolean bInit = false;
-
-    // If the old args has an -init somewhere, make sure
-    // we don't use the restart default xargs
-    for(int i = 0; i < oldArgs.length; i++) {
-      if("-init".equals(oldArgs[i])) {
-        bInit = true;
-        break;
-      }
-    }
+  String getDefaultXArgs() {
+    boolean bInit = Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
+      .equals((String) fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN));
 
     String fwDirStr = Util.getFrameworkDir(fwProps);
     // avoid getAbsoluteFile since some profiles don't have this
     File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
-    File xargsFile  = null;
+    println("fwdir is " + fwDir, 1);
+
+    if (!bInit) { // Implicit init needed?
+      bInit = !(fwDir.exists() && fwDir.isDirectory());
+      if (bInit) println("Implicit -init since fwdir does not exist.", 2);
+    }
+    println("init is "  +bInit, 2);
 
     // avoid getParentFile since some profiles don't have this
     String defDirStr = fwDir.getParent();
     File   defDir    = defDirStr != null ? new File(defDirStr) : null;
 
-    println("fwDir="+ fwDir, 2);
-    println("defDir="+ defDir, 2);
-    println("bInit=" + bInit, 2);
+    File   cwDir = new File(new File("").getAbsolutePath());
 
-    // ..and select appropiate xargs file
-    if(defDir != null) {
+    println("defDir=" +defDir, 5);
+    println("cwDir="  +cwDir, 5);
 
-      topDir = defDir + File.separator;
+    File[] dirs = null!=defDir ?
+      new File[]{ fwDir, defDir, cwDir } : new File[]{ fwDir, cwDir };
 
-      try {
-        String osName = (String)
-          Alias.unifyOsName(System.getProperty("os.name")).get(0);
-        File f = new File(defDir, "init_" + osName + ".xargs");
-        if(f.exists()) {
-          defaultXArgsInit = f.getName();
-          println("found OS specific xargs=" + defaultXArgsInit, 1);
-        }
-      } catch (Exception ignored) {
-        // No OS specific xargs found
+    // Determine the root OSGi dir, a.k.a. topDir
+    for (int i = 0; i<dirs.length; i++) {
+      final File jarsDir = new File(dirs[i],"jars");
+      if (jarsDir.exists() && jarsDir.isDirectory()) {
+        topDir = dirs[i].getAbsolutePath();
+        break;
       }
-
-
-      if(!bInit && (fwDir.exists() && fwDir.isDirectory())) {
-        println("found fwdir at " + fwDir, 1);
-        xargsFile = new File(fwDir, XARGS_RESTART);
-        if(xargsFile.exists()) {
-          println("\n" +
-                  "Default restart xargs file: " + xargsFile +
-                  "\n" +
-                  "To reinitialize, remove the " + fwDir +" directory\n",
-                  5);
-        } else {
-          File xargsFile2 = new File(defDir, XARGS_RESTART);
-          println("No restart xargs file " + xargsFile +
-                  ", trying " + xargsFile2 + " instead.", 0);
-          xargsFile = xargsFile2;
-          if(xargsFile.exists()) {
-            println("\n" +
-                    "Default restart xargs file: " + xargsFile +
-                    "\n" +
-                    "To reinitialize, remove the " + fwDir +" directory\n",
-                    5);
-          } else {
-            File xargsFile3 = new File(defDir, defaultXArgsInit);
-            println("No restart xargs file " + xargsFile +
-                    ", trying " + xargsFile3 + " instead.", 0);
-            xargsFile = xargsFile3;
-          }
-        }
-      } else {
-        if (bInit) {
-          println("init requested", 1);
-        } else {
-          println("no fwdir at " + fwDir, 1);
-        }
-        xargsFile = new File(defDir, defaultXArgsInit);
-        if(xargsFile.exists()) {
-          println("\n" +
-                  "Default init xargs file: " + xargsFile +
-                  "\n",
-                  5);
-        } else {
-          xargsFile = new File(defDir, defaultXArgsInit2);
-          if(xargsFile.exists()) {
-            println("\n" +
-                    "Deafult secondary init xargs file: " + xargsFile +
-                    "\n",
-                    5);
-          }
-        }
-      }
-    } else {
-      // No parent dir to fwdir
     }
-    return xargsFile != null
-      ?  xargsFile.getAbsolutePath()
-      : null;
+    println("Knopflerfish root directory is " +topDir, 2);
+
+    final String osName = (String)
+      Alias.unifyOsName(System.getProperty("os.name")).get(0);
+    final String[] xargNames = bInit
+      ? new String[]{"init_" +osName +".xargs",
+                     XARGS_INIT,
+                     "remote-" +XARGS_INIT }
+      : new String[]{XARGS_RESTART};
+
+    File xargsFile  = null;
+    println("Searching for default xargs file:", 5);
+    xargsSearch:
+    for (int i = 0; i<dirs.length; i++) {
+      for (int k = 0; k<xargNames.length; k++) {
+        xargsFile = new File(dirs[i], xargNames[k]);
+        println("  trying " +xargsFile.getAbsolutePath(), 5);
+        if (xargsFile.exists()) break xargsSearch;
+      }
+    }
+    println("default xargs file is "
+            +(null!=xargsFile ? xargsFile.getAbsolutePath() : "none"), 2);
+
+    return null!=xargsFile ? xargsFile.getAbsolutePath() : null;
   }
 
   /**
@@ -1303,7 +1272,8 @@ public class Main
   String [] loadArgs(String xargsPath, String[] oldArgs) {
 
     if(XARGS_DEFAULT.equals(xargsPath)) {
-      xargsPath = getDefaultXArgs(oldArgs);
+      processProperties(oldArgs);
+      xargsPath = getDefaultXArgs();
     }
 
     // out result
@@ -1441,32 +1411,6 @@ public class Main
     return args2;
   }
 
-
-  void setSecurityManager() {
-    try {
-      final String manager = System.getProperty("java.security.manager");
-      final String policy  = System.getProperty("java.security.policy");
-
-      if(manager != null) {
-        if(System.getSecurityManager() == null) {
-          println("Setting security manager=" + manager +
-                  ", policy=" + policy, 1);
-          SecurityManager sm = null;
-          if("".equals(manager)) {
-            sm = new SecurityManager();
-          } else {
-            Class       clazz = Class.forName(manager);
-            Constructor cons  = clazz.getConstructor(new Class[0]);
-
-            sm = (SecurityManager)cons.newInstance(new Object[0]);
-          }
-          System.setSecurityManager(sm);
-        }
-      }
-    } catch (Exception e) {
-      error("Failed to set security manager", e);
-    }
-  }
 
   /**
    * Print string to System.out if level >= current verbosity.

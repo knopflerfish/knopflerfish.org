@@ -275,8 +275,7 @@
          description="(Re)start framework with security enabled.">
   <java fork="true"
         jar="framework.jar">
-    <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-    <jvmarg value="-Djava.security.policy=framework.policy"/>
+    <arg value="-Forg.osgi.framework.security=osgi"/>
   </java>
  </target>
 
@@ -292,8 +291,7 @@
          description="Initial start with security enabled and default set of bundles.">
    <java fork="true"
          jar="framework.jar">
-     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-Forg.osgi.framework.security=osgi"/>
      <arg value="-init"/>
    </java>
  </target>
@@ -313,9 +311,9 @@
 	classname="org.knopflerfish.framework.Main">
     <classpath path="../../osgi/tck-4.0.1/testcond.jar"/>
     <classpath path="./framework.jar"/>
-    <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-    <jvmarg value="-Djava.security.policy=file:framework.policy"/>
-    <arg line="-xargs init-osgi-test-target.xargs"/>
+    <arg value="-Forg.osgi.framework.security=osgi"/>
+    <arg value="-xargs"/>
+    <arg value="init-osgi-test-target.xargs"/>
   </java>
  </target>
 
@@ -370,8 +368,7 @@
 	 output="junit_grunt/out.txt"
 	 append="${run.test.append}"
          jar="framework.jar">
-     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
-     <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <arg value="-Forg.osgi.framework.security=osgi"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
    </java>

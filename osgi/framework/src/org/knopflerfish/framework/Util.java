@@ -57,10 +57,10 @@ public class Util {
 
   public static String getFrameworkDir(Map props) {
     String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
-    if (s==null || s.length()>0) {
+    if (s==null || s.length()==0) {
       s = (String)props.get(FWDIR_PROP);
     }
-    if (s==null || s.length()>0) {
+    if (s==null || s.length()==0) {
       s = FWDIR_DEFAULT;
     }
     return s;
@@ -68,10 +68,10 @@ public class Util {
 
   public static String getFrameworkDir(FrameworkContext ctx) {
     String s = ctx.props.getProperty(Constants.FRAMEWORK_STORAGE);
-    if (s==null || s.length()>0) {
+    if (s==null || s.length()==0) {
       s = ctx.props.getProperty(FWDIR_PROP);
     }
-    if (s==null || s.length()>0) {
+    if (s==null || s.length()==0) {
       s = FWDIR_DEFAULT;
     }
     return s;
