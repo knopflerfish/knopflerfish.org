@@ -413,19 +413,14 @@ public class FrameworkContext  {
    * broadcasting events, however.)  Using FrameworkContext without launching
    * it allows for off-line debugging of the FrameworkContext.</p>
    *
-   * @param startBundle If it is specified with a value larger than 0,
-   *                    then the bundle with that id is started.
-   *                    Otherwise start all suspended bundles.
    */
-  public void launch(long startBundle) throws BundleException {
+  public void launch() throws BundleException {
     if (!active) {
       synchronized(startStopLock) {
         log("starting");
 
         active = true;
-        if (startBundle > 0) {
-          startBundle(startBundle, 0);
-        } else if (startLevelController != null) {
+        if (startLevelController != null) {
           // start level open is delayed to this point to
           // correctly work at restart
           startLevelController.open();
