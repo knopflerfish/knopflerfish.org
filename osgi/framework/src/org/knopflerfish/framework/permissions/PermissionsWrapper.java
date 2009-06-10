@@ -292,16 +292,20 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   /**
-   *
+   * 
    */
   private PermissionCollection makeImplicitPermissionCollection(FrameworkContext fw, Bundle b) {
+    // NYI, perhaps we should optimize this collection.
     Permissions pc = new Permissions();
     if (dataRoot != null) {
       pc.add(new FilePermission(dataRoot.getPath(), "read,write"));
       pc.add(new FilePermission((new File(dataRoot, "-")).getPath(),
                                 "read,write,delete"));
     }
-    pc.add(new AdminPermission(b,
+    StringBuffer sb = new StringBuffer("(id=");
+    sb.append(b.getBundleId());
+    sb.append(")");
+    pc.add(new AdminPermission(sb.toString(),
                                AdminPermission.RESOURCE + "," +
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));
