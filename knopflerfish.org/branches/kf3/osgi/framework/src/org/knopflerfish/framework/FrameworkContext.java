@@ -56,6 +56,9 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
+import org.knopflerfish.framework.permissions.KFSecurityManager;
+
+
 /**
  * This class contains references to all common data structures
  * inside the framework.
@@ -208,6 +211,7 @@ public class FrameworkContext  {
     buildBootDelegationPatterns();
     selectBootDelegationParentClassLoader();
 
+    setSecurityManager();
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
       try {
@@ -347,6 +351,62 @@ public class FrameworkContext  {
     parentClassLoader = null;
     bootDelegationPatterns.clear();
   }
+
+
+  private static final String POLICY_PROPERTY = "java.security.policy";
+
+  private void setSecurityManager() {
+    final String osgiSecurity = props.getProperty(Constants.FRAMEWORK_SECURITY);
+    final boolean useOSGiSecurityManager
+      = Constants.FRAMEWORK_SECURITY_OSGI.equals(osgiSecurity);
+
+    if (useOSGiSecurityManager && null!=System.getSecurityManager()) {
+      throw new SecurityException
+        ("Can not install OSGi security manager, another security manager "
+         +"is already installed.");
+    } else if (useOSGiSecurityManager) {
+      final String defaultPolicy
+        = this.getClass().getResource("/framework.policy").toString();
+      final String policy
+        = props.getProperty(POLICY_PROPERTY, defaultPolicy);
+      if (props.debug.framework) {
+        props.debug.println("Installing OSGi security manager, policy="+policy);
+      }
+      System.setProperty(POLICY_PROPERTY, policy);
+      System.setSecurityManager(new KFSecurityManager());
+    } else {
+      try {
+        final String manager = props.getProperty("java.security.manager");
+        final String policy  = props.getProperty(POLICY_PROPERTY);
+
+        if(manager != null) {
+          if(System.getSecurityManager() == null) {
+            if (props.debug.framework) {
+              props.debug.println("Installing security manager=" + manager +
+                                  ", policy=" + policy);
+            }
+            // If policy was given as a framework property export it
+            // as a system property.
+            System.setProperty(POLICY_PROPERTY, policy);
+            SecurityManager sm = null;
+            if("".equals(manager)) {
+              sm = new SecurityManager();
+            } else {
+              Class       clazz = Class.forName(manager);
+              Constructor cons  = clazz.getConstructor(new Class[0]);
+
+              sm = (SecurityManager)cons.newInstance(new Object[0]);
+            }
+            System.setSecurityManager(sm);
+          }
+        }
+      } catch (Exception e) {
+        throw new IllegalArgumentException
+          ("Failed to install security manager.",e);
+      }
+    }
+  }
+
 
   private void deleteFWDir() {
     String d = Util.getFrameworkDir(this);
