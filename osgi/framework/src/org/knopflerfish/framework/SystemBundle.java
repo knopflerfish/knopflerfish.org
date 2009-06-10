@@ -136,44 +136,44 @@ public class SystemBundle extends BundleImpl implements Framework {
 
     StringBuffer sp = new StringBuffer
       (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
-    if (sp.length() > 0) {
-      sp.append(",");
-    }
+    if (sp.length()==0) {
+      // Try the system packages file
+      addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
+      if (sp.length()==0) {
+        // use default set of packages.
+        String pkgFile = "packages1.6.txt";
 
-    if ("true".equals(fwCtx.props.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
-      String jv = fwCtx.props.getProperty("java.version", null);
-      if (null!=jv) { // Extract <M>.<N> part of the version string
-        int end = jv.indexOf('.');
-        if (end>-1) {
-          end = jv.indexOf('.',end+1);
+        if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
+          pkgFile = "packages1.3.txt";
+        } else if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
+          pkgFile = "packages1.4.txt";
+        } else if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
+          pkgFile = "packages1.5.txt";
+        } else if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
+          pkgFile = "packages1.6.txt";
+        } else {
+          if (1==fwCtx.props.javaVersionMajor
+              && (3<=fwCtx.props.javaVersionMinor
+                  && fwCtx.props.javaVersionMinor<=6 )) {
+            pkgFile = "packages" +fwCtx.props.javaVersionMajor
+              +"." +fwCtx.props.javaVersionMinor +".txt";
+          } else {
+            fwCtx.props.debug.println
+              ("No built in list of Java packages to be exported by the "
+               +"system bundle for JRE with version '"
+               +System.getProperty("java.version")
+               +"', using the list for 1.6.");
+          }
         }
-        if (end>-1) {
-          addSysPackagesFromFile(sp, "packages"+ jv.substring(0,end)+".txt");
-        }
+        addSysPackagesFromFile(sp, pkgFile);
+        addSystemPackages(sp);
       }
-    } else {
-
-      if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.3.txt");
-      }
-
-      if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.4.txt");
-      }
-
-      if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.5.txt");
-      }
-
-      if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.6.txt");
-      }
-
     }
-
-    addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
-    addSystemPackages(sp);
-
+    final String extraPkgs = fwCtx.props
+      .getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, "");
+    if (extraPkgs.length()>0) {
+      sp.append(",").append(extraPkgs);
+    }
     exportPackageString = sp.toString();
 
     bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
@@ -192,8 +192,12 @@ public class SystemBundle extends BundleImpl implements Framework {
     sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
           "=" + FrameworkContext.SPEC_VERSION);
 
-    sp.append(",org.osgi.framework.launch;" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.LAUNCH_VERSION);
-    sp.append(",org.osgi.framework.hooks.service;" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.HOOKS_VERSION);
+    sp.append(",org.osgi.framework.launch;"
+              +Constants.VERSION_ATTRIBUTE
+              +"=" +FrameworkContext.LAUNCH_VERSION);
+    sp.append(",org.osgi.framework.hooks.service;"
+              +Constants.VERSION_ATTRIBUTE
+              +"=" +FrameworkContext.HOOKS_VERSION);
 
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
@@ -246,11 +250,12 @@ public class SystemBundle extends BundleImpl implements Framework {
     if (null==sysPkgFile || 0==sysPkgFile.length() ) return;
 
     if(fwCtx.props.debug.packages) {
-      fwCtx.props.debug.println("Will add system packages from file " + sysPkgFile);
+      fwCtx.props.debug.println("Will add system packages from file "
+                                +sysPkgFile);
     }
 
     URL  url = null;
-    File f = new File(sysPkgFile);
+    File f = new File(new File(sysPkgFile).getAbsolutePath());
 
     if(!f.exists() || !f.isFile()) {
       url = SystemBundle.class.getResource(sysPkgFile);
@@ -258,8 +263,9 @@ public class SystemBundle extends BundleImpl implements Framework {
         url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
       if (null==url) {
-        fwCtx.props.debug.println("Could not add system bundle package exports from '"
-                      + sysPkgFile +"', file not found.");
+        fwCtx.props.debug.println("Could not add system bundle package "
+                                  +"exports from '" +sysPkgFile
+                                  +"', file not found.");
       }
     }
     BufferedReader in = null;
@@ -280,8 +286,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
 
       String line;
-      for(line = in.readLine(); line != null;
-          line = in.readLine()) {
+      for(line = in.readLine(); line != null; line = in.readLine()) {
         line = line.trim();
         if(line.length() > 0 && !line.startsWith("#")) {
           sp.append(line);

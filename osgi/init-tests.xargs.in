@@ -32,7 +32,7 @@
 -Forg.knopflerfish.framework.debug.lazy_activation=true
 
 # Comma-separated list of packges exported by system classloader
--Forg.osgi.framework.system.packages=
+-Forg.osgi.framework.system.packages.extra=
 
 # Web server properties
 -Forg.knopflerfish.http.dnslookup=false

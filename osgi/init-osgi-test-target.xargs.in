@@ -29,8 +29,8 @@
 
 
 # The system bundle MUST NOT export package except those starting with "java.*"
--Dorg.knopflerfish.framework.system.export.all=false
--Dorg.osgi.framework.system.packages=org.osgi.test.cases.permissionadmin.conditional.testcond
+#-Dorg.knopflerfish.framework.system.export.all=false
+-Dorg.osgi.framework.system.packages.extra=org.osgi.test.cases.permissionadmin.conditional.testcond
 
 # Avoid some problems with tck-4.0.1 conditionalpermission tests.
 -Dorg.knopflerfish.framework.tck401compat=true

@@ -1,12 +1,11 @@
--Dorg.knopflerfish.verbosity=0
+-Dorg.knopflerfish.framework.main.verbosity=0
 -Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
--Dorg.knopflerfish.framework.debug.packages=false
--Dorg.knopflerfish.framework.debug.errors=true
--Dorg.knopflerfish.framework.debug.classloader=false
--Dorg.knopflerfish.framework.system.export.all_13=false
--Dorg.osgi.framework.system.packages=
+-Forg.knopflerfish.framework.debug.packages=false
+-Forg.knopflerfish.framework.debug.errors=true
+-Forg.knopflerfish.framework.debug.classloader=false
+-Forg.osgi.framework.system.packages.extra=
 
--Dorg.knopflerfish.startlevel.use=true
+-Forg.knopflerfish.startlevel.use=true
 
 -init
 

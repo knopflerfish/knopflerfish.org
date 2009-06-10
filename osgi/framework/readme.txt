@@ -182,13 +182,19 @@ Framework System Properties
      Default: file:jars/*
 
    org.osgi.framework.system.packages
-     List of packages exported from system classloader,
-     other than java.* and org.osgi.framework
+     Complete list of packages exported by the system bundle.
+
+     If not set the framework will export all OSGi packages and all
+     standard Java packages according to the version of the running
+     JRE. See also "org.knopflerfish.framework.system.export.all_*"
+     and "org.osgi.framework.system.packages.extra"
 
    org.osgi.framework.system.packages.file
-     File containing list of packages exported from system
-     classloader,
-     other than java.* and org.osgi.framework
+     File containing list of packages exported by the system bundle.
+
+   org.osgi.framework.system.packages.extra
+     Packages to add to the default list of packages exported by the
+     system bundle.
 
    org.knopflerfish.framework.debug.print_with_do_privileged
      Surrond all debug print-operations originating from
@@ -282,28 +288,11 @@ Framework System Properties
 
      Default: true
       
-   org.knopflerfish.framework.system.export.all
-     Make the system class loader export all standard JRE packages
-     as defined by the currently running Java version.
-
-     This is the same as setting the appropriate
-     org.knopflerfish.framework.system.export.all_<M><N> where <M> is
-     the major (first) number and <N> is the minor (second) number in
-     the standard system property "java.version".
-
-     When this property is set to "true" all the properties named
-     org.knopflerfish.framework.system.export.all_<M><N>
-     defined below will be ignored.
-
-     More system bundle exports can by added by setting the OSGi
-     defined property org.osgi.framework.system.packages or using the
-     knopflerfish property org.osgi.framework.system.packages.file.
-
-     Default: false
-
    org.knopflerfish.framework.system.export.all_13
      Make the system class loader export all standard JRE 1.3
      packages as javax.swing.*
+
+     Only used when "org.osgi.framework.system.packages" is not set.
 
      Default: false
 
@@ -311,17 +300,23 @@ Framework System Properties
      Make the system class loader export all standard JRE 1.4
      packages as javax.swing.*
 
+     Only used when "org.osgi.framework.system.packages" is not set.
+
      Default: false
 
    org.knopflerfish.framework.system.export.all_15
      Make the system class loader export all standard JRE 1.5
      packages as javax.swing.*
 
+     Only used when "org.osgi.framework.system.packages" is not set.
+
      Default: false
 
    org.knopflerfish.framework.system.export.all_16
      Make the system class loader export all standard JRE 1.6
      packages as javax.swing.*
+
+     Only used when "org.osgi.framework.system.packages" is not set.
 
      Default: false
 
