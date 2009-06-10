@@ -24,9 +24,8 @@
 -Forg.knopflerfish.framework.debug.startlevel=false
 -Forg.knopflerfish.framework.debug.ldap=false
 
-# Add all standard packages for the currently running JRE version to
-# the set of packages exported by the system classloader.
--Forg.knopflerfish.framework.system.export.all=true
+# Comma-separated list of packages exported by the system bundle
+#-Forg.osgi.framework.system.packages=
 
 # Comma-separated list of packages to be added to the set of packages
 # exported by system classloader.

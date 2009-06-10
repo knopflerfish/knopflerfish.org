@@ -1,8 +1,8 @@
 #
-# Properties used by both init.xargs and restart.xargs
+# Properties used by both init.xargs (and restart.xargs)
 #
 
-#-Forg.osgi.framework.dir=apa
+#-Forg.osgi.framework.storage=fwdir
 
 # The Service Platform ID should be used by bundles needing to
 # a unique ID for the platform itself
@@ -12,9 +12,7 @@
 -Dorg.knopflerfish.framework.main.verbosity=0
 
 # Security
-#-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager
-#-Djava.security.manager=
-#-Djava.security.policy=file:framework.policy
+#-Forg.osgi.framework.security=osgi
 
 # File storage properties
 #-Forg.knopflerfish.framework.bundlestorage.file.trusted=true
@@ -37,13 +35,11 @@
 -Forg.knopflerfish.framework.debug.lazy_activation=true
 -Forg.knopflerfish.framework.debug.framework=true
 
-# Add all standard packages for the currently running JRE version to
-# the set of packages exported by the system classloader.
--Forg.knopflerfish.framework.system.export.all=true
-
+# Comma-separated list of packages exported by the system bundle
+#-Forg.osgi.framework.system.packages=
 # Comma-separated list of packages to be added to the set of packages
-# exported by system classloader.
-#-Forg.osgi.framework.system.packages.extra=
+# exported by system bundle.
+-Forg.osgi.framework.system.packages.extra=apa
 
 # Comma-separated list of packages that must be loaded by system classloader
 #-Forg.osgi.framework.bootdelegation=*
