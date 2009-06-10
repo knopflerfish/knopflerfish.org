@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -323,8 +323,14 @@ public class MakeHTMLTask extends Task {
                              System.getProperty("user.name"));
       content = Util.replace(content, "$(VERSION)",
                              proj.getProperty("version"));
+      content = Util.replace(content, "$(BASE_VERSION)",
+                             proj.getProperty("base_version"));
       content = Util.replace(content, "$(DISTNAME)",
                              proj.getProperty("distname"));
+      content = Util.replace(content, "$(DISTRIB_NAME)",
+                             proj.getProperty("distrib.name"));
+      content = Util.replace(content, "$(RELEASE_NAME)",
+                             proj.getProperty("release.name"));
       content = Util.replace(content, "$(MESSAGE)",
                              proj.getProperty("release"));
       content = Util.replace(content, "$(BUNDLE_LIST)", bundleList);
