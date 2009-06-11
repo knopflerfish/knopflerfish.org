@@ -1476,7 +1476,8 @@ public class BundleImpl implements Bundle {
     if (null==archive) return; // System bundle; nothing to check.
 
     // TBD, v2Manifest unnecessary to cache?
-    v2Manifest = "2".equals(archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION));
+    String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
+    v2Manifest = mv != null && mv.trim().equals("2");
     Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
                                    archive.getAttribute(Constants.BUNDLE_SYMBOLICNAME),
                                    true, true, true);
