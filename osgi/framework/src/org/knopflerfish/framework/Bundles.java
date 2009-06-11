@@ -180,7 +180,8 @@ public class Bundles {
       if (ba != null) {
         ba.purge();
       }
-      throw new BundleException("Failed to install bundle: " + e, e);
+      throw new BundleException("Failed to install bundle: " + e,
+                                BundleException.UNSPECIFIED, e);
     }
   }
 

@@ -727,7 +727,7 @@ public class FrameworkContext  {
     if (b != null) {
       b.start(options);
     } else {
-      throw new BundleException("No such bundle: " + id);
+      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
     }
   }
 
@@ -744,7 +744,7 @@ public class FrameworkContext  {
     if (b != null) {
       b.stop(options);
     } else {
-      throw new BundleException("No such bundle: " + id);
+      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
     }
   }
 
@@ -760,7 +760,7 @@ public class FrameworkContext  {
     if (b != null) {
       b.uninstall();
     } else {
-      throw new BundleException("No such bundle: " + id);
+      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
     }
   }
 
@@ -776,7 +776,7 @@ public class FrameworkContext  {
     if (b != null) {
       b.update();
     } else {
-      throw new BundleException("No such bundle: " + id);
+      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
     }
   }
 
