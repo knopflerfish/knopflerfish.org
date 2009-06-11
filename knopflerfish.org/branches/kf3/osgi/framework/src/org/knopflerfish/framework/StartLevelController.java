@@ -104,8 +104,7 @@ public class StartLevelController
           ("Invalid number '" +sBeginningLevel +"' in value of property named '"
            +Constants.FRAMEWORK_BEGINNING_STARTLEVEL +"'.", nfe);
       }
-      setStartLevel0(framework.systemBundle, beginningLevel,
-                     false, false, true);
+      setStartLevel0(beginningLevel, false, false, true);
     }
     Runnable firstJob = (Runnable)jobQueue.firstElement();
     wc   = new Thread(this, "startlevel job thread");
@@ -147,8 +146,7 @@ public class StartLevelController
         if (s != null) {
           int oldStartLevel = Integer.parseInt(s);
           if (oldStartLevel != -1) {
-            setStartLevel0(framework.systemBundle, oldStartLevel,
-                           false, false, true);
+            setStartLevel0(oldStartLevel, false, false, true);
           }
         }
       } catch (Exception _ignored) { }
@@ -179,7 +177,7 @@ public class StartLevelController
 
   void shutdown() {
     acceptChanges = false;
-    setStartLevel0(framework.systemBundle, 0, false, true, false);
+    setStartLevel0(0, false, true, false);
     while (currentLevel > 1) {
       synchronized (wc) {
         try { wc.wait(); } catch (Exception e) {}
@@ -210,19 +208,18 @@ public class StartLevelController
   }
 
 
-  void setStartLevel(Bundle bundle, final int startLevel) {
+  void setStartLevel(final int startLevel) {
     framework.perm.checkStartLevelAdminPerm();
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
     if (acceptChanges) {
-      setStartLevel0(bundle, startLevel, framework.active, false, true);
+      setStartLevel0(startLevel, framework.active, false, true);
     }
   }
 
 
-  private void setStartLevel0(final Bundle bundle,
-                              final int startLevel,
+  private void setStartLevel0(final int startLevel,
                               final boolean notifyFw,
                               final boolean notifyWC,
                               final boolean storeLevel)
@@ -255,7 +252,7 @@ public class StartLevelController
           }
         }
         if (notifyFw) {
-          notifyFramework(bundle);
+          notifyFramework(framework.systemBundle);
         }
         if (notifyWC && wc != null) {
           synchronized (wc) {
@@ -550,7 +547,7 @@ public class StartLevelController
     }
 
     public void setStartLevel(int startlevel) {
-      st.setStartLevel(bundle, startlevel);
+      st.setStartLevel(startlevel);
     }
   }
 }
