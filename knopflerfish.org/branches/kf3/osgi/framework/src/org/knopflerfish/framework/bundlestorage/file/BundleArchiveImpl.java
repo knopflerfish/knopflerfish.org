@@ -766,7 +766,8 @@ class BundleArchiveImpl implements BundleArchive
         if (optional) {
           return null;
         } else {
-          throw new BundleException("Native-Code: No matching libraries found.");
+          throw new BundleException("Native-Code: No matching libraries found.",
+                                    BundleException.NATIVECODE_ERROR);
         }
       }
       renameLibs  = new HashMap();
