@@ -381,12 +381,13 @@ public class SystemBundle extends BundleImpl implements Framework {
   public Dictionary getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
     Hashtable headers = new Hashtable();
-    headers.put(Constants.BUNDLE_SYMBOLICNAME,
-                Constants.SYSTEM_BUNDLE_SYMBOLICNAME);
-    headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
+    headers.put(Constants.BUNDLE_SYMBOLICNAME, symbolicName);
+    headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
-
+    headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
+    headers.put(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT,
+                fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
     return headers;
   }
 
