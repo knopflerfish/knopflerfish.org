@@ -228,4 +228,12 @@ public interface BundleArchive {
    * @return All certificates or null if bundle is unsigned.
    */
   Certificate [] getCertificates();
+
+
+  /**
+   * Get certificates associated with with bundle archive.
+   *
+   * @return All certificates or null if bundle is unsigned.
+   */
+  String resolveNativeCode();
 }

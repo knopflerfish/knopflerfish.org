@@ -82,9 +82,6 @@ class Archive {
     if (manifest == null) {
       throw new IOException("Bundle manifest is missing");
     }
-    if (manifest.getMainAttributes().getValue(Constants.BUNDLE_NATIVECODE) != null) {
-      throw new IOException("Native code not allowed by memory storage");
-    }
     content = loadJarStream(ji);
   }
 
