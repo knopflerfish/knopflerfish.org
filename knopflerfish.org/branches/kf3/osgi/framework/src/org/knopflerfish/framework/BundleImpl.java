@@ -1128,7 +1128,15 @@ public class BundleImpl implements Bundle {
               return state;
             }
           }
-
+          // NYI! handle nativecode and fragments
+          String err = archive.resolveNativeCode();
+          if (err != null) {
+            resolveFailException =
+              new BundleException("Unable to resolve bundle: " + err,
+                                  BundleException.NATIVECODE_ERROR);
+            fwCtx.listeners.frameworkError(this, resolveFailException);
+            return state;
+          }
           if (isFragment()) {
             BundleImpl host = getFragmentHost();
             if (host != null) {
@@ -1143,6 +1151,7 @@ public class BundleImpl implements Bundle {
             // TODO, should we do this as a part of package resolving.
             attachFragments();
             if (bpkgs.resolvePackages()) {
+              // NYI! check that nativecode entries exists
               resolveFailException = null;
               if (fragments != null) {
                 for (Iterator i = fragments.iterator(); i.hasNext(); ) {

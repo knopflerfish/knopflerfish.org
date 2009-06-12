@@ -37,18 +37,8 @@ package org.knopflerfish.framework.bundlestorage.file;
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
-import java.lang.reflect.Method;
 import java.security.cert.Certificate;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.net.URL;
 
 /**
@@ -71,11 +61,6 @@ class BundleArchiveImpl implements BundleArchive
   private final static String AUTOSTART_FILE     = "autostart";
   private final static String STARTLEVEL_FILE    = "startlevel";
   private final static String LAST_MODIFIED_FILE = "lastModifed";
-
-  /**
-   * Method mapLibraryName if we run in a Java 2 environment.
-   */
-  private static Method mapLibraryName;
 
 
   private Archive archive;
@@ -102,14 +87,6 @@ class BundleArchiveImpl implements BundleArchive
 
   private ArrayList failedPath = null;
 
-  static {
-    try {
-      mapLibraryName = System.class.getDeclaredMethod("mapLibraryName", new Class [] { String.class });
-    } catch (NoSuchMethodException ignore) {
-      mapLibraryName = null;
-    }
-  }
-
 
   /**
    * Construct new bundle archive.
@@ -132,7 +109,6 @@ class BundleArchiveImpl implements BundleArchive
     id               = bundleId;
     location         = bundleLocation;
     archive          = new Archive(storage, bundleDir, 0, is, source, location);
-    nativeLibs       = getNativeCode();
     setClassPath();
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
@@ -183,7 +159,6 @@ class BundleArchiveImpl implements BundleArchive
     id            = bundleId;
     storage       = bundleStorage;
     archive       = new Archive(storage, bundleDir, rev, location);
-    nativeLibs    = getNativeCode();
     setClassPath();
   }
 
@@ -207,7 +182,6 @@ class BundleArchiveImpl implements BundleArchive
       source = new URL(location);
     }
     archive = new Archive(storage, bundleDir, rev, is, source, location);
-    nativeLibs = getNativeCode();
     setClassPath();
     if(!bReference) {
       putContent(REV_FILE, Integer.toString(rev));
@@ -387,8 +361,7 @@ class BundleArchiveImpl implements BundleArchive
   public String getNativeLibrary(String libName) {
     if (nativeLibs != null) {
       try {
-        String key = (String) mapLibraryName.invoke(null,
-                                                    new Object[] {libName});
+        String key = System.mapLibraryName(libName);
         String val = (String) nativeLibs.get(key);
         File file1 = new File(val);
         if (file1.exists() && file1.isFile()) {
@@ -638,20 +611,13 @@ class BundleArchiveImpl implements BundleArchive
   }
 
   /**
-   * Check for native code libraries.
+   * Resolve native code libraries.
    *
-   * @return A mapping from library name to location for applicable
-   *         native code libraries. <tt>null</tt> if no native code in
-   *         this bundle.
-   * @exception IllegalArgumentException If syntax error in input string.
-   * @exception Exception If can not find an entry that match this JVM.
+   * @return null if resolve ok, otherwise return an error message.
    */
-  private Map getNativeCode() throws Exception {
+  public String resolveNativeCode() {
     String bnc = getAttribute(Constants.BUNDLE_NATIVECODE);
     if (bnc != null) {
-      if (mapLibraryName == null) {
-        throw new Exception("Native-Code: Not supported on non Java 2 platforms.");
-      }
       final String proc
         = storage.framework.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
       final String os
@@ -728,13 +694,17 @@ class BundleArchiveImpl implements BundleArchive
 
         List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
+          String sfs = (String)sf.get(0);
           if (sf.size() == 1) {
-            FilterImpl filter = new FilterImpl((String)sf.get(0));
-            if (!filter.match(storage.framework.props.getProperties())) {
-              continue;
+            try {
+              if (!(new FilterImpl(sfs)).match(storage.framework.props.getProperties())) {
+                continue;
+              }
+            } catch (InvalidSyntaxException ise) {
+              return "Invalid syntax for native code selection filter: " + sfs;
             }
           } else {
-            //NYI! complain about faulty selection
+            return "Invalid character after native code selection filter: " + sfs;
           }
         }
 
@@ -766,23 +736,27 @@ class BundleArchiveImpl implements BundleArchive
         if (optional) {
           return null;
         } else {
-          throw new BundleException("Native-Code: No matching libraries found.",
-                                    BundleException.NATIVECODE_ERROR);
+          return "No matching native code libraries found.";
         }
       }
-      renameLibs  = new HashMap();
       HashMap res = new HashMap();
       for (Iterator p = best.iterator(); p.hasNext();) {
         String name = (String)p.next();
         int sp = name.lastIndexOf('/');
         String key = (sp != -1) ? name.substring(sp+1) : name;
-        res.put(key, archive.getNativeLibrary(name));
+        try {
+          res.put(key, archive.getNativeLibrary(name));
+        } catch (IOException ioe) {
+          return "Failed to resolve native code: " + ioe.getMessage();
+        }
       }
-      return res;
+      renameLibs  = new HashMap();
+      nativeLibs = res;
     }  else {
       // No native code in this bundle
-      return null;
+      nativeLibs = null;
     }
+    return null;
   }
 
   /**

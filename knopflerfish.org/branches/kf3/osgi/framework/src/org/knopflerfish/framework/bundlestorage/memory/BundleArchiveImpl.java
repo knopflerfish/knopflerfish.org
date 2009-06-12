@@ -324,6 +324,18 @@ class BundleArchiveImpl implements BundleArchive
     return failedPath;
   }
 
+  /**
+   * Resolve native code libraries.
+   *
+   * @return null if resolve ok, otherwise return an error message.
+   */
+  public String resolveNativeCode() {
+    if (getAttribute(Constants.BUNDLE_NATIVECODE) != null) {
+      return "Native code not allowed by memory storage";
+    }
+    return null;
+  }
+
   //
   // Private methods
   //
