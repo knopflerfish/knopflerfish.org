@@ -150,16 +150,6 @@ public class Bundles {
         bin.close();
       }
 
-      String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-      if (ee != null) {
-        if (fwCtx.props.debug.packages) {
-          fwCtx.props.debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
-        }
-        if (!fwCtx.isValidEE(ee)) {
-          throw new RuntimeException("Execution environment '" + ee +
-                                     "' is not supported");
-        }
-      }
       res = new BundleImpl(fwCtx, ba);
 
       fwCtx.perm.checkLifecycleAdminPerm(res, checkContext);
