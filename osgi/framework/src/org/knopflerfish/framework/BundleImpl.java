@@ -212,6 +212,9 @@ public class BundleImpl implements Bundle {
   /** True during during the state change from active to resolved. */
   private boolean deactivating;
 
+  /** Saved exception of resolve failure. */
+  private BundleException resolveFailException;
+
 
   /**
    * Construct a new Bundle empty.
@@ -361,8 +364,7 @@ public class BundleImpl implements Bundle {
 
     //4: Resolve bundle (if needed)
     if (INSTALLED == getUpdatedState()) {
-      throw new BundleException("Failed, " + bpkgs.getResolveFailReason(),
-                                BundleException.RESOLVE_ERROR);
+      throw resolveFailException;
     }
 
     //5: Lazy?
@@ -383,8 +385,7 @@ public class BundleImpl implements Bundle {
   {
     switch (getUpdatedState()) {
     case INSTALLED:
-      throw new BundleException("Failed, " + bpkgs.getResolveFailReason(),
-                                BundleException.RESOLVE_ERROR);
+      throw resolveFailException;
     case STARTING:
       if (activating) return; // finalization already in progress.
       // Lazy activation; fall through to RESOLVED.
@@ -742,7 +743,6 @@ public class BundleImpl implements Bundle {
       }
 
       newArchive = fwCtx.storage.updateBundleArchive(archive, bin);
-      checkEE(newArchive);
       checkManifestHeaders();
       newArchive.setStartLevel(oldStartLevel);
       fwCtx.storage.replaceBundleArchive(archive, newArchive);
@@ -833,20 +833,6 @@ public class BundleImpl implements Bundle {
     }
     //only when complete success
     modified();
-  }
-
-
-  void checkEE(BundleArchive ba) throws BundleException {
-    String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-    if (ee != null) {
-      if (fwCtx.props.debug.packages) {
-        fwCtx.props.debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
-      }
-      if (!fwCtx.isValidEE(ee)) {
-        throw new BundleException("Execution environment '" + ee + "' is not supported",
-                                  BundleException.UNSPECIFIED);
-      }
-    }
   }
 
 
@@ -1090,6 +1076,7 @@ public class BundleImpl implements Bundle {
         return cl0.getResource(name);
       }
     }
+    // NYI! We should search jar if bundle is unresolved.
     return null;
   }
 
@@ -1126,6 +1113,22 @@ public class BundleImpl implements Bundle {
     if (state == INSTALLED) {
       synchronized (this) {
         if (state == INSTALLED) {
+          // NYI! check EE for fragments
+          String ee = archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+          if (ee != null) {
+            if (fwCtx.props.debug.packages) {
+              fwCtx.props.debug.println("bundle #" + archive.getBundleId() + " has EE=" + ee);
+            }
+            if (!fwCtx.isValidEE(ee)) {
+              resolveFailException =
+                new BundleException("Unable to resolve bundle: Execution environment '" +
+                                    ee + "' is not supported",
+                                    BundleException.RESOLVE_ERROR);
+              fwCtx.listeners.frameworkError(this, resolveFailException);
+              return state;
+            }
+          }
+
           if (isFragment()) {
             BundleImpl host = getFragmentHost();
             if (host != null) {
@@ -1140,6 +1143,7 @@ public class BundleImpl implements Bundle {
             // TODO, should we do this as a part of package resolving.
             attachFragments();
             if (bpkgs.resolvePackages()) {
+              resolveFailException = null;
               if (fragments != null) {
                 for (Iterator i = fragments.iterator(); i.hasNext(); ) {
                   BundleImpl b = (BundleImpl)i.next();
@@ -1157,23 +1161,20 @@ public class BundleImpl implements Bundle {
               fwCtx.listeners
                 .bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
 
-              // This is not applicable to system bundle.
-              if (id!=0 && null!=archive) {
-                List fe = archive.getFailedClassPathEntries();
-                if (fe != null) {
-                  for (Iterator i = fe.iterator(); i.hasNext(); ) {
-                    Exception e = new IOException
-                      ("Failed to classpath entry: " + i.next());
-                    fwCtx.listeners.frameworkInfo(this, e);
-                  }
+              List fe = archive.getFailedClassPathEntries();
+              if (fe != null) {
+                for (Iterator i = fe.iterator(); i.hasNext(); ) {
+                  Exception e = new IOException
+                    ("Failed to classpath entry: " + i.next());
+                  fwCtx.listeners.frameworkInfo(this, e);
                 }
               }
             } else {
-              fwCtx.listeners.frameworkError
-                (this,
-                 new BundleException("Unable to resolve bundle: "
-                                     + bpkgs.getResolveFailReason(),
-                                     BundleException.RESOLVE_ERROR));
+              resolveFailException =
+                 new BundleException("Unable to resolve bundle: " +
+                                     bpkgs.getResolveFailReason(),
+                                     BundleException.RESOLVE_ERROR);
+              fwCtx.listeners.frameworkError(this, resolveFailException);
               detachFragments(false);
             }
           }
@@ -2050,6 +2051,7 @@ public class BundleImpl implements Bundle {
     }
   }
 
+
   /**
    *
    * @see org.osgi.framework.Bundle#getLastModified()
@@ -2059,6 +2061,10 @@ public class BundleImpl implements Bundle {
   }
 
 
+  /**
+   *
+   * @see org.osgi.framework.Bundle#getSignerCertificates()
+   */
   public Map/* <X509Certificate, List<X509Certificate>> */getSignerCertificates(int signersType) {
     if (archive != null && archive.getCertificates() != null) {
       throw new RuntimeException("NYI");
@@ -2067,12 +2073,18 @@ public class BundleImpl implements Bundle {
     }
   }
 
+
+  /**
+   *
+   * @see org.osgi.framework.Bundle#getVersion()
+   */
   public Version getVersion() {
     return version;
   }
 
 
   /**
+   *
    * @see org.osgi.framework.Bundle#getResources(String name)
    */
   public Enumeration getResources(String name) throws IOException {
@@ -2094,6 +2106,7 @@ public class BundleImpl implements Bundle {
         return e != null && e.hasMoreElements() ? e : null;
       }
     }
+    // NYI! We should search jar if bundle is unresolved.
     return null;
   }
 
@@ -2109,8 +2122,7 @@ public class BundleImpl implements Bundle {
         throw new ClassNotFoundException("Can not load classes from fragment bundles");
       }
       if (getUpdatedState() == INSTALLED) {
-        fwCtx.listeners.frameworkError(this, new BundleException("Unable to resolve bundle: " + bpkgs.getResolveFailReason(), BundleException.RESOLVE_ERROR));
-        throw new ClassNotFoundException("Unable to resolve bundle");
+        throw new ClassNotFoundException(resolveFailException.getMessage());
       }
 
       ClassLoader cl = getClassLoader();
