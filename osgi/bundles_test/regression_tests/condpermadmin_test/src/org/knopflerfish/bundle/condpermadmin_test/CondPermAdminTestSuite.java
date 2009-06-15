@@ -84,6 +84,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
   Bundle buP1 = null;
   Bundle buP2 = null;
   Bundle buP3 = null;
+  Bundle buP4 = null;
 
 
 
@@ -99,6 +100,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
       addTest(new Condperm100a());
       addTest(new Condperm200a());
       addTest(new Condperm210a());
+      addTest(new Condperm220a());
       addTest(new Cleanup());
     } else {
       System.out.println("CondPermAdminTestSuite - Skip tests! No " + CPA_SERVICE_NAME);
@@ -177,6 +179,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
 	  }
 	  
 	} catch (Throwable tt) {
+          tt.printStackTrace();
 	  fail("Failed to cleanup initial permissions :CLEANUP:FAIL");
 	}
       }
@@ -310,7 +313,6 @@ public class CondPermAdminTestSuite extends TestSuite  {
       boolean teststatus = true;
       ConditionInfo ci1, ci2, ci3;
       PermissionInfo pi1, pi2, pi3, pi4, pi5;
-      Permission p1, p2, p3, p4, p5;
       AccessControlContext acc;
 
       ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
@@ -399,7 +401,6 @@ public class CondPermAdminTestSuite extends TestSuite  {
       boolean teststatus = true;
       ConditionInfo ci1, ci2, ci3;
       PermissionInfo pi1, pi2, pi3, pi4, pi5;
-      Permission p1, p2, p3, p4, p5;
       AccessControlContext acc;
 
       ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
@@ -465,6 +466,120 @@ public class CondPermAdminTestSuite extends TestSuite  {
 	out.println("### framework test bundle :CONDPERM210A:PASS");
       } else {
 	fail("### framework test bundle :CONDPERM210A:FAIL");
+      }
+    }
+  }
+
+
+  public final static String USAGE_CONDPERM220A = "";
+  public final static String [] HELP_CONDPERM220A =  {
+    "Tests of BundleSignerCondition matching bundles.",
+    "Test certificate chains."
+  };
+
+  class Condperm220a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+      ConditionInfo ci1, ci2, ci3, ci4;
+      PermissionInfo pi1, pi2, pi3;
+      AccessControlContext acc;
+
+      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+          {"* ; *, cn=CA Dude, ou=Test, o=*, l=*, c=se"});
+      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+          {"CN=TEST DUDE,ou=*,o=*,l=*,c=SE ; *, o=Knopflerfish, l=Gbg, C=SE"});
+      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+          {"CN=Goalie Dude, ou=test, o=*, l=*, c=SE;*, l=Trosa, C=SE ; *, l=GBG, C=SE"});
+      ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+          {"- ; cn=CA Dude, ou=Test, o=Knopflerfish, l=GBG, C=SE"});
+      
+      pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
+			       "org.osgi.framework", "import");
+      pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
+			       "org.knopflerfish.service.bundleP1_test", "import,export");
+      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
+			       "org.knopflerfish.service.bundleP1_test", "import");
+
+      cpaService.setConditionalPermissionInfo("CPATEST220_1",
+					      new ConditionInfo[] {ci1},
+					      new PermissionInfo[] {pi1});
+      cpaService.setConditionalPermissionInfo("CPATEST220_2",
+					      new ConditionInfo[] {ci2},
+					      new PermissionInfo[] {pi2});
+      cpaService.setConditionalPermissionInfo("CPATEST220_3",
+					      new ConditionInfo[] {ci3},
+					      new PermissionInfo[] {pi3});
+	
+      // Install test bundles P3 and P4
+      try {
+	buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
+	buP4 = Util.installBundle(bc, "bundleP4_test-1.0.0.jar");
+      }	catch (Exception e) {
+	fail("install framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	teststatus = false;
+      }
+
+      try {
+	buP3.start();
+	teststatus = true;
+      }	catch (Exception e) {
+	fail("framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	teststatus = false;
+      }
+
+      try {
+	buP4.start();
+	fail("started test bundleP4! :CONDPERM220A:FAIL");
+	teststatus = false;
+      }	catch (BundleException e) {
+	teststatus = true;
+      }	catch (Exception e) {
+	fail("framework test bundle start "+ e +" :CONDPERM220A:FAIL");
+	teststatus = false;
+      }
+
+      try {
+        buP3.uninstall();
+        buP3 = null;
+	buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
+      }	catch (Exception e) {
+	fail("install framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	teststatus = false;
+      }
+
+      // Update import permissions and see that P3 & P4 starts.
+      cpaService.setConditionalPermissionInfo("CPATEST220_1",
+					      new ConditionInfo[] {ci4},
+					      new PermissionInfo[] {pi1});
+      try {
+	buP3.start();
+	teststatus = true;
+      }	catch (Exception e) {
+	fail("framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	teststatus = false;
+      }
+
+      try {
+	buP4.start();
+	teststatus = true;
+      }	catch (Exception e) {
+	fail("framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	teststatus = false;
+      }
+
+      buP3.uninstall();
+      buP3 = null;
+      buP4.uninstall();
+      buP4 = null;
+
+      cpaService.getConditionalPermissionInfo("CPATEST220_1").delete();
+      cpaService.getConditionalPermissionInfo("CPATEST220_2").delete();
+      cpaService.getConditionalPermissionInfo("CPATEST220_3").delete();
+
+      if (teststatus == true) {
+	out.println("### framework test bundle :CONDPERM220A:PASS");
+      } else {
+	fail("### framework test bundle :CONDPERM220A:FAIL");
       }
     }
   }

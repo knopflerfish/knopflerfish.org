@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, Knopflerfish project
+ * Copyright (c) 2003-2009, Knopflerfish project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -396,4 +396,14 @@ class BundleArchiveImpl implements BundleArchive
     // NYI
     return null;
   }
+
+
+
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  public void invalidateCertificates() {
+  }
+
 }

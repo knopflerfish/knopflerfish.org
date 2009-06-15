@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,10 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.security.*;
-
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.security.cert.Certificate;
+import java.security.AllPermission;
+import java.security.GeneralSecurityException;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -61,13 +57,18 @@ public class Bundles {
    * Table of all installed bundles in this framework.
    * Key is bundle location.
    */
-  private Hashtable /* location String -> BundleImpl */ bundles = new Hashtable();
+  final private Hashtable /* location String -> BundleImpl */ bundles = new Hashtable();
 
   /**
    * Link to framework object.
    */
-  private Framework framework;
+  final private Framework framework;
 
+
+  /**
+   * True we require all bundles to correctly signed.
+   */
+  final private boolean allSigned;
 
   /**
    * Create a container for all bundles in this framework.
@@ -75,6 +76,7 @@ public class Bundles {
   Bundles(Framework fw) {
     framework = fw;
     bundles.put(fw.systemBundle.location, fw.systemBundle);
+    allSigned = Framework.getProperty("org.knopflerfish.framework.all_signed", false);
   }
 
 
@@ -138,6 +140,25 @@ public class Bundles {
         ba = framework.storage.insertBundleJar(location, bin);
       } finally {
         bin.close();
+      }
+
+      Certificate [] cs = ba.getCertificates();
+      if (cs != null && framework.validator != null) {
+        for (Iterator i = framework.validator.iterator(); i.hasNext();) {
+          cs = ((Validator)i.next()).checkCertificates(cs);
+        }
+        // OSGi requires that all certs must be valid in a bundle.
+        if (cs.length > 0) {
+          // NYI?! Log invalid bundle certificates
+          for (int i = 0; i < cs.length; i++) {
+            System.err.println("Invalid certificate, " + cs[i]);
+          }
+          ba.invalidateCertificates();
+          cs = null;
+        }
+      }
+      if (allSigned && cs == null) {
+        throw new BundleException("All installed bundles must be signed!");
       }
 
       String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);

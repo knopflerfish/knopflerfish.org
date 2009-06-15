@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,5 +90,12 @@ public interface BundleStorage {
    * @return Private copy of a List with bundle id's.
    */
   List getStartOnLaunchBundles();
+
+  /**
+   * Set if bundles in this storage should check if they are signed.
+   *
+   * @param value If true check for certificates.
+   */
+  public void setCheckSigned(boolean value);
 
 }

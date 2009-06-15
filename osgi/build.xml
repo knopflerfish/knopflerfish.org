@@ -382,6 +382,8 @@
 	 jar="framework.jar">
      <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <jvmarg value="-Dorg.knopflerfish.framework.validator.jks.ca_certs=${topdir}/bundles_test/regression_tests/jars/test.castore"/>
+     <jvmarg value="-Dorg.knopflerfish.framework.validator.jks.ca_certs_password=catest"/>
      <arg value="-xargs"/>
      <arg value="init-tests.xargs"/>
    </java>

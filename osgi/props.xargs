@@ -11,14 +11,17 @@
 
 # Security
 #-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager
-#-Djava.security.manager=
 #-Djava.security.policy=file:framework.policy
+#-Dorg.knopflerfish.framework.all_signed=false
 
 # File storage properties
 #-Dorg.knopflerfish.framework.bundlestorage.file.trusted=true
-#-Dorg.knopflerfish.framework.bundlestorage.file.unpack=false
-#-Dorg.knopflerfish.framework.bundlestorage.file.always_unpack=true
-#-Dorg.knopflerfish.framework.bundlestorage.file.all_signed=true
+#-Dorg.knopflerfish.framework.bundlestorage.file.unpack=true
+#-Dorg.knopflerfish.framework.bundlestorage.file.always_unpack=false
+
+# JKSValidator properties
+#-Dorg.knopflerfish.framework.validator.jks.ca_certs=file:$JAVA_HOME/lib/security/cacerts
+#-Dorg.knopflerfish.framework.validator.jks.ca_certs_password=changeit
 
 # URL to bundle repository
 #-Doscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml

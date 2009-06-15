@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,11 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.util.*;
 
+
 /**
  * Storage of all bundles jar content.
  *
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -55,6 +55,12 @@ public class BundleStorageImpl implements BundleStorage {
    * Bundle id sorted list of all active bundle archives.
    */
   private ArrayList /* BundleArchive */ archives = new ArrayList();
+
+  /**
+   * If we should check if bundles are signed
+   */
+  private boolean checkSigned = false;
+
 
   /**
    * Create a container for all bundle data in this framework.
@@ -147,6 +153,15 @@ public class BundleStorageImpl implements BundleStorage {
       }
     }
     return res;
+  }
+
+
+  /**
+   * 
+   *
+   */
+  public void setCheckSigned(boolean value) {
+    checkSigned = value;
   }
 
   //

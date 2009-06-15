@@ -63,6 +63,11 @@ public class BundleStorageImpl implements BundleStorage {
   private ArrayList /* BundleArchive */ archives = new ArrayList();
 
   /**
+   * If we should check if bundles are signed
+   */
+  boolean checkSigned = false;
+
+  /**
    * Create a container for all bundle data in this framework.
    * Try to restore all saved bundle archive state.
    *
@@ -205,6 +210,15 @@ public class BundleStorageImpl implements BundleStorage {
       }
     }
     return res;
+  }
+
+
+  /**
+   * 
+   *
+   */
+  public void setCheckSigned(boolean value) {
+    checkSigned = value;
   }
 
   //

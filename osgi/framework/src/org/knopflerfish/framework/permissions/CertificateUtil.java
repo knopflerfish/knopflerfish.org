@@ -44,29 +44,59 @@ import javax.security.auth.x500.X500Principal;
 public class CertificateUtil {
 
   /**
+   * Check if DN pattern matches any of the supplied certificate chains.
    *
+   * @return Index of matching signer, otherwise -1.
    */
-  static public int matchCertificates(Certificate [] certs, String pattern) {
+  static public int matchCertificates(Certificate [] certs, String pattern)
+    throws IllegalArgumentException
+  {
     if (certs != null) {
       if (Debug.permissions) {
         Debug.println("MatchCertificates: " + certs.length + " number of certs with " + pattern);
       }
       ArrayList pat = parseDNs(pattern);
+      StringBuffer chain = new StringBuffer();
+      // TBD, Refactor the chain matching code so that is only executed once.
+      X500Principal prev_issuer;
+      X500Principal issuer = null;
       for (int i = 0; i < certs.length; i++) {
         if (certs[i] instanceof X509Certificate) {
           X509Certificate c = (X509Certificate)certs[i];
+          X500Principal subject = c.getSubjectX500Principal();
+          prev_issuer = issuer;
+          issuer = c.getIssuerX500Principal();
           if (Debug.permissions) {
-            Debug.println("SUBJECT " + i  + ": " +
-                          c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
+            Debug.println("SUBJECT " + i  + ": " + subject.getName(X500Principal.CANONICAL));
+            Debug.println("ISSUER " + i  + ": " + issuer.getName(X500Principal.CANONICAL));
           }
-          // NYI! Handle certificate chains
-          ArrayList dn = parseDNs(c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
-          if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
-            return i;
+          if (prev_issuer != null && !prev_issuer.equals(subject)) {
+            throw new IllegalArgumentException("Certificate chain not correctly chained");
+          }
+          chain.append(subject.getName(X500Principal.CANONICAL));
+          if (subject.equals(issuer)) {
+            // Found anchor, TBD can we use === instead?
+            ArrayList dn = parseDNs(chain.toString());
+            if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
+              if (Debug.permissions) {
+                Debug.println("MatchCertificates matched on: " + i);
+              }
+              return i;
+            }
+            if (Debug.permissions) {
+              Debug.println("MatchCertificates failed on: " + i);
+            }
+            chain.setLength(0);
+            issuer = null;
+          } else {
+            chain.append(" ; ");
           }
         } else {
-          throw new RuntimeException("Unknown Certificate type");
+          throw new IllegalArgumentException("Unknown Certificate type");
         }
+      }
+      if (chain.length() > 0) {
+        throw new IllegalArgumentException("Incomplete certificate chain");
       }
     }
     return -1;
@@ -74,7 +104,9 @@ public class CertificateUtil {
 
 
   /**
+   * Check if at least one of the signers is match by specified pattern.
    *
+   * @return Index of matching signer, otherwise -1.
    */
   static public int matchSigners(String [] signers, String pattern) {
     if (Debug.permissions) {
