@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.List;
+
 
 /**
  * Interface for managing bundle data.
@@ -211,4 +212,11 @@ public interface BundleArchive {
    * @return All certificates or null if bundle is unsigned.
    */
   Certificate [] getCertificates();
+
+
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  void invalidateCertificates();
 }

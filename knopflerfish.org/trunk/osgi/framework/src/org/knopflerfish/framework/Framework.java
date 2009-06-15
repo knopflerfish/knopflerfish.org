@@ -37,17 +37,7 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.net.*;
 import java.security.*;
-
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.*;
 
 import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -135,6 +125,11 @@ public class Framework {
    * Bundle Storage
    */
   BundleStorage storage;
+
+  /**
+   * Bundle Validator
+   */
+  List /* Validator */ validator = null;;
 
   /**
    * Private Bundle Data Storage
@@ -293,9 +288,7 @@ public class Framework {
    *
    */
   public Framework(Object m) throws Exception {
-
-
-
+    String v = getProperty("org.knopflerfish.framework.validator");
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
       try {
@@ -306,8 +299,28 @@ public class Framework {
         }
       }
       perm = new SecurePermissionOps(this);
+      if (v == null) {
+        v = "JKSValidator";
+      }
     } else {
       perm = new PermissionOps();
+    }
+
+    if (v != null && !v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
+      validator = new ArrayList();
+      for (int start = 0; start < v.length(); ) {
+        int end = v.indexOf(',', start);
+        if (end == -1) {
+          end = v.length();
+        }
+        String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
+        try {
+          validator.add((Validator)Class.forName(vs).newInstance());
+        } catch (Exception e) {
+          throw new RuntimeException(vs + " is not a Validator", e);
+        }
+        start = end + 1;
+      }
     }
 
     // Set up URL handlers before creating the storage implementation, 
@@ -336,8 +349,8 @@ public class Framework {
 
 
     Class storageImpl = Class.forName(whichStorageImpl);
-
     storage           = (BundleStorage)storageImpl.newInstance();
+    storage.setCheckSigned(validator != null);
 
     dataStorage       = Util.getFileStorage("data");
     packages          = new Packages(this);
@@ -730,6 +743,23 @@ public class Framework {
     }
   }
 
+  /**
+   * Retrieve the boolean value of the named framework property, with a default value.
+   *
+   */
+  public static boolean getProperty(String key, boolean def) {
+    String v = (String)props.get(key);
+    if(v == null) {
+      // default to system property
+      v = System.getProperty(key);
+      if (v == null) {
+        return def;
+      }
+    }
+    return (new Boolean(v)).booleanValue();
+  }
+
+
   public static void setProperty(String key, String val) {
     if (volatileProperties.contains(key)) {
       System.setProperty(key,val);
@@ -737,6 +767,7 @@ public class Framework {
       props.put(key, val);
     }
   }
+
 
   public static void setProperties(Dictionary newProps) {
     for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
@@ -763,11 +794,8 @@ public class Framework {
   protected static void initProperties() {
     props = new HashMap();
 
-
-
-
     whichStorageImpl = "org.knopflerfish.framework.bundlestorage." +
-      Framework.getProperty("org.knopflerfish.framework.bundlestorage", "file") +
+      getProperty("org.knopflerfish.framework.bundlestorage", "file") +
       ".BundleStorageImpl";
 
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
@@ -779,6 +807,7 @@ public class Framework {
     } else {
       SUPPORTS_EXTENSION_BUNDLES = true;
     }
+
     // The name of the operating system of the hosting computer.
     setProperty(Constants.FRAMEWORK_OS_NAME, System.getProperty("os.name"));
 

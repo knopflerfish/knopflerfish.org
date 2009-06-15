@@ -135,7 +135,8 @@ class BundleArchiveImpl implements BundleArchive
     id              = bundleId;
     location        = bundleLocation;
     startOnLaunch   = false;
-    archive         = new Archive(bundleDir, 0, is, source, location);
+    archive         = new Archive(bundleDir, 0, is, source,
+                                  location, storage.checkSigned);
     nativeLibs      = getNativeCode();
     setClassPath();
     putContent(STOP_FILE, new Boolean(!startOnLaunch).toString());
@@ -183,7 +184,7 @@ class BundleArchiveImpl implements BundleArchive
     id            = bundleId;
     storage       = bundleStorage;
     startOnLaunch = !(new Boolean(getContent(STOP_FILE))).booleanValue();
-    archive       = new Archive(bundleDir, rev, location);
+    archive       = new Archive(bundleDir, rev, location, storage.checkSigned);
     nativeLibs    = getNativeCode();
     setClassPath();
   }
@@ -208,7 +209,7 @@ class BundleArchiveImpl implements BundleArchive
     if(bReference) {        
       source = new URL(location);
     }
-    archive = new Archive(bundleDir, rev, is, source, location);
+    archive = new Archive(bundleDir, rev, is, source, location, storage.checkSigned);
     nativeLibs = getNativeCode();
     setClassPath();
     if(!bReference) {
@@ -504,10 +505,20 @@ class BundleArchiveImpl implements BundleArchive
     return failedPath;
   }
 
+
   /**
    */
   public Certificate [] getCertificates() {
     return archive.getCertificates();
+  }
+
+
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  public void invalidateCertificates() {
+    archive.invalidateCertificates();
   }
 
   //

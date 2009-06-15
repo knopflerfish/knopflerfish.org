@@ -68,37 +68,54 @@ class Archive {
    */
   final private static String CERTS_SUFFIX = ".crt";
 
-  // Directory where optional bundle files are stored
-  // these need not be unpacked locally
+  /**
+   * Directory where optional bundle files are stored
+   * these need not be unpacked locally
+   */
+  final private static String META_INF_DIR = "META-INF/";
+
+  /**
+   * Directory where optional bundle files are stored
+   * these need not be unpacked locally
+   */
   final private static String OSGI_OPT_DIR = "OSGI-OPT/";
 
   /**
-   * Controls if we should try to unpack bundles with sub-jars and
-   * native code.
+   * Bundle entry where local permissions are stored.
    */
-  final private static boolean unpack = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.unpack", "true")).booleanValue();
+  final private static String LOCAL_PERMISSION_FILE = "OSGI-INF/permissions.perm";
+
+  /**
+   * Property base string.
+   */
+  final private static String PROP_BASE = "org.knopflerfish.framework.bundlestorage.file.";
 
   /**
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  final private static boolean alwaysUnpack = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.always_unpack", "false")).booleanValue();
+  final private static boolean unpack =
+    new Boolean(Framework.getProperty(PROP_BASE + "unpack", "true")).booleanValue();
+
+  /**
+   * Controls if we should try to unpack bundles with sub-jars and
+   * native code.
+   */
+  final private static boolean alwaysUnpack =
+    new Boolean(Framework.getProperty(PROP_BASE + "always_unpack", "false")).booleanValue();
 
   /**
    * Controls if file: URLs should be referenced only, not copied
    * to bundle storage dir
    */
-  final private static boolean fileReference = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
+  final private static boolean fileReference =
+    new Boolean(Framework.getProperty(PROP_BASE + "reference", "false")).booleanValue();
 
   /**
    * Controls if we should trust file storage to be secure.
    */
-  final private static boolean trustedStorage = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.trusted", "true")).booleanValue();
-
-  /**
-   * Controls if we should require signed bundles.
-   */
-  final private static boolean allSigned = new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.all_signed", "false")).booleanValue();
+  final private static boolean trustedStorage =
+    new Boolean(Framework.getProperty(PROP_BASE + "trusted", "true")).booleanValue();
 
   /**
    * File handle for file that contains current archive.
@@ -106,9 +123,9 @@ class Archive {
   private FileTree file;
 
   /**
-   * Set to true if above file should be kept at purge()
+   * Set to true if above file is a reference outside framework storage.
    */
-  private boolean bKeepFile = false;
+  private boolean fileIsReference;
 
   /**
    * JAR file handle for file that contains current archive.
@@ -126,7 +143,7 @@ class Archive {
   /**
    * Archive's manifest
    */
-  AutoManifest manifest /*= null*/;
+  Manifest manifest /*= null*/;
 
   /**
    * JAR Entry handle for file that contains current archive.
@@ -153,146 +170,121 @@ class Archive {
    * @param url URL to use to CodeSource.
    * @param location Location for archive
    */
-  Archive(File dir, int rev, InputStream is, URL source, String location) throws IOException
+  Archive(File dir, int rev, InputStream is, URL source, String location, boolean checkSigned)
+    throws IOException, BundleException
   {
-    final boolean doVerify = System.getSecurityManager() != null;
     this.location = location;
-    Manifest mf = null;
-
     boolean isDirectory = false;
     final FileTree sourceFile;
-    if(isFile(source) || isReference(source)) {
+    fileIsReference = isReference(source);
+
+    if (fileIsReference) {
       sourceFile = new FileTree(getFile(source));
-      isDirectory = sourceFile.isDirectory();
-      if(isDirectory){
-        final String manifestPath = sourceFile.getAbsolutePath() + File.separatorChar + "META-INF" + File.separatorChar + "MANIFEST.MF";
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(manifestPath));
-        mf = new Manifest(bis);
-      }
+      file = sourceFile;
     } else {
-      sourceFile = null;
+      sourceFile = isFile(source) ? new FileTree(getFile(source)) : null;
+      file = new FileTree(dir, ARCHIVE + rev);
+    }
+    if (sourceFile != null) {
+      isDirectory = sourceFile.isDirectory();
+      if (isDirectory) {
+        File mfd = new File(sourceFile.getAbsolutePath(), META_INF_DIR);
+        File mf = new File(mfd, "MANIFEST.MF");
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(mf));
+        try {
+          manifest = new Manifest(bis);
+        } finally {
+          bis.close();
+        }
+      }
     }
 
     BufferedInputStream bis =  null;
     JarInputStream ji = null;
-    //Dodge Skelmir-specific problem. Not a great solution, since problem not well understood at this time. Passes KF test suite
-    if (mf == null) {
-      if (Framework.getProperty("java.vendor").startsWith("Skelmir")){
-        bis = new BufferedInputStream(is, is.available());
-      } else {
-        bis = new BufferedInputStream(is, 8192);
-      }
-
+    if (manifest == null) {
+      bis = new BufferedInputStream(is);
       if (alwaysUnpack) {
-        ji = new JarInputStream(bis, doVerify);
-        mf = ji.getManifest();
+        ji = new JarInputStream(bis, checkSigned);
+        manifest = ji.getManifest();
       } else if (unpack) {
-        // Is 100000 enough, Must be big enough to hold the MANIFEST.MF entry
-        // NYI, implement a dynamic BufferedInputStream to handle this.
-        bis.mark(100000);
-        ji = new JarInputStream(bis, doVerify);
-        mf = ji.getManifest();
-        // Manifest probably not first in JAR, should we complain?
+        // Is 1000000 enough, Must be big enough to hold the MANIFEST.MF entry
+        // Hope implement of BufferedInputStream allocates dynamicly.
+        bis.mark(1000000);
+        ji = new JarInputStream(bis, checkSigned);
+        manifest = ji.getManifest();
+        // If manifest == null then, Manifest probably not first in JAR, should we complain?
         // Now, try to use the jar anyway. Maybe the manifest is there.
-        if (mf == null || !needUnpack(mf.getMainAttributes())) {
+        if (manifest == null || !needUnpack(manifest.getMainAttributes())) {
           ji = null;
           bis.reset();
         }
       }
-      file = new FileTree(dir, ARCHIVE + rev);
       if (ji != null) {
-        if (doVerify && mf == null) {
-          // TBD? Which exception to use?
-          throw new IOException("MANIFEST.MF must be first in archive when using signatures.");
-        }
-        File f;
         file.mkdirs();
-        if (mf != null) {
-          f = new File(file, "META-INF");
+        if (manifest == null) {
+          if (checkSigned) {
+            // TBD? Which exception to use?
+            throw new IOException("MANIFEST.MF must be first in archive when using signatures.");
+          }
+        } else {
+          File f = new File(file, META_INF_DIR);
           f.mkdir();
-          BufferedOutputStream o = new BufferedOutputStream(new FileOutputStream(new File(f, "MANIFEST.MF")));
+          FileOutputStream fo = new FileOutputStream(new File(f, "MANIFEST.MF"));
+          BufferedOutputStream o = new BufferedOutputStream(fo);
           try {
-            mf.write(o);
+            manifest.write(o);
           } finally {
             o.close();
           }
         }
-        JarEntry je;
-        boolean foundUnsigned = false;
-        while ((je = ji.getNextJarEntry()) != null) {
-          if (!je.isDirectory()) {
-            String name = je.getName();
-            if (name.startsWith(OSGI_OPT_DIR)) {
-              // Optional files are not copied to disk
-              // TBD? Check if it is verified
-              // NYI! Handle local permissions
+        boolean verify = checkSigned;
+        int verifiedEntries = 0;
+        while (processNextJarEntry(ji, verify, file)) {
+          if (verify) {
+            if (isArchiveSigned()) {
+              verifiedEntries++;
             } else {
-              StringTokenizer st = new StringTokenizer(name, "/");
-              f = new File(file, st.nextToken());
-              while (st.hasMoreTokens()) {
-                f.mkdir();
-                f = new File(f, st.nextToken());
-              }
-              loadFile(f, ji);
-            }
-            if (doVerify) {
-              if (!name.startsWith("META-INF/")) {
-                Certificate [] c = je.getCertificates();
-                if (c != null) {
-                  if (certs != null) {
-                    certs = intersectCerts(certs, c);
-                  } else {
-                    certs = c;
-                  }
-                } else {
-                  foundUnsigned = true;
-                }
-              }
-            } else {
-              foundUnsigned = true;
+              verify = false;
             }
           }
         }
-        certs = checkCertificates(certs, foundUnsigned);
+        if (verify) {
+          checkCertificates(verifiedEntries, true);
+        }
         jar = null;
       }
-      saveCertificates();
     }
     if (ji == null) {
-      // Only copy to storage when applicable, otherwise
-      // use reference
-      if (isReference(source)) {
-        file = new FileTree(getFile(source));
-
-        // this tells the purge() method not to remove the original
-        bKeepFile = true;
+      if (isDirectory) {
+        if (!fileIsReference) {
+          sourceFile.copyTo(file);
+        }
+        if (checkSigned) {
+          // NYI! Verify signed directory
+        }
+        jar = null;
       } else {
-        if(isDirectory){
-          // if directory, copy the directory to bundle storage
-          file = new FileTree(dir, ARCHIVE + rev);
-          file.mkdirs();
-          loadFileTree(file, sourceFile);
-        } else{
+        if (!fileIsReference) {
           loadFile(file, bis);
         }
-      }
-      if(! isDirectory){
-        if (doVerify) {
-          // TBD, should we allow signed to be reference files?
-          mf = processSignedJar(file);
+        if (checkSigned) {
+          processSignedJar(file);
         }
         jar = new ZipFile(file);
       }
     }
-    if (mf != null) {
-      manifest = new AutoManifest(mf, location);
+    if (manifest != null) {
+      manifest = new AutoManifest(manifest, location);
     } else {
       manifest = getManifest();
     }
     checkManifest();
 
     handleAutoManifest();
+
+    saveCertificates();
   }
+
 
   /**
    * Get the file path from an URL, handling the case where it's
@@ -307,9 +299,11 @@ class Archive {
     }
   }
 
+
   boolean isFile(URL source) {
     return source != null && "file".equals(source.getProtocol());
   }
+
 
   /**
    * Check if an URL is a reference: URL or if we have global references on all file: URLs
@@ -319,6 +313,7 @@ class Archive {
       ("reference".equals(source.getProtocol()) 
        || (fileReference && isFile(source)));
   }
+
   
   /**
    * Create an Archive based on contents of a saved
@@ -326,8 +321,7 @@ class Archive {
    * Take lowest versioned archive and remove rest.
    *
    */
-  Archive(File dir, int rev, String location) throws IOException {
-    final boolean doVerify = System.getSecurityManager() != null;
+  Archive(File dir, int rev, String location, boolean checkSigned) throws IOException {
     this.location = location;
     String [] f = dir.list();
     file = null;
@@ -386,12 +380,8 @@ class Archive {
     } else {
       jar = new ZipFile(file);
     }
-    if (doVerify) {
-      if (jar == null) {
-        loadCertificates();
-      } else {
-        manifest = new AutoManifest(processSignedJar(file), location);
-      }
+    if (checkSigned) {
+      loadCertificates();
     }
     if (manifest == null) {
       manifest = getManifest();
@@ -715,7 +705,7 @@ class Archive {
   void purge() {
     close();
     // Remove archive if not  flagged as keep
-    if(!bKeepFile) {
+    if(!fileIsReference) {
       file.delete();
     }
 
@@ -759,6 +749,14 @@ class Archive {
   }
 
 
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  void invalidateCertificates() {
+    certs = null;
+  }
+
   //
   // Private methods
   //
@@ -799,11 +797,15 @@ class Archive {
    * Archive manifest must be set.
    */
   private void handleAutoManifest() throws IOException {
-    if (manifest.isAuto()) {
-      if (jar != null) {
-        manifest.addZipFile(jar);
-      } else if (file != null && file.isDirectory()) {
-        manifest.addFile(file.getAbsolutePath(), file);
+    // TBD Should we check this, should it not always be true!
+    if (manifest instanceof AutoManifest) {
+      AutoManifest mf = (AutoManifest)manifest;
+      if (mf.isAuto()) {
+        if (jar != null) {
+          mf.addZipFile(jar);
+        } else if (file != null && file.isDirectory()) {
+          mf.addFile(file.getAbsolutePath(), file);
+        }
       }
     }
   }
@@ -821,6 +823,7 @@ class Archive {
   private FileTree findFile(File root, String path) {
     return new FileTree(root, path.replace('/', File.separatorChar));
   }
+
 
   /**
    * Get the manifest for this archive.
@@ -865,7 +868,7 @@ class Archive {
   /**
    * Loads a file from an InputStream and stores it in a file.
    *
-   * @param output File to save data in.
+   * @param output File to save data in, if <code>null</code>, discard output.
    * @param is InputStream to read from.
    */
   private void loadFile(File output, InputStream is) throws IOException {
@@ -898,132 +901,120 @@ class Archive {
     }
   }
 
-  private void loadFileTree(File output, final FileTree sourceFile) throws IOException {
-    try {
-      sourceFile.copyTo(output);
-    }
-    catch (IOException e) {
-      output.delete();
-      throw e;
-    }
+
+  /**
+   * Check if archive is signed
+   */
+  private boolean isArchiveSigned() {
+    return certs != null;
   }
 
 
-
   /**
-   *
+   * 
    */
-  private Certificate [] intersectCerts(Certificate [] a, Certificate [] b) {
-    int len = 0;
-    for (int i = 0; i < a.length; i++) {
-      boolean ok = false;
-      for (int j = 0; j < b.length; j++) {
-        if (a[i] == b[j]) {
-          ok = true;
-          break;
-        }
+  private boolean processNextJarEntry(JarInputStream ji, boolean verify, File saveDir)
+    throws IOException {
+    JarEntry je;
+    while ((je = ji.getNextJarEntry()) != null) {
+      if (je.isDirectory()) {
+        continue;
       }
-      if (ok) {
-        len++;
+      String name = je.getName();
+      if (saveDir != null && (!name.startsWith(OSGI_OPT_DIR) ||
+                              name.equals(LOCAL_PERMISSION_FILE))) {
+        StringTokenizer st = new StringTokenizer(name, "/");
+        File f = new File(saveDir, st.nextToken());
+        while (st.hasMoreTokens()) {
+          f.mkdir();
+          f = new File(f, st.nextToken());
+        }
+        loadFile(f, ji);
       } else {
-        certs[i] = null;
+        // Read entry to update certificates.
+        loadFile(null, ji);
       }
-    }
-    if (len != a.length) {
-      Certificate [] nc = new Certificate[len];
-      int j = 0;
-      for (int i = 0; i < a.length; i++) {
-        if (a[i] != null) {
-          nc[j++] = a[i];
+      ji.closeEntry();
+      if (name.startsWith(META_INF_DIR)) {
+        continue;
+      }
+      if (verify) {
+        Certificate [] c = je.getCertificates();
+        if (c != null) {
+          if (certs != null) {
+            // TBD, perhaps we should allow permuted chains.
+            if (!Arrays.equals(c, certs)) {
+              certs = null;
+            }
+          } else {
+            certs = c;
+          }
+        } else {
+          certs = null;
         }
       }
-      return nc;
-    } else {
-      return a;
+      return true;
     }
+    return false;
   }
 
 
   /**
    * Go through jar file and check signatures.
    */
-  private Manifest processSignedJar(File file) throws IOException {
+  private void processSignedJar(File file)
+    throws IOException, BundleException
+  {
     FileInputStream fis = new FileInputStream(file);
-    BufferedInputStream bis = new BufferedInputStream(fis, 8192);
-    JarInputStream ji = new JarInputStream(bis);
-    JarEntry je;
-    boolean foundUnsigned = false;
-    Manifest manifest = ji.getManifest();
+    try {
+      BufferedInputStream bis = new BufferedInputStream(fis);
+      JarInputStream ji = new JarInputStream(bis);
+      String entry;
+      int count = 0;
 
-    while ((je = ji.getNextJarEntry()) != null) {
-      if (!je.isDirectory()) {
-        String name = je.getName();
-        if (!name.startsWith("META-INF/")) {
-          loadFile(null, ji);
-          Certificate [] c = je.getCertificates();
-          if (c != null) {
-            if (certs != null) {
-              certs = intersectCerts(certs, c);
-            } else {
-              certs = c;
-            }
-          } else {
-            foundUnsigned = true;
-          }
+      manifest = ji.getManifest();
+    
+      while (processNextJarEntry(ji, true, null)) {
+        if (isArchiveSigned()) {
+          count++;
+        } else {
+          break;
         }
       }
+      checkCertificates(count, true);
+    } finally {
+      fis.close();
     }
-    checkCertificates(certs, foundUnsigned);
-    return manifest;
   }
 
 
   /**
-   * Check that certificates are valid:
+   * Check that all entries in the bundle is signed.
    * 
    */
-  private Certificate [] checkCertificates(Certificate [] certs, boolean foundUnsigned)
-    throws IOException {
-    Certificate [] res = null;
-    if (certs != null) {
-      if (foundUnsigned) {
-        // NYI! Log, ("All entry must be signed in a signed bundle.");
-      } else if (certs.length == 0) { 
-        // NYI! Log ("All entry must be signed by a common certificate.");
+  private void checkCertificates(int filesVerified, boolean complete)
+    throws BundleException {
+    // TBD! Does manifest.getEntries contain more than signers?
+    if (filesVerified > 0) {
+      int mentries;
+      if (complete) {
+        mentries = manifest.getEntries().size();
       } else {
-        int ok = 0;
-        for (int i = 0; i < certs.length; i++) {
-          if (certs[i] instanceof X509Certificate) {
-            try {
-              ((X509Certificate)certs[i]).checkValidity();
-              // NYI! Check cert chain
-              ok++;
-            } catch (Exception ignore) {
-              certs[i] = null;
-            }
-          } else {
-            // Certificate type not handled, remove.
-            certs[i] = null;
-          }
-        }
-        if (ok == certs.length) {
-          res = certs;
-        } else if (ok > 0) {
-          res = new Certificate[ok];
-          int j = 0;
-          for (int i = 0; i < certs.length; i++) {
-            if (certs[i] != null) {
-              res[j++] = certs[i];
-            }
+        mentries = 0;
+        for (Iterator i = manifest.getEntries().keySet().iterator(); i.hasNext();) {
+          String name = (String)i.next();
+          if (!name.startsWith(OSGI_OPT_DIR) || name.equals(LOCAL_PERMISSION_FILE)) {
+            mentries++;
           }
         }
       }
+      if (mentries != filesVerified) {
+        certs = null;
+        System.err.println("All entries in bundle not completly signed (" +
+                           mentries + " != " + filesVerified + ")");
+        // NYI! Log this
+      }
     }
-    if (res == null && allSigned) {
-      // TBD? Which exception to use?
-      throw new IOException("Install requires signed bundle.");
-    }
-    return res;
   }
 
 
@@ -1047,7 +1038,7 @@ class Archive {
 
 
   /**
-   * 
+   * TBD improve this.
    */
   private void loadCertificates() throws IOException {
     File f = new File(getPath() + CERTS_SUFFIX);
@@ -1056,9 +1047,10 @@ class Archive {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         FileInputStream fis = new FileInputStream(f);
         Collection c = cf.generateCertificates(fis);
+        // TBD, check if order is preserved
         if (c.size() > 0) {
           certs = new Certificate[c.size()];
-          c.toArray(certs);
+          certs = (Certificate [])c.toArray(certs);
         }
       } catch (CertificateException ioe) {
         // NYI! Log or fail
@@ -1075,6 +1067,7 @@ class Archive {
     File f = new File(getPath() + CERTS_SUFFIX);
     f.delete();
   }
+
 
 
   /**

@@ -8,6 +8,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Framework (Core) ===
+
+  Framework 4.1.4
+
+  Added support for checking certificate chains against a Java Keystore or
+  if they are self signed. By default it checks against cacerts keystore
+  in Java runtime. Certificate checking requires Java 1.4 or later.
+  Documentation and testing needs and will be improved before next release.
+
 
 === Services (Compendium) ===
 
