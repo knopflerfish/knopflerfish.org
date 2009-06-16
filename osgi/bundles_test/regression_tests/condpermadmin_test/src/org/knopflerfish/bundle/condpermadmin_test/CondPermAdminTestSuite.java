@@ -51,24 +51,27 @@ import junit.framework.*;
 
 public class CondPermAdminTestSuite extends TestSuite  {
 
-  final static String BUNDLE_LOCATION_CONDITION = "org.osgi.service.condpermadmin.BundleLocationCondition";
-  final static String BUNDLE_SIGNER_CONDITION = "org.osgi.service.condpermadmin.BundleSignerCondition";
-  final static String CPA_SERVICE_NAME = "org.osgi.service.condpermadmin.ConditionalPermissionAdmin";
-
-  final static String PA_SERVICE_NAME = "org.osgi.service.permissionadmin.PermissionAdmin";
-
+  final static String BUNDLE_LOCATION_CONDITION =
+    "org.osgi.service.condpermadmin.BundleLocationCondition";
+  final static String BUNDLE_SIGNER_CONDITION =
+    "org.osgi.service.condpermadmin.BundleSignerCondition";
+  final static String CPA_SERVICE_NAME =
+    "org.osgi.service.condpermadmin.ConditionalPermissionAdmin";
+  final static String PA_SERVICE_NAME =
+    "org.osgi.service.permissionadmin.PermissionAdmin";
+  final static String PACK_SERVICE_NAME =
+    "org.osgi.service.packageadmin.PackageAdmin";
+  final static String P1_SERVICE_NAME =
+    "org.knopflerfish.service.bundleP1_test";
 
 
   BundleContext bc;
 
-
-  // the three event listeners
   FrameworkListener fListen;
-  BundleListener    bListen;
-  ServiceListener   sListen;
 
   PermissionAdmin paService = null;
   ConditionalPermissionAdmin cpaService = null;
+  PackageAdmin packService = null;
 
   Properties props = System.getProperties();
   String     lineseparator = props.getProperty("line.separator");
@@ -85,7 +88,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
   Bundle buP2 = null;
   Bundle buP3 = null;
   Bundle buP4 = null;
-
+  Bundle buP5 = null;
 
 
   public CondPermAdminTestSuite (BundleContext bc) {
@@ -101,6 +104,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
       addTest(new Condperm200a());
       addTest(new Condperm210a());
       addTest(new Condperm220a());
+      addTest(new Condperm230a());
       addTest(new Cleanup());
     } else {
       System.out.println("CondPermAdminTestSuite - Skip tests! No " + CPA_SERVICE_NAME);
@@ -158,18 +162,18 @@ public class CondPermAdminTestSuite extends TestSuite  {
 	buP3.uninstall();
 	buP3 = null;
       }
+      if (buP4 != null) {
+	buP4.uninstall();
+	buP4 = null;
+      }
+      if (buP5 != null) {
+	buP5.uninstall();
+	buP5 = null;
+      }
 
       try   { bc.removeFrameworkListener(fListen); } 
       catch (Exception ignored) { }
       fListen = null;
-
-      try   { bc.removeServiceListener(sListen); } 
-      catch (Exception ignored) { }
-      sListen = null;
-
-      try   { bc.removeBundleListener(bListen); } 
-      catch (Exception ignored) { }
-      bListen = null;
 
       if (paService != null) {
 	try {
@@ -196,20 +200,6 @@ public class CondPermAdminTestSuite extends TestSuite  {
       } catch (IllegalStateException ise) {
 	fail("framework test bundle "+ ise + " :SETUP:FAIL");
       }
-      
-      bListen = new BundleListener();
-      try {
-	bc.addBundleListener(bListen);
-      } catch (IllegalStateException ise) {
-	fail("framework test bundle "+ ise + " :SETUP:FAIL");
-      }
-      
-      sListen = new ServiceListener();
-      try {
-	bc.addServiceListener(sListen);
-      } catch (IllegalStateException ise) {
-	fail("framework test bundle "+ ise + " :SETUP:FAIL");
-      }
       // Give all existing bundles permissions
       // Use PermissionAdmin, change to ConditionalPermissionAdmin later!?
       paService = (PermissionAdmin) getService(PA_SERVICE_NAME, "SETUP");
@@ -227,6 +217,8 @@ public class CondPermAdminTestSuite extends TestSuite  {
       }
 
       cpaService = (ConditionalPermissionAdmin)getService(CPA_SERVICE_NAME, "SETUP");
+
+      packService = (PackageAdmin)getService(PACK_SERVICE_NAME, "SETUP");
 
       out.println("### framework test bundle :SETUP:PASS");
     }
@@ -325,9 +317,9 @@ public class CondPermAdminTestSuite extends TestSuite  {
       pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
 			       "org.osgi.framework", "import");
       pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
-			       "org.knopflerfish.service.bundleP1_test", "import");
+			       P1_SERVICE_NAME, "import");
       pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
-			       "org.knopflerfish.service.bundleP1_test", "export");
+			       P1_SERVICE_NAME, "export");
 
       cpaService.setConditionalPermissionInfo("CPATEST200_1",
 					      new ConditionInfo[] {ci1},
@@ -372,10 +364,10 @@ public class CondPermAdminTestSuite extends TestSuite  {
 	teststatus = false;
       }
 
-      buP1.uninstall();
-      buP1 = null;
       buP2.uninstall();
       buP2 = null;
+      buP1.uninstall();
+      buP1 = null;
 
       cpaService.getConditionalPermissionInfo("CPATEST200_1").delete();
       cpaService.getConditionalPermissionInfo("CPATEST200_2").delete();
@@ -399,8 +391,8 @@ public class CondPermAdminTestSuite extends TestSuite  {
   class Condperm210a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3;
-      PermissionInfo pi1, pi2, pi3, pi4, pi5;
+      ConditionInfo ci1, ci2, ci3, ci4;
+      PermissionInfo pi1, pi2, pi3;
       AccessControlContext acc;
 
       ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
@@ -409,13 +401,15 @@ public class CondPermAdminTestSuite extends TestSuite  {
 			      new String[] {"*, c=SE"});
       ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
 			      new String[] {"*, st=*, c=*"});
+      ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+			      new String[] {"cn=test dude, ou=*, o=*, l=*, c=se"});
       
       pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
 			       "org.osgi.framework", "import");
       pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
-			       "org.knopflerfish.service.bundleP1_test", "import");
+			       P1_SERVICE_NAME, "import");
       pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
-			       "org.knopflerfish.service.bundleP1_test", "export");
+			       P1_SERVICE_NAME, "export");
 
       cpaService.setConditionalPermissionInfo("CPATEST210_1",
 					      new ConditionInfo[] {},
@@ -443,13 +437,54 @@ public class CondPermAdminTestSuite extends TestSuite  {
       try {
 	buP2.start();
       }	catch (Exception e) {
-	fail("start framework test bundle "+ e +" :CONDPERM210A:FAIL");
+	fail("start P2 framework test bundle "+ e +" :CONDPERM210A:FAIL");
 	teststatus = false;
       }
 
-      // NYI, check that P2 imports from P3
+      try {
+	buP3.start();
+      }	catch (Exception e) {
+	fail("start P3 framework test bundle "+ e +" :CONDPERM210A:FAIL");
+	teststatus = false;
+      }
 
-      // NYI. give P3 export permissions and do refresh packages
+      ExportedPackage ep = packService.getExportedPackage(P1_SERVICE_NAME);
+      if (ep == null) {
+        fail("P1 package not exported:CONDPERM210A:FAIL");
+      }
+      if (ep.getExportingBundle() != buP1) {
+        fail("P1 not exporting bundle, " + ep.getExportingBundle() + " != " +
+             buP1 +" :CONDPERM210A:FAIL");
+      }
+      Bundle [] bs = ep.getImportingBundles();
+      boolean correctImport = false;
+      for (int i = 0; i < bs.length; i++) {
+        if (bs[i] == buP2) {
+          correctImport = true;
+          break;
+        }
+      }
+      if (!correctImport) {
+        fail("P2 not importing bundle:CONDPERM210A:FAIL");
+      }
+
+      cpaService.setConditionalPermissionInfo("CPATEST210_4",
+					      new ConditionInfo[] {ci4},
+					      new PermissionInfo[] {pi3});
+
+      packService.refreshPackages(new Bundle []  {buP1, buP2, buP3});
+      if (!fListen.waitFor(FrameworkEvent.PACKAGES_REFRESHED)) {
+        fail("Wait for PACKAGES_REFRESHED:CONDPERM210A:FAIL");
+      }
+
+      ep = packService.getExportedPackage(P1_SERVICE_NAME);
+      if (ep == null) {
+        fail("P1 package not exported again:CONDPERM210A:FAIL");
+      }
+      if (ep.getExportingBundle() != buP3) {
+        fail("P3 not exporting bundle, " + ep.getExportingBundle() + " != " +
+             buP3 + " :CONDPERM210A:FAIL");
+      }
 
       buP1.uninstall();
       buP1 = null;
@@ -461,6 +496,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
       cpaService.getConditionalPermissionInfo("CPATEST210_1").delete();
       cpaService.getConditionalPermissionInfo("CPATEST210_2").delete();
       cpaService.getConditionalPermissionInfo("CPATEST210_3").delete();
+      cpaService.getConditionalPermissionInfo("CPATEST210_4").delete();
 
       if (teststatus == true) {
 	out.println("### framework test bundle :CONDPERM210A:PASS");
@@ -496,9 +532,9 @@ public class CondPermAdminTestSuite extends TestSuite  {
       pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
 			       "org.osgi.framework", "import");
       pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
-			       "org.knopflerfish.service.bundleP1_test", "import,export");
+			       P1_SERVICE_NAME, "import,export");
       pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
-			       "org.knopflerfish.service.bundleP1_test", "import");
+			       P1_SERVICE_NAME, "import");
 
       cpaService.setConditionalPermissionInfo("CPATEST220_1",
 					      new ConditionInfo[] {ci1},
@@ -584,49 +620,92 @@ public class CondPermAdminTestSuite extends TestSuite  {
     }
   }
 
-  // So that other bundles in the test may get the base url
+
+  public final static String USAGE_CONDPERM230A = "";
+  public final static String [] HELP_CONDPERM230A =  {
+    "Tests of BundleSignerCondition matching bundles.",
+    "Test that unvalid certificate are rejected."
+  };
+
+  class Condperm230a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+      ConditionInfo ci1, ci2, ci3, ci4;
+      PermissionInfo pi1, pi2, pi3;
+      AccessControlContext acc;
+
+      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=*"});
+      
+      pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
+			       "org.osgi.framework", "import");
+
+      cpaService.setConditionalPermissionInfo("CPATEST230_1",
+					      new ConditionInfo[] {ci1},
+					      new PermissionInfo[] {pi1});
+	
+      // Install test bundle P5
+      try {
+	buP5 = Util.installBundle(bc, "bundleP5_test-1.0.0.jar");
+      }	catch (Exception e) {
+	fail("install framework test bundle "+ e +" :CONDPERM230A:FAIL");
+	teststatus = false;
+      }
+
+      try {
+	buP5.start();
+	fail("started test bundleP5! :CONDPERM230A:FAIL");
+	teststatus = false;
+      }	catch (BundleException e) {
+	teststatus = true;
+      }
+
+      buP5.uninstall();
+      buP5 = null;
+
+      cpaService.getConditionalPermissionInfo("CPATEST230_1").delete();
+
+      if (teststatus == true) {
+	out.println("### framework test bundle :CONDPERM230A:PASS");
+      } else {
+	fail("### framework test bundle :CONDPERM230A:FAIL");
+      }
+    }
+  }
+
 
   class FrameworkListener implements org.osgi.framework.FrameworkListener {
-    FrameworkEvent fwe;
-    public void frameworkEvent(FrameworkEvent evt) {
-      this.fwe = evt;
-      // System.out.println("FrameworkEvent: "+ evt.getType());
+    ArrayList fe = new ArrayList();
+
+    synchronized public void frameworkEvent(FrameworkEvent evt) {
+      fe.add(evt);
+      notify();
     }
-    public FrameworkEvent getEvent() {
-      return fwe;
+
+    synchronized public FrameworkEvent getEvent() {
+      for (int i = 0; i < 10; i++) {
+        if (fe.isEmpty()) {
+          try {
+            wait(2000);
+          } catch (InterruptedException ignore) { }
+        } else {
+          return (FrameworkEvent)fe.remove(0);
+        }
+      }
+      return null;
     }
-    public void clearEvent() {
-      fwe = null;
+
+    public boolean waitFor(int type) {
+      FrameworkEvent e;
+      while ((e = getEvent()) != null) {
+        if (e.getType() == type) {
+          return true;
+        }
+      }
+      return false;
     }
-  }
-  
-  class ServiceListener implements org.osgi.framework.ServiceListener {
-    ServiceEvent serve = null;
-    public void serviceChanged(ServiceEvent evt) {
-      this.serve = evt;
-      // System.out.println("ServiceEvent: " + evt.getType());
-    }
-    public ServiceEvent getEvent() {
-      return serve;
-    }
-    public void clearEvent() {
-      serve = null;
-    }
-    
-  }
-  
-  class BundleListener implements org.osgi.framework.BundleListener {
-    BundleEvent bunEvent = null;
-    
-    public void bundleChanged (BundleEvent evt) {
-      this.bunEvent = evt;
-      // System.out.println("BundleEvent: "+ evt.getType());
-    }
-    public BundleEvent getEvent() {
-      return bunEvent;
-    }
-    public void clearEvent() {
-      bunEvent = null;
+
+    synchronized public void clearEvent() {
+      fe.clear();
     }
   }
 }

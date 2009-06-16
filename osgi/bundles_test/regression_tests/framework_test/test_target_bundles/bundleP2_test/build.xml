@@ -20,19 +20,6 @@
     <pathelement location="${all.jar}/../bundleP1_test-1.0.0.jar"/>
   </path>
 
-  <property name="do.bundle.custom.post" value="true"/>
-  <target name="bundle.custom.post">
-    <ant dir="${topdir}" antfile="build_keystore.xml"/>
-    <signjar
-       alias="kftest1" keystore="${jars.dir}/test.keystore" storepass="kftest"
-       jar="${all.jar}"
-       />
-    <signjar
-       alias="kftest2" keystore="${jars.dir}/test.keystore" storepass="kftest"
-       jar="${all.jar}"
-       />
-  </target>
-
   <import file="${ant.dir}/bundlebuild.xml"/>
 
 </project>

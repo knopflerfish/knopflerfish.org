@@ -313,14 +313,7 @@ class SecurePermissionOps extends PermissionOps {
     String e_res = null;
     for (Iterator i = bpkgs.getExports(); i.hasNext();) {
       ExportPkg p = (ExportPkg)i.next();
-      if (!pc.implies(new PackagePermission(p.name, PackagePermission.EXPORT))) {
-        if (e_res != null) {
-          e_res = e_res + ", " + p.name;
-        } else {
-          e_res = "missing export permission for package(s): " + p.name;
-          e_res = p.name;
-        }
-      }
+      p.setPermission(pc.implies(new PackagePermission(p.name, PackagePermission.EXPORT)));
     }
     String i_res = null;
     for (Iterator i = bpkgs.getImports(); i.hasNext();) {

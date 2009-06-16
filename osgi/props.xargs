@@ -35,6 +35,7 @@
 -Dorg.knopflerfish.framework.debug.service_reference=false
 -Dorg.knopflerfish.framework.debug.bundle_resource=false
 -Dorg.knopflerfish.framework.debug.permissions=false
+-Dorg.knopflerfish.framework.debug.certificates=false
 
 # Add all standard packages for the currently running JRE version to
 # the set of packages exported by the system classloader.

@@ -52,12 +52,12 @@ public class CertificateUtil {
     throws IllegalArgumentException
   {
     if (certs != null) {
-      if (Debug.permissions) {
+      if (Debug.certificates) {
         Debug.println("MatchCertificates: " + certs.length + " number of certs with " + pattern);
       }
       ArrayList pat = parseDNs(pattern);
       StringBuffer chain = new StringBuffer();
-      // TBD, Refactor the chain matching code so that is only executed once.
+      // TBD, Refactor the chain matching code so that it is only executed once?
       X500Principal prev_issuer;
       X500Principal issuer = null;
       for (int i = 0; i < certs.length; i++) {
@@ -66,7 +66,7 @@ public class CertificateUtil {
           X500Principal subject = c.getSubjectX500Principal();
           prev_issuer = issuer;
           issuer = c.getIssuerX500Principal();
-          if (Debug.permissions) {
+          if (Debug.certificates) {
             Debug.println("SUBJECT " + i  + ": " + subject.getName(X500Principal.CANONICAL));
             Debug.println("ISSUER " + i  + ": " + issuer.getName(X500Principal.CANONICAL));
           }
@@ -75,15 +75,14 @@ public class CertificateUtil {
           }
           chain.append(subject.getName(X500Principal.CANONICAL));
           if (subject.equals(issuer)) {
-            // Found anchor, TBD can we use === instead?
             ArrayList dn = parseDNs(chain.toString());
-            if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
-              if (Debug.permissions) {
+            if (matchDNs(dn, 0, pat, 0)) {
+              if (Debug.certificates) {
                 Debug.println("MatchCertificates matched on: " + i);
               }
               return i;
             }
-            if (Debug.permissions) {
+            if (Debug.certificates) {
               Debug.println("MatchCertificates failed on: " + i);
             }
             chain.setLength(0);
@@ -109,17 +108,17 @@ public class CertificateUtil {
    * @return Index of matching signer, otherwise -1.
    */
   static public int matchSigners(String [] signers, String pattern) {
-    if (Debug.permissions) {
+    if (Debug.certificates) {
       Debug.println("MatchSigners: " + signers.length + " number of certs with " + pattern);
     }
     ArrayList pat = parseDNs(pattern);
     for (int i = 0; i < signers.length; i++) {
       if (signers[i] != null) {
         ArrayList dn = parseDNs(signers[i]);
-        if (Debug.permissions) {
+        if (Debug.certificates) {
           Debug.println("SUBJECT " + i  + ": " + signers[0]);
         }
-        if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
+        if (matchDNs(dn, 0, pat, 0)) {
           return i;
         }
       }
@@ -283,19 +282,19 @@ public class CertificateUtil {
    * Match several DN chains.
    *
    */
-  static private boolean matchDNs(ArrayList dns, int dns_ix,
-                                  ArrayList patterns, int patterns_ix) {
-    if (dns_ix < 0) {
-      return patterns_ix < 0;
+  static private boolean matchDNs(ArrayList dns, final int dns_ix,
+                                  ArrayList patterns, final int patterns_ix) {
+    if (patterns_ix == patterns.size()) {
+      return true;
     }
-    if (patterns_ix < 0) {
+    if (dns_ix == dns.size()) {
       return false;
     }
-    ArrayList pat = (ArrayList)patterns.get(patterns_ix--);
+    ArrayList pat = (ArrayList)patterns.get(patterns_ix);
     int x = wildcardDN(pat);
     if (x > 0) {
       for (int i = 0; i <= x; i++) {
-        if (matchDNs(dns, dns_ix - i, patterns, patterns_ix)) {
+        if (matchDNs(dns, dns_ix + i, patterns, patterns_ix  + 1)) {
           return true;
         }
       }
@@ -304,7 +303,7 @@ public class CertificateUtil {
     if (!matchDN((ArrayList)dns.get(dns_ix), pat)) {
       return false;
     }
-    return matchDNs(dns, dns_ix - 1, patterns, patterns_ix);
+    return matchDNs(dns, dns_ix + 1, patterns, patterns_ix + 1);
   }
 }
 
