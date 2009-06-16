@@ -246,6 +246,12 @@ Framework System Properties
      Default: false
 
 
+   org.knopflerfish.framework.debug.certficates
+     Print debug information about certficate matching.
+
+     Default: false
+
+
    org.knopflerfish.framework.ldap.nocache
      Disable LDAP caching for simple filters. LDAP caching
      speeds up framework filters considerably, but uses

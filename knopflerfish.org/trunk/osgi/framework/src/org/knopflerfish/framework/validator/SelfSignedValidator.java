@@ -85,6 +85,7 @@ public class SelfSignedValidator implements Validator {
           // Broken chain, we fail everything after this
           break;
         }
+        // TBD, should we test date and other attributes?
         if (subject.equals(issuer)) {
           chainEnd = true;
           prevIssuer = null;

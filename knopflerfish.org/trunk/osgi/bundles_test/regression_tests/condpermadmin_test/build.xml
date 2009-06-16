@@ -24,6 +24,7 @@
     <antcall target="bundleP2_test"/>
     <antcall target="bundleP3_test"/>
     <antcall target="bundleP4_test"/>
+    <antcall target="bundleP5_test"/>
   </target>
 
   <target name="bundleP1_test">
@@ -52,6 +53,13 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleP4_test"/>
+    </ant>
+  </target>
+  <target name="bundleP5_test">
+    <ant dir="test_target_bundles/bundleP5_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP5_test"/>
     </ant>
   </target>
 

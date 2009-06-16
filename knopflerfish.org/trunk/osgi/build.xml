@@ -313,6 +313,7 @@
     <classpath path="./framework.jar"/>
     <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
     <jvmarg value="-Djava.security.policy=file:framework.policy"/>
+    <jvmarg value="-Dorg.knopflerfish.framework.validator=SelfSignedValidator"/>
     <arg line="-xargs init-osgi-test-target.xargs"/>
   </java>
  </target>
@@ -382,6 +383,7 @@
 	 jar="framework.jar">
      <jvmarg value="-Djava.security.manager=org.knopflerfish.framework.permissions.KFSecurityManager"/>
      <jvmarg value="-Djava.security.policy=framework.policy"/>
+     <jvmarg value="-Dorg.knopflerfish.framework.validator=JKSValidator"/>
      <jvmarg value="-Dorg.knopflerfish.framework.validator.jks.ca_certs=${topdir}/bundles_test/regression_tests/jars/test.castore"/>
      <jvmarg value="-Dorg.knopflerfish.framework.validator.jks.ca_certs_password=catest"/>
      <arg value="-xargs"/>
