@@ -402,7 +402,7 @@ public class FrameworkContext  {
         }
       } catch (Exception e) {
         throw new IllegalArgumentException
-          ("Failed to install security manager.",e);
+          ("Failed to install security manager." + e);
       }
     }
   }
