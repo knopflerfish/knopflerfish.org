@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: TTY-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletty
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:consoletty:2.0.0
+Bundle-Version: 2.0.1
+Bundle-UUID: org.knopflerfish:consoletty:2.0.1
 Bundle-Description: Command line system console
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
