@@ -50,6 +50,9 @@ public class MacApp {
       public void handleOpenApplication(ApplicationEvent event) {
       }
 
+      public void handleReOpenApplication(ApplicationEvent event) {
+      }
+
       public void handleOpenFile(ApplicationEvent event) {
       }
 

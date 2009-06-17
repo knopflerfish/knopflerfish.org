@@ -45,7 +45,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.3.3
+  Desktop Bundle 2.3.4
 
   The stop()-method in the bundle activator did not check if it was
   already executing on the EDT (AWT Event Dispatch Thread) before
@@ -55,7 +55,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Enhanced MacOS X Application integration, the "About" entry in the
   application menu now links to the desktops about dialog. Also fixed
   a bug, the application listener is now removed when the desktop
-  bundle is stopped.
+  bundle is stopped. Support new eawt classes distributed with
+  "Java for Mac OS X 10.5 Update 4".
 
 
   Build System
