@@ -43,6 +43,7 @@ public class RemoteFWClient implements RemoteFW {
     caches.put("getBundleStartLevel",         fastCache);
     caches.put("getInitialBundleStartLevel",  fastCache);
     caches.put("isBundlePersistentlyStarted", fastCache);
+    caches.put("isBundleActivationPolicyUsed", fastCache);
     caches.put("getBundle",                   fastCache);
     caches.put("getBundles",                  slowCache);
     caches.put("getBundleLocation",           slowCache);
@@ -229,6 +230,10 @@ public class RemoteFWClient implements RemoteFW {
 
   public boolean isBundlePersistentlyStarted(long bid) {
     return ((Boolean)doCall("isBundlePersistentlyStarted", bid)).booleanValue();
+  }
+
+  public boolean isBundleActivationPolicyUsed(long bid) {
+    return ((Boolean)doCall("isBundleActivationPolicyUsed", bid)).booleanValue();
   }
 
 
