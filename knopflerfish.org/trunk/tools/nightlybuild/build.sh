@@ -4,7 +4,7 @@ BUILD_HOME=`dirname $0`
 BUILD_HOME=`cd ${BUILD_HOME};/bin/pwd`
 cd ${BUILD_HOME}
 
-TAGS=trunk
+TAGS="trunk"
 
 #
 # Clean, update and build for the given TAG.
@@ -24,14 +24,14 @@ build() {
     echo "= `date +"%C%y-%m-%d %H:%M:%S"` Clean ================================="
 
     # Remove old build result and update to the current level.
-    make -f Makefile_${TAG} TAG=${TAG} update
+    make -f Makefile_${TAGs} TAG=${TAG} update
 
     # Update the Makefile
-    cp -pf ${TAG}/tools/nightlybuild/Makefile Makefile_${TAG}
+    cp -pf ${TAGs}/tools/nightlybuild/Makefile Makefile_${TAGs}
 
     echo "= `date +"%C%y-%m-%d %H:%M:%S"` Build ================================="
     # Start build (separate command to ensure that everything can be updated).
-    make -f Makefile_${TAG} TAG=${TAG} all
+    make -f Makefile_${TAGs} TAG=${TAG} all
 }
 
 # Build for all tags listed in TAGS
