@@ -499,6 +499,12 @@ public class RemoteFWServer implements RemoteFW {
     return ((StartLevel)slTracker.getService()).isBundlePersistentlyStarted(b);
   }
 
+  public boolean isBundleActivationPolicyUsed(long bid) {
+    Bundle b = Activator.bc.getBundle(bid);
+    return ((StartLevel)slTracker.getService()).isBundleActivationPolicyUsed(b);
+  }
+
+
   //TODO!
   public Vector    getExportedPackage(String name) {
     //Map map = new HashMap();
