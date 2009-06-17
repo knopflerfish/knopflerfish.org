@@ -1,14 +1,14 @@
 
-KF_HOME=/home/knopflerfish
-WWW_DIR=${KF_HOME}/www
-WWW_PATH=snapshots
-OUT_DIR=${WWW_DIR}/${WWW_PATH}
-OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
-
 TAG         = trunk
 TAGs        = $(subst /,_,$(TAG))
 CURRENT_LINK=current_${TAGs}
 BUILD_KIND  = "snapshot build"
+
+KF_HOME=/home/knopflerfish
+WWW_DIR=${KF_HOME}/www
+WWW_PATH=snapshots_${TAGs}
+OUT_DIR=${WWW_DIR}/${WWW_PATH}
+OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 
 CHANGE_LOG=${KF_HOME}/ChangeLog_${TAG}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
