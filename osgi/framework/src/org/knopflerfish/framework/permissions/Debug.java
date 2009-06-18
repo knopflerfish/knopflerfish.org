@@ -52,9 +52,14 @@ public class Debug {
   final static boolean tck401compat = new Boolean(System.getProperty("org.knopflerfish.framework.tck401compat", "false")).booleanValue();
 
   /**
-   * Report Permission handling
+   * Report permission handling
    */
   final static boolean permissions = new Boolean(System.getProperty("org.knopflerfish.framework.debug.permissions", "false")).booleanValue();
+
+  /**
+   * Report certificate matching
+   */
+  final static boolean certificates = new Boolean(System.getProperty("org.knopflerfish.framework.debug.certificates", "false")).booleanValue();
 
 
   /**

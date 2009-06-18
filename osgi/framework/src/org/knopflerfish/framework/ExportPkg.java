@@ -55,6 +55,7 @@ class ExportPkg {
   final Version version;
   final Map attributes;
   boolean zombie = false;
+  boolean hasPermission = true;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -253,6 +254,26 @@ class ExportPkg {
       return res;
     }
     return null;
+  }
+
+
+  /**
+   * Check if we have export permissions.
+   *
+   * @return trList of bundles importering, null export is not active.
+   */
+  boolean checkPermission() {
+    return hasPermission;
+  }
+
+
+  /**
+   * Check if we have export permissions.
+   *
+   * @return trList of bundles importering, null export is not active.
+   */
+  void setPermission(boolean perm) {
+    hasPermission = perm;
   }
 
   //

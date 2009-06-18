@@ -182,6 +182,7 @@
 	     replacefilterfile="${bundleVersionFilterTest}">
       <replacefilter token="$(JAR_PREFIX)"
 		     value="file:${jars.dir}/;file:${tests.dir}/jars/"/>
+      <replacefilter token="$(TESTJARS)"        value="${tests.dir}/jars"/>
       <replacefilter token="$(VERSION)"         value=""/>
       <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
     </replace>	  
@@ -311,6 +312,7 @@
 	classname="org.knopflerfish.framework.Main">
     <classpath path="../../osgi/tck-4.0.1/testcond.jar"/>
     <classpath path="./framework.jar"/>
+    <arg value="-Forg.knopflerfish.framework.validator=SelfSignedValidator"/>
     <arg value="-Forg.osgi.framework.security=osgi"/>
     <arg value="-xargs"/>
     <arg value="init-osgi-test-target.xargs"/>

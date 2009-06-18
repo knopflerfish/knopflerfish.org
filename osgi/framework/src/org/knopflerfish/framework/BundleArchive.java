@@ -42,6 +42,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.List;
 
+
 /**
  * Interface for managing bundle data.
  *
@@ -231,9 +232,17 @@ public interface BundleArchive {
 
 
   /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  void invalidateCertificates();
+  
+
+  /**
    * Get certificates associated with with bundle archive.
    *
    * @return All certificates or null if bundle is unsigned.
    */
   String resolveNativeCode();
+
 }

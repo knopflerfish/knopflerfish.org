@@ -36,14 +36,10 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.security.*;
-
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.security.cert.Certificate;
+import java.security.AllPermission;
+import java.security.GeneralSecurityException;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -60,13 +56,17 @@ public class Bundles {
    * Table of all installed bundles in this framework.
    * Key is bundle location.
    */
-  private Hashtable /* location String -> BundleImpl */ bundles = new Hashtable();
+  final private Hashtable /* location String -> BundleImpl */ bundles = new Hashtable();
 
   /**
    * Link to framework object.
    */
   private FrameworkContext fwCtx;
 
+  /**
+   * True we require all bundles to correctly signed.
+   */
+  final private boolean allSigned;
 
   /**
    * Create a container for all bundles in this framework.
@@ -74,6 +74,7 @@ public class Bundles {
   Bundles(FrameworkContext fw) {
     fwCtx = fw;
     bundles.put(fw.systemBundle.location, fw.systemBundle);
+    allSigned = fwCtx.props.getProperty("org.knopflerfish.framework.all_signed", false);
   }
 
   void clear()
@@ -148,6 +149,25 @@ public class Bundles {
         ba = fwCtx.storage.insertBundleJar(location, bin);
       } finally {
         bin.close();
+      }
+
+      Certificate [] cs = ba.getCertificates();
+      if (cs != null && fwCtx.validator != null) {
+        for (Iterator i = fwCtx.validator.iterator(); i.hasNext();) {
+          cs = ((Validator)i.next()).checkCertificates(cs);
+        }
+        // OSGi requires that all certs must be valid in a bundle.
+        if (cs.length > 0) {
+          // NYI?! Log invalid bundle certificates
+          for (int i = 0; i < cs.length; i++) {
+            System.err.println("Invalid certificate, " + cs[i]);
+          }
+          ba.invalidateCertificates();
+          cs = null;
+        }
+      }
+      if (allSigned && cs == null) {
+        throw new BundleException("All installed bundles must be signed!");
       }
 
       res = new BundleImpl(fwCtx, ba);

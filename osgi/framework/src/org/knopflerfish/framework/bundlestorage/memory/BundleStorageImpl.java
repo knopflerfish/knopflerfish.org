@@ -38,11 +38,11 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.util.*;
 
+
 /**
  * Storage of all bundles jar content.
  *
  * @author Jan Stein, Gunnar Ekolin
- * @version $Id: $
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -55,6 +55,12 @@ public class BundleStorageImpl implements BundleStorage {
    * Bundle id sorted list of all active bundle archives.
    */
   private ArrayList /* BundleArchive */ archives = new ArrayList();
+
+  /**
+   * If we should check if bundles are signed
+   */
+  boolean checkSigned = false;
+
 
   /**
    * Create a container for all bundle data in this framework.
@@ -149,6 +155,21 @@ public class BundleStorageImpl implements BundleStorage {
     return res;
   }
 
+
+  /**
+   * Mark if we want to check if bundles are signed.
+   *
+   * @param value True if we to check.
+   */
+  public void setCheckSigned(boolean value) {
+    checkSigned = value;
+  }
+
+
+  /**
+   * Close bundle storage.
+   *
+   */
   public void close()
   {
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
@@ -157,7 +178,6 @@ public class BundleStorageImpl implements BundleStorage {
       i.remove();
     }
   }
-
 
   //
   // Package methods

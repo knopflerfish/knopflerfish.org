@@ -626,13 +626,14 @@ class Packages {
         }
         continue;
       }
-      if (tempResolved.contains(ep.bpkgs.bundle)) {
+      if (tempResolved.contains(ep.bpkgs.bundle) &&
+          ep.checkPermission()) {
         provider = ep;
         break;
       }
       if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
-        if (checkUses(ep)) {
+        if (ep.checkPermission() && checkUses(ep)) {
           provider = ep;
           break;
         } else {
@@ -641,7 +642,7 @@ class Packages {
           continue;
         }
       }
-      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle)) {
+      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle, ep)) {
         provider = ep;
         break;
       }
@@ -694,12 +695,14 @@ class Packages {
    * Bundle must be in installed state.
    *
    * @param b Bundle to be checked.
+   * @param ep Exported package that is required.
    * @return true if resolvable otherwise false.
    */
-  private boolean checkResolve(BundleImpl b) {
+  private boolean checkResolve(BundleImpl b, ExportPkg ep) {
     ArrayList okImports = new ArrayList();
     if (framework.perm.missingMandatoryPackagePermissions(b.bpkgs, okImports) == null &&
-        checkBundleSingleton(b) == null) {
+        checkBundleSingleton(b) == null &&
+        (ep == null || ep.checkPermission())) {
       HashSet oldTempResolved = (HashSet)tempResolved.clone();
       HashMap oldTempProvider = (HashMap)tempProvider.clone();
       HashMap oldTempRequired = (HashMap)tempRequired.clone();
@@ -853,7 +856,7 @@ class Packages {
             }
           } else if (b2.state == Bundle.INSTALLED &&
                      framework.perm.okProvideBundlePerm(b2) &&
-                     checkResolve(b2)) {
+                     checkResolve(b2, null)) {
             ok = b2;
           }
         }

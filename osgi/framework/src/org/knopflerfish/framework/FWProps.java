@@ -233,6 +233,18 @@ public class FWProps  {
   }
 
   /**
+   * Retrieve boolean value of the named framework property, with a default value.
+   *
+   */
+  public boolean getProperty(String key, boolean def) {
+    String v = getProperty(key, null);
+    if (v != null) {
+      return (new Boolean(v)).booleanValue();
+    }
+    return def;
+  }
+
+  /**
    * Retrieve the value of the named framework property, with a default value.
    *
    */

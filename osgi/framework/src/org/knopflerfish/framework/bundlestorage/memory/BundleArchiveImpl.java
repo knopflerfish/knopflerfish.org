@@ -394,4 +394,14 @@ class BundleArchiveImpl implements BundleArchive
     // NYI
     return null;
   }
+
+
+
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  public void invalidateCertificates() {
+  }
+
 }

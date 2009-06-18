@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-Server
 Bundle-SymbolicName: org.knopflerfish.bundle.http
-Bundle-Version: 2.1.2
-Bundle-UUID: org.knopflerfish:http:2.1.2
+Bundle-Version: 2.1.3
+Bundle-UUID: org.knopflerfish:http:2.1.3
 Bundle-Description: HTTP/HTTPS Server
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi

@@ -197,7 +197,7 @@ public class PermissionsWrapper extends PermissionCollection {
       if (p != null) {
         p.setReadOnly();
       } else {
-        // NYI! What to do
+        // TBD, Conditional permission already readonly?
       }
     }
   }

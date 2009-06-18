@@ -44,29 +44,58 @@ import javax.security.auth.x500.X500Principal;
 public class CertificateUtil {
 
   /**
+   * Check if DN pattern matches any of the supplied certificate chains.
    *
+   * @return Index of matching signer, otherwise -1.
    */
-  static public int matchCertificates(Certificate [] certs, String pattern) {
+  static public int matchCertificates(Certificate [] certs, String pattern)
+    throws IllegalArgumentException
+  {
     if (certs != null) {
-      if (Debug.permissions) {
+      if (Debug.certificates) {
         Debug.println("MatchCertificates: " + certs.length + " number of certs with " + pattern);
       }
       ArrayList pat = parseDNs(pattern);
+      StringBuffer chain = new StringBuffer();
+      // TBD, Refactor the chain matching code so that it is only executed once?
+      X500Principal prev_issuer;
+      X500Principal issuer = null;
       for (int i = 0; i < certs.length; i++) {
         if (certs[i] instanceof X509Certificate) {
           X509Certificate c = (X509Certificate)certs[i];
-          if (Debug.permissions) {
-            Debug.println("SUBJECT " + i  + ": " +
-                          c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
+          X500Principal subject = c.getSubjectX500Principal();
+          prev_issuer = issuer;
+          issuer = c.getIssuerX500Principal();
+          if (Debug.certificates) {
+            Debug.println("SUBJECT " + i  + ": " + subject.getName(X500Principal.CANONICAL));
+            Debug.println("ISSUER " + i  + ": " + issuer.getName(X500Principal.CANONICAL));
           }
-          // NYI! Handle certificate chains
-          ArrayList dn = parseDNs(c.getSubjectX500Principal().getName(X500Principal.CANONICAL));
-          if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
-            return i;
+          if (prev_issuer != null && !prev_issuer.equals(subject)) {
+            throw new IllegalArgumentException("Certificate chain not correctly chained");
+          }
+          chain.append(subject.getName(X500Principal.CANONICAL));
+          if (subject.equals(issuer)) {
+            ArrayList dn = parseDNs(chain.toString());
+            if (matchDNs(dn, 0, pat, 0)) {
+              if (Debug.certificates) {
+                Debug.println("MatchCertificates matched on: " + i);
+              }
+              return i;
+            }
+            if (Debug.certificates) {
+              Debug.println("MatchCertificates failed on: " + i);
+            }
+            chain.setLength(0);
+            issuer = null;
+          } else {
+            chain.append(" ; ");
           }
         } else {
-          throw new RuntimeException("Unknown Certificate type");
+          throw new IllegalArgumentException("Unknown Certificate type");
         }
+      }
+      if (chain.length() > 0) {
+        throw new IllegalArgumentException("Incomplete certificate chain");
       }
     }
     return -1;
@@ -74,20 +103,22 @@ public class CertificateUtil {
 
 
   /**
+   * Check if at least one of the signers is match by specified pattern.
    *
+   * @return Index of matching signer, otherwise -1.
    */
   static public int matchSigners(String [] signers, String pattern) {
-    if (Debug.permissions) {
+    if (Debug.certificates) {
       Debug.println("MatchSigners: " + signers.length + " number of certs with " + pattern);
     }
     ArrayList pat = parseDNs(pattern);
     for (int i = 0; i < signers.length; i++) {
       if (signers[i] != null) {
         ArrayList dn = parseDNs(signers[i]);
-        if (Debug.permissions) {
+        if (Debug.certificates) {
           Debug.println("SUBJECT " + i  + ": " + signers[0]);
         }
-        if (matchDNs(dn, dn.size() - 1, pat, pat.size() - 1)) {
+        if (matchDNs(dn, 0, pat, 0)) {
           return i;
         }
       }
@@ -251,19 +282,19 @@ public class CertificateUtil {
    * Match several DN chains.
    *
    */
-  static private boolean matchDNs(ArrayList dns, int dns_ix,
-                                  ArrayList patterns, int patterns_ix) {
-    if (dns_ix < 0) {
-      return patterns_ix < 0;
+  static private boolean matchDNs(ArrayList dns, final int dns_ix,
+                                  ArrayList patterns, final int patterns_ix) {
+    if (patterns_ix == patterns.size()) {
+      return true;
     }
-    if (patterns_ix < 0) {
+    if (dns_ix == dns.size()) {
       return false;
     }
-    ArrayList pat = (ArrayList)patterns.get(patterns_ix--);
+    ArrayList pat = (ArrayList)patterns.get(patterns_ix);
     int x = wildcardDN(pat);
     if (x > 0) {
       for (int i = 0; i <= x; i++) {
-        if (matchDNs(dns, dns_ix - i, patterns, patterns_ix)) {
+        if (matchDNs(dns, dns_ix + i, patterns, patterns_ix  + 1)) {
           return true;
         }
       }
@@ -272,7 +303,7 @@ public class CertificateUtil {
     if (!matchDN((ArrayList)dns.get(dns_ix), pat)) {
       return false;
     }
-    return matchDNs(dns, dns_ix - 1, patterns, patterns_ix);
+    return matchDNs(dns, dns_ix + 1, patterns, patterns_ix + 1);
   }
 }
 

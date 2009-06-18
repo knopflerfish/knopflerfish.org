@@ -13,12 +13,17 @@
 
 # Security
 #-Forg.osgi.framework.security=osgi
+#-Forg.knopflerfish.framework.all_signed=false
+#-Forg.knopflerfish.framework.validator=JKSValidator
 
 # File storage properties
-#-Forg.knopflerfish.framework.bundlestorage.file.trusted=true
+#-Forg.knopflerfish.framework.bundlestorage.file.trusted=false
 #-Forg.knopflerfish.framework.bundlestorage.file.unpack=false
 #-Forg.knopflerfish.framework.bundlestorage.file.always_unpack=true
-#-Forg.knopflerfish.framework.bundlestorage.file.all_signed=true
+
+# JKSValidator properties (JVM default if not set).
+#-Forg.knopflerfish.framework.validator.jks.ca_certs=
+#-Forg.knopflerfish.framework.validator.jks.ca_certs_password=
 
 # URL to bundle repository
 #-Doscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
@@ -34,6 +39,7 @@
 -Forg.knopflerfish.framework.debug.permissions=false
 -Forg.knopflerfish.framework.debug.lazy_activation=false
 -Forg.knopflerfish.framework.debug.framework=false
+-Forg.knopflerfish.framework.debug.certificates=false
 
 # Comma-separated list of packages exported by the system bundle
 #-Forg.osgi.framework.system.packages=
