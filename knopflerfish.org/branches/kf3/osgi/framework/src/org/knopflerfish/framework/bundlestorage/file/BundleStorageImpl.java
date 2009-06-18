@@ -38,11 +38,11 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.util.*;
 
+
 /**
  * Storage of all bundles jar content.
  *
  * @author Jan Stein, Mats-Ola Persson, Gunnar Ekolin
- * @version $Revision: 1.1.1.1 $
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -61,15 +61,23 @@ public class BundleStorageImpl implements BundleStorage {
    */
   private ArrayList /* BundleArchive */ archives = new ArrayList();
 
-  // package protected to allow BundleArchiveImpl to get framework
+  /**
+   * Framework handle.
+   * Package protected to allow BundleArchiveImpl to get framework.
+   */
   FrameworkContext     framework;
+
+  /**
+   * If we should check if bundles are signed
+   */
+  boolean checkSigned = false;
 
   /**
    * Create a container for all bundle data in this framework.
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl(FrameworkContext     framework) {
+  public BundleStorageImpl(FrameworkContext framework) {
     this.framework = framework;
     // See if we have a storage directory
     bundlesDir = Util.getFileStorage(framework, "bs");
@@ -114,6 +122,7 @@ public class BundleStorageImpl implements BundleStorage {
       }
     }
   }
+
 
   /**
    * Insert bundle into persistent storage
@@ -193,6 +202,7 @@ public class BundleStorageImpl implements BundleStorage {
     }
   }
 
+
   /**
    * Get all bundles to start at next launch of framework.
    * This list is sorted in increasing bundle id order.
@@ -210,6 +220,21 @@ public class BundleStorageImpl implements BundleStorage {
     return res;
   }
 
+
+  /**
+   * Mark if we want to check if bundles are signed.
+   *
+   * @param value True if we to check.
+   */
+  public void setCheckSigned(boolean value) {
+    checkSigned = value;
+  }
+  
+
+  /**
+   * Close bundle storage.
+   *
+   */
   public void close()
   {
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
@@ -220,7 +245,6 @@ public class BundleStorageImpl implements BundleStorage {
     framework = null;
     bundlesDir = null;
   }
-
 
   //
   // Package methods

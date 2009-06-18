@@ -420,25 +420,6 @@ class BundlePackages {
     return exports.iterator();
   }
 
-  /**
-   * Adds an export package
-   * @param pkg export to be included
-   */
-  void addExport(ExportPkg pkg) {
-    int ei = Math.abs(Util.binarySearch(exports, epComp, pkg) + 1);
-    exports.add(ei, pkg);
-  }
-
-
-  /**
-   * Removes an export package
-   * @param pkg export to be removed.
-   */
-  void removeExport(ExportPkg pkg) {
-    int ei = Util.binarySearch(exports, epComp, pkg);
-    exports.remove(ei);
-  }
-
 
   /**
    * Get a specific import

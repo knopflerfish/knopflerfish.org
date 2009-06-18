@@ -489,10 +489,20 @@ class BundleArchiveImpl implements BundleArchive
     return failedPath;
   }
 
+
   /**
    */
   public Certificate [] getCertificates() {
     return archive.getCertificates();
+  }
+
+
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  public void invalidateCertificates() {
+    archive.invalidateCertificates();
   }
 
   //

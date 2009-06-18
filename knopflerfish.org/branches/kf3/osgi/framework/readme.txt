@@ -177,9 +177,12 @@ Framework System Properties
 
      Default: {currentWorkingDirectory}/fwdir
 
+
    org.knopflerfish.gosg.jars
      Semicolon separated list of base URLs for relative install commands
+
      Default: file:jars/*
+
 
    org.osgi.framework.system.packages
      Complete list of packages exported by the system bundle.
@@ -189,6 +192,7 @@ Framework System Properties
      JRE. See also "org.knopflerfish.framework.system.export.all_*"
      and "org.osgi.framework.system.packages.extra"
 
+
    org.osgi.framework.system.packages.file
      File containing list of packages exported by the system bundle.
 
@@ -196,10 +200,12 @@ Framework System Properties
      Packages to add to the default list of packages exported by the
      system bundle.
 
+
    org.knopflerfish.framework.debug.print_with_do_privileged
      Surrond all debug print-operations originating from
      setting org.knopflerfish.debug.* properties with a
      doPrivileged() wrapper.
+
      Default: true
 
    org.knopflerfish.framework.debug.framework
@@ -209,46 +215,71 @@ Framework System Properties
 
    org.knopflerfish.framework.debug.classloader
      Print debug information from classloader
+
      Default: false
+
 
    org.knopflerfish.framework.debug.errors
      Print all FrameworkEvents of type ERROR
+
      Default: false
+
 
    org.knopflerfish.framework.debug.packages
      Print debug information about packages
+
      Default: false
+
 
    org.knopflerfish.framework.debug.startlevel
      Print debug information about startlevel service
+
      Default: false
+
 
    org.knopflerfish.framework.debug.url
      Print debug information about URL services
+
      Default: false
+
 
    org.knopflerfish.framework.debug.ldap
      Print debug information about LDAP filters
+
      Default: false
+
 
   org.knopflerfish.framework.debug.service_reference
      When security is enabled, print information about service
      reference lookups that are rejected due to missing permissions
      for calling bundle.
+
      Default: false
+
 
    org.knopflerfish.framework.debug.bundle_resource
      When security is enabled, print information about resource
      lookups that are rejected due to missing permissions for the
      calling bundle.
 
+
    org.knopflerfish.framework.debug.patch
      Print debug information about class patching
+
      Default: false
+
 
    org.knopflerfish.framework.debug.permissions
      Print debug information about permission evaluation.
+
      Default: false
+
+
+   org.knopflerfish.framework.debug.certficates
+     Print debug information about certficate matching.
+
+     Default: false
+
 
    org.knopflerfish.framework.ldap.nocache
      Disable LDAP caching for simple filters. LDAP caching
@@ -257,10 +288,13 @@ Framework System Properties
 
      Default: false
 
+
    org.knopflerfish.framework.bundlestorage
      Storage implementation for bundles
      [file, memory]
+
      Default: file
+
 
    org.knopflerfish.framework.bundlestorage.file.reference
      When using file bundle storage, file: URLs can optionally
@@ -279,15 +313,37 @@ Framework System Properties
      Default: false
 
 
-   org.knopflerfish.framework.bundlestorage.file.unpack
+   org.knopflerfish.framework.bundlestorage.file.always_unpack
      When using file bundle storage, bundle jars can be unpacked
      or copied as-is. Unpacking leads to faster restart and class loading
      but takes longer for initial startup.
 
-     If set to true, unpack bundle jars.
+     If set to true, unpack all bundle jars.
+
+     Default: false
+
+ 
+   org.knopflerfish.framework.bundlestorage.file.unpack
+     Most JVM requires that we unpack the bundle to access internal jars
+     and native code. Setting this to true will unpack the jar if it contains
+     internal jars or native code.
+
+     If set to true, unpack needed bundle jars.
 
      Default: true
+
+
+   org.knopflerfish.framework.bundlestorage.file.trusted
+     Are the bundles stored in the file bundle storage to be trusted, if not
+     signed bundles will be checked every time they are read.
+     Untrusted storafe leads to slower restart and class loading.
+
+     If set to true, trust bundles in bundle storage.
+
+     Default: true
+
       
+
    org.knopflerfish.framework.system.export.all_13
      Make the system class loader export all standard JRE 1.3
      packages as javax.swing.*
@@ -295,6 +351,7 @@ Framework System Properties
      Only used when "org.osgi.framework.system.packages" is not set.
 
      Default: false
+
 
    org.knopflerfish.framework.system.export.all_14
      Make the system class loader export all standard JRE 1.4
@@ -304,6 +361,7 @@ Framework System Properties
 
      Default: false
 
+
    org.knopflerfish.framework.system.export.all_15
      Make the system class loader export all standard JRE 1.5
      packages as javax.swing.*
@@ -311,6 +369,7 @@ Framework System Properties
      Only used when "org.osgi.framework.system.packages" is not set.
 
      Default: false
+
 
    org.knopflerfish.framework.system.export.all_16
      Make the system class loader export all standard JRE 1.6
@@ -336,6 +395,7 @@ Framework System Properties
 
      Default: 0
 
+
    org.knopflerfish.servicereference.valid.during.unregistering
      If set to false, then the service reference can not be used to
      fetch an instance of the service during delivery and handling of
@@ -344,22 +404,29 @@ Framework System Properties
      clarification done by CPEG February 2008 it shall now be possible
      to obtain a service instance during delivery of UNREGISTERING
      events thus this property now defaults to true.
+
      Default: true
+
 
    org.knopflerfish.startlevel.use
      Use the Start Level service. If start level is not use then
      we do not create a non daemon thread that will keep a jvm
      with only daemon threads alive.
+
      Default: true
 
    org.knopflerfish.startlevel.level
      level of start level service if used.
+
      Default: 1
+
 
    org.knopflerfish.startlevel.initlevel
      Initial start level of bundles if start level
      service if used.
+
      Default: 1
+
 
    java.security.manager
      Class name of security manager. If set to empty string, uses
@@ -370,10 +437,12 @@ Framework System Properties
 
      Default: unset
 
+
    java.security.policy
      Security policy file. Used by the security manager.
 
      Default: unset
+
 
    org.knopflerfish.framework.version.fuzzy
      If set to true, consider package version numbers
@@ -392,6 +461,7 @@ Framework System Properties
      Default is a Good Thing since it means follow the spec, not the 
      buggy tests.
 
+
    org.knopflerfish.framework.restart.allow
      If set to "true", allow restart of framework by calling 
      getBundle(0).update()
@@ -402,7 +472,7 @@ Framework System Properties
 
      Default: true
 
-  org.knopflerfish.osgi.setcontextclassloader
+   org.knopflerfish.osgi.setcontextclassloader
      If set to "true", set the bundle startup thread's context class
      loader to the bundle's class loader. This is useful for checking
      if an external lib will work better with a wrapped startup. It
@@ -414,7 +484,8 @@ Framework System Properties
      
      Default: false
 
-  org.knopflerfish.permissions.initialdefault
+
+   org.knopflerfish.permissions.initialdefault
      Initial default set of permission for PermissionAdmin service.
      Format for permission is same as used by 
      org.osgi.service.permissionadmin.PermissionInfo, i.e, 
@@ -430,132 +501,136 @@ Framework System Properties
      Default: "(java.security.AllPermission)"
 
 
-  org.knopflerfish.osgi.registerserviceurlhandler
-    Flag for installing OSGi service based URL handlers. 
-    Since the URL handler can only be installed once, there
-    might be cased where some external entity (not OSGi)
-    sets this. In this case, the OSGi handler can be disabled
-    by setting 
+   org.knopflerfish.osgi.registerserviceurlhandler
+     Flag for installing OSGi service based URL handlers. 
+     Since the URL handler can only be installed once, there
+     might be cased where some external entity (not OSGi)
+     sets this. In this case, the OSGi handler can be disabled
+     by setting 
 
      org.knopflerfish.osgi.registerserviceurlhandler=false
 
-    Default: true (use OSGi service handlers)
+     Default: true (use OSGi service handlers)
 
 
-  org.knopflerfish.osgi.registerbundleurlhandler
-    Flag for publicly exporting the bundle: special URL
-    handler. If this is enabled, all bundles can create
-    bundle: URLs for access it's own or other bundle's resources.
+   org.knopflerfish.osgi.registerbundleurlhandler
+     Flag for publicly exporting the bundle: special URL
+     handler. If this is enabled, all bundles can create
+     bundle: URLs for access it's own or other bundle's resources.
 
-    The OSGi service based URL handlers (see above) _must_ 
-    be active for publicly exporting bundle: URLs
+     The OSGi service based URL handlers (see above) _must_ 
+     be active for publicly exporting bundle: URLs
 
-    Default: false (don't export bundle: URLs publicly)
+     Default: false (don't export bundle: URLs publicly)
 
-  org.knopflerfish.framework.usingwrapperscript
-    If set to "true", KF will assume that it has been
-    started with the "kf2" shell script, and that it will be 
-    restarted if KF exits with exit code = 200. Required to be 
-    able to use new KF2 features such as extension bundles. 
 
-    This flag is set to "true" by the "kf2" shell script.
+   org.knopflerfish.framework.usingwrapperscript
+     If set to "true", KF will assume that it has been
+     started with the "kf2" shell script, and that it will be 
+     restarted if KF exits with exit code = 200. Required to be 
+     able to use new KF2 features such as extension bundles. 
 
-    Default: false 
+     This flag is set to "true" by the "kf2" shell script.
 
-  org.knopflerfish.framework.main.class.activation
-   A comma-separated list of locations of bundles whose Main-Class
-   (set in manifest) should be used as activator if no
-   BundleActivator is specified. 
+     Default: false 
 
-   The Main-Class will be used as activator iff the jar file 
-   does not specify a Bundle-Activator header and the bundle's
-   location(see Bundle.getLocation) is found in the comma-separated
-   list (case-sensitive). 
+
+   org.knopflerfish.framework.main.class.activation
+     A comma-separated list of locations of bundles whose Main-Class
+     (set in manifest) should be used as activator if no
+     BundleActivator is specified. 
+
+     The Main-Class will be used as activator iff the jar file 
+     does not specify a Bundle-Activator header and the bundle's
+     location(see Bundle.getLocation) is found in the comma-separated
+     list (case-sensitive). 
    
-   > java -Dorg.knopflerfish.framework.main.class.activation=\ 
-         file:/foo/bar.jar,http://foo.com/bar.jar \ 
-         -jar framework.jar ...
+     > java -Dorg.knopflerfish.framework.main.class.activation=\ 
+           file:/foo/bar.jar,http://foo.com/bar.jar \ 
+           -jar framework.jar ...
    
-   Default: the empty list
+     Default: the empty list
 
-  org.knopflerfish.framework.patch
-   If true AND the class org.objectweb.asm.ClassReader is available
-   (by putting the asm-3.1.jar library on the system class path), enable
-   runtime class patching.
 
-   Example:
+   org.knopflerfish.framework.patch
+     If true AND the class org.objectweb.asm.ClassReader is available
+     (by putting the asm-3.1.jar library on the system class path), enable
+     runtime class patching.
 
-    java -Dorg.knopflerfish.framework.patch=true\
-         -cp framework.jar:asm-3.1.jar \
+     Example:
+
+     java -Dorg.knopflerfish.framework.patch=true\
+          -cp framework.jar:asm-3.1.jar \
          org.knopflerfish.framework.Main        
 
-   Default: false
+     Default: false
 
 
-  org.knopflerfish.framework.patch.configurl
-   URL to class patch config file. Only used when class patching is enabled.
+   org.knopflerfish.framework.patch.configurl
+     URL to class patch config file. Only used when class patching is enabled.
 
-   This is used as a fallback if
-   a bundle does not specify a Bundle-ClassPatcher-Config manifest header.
+     This is used as a fallback if a bundle does not specify a
+     Bundle-ClassPatcher-Config manifest header.
 
+     Default: !!/patches.props
 
-   Default: !!/patches.props
-
-            "!!" is used to read resources from the system class path
-            "!" can be used to read bundle resources.
+             "!!" is used to read resources from the system class path
+             "!" can be used to read bundle resources.
            
 
-  org.knopflerfish.framework.patch.dumpclasses
-   If true and class patchin is enabled, dump all modified classes
-   to a directory.
+   org.knopflerfish.framework.patch.dumpclasses
+     If true and class patchin is enabled, dump all modified classes
+     to a directory.
 
-   Default: false
-    
-  org.knopflerfish.framework.patch.dumpclasses.dir
-   If dumpclasses is enabled, specifies a directory where to dump
-   modified classes
+     Default: false
 
-   Default: patchedclasses
+   
+   org.knopflerfish.framework.patch.dumpclasses.dir
+     If dumpclasses is enabled, specifies a directory where to dump
+     modified classes
 
-
-  org.knopflerfish.framework.automanifest
-   Flag to enable automatic manifest generation. If true, bundle
-   manifest can be modified by a special configuration file. See
-   javadoc for org.knopflerfish.framework.AutoManifest class 
-   for details.
-
-   Default: false
+     Default: patchedclasses
 
 
-  org.knopflerfish.framework.automanifest.config
-   Configuration URL for automatic manifest generation. Only
-   valid if org.knopflerfish.framework.automanifest=true.
-   An URL starting with "!!" followed by path is refer to a resource
-   on the classloader that have loaded the framework.
+   org.knopflerfish.framework.automanifest
+     Flag to enable automatic manifest generation. If true, bundle
+     manifest can be modified by a special configuration file. See
+     javadoc for org.knopflerfish.framework.AutoManifest class 
+     for details.
 
-   Default: "!!/automanifest.props"
-
-
-  org.knopflerfish.framework.debug.automanifest
-   Print debug output for automatic manifest actions.
-
-   Default: false
+     Default: false
 
 
+   org.knopflerfish.framework.automanifest.config
+     Configuration URL for automatic manifest generation. Only
+     valid if org.knopflerfish.framework.automanifest=true.
+     An URL starting with "!!" followed by path is refer to a resource
+     on the classloader that have loaded the framework.
 
-  org.knopflerfish.framework.xargs.writesysprops
-   Properties defined using -Dname=value in xargs-files are available
-   for bundles using BundleContext.getProperty(name).
-   This property controls weather such properties shall also be
-   exported as system properties or not.
-  Default: true (i.e., create a system property for each property).
+     Default: "!!/automanifest.props"
 
 
-  org.knopflerfish.framework.write.restart.xargs
-   Property that tells the Knopflerfish framework if it shall write a
-   restart.xargs file with all framework properties inside the
-   framework directory on startup or not.
-  Default: true (i.e., write all properties to fwdir/restart.xargs).
+   org.knopflerfish.framework.debug.automanifest
+     Print debug output for automatic manifest actions.
+
+     Default: false
+
+
+   org.knopflerfish.framework.xargs.writesysprops
+     Properties defined using -Dname=value in xargs-files are available
+     for bundles using BundleContext.getProperty(name).
+     This property controls weather such properties shall also be
+     exported as system properties or not.
+
+     Default: true (i.e., create a system property for each property).
+
+
+   org.knopflerfish.framework.write.restart.xargs
+     Property that tells the Knopflerfish framework if it shall write a
+     restart.xargs file with all framework properties inside the
+     framework directory on startup or not.
+
+     Default: true (i.e., write all properties to fwdir/restart.xargs).
 
 
   org.knopflerfish.framework.strictbootclassloading
@@ -564,10 +639,35 @@ Framework System Properties
     on the boot class, but which incorrectly assumes they may access all of the boot
     classes on any class loader (such as the bundle class loader).
     
-    Setting this to true will, for example, result in broken serialization on the Sun 
-    JVM if bootdelegation does not exposes sun.* classes
+     Setting this to true will, for example, result in broken serialization on the Sun 
+     JVM if bootdelegation does not exposes sun.* classes
 
-    Default: false
+     Default: false
+
+
+   org.knopflerfish.framework.all_signed
+     If set to true, we require that all bundles that are installed are signed.
+
+     Default: false
+
+
+   org.knopflerfish.framework.validator
+     A list of which certificate validators to use. Currently available are
+     JKSValidator and SelfSignedValidator.
+
+     Default: JKSValidator if security is on, otherwise none.
+
+
+   org.knopflerfish.framework.validator.jks.ca_certs
+     URL to java keystore used by JKSValidator.
+
+     Default: file:$JAVA_HOME/lib/security/cacerts
+
+
+   org.knopflerfish.framework.validator.jks.ca_certs_password
+     Password to java keystore used by JKSValidator.
+
+     Default: changeit
 
 
 Using a HTTP proxy

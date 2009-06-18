@@ -140,6 +140,11 @@ public class FrameworkContext  {
   BundleStorage storage;
 
   /**
+   * Bundle Validator
+   */
+  List /* Validator */ validator = null;
+
+  /**
    * Private Bundle Data Storage
    */
   FileTree dataStorage /*= null*/;
@@ -168,7 +173,8 @@ public class FrameworkContext  {
   private final static String BOOT_CLASSPATH_FILE = "boot";
   private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
 
-  /** Cached value of
+  /**
+   * Cached value of
    * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
@@ -212,6 +218,7 @@ public class FrameworkContext  {
     selectBootDelegationParentClassLoader();
 
     setSecurityManager();
+    String v = props.getProperty("org.knopflerfish.framework.validator");
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
       try {
@@ -222,8 +229,29 @@ public class FrameworkContext  {
         }
       }
       perm = new SecurePermissionOps(this);
+      if (v == null) {
+        v = "JKSValidator";
+      }
     } else {
       perm = new PermissionOps();
+    }
+    if (v != null && !v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
+      validator = new ArrayList();
+      for (int start = 0; start < v.length(); ) {
+        int end = v.indexOf(',', start);
+        if (end == -1) {
+          end = v.length();
+        }
+        String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
+        try {
+          Class vi = Class.forName(vs);
+          Constructor vc = vi.getConstructor(new Class[] { FrameworkContext.class });
+          validator.add((Validator)vc.newInstance(new Object[] { this }));
+        } catch (Exception e) {
+          throw new RuntimeException(vs + " is not a Validator", e);
+        }
+        start = end + 1;
+      }
     }
     systemBundle.setPermissionOps(perm);
 
@@ -266,6 +294,7 @@ public class FrameworkContext  {
       throw new RuntimeException("Failed to initialize storage "
                                  +props.whichStorageImpl +": ", e);
     }
+    storage.setCheckSigned(validator != null);
     dataStorage       = Util.getFileStorage(this, "data");
     packages          = new Packages(this);
 
