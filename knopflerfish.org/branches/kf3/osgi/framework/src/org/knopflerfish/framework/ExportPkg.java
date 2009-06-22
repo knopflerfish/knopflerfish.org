@@ -246,7 +246,7 @@ class ExportPkg {
       synchronized (pkg) {
         for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
           ImportPkg ip = (ImportPkg)i.next();
-          if (ip.provider == this) {
+          if (ip.provider == this && ip.bpkgs != bpkgs) {
             res.add(ip.bpkgs.bundle);
           }
         }

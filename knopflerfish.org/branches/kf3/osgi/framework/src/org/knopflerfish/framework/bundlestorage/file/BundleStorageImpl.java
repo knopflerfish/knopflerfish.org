@@ -259,7 +259,7 @@ public class BundleStorageImpl implements BundleStorage {
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
-      if (archives.get(pos) == ba) {
+      if (pos < archives.size() && archives.get(pos) == ba) {
         archives.remove(pos);
         return true;
       } else {
@@ -286,7 +286,9 @@ public class BundleStorageImpl implements BundleStorage {
     while (lb < ub) {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
-      if (id <= xid) {
+      if (id == xid) {
+        return x;
+      } else if (id < xid) {
         ub = x;
       } else {
         lb = x+1;
