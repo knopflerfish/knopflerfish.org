@@ -429,13 +429,16 @@ public class SystemBundle extends BundleImpl implements Framework {
     return getClass().getClassLoader();
   }
 
+
   void setBundleContext(BundleContextImpl bc) {
     this.bundleContext = bc;
   }
 
+
   void setPermissionOps(PermissionOps permissionOps) {
     this.secure = permissionOps;
   }
+
 
   /**
    * Set system bundle state to active
@@ -452,6 +455,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     state = STOPPING;
     fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
   }
+
 
   /**
    * Shutting down is done.
@@ -501,6 +505,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Reads all localization entries that affects this bundle
    * (including its host/fragments)
+   *
    * @param locale locale == "" the bundle.properties will be read
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
@@ -510,36 +515,33 @@ public class SystemBundle extends BundleImpl implements Framework {
   protected void readLocalization(String locale,
                                   Hashtable localization_entries,
                                   String baseName) {
-    String[] parts = Util.splitwords(locale, "_");
-    String tmploc;
-    int o = 0;
-
+    if (fragments == null) {
+      // NYI! read localization from framework.
+      // There is no need for this now since it isn't used.
+      return;
+    }
     if (baseName == null) {
       baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
     }
-    if ("".equals(parts[0])) {
-      tmploc = baseName;
-    } else {
-      tmploc = baseName + "_" + parts[0];
+    if (!locale.equals("")) {
+      locale = "_" + locale;
     }
-    do {
-      if (fragments != null) {
-        for (int i = fragments.size() - 1; i >= 0; i--) {
-          BundleImpl b = (BundleImpl)fragments.get(i);
-          Hashtable tmp = b.archive.getLocalizationEntries(tmploc + ".properties");
-          if (tmp != null) {
-            localization_entries.putAll(tmp);
-          }
+    while (true) {
+      String l = baseName + locale + ".properties";
+      Hashtable res;
+      for (int i = fragments.size() - 1; i >= 0; i--) {
+        BundleImpl b = (BundleImpl)fragments.get(i);
+        Hashtable tmp = b.archive.getLocalizationEntries(l);
+        if (tmp != null) {
+          localization_entries.putAll(tmp);
+          return;
         }
       }
-      // NYI! read localization from framework.
-      // There is no need for this now since it isn't used.
-
-      if (++o >= parts.length) {
+      int pos = locale.lastIndexOf('_');
+      if (pos == -1) {
         break;
       }
-      tmploc = tmploc + "_" + parts[o];
-
-    } while (true);
+      locale = locale.substring(0, pos);
+    }
   }
 }

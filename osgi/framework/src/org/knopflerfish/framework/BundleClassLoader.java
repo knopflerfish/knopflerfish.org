@@ -627,29 +627,17 @@ final public class BundleClassLoader
    *
    */
   Hashtable getLocalizationEntries(String name) {
-    Hashtable localization_entries = null;
-    if (fragments != null) {
-      for (int i = fragments.size() - 1; i >= 0; i--) {
+    Hashtable res = archive.getLocalizationEntries(name);
+    if (res == null && fragments != null) {
+      for (int i = 0; i < fragments.size(); i++) {
         BundleArchive ba = (BundleArchive)fragments.get(i);
-        Hashtable tmp = ba.getLocalizationEntries(name);
-        if (tmp != null) {
-          if (localization_entries != null) {
-            localization_entries.putAll(tmp);
-          } else {
-            localization_entries = tmp;
-          }
+        res = ba.getLocalizationEntries(name);
+        if (res != null) {
+          break;
         }
       }
     }
-    Hashtable tmp = archive.getLocalizationEntries(name);
-    if (tmp != null) {
-      if (localization_entries != null) {
-        localization_entries.putAll(tmp);
-      } else {
-        localization_entries = tmp;
-      }
-    }
-    return localization_entries;
+    return res;
   }
 
 
