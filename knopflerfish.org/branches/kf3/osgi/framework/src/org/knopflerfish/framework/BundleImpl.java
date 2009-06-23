@@ -1970,6 +1970,7 @@ public class BundleImpl implements Bundle {
     return localized;
   }
 
+
   /**
    * Reads all localization entries that affects this bundle
    * (including its host/fragments)
@@ -1985,32 +1986,27 @@ public class BundleImpl implements Bundle {
     if (baseName == null) {
       baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
     }
-    int o = 0;
-    String[] parts = Util.splitwords(locale, "_");
-    String tmploc;
-    if ("".equals(parts[0])) {
-      tmploc = baseName;
-    } else {
-      tmploc = baseName + "_" + parts[0];
+    if (!locale.equals("")) {
+      locale = "_" + locale;
     }
-    do {
-      Hashtable tmp;
+    while (true) {
+      String l = baseName + locale + ".properties";
+      Hashtable res;
       if ((state & RESOLVED_FLAGS) != 0) {
-        tmp = ((BundleClassLoader)getClassLoader()).getLocalizationEntries(tmploc +
-                                                                           ".properties");
+        res = ((BundleClassLoader)getClassLoader()).getLocalizationEntries(l);
       } else {
-        tmp = archive.getLocalizationEntries(tmploc  + ".properties");
+        res = archive.getLocalizationEntries(l);
       }
-      if (tmp != null) {
-        localization_entries.putAll(tmp);
-      }
-
-      if (++o >= parts.length) {
+      if (res != null) {
+        localization_entries.putAll(res);
         break;
       }
-      tmploc = tmploc + "_" + parts[o];
-
-    } while (true);
+      int pos = locale.lastIndexOf('_');
+      if (pos == -1) {
+        break;
+      }
+      locale = locale.substring(0, pos);
+    }
   }
 
 
