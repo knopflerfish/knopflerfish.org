@@ -81,11 +81,6 @@ class Archive {
   final private static String OSGI_OPT_DIR = "OSGI-OPT/";
 
   /**
-   * Bundle entry where local permissions are stored.
-   */
-  final private static String LOCAL_PERMISSION_FILE = "OSGI-INF/permissions.perm";
-
-  /**
    * Property base string.
    */
   final private static String PROP_BASE = "org.knopflerfish.framework.bundlestorage.file.";
@@ -921,8 +916,7 @@ class Archive {
         continue;
       }
       String name = je.getName();
-      if (saveDir != null && (!name.startsWith(OSGI_OPT_DIR) ||
-                              name.equals(LOCAL_PERMISSION_FILE))) {
+      if (saveDir != null && !name.startsWith(OSGI_OPT_DIR)) {
         StringTokenizer st = new StringTokenizer(name, "/");
         File f = new File(saveDir, st.nextToken());
         while (st.hasMoreTokens()) {
@@ -1003,7 +997,7 @@ class Archive {
         mentries = 0;
         for (Iterator i = manifest.getEntries().keySet().iterator(); i.hasNext();) {
           String name = (String)i.next();
-          if (!name.startsWith(OSGI_OPT_DIR) || name.equals(LOCAL_PERMISSION_FILE)) {
+          if (!name.startsWith(OSGI_OPT_DIR)) {
             mentries++;
           }
         }

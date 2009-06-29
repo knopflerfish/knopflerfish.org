@@ -255,6 +255,8 @@ public class PackageAdminImpl implements PackageAdmin {
       }
     }
 
+    ArrayList savedEvent = new ArrayList();
+
     synchronized (framework.packages) {
       // Do this again in case something changed during the stop
       // phase, this time synchronized with packages to prevent
@@ -281,7 +283,7 @@ public class PackageAdminImpl implements PackageAdmin {
             }
           case Bundle.STOPPING:
           case Bundle.RESOLVED:
-            bi[bx].setStateInstalled(true);
+            bi[bx].setStateInstalled(savedEvent);
             if (bi[bx] == nextStart) {
               nextStart = --startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
             }
@@ -292,8 +294,17 @@ public class PackageAdminImpl implements PackageAdmin {
           bi[bx].purge();
         }
         if (be != null) {
-          framework.listeners.frameworkError(bi[bx], be);
+          savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
         }
+      }
+    }
+    // Broadcast events
+    for (Iterator i = savedEvent.iterator(); i.hasNext();) {
+      Object e = i.next();
+      if (e instanceof BundleEvent) {
+        framework.listeners.bundleChanged((BundleEvent)e);
+      } else {
+        framework.listeners.frameworkEvent((FrameworkEvent)e);
       }
     }
     if(Debug.packages) {
