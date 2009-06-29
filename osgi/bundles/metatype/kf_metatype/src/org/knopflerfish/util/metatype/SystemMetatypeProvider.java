@@ -140,26 +140,30 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 
     bl = new BundleListener() {
     	public void bundleChanged(BundleEvent ev) {
-    		switch(ev.getType()) {
-    			case BundleEvent.INSTALLED:
-                    //We can't read properties from the system bundle
-                    if(ev.getBundle().getBundleId() != 0) {
-    					try {
-    						loadMTP(ev.getBundle());
-    					} 
-    					catch (Exception e) {
-    						log.error("Failed to handle bundle " + ev.getBundle().getBundleId(), e);
-    					    //e.printStackTrace(System.out);
-    					}
-    				}
-    				break;
-    			case BundleEvent.UNINSTALLED:
-    				Bundle b = ev.getBundle();
-                    if(b.getBundleId() != 0) {
-    					providers.remove(b);
-    				}
-    				break;
-    		}
+          switch(ev.getType()) {
+          case BundleEvent.INSTALLED:
+          case BundleEvent.RESOLVED:
+          case BundleEvent.UNRESOLVED:
+          case BundleEvent.UPDATED:
+            //NYI! Reduce the number of loadMTPs by combining U* events.
+            //We can't read properties from the system bundle
+            if(ev.getBundle().getBundleId() != 0) {
+              try {
+                loadMTP(ev.getBundle());
+              } 
+              catch (Exception e) {
+                log.error("Failed to handle bundle " + ev.getBundle().getBundleId(), e);
+                //e.printStackTrace(System.out);
+              }
+            }
+            break;
+          case BundleEvent.UNINSTALLED:
+            Bundle b = ev.getBundle();
+            if(b.getBundleId() != 0) {
+              providers.remove(b);
+            }
+            break;
+          }
     	}
     };
 
@@ -258,7 +262,12 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     URL url;
     
     //try R4 first
-    Enumeration metaTypeFiles = b.findEntries(MetaTypeService.METATYPE_DOCUMENTS_LOCATION, "*", false);
+    Enumeration metaTypeFiles;
+    if (b.getState() == Bundle.INSTALLED) {
+      metaTypeFiles = b.getEntryPaths(MetaTypeService.METATYPE_DOCUMENTS_LOCATION);
+    } else {
+      metaTypeFiles = b.findEntries(MetaTypeService.METATYPE_DOCUMENTS_LOCATION, "*", false);
+    }
     if(metaTypeFiles != null){
     	BundleMetaTypeResource bmtr = new BundleMetaTypeResource(b);
     	
