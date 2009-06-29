@@ -43,9 +43,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Fixed a dead lock that could occur when you stopped the event service.
 
 
-  Kf_metainfo 2.0.2
+  Kf_metatype 2.0.2
 
-  Fixed bug with metainfo not being updated when bundle changed.
+  Fixed bug with metatype not being updated when bundle changed.
 
 
 === Misc (KF specific, start scripts, build system etc ===
