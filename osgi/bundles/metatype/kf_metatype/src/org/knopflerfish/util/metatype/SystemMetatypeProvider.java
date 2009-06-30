@@ -264,7 +264,16 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     //try R4 first
     Enumeration metaTypeFiles;
     if (b.getState() == Bundle.INSTALLED) {
-      metaTypeFiles = b.getEntryPaths(MetaTypeService.METATYPE_DOCUMENTS_LOCATION);
+      Enumeration p = b.getEntryPaths(MetaTypeService.METATYPE_DOCUMENTS_LOCATION);
+      if (p != null) {
+        Vector tmp = new Vector();
+    	while(p.hasMoreElements()){ 
+          tmp.addElement(b.getEntry((String)p.nextElement()));
+    	}
+        metaTypeFiles = tmp.elements();
+      } else {
+        metaTypeFiles = null;
+      }
     } else {
       metaTypeFiles = b.findEntries(MetaTypeService.METATYPE_DOCUMENTS_LOCATION, "*", false);
     }

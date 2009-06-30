@@ -43,11 +43,6 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Fixed a dead lock that could occur when you stopped the event service.
 
 
-  Kf_metatype 2.0.2
-
-  Fixed bug with metatype not being updated when bundle changed.
-
-
 === Misc (KF specific, start scripts, build system etc ===
 
 
@@ -78,6 +73,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Fixed the configuration description in metatype.xml so that it
   is a valid XML document using the OSGi metatype schema.
+
+
+  KF Metatype 2.0.3
+
+  Fixed bug with metatype information not being updated when bundle changes.
 
 
   Build System

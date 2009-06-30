@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KF-XML-Metatype
 Bundle-SymbolicName: org.knopflerfish.bundle.kf_metatype
-Bundle-Version: 2.0.2
-Bundle-UUID: org.knopflerfish:kf_metatype:2.0.2
+Bundle-Version: 2.0.3
+Bundle-UUID: org.knopflerfish:kf_metatype:2.0.3
 Bundle-Category: util
 Bundle-Description: XML format support for CM and Metatype
 Bundle-Vendor: Knopflerfish/nanoxml
