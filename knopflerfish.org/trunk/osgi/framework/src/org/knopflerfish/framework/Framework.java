@@ -771,8 +771,13 @@ public class Framework {
 
   public static void setProperties(Dictionary newProps) {
     for(Enumeration it = newProps.keys(); it.hasMoreElements(); ) {
-      String key = (String)it.nextElement();
-      setProperty(key, (String)newProps.get(key));
+      try {
+        String key = (String)it.nextElement();
+        setProperty(key, (String)newProps.get(key));
+      } catch (Throwable t) {
+        Debug.println("Skipping non String->String property: " +t);
+        t.printStackTrace();
+      }
     }
   }
 
