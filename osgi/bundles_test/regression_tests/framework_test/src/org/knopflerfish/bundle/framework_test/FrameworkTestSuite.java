@@ -1319,7 +1319,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       int i = 0;
       while(enume.hasMoreElements()){
           i++;
-          out.println(enume.nextElement());
+          out.println(i +"\t" +enume.nextElement());
       }
       // This test needs to be updated every time a the
       // framework_tests bundle is changed in such a way that new
@@ -1341,7 +1341,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       i = 0;
       while(enume.hasMoreElements()){
           i++;
-          out.println(enume.nextElement());
+          out.println(i +"\t" +enume.nextElement());
       }
       // This test needs to be updated every time a the
       // FrameworkTestSuite is changed in such a way that new files
