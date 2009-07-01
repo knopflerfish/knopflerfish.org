@@ -35,10 +35,10 @@
 package org.knopflerfish.bundle.consoletelnet;
 
 /**
- * * This abstract class is designed to make it simpler * to create and add new
- * telnet commands in this implementation. * * Each command is a TelnetCommand
- * object, has a callback mechanism * to the to the session it is instantiated
- * in and * has one execute method. *
+ * This abstract class is designed to make it simpler to create and
+ * add new telnet commands in this implementation. Each command is a
+ * TelnetCommand object, has a callback mechanism to the session it is
+ * instantiated in and has one execute method.
  */
 
 public abstract class TelnetCommand {
@@ -58,15 +58,14 @@ public abstract class TelnetCommand {
     } // parameterless dummy constructor
 
     /**
-     * * Parameters in the constructor: * *
-     * 
-     * @parameter ts TelnetSession, to provide callback to the telnet session *
-     * @parameter int commandCode *
+     * Parameters in the constructor:
+     *
+     * @parameter ts TelnetSession, to provide callback to the telnet session
+     * @parameter int commandCode
      * @parameter boolean doStatus, if true the command has been asked to be
-     *            active *
+     *            active
      * @parameter boolean show, if true the commands is shown
      */
-
     public TelnetCommand(TelnetSession ts, int commandCode, boolean doStatus,
             boolean show) {
         this.ts = ts;
@@ -144,16 +143,18 @@ public abstract class TelnetCommand {
     }
 
     /**
-     * * Option negotiation and execution mechanism * * To follow the intentions
-     * of RFC 854, a change in status * is always followed by a response but if
-     * trying to enter a mode * that we are already in, no response is returned. * *
-     * This is essential to prevent negotiation loops. * *
-     * 
-     * @parameter action, one of the telnet protocol basic actions * DO, DONT,
-     *            WILL, WONT or SE *
-     * @parameter optionCode, the option code *
-     * @parameter parameters, a byte array with optional parameters, * addition
-     *            data to the option command. * *
+     * Option negotiation and execution mechanism. To follow the
+     * intentions of RFC 854, a change in status is always followed by
+     * a response but if trying to enter a mode that we are already
+     * in, no response is returned. This is essential to prevent
+     * negotiation loops.
+     *
+     * @parameter action, one of the telnet protocol basic actions
+     *            DO, DONT, WILL, WONT or SE
+     * @parameter optionCode, the option code
+     * @parameter parameters, a byte array with optional parameters,
+     *            addition data to the option command.
+     *
      * @return a String with the response of the command.
      */
 
