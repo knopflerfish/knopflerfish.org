@@ -45,20 +45,20 @@ import org.osgi.service.event.*;
 
 
 /**
- * Class that listens for all log entries and dispatches them to 
- * a EventTableModel.
+ * Class that listens for all events on some topic and dispatches them
+ * to an EventTableModel.
  */
 public class EventReaderDispatcher implements EventHandler
 {
 
-  BundleContext bc;
-  EventTableModel model;
+  final BundleContext bc;
+  final EventTableModel model;
   ServiceRegistration reg = null;
   String topic  = "*";
   String filter = "";
 
   public EventReaderDispatcher(BundleContext bc,
-			     EventTableModel model) {
+                             EventTableModel model) {
     this.bc    = bc;
     this.model = model;
   }
@@ -109,16 +109,16 @@ public class EventReaderDispatcher implements EventHandler
   public void getAll() {
     // NI
   }
-  
+
   public void close() {
     if(reg != null) {
       reg.unregister();
       reg = null;
     }
   }
-  
+
   static long idCount = 0;
-  
+
   /**
    */
   public void handleEvent(final Event ev) {
@@ -129,8 +129,3 @@ public class EventReaderDispatcher implements EventHandler
       });
   }
 }
-
-
-
-
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,9 +64,9 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   Set selectedKeys = new LinkedHashSet();
 
   Set views = new HashSet();
-  
+
   public EventDisplayer(BundleContext bc) {
-    super(bc, "Events", "Show events", true); 
+    super(bc, "Events", "Show events", true);
 
     // We're not interested in bundle events, nor in service events
     bUseListeners = false;
@@ -90,7 +90,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     allKeys.addElement(EventConstants.TIMESTAMP);
     allKeys.addElement("service.pid");
     allKeys.addElement("log.entry");
-    allKeys.addElement("log.level");    
+    allKeys.addElement("log.level");
 
     selectedKeys.add(EventConstants.TIMESTAMP);
     selectedKeys.add(EventConstants.EVENT_TOPIC);
@@ -106,12 +106,13 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     if(reg == null) {
       Hashtable props = new Hashtable();
       props.put(EventConstants.EVENT_TOPIC,  new String[] { "*" });
-      reg = bc.registerService(EventHandler.class.getName(), eventHandler, props);
+      reg = bc.registerService(EventHandler.class.getName(),
+                               eventHandler, props);
     }
   }
 
 
-  
+
   EventHandler eventHandler = new EventHandler() {
       public void handleEvent(final Event ev) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -139,7 +140,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
 
 
-  
+
   public void close() {
 
     if(reg != null) {
@@ -155,7 +156,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
     super.close();
   }
-  
+
   public JComponent newJComponent() {
     JEvent je = new JEvent();
     views.add(je);
@@ -174,7 +175,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
         }
       });
     frame.getContentPane().add(je);
-    
+
     frame.pack();
     frame.setVisible(true);
 
@@ -183,13 +184,13 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
   public void valueChanged(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JEvent comp = (JEvent)it.next();
       comp.valueChanged(bl);
     }
   }
-  
+
 
 
   class JEvent extends JPanel {
@@ -207,10 +208,10 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
     JEvent(JFrame _frame) {
       this.frame = _frame;
-      
+
       setLayout(new BorderLayout());
 
-      eventModel = new EventTableModel();
+      eventModel = new EventTableModel(bc);
       eventDispatcher = new EventReaderDispatcher(bc, eventModel);
       eventModel.setDispatcher(eventDispatcher);
       eventDispatcher.open();
@@ -218,8 +219,8 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
       // construct in two steps
       eventDetail = new JEventEntryDetail(null, null);
-      eventPanel  = new JEventPanel(allTopics, 
-                                    allKeys, 
+      eventPanel  = new JEventPanel(allTopics,
+                                    allKeys,
                                     selectedKeys,
                                     eventModel, eventDetail, false) {
           public void setTopic(String topicS) {
@@ -236,12 +237,12 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
       eventDetail.setParentAndEntry(eventPanel.getJEventTable(), null);
       eventDetail.setModel(eventModel);
-      
-      JSplitPane splitPane = 
-	new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-		       eventPanel,
-		       eventDetail);
-      
+
+      JSplitPane splitPane =
+        new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                       eventPanel,
+                       eventDetail);
+
       splitPane.setDividerLocation(170);
 
       add(splitPane, BorderLayout.CENTER);
@@ -263,4 +264,3 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
 }
-
