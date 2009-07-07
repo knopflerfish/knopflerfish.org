@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -230,12 +230,13 @@ public class JUnpackWizard extends JWizard {
 
   void updateBytes(ZipFile jarFile) {
     long nBytes = Main.theMain.calcSize(jarFile);
+    String bytes = Strings.fmtByte(nBytes);
 
-    bytesLabel.setText(Strings.fmt("comp_size", Long.toString(nBytes / 1024)));
+    bytesLabel.setText(Strings.fmt("comp_size", bytes));
   }
 
   public boolean isExcluded(String name) {
-    boolean b = false;
+    boolean excluded = false;
 
     if(!compBaseCB.isSelected()) {
       if(name.startsWith("knopflerfish.org/osgi/jars") ||
@@ -243,7 +244,7 @@ public class JUnpackWizard extends JWizard {
          name.endsWith(".xargs"))
         {
           //      System.out.println("skip " + name + " since no base");
-          b = true;
+          excluded = true;
         }
     }
 
@@ -257,32 +258,33 @@ public class JUnpackWizard extends JWizard {
          name.endsWith(".java"))
         {
           //      System.out.println("skip " + name + " since no source");
-          b = true;
+          excluded = true;
         }
     } else if (name.endsWith(".xargs")) {
       // If source is selected do not exclude .xargs-files; needed to
       // undo the exclude done above when compBaseCB i de-selected.
-      b = false;
+      excluded = false;
     }
 
     if(!compHtdocsCB.isSelected()) {
-      if(name.startsWith("knopflerfish.org/htdocs")) {
-        //      System.out.println("skip " + name + " since no htdocs");
-        b = true;
+      if(name.startsWith("knopflerfish.org/docs") ||
+         name.startsWith("knopflerfish.org/htdocs")) {
+        excluded = true;
       }
     }
 
     if(!compBaseCB.isSelected() && !compSrcCB.isSelected() &&
        !compHtdocsCB.isSelected()) {
-      b = true;
+      excluded = true;
     }
 
-    return b;
+    return excluded;
   }
 
   void setInfoText() {
+    String bytes = Strings.fmtByte(nBytes);
     String s = Strings.fmt("fmt_install_info",
-                           "" + (nBytes/1024),
+                           bytes,
                            Strings.replace(jf.getText(), "/", File.separator),
                            getFont().getFontName());
 
