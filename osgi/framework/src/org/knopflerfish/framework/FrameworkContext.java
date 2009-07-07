@@ -112,6 +112,11 @@ public class FrameworkContext  {
   Listeners listeners;
 
   /**
+   * All service hooks
+   */
+  Hooks hooks;
+
+  /**
    * All exported and imported packages in this framework.
    */
   Packages packages;
@@ -307,6 +312,11 @@ public class FrameworkContext  {
     bundles           = new Bundles(this);
 
     perm.registerService();
+
+    hooks             = new Hooks(this);    
+    if("true".equals(props.getProperty("org.knopflerfish.framework.hooks.enabled", "false"))) {
+      hooks.open();
+    }
 
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,

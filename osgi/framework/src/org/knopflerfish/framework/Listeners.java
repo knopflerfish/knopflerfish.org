@@ -59,7 +59,7 @@ class Listeners {
   /**
    * All service event listeners.
    */
-  private ServiceListenerState serviceListeners;
+  ServiceListenerState serviceListeners;
 
   /**
    * Handle to secure call class.
@@ -194,7 +194,7 @@ class Listeners {
    *
    * @param b Bundle which listeners we want to remove.
    */
-  void removeAllListeners(Bundle b) {
+  void removeAllListeners(Bundle b) {    
     removeAllListeners(syncBundleListeners, b);
     removeAllListeners(bundleListeners, b);
     removeAllListeners(frameworkListeners, b);
@@ -302,7 +302,10 @@ class Listeners {
     ServiceReferenceImpl sr = (ServiceReferenceImpl)evt.getServiceReference();
     String[] classes = (String[])sr.getProperty(Constants.OBJECTCLASS);
     int n = 0;
-    for (Iterator it = receivers.iterator(); it.hasNext(); n++) {
+    
+    Collection filteredReceivers = framework.hooks.filterServiceEventReceivers(evt, receivers);
+
+    for (Iterator it = filteredReceivers.iterator(); it.hasNext(); n++) {
       final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
       if (matchBefore != null) {
         matchBefore.remove(l);

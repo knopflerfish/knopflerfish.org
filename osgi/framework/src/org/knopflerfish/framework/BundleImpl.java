@@ -603,6 +603,10 @@ public class BundleImpl implements Bundle {
         bactivator = null;
       }
     }
+
+    // Call hooks after we've called Activator.stop(), but before we've cleared all resources
+    fwCtx.listeners.serviceListeners.hooksBundleStopped(this);
+    
     if (null!=bundleContext) bundleContext.invalidate();
     bundleContext = null;
     //8-10:

@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -59,12 +60,12 @@ class Services {
    * Mapping of registered service to class names under which service
    * is registerd.
    */
-  private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
+  HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
 
   /**
    * Mapping of classname to registered service.
    */
-  private HashMap /* String->ServiceRegistration */ classServices = new HashMap();
+  HashMap /* String->ServiceRegistration */ classServices = new HashMap();
 
   /**
    * Handle to secure call class.
@@ -231,14 +232,22 @@ class Services {
       }
       if(res == lowestId){
           if(res.isAssignableTo(bundle, clazz)){
-                  return res;
+                  return framework.hooks.filterServiceReference(bundle.getBundleContext(),
+                                                                clazz,
+                                                                null,
+                                                                false,
+                                                                res);
           }
           else{
                   return null;
           }
       }
       else{
-          return res;
+          return framework.hooks.filterServiceReference(bundle.getBundleContext(),
+                                                        clazz, 
+                                                        null,
+                                                        false,
+                                                        res);
       }
     }
     else {
@@ -277,7 +286,7 @@ class Services {
         return null;
       }
     }
-    ArrayList res = new ArrayList();
+    Collection res = new ArrayList();
     while (s.hasNext()) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
       String[] classes = (String[]) services.get(sr);
@@ -308,6 +317,7 @@ class Services {
     if (res.isEmpty()) {
       return null;
     } else {
+      res = framework.hooks.filterServiceReferences(bundle.getBundleContext(), clazz, filter, !doAssignableToTest, res);
       ServiceReference[] a = new ServiceReference[res.size()];
       res.toArray((Object[])a);
       return a;
