@@ -44,13 +44,14 @@ import java.util.Iterator;
 import java.util.EventListener;
 
 import org.osgi.framework.*;
+import org.osgi.framework.hooks.service.ListenerHook;
 
 /**
  * Data structure for saving service listener info. Contains
  * the optional service listener filter, in addition to the info 
  * in ListenerEntry.
  */
-class ServiceListenerEntry extends ListenerEntry {
+class ServiceListenerEntry extends ListenerEntry implements ListenerHook.ListenerInfo {
   LDAPExpr ldap;
 
   /**
@@ -87,5 +88,13 @@ class ServiceListenerEntry extends ListenerEntry {
   ServiceListenerEntry(Bundle b, EventListener l) {
     super(b, l);
     ldap = null;
+  }
+
+  public BundleContext getBundleContext() {
+    return bundle.getBundleContext();
+  }
+  
+  public String getFilter() {
+    return ldap != null ? ldap.toString() : null;
   }
 }

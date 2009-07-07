@@ -48,6 +48,7 @@ import org.osgi.framework.*;
 class ListenerEntry {
   Bundle bundle;
   EventListener listener;
+  boolean bRemoved = false;
 
   ListenerEntry(Bundle b, EventListener l) {
     bundle = b;
@@ -64,5 +65,13 @@ class ListenerEntry {
 
   public int hashCode() {
     return bundle.hashCode();
+  }
+
+  public void setRemoved(boolean b) {
+    this.bRemoved = b;
+  }
+
+  public boolean isRemoved() {
+    return bRemoved;
   }
 }

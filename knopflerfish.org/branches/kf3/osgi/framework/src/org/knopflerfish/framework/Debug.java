@@ -129,6 +129,12 @@ public class Debug {
    */
   boolean use_do_privilege;
 
+
+  /**
+   * Report hooks handling
+   */
+  boolean hooks;
+
   public Debug(FWProps props) {
     this.props = props;
     classLoader = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.classloader"));
@@ -146,6 +152,7 @@ public class Debug {
       && "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
     lazyActivation = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.lazy_activation"));
     framework = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.framework"));
+    hooks = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.hooks"));
   }
 
   /**

@@ -96,6 +96,7 @@ class ServiceListenerState {
   synchronized void add(Bundle bundle, ServiceListener listener, String filter)
   throws InvalidSyntaxException {
     ServiceListenerEntry sle = new ServiceListenerEntry(bundle, listener, filter);
+    listeners.framework.hooks.handleServiceListenerReg(sle);
     if (serviceSet.contains(sle)) {
       remove(bundle, listener);
     }
@@ -113,6 +114,8 @@ class ServiceListenerState {
     for (Iterator it = serviceSet.iterator(); it.hasNext();) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
       if (sle.bundle == bundle && sle.listener == listener) {
+        sle.setRemoved(true);
+        listeners.framework.hooks.handleServiceListenerUnreg(sle);
         removeFromCache(sle);
         it.remove();
         break;
@@ -159,6 +162,19 @@ class ServiceListenerState {
       }
     }
   }
+
+  synchronized void hooksBundleStopped(Bundle bundle) {
+    List entries = new ArrayList();
+    for (Iterator it = serviceSet.iterator(); it.hasNext();) {
+      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
+      if (sle.bundle == bundle) {
+        entries.add(sle);
+      }
+    }
+    listeners.framework.hooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
+  }
+
+  
 
   /**
    * Checks if the specified service listener's filter is simple enough
