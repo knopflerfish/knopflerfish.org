@@ -897,7 +897,7 @@ public class BundleImpl implements Bundle {
             if (hb.bpkgs != null) {
               hb.bpkgs.fragmentIsZombie(this);
             } else {
-              System.out.println("BPGKS null for " + hb.location);
+              // System.out.println("BPGKS null for " + hb.location);
             }
           }
           fragment.removeHost(null);
