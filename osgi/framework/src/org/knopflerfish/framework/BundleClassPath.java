@@ -186,7 +186,6 @@ public class BundleClassPath
    * @return A string with the path to the native library.
    */
   String getNativeLibrary(String libName) {
-System.out.println("GET_NATIVE: " + libName + ", " + nativeLibs);
     if (nativeLibs != null) {
       String key = System.mapLibraryName(libName);
       FileArchive fa = (FileArchive) nativeLibs.get(key);
@@ -210,7 +209,6 @@ System.out.println("GET_NATIVE: " + libName + ", " + nativeLibs);
           return null;
         }
       }
-System.out.println("GET_NATIVE2: " + key + " = " + fa);
       return fa.getNativeLibrary(key);
     }
     return null;
@@ -409,7 +407,6 @@ System.out.println("GET_NATIVE2: " + key + " = " + fa);
             String key = fa.checkNativeLibrary(name);
             if (key != null) {
               nativeLibs.put(key, fa);
-              System.out.println("NATIVE: " + key + " = " + fa);
               continue bloop;
             }
           }
