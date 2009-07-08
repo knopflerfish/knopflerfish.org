@@ -386,18 +386,16 @@ class Packages {
       }
     } else {
       for (int i = 0; i < bundles.length; i++) {
-        if (bundles[i] != null) {
+        BundleImpl tmp = (BundleImpl)bundles[i];
+        if (tmp != null) {
           if (framework.props.debug.packages) {
             framework.props.debug.println("getZombieAffected: check - " + bundles[i]);
           }
-          BundleImpl tmp = (BundleImpl)bundles[i];
-
-          if (tmp.isFragment() &&
-              tmp.isAttached() &&
-              !affected.contains(tmp.getFragmentHost())) {
-            affected.add(tmp.getFragmentHost());
-          } else {
-            affected.add(bundles[i]);
+          affected.add(tmp);
+          if (tmp.isFragment() && tmp.isAttached()) {
+            for (Iterator h = tmp.fragment.getHosts(); h.hasNext(); ) {
+              affected.add(h.next());
+            }
           }
         }
       }

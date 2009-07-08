@@ -86,14 +86,19 @@ final public class BundleClassLoader
   BundleArchive archive;
 
   /**
-   * Fragment archives that we load code from.
-   */
-  private ArrayList /* BundleArchive */ fragments;
-
-  /**
    * Imported and Exported java packages.
    */
   BundlePackages bpkgs;
+
+  /**
+   * Bundle class path for this classloader.
+   */
+  private BundleClassPath classPath;
+
+  /**
+   * Fragment archives that we load code from.
+   */
+  private ArrayList /* BundleImpl */ fragments;
 
   // Array of bundles for which a classload is triggering activation.
   private static ThreadLocal tlBundlesToActivate = new ThreadLocal();
@@ -147,6 +152,7 @@ final public class BundleClassLoader
    */
   BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags,
                     ProtectionDomain pd, PermissionOps secure)
+  throws BundleException
   {
     //otherwise getResource will bypass OUR parent
     super(bpkgs.bundle.fwCtx.parentClassLoader);
@@ -158,6 +164,7 @@ final public class BundleClassLoader
     this.bpkgs = bpkgs;
     archive = ba;
     fragments = frags;
+    classPath = new BundleClassPath(ba, frags, bpkgs.bundle.fwCtx.props);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }
@@ -536,9 +543,9 @@ final public class BundleClassLoader
       if (fragments != null) {
         for (Iterator i = fragments.iterator(); i.hasNext(); ) {
           // NYI improve this solution
-          BundleArchive ba = (BundleArchive)i.next();
-          if (ba.getBundleId() == frag) {
-            return ba;
+          BundleImpl b = (BundleImpl)i.next();
+          if (b.getBundleId() == frag) {
+            return b.archive;
           }
         }
       }
@@ -557,7 +564,7 @@ final public class BundleClassLoader
   void close() {
     archive = null;
     bpkgs.invalidateClassLoader();
-    if (fragments!=null) {
+    if (fragments != null) {
       fragments.clear();
       fragments = null;
     }
@@ -581,15 +588,15 @@ final public class BundleClassLoader
       archive.purge();
     }
     if (fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        // NYI improve this solution
-        BundleArchive ba = (BundleArchive)i.next();
-        BundleImpl b = (BundleImpl) bpkgs.bundle.fwCtx.bundles
-          .getBundle(ba.getBundleLocation());
-        if (b == null || b.archive != ba) {
-          ba.purge();
-        }
-      }
+        // NYI handle multihost and zombie archives
+//       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+//         BundleImpl b1 = (BundleImpl)i.next();
+//         BundleImpl b2 = (BundleImpl) bpkgs.bundle.fwCtx.bundles
+//           .getBundle(b1.getLocation());
+//         if (b2 == null || b2.archive != b1.archive) {
+//           b1.archive.purge();
+//         }
+//       }
     }
     close();
   }
@@ -629,8 +636,8 @@ final public class BundleClassLoader
   Hashtable getLocalizationEntries(String name) {
     Hashtable res = archive.getLocalizationEntries(name);
     if (res == null && fragments != null) {
-      for (int i = 0; i < fragments.size(); i++) {
-        BundleArchive ba = (BundleArchive)fragments.get(i);
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        BundleArchive ba = ((BundleImpl)i.next()).archive;
         res = ba.getLocalizationEntries(name);
         if (res != null) {
           break;
@@ -873,37 +880,46 @@ final public class BundleClassLoader
     if (this != requestor && ep != null && !ep.checkFilter(name)) {
       return null;
     }
-    // Must collect and merge all search hits from step 5
-    // and 6 to handle the case when onlyFirst is false.
-    Vector /* SearchActionItem */ sais = new Vector();
-
-    Vector av = archive.componentExists(path, onlyFirst);
+    Vector av = classPath.componentExists(path, onlyFirst);
     if (av != null) {
-      sais.add( new SearchActionItem( av, archive ) );
+       try {
+         return action.get(av, path, name, pkg, this );
+       } catch (IOException ioe) {
+         bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
+         return null;
+       }
     }
-    /* 6 */
-    if (fragments != null && !(onlyFirst && sais.size()>0) ) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        BundleArchive ba = (BundleArchive)i.next();
-        if (debug.classLoader) {
-          debug.println(this + " Fragment bundle search: " +
-                        path + " from #" + ba.getBundleId());
-        }
-        Vector vec = ba.componentExists(path, onlyFirst);
-        if (vec != null) {
-          sais.add( new SearchActionItem( vec, ba ) );
-          if (onlyFirst) break;
-        }
-      }
-    }
-    if (sais.size()>0) { /* 5 or 6 found the item */
-      try {
-        return action.get(sais, path, name, pkg, this );
-      } catch (IOException ioe) {
-        bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
-        return null;
-      }
-    }
+//     // Must collect and merge all search hits from step 5
+//     // and 6 to handle the case when onlyFirst is false.
+//     Vector /* SearchActionItem */ sais = new Vector();
+
+//     Vector av = archive.componentExists(path, onlyFirst);
+//     if (av != null) {
+//       sais.add( new SearchActionItem( av, archive ) );
+//     }
+//     /* 6 */
+//     if (fragments != null && !(onlyFirst && sais.size()>0) ) {
+//       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+//         BundleArchive ba = (BundleArchive)i.next();
+//         if (debug.classLoader) {
+//           debug.println(this + " Fragment bundle search: " +
+//                         path + " from #" + ba.getBundleId());
+//         }
+//         Vector vec = ba.componentExists(path, onlyFirst);
+//         if (vec != null) {
+//           sais.add( new SearchActionItem( vec, ba ) );
+//           if (onlyFirst) break;
+//         }
+//       }
+//     }
+//     if (sais.size()>0) { /* 5 or 6 found the item */
+//       try {
+//         return action.get(sais, path, name, pkg, this );
+//       } catch (IOException ioe) {
+//         bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
+//         return null;
+//       }
+//     }
 
     /* 7 */
     if (ep != null) {
@@ -945,21 +961,21 @@ final public class BundleClassLoader
   }
 
 
-  static class SearchActionItem {
-    public Vector /* Integer(class loader internal class path id) */ items;
-    public BundleArchive ba;
-    public SearchActionItem(Vector items, BundleArchive ba)
-    {
-      this.items = items;
-      this.ba = ba;
-    }
-  }
+//   static class SearchActionItem {
+//     public Vector /* Integer(class loader internal class path id) */ items;
+//     public BundleArchive ba;
+//     public SearchActionItem(Vector items, BundleArchive ba)
+//     {
+//       this.items = items;
+//       this.ba = ba;
+//     }
+//   }
 
   /**
    *  Search action
    */
   interface SearchAction {
-    public abstract Object get(Vector /* SearchActionItem */ items,
+    public abstract Object get(Vector /* FileArchive */ items,
                       String path, String name, String pkg,
                       BundleClassLoader cl )
       throws IOException ;
@@ -973,8 +989,7 @@ final public class BundleClassLoader
       public Object get(Vector items, String path, String name, String pkg,
                         BundleClassLoader cl )
         throws IOException {
-        SearchActionItem sai = (SearchActionItem) items.get(0);
-        byte[] bytes = sai.ba.getClassBytes((Integer)sai.items.get(0), path);
+        byte[] bytes = ((FileArchive)items.get(0)).getClassBytes(path);
         if (bytes != null) {
           if(cl.isBundlePatch()) {
             bytes = ClassPatcher.getInstance(cl).patch(name, bytes);
@@ -1068,13 +1083,17 @@ final public class BundleClassLoader
 
         Vector answer = new Vector();
         for(int i = 0; i < items.size(); i++) {
-          SearchActionItem sai = (SearchActionItem) items.elementAt(i);
-          for(int j = 0; j < sai.items.size(); j++) {
-            int subId = ((Integer)sai.items.elementAt(j)).intValue();
-            URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
-                                             sai.ba.getBundleId(),
-                                             subId,
-                                             path);
+          FileArchive fa = (FileArchive) items.elementAt(i);
+//           for(int j = 0; j < sai.items.size(); j++) {
+//             int subId = ((Integer)sai.items.elementAt(j)).intValue();
+//             URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
+//                                              sai.ba.getBundleId(),
+//                                              subId,
+//                                              path);
+             URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
+                                              fa.getBundleId(),
+                                              fa.getSubId(),
+                                              path);
             if (url != null) {
               if (cl.debug.classLoader) {
                 cl.debug.println("classLoader(#" + cl.bpkgs.bundle.id
@@ -1085,7 +1104,6 @@ final public class BundleClassLoader
             } else {
               return null;
             }
-          }
         }
         return answer.elements();
       }
@@ -1099,16 +1117,7 @@ final public class BundleClassLoader
    *
    */
   String findLibrary0(final String name) {
-    String res = archive.getNativeLibrary(name);
-    if (res == null && fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        res = ((BundleArchive)i.next()).getNativeLibrary(name);
-        if (res != null) {
-          break;
-        }
-      }
-    }
-    return res;
+    return classPath.getNativeLibrary(name);
   }
 
 } //class

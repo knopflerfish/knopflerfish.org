@@ -75,17 +75,11 @@ class BundleArchiveImpl implements BundleArchive
 
   private BundleStorageImpl storage;
 
-  private Archive [] archives;
-
-  private Map nativeLibs;
-
-  private Map renameLibs;
+  private ArrayList archives;
 
   private int startLevel = -1;
 
   private long lastModified = 0;
-
-  private ArrayList failedPath = null;
 
 
   /**
@@ -108,8 +102,7 @@ class BundleArchiveImpl implements BundleArchive
     storage          = bundleStorage;
     id               = bundleId;
     location         = bundleLocation;
-    archive          = new Archive(storage, bundleDir, 0, is, source, location);
-    setClassPath();
+    archive          = new Archive(storage, bundleDir, 0, is, source, location, id);
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
   }
@@ -158,8 +151,7 @@ class BundleArchiveImpl implements BundleArchive
 
     id            = bundleId;
     storage       = bundleStorage;
-    archive       = new Archive(storage, bundleDir, rev, location);
-    setClassPath();
+    archive       = new Archive(storage, bundleDir, rev, location, id);
   }
 
   /**
@@ -181,8 +173,7 @@ class BundleArchiveImpl implements BundleArchive
     if(bReference) {
       source = new URL(location);
     }
-    archive = new Archive(storage, bundleDir, rev, is, source, location);
-    setClassPath();
+    archive = new Archive(storage, bundleDir, rev, is, source, location, id);
     if(!bReference) {
       putContent(REV_FILE, Integer.toString(rev));
     }
@@ -198,6 +189,34 @@ class BundleArchiveImpl implements BundleArchive
   public String getAttribute(String key) {
     return archive.getAttribute(key);
   }
+
+
+
+  /**
+   * Get a FileArchive handle to a named Jar file or directory
+   * within this archive.
+   *
+   * @param path Name of Jar file or directory to get.
+   * @return A FileArchive object representing new archive, null if not found.
+   * @exception IOException if we failed to get top of file archive.
+   */
+  public FileArchive getFileArchive(String path) {
+    if (".".equals(path)) {
+      return archive;
+    }
+    if (archives == null) {
+      archives = new ArrayList();
+    }
+    try {
+      Archive a = new Archive(archive, path, archives.size() + 1);
+      archives.add(a);
+      return a;
+    } catch (IOException io) {
+      // TBD, Where to log this
+      return null;
+    }
+  }
+
 
   /**
    * returns the localization entries of this archive.
@@ -247,11 +266,17 @@ class BundleArchiveImpl implements BundleArchive
   }
 
 
+  /**
+   *
+   */
   public int getStartLevel() {
     return startLevel;
   }
 
 
+  /**
+   *
+   */
   public void setStartLevel(int level) throws IOException {
     if (startLevel != level) {
       startLevel = level;
@@ -260,72 +285,20 @@ class BundleArchiveImpl implements BundleArchive
   }
 
 
+  /**
+   *
+   */
   public long getLastModified() {
     return lastModified;
   }
 
 
+  /**
+   *
+   */
   public void setLastModified(long timemillisecs) throws IOException{
     lastModified = timemillisecs;
     putContent(LAST_MODIFIED_FILE, Long.toString(timemillisecs));
-  }
-
-
-  /**
-   * Get a byte array containg the contents of named file from a bundle
-   * archive.
-   *
-   * @param sub index of jar, 0 means the top level.
-   * @param path Path to class file.
-   * @return Byte array with contents of file or null if file doesn't exist.
-   * @exception IOException if failed to read jar entry.
-   */
-  public byte[] getClassBytes(Integer sub, String path) throws IOException {
-    return archives[sub.intValue()].getClassBytes(path);
-  }
-
-
-  /**
-   * Check if named entry exist in bundles archive.
-   * Leading '/' is stripped.
-   *
-   * @param component Entry to get reference to.
-   * @param onlyFirst End search when we find first entry if this is true.
-   * @return Vector or entry numbers, or null if it doesn't exist.
-   */
-  public Vector componentExists(String component, boolean onlyFirst) {
-    Vector v = null;
-    if (component.startsWith("/")) {
-      component = component.substring(1);
-    }
-    if (0==component.length()) {
-      // The special case asking for "/"
-      v = new Vector();
-      for (int i = 0; i < archives.length; i++) {
-        v.addElement(new Integer(i));
-        if (onlyFirst) {
-          break;
-        }
-      }
-    } else {
-      for (int i = 0; i < archives.length; i++) {
-        Archive.InputFlow aif = archives[i].getInputFlow(component);
-        if (aif != null) {
-          if (v == null) {
-            v = new Vector();
-          }
-          v.addElement(new Integer(i));
-          try {
-            if(aif.is != null) aif.is.close();
-          }
-          catch (IOException ignore) { }
-          if (onlyFirst) {
-            break;
-          }
-        }
-      }
-    }
-    return v;
   }
 
 
@@ -335,94 +308,28 @@ class BundleArchiveImpl implements BundleArchive
    *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
-   *            index. -1 means look in the main bundle.
+   *            index. 0 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
   public InputStream getInputStream(String component, int ix) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    Archive.InputFlow aif;
-    if (ix == -1) {
-      aif = archive.getInputFlow(component);
+    if (ix == 0) {
+      return archive.getInputStream(component);
     } else {
-      aif = archives[ix].getInputFlow(component);
+      return ((Archive)archives.get(ix - 1)).getInputStream(component);
     }
-    return aif != null ? aif.is : null;
   }
 
 
   /**
-   * Get native library from JAR.
+   * Get autostart setting.
    *
-   * @param libName Name of Jar file to get.
-   * @return A string with the path to the native library.
+   * @return the autostart setting.
    */
-  public String getNativeLibrary(String libName) {
-    if (nativeLibs != null) {
-      try {
-        String key = System.mapLibraryName(libName);
-        String val = (String) nativeLibs.get(key);
-        File file1 = new File(val);
-        if (file1.exists() && file1.isFile()) {
-          val = doRename(key, file1);
-        } else {
-          // Try other non-default lib-extensions
-          final String libExtensions = storage.framework.props
-            .getProperty(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
-          final int pos = key.lastIndexOf(".");
-          if (null!=libExtensions && pos>-1) {
-            final String baseKey = key.substring(0,pos+1);
-            final String[] exts = Util.splitwords(libExtensions, ", \t");
-            for (int i=0; i<exts.length; i++) {
-              key =  baseKey +exts[i];
-              val = (String)nativeLibs.get(key);
-              file1 = new File(val);
-              if (file1.exists() && file1.isFile()) {
-                val = doRename(key, file1);
-                break;
-              }
-            }
-          }
-        }
-        return val;
-      }
-      catch (Exception ignore) {
-      }
-    }
-    return null;
-  }
-
-  // Renaming to allow multiple versions of the lib when there are
-  // more than one classloader for this bundle. E.g., after a bundle
-  // update.
-  private String doRename(String key, File file1)
-  {
-    String val = file1.getAbsolutePath();
-    if (renameLibs.containsKey(key)) {
-      final File file2 = new File((String) renameLibs.get(key));
-      if (file1.renameTo(file2)) {
-        val = file2.getAbsolutePath();
-        nativeLibs.put(key, val);
-      }
-    }
-    final StringBuffer rename = new StringBuffer(val);
-    final int index0 = val.lastIndexOf(File.separatorChar) + 1;
-    final int index1 = val.indexOf("_", index0);
-    if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
-      try {
-        int prefix = Integer.parseInt(val.substring(index0, index1));
-        rename.replace(index0, index1, Integer.toString(prefix + 1));
-      }
-      catch (Throwable t) {
-        rename.insert(index0, "0_");
-      }
-    }
-    else {
-      rename.insert(index0, "0_");
-    }
-    renameLibs.put(key, rename.toString());
-    return val;
+  public int getAutostartSetting() {
+    return autostartSetting;
   }
 
 
@@ -438,13 +345,34 @@ class BundleArchiveImpl implements BundleArchive
     }
   }
 
+
   /**
-   * Get autostart setting.
-   *
-   * @return the autostart setting.
    */
-  public int getAutostartSetting() {
-    return autostartSetting;
+  public Enumeration findResourcesPath(String path) {
+    return archive.findResourcesPath(path);
+  }
+
+
+  /**
+   */
+  public String getJarLocation() {
+    return archive.getPath();
+  }
+
+
+  /**
+   */
+  public Certificate [] getCertificates() {
+    return archive.getCertificates();
+  }
+
+
+  /**
+   * Invalidate certificates associated with with bundle archive.
+   *
+   */
+  public void invalidateCertificates() {
+    archive.invalidateCertificates();
   }
 
 
@@ -473,36 +401,13 @@ class BundleArchiveImpl implements BundleArchive
    * to get attributes.
    */
   public void close() {
-    for (int i = 0; i < archives.length; i++) {
-      archives[i].close();
+    if (archives != null) {
+      for (Iterator i = archives.iterator(); i.hasNext(); ) {
+        ((Archive)i.next()).close();
+      }
+      archives = null;
     }
     archive.close();
-  }
-
-
-  /**
-   * Get a list with all classpath entries we failed to locate.
-   *
-   * @return A List with all failed classpath entries, null if no failures.
-   */
-  public List getFailedClassPathEntries() {
-    return failedPath;
-  }
-
-
-  /**
-   */
-  public Certificate [] getCertificates() {
-    return archive.getCertificates();
-  }
-
-
-  /**
-   * Invalidate certificates associated with with bundle archive.
-   *
-   */
-  public void invalidateCertificates() {
-    archive.invalidateCertificates();
   }
 
   //
@@ -531,6 +436,7 @@ class BundleArchiveImpl implements BundleArchive
     return null;
   }
 
+
   /**
    * Statically check if a directory contains info that a bundle
    * is uninstalled.
@@ -554,6 +460,10 @@ class BundleArchiveImpl implements BundleArchive
     return n == -2;
   }
 
+
+  /**
+   *
+   */
   static String getContent(File dir, String f) {
     DataInputStream in = null;
     try {
@@ -588,210 +498,6 @@ class BundleArchiveImpl implements BundleArchive
         out.close();
       }
     }
-  }
-
-
-  private void setClassPath() throws IOException {
-    String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
-
-    if (bcp != null) {
-      ArrayList a = new ArrayList();
-      StringTokenizer st = new StringTokenizer(bcp, ",");
-      while (st.hasMoreTokens()) {
-        String path = st.nextToken().trim();
-        if (".".equals(path)) {
-          a.add(archive);
-        } else {
-          try {
-            a.add(archive.getSubArchive(path));
-          } catch (IOException ioe) {
-            if (failedPath == null) {
-              failedPath = new ArrayList(1);
-            }
-            failedPath.add(path);
-          }
-        }
-      }
-      archives = (Archive [])a.toArray(new Archive[a.size()]);
-    }
-    else {
-      archives = new Archive[] { archive };
-    }
-
-  }
-
-  /**
-   * Resolve native code libraries.
-   *
-   * @return null if resolve ok, otherwise return an error message.
-   */
-  public String resolveNativeCode() {
-    String bnc = getAttribute(Constants.BUNDLE_NATIVECODE);
-    if (bnc != null) {
-      final String proc
-        = storage.framework.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
-      final String os
-        =  storage.framework.props.getProperty(Constants.FRAMEWORK_OS_NAME);
-      final Version osVer
-        = new Version(storage.framework.props.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      final String osLang
-        = storage.framework.props.getProperty(Constants.FRAMEWORK_LANGUAGE);
-      boolean optional = false;
-      List best = null;
-      VersionRange bestVer = null;
-      boolean bestLang = false;
-
-      for (Iterator i = Util.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
-        VersionRange matchVer = null;
-        boolean matchLang = false;
-        Map params = (Map)i.next();
-
-        List keys = (List)params.get("$keys");
-        if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
-          optional = true;
-          break;
-        }
-
-        List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
-        if (pl != null) {
-          if (!containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
-            continue;
-          }
-        } else {
-          // NYI! Handle null
-          continue;
-        }
-
-        List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
-        if (ol != null) {
-          if (!containsIgnoreCase(ol, Alias.unifyOsName(os))) {
-            continue;
-          }
-        } else {
-          // NYI! Handle null
-          continue;
-        }
-
-        List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
-        if (ver != null) {
-          boolean okVer = false;
-          for (Iterator v = ver.iterator(); v.hasNext(); ) {
-            // NYI! Handle format Exception
-            matchVer = new VersionRange((String)v.next());
-            if (matchVer.withinRange(osVer)) {
-              okVer = true;
-              break;
-            }
-          }
-          if (!okVer) {
-            continue;
-          }
-        }
-
-        List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
-        if (lang != null) {
-          for (Iterator l = lang.iterator(); l.hasNext(); ) {
-            if (osLang.equalsIgnoreCase((String)l.next())) {
-              // Found specfied language version, search no more
-              matchLang = true;
-              break;
-            }
-          }
-          if (!matchLang) {
-            continue;
-          }
-        }
-
-        List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
-        if (sf != null) {
-          String sfs = (String)sf.get(0);
-          if (sf.size() == 1) {
-            try {
-              if (!(new FilterImpl(sfs)).match(storage.framework.props.getProperties())) {
-                continue;
-              }
-            } catch (InvalidSyntaxException ise) {
-              return "Invalid syntax for native code selection filter: " + sfs;
-            }
-          } else {
-            return "Invalid character after native code selection filter: " + sfs;
-          }
-        }
-
-        // Compare to previous best
-        if (best != null) {
-          boolean verEqual = false;
-          if (bestVer != null) {
-            if (matchVer == null) {
-              continue;
-            }
-            int d = bestVer.compareTo(matchVer);
-            if (d == 0) {
-              verEqual = true;
-            } else if (d > 0) {
-              continue;
-            }
-          } else if (matchVer == null) {
-            verEqual = true;
-          }
-          if (verEqual && (!matchLang || bestLang)) {
-            continue;
-          }
-        }
-        best = keys;
-        bestVer = matchVer;
-        bestLang = matchLang;
-      }
-      if (best == null) {
-        if (optional) {
-          return null;
-        } else {
-          return "No matching native code libraries found.";
-        }
-      }
-      HashMap res = new HashMap();
-      for (Iterator p = best.iterator(); p.hasNext();) {
-        String name = (String)p.next();
-        int sp = name.lastIndexOf('/');
-        String key = (sp != -1) ? name.substring(sp+1) : name;
-        try {
-          res.put(key, archive.getNativeLibrary(name));
-        } catch (IOException ioe) {
-          return "Failed to resolve native code: " + ioe.getMessage();
-        }
-      }
-      renameLibs  = new HashMap();
-      nativeLibs = res;
-    }  else {
-      // No native code in this bundle
-      nativeLibs = null;
-    }
-    return null;
-  }
-
-  /**
-   * Check if a string exists in a list. Ignore case when comparing.
-   */
-  private boolean containsIgnoreCase(List l, List l2) {
-    for (Iterator i = l.iterator(); i.hasNext(); ) {
-      String s = (String)i.next();
-      for (Iterator j = l2.iterator(); j.hasNext(); ) {
-        if (s.equalsIgnoreCase((String)j.next())) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-
-  public Enumeration findResourcesPath(String path) {
-    return archive.findResourcesPath(path);
-  }
-
-
-  public String getJarLocation() {
-    return archive.getPath();
   }
 
 }//class

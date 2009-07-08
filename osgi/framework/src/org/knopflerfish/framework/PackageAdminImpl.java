@@ -395,16 +395,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   public Bundle[] getHosts(Bundle bundle) {
-    if (bundle == null) {
-      return null;
-    }
-
     BundleImpl b = (BundleImpl)bundle;
-    if (b.isFragment() &&
-        b.isAttached()) {
-      return new Bundle[]{b.getFragmentHost()};
+    if (b != null && b.isFragment() && b.isAttached()) {
+      return b.fragment.hostsArray();
     }
-
     return null;
   }
 
