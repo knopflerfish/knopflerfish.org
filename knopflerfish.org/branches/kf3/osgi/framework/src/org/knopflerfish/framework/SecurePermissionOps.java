@@ -572,16 +572,6 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  ClassLoader callGetClassLoader0(final BundleImpl b) {
-    return (ClassLoader)
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            return b.getClassLoader0();
-          }
-        });
-  }
-
-
   HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
     return (HeaderDictionary)
       AccessController.doPrivileged(new PrivilegedAction() {
@@ -734,11 +724,11 @@ class SecurePermissionOps extends PermissionOps {
     return null;
   }
 
-  URL getBundleURL(final BundleImpl b, final String s) throws MalformedURLException {
+  URL getBundleURL(final FrameworkContext fwCtx, final String s) throws MalformedURLException {
     try {
       return (URL)AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws MalformedURLException {
-            return new URL(null, s, b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+            return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
           }
         });
     } catch (PrivilegedActionException e) {

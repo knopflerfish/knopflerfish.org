@@ -121,6 +121,19 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
+   * Get a FileArchive handle to a named Jar file or directory
+   * within this archive.
+   *
+   * @param path Name of Jar file or directory to get.
+   * @return A FileArchive object representing new archive, null if not found.
+   */
+  public FileArchive getFileArchive(String path) {
+    // NYI
+    return null;
+  }
+
+
+  /**
    * returns the localization entries of this archive.
    */
   public Hashtable getLocalizationEntries(String localeFile) {

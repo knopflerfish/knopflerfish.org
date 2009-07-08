@@ -311,12 +311,12 @@ public class FrameworkContext  {
 
     bundles           = new Bundles(this);
 
-    perm.registerService();
-
     hooks             = new Hooks(this);    
     if("true".equals(props.getProperty("org.knopflerfish.framework.hooks.enabled", "false"))) {
       hooks.open();
     }
+
+    perm.registerService();
 
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,

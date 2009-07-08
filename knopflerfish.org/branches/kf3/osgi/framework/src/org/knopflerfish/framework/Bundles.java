@@ -425,7 +425,7 @@ public class Bundles {
       BundleImpl b = (BundleImpl)e.nextElement();
       if (b.isFragment() &&
           b.state != Bundle.UNINSTALLED &&
-          b.getFragmentHost() == target) {
+          b.fragment.isTarget(target)) {
         retval.add(b);
       }
     }

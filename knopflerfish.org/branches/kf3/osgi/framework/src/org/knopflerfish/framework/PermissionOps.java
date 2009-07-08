@@ -242,10 +242,6 @@ class PermissionOps {
   }
 
 
-  ClassLoader callGetClassLoader0(final BundleImpl b) {
-    return b.getClassLoader0();
-  }
-
   BundleContext callGetBundleContext0(final BundleImpl b) {
     return b.getBundleContext0();
   }
@@ -339,8 +335,8 @@ class PermissionOps {
    * off.
    * </p>
    */
-  URL getBundleURL(BundleImpl b, String s) throws MalformedURLException {
-    return new URL(null, s, b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+  URL getBundleURL(FrameworkContext fwCtx, String s) throws MalformedURLException {
+    return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
 
   //

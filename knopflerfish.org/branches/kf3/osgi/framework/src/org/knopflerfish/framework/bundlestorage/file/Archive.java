@@ -52,7 +52,7 @@ import java.util.zip.*;
  * @author Mats-Ola Persson
  * @author Gunnar Ekolin
  */
-class Archive {
+public class Archive implements FileArchive {
 
   /**
    * Base for filename used to store copy of archive.
@@ -79,11 +79,6 @@ class Archive {
    * these need not be unpacked locally.
    */
   final private static String OSGI_OPT_DIR = "OSGI-OPT/";
-
-  /**
-   * Bundle entry where local permissions are stored.
-   */
-  final private static String LOCAL_PERMISSION_FILE = "OSGI-INF/permissions.perm";
 
   /**
    * Property base string.
@@ -157,7 +152,31 @@ class Archive {
    */
   private boolean bClosed = false;
 
+  /**
+   *
+   */
+  private Map nativeLibs;
+
+  /**
+   *
+   */
+  private Map renameLibs;
+
+  /**
+   *
+   */
   BundleStorageImpl storage;
+
+  /**
+   *
+   */
+  private long bundleId;
+
+  /**
+   *
+   */
+  private int subId;
+
 
   void initProps() {
     unpack = storage.framework.props.getProperty(PROP_BASE + "unpack", true);
@@ -179,10 +198,13 @@ class Archive {
    * @param url URL to use to CodeSource.
    * @param location Location for archive
    */
-  Archive(BundleStorageImpl storage, File dir, int rev, InputStream is, URL source, String location) throws IOException
+  Archive(BundleStorageImpl storage, File dir, int rev, InputStream is,
+          URL source, String location, long id) throws IOException
   {
     this.location = location;
     this.storage  = storage;
+    bundleId = id;
+    subId = -1;
     initProps();
 
     boolean isDirectory = false;
@@ -332,9 +354,12 @@ class Archive {
    * Take lowest versioned archive and remove rest.
    *
    */
-  Archive(BundleStorageImpl storage, File dir, int rev, String location) throws IOException {
+  Archive(BundleStorageImpl storage, File dir, int rev, String location,
+          long id) throws IOException {
     this.location = location;
     this.storage  = storage;
+    bundleId = id;
+    subId = -1;
     initProps();
     String [] f = dir.list();
     file = null;
@@ -413,9 +438,11 @@ class Archive {
    * @exception FileNotFoundException if no such Jar file in archive.
    * @exception IOException if failed to read Jar file.
    */
-  Archive(Archive a, String path) throws IOException {
+  Archive(Archive a, String path, int id) throws IOException {
     this.location = a.location;
     this.storage  = a.storage;
+    bundleId = a.bundleId;
+    subId = id;
     initProps();
     if (a.jar != null) {
       jar = a.jar;
@@ -472,6 +499,22 @@ class Archive {
 
 
   /**
+   * Get bundle id for this archive.
+   */
+  public long getBundleId() {
+    return bundleId;
+  }
+
+
+  /**
+   * Get sub-archive id for this archive.
+   */
+  public int getSubId() {
+    return subId;
+  }
+
+
+  /**
    * Get an attribute from the manifest of the archive.
    *
    * @param key Name of attribute to get.
@@ -494,7 +537,7 @@ class Archive {
    * @return Byte array with contents of class file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getClassBytes(String classFile) throws IOException {
+  public byte[] getClassBytes(String classFile) throws IOException {
     if(bClosed) {
       return null;
     }
@@ -527,6 +570,21 @@ class Archive {
     } else {
       return null;
     }
+  }
+
+
+  /**
+   * Get an specific InputStream to named entry inside archive.
+   *
+   * @param component Entry to get reference to.
+   * @return InputStream to entry or null if it doesn't exist.
+   */
+  public InputStream getInputStream(String component) {
+    InputFlow i = getInputFlow(component);
+    if (i != null) {
+      return i.is;
+    }
+    return null;
   }
 
 
@@ -586,7 +644,7 @@ class Archive {
 
 
   //TODO not extensively tested
-  Enumeration findResourcesPath(String path) {
+  public Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
     if (jar != null) {
       ZipEntry entry;
@@ -648,30 +706,14 @@ class Archive {
 
 
   /**
-   * Get an Archive handle to a named Jar file within this archive.
+   * Check for native library in archive.
    *
-   * @param path Name of Jar file to get.
-   * @return An Archive object representing new archive.
-   * @exception FileNotFoundException if no such Jar file in archive.
-   * @exception IOException if failed to read Jar file.
+   * @param path Name of native code file to get.
+   * @return If native library exist return libname, otherwise null.
    */
-  Archive getSubArchive(String path) throws IOException {
+  public String checkNativeLibrary(String path) {
     if(bClosed) {
-      return null;
-    }
-    return new Archive(this, path);
-  }
-
-
-  /**
-   * Extract native library from JAR.
-   *
-   * @param key Name of Jar file to get.
-   * @return A string with path to native library.
-   */
-  String getNativeLibrary(String path) throws IOException {
-    if(bClosed) {
-      throw new IOException("Archive is closed");
+      return null; // throw new IOException("Archive is closed");
     }
     if (path.startsWith("/")) {
       path = path.substring(1);
@@ -683,19 +725,25 @@ class Archive {
         (new File(lib.getParent())).mkdirs();
         ZipEntry ze = jar.getEntry(path);
         if (ze != null) {
-          InputStream is = jar.getInputStream(ze);
+          InputStream is = null;
           try {
+            is = jar.getInputStream(ze);
             loadFile(lib, is);
-          } finally {
-            is.close();
+          } catch (IOException _ignore) {
+            // TBD log this
+            if (is != null) {
+              try {
+                is.close();
+              } catch (IOException _ignore2) { }
+            }
+            return null;
           }
         } else {
-          throw new FileNotFoundException("No such sub-archive: " + path);
+          return null;
         }
       }
     } else {
       lib = findFile(file, path);
-      //XXX - start L-3 modification
       if (!lib.exists() && (lib.getParent() != null)) {
         final String libname = lib.getName();
         File[] list = lib.getParentFile().listFiles(new FilenameFilter() {
@@ -708,13 +756,77 @@ class Archive {
           list[0].renameTo(lib);
         }
       }
-      //XXX - end L-3 modification
     }
     setPerm(lib);
-    return lib.getAbsolutePath();
+    String libstr = lib.getAbsolutePath();
+    int sp = libstr.lastIndexOf('/');
+    String key = (sp != -1) ? libstr.substring(sp+1) : libstr;
+    if (nativeLibs == null) {
+      nativeLibs  = new HashMap();
+      renameLibs  = new HashMap();
+    }
+    // TBD, What to do if entry already exists?
+    nativeLibs.put(key, libstr);
+    return key;
   }
 
 
+  /**
+   * Get native code library filename.
+   *
+   * @param libNameKey Key for native lib to get.
+   * @return A string with the path to the native library.
+   */
+  public String getNativeLibrary(String libNameKey) {
+    String file = (String)nativeLibs.get(libNameKey);
+    if (file !=  null) {
+      File f = new File(file);
+      if (f.isFile()) {
+        return doRename(libNameKey, new File(file));
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Renaming to allow multiple versions of the lib when there are
+   * more than one classloader for this bundle. E.g., after a bundle
+   * update.
+   */
+  private String doRename(String key, File file1)
+  {
+    String val = file1.getAbsolutePath();
+    if (renameLibs.containsKey(key)) {
+      final File file2 = new File((String) renameLibs.get(key));
+      if (file1.renameTo(file2)) {
+        val = file2.getAbsolutePath();
+        nativeLibs.put(key, val);
+      }
+    }
+    final StringBuffer rename = new StringBuffer(val);
+    final int index0 = val.lastIndexOf(File.separatorChar) + 1;
+    final int index1 = val.indexOf("_", index0);
+    if((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
+      try {
+        int prefix = Integer.parseInt(val.substring(index0, index1));
+        rename.replace(index0, index1, Integer.toString(prefix + 1));
+      }
+      catch (Throwable t) {
+        rename.insert(index0, "0_");
+      }
+    }
+    else {
+      rename.insert(index0, "0_");
+    }
+    renameLibs.put(key, rename.toString());
+    return val;
+  }
+
+
+  /**
+   *
+   */
   private void setPerm(File f)
   {
     if (null==execPermCmd) { // No OS-cmd for setting permissions given.
@@ -1022,8 +1134,7 @@ class Archive {
         continue;
       }
       String name = je.getName();
-      if (saveDir != null && (!name.startsWith(OSGI_OPT_DIR) ||
-                              name.equals(LOCAL_PERMISSION_FILE))) {
+      if (saveDir != null && !name.startsWith(OSGI_OPT_DIR)) {
         StringTokenizer st = new StringTokenizer(name, "/");
         File f = new File(saveDir, st.nextToken());
         while (st.hasMoreTokens()) {
@@ -1103,7 +1214,7 @@ class Archive {
         mentries = 0;
         for (Iterator i = manifest.getEntries().keySet().iterator(); i.hasNext();) {
           String name = (String)i.next();
-          if (!name.startsWith(OSGI_OPT_DIR) || name.equals(LOCAL_PERMISSION_FILE)) {
+          if (!name.startsWith(OSGI_OPT_DIR)) {
             mentries++;
           }
         }

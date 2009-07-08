@@ -110,7 +110,8 @@ class BundleURLConnection extends URLConnection {
         // requieres the Framework's permisisons to allow access
         // thus we must call bundleArchive.getInputStream()
         // via doPrivileged().
-        is = bundle.secure.callGetInputStream(a, url.getFile(), url.getPort());
+        int port = url.getPort();
+        is = bundle.secure.callGetInputStream(a, url.getFile(), port != -1 ? port : 0);
       }
       if (is != null) {
         connected = true;
