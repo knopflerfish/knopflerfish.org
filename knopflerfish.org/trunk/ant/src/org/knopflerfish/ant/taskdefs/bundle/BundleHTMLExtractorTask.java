@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -264,7 +266,8 @@ public class BundleHTMLExtractorTask extends Task {
                         "org.xml," +
                         "org.w3c," +
                         "java," +
-                        "com.sun");
+                        "com.sun," +
+                        "com.apple.eawt");
 
     setSkipAttribSet("Manifest-Version," +
                      "Ant-Version," +
@@ -513,8 +516,10 @@ public class BundleHTMLExtractorTask extends Task {
             {
               String pkgName = (String)it2.next();
               Object version = info.unresolvedMap.get(pkgName);
-
-              sb.append(pkgName + " " + version + "<br>\n");
+              boolean optional = info.pkgImportOptional.contains(pkgName);
+              sb.append(pkgName +" " +version
+                        +(optional ? " <em>optional</em>" : "")
+                        +"<br>\n");
             }
           sb.append("</td>");
           sb.append("<tr>");
@@ -636,9 +641,12 @@ public class BundleHTMLExtractorTask extends Task {
     Map        pkgExportMap = new TreeMap();
     // String (package name) -> VersionRange
     Map        pkgImportMap = new TreeMap();
-    // String (package name) -> Version
+    // String (package name)
+    List       pkgImportOptional = new ArrayList();
+
+    // String (service interface) -> Version
     Map        serviceExportMap = new TreeMap();
-    // String (package name) -> VersionRange
+    // String (service interface) -> VersionRange
     Map        serviceImportMap = new TreeMap();
 
     String     relPath   = "";
@@ -714,10 +722,10 @@ public class BundleHTMLExtractorTask extends Task {
       vars.put("html.file", path +".html");
       vars.put("html.uri",  replace(relPath, "\\", "/"));
 
-      pkgExportMap     = parseNames(attribs.getValue("Export-Package"), false);
-      pkgImportMap     = parseNames(attribs.getValue("Import-Package"), true);
-      serviceExportMap = parseNames(attribs.getValue("Export-Service"), false);
-      serviceImportMap = parseNames(attribs.getValue("Import-Service"), true);
+      pkgExportMap     = parseNames(attribs.getValue("Export-Package"), false, null);
+      pkgImportMap     = parseNames(attribs.getValue("Import-Package"), true, pkgImportOptional);
+      serviceExportMap = parseNames(attribs.getValue("Export-Service"), false, null);
+      serviceImportMap = parseNames(attribs.getValue("Import-Service"), true, null);
 
       extractSource(jarFile, new File( path +"/src"));
     }
@@ -861,7 +869,7 @@ public class BundleHTMLExtractorTask extends Task {
 
 
 
-    Map parseNames(String s, boolean range) {
+    Map parseNames(String s, boolean range, List optionals) {
 
       Map map = new TreeMap();
 
@@ -885,6 +893,15 @@ public class BundleHTMLExtractorTask extends Task {
                 spec = info[1].trim();
               } else if("version".equals(info[0].trim())) {
                 spec = info[1].trim();
+              } else if (null!=optionals) {
+                if(info[0].endsWith(":")) {
+                  final String directive
+                    = info[0].substring(0,info[0].length()-1).trim();
+                  if ("resolution".equals(directive)
+                      && "optional".equals(info[1].trim())) {
+                    pkgImportOptional.add(name);
+                  }
+                }
               }
             }
           }
