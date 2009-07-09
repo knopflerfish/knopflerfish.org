@@ -99,7 +99,7 @@
 
 
   <target name="default"
-          description="Builds entire platform except optional and test bundels" >
+          description="Builds entire platform except optional and test bundles" >
     <delete file="htdocs/bundles.html"/>
     <ant dir="ant"                 target="all" />
     <ant dir="${jarunpacker.dir}"   target="jar"/>
@@ -250,7 +250,6 @@
 
 
   <target name="bundle_doc"
-	  description="Creates bundle specific documentaion"
           depends="bundle_tasks">
     <property name="bundledoc.list.header"
 	      value="Knopflerfish OSGi ${version}"/>
@@ -1091,7 +1090,6 @@
 
   <target   name        = "distrib_opt_maybe"
             if          = "bundles.opt.present"
-            description = "Builds self-extraction optional distribution file"
 	    depends     = "mkreldir">
 
     <ant dir="osgi/bundles_opt" target="all"/>
