@@ -161,7 +161,7 @@
    </replace>	  
   </target>
 
-  <target name="test_xargs">
+  <target name="test_xargs" depends="check_openssl">
     <property name="bundleVersionFilterTest"
 	      location="out/bundleVersionsTest.props"/>
     <property name="test_xargs.jars.pattern"
@@ -177,14 +177,36 @@
     <copy file="init-tests.xargs.in"
 	  tofile="${xargs.out.dir}/init-tests.xargs"
 	  overwrite="true"/>
+    <echo message="ant.java.version=${ant.java.version}"/>
+    <echo message="openssl_exist=${openssl_exist}"/>
+    <condition property="do.cpa.test" value="" else="#">
+      <and>
+	<isset property="openssl_exist"/>
+	<!-- JRE 1.5 form Sun is broken -->
+	<not><equals arg1="${ant.java.version}" arg2="1.5"/></not>
+      </and>
+    </condition>
+    <echo message="do.cpa.test=${do.cpa.test}"/>
+
     <replace file="${xargs.out.dir}/init-tests.xargs"
 	     replacefilterfile="${bundleVersionFilterTest}">
       <replacefilter token="$(JAR_PREFIX)"      value="file:"/>
       <replacefilter token="$(VERSION)"         value=""/>
       <replacefilter token="$(WINDOWS_BUNDLES)" value=""/>
+      <replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
     </replace>	  
- </target>
+  </target>
 
+  <target name="check_openssl">
+    <exec executable="openssl" 
+	  failifexecutionfails="false"
+	  resultproperty="openssl_return_code">
+      <arg value="version" />
+    </exec>
+    <condition property="openssl_exist">
+      <isset property="openssl_return_code"/>
+    </condition>
+  </target>
 
   <target name="javadoc" depends="bundle_tasks">
     <mkdir dir="${javadoc.out.dir}"/>

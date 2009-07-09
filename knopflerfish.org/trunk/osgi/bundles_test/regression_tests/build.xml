@@ -24,6 +24,19 @@
     <delete dir="out"/>
     <delete dir="jars"/>
     <ant dir="." antfile="build_keystore.xml" target="clean"/>
+    <!-- Remove files not built to out -->
+    <delete includeemptydirs="true">
+      <fileset dir="framework_test/resources"      includes="*.jar"/>
+      <fileset dir="restart_test"                  includes="*.xargs"/>
+      <fileset dir="restart_test/resources"/>
+      <fileset dir="condpermadmin_test/resources"/>
+      <fileset dir="component_test/resources"/>
+      <fileset dir="endurance_test/resources"      includes="*.jar"/>
+      <fileset dir="servicetracker_test/resources" includes="*.jar"/>
+      <fileset dir="extension_test/resources"      includes="*.jar"/>
+      <fileset dir="axis2_soapclient_adb"          includes="*.xargs"/>
+      <fileset dir="axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/"/>
+    </delete>
   </target>
 
 </project>
