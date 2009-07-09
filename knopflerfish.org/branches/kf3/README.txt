@@ -1,39 +1,51 @@
-*******************************************
-** Knopflerfish Release @VERSION@
-**
-** For more information, please visit 
-**   http://www.knopflerfish.org
-**
-*******************************************
+======================================================================
+	Knopflerfish Release  @VERSION@
+======================================================================
+
+Contents:
+----------------------------------------
+ README.txt       - this file.
+ release_notes.*  - the release notes for the current release.
+ changelog.html   - the subversion change log for this release.
+
+ ant              - Ant related code and build include files.
+ docs             - online documentation (html),
+ docs/index.html  - Starting point for reading the documentation.
+ osgi             - all OSGi related code.
+ osgi/bundles     - bundles included in distribution.
+ osgi/bundles_opt - some extra bundles.
+ osgi/framework   - core OSGi framework.
 
 
---- Building ---
-
+Basic: How to start
+----------------------------------------
  Prerequisites
 
-   - JDK 1.3(1.4 if you want security) or later, available from java.sun.com 
-   - Ant 1.6 or later, available from ant.apache.org 
-   - BCEL, available from jakarta.apache.org/bcel 
-     install locally in ant/lib or in $ANTHOME/lib
+   - JRE 1.3 (1.4 if you want security) or later, available from
+     java.sun.com 
 
- > ant                   # builds framework and all bundle jar files
+1. Step into the osgi dir
+2. Start the OSGi framework by:
+   > java -jar framework.jar
 
---- Running   ---
+3. This starts the framework + a large set of bundles, including
+   the desktop
 
-After building, the framework can be run using
 
- > cd osgi
- > java -jar framework.jar
-               
+Building:
+----------------------------------------
+ Prerequisites
 
---- Directories ---
+   - JDK 1.3(1.4 if you want security) or later, available from java.sun.com
+   - Ant 1.7 or later, available from ant.apache.org
+   - BCEL, available from jakarta.apache.org/bcel
+     BCEL is automtically downloaded to ant/lib during the build
+     process, you may also choose to install it locally in
+     $ANTHOME/lib to chare it between many build trees.
+   - openssl, for Certificate Authority (CA) Management when creating
+     a keystore for tests running with security enabled. For availability
+     see http://www.openssl.org/related/binaries.html.
 
- osgi             - all OSGi related code
- osgi/framework   - core OSGi framework
- osgi/bundles     - bundles included in distribution
- osgi/bundles_opt - some extra bundles
-
- ant              - Ant related code and build include files
-
- htdocs           - online documentation (html)
-
+1. Step into the knopflerfish.org directory.
+2. Start the build by:
+   > ant all

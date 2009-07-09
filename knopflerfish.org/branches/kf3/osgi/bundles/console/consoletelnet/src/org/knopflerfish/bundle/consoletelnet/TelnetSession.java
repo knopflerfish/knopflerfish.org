@@ -266,7 +266,6 @@ public class TelnetSession
      * Method to do echo to the output stream This also looks at the
      * enableEcho flag
      */
-
     public void echoChar(int character) {
         TelnetCommand tc = telnetCommands[TCC.ECHO];
 
@@ -606,7 +605,6 @@ public class TelnetSession
      * @parameter in,
      * @parameter out,
      */
-
     private void initialNegotiation(TelnetReader in, PrintWriter out,
             TelnetOutputStream tos) {
         try {

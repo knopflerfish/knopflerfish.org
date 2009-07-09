@@ -679,7 +679,7 @@ public class FrameworkContext  {
     // Set state to INSTALLED and purge any unrefreshed bundles
     for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
       final BundleImpl b = (BundleImpl) i.next();
-      b.setStateInstalled(false);
+      b.setStateInstalled(null);
       b.purge();
     }
     log("bundles stopped");

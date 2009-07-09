@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,11 +50,11 @@ import org.osgi.service.event.Event;
  * Table model which filters events from a set of bundles.
  *
  */
-public class FilterEventTableModel 
+public class FilterEventTableModel
   extends    EventTableModel
-  implements TableModelListener  
+  implements TableModelListener
 {
-  
+
   Object lock = new Object();
 
   EventTableModel model;
@@ -71,7 +71,7 @@ public class FilterEventTableModel
     synchronized(lock) {
       bundles.clear();
       for(int i = 0; bl != null && i < bl.length; i++) {
-	bundles.add(bl[i]);
+        bundles.add(bl[i]);
       }
     }
     fireTableDataChanged();
@@ -110,21 +110,21 @@ public class FilterEventTableModel
   boolean isValidEntry(Event e) {
     synchronized(lock) {
       if(bundles.size() == 0) {
-	return true;
+        return true;
       }
-      
+
       for(Iterator it = bundles.iterator(); it.hasNext();) {
-	Bundle b = (Bundle)it.next();
-	if((Util.getBundle(e) != null) &&
-	   (b.getBundleId() == Util.getBundle(e).getBundleId())) {
-	  return true;
-	}
+        Bundle b = (Bundle)it.next();
+        if((Util.getBundle(e) != null) &&
+           (b.getBundleId() == Util.getBundle(e).getBundleId())) {
+          return true;
+        }
       }
-    
+
       return false;
     }
   }
-  
+
   public Object getValueAt(int row, int col) {
     synchronized(lock) {
       return model.getValueAt(getEntry(row), col);
@@ -162,12 +162,12 @@ public class FilterEventTableModel
   private void filterEntries() {
     synchronized(lock) {
       filteredEntries.clear();
-      
+
       for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
-	Event e = (Event)it.next();
-	if(isValidEntry(e)) {
-	  filteredEntries.add(e);
-	}
+        Event e = (Event)it.next();
+        if(isValidEntry(e)) {
+          filteredEntries.add(e);
+        }
       }
     }
   }
@@ -180,5 +180,5 @@ public class FilterEventTableModel
 
   public void tableChanged(TableModelEvent e) {
     fireTableDataChanged();
-  }  
+  }
 }

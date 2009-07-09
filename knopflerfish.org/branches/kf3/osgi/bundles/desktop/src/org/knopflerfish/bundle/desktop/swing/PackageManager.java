@@ -305,7 +305,8 @@ public class PackageManager  {
       return rb;
     }
     for (int i=0; rbl!=null && i<rbl.length; i++) {
-      if (rbl[i].getBundle().getBundleId()==b.getBundleId()) {
+      Bundle rbb = rbl[i].getBundle();
+      if (rbb != null && rbb.getBundleId()==b.getBundleId()) {
         requiredBundleMap.put(b, rbl[i]);
         return rbl[i];
       }

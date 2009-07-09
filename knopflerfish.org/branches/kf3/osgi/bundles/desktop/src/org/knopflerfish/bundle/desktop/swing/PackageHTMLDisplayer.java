@@ -99,17 +99,17 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
         boolean useParagraph = false;
 
         Bundle[] fragmentBundles = pm.getFragments(b); // pkgAdmin.getFragments(b);
-        if (fragmentBundles!=null && fragmentBundles.length>0) {
+        if (fragmentBundles.length>0) {
           if (useParagraph) {
             sb.append("<p>");
           }
           sb.append("<b>Host bundle with attached fragments</b>");
-          for (int j=0; fragmentBundles!=null && j<fragmentBundles.length; j++){
+          for (int j=0; j<fragmentBundles.length; j++){
             sb.append("<br>");
             sb.append("&nbsp;&nbsp");
             Util.bundleLink(sb, fragmentBundles[j]);
             Bundle[] hosts = pm.getHosts(fragmentBundles[j]);
-            if (hosts==null || b.getBundleId()!=hosts[0].getBundleId()) {
+            if (hosts.length==0 || b.getBundleId()!=hosts[0].getBundleId()) {
               sb.append("&nbsp;<i>pending refresh</i>");
             }
           }
@@ -120,12 +120,12 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
 
         Bundle[] hostBundles = pm.getHosts(b);
-        if (hostBundles!=null && hostBundles.length>0) {
+        if (hostBundles.length>0) {
           if (useParagraph) {
             sb.append("<p>");
           }
           sb.append("<b>Fragment attached to</b>");
-          for (int j=0; hostBundles!=null && j<hostBundles.length; j++){
+          for (int j=0; j<hostBundles.length; j++){
             sb.append("<br>");
             sb.append("&nbsp;&nbsp");
             Util.bundleLink(sb, hostBundles[j]);

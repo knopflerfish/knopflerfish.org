@@ -209,6 +209,7 @@ public class BundleImpl implements Bundle {
 
   /** True during the finalization of an activation. */
   private boolean activating;
+
   /** True during during the state change from active to resolved. */
   private boolean deactivating;
 
@@ -303,6 +304,7 @@ public class BundleImpl implements Bundle {
   public int getState() {
     return state;
   }
+
 
   public void start() throws BundleException {
     start(0);
@@ -771,6 +773,7 @@ public class BundleImpl implements Bundle {
     }
 
     boolean purgeOld;
+    ArrayList savedEvent = new ArrayList();
 
     if (isFragment()) {
       if (isAttached()) {
@@ -801,7 +804,7 @@ public class BundleImpl implements Bundle {
       }
 
       if (isFragmentHost()) {
-        detachFragments(true);
+        detachFragments(savedEvent);
       }
     }
 
@@ -820,13 +823,15 @@ public class BundleImpl implements Bundle {
       if (null!=oldArchive) oldArchive.purge();
     }
 
-    // Broadcast updated event
+    // Broadcast events
     if (wasResolved) {
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED,
-                                                        this));
+      savedEvent.add(new BundleEvent(BundleEvent.UNRESOLVED, this));
+                                                       
     }
-    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.UPDATED,
-                                                      this));
+    savedEvent.add(new BundleEvent(BundleEvent.UPDATED, this));
+    for (Iterator i = savedEvent.iterator(); i.hasNext();) {
+      fwCtx.listeners.bundleChanged((BundleEvent)i.next());
+    }
 
     // Restart bundles previously stopped in the operation
     if (wasActive) {
@@ -887,6 +892,7 @@ public class BundleImpl implements Bundle {
       wasResolved = true;
       // Fall through
     case INSTALLED:
+      ArrayList savedEvent = new ArrayList();
 
       fwCtx.bundles.remove(location);
 
@@ -927,7 +933,7 @@ public class BundleImpl implements Bundle {
         }
 
         if (isFragmentHost()) {
-          detachFragments(true);
+          detachFragments(savedEvent);
         }
       }
 
@@ -954,12 +960,15 @@ public class BundleImpl implements Bundle {
       state = UNINSTALLED;
       modified();
 
+      // Broadcast events
       if (wasResolved) {
-        fwCtx.listeners
-          .bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+        savedEvent.add(new BundleEvent(BundleEvent.UNRESOLVED, this));
+        
       }
-      fwCtx.listeners
-        .bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
+      savedEvent.add(new BundleEvent(BundleEvent.UNINSTALLED, this));
+      for (Iterator i = savedEvent.iterator(); i.hasNext();) {
+        fwCtx.listeners.bundleChanged((BundleEvent)i.next());
+      }
       break;
     }
   }
@@ -1185,7 +1194,7 @@ public class BundleImpl implements Bundle {
                                      BundleException.RESOLVE_ERROR);
             }
             if (resolveFailException != null) {
-              detachFragments(false);
+              detachFragments(new ArrayList());
               fwCtx.listeners.frameworkError(this, resolveFailException);
             }
           }
@@ -1239,7 +1248,7 @@ public class BundleImpl implements Bundle {
    * Reset all package registration.
    * We assume that the bundle is resolved when entering this method.
    */
-  synchronized void setStateInstalled(boolean sendEvent) {
+  synchronized void setStateInstalled(List savedEvent) {
     if (isFragment()) {
       classLoader = null;
       fragment.removeHost(null);
@@ -1252,14 +1261,14 @@ public class BundleImpl implements Bundle {
       }
       bpkgs.unregisterPackages(true);
       if (isFragmentHost()) {
-        detachFragments(true);
+        detachFragments(savedEvent);
       }
       bpkgs.registerPackages();
     }
 
     state = INSTALLED;
-    if (sendEvent) {
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
+    if (savedEvent != null) {
+      savedEvent.add(new BundleEvent(BundleEvent.UNRESOLVED, this));
     }
   }
 
@@ -2250,10 +2259,10 @@ public class BundleImpl implements Bundle {
   /**
    * Detach all fragments from this bundle and its bundle packages.
    */
-  private void detachFragments(boolean sendEvent) {
+  private void detachFragments(List savedEvent) {
     if (fragments != null) {
       while (fragments.size() > 0) {
-        detachFragment((BundleImpl)fragments.get(0), sendEvent);
+        detachFragment((BundleImpl)fragments.get(0), savedEvent);
       }
     }
   }
@@ -2262,7 +2271,7 @@ public class BundleImpl implements Bundle {
   /**
    * Detach fragment from this bundle.
    */
-  private void detachFragment(BundleImpl fb, boolean sendEvent) {
+  private void detachFragment(BundleImpl fb, List savedEvent) {
     // NYI! extensions
     if (fragments.remove(fb)) {
       bpkgs.detachFragment(fb);
@@ -2274,7 +2283,7 @@ public class BundleImpl implements Bundle {
       if (fb.state != UNINSTALLED) {
         fb.fragment.removeHost(this);
         if (!fb.fragment.hasHosts()) {
-          fb.setStateInstalled(sendEvent);
+          fb.setStateInstalled(savedEvent);
         }
       }
     }

@@ -116,6 +116,7 @@
   <target name="bundleD_test">
     <ant dir="test_target_bundles/bundleD_test" target="all"
 	 inheritAll="false">
+      <property name="jar.out.dir"  location="${resources.dir}"/>
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleD_test"/>
     </ant>
