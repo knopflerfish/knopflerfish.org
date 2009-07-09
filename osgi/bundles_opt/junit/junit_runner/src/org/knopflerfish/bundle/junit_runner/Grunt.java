@@ -35,13 +35,16 @@
 package org.knopflerfish.bundle.junit_runner;
 
 
-import java.util.*;
-import org.osgi.framework.*;
-import java.net.URL;
 
-import org.knopflerfish.service.junit.*;
-import junit.framework.*;
 import java.io.*;
+import java.net.URL;
+import java.security.*;
+import java.util.*;
+
+import junit.framework.*;
+import org.knopflerfish.service.junit.*;
+
+import org.osgi.framework.*;
 
 class Grunt  implements TestListener {
   static final String FILTER_PREFIX  = "filter:";
@@ -182,13 +185,20 @@ class Grunt  implements TestListener {
         String fname = ids[i] + ".xml";
         File outFile = new File(outDir, fname);
         PrintWriter pw = null;
+        String outPath = "?";
         try {
-          log("run test '" + ids[i] + "', out=" + outFile.getAbsolutePath());   pw = new PrintWriter(new FileOutputStream(outFile));
+          outPath = outFile.getAbsolutePath();
+        } catch (Exception e) {
+          log("Failed to get absolute path for fname: " +e);
+        }
+        try {
+          log("run test '" + ids[i] + "', out=" + outPath);
+          pw = new PrintWriter(new FileOutputStream(outFile));
           TestSuite suite = ju.getTestSuite(ids[i], null);
           ju.runTest(pw, suite);
 
         } catch (Exception e) {
-          log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
+          log("failed test '" + ids[i] + "', out=" +outPath);
           e.printStackTrace();
         } finally {
           try { pw.close(); } catch (Exception ignored) { }
@@ -196,24 +206,47 @@ class Grunt  implements TestListener {
       }
 
       indexPW.println("<junit_index>");
-      String[] xmlFiles = outDir.list();
-      for(int i = 0; i < xmlFiles.length; i++) {
-        String fname = xmlFiles[i];
-        if(fname.endsWith(".xml") && !fname.equals(INDEX_FILE)) {
-          File outFile = new File(outDir, fname);
-          includeXMLContents(indexPW, outFile);
+      try {
+        String[] xmlFiles = outDir.list();
+        for(int i = 0; i < xmlFiles.length; i++) {
+          String fname = xmlFiles[i];
+          if(fname.endsWith(".xml") && !fname.equals(INDEX_FILE)) {
+            File outFile = new File(outDir, fname);
+            includeXMLContents(indexPW, outFile);
+          }
         }
+      } catch (java.security.AccessControlException ace) {
+        log("outDir.list() failed: " +ace.toString());
       }
       indexPW.println("</junit_index>");
 
 
+      String outDirAbs = "?outDirAbs?";
+      try {
+        outDirAbs = outDir.getAbsolutePath();
+      } catch (AccessControlException ace) {
+        log("outDir.getAbsolutePath() failed: " +ace.toString());
+      }
       log("\n" +
           "All tests (" + tests + ") done.\n" +
-          "Output XML in " + outDir.getAbsolutePath());
+          "Output XML in " + outDirAbs);
 
       if(bQuit) {
         log("Quit framework after tests");
-        bc.getBundle(0).stop();
+        try {
+            AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                public Object run() throws IOException {
+                  try {
+                    bc.getBundle(0).stop();
+                  } catch (BundleException be) {
+                    log("Failed to quit framework after tests: " +be);
+                  }
+                  return null;
+                }
+            });
+        } catch (PrivilegedActionException e) {
+          log("Failed to quit framework after tests: " +e);
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
