@@ -2,22 +2,22 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JUnit
 Bundle-SymbolicName: org.knopflerfish.bundle.junit
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:junit:2.0.0
+Bundle-Version: 2.1.0
 Bundle-Category: service
 Bundle-Description: JUnit support
 Bundle-Vendor: JUnit/Knopflerfish
 Bundle-APIVendor: JUnit
-Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles_opt/junit/readme.txt
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/
+ bundledoc/index.html?docpage=junit
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
- g/trunk/osgi/bundles_opt/junit/
+ g/trunk/osgi/bundles_opt/junit/junit/
 Bundle-Activator: org.knopflerfish.bundle.junit.Activator
 Bundle-Classpath: .,junit.jar
 Export-Package: org.knopflerfish.service.junit;specification-version=1.0.0,
  junit.framework;specification-version=3.8.1
 Import-Package: org.osgi.framework,
+ org.osgi.util.tracker,
  javax.servlet;resolution:=optional,
  javax.servlet.http;resolution:=optional,
  javax.swing;resolution:=optional,
@@ -30,5 +30,4 @@ Import-Package: org.osgi.framework,
  org.knopflerfish.service.console;resolution:=optional,
  org.knopflerfish.service.junit;specification-version=1.0.0,
  org.osgi.service.http;resolution:=optional,
- org.osgi.util.tracker;resolution:=optional,
  org.w3c.dom;resolution:=optional

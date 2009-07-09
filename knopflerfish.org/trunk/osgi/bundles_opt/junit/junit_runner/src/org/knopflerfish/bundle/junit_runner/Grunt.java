@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import org.knopflerfish.service.junit.*;
 import junit.framework.*;
 import java.io.*;
 
-class Grunt  {
+class Grunt  implements TestListener {
   static final String FILTER_PREFIX  = "filter:";
   static final String DEFAULT_OUTDIR = "junit_grunt";
   static final String DEFAULT_TESTS  = "filter:(objectclass=junit.framework.TestSuite)";
@@ -53,6 +53,8 @@ class Grunt  {
 
   public Grunt(BundleContext bc) {
     this.bc = bc;
+
+    bc.registerService(TestListener.class.getName(), this, null);
   }
 
   boolean bWait = false;
@@ -61,14 +63,14 @@ class Grunt  {
     bWait = "true".equals(System.getProperty("org.knopflerfish.junit_runner.wait"));
     if(bWait) {
       Thread t = new Thread() {
-	  public void run() {
-	    try {
-	      doRun();
-	    } catch (Exception e) {
-	      e.printStackTrace();
-	    }
-	  }
-	};
+          public void run() {
+            try {
+              doRun();
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        };
       t.start();
     } else {
       doRun();
@@ -80,21 +82,21 @@ class Grunt  {
     String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
     boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
     boolean bWait = "true".equals(System.getProperty("org.knopflerfish.junit_runner.wait"));
-    
+
     if(bWait) {
       Bundle system = bc.getBundle(0);
       log("Wait for framework start");
       int n = 100;
       while(system.getState() != Bundle.ACTIVE) {
-	try {
-	  Thread.sleep(500);
-	} catch (InterruptedException e) {
-	  throw new BundleException("wait interrupted: " + e);
-	}
-	n--;
-	if(n <= 0) {
-	  throw new BundleException("Framework failed to start in a reasonable time");
-	}
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          throw new BundleException("wait interrupted: " + e);
+        }
+        n--;
+        if(n <= 0) {
+          throw new BundleException("Framework failed to start in a reasonable time");
+        }
       }
       log("Framework start complete");
     }
@@ -110,24 +112,24 @@ class Grunt  {
       String       filter = tests.substring(FILTER_PREFIX.length());
       StringBuffer sb     = new StringBuffer();
       try {
-	ServiceReference[] srl = bc.getServiceReferences(null, filter);
-	for(int i = 0; srl != null && i < srl.length; i++) {
-	  String id = (String)srl[i].getProperty("service.pid");
-	  if(id != null) {
-	    if(sb.length() > 0) {
-	      sb.append(" ");
-	    }
-	    sb.append(id);
-	  }
-	}
-	tests = sb.toString();
+        ServiceReference[] srl = bc.getServiceReferences(null, filter);
+        for(int i = 0; srl != null && i < srl.length; i++) {
+          String id = (String)srl[i].getProperty("service.pid");
+          if(id != null) {
+            if(sb.length() > 0) {
+              sb.append(" ");
+            }
+            sb.append(id);
+          }
+        }
+        tests = sb.toString();
       } catch (Exception e) {
-	throw new BundleException("Filter failed, filter='" + filter + "', err=" + e);
+        throw new BundleException("Filter failed, filter='" + filter + "', err=" + e);
       }
     }
-    
+
     log("tests=" + tests + ", outdir=" + outdir + ", quit=" + bQuit);
-    
+
     File outDir = null;
     try {
       outDir = new File(outdir);
@@ -152,78 +154,78 @@ class Grunt  {
       String[]       ids = new String[st.countTokens()];
       int n = 0;
       while (st.hasMoreTokens()) {
-	ids[n++] = st.nextToken().trim();
+        ids[n++] = st.nextToken().trim();
       }
-      
+
       ServiceReference sr = bc.getServiceReference(JUnitService.class.getName());
       if(sr == null) {
-	throw new BundleException("JUnitService is not available");
+        throw new BundleException("JUnitService is not available");
       }
-      
+
       JUnitService ju = (JUnitService)bc.getService(sr);
       if(ju == null) {
-	throw new BundleException("JUnitService instance is not available");
+        throw new BundleException("JUnitService instance is not available");
       }
 
       try {
-	indexPW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, INDEX_FILE))));
+        indexPW = new PrintWriter(new PrintWriter(new FileOutputStream(new File(outDir, INDEX_FILE))));
       } catch (Exception e) {
-	e.printStackTrace();
-	throw new BundleException("Failed to create index.xml");
+        e.printStackTrace();
+        throw new BundleException("Failed to create index.xml");
       }
-      
+
       indexPW.println("<?xml version=\"1.0\"?>");
       indexPW.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_index_style.xsl\"?>");
 
 
       for(int i = 0; i < ids.length; i++) {
-	String fname = ids[i] + ".xml";
-	File outFile = new File(outDir, fname);
-	PrintWriter pw = null;
-	try {
-	  log("run test '" + ids[i] + "', out=" + outFile.getAbsolutePath());	pw = new PrintWriter(new FileOutputStream(outFile));
-	  TestSuite suite = ju.getTestSuite(ids[i], null);
-	  ju.runTest(pw, suite);
-	  
-	} catch (Exception e) {
-	  log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
-	  e.printStackTrace();
-	} finally {
-	  try { pw.close(); } catch (Exception ignored) { }
-	}
+        String fname = ids[i] + ".xml";
+        File outFile = new File(outDir, fname);
+        PrintWriter pw = null;
+        try {
+          log("run test '" + ids[i] + "', out=" + outFile.getAbsolutePath());   pw = new PrintWriter(new FileOutputStream(outFile));
+          TestSuite suite = ju.getTestSuite(ids[i], null);
+          ju.runTest(pw, suite);
+
+        } catch (Exception e) {
+          log("failed test '" + ids[i] + "', out=" + outFile.getAbsolutePath());
+          e.printStackTrace();
+        } finally {
+          try { pw.close(); } catch (Exception ignored) { }
+        }
       }
-      
+
       indexPW.println("<junit_index>");
       String[] xmlFiles = outDir.list();
       for(int i = 0; i < xmlFiles.length; i++) {
-	String fname = xmlFiles[i];
-	if(fname.endsWith(".xml") && !fname.equals(INDEX_FILE)) {
-	  File outFile = new File(outDir, fname);
-	  includeXMLContents(indexPW, outFile); 
-	}
+        String fname = xmlFiles[i];
+        if(fname.endsWith(".xml") && !fname.equals(INDEX_FILE)) {
+          File outFile = new File(outDir, fname);
+          includeXMLContents(indexPW, outFile);
+        }
       }
       indexPW.println("</junit_index>");
 
-      
-      log("\n" + 
-	  "All tests (" + tests + ") done.\n" + 
-	  "Output XML in " + outDir.getAbsolutePath());
+
+      log("\n" +
+          "All tests (" + tests + ") done.\n" +
+          "Output XML in " + outDir.getAbsolutePath());
 
       if(bQuit) {
-	log("Quit framework after tests");
-	bc.getBundle(0).stop();
+        log("Quit framework after tests");
+        bc.getBundle(0).stop();
       }
     } catch (Exception e) {
       e.printStackTrace();
       throw new BundleException("Failed: " + e);
     } finally {
       try {
-	indexPW.close();
+        indexPW.close();
       } catch (Exception ignored) {
       }
     }
   }
-  
+
   void log(String msg) {
     System.out.println("junit_runner: " + msg);
   }
@@ -234,11 +236,11 @@ class Grunt  {
       in = new BufferedReader(new FileReader(srcFile));
       String line;
       while(null != (line = in.readLine())) {
-	String cmp = line.trim();
-	if(!(cmp.startsWith("<?xml ") || 
-	     cmp.startsWith("<?xml-stylesheet "))) { 
-	  out.println(line);
-	}
+        String cmp = line.trim();
+        if(!(cmp.startsWith("<?xml ") ||
+             cmp.startsWith("<?xml-stylesheet "))) {
+          out.println(line);
+        }
       }
     } finally {
       try { in.close(); } catch (Exception ignored) { }
@@ -249,7 +251,7 @@ class Grunt  {
     PrintWriter stylePW = null;
     try {
       stylePW = new PrintWriter(new PrintWriter(new FileOutputStream(toFile)));
-      
+
       printResource(stylePW, fromResource);
     } catch (Exception e) {
       e.printStackTrace();
@@ -270,7 +272,7 @@ class Grunt  {
       byte[] buf = new byte[1024];
       int n = 0;
       while(-1 != (n = bin.read(buf, 0, buf.length))) {
-	out.print(new String(buf, 0, n));
+        out.print(new String(buf, 0, n));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -280,6 +282,24 @@ class Grunt  {
     }
   }
 
+  // TestListener method
+  public void startTest(Test test)
+  {
+    log("Starting test " +test );
+  }
+  // TestListener method
+  public void endTest(Test test)
+  {
+    log("End test " +test);
+  }
+  // TestListener method
+  public void addError(Test test, Throwable t)
+  {
+    log("Test error " +test +" throwable: " +t);
+  }
+  // TestListener method
+  public void addFailure(Test test, AssertionFailedError t)
+  {
+    log("Test failure " +test +" Assertion: " +t);
+  }
 }
-  
-  

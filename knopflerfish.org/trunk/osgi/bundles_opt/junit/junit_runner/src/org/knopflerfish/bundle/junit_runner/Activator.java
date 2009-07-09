@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import java.io.*;
 public class Activator implements BundleActivator
 {
   BundleContext               bc = null;
-  
+
   static final String DEFAULT_OUTDIR = "junit_grunt";
 
   public void start(BundleContext bc) throws BundleException {
@@ -62,5 +62,3 @@ public class Activator implements BundleActivator
   }
 
 }
-  
-  
