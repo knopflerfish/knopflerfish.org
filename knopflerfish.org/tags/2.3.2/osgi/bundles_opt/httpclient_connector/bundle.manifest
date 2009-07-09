@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: httpclient_connector
+Bundle-SymbolicName: org.knopflerfish.bundle.httpclient_connector
+Bundle-Version: 2.1.0
+Bundle-UUID: org.knopflerfish:httpclient_connector:2.1.0
+Bundle-Activator: org.knopflerfish.bundle.httpclient_connector.Activator
+Bundle-Classpath: .,
+                  codec/commons-codec-1.3.jar,
+                  httpclient/commons-httpclient-3.1.jar
+Import-Package: org.osgi.framework,
+                org.osgi.service.io,
+                javax.crypto,
+                javax.crypto.spec,
+                javax.microedition.io,
+                javax.net,
+                javax.net.ssl,
+                org.apache.commons.logging
+Export-Package: org.apache.commons.httpclient, 
+                org.apache.commons.httpclient.auth,
+                org.apache.commons.httpclient.util,
+                org.apache.commons.httpclient.methods,
+                org.apache.commons.httpclient.params,
+                org.apache.commons.httpclient.auth,
+                org.apache.commons.httpclient.cookie,
+                org.apache.commons.httpclient.protocol,
+                org.apache.commons.codec
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Description: A HTTP IO-Connector with proxy support,
+ based on apache commons http client 3.1.
+Bundle-Vendor: Knopflerfish
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/
+
