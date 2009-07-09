@@ -19,7 +19,9 @@
   <property name="api.pattern"  value="org/knopflerfish/service/**"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
-  <target name="bundle.custom.pre">
+  <target name="bundle.custom.pre"
+	  depends="check_warn_openssl"
+	  if="openssl_exist">
     <antcall target="bundleP1_test"/>
     <antcall target="bundleP2_test"/>
     <antcall target="bundleP3_test"/>
