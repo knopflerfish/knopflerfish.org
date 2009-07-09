@@ -7,6 +7,8 @@ Contents:
  README.txt       - this file.
  release_notes.*  - the release notes for the current release.
  changelog.html   - the subversion change log for this release.
+ NOTICE.txt       - notice file on included third party software.
+ LICENSE.txt      - notice file.
 
  ant              - Ant related code and build include files.
  docs             - online documentation (html),
