@@ -104,8 +104,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   JUnit Runner 2.1.0
 
-  Added a test listener that prints all test events to
-  <tt>System.out</tt>.
+  Added a test listener that prints all test events to System.out.
 
 
   Build System
