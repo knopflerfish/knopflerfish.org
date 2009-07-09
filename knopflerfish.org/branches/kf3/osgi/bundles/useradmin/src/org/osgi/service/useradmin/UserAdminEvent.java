@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.useradmin/src/org/osgi/service/useradmin/UserAdminEvent.java,v 1.8 2006/06/16 16:31:41 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +26,14 @@ import org.osgi.framework.ServiceReference;
  * 
  * <p>
  * A type code is used to identify the event. The following event types are
- * defined: {@link #ROLE_CREATED}type, {@link #ROLE_CHANGED}type, and
- * {@link #ROLE_REMOVED}type. Additional event types may be defined in the
+ * defined: {@link #ROLE_CREATED} type, {@link #ROLE_CHANGED} type, and
+ * {@link #ROLE_REMOVED} type. Additional event types may be defined in the
  * future.
  * 
  * @see UserAdmin
  * @see UserAdminListener
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 5673 $
  */
 public class UserAdminEvent {
 	private ServiceReference	ref;
@@ -93,8 +91,8 @@ public class UserAdminEvent {
 	 * Returns the type of this event.
 	 * 
 	 * <p>
-	 * The type values are {@link #ROLE_CREATED}type, {@link #ROLE_CHANGED}
-	 * type, and {@link #ROLE_REMOVED}type.
+	 * The type values are {@link #ROLE_CREATED} type, {@link #ROLE_CHANGED}
+	 * type, and {@link #ROLE_REMOVED} type.
 	 * 
 	 * @return The event type.
 	 */

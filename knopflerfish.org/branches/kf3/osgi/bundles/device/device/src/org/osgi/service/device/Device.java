@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.device/src/org/osgi/service/device/Device.java,v 1.9 2006/06/16 16:31:29 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,26 +21,28 @@ package org.osgi.service.device;
  * 
  * <p>
  * A service must implement this interface or use the
- * {@link Constants#DEVICE_CATEGORY}registration property to indicate that it
+ * {@link Constants#DEVICE_CATEGORY} registration property to indicate that it
  * is a device. Any services implementing this interface or registered with the
- * <code>DEVICE_CATEGORY</code> property will be discovered by the device manager.
+ * <code>DEVICE_CATEGORY</code> property will be discovered by the device
+ * manager.
  * 
  * <p>
  * Device services implementing this interface give the device manager the
  * opportunity to indicate to the device that no drivers were found that could
  * (further) refine it. In this case, the device manager calls the
- * {@link #noDriverFound}method on the <code>Device</code> object.
+ * {@link #noDriverFound} method on the <code>Device</code> object.
  * 
  * <p>
  * Specialized device implementations will extend this interface by adding
  * methods appropriate to their device category to it.
  * 
- * @version $Revision: 1.9 $
+ * @version $Revision: 5654 $
  * @see Driver
+ * @ThreadSafe
  */
 public interface Device {
 	/**
-	 * Return value from {@link Driver#match}indicating that the driver cannot
+	 * Return value from {@link Driver#match} indicating that the driver cannot
 	 * refine the device presented to it by the device manager.
 	 * 
 	 * The value is zero.

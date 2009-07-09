@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.http/src/org/osgi/service/http/HttpService.java,v 1.11 2006/06/16 16:31:35 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +15,17 @@
  */
 package org.osgi.service.http;
 
+import java.util.Dictionary;
+
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
-import java.util.Dictionary;
 
 /**
  * The Http Service allows other bundles in the OSGi environment to dynamically
  * register resources and servlets into the URI namespace of Http Service. A
  * bundle may later unregister its resources or servlets.
  * 
- * @version $Revision: 1.11 $
+ * @version $Revision: 5673 $
  * @see HttpContext
  */
 public interface HttpService {
@@ -89,9 +88,10 @@ public interface HttpService {
 	 * the registration will be mapped. An alias must begin with slash ('/') and
 	 * must not end with slash ('/'), with the exception that an alias of the
 	 * form &quot;/&quot; is used to denote the root alias. The name parameter
-	 * must also not end with slash ('/'). See the specification text for
-	 * details on how HTTP requests are mapped to servlet and resource
-	 * registrations.
+	 * must also not end with slash ('/') with the exception that a name of the
+	 * form &quot;/&quot; is used to denote the root of the bundle. See the
+	 * specification text for details on how HTTP requests are mapped to servlet
+	 * and resource registrations.
 	 * <p>
 	 * For example, suppose the resource name /tmp is registered to the alias
 	 * /files. A request for /files/foo.txt will map to the resource name
@@ -103,20 +103,20 @@ public interface HttpService {
 	 * 
 	 * The Http Service will call the <code>HttpContext</code> argument to map
 	 * resource names to URLs and MIME types and to handle security for
-	 * requests. If the <code>HttpContext</code> argument is <code>null</code>, a
-	 * default <code>HttpContext</code> is used (see
+	 * requests. If the <code>HttpContext</code> argument is <code>null</code>,
+	 * a default <code>HttpContext</code> is used (see
 	 * {@link #createDefaultHttpContext}).
 	 * 
 	 * @param alias name in the URI namespace at which the resources are
 	 *        registered
 	 * @param name the base name of the resources that will be registered
 	 * @param context the <code>HttpContext</code> object for the registered
-	 *        resources, or <code>null</code> if a default <code>HttpContext</code>
-	 *        is to be created and used.
-	 * @throws NamespaceException if the registration fails because the alias
-	 *            is already in use.
-	 * @throws java.lang.IllegalArgumentException if any of the parameters
-	 *            are invalid
+	 *        resources, or <code>null</code> if a default
+	 *        <code>HttpContext</code> is to be created and used.
+	 * @throws NamespaceException if the registration fails because the alias is
+	 *         already in use.
+	 * @throws java.lang.IllegalArgumentException if any of the parameters are
+	 *         invalid
 	 */
 	public void registerResources(String alias, String name,
 			HttpContext context) throws NamespaceException;
@@ -132,11 +132,11 @@ public interface HttpService {
 	 * returning.
 	 * <p>
 	 * If the bundle which performed the registration is stopped or otherwise
-	 * "unget"s the Http Service without calling {@link #unregister}then Http
+	 * "unget"s the Http Service without calling {@link #unregister} then Http
 	 * Service must automatically unregister the registration. However, if the
 	 * registration was for a servlet, the <code>destroy</code> method of the
 	 * servlet will not be called in this case since the bundle may be stopped.
-	 * {@link #unregister}must be explicitly called to cause the
+	 * {@link #unregister} must be explicitly called to cause the
 	 * <code>destroy</code> method of the servlet to be called. This can be done
 	 * in the <code>BundleActivator.stop</code> method of the
 	 * bundle registering the servlet.
