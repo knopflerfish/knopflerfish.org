@@ -38,6 +38,7 @@ import java.util.*;
 
 import javax.swing.table.*;
 import javax.swing.*;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 
@@ -49,26 +50,50 @@ import org.osgi.service.event.EventConstants;
  * </p>
  */
 public class EventTableModel extends DefaultTableModel {
-  
-  private ArrayList entries = new ArrayList();
+
+  private static final String CAPACITY_PROP_NAME
+    = EventTableModel.class.getName() + ".capacity";
+
+  private int capacity = 342;
+
+  private ArrayList/*<org.osgi.service.event.Event>*/ entries = new ArrayList();
 
   EventReaderDispatcher dispatcher;
 
-  DefaultListModel allKeys;
-  
   /**
    * Name of column headers
    */
-  String[] headers = { 
+  String[] headers = {
     EventConstants.TIMESTAMP,
     EventConstants.EVENT_TOPIC,
-    "bundle.id", 
-    "message", 
+    "bundle.id",
+    "message",
   };
 
+  /** The default constructor. */
+  public EventTableModel(BundleContext bc) {
+    super();
+    final String capacityS = bc.getProperty(CAPACITY_PROP_NAME);
+    if (null!=capacityS && capacityS.length()>0) {
+      try {
+        capacity = Integer.parseInt(capacityS.trim());
+      } catch (NumberFormatException nfe){
+      }
+    }
+    if (capacity>0) {
+      entries.ensureCapacity(capacity);
+    }
+  }
+
+  /**
+   * Only to be used from classes that inherits from this one, but
+   * implements all methods in terms of an aggregated EventTableModel.
+   * <p>
+   * E.g., used from FilterEventTableModel that decorates and filters
+   * (based on bundle) the set of events.
+   */
   public EventTableModel() {
     super();
-    this.allKeys = allKeys;
   }
 
   public EventReaderDispatcher getDispatcher() {
@@ -79,7 +104,7 @@ public class EventTableModel extends DefaultTableModel {
     this.dispatcher = dispatcher;
   }
 
-  
+
   /*
   public Class getColumnClass(int c) {
     return clazzes[c];
@@ -99,7 +124,7 @@ public class EventTableModel extends DefaultTableModel {
       for(Iterator it = names.iterator(); it.hasNext(); ) {
         h2[i++] = it.next().toString();
       }
-      
+
     }
     boolean bChanged = false;
     if(h2.length == headers.length) {
@@ -148,7 +173,7 @@ public class EventTableModel extends DefaultTableModel {
 
   public Object getValueAt(Event e, int col) {
 
-    if(col >= getColumnCount()) { 
+    if(col >= getColumnCount()) {
       return "";
     }
 
@@ -160,6 +185,11 @@ public class EventTableModel extends DefaultTableModel {
   }
 
   public void logged(Event entry) {
+    if (capacity>0 && capacity == entries.size()) {
+      // List is full; remove oldest (first) event.
+      entries.remove(0);
+      fireTableRowsDeleted(0, 0);
+    }
     entries.add(entry);
     fireTableRowsInserted(entries.size() - 1, entries.size());
   }

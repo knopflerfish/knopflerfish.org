@@ -53,8 +53,8 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 /**
- * * The telnet console server listens to a port for connections * and upon
- * accept, creates a telnet session to handle that connection *
+ * The telnet console server listens to a port for connections and
+ * upon accept, creates a telnet session to handle that connection.
  */
 public class TelnetServer implements org.osgi.framework.BundleActivator,
         Runnable, ManagedService {
@@ -153,8 +153,8 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
                 try {
                     // serverSocket = new ServerSocket(telnetConfig.getPort());
                     serverSocket = new ServerSocket(telnetConfig.getPort(),
-                            telnetConfig.getBacklog(), telnetConfig
-                                    .getAddress());
+                                                    telnetConfig.getBacklog(),
+                                                    telnetConfig.getAddress());
 
                     log.info("listening on port " + telnetConfig.getPort());
 
@@ -178,7 +178,7 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
                     telnetSessions.put(telnetSession, telnetSessionThread);
                     telnetSessionThread.setDaemon(false);
                     telnetSessionThread.start();
-                } catch (InterruptedIOException iox) {
+                } catch (InterruptedIOException iox) { // Timeout
                     // iox.printStackTrace();
                 } catch (IOException iox) {
                     // iox.printStackTrace();
