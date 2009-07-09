@@ -173,6 +173,7 @@
 	<filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
       </filterset>
     </copy>
+    <copy todir="${release.dir}" file="${distrib.out.dir}/NOTICE.txt"/>
 
     <ant dir="htdocs" target="all"/>
 
