@@ -25,7 +25,7 @@
     <delete dir="jars"/>
     <ant dir="." antfile="build_keystore.xml" target="clean"/>
     <!-- Remove files not built to out -->
-    <delete includeemptydirs="true">
+    <delete includeemptydirs="true" failonerror="false">
       <fileset dir="framework_test/resources"      includes="*.jar"/>
       <fileset dir="restart_test"                  includes="*.xargs"/>
       <fileset dir="restart_test/resources"/>
