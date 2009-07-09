@@ -317,7 +317,9 @@ class Services {
     if (res.isEmpty()) {
       return null;
     } else {
-      res = framework.hooks.filterServiceReferences(bundle.getBundleContext(), clazz, filter, !doAssignableToTest, res);
+      BundleContext bc = bundle != null ? bundle.getBundleContext() : null;
+      res = framework.hooks.filterServiceReferences(bc, clazz, filter,
+                                                    !doAssignableToTest, res);
       ServiceReference[] a = new ServiceReference[res.size()];
       res.toArray((Object[])a);
       return a;
