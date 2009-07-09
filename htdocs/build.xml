@@ -211,6 +211,16 @@
      <param name="tofile"   value="${distrib.out.dir}/release_notes.html"/>
    </antcall>
 
+   <loadfile property="license.content"
+	     srcFile="${distrib.out.dir}/LICENSE.txt"/>
+
+   <copy file="${license.html}"
+         tofile="${distrib.out.dir}/license.html">
+     <filterset begintoken="@" endtoken="@">
+       <filter token="LICENSE.txt" value="${license.content}"/>
+     </filterset>
+   </copy>
+
    <makehtml title="${htdocs.distname}"
              description="The ${htdocs.distname} framework is a complete OSGi R4 framework"
              template="${template.html}"
@@ -232,7 +242,7 @@
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="license.html"
-              fromfile="${license.html}"
+              fromfile="${distrib.out.dir}/license.html"
               disable="LICENSE"/>
   
     <property name="changelog.file"
