@@ -373,9 +373,8 @@ public class BundleImpl implements Bundle {
     if ((options & START_ACTIVATION_POLICY) != 0 && lazyActivation ) {
       if (STARTING == state) return;
       state = STARTING;
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.LAZY_ACTIVATION,
-                                                    this));
       bundleContext = new BundleContextImpl(this);
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.LAZY_ACTIVATION, this));
     } else {
       finalizeActivation();
     }
