@@ -279,7 +279,8 @@
   <target name          = "run-kf-tests"
           depends       = "bundle_tasks">
     <delete dir="osgi/junit_grunt"/>
-    <ant    dir="osgi" target="run-kf-tests-secure"/>
+    <!-- Ok to use "run-kf-tests-secure-bare" here since the build is clean.-->
+    <ant    dir="osgi" target="run-kf-tests-secure-bare"/>
     <copy   todir="${release.dir}/junit_grunt">
      <fileset dir="osgi/junit_grunt"/>
     </copy>
@@ -531,7 +532,7 @@
     <mkdir dir = "${distrib.out.dir}"/>
   </target>
 
-   <!-- Some of the distrib targets assumes a defulat build -->
+   <!-- Some of the distrib targets assumes a default build -->
    <!-- thus the dependency on "clean,default". -->
    <target name        = "distrib"
 	   description = "Builds all distribution files"
