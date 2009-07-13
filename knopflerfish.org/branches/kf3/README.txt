@@ -7,6 +7,8 @@ Contents:
  README.txt       - this file.
  release_notes.*  - the release notes for the current release.
  changelog.html   - the subversion change log for this release.
+ NOTICE.txt       - notice file on included third party software.
+ LICENSE.txt      - notice file.
 
  ant              - Ant related code and build include files.
  docs             - online documentation (html),
@@ -42,9 +44,10 @@ Building:
      BCEL is automtically downloaded to ant/lib during the build
      process, you may also choose to install it locally in
      $ANTHOME/lib to chare it between many build trees.
-   - openssl, for Certificate Authority (CA) Management when creating
-     a keystore for tests running with security enabled. For availability
-     see http://www.openssl.org/related/binaries.html.
+   - openssl, to create and manipulate certificates when using
+     security and the Conditional Permission Admin (CPA) service. Test
+     suites for CPA can not be built and executed without openssl.
+
 
 1. Step into the knopflerfish.org directory.
 2. Start the build by:
