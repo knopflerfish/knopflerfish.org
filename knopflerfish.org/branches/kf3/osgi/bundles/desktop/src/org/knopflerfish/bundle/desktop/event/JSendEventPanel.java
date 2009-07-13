@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,37 +57,37 @@ public class JSendEventPanel extends JPanel  {
 
   JEventTable     table;
 
-  public JSendEventPanel(JEventTable     _table, 
+  public JSendEventPanel(JEventTable     _table,
                          DefaultListModel _allTopics) {
     super(new BorderLayout());
-    
+
     this.table     = _table;
     this.allTopics = _allTopics;
 
     topicModel = new DefaultComboBoxModel();
-    topicC = new JComboBox(topicModel); 
+    topicC = new JComboBox(topicModel);
     topicC.setEditable(true);
-    
+
     topicC.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String topicS = topicC.getSelectedItem().toString();
           if(-1 == topicModel.getIndexOf(topicS)) {
             topicModel.addElement(topicS);
           }
-          
+
         }
       });
 
     updateTopics();
 
-    JLabel jl;    
+    JLabel jl;
     JPanel tPanel = new JPanel(new BorderLayout());
-    
+
     // jl = new JLabel("Topic:");
     // jl.setSize(new Dimension(100, jl.getSize().height));
     // tPanel.add(jl, BorderLayout.WEST);
     tPanel.add(topicC, BorderLayout.CENTER);
-    
+
     tPanel.setBorder(BorderFactory.createTitledBorder("Event topic"));
 
 
@@ -118,7 +118,7 @@ public class JSendEventPanel extends JPanel  {
           makeModel(templateEvent);
         }
       });
-    
+
     JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -136,7 +136,7 @@ public class JSendEventPanel extends JPanel  {
           ((AbstractTableModel)propTable.getModel()).fireTableDataChanged();
         }
       });
-                                 
+
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     buttonPanel.add(sendButton);
@@ -145,13 +145,13 @@ public class JSendEventPanel extends JPanel  {
     propTable = new JTable() {
         public TableCellRenderer getCellRenderer(int row, int column) {
           Object val = getValueAt(row, column);
-          
-          return getDefaultRenderer(val != null ? val.getClass() : String.class);    
+
+          return getDefaultRenderer(val != null ? val.getClass() : String.class);
         }
         public TableCellEditor getCellEditor(int row, int column) {
           Object val = getValueAt(row, column);
-          
-          TableCellEditor ce = getDefaultEditor(val != null ? val.getClass() : String.class);    
+
+          TableCellEditor ce = getDefaultEditor(val != null ? val.getClass() : String.class);
           return ce;
         }
       };
@@ -169,7 +169,7 @@ public class JSendEventPanel extends JPanel  {
     tableButtonPanel.add(clearButton);
 
     JScrollPane scroll = new JScrollPane(propTable);
-    
+
     propPanel.add(scroll);
     propPanel.add(tableButtonPanel);
 
@@ -187,7 +187,7 @@ public class JSendEventPanel extends JPanel  {
 
   ArrayList[] data;
 
-  void makeModel(Event template) {    
+  void makeModel(Event template) {
 
     data = new ArrayList[] { new ArrayList(), new ArrayList() };
     int extraRowCount = 10;
@@ -206,22 +206,22 @@ public class JSendEventPanel extends JPanel  {
       data[0].add("");
       data[1].add("");
     }
-      
+
     AbstractTableModel model = new AbstractTableModel() {
-        public String 	getColumnName(int column) {
+        public String   getColumnName(int column) {
           return column == 0 ? "Name" : "Value";
         }
 
-        public boolean 	isCellEditable(int rowIndex, int columnIndex) {
+        public boolean  isCellEditable(int rowIndex, int columnIndex) {
           return true;
         }
-   
+
         public int getColumnCount() { return 2; }
         public int getRowCount() { return data[0].size();}
-        public Object getValueAt(int row, int col) { 
+        public Object getValueAt(int row, int col) {
           return data[col].get(row);
         }
-        public void setValueAt(Object val, int row, int col) { 
+        public void setValueAt(Object val, int row, int col) {
           Object oldVal = data[col].get(row);
           if(oldVal != null && val != null) {
             if(oldVal.getClass() != val.getClass()) {
@@ -262,8 +262,8 @@ public class JSendEventPanel extends JPanel  {
     }
     props.put("timestamp.generated", new Long(System.currentTimeMillis()));
 
-    org.osgi.service.event.Event ev = 
-      new org.osgi.service.event.Event(topic, props);
+    org.osgi.service.event.Event ev =
+      new org.osgi.service.event.Event(topic, (Dictionary) props);
 
 
     ServiceReference sr = Activator.getBC().getServiceReference(EventAdmin.class.getName());
@@ -299,4 +299,3 @@ public class JSendEventPanel extends JPanel  {
 
 
 }
-
