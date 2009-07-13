@@ -34,6 +34,7 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
+import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
