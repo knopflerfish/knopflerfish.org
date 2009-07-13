@@ -74,6 +74,8 @@
 
   <property name="javadoc.out.dir" location="javadoc"/>
 
+  <property name="jarunpacker.dir" location="tools/jarunpacker"/>
+
   <property name     = "distribfile"
             location = "${release.dir}/knopflerfish_osgi_${version}.jar"/>
 
@@ -95,20 +97,12 @@
   <property name="ant.dir"          location="ant"/>
   <import   file="${ant.dir}/bundletasks.xml"/>
 
-  <property name="jarunpacker" location="tools/jarunpacker"/>
-  <property name="jarunpacker.license.txt"
-            location="${jarunpacker}/license.txt"/>
-  <property name="jarunpacker.license.html"
-            location="${jarunpacker}/license.html"/>
-  <property name="jarunpacker.properties"
-            location="${jarunpacker}/strings.properties"/>
-
 
   <target name="default"
-          description="Builds entire platform except optional and test bundels" >
+          description="Builds entire platform except optional and test bundles" >
     <delete file="htdocs/bundles.html"/>
     <ant dir="ant"                 target="all" />
-    <ant dir="tools/jarunpacker"   target="jar"/>
+    <ant dir="${jarunpacker.dir}"   target="jar"/>
     <ant dir="osgi"                target="default" />
   </target>
 
@@ -116,7 +110,7 @@
           description="Builds entire platform including optional and test bundles" >
     <delete file="htdocs/bundles.html"/>
     <ant dir="ant"                 target="all" />
-    <ant dir="tools/jarunpacker"   target="jar"/>
+    <ant dir="${jarunpacker.dir}"   target="jar"/>
     <ant dir="osgi"                target="all" />
   </target>
 
@@ -132,7 +126,7 @@
     <delete dir="${javadoc.out.dir}"      />
     <ant    dir="htdocs"            target="clean" />
     <ant    dir="osgi"              target="clean" />
-    <ant    dir="tools/jarunpacker" target="clean"/>
+    <ant    dir="${jarunpacker.dir}" target="clean"/>
     <ant    dir="ant"               target="clean" />
   </target>
 
@@ -149,7 +143,7 @@
     <property name="template.html"  location="${htdocs.dir}/html_templates/template.html"/>
     <property name="formatted.html" location="${htdocs.dir}/html_templates/formatted.html"/>
     <property name="license.html"   location="${htdocs.dir}/html_src/license.html"/>
-    
+
     <copy file   = "release_notes.in"
           tofile = "${distrib.out.dir}/release_notes.txt">
       <filterset begintoken="@" endtoken="@">
@@ -160,16 +154,28 @@
     <!-- Used by the desktop to check for new releases. -->
     <copy file="${distrib.out.dir}/release_notes.txt"
 	  todir="${release.dir}"/>
-    
-    <copy file   = "README.txt"
-          tofile = "${distrib.out.dir}/README.txt">
+
+    <tstamp>
+     <format property = "htdocs.tstamp.year"
+             pattern  = "yyyy"
+             locale   = "en"/>
+    </tstamp>
+
+    <copy todir = "${distrib.out.dir}">
+      <fileset dir=".">
+	<include name="README.txt"/>
+	<include name="NOTICE.txt"/>
+	<include name="LICENSE.txt"/>
+      </fileset>
       <filterset begintoken="@" endtoken="@">
+	<filter token="YEAR"         value="${htdocs.tstamp.year}"/>
 	<filter token="VERSION"      value="${version}"/>
 	<filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
       </filterset>
     </copy>
-    
-    <ant    dir         = "htdocs"  target      = "all"/>
+    <copy todir="${release.dir}" file="${distrib.out.dir}/NOTICE.txt"/>
+
+    <ant dir="htdocs" target="all"/>
 
     <copy todir="${release.doc.dir}">
       <fileset dir="${htdocs.dir}">
@@ -178,11 +184,10 @@
 	<include name="images/**"/>
       </fileset>
     </copy>
-    
-
 
   </target>
-  
+
+
   <!-- docs, tutorials and other documentation -->
   <target name="docs">
     <mkdir dir="${release.doc.dir}/tutorials"/>
@@ -193,7 +198,7 @@
       </fileset>
     </copy>
   </target>
-  
+
   <target name="check_javadoc" if="javadoc.out.dir.present">
    <echo  message  = "*** Using pre-build javadocs" />
    <echo  message  = "*** remove ${javadoc.out.dir} to rebuild" />
@@ -244,16 +249,15 @@
    </bundlehtml>
   </target>
 
-  
+
   <target name="bundle_doc"
-	  description="Creates bundle specific documentaion"
           depends="bundle_tasks">
     <property name="bundledoc.list.header"
 	      value="Knopflerfish OSGi ${version}"/>
 
     <mkdir dir="${bundledoc.dir}"/>
     <ant   dir="osgi"	target="bundle_doc"/>
-    
+
     <copy todir="${bundledoc.dir}">
       <!-- The generated bundle_doc files -->
       <fileset dir="osgi/out/doc">
@@ -272,10 +276,13 @@
   </target>
 
   <!-- Runs the kf-test suites and copies the test result to the release.-->
-  <target name          = "run-kf-tests"
-          depends       = "bundle_tasks">
+  <target    name="run-kf-tests"
+          depends="bundle_tasks">
     <delete dir="osgi/junit_grunt"/>
-    <ant    dir="osgi" target="run-kf-tests-secure"/>
+    <!-- Ok to use "run-kf-tests-bare" here since the build is clean.-->
+    <ant dir="osgi" target="run-kf-tests-bare">
+      <property name="run.test.secure" value="true"/>
+    </ant>
     <copy   todir="${release.dir}/junit_grunt">
      <fileset dir="osgi/junit_grunt"/>
     </copy>
@@ -293,12 +300,12 @@
           tofile = "${release.dir}/changelog.html">
     </copy>
     <tstamp>
-     <format property = "distrib.tstamp" 
+     <format property = "distrib.tstamp"
              pattern  = "yyyy-MM-dd HH:mm"
              locale   = "en"/>
     </tstamp>
     <tstamp>
-     <format property = "distrib.tstamp.year" 
+     <format property = "distrib.tstamp.year"
              pattern  = "yyyy"
              locale   = "en"/>
     </tstamp>
@@ -385,7 +392,7 @@
       <fileset dir="${bindex.jars.dir}">
 	<include name = "*/*.jar"/>
 	<exclude name = "*/*_api-*.jar"/>
-      </fileset> 
+      </fileset>
     </bindex>
   </target>
 
@@ -527,7 +534,7 @@
     <mkdir dir = "${distrib.out.dir}"/>
   </target>
 
-   <!-- Some of the distrib targets assumes a defulat build -->
+   <!-- Some of the distrib targets assumes a default build -->
    <!-- thus the dependency on "clean,default". -->
    <target name        = "distrib"
 	   description = "Builds all distribution files"
@@ -561,7 +568,7 @@
             target      = "all"/>
 
     <!-- the tool which unpacks the generated jar -->
-    <ant    dir         = "tools/jarunpacker"
+    <ant    dir         = "${jarunpacker.dir}"
             target      = "compile"/>
 
     <!-- builds javadoc if not already present    -->
@@ -597,6 +604,9 @@
           <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
+          <attribute name  = "jarunpacker-licensepath"
+                     value = "/LICENSE.txt"/>
+
           <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
@@ -610,12 +620,19 @@
         </zipfileset>
 	-->
 
+	<!-- Place a copy of the license and notice files in top dir. -->
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+        </zipfileset>
+
         <zipfileset dir    = "${release.doc.dir}"
                     prefix = "knopflerfish.org/docs">
 	  <include name = "**"/>
           <exclude name = "**/*.jar"/>
 	</zipfileset>
-	
+
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
 
@@ -705,23 +722,23 @@
         <zipfileset dir    = "${distrib.out.dir}"
                     prefix = "knopflerfish.org">
            <include name = "README.txt"/>
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
 	   <include name = "release_notes.txt"/>
 	   <include name = "release_notes.html"/>
 	   <include name = "changelog.html"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
+        <zipfileset dir = "${jarunpacker.dir}/out/jarunpacker/classes">
            <include name = "**"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/resources">
+        <zipfileset dir = "${jarunpacker.dir}/resources">
            <include name = "**"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/">
+        <zipfileset dir = "${jarunpacker.dir}/">
          <include name="strings.properties"/>
-         <include name="license.txt"/>
-         <include name="license.html"/>
         </zipfileset>
 
         <zipfileset dir    = "htdocs"
@@ -741,7 +758,7 @@
             target      = "all"/>
 
     <!-- the tool which unpacks the generated jar -->
-    <ant    dir         = "tools/jarunpacker"
+    <ant    dir         = "${jarunpacker.dir}"
             target      = "compile"/>
 
 
@@ -761,6 +778,9 @@
           <attribute name  = "jarunpacker-optbutton"
                      value = "base"/>
 
+          <attribute name  = "jarunpacker-licensepath"
+                     value = "/LICENSE.txt"/>
+
           <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
@@ -769,6 +789,13 @@
 
 
         </manifest>
+
+	<!-- Place a copy of the license and notice files in top dir. -->
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+        </zipfileset>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
@@ -838,23 +865,23 @@
 
         <zipfileset dir    = "${distrib.out.dir}"
                     prefix = "knopflerfish.org">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
 	   <include name = "release_notes.txt"/>
 	   <include name = "release_notes.html"/>
 	   <include name = "changelog.html"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
+        <zipfileset dir = "${jarunpacker.dir}/out/jarunpacker/classes">
            <include name = "**"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/resources">
+        <zipfileset dir = "${jarunpacker.dir}/resources">
            <include name = "**"/>
         </zipfileset>
 
-       <zipfileset dir = "tools/jarunpacker/">
+       <zipfileset dir = "${jarunpacker.dir}/">
          <include name="strings.properties"/>
-         <include name="license.txt"/>
-         <include name="license.html"/>
         </zipfileset>
 
     </jar>
@@ -870,7 +897,7 @@
             target      = "all"/>
 
     <!-- the tool which unpacks the generated jar -->
-    <ant    dir         = "tools/jarunpacker"
+    <ant    dir         = "${jarunpacker.dir}"
             target      = "compile"/>
 
 
@@ -893,10 +920,29 @@
           <attribute name  = "jarunpacker-opendir"
                      value = "$${destdir}/knopflerfish.org/osgi"/>
 
+          <attribute name  = "jarunpacker-licensepath"
+                     value = "/LICENSE.txt"/>
+
           <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
         </manifest>
+
+	<!-- Place a copy of the license and notice files in top dir. -->
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+        </zipfileset>
+
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish.org">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+	   <include name = "release_notes.txt"/>
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
+        </zipfileset>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
@@ -926,27 +972,17 @@
            <exclude name = "**/CVS"/>
         </zipfileset>
 
-        <zipfileset dir    = "${distrib.out.dir}"
-                    prefix = "knopflerfish.org">
-	   <include name = "release_notes.txt"/>
-	   <include name = "release_notes.html"/>
-	   <include name = "changelog.html"/>
-        </zipfileset>
-
-        <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
+        <zipfileset dir = "${jarunpacker.dir}/out/jarunpacker/classes">
            <include name = "**"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/resources">
+        <zipfileset dir = "${jarunpacker.dir}/resources">
            <include name = "**"/>
         </zipfileset>
 
-       <zipfileset dir = "tools/jarunpacker/">
+       <zipfileset dir = "${jarunpacker.dir}/">
          <include name="strings.properties"/>
-         <include name="license.txt"/>
-         <include name="license.html"/>
         </zipfileset>
-
 
     </jar>
 
@@ -967,6 +1003,18 @@
     <zip    destfile    = "${distribfile_tiny}"
             compress    = "true">
 
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
+	   <include name = "release_notes.txt"/>
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+	   <!-- Skip html versions to keep it tiny -->
+	   <!--
+	   <include name = "release_notes.html"/>
+	   <include name = "changelog.html"/>
+	   -->
+        </zipfileset>
+
         <zipfileset dir    = "."
                     prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
 
@@ -981,22 +1029,6 @@
            <include name = "osgi/bundlemanager.props"/>
            <include name = "osgi/bm.props"/>
            <exclude name = "**/CVS"/>
-        </zipfileset>
-
-        <zipfileset dir    = "${distrib.out.dir}"
-                    prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
-	   <include name = "release_notes.txt"/>
-	   <!-- Skip html versions to keep it tiny -->
-	   <!--
-	   <include name = "release_notes.html"/>
-	   <include name = "changelog.html"/>
-	   -->
-        </zipfileset>
-
-        <zipfileset dir    = "tools/jarunpacker/resources"
-                    prefix = "knopflerfish_osgi_${version}">
-           <include name = "license.txt"/>
-           <include name = "osgi_copyright.txt"/>
         </zipfileset>
 
     </zip>
@@ -1024,6 +1056,12 @@
     <zip    destfile    = "${distribfile_tests}"
             compress    = "true">
 
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "knopflerfish_osgi_${version}">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+        </zipfileset>
+
         <zipfileset dir    = "."
                     prefix = "knopflerfish_osgi_${version}/knopflerfish.org">
 
@@ -1043,13 +1081,6 @@
            <exclude name = "**/CVS"/>
         </zipfileset>
 
-        <zipfileset dir    = "tools/jarunpacker/resources"
-                    prefix = "knopflerfish_osgi_${version}">
-           <include name = "license.txt"/>
-           <include name = "osgi_copyright.txt"/>
-        </zipfileset>
-
-
     </zip>
 
   </target>
@@ -1063,13 +1094,12 @@
 
   <target   name        = "distrib_opt_maybe"
             if          = "bundles.opt.present"
-            description = "Builds self-extraction optional distribution file"
 	    depends     = "mkreldir">
 
     <ant dir="osgi/bundles_opt" target="all"/>
 
     <!-- the tool which unpacks the generated jar -->
-    <ant    dir         = "tools/jarunpacker"
+    <ant    dir         = "${jarunpacker.dir}"
             target      = "compile"/>
 
     <copy todir="${release.dir}/osgi/jars">
@@ -1101,10 +1131,24 @@
           <attribute name  = "jarunpacker-windowtitle"
                      value = "Knopflerfish ${version} optional bundles"/>
 
+          <attribute name  = "jarunpacker-licensepath"
+                     value = "/LICENSE.txt"/>
+
           <attribute name  = "knopflerfish-version"
                      value = "${version}"/>
 
         </manifest>
+
+	<!-- Place a copy of the license and notice files in top dir. -->
+        <zipfileset dir    = "${distrib.out.dir}"
+                    prefix = "">
+           <include name = "NOTICE.txt"/>
+           <include name = "LICENSE.txt"/>
+        </zipfileset>
+
+	<zipfileset dir = "${jarunpacker.dir}/">
+          <include name="strings.properties"/>
+        </zipfileset>
 
         <zipfileset dir    = "."
                     prefix = "knopflerfish.org">
@@ -1191,19 +1235,14 @@
           <exclude name = "**/*.jar"/>
 	</zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/out/jarunpacker/classes">
+        <zipfileset dir = "${jarunpacker.dir}/out/jarunpacker/classes">
            <include name = "**"/>
         </zipfileset>
 
-        <zipfileset dir = "tools/jarunpacker/resources">
+        <zipfileset dir = "${jarunpacker.dir}/resources">
            <include name = "**"/>
         </zipfileset>
 
-       <zipfileset dir = "tools/jarunpacker/">
-         <include name="strings.properties"/>
-         <include name="license.txt"/>
-         <include name="license.html"/>
-        </zipfileset>
     </jar>
   </target>
 
@@ -1215,15 +1254,15 @@
  <target name="build_distrib_docs"
 	 description="Builds the distrib docs"
 	 depends="htdocs, docs, bundle_doc, javadoc, jardocs"/>
- 
-  <!--| 
+
+  <!--|
       | The program used to check for broken links is the W3C checklink program:
       | http://validator.w3.org/docs/checklink.html
       |
-      | It must be locally installed as it checks the generated docs on the local 
-      | file system. Only tested on OS X so far. 
-      | 
-      | The program is perl based. Please note the special step that needs to be 
+      | It must be locally installed as it checks the generated docs on the local
+      | file system. Only tested on OS X so far.
+      |
+      | The program is perl based. Please note the special step that needs to be
       | taken to enable SSL/HTTPS support
       |
     -->
@@ -1233,7 +1272,7 @@
 	  output="${distrib.out.dir}/checklink.out">
       <arg value="-qr"/>
       <arg value="-X"/>
-      <arg value=".*/docs/javadoc/index.html.*"/>	
+      <arg value=".*/docs/javadoc/index.html.*"/>
       <arg value="${release.doc.dir}/index.html"/>
     </exec>
   </target>
