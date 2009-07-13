@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,9 +52,9 @@ import org.knopflerfish.service.log.LogRef;
 
 /**
  * An object that sends a given UserAdminEvent to all registered listeners.
- * 
+ *
  * @author Gunnar Ekolin
- * @version 
+ * @version
  */
 final public class SendUserAdminEventJob implements Runnable {
 
@@ -63,7 +63,7 @@ final public class SendUserAdminEventJob implements Runnable {
   ServiceTracker eventAdminTracker;
   UserAdminEvent event;
   Vector         listeners;
-  
+
   SendUserAdminEventJob( BundleContext bc,
                          ServiceTracker eventAdminTracker,
                          UserAdminEvent event,
@@ -76,7 +76,7 @@ final public class SendUserAdminEventJob implements Runnable {
     this.listeners = (Vector) listeners.clone();
     this.log = new LogRef(bc);
   }
-  
+
 
   /** The base of the event admin path for user admin events. **/
   static final String basePath = "org/osgi/service/useradmin/UserAdmin/";
@@ -86,7 +86,7 @@ final public class SendUserAdminEventJob implements Runnable {
    */
   String getEventAdminPath() {
     String evtType = "?";
-    
+
     switch (event.getType()) {
       case UserAdminEvent.ROLE_CREATED:
         evtType = "ROLE_CREATED";
@@ -113,7 +113,7 @@ final public class SendUserAdminEventJob implements Runnable {
     if (null!=val)
       dict.put( key, val );
   }
-  
+
   /**
    * Creates an event admin event for the user admin event object in
    * this job.
@@ -137,16 +137,16 @@ final public class SendUserAdminEventJob implements Runnable {
     put( dict, EventConstants.SERVICE_PID,
          event.getServiceReference().getProperty(Constants.SERVICE_PID) );
 
-    return new Event( path, dict );
+    return new Event( path, (Dictionary) dict );
   }
-  
+
   public void run()
   {
     EventAdmin ea = (EventAdmin) eventAdminTracker.getService();
     if (null!=ea) {
       ea.postEvent( getEvent() );
     }
-    
+
     for (Enumeration en = listeners.elements(); en.hasMoreElements();) {
       ServiceReference sr = (ServiceReference) en.nextElement();
       UserAdminListener ual = (UserAdminListener) bc.getService(sr);
@@ -161,5 +161,5 @@ final public class SendUserAdminEventJob implements Runnable {
       bc.ungetService(sr);
     }
   }
-  
+
 }
