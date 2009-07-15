@@ -2,222 +2,72 @@
 
 <project name="htdocs" default="all">
 
-  <target name="init" depends="release,no_release">
-  </target>
-
-  <target name="release" if="release">
-   <echo     message="release ${release}"/>
-
-   <loadfile property = "message"     
-             srcfile  = "html_src/message_release.html"/>
-
-   <echo     message="message=${message}"/>
-    
-  </target>
-
-  <target name="no_release" unless="release">
-   <echo     message="no release"/>
-   <loadfile property = "message"     
-             srcfile  = "html_src/message_norelease.html"/>
-   <echo     message="message=${message}"/>
-  </target>
-
+  <!-- Helper that creates an HTML document from any file by wrapping -->
+  <!-- it with a pre-element surrounded by appropriate headings.      -->
   <target name="txt2html">
-    <loadfile property = "main" 
-              srcfile  = "${fromfile}"/>
+    <loadfile property="main" srcfile="${fromfile}"/>
 
     <echo message="create ${tofile}"/>
-    <copy file      = "${formatted.html}" 
-          tofile    = "${tofile}" 
-          overwrite = "true"/>
-
+    <copy file="${formatted.html}" tofile="${tofile}" overwrite="true"/>
     <replace file="${tofile}">
-	<replacefilter token="$(MAIN)"
-		       value="${main}"/>		       
+	<replacefilter token="$(MAIN)" value="${main}"/>
     </replace>
   </target>
- <target name="bundle_tasks">
-  <ant target="bundle_tasks" dir=".."/>
+
+  <target name="bundle_tasks">
+    <ant target="bundle_tasks" dir=".."/>
+  </target>
+
+  <target name="all"
+	  description="Creates html docs for distribution of a release">
+    <!-- Set default values for all props used in the htdocs target. -->
+    <property name="htdocs.out"     location="../out/htdocs"/>
+
+    <property name="htdocs.dir"     location="."/>
+    <property name="htdocs.ht.dir"  location="${htdocs.dir}/html_templates"/>
+    <property name="htdocs.hs.dir"  location="${htdocs.dir}/html_src"/>
+
+    <property name="template.html"  location="${htdocs.ht.dir}/template.html"/>
+    <property name="formatted.html" location="${htdocs.ht.dir}/formatted.html"/>
+    <property name="license.html"   location="${htdocs.hs.dir}/license.html"/>
+
+    <property name="changelog.txt"  location="${distrib.dir}/changelog.txt"/>
+    <property name="release_notes.txt"
+	      location="${distrib.dir}/release_notes.txt"/>
+    <property name="LICENSE.txt"    location="${distrib.dir}/LICENSE.txt"/>
+
+    <property name="htdocs.distname" value="Knopflerfish OSGi"/>
+    <property name="base.url"
+	      value="http://www.knopflerfish.org/releases"/>
+
+    <!-- Properties used by the makehtml task. -->
+    <property name="htdocs.link.enabled.class" value="navigation_enabled"/>
+    <property name="htdocs.link.disabled.class" value="navigation_disabled"/>
+    <property name="JAVADOC"
+              value="${base.url}/${version}/docs/javadoc"/>
+    <property name="css_navigation_enabled"     value="navigation_enabled"/>
+    <property name="css_navigation_disabled"    value="navigation_disabled"/>
+    <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE RUNNING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
+
+    <antcall target="htdocs"/>
  </target>
 
-
- <target name="all"
-	 depends="bundle_tasks,init"
-	 description="Create the KF htdocs">
-
-   <!-- set default values -->
-   <condition property="htdocs.out" value=".">
-    <not>
-     <isset property="htdocs.out"/>
-    </not>
-   </condition>
-
-   <condition property="htdocs.dir" value=".">
-    <not>
-     <isset property="htdocs.dir"/>
-    </not>
-   </condition>
-
-   <condition property="template.html" value="${htdocs.dir}/html_templates/template.html">
-    <not>
-     <isset property="template.html"/>
-    </not>
-   </condition>
-
-   <condition property="formatted.html" value="${htdocs.dir}/html_templates/formatted.html">
-    <not>
-     <isset property="formatted.html"/>
-    </not>
-   </condition>
-
-   <condition property="license.html" value="${htdocs.dir}/html_src/license.html">
-    <not>
-     <isset property="license.html"/>
-    </not>
-   </condition>
-
-   <condition property="changelog.txt" value="${htdocs.dir}/../changelog.txt">
-    <not>
-     <isset property="changelog.txt"/>
-    </not>
-   </condition>
-
-   <condition property="release_notes.txt" value="${distrib.out.dir}/release_notes.txt">
-    <not>
-     <isset property="release_notes.txt"/>
-    </not>
-   </condition>
-
-   <condition property="htdocs.distname" value="Knopflerfish OSGi">
-    <not>
-     <isset property="htdocs.distname"/>
-    </not>
-   </condition>
-
-   <condition property="htdocs.link.enabled.class" value="navigation_enabled">
-    <not>
-     <isset property="htdocs.link.enabled.class"/>
-    </not>
-   </condition>
-
-   <condition property="htdocs.link.disabled.class" value="navigation_disabled">
-    <not>
-     <isset property="htdocs.link.disabled.class"/>
-    </not>
-   </condition>
-
-   <condition property="JAVADOC" value="http://www.knopflerfish.org/releases/${version}/javadoc">
-    <not>
-     <isset property="JAVADOC"/>
-    </not>
-   </condition>
-
-  <property name="css_navigation_enabled"	value="navigation_enabled"/>
-  <property name="css_navigation_disabled"	value="navigation_disabled"/>
-  <property name="navigation_pages"		value="INDEX PROG ECLIPSE LICENSE RUNNING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
-
-
-   <!-- define the links -->
-   <!-- 
-   <property name="htdocs.link.id.0" value="INDEX"/>
-   <property name="htdocs.link.type.0" value="link"/>
-   <property name="htdocs.link.url.0" value="$(ROOT)/index.html"/>
-   <property name="htdocs.link.name.0" value="Home"/>
-
-   <property name="htdocs.link.id.1" value="COMP"/>
-   <property name="htdocs.link.type.1" value="link"/>
-   <property name="htdocs.link.url.1" value="$(ROOT)/components.html"/>
-   <property name="htdocs.link.name.1" value="Contents"/>
-
-   <property name="htdocs.link.id.2" value="USERDOCS"/>
-   <property name="htdocs.link.type.2" value="link"/>
-   <property name="htdocs.link.url.2" value="$(ROOT)/extrabundledocs/index.html"/>
-   <property name="htdocs.link.name.2" value="User docs"/>
-
-   <property name="htdocs.link.id.3" value="RELEASE_NOTES"/>
-   <property name="htdocs.link.type.3" value="link"/>
-   <property name="htdocs.link.url.3" value="$(ROOT)/release_notes.html"/>
-   <property name="htdocs.link.name.3" value="Release Notes"/>
-   
-   <property name="htdocs.link.id.4" value="LICENSE"/>
-   <property name="htdocs.link.type.4" value="link"/>
-   <property name="htdocs.link.url.4" value="$(ROOT)/license.html"/>
-   <property name="htdocs.link.name.4" value="License"/>
-
-   <property name="htdocs.link.id.5" value="DOWNLOAD"/>
-   <property name="htdocs.link.type.5" value="link"/>
-   <property name="htdocs.link.url.5" value="$(ROOT)/download.html"/>
-   <property name="htdocs.link.name.5" value="Running"/>
-
-   <property name="htdocs.link.id.6" value="PROG"/>
-   <property name="htdocs.link.type.6" value="link"/>
-   <property name="htdocs.link.url.6" value="$(ROOT)/programming.html"/>
-   <property name="htdocs.link.name.6" value="Programming"/>
-
-   <property name="htdocs.link.id.7" value="SVN"/>
-   <property name="htdocs.link.type.7" value="link"/>
-   <property name="htdocs.link.url.7" value="$(ROOT)/svn_info.html"/>
-   <property name="htdocs.link.name.7" value="Subversion repository"/>
-
-   <property name="htdocs.link.id.8" value="SEPARATOR"/>
-   <property name="htdocs.link.type.8" value="separator"/>
-
-   <property name="htdocs.link.id.9" value="JAVADOC"/>
-   <property name="htdocs.link.type.9" value="link"/>
-   <property name="htdocs.link.url.9" value="$(ROOT)/releases/${version}/javadoc/index.html"/>
-   <property name="htdocs.link.name.9" value="API docs"/>
-
-   <property name="htdocs.link.id.10" value="JARDOCS"/>
-   <property name="htdocs.link.type.10" value="link"/>
-   <property name="htdocs.link.url.10" value="$(ROOT)/releases/${version}/jars/index.html"/>
-   <property name="htdocs.link.name.10" value="Bundle jar docs"/>
-
-   <property name="htdocs.link.id.11" value="FORUM"/>
-   <property name="htdocs.link.type.11" value="link"/>
-   <property name="htdocs.link.url.11" value="https://sourceforge.net/forum/forum.php?forum_id=328005"/>
-   <property name="htdocs.link.name.11" value="Forum"/>
-
-   <property name="htdocs.link.id.12" value="BUGS"/>
-   <property name="htdocs.link.type.12" value="link"/>
-   <property name="htdocs.link.url.12" value="http://sourceforge.net/tracker/?atid=567241&amp;group_id=82798&amp;func=browse"/>
-   <property name="htdocs.link.name.12" value="Bug tracker"/>
-
-   <property name="htdocs.link.id.13" value="BUNDLE_REPO"/>
-   <property name="htdocs.link.type.13" value="link"/>
-   <property name="htdocs.link.url.13" value="http://www.knopflerfish.org/repo/index.html"/>
-   <property name="htdocs.link.name.13" value="Bundle repository"/>
-   -->
-   <antcall target="htdocs"/>
- </target>
-
- <target name="htdocs"
-	 depends="bundle_tasks,init"
-	 description="Create the htdocs">
-   <property name="topdir" location=".."/>
-   <property name="bundle.base" location="${topdir}/osgi/bundles"/>
-   <property name="bundle.opt" location="${topdir}/osgi/bundles_opt"/>
-
-   <taskdef name      = "makehtml"
- 	    classpath = "${topdir}/ant/classes"
-            classname = "org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
-
+ <target name="htdocs" depends="bundle_tasks">
    <antcall target="txt2html">
      <param name="fromfile" value="${changelog.txt}"/>
-     <param name="tofile"   value="${distrib.out.dir}/changelog.html"/>
+     <param name="tofile"   value="${distrib.dir}/changelog.html"/>
    </antcall>
 
    <antcall target="txt2html">
      <param name="fromfile" value="${release_notes.txt}"/>
-     <param name="tofile"   value="${distrib.out.dir}/release_notes.html"/>
+     <param name="tofile"   value="${distrib.dir}/release_notes.html"/>
    </antcall>
 
-   <loadfile property="license.content"
-	     srcFile="${distrib.out.dir}/LICENSE.txt"/>
-
+   <loadfile property="htdocs.license.content" srcFile="${LICENSE.txt}"/>
    <copy file="${license.html}"
          tofile="${distrib.out.dir}/license.html">
      <filterset begintoken="@" endtoken="@">
-       <filter token="LICENSE.txt" value="${license.content}"/>
+       <filter token="LICENSE.txt" value="${htdocs.license.content}"/>
      </filterset>
    </copy>
 
@@ -244,9 +94,9 @@
               tofile="license.html"
               fromfile="${distrib.out.dir}/license.html"
               disable="LICENSE"/>
-  
+
     <property name="changelog.file"
-	      location="${distrib.out.dir}/changelog.html"/>
+	      location="${distrib.dir}/changelog.html"/>
     <makehtml description="List of changes in ${htdocs.distname}"
               title="${htdocs.distname} Changelog"
               template="${template.html}"
@@ -256,7 +106,7 @@
               disable="CHANGELOG"/>
 
     <property name="release_notes.file"
-	      location="${distrib.out.dir}/release_notes.html"/>
+	      location="${distrib.dir}/release_notes.html"/>
     <makehtml description="Release notes for this release of ${htdocs.distname}"
               title="${htdocs.distname} Release Notes"
               template="${template.html}"
@@ -334,7 +184,7 @@
               tofile="tutorials.html"
               fromfile="${htdocs.dir}/html_src/tutorials.html"
 	      disable="TUTORIALS"/>
-    
+
     <makehtml title="${htdocs.distname} - OSGi Service Tutorial"
               description="The OSGi Service Tutorial"
               template="${template.html}"
@@ -344,13 +194,9 @@
 	      disable="SERVICE_TUTORIAL"/>
 
     <echo message="${htdocs.out}"/>
-  </target>
- 
-  <target name="clean">
-   <delete dir="releases"    />
-   <delete file="../changelog.html" />
-   <delete file="../release_notes.html" />
-  </target>
+ </target>
+
+ <target name="clean">
+ </target>
+
 </project>
-
-

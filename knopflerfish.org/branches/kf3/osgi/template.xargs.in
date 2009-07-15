@@ -6,9 +6,9 @@
 # load common properties
 -xargs props.xargs
 
-# Semicolon seprated list of base URLs for searching (completing) bundle URLs
-# in "-install URL" command line options and in the console
--Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
+# Semicolon seprated list of base URLs for searching (completing)
+# bundle URLs in "-install URL" command line options and in the console.
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
 -init
 
@@ -57,7 +57,7 @@
 -initlevel 7
 -install @httproot-N.N.N.jar@
 
-$(WINDOWS_BUNDLES)
+$(OS_ARGS)
 
 -startlevel 7
 

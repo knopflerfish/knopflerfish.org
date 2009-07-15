@@ -2,8 +2,8 @@
 
 <project name="anttasks" default="all">
 
- <property name  = "javadoc.packages"
-           value = "org.knopflerfish.ant.taskdefs.bundle"/>
+ <property name="javadoc.packages"
+           value="org.knopflerfish.ant.taskdefs.bundle"/>
 
 
   <!-- targets -->

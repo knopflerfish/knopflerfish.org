@@ -15,7 +15,7 @@
 -Forg.knopflerfish.verbosity=0
 
 # Prefix for searching for bundle URLs from console or command line
--Dorg.knopflerfish.gosg.jars=$(JAR_PREFIX)
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
 # Various debug flags
 -Forg.knopflerfish.framework.debug.packages=false

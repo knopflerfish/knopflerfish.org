@@ -76,63 +76,16 @@
 
 	  <tr>
 	    <td>
-	      <a href="knopflerfish_osgi_@VERSION@.jar">
-		knopflerfish_osgi_@VERSION@.jar</a>
+	      <a href="knopflerfish_osgi_sdk_@VERSION@.jar">
+		knopflerfish_osgi_sdk_@VERSION@.jar</a>
 	    </td>
 	    <td>
-	      @DISTRIBFILE_LENGTH@
+	      @DISTRIB_SDK_FILE_LENGTH@
 	    </td>
 	    <td>
-	      Complete framework, including source code and
-	      docs. Self-extracting.
-	    </td>
-	  </tr>
-
-	  <tr>
-	    <td>
-	      <a href="knopflerfish_fullbin_osgi_@VERSION@.jar">
-		knopflerfish_fullbin_osgi_@VERSION@.jar</a>
-	    </td>
-	    <td>
-	      @DISTRIBFILE_FULLBIN_LENGTH@
-	    </td>
-	    <td>
-	      Full binary framework and bundles. No source or
-	      docs. Self-extracting.
-	    </td>
-	  </tr>
-
-	  <tr>
-	    <td>
-	      <a href="knopflerfish_bin_osgi_@VERSION@.jar">
-		knopflerfish_bin_osgi_@VERSION@.jar</a><br>
-	    </td> 
-	    <td>
-	      @DISTRIBFILE_BIN_LENGTH@
-	    </td>
-	    <td>
-	      Core binary framework and some bundles. No
-	      source or docs. Self-extracting.
-	    </td>
-	  </tr>
-
-	  <tr>
-	    <td>
-	      <a href="knopflerfish_opt_@VERSION@.jar">
-		knopflerfish_opt_@VERSION@.jar</a><br> 
-	    </td>
-	    <td>
-	      @DISTRIBFILE_OPT_LENGTH@
-	    </td>
-	    <td>
-	      A set of optional bundles, including SOAP support for
-	      any OSGi service. See
-	      <a href="docs/bundledoc">Bundle User Documentation</a>
-	      for details. Also includes support for OSGi
-	      <a href="http://www.knopflerfish.org/XMLMetatype">
-	      Metatype</a> data and a desktop UI for CM. This
-	      download should be installed on top of a previous
-	      installation. Self-extracting.
+	      Complete OSGi development kit, including precompiled
+	      framework and bundles, source code and docs.
+	      Self-extracting.
 	    </td>
 	  </tr>
 
@@ -142,28 +95,15 @@
 		knopflerfish_osgi_tiny_@VERSION@.zip</a><br> 
 	    </td>
 	    <td>
-	      @DISTRIBFILE_TINY_LENGTH@
+	      @DISTRIB_TINY_FILE_LENGTH@
 	    </td>
 	    <td>
 	      Remotely loading framework, no source, no docs, just
-	      framework.jar and config files for loading all bundles
-	      from the web.
+	      framework.jar and config files that will loading all
+	      bundles from the web.
 	    </td>
 	  </tr>
 		
-	  <tr>
-	    <td>
-	      <a href="knopflerfish_osgi_tests_@VERSION@.zip">
-		knopflerfish_osgi_tests_@VERSION@.zip</a><br> 
-	    </td>
-	    <td>
-	      @DISTRIBFILE_TESTS_LENGTH@
-	    </td>
-	    <td>
-	      Bundles for testing the framework and selected
-	      services using JUnit.
-	    </td>
-	  </tr>
 	</table>
 
 	<p>
@@ -171,7 +111,7 @@
       </div>
       <div id="footer">
 	<div id="copyright">
-	  Copyright &copy; 2008-@YEAR@ The Knopflerfish Project. All rights reserved.
+	  Copyright &copy; 2003-@YEAR@ The Knopflerfish Project. All rights reserved.
 	</div>
       </div>
     </div>

@@ -35,10 +35,10 @@
 
 <project name="bundlebuild" basedir=".">
 
-  <dirname  property="ant.dir" file="${ant.file.bundlebuild}"/>
-  <property name="osgi.dir"    location="${ant.dir}/../osgi"/>
-  <property name="proj.dir"    location="."/>
-  <property name="topdir"      location="${osgi.dir}"/>
+  <dirname  property="ant.dir"   file="${ant.file.bundlebuild}"/>
+  <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
+  <property name="proj.dir"      location="."/>
+  <property name="topdir"        location="${osgi.dir}"/>
 
   <!-- Special value to be used as the value for a bundle manifest      -->
   <!-- properties that shall not be included in the generated manifest. -->
@@ -145,7 +145,11 @@
   <!-- Directory to place all intermediate build products for this project. -->
   <property name="outdir"   location="${topdir}/out/${ant.project.name}"/>
 
-  <!-- The root of the local bundle repository. -->
+  <!-- The root of the default bundle repository. -->
+  <property name="osgi.jars.dir" location="${osgi.dir}/jars"/>
+
+  <!-- The root of the local bundle repository, in which built bundles -->
+  <!-- are placed.                                                     -->
   <property name="jars.dir" location="${topdir}/jars"/>
 
   <!-- Subdirectory of jars.dir where this projects bundles shall live. -->
@@ -225,18 +229,20 @@
   <property name="bundlemanifest.verbose" value="true"/>
 
 
-  <!-- Path that finds the framework API packages. -->
-  <path id = "framework.path">
-    <pathelement location = "${osgi.dir}/framework.jar"/>
+  <!-- Path that finds the framework API packages.                 -->
+  <path id="framework.path">
+    <pathelement location="${jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.dir}/framework.jar"/>
   </path>
 
-  <!-- Default compile path for a bundle. The referenced path,    -->
-  <!-- "bundle.compile.path" should be set in the build file that -->
-  <!--  imports this file.                                        -->
-  <path id = "bundle.path">
-    <path refid = "framework.path"/>
-    <path refid = "bundle.api.path"/>
-    <path refid = "bundle.compile.path"/>
+  <!-- Default compile path for a bundle. The referenced path,     -->
+  <!-- "bundle.compile.path" should be set in the build file that  -->
+  <!-- imports this file.                                          -->
+  <path id="bundle.path">
+    <path refid="framework.path"/>
+    <path refid="bundle.api.path"/>
+    <path refid="bundle.compile.path"/>
   </path>
 
   <import file="${ant.dir}/bundletasks.xml"/>
@@ -354,10 +360,10 @@
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="true">
-      <fileset dir="${osgi.dir}/jars">
+      <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <fileset dir="${jars.dir}">
+      <fileset dir="${osgi.jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>
@@ -381,10 +387,10 @@
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="false">
-      <fileset dir="${osgi.dir}/jars">
+      <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <fileset dir="${jars.dir}">
+      <fileset dir="${osgi.jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

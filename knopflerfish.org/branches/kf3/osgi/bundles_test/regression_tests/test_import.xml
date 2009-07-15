@@ -6,7 +6,7 @@
   <dirname  property="topdir" file="${ant.file.test_import}"/>
   <property name="osgi.dir"   location="${topdir}/../.."/>
   <property name="ant.dir"    location="${osgi.dir}/../ant"/>
-  <property name="jars.dir"   location="${topdir}/jars"/> 
+  <property name="jars.dir"   location="${osgi.dir}/test_jars"/> 
   <property name="condperm_warnings.file" location="${osgi.dir}/WARNING-condpermadmin.txt"/>
 
   <!-- Base URLs for test-case xargs files. Must not use ${jars.dir},
@@ -14,7 +14,7 @@
        the base URL which is not good when the xargs file is used in
        the distribution. -->
   <property name="tests.base.urls"
-	    value="file:bundles_test/regression_tests/jars/;file:jars/"/>
+	    value="file:test_jars/;file:jars/"/>
 
   <!-- Filters "${xargs}.in" -> "${xargs}" -->
   <target name="test-xargs">

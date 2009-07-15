@@ -37,9 +37,10 @@
 
  <dirname  property="ant.dir" file="${ant.file.bundletasks}"/>
 
- <property name="ant.lib"     location="${ant.dir}/lib"/>
- <property name="antclasses"  location="${ant.dir}/classes"/>
- <property name="osgi.dir"    location="${ant.dir}/../osgi"/>
+ <property name="ant.lib"       location="${ant.dir}/lib"/>
+ <property name="antclasses"    location="${ant.dir}/classes"/>
+ <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
+ <property name="framework.dir" location="${osgi.dir}/framework"/>
 
 
  <!-- Download and install Apache Byte Code Engineering Library -->
@@ -102,7 +103,7 @@
  <condition property="bundle_tasks.src.present">
    <and>
      <available type="dir" file="${ant.dir}/src"/>
-     <available type="dir" file="${osgi.dir}/framework/src"/>
+     <available type="dir" file="${framework.dir}/src"/>
    </and>
  </condition>
 
@@ -115,7 +116,7 @@
           debug        = "on">
      <src path="${ant.dir}/src"/>
      <!-- org.osgi.framework.Version is used by BundleLocator. -->
-     <src path="${osgi.dir}/framework/src"/>
+     <src path="${framework.dir}/src"/>
      <include name="org/knopflerfish/ant/**"/>
      <include name="org/osgi/framework/Version.java"/>
    </javac>
