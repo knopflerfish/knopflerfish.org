@@ -38,16 +38,6 @@
     <ant antfile="gen.xml"/>
   </target>
 
-  <property name="do.bundle.custom.post" value="true"/>
-  <target name="bundle.custom.post">
-    <antcall target="test-xargs">
-      <param name="xargs.file"
-	     location="soapcline_adb_test.xargs"/>
-      <param name="bundleVersionFilterTester"
-	     location="${outdir}/${ant.project.name}.props"/>
-    </antcall>
-  </target>
-
   <import file="${ant.dir}/bundlebuild.xml"/>
 
   <!-- This requires that the axis2_soapobject bundle is up and running. -->
