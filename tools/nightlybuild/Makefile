@@ -100,7 +100,7 @@ clean:
 
 copyout:
 	@$(MKDIR) -p ${OUT_DIR}
-	$(CP) -r ${TAGs}/htdocs/releases/${VERSION} ${OUT_DIR}
+	$(CP) -r ${TAGs}/out/distrib_${VERSION} ${OUT_DIR}/${VERSION}
 
 # Remove all but the 10 last BUILDs on the current ${TAG} from ${OUT_DIR}
 clean_snapshots:
