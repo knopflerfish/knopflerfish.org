@@ -707,8 +707,9 @@
     <property name="obr.xml.file" value="repository.xml"/>
     <property name="obr.xsl.file" location="htdocs/css/repository.xsl"/>
     <!-- Comma separated list of external OSCAR-style repositories. -->
-    <property name="obr.extern.repo.urls"
-              value="http://www.knopflerfish.org/releases/current/repository.xml"/>
+    <!-- E.g., http://www.knopflerfish.org/releases/current/repository.xml -->
+    <!-- NOTE: Bundles from external URLS are takes precedence  -->
+    <property name="obr.extern.repo.urls" value=""/>
 
     <mkdir dir="${obr.dest.dir}"/>
     <bundleobr baseDir="${obr.base.dir}"
