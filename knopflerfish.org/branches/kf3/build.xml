@@ -220,9 +220,8 @@
 
   <target name="distrib_jardocs" depends="bundle_tasks">
     <mkdir dir="${distrib.jardocs.dir}"/>
-
-
-    <mkdir dir="${javadoc.out.dir}"/>
+    <!-- The javadoc direcotry must exists when running this target. -->
+    <mkdir dir="${distrib.javadoc.dir}"/>
 
     <property name="bundle.list.header"
 	      value="Knopflerfish OSGi ${version} Bundles"/>
