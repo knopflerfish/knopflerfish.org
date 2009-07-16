@@ -193,6 +193,7 @@
 
   <target name="distrib_xargs">
     <mkdir dir="${distrib.osgi.dir}"/>
+    <delete dir="${distrib.osgi.dir}" includes="*.xargs"/>
 
     <ant dir="${osgi.dir}" target="xargs">
       <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
@@ -202,6 +203,10 @@
       <property name="version"       value="${version}"/>
     </ant>
     <copy file="${osgi.dir}/props.xargs" todir="${distrib.osgi.dir}"/>
+    <echo file="${distrib.osgi.dir}/props.xargs" append="true">
+# Use bundle repository for this KF-version.
+-Foscar.repository.url=${base.url}/${version}/repository.xml
+    </echo>
   </target>
 
   <target name="distrib_javadoc" depends="bundle_tasks">
