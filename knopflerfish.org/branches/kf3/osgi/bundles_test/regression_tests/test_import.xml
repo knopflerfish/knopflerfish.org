@@ -9,35 +9,6 @@
   <property name="jars.dir"   location="${osgi.dir}/test_jars"/> 
   <property name="condperm_warnings.file" location="${osgi.dir}/WARNING-condpermadmin.txt"/>
 
-  <!-- Base URLs for test-case xargs files. Must not use ${jars.dir},
-       ${osgi.dir} here since that would result in absolute paths in
-       the base URL which is not good when the xargs file is used in
-       the distribution. -->
-  <property name="tests.base.urls"
-	    value="file:test_jars/;file:jars/"/>
-
-  <!-- Filters "${xargs}.in" -> "${xargs}" -->
-  <target name="test-xargs">
-    <fail unless="xargs.file" message="xargs.file must be set."/>
-    <fail unless="bundleVersionFilterTester"
-	  message="bundleVersionFilterTester must be set."/>
-
-    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
-      <fileset dir="${jars.dir}">
-	<include name="**/*.jar"/>
-      </fileset>
-      <fileset dir="${osgi.dir}/jars">
-	<include name="**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy file="${xargs.file}.in" tofile="${xargs.file}" overwrite="true"/>
-    <replace file="${xargs.file}"
-	     replacefilterfile="${bundleVersionFilterTester}">
-      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
-      <replacefilter token="$(JAR_PREFIX)" value="${tests.base.urls}"/>
-    </replace>	  
-  </target>
-
   <!--
     || Checks and warns if the openssl program is not installed
     || Used to skip building the condpermadmin tests int that case
