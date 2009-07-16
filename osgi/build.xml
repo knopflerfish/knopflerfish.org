@@ -94,8 +94,8 @@
 
   <target name="remote_xargs">
     <antcall target="xargs_filter">
-      <param name="xargs.template.in" location="minimal.xargs.in"/>
-      <param name="xargs.out.file"    location="${xargs.out.dir}/minimal.xargs"/>
+      <param name="xargs.template.in" location="template.xargs.in"/>
+      <param name="xargs.out.file"    location="${xargs.out.dir}/remote-init.xargs"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${base.url}/${version}/osgi/jars/"/>
@@ -306,7 +306,6 @@
    <delete dir="${junit.out.dir}"/>
 
    <antcall target="test_xargs"/>
-   <mkdir dir="${junit.out.dir}"/>
    <antcall target="run-kf-tests-bare-main"/>
    <antcall target="run-kf-tests-bare-axis2"/>
    <antcall target="run-kf-tests-bare-restart"/>
@@ -335,11 +334,13 @@
  </target>
  <target name="run-test-default" unless="run.test.secure">
    <echo message="${run.test.msg}"/>
+   <mkdir dir="${junit.out.dir}"/>
    <java fork="true"
 	 dir="${run.test.dir}"
 	 output="${junit.out.dir}/out.txt"
 	 append="${run.test.append}"
          jar="${run.test.dir}/framework.jar">
+     <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
@@ -347,12 +348,14 @@
  </target>
  <target name="run-test-secure" if="run.test.secure">
    <echo message="${run.test.msg}"/>
+   <mkdir dir="${junit.out.dir}"/>
    <java fork="true"
 	 dir="${run.test.dir}"
 	 output="${junit.out.dir}/out.txt"
 	 append="${run.test.append}"
          jar="${run.test.dir}/framework.jar">
      <arg value="-Forg.osgi.framework.security=osgi"/>
+     <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
