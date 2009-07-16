@@ -239,7 +239,7 @@ public class BundleHTMLExtractorTask extends Task {
     "<a href=\"${bundle.uri}\">${FILE.short}</a><br>\n";
 
   private String pkgHTML      =
-    "${namelink}&nbsp;${version}<br>";
+    "${namelink}&nbsp;${version}<br>\n";
 
   private boolean bCheckJavaDoc  = true;
   private boolean include_source_files  = false;
@@ -1088,8 +1088,8 @@ public class BundleHTMLExtractorTask extends Task {
 
           sb.append(" <tr>\n");
           sb.append("  <td>\n");
-          sb.append("  <a href=\"" + srcBase + "/" + name + "\">" + name + "<a>\n");
-          sb.append(" </tr>\n");
+          sb.append("    <a href=\"" +srcBase +"/" +name +"\">" +name +"<a>\n");
+          sb.append("  </td>\n");
           sb.append(" </tr>\n");
 
         }

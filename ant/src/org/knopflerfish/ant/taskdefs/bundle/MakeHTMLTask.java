@@ -472,7 +472,7 @@ public class MakeHTMLTask extends Task {
                                   String suffix)
   {
     if (getBoolProperty(prop)) {
-      sbuf.append("<a target=\"_blank\" href=\"../../jars/");
+      sbuf.append("<a target=\"_top\" href=\"../../jars/index.html?bundle=");
       sbuf.append(this.projectName);
       sbuf.append("/");
       sbuf.append(this.projectName);
