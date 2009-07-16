@@ -10,7 +10,7 @@ WWW_PATH=snapshots_${TAGs}
 OUT_DIR=${WWW_DIR}/${WWW_PATH}
 OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 
-CHANGE_LOG=${KF_HOME}/ChangeLog_${TAG}
+CHANGE_LOG=${KF_HOME}/ChangeLog_${TAGs}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
 ANT	= /usr/bin/ant
