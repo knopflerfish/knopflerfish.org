@@ -21,10 +21,8 @@
       </fileset>
     </bundle_locator>
 
-    <loadresource property="xargs.os.args" quiet="true">
-      <file file="${xargs.os.template}"/>
-    </loadresource>
-    <!-- Set winbundles to "" if template is not found -->
+    <antcall target="load_os_xargs"/>
+    <!-- Set xargs.os.args if not set from template above -->
     <property name="xargs.os.args" value=""/>
 
     <copy file="${xargs.template.in}"
@@ -49,7 +47,8 @@
   <!--   gosg.jars"           Replacement value for $(GOSG_JARS)   -->
   <!--   test_jars            Replacement value for $(TESTJARS)    -->
   <!--   xargs.os.template    File with replacement for $(OS_ARGS) -->
-  <target name="xargs_filter" depends="bundle_tasks,check_openssl">
+  <target name="xargs_filter"
+	  depends="bundle_tasks,check_openssl">
     <property name="bundleVersionFilter"
               location="out/bundleVersionsXargs.props"/>
     <delete file="${bundleVersionFilter}"/>
@@ -70,10 +69,8 @@
       </fileset>
     </bundle_locator>
 
-    <loadresource property="xargs.os.args" quiet="true">
-      <file file="${xargs.os.template}"/>
-    </loadresource>
-    <!-- Set winbundles to "" if template is not found -->
+    <antcall target="load_os_xargs"/>
+    <!-- Set xargs.os.args if not set from template above -->
     <property name="xargs.os.args" value=""/>
 
     <condition property="do.cpa.test" value="" else="#">
@@ -93,6 +90,12 @@
       <replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
       <replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
     </replace>
+  </target>
+
+  <target name="load_os_xargs" if="xargs.os.template">
+    <loadresource property="xargs.os.args" quiet="true">
+      <file file="${xargs.os.template}"/>
+    </loadresource>
   </target>
 
   <target name="check_openssl" unless="check_openssl.done">
