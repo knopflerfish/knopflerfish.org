@@ -348,7 +348,8 @@
     <echo message="building ${distrib.sdk.file}"/>
 
     <delete file="${distrib.sdk.file}"/>
-    <jar destfile="${distrib.sdk.file}" compress="true">
+    <jar destfile="${distrib.sdk.file}"
+	 compress="true" filesonly="true" duplicate="fail">
       <manifest>
         <attribute name="Main-class"
                    value="org.knopflerfish.tools.jarunpacker.Main"/>
@@ -374,7 +375,6 @@
         </zipfileset>
 
         <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
-          <exclude name="fwdir"/>
           <include name="**/*"/>
         </zipfileset>
 
@@ -393,7 +393,6 @@
           <include name="changelog.txt"/>
 
           <include name="osgi/*.xargs.in"/>
-          <include name="osgi/props.xargs"/>
           <include name="osgi/kf2"/>
           <include name="osgi/build.xml"/>
 
@@ -501,13 +500,13 @@
       </zipfileset>
 
       <zipfileset dir="${distrib.dir}" prefix="${distrib_tiny.prefix}">
-        <include name = "osgi/framework.jar"/>
-        <include name = "osgi/remote-init.xargs"/>
-        <include name = "osgi/props.xargs"/>
+        <include name="osgi/framework.jar"/>
+        <include name="osgi/remote-init.xargs"/>
+        <include name="osgi/props.xargs"/>
       </zipfileset>
 
       <zipfileset dir="." prefix="${distrib_tiny.prefix}">
-        <include name = "osgi/kf2"/>
+        <include name="osgi/kf2"/>
       </zipfileset>
     </zip>
   </target>
@@ -515,14 +514,14 @@
   <!-- Creates an HTML index page for a release build.-->
   <target name="distrib_index" depends="bundle_tasks">
     <tstamp>
-     <format property = "distrib_index.tstamp"
-             pattern  = "yyyy-MM-dd HH:mm"
-             locale   = "en"/>
+     <format property="distrib_index.tstamp"
+              pattern="yyyy-MM-dd HH:mm"
+               locale="en"/>
     </tstamp>
     <tstamp>
-     <format property = "distrib_index.tstamp.year"
-             pattern  = "yyyy"
-             locale   = "en"/>
+     <format property="distrib_index.tstamp.year"
+              pattern="yyyy"
+               locale="en"/>
     </tstamp>
 
     <byteformatter file="${distrib.sdk.file}" unit="B"
@@ -530,8 +529,8 @@
     <byteformatter file="${distrib.tiny.file}" unit="B"
                    property="distrib.tiny.file.length"/>
 
-    <copy file   = "htdocs/html_src/release_page.html.in"
-          tofile = "${distrib.dir}/index.html">
+    <copy file="htdocs/html_src/release_page.html.in"
+          tofile="${distrib.dir}/index.html">
     </copy>
     <replace file="${distrib.dir}/index.html">
       <replacefilter token="@VERSION@"
@@ -596,20 +595,20 @@
               value="Knopflerfish bundle repository - ${version}"/>
 
     <mkdir dir="${bindex.dest.dir}"/>
-    <bindex outFile         = "${bindex.dest.dir}/bindex.xml"
-            baseDir         = "${bindex.base.dir}"
-            baseURL         = "${bindex.base.url}"
-            repoName        = "${bindex.repo.name}"
+    <bindex outFile="${bindex.dest.dir}/bindex.xml"
+            baseDir="${bindex.base.dir}"
+            baseURL="${bindex.base.url}"
+            repoName="${bindex.repo.name}"
             >
 
       <fileset dir="${bindex.jars.dir}">
-        <include name = "upnp/upnp_api-*.jar"/>
-        <include name = "remotefw/remotefw_api-*.jar"/>
+        <include name="upnp/upnp_api-*.jar"/>
+        <include name="remotefw/remotefw_api-*.jar"/>
       </fileset>
 
       <fileset dir="${bindex.jars.dir}">
-        <include name = "*/*.jar"/>
-        <exclude name = "*/*_api-*.jar"/>
+        <include name="*/*.jar"/>
+        <exclude name="*/*_api-*.jar"/>
       </fileset>
     </bindex>
   </target>
@@ -707,19 +706,19 @@
               value="http://www.knopflerfish.org/releases/current/repository.xml"/>
 
     <mkdir dir="${obr.dest.dir}"/>
-    <bundleobr  baseDir       = "${obr.base.dir}"
-                repoXSLURL    = "repository.xsl"
-                outFile       = "${obr.dest.dir}/${obr.xml.file}"
-                repoName      = "${obr.name}"
-                baseURL       = "${obr.base.url}"
-                externRepoURLs="${obr.extern.repo.urls}">
+    <bundleobr baseDir="${obr.base.dir}"
+               repoXSLURL="repository.xsl"
+               outFile="${obr.dest.dir}/${obr.xml.file}"
+               repoName="${obr.name}"
+               baseURL="${obr.base.url}"
+               externRepoURLs="${obr.extern.repo.urls}">
       <fileset dir="${obr.base.dir}">
-        <include name = "**/upnp/upnp_api-*.jar"/>
+        <include name="**/upnp/upnp_api-*.jar"/>
       </fileset>
 
       <fileset dir="${obr.base.dir}">
-        <include name = "**/*.jar"/>
-        <exclude name = "**/*_api-*.jar"/>
+        <include name="**/*.jar"/>
+        <exclude name="**/*_api-*.jar"/>
       </fileset>
     </bundleobr>
     <!-- Generate HTML-page from repository.xml -->
