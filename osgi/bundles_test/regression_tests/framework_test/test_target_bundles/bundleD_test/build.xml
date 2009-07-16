@@ -44,6 +44,7 @@
 
   <target name="jar">
     <mkdir dir="${jar.out.dir}"/>
+    <mkdir dir="${resources.dir}"/><!-- Ensure that dir exists -->
     <jar basedir="${classes.out.dir}" jarfile="${jar.file}">
       <fileset dir="${resources.dir}"/>
     </jar>  
