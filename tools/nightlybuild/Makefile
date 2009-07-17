@@ -100,6 +100,7 @@ clean:
 
 copyout:
 	@$(MKDIR) -p ${OUT_DIR}
+	[ -d ${OUT_DIR}/${VERSION} ] && $(RM) -rf ${OUT_DIR}/${VERSION}
 	$(CP) -r ${TAGs}/out/distrib_${VERSION} ${OUT_DIR}/${VERSION}
 
 # Remove all but the 10 last BUILDs on the current ${TAG} from ${OUT_DIR}
