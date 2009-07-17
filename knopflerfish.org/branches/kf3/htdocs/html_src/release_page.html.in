@@ -99,7 +99,7 @@
 	    </td>
 	    <td>
 	      Remotely loading framework, no source, no docs, just
-	      framework.jar and config files that will loading all
+	      framework.jar and config files that will load all
 	      bundles from the web.
 	    </td>
 	  </tr>
