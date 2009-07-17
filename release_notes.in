@@ -11,19 +11,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.2)
 OSGi Core Specification
 ----------------------------------------------
 
-Framework Ð Security
+Framework - Security
  - Minor updates and clarifications (In Progress)
 
-Framework Ð Module
- - Minor updates and clarifications (In Progress)
+Framework - Module
+ - Minor updates and clarifications (Done)
  - Support for multi host Fragments (In Progress)
 
-Framework Ð Life-Cycle
+Framework - Life-Cycle
  - Minor updates and clarifications (In Progress)
  - Lazy Activation (Done)
- - Framework Launcher (In Progress)
+ - Framework Launcher (Framework and Bootclasspath extensions remain)
 
-Framework Ð Service Layer
+Framework - Service Layer
  - Minor updates and clarifications (In Progress)
 
 Package Admin Service Specification
@@ -40,7 +40,7 @@ URL Handlers Service Specification
  - Minor updates and clarifications (In Progress)
 
 Service Hooks Specification
- - Support for Service Hooks (In Progress)
+ - Support for Service Hooks (Done)
 
 ----------------------------------------------
 OSGi Compendium Specification
