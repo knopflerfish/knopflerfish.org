@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,6 +118,49 @@ public class ServiceReferenceImpl implements ServiceReference
     return false;
   }
 
+  /**
+   * Compare two ServiceReferences
+   *
+   * @see org.osgi.framework.ServiceReference
+   */
+  public int compareTo(Object obj) {
+    ServiceReference that = (ServiceReference)obj;
+
+    boolean sameFw = false;
+    if (that instanceof ServiceReferenceImpl) {
+      ServiceReferenceImpl thatImpl = (ServiceReferenceImpl) that;
+      sameFw
+        = this.registration.bundle.fwCtx == thatImpl.registration.bundle.fwCtx;
+    }
+    if (!sameFw) {
+      throw new IllegalArgumentException("Can not compare service references "
+                                         +"belonging to different framework "
+                                         +"instances (this=" +this +", other="
+                                         +that +").");
+    }
+
+    String id1 = (String)this.getProperty(Constants.SERVICE_ID);
+    String id2 = (String)that.getProperty(Constants.SERVICE_ID);
+
+    // equal if IDs are equal
+    if(id1 == id2 || id1.equals(id2)) {
+      return 0;
+    }
+    Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
+    Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
+    int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
+    int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+
+    // use ranking if ranking differs
+    int diff = r1 - r2;
+    if(diff != 0) {
+      return diff;
+    }
+
+    // otherwise compare using ID strings
+    return id1.compareTo(id2);
+  }
+
 
   /**
    * Return a hashcode for the service.
@@ -170,33 +213,32 @@ public class ServiceReferenceImpl implements ServiceReference
     synchronized (registration.properties) {
       if (registration.available
           && (!registration.unregistering
-              || Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+              || bundle.fwCtx.props.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
         Integer ref = (Integer)registration.dependents.get(bundle);
         if (ref == null) {
           String[] classes =
             (String[])registration.properties.get(Constants.OBJECTCLASS);
-          bundle.framework.perm.checkGetServicePerms(classes);
+          bundle.fwCtx.perm.checkGetServicePerms(classes);
           if (registration.service instanceof ServiceFactory) {
             try {
-              s = bundle.framework.perm.callGetService
+              s = bundle.fwCtx.perm.callGetService
                 ((ServiceFactory)registration.service, bundle, registration);
             } catch (Throwable pe) {
-              bundle.framework.listeners.frameworkError(registration.bundle,
-                                                        pe);
+              bundle.fwCtx.listeners.frameworkError(registration.bundle, pe);
               return null;
             }
             if (s == null) {
               return null;
             }
-            BundleClassLoader bcl
-              = (BundleClassLoader)registration.bundle.getClassLoader();
+            final Class sc = s.getClass();
             for (int i = 0; i < classes.length; i++) {
-              Class c = null;
-              try {
-                c = bcl.loadClass(classes[i], true);
-              } catch (ClassNotFoundException ignore) { } // Already checked
-              if (!c.isInstance(s)) {
-                bundle.framework.listeners.frameworkError(registration.bundle, new BundleException("ServiceFactory produced an object that did not implement: " + classes[i]));
+              final String cls = classes[i];
+              if (!Services.checkServiceClass(s, cls)) {
+                bundle.fwCtx.listeners.frameworkError
+                  (registration.bundle,
+                   new ServiceException("ServiceFactory produced an object " +
+                                        "that did not implement: " + cls,
+                                        ServiceException.FACTORY_ERROR));
                 return null;
               }
             }
@@ -259,7 +301,7 @@ public class ServiceReferenceImpl implements ServiceReference
               ((ServiceFactory) registration.service).ungetService(bundle,
                   registration, sfi);
             } catch (Throwable e) {
-              bundle.framework.listeners.frameworkError(registration.bundle,
+              bundle.fwCtx.listeners.frameworkError(registration.bundle,
                   e);
             }
           }
@@ -326,11 +368,12 @@ public class ServiceReferenceImpl implements ServiceReference
     return val;
   }
 
+
   public boolean isAssignableTo(Bundle bundle, String className) {
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
       String name = className.substring(0, pos);
-      Pkg p = registration.bundle.framework.packages.getPkg(name);
+      Pkg p = registration.bundle.fwCtx.packages.getPkg(name);
       if (p != null) {
         if (p.providers.size() > 1) {
           BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);

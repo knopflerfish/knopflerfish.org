@@ -90,6 +90,7 @@ public interface RemoteFW {
   public void    setInitialBundleStartLevel(int level);
   public int     getInitialBundleStartLevel();
   public boolean isBundlePersistentlyStarted(long bid);
+  public boolean isBundleActivationPolicyUsed(long bid);
 
   public Vector    getExportedPackage(String name);
   public Vector  getExportedPackages(long bid);

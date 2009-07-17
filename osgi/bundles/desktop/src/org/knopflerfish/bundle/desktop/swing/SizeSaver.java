@@ -52,7 +52,7 @@ public class SizeSaver extends ComponentAdapter {
   public static final String KEY_SPLITPOS = "splitpos";
 
   public static final String NODE_NAME    = "sizes";
-  
+
   Component comp;
   Dimension defSize;
   Dimension savedSize;
@@ -64,8 +64,8 @@ public class SizeSaver extends ComponentAdapter {
 
   public SizeSaver(String id, Dimension defSize, int defSplit) {
     if(id.length() == 0 || id.indexOf("/") != -1) {
-      throw new 
-        IllegalArgumentException("Bad id string '" + id + "'" + 
+      throw new
+        IllegalArgumentException("Bad id string '" + id + "'" +
                                  ", must be non-zero lenght and no '/'");
     }
     this.id      = id;
@@ -73,7 +73,7 @@ public class SizeSaver extends ComponentAdapter {
     this.defSize = defSize != null ? new Dimension(defSize.width, defSize.height) : null;
     this.savedSize = defSize;
   }
-  
+
   public void attach(Component _comp) {
     if(this.comp != null) {
       throw new IllegalStateException("SizeSaver can only be attach to one compoent. current component is " + this.comp);
@@ -113,22 +113,22 @@ public class SizeSaver extends ComponentAdapter {
         // System.out.println("attach " + id + " split=" + pos);
         split.setDividerLocation(pos);
       }
-      
+
       splitListener = new ComponentAdapter() {
           public void 	componentResized(ComponentEvent e) {
-            store(); 
+            store();
           }
           public void 	componentMoved(ComponentEvent e) {
-            store(); 
+            store();
           }
         };
-      
+
       split.getLeftComponent().addComponentListener(splitListener);
     }
-    
+
     this.comp.addComponentListener(this);
   }
-  
+
   public void detach() {
 
     if(comp != null) {
@@ -159,20 +159,18 @@ public class SizeSaver extends ComponentAdapter {
     if(!this.comp.isVisible()) {
       return;
     }
-    
+
     store();
   }
-  
+
   Preferences getPrefs() {
     Preferences prefsBase = Preferences.userNodeForPackage(getClass());
 
-    Map    props = Activator.getSystemProperties();
-    String spid  = (String)props.get("org.osgi.provisioning.spid");
-    
+    String spid  = Activator.getBC().getProperty("org.osgi.provisioning.spid");
     if(spid == null) {
       spid = "default";
     }
-    
+
     Preferences prefs     = prefsBase.node(NODE_NAME + "/" + spid + "/" + id);
     return prefs;
   }
@@ -200,7 +198,7 @@ public class SizeSaver extends ComponentAdapter {
 
       }
 
-      // System.out.println(id + ": store " + size);    
+      // System.out.println(id + ": store " + size);
       prefs.put(KEY_WIDTH, Integer.toString(size.width));
       prefs.put(KEY_HEIGHT, Integer.toString(size.height));
 
@@ -213,7 +211,7 @@ public class SizeSaver extends ComponentAdapter {
       prefs.flush();
     } catch (Exception e) {
       errCount++;
-      if(errCount < maxErr) { 
+      if(errCount < maxErr) {
         Activator.log.warn("Failed to store id=" + id + ", size=" + size, e);
       }
     }
@@ -224,16 +222,16 @@ public class SizeSaver extends ComponentAdapter {
       return null;
     }
     try {
-      
+
       Preferences prefs = getPrefs();
       int w = prefs.getInt(KEY_WIDTH, defSize.width);
       int h = prefs.getInt(KEY_HEIGHT, defSize.height);
-      
+
       Dimension size = new Dimension(w, h);
       return size;
     } catch (Exception e) {
       errCount++;
-      if(errCount < maxErr) { 
+      if(errCount < maxErr) {
         Activator.log.warn("Failed to get id=" + id, e);
       }
     }

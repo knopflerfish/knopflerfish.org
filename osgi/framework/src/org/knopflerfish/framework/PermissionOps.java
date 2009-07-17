@@ -216,8 +216,13 @@ class PermissionOps {
   }
 
 
-  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
-    return b.stop0(resetPersistent);
+  void callFinalizeActivation(final BundleImpl b) throws BundleException {
+    b.finalizeActivation();
+  }
+
+
+  BundleException callStop0(final BundleImpl b)  {
+    return b.stop0();
   }
 
 
@@ -232,19 +237,10 @@ class PermissionOps {
   }
 
 
-  void callStartOnLaunch(final BundleImpl b, final boolean flag) {
-    b.startOnLaunch(flag);
+  void callSetAutostartSetting(final BundleImpl b, final int setting) {
+    b.setAutostartSetting0(setting);
   }
 
-
-  void callSetPersistent(final BundleImpl b, final boolean flag) {
-    b.setPersistent(flag);
-  }
-
-
-  ClassLoader callGetClassLoader0(final BundleImpl b) {
-    return b.getClassLoader0();
-  }
 
   BundleContext callGetBundleContext0(final BundleImpl b) {
     return b.getBundleContext0();
@@ -291,11 +287,8 @@ class PermissionOps {
   //
 
   void callMainRestart() {
-     Main.restart();
-  }
-
-  void callMainShutdown(final int exitcode) {
-     Main.shutdown(exitcode);
+    throw new RuntimeException("NYI");
+    // Main.restart();
   }
 
   //
@@ -342,8 +335,8 @@ class PermissionOps {
    * off.
    * </p>
    */
-  URL getBundleURL(BundleImpl b, String s) throws MalformedURLException {
-    return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+  URL getBundleURL(FrameworkContext fwCtx, String s) throws MalformedURLException {
+    return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
 
   //

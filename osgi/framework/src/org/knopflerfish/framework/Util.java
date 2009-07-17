@@ -39,22 +39,53 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.osgi.framework.Constants;
+
 public class Util {
+
+  /** Pre OSGi 4.2 propetry used by KF, replaced by
+   * Constants.FRAMEWORK_STORAGE as of OSGi R4 v4.2. */
+  static public final String FWDIR_PROP      = "org.osgi.framework.dir";
+  static public final String FWDIR_DEFAULT   = "fwdir";
+
+  public static String getFrameworkDir(Map props) {
+    String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()==0) {
+      s = (String)props.get(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
+      s = FWDIR_DEFAULT;
+    }
+    return s;
+  }
+
+  public static String getFrameworkDir(FrameworkContext ctx) {
+    String s = ctx.props.getProperty(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()==0) {
+      s = ctx.props.getProperty(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
+      s = FWDIR_DEFAULT;
+    }
+    return s;
+  }
+
   /**
    * Check for local file storage directory.
    *
    * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
-  public static FileTree getFileStorage(String name) {
+  public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
-    String fwdir = Framework.getProperty("org.osgi.framework.dir");
+    String fwdir = getFrameworkDir(ctx);
     if (fwdir == null) {
       return null;
     }
@@ -248,7 +279,7 @@ public class Util {
   static byte[] readResource(String name) throws IOException  {
     byte[] buf = new byte[1024];
 
-    InputStream           in = Main.class.getResourceAsStream(name);
+    InputStream           in = Util.class.getResourceAsStream(name);
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     int n;
     while ((n = in.read(buf)) > 0) {

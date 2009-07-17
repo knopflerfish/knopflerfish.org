@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/InvalidSyntaxException.java,v 1.14 2006/06/16 16:31:18 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +17,26 @@
 package org.osgi.framework;
 
 /**
- * A Framework exception.
+ * A Framework exception used to indicate that a filter string has an invalid
+ * syntax.
  * 
  * <p>
  * An <code>InvalidSyntaxException</code> object indicates that a filter
- * string parameter has an invalid syntax and cannot be parsed.
+ * string parameter has an invalid syntax and cannot be parsed. See
+ * {@link Filter} for a description of the filter string syntax.
  * 
  * <p>
- * See {@link Filter} for a description of the filter string syntax.
+ * This exception conforms to the general purpose exception chaining mechanism.
  * 
- * @version $Revision: 1.14 $
+ * @version $Revision: 6083 $
  */
 
 public class InvalidSyntaxException extends Exception {
-	static final long	serialVersionUID	= -4295194420816491875L;
+	static final long		serialVersionUID	= -4295194420816491875L;
 	/**
 	 * The invalid filter string.
 	 */
-	private String		filter;
-	/**
-	 * Nested exception.
-	 */
-	private Throwable	cause;
+	private final String	filter;
 
 	/**
 	 * Creates an exception of type <code>InvalidSyntaxException</code>.
@@ -56,7 +52,6 @@ public class InvalidSyntaxException extends Exception {
 	public InvalidSyntaxException(String msg, String filter) {
 		super(msg);
 		this.filter = filter;
-		this.cause = null;
 	}
 
 	/**
@@ -73,9 +68,8 @@ public class InvalidSyntaxException extends Exception {
 	 * @since 1.3
 	 */
 	public InvalidSyntaxException(String msg, String filter, Throwable cause) {
-		super(msg);
+		super(msg, cause);
 		this.filter = filter;
-		this.cause = cause;
 	}
 
 	/**
@@ -91,28 +85,29 @@ public class InvalidSyntaxException extends Exception {
 	}
 
 	/**
-	 * Returns the cause of this exception or <code>null</code> if no cause
-	 * was specified when this exception was created.
+	 * Returns the cause of this exception or <code>null</code> if no cause was
+	 * set.
 	 * 
-	 * @return The cause of this exception or <code>null</code> if no cause
-	 *         was specified.
+	 * @return The cause of this exception or <code>null</code> if no cause was
+	 *         set.
 	 * @since 1.3
 	 */
 	public Throwable getCause() {
-		return cause;
+		return super.getCause();
 	}
 
 	/**
-	 * The cause of this exception can only be set when constructed.
+	 * Initializes the cause of this exception to the specified value.
 	 * 
-	 * @param cause Cause of the exception.
-	 * @return This object.
-	 * @throws java.lang.IllegalStateException This method will always throw an
-	 *         <code>IllegalStateException</code> since the cause of this
-	 *         exception can only be set when constructed.
+	 * @param cause The cause of this exception.
+	 * @return This exception.
+	 * @throws IllegalArgumentException If the specified cause is this
+	 *         exception.
+	 * @throws IllegalStateException If the cause of this exception has already
+	 *         been set.
 	 * @since 1.3
 	 */
 	public Throwable initCause(Throwable cause) {
-		throw new IllegalStateException();
+		return super.initCause(cause);
 	}
 }

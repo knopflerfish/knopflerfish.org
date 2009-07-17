@@ -34,7 +34,7 @@
 
 package org.knopflerfish.framework.validator;
 
-import org.knopflerfish.framework.Framework;
+import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
 import java.io.*;
 import java.security.cert.*;
@@ -56,6 +56,15 @@ public class SelfSignedValidator implements Validator {
    * X509 certificate type string.
    */
   final private static String CERT_TYPE_X509 = "X.509";
+
+
+  /**
+   * Create a JKS based validator.
+   *
+   * @param fw FrameworkContext used to get configuration properties.
+   */
+  public SelfSignedValidator(FrameworkContext fw) {
+  }
 
 
   /**

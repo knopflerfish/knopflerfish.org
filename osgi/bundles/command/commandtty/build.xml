@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="commandtty" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name = "bundle.build.impl"  value = "true"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/commandtty/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="command_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

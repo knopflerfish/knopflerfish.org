@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ import java.util.Properties;
 public class ClassPatcherWrappers {
  
   protected static BundleClassLoader getBundleClassLoader(long bid) {
-    BundleImpl b = (BundleImpl)Main.framework.getSystemBundleContext().getBundle(bid);
+    BundleImpl b = null; // (BundleImpl)Main.framework.getSystemBundleContext().getBundle(bid);
     if(b != null) {
       return (BundleClassLoader)b.getClassLoader();
     }
@@ -69,7 +69,7 @@ public class ClassPatcherWrappers {
                                        Object context)  {
     System.out.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);    
     try {
-      Bundle b = Main.framework.getSystemBundleContext().getBundle(bid);
+      Bundle b = null; // Main.framework.getSystemBundleContext().getBundle(bid);
       System.out.println("stopping " + b);
       b.stop();
     } catch (Exception e) {

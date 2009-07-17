@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,7 @@
 
 package org.knopflerfish.framework;
 
-import java.util.HashMap;
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -141,8 +138,11 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   public void setProperties(Dictionary props) {
     synchronized (eventLock) {
+      Set before;
       synchronized (properties) {
         if (available) {
+          // NYI! Optimize the MODIFIED_ENDMATCH code
+          before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
           String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
           Long sid = (Long)properties.get(Constants.SERVICE_ID);
           properties = new PropertiesDictionary(props, classes, sid);
@@ -150,8 +150,14 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           throw new IllegalStateException("Service is unregistered");
         }
       }
-      bundle.framework.listeners
-        .serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, reference));
+      bundle.fwCtx.listeners
+        .serviceChanged(bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                        new ServiceEvent(ServiceEvent.MODIFIED, reference),
+                        before);
+      bundle.fwCtx.listeners
+        .serviceChanged(before,
+                        new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
+                        null);
     }
   }
 
@@ -169,7 +175,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       synchronized (properties) {
         if (available) {
           if (null!=bundle)
-            bundle.framework.services.removeServiceRegistration(this);
+            bundle.fwCtx.services.removeServiceRegistration(this);
         } else {
           throw new IllegalStateException("Service is unregistered");
         }
@@ -177,15 +183,16 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
 
     if (null!=bundle) {
-      bundle.framework.listeners
-        .serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING,
-                                         reference));
+      bundle.fwCtx.listeners
+        .serviceChanged(bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                        new ServiceEvent(ServiceEvent.UNREGISTERING, reference),
+                        null);
     }
     synchronized (eventLock) {
       synchronized (properties) {
         available = false;
         if (null!=bundle)
-          bundle.framework.perm.callUnregister0(this);
+          bundle.fwCtx.perm.callUnregister0(this);
         bundle = null;
         dependents = null;
         reference = null;
@@ -207,7 +214,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
                                                this,
                                                e.getValue());
       } catch (Throwable ue) {
-        bundle.framework.listeners
+        bundle.fwCtx.listeners
           .frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
       }
     }

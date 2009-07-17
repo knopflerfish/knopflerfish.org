@@ -43,7 +43,7 @@ import java.util.*;
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
 import org.osgi.service.permissionadmin.PermissionInfo;
-import org.knopflerfish.framework.Framework;
+import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Util;
 
 
@@ -52,7 +52,7 @@ import org.knopflerfish.framework.Util;
  */
 public class PermissionsHandle {
 
-  Framework framework;
+  FrameworkContext framework;
 
   private PermissionInfoStorage pinfos;
   private ConditionalPermissionInfoStorage cpinfos;
@@ -64,9 +64,9 @@ public class PermissionsHandle {
   /**
    *
    */
-  public PermissionsHandle(Framework fw) {
+  public PermissionsHandle(FrameworkContext fw) {
     framework = fw;
-    pinfos = new PermissionInfoStorage();
+    pinfos = new PermissionInfoStorage(fw);
     pa = new PermissionAdminImpl(pinfos);
     //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
     if (System.getSecurityManager() instanceof SecurityManager) {

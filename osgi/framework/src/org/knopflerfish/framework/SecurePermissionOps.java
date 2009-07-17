@@ -72,7 +72,7 @@ class SecurePermissionOps extends PermissionOps {
     AdminPermission.CONTEXT,
   };
 
-  private final Framework framework;
+  private final FrameworkContext framework;
   private final PermissionsHandle ph;
 
   private AdminPermission ap_resolve = null;
@@ -84,21 +84,28 @@ class SecurePermissionOps extends PermissionOps {
   /**
    * Controls if we should register PermisionAdminService.
    */
-  final private static boolean regPA = new Boolean(Framework.getProperty("org.knopflerfish.framework.service.permissionadmin", "true")).booleanValue();
-
+  private boolean regPA;
 
   /**
    * Controls if we should register ConditionalPermisionAdminService.
    */
-  final private static boolean regCPA = new Boolean(Framework.getProperty("org.knopflerfish.framework.service.conditionalpermissionadmin", "true")).booleanValue();
+  private boolean regCPA;
 
 
   Hashtable /* Bundle -> AdminPermission [] */ adminPerms = new Hashtable();
 
 
-  SecurePermissionOps(Framework fw) {
+  SecurePermissionOps(FrameworkContext fw) {
     framework = fw;
+
+
+    regPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.permissionadmin", "true")).booleanValue();
+
+
+    regCPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.conditionalpermissionadmin", "true")).booleanValue();
+
     ph = new PermissionsHandle(fw);
+
   }
 
 
@@ -212,8 +219,8 @@ class SecurePermissionOps extends PermissionOps {
       checkResourceAdminPerm(b);
       return true;
     } catch (SecurityException ignore) {
-      if (Debug.bundle_resource) {
-        Debug.printStackTrace("No permission to access resources in bundle #"
+      if (framework.props.debug.bundle_resource) {
+        framework.props.debug.printStackTrace("No permission to access resources in bundle #"
                               +b.getBundleId(),
                               ignore );
       }
@@ -233,8 +240,8 @@ class SecurePermissionOps extends PermissionOps {
       checkContextAdminPerm(b);
       return true;
     } catch (SecurityException ignore) {
-      if (Debug.bundle_context) {
-        Debug.printStackTrace("No permission to access context in bundle #"
+      if (framework.props.debug.bundle_context) {
+        framework.props.debug.printStackTrace("No permission to access context in bundle #"
                               +b.getBundleId(),
                               ignore );
       }
@@ -365,8 +372,8 @@ class SecurePermissionOps extends PermissionOps {
       }
       return true;
     } catch (SecurityException ignore) {
-      if (Debug.service_reference) {
-        Debug.printStackTrace
+      if (framework.props.debug.service_reference) {
+        framework.props.debug.printStackTrace
           ("No permission to get service of class \""+c+"\".",
            ignore );
       }
@@ -397,8 +404,8 @@ class SecurePermissionOps extends PermissionOps {
                            acc);
         return true;
       } catch (SecurityException ignore) {
-        if (Debug.service_reference) {
-          Debug.printStackTrace
+        if (framework.props.debug.service_reference) {
+          framework.props.debug.printStackTrace
             ("No permission to get service of class \""+classes[i]+"\".",
              ignore );
         }
@@ -495,12 +502,26 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
+  void callFinalizeActivation(final BundleImpl b) throws BundleException {
+    try {
+      AccessController.doPrivileged(new PrivilegedExceptionAction() {
+          public Object run() throws BundleException {
+            b.finalizeActivation();
+            return null;
+          }
+        });
+    } catch (PrivilegedActionException e) {
+      throw (BundleException) e.getException();
+    }
+  }
 
-  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
+
+
+  BundleException callStop0(final BundleImpl b)  {
     return (BundleException)
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-            return b.stop0(resetPersistent);
+            return b.stop0();
           }
         });
   }
@@ -531,20 +552,10 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  void callStartOnLaunch(final BundleImpl b, final boolean flag) {
+  void callSetAutostartSetting(final BundleImpl b, final int settings) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          b.startOnLaunch(flag);
-          return null;
-        }
-      });
-  }
-
-
-  void callSetPersistent(final BundleImpl b, final boolean flag) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          b.setPersistent(flag);
+          b.setAutostartSetting0(settings);
           return null;
         }
       });
@@ -556,16 +567,6 @@ class SecurePermissionOps extends PermissionOps {
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
             return b.getBundleContext0();
-          }
-        });
-  }
-
-
-  ClassLoader callGetClassLoader0(final BundleImpl b) {
-    return (ClassLoader)
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            return b.getClassLoader0();
           }
         });
   }
@@ -650,17 +651,9 @@ class SecurePermissionOps extends PermissionOps {
   void callMainRestart() {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          Main.restart();
-          return null;
-        }
-      });
-  }
-
-  void callMainShutdown(final int exitcode) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          Main.shutdown(exitcode);
-          return null;
+          throw new RuntimeException("NYI");
+          // Main.restart();
+          // return null;
         }
       });
   }
@@ -722,7 +715,7 @@ class SecurePermissionOps extends PermissionOps {
                               Long.toString(b.id) + "." + Long.toString(b.generation),
                               -1,
                               "",
-                              b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+                              b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
 
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
@@ -731,11 +724,11 @@ class SecurePermissionOps extends PermissionOps {
     return null;
   }
 
-  URL getBundleURL(final BundleImpl b, final String s) throws MalformedURLException {
+  URL getBundleURL(final FrameworkContext fwCtx, final String s) throws MalformedURLException {
     try {
       return (URL)AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws MalformedURLException {
-            return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+            return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
           }
         });
     } catch (PrivilegedActionException e) {

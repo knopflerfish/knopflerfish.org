@@ -37,7 +37,7 @@ package com.apple.eawt;
 import java.awt.Point;
 
 /**
- * Stub class implementing stuff from the Apple eAWT APIs for Java 1.4 on 
+ * Stub class implementing stuff from the Apple eAWT APIs for Java 1.4 on
  * Mac OS X.
  *
  * <p>
@@ -50,18 +50,18 @@ public class Application  {
 
   public void addApplicationListener(ApplicationListener listner) {
   }
-  
-  public boolean getEnabledPreferencesMenu() { 
+
+  public boolean getEnabledPreferencesMenu() {
     return false;
   }
-  
+
   public void removeApplicationListener(ApplicationListener listener)  {
   }
-  
+
   public void setEneablePreferencesMenu(boolean enable)  {
   }
-  
-  public static Point getMouseLocationOnScreen() { 
-    return null; 
+
+  public static Point getMouseLocationOnScreen() {
+    return null;
   }
 }

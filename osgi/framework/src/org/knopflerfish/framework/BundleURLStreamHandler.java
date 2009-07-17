@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import java.net.*;
 /**
  * Bundle URL handling.
  *
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
 public class BundleURLStreamHandler extends URLStreamHandler {
 
@@ -48,24 +48,24 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   final public static String PERM_OK = "P";
 
-  private Bundles bundles;
-
-  private PermissionOps secure;
+  // Currently we only support a single framework instance in the same
+  // class-loader context!
+  private static FrameworkContext fwCtx;
 
 
   // TODO, we need a more efficient and cleaner solution here.
 
-  BundleURLStreamHandler(Bundles b, PermissionOps s) {
-    bundles = b;
-    secure = s;
+  BundleURLStreamHandler(FrameworkContext framework) {
+    this.fwCtx = framework;
   }
 
 
   public URLConnection openConnection(URL u) {
     if (u.getAuthority() != PERM_OK) {
-      secure.checkResourceAdminPerm(bundles.getBundle(getId(u.getHost())));
+      fwCtx.perm.checkResourceAdminPerm
+        (fwCtx.bundles.getBundle(getId(u.getHost())));
     }
-    return new BundleURLConnection(u, bundles);
+    return new BundleURLConnection(u, fwCtx);
   }
 
 
@@ -88,7 +88,8 @@ public class BundleURLStreamHandler extends URLStreamHandler {
               id = Long.parseLong(new String(sc, 2, pos - 2));
             }
           } else if (!Character.isDigit(sc[pos])) {
-            throw new IllegalArgumentException("Illegal chars in bundle id specification");
+            throw new IllegalArgumentException
+              ("Illegal chars in bundle id specification");
           }
         }
         host = new String(sc, 2, pos - 2);
@@ -99,7 +100,8 @@ public class BundleURLStreamHandler extends URLStreamHandler {
             if (sc[pos] == '/') {
               break;
             } else if (!Character.isDigit(sc[pos])) {
-              throw new IllegalArgumentException("Illegal chars in bundle port specification");
+              throw new IllegalArgumentException
+                ("Illegal chars in bundle port specification");
             }
             cpElem = 10 * cpElem + (sc[pos++] - '0');
           }
@@ -195,7 +197,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     if (id == -1) {
       id = getId(host);
     }
-    secure.checkResourceAdminPerm(bundles.getBundle(id));
+    fwCtx.perm.checkResourceAdminPerm(fwCtx.bundles.getBundle(id));
     setURL(u, u.getProtocol(), host, cpElem, PERM_OK, null, path, null, null);
   }
 

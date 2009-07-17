@@ -53,12 +53,12 @@ import org.osgi.framework.*;
   extends ContentHandler 
 {
 
-  Framework              framework;
+  FrameworkContext       framework;
   String                 mimetype;
   String                 filter;
   ServiceReference       best;
 
-  ContentHandlerWrapper(Framework              framework,
+  ContentHandlerWrapper(FrameworkContext       framework,
 			String                 mimetype) {
     
     this.framework = framework;
@@ -79,10 +79,9 @@ import org.osgi.framework.*;
             evt.getServiceReference();
             
           switch (evt.getType()) {
-          case ServiceEvent.MODIFIED: {
+          case ServiceEvent.MODIFIED:
             // fall through
-          } 
-          case ServiceEvent.REGISTERED: {
+          case ServiceEvent.REGISTERED:
             if (best == null) {
               updateBest();
               return ;
@@ -91,13 +90,13 @@ import org.osgi.framework.*;
             if (compare(best, ref) > 0) {
               best = ref;
             }
-            
-          }; break;
-          case ServiceEvent.UNREGISTERING: {
+            break;
+          case ServiceEvent.MODIFIED_ENDMATCH:
+            // fall through
+          case ServiceEvent.UNREGISTERING:
             if (best.equals(ref)) {
               best = null;
             }
-          }
           }
         }
       };
@@ -109,8 +108,8 @@ import org.osgi.framework.*;
       throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
     }
     
-    if(Debug.url) {
-      Debug.println("created wrapper for " + mimetype + ", filter=" + filter);
+    if(framework.props.debug.url) {
+      framework.props.debug.println("created wrapper for " + mimetype + ", filter=" + filter);
     }
   }
   

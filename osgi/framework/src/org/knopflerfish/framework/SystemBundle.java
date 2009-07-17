@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.launch.Framework;
 
 /**
  * Implementation of the System Bundle object.
@@ -59,13 +60,14 @@ import org.osgi.service.startlevel.StartLevel;
  * @author Philippe Laporte
  * @author Mats-Ola Persson
  */
-public class SystemBundle extends BundleImpl {
+public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
    * Property name pointing to file listing of system-exported packages
    */
-  private final static String SYSPKG_FILE = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
+  private final static String SYSPKG_FILE
+    = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
 
 
   /**
@@ -102,56 +104,76 @@ public class SystemBundle extends BundleImpl {
   /**
    * Export-Package string for system packages
    */
-  private final String exportPackageString;
+  private String exportPackageString;
+
+  /**
+   * The event to return to callers waiting in Framework.waitForStop()
+   * when the framework has been stopped.
+   */
+  FrameworkEvent stopEvent;
 
 
   /**
    * Construct the System Bundle handle.
    *
    */
-  SystemBundle(Framework fw, ProtectionDomain pd) {
-    super(fw, 0, Constants.SYSTEM_BUNDLE_LOCATION, pd,
-          Constants.SYSTEM_BUNDLE_SYMBOLICNAME, new Version(Main.readVersion()));
+  SystemBundle(FrameworkContext fw)
+  {
+    super(fw,
+          0,
+          Constants.SYSTEM_BUNDLE_LOCATION,
+          Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
+          new Version(Main.readVersion()));
+  }
+
+  public void init() throws BundleException {
+    if (fwCtx.initialized) return; // Already done.
+
     state = STARTING;
-    StringBuffer sp = new StringBuffer(Framework.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
-    if (sp.length() > 0) {
-      sp.append(",");
-    }
+    stopEvent = null;
 
-    if ("true".equals(Framework.getProperty(EXPORT_ALL_CURRENT, "").trim())) {
-      String jv = Framework.getProperty("java.version", null);
-      if (null!=jv) { // Extract <M>.<N> part of the version string
-        int end = jv.indexOf('.');
-        if (end>-1) {
-          end = jv.indexOf('.',end+1);
+    fwCtx.init();
+
+    StringBuffer sp = new StringBuffer
+      (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
+    if (sp.length()==0) {
+      // Try the system packages file
+      addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
+      if (sp.length()==0) {
+        // use default set of packages.
+        String pkgFile = "packages1.6.txt";
+
+        if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
+          pkgFile = "packages1.3.txt";
+        } else if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
+          pkgFile = "packages1.4.txt";
+        } else if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
+          pkgFile = "packages1.5.txt";
+        } else if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
+          pkgFile = "packages1.6.txt";
+        } else {
+          if (1==fwCtx.props.javaVersionMajor
+              && (3<=fwCtx.props.javaVersionMinor
+                  && fwCtx.props.javaVersionMinor<=6 )) {
+            pkgFile = "packages" +fwCtx.props.javaVersionMajor
+              +"." +fwCtx.props.javaVersionMinor +".txt";
+          } else {
+            fwCtx.props.debug.println
+              ("No built in list of Java packages to be exported by the "
+               +"system bundle for JRE with version '"
+               +System.getProperty("java.version")
+               +"', using the list for 1.6.");
+          }
         }
-        if (end>-1) {
-          addSysPackagesFromFile(sp, "packages"+ jv.substring(0,end)+".txt");
-        }
+        addSysPackagesFromFile(sp, pkgFile);
+        addSystemPackages(sp);
       }
-    } else {
-
-      if("true".equals(Framework.getProperty(EXPORT13, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.3.txt");
-      }
-
-      if("true".equals(Framework.getProperty(EXPORT14, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.4.txt");
-      }
-
-      if("true".equals(Framework.getProperty(EXPORT15, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.5.txt");
-      }
-
-      if("true".equals(Framework.getProperty(EXPORT16, "").trim())) {
-        addSysPackagesFromFile(sp, "packages1.6.txt");
-      }
-
     }
-
-    addSysPackagesFromFile(sp, Framework.getProperty(SYSPKG_FILE, null));
-    addSystemPackages(sp);
-
+    final String extraPkgs = fwCtx.props
+      .getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, "");
+    if (extraPkgs.length()>0) {
+      sp.append(",").append(extraPkgs);
+    }
     exportPackageString = sp.toString();
 
     bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
@@ -168,7 +190,14 @@ public class SystemBundle extends BundleImpl {
     String name = Bundle.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" + Framework.SPEC_VERSION);
+          "=" + FrameworkContext.SPEC_VERSION);
+
+    sp.append(",org.osgi.framework.launch;"
+              +Constants.VERSION_ATTRIBUTE
+              +"=" +FrameworkContext.LAUNCH_VERSION);
+    sp.append(",org.osgi.framework.hooks.service;"
+              +Constants.VERSION_ATTRIBUTE
+              +"=" +FrameworkContext.HOOKS_VERSION);
 
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
@@ -192,13 +221,13 @@ public class SystemBundle extends BundleImpl {
     name = StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  StartLevelImpl.SPEC_VERSION);
+          "=" +  StartLevelController.SPEC_VERSION);
 
     // Set up tracker package
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
-          "=" +  "1.3.1");
+          "=" +  "1.4");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
@@ -220,12 +249,13 @@ public class SystemBundle extends BundleImpl {
   void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
     if (null==sysPkgFile || 0==sysPkgFile.length() ) return;
 
-    if(Debug.packages) {
-      Debug.println("Will add system packages from file " + sysPkgFile);
+    if(fwCtx.props.debug.packages) {
+      fwCtx.props.debug.println("Will add system packages from file "
+                                +sysPkgFile);
     }
 
     URL  url = null;
-    File f = new File(sysPkgFile);
+    File f = new File(new File(sysPkgFile).getAbsolutePath());
 
     if(!f.exists() || !f.isFile()) {
       url = SystemBundle.class.getResource(sysPkgFile);
@@ -233,8 +263,9 @@ public class SystemBundle extends BundleImpl {
         url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
       if (null==url) {
-        Debug.println("Could not add system bundle package exports from '"
-                      + sysPkgFile +"', file not found.");
+        fwCtx.props.debug.println("Could not add system bundle package "
+                                  +"exports from '" +sysPkgFile
+                                  +"', file not found.");
       }
     }
     BufferedReader in = null;
@@ -250,13 +281,12 @@ public class SystemBundle extends BundleImpl {
         source = url.toString();
       }
       in = new BufferedReader(reader);
-      if(Debug.packages) {
-        Debug.println("\treading from " +source);
+      if(fwCtx.props.debug.packages) {
+        fwCtx.props.debug.println("\treading from " +source);
       }
 
       String line;
-      for(line = in.readLine(); line != null;
-          line = in.readLine()) {
+      for(line = in.readLine(); line != null; line = in.readLine()) {
         line = line.trim();
         if(line.length() > 0 && !line.startsWith("#")) {
           sp.append(line);
@@ -276,35 +306,43 @@ public class SystemBundle extends BundleImpl {
     return true;
   }
 
+
   //
-  // Bundle interface
+  // Bundle interface overrides
   //
 
-  /**
-   * Start this bundle.
-   *
-   * @see org.osgi.framework.Bundle#start
-   */
-  synchronized public void start() throws BundleException
+  synchronized public void start(int options) throws BundleException {
+    if (null==secure) init();
+    secure.checkExecuteAdminPerm(this);
+    fwCtx.launch();
+  }
+
+
+  Object waitForStopLock = new Object();
+  public FrameworkEvent waitForStop(long timeout)
+    throws InterruptedException
   {
-    secure.checkExecuteAdminPerm(this);
+    // Already stopped?
+    if (RESOLVED==state) return stopEvent;
+
+    synchronized (waitForStopLock) {
+      waitForStopLock.wait(timeout);
+    }
+    return RESOLVED==state ? stopEvent
+      : new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
   }
 
 
-  /**
-   * Stop this bundle.
-   *
-   * @see org.osgi.framework.Bundle#stop
-   */
-  public void stop() throws BundleException {
-    stop(0);
-  }
-
-
-  synchronized public void stop(int exitcode) throws BundleException {
+  public void stop(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
-    secure.callMainShutdown(exitcode);
+
+    if (STARTING==state || ACTIVE==state) {
+      // There is some work to do.
+      if (null==stopEvent) {
+        stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
+      }
+      fwCtx.shutdown();
+    }
   }
 
 
@@ -326,7 +364,8 @@ public class SystemBundle extends BundleImpl {
    */
   synchronized public void uninstall() throws BundleException {
     secure.checkLifecycleAdminPerm(this);
-    throw new BundleException("uninstall of System bundle is not allowed");
+    throw new BundleException("uninstall of System bundle is not allowed",
+                              BundleException.INVALID_OPERATION);
   }
 
 
@@ -342,12 +381,13 @@ public class SystemBundle extends BundleImpl {
   public Dictionary getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
     Hashtable headers = new Hashtable();
-    headers.put(Constants.BUNDLE_SYMBOLICNAME,
-                Constants.SYSTEM_BUNDLE_SYMBOLICNAME);
-    headers.put(Constants.BUNDLE_NAME, Constants.SYSTEM_BUNDLE_LOCATION);
+    headers.put(Constants.BUNDLE_SYMBOLICNAME, symbolicName);
+    headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
-
+    headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
+    headers.put(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT,
+                fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
     return headers;
   }
 
@@ -389,9 +429,16 @@ public class SystemBundle extends BundleImpl {
     return getClass().getClassLoader();
   }
 
+
   void setBundleContext(BundleContextImpl bc) {
-    bundleContext = bc;
+    this.bundleContext = bc;
   }
+
+
+  void setPermissionOps(PermissionOps permissionOps) {
+    this.secure = permissionOps;
+  }
+
 
   /**
    * Set system bundle state to active
@@ -406,6 +453,18 @@ public class SystemBundle extends BundleImpl {
    */
   void systemShuttingdown() {
     state = STOPPING;
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+  }
+
+
+  /**
+   * Shutting down is done.
+   */
+  void systemShuttingdownDone() {
+    state = RESOLVED;
+    synchronized(waitForStopLock) {
+      waitForStopLock.notifyAll();
+    }
   }
 
 
@@ -415,7 +474,7 @@ public class SystemBundle extends BundleImpl {
   private boolean isInClassPath(BundleImpl extension) {
     String cps = extension.isBootClassPathExtension() ?
       "sun.boot.class.path" : "java.class.path";
-    String cp = Framework.getProperty(cps);
+    String cp = fwCtx.props.getProperty(cps);
     String[] scp = Util.splitwords(cp, ":");
     String path = extension.archive.getJarLocation();
 
@@ -446,6 +505,7 @@ public class SystemBundle extends BundleImpl {
   /**
    * Reads all localization entries that affects this bundle
    * (including its host/fragments)
+   *
    * @param locale locale == "" the bundle.properties will be read
    *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
@@ -455,36 +515,33 @@ public class SystemBundle extends BundleImpl {
   protected void readLocalization(String locale,
                                   Hashtable localization_entries,
                                   String baseName) {
-    String[] parts = Util.splitwords(locale, "_");
-    String tmploc;
-    int o = 0;
-
+    if (fragments == null) {
+      // NYI! read localization from framework.
+      // There is no need for this now since it isn't used.
+      return;
+    }
     if (baseName == null) {
       baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
     }
-    if ("".equals(parts[0])) {
-      tmploc = baseName;
-    } else {
-      tmploc = baseName + "_" + parts[0];
+    if (!locale.equals("")) {
+      locale = "_" + locale;
     }
-    do {
-      if (fragments != null) {
-        for (int i = fragments.size() - 1; i >= 0; i--) {
-          BundleImpl b = (BundleImpl)fragments.get(i);
-          Hashtable tmp = b.archive.getLocalizationEntries(tmploc + ".properties");
-          if (tmp != null) {
-            localization_entries.putAll(tmp);
-          }
+    while (true) {
+      String l = baseName + locale + ".properties";
+      Hashtable res;
+      for (int i = fragments.size() - 1; i >= 0; i--) {
+        BundleImpl b = (BundleImpl)fragments.get(i);
+        Hashtable tmp = b.archive.getLocalizationEntries(l);
+        if (tmp != null) {
+          localization_entries.putAll(tmp);
+          return;
         }
       }
-      // NYI! read localization from framework.
-      // There is no need for this now since it isn't used.
-
-      if (++o >= parts.length) {
+      int pos = locale.lastIndexOf('_');
+      if (pos == -1) {
         break;
       }
-      tmploc = tmploc + "_" + parts[o];
-
-    } while (true);
+      locale = locale.substring(0, pos);
+    }
   }
 }

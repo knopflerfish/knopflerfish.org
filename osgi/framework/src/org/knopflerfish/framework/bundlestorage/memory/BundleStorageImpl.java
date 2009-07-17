@@ -42,7 +42,7 @@ import java.util.*;
 /**
  * Storage of all bundles jar content.
  *
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -59,7 +59,7 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * If we should check if bundles are signed
    */
-  private boolean checkSigned = false;
+  boolean checkSigned = false;
 
 
   /**
@@ -67,7 +67,7 @@ public class BundleStorageImpl implements BundleStorage {
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl() {
+  public BundleStorageImpl(FrameworkContext framework) {
   }
 
   /**
@@ -139,7 +139,7 @@ public class BundleStorageImpl implements BundleStorage {
 
 
   /**
-   * Get all bundles tagged to start at next launch of framework.
+   * Get all bundles to start at next launch of framework.
    * This list is sorted in increasing bundle id order.
    *
    * @return Private copy of a List with bundle id's.
@@ -148,7 +148,7 @@ public class BundleStorageImpl implements BundleStorage {
     ArrayList res = new ArrayList();
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
-      if (ba.getStartOnLaunchFlag()) {
+      if (ba.getAutostartSetting()!=-1) {
         res.add(ba.getBundleLocation());
       }
     }
@@ -157,11 +157,26 @@ public class BundleStorageImpl implements BundleStorage {
 
 
   /**
-   * 
+   * Mark if we want to check if bundles are signed.
    *
+   * @param value True if we to check.
    */
   public void setCheckSigned(boolean value) {
     checkSigned = value;
+  }
+
+
+  /**
+   * Close bundle storage.
+   *
+   */
+  public void close()
+  {
+    for (Iterator i = archives.iterator(); i.hasNext(); ) {
+      BundleArchive ba = (BundleArchive) i.next();
+      ba.close();
+      i.remove();
+    }
   }
 
   //

@@ -34,53 +34,41 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 
 /**
  * Classloader for bundle JAR files.
  *
- * @author Jan Stein
- * @author Philippe Laporte
- * @author Mats-Ola Persson
+ * @author Jan Stein, Philippe Laporte, Mats-Ola Persson, Gunna Ekolin
  */
-final public class BundleClassLoader extends ClassLoader {
-
-  // If set to true, use strict rules for loading classes from the boot class loader.
-  // If false, accept class loading from the boot class path from classes themselves
-  // on the boot class, but which incorrectly assumes they may access all of the boot
-  // classes on any class loader (such as the bundle class loader).
-  // 
-  // Setting this to TRUE will, for example, result in broken serialization on the Sun JVM
-  // It's debatable what is the correct OSGi R4 behavior.
-  static boolean STRICTBOOTCLASSLOADING = 
-    Framework.TRUE.equals(Framework.getProperty("org.knopflerfish.framework.strictbootclassloading", Framework.FALSE));
-
-
-  /**
-   * Debug
-   */
-  final private boolean debug = Debug.classLoader;
-
+final public class BundleClassLoader
+  extends ClassLoader
+  implements BundleReference
+{
   /**
    * Framework class loader
    */
-  final static private ClassLoader parent = Framework.class.getClassLoader();
+  final private ClassLoader parent;
 
   /**
    * Handle to secure operations.
@@ -98,35 +86,36 @@ final public class BundleClassLoader extends ClassLoader {
   BundleArchive archive;
 
   /**
-   * Fragment archives that we load code from.
-   */
-  private ArrayList /* BundleArchive */ fragments;
-
-  /**
    * Imported and Exported java packages.
    */
   BundlePackages bpkgs;
 
-  private static ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
-  private static boolean bootDelegationUsed /*= false*/;
+  /**
+   * Bundle class path for this classloader.
+   */
+  private BundleClassPath classPath;
 
+  /**
+   * Fragment archives that we load code from.
+   */
+  private ArrayList /* BundleImpl */ fragments;
 
-  static {
-    buildBootDelegationPatterns();
-  }
+  // Array of bundles for which a classload is triggering activation.
+  private static ThreadLocal tlBundlesToActivate = new ThreadLocal();
+
 
   // android/dalvik VM stuff
   private static Constructor dexFileClassCons;
   private static Method      dexFileClassLoadClassMethod;
 
   // bDalvik will be set to true if we're running on the android
-  // dalvik VM. 
-  // package protected to enable other parts of framework to check 
+  // dalvik VM.
+  // package protected to enable other parts of framework to check
   // for dalvik VM
   static boolean bDalvik = false;
-  
+
   private Object dexFile = null;
-  
+
   static {
     try {
       Class dexFileClass;
@@ -135,20 +124,20 @@ final public class BundleClassLoader extends ClassLoader {
       } catch( Exception ex ) {
         dexFileClass = Class.forName("dalvik.system.DexFile");
       }
-      
-      dexFileClassCons = 
+
+      dexFileClassCons =
         dexFileClass.getConstructor( new Class[] { File.class });
-      
-      dexFileClassLoadClassMethod = 
-        dexFileClass.getMethod("loadClass", 
-                               new Class[] { String.class, 
-                                             ClassLoader.class 
+
+      dexFileClassLoadClassMethod =
+        dexFileClass.getMethod("loadClass",
+                               new Class[] { String.class,
+                                             ClassLoader.class
                                });
-      
+
       bDalvik = true;
-      if(Debug.classLoader) {
-	  Debug.println("running on dalvik VM");
-      }
+      // if(debug.classLoader) {
+      // debug.println("running on dalvik VM");
+      // }
     } catch(Exception e) {
       dexFileClassCons            = null;
       dexFileClassLoadClassMethod = null;
@@ -156,100 +145,28 @@ final public class BundleClassLoader extends ClassLoader {
   }
 
 
-  // oota add for debug 
-  private static void dprintln( String msg ) {
-    if(true) {
-      Debug.println(msg);
-    }
-  }
-
-
-  static void buildBootDelegationPatterns() {
-    String bootDelegationString = Framework.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
-    bootDelegationUsed = (bootDelegationString != null);
-
-    try {
-      Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
-                                     bootDelegationString,
-                                     true, true, false);
-
-      while (i.hasNext()) {
-        Map e = (Map)i.next();
-        String key = (String)e.get("$key");
-        if (key.equals("*")) {
-          bootDelegationPatterns = null;
-          //in case funny person puts a * amongst other things
-          break;
-        }
-        else if (key.endsWith(".*")) {
-          bootDelegationPatterns.add(key.substring(0, key.length() - 1));
-        }
-        else if (key.endsWith(".")) {
-          Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
-                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry ends with '.': " + key));
-        }
-        else if (key.indexOf("*") != - 1) {
-          Main.framework.listeners.frameworkError(Main.framework.systemBundle, new IllegalArgumentException(
-                                                                                                            Constants.FRAMEWORK_BOOTDELEGATION + " entry contains a '*': " + key));
-        }
-        else {
-          bootDelegationPatterns.add(key);
-        }
-      }
-    }
-    catch (IllegalArgumentException e) {
-      Main.framework.listeners.frameworkError(Main.framework.systemBundle, e);
-    }
-  }
-
-  static boolean isBootDelegatedResource(String name) {
-    // Convert resource name to class name format, preserving the
-    // package part of the path/name.
-    int pos = name.lastIndexOf('/');
-    return pos != -1
-      ? isBootDelegated(name.substring(0,pos).replace('/','.')+".X")
-      : false;
-  }
-
-  static boolean isBootDelegated(String className){
-    if(!bootDelegationUsed){
-      return false;
-    }
-    int pos = className.lastIndexOf('.');
-    if (pos != -1) {
-      String classPackage = className.substring(0, pos);
-      if (bootDelegationPatterns == null) {
-        return true;
-      }
-      else {
-        for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
-          String ps = (String)i.next();
-          if ((ps.endsWith(".") &&
-               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
-               classPackage.equals(ps)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-
+  Debug debug;
 
   /**
    * Create class loader for specified bundle.
    */
   BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags,
-                    ProtectionDomain pd, PermissionOps secure) {
-    super(parent); //otherwise getResource will bypass OUR parent
+                    ProtectionDomain pd, PermissionOps secure)
+  throws BundleException
+  {
+    //otherwise getResource will bypass OUR parent
+    super(bpkgs.bundle.fwCtx.parentClassLoader);
+
+    this.debug = bpkgs.bundle.fwCtx.props.debug;
+    this.parent = bpkgs.bundle.fwCtx.getClass().getClassLoader();
     this.secure = secure;
     protectionDomain = pd;
     this.bpkgs = bpkgs;
     archive = ba;
     fragments = frags;
-    if (debug) {
-      Debug.println(this + " Created new classloader");
+    classPath = new BundleClassPath(ba, frags, bpkgs.bundle.fwCtx.props);
+    if (debug.classLoader) {
+      debug.println(this + " Created new classloader");
     }
   }
 
@@ -264,7 +181,7 @@ final public class BundleClassLoader extends ClassLoader {
   /**
    * Check if this bundle is to be byte code patched
    */
-  static boolean isBundlePatch() {
+  boolean isBundlePatch() {
     if(!bHasCheckedASM) {
       try {
         Class clazz = Class.forName("org.objectweb.asm.ClassReader");
@@ -274,14 +191,14 @@ final public class BundleClassLoader extends ClassLoader {
       }
       bHasCheckedASM = true;
 
-      if(Debug.patch) {
-        Debug.println("ASM library: " + bHasASM);
+      if(debug.patch) {
+        debug.println("ASM library: " + bHasASM);
       }
     }
 
     return bHasASM &&
-      "true".equals(Framework.getProperty("org.knopflerfish.framework.patch",
-                                          "false"));
+      "true".equals(bpkgs.bundle.fwCtx.props.getProperty("org.knopflerfish.framework.patch",
+                                                             "false"));
   }
 
   /**
@@ -295,11 +212,11 @@ final public class BundleClassLoader extends ClassLoader {
     if (name.startsWith("java.")) {
       return parent.loadClass(name);
     }
-    if (isBootDelegated(name)) {
+    if (bpkgs.bundle.fwCtx.isBootDelegated(name)) {
       try {
         Class bootDelegationCls = parent.loadClass(name);
-        if (debug && bootDelegationCls!=null) {
-          Debug.println(this +" findClass: " +name +" boot delegation: "
+        if (debug.classLoader && bootDelegationCls!=null) {
+          debug.println(this +" findClass: " +name +" boot delegation: "
                         +bootDelegationCls);
         }
         return bootDelegationCls;
@@ -316,20 +233,20 @@ final public class BundleClassLoader extends ClassLoader {
       pkg = null;
     }
     Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class",
-					    classSearch, true, this, null);
+                                            classSearch, true, this, null);
     if (res != null) {
       return res;
     }
 
-    if(!STRICTBOOTCLASSLOADING) {
+    if(!bpkgs.bundle.fwCtx.props.STRICTBOOTCLASSLOADING) {
       if(isBootClassContext(name)) {
-        if(debug) {
-          Debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
+        if(debug.classLoader) {
+          debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
         }
-	res = parent.loadClass(name);
+        res = parent.loadClass(name);
         if(res != null) {
-          if(debug) {
-            Debug.println(this + " loaded " + name + " from " + parent);
+          if(debug.classLoader) {
+            debug.println(this + " loaded " + name + " from " + parent);
           }
         }
         return res;
@@ -347,8 +264,8 @@ final public class BundleClassLoader extends ClassLoader {
    */
   protected String findLibrary(String name) {
     String res = secure.callFindLibrary0(this,name);
-    if (debug) {
-      Debug.println(this + " Find library: " + name + (res != null ? " OK" : " FAIL"));
+    if (debug.classLoader) {
+      debug.println(this + " Find library: " + name + (res != null ? " OK" : " FAIL"));
     }
     return res;
   }
@@ -388,11 +305,11 @@ final public class BundleClassLoader extends ClassLoader {
       return super.getClassContext();
     }
   }
-    
+
   static protected SecurityManagerExposer smex = new SecurityManagerExposer();
-  
+
   /**
-   * Check if the current call is made from a class loaded on the 
+   * Check if the current call is made from a class loaded on the
    * boot class path (or rather, on a class loaded from something else
    * than a bundle class loader)
    */
@@ -403,10 +320,10 @@ final public class BundleClassLoader extends ClassLoader {
       if ((this.getClass().getClassLoader() != classStack[i].getClassLoader())
           && !ClassLoader.class.isAssignableFrom(classStack[i])
           && !Class.class.equals(classStack[i])) {
-        
+
         // If any of the classloaders for the caller's class is
         // a BundleClassLoader, we're not in a VM class context
-        for (ClassLoader cl = classStack[i].getClassLoader(); 
+        for (ClassLoader cl = classStack[i].getClassLoader();
              cl != null; cl = cl.getClass().getClassLoader()) {
           if (BundleClassLoader.class.isInstance(cl)) {
             return false;
@@ -436,7 +353,50 @@ final public class BundleClassLoader extends ClassLoader {
     Class c = findLoadedClass(name);
     if (c == null) {
       c = findClass(name);
+    } else {
+      // Handle bundles that are lazely started after having been
+      // stopped. In this case the triggering classes will already
+      // be loaded.
+      BundleImpl b = (BundleImpl) getBundle();
+      if (b.triggersActivationCls(name)) {
+        if (debug.lazyActivation) {
+          debug.println(this +" lazy activation of #" +b.id
+                        +" triggered by loadClass(" +name +")");
+        }
+
+        ArrayList bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
+        if (null==bundlesToActivate) {
+          // Not part of a load chain; activate bundle here.
+          if (debug.lazyActivation) {
+            debug.println(this + " requesting lazy activation of #" +b.id);
+          }
+          try {
+            secure.callFinalizeActivation(b);
+          } catch (BundleException e) {
+            b.fwCtx.listeners.frameworkError(b, e);
+          }
+        } else {
+          // add bundle to list of bundles to activate when the
+          // initiator class has been loaded.
+          boolean bundlePresent = false;
+          for (int i = 0, size = bundlesToActivate.size(); i < size; i++) {
+            BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+            if (tmp.id == b.id) {
+              bundlePresent = true;
+              break;
+            }
+          }
+          if (!bundlePresent) {
+            bundlesToActivate.add(b);
+            if (debug.lazyActivation) {
+              debug.println(this + " added #" +b.id
+                            +" to list of bundles to be activated.");
+            }
+          }
+        }
+      }
     }
+
     if (resolve) {
         resolveClass(c);
     }
@@ -457,23 +417,23 @@ final public class BundleClassLoader extends ClassLoader {
    * @see java.lang.ClassLoader#getResource
    */
   public URL getResource(String name) {
-    if (debug) {
-      Debug.println(this + " getResource: " + name);
+    if (debug.classLoader) {
+      debug.println(this + " getResource: " + name);
     }
     URL res = null;
     if (name.startsWith("java/")) {
       res = parent.getResource(name);
-      if (debug) {
-        Debug.println(this +" getResource: " +name +" file in java pkg: "+res);
+      if (debug.classLoader) {
+        debug.println(this +" getResource: " +name +" file in java pkg: "+res);
       }
       return res;
     }
 
-    if (isBootDelegatedResource(name)) {
+    if (bpkgs.bundle.fwCtx.isBootDelegatedResource(name)) {
       res = parent.getResource(name);
       if (res!=null) {
-        if (debug) {
-          Debug.println(this +" getResource: " +name +" boot delegation: "
+        if (debug.classLoader) {
+          debug.println(this +" getResource: " +name +" boot delegation: "
                         +res);
         }
         return res;
@@ -481,8 +441,8 @@ final public class BundleClassLoader extends ClassLoader {
     }
 
     res = findResource(name);
-    if (debug) {
-      Debug.println(this + " getResource: " + name +" bundle space: "+res);
+    if (debug.classLoader) {
+      debug.println(this + " getResource: " + name +" bundle space: "+res);
     }
     return res;
   }
@@ -510,8 +470,8 @@ final public class BundleClassLoader extends ClassLoader {
    *
    */
   public Enumeration getResourcesOSGi(String name) throws IOException {
-    if (debug) {
-      Debug.println(this + " getResources: " + name);
+    if (debug.classLoader) {
+      debug.println(this + " getResources: " + name);
     }
     int start = name.startsWith("/") ? 1 : 0;
     if (name.substring(start).startsWith("java/")) {
@@ -519,7 +479,7 @@ final public class BundleClassLoader extends ClassLoader {
     }
 
     Enumeration res = null;
-    if (isBootDelegatedResource(name)) {
+    if (bpkgs.bundle.fwCtx.isBootDelegatedResource(name)) {
       res = parent.getResources(name);
     }
 
@@ -557,20 +517,23 @@ final public class BundleClassLoader extends ClassLoader {
    * @return A message string.
    */
   public String toString() {
-    return "BundleClassLoader(id=" + bpkgs.bundle.id + ",gen=" + bpkgs.generation + ")";
+    return "BundleClassLoader("
+      //+"fw=" +bpkgs.bundle.fwCtx.hashCode()
+      +"id=" + bpkgs.bundle.id
+      +",gen=" + bpkgs.generation
+      +")";
   }
+
+
+  // Implements BundleReference
+  public Bundle getBundle() {
+    return bpkgs.bundle;
+  }
+
 
   //
   // BundleClassLoader specific
   //
-
-  /**
-   * Get bundle owning this class loader.
-   */
-  BundleImpl getBundle() {
-    return bpkgs.bundle;
-  }
-
 
   /**
    * Get bundle archive belonging to this class loader.
@@ -580,9 +543,9 @@ final public class BundleClassLoader extends ClassLoader {
       if (fragments != null) {
         for (Iterator i = fragments.iterator(); i.hasNext(); ) {
           // NYI improve this solution
-          BundleArchive ba = (BundleArchive)i.next();
-          if (ba.getBundleId() == frag) {
-            return ba;
+          BundleImpl b = (BundleImpl)i.next();
+          if (b.getBundleId() == frag) {
+            return b.archive;
           }
         }
       }
@@ -601,12 +564,12 @@ final public class BundleClassLoader extends ClassLoader {
   void close() {
     archive = null;
     bpkgs.invalidateClassLoader();
-    if (fragments!=null) {
+    if (fragments != null) {
       fragments.clear();
       fragments = null;
     }
-    if (debug) {
-      Debug.println(this + " Cleared archives");
+    if (debug.classLoader) {
+      debug.println(this + " Cleared archives");
     }
   }
 
@@ -619,20 +582,21 @@ final public class BundleClassLoader extends ClassLoader {
   void purge() {
     bpkgs.unregisterPackages(true);
     if (protectionDomain != null) {
-      bpkgs.bundle.framework.perm.purge(bpkgs.bundle, protectionDomain);
+      bpkgs.bundle.fwCtx.perm.purge(bpkgs.bundle, protectionDomain);
     }
     if (archive != null) {
       archive.purge();
     }
     if (fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        // NYI improve this solution
-        BundleArchive ba = (BundleArchive)i.next();
-        BundleImpl b = (BundleImpl)bpkgs.bundle.framework.bundles.getBundle(ba.getBundleLocation());
-        if (b == null || b.archive != ba) {
-          ba.purge();
-        }
-      }
+        // NYI handle multihost and zombie archives
+//       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+//         BundleImpl b1 = (BundleImpl)i.next();
+//         BundleImpl b2 = (BundleImpl) bpkgs.bundle.fwCtx.bundles
+//           .getBundle(b1.getLocation());
+//         if (b2 == null || b2.archive != b1.archive) {
+//           b1.archive.purge();
+//         }
+//       }
     }
     close();
   }
@@ -644,8 +608,9 @@ final public class BundleClassLoader extends ClassLoader {
    */
   Enumeration getBundleResources(String name, boolean onlyFirst) {
     if (secure.okResourceAdminPerm(bpkgs.bundle)) {
-      if (debug) {
-        Debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s") + ": " + name);
+      if (debug.classLoader) {
+        debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s")
+                      + ": " + name);
       }
       String pkg = null;
       int pos = name.lastIndexOf('/');
@@ -655,7 +620,8 @@ final public class BundleClassLoader extends ClassLoader {
       } else {
         pkg = null;
       }
-      return (Enumeration)secure.callSearchFor(this, null, pkg, name, resourceSearch,
+      return (Enumeration)secure.callSearchFor(this, null, pkg, name,
+                                               resourceSearch,
                                                onlyFirst, this, null);
     } else {
       return null;
@@ -668,29 +634,17 @@ final public class BundleClassLoader extends ClassLoader {
    *
    */
   Hashtable getLocalizationEntries(String name) {
-    Hashtable localization_entries = null;
-    if (fragments != null) {
-      for (int i = fragments.size() - 1; i >= 0; i--) {
-        BundleArchive ba = (BundleArchive)fragments.get(i);
-        Hashtable tmp = ba.getLocalizationEntries(name);
-        if (tmp != null) {
-          if (localization_entries != null) {
-            localization_entries.putAll(tmp);
-          } else {
-            localization_entries = tmp;
-          }
+    Hashtable res = archive.getLocalizationEntries(name);
+    if (res == null && fragments != null) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        BundleArchive ba = ((BundleImpl)i.next()).archive;
+        res = ba.getLocalizationEntries(name);
+        if (res != null) {
+          break;
         }
       }
     }
-    Hashtable tmp = archive.getLocalizationEntries(name);
-    if (tmp != null) {
-      if (localization_entries != null) {
-        localization_entries.putAll(tmp);
-      } else {
-        localization_entries = tmp;
-      }
-    }
-    return localization_entries;
+    return res;
   }
 
 
@@ -705,6 +659,78 @@ final public class BundleClassLoader extends ClassLoader {
   //
   // Private
   //
+  /**
+   * Seraches for and loads classes and resources according to OSGi
+   * search order. When lazy activation of bundles are used this
+   * method will detect and perform the activation. The actual
+   * searching and loading is done in {@link #searchFor0()}
+   *
+   * @param name Name of class or null if we look for a resource
+   * @param pkg Package name for item
+   * @param path File path to item searched ("/" seperated)
+   * @param action Action to be taken when item is found
+   * @param onlyFirst Stop search when first matching item is found.
+   *
+   * @return Object returned from action class.
+   */
+  Object searchFor(String name,
+                   String pkg,
+                   String path,
+                   SearchAction action,
+                   boolean onlyFirst,
+                   BundleClassLoader requestor,
+                   HashSet visited)
+  {
+    final BundleImpl b = (BundleImpl) getBundle();
+    boolean initiator = false;
+    ArrayList bundlesToActivate = null;
+
+    if (action == classSearch) {
+      boolean bundlePresent = false;
+
+      bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
+      initiator = bundlesToActivate == null;
+      if (initiator) {
+        bundlesToActivate = new ArrayList();
+        tlBundlesToActivate.set(bundlesToActivate);
+      } else {
+        for (int i = 0, size = bundlesToActivate.size(); i < size; i++) {
+          BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+          if (tmp.id == b.id) {
+            bundlePresent = true;
+            break;
+          }
+        }
+      }
+      if (!bundlePresent && b.triggersActivationPkg(pkg)) {
+        bundlesToActivate.add(b);
+        if (debug.lazyActivation) {
+          debug.println(this +" lazy activation of #" +b.id
+                        +" triggered by searchFor(" +name +")");
+        }
+      }
+    }
+
+    final Object res
+      = searchFor0(name, pkg, path, action, onlyFirst, requestor, visited);
+
+    if (initiator) {
+      for (int i = bundlesToActivate.size() - 1; i >= 0; i--) {
+        BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+        if (debug.lazyActivation) {
+          debug.println(this + " requesting lazy activation of #" +b.id);
+        }
+        try {
+          tmp.finalizeActivation();
+        } catch (BundleException e) {
+          b.fwCtx.listeners.frameworkError(b, e);
+        }
+      }
+      tlBundlesToActivate.set(null);
+    }
+
+    return res;
+  }
 
   /**
    * Search for classloader to use according to OSGi search order.
@@ -760,8 +786,14 @@ final public class BundleClassLoader extends ClassLoader {
    *
    * @return Object returned from action class.
    */
-  Object searchFor(String name, String pkg, String path, SearchAction action,
-                   boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
+  Object searchFor0(String name,
+                    String pkg,
+                    String path,
+                    SearchAction action,
+                    boolean onlyFirst,
+                    BundleClassLoader requestor,
+                    HashSet visited)
+  {
     BundlePackages pbp;
     ExportPkg ep;
 
@@ -773,8 +805,8 @@ final public class BundleClassLoader extends ClassLoader {
       }
     }
 
-    if (debug) {
-      Debug.println(this + " Search for: " + path);
+    if (debug.classLoader) {
+      debug.println(this + " Search for: " + path);
     }
     /* 3 */
     if (pkg != null) {
@@ -783,7 +815,7 @@ final public class BundleClassLoader extends ClassLoader {
 
         if (isSystemBundle(pbp.bundle)) {
           try {
-            return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
+            return pbp.bundle.fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
@@ -796,15 +828,15 @@ final public class BundleClassLoader extends ClassLoader {
           if (cl != this
               && (visited==null || (cl!=null && !visited.contains(cl))) ) {
             if (cl != null) {
-              if (debug) {
-                Debug.println(this + " Import search: " + path +
+              if (debug.classLoader) {
+                debug.println(this + " Import search: " + path +
                               " from #" + pbp.bundle.id);
               }
               return secure.callSearchFor(cl, name, pkg, path, action,
                                           onlyFirst, requestor, visited);
             }
-            if (debug) {
-              Debug.println(this + " No import found: " + path);
+            if (debug.classLoader) {
+              debug.println(this + " No import found: " + path);
             }
             return null;
           }
@@ -822,8 +854,8 @@ final public class BundleClassLoader extends ClassLoader {
             if (pbp != null) {
               BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
               if (cl != null && !visited.contains(cl)) {
-                if (debug) {
-                  Debug.println(this + " Required bundle search: " +
+                if (debug.classLoader) {
+                  debug.println(this + " Required bundle search: " +
                                 path + " from #" + pbp.bundle.id);
                 }
                 Object res = secure.callSearchFor(cl, name, pkg, path, action,
@@ -834,8 +866,8 @@ final public class BundleClassLoader extends ClassLoader {
               }
             }
           }
-          if (debug) {
-            Debug.println(this + " Required bundle search: "
+          if (debug.classLoader) {
+            debug.println(this + " Required bundle search: "
                           +"Not found, continuing with local search.");
           }
         }
@@ -848,37 +880,46 @@ final public class BundleClassLoader extends ClassLoader {
     if (this != requestor && ep != null && !ep.checkFilter(name)) {
       return null;
     }
-    // Must collect and merge all search hits from step 5
-    // and 6 to handle the case when onlyFirst is false.
-    Vector /* SearchActionItem */ sais = new Vector();
-
-    Vector av = archive.componentExists(path, onlyFirst);
+    Vector av = classPath.componentExists(path, onlyFirst);
     if (av != null) {
-      sais.add( new SearchActionItem( av, archive ) );
+       try {
+         return action.get(av, path, name, pkg, this );
+       } catch (IOException ioe) {
+         bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
+         return null;
+       }
     }
-    /* 6 */
-    if (fragments != null && !(onlyFirst && sais.size()>0) ) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        BundleArchive ba = (BundleArchive)i.next();
-        if (debug) {
-          Debug.println(this + " Fragment bundle search: " +
-                        path + " from #" + ba.getBundleId());
-        }
-        Vector vec = ba.componentExists(path, onlyFirst);
-        if (vec != null) {
-          sais.add( new SearchActionItem( vec, ba ) );
-          if (onlyFirst) break;
-        }
-      }
-    }
-    if (sais.size()>0) { /* 5 or 6 found the item */
-      try {
-        return action.get(sais, path, name, pkg, this );
-      } catch (IOException ioe) {
-        bpkgs.bundle.framework.listeners.frameworkError(bpkgs.bundle, ioe);
-        return null;
-      }
-    }
+//     // Must collect and merge all search hits from step 5
+//     // and 6 to handle the case when onlyFirst is false.
+//     Vector /* SearchActionItem */ sais = new Vector();
+
+//     Vector av = archive.componentExists(path, onlyFirst);
+//     if (av != null) {
+//       sais.add( new SearchActionItem( av, archive ) );
+//     }
+//     /* 6 */
+//     if (fragments != null && !(onlyFirst && sais.size()>0) ) {
+//       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+//         BundleArchive ba = (BundleArchive)i.next();
+//         if (debug.classLoader) {
+//           debug.println(this + " Fragment bundle search: " +
+//                         path + " from #" + ba.getBundleId());
+//         }
+//         Vector vec = ba.componentExists(path, onlyFirst);
+//         if (vec != null) {
+//           sais.add( new SearchActionItem( vec, ba ) );
+//           if (onlyFirst) break;
+//         }
+//       }
+//     }
+//     if (sais.size()>0) { /* 5 or 6 found the item */
+//       try {
+//         return action.get(sais, path, name, pkg, this );
+//       } catch (IOException ioe) {
+//         bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
+//         return null;
+//       }
+//     }
 
     /* 7 */
     if (ep != null) {
@@ -891,15 +932,15 @@ final public class BundleClassLoader extends ClassLoader {
         /* 9 */
         if (isSystemBundle(pbp.bundle)) {
           try {
-            return pbp.bundle.framework.systemBundle.getClassLoader().loadClass(name);
+            return pbp.bundle.fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
         } else {
           BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
           if (cl != null) {
-            if (debug) {
-              Debug.println(this + " Dynamic import search: " +
+            if (debug.classLoader) {
+              debug.println(this + " Dynamic import search: " +
                   path + " from #" + pbp.bundle.id);
             }
             return secure.callSearchFor(cl, name, pkg, path, action,
@@ -907,8 +948,8 @@ final public class BundleClassLoader extends ClassLoader {
           }
         }
       }
-      if (debug) {
-        Debug.println(this + " No dynamic import: " + path);
+      if (debug.classLoader) {
+        debug.println(this + " No dynamic import: " + path);
       }
     }
     return null;
@@ -916,25 +957,25 @@ final public class BundleClassLoader extends ClassLoader {
 
 
   private static boolean isSystemBundle(BundleImpl bundle) {
-    return bundle == bundle.framework.systemBundle;
+    return bundle == bundle.fwCtx.systemBundle;
   }
 
 
-  static class SearchActionItem {
-    public Vector /* Integer(class loader internal class path id) */ items;
-    public BundleArchive ba;
-    public SearchActionItem(Vector items, BundleArchive ba)
-    {
-      this.items = items;
-      this.ba = ba;
-    }
-  }
+//   static class SearchActionItem {
+//     public Vector /* Integer(class loader internal class path id) */ items;
+//     public BundleArchive ba;
+//     public SearchActionItem(Vector items, BundleArchive ba)
+//     {
+//       this.items = items;
+//       this.ba = ba;
+//     }
+//   }
 
   /**
    *  Search action
    */
   interface SearchAction {
-    public Object get(Vector /* SearchActionItem */ items,
+    public abstract Object get(Vector /* FileArchive */ items,
                       String path, String name, String pkg,
                       BundleClassLoader cl )
       throws IOException ;
@@ -948,14 +989,13 @@ final public class BundleClassLoader extends ClassLoader {
       public Object get(Vector items, String path, String name, String pkg,
                         BundleClassLoader cl )
         throws IOException {
-        SearchActionItem sai = (SearchActionItem) items.get(0);
-        byte[] bytes = sai.ba.getClassBytes((Integer)sai.items.get(0), path);
+        byte[] bytes = ((FileArchive)items.get(0)).getClassBytes(path);
         if (bytes != null) {
           if(cl.isBundlePatch()) {
             bytes = ClassPatcher.getInstance(cl).patch(name, bytes);
           }
-          if (Debug.classLoader) {
-            Debug.println("classLoader(#" + cl.bpkgs.bundle.id
+          if (cl.debug.classLoader) {
+            cl.debug.println("classLoader(#" + cl.bpkgs.bundle.id
                           + ") - load class: " + name);
           }
           synchronized (cl) {
@@ -968,16 +1008,16 @@ final public class BundleClassLoader extends ClassLoader {
                 }
               }
 
-	      // Use dalvik DexFile class loading when running
-	      // on the dalvik VM
+              // Use dalvik DexFile class loading when running
+              // on the dalvik VM
               if(bDalvik) {
-		  try {
-		      c = cl.getDexFileClass(name);
-		  } catch (Exception e) {
-		      throw new IOException("Failed to load dex class '" + name + "', " + e);
-		  }
-	      }
-              
+                  try {
+                      c = cl.getDexFileClass(name);
+                  } catch (Exception e) {
+                      throw new IOException("Failed to load dex class '" + name + "', " + e);
+                  }
+              }
+
               if(c == null) {
                 if (cl.protectionDomain == null) {
                   // Kaffe can't handle null protectiondomain
@@ -995,44 +1035,44 @@ final public class BundleClassLoader extends ClassLoader {
       }
     };
 
-  
+
     /**
      * Load a class using the Dalvik DexFile API.
      * <p>
      * This relies in the bundle having a "classes.dex"
      * in its root
      * <p>
-     * 
+     *
      * To create such a bundle, do
      * <ol>
      *  <li><code>dx --dex --output=classes.dex bundle.jar</code>
      *  <li><code>aapt add bundle.jar classes.dex</code>
      * </ol>
      */
-    private Class getDexFileClass(String name) 
-	throws Exception {
-	
-	if (debug) {
-	    Debug.println("loading dex class " + name);
-	}
-	
-	if (dexFile == null) {
-	    File f  = new File(archive.getJarLocation());
-	    dexFile = dexFileClassCons.newInstance(new Object[] { f });
-	    if(debug) {
-		Debug.println("created DexFile from " + f);
-	    }
-	}
-    
-	String path = name.replace('.','/');
+    private Class getDexFileClass(String name)
+        throws Exception {
 
-	return (Class)dexFileClassLoadClassMethod
-	    .invoke(dexFile, new Object[] { path, this });
+        if (debug.classLoader) {
+            debug.println("loading dex class " + name);
+        }
+
+        if (dexFile == null) {
+            File f  = new File(archive.getJarLocation());
+            dexFile = dexFileClassCons.newInstance(new Object[] { f });
+            if(debug.classLoader) {
+                debug.println("created DexFile from " + f);
+            }
+        }
+
+        String path = name.replace('.','/');
+
+        return (Class)dexFileClassLoadClassMethod
+            .invoke(dexFile, new Object[] { path, this });
     }
 
 
 
-  
+
   /**
    *  Search action for resource searching
    */
@@ -1043,24 +1083,27 @@ final public class BundleClassLoader extends ClassLoader {
 
         Vector answer = new Vector();
         for(int i = 0; i < items.size(); i++) {
-          SearchActionItem sai = (SearchActionItem) items.elementAt(i);
-          for(int j = 0; j < sai.items.size(); j++) {
-            int subId = ((Integer)sai.items.elementAt(j)).intValue();
-            URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
-                                             sai.ba.getBundleId(),
-                                             subId,
-                                             path);
+          FileArchive fa = (FileArchive) items.elementAt(i);
+//           for(int j = 0; j < sai.items.size(); j++) {
+//             int subId = ((Integer)sai.items.elementAt(j)).intValue();
+//             URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
+//                                              sai.ba.getBundleId(),
+//                                              subId,
+//                                              path);
+             URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
+                                              fa.getBundleId(),
+                                              fa.getSubId(),
+                                              path);
             if (url != null) {
-              if (Debug.classLoader) {
-                Debug.println("classLoader(#" + cl.bpkgs.bundle.id
-                              + ") - found: " +
-                              path + " -> " + url);
+              if (cl.debug.classLoader) {
+                cl.debug.println("classLoader(#" + cl.bpkgs.bundle.id
+                                 + ") - found: " +
+                                 path + " -> " + url);
               }
               answer.addElement(url);
             } else {
               return null;
             }
-          }
         }
         return answer.elements();
       }
@@ -1074,16 +1117,7 @@ final public class BundleClassLoader extends ClassLoader {
    *
    */
   String findLibrary0(final String name) {
-    String res = archive.getNativeLibrary(name);
-    if (res == null && fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        res = ((BundleArchive)i.next()).getNativeLibrary(name);
-        if (res != null) {
-          break;
-        }
-      }
-    }
-    return res;
+    return classPath.getNativeLibrary(name);
   }
 
 } //class

@@ -64,14 +64,13 @@ class BundleArchiveImpl implements BundleArchive
 
   private String location;
 
-  private boolean startOnLaunch;
+  private int autostartSetting = -1; // -> not started.
 
   private BundleStorageImpl storage;
 
   private Archive [] archives;
 
   private int startLevel = -1;
-  private boolean bPersistent = false;
   private long lastModified;
 
   private ArrayList failedPath = null;
@@ -86,11 +85,10 @@ class BundleArchiveImpl implements BundleArchive
                     long bundleId)
     throws Exception
   {
-    archive       = new Archive(is);
-    storage       = bundleStorage;
-    id            = bundleId;
-    location      = bundleLocation;
-    startOnLaunch = false;
+    archive  = new Archive(is);
+    storage  = bundleStorage;
+    id       = bundleId;
+    location = bundleLocation;
     setClassPath();
   }
 
@@ -105,8 +103,7 @@ class BundleArchiveImpl implements BundleArchive
     location = old.location;
     storage = old.storage;
     id = old.id;
-    startOnLaunch = old.startOnLaunch;
-    bPersistent = old.bPersistent;
+    autostartSetting = old.autostartSetting;
     archive = new Archive(is);
     setClassPath();
   }
@@ -120,6 +117,19 @@ class BundleArchiveImpl implements BundleArchive
    */
   public String getAttribute(String key) {
     return archive.getAttribute(key);
+  }
+
+
+  /**
+   * Get a FileArchive handle to a named Jar file or directory
+   * within this archive.
+   *
+   * @param path Name of Jar file or directory to get.
+   * @return A FileArchive object representing new archive, null if not found.
+   */
+  public FileArchive getFileArchive(String path) {
+    // NYI
+    return null;
   }
 
 
@@ -177,16 +187,6 @@ class BundleArchiveImpl implements BundleArchive
 
   public void setStartLevel(int level) {
     startLevel = level;
-  }
-
-
-  public void setPersistent(boolean b) {
-    bPersistent = b;
-  }
-
-
-  public boolean isPersistent() {
-    return bPersistent;
   }
 
 
@@ -291,24 +291,23 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
-   * Get state of start on launch flag.
+   * Set autostart setting.
    *
-   * @return Boolean value for start on launch flag.
+   * @param setting the new autostart setting.
    */
-  public boolean getStartOnLaunchFlag() {
-    return startOnLaunch;
+  public void setAutostartSetting(int setting) throws IOException {
+    if (setting != autostartSetting) {
+      autostartSetting = setting;
+    }
   }
 
-
   /**
-   * Set state of start on launch flag.
+   * Get autostart setting.
    *
-   * @param value Boolean value for start on launch flag.
+   * @return the autostart setting.
    */
-  public void setStartOnLaunchFlag(boolean value) throws IOException {
-    if (startOnLaunch != value) {
-      startOnLaunch = value;
-    }
+  public int getAutostartSetting() {
+    return autostartSetting;
   }
 
 
@@ -336,6 +335,18 @@ class BundleArchiveImpl implements BundleArchive
    */
   public List getFailedClassPathEntries() {
     return failedPath;
+  }
+
+  /**
+   * Resolve native code libraries.
+   *
+   * @return null if resolve ok, otherwise return an error message.
+   */
+  public String resolveNativeCode() {
+    if (getAttribute(Constants.BUNDLE_NATIVECODE) != null) {
+      return "Native code not allowed by memory storage";
+    }
+    return null;
   }
 
   //

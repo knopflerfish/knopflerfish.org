@@ -8,6 +8,7 @@
     <ant target="${the.target}" dir="consoletty"/>
     <ant target="${the.target}" dir="consoletcp"/>
     <ant target="${the.target}" dir="consoletelnet"/>
+    <ant target="${the.target}" dir="console2command"/>
   </target>
 
   <target name="all" 

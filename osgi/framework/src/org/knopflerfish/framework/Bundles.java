@@ -48,8 +48,7 @@ import org.osgi.framework.*;
  * Also handles load and save of bundle states to file, so that we
  * can restart the platform.
  *
- * @author Jan Stein
- * @author Mats-Ola Persson
+ * @author Jan Stein, Mats-Ola Persson, Gunnar Ekolin
  */
 public class Bundles {
 
@@ -62,8 +61,7 @@ public class Bundles {
   /**
    * Link to framework object.
    */
-  final private Framework framework;
-
+  private FrameworkContext fwCtx;
 
   /**
    * True we require all bundles to correctly signed.
@@ -73,28 +71,39 @@ public class Bundles {
   /**
    * Create a container for all bundles in this framework.
    */
-  Bundles(Framework fw) {
-    framework = fw;
+  Bundles(FrameworkContext fw) {
+    fwCtx = fw;
     bundles.put(fw.systemBundle.location, fw.systemBundle);
-    allSigned = Framework.getProperty("org.knopflerfish.framework.all_signed", false);
+    allSigned = fwCtx.props.getProperty("org.knopflerfish.framework.all_signed", false);
   }
 
+  void clear()
+  {
+    bundles.clear();
+    fwCtx = null;
+  }
 
   /**
    * Install a new bundle.
    *
    * @param location The location to be installed
    */
-  BundleImpl install(final String location, final InputStream in) throws BundleException {
+  BundleImpl install(final String location, final InputStream in)
+    throws BundleException
+  {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     BundleImpl b;
     synchronized (this) {
       b = (BundleImpl)bundles.get(location);
       if (b != null) {
         return b;
       }
-      b = framework.perm.callInstall0(this, location, in);
+      b = fwCtx.perm.callInstall0(this, location, in);
     }
-    framework.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
     return b;
   }
 
@@ -112,7 +121,7 @@ public class Bundles {
 
         // Support for http proxy authentication
         //TODO put in update as well
-        String auth = Framework.getProperty("http.proxyAuth");
+        String auth = fwCtx.props.getProperty("http.proxyAuth");
         if (auth != null && !"".equals(auth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -122,7 +131,7 @@ public class Bundles {
           }
         }
         // Support for http basic authentication
-        String basicAuth = Framework.getProperty("http.basicAuth");
+        String basicAuth = fwCtx.props.getProperty("http.basicAuth");
         if (basicAuth != null && !"".equals(basicAuth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
@@ -137,14 +146,14 @@ public class Bundles {
       }
       BundleImpl res = null;
       try {
-        ba = framework.storage.insertBundleJar(location, bin);
+        ba = fwCtx.storage.insertBundleJar(location, bin);
       } finally {
         bin.close();
       }
 
       Certificate [] cs = ba.getCertificates();
-      if (cs != null && framework.validator != null) {
-        for (Iterator i = framework.validator.iterator(); i.hasNext();) {
+      if (cs != null && fwCtx.validator != null) {
+        for (Iterator i = fwCtx.validator.iterator(); i.hasNext();) {
           cs = ((Validator)i.next()).checkCertificates(cs);
         }
         // OSGi requires that all certs must be valid in a bundle.
@@ -161,21 +170,11 @@ public class Bundles {
         throw new BundleException("All installed bundles must be signed!");
       }
 
-      String ee = ba.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-      if (ee != null) {
-        if (Debug.packages) {
-          Debug.println("bundle #" + ba.getBundleId() + " has EE=" + ee);
-        }
-        if (!framework.isValidEE(ee)) {
-          throw new RuntimeException("Execution environment '" + ee +
-                                     "' is not supported");
-        }
-      }
-      res = new BundleImpl(framework, ba);
+      res = new BundleImpl(fwCtx, ba);
 
-      framework.perm.checkLifecycleAdminPerm(res, checkContext);
+      fwCtx.perm.checkLifecycleAdminPerm(res, checkContext);
       if (res.isExtension()) {
-        framework.perm.checkExtensionLifecycleAdminPerm(res, checkContext);
+        fwCtx.perm.checkExtensionLifecycleAdminPerm(res, checkContext);
         if (!res.hasPermission(new AllPermission())) {
           throw new SecurityException();
         }
@@ -191,7 +190,8 @@ public class Bundles {
       if (ba != null) {
         ba.purge();
       }
-      throw new BundleException("Failed to install bundle: " + e, e);
+      throw new BundleException("Failed to install bundle: " + e,
+                                BundleException.UNSPECIFIED, e);
     }
   }
 
@@ -214,6 +214,10 @@ public class Bundles {
    *         if bundle was not found.
    */
   public Bundle getBundle(long id) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
@@ -234,6 +238,10 @@ public class Bundles {
    *         if bundle was not found.
    */
   public Bundle getBundle(String location) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     return (Bundle) bundles.get(location);
   }
 
@@ -246,6 +254,10 @@ public class Bundles {
    * @return BundleImpl for bundle or null.
    */
   BundleImpl getBundle(String name, Version version) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
@@ -264,6 +276,10 @@ public class Bundles {
    * @return A Bundle array with bundles.
    */
   List getBundles() {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     ArrayList res = new ArrayList(bundles.size());
     synchronized (bundles) {
       res.addAll(bundles.values());
@@ -301,6 +317,10 @@ public class Bundles {
    * @return A List of BundleImpl.
    */
   List getBundles(String name, VersionRange range) {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     List res = getBundles(name);
     for (int i = 0; i < res.size(); ) {
       BundleImpl b = (BundleImpl)res.remove(i);
@@ -325,6 +345,10 @@ public class Bundles {
    * @return A List of BundleImpl.
    */
   List getActiveBundles() {
+    if (null==fwCtx) { // This bundles object have been closed!
+      throw new IllegalStateException
+        ("Bundles.getBundle(id) called on closed bundles object.");
+    }
     ArrayList slist = new ArrayList();
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
@@ -347,14 +371,14 @@ public class Bundles {
    *
    */
   synchronized void load() {
-    BundleArchive [] bas = framework.storage.getAllBundleArchives();
+    BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
     for (int i = 0; i < bas.length; i++) {
       try {
-        BundleImpl b = new BundleImpl(framework, bas[i]);
+        BundleImpl b = new BundleImpl(fwCtx, bas[i]);
         bundles.put(b.location, b);
       } catch (Exception e) {
         try {
-          bas[i].setStartOnLaunchFlag(false); // Do not start on launch
+          bas[i].setAutostartSetting(-1); // Do not start on launch
           bas[i].setStartLevel(-2); // Mark as uninstalled
         } catch (IOException _ioe) {
         }
@@ -381,7 +405,7 @@ public class Bundles {
         try {
           rb.start();
         } catch (BundleException be) {
-          rb.framework.listeners.frameworkError(rb, be);
+          rb.fwCtx.listeners.frameworkError(rb, be);
         }
       }
     }
@@ -401,7 +425,7 @@ public class Bundles {
       BundleImpl b = (BundleImpl)e.nextElement();
       if (b.isFragment() &&
           b.state != Bundle.UNINSTALLED &&
-          b.getFragmentHost() == target) {
+          b.fragment.isTarget(target)) {
         retval.add(b);
       }
     }

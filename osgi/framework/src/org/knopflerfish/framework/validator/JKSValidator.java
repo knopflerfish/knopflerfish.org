@@ -34,7 +34,7 @@
 
 package org.knopflerfish.framework.validator;
 
-import org.knopflerfish.framework.Framework;
+import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
 import java.io.*;
 import java.security.cert.*;
@@ -69,42 +69,42 @@ public class JKSValidator implements Validator {
   /**
    * CA certificates repository.
    */
-  private static String caCertsFileName = Framework.getProperty(PROP_BASE + "ca_certs");
+  private String caCertsFileName;
 
   /**
    * CA certificates repository password.
    */
-  private static String caCertsPassword = Framework.getProperty(PROP_BASE + "ca_certs_password");
+  private String caCertsPassword;
 
   /**
    * Certificate provider;
    */
-  final private static String certProvider = Framework.getProperty(PROP_BASE + "cert_provider");
+  private String certProvider;
 
   /**
    * Certificate algorithm, only supports PKIX now.
    */
-  private static String certAlgorithm = CERT_ALGORITHM_PKIX;
+  private String certAlgorithm = CERT_ALGORITHM_PKIX;
 
   /**
    * 
    */
-  private static CertificateFactory certFactory = null;
+  private CertificateFactory certFactory = null;
 
   /**
    * 
    */
-  private static String certFactoryType = null;
+  private String certFactoryType = null;
 
   /**
    * 
    */
-  private static CertPathValidator certValidator = null;
+  private CertPathValidator certValidator = null;
 
   /**
    * 
    */
-  private static String certValidatorAlgorithm = null;
+  private String certValidatorAlgorithm = null;
 
   /**
    *
@@ -113,19 +113,15 @@ public class JKSValidator implements Validator {
 
 
   /**
-   * Create an Archive based on contents of an InputStream,
-   * the archive is saved as local copy in the specified
-   * directory.
+   * Create a JKS based validator.
    *
-   * @param storage BundleStorageImpl for this archive.
-   * @param dir Directory to save data in.
-   * @param rev Revision of bundle content (used for updates).
-   * @param is Jar file data in an InputStream.
-   * @param url URL to use to CodeSource.
-   * @param location Location for archive
+   * @param fw FrameworkContext used to get configuration properties.
    */
-  public JKSValidator()
+  public JKSValidator(FrameworkContext fw)
   {
+    caCertsFileName = fw.props.getProperty(PROP_BASE + "ca_certs");
+    caCertsPassword = fw.props.getProperty(PROP_BASE + "ca_certs_password");
+    certProvider = fw.props.getProperty(PROP_BASE + "cert_provider");
     keystore = getKeyStore();
   }
 
@@ -204,7 +200,7 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  static CertificateFactory getCertificateFactory(String certType)
+  CertificateFactory getCertificateFactory(String certType)
     throws GeneralSecurityException
   {
     if (certFactory == null || certFactoryType != certType) {
@@ -222,7 +218,7 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  static CertPathParameters getCertPathParameters(KeyStore keystore, String certAlgo)
+  CertPathParameters getCertPathParameters(KeyStore keystore, String certAlgo)
     throws GeneralSecurityException
   {
     if (CERT_ALGORITHM_PKIX.equals(certAlgo)) {

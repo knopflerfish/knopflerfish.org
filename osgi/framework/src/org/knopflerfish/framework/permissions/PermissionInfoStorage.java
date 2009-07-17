@@ -42,6 +42,7 @@ import java.util.Iterator;
 
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.knopflerfish.framework.Util;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 class PermissionInfoStorage {
@@ -61,11 +62,11 @@ class PermissionInfoStorage {
   private HashMap defaultInvalidateCallbacks = new HashMap();
 
 
-  public PermissionInfoStorage() {
+  public PermissionInfoStorage(FrameworkContext ctx) {
      initialDefault = new PermissionInfo[] { new PermissionInfo(DEFAULTPERM) };
      defaultPermissions = initialDefault;
 
-     permDir = Util.getFileStorage("perms");
+     permDir = Util.getFileStorage(ctx, "perms");
      if (permDir == null) {
        System.err.println("Property org.osgi.framework.dir not set," +
        "permission data will not be saved between sessions");

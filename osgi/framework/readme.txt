@@ -12,9 +12,10 @@ Contents
 Knopflerfish framework.jar startup
 ==================================
 
-This is a startup guide for the KF OSGi framework. Note that startup of the 
-framework is not specified by OSGi, and system integrators often need to
-create a wrapper script for FW startup.
+This is a startup guide for the KF OSGi framework. Note that
+command-line startup of the framework is not specified by OSGi, and
+system integrators often need to create a wrapper script for FW
+startup.
 
 The KF Main startup class is primarily intended to be used in scenarios
 where current working directory is same as the one containing framework.jar,
@@ -75,17 +76,17 @@ The framework can be started using the startup wrapper class
 This class is also set a Main-Class in framework.jar's manifest, meaning 
 framework.jar can be started using 
 
- java -jar framework.jar [options] OR ./kf [options]
+ java -jar framework.jar [options] OR ./kf2 [options]
 
 The Main class supports a number of options, which can be displayed
 using 
 
- java -jar framework.jar -help OR ./kf -help
+ java -jar framework.jar -help OR ./kf2 -help
 
 Options can also be specified using the -xargs option, which specifies
-a .xargs text file containing lines of new options. Typically all options
-are specified in .xargs files. Combining .xargs files and command line
-options is possible but not recommended. .xargs files can also use recursive
+a .xargs text file containing lines of new options. Typically all
+options are specified in .xargs files. Combining .xargs files and
+command line options is possible. .xargs files can also use recursive
 .xargs files.
 
 When the framework is started, it uses a file system directory for
@@ -94,12 +95,13 @@ directory used for this is
 
  fwdir
 
-in the currect directory. The "fwdir" directory can also be set specifically
-using the org.osgi.framework.dir system property. Note that moving "fwdir"
-also changes the location for searching for default .xargs files.
+in the currect directory. The "fwdir" directory can also be set
+specifically using the org.osgi.framework.storage property. Note that
+moving "fwdir" also changes the location for searching for default
+.xargs files.
 
-If no options are specified, or a single "-init" option is present,
-an implicit
+If no options are specified (any "-Fx=y", "-Da=b" or "-init" does not
+count as options in this case) an implicit
 
   -xargs "default"
 
@@ -110,29 +112,36 @@ below) is selected.
 Default selection of .xargs
 ===========================
 
-If _no_ args are supplied, or a name of "default" is given as -xargs
-argument, a default .xargs file will be searched for, by the following 
-algorithm:
+If _no_ args are supplied (arguments of the form "-Fx=y", "-Da=b" or
+"-init" does not count in this case), or a name of "default" is given
+as -xargs argument, a default .xargs file will be searched for, by the
+following algorithm:
 
   1. If there exists a previous "fwdir" AND previous options
-     does not contain "-init", use
+     does not contain "-init", search for a file named
 
        restart.xargs 
 
-     ...in the same dir as "fwdir".
-
   2. If no fwdir exist, OR options contain an "-init", 
-     try the first file matching:
+     search for a named:
 
       a) init_[osname].xargs
       b) init.xargs
       c) remote-init.xargs
 
-    ...in the same dir as "fwdir"
+  The search is performed in the following directories: 
+  
+      a) fwdir
+      b) The parent directory of fwdir (if any)
+      c) The current working directory
 
-    [osname] is the unified OS name as specified in Alias.java
-    (see below). Case is important if the file system
-    is case sensitive.
+
+  First match winns.
+
+
+  The [osname]-part of the file name is the unified OS name as
+  specified in Alias.java (see below). Case is important if the file
+  system is case sensitive.
 
     OS aliases:
 
@@ -146,34 +155,50 @@ algorithm:
      WindowsXP
 
 
+The file fwdir/restart.xargs suitable for restarting a framework
+instance is written by the Knopflerfish framework on every startup
+(unless disabled by setting the property
+"org.knopflerfish.framework.write.restart.xargs" to false).
+
+ 
+
 Framework System Properties
 ===========================
 
-   org.osgi.framework.dir
+   org.osgi.framework.storage
      Where we store persistent data.
 
      On systems not supporting a current working directory,
      as Pocket PC, this path should be set to an explicit
      full path.
 
-     Default: {defaultInstDir}/fwdir
+     Note: Knopflerfish 1.x and 2.x used the name
+     "org.osgi.framework.dir" for this property.
+
+     Default: {currentWorkingDirectory}/fwdir
 
 
    org.knopflerfish.gosg.jars
-     Base URL for relative install commands
+     Semicolon separated list of base URLs for relative install commands
 
      Default: file:jars/*
 
 
    org.osgi.framework.system.packages
-     List of packages exported from system classloader,
-     other than java.* and org.osgi.framework
+     Complete list of packages exported by the system bundle.
+
+     If not set the framework will export all OSGi packages and all
+     standard Java packages according to the version of the running
+     JRE. See also "org.knopflerfish.framework.system.export.all_*"
+     and "org.osgi.framework.system.packages.extra"
 
 
    org.osgi.framework.system.packages.file
-     File containing list of packages exported from system
-     classloader,
-     other than java.* and org.osgi.framework
+     File containing list of packages exported by the system bundle.
+
+   org.osgi.framework.system.packages.extra
+     Packages to add to the default list of packages exported by the
+     system bundle.
 
 
    org.knopflerfish.framework.debug.print_with_do_privileged
@@ -183,6 +208,10 @@ Framework System Properties
 
      Default: true
 
+   org.knopflerfish.framework.debug.framework
+     Print debug information about life-cycle events for the
+     current framework instance.
+     Default: false
 
    org.knopflerfish.framework.debug.classloader
      Print debug information from classloader
@@ -314,29 +343,12 @@ Framework System Properties
      Default: true
 
       
-   org.knopflerfish.framework.system.export.all
-     Make the system class loader export all standard JRE packages
-     as defined by the currently running Java version.
-
-     This is the same as setting the appropriate
-     org.knopflerfish.framework.system.export.all_<M><N> where <M> is
-     the major (first) number and <N> is the minor (second) number in
-     the standard system property "java.version".
-
-     When this property is set to "true" all the properties named
-     org.knopflerfish.framework.system.export.all_<M><N>
-     defined below will be ignored.
-
-     More system bundle exports can by added by setting the OSGi
-     defined property org.osgi.framework.system.packages or using the
-     knopflerfish property org.osgi.framework.system.packages.file.
-
-     Default: false
-
 
    org.knopflerfish.framework.system.export.all_13
      Make the system class loader export all standard JRE 1.3
      packages as javax.swing.*
+
+     Only used when "org.osgi.framework.system.packages" is not set.
 
      Default: false
 
@@ -345,6 +357,8 @@ Framework System Properties
      Make the system class loader export all standard JRE 1.4
      packages as javax.swing.*
 
+     Only used when "org.osgi.framework.system.packages" is not set.
+
      Default: false
 
 
@@ -352,12 +366,16 @@ Framework System Properties
      Make the system class loader export all standard JRE 1.5
      packages as javax.swing.*
 
+     Only used when "org.osgi.framework.system.packages" is not set.
+
      Default: false
 
 
    org.knopflerfish.framework.system.export.all_16
      Make the system class loader export all standard JRE 1.6
      packages as javax.swing.*
+
+     Only used when "org.osgi.framework.system.packages" is not set.
 
      Default: false
 
@@ -371,8 +389,10 @@ Framework System Properties
               false otherwise
 
 
-   org.knopflerfish.verbosity
-     Framework verbosity level. 0 means few messages
+   org.knopflerfish.framework.main.verbosity
+     Verbosity level of the Main class starting the framework. 0 means
+     few messages.
+
      Default: 0
 
 
@@ -389,7 +409,9 @@ Framework System Properties
 
 
    org.knopflerfish.startlevel.use
-     Use the Start Level service.
+     Use the Start Level service. If start level is not use then
+     we do not create a non daemon thread that will keep a jvm
+     with only daemon threads alive.
 
      Default: true
 
@@ -450,19 +472,6 @@ Framework System Properties
 
      Default: true
 
-
-   org.knopflerfish.framework.exitonshutdown
-     If set to "true", call System.exit() when framework shutdown 
-     is complete.
-
-     If "false", don't do anything after shutdown.
-
-     Must be set to "true" if one wants to use KF2 features such as
-     extension bundles.
-
-     Default: true
-
-  
    org.knopflerfish.osgi.setcontextclassloader
      If set to "true", set the bundle startup thread's context class
      loader to the bundle's class loader. This is useful for checking
@@ -616,11 +625,19 @@ Framework System Properties
      Default: true (i.e., create a system property for each property).
 
 
-   org.knopflerfish.framework.strictbootclassloading
-     If set to true, use strict rules for loading classes from the boot class loader.
-     If false, accept class loading from the boot class path from classes themselves
-     on the boot class, but which incorrectly assumes they may access all of the boot
-     classes on any class loader (such as the bundle class loader).
+   org.knopflerfish.framework.write.restart.xargs
+     Property that tells the Knopflerfish framework if it shall write a
+     restart.xargs file with all framework properties inside the
+     framework directory on startup or not.
+
+     Default: true (i.e., write all properties to fwdir/restart.xargs).
+
+
+  org.knopflerfish.framework.strictbootclassloading
+    If set to true, use strict rules for loading classes from the boot class loader.
+    If false, accept class loading from the boot class path from classes themselves
+    on the boot class, but which incorrectly assumes they may access all of the boot
+    classes on any class loader (such as the bundle class loader).
     
      Setting this to true will, for example, result in broken serialization on the Sun 
      JVM if bootdelegation does not exposes sun.* classes
