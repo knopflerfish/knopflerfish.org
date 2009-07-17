@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" excluding="**/.svn/**|**/CVS/**" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.EXECUTION_ENVIRONMENT_CONTAINER"/>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.FRAMEWORK_CONTAINER">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/osgi/framework/"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.cm">
+		<attributes>
+			<attribute value="CMService" name="bundle-name"/>
+			<attribute value="0.0.0" name="org.osgi.service.cm"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/osgi/service/cm/"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="output" path="out"/>
+</classpath>

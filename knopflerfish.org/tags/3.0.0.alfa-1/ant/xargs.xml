@@ -1,0 +1,114 @@
+<!-- ============================================================ -->
+<!--                    xargs file building                       -->
+<!-- ============================================================ -->
+
+
+<project name="xargs" basedir=".">
+
+  <import file="${ant.dir}/bundletasks.xml"/>
+
+  <!-- Use this target in KF 2 -->
+  <target name="xargs_build" depends="bundle_tasks">
+    <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
+    <property name="xargs.jars.pattern"  value="**/*.jar"/>
+    <property name="xargs.test.jars.patten" value=""/>
+    <property name="xargs.jar_prefix" value="file:jars/"/>
+
+    <bundle_locator replacefilterfile="${bundleVersionFilter}">
+      <fileset dir="${jars.dir}">
+        <include name="${xargs.jars.pattern}"/>
+        <include name="${xargs.test.jars.pattern}"/>
+      </fileset>
+    </bundle_locator>
+
+    <antcall target="load_os_xargs"/>
+    <!-- Set xargs.os.args if not set from template above -->
+    <property name="xargs.os.args" value=""/>
+
+    <copy file="${xargs.template.in}"
+          tofile="${xargs.out.file}"
+          overwrite="true"/>
+
+    <replace file="${xargs.out.file}"
+             replacefilterfile="${bundleVersionFilter}">
+      <replacefilter token="$(JAR_PREFIX)"      value="${xargs.jar_prefix}"/>
+      <replacefilter token="$(VERSION)"         value="${version}"/>
+      <replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
+    </replace>
+  </target>
+
+
+  <!-- Use this target in KF 3 -->
+  <!-- Properties used by this task: -->
+  <!--   xargs.template.in"   The template xargs file  (abspath)   -->
+  <!--   xargs.out.file"      The processed xargs file (abspath)   -->
+  <!--   jars.dir"            A direcotry to scan for bundles      -->
+  <!--   test.jars.dir"       A direcotry to scan for bundles      -->
+  <!--   gosg.jars"           Replacement value for $(GOSG_JARS)   -->
+  <!--   test_jars            Replacement value for $(TESTJARS)    -->
+  <!--   xargs.os.template    File with replacement for $(OS_ARGS) -->
+  <target name="xargs_filter"
+	  depends="bundle_tasks,check_openssl">
+    <property name="bundleVersionFilter"
+              location="out/bundleVersionsXargs.props"/>
+    <delete file="${bundleVersionFilter}"/>
+    <delete file="${xargs.out.file}"/>
+
+    <!-- Some default values -->
+    <property name="xargs.jars.pattern" value="**/*.jar"/>
+    <property name="jars.dir"           location="jars"/>
+    <property name="gosg.jars"          value="file:jars/;file:test_jars/"/>
+    <property name="test_jars"          value="$${user.dir}/test_jars"/>
+
+    <bundle_locator replacefilterfile="${bundleVersionFilter}">
+      <fileset dir="${jars.dir}">
+        <include name="${xargs.jars.pattern}"/>
+      </fileset>
+      <fileset dir="${test.jars.dir}">
+        <include name="${xargs.jars.pattern}"/>
+      </fileset>
+    </bundle_locator>
+
+    <antcall target="load_os_xargs"/>
+    <!-- Set xargs.os.args if not set from template above -->
+    <property name="xargs.os.args" value=""/>
+
+    <condition property="do.cpa.test" value="" else="#">
+      <and>
+        <isset property="openssl_exist"/>
+        <!-- JRE 1.5 form Sun is broken -->
+        <not><equals arg1="${ant.java.version}" arg2="1.5"/></not>
+      </and>
+    </condition>
+
+    <copy file="${xargs.template.in}" tofile="${xargs.out.file}"/>
+    <replace file="${xargs.out.file}"
+             replacefilterfile="${bundleVersionFilter}">
+      <replacefilter token="$(GOSG_JARS)"       value="${gosg.jars}"/>
+      <replacefilter token="$(TESTJARS)"        value="${test_jars}"/>
+      <replacefilter token="$(VERSION)"         value="${version}"/>
+      <replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
+      <replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
+    </replace>
+  </target>
+
+  <target name="load_os_xargs" if="xargs.os.template">
+    <loadresource property="xargs.os.args" quiet="true">
+      <file file="${xargs.os.template}"/>
+    </loadresource>
+  </target>
+
+  <target name="check_openssl" unless="check_openssl.done">
+    <exec executable="openssl"
+          failifexecutionfails="false"
+          resultproperty="openssl_return_code">
+      <arg value="version" />
+    </exec>
+    <condition property="openssl_exist">
+      <isset property="openssl_return_code"/>
+    </condition>
+
+    <property name="check_openssl.done" value="true"/>
+  </target>
+
+</project>

@@ -1,0 +1,166 @@
+<h1>The Knopflerfish Desktop</h1>
+
+<div class="abstract">
+  The Knopflerfish OSGi Desktop displays a graphical overview of the OSGi
+  framework.
+</div>
+
+
+<h2>Description</h2>
+<div style="align:float;"><a href="images/desktop_main.png">
+    <img align=right src="images/desktop_main_300.png" border=0></a>
+</div>
+
+<p>
+  The Knopflerfish OSGi Desktop displays a graphical overview of the OSGi
+  framework. Most common operations as install, start, stop and update can
+  be performed on bundles using the desktop. Additionally, bundle and service
+  detail information is shown, and an experimental "Save deploy archive" is
+  incluced.
+</p>
+
+<p>
+  The desktop is a standard OSGi bundle, using Swing. The desktop is primarily
+  designed to manage a locally running framework, but can be used to control a
+  remote framework, using the optional <a href="../soap/index.html">SOAP bundles</a>.
+  Consult the description of <a href="../remotefw/index.html">how to activate the "Remote framework..." menu item</a>.
+
+
+</p>
+
+<p>
+Additionally, the <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/readme.html">HTTP console</a> or the <a href="../consoletelnet/index.html">Telnet console</a> bundle can always be used for remote control. Both are available in the <a href="http://www.knopflerfish.org/repo/">KF bundle repository</a>.
+</p>
+
+<p>
+The desktop can be customized using plugin services,
+see <a target="_top"
+       href="../../javadoc/index.html?org/knopflerfish/service/desktop/SwingBundleDisplayer.html">
+    SwingBundleDisplayer</a>
+for details. 
+</p>
+
+<h3>The desktop main areas</h3>
+<p>
+  When started, it creates a window with four main areas:
+  <dl>
+    <dt>Toolbar
+      <dd>The top toolbar provides quick access to common operations
+	as start/stop/update bundles.
+      </dd>
+    <dt>Bundle view</dt>
+    <dd>
+      The center bundle view area display all installed bundles
+      and their states. By clicking on bundles in this are,
+      detail information is displayed in the <b>Bundle detail area</b>
+      Three different views a supported internally (new can be installed):
+      <ul>
+	<li><a href="#view_icons">Large Icons</a> - each bundle is displayed as an icon.
+	<li><a href="#view_graph">Graph</a> - each bundle is displayed in a really cool graphics view.
+	<li><a href="#view_details">Details</a> - each bundle is displayed as a table row.
+      </ul>
+	</dd>
+    <dt>Bundle detail area</dt>
+    <dd>
+      The rightmost bundle detail area shows detailed
+      information on various aspects of the selected bundles such as:
+      <ul>
+	<li>Manifest</li>
+	<li>Bundle closure</li>
+	<li>Services, i.e imported/exported services</li>
+	<li>Packages, i.e. imported/exported packages</li>
+	<li>Log, i.e. bundle logs</li>
+	<li>Events</li>
+	<li>Prefs, i.e. bundle preferences</li>
+      </ul>
+      New detail pages can be installed run-time using plug-ins.
+    </dd>
+    <dt>Framework console</dt>
+    <dd>
+      The bottom console area allows interaction with the
+      text console. This console acts exactly as
+      the <a href="../console/index.html">consoltty</a> bundle, but does not require a shell or
+      DOS window to run. 
+    </dd>
+  </dl>
+<p>
+
+  <a name="view_icons"></a>
+<h3>Icon view</h3>
+To view the installed bundles as icons, select
+<pre>
+View -&gt; Large Icons
+</pre>
+<img src="images/desktop_icons.gif" border=1 align="left">
+
+<table>
+  <tr>
+    <td><img src="images/bundle_installed.gif"></td>
+    <td>Bundle which has a BundleActivator</td>
+  </tr>
+  <tr>
+    <td><img src="images/bundle_active.gif"></td>
+    <td>Active bundle</td>
+  </tr>
+  <tr>
+    <td><img src="images/lib_installed.gif"></td>
+    <td>"Library" bundle which has no BundleActivator</td>
+  </tr>
+</table>
+
+<br clear="all"/>
+
+<p>
+Bundles can be selected by clicking.
+</p>
+
+<a name="view_details"></a>
+<h3>Detail list view</h3>
+To view the installed bundles as a detailed list, select
+<pre>
+  View -&gt; Details
+</pre>
+<img src="images/desktop_details.png" border=1>
+<p>
+  Bundles can be selected by clicking.
+</p>
+
+
+<a name="#view_spin"></a>
+<h3>Graph View view</h3>
+To view the installed bundles as graphics, select
+<pre>
+View -&gt; Graph
+</pre>
+<img src="images/desktop_graph.png" border=1>
+<p>
+Dependencies between bundles and services are shown as connecting
+lines. Not how the console bundle depends on three other bundles
+in the image above.
+<p>
+Bundles can be selected by clicking.
+</p>
+
+
+<h2>Configuration properties</h2>
+
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.bundle.desktop.event.EventTableModel.capacity</td>
+    <td>
+
+	The maximum number of events to keep in memory in one event
+	view. Use a negative value (i.e., a value smaller than 1) to
+	indicate that old event shall never be removed.
+
+    </td>
+    <td>int</td>
+    <td>342</td>
+  </tr>
+</table>

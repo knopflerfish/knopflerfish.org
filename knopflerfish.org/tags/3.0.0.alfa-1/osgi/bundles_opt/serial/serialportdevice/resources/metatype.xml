@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<metatype:metatype
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
+        xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
+
+  <xsd:schema>
+   <xsd:complexType name="org.knopflerfish.serialport.factory"
+                    maxOccurs="unbounded">
+
+    <xsd:element  name = "port"                    type="xsd:string">
+     <xsd:annotation>
+      <xsd:documentation>The name of the device file (COM1, COM2, /dev/ttyS0, ...) associated with the serial port</xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element  name = "product"                 type="xsd:string">
+     <xsd:annotation>
+      <xsd:documentation>The name of the device connected to the serial port</xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element  name = "revision"                type="xsd:string">
+     <xsd:annotation>
+      <xsd:documentation>The revision number of the device connected to the serial port</xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+   </xsd:complexType> 
+
+  </xsd:schema>
+
+</metatype:metatype>

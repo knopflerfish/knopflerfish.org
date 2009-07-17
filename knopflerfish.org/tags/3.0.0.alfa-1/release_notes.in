@@ -1,0 +1,76 @@
+Release Notes Knopflerfish @VERSION@ (OSGi R4.2)
+----------------------------------------------
+
+  Work in progress release of Knopflerfish 3 available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the 
+  last release.
+
+----------------------------------------------
+OSGi Core Specification
+----------------------------------------------
+
+Framework - Security
+ - Minor updates and clarifications (In Progress)
+
+Framework - Module
+ - Minor updates and clarifications (Done)
+ - Support for multi host Fragments (In Progress)
+
+Framework - Life-Cycle
+ - Minor updates and clarifications (In Progress)
+ - Lazy Activation (Done)
+ - Framework Launcher (Framework and Bootclasspath extensions remain)
+
+Framework - Service Layer
+ - Minor updates and clarifications (In Progress)
+
+Package Admin Service Specification
+ - Support for multi host Fragments (In Progress)
+
+Start Level Service Specification
+ - New method: isBundleActivationPolicyUsed (Done)
+
+Conditional Permission Admin Specification
+ - Allow-Deny Conditions (In Progress)
+ - ConditionalPermitionUpdate (In Progress)
+
+URL Handlers Service Specification
+ - Minor updates and clarifications (In Progress)
+
+Service Hooks Specification
+ - Support for Service Hooks (Done)
+
+----------------------------------------------
+OSGi Compendium Specification
+----------------------------------------------
+
+Declarative Services Specification
+ - Many updates (In Progress)
+
+Event Admin Service Specification
+ - API updates (Done)
+
+Tracker Specification
+ - BundleTracker (Done)
+
+Verification of the Compendium Specification Services
+that weren't updated in R4.2 is in progress.
+
+----------------------------------------------
+Knopflerfish Specific
+----------------------------------------------
+
+Console
+ - Migration to new OSGi Standard (In Progress)
+ - Support for new Activation Commands (In Progress)
+
+Desktop
+ - Support for new Activation Commands (In Progress)
+
+----------------------------------------------
+
+Please read the KF blog for updated progress.
+
+ http://knopflerfish.blogspot.com/

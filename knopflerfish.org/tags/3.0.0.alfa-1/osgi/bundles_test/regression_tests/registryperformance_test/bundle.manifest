@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-Name: registeryperformance_test
+Bundle-SymbolicName: registeryperformance_test
+Bundle-Version: 1.0.0
+Bundle-Description: Performance test bundle for framework registry
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.perf.servicereg
+Import-Package: junit.framework,org.knopflerfish.service.perf.servicer
+ eg,org.osgi.framework
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/

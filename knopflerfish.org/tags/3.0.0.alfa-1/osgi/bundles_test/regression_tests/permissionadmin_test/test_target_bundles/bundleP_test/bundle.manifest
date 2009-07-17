@@ -1,0 +1,13 @@
+Bundle-Name: bundleP_test
+Bundle-SymbolicName: bundleP_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleP_test for test o
+ f permissionAdmin service in frameworki.
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleP_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleP_test
+Import-Package: org.knopflerfish.service.bundleP_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleP_test:1.0.0:all

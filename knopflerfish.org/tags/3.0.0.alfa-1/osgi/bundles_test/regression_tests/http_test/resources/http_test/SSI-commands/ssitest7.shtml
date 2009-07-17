@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>
+SSItest7
+</title>
+</head>
+
+<body bgcolor="ffffcc">
+<h3>SSItest7</h3>
+Test 7, SSI command test, subset of NCSA command set
+  <p>
+  config command:
+  <br>
+  ERRMSG: <!--#config errmsg="TEST ERROR MESSAGE" -->
+  <br>
+  SIZEFMT: <!--#config sizefmt="bytes" --> 
+  <br>
+  TIMEFMT: <!--#config timefmt="%G-%m-%d %H:%M:%S" --> 
+  <br>
+  INVALID: <!--#config INVALID_VAR="%G-%m-%d %H:%M:%S" -->
+  <p>
+
+  include command:
+  <br>
+  INCLUDE_VIRTUAL: <!--#include virtual="ssitest7.html" -->
+  <br>
+  INCLUDE_FILE: <!--#include file="ssitest7.html" -->
+
+  <p>
+  echo command:
+  <br>
+  DOCUMENT_NAME: <!--#echo var="DOCUMENT_NAME" -->
+  <br>
+  DOCUMENT_URL: <!--#echo var="DOCUMENT_URI" -->
+  <br>
+  QUERY_STRING_UNESCAPED: <!--#echo var="QUERY_STRING_UNESCAPED" -->
+  <br>
+  DATE_LOCAL: <!--#echo var="DATE_LOCAL" -->
+  <br>
+  DATE_GMT: <!--#echo var="DATE_GMT" -->
+  <br>
+  LAST_MODIFIED: <!--#echo var="LAST_MODIFIED" -->
+  <br>
+  LOCAL_VAR: <!--#echo var="LOCAL_VAR" -->
+
+<p>
+  fsize command:
+  <br>
+  FSIZE_FILE: <!--#fsize file="ssitest7.shtml" -->
+  <br>
+  FSIZE_VIRTUAL: <!--#fsize virtual="ssitest7.shtml" -->
+
+<p>
+  flastmode command:
+  <br>
+  FLASTMOD_FILE: <!--#flastmod file="ssitest7.shtml" -->
+  <br>
+  FLASTMOD_VIRTUAL: <!--#flastmod virtual="ssitest7.shtml" -->
+
+<p>
+  exec command: (this should fail as it is not supported, due to security reasons)
+  <br>
+  EXEC_CMD: <!--#exec cmd="uname -n" -->
+  <br>
+  EXEC_CGI: <!--#exec cgi="" -->
+<p>
+
+</body>
+</html>
