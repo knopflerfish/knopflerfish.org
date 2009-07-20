@@ -200,6 +200,11 @@ Framework System Properties
      Packages to add to the default list of packages exported by the
      system bundle.
 
+   org.knopflerfish.framework.system.packages.base
+     An alternative to setting org.osgi.framework.system.packages.
+     When this property is used the list of packages given will be
+     appended with the default set of osgi-packges for the current
+     framework and then used as the exports of the system bundle.
 
    org.knopflerfish.framework.debug.print_with_do_privileged
      Surrond all debug print-operations originating from
