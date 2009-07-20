@@ -41,21 +41,35 @@
 -Forg.knopflerfish.framework.debug.framework=false
 -Forg.knopflerfish.framework.debug.certificates=false
 
-# Comma-separated list of packages exported by the system bundle
+# Complete comma-separated list of packages exported by the system bundle
+# 
 #-Forg.osgi.framework.system.packages=
+
+# Comma-separated list of packages exported by the system bundle. The
+# osgi packages provided by the framework will be added to this list.
+# Only used when org.osgi.framework.system.packages is not set.
+#
+#-Forg.knopflerfish.framework.system.packages.base=javax.swing,javax.swing.tree, javax.swing.table, javax.swing.plaf.metal, javax.swing.plaf.basic, javax.swing.plaf, javax.swing.filechooser, javax.swing.event, javax.swing.border, javax.accessibility
+
 # Comma-separated list of packages to be added to the set of packages
-# exported by system bundle.
--Forg.osgi.framework.system.packages.extra=apa
+# exported by the system bundle.
+#
+#-Forg.osgi.framework.system.packages.extra=
 
 # Comma-separated list of packages that must be loaded by system classloader
+#
 #-Forg.osgi.framework.bootdelegation=*
 
-# If set to true, use strict rules for loading classes from the boot class loader.
-# If false, accept class loading from the boot class path from classes themselves
-# on the boot class. Default is false
+# If set to true, use strict rules for loading classes from the boot
+# class loader.
+# If false, accept class loading from the boot class path from classes
+# themselves on the boot class.
+# Default is false
+#
 #-Forg.knopflerfish.framework.strictbootclassloading=false
 
-# If set to true, promote all framework properties to system properties.
+# If set to true, export all framework properties as system properties.
+#
 #-Dorg.knopflerfish.framework.xargs.writesysprops=false
 
 # Web server properties

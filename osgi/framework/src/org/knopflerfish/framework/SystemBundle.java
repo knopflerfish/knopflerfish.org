@@ -71,6 +71,14 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
+   * Name of system property for basic system packages to be exported.
+   * The normal OSGi exports will be added to this list.
+   */
+  private final static String SYSTEMPACKAGES_BASE =
+    "org.knopflerfish.framework.system.packages.base";
+
+
+  /**
    * Name of system property for exporting all packages for according
    * to version of the running JRE.
    */
@@ -140,32 +148,37 @@ public class SystemBundle extends BundleImpl implements Framework {
       // Try the system packages file
       addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
       if (sp.length()==0) {
-        // use default set of packages.
-        String pkgFile = "packages1.6.txt";
+        // Try the system packages base property.
+        sp.append(fwCtx.props.getProperty(SYSTEMPACKAGES_BASE, "").trim());
 
-        if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
-          pkgFile = "packages1.3.txt";
-        } else if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
-          pkgFile = "packages1.4.txt";
-        } else if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
-          pkgFile = "packages1.5.txt";
-        } else if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
-          pkgFile = "packages1.6.txt";
-        } else {
-          if (1==fwCtx.props.javaVersionMajor
-              && (3<=fwCtx.props.javaVersionMinor
-                  && fwCtx.props.javaVersionMinor<=6 )) {
-            pkgFile = "packages" +fwCtx.props.javaVersionMajor
-              +"." +fwCtx.props.javaVersionMinor +".txt";
+        if (sp.length()==0) {
+          // use default set of packages.
+          String pkgFile = "packages1.6.txt";
+
+          if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
+            pkgFile = "packages1.3.txt";
+          } else if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
+            pkgFile = "packages1.4.txt";
+          } else if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
+            pkgFile = "packages1.5.txt";
+          } else if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
+            pkgFile = "packages1.6.txt";
           } else {
-            fwCtx.props.debug.println
-              ("No built in list of Java packages to be exported by the "
-               +"system bundle for JRE with version '"
-               +System.getProperty("java.version")
-               +"', using the list for 1.6.");
+            if (1==fwCtx.props.javaVersionMajor
+                && (3<=fwCtx.props.javaVersionMinor
+                    && fwCtx.props.javaVersionMinor<=6 )) {
+              pkgFile = "packages" +fwCtx.props.javaVersionMajor
+                +"." +fwCtx.props.javaVersionMinor +".txt";
+            } else {
+              fwCtx.props.debug.println
+                ("No built in list of Java packages to be exported by the "
+                 +"system bundle for JRE with version '"
+                 +System.getProperty("java.version")
+                 +"', using the list for 1.6.");
+            }
           }
+          addSysPackagesFromFile(sp, pkgFile);
         }
-        addSysPackagesFromFile(sp, pkgFile);
         addSystemPackages(sp);
       }
     }
@@ -186,6 +199,9 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Add all built-in system packages to a stringbuffer.
    */
   void addSystemPackages(StringBuffer sp) {
+    if (sp.length()>0 && ','!=sp.charAt(sp.length()-1)) {
+      sp.append(",");
+    }
     // Set up org.osgi.framework package
     String name = Bundle.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
