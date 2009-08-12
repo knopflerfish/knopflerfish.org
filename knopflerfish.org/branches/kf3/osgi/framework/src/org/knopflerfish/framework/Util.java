@@ -35,16 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
+import java.util.*;
 
 import org.osgi.framework.Constants;
 
@@ -159,11 +150,11 @@ public class Util {
    *
    * @param d Directive being parsed
    * @param s String to parse
-   * @return A sorted ArrayList with enumeration or null if enumeration string was null.
+   * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static ArrayList parseEnumeration(String d, String s) {
-    ArrayList result = new ArrayList();
+  public static HashSet parseEnumeration(String d, String s) {
+    HashSet result = new HashSet();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -176,8 +167,7 @@ public class Util {
           throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
                                              + at.getRest());
         }
-        int i = Math.abs(binarySearch(result, strComp, key) + 1);
-        result.add(i, key);
+        result.add(key);
       } while (!at.getEnd());
       return result;
     } else {

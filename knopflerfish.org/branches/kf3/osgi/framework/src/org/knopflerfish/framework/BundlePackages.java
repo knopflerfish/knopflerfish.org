@@ -581,14 +581,35 @@ class BundlePackages {
     }
 
     ArrayList newExports = new ArrayList();
+  eloop:
     for (Iterator eiter = fbpkgs.getExports(); eiter.hasNext(); ) {
       ExportPkg fep = (ExportPkg) eiter.next();
       int ei = Util.binarySearch(exports, epComp, fep);
       if (ei < 0) {
-        ExportPkg tmp = new ExportPkg(fep, this);
-        exports.add(-ei - 1, tmp);
-        newExports.add(tmp);
+        ei = -ei - 1;
+      } else {
+        for (int i = ei - 1; i >= 0; i--) {
+          ExportPkg t = (ExportPkg)exports.get(i);
+          if (!fep.name.equals(t.name)) {
+            break;
+          }
+          if (fep.pkgEquals(t)) {
+            continue eloop;
+          }
+        }
+        for (int i = ei; i < exports.size(); i++) {
+          ExportPkg t = (ExportPkg)exports.get(i);
+          if (!fep.name.equals(t.name)) {
+            break;
+          }
+          if (fep.pkgEquals(t)) {
+            continue eloop;
+          }
+        }
       }
+      ExportPkg tmp = new ExportPkg(fep, this);
+      newExports.add(tmp);
+      exports.add(ei, tmp);
     }
 
     ArrayList newImports = new ArrayList();
