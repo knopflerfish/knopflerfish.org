@@ -193,10 +193,10 @@ class ImportPkg {
   /**
    * Check that we have all mandatory attributes.
    *
-   * @param mandatory List of mandatory attribute.
+   * @param mandatory Collection of mandatory attribute.
    * @return Return true if we have all mandatory attributes, otherwise false.
    */
-  boolean checkMandatory(List mandatory) {
+  boolean checkMandatory(Collection mandatory) {
     if (mandatory != null) {
       for (Iterator i = mandatory.iterator(); i.hasNext(); ) {
         String a = (String)i.next();

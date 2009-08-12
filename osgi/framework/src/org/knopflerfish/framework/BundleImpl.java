@@ -1579,29 +1579,27 @@ public class BundleImpl implements Bundle {
 
       if (lazyActivation) {
         if (e.containsKey(Constants.INCLUDE_DIRECTIVE)) {
-          final ArrayList incs =
+          lazyIncludes = 
             Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
                                   (String) e.get(Constants.INCLUDE_DIRECTIVE));
-          lazyIncludes = new HashSet();
-          lazyIncludes.addAll(incs);
         }
 
         if (e.containsKey(Constants.EXCLUDE_DIRECTIVE)) {
-          final ArrayList excs =
+          lazyExcludes =
             Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
                                   (String) e.get(Constants.EXCLUDE_DIRECTIVE));
-          lazyExcludes = new HashSet();
 
-          for (Iterator excsIter = excs.iterator(); excsIter.hasNext();) {
-            String entry = (String)excsIter.next();
-            if (lazyIncludes != null && lazyIncludes.contains(entry)) {
-              throw new IllegalArgumentException
-                ("Conflicting " +Constants.INCLUDE_DIRECTIVE
-                 +"/" +Constants.EXCLUDE_DIRECTIVE
-                 +" entries in " +Constants.BUNDLE_ACTIVATIONPOLICY+": '"
-                 +entry +"' both included and excluded");
+          if (lazyIncludes != null) {
+            for (Iterator excsIter = lazyExcludes.iterator(); excsIter.hasNext();) {
+              String entry = (String)excsIter.next();
+              if (lazyIncludes.contains(entry)) {
+                throw new IllegalArgumentException
+                  ("Conflicting " +Constants.INCLUDE_DIRECTIVE
+                   +"/" +Constants.EXCLUDE_DIRECTIVE
+                   +" entries in " +Constants.BUNDLE_ACTIVATIONPOLICY+": '"
+                   +entry +"' both included and excluded");
+              }
             }
-            lazyExcludes.add(entry);
           }
         }
       }
