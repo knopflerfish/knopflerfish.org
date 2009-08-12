@@ -139,26 +139,27 @@ public class ServiceReferenceImpl implements ServiceReference
                                          +that +").");
     }
 
-    String id1 = (String)this.getProperty(Constants.SERVICE_ID);
-    String id2 = (String)that.getProperty(Constants.SERVICE_ID);
+    Long id1 = (Long)this.getProperty(Constants.SERVICE_ID);
+    Long id2 = (Long)that.getProperty(Constants.SERVICE_ID);
 
     // equal if IDs are equal
-    if(id1 == id2 || id1.equals(id2)) {
-      return 0;
-    }
-    Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
-    Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
-    int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
-    int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+    int r = id1.compareTo(id2);
+    if (r != 0) {
+      Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
+      Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
+      int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
+      int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
 
-    // use ranking if ranking differs
-    int diff = r1 - r2;
-    if(diff != 0) {
-      return diff;
+      if (r1 != r2) {
+        // use ranking if ranking differs
+        r = r1 < r2 ? -1 : 1;
+      } else {
+        // otherwise compare using IDs,
+        // is less than if it has a higher ID.
+        r = -r;
+      }
     }
-
-    // otherwise compare using ID strings
-    return id1.compareTo(id2);
+    return r;
   }
 
 
