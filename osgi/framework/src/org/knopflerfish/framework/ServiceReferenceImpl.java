@@ -225,10 +225,17 @@ public class ServiceReferenceImpl implements ServiceReference
               s = bundle.fwCtx.perm.callGetService
                 ((ServiceFactory)registration.service, bundle, registration);
             } catch (Throwable pe) {
-              bundle.fwCtx.listeners.frameworkError(registration.bundle, pe);
+              bundle.fwCtx.listeners.frameworkError
+                (registration.bundle,
+                 new ServiceException("ServiceFactory throw an exception",
+                                      ServiceException.FACTORY_EXCEPTION, pe));
               return null;
             }
             if (s == null) {
+              bundle.fwCtx.listeners.frameworkError
+                (registration.bundle,
+                 new ServiceException("ServiceFactory produced null",
+                                      ServiceException.FACTORY_ERROR));
               return null;
             }
             final Class sc = s.getClass();
