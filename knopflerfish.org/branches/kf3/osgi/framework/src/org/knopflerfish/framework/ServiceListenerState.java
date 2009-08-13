@@ -185,7 +185,7 @@ class ServiceListenerState {
       complicatedListeners.add(sle);
     } else {
       List[] /* Value */ local_cache = new List[hashedKeys.length];
-      if (sle.ldap.isSimple(hashedKeysV, local_cache)) {
+      if (sle.ldap.isSimple(hashedKeysV, local_cache, false)) {
         sle.local_cache = local_cache;
         for (int i = 0; i < hashedKeys.length; i++) {
           if (local_cache[i] != null) {

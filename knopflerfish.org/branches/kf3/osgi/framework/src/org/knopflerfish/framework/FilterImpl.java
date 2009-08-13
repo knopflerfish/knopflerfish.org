@@ -73,7 +73,7 @@ public class FilterImpl implements Filter {
 
   
   public boolean matchCase(Dictionary dictionary) {
-	  return ldap.evaluate(new PropertiesDictionary(dictionary), true);
+	  return ldap.evaluate(dictionary, true);
   }
 
 

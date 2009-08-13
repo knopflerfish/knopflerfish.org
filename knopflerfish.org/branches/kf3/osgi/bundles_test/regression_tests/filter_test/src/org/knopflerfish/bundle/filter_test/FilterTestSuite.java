@@ -360,9 +360,9 @@ public class FilterTestSuite extends TestSuite {
 	props2.put("sTRING", "123");
 	Hashtable props3 = new Hashtable();
 	Hashtable props4 = new Hashtable();
-	props4.put("STRING", "String");
+	props4.put("String", "String");
 	Hashtable props5 = new Hashtable();
-	props5.put("STRING", "STRING");
+	props5.put("STRING", "String");
 
 	try {
 	  tsr = bc.registerService ("java.lang.Object", this, props1);
