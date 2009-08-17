@@ -55,7 +55,7 @@ public class Util {
   public static FileTree getFileStorage(String name) {
     // See if we have a storage directory
     String fwdir = Framework.getProperty("org.osgi.framework.dir");
-    if (fwdir == null) {
+    if (fwdir == null || Framework.bIsMemoryStorage) {
       return null;
     }
     FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);

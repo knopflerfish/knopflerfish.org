@@ -124,7 +124,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
     }
     // Skip level load in mem storage since bundle levels
     // isn't saved anyway
-    if (!Framework.bIsMemoryStorage) {
+    if (storage != null) {
       try {
         String s = Util.getContent(new File(storage, LEVEL_FILE));
         if (s != null) {
@@ -223,7 +223,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
 	  // Skip level save in mem storage since bundle levels
 	  // won't be saved anyway
-	  if (storeLevel && !Framework.bIsMemoryStorage) {
+	  if (storeLevel && storage != null) {
             try {
               Util.putContent(new File(storage, LEVEL_FILE), 
                               Integer.toString(currentLevel));
@@ -439,7 +439,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
     initStartLevel = bCompat ? 1 : startLevel;
-    if (!Framework.bIsMemoryStorage && save) {
+    if (storage != null && save) {
       try {
         Util.putContent(new File(storage, INITIAL_LEVEL_FILE), 
                         Integer.toString(initStartLevel));

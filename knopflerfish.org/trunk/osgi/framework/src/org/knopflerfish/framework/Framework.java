@@ -531,17 +531,19 @@ public class Framework {
 
     try {
       FileTree storage = Util.getFileStorage(CLASSPATH_DIR);
-      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
-      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
-      if (bootClasspath.length() > 0) {
-        saveStringBuffer(bcpf, bootClasspath);
-      } else {
-        bcpf.delete();
-      }
-      if (frameworkClasspath.length() > 0) {
-        saveStringBuffer(fcpf, frameworkClasspath);
-      } else {
-        fcpf.delete();
+      if (storage != null) {
+        File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
+        File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
+        if (bootClasspath.length() > 0) {
+          saveStringBuffer(bcpf, bootClasspath);
+        } else {
+          bcpf.delete();
+        }
+        if (frameworkClasspath.length() > 0) {
+          saveStringBuffer(fcpf, frameworkClasspath);
+        } else {
+          fcpf.delete();
+        }
       }
     } catch (IOException e) {
       System.err.println("Could not save classpath " + e);

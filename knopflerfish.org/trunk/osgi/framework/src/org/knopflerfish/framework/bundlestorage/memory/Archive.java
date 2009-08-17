@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,10 @@ package org.knopflerfish.framework.bundlestorage.memory;
 
 
 import org.osgi.framework.Constants;
-import java.io.*;
 
+import org.knopflerfish.framework.FileArchive;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -47,6 +49,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.*;
 
+
 /**
  * JAR file handling.
  *
@@ -54,7 +57,7 @@ import java.util.jar.*;
  * @author Philippe Laporte
  * @version $Revision$
  */
-class Archive {
+class Archive implements FileArchive {
 
   /**
    * Archives manifest
@@ -119,7 +122,7 @@ class Archive {
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
-  String getAttribute(String key) {
+  public String getAttribute(String key) {
     return manifest.getMainAttributes().getValue(key);
   }
 
@@ -132,7 +135,7 @@ class Archive {
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getClassBytes(String classFile) throws IOException {
+  public byte[] getClassBytes(String classFile) throws IOException {
     byte[] bytes;
     if ((bytes = (byte[]) content.remove(classFile)) == null) {
       if (subDirs == null) {
@@ -162,7 +165,7 @@ class Archive {
    * @param component Entry to get reference to.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  InputStream getInputStream(String component) {
+  public InputStream getInputStream(String component) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
@@ -177,7 +180,7 @@ class Archive {
   //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest
   //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
   //investigate further later
-  Enumeration findResourcesPath(String path) {
+  public Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
     // "normalize" + erroneous path check: be generous
     path.replace('\\', '/');
@@ -223,10 +226,23 @@ class Archive {
    * @exception FileNotFoundException if no such Jar file in archive.
    * @exception IOException if failed to read Jar file.
    */
-  Archive getSubArchive(String path) throws IOException {
-    return new Archive(this, path);
+  public FileArchive getSubArchive(String path) throws IOException {
+    if (path.endsWith(".jar")) {
+      return new Archive(this, path);
+    } else {
+      if (subDirs == null) {
+        subDirs = new ArrayList(1);
+      }
+      // NYI Check that it exists
+      subDirs.add(path);
+      return this;
+    }
   }
 
+
+  public Manifest getManifest() {
+    return manifest;
+  }
 
   //
   // Private methods
