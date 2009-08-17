@@ -232,14 +232,14 @@ class BundleArchiveImpl implements BundleArchive
    * returns the localization entries of this archive.
    */
   public Hashtable getLocalizationEntries(String localeFile) {
-    Archive.InputFlow aif = archive.getInputFlow(localeFile);
-    if (aif != null) {
+    InputStream is = archive.getInputStream(localeFile);
+    if (is != null) {
       Properties l = new Properties();
       try {
-        l.load(aif.is);
+        l.load(is);
       } catch (IOException _ignore) { }
       try {
-        aif.is.close();
+        is.close();
       } catch (IOException _ignore) { }
       return l;
     } else {
@@ -351,14 +351,14 @@ class BundleArchiveImpl implements BundleArchive
       }
     } else {
       for (int i = 0; i < archives.length; i++) {
-        Archive.InputFlow aif = archives[i].getInputFlow(component);
-        if (aif != null) {
+        InputStream is = archives[i].getInputStream(component);
+        if (is != null) {
           if (v == null) {
             v = new Vector();
           }
           v.addElement(new Integer(i));
           try {
-            if(aif.is != null) aif.is.close();
+            is.close();
           }
           catch (IOException ignore) { }
           if (onlyFirst) {

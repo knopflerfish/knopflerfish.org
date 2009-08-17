@@ -8,6 +8,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Framework (Core) ===
+
+  Framework 4.1.8
+
+  Added support for loading data on demand from bundles installed via a file
+  reference URLs when org.knopflerfish.framework.bundlestorage is set to memory.
+  This reduces memory usage and start-up time. Also fixed some bugs which
+  caused the framework to save files when we run in memory mode.
+  These changes was supplied by Dimitry Polivaev.
+
+
 
 ========================================================================
 

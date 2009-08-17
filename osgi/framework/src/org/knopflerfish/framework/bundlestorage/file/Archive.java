@@ -51,7 +51,7 @@ import java.util.zip.*;
  * @author Philippe Laporte
  * @author Mats-Ola Persson
  */
-class Archive {
+public class Archive implements FileArchive {
 
   /**
    * Base for filename used to store copy of archive.
@@ -164,8 +164,10 @@ class Archive {
    * @param is Jar file data in an InputStream.
    * @param url URL to use to CodeSource.
    * @param location Location for archive
+   * @param checkSigned Check signed bundles
    */
-  Archive(File dir, int rev, InputStream is, URL source, String location, boolean checkSigned)
+  public Archive(File dir, int rev, InputStream is, URL source,
+                 String location, boolean checkSigned)
     throws IOException, BundleException
   {
     this.location = location;
@@ -173,14 +175,8 @@ class Archive {
     final FileTree sourceFile;
     fileIsReference = isReference(source);
 
-    if (fileIsReference) {
+    if (fileIsReference || isFile(source)) {
       sourceFile = new FileTree(getFile(source));
-      file = sourceFile;
-    } else {
-      sourceFile = isFile(source) ? new FileTree(getFile(source)) : null;
-      file = new FileTree(dir, ARCHIVE + rev);
-    }
-    if (sourceFile != null) {
       isDirectory = sourceFile.isDirectory();
       if (isDirectory) {
         File mfd = new File(sourceFile.getAbsolutePath(), META_INF_DIR);
@@ -192,11 +188,13 @@ class Archive {
           bis.close();
         }
       }
+    } else {
+      sourceFile = null;
     }
 
     BufferedInputStream bis =  null;
     JarInputStream ji = null;
-    if (manifest == null) {
+    if (manifest == null && dir != null) {
       bis = new BufferedInputStream(is);
       if (alwaysUnpack) {
         ji = new JarInputStream(bis, checkSigned);
@@ -215,6 +213,7 @@ class Archive {
         }
       }
       if (ji != null) {
+        file = new FileTree(dir, ARCHIVE + rev);
         file.mkdirs();
         if (manifest == null) {
           if (checkSigned) {
@@ -251,16 +250,22 @@ class Archive {
     }
     if (ji == null) {
       if (isDirectory) {
-        if (!fileIsReference) {
+        if (!fileIsReference && dir != null) {
+          file = new FileTree(dir, ARCHIVE + rev);
           sourceFile.copyTo(file);
+        } else {
+          file = sourceFile;
         }
         if (checkSigned) {
           // NYI! Verify signed directory
         }
         jar = null;
       } else {
-        if (!fileIsReference) {
+        if (!fileIsReference && dir != null) {
+          file = new FileTree(dir, ARCHIVE + rev);
           loadFile(file, bis);
+        } else {
+          file = sourceFile;
         }
         if (checkSigned) {
           processSignedJar(file);
@@ -271,7 +276,7 @@ class Archive {
     if (manifest != null) {
       manifest = new AutoManifest(manifest, location);
     } else {
-      manifest = getManifest();
+      manifest = getAutoManifest();
     }
     checkManifest();
 
@@ -379,7 +384,7 @@ class Archive {
       loadCertificates();
     }
     if (manifest == null) {
-      manifest = getManifest();
+      manifest = getAutoManifest();
     }
     handleAutoManifest();
   }
@@ -457,7 +462,7 @@ class Archive {
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
-  String getAttribute(String key) {
+  public String getAttribute(String key) {
     Attributes a = manifest.getMainAttributes();
     if (a != null) {
       return a.getValue(key);
@@ -474,7 +479,7 @@ class Archive {
    * @return Byte array with contents of class file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getClassBytes(String classFile) throws IOException {
+  public byte[] getClassBytes(String classFile) throws IOException {
     if(bClosed) {
       return null;
     }
@@ -566,7 +571,7 @@ class Archive {
 
 
   //TODO not extensively tested
-  Enumeration findResourcesPath(String path) {
+  public Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
     if (jar != null) {
       ZipEntry entry;
@@ -635,11 +640,22 @@ class Archive {
    * @exception FileNotFoundException if no such Jar file in archive.
    * @exception IOException if failed to read Jar file.
    */
-  Archive getSubArchive(String path) throws IOException {
+  public FileArchive getSubArchive(String path) throws IOException {
     if(bClosed) {
       return null;
     }
     return new Archive(this, path);
+  }
+
+
+  public InputStream getInputStream(String component) {
+    InputFlow aif = getInputFlow(component);
+    return aif != null ? aif.is : null;
+  }
+
+
+  public Manifest getManifest() {
+    return manifest;
   }
 
 
@@ -825,7 +841,7 @@ class Archive {
    *
    * @return The manifest for this Archive
    */
-  private AutoManifest getManifest() throws IOException {
+  private AutoManifest getAutoManifest() throws IOException {
     // TBD: Should recognize entry with lower case?
     InputFlow mif = getInputFlow("META-INF/MANIFEST.MF");
     if (mif != null) {

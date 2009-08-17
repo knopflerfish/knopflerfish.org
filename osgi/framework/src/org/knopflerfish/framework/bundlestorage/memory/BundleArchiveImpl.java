@@ -36,7 +36,9 @@ package org.knopflerfish.framework.bundlestorage.memory;
 
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
+
 import java.io.*;
+import java.net.*;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -57,8 +59,14 @@ import java.util.Properties;
  */
 class BundleArchiveImpl implements BundleArchive
 {
+  /**
+   * Controls if file: URLs should be referenced only, not copied
+   * to bundle storage dir
+   */
+  final private static boolean fileReference =
+    new Boolean(Framework.getProperty("org.knopflerfish.framework.bundlestorage.file.reference", "false")).booleanValue();
 
-  private Archive archive;
+  private FileArchive archive;
 
   private long id;
 
@@ -68,7 +76,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private BundleStorageImpl storage;
 
-  private Archive [] archives;
+  private FileArchive [] archives;
 
   private int startLevel = -1;
   private boolean bPersistent = false;
@@ -86,11 +94,25 @@ class BundleArchiveImpl implements BundleArchive
                     long bundleId)
     throws Exception
   {
-    archive       = new Archive(is);
+    this(bundleStorage, is, bundleLocation, false, bundleId);
+  }
+
+  private BundleArchiveImpl(BundleStorageImpl bundleStorage,
+                            InputStream       is,
+                            String            bundleLocation,
+                            boolean bundleStartOnLaunch, long bundleId)
+    throws Exception
+  {
+    URL source = new URL(bundleLocation);
+    if (isReference(source)){
+      archive  = new org.knopflerfish.framework.bundlestorage.file.Archive(null, 0, is, source, bundleLocation, false);
+    } else {
+      archive       = new Archive(is);
+    }
     storage       = bundleStorage;
     id            = bundleId;
     location      = bundleLocation;
-    startOnLaunch = false;
+    startOnLaunch = bundleStartOnLaunch;
     setClassPath();
   }
 
@@ -147,7 +169,7 @@ class BundleArchiveImpl implements BundleArchive
    * returns the raw unlocalized entries of this archive.
    */
   public HeaderDictionary getUnlocalizedAttributes() {
-    return new HeaderDictionary(archive.manifest.getMainAttributes());
+    return new HeaderDictionary(archive.getManifest().getMainAttributes());
   }
 
 
@@ -342,6 +364,22 @@ class BundleArchiveImpl implements BundleArchive
   // Private methods
   //
 
+
+  private boolean isFile(URL source) {
+    return source != null && "file".equals(source.getProtocol());
+  }
+
+  /**
+   * Check if an URL is a reference: URL or if we have global references on all file: URLs
+   */
+  private boolean isReference(URL source) {
+    return (source != null) &&
+      ("reference".equals(source.getProtocol())
+       || (fileReference && isFile(source)));
+  }
+
+
+
   private void setClassPath() throws IOException {
     String bcp = getAttribute(Constants.BUNDLE_CLASSPATH);
 
@@ -351,29 +389,24 @@ class BundleArchiveImpl implements BundleArchive
       while (st.hasMoreTokens()) {
         String path = st.nextToken().trim();
         if (".".equals(path)) {
-                  a.add(archive);
-          }
-          else if (path.endsWith(".jar")){
-            try {
-              a.add(archive.getSubArchive(path));
-            } catch (IOException ioe) {
-              if (failedPath == null) {
-                failedPath = new ArrayList(1);
-              }
-              failedPath.add(path);
+          a.add(archive);
+        } else {
+          try {
+            FileArchive subArchive = archive.getSubArchive(path);
+            if (subArchive != archive) {
+              a.add(subArchive);
             }
-          }
-          else{
-            if(archive.subDirs == null){
-              archive.subDirs = new ArrayList(1);
+          } catch (IOException ioe) {
+            if (failedPath == null) {
+              failedPath = new ArrayList(1);
             }
-          // NYI Check that it exists!
-            archive.subDirs.add(path);
+            failedPath.add(path);
           }
+        }
       }
-      archives = (Archive [])a.toArray(new Archive[a.size()]);
+      archives = (FileArchive [])a.toArray(new FileArchive[a.size()]);
     } else {
-      archives = new Archive[] { archive };
+      archives = new FileArchive[] { archive };
     }
   }
 
