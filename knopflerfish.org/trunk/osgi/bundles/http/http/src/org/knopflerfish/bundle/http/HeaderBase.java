@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,11 @@ public class HeaderBase {
   protected static final String TRANSFER_ENCODING_KEY = "transfer-encoding";
 
   protected static final String TRANSFER_ENCODING_VALUE_CHUNKED = "chunked";
+
+  //HACK SMA Expect: 100-Continue
+  protected static final String EXPECT_HEADER_KEY = "expect";
+  protected static final String EXPECT_100_CONTINUE_VALUE = "100-Continue";
+  //END HACK
 
   // private fields
 

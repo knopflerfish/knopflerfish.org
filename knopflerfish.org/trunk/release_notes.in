@@ -4,7 +4,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Maintenance release of Knopflerfish available from
   @DOWNLOAD_URL@
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 
@@ -19,6 +19,21 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   These changes was supplied by Dimitry Polivaev.
 
 
+=== Services (Compendium) ===
+
+
+  Http 2.1.4
+
+  Added support for a couple of HTTP 1.1 features:
+
+    - expect 100-continue behavior
+    - for last modification time (to enable browsers to cache resources)
+
+  These changes was supplied by Sylvain MARIE on behalf of the OSGi
+  DPWS Base Driver project, hosted at SOA4D forge
+  (https://forge.soa4d.org/).
+
+
 
 ========================================================================
 
@@ -30,7 +45,7 @@ Release Notes Knopflerfish 2.3.2 (OSGi R4.0.1)
   http://www.knopflerfish.org/releases/2.3.2/
 
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 
@@ -54,7 +69,7 @@ Release Notes Knopflerfish 2.3.2 (OSGi R4.0.1)
 
 === Services (Compendium) ===
 
-      
+
   Http 2.1.2
 
   The thread handling timeout of HttpSessions is now destroyed when
@@ -167,7 +182,7 @@ Release Notes Knopflerfish 2.3.1 (OSGi R4.0.1)
   Maintenance release of Knopflerfish available from
   http://www.knopflerfish.org/releases/2.3.1
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 
@@ -178,7 +193,7 @@ Release Notes Knopflerfish 2.3.1 (OSGi R4.0.1)
   Fixed parsing exception of saved ConditionalPermissionInfo data
   during restart of framework. Fixed persistent saving of
   initialBundleStartLevel in start level service.
-  
+
   Fixed ClassCastException in getHeaders() for extension
   bundles. Rectified PackageAdmin.getExportedPackages() so that
   doesn't include packages from extension bundles and unresolved
@@ -232,7 +247,7 @@ Release Notes Knopflerfish 2.3.0 (OSGi R4.0.1)
   Minor release of Knopflerfish available from
   http://www.knopflerfish.org/releases/2.3.0
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 
@@ -246,27 +261,27 @@ Release Notes Knopflerfish 2.3.0 (OSGi R4.0.1)
   and a connection to a keystore for validating certificates. This will
   improve in the near future.
 
-  Added support for handling cases where classes on the boot class path 
+  Added support for handling cases where classes on the boot class path
   needs access to other boot classes, even when they're not exposed
   directly via OSGi boot delegation.
 
-  Since this is the default, the property org.osgi.framework.bootdelegation 
+  Since this is the default, the property org.osgi.framework.bootdelegation
   is now unset in the included props.xargs
 
   See the property org.knopflerfish.framework.strictbootclassloading
   in the framework readme.txt for more info
 
-  Also added support for "dexified" Android bundles, see 
+  Also added support for "dexified" Android bundles, see
   http://knopflerfish.blogspot.com/2009/01/knopflerfish-on-androiddalvik-vm.html
- 
+
   NOTE! You can not use SUN JDK 1.5.0_16 can not be used if you want to handle
-        certificates. There is a bug in the CodeSource API. 
+        certificates. There is a bug in the CodeSource API.
 
 
 
 === Services (Compendium) ===
 
-      
+
   Preferences 2.0.3
 
   Remove preferences for a bundle when it is uninstalled.  Re-factored
@@ -334,7 +349,7 @@ Release Notes Knopflerfish 2.2.0 (OSGi R4.0.1)
   Maintenance release of Knopflerfish available from
   http://www.knopflerfish.org/releases/2.2.0
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 
@@ -363,7 +378,7 @@ Release Notes Knopflerfish 2.2.0 (OSGi R4.0.1)
 
 
 === Services (Compendium) ===
-      
+
   Http Service 2.1.1
 
   Allow configurations with port.http=0 / port.https=0, ensure that
@@ -384,16 +399,16 @@ Release Notes Knopflerfish 2.2.0 (OSGi R4.0.1)
   Desktop Bundle 2.3.0
 
   The desktop bundle is now packaged as a self-contained bundle
-  containing all necessary packages (as log/cm/event/prefs apis, 
-  kf util etc). 
-  
+  containing all necessary packages (as log/cm/event/prefs apis,
+  kf util etc).
+
   A new graph view showing bundle relationships has been added.
   Select "Graph" from the view drop-down menu.
 
   Missing imports are now displayed in the package view (and
   in the graph view)
 
-  Major performance enhancements in package dependency 
+  Major performance enhancements in package dependency
   calculations.
 
   Detail views are now updated on bundle events.
@@ -426,7 +441,7 @@ Release Notes Knopflerfish 2.2.0 (OSGi R4.0.1)
 
   Event-Admin 2.0.2
 
-  Waits for the asynchronous event dispatcher to terminate when 
+  Waits for the asynchronous event dispatcher to terminate when
   stopping the bundle.
 
 
@@ -452,7 +467,7 @@ Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
   Maintenance release of Knopflerfish available from
   http://www.knopflerfish.org/releases/2.1.1/
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 
@@ -477,7 +492,7 @@ Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
   bundles to be marked as unsupported, reported in
   http://sourceforge.net/tracker/index.php?func=detail&aid=2042769&group_id=82798&atid=567241
 
-  Added the R4.1 method Bundle.getBundleContext() + support for 
+  Added the R4.1 method Bundle.getBundleContext() + support for
   creating matching AdminPermission.
 
   The state of the system bundle is now moved from STARTING to ACTIVE
@@ -506,7 +521,7 @@ Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
   event unique.
 
   Also, a view for OSGi and java.util preferences has been added. This
-  view can be used to edit both JVM preferences and bundle preferences.  
+  view can be used to edit both JVM preferences and bundle preferences.
 
   Bundles opened via the desktop's "Open" menu is no longer auto started.
 
@@ -514,7 +529,7 @@ Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
   a special icon.
 
   Menu shortcuts now uses the system menu shortcut (looks better on
-  OS X).  
+  OS X).
 
   Bundle Repository Bundle
 
@@ -523,7 +538,7 @@ Release Notes Knopflerfish 2.1.1 (OSGi R4.0.1)
   default repositories as well as the Knopflerfish repositories are
   now included by default.
 
-  
+
 
   X10 Bundle
 
@@ -583,7 +598,7 @@ Release Notes Knopflerfish 2.1.0
 
   Maintenance release of Knopflerfish with new graphical profile.
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 === Framework (Core) ===
@@ -620,7 +635,7 @@ Release Notes Knopflerfish 2.1.0
   http://sourceforge.net/tracker/index.php?func=detail&aid=1955529&group_id=82798&atid=567241
 
   Bundle.getEntry() now looks in the correct place independt of the
-  specified bundle class path. 
+  specified bundle class path.
   Reported in issues 1829522 (Violation of Spec: Bundle.getEntry uses
   Bundle-Classpath)
   http://sourceforge.net/tracker/index.php?func=detail&aid=1829522&group_id=82798&atid=567241
@@ -641,10 +656,10 @@ Release Notes Knopflerfish 2.1.0
 
 
 === Services (Compendium) ===
-      
+
   Declarative Services [SCR]
   ComponentContext.locateServices(String) now returns the actual
-  service object. 
+  service object.
   Reported in issues 1699277 ([SCR] locateServices(String) returns
   ServiceReference[])
   http://sourceforge.net/tracker/index.php?func=detail&aid=1699277&group_id=82798&atid=567241
@@ -704,7 +719,7 @@ Release Notes Knopflerfish 2.0.5
 
   Maintenance release of Knopflerfish
 
-  Here follows a breakdown of the most important changes since the 
+  Here follows a breakdown of the most important changes since the
   last release.
 
 === Framework (Core) ===
@@ -723,10 +738,10 @@ Release Notes Knopflerfish 2.0.5
   See osgi/framework/readme.txt for details.
 
 === Services (Compendium) ===
-      
+
   Http Server / JSDK
 
-  The JSDK bundle exports Servlet API version 2.5 (was 2.2). 
+  The JSDK bundle exports Servlet API version 2.5 (was 2.2).
   Note: the JSDK-bundles have been redesigned from being a LIB-bundle
   to an API-bundle. I.e., it does not wrap a servlet.jar-file any
   more, all classes are directly available inside the API-jar. This
@@ -742,7 +757,7 @@ Release Notes Knopflerfish 2.0.5
   Component Service
 
   Fixed a class-cast bug when loading array valued (non-String)
-  properties from the XML document. See forum thread 
+  properties from the XML document. See forum thread
   https://sourceforge.net/forum/forum.php?thread_id=1937504&amp;forum_id=328005
   for details.
 
@@ -754,7 +769,7 @@ Release Notes Knopflerfish 2.0.5
 
   Desktop
 
-  The initial directory for the add bundle dialog in the Desktop is 
+  The initial directory for the add bundle dialog in the Desktop is
   now based on the system property "org.knopflerfish.gosg.jars" if
   set to a file URL, otherwise the current working directory is used.
 
@@ -818,7 +833,7 @@ Release Notes Knopflerfish 2.0.4
    org.knopflerfish.framework.system.export.all_16
   and a packages1.6.txt file. If this property is set to true the
   system bundle will export all standard packages provided by a
-  Java SE 6 JRE. 
+  Java SE 6 JRE.
 
 
   Added system property
@@ -854,11 +869,11 @@ Release Notes Knopflerfish 2.0.4
 
 
 === Services (Compendium) ===
-      
+
 
 
 === Misc (KF specific, start scripts, build system etc ===
-    
+
   Start of the Framework
 
   The command line option "--xargs &lt;FILE&gt;" was added. Loads the
@@ -885,7 +900,7 @@ Release Notes Knopflerfish 2.0.4
    results, etc.
 
    Subdirectory with javadoc.
-   
+
    Test results form the KF internal test suite.
 
    ChangeLog generated from subversion commits.
@@ -909,15 +924,15 @@ Release Notes Knopflerfish 2.0.3
 
   * Bug fix, Registered services are removed from the registry
     directly when SeriveRegistration.unregister() is called.
-    
+
     Bundles with access to the ServiceReference for a service may get
-    the service during the unregistering phase if the system property 
+    the service during the unregistering phase if the system property
     org.knopflerfish.servicereference.valid.during.unregistering
     have been set to "true" otherwise null will be returned.
 
   * Bug fix, Calling bundle.getResources(String) on the bundle object
     for the System bundle throws a ClassCastExcpetion.
-    
+
   * Bundle.getResource("/") now returns a valid URL to the root of the
     bundle's classpath. Bundle.getResources("/") now returns an
     enumeration of root URLs for the bundles class path. Both these
@@ -929,20 +944,20 @@ Release Notes Knopflerfish 2.0.3
 
 
 === Services (Compendium) ===
-      
+
   * EventAdmin
     Updates Event class to allow for alphanumeric event topics
 
   * URLConnection
-    Added getContentType and getContentLength 
+    Added getContentType and getContentLength
 
   * Component (Declarative Services)
     Corrected bugs concerning finding activate, deactivate methods
     defined in superclasses for Component.
-    #1834414, 
+    #1834414,
 
 === Misc (KF specific, start scritps, build system etc ===
-    
+
   * TrayIcon - WindowsVista recognized as platform alias
 
   * Junit fix (#1816102)
@@ -964,21 +979,21 @@ Release Notes Knopflerfish 2.0.2
   * Bundle Class Patching
     New feature in KF. Bundles that contain legacy code may be
     cumbersome to run due to class loading problems in an OSGi
-    environment. This new feature is based on bundle class patching 
+    environment. This new feature is based on bundle class patching
     using byte-code manipulation. This can solve many problems related
-    to third-party libraries using non-OSGi compatible method calls. 
+    to third-party libraries using non-OSGi compatible method calls.
 
   * Automatic Manifest Generation
     New feature in KF. Automatic bundle manifest generation, which can
     add or modify manifests to any jar file, even non-OSGi-bundle jar
-    files. 
+    files.
 
   * Custom Implementation of SecurityManager no longer bypassed
     Changed so that a custom implementation of the SecurityManager no
     longer is bypassed if it is present.
 
   * Corrected bugs concerning finding resources in bundles
-    #1741368, 
+    #1741368,
 
   * Bug fix, STOPPING event is sent when stop() is called.
 
@@ -986,20 +1001,20 @@ Release Notes Knopflerfish 2.0.2
     See bug #1780141.
 
 === Services (Compendium) ===
-      
+
   * EventAdmin
     Updates Event class to allow for alphanumeric event topics
 
   * URLConnection
-    Added getContentType and getContentLength 
+    Added getContentType and getContentLength
 
   * Component (Declarative Services)
     Corrected bugs concerning finding activate, deactivate methods
     defined in superclasses for Component.
-    #1834414, 
+    #1834414,
 
 === Misc (KF specific, start scripts, build system etc ===
-    
+
   * TrayIcon - WindowsVista recognized as platform alias
 
   * Junit fix (#1816102)
@@ -1027,12 +1042,12 @@ Release Notes Knopflerfish 2.0.1
              org.osgi.framework.bootdelegation to say "org.knopflerfish.*" will
              cause the framework to try to load all class names matching that
              pattern using the system class loader. If this fails the framework
-             will try to load the class as any other class. 
+             will try to load the class as any other class.
 
              In earlier versions the system behaved as if this property was set
              to "*", that is the framework all ways checked if the system class
              loader could load a given class. This property is set to * by
-             default to be backward compliant. 
+             default to be backward compliant.
 
              More information on this can be found in the R4 core specs section
              3.8.3.
@@ -1046,7 +1061,7 @@ Release Notes Knopflerfish 2.0.1
 
              * Signed bundles are not supported yet.
              * Conditional Permission Admin is not included.
-    
+
              To use the extension bundle support you need to use a wrapper
              script that will restart framework when needed. An example
              shell-script is included (osgi/kf2).
