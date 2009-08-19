@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,9 @@ import javax.servlet.http.HttpSession;
 
 import java.net.URL;
 
-public class ResponseImpl implements Response, PoolableObject {
-
+public class ResponseImpl
+  implements Response, PoolableObject
+{
   // private fields
 
   private HttpConfigWrapper httpConfig;
@@ -387,6 +388,11 @@ public class ResponseImpl implements Response, PoolableObject {
     out.println("</html>");
 
     commit();
+  }
+
+  //HACK SMA added the method to handle 100-continue
+  public void sendContinue() throws IOException {
+    sendError(SC_CONTINUE);
   }
 
   public void sendRedirect(String url) throws IOException {

@@ -72,7 +72,7 @@ public class HttpServer {
     public HttpServer(BundleContext bc,
                       final HttpConfig httpConfig,
                       final LogRef log)
-  {
+    {
         this.bc = bc;
         this.httpConfig = httpConfig;
         registrations = new Registrations();
@@ -122,7 +122,8 @@ public class HttpServer {
         }
     }
 
-    public void destroy() {
+    public void destroy()
+    {
         if (httpSocketListener != null) {
             httpSocketListener.destroy();
         }
@@ -136,7 +137,7 @@ public class HttpServer {
         if (sessionManager != null) {
             sessionManager.destroy();
         }
-     }
+    }
 
     synchronized void doHttpReg()
     {

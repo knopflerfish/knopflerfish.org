@@ -54,13 +54,21 @@ public class ServletRegistration implements Registration {
 
     private final RequestDispatcherImpl dispatcher;
 
+    /**
+     * HACK CSM
+     */
+    private long lastModificationDate;
+
     // constructors
 
-    public ServletRegistration(final String alias, final Servlet servlet,
-            Dictionary parameters, final HttpContext httpContext,
-            final ServletContextManager contextManager,
-            final Registrations registrations) throws ServletException {
-
+    public ServletRegistration(final String alias,
+                               final Servlet servlet,
+                               Dictionary parameters,
+                               final HttpContext httpContext,
+                               final ServletContextManager contextManager,
+                               final Registrations registrations)
+        throws ServletException
+    {
         if (parameters == null)
             parameters = new Hashtable();
 
@@ -79,19 +87,21 @@ public class ServletRegistration implements Registration {
         final ServletConfig config = new ServletConfigImpl(parameters, context);
         servlet.init(config);
 
-        dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext);
+        dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext,
+                                               lastModificationDate);
     }
 
     // implements Registration
 
-    public RequestDispatcherImpl getRequestDispatcher(final String uri) {
-
+    public RequestDispatcherImpl getRequestDispatcher(final String uri)
+    {
         dispatcher.setURI(uri);
 
         return dispatcher;
     }
 
-    public void destroy() {
+    public void destroy()
+    {
         final Servlet servlet = dispatcher.getServlet();
         final ServletContext context = servlet.getServletConfig()
                 .getServletContext();
@@ -99,6 +109,14 @@ public class ServletRegistration implements Registration {
         contextManager.ungetServletContext(context);
 
         registrations.removeServlet(servlet);
+    }
+
+    /**
+     * HACK CSM
+     */
+    public long getLastModificationDate()
+    {
+        return lastModificationDate;
     }
 
 } // ServletRegistration

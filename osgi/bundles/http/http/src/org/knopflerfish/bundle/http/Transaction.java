@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.knopflerfish.service.log.LogRef;
 
-public class Transaction implements Runnable, PoolableObject {
-
+public class Transaction
+  implements Runnable, PoolableObject
+{
     // private fields
 
     private HttpConfigWrapper httpConfig;
@@ -71,9 +72,11 @@ public class Transaction implements Runnable, PoolableObject {
 
     // constructors
 
-    public Transaction(final LogRef log, final Registrations registrations,
-            final ObjectPool requestPool, final ObjectPool responsePool) {
-
+    public Transaction(final LogRef log,
+                       final Registrations registrations,
+                       final ObjectPool requestPool,
+                       final ObjectPool responsePool)
+    {
         this.log = log;
         this.registrations = registrations;
         this.requestPool = requestPool;
@@ -82,13 +85,16 @@ public class Transaction implements Runnable, PoolableObject {
 
     // public methods
 
-    public void init(final Socket client, final HttpConfigWrapper httpConfig) {
+    public void init(final Socket client, final HttpConfigWrapper httpConfig)
+    {
         this.httpConfig = httpConfig;
         this.client = client;
     }
 
-    public void init(final InputStream is, final OutputStream os,
-            final HttpConfigWrapper httpConfig) {
+    public void init(final InputStream is,
+                     final OutputStream os,
+                     final HttpConfigWrapper httpConfig)
+    {
         this.httpConfig = httpConfig;
         this.is = is;
         this.os = os;
@@ -121,7 +127,6 @@ public class Transaction implements Runnable, PoolableObject {
             while (true) {
 
                 try {
-
                     request.init(is, localAddress, localPort,
                                  remoteAddress, remotePort, httpConfig);
                     response.init(os, request, httpConfig);
@@ -130,19 +135,33 @@ public class Transaction implements Runnable, PoolableObject {
                     RequestDispatcherImpl dispatcher = registrations
                             .getRequestDispatcher(uri);
                     if (dispatcher != null) {
+                        // HACK SMA Expect: 100-Continue
+                        String expect = request.getHeader(HeaderBase.EXPECT_HEADER_KEY);
+                        if (expect != null){
+                            //case-insensitive
+                            if(HeaderBase.EXPECT_100_CONTINUE_VALUE.compareToIgnoreCase(expect) == 0) {
+                                response.sendContinue();
+                                //create a new response
+                                response.init(os, request, httpConfig);
+                            } else {
+                                response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED);
+                            }
+                        }
+                        //TODO to be fully compliant the header should
+                        // be forwarder in case of http proxy
+
+                        // END HACK
                         try {
                             request.setServletPath(dispatcher.getServletPath());
                             dispatcher.forward(request, response);
                         } catch (ServletException se) {
-                            response
-                                    .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                         }
                     } else {
                         response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     }
 
                 } catch (HttpException he) {
-
                     response.init(os, httpConfig);
                     response.sendError(he.getCode(), he.getMessage());
                 }
