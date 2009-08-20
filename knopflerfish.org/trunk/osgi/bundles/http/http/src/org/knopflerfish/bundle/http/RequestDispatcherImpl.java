@@ -202,42 +202,51 @@ public class RequestDispatcherImpl
                 response.setContentType(contentType);
             }
 
-// HACK CSM for linux
+            // HACK CSM for linux: contentLength will allways be 0.
+            // To handle that we buffer data read from the
+            // URL-connection and calculate the correct contentLength,
+            // it is not performant but it works !!!
+            int totalBytesRead = 0;
+            Vector buffers = null;
+            Vector sizeCount = null;
 
-            //   int contentLength = resource.getContentLength();
-            //   if (contentLength > 0)
-            //       response.setContentLength(contentLength);
+            int contentLength = resource.getContentLength();
+            if (contentLength > 0) {
+                response.setContentLength(contentLength);
+            } else {
+                // HACK CSM for linux: contentLength will allways be 0.
+                buffers = new Vector();
+                sizeCount = new Vector();
+            }
 
             InputStream is = resource.getInputStream();
             OutputStream os = response.getOutputStream();
-            //  	int bytesRead = 0;
-            //   	byte buffer[] = new byte[512];
-            //   	while ((bytesRead = is.read(buffer)) != -1)
-            //   		os.write(buffer, 0, bytesRead);
 
-            // The getContentLength returns 0, so we have to get the
-            // resource to know its length, it is not performant
-            // but it works !!!
+
             int bytesRead = 0;
-            int totalBytesRead = 0;
             byte buffer[] = new byte[512];
-            Vector buffers = new Vector();
-            Vector sizeCount = new Vector();
             while((bytesRead = is.read(buffer)) != -1) {
-                buffers.add(buffer);
-                sizeCount.add(new Integer(bytesRead));
-                totalBytesRead += bytesRead;
-                buffer = new byte[512];
+                if (null==buffers) {
+                    os.write(buffer, 0, bytesRead);
+                } else {
+                    // HACK CSM for linux: contentLength will allways be 0.
+                    buffers.add(buffer);
+                    sizeCount.add(new Integer(bytesRead));
+                    totalBytesRead += bytesRead;
+                    buffer = new byte[512];
+                }
             }
-            if(totalBytesRead > 0) {
-                response.setContentLength(totalBytesRead);
+            if (null!=buffers) {
+                // HACK CSM for linux: contentLength will allways be 0.
+                if(totalBytesRead > 0) {
+                    response.setContentLength(totalBytesRead);
+                }
+                for(int i = 0; i < buffers.size(); i++) {
+                    buffer = (byte[])buffers.get(i);
+                    bytesRead = ((Integer)sizeCount.get(i)).intValue();
+                    os.write(buffer, 0, bytesRead);
+                }
             }
-            for(int i = 0; i < buffers.size(); i++) {
-                buffer = (byte[])buffers.get(i);
-                bytesRead = ((Integer)sizeCount.get(i)).intValue();
-                os.write(buffer, 0, bytesRead);
-            }
-// END HACK
             is.close();
         }
     }
