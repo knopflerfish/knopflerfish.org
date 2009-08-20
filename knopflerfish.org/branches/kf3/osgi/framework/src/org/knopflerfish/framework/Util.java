@@ -77,7 +77,7 @@ public class Util {
   public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
     String fwdir = getFrameworkDir(ctx);
-    if (fwdir == null) {
+    if (fwdir == null || ctx.props.bIsMemoryStorage) {
       return null;
     }
     FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);

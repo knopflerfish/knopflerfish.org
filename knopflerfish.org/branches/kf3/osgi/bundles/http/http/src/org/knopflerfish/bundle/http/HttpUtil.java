@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,10 @@ public class HttpUtil {
 
         statusCodes.put(new Integer(HttpServletResponse.SC_CONTINUE),
                 "Continue");
+        //HACK SMA
+        statusCodes.put(new Integer(HttpServletResponse.SC_EXPECTATION_FAILED),
+                        "Expectation Failed");
+        //END HACK SMA
         statusCodes.put(
                 new Integer(HttpServletResponse.SC_SWITCHING_PROTOCOLS),
                 "Switching Protocols");

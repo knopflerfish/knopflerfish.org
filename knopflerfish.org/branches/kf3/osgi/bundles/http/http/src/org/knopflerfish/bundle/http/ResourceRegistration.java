@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,15 +56,23 @@ public class ResourceRegistration implements Registration {
 
     private final ServletConfig config;
 
+    // HACK CSM
+    private long lastModificationDate;
+
     // constructors
 
-    public ResourceRegistration(final String alias, final String realPath,
-            final HttpContext httpContext,
-            final ServletContextManager contextManager) {
-
+    // HACK CSM
+    public ResourceRegistration(final String alias,
+                                final String realPath,
+                                final HttpContext httpContext,
+                                final ServletContextManager contextManager,
+                                long newDate)
+    {
         this.alias = alias;
         this.httpContext = httpContext;
         this.contextManager = contextManager;
+        //HACK CSM
+        lastModificationDate = newDate;
 
         context = contextManager.getServletContext(httpContext, realPath);
         config = new ServletConfigImpl(new Hashtable(), context);
@@ -92,10 +100,15 @@ public class ResourceRegistration implements Registration {
             return null;
 
         RequestDispatcherImpl dispatcher = new RequestDispatcherImpl(alias,
-                null, httpContext, config);
+                null, httpContext, config, lastModificationDate);
         dispatcher.setURI(uri);
 
         return dispatcher;
+    }
+
+    // HACK CSM
+    public long getLastModificationDate() {
+        return lastModificationDate;
     }
 
     public void destroy() {
