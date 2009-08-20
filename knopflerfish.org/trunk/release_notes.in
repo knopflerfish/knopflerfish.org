@@ -35,6 +35,26 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Desktop Bundle 2.3.8
+
+  Added support for multi-byte characters in the console output
+  presentation.
+
+  These changes was proposed in the Sourceforge bug tracker, item 2817205:
+  https://sourceforge.net/tracker/?func=detail&aid=2817205&group_id=82798&atid=567241
+
+
+  kXML Bundle 1.0.1
+
+  Add export of the package "org.kxml2.kdom". Reported in the
+  SourceForge bug tracker as item 2840884:
+  https://sourceforge.net/tracker/index.php?func=detail&aid=2840884&group_id=82798&atid=567241
+
+
+
 ========================================================================
 
 
