@@ -36,8 +36,6 @@ package org.knopflerfish.bundle.http;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.servlet.Servlet;
@@ -47,7 +45,7 @@ public class Registrations {
 
     // private fields
 
-    private final Hashtable registrations = new Hashtable();
+    private final Dictionary registrations = new Hashtable();
 
     private final Vector servlets = new Vector();
 
@@ -62,7 +60,10 @@ public class Registrations {
 
     // public methods
 
-    public void addServlet(Servlet servlet) throws ServletException {
+    public void addServlet(Servlet servlet)
+        throws ServletException
+    {
+
         if (servlets.contains(servlet))
             throw new ServletException("Servlet already registered");
 
@@ -85,8 +86,8 @@ public class Registrations {
         return (Registration) registrations.get(fixAlias(alias));
     }
 
-    public RequestDispatcherImpl getRequestDispatcher(String uri) {
-
+    public RequestDispatcherImpl getRequestDispatcher(String uri)
+    {
         String alias = uri;
         while (true) {
             Registration registration = (Registration) registrations.get(alias);

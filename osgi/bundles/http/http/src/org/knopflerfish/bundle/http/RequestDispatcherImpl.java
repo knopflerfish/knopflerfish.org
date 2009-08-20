@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -43,6 +44,7 @@ import java.net.URLConnection;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Stack;
+import java.util.Vector;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
@@ -58,8 +60,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.http.HttpContext;
 
-public class RequestDispatcherImpl implements RequestDispatcher {
-
+public class RequestDispatcherImpl
+  implements RequestDispatcher
+{
     // private constants
 
     private final static Dictionary threadStacks = new Hashtable();
@@ -80,27 +83,47 @@ public class RequestDispatcherImpl implements RequestDispatcher {
 
     private String pathInfo = null;
 
+    /**
+     * HACK CSM
+     */
+    private long lastModificationDate;
+
+
     // constructors
 
-    RequestDispatcherImpl(final String servletPath, final Servlet servlet,
-            final HttpContext httpContext) {
-        this(servletPath, servlet, httpContext, null);
+    /**
+     * HACK CSM
+     */
+    RequestDispatcherImpl(final String servletPath,
+                          final Servlet servlet,
+                          final HttpContext httpContext,
+                          long newDate)
+    {
+        this(servletPath, servlet, httpContext, null, newDate);
     }
 
-    RequestDispatcherImpl(final String servletPath, final Servlet servlet,
-            final HttpContext httpContext, final ServletConfig config) {
-
+    /**
+     * HACK CSM
+     */
+    RequestDispatcherImpl(final String servletPath,
+                          final Servlet servlet,
+                          final HttpContext httpContext,
+                          final ServletConfig config,
+                          long newDate)
+    {
         this.servletPath = servletPath;
         this.servlet = servlet;
         this.httpContext = httpContext;
         this.config = config;
+        lastModificationDate = newDate;
     }
 
     // private methods
 
     private void service(HttpServletRequest request,
-            HttpServletResponse response) throws IOException, ServletException {
-
+                         HttpServletResponse response)
+        throws IOException, ServletException
+    {
         if (httpContext.handleSecurity(request, response)) {
 
             Thread t = Thread.currentThread();
@@ -156,6 +179,17 @@ public class RequestDispatcherImpl implements RequestDispatcher {
             String target = HttpUtil.makeTarget(uri, servletPath);
             ServletContext context = config.getServletContext();
             URL url = context.getResource(target);
+            //HACK CSM
+            long date = getLastModified(url);
+            if (date > -1) {
+              long if_modified = request.getDateHeader("If-Modified-Since");
+              if (if_modified>0 && date/1000<=if_modified/1000) {
+                  response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                  return;
+              }
+              response.setDateHeader("Last-Modified", date);
+            }
+            //END HACK CSM
             URLConnection resource = url.openConnection();
 
             String contentType = context.getMimeType(uri);
@@ -168,25 +202,60 @@ public class RequestDispatcherImpl implements RequestDispatcher {
                 response.setContentType(contentType);
             }
 
+            // HACK CSM for linux: contentLength will allways be 0.
+            // To handle that we buffer data read from the
+            // URL-connection and calculate the correct contentLength,
+            // it is not performant but it works !!!
+            int totalBytesRead = 0;
+            Vector buffers = null;
+            Vector sizeCount = null;
+
             int contentLength = resource.getContentLength();
-            if (contentLength > 0)
+            if (contentLength > 0) {
                 response.setContentLength(contentLength);
+            } else {
+                // HACK CSM for linux: contentLength will allways be 0.
+                buffers = new Vector();
+                sizeCount = new Vector();
+            }
 
             InputStream is = resource.getInputStream();
             OutputStream os = response.getOutputStream();
 
+
             int bytesRead = 0;
             byte buffer[] = new byte[512];
-            while ((bytesRead = is.read(buffer)) != -1)
-                os.write(buffer, 0, bytesRead);
-
+            while((bytesRead = is.read(buffer)) != -1) {
+                if (null==buffers) {
+                    os.write(buffer, 0, bytesRead);
+                } else {
+                    // HACK CSM for linux: contentLength will allways be 0.
+                    buffers.add(buffer);
+                    sizeCount.add(new Integer(bytesRead));
+                    totalBytesRead += bytesRead;
+                    buffer = new byte[512];
+                }
+            }
+            if (null!=buffers) {
+                // HACK CSM for linux: contentLength will allways be 0.
+                if(totalBytesRead > 0) {
+                    response.setContentLength(totalBytesRead);
+                }
+                for(int i = 0; i < buffers.size(); i++) {
+                    buffer = (byte[])buffers.get(i);
+                    bytesRead = ((Integer)sizeCount.get(i)).intValue();
+                    os.write(buffer, 0, bytesRead);
+                }
+            }
             is.close();
         }
     }
 
-    private void serviceSSIResource(String uri, HttpServletResponse response,
-            ServletConfig config) throws IOException {
-
+    private void serviceSSIResource(String uri,
+                                    HttpServletResponse response,
+                                    ServletConfig config)
+        throws IOException
+    {
         String target = HttpUtil.makeTarget(uri, servletPath);
         ServletContext context = config.getServletContext();
 
@@ -204,9 +273,12 @@ public class RequestDispatcherImpl implements RequestDispatcher {
         }
     }
 
-    private void parseHtml(String uri, ServletContext context,
-            ServletOutputStream os, Stack usedFiles) throws IOException {
-
+    private void parseHtml(String uri,
+                           ServletContext context,
+                           ServletOutputStream os,
+                           Stack usedFiles)
+        throws IOException
+    {
         if (usedFiles.contains(uri)) {
             os.print("<b><font color=\"red\">SSI Error: Recursive include: "
                     + uri + "</font></b>");
@@ -366,6 +438,55 @@ public class RequestDispatcherImpl implements RequestDispatcher {
         service(wrappedRequest, wrappedResponse);
 
         response.flushBuffer();
+    }
+
+    // HACK CSM
+    public long getLastModificationDate() {
+        return lastModificationDate;
+    }
+
+    // HACK CSM
+    /**
+     * Gets the last modified value for file modification detection.
+     * Aids in "conditional get" and intermediate proxy/node cacheing.
+     *
+     * Approach used follows that used by Sun for JNLP handling to
+     * workaround an apparent issue where file URLs do not correctly
+     * return a last modified time.
+     *
+     */
+    protected long getLastModified (URL resUrl)
+    {
+        long lastModified = 0;
+
+        try {
+            // Get last modified time
+            URLConnection conn = resUrl.openConnection();
+            lastModified = conn.getLastModified();
+        } catch (Exception e) {
+            // do nothing
+        }
+
+        if (lastModified == 0) {
+            // Arguably a bug in the JRE will not set the lastModified
+            // for file URLs, and always return 0. This is a
+            // workaround for that problem.
+            String filepath = resUrl.getPath();
+
+            if (filepath != null) {
+                File f = new File(filepath);
+                if (f.exists()) {
+                    lastModified = f.lastModified();
+                }
+            }
+        }
+
+        if (lastModified == 0) {
+            // HCK CSM we assume that the resource is in the bundle
+            lastModified = lastModificationDate ;
+        }
+
+        return lastModified;
     }
 
 } // RequestDispatcherImpl
