@@ -269,6 +269,12 @@ class BundlePackages {
    * @return BundlePackages exporting the pkg.
    */
   synchronized BundlePackages getProviderBundlePackages(String pkg) {
+    // The SystemBundle does not import its own packges (okImports
+    // will be null) but it is using them...
+    if (bundle instanceof SystemBundle) {
+      return null!=getExport(pkg) ? this : null;
+    }
+
     if (okImports == null) {
       return null;
     }

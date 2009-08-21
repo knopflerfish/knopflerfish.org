@@ -18,6 +18,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   caused the framework to save files when we run in memory mode.
   These changes was supplied by Dimitry Polivaev.
 
+  Framework 4.1.9
+
+  Fixed an error in the implementation of SercviceReference.isAssignableTo(...). 
+  The symptom of this problem where that service listeners was
+  notified about services of types that where not compatible with the
+  set of packages available to the bundle that has registered the
+  listener. Potentially causing ClassCastExceptions when the bundle
+  tried to use the service.
+
+  This problem was reported the SourceForge bug tracker, item 2833557:
+  https://sourceforge.net/tracker/index.php?func=detail&aid=2833557&group_id=82798&atid=567241
+
 
 === Services (Compendium) ===
 
