@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -192,7 +192,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Version", "1.0.0", info);
+      assertEquals("bad Bundle-Version", "1.0.1", info);
 
       k =  "Bundle-ManifestVersion";
       info = (String) ai.get(k);
@@ -1347,9 +1347,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // FrameworkTestSuite is changed in such a way that new files
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
-      if(i!=112){
+      if(i!=113){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"112 != " + i);
+               +"113 != " + i);
       }
 
 

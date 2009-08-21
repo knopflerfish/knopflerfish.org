@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 KNOPFLERFISH project
+ * Copyright (c) 2007-2009 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,10 +148,15 @@ public class ServiceListenerTestSuite
       boolean teststatus = true;
       int cnt = 1;
 
-      teststatus = runStartStopTest( "FRAMEsl05A", cnt, buA, new int[]{
-          ServiceEvent.REGISTERED,
-          ServiceEvent.UNREGISTERING,
-        } );
+      teststatus = runStartStopTest( "FRAMEsl05A", cnt, buA,
+                                     new int[]{
+                                       ServiceEvent.REGISTERED,
+                                       ServiceEvent.UNREGISTERING,
+                                     },
+                                     new int[]{
+                                       ServiceEvent.REGISTERED,
+                                       ServiceEvent.UNREGISTERING,
+                                     } );
 
       if (teststatus == true) {
         out.println("### ServiceListenerTestsuite :FRAMEsl05A:PASS");
@@ -178,10 +183,15 @@ public class ServiceListenerTestSuite
       boolean teststatus = true;
       int cnt = 1;
 
-      teststatus = runStartStopTest( "FRAMEsl10A", cnt, buA2, new int[]{
-          ServiceEvent.REGISTERED,
-          ServiceEvent.UNREGISTERING,
-        } );
+      teststatus = runStartStopTest( "FRAMEsl10A", cnt, buA2,
+                                     new int[]{
+                                       ServiceEvent.REGISTERED,
+                                       ServiceEvent.UNREGISTERING,
+                                     },
+                                     new int[]{
+                                       ServiceEvent.REGISTERED,
+                                       ServiceEvent.UNREGISTERING,
+                                     });
 
 
       if (teststatus == true) {
@@ -198,7 +208,8 @@ public class ServiceListenerTestSuite
   boolean runStartStopTest( String tcName,
                             int cnt,
                             Bundle targetBundle,
-                            int[] events )
+                            int[] eventsA,
+                            int[] events)
   {
     boolean teststatus = true;
 
@@ -209,6 +220,14 @@ public class ServiceListenerTestSuite
       } catch (IllegalStateException ise) {
         teststatus  = false;
         err.println("service listener registration failed "+ ise
+                    + " :" +tcName +":FAIL");
+      }
+      AllServiceListener asListen = new AllServiceListener();
+      try {
+        bc.addServiceListener(asListen);
+      } catch (IllegalStateException ise) {
+        teststatus  = false;
+        err.println("all service listener registration failed "+ ise
                     + " :" +tcName +":FAIL");
       }
 
@@ -257,6 +276,12 @@ public class ServiceListenerTestSuite
                     +tcName +":FAIL");
       }
 
+      if ( teststatus && !asListen.checkEvents(eventsA)) {
+        teststatus  = false;
+        err.println("All service listener event notification error :"
+                    +tcName +":FAIL");
+      }
+
       try {
         bc.removeServiceListener(sListen);
         teststatus &= sListen.teststatus;
@@ -264,6 +289,15 @@ public class ServiceListenerTestSuite
       } catch (IllegalStateException ise) {
         teststatus  = false;
         err.println("service listener removal failed "+ ise
+                    + " :" +tcName +":FAIL");
+      }
+      try {
+        bc.removeServiceListener(asListen);
+        teststatus &= asListen.teststatus;
+        asListen.clearEvents();
+      } catch (IllegalStateException ise) {
+        teststatus  = false;
+        err.println("all service listener removal failed "+ ise
                     + " :" +tcName +":FAIL");
       }
     }
@@ -396,19 +430,26 @@ public class ServiceListenerTestSuite
       out.println();
     }
 
+    String toStringEventType(int eventType)
+    {
+      String res = String.valueOf(eventType);
+
+      switch (eventType) {
+      case ServiceEvent.REGISTERED:    res +=" (REGISTERED)    "; break;
+      case ServiceEvent.MODIFIED:      res +=" (MODIFIED)      "; break;
+      case ServiceEvent.UNREGISTERING: res +=" (UNREGISTERING) "; break;
+      default:                         res +=" (?)             ";
+      }
+      return res;
+    }
+
     String toString(ServiceEvent evt)
     {
       if (null==evt) return " - null - ";
 
       ServiceReference sr = evt.getServiceReference();
       String[] objectClasses = (String[]) sr.getProperty(Constants.OBJECTCLASS);
-      String res = String.valueOf(evt.getType());
-      switch (evt.getType()) {
-      case ServiceEvent.REGISTERED:    res +=" (REGISTERED)    "; break;
-      case ServiceEvent.MODIFIED:      res +=" (MODIFIED)      "; break;
-      case ServiceEvent.UNREGISTERING: res +=" (UNREGISTERING) "; break;
-      default:                         res +=" (?)             ";
-      }
+      String res = toStringEventType(evt.getType());
 
       for (int i=0; i<objectClasses.length; i++){
         if (i>0) res += ", ";
@@ -426,11 +467,20 @@ public class ServiceListenerTestSuite
       for (int i=0; i<max; i++) {
         ServiceEvent evt
           = i<events.size() ? (ServiceEvent) events.get(i) : null;
-        out.println(" " +(i<eventTypes.length ? eventTypes[i] : -1)
+        out.println(" "
+                    +(i<eventTypes.length
+                      ? toStringEventType(eventTypes[i]) : "- NONE - ")
                     +" -- " +toString(evt) );
       }
     }
 
   } // end of class ServiceListener
 
+  // A servicelistener that will be notified about all Services, not
+  // only assignable ones.
+  class AllServiceListener
+    extends ServiceListener
+    implements org.osgi.framework.AllServiceListener
+  {
+  }
 }

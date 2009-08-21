@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -329,23 +329,43 @@ public class ServiceReferenceImpl implements ServiceReference
   public boolean isAssignableTo(Bundle bundle, String className) {
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
-      String name = className.substring(0, pos);
-      Pkg p = registration.bundle.framework.packages.getPkg(name);
+      final String name = className.substring(0, pos);
+      final Pkg p = registration.bundle.framework.packages.getPkg(name);
       if (p != null) {
-        if (p.providers.size() > 1) {
-          BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);
-          BundlePackages bb = ((BundleImpl)bundle).bpkgs.getProviderBundlePackages(name);
-          // TBD Should we fail if bundle doesn't have an import?
-          return bb == null || pkgExporter == bb;
-        } else {
-          // Since we do not have multiple providers its no problem
-          return true;
+        final BundlePackages pkgExporter
+          = registration.bundle.bpkgs.getProviderBundlePackages(name);
+        final BundlePackages bb = ((BundleImpl)bundle).bpkgs;
+        final BundlePackages bbp = bb.getProviderBundlePackages(name);
+        if (bbp == null) {
+          // Package not imported by bundle
+
+          // If bundle only exports a package, then it must be the provider.
+          return bb.getExport(name) == null || bb == pkgExporter;
+        } else if (pkgExporter == null) {
+          // Package not imported by registrar. E.g. proxy registration.
+
+          // Use the classloader of bundle to load the class, then check
+          // if the service's class is assignable.
+          ClassLoader bCL = bbp.getClassLoader();
+          if (bCL!=null) {
+            try {
+              Class bCls = bCL.loadClass(className);
+              return bCls.isAssignableFrom(registration.service.getClass());
+            } catch (Exception e) {
+              //e.printStackTrace();
+            }
+          }
+          // Fallback: Allways Ok when singleton provider of the package
+          return p.providers.size()==1;
+        } else { // Package imported by both parties
+          return pkgExporter == bbp;
         }
       } else {
         // Not a package under package control. System package?
         if (name.startsWith("java.")) {
           return true;
         } else {
+          // NYI! Check if pkg comes from system or framework.
           return true;
           // return registration.bundle == bundle;
         }
