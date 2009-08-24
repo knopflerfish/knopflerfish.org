@@ -594,8 +594,7 @@ public class LDAPExpr {
         char c = str.charAt(pos);
         if (c == '(' || c == ')' ||
             c == '<' || c == '>' ||
-            c == '=' || c == '~' ||
-            c == '*' || c == '\\') {
+            c == '=' || c == '~') {
           break;
         } else if (!Character.isWhitespace(c)) {
           end = pos;
