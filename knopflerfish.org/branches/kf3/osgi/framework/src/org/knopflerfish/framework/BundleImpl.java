@@ -2026,7 +2026,7 @@ public class BundleImpl implements Bundle {
   /**
    *
    */
-  private void modified(){
+  private void modified() {
     lastModified = System.currentTimeMillis();
     //TODO make sure it is persistent
     if(archive != null){
@@ -2052,6 +2052,12 @@ public class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#getSignerCertificates()
    */
   public Map/* <X509Certificate, List<X509Certificate>> */getSignerCertificates(int signersType) {
+    if (signersType == SIGNERS_ALL) {
+    } else if (signersType == SIGNERS_TRUSTED) {
+    } else {
+      throw new IllegalArgumentException("signersType not SIGNER_ALL or SIGNERS_TRUSTED");
+    }
+
     if (archive != null && archive.getCertificates() != null) {
       throw new RuntimeException("NYI");
     } else {

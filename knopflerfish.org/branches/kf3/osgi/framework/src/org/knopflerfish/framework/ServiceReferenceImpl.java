@@ -139,27 +139,22 @@ public class ServiceReferenceImpl implements ServiceReference
                                          +that +").");
     }
 
-    Long id1 = (Long)this.getProperty(Constants.SERVICE_ID);
-    Long id2 = (Long)that.getProperty(Constants.SERVICE_ID);
+    Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
+    Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
+    int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
+    int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
 
-    // equal if IDs are equal
-    int r = id1.compareTo(id2);
-    if (r != 0) {
-      Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
-      Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
-      int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
-      int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+    if (r1 != r2) {
+      // use ranking if ranking differs
+      return r1 < r2 ? -1 : 1;
+    } else {
+      Long id1 = (Long)this.getProperty(Constants.SERVICE_ID);
+      Long id2 = (Long)that.getProperty(Constants.SERVICE_ID);
 
-      if (r1 != r2) {
-        // use ranking if ranking differs
-        r = r1 < r2 ? -1 : 1;
-      } else {
-        // otherwise compare using IDs,
-        // is less than if it has a higher ID.
-        r = -r;
-      }
+      // otherwise compare using IDs,
+      // is less than if it has a higher ID.
+      return id2.compareTo(id1);
     }
-    return r;
   }
 
 
@@ -220,6 +215,7 @@ public class ServiceReferenceImpl implements ServiceReference
           String[] classes =
             (String[])registration.properties.get(Constants.OBJECTCLASS);
           bundle.fwCtx.perm.checkGetServicePerms(classes);
+          registration.dependents.put(bundle, new Integer(1));
           if (registration.service instanceof ServiceFactory) {
             try {
               s = bundle.fwCtx.perm.callGetService
@@ -254,7 +250,6 @@ public class ServiceReferenceImpl implements ServiceReference
           } else {
             s = registration.service;
           }
-          registration.dependents.put(bundle, new Integer(1));
         } else {
           int count = ref.intValue();
           registration.dependents.put(bundle, new Integer(count + 1));
@@ -286,7 +281,7 @@ public class ServiceReferenceImpl implements ServiceReference
       if (registration.reference != null) {
         boolean removeService = false;
 
-        Object countInteger = registration.dependents.remove(bundle);
+        Object countInteger = registration.dependents.get(bundle);
         int count = countInteger != null ? ((Integer) countInteger).intValue() : 0;
         if (count > 0) {
           hadReferences = true;
@@ -313,6 +308,7 @@ public class ServiceReferenceImpl implements ServiceReference
                   e);
             }
           }
+          registration.dependents.remove(bundle);
         }
       }
       return hadReferences;
@@ -382,21 +378,30 @@ public class ServiceReferenceImpl implements ServiceReference
     if (pos != -1) {
       String name = className.substring(0, pos);
       Pkg p = registration.bundle.fwCtx.packages.getPkg(name);
+      // NYI! check if bootdelegated=
       if (p != null) {
-        if (p.providers.size() > 1) {
-          BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);
-          BundlePackages bb = ((BundleImpl)bundle).bpkgs.getProviderBundlePackages(name);
-          // TBD Should we fail if bundle doesn't have an import?
-          return bb == null || pkgExporter == bb;
+        BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);
+        BundlePackages bb = ((BundleImpl)bundle).bpkgs;
+        BundlePackages bbp = bb.getProviderBundlePackages(name);
+        if (bbp == null) {
+          if (bb.getExport(name) != null) {
+            // If bundle only exports package, then return true if bundle is provider.
+            return bb == pkgExporter;
+          } else {
+            // If bundle doesn't import or export package, then return true and
+            // assume that the bundle only uses reflection to access service.
+            return true;
+          }
         } else {
-          // Since we do not have multiple providers its no problem
-          return true;
+          // If bundle imports package, then return true if we have same provider as service.
+          return pkgExporter == bbp;
         }
       } else {
         // Not a package under package control. System package?
         if (name.startsWith("java.")) {
           return true;
         } else {
+          // NYI! Check if pkg comes from system or framework.
           return true;
           // return registration.bundle == bundle;
         }

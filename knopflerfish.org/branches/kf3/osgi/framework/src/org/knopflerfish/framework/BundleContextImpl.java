@@ -260,7 +260,7 @@ public class BundleContextImpl
   public ServiceReference[] getServiceReferences(String clazz, String filter)
     throws InvalidSyntaxException {
     isBCvalid();
-    return bundle.fwCtx.services.get(clazz, filter, bundle, true);
+    return bundle.fwCtx.services.get(clazz, filter, bundle);
   }
 
   /**
@@ -271,7 +271,7 @@ public class BundleContextImpl
   public ServiceReference[] getAllServiceReferences(String clazz, String filter)
   throws InvalidSyntaxException {
     isBCvalid();
-    return bundle.fwCtx.services.get(clazz, filter, null, false);
+    return bundle.fwCtx.services.get(clazz, filter, null);
   }
 
 

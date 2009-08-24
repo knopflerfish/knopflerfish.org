@@ -269,6 +269,9 @@ class BundlePackages {
    * @return BundlePackages exporting the pkg.
    */
   synchronized BundlePackages getProviderBundlePackages(String pkg) {
+    if (bundle instanceof SystemBundle) {
+      return (getExport(pkg) != null) ? this : null;
+    }
     if (okImports == null) {
       return null;
     }

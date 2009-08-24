@@ -312,9 +312,7 @@ public class FrameworkContext  {
     bundles           = new Bundles(this);
 
     hooks             = new Hooks(this);    
-    if("true".equals(props.getProperty("org.knopflerfish.framework.hooks.enabled", "false"))) {
-      hooks.open();
-    }
+    hooks.open();
 
     perm.registerService();
 

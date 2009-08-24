@@ -309,6 +309,7 @@ public class PermissionsWrapper extends PermissionCollection {
                                AdminPermission.RESOURCE + "," +
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));
+    pc.add(new PropertyPermission("org.osgi.framework.*", "read"));
     return pc;
   }
 
