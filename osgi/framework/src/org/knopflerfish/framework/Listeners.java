@@ -303,9 +303,9 @@ class Listeners {
     String[] classes = (String[])sr.getProperty(Constants.OBJECTCLASS);
     int n = 0;
     
-    Collection filteredReceivers = framework.hooks.filterServiceEventReceivers(evt, receivers);
+    framework.hooks.filterServiceEventReceivers(evt, receivers);
 
-    for (Iterator it = filteredReceivers.iterator(); it.hasNext(); n++) {
+    for (Iterator it = receivers.iterator(); it.hasNext(); n++) {
       final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
       if (matchBefore != null) {
         matchBefore.remove(l);

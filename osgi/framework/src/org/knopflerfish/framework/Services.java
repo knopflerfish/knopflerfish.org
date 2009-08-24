@@ -65,7 +65,7 @@ class Services {
   /**
    * Mapping of classname to registered service.
    */
-  HashMap /* String->ServiceRegistration */ classServices = new HashMap();
+  private HashMap /* String->List(ServiceRegistration) */ classServices = new HashMap();
 
   /**
    * Handle to secure call class.
@@ -213,46 +213,25 @@ class Services {
    * @return A {@link ServiceReference} object.
    */
   synchronized ServiceReference get(BundleImpl bundle, String clazz) {
-        //TODO spec omits to say when to do the isAssignableTo test
-    ArrayList v = (ArrayList) classServices.get(clazz);
-    if (v != null) {
-      ServiceReference lowestId = ((ServiceRegistration)v.get(0)).getReference();
-      ServiceReference res = lowestId;
-      int size = v.size();
-      if (size > 1) {
+    try {
+      ServiceReference [] srs = get(clazz, null, bundle);
+      if (srs != null) {
+        ServiceReference lowestId = srs[0];
+        ServiceReference res = lowestId;
+        if (srs.length > 1) {
           int rank_res = ranking(res);
-          for (int i = 1; i < size; i++) {
-                  ServiceReference s = ((ServiceRegistration)v.get(i)).getReference();
-                  int rank_s = ranking(s);
-                  if (rank_s > rank_res && s.isAssignableTo(bundle, clazz)) {
-                          res = s;
-                          rank_res = rank_s;
-                  }
+          for (int i = 1; i < srs.length; i++) {
+            int rank_s = ranking(srs[i]);
+            if (rank_s > rank_res) {
+              res = srs[i];
+              rank_res = rank_s;
+            }
           }
+        }
+        return res;
       }
-      if(res == lowestId){
-          if(res.isAssignableTo(bundle, clazz)){
-                  return framework.hooks.filterServiceReference(bundle.getBundleContext(),
-                                                                clazz,
-                                                                null,
-                                                                false,
-                                                                res);
-          }
-          else{
-                  return null;
-          }
-      }
-      else{
-          return framework.hooks.filterServiceReference(bundle.getBundleContext(),
-                                                        clazz, 
-                                                        null,
-                                                        false,
-                                                        res);
-      }
-    }
-    else {
-      return null;
-    }
+    } catch (InvalidSyntaxException _never) { }
+    return null;
   }
 
 
@@ -269,15 +248,11 @@ class Services {
    * same source for the registration class.
    * @return An array of {@link ServiceReference} object.
    */
-  synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle,
-                                      boolean doAssignableToTest)
+  synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle)
     throws InvalidSyntaxException {
     Iterator s;
     if (clazz == null) {
       s = services.keySet().iterator();
-      if (s == null) { //TODO can this ever happen?
-        return null;
-      }
     } else {
       ArrayList v = (ArrayList) classServices.get(clazz);
       if (v != null) {
@@ -290,39 +265,34 @@ class Services {
     while (s.hasNext()) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
       String[] classes = (String[]) services.get(sr);
-      //should never happen?
-      if (classes == null) {
-        return null;
-      }
       if (!secure.okGetServicePerms(classes)) {
         continue; //sr not part of returned set
       }
       if (filter == null || LDAPExpr.query(filter, sr.properties)) {
-        if (doAssignableToTest) {
-          int i;
-          int length = classes.length;
-          for (i = 0; i < length; i++) {
-            if(!sr.getReference().isAssignableTo(bundle, classes[i])){
+        ServiceReference sri = sr.getReference();
+        if (bundle != null) {
+          for (int i = 0; i < classes.length; i++) {
+            if (!sri.isAssignableTo(bundle, classes[i])){
+              sri = null;
               break;
             }
           }
-          if (i == length) {
-            res.add(sr.getReference());
-          }
-        } else {
-          res.add(sr.getReference());
+        }
+        if (sri != null) {
+          res.add(sri);
         }
       }
     }
     if (res.isEmpty()) {
       return null;
     } else {
-      BundleContext bc = bundle != null ? bundle.getBundleContext() : null;
-      res = framework.hooks.filterServiceReferences(bc, clazz, filter,
-                                                    !doAssignableToTest, res);
-      ServiceReference[] a = new ServiceReference[res.size()];
-      res.toArray((Object[])a);
-      return a;
+      if (bundle != null) {
+        framework.hooks.filterServiceReferences(bundle.getBundleContext(),
+                                                clazz, filter, false, res);
+      } else {
+        framework.hooks.filterServiceReferences(null, clazz, filter, true, res);
+      }
+      return (ServiceReference [])res.toArray(new ServiceReference [res.size()]);
     }
   }
 

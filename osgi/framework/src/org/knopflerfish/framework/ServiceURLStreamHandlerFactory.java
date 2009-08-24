@@ -137,7 +137,7 @@ public class ServiceURLStreamHandlerFactory
         ")";
 //    TODO true or false?
       ServiceReference[] srl = framework.services
-        .get(URLStreamHandlerService.class.getName(), filter, null, false);
+        .get(URLStreamHandlerService.class.getName(), filter, null);
 
       if(srl != null && srl.length > 0) {
         URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)

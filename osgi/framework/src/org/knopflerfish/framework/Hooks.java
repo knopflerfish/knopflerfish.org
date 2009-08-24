@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,9 @@ import org.osgi.framework.hooks.service.*;
  * Handle all framework hooks, mostly dispatched from BundleImpl, Services and ServiceListenerState
  *
  */
-public class Hooks {
+class Hooks {
+
+  final static String FIND_HOOK = FindHook.class.getName();
   FrameworkContext context;
   ServiceTracker listenerHookTracker;
   ServiceTracker findHookTracker;
@@ -52,10 +54,15 @@ public class Hooks {
 
   boolean bOpen;
 
+
   Hooks(FrameworkContext context) {
     this.context = context;
   }
 
+
+  /**
+   *
+   */
   synchronized void open() {
     if(context.props.debug.hooks) {
       context.props.debug.println("opening hooks");
@@ -97,6 +104,10 @@ public class Hooks {
     bOpen = true;
   }
 
+
+  /**
+   *
+   */
   synchronized void close() {
     listenerHookTracker.close();
     listenerHookTracker = null;
@@ -111,82 +122,88 @@ public class Hooks {
   }
 
 
+  /**
+   *
+   */
   synchronized public boolean isOpen() {
     return bOpen;
   }
 
-  public ServiceReference filterServiceReference(BundleContext bc,
-                                                 String service,
-                                                 String filter,
-                                                 boolean allServices,
-                                                 ServiceReference sr) {
-    if(!isOpen() || findHookTracker.size() == 0) {
-      return sr;
-    }
-    
-    Set set = new HashSet();
-    set.add(sr);
-    Collection r = filterServiceReferences(bc, service, filter, allServices, set);
-    return r.size() == 0 ? null : (ServiceReference)r.iterator().next();
-  }
 
-  public Collection/*<ServiceReference>*/ filterServiceReferences(BundleContext bc,
-                                                                  String service,
-                                                                  String filter,
-                                                                  boolean allServices,
-                                                                  Collection /*<ServiceReference>*/ refs) {
-    if(!isOpen() || findHookTracker.size() == 0) {
-      return refs;
-    }
+  /**
+   *
+   */
+  void filterServiceReferences(BundleContext bc,
+                               String service,
+                               String filter,
+                               boolean allServices,
+                               Collection /*<ServiceReference>*/ refs) {
+    if(isOpen() && findHookTracker.size() > 0) {
+      RemoveOnlyCollection filtered = new RemoveOnlyCollection(refs);
+      ServiceReference[] srl = findHookTracker.getServiceReferences();
 
-    RemoveOnlySet      filtered = new RemoveOnlySet(refs);
-    ServiceReference[] srl      = findHookTracker.getServiceReferences();    
-    
-    for(int i = srl.length-1; i >= 0; i--) {
-      FindHook fh = (FindHook)findHookTracker.getService(srl[i]);      
-      try {
-        fh.find(bc, service, filter, allServices, filtered);
-      } catch (Exception e) {
-        context.props.debug.printStackTrace("Failed to call find hook  #" + srl[i].getProperty(Constants.SERVICE_ID), e);
-      }
-
-    }
-    
-    return filtered;
-  }
-
-  public Collection/*<Bundle>*/ filterServiceEventReceivers(final ServiceEvent evt, 
-                                                            final Collection /*<Bundle>*/ receivers) {
-    if(!isOpen() || eventHookTracker.size() == 0) {
-      return receivers;
-    }
-
-    RemoveOnlySet      filtered = new RemoveOnlySet(receivers);
-    ServiceReference[] srl      = eventHookTracker.getServiceReferences();    
-    
-    for(int i = srl.length-1; i >= 0; i--) {
-      EventHook fh = (EventHook)eventHookTracker.getService(srl[i]);      
-      try {
-        fh.event(evt, filtered);
-      } catch (Exception e) {
-        context.props.debug.printStackTrace("Failed to call event hook  #" + srl[i].getProperty(Constants.SERVICE_ID), e);
+      Arrays.sort(srl);
+      for(int i = srl.length-1; i >= 0; i--) {
+        FindHook fh = (FindHook)findHookTracker.getService(srl[i]);      
+        try {
+          fh.find(bc, service, filter, allServices, filtered);
+        } catch (Exception e) {
+          context.props.debug.printStackTrace("Failed to call find hook  #" +
+                                              srl[i].getProperty(Constants.SERVICE_ID), e);
+        }
       }
     }
-    
-    return filtered;
   }
 
 
+  /**
+   *
+   */
+  void filterServiceEventReceivers(final ServiceEvent evt, 
+                                   final Collection /*<ServiceListenerEntry>*/ receivers) {
+    if(isOpen() && eventHookTracker.size() > 0) {
+      HashSet ctxs = new HashSet();
+      for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
+        ctxs.add(((ServiceListenerEntry)ir.next()).getBundleContext());
+      }
+      int start_size = ctxs.size();
+      RemoveOnlyCollection filtered = new RemoveOnlyCollection(ctxs);
+      ServiceReference[] srl        = eventHookTracker.getServiceReferences();    
+    
+      Arrays.sort(srl);
+      for(int i = srl.length-1; i >= 0; i--) {
+        EventHook fh = (EventHook)eventHookTracker.getService(srl[i]);      
+        try {
+          fh.event(evt, filtered);
+        } catch (Exception e) {
+          context.props.debug.printStackTrace("Failed to call event hook  #" +
+                                              srl[i].getProperty(Constants.SERVICE_ID), e);
+        }
+      }
+      // NYI, refactor this for speed!?
+      if (start_size != ctxs.size()) {
+        for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
+          if (!ctxs.contains(((ServiceListenerEntry)ir.next()).getBundleContext())) {
+            ir.remove();
+          }
+        }
+      }
+    }
+  }
+
+
+  /**
+   *
+   */
   Collection getServiceCollection() {
-    Set set = new HashSet();
-    for(Iterator it = context.listeners.serviceListeners.serviceSet.iterator(); it.hasNext(); ) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      set.add(sle);
-    }
-    return Collections.unmodifiableSet(set);
+    // TBD think about threads?!
+    return Collections.unmodifiableSet(context.listeners.serviceListeners.serviceSet);
   }
   
 
+  /**
+   *
+   */
   void handleServiceListenerReg(ServiceListenerEntry sle) {
     if(!isOpen() || listenerHookTracker.size() == 0) {
       return;
@@ -207,14 +224,21 @@ public class Hooks {
     }
   }
 
+
+  /**
+   *
+   */
   void handleServiceListenerUnreg(ServiceListenerEntry sle) {
-    if(!isOpen()) {
-      return;
+    if(isOpen()) {
+      handleServiceListenerUnreg(toImmutableSet(sle));
     }
-    handleServiceListenerUnreg(toImmutableSet(sle));
   }
 
-  void handleServiceListenerUnreg(Collection /* <ServiceListenerEntry sle> */ set) {
+
+  /**
+   *
+   */
+  void handleServiceListenerUnreg(Collection /* <ServiceListenerEntry> */ set) {
     if(!isOpen() || listenerHookTracker.size() == 0) {
       return;
     }
@@ -225,11 +249,16 @@ public class Hooks {
       try {
         lh.removed(set);
       } catch (Exception e) {
-        context.props.debug.printStackTrace("Failed to call listener hook #" + srl[i].getProperty(Constants.SERVICE_ID), e);
+        context.props.debug.printStackTrace("Failed to call listener hook #" +
+                                            srl[i].getProperty(Constants.SERVICE_ID), e);
       }
     }
   }
 
+
+  /**
+   *
+   */
   static Set toImmutableSet(Object obj) {
     Set set = new HashSet();
     set.add(obj);
@@ -238,29 +267,34 @@ public class Hooks {
   }
 
 
-  static class RemoveOnlySet extends LinkedHashSet {
+  /**
+   *
+   */
+  static class RemoveOnlyCollection extends AbstractCollection {
     
-    boolean bRemOnly = false;
-    
-    public RemoveOnlySet(Collection values) {
-      super(values);
-      bRemOnly = true;
+    final Collection org;
+    public RemoveOnlyCollection(Collection values) {
+      org = values;
     }
     
     public boolean add(Object obj) {
-      if(bRemOnly) {
-        throw new UnsupportedOperationException("objects can only be removed");
-      } else {
-        return super.add(obj);
-      }
+      throw new UnsupportedOperationException("objects can only be removed");
     }
     
     public boolean addAll(Collection objs) {
-      if(bRemOnly) {
-        throw new UnsupportedOperationException("objects can only be removed");
-      } else {
-        return super.addAll(objs);
-      }
+      throw new UnsupportedOperationException("objects can only be removed");
     }    
+
+    public Iterator iterator() {
+      return org.iterator();
+    }
+    
+    public boolean remove(Object o) {
+      return org.remove(o);
+    }
+    
+    public int size() {
+      return org.size();
+    }
   }  
 }

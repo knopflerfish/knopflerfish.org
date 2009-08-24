@@ -918,7 +918,7 @@ public class Archive implements FileArchive {
   void purge() {
     close();
     // Remove archive if not  flagged as keep
-    if(!fileIsReference) {
+    if (!fileIsReference) {
       file.delete();
     }
 

@@ -96,11 +96,11 @@ class ServiceListenerState {
   synchronized void add(Bundle bundle, ServiceListener listener, String filter)
   throws InvalidSyntaxException {
     ServiceListenerEntry sle = new ServiceListenerEntry(bundle, listener, filter);
-    listeners.framework.hooks.handleServiceListenerReg(sle);
     if (serviceSet.contains(sle)) {
       remove(bundle, listener);
     }
     serviceSet.add(sle);
+    listeners.framework.hooks.handleServiceListenerReg(sle);
     checkSimple(sle);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ class ListenerEntry {
     return bundle.hashCode();
   }
 
-  public void setRemoved(boolean b) {
+  void setRemoved(boolean b) {
     this.bRemoved = b;
   }
 
