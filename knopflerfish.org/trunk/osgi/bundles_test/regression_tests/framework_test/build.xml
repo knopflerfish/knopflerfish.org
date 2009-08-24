@@ -61,6 +61,7 @@
     <antcall target="bundlePT1_test"/>
     <antcall target="bundlePT2_test"/>
     <antcall target="bundlePT3_test"/>
+    <antcall target="bundleQ_test"/>
     <antcall target="bundleR_test"/>
     <antcall target="bundleR1_test"/>
     <antcall target="bundleR2_test"/>
@@ -68,7 +69,8 @@
     <antcall target="bundleR4_test"/>
     <antcall target="bundleR5_test"/>
     <antcall target="bundleR6_test"/>
-    <antcall target="bundleQ_test"/>
+    <antcall target="bundleSL1"/>
+    <antcall target="bundleSL2"/>
     <antcall target="resexp_test"/>
     <antcall target="resimp_test"/>
     <antcall target="require_bundle"/>
@@ -230,6 +232,13 @@
       <property name="outdir"  location="${ttb.outdir}/bundlePT3_test"/>
     </ant>
   </target>
+  <target name="bundleQ_test">
+    <ant dir="test_target_bundles/bundleQ_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleQ_test"/>
+    </ant>
+  </target>
   <target name="bundleR_test">
     <ant dir="test_target_bundles/bundleR_test" target="all"
 	 inheritAll="false">
@@ -279,11 +288,18 @@
       <property name="outdir"  location="${ttb.outdir}/bundleR6_test"/>
     </ant>
   </target>
-  <target name="bundleQ_test">
-    <ant dir="test_target_bundles/bundleQ_test" target="all"
+  <target name="bundleSL1">
+    <ant dir="test_target_bundles/bundleSL1" target="all"
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
-      <property name="outdir"  location="${ttb.outdir}/bundleQ_test"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL1_test"/>
+    </ant>
+  </target>
+  <target name="bundleSL2">
+    <ant dir="test_target_bundles/bundleSL2" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL2_test"/>
     </ant>
   </target>
   <target name="resexp_test">

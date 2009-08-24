@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,12 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-//import java.util.*;
+import org.osgi.framework.*;
+import org.osgi.service.packageadmin.*;
+
+import java.util.*;
 import java.io.*;
 import java.net.*;
-import org.osgi.framework.*;
 
 /**
  * Misc static utility methods.
@@ -114,4 +116,65 @@ public class Util {
       try { is.close(); } catch (Exception e) {}
     }
   }
+
+
+  /**
+   * Calls package admin refresh packages and waits for the operation
+   * to complete.
+   *
+   * @param bc context owning both resources and to install bundle from
+   * @param bundles the inital list of bundles to refresh.
+   * @return null on sucess, string with error message on failure.
+   */
+  public static String refreshPackages(BundleContext bc,
+                                       Bundle[] bundles)
+  {
+    System.out.println("PackageAdmin.refreshPackages("
+                       +Arrays.asList(bundles) +")");
+    ServiceReference paSR
+      = bc.getServiceReference(PackageAdmin.class.getName());
+    if (null==paSR)
+      return "No package admin service reference.";
+
+    PackageAdmin pa = (PackageAdmin) bc.getService(paSR);
+    if (null==pa)
+      return "No package admin service.";
+
+    final Object lock = new Object();
+
+    FrameworkListener fListen = new FrameworkListener(){
+        public void frameworkEvent(FrameworkEvent event)
+        {
+          System.out.println("Got framework event of type "+event.getType());
+          if (event.getType()==FrameworkEvent.PACKAGES_REFRESHED) {
+            synchronized(lock) {
+              lock.notifyAll();
+            }
+          }
+        }
+      };
+    bc.addFrameworkListener(fListen);
+
+    try {
+      pa.refreshPackages(bundles);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return "Failed to refresh packages, got exception " +e;
+    }
+
+    synchronized (lock) {
+      try {
+        lock.wait(30000L);
+      } catch (InterruptedException ie) {
+        System.err.println("Waiting or packages refreshed was interrupted.");
+      }
+    }
+    System.out.println("PackageAdmin.refreshPackages("
+                       +Arrays.asList(bundles) +") done.");
+
+    bc.removeFrameworkListener(fListen);
+
+    return null;
+  }
+
 }
