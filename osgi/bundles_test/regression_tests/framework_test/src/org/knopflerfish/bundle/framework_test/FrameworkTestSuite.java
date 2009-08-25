@@ -207,7 +207,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Version", "1.0.0", info);
+      assertEquals("bad Bundle-Version", "1.0.1", info);
 
       k =  "Bundle-ManifestVersion";
       info = (String) ai.get(k);
@@ -1373,10 +1373,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
       //existing directory
       Enumeration enume = bc.getBundle().getEntryPaths("/");
-      if(enume == null ){
-          fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"/");
-      }
+      assertNotNull("GetEntryPaths did not retrieve the correct number "
+                    +"of elements, /", enume);
       out.println("bc.getBundle().getEntryPaths(\"/\")");
       int i = 0;
       while(enume.hasMoreElements()){
@@ -1387,19 +1385,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // framework_tests bundle is changed in such a way that new
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
-      if(i != 47){
-          fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"47 != "+ i);
-      }
+      assertEquals("GetEntryPaths did not retrieve the correct number "
+                   +"of elements.", 49, i);
 
       //another existing directory
       out.println("getEntryPaths(\"/org/knopflerfish/bundle/framework_test\")");
       enume = bc.getBundle()
         .getEntryPaths("/org/knopflerfish/bundle/framework_test");
-      if(enume == null ){
-          fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"framework_test");
-      }
+      assertNotNull("GetEntryPaths did not retrieve the correct number "
+                    +"of elements, framework_test", enume);
       i = 0;
       while(enume.hasMoreElements()){
           i++;
@@ -1409,50 +1403,40 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // FrameworkTestSuite is changed in such a way that new files
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
-      if(i!=118){
-          fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"118 != " + i);
-      }
-
+      assertEquals("GetEntryPaths did not retrieve the correct number of "
+                   +"elements.", 121, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");
-      if(enume != null ){
-          fail("GetEntryPaths did not retrieve the correct number of elements");
-      }
+      assertNull("GetEntryPaths did not retrieve the correct number "
+                 +"of elements", enume);
 
       //existing file, non-directory
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar");
-      if(enume != null ){
-          fail("GetEntryPaths did not retrieve the correct number of elements");
-      }
+      assertNull("GetEntryPaths did not retrieve the correct number "
+                 +"of elements", enume);
 
       //non-existing file
       enume = bc.getBundle().getEntryPaths("/e");
-      if(enume != null){
-          fail("GetEntryPaths did not retrieve the correct number of elements");
-      }
+      assertNull("GetEntryPaths did not retrieve the correct number "
+                 +"of elements", enume);
 
       //empty dir
       enume = bc.getBundle().getEntryPaths("/emptySubDir");
-      if(enume != null){
-          fail("GetEntryPaths did not retrieve the correct number of elements");
-      }
+      assertNull("GetEntryPaths did not retrieve the correct number "
+                 +"of elements", enume);
 
       //dir with only one entry
       enume = bc.getBundle().getEntryPaths("/org/knopflerfish/bundle");
-      if(enume == null ){
-          fail("GetEntryPaths did not retrieve the correct number of elements");
-      }
+      assertNotNull("GetEntryPaths did not retrieve the correct number "
+                    +"of elements", enume);
       i = 0;
       while(enume.hasMoreElements()){
           i++;
           enume.nextElement();
       }
-      if(i != 1){
-          fail("GetEntryPaths did not retrieve the correct number of elements");
-      }
-
+      assertEquals("GetEntryPaths did not retrieve the correct number "
+                   +"of elements", 1, i);
 
 
 
