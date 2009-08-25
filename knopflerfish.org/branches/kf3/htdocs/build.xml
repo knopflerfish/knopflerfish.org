@@ -196,7 +196,4 @@
     <echo message="${htdocs.out}"/>
  </target>
 
- <target name="clean">
- </target>
-
 </project>

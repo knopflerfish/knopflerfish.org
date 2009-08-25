@@ -101,7 +101,7 @@
   <target name="all"
           description="Builds entire platform including optional and test bundles" >
     <ant dir="${jarunpacker.dir}"  target="jar"/>
-    <ant dir="osgi"                target="all" />
+    <ant dir="osgi"                target="all"/>
   </target>
 
 
@@ -109,10 +109,9 @@
           description="Removes all generated files"
           depends="distrib_clean">
     <delete dir="repo"/>
-    <ant    dir="htdocs"             target="clean" />
-    <ant    dir="osgi"               target="clean" />
+    <ant    dir="osgi"               target="clean"/>
     <ant    dir="${jarunpacker.dir}" target="clean"/>
-    <ant    dir="ant"                target="clean" />
+    <ant    dir="ant"                target="clean"/>
   </target>
 
   <target name="version"

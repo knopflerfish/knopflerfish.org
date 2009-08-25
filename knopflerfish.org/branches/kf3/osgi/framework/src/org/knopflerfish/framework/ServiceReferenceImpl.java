@@ -376,24 +376,45 @@ public class ServiceReferenceImpl implements ServiceReference
   public boolean isAssignableTo(Bundle bundle, String className) {
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
-      String name = className.substring(0, pos);
-      Pkg p = registration.bundle.fwCtx.packages.getPkg(name);
+      final String name = className.substring(0, pos);
+      final Pkg p = registration.bundle.fwCtx.packages.getPkg(name);
       // NYI! check if bootdelegated=
       if (p != null) {
-        BundlePackages pkgExporter = registration.bundle.bpkgs.getProviderBundlePackages(name);
-        BundlePackages bb = ((BundleImpl)bundle).bpkgs;
-        BundlePackages bbp = bb.getProviderBundlePackages(name);
+        final BundlePackages pkgExporter
+          = registration.bundle.bpkgs.getProviderBundlePackages(name);
+        final BundlePackages bb = ((BundleImpl)bundle).bpkgs;
+        final BundlePackages bbp = bb.getProviderBundlePackages(name);
         if (bbp == null) {
+          // Package not imported by bundle
+
           if (bb.getExport(name) != null) {
-            // If bundle only exports package, then return true if bundle is provider.
+            // If bundle only exports package, then return true if
+            // bundle is provider.
             return bb == pkgExporter;
+
           } else {
             // If bundle doesn't import or export package, then return true and
             // assume that the bundle only uses reflection to access service.
             return true;
           }
-        } else {
-          // If bundle imports package, then return true if we have same provider as service.
+        } else if (pkgExporter == null) {
+          // Package not imported by registrar. E.g. proxy registration.
+
+          // Use the classloader of bundle to load the class, then check
+          // if the service's class is assignable.
+          ClassLoader bCL = bbp.getClassLoader();
+          if (bCL!=null) {
+            try {
+              Class bCls = bCL.loadClass(className);
+              return bCls.isAssignableFrom(registration.service.getClass());
+            } catch (Exception e) {
+              //e.printStackTrace();
+            }
+          }
+          // Fallback: Allways Ok when singleton provider of the package
+          return p.providers.size()==1;
+        } else { // Package imported by both parties
+          // Return true if we have same provider as service.
           return pkgExporter == bbp;
         }
       } else {
