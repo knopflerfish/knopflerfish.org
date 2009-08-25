@@ -40,7 +40,7 @@
   <!-- The default version of this build -->
   <property name="version"            value="3.0.0.svn-XXXX"/>
 
-  <!-- The SVN-repository URL -->
+  <!-- The URL to the root of the SVN-repository -->
   <property name="svn.repo.url"
             value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
 
@@ -50,6 +50,9 @@
 
   <!-- The kind of build, used on the index page for the release. -->
   <property name="build.kind" value="release build"/>
+
+  <!-- Root directory of the current knopflerfish source tree. -->
+  <dirname  property="knopflerfish.dir"  file="${ant.file.knopflerfish}"/>
 
   <property name="ee.check.foundation"   value="true"/>
 
@@ -222,18 +225,21 @@
 
   <target name="distrib_jardocs" depends="bundle_tasks">
     <mkdir dir="${distrib.jardocs.dir}"/>
-    <!-- The javadoc direcotry must exists when running this target. -->
+    <!-- The javadoc directory must exists when running this target. -->
     <mkdir dir="${distrib.javadoc.dir}"/>
 
     <property name="bundle.list.header"
               value="Knopflerfish OSGi ${version} Bundles"/>
 
-    <bundlehtml templateHTMLDir    = "${ant.dir}/html_template"
-                outDir             = "${distrib.jardocs.dir}"
-                baseDir            = "${distrib.osgi.dir}/jars"
-                listHeader         = "${bundle.list.header}"
-                javadocRelPath     = "../javadoc"
-                includeSourceFiles = "true">
+    <bundlehtml templateHTMLDir="${ant.dir}/html_template"
+                outDir="${distrib.jardocs.dir}"
+                baseDir="${distrib.osgi.dir}/jars"
+                listHeader="${bundle.list.header}"
+                javadocRelPath="../javadoc"
+                includeSourceFiles="false"
+		includeSourceFileRepositoryLinks="true"
+		rootDir="${knopflerfish.dir}"
+		repositoryURL="${svn.repo.url}/${svn.tag}/">
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
       </fileset>
