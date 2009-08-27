@@ -207,7 +207,7 @@ public class JWizard extends JFrame implements InstallUI {
       container.setBackground(getBgColor(((ImageIcon)defaultIcon).getImage()));
     }
 
-    Dimension size = new Dimension(400, 250);
+    Dimension size = new Dimension(550, 250);
     pageMain.setPreferredSize(size);
     setIcon(this, "/kf_");
     pack();

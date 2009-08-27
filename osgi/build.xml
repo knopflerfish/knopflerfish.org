@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 
+<!DOCTYPE project [
+  <!ENTITY distbuild_include  SYSTEM "../ant/distbuild_include.xml">
+]>
+
 <project name="osgi" default="all">
 
   <!-- build properties -->
@@ -7,44 +11,7 @@
   <property name = "topdir"          location = "."/>
   <property name = "javadoc.out.dir" location = "out/javadoc"/>
 
-
- <path id="sources.path">
-  <pathelement location="framework/src"/>
-  <pathelement location="bundles/log/src"/>
-  <pathelement location="bundles/cm/cm/src"/>
-  <pathelement location="bundles/cm/cm_cmd/src"/>
-  <pathelement location="bundles/device/device/src"/>
-  <pathelement location="bundles/useradmin/src"/>
-  <pathelement location="bundles/wireadmin/src"/>
-  <pathelement location="bundles/console/console/src"/>
-  <pathelement location="bundles/console/consoletcp/src"/>
-  <pathelement location="bundles/console/consoletty/src"/>
-  <pathelement location="bundles/desktop/src"/>
-  <pathelement location="bundles/http/http/src"/>
-  <pathelement location="bundles/util/src"/>
-  <pathelement location="bundles/demos/demo1/src"/>
-  <pathelement location="bundles/position/src"/>
-  <pathelement location="bundles/measurement/src"/>
-  <pathelement location="bundles/provisioning/src"/>
-  <pathelement location="bundles/prefs/src"/>
-  <pathelement location="bundles/upnp/src"/>
-  <pathelement location="bundles/metatype/metatype_api/src"/>
-  <pathelement location="bundles/xml/xml/src"/>
-  <pathelement location="bundles/trayicon/trayicon/src"/>
-  <pathelement location="bundles/remotefw/src"/>
-  <pathelement location="../ant/src"/>
-
-  <pathelement location="bundles/metatype/kf_metatype/src"/>
-
-  <pathelement location="bundles_opt/jini/jinidriver/src"/>
- </path>
-
- <property name  = "javadoc.packages"
-           value = "org.osgi.framework,org.osgi.util,org.osgi.util.tracker,org.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi.service.log,org.osgi.service.device,org.osgi.service.useradmin,org.knopflerfish.service.log,org.osgi.service.cm,org.knopflerfish.service.console,org.osgi.service.http,org.knopflerfish.util.http,org.knopflerfish.util,org.knopflerfish.service.trayicon,org.knopflerfish.util.sort,org.knopflerfish.util.workerthread,org.osgi.service.useradmin,org.knopflerfish.service.um.useradmin,org.knopflerfish.service.um.ipam,org.knopflerfish.shared.cm,org.knopflerfish.util.cm,org.knopflerfish.service.demo1,org.knopflerfish.ant.taskdefs.bundle,org.osgi.util.xml,org.osgi.service.startlevel,org.osgi.util.position,org.osgi.service.wireadmin,org.osgi.util.measurement,org.osgi.service.metatype,org.osgi.service.prefs,org.osgi.service.provisioning,org.osgi.service.upnp,org.knopflerfish.service.desktop,org.knopflerfish.service.remotefw,org.osgi.service.jini,org.knopflerfish.util.metatype"/>
-
-<property name  = "javadoc.packages"
-           value = "net.jini.core.entry,net.n3.nanoxml"
-/>
+ 
 
   <!-- targets -->
   <target name="all"
@@ -120,24 +87,19 @@
   </target>
 
 
- <target name="javadoc">
-  <mkdir dir="${javadoc.out.dir}"/>
+  
+  &distbuild_include;
 
-  <property name  = "javadoc.header"
-            value = "&lt;a target=_top href=http://www.knopflerfish.org&gt;Knopflerfish OSGi ${version}&lt;/a&gt;"/>
-	    
-  <property name  = "javadoc.footer"
-            value = "${javadoc.header}"/>
+  <target name="javadoc">
+    <mkdir dir="${javadoc.out.dir}"/>
 
-  <javadoc sourcepathref = "sources.path"
-           destdir       = "${javadoc.out.dir}"
-           header        = "${javadoc.header}"
-           footer        = "${javadoc.footer}"
-	   packagenames  = "${javadoc.packages}"
-	   excludepackagenames = "${javadoc.excludepackages}"
-   >	   
-  </javadoc>
- </target>
+    <javadoc sourcepathref = "sources.path.kf"
+             destdir       = "${javadoc.out.dir}"
+             header        = "${javadoc.header}"
+             footer        = "${javadoc.footer}"
+	     packagenames  = "${javadoc.packages.kf}"
+	     excludepackagenames = "${javadoc.excludepackages}" />
+  </target>
  
  <target name="run"
          description="(Re)start the framework.">
