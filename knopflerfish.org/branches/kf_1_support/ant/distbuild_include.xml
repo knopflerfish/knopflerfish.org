@@ -1,0 +1,77 @@
+<!-- Common definitions for building KF distributions -->
+
+<!-- Java packages to build javadoc for -->
+<property name  = "javadoc.packages.kf"
+          value = "org.osgi.framework,
+		   org.osgi.service.cm,
+		   org.osgi.service.device,
+		   org.osgi.service.log,
+		   org.osgi.service.http,
+		   org.osgi.service.jini,
+		   org.osgi.service.metatype,
+		   org.osgi.service.packageadmin,
+		   org.osgi.service.permissionadmin,
+		   org.osgi.service.prefs,
+		   org.osgi.service.provisioning,
+		   org.osgi.service.startlevel,
+		   org.osgi.service.upnp,
+		   org.osgi.service.useradmin,
+		   org.osgi.service.wireadmin,
+		   org.osgi.util,
+		   org.osgi.util.measurement,
+		   org.osgi.util.position,
+		   org.osgi.util.tracker,
+		   org.osgi.util.xml,
+		   org.knopflerfish.util.http,
+		   org.knopflerfish.util,
+		   org.knopflerfish.service.trayicon,
+		   org.knopflerfish.util.sort,
+		   org.knopflerfish.util.workerthread,
+		   org.knopflerfish.service.um.useradmin,
+		   org.knopflerfish.service.um.ipam,
+		   org.knopflerfish.shared.cm,
+		   org.knopflerfish.util.cm,
+		   org.knopflerfish.service.demo1,
+		   org.knopflerfish.ant.taskdefs.bundle,
+		   org.knopflerfish.service.desktop,
+		   org.knopflerfish.service.remotefw,
+		   org.knopflerfish.service.log,
+		   org.knopflerfish.service.console,
+		   org.knopflerfish.util.metatype"/>
+
+<property name  = "javadoc.header"
+          value = "Knopflerfish OSGi ${version}"/>
+    
+<property name  = "javadoc.footer"
+          value = "${javadoc.header}"/>
+
+<path id="sources.path.kf">
+  <pathelement location="${topdir}/framework/src"/>
+  <pathelement location="${topdir}/bundles/log/src"/>
+  <pathelement location="${topdir}/bundles/cm/cm/src"/>
+  <pathelement location="${topdir}/bundles/cm/cm_cmd/src"/>
+  <pathelement location="${topdir}/bundles/device/device/src"/>
+  <pathelement location="${topdir}/bundles/useradmin/src"/>
+  <pathelement location="${topdir}/bundles/wireadmin/src"/>
+  <pathelement location="${topdir}/bundles/console/console/src"/>
+  <pathelement location="${topdir}/bundles/console/consoletcp/src"/>
+  <pathelement location="${topdir}/bundles/console/consoletty/src"/>
+  <pathelement location="${topdir}/bundles/desktop/src"/>
+  <pathelement location="${topdir}/bundles/http/http/src"/>
+  <pathelement location="${topdir}/bundles/util/src"/>
+  <pathelement location="${topdir}/bundles/demos/demo1/src"/>
+  <pathelement location="${topdir}/bundles/position/src"/>
+  <pathelement location="${topdir}/bundles/measurement/src"/>
+  <pathelement location="${topdir}/bundles/provisioning/src"/>
+  <pathelement location="${topdir}/bundles/prefs/src"/>
+  <pathelement location="${topdir}/bundles/upnp/src"/>
+  <pathelement location="${topdir}/bundles/metatype/metatype_api/src"/>
+  <pathelement location="${topdir}/bundles/xml/xml/src"/>
+  <pathelement location="${topdir}/bundles/trayicon/trayicon/src"/>
+  <pathelement location="${topdir}/bundles/remotefw/src"/>
+  <pathelement location="${topdir}/../ant/src"/>
+  <pathelement location="${topdir}/bundles/metatype/kf_metatype/src"/>
+  <pathelement location="${topdir}/bundles_opt/jini/jinidriver/src"/>
+</path>
+
+
