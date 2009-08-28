@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="http" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name = "do.bundle.custom.pre" value="true"/>
+  <property name = "do.bundle.custom.post" value="true"/>
+
+  <property name  = "api.pattern"
+            value = "org/osgi/service/http/**"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/bundles/jsdk/resources/servlet.jar"/> 
+  </path>
+
+
+  <property name="bundle.description"    value="HTTP/HTTPS Server"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.1.0"/>
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/http/readme.txt"/>
+  <property name="bundle.name"           value="HTTP Server"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+
+  <property name="import.package"
+value="javax.servlet,javax.servlet.http,org.osgi.framework,org.osgi.service.log,org.osgi.service.cm,org.osgi.service.http,org.osgi.util.tracker"/>
+  <property name="export.service"        value="org.osgi.service.http.HttpService,org.osgi.service.cm.ManagedServiceFactory"/>
+
+  <property name="export.package"        value="org.osgi.service.http;specification-version=1.1.0"/>
+
+
+  <!-- want to include the log client w/o duplicating code -->
+  <target name="bundle.custom.pre">
+     <mkdir dir="src/org/knopflerfish/service/log"/>
+     <copy todir="src/org/knopflerfish/service/log">
+	<fileset dir="${topdir}/bundles/log/src/org/knopflerfish/service/log" />
+     </copy>
+
+  </target>
+
+  <!-- need to undo the bundle.custom.pre step and do not want to overwrite clean-->
+  <target name="bundle.custom.post">
+     <delete dir="src/org/knopflerfish/service/log" quiet="true" failonerror="false" />
+  </target>
+
+  &bundlebuild_include;
+
+</project>
+
+

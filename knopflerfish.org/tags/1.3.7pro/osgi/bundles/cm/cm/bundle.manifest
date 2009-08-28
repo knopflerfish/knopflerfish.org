@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-Name: CMService
+Bundle-SymbolicName: org.knopflerfish.cm
+Bundle-Version: 1.0.0
+Bundle-Description: Configuration management service
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.cm.Activator
+Bundle-Category: service
+Export-Package: org.osgi.service.cm;specification-version=1.0.0, org.k
+ nopflerfish.shared.cm
+Import-Package: org.knopflerfish.service.log, org.osgi.framework
+Bundle-APIVendor: OSGi
+
+

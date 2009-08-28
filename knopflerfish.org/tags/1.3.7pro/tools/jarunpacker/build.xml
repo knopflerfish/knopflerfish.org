@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<project name="jarunpacker" default="all">
+
+  <!-- build properties -->
+
+  <property name="topdir"        location="."/>
+  <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
+  <property name="classout"      location="${outdir}/classes"/>
+  <property name="docdir"        location="${ant.project.name}/apidoc"/>
+
+
+  <property name="src.dir" location = "src"/>
+
+  <!-- targets -->
+  <target name="all" depends="jar">
+  </target>
+
+  <target name="compile" description="compiles all java sources">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+    >
+   </javac>
+  </target>
+ 
+  <target name="jar" depends="compile">
+    <jar    destfile    = "${outdir}/jarunpacker.jar"
+            compress    = "true">
+
+     <manifest>
+     </manifest>
+
+     <zipfileset dir    = "${classout}"
+                 prefix = "">
+
+      <include   name="**/*.class"/>
+     </zipfileset>
+     <zipfileset dir    = "resources"
+                 prefix = "">
+
+      <include   name="noia/**"/>
+      <exclude   name="**/CVS"/>
+      <include   name="strings.properties"/>
+      <include   name="license.html"/>
+      <include   name="*.gif"/>
+     </zipfileset>
+    </jar>
+  </target>
+    
+ <target name="clean" description="removes all generated files">
+  <delete dir="${outdir}"/>
+ </target>
+
+</project>

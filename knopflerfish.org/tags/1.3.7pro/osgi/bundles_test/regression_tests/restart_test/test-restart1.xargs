@@ -1,0 +1,36 @@
+#
+# Startup file for framework restart testing
+#
+
+# List of test IDs
+-Dorg.knopflerfish.junit_runner.tests=RestartSetupTestSuite
+
+# true means "quit framework when all tests are run"
+-Dorg.knopflerfish.junit_runner.quit=true
+
+# true means wait for complete framework start until run
+-Dorg.knopflerfish.junit_runner.wait=true
+
+-Dorg.knopflerfish.gosg.jars=file:jars/
+
+-init
+
+-initlevel 1
+-istart junit/junit_all-1.0.0.jar
+
+# the test cases
+-initlevel 5
+-istart file:bundles_test/regression_tests/jars/restart_test-1.0.0.jar
+
+# the test case runner bundle.
+-initlevel 20
+-istart junit_runner/junit_runner_all-1.0.0.jar
+
+-startlevel 20
+
+-launch
+
+
+
+
+

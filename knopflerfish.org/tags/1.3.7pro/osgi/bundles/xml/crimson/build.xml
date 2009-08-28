@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="crimson" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+
+  <property name="api.pattern" value="**" />
+  <property name="impl.pattern" value="**" />
+
+
+
+  <property name = "bundle.build.lib"   value = "false"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <property name="bundle.version"        value="1.1.3"/>
+  <property name="bundle.category"       value="lib"/>
+  <property name="bundle.description"    value="The Crimson XML parser"/>
+  <property name="bundle.vendor"         value="Apache/Knopflerfish"/>
+  <property name="bundle.classpath"      value=".,crimson.jar"/>
+  <property name="bundle.docurl"         value="http://xml.apache.org/crimson"/>
+  <property name="bundle.name"           value="Crimson XML lib"/>
+
+  <property name="import.package"        value="org.osgi.framework"/>
+
+  <property name="export.package"        value="org.w3c.dom ; specification-version=2.0, org.xml.sax ; specification-version=2.0, org.xml.sax.helpers ; specification-version=2.0, javax.xml.parsers ; specification-version=2.0,org.apache.crimson.jaxp,org.xml.sax.ext;specification-version=1.0"/>
+
+
+  <property name  = "all.suffix" value="-${bundle.version}"/>
+
+  &bundlebuild_include;
+
+</project>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundlejar>
+<resource src="/basicdriverlocator/out" type="0" dst="" pattern=".*\.class"/>
+<resource src="/basicdriverlocator/resources" type="2" dst=""/>
+</bundlejar>

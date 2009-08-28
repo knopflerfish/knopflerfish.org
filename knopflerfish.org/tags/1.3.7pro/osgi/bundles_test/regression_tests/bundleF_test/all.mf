@@ -1,0 +1,13 @@
+Bundle-Name: bundleF_test
+Bundle-SymbolicName: bundleF_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleF_test
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleF_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleF_test
+Import-Package: org.knopflerfish.service.bundleF_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleF_test:1.0.0:all
+

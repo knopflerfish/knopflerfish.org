@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE cfg PUBLIC "-//knopflerfish//DTD cfg 1.0//EN" "http://www.knopflerfish.org/dtd/config.dtd">
+
+<cfg version="0.1">
+
+  <managedService 
+  pid="org.knopflerfish.bundle.consoletty.ConsoleTty"
+  descr="The Knopflerfish TTY Console">
+
+    <property name="nonblocking">
+      <description>Use non-blocking tty access</description>
+      <value type="Boolean" default="false" />
+      <helptext>
+        Some JVM-OS combinations cannot handle blocking access to standard input.
+      </helptext>
+    </property>
+
+  </managedService>
+
+</cfg>

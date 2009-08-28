@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="consoletty" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name = "bundle.build.impl"  value = "true"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/consoletty/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
+  </path>
+
+  <property name="bundle.description"    value="Command line system console"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.category"       value="console"/>
+  <property name="bundle.version"        value="1.0.1"/>
+  <property name="bundle.name"           value="TTY Console"/>
+
+  <property name="import.service"        value="org.osgi.service.log.LogService,org.knopflerfish.service.console.ConsoleService"/>
+
+  <property name="export.service"        value="org.osgi.service.cm.ManagedService"/>
+
+
+  &bundlebuild_include;
+
+</project>

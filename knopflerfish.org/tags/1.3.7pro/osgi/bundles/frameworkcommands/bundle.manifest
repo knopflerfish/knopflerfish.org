@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-Name: FWCommands
+Bundle-SymbolicName: org.knopflerfish.frameworkcommands
+Bundle-Version: 1.0.0
+Bundle-Description: Framework commands
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.frameworkcommands.Activator
+Bundle-Category: service
+Import-Package: org.knopflerfish.service.console,org.osgi.framework,or
+ g.osgi.service.packageadmin,org.osgi.service.permissionadmin,org.osgi
+ .service.startlevel

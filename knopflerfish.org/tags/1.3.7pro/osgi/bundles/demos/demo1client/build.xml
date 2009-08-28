@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="demo1client" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/service/demo1client/impl/*"/>
+
+
+  <path id="bundle.compile.path">
+    <pathelement location="${topdir}/jars/demo1/demo1_api-1.0.0.jar"/>
+  </path>
+
+
+  <property name="bundle.description"    value="Demo client bundle"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+  &bundlebuild_include;
+
+</project>

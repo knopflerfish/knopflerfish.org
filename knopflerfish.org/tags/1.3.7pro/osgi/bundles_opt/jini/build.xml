@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<project name="soap" default="all">
+
+   <target name="all">
+    <ant dir="jinidriver"   target="all"/>
+  </target>
+
+   <target name="clean">
+    <ant dir="jinidriver"   target="clean"/>
+  </target>
+
+</project>

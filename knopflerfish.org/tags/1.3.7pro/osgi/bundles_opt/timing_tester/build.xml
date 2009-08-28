@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="tester" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name="impl.pattern" value="org/knopflerfish/**"/> 
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <property name="bundle.description"    value="Tester"/>
+  <property name="bundle.category"       value="test"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+  <property name="import.package"        value="org.osgi.framework"/>
+
+  &bundlebuild_include;
+
+</project>

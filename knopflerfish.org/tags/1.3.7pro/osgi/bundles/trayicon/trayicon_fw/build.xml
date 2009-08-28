@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="trayicon_fw" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/trayicon/trayicon_api-1.0.0.jar"/>
+  </path>
+
+
+  <property name="bundle.description"   value="Framework tray icon. Allows basic control of the framework using the windows system tray."/>
+  <property name="bundle.category"      value="service"/>
+  <property name="bundle.version"       value="1.0.0"/>
+  <property name="bundle.name"          value="FW Tray"/>
+
+ <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/readme.txt"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon_fw/"/>
+
+  <property name="import.package"       value="org.knopflerfish.service.log,org.knopflerfish.service.trayicon,org.osgi.framework,org.osgi.service.startlevel,org.osgi.util.tracker"/>
+
+  &bundlebuild_include;
+
+</project>

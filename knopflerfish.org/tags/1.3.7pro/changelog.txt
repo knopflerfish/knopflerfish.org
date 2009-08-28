@@ -1,0 +1,313 @@
+2009-04-17 15:01:21 +0200 (Fri, 17 Apr 2009), revision 2692, jan
+Fixed build distribution and clean problems.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+
+2009-04-17 14:04:14 +0200 (Fri, 17 Apr 2009), revision 2691, jan
+Fixed build and test problem for release 1.3.7.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/trayicon/trayicon/src/org/knopflerfish/bundle/trayicon/TrayIconWrapper.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/license.html
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/license.txt
+
+2009-03-13 15:34:36 +0100 (Fri, 13 Mar 2009), revision 2681, jan
+Added missing array range check
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleStorageImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/BundleStorageImpl.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2009-01-15 15:24:12 +0100 (Thu, 15 Jan 2009), revision 2632, jan
+Modify synchronization code to avoid dead lock when using the PackageAdmin service from start and stop methods. Fixed ordering bug in PackageAdmin.refreshPackages().
+Fixed so that property assignments on the command line is evaluated in the correct order when used together with -xargs. Added support for running OSGi test suite.
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/ExportedPackageImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Packages.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Pkg.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PkgEntry.java
+A   knopflerfish.org/branches/kf_1_support/osgi/init-osgi-test-target.xargs.in
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2009-01-09 11:08:21 +0100 (Fri, 09 Jan 2009), revision 2631, jan
+Changed synchronization code to avoid dead lock in BundleClassLoader.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2009-01-05 00:25:16 +0100 (Mon, 05 Jan 2009), revision 2628, jan
+Fixed dead lock between BundleImpl objects and Packages object.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-12-19 12:42:45 +0100 (Fri, 19 Dec 2008), revision 2605, jan
+Updated release notes and framework version for fix in rev 2602.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-12-19 11:19:37 +0100 (Fri, 19 Dec 2008), revision 2602, jan
+Rearranged synchronized code to avoid dead lock between registerService and refreshPackages.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Services.java
+
+2008-12-10 09:46:19 +0100 (Wed, 10 Dec 2008), revision 2589, ekolin
+*** empty log message ***
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-12-10 09:45:54 +0100 (Wed, 10 Dec 2008), revision 2588, ekolin
+Fix SF KF-bugs issue with ID 2406160. Annoying System.out messages in SystemMetaProvider.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/cm_desktop/src/org/knopflerfish/bundle/desktop/cm/Activator.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/cm_desktop/src/org/knopflerfish/bundle/desktop/cm/JVector.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/util/metatype/Loader.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/util/metatype/Main.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/util/metatype/SystemMetatypeProvider.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/metatype/readme.html
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-10-27 11:16:47 +0100 (Mon, 27 Oct 2008), revision 2561, ekolin
+*** empty log message ***
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-10-27 11:05:19 +0100 (Mon, 27 Oct 2008), revision 2560, ekolin
+Fix issue https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+UU  knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/Archive.java
+
+2008-09-05 09:39:49 +0200 (Fri, 05 Sep 2008), revision 2491, ekolin
+Fix problem encountered when updating a bundle in state INSTALLED (or
+RESOLVED without a classloader).
+U   knopflerfish.org/branches/kf_1_support/release_notes.in
+
+2008-09-04 20:58:22 +0200 (Thu, 04 Sep 2008), revision 2490, ekolin
+Update of a resolved (or installed) bundle wihtout a class loader instance did not mark old exported packages as zombie-packages, resulting in failures to access classes in packages it imported when re-resolved after the update.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+
+2008-04-07 10:22:41 +0200 (Mon, 07 Apr 2008), revision 2321, ekolin
+Improved error message for missing bcel lib when building from scratch.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+
+2008-04-07 10:13:43 +0200 (Mon, 07 Apr 2008), revision 2320, ekolin
+Add expected (empty) direcotry
+A   knopflerfish.org/branches/kf_1_support/ant/lib/
+
+2008-03-31 16:08:56 +0200 (Mon, 31 Mar 2008), revision 2313, ekolin
+Post 1.3.6 release update of default version in build.xml to 1.3.7
+U   knopflerfish.org/branches/kf_1_support/build.xml
+
+2008-03-31 15:47:58 +0200 (Mon, 31 Mar 2008), revision 2312, ekolin
+Add release notes and change log to the "tiny" deliverable.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+
+2008-03-31 14:04:24 +0200 (Mon, 31 Mar 2008), revision 2310, ekolin
+Copy the change log to the expected file name.
+U   knopflerfish.org/branches/kf_1_support/build.xml
+
+2008-03-31 13:45:42 +0200 (Mon, 31 Mar 2008), revision 2309, ekolin
+Backport fix for hard-coded File.separator
+U   knopflerfish.org/branches/kf_1_support/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+
+2008-03-31 12:12:10 +0200 (Mon, 31 Mar 2008), revision 2307, ekolin
+Finalize change log for 1.3.6 release.
+U   knopflerfish.org/branches/kf_1_support/changelog.txt
+
+2008-03-31 12:09:23 +0200 (Mon, 31 Mar 2008), revision 2306, ekolin
+Update build system for 1.3.6 release.
+U   knopflerfish.org/branches/kf_1_support/README.txt
+A   knopflerfish.org/branches/kf_1_support/ant/src/org/knopflerfish/ant/taskdefs/bundle/ByteFormatterTask.java
+U   knopflerfish.org/branches/kf_1_support/build.xml
+D   knopflerfish.org/branches/kf_1_support/changelog.html
+A   knopflerfish.org/branches/kf_1_support/changelog.txt
+U   knopflerfish.org/branches/kf_1_support/htdocs/build.xml
+A   knopflerfish.org/branches/kf_1_support/htdocs/html_templates/formatted.html
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+A   knopflerfish.org/branches/kf_1_support/release_notes.in
+A   knopflerfish.org/branches/kf_1_support/release_page.in
+A   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/kf_16x16.gif
+A   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/kf_32x32.gif
+A   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/knopflerfish_red400pxl.gif
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/license.html
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/resources/license.txt
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/src/org/knopflerfish/tools/jarunpacker/JWizard.java
+U   knopflerfish.org/branches/kf_1_support/tools/jarunpacker/src/org/knopflerfish/tools/jarunpacker/Main.java
+
+2008-03-31 09:10:04 +0200 (Mon, 31 Mar 2008), revision 2303, ekolin
+Must have BCEL on class path when building Knopflerfish ant tasks.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+
+2008-03-27 11:45:58 +0100 (Thu, 27 Mar 2008), revision 2299, ekolin
+Use doPrivileged() when opening the URL connection since the archive implementaiton needs file permissions not granted to all code sources. Also backport the handling of BCEL (to allow for a local copy that does not clutter ANT_HOME).
+U   knopflerfish.org/branches/kf_1_support/ant/bundlebuild_include.xml
+U   knopflerfish.org/branches/kf_1_support/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleURLStreamHandler.java
+
+2008-03-17 11:18:06 +0100 (Mon, 17 Mar 2008), revision 2285, ekolin
+Made the usage of double checked locking configurable via a system property named org.knopflerfish.framework.is_doublechecked_locking_safe. Fixed a bug in the double-checked locking code in PermissionsWrapper and BundleImpl.
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/readme.txt
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PermissionsWrapper.java
+
+2008-02-28 14:14:02 +0100 (Thu, 28 Feb 2008), revision 2237, ekolin
+Minor optimization for platforms not supporting Double Checked Locking.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PermissionsWrapper.java
+
+2008-02-28 11:54:33 +0100 (Thu, 28 Feb 2008), revision 2234, ekolin
+Minor rewrite of FrameworkPolicy to use reflection so that it works on pre JDK 1.4 JREs
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/FrameworkPolicy.java
+
+2008-02-28 09:33:24 +0100 (Thu, 28 Feb 2008), revision 2233, ekolin
+Robustify java version parsing.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Framework.java
+
+2008-02-27 15:15:36 +0100 (Wed, 27 Feb 2008), revision 2231, ekolin
+Fix another double checked lock problem, make doPrivileged() in Debug printouts optional, avoid direct calls to AccessControlerContex when checking permissions.
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/readme.txt
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/PermissionsWrapper.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/init-tests.xargs
+
+2008-02-01 16:39:10 +0100 (Fri, 01 Feb 2008), revision 2188, ekolin
+Archive.getInputStream() now returns a steram to the entire jar file holding the archive contents. This solves issue [1516267] in tracker on SourceForge.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2008-01-26 14:14:52 +0100 (Sat, 26 Jan 2008), revision 2176, ekolin
+When calling FrameworkPolcy.getPermissions(CodeSource) with a null COdeSource delegate to the default policy handler. Remove a case of double-checked locking from the BundleImpl class since double-checked locking may fail.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/resources/version
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleContextImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/FrameworkPolicy.java
+
+2008-01-18 15:50:11 +0100 (Fri, 18 Jan 2008), revision 2173, ekolin
+Add another missing doPriviledged().
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleArchiveImpl.java
+
+2008-01-17 15:11:30 +0100 (Thu, 17 Jan 2008), revision 2168, ekolin
+All of getPermissions(ProtectionDomain), getPermissions(CodeSource) and impies(ProtectionDomain,Permission) must delegate to the policy file based Policy class for the domains not handled by the FrameworkPolicy itself. Also ensure that calls to refresh() are forwarded to the wrapped file based Policy class.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/FrameworkPolicy.java
+
+2008-01-17 15:08:02 +0100 (Thu, 17 Jan 2008), revision 2167, ekolin
+BundleURLStreamHandler.getPermission() should return an instance of AdminPermission, not AllPermission as it inherited from the URLStreamHandler.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleURLStreamHandler.java
+
+2008-01-15 14:03:30 +0100 (Tue, 15 Jan 2008), revision 2164, ekolin
+Add doPriviledged around call to BundleArchive.getNativeLibrary(nam) in BundleClassLoader.findLibrary(name) since System.loadLibrary() implicitly calls this and the calling bundle shall not need to define permissions to acces files in the Frameworks internal bundle storage.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleArchiveImpl.java
+
+2008-01-14 17:05:42 +0100 (Mon, 14 Jan 2008), revision 2162, ekolin
+Add debug property, org.knopflerfish.framework.debug.bundle_resource, which makes it easier to identify a bundle that fails to load a resource due to missing permissions.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/readme.txt
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/branches/kf_1_support/osgi/props.xargs
+
+2008-01-14 16:07:44 +0100 (Mon, 14 Jan 2008), revision 2161, ekolin
+Added doPriviledge to Debug.print*-methods since the actual print stream may be provoded by another bundle that shall not have to handle permission restrictions that applies to the bundle causing the debug-printout.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Debug.java
+
+2008-01-14 14:21:32 +0100 (Mon, 14 Jan 2008), revision 2159, ekolin
+Move description of org.knopflerfish.framework.debug.service_reference
+since it was placed in between the description of two ldap related properties.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/readme.txt
+
+2008-01-14 13:40:34 +0100 (Mon, 14 Jan 2008), revision 2158, ekolin
+Add debug property, org.knopflerfish.framework.debug.service_reference, which makes it easier to identify a bundle that fails to find a service due to missing service permissions.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/readme.txt
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleContextImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Debug.java
+U   knopflerfish.org/branches/kf_1_support/osgi/props.xargs
+
+2008-01-14 10:17:51 +0100 (Mon, 14 Jan 2008), revision 2156, ekolin
+Ignore even more generated files
+_U  knopflerfish.org/branches/kf_1_support/osgi/
+
+2008-01-14 10:16:09 +0100 (Mon, 14 Jan 2008), revision 2155, ekolin
+Generalize ignore statements
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles/desktop/resources/
+
+2008-01-14 10:15:03 +0100 (Mon, 14 Jan 2008), revision 2154, ekolin
+Ignore even more generated files
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles/bundlerepository/resources/
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles_opt/commons-logging/resources/
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles_opt/desktop_awt/resources/
+
+2008-01-14 10:10:27 +0100 (Mon, 14 Jan 2008), revision 2153, ekolin
+Ignore generated files
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles_test/regression_tests/
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles_test/regression_tests/framework_test/resources/
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles_test/regression_tests/servicetracker_test/
+_U  knopflerfish.org/branches/kf_1_support/osgi/bundles_test/regression_tests/servicetracker_test/resources/
+
+2008-01-14 10:06:01 +0100 (Mon, 14 Jan 2008), revision 2152, ekolin
+Fix copyright
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/FrameworkPolicy.java
+
+2008-01-14 09:38:45 +0100 (Mon, 14 Jan 2008), revision 2151, ekolin
+Merge correction made be Per on some other branch
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/StartLevelImpl.java
+
+2007-12-06 10:22:42 +0100 (Thu, 06 Dec 2007), revision 2134, ekolin
+Added permission based filtering for the initial service tracker service fetch operation.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/osgi/util/tracker/ServiceTracker.java
+
+2007-11-22 15:20:54 +0100 (Thu, 22 Nov 2007), revision 2131, ekolin
+Fix #236, the initial listing of all service in the service tracker requires more permissions.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/osgi/util/tracker/ServiceTracker.java
+
+2007-11-22 14:37:22 +0100 (Thu, 22 Nov 2007), revision 2128, ekolin
+Fix #234 part 2, load class bytes from priviledged code.
+U   knopflerfish.org/branches/kf_1_support/osgi/build.xml
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2007-11-22 12:22:47 +0100 (Thu, 22 Nov 2007), revision 2127, ekolin
+Fix #234, use policy file for non-bundle permissions.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/FrameworkPolicy.java
+A   knopflerfish.org/branches/kf_1_support/osgi/framework.policy
+
+2007-11-22 11:03:51 +0100 (Thu, 22 Nov 2007), revision 2126, ekolin
+Add missing doPriviledged() when creating URLs with a specified handler.
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+
+2007-11-16 11:40:07 +0100 (Fri, 16 Nov 2007), revision 2113, ekolin
+Fix bug 237
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/ConditionImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/GroupImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UACredentials.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UAProperties.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UserAdminImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UserImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/BundleContextImpl.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/branches/kf_1_support/osgi/framework/src/org/knopflerfish/framework/Services.java
+

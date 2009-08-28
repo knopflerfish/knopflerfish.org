@@ -1,0 +1,153 @@
+<h2>Setting preferences</h2>
+
+<p>
+After the plug-in is installed or a new workspace is created the preferences used 
+by the plug-in must be set in order for it to work properly. The preferences can 
+be set in two ways, either by setting them in the 
+<a href="#preference_dialog">preferences dialog</a> or by 
+<a href="#import_preferences">importing</a> previously <a href="#export_preferences">exported settings</a>.
+</p>
+
+
+<a name="preference_dialog"></a>
+<h3>The preference dialog</h3>
+<p>
+The preference dialog is shown by selecting 'Window->Preferences...'. 
+Selecting 'OSGi' in the left-hand list shows the preferences used by the plug-in.
+</p>
+<img src="images/eclipse_prefs_1.gif"/>
+
+
+<h4>Frameworks</h4>
+<p>
+In the framework preferences you specify the frameworks that the plug-in
+should be able to use. The specified frameworks are used by the plug-in when 
+debugging and building bundle projects, where the checked framework is used by 
+default.
+</p>
+<img src="images/eclipse_prefs_frameworks_list.gif"/>
+<br>
+<p>
+When you select to add or edit a framework a dialog is shown where you specify a name, 
+type of framework and where framework is installed. The name needs to be unique and is 
+later used to identify the framework.
+</p>
+<img src="images/eclipse_prefs_frameworks_add.gif"/>
+<p>
+The framework types supported are:
+<ul>
+ <li>Knopflerfish 1.3</li>
+ <li>Oscar 1.0</li>
+ <li>Eclipse 3.1</li>
+</ul>
+After selecting framework type you select the directory where the framework is stored. 
+For all frameworks types it works to point to the top level directory of the framework. 
+For Knopflerfish you can also point to the <code>knopflerish.org</code> or the 
+<code>knopflerish.org/osgi</code> directories, which can be useful if you work against 
+subversion. If you select an invalid directory for the specified framework type you will 
+get an error message at the bottom of the dialog box. If the checkbox 'Use default settings' 
+is checked and the directory is valid, the main class, the runtime libraries needed to 
+launch the framework and bundles accompanying the framework distribution will automatically 
+be listed.
+</p>
+<p>
+You can override the default settings by unchecking 'Use default settings'. This will allow 
+you to change the main class, the runtime libraries and the bundles. For instance if you have 
+embedded the framework into a launcher you will want to add the launcher libraries to the 
+runtime libraries and also change the main class which is invoked on launch. Or maybe you 
+want to add or remove some bundles from the framework. The bundles listed here can later be 
+used through bundle repositories when building and running bundle projects. All user defined 
+changes that are made are shown in <b>bold</b> text in the list. 
+</p>  
+<p>
+If you have made a lot of changes to customize a framework and need to install a new framework, 
+for example to upgrade to a later version, you can select to import user settings from the 
+existing preferences to the new framework. You add the new framework, uncheck the 'Use default
+settings' button and then use the 'Import Libraries...' function at the bottom right. In the 
+dialog shown, you select an existing framework to take settings from and what to import.
+</p>
+
+
+<h4>Execution environments</h4>
+<p>
+In the environments preferences you specify which execution environments that bundle projects 
+can be built against. By default three environments are available:
+<ul>
+ <li>Default JRE</li>
+ <li>CDC-1.0/Foundation-1.0</li>
+ <li>OSGi/Minimum-1.0</li>
+</ul>
+When default JRE is selected the bundle projects are built against the libraries of the default 
+JRE selected in the Java->Installed JREs preferences. When CDC-1.0/Foundation-1.0 or 
+OSGi/Minimum-1.0 is selected the bundle projects are built against the respective profiles 
+specified by OSGi.
+</p>
+<img src="images/eclipse_prefs_environments_list.gif"/>
+<br>
+<p>
+When you select to add or edit an execution environment a dialog is shown where you specify an
+environmet name and the libraries the environment consists of. You can also attach source to
+the added libraries, which can be useful if you later want to step into the code when 
+debugging.
+</p>
+<img src="images/eclipse_prefs_environments_add.gif"/>
+
+<h4>Bundle repositories</h4>
+<p>
+Bundle repositories are used when searching for bundles. The plug-in searches for bundles
+to find packages available for import by bundle projects, to find bundles to add to a 
+bundle projects build path and to find bundles to add to launch configurations. In order to 
+have any bundles available you need to set up at least one repository. The repositories
+are searched in the order they are listed. Only repositories which are checked, i.e. 
+marked as active, are searched.
+</p>
+<img src="images/eclipse_prefs_repositories_list.gif"/>
+<br>
+<p>
+When you select to add or edit a bundle repository a dialog is shown where you specify a name, 
+type of repository and repository configuration. The name needs to be unique and is later used 
+to identify the repository.
+</p>
+<img src="images/eclipse_prefs_repositories_add.gif"/>
+<p>
+The repository types supported are:
+<ul>
+ <li>Framework Repository</li>
+ <li>OBR Reposistory - Not Yet Implemented</li>
+</ul>
+<p>
+Framework repositories are used for bundles that are part of an installed framework distribution. 
+The repository configuration for this type is the name of the framework as specified under the 
+Frameworks section. The configuration dropdown box will contain the framework names of the 
+frameworks that have been configured. If a framework name is missing in the dropdown, a possible 
+reason is that the framework has not yet been saved, which is not done until you close the 
+preference window.
+</p>
+<p>
+OBR repositories are used for bundles published using 
+<a href="http://oscar-osgi.sourceforge.net/">Oscar Bundle Repository</a>. The repository 
+configuration for this type is the URL of the repository XML file. OBR repositories have not 
+yet been implemented in the plug-in.
+</p>
+
+
+<a name="export_preferences"></a>
+<h3>Exporting preferences</h3>
+<p>
+You can export the OSGi preferences by selecting 'File->Export...'. In the dialog shown
+you select 'Preferences'. A new dialog will be shown where you specify which preferences
+to export. Here you can select 'OSGi settings', which will include all OSGi preferences made.
+The preferences are exported to a file. The file can be used to share preferences in a team or, 
+if you have created a new workspace you can use it to avoid setting up all the preferences again.
+</p>
+<img src="images/eclipse_prefs_export.gif"/>
+
+
+<a name="import_preferences"></a>
+<h3>Importing preferences</h3>
+<p>
+You can import previously exported preferences by selecting 'File->Import...'. In the dialog shown
+you select 'Preferences'. A new dialog will be shown where you specify the file to import
+the preferences from.
+</p>
+<img src="images/eclipse_prefs_import.gif"/>

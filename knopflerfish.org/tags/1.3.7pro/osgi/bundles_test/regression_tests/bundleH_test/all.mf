@@ -1,0 +1,13 @@
+Bundle-Name: bundleH_test
+Bundle-SymbolicName: bundleH_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleH_test
+Bundle-Vendor: Knopflerfish/Gatespace Telematics
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleH_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleH_test
+Import-Package: org.knopflerfish.service.bundleH_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleH_test:1.0.0:all
+

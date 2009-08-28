@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="trayicon" default="all">
+
+  <property name="topdir"       location="../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "true"/>
+  <property name = "bundle.build.lib"   value = "false"/>
+
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**,com/jeans/**"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/trayicon/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+<!--
+   <pathelement location="resources/trayicon.jar"/>
+-->
+  </path>
+
+
+  <property name="bundle.description"   value="Windows Tray Icon manager. Uses code written by Jan Struyf, jan.struyf@cs.kuleuven.ac.be, http://jeans.studentenweb.org/java/trayicon/trayicon.html"/>
+  <property name="bundle.name"          value="Tray Icon Manager"/>
+  <property name="bundle.category"      value="service"/>
+  <property name="bundle.version"       value="1.0.0"/>
+  <property name="bundle.docurl"        value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/readme.txt"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/trayicon/trayicon/"/>
+
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+
+  <property name="bundle.classpath"     value="."/>
+  <property name="export.package"       value="org.knopflerfish.service.trayicon"/>
+  <property name="import.package"       value="org.osgi.framework,org.knopflerfish.service.log"/>
+
+  <property name="bundle.nativecode" 
+            value="TrayIcon12.dll;osname=WindowsXP;processor=x86,TrayIcon12.dll;osname=Windows2000;processor=x86,TrayIcon12.dll;osname=Windows98;processor=x86,TrayIcon12.dll;osname=Windows95;processor=x86"/>
+
+
+  &bundlebuild_include;
+
+</project>

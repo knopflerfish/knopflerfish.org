@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
+
+<project name="log" default="all">
+
+  <property name="topdir"       location="../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.impl"  value = "true"/>
+
+  <property name="api.pattern"
+            value="org/osgi/service/log/**,org/knopflerfish/service/log/**"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/log/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+  </path>
+
+
+  <property name="bundle.description"     value="The Knopflerfish OSGi log service"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.1"/>
+  <property name="bundle.name"           value="Log Service"/>
+
+  <property name="bundle.apivendor"      value="OSGi/Knopflerfish"/>
+
+  <property name="export.package"        value="org.osgi.service.log;specification-version=1.2,org.knopflerfish.service.log;specification-version=1.1"/>
+
+
+  &bundlebuild_include;
+
+</project>

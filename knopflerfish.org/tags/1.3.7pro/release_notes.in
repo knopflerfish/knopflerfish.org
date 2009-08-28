@@ -1,0 +1,567 @@
+Release Notes Knopflerfish @VERSION@
+--------------------------------
+
+  Maintenance release of Knopflerfish 1.3 (OSGi R3)
+
+  Here follows a breakdown of the most important changes since the 
+  last release.
+
+
+========================================================================
+
+
+2009-04-20:
+             1.3.7 Release
+
+=== Framework (Core) ===
+
+  Updating a resolved bundle for which a bundle class loader was not
+  yet created messed up the book-keeping of packages causing
+  unexpected failures to find classes in packages imported by the
+  updated bundle.
+  
+  Fix an issue with paths in the BundleClassPath manifest attirbute
+  that starts with a '/' when using memory storage. Reported in
+  https://sourceforge.net/tracker/?func=detail&atid=567241&aid=2198098&group_id=82798
+
+  Rearranged synchronized code to avoid dead lock between registerService and
+  refreshPackages, between Bundles and Package handling.
+  Changed synchronization code to avoid dead lock in BundleClassLoader.
+
+  Modify synchronization code to avoid dead lock when using the PackageAdmin service from
+  start and stop methods. Fixed ordering bug in PackageAdmin.refreshPackages().
+
+  Fixed so that property assignments on the command line is evaluated in the correct
+  order when used together with -xargs. Added missing array range check.
+
+
+=== Services (Compendium) ===
+      
+  Meta type
+
+  Removed a number of calls to System.out from the metatype bundles.
+  Reported in 
+  https://sourceforge.net/tracker2/?func=detail&aid=2406160&group_id=82798&atid=567241
+
+
+========================================================================
+
+
+2008-04-25:
+             1.3.6 Release
+
+=== Framework (Core) ===
+
+  A number of changes to enable bundles with few permissions to work
+  correctly when security is enabled.
+
+  All permission checks are now performed via the active Security
+  Manager to enable interception of such checks by a custom Security
+  Manager implementation.
+
+  The security policy implementation used by the framework now
+  delegates permission derivation to the original policy
+  implementation, thus allowing specification of permissions for
+  non-bundle packages via the default policy file.
+
+
+=== Services (Compendium) ===
+      
+  No changes.
+
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+  Some build system changes have been back-ported from the
+  Knopflerfish 2.0 series. E.g., usage of a local bcel.jar in ant/lib,
+  new release note page and a change log based on svn comments, ...
+
+
+========================================================================
+
+
+2006-06-26:
+             1.3.5 Release
+
+ all:        A few bug fixes
+
+ bundles:    The "Bundle-SymbolicName" header used in bundles
+             distributed with releases prior to 1.3.5 does not conform
+             to the OSGi-r4 specification. To avoid potential 
+             incompatibilities this header has been removed from the
+             bundles' manifest files.  
+
+2005-10-14:
+             1.3.4 Release
+
+ fw:         Framework starts at level 0. if start level is still 0 
+             when launching set level to 1. 
+             Remove need for launch flag. If no launch flag is 
+             encountered on the command line/xargs file, launch(0) is 
+             called.
+             Remove archive on purge. Fix for memory leak in bug 
+             tracker with request id 1109204.
+
+ prefs:      Fix for bug 1106335 (Preferences doesn't handle dotted 
+             keys properly): Make sure that encoded keys do not find 
+             their way into the in-memory Preferences objects.
+             Fixed bug 1159943 (Preferences.sync() in bundle prefs 
+             works not as specified): sync() calls flush().
+
+ desktop:    Fix for bug 1189943 (Desktop bundle throws 
+             MalformedURLException). Get resource URL from bundle 
+             rather than create it in the desktop bundle.
+             Fix for bug 1116067 bug desktop memory leak: By default, 
+             the console window is limited to 5000 lines. The limit 
+             can be set using the system property 
+             org.knopflerfish.desktop.console.maxlines. 0 means infinite.
+
+ log:        The log bundle is no longer dependent on console packages. 
+             The log configurations commands which where part of the log
+             bundle has been moved to the logcommands bundle.
+             Bumped version to 1.0.1.
+
+ logcmd:     Log configurations commands added, moved from the log bundle.
+             Bumped version to 1.0.1.
+
+ cm:         The bundle is no longer dependent on any XML packages (sax
+             and dom). The package org.knopflerfish.util.cm has been 
+             removed from cm. The classes in org.knopflerfish.shared.cm 
+             are exported and can be used to read cm-data.
+             Bumped version to 1.0.1.
+
+ cmcmd       Uses the org.knopflerfish.shared.cm package from the cm 
+             bundle when importing configurations.
+             Bumped version to 1.0.1.
+
+ obr:        Source code upgraded to 1.1.2 release from Oscar project.
+             Bumped version to 1.1.2.
+
+ consoletty: Uses service tracker for console to avoid startup problems.
+             Bumped version to 1.0.1.
+
+
+
+2004-12-29: 
+             1.3.3 Release
+
+
+2004-12-21:
+ fw:         Fixed FW service listener incorrect behavior
+             that could cause same service listeners instance with
+             different filters to be called for each filter. This
+             only happened when the filter cache had been triggered
+             before the listener was added a secondary time.
+
+
+ device:     Changed device manager listener setup to match above.
+
+             
+2004-11-23:
+ fw:         Added system property
+
+              org.knopflerfish.framework.exitonshutdown
+
+             If set to false, don't call System.exit() at shutdown.
+             Default is true (call System.exit())
+
+2004-11-17:  Added bundles_opt/dirdeployer to opt distrib file
+
+2004-11-06:
+ fw:         Starting nightly builds for release 1.3.3
+             Splitted properties from init.xargs and restart.xargs
+             into new props.xargs
+
+2004-10-29:
+ fw:         Fixed BundleClassLoader.getResources() bug that
+             didn't returned all available resources when multiple
+             identical names existed. Added test (Frame064a) for this.
+
+             Disabled the publicly available bundle: URL syntax.
+             This can be enabled/disabled using the
+               org.knopflerfish.osgi.registerbundleurlhandler
+             system property.
+
+             Made OSGi URL service handler possible to disable
+             using system property 
+               org.knopflerfish.osgi.registerserviceurlhandler
+
+             Bumped fw version to 3.3.5
+
+2004-09-03:
+ fw:         Added -jvminfo option to framework Main class: Prints
+             System + fw properties and exist.
+
+2004-08-24
+ fw:         Startlevel service after-reboot-fix. 
+
+             Added support for http.proxyAuth system property
+             See osgi/framework/readme.txt
+
+             Bump to version FW version 3.3.4
+
+ obr:        Source code upgraded to latest from Oscar project.
+             Modded obr code to support http.proxyAuth system property
+             See osgi/framework/readme.txt
+
+
+ http:       https support, see 
+                osgi/bundles/http/http/readme.txt
+                osgi/bundles/sslj2sp/readme.txt
+
+2004-08-02
+ fw:         Added reference:file: URL schema
+
+2004-07-20   3.3.2 release
+
+2004-07-19
+ distrib:    jaxp bundle removed from distrib (still in subversion)
+
+ desktop:    Large icon view sorted by bundle id or name (context
+             menu added to icon view)
+             Bundle view areas floatable.
+
+ build:      Bundle-UUID added to bundlebuild_include.xml and
+             OBR task. The Bundle-UUID is intended as the missing
+             "Universally Unique ID" for a bundle.
+
+2004-07-14
+ fw:         Fix of DynamicImport-Package so possible exporting 
+             bundles resolves automatically as the importing bundles 
+             tries to access classes.
+
+ bundlerepo: Added desktop plugin to bundlerepository.jar
+
+2004-07-02   3.3.1 release
+
+2004-07-01   
+ jini:       Added jinidriver to bundles_opt build file.
+             Fixed jdk 1.3.1 compilation error
+
+ cm:         fixed mixed case bug (#982720)
+ build:      Clean up of Bundle-Vendor + add of Bundle-APIVendor
+             Build support for OBR XML
+ startup:    Added bundlerepository for OBR bundle access
+             OBR available at
+
+               http://www.knopflerfish.org/repo/repository.xml
+               
+2004-06-18   1.3.1-pre2 available on website
+
+2004-06-16   Fixed some JVM 1.3-related bugs in frameworkcommands
+             and desktop.
+ 
+2004-06-14   Replaced jaxp XML parser with Crimson in
+             default .xargs files.
+
+2004-06-10   1.3.1-pre1 available on website
+
+2004-06-03   Added serial port support to bundles_opt
+
+2004-05-31   Support for file: URL references.
+              
+               -Dorg.knopflerfish.framework.bundlestorage.file.reference
+                (true|false)
+
+             Documented the "unpack-control-flag"
+               -Dorg.knopflerfish.framework.bundlestorage.file.unpack
+                (true|false)
+
+             Fixed startlevel-related privileged bug when 
+             using security.
+
+2004-05-08   Support for vectors and arrays in cm_desktop plugin.
+             Floatable detail windows in desktop.
+
+2004-05-06   Added Jinidriver implementation to osgi/bundles_opt/jini
+
+2004-05-06   Modified Main for cleaner framework startup. See
+               java -jar framework.jar -readme
+             for details.
+
+2004-05-03   Fixed bug #946768, "Uninstalled bundles can reapperar 
+             after restart.
+             Above fix is retrofitted into the 1.3.0 release.
+
+             Fixed bug #946808, "osgi/bundles/http/httptest should be 
+             removed from build"
+
+             Fixed bug #946813", "bundles/http/httproot: missing negation 
+             in unsetRoot"
+
+2004-04-26:  
+             1.3.0 Release. Tagged as 
+                https://www.knopflerfish.org/svn/knopflerfish.org/tags/1.3.0
+
+2004-04-22:  
+             Fixed bugs in consoletty (ugly stop when console service
+             died before tty) and consoletelnet (looping when server port
+             failed to open)
+             Bumped consoletelnet version to 1.0.0
+
+2004-04-20:
+             Bumped consoletelnet version to 1.0
+             Added "ppcbe" as OS alias for PowerPC
+
+2004-04-14:
+             Changed http server behavior so failed configuration
+             doesn't result in half-functional registered HttpService.
+             
+             This means that socket binding failures results in
+             no registered HttpService instead of an HttpService
+             with no port number property set.
+
+2004-04-13:
+             Added start level commands to frameworkcommands bundle
+  
+2004-04-10:
+             Merged from "wip" branch. SOAP export/import support
+             in bundles_opt. 
+
+             Desktop able to remotely control other frameworks using 
+             SOAP.
+
+             Modified ant build scripts to filter out empty manifest 
+             values. This is useful for handling optional attribs like
+             Bundle-NativeCode.
+
+2004-04-04:
+             Passes all OSGi R3 tests
+
+2004-03-22: 
+ build       bundlebuild_include.xml now uses the bundle.name property
+
+ startup     Included support for tray icons, when running on window
+             platforms. See docs for org.knopflerfish.service.trayicon
+
+ repo:       Repository moved to Subversion:
+
+               https://www.knopflerfish.org/svn/
+
+          
+
+2004-03-20:  Added target install, start, stop, update and uninstall
+             to bundlebuild_include.xml. These targets communicates
+             to a running framework using the telnet console.
+
+             Note: requires netcomponents.jar in $ANT_HOME/lib
+
+2004-03-17:  HTTP bug/oddity fix. 
+             HTTP 1.0 and POST and Connection="close" hanged
+             the input stream. This is now fixed
+
+             Desktop tested to work on Eclipse OSGi FW!
+
+             > eclipse -console 9191
+
+             > telnet localhost 9191
+
+              osgi > install file:util-1.0.0.jar
+              osgi > install file:desktop_all-1.1.0.jar
+              osgi > start <desktop bid>
+
+             ...and off you go!
+
+2004-03-17:  Startlevel now truly persistent
+
+             Changed ServiceTracker to comply with ref code
+             and catch IllegalStateException in close()
+
+             Changed specification-version on useradmin,
+             http and cm to 3-digit.
+
+2004-03-16:  Added grabbing of system out/err to the log service
+
+¨               -Dorg.knopflerfish.log.grabio=true
+
+             System.out.println is logged as INFO on the system bundle.
+             System.err.println is logged as ERROR on the system bundle.
+
+             IO grabbing is only active when the log is NOT printing
+             directly to stdout to avoid recursive effects. 
+     
+
+2004-03-10:  Default http port changed internally to 80.
+             Startup xargs still uses 8080
+
+
+2004-02-29:
+             Tested for R3 compliance on
+
+              dynamic package export
+              url
+
+ build:      Added test for OSGi foundation profile to 
+             bundlebuild task. Classes not present in a built-in
+             list is printed when creating the jar file
+
+2004-02-29
+
+ fw:          Added URL service into framework.              
+
+2004-02-25:
+             Tested for R3 compliance on
+
+              framework events
+              filter
+              startlevel
+              life cycle
+              device
+                    
+
+2004-02-19
+
+ desktop:    Added time line view of bundles. Really good concept 
+             actually.
+
+2004-02-16
+
+ desktop:    Integration of StartLevel service into desktop.
+             Replaced icons with nicer ones from the Noia kit.
+
+ fw:         Yet another bug fix in ServiceTracker. 
+
+2004-02-12
+
+ desktop:    Better integration of log viewer. 
+             Uses system look & feel as default.
+
+ 
+2004-02-10
+ 
+ fw:         added OSGi R3 APIs for
+
+               org.osgi.service.startlevel
+               org.osgi.util.measurement
+               org.osgi.util.position
+               org.osgi.util.xml
+
+
+ log:        Fixed buggy log entries for new R3 framework event types.
+             Should now survive all new unknown types.
+
+
+ console:    Added addAlias method to ConsoleService for setting default
+             aliases.
+
+
+2004-02-05  
+
+ fw:         Framework code fixed to compile with JSDK 1.5
+
+ docs:       _all and library bundles now includes source code
+             in OSGI-OPT/src bundle directory.
+             This code is used when generating bundle HTML docs.
+
+2004-02-01
+
+ fw:         ServiceTracker nullpointerexception bug fixed
+
+2004-01-29
+
+ distrib:    New minor release 1.0.2
+             Version numbers on all bundle files.
+             New "tiny" release file in zip format.
+             Auto-generates HTML docs for bundles.
+
+ javadoc:    Cleanup on javadoc source
+
+ cm:         Correction of directory structure
+
+ website:    Finally hosted on hinken. Thanks Urban!
+
+ desktop:    Added swing log window
+
+             (EW)
+
+2003-11-13
+
+ distrib:    First public release 1.0.0
+             Added OSGi license file. Several fixes to distrib build.
+
+             (EW)
+
+2003-09-12
+
+ distrib:    Installation verified to work on NetBSD 1.6.1, using
+             native Java 1.3.1.
+
+             The usual build problems on jsdk 1.3, though.
+             (see <a href="http://developer.java.sun.com/developer/bugParade/bugs/4353705.html">bug parade #4353705</a> for details)
+
+ distrib:    Version backed to 0.9.2 to get some realistic version
+             scheme. Also improved version string handling in framework
+             build.
+
+             (EW: knopflerfish_osgi_0.9.2.jar)
+
+ desktop:    StringBuffer version bug fix
+
+             (EW: bundles/desktop)
+
+2003-08-16
+
+ distrib:    Added component installation selection for
+             base, source and htdocs
+
+             (EW: knopflerfish_osgi_1.0.0prepre.jar, tools/jarunpacker)
+
+2003-08-14
+
+ distrib:    Added fancy check-if-overwrite dialog with icons.
+
+             (EW: knopflerfish_osgi_1.0.0pre.jar, tools/jarunpacker)
+
+2003-08-07
+
+ distrib:    Distribution format changed to self-extracting jar file
+
+             (EW: knopflerfish_osgi_1.0.0pre.jar, tools/jarunpacker)
+
+2003-07-28
+
+ framework:  Added system property for exporting all J2SE packages
+             as javax.swing.**
+
+              org.knopflerfish.framework.system.export.all_13=[true|false]
+
+             (EW. Packages.java)
+
+ framework:  Changed order of property default initialization so
+             defaults works even when non-zero-arg startup 
+
+             (EW. Main.java) 
+
+ htdocs:     Improved HTML doc build system. 
+             Improved HTML documentation.
+
+             (EW: htdocs/build.xml)
+
+ distrib:    Distribution verified to start on Mac OS X
+
+             (ST: knopflerfish_osgi_1.0.0pre.tgz)
+
+2003-07-26
+
+ website:    First golden version on www.knopflerfish.org 
+             (actually on www.wistrand.com, but framelinked)
+             TODO: move knopflerfish.[org|com] domains to hinken.
+
+             (EW. htdocs)
+
+ desktop:    Added new icons, detail info window and bug fixes
+
+             (EW. osgi/bundles/desktop)
+
+
+ build:      Added "distrib" target in top build.xml which creates
+             .tgz of entire source, htdocs and jar trees
+
+             (EW. build.xml)
+
+2003-07-25
+
+ framework:  Added simple support for start of executable jar files.
+             TODO: handle ClassPath: manifest entry
+
+             (EW: BundleImpl.java, MainClassBundleActivator.java)

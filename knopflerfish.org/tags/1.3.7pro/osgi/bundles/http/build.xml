@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="all">
+
+   <target name="all">
+    <ant dir="http"              target="all"/>
+    <ant dir="httproot"          target="all"/>
+    <ant dir="httpconsole"       target="all"/>
+   </target>
+ 
+   <target name="clean">
+    <ant dir="http"              target="clean"/>
+    <ant dir="httproot"          target="clean"/>
+    <ant dir="httpconsole"       target="clean"/>
+   </target>
+
+</project>
