@@ -214,7 +214,7 @@ public class StartLevelController
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
     if (acceptChanges) {
-      setStartLevel0(startLevel, framework.active, false, true);
+      setStartLevel0(startLevel, true, false, true);
     }
   }
 
@@ -252,7 +252,7 @@ public class StartLevelController
           }
         }
         if (notifyFw) {
-          notifyFramework(framework.systemBundle);
+          framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTLEVEL_CHANGED, framework.systemBundle, null));
         }
         if (notifyWC && wc != null) {
           synchronized (wc) {
@@ -268,7 +268,7 @@ public class StartLevelController
 
 
   void increaseStartLevel() {
-    synchronized(lock) {
+    synchronized (lock) {
 
       currentLevel++;
 
@@ -316,7 +316,7 @@ public class StartLevelController
 
 
   void decreaseStartLevel() {
-    synchronized(lock) {
+    synchronized (lock) {
       currentLevel--;
 
       Vector set = new Vector();
@@ -338,7 +338,7 @@ public class StartLevelController
 
       for (int i = 0; i < set.size(); i++) {
         BundleImpl bs = (BundleImpl)set.elementAt(i);
-        synchronized (bs) {
+        synchronized (bs.lock) {
           if (bs.getState() == Bundle.ACTIVE ||
               (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
             if (framework.props.debug.startlevel) {
@@ -417,7 +417,7 @@ public class StartLevelController
     synchronized(lock) {
 
       if (bs.getStartLevel() <= currentLevel) {
-        synchronized(bs) {
+        synchronized (bs.lock) {
           if ( (bs.getState() == Bundle.INSTALLED
                 || bs.getState() == Bundle.RESOLVED)
                && bs.archive.getAutostartSetting()!=-1) {
@@ -437,7 +437,7 @@ public class StartLevelController
         }
       } else if (bs.getStartLevel() > currentLevel) {
         BundleException saved = null;
-        synchronized (bs) {
+        synchronized (bs.lock) {
           if (bs.getState() == Bundle.ACTIVE ||
               (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
             if (framework.props.debug.startlevel) {
@@ -487,13 +487,10 @@ public class StartLevelController
   }
 
 
-  private void notifyFramework(Bundle bundle) {
-    framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTLEVEL_CHANGED, bundle, null));
-  }
-
   boolean isBundleActivationPolicyUsed(BundleImpl bundle) {
     return bundle.archive.getAutostartSetting() == Bundle.START_ACTIVATION_POLICY;
   }
+
 
   public Object getService(Bundle bundle,
                            ServiceRegistration registration)

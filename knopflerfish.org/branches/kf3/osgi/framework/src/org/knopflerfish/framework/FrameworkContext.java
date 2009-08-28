@@ -84,24 +84,6 @@ public class FrameworkContext  {
   static final String HOOKS_VERSION = "1.0";
 
   /**
-   * Boolean indicating if the framework has been initialized or not.
-   */
-  boolean initialized = false;
-
-  /**
-   * Boolean indicating that framework is running.
-   */
-  volatile boolean active;
-
-  /**
-   * Set during shutdown process.
-   */
-  volatile boolean shuttingdown /*= false*/;
-
-  /** Monitot to wait for start completion on when shutting down. */
-  private Object startStopLock = new Object();
-
-  /**
    * All bundle in this framework.
    */
   public Bundles bundles;
@@ -172,22 +154,12 @@ public class FrameworkContext  {
 
 
   /**
-   * The file where we store the class path
-   */
-  private final static String CLASSPATH_DIR = "classpath";
-  private final static String BOOT_CLASSPATH_FILE = "boot";
-  private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
-
-  /**
    * Cached value of
    * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
   private Set    eeCacheSet = new HashSet();
   private String eeCache = null;
-
-  final static int EXIT_CODE_NORMAL  = 0;
-  final static int EXIT_CODE_RESTART = 200;
 
   public FWProps props;
 
@@ -197,6 +169,11 @@ public class FrameworkContext  {
    */
   public FrameworkContext(Map initProps, FrameworkContext parent)  {
     props        = new FWProps(initProps, parent);
+    if (setSecurityManager()) {
+      perm = new SecurePermissionOps(this);
+    } else {
+      perm = new PermissionOps();
+    }
     systemBundle = new SystemBundle(this);
 
     log("created");
@@ -206,8 +183,6 @@ public class FrameworkContext  {
   // Initialize the framework, see spec v4.2 sec 4.2.4
   void init()
   {
-    if (initialized) return;
-
     log("initializing");
 
     if (Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
@@ -222,7 +197,6 @@ public class FrameworkContext  {
     buildBootDelegationPatterns();
     selectBootDelegationParentClassLoader();
 
-    setSecurityManager();
     String v = props.getProperty("org.knopflerfish.framework.validator");
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
@@ -233,12 +207,9 @@ public class FrameworkContext  {
           props.debug.println("Failed to get protection domain: " + t);
         }
       }
-      perm = new SecurePermissionOps(this);
       if (v == null) {
         v = "JKSValidator";
       }
-    } else {
-      perm = new PermissionOps();
     }
     if (v != null && !v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
       validator = new ArrayList();
@@ -258,7 +229,6 @@ public class FrameworkContext  {
         start = end + 1;
       }
     }
-    systemBundle.setPermissionOps(perm);
 
     boolean createHandlers = null==urlStreamHandlerFactory;
     if (createHandlers) {
@@ -331,7 +301,6 @@ public class FrameworkContext  {
 
     bundles.load();
 
-    initialized = true;
     log("inited");
 
     log("Installed bundles:");
@@ -348,10 +317,8 @@ public class FrameworkContext  {
   /**
    * Undo as much as possible of what init() does.
    */
-  private void uninit()
+  void uninit()
   {
-    initialized = false;
-
     startLevelController = null;
 
     bundles.clear();
@@ -383,21 +350,23 @@ public class FrameworkContext  {
       contentHandlerFactory   = null;
     }
 
-    perm = null;
-    systemBundle.setPermissionOps(perm);
     parentClassLoader = null;
-    bootDelegationPatterns.clear();
+    bootDelegationPatterns = null;
   }
 
 
   private static final String POLICY_PROPERTY = "java.security.policy";
 
-  private void setSecurityManager() {
+  /**
+   *
+   */
+  private boolean setSecurityManager() {
     final String osgiSecurity = props.getProperty(Constants.FRAMEWORK_SECURITY);
     final boolean useOSGiSecurityManager
       = Constants.FRAMEWORK_SECURITY_OSGI.equals(osgiSecurity);
 
     if (useOSGiSecurityManager && null!=System.getSecurityManager()) {
+      // NYI! Check if we have expected security manager
       throw new SecurityException
         ("Can not install OSGi security manager, another security manager "
          +"is already installed.");
@@ -411,6 +380,7 @@ public class FrameworkContext  {
       }
       System.setProperty(POLICY_PROPERTY, policy);
       System.setSecurityManager(new KFSecurityManager());
+      return true;
     } else {
       try {
         final String manager = props.getProperty("java.security.manager");
@@ -435,6 +405,7 @@ public class FrameworkContext  {
               sm = (SecurityManager)cons.newInstance(new Object[0]);
             }
             System.setSecurityManager(sm);
+            return true;
           }
         }
       } catch (Exception e) {
@@ -442,6 +413,7 @@ public class FrameworkContext  {
           ("Failed to install security manager." + e);
       }
     }
+    return false;
   }
 
 
@@ -487,380 +459,15 @@ public class FrameworkContext  {
 
 
   /**
-   * Start this FrameworkContext.
-   * This method starts all the bundles that were started at
-   * the time of the last shutdown.
-   *
-   * <p>If the FrameworkContext is already started, this method does nothing.
-   * If the FrameworkContext is not started, this method will:
-   * <ol>
-   * <li>Enable event handling. At this point, events can be delivered to
-   * listeners.</li>
-   * <li>Attempt to start all bundles marked for starting as described in the
-   * {@link Bundle#start(int)} method.
-   * Reports any exceptions that occur during startup using
-   * <code>FrameworkErrorEvents</code>.</li>
-   * <li>Set the state of the FrameworkContext to <i>active</i>.</li>
-   * <li>Broadcasting a <code>FrameworkEvent</code> through the
-   * <code>FrameworkListener.frameworkStarted</code> method.</li>
-   * </ol></p>
-   *
-   * <p>If this FrameworkContext is not launched, it can still install,
-   * uninstall, start and stop bundles.  (It does these tasks without
-   * broadcasting events, however.)  Using FrameworkContext without launching
-   * it allows for off-line debugging of the FrameworkContext.</p>
-   *
-   */
-  public void launch() throws BundleException {
-    if (!active) {
-      synchronized(startStopLock) {
-        log("starting");
-
-        active = true;
-        if (startLevelController != null) {
-          // start level open is delayed to this point to
-          // correctly work at restart
-          startLevelController.open();
-        } else {
-          // Start bundles according to their autostart setting.
-          final Iterator i = storage.getStartOnLaunchBundles().iterator();
-          while (i.hasNext()) {
-            final BundleImpl b = (BundleImpl)
-              bundles.getBundle((String)i.next());
-            try {
-              final int autostartSetting = b.archive.getAutostartSetting();
-              // Launch must not change the autostart setting of a bundle
-              int option = Bundle.START_TRANSIENT;
-              if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
-                // Transient start according to the bundles activation policy.
-                option |= Bundle.START_ACTIVATION_POLICY;
-              }
-              b.start(option);
-            } catch (BundleException be) {
-              listeners.frameworkError(b, be);
-            }
-          }
-        }
-
-        systemBundle.systemActive();
-        log("started");
-        listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED,
-                                                    systemBundle, null));
-      }
-    }
-  }
-
-
-  /**
-   * The thread that performs shutdown of this framework instance.
-   */
-  private Thread shutdownThread = null;
-
-  /**
-   * Stop this FrameworkContext, suspending all started contexts.
-   * This method suspends all started contexts so that they can be
-   * automatically restarted when this FrameworkContext is next launched.
-   *
-   * <p>If the framework is not started, this method does nothing.
-   * If the framework is started, this method will:
-   * <ol>
-   * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
-   * <li>Suspended all started bundles as described in the
-   * {@link Bundle#stop(int)} method except that the persistent
-   * state of the bundle will continue to be started.
-   * Reports any exceptions that occur during stopping using
-   * <code>FrameworkErrorEvents</code>.</li>
-   * <li>Disable event handling.</li>
-   * </ol></p>
-   *
-   */
-  public void shutdown() {
-    if (null!=shutdownThread && shutdownThread.isAlive()) {
-      log("stopping already in progress, ignoreing this request");
-      return;
-    }
-
-    if (!active) {
-      log("stop ignored, framework not started.");
-      return;
-    }
-
-    log("stopping");
-    Thread shutdownThread = new Thread("Framework shutdown")
-      {
-        public void run()
-        {
-          shutdown0();
-          log("stopped");
-        }
-      };
-    shutdownThread.setDaemon(false);
-    shutdownThread.start();
-  }
-
-
-  /**
-   * Stop this FrameworkContext, suspending all started contexts.
-   * This method suspends all started contexts so that they can be
-   * automatically restarted when this FrameworkContext is next launched.
-   *
-   * <p>If the framework is not started, this method does nothing.
-   * If the framework is started, this method will:
-   * <ol>
-   * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
-   * <li>Stop all started bundles as described in the
-   * {@link Bundle#stop(int)} method except that the persistent
-   * state of the bundle will continue to be started.
-   * Reports any exceptions that occur during stopping using
-   * <code>FrameworkErrorEvents</code>.</li>
-   * <li>Disable event handling.</li>
-   * </ol>
-   * </p>
-   *
-   */
-  private void shutdown0()
-  {
-    try {
-      //If starting wait for it to complete
-      synchronized(startStopLock) {
-        active = false;
-        shuttingdown = true;
-        systemBundle.systemShuttingdown();
-
-        saveClasspaths();
-        stopAllBundles();
-        uninit();
-
-        shuttingdown = false;
-      }
-    } catch (Exception e) {
-      log("error during stop", e);
-      systemBundle.stopEvent
-        = new FrameworkEvent(FrameworkEvent.ERROR, systemBundle, e);
-    }
-    systemBundle.systemShuttingdownDone();
-    shutdownThread = null;
-  }
-
-
-  /**
-   * Stop and unresolve all bundles.
-   */
-  private void stopAllBundles()
-  {
-    log("stopping bundles");
-
-    if (startLevelController != null) {
-      startLevelController.shutdown();
-    }
-
-    // Stop all active bundles, in reverse bundle ID order
-    // The list will be empty when the start level service is in use.
-    final List activeBundles = bundles.getActiveBundles();
-    for (int i = activeBundles.size()-1; i >= 0; i--) {
-      final BundleImpl b = (BundleImpl) activeBundles.get(i);
-      try {
-        synchronized (b) {
-          if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
-            // Stop bundle without changing its autostart setting.
-            b.stop(Bundle.STOP_TRANSIENT);
-          }
-        }
-      } catch (BundleException be) {
-        listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
-                                                    b, be));
-      }
-    }
-
-    final List allBundles = bundles.getBundles();
-
-    // Set state to INSTALLED and purge any unrefreshed bundles
-    for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
-      final BundleImpl b = (BundleImpl) i.next();
-      b.setStateInstalled(null);
-      b.purge();
-    }
-    log("bundles stopped");
-  }
-
-
-  public void saveClasspaths()
-  {
-    StringBuffer bootClasspath = new StringBuffer();
-    StringBuffer frameworkClasspath = new StringBuffer();
-    for (Iterator i = bundles.getFragmentBundles(systemBundle).iterator();
-         i.hasNext(); ) {
-      BundleImpl eb = (BundleImpl)i.next();
-      String path = eb.archive.getJarLocation();
-      StringBuffer sb = eb.isBootClassPathExtension()
-        ? bootClasspath : frameworkClasspath;
-      if (sb.length()>0) {
-        sb.append(File.pathSeparator);
-      }
-      sb.append(path);
-    }
-
-    // Post processing to handle boot class extension
-    try {
-      FileTree storage = Util.getFileStorage(this, CLASSPATH_DIR);
-      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
-      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
-      if (bootClasspath.length() > 0) {
-        saveStringBuffer(bcpf, bootClasspath);
-      } else {
-        bcpf.delete();
-      }
-      if (frameworkClasspath.length() > 0) {
-        saveStringBuffer(fcpf, frameworkClasspath);
-      } else {
-        fcpf.delete();
-      }
-    } catch (IOException e) {
-      System.err.println("Could not save classpath " + e);
-    }
-    log("boot classpath handling done");
-  }
-
-
-  private void saveStringBuffer(File f, StringBuffer content)
-    throws IOException
-  {
-    PrintStream out = null;
-    try {
-      out = new PrintStream(new FileOutputStream(f));
-      out.println(content.toString());
-    } finally {
-      if (out != null) {
-        out.close();
-      }
-    }
-  }
-
-
-  /**
-   * Install a bundle from the given location.
-   *
-   * @param location The location identifier of the bundle to install.
-   * @param in The InputStream from which the bundle will be read.
-   * @return The BundleImpl object of the installed bundle.
-   * @exception BundleException If the install failed.
-   */
-  public long installBundle(String location, InputStream in) throws BundleException {
-    return bundles.install(location, in).id;
-  }
-
-
-  /**
-   * Start a bundle.
-   *
-   * @param id Id of bundle to start.
-   * @param options The start options to use when starting the bundle.
-   * @exception BundleException If start failed.
-   */
-  public void startBundle(long id, int options)
-    throws BundleException
-  {
-    final Bundle b = bundles.getBundle(id);
-    if (b != null) {
-      b.start(options);
-    } else {
-      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
-    }
-  }
-
-
-  /**
-   * Stop a bundle.
-   *
-   * @param id Id of bundle to stop.
-   * @param options The stop options to use when stopping the bundle.
-   * @exception BundleException If stop failed.
-   */
-  public void stopBundle(long id, int options) throws BundleException {
-    Bundle b = bundles.getBundle(id);
-    if (b != null) {
-      b.stop(options);
-    } else {
-      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
-    }
-  }
-
-
-  /**
-   * Uninstall a bundle.
-   *
-   * @param id Id of bundle to stop.
-   * @exception BundleException If uninstall failed.
-   */
-  public void uninstallBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
-    if (b != null) {
-      b.uninstall();
-    } else {
-      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
-    }
-  }
-
-
-  /**
-   * Update a bundle.
-   *
-   * @param id Id of bundle to update.
-   * @exception BundleException If update failed.
-   */
-  public void updateBundle(long id) throws BundleException {
-    Bundle b = bundles.getBundle(id);
-    if (b != null) {
-      b.update();
-    } else {
-      throw new BundleException("No such bundle: " + id, BundleException.UNSPECIFIED);
-    }
-  }
-
-
-  /**
-   * Retrieve location of the bundle that has the given
-   * unique identifier.
-   *
-   * @param id The identifier of the bundle to retrieve.
-   * @return A location as a string, or <code>null</code>
-   * if the identifier doesn't match any installed bundle.
-   */
-  public String getBundleLocation(long id) {
-    Bundle b = bundles.getBundle(id);
-    if (b != null) {
-      return b.getLocation();
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Retrieve bundle id of the bundle that has the given
-   * unique location.
-   *
-   * @param location The location of the bundle to retrieve.
-   * @return The unique identifier of the bundle, or <code>-1</code>
-   * if the location doesn't match any installed bundle.
-   */
-  public long getBundleId(String location) {
-    Bundle b = bundles.getBundle(location);
-    if (b != null) {
-      return b.getBundleId();
-    } else {
-      return -1;
-    }
-  }
-
-  /**
    * Get private bundle data storage file handle.
    */
   public FileTree getDataStorage(long id) {
-        if (dataStorage != null) {
-          return new FileTree(dataStorage, Long.toString(id));
-        }
-        return null;
+    if (dataStorage != null) {
+      return new FileTree(dataStorage, Long.toString(id));
+    }
+    return null;
   }
+
 
   /**
    * Check if an execution environment string is accepted
@@ -903,7 +510,7 @@ public class FrameworkContext  {
     return systemBC;
   }
 
-  ArrayList /* String */ bootDelegationPatterns = new ArrayList(1);
+  ArrayList /* String */ bootDelegationPatterns;
   boolean bootDelegationUsed /*= false*/;
 
   void buildBootDelegationPatterns() {
@@ -911,6 +518,7 @@ public class FrameworkContext  {
       = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
 
     bootDelegationUsed = (bootDelegationString != null);
+    bootDelegationPatterns = new ArrayList(1);
 
     try {
       Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
@@ -999,9 +607,9 @@ public class FrameworkContext  {
       // Is this what the OSGi spec means by the "application" loader?
       parentClassLoader = ClassLoader.getSystemClassLoader();
     } else if (Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK.equals(s)) {
-      parentClassLoader = (ClassLoader) cls.get(cls.size()-1);
-    } else { // Default: Constants.FRAMEWORK_BUNDLE_PARENT_BOOT
       parentClassLoader = (ClassLoader) cls.get(0);
+    } else { // Default: Constants.FRAMEWORK_BUNDLE_PARENT_BOOT
+      parentClassLoader = (ClassLoader) cls.get(cls.size()-1);
     }
     cls.clear();
   }

@@ -645,20 +645,6 @@ class SecurePermissionOps extends PermissionOps {
   }
 
   //
-  // Main Secure operations
-  //
-
-  void callMainRestart() {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          throw new RuntimeException("NYI");
-          // Main.restart();
-          // return null;
-        }
-      });
-  }
-
-  //
   // PackageAdmin secure operations
   //
 

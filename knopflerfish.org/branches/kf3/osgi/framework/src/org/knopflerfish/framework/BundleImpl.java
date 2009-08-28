@@ -38,19 +38,7 @@ import java.io.*;
 import java.net.*;
 import java.security.cert.Certificate;
 import java.security.*;
-
-import java.util.Enumeration;
-import java.util.Set;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Vector;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -82,7 +70,7 @@ public class BundleImpl implements Bundle {
   /**
    * Handle to secure operations.
    */
-  protected PermissionOps secure;
+  final protected PermissionOps secure;
 
   /**
    * Bundle identifier.
@@ -208,13 +196,17 @@ public class BundleImpl implements Bundle {
 
 
   /** True during the finalization of an activation. */
-  private boolean activating;
+  protected boolean activating;
 
   /** True during during the state change from active to resolved. */
-  private boolean deactivating;
+  protected boolean deactivating;
 
   /** Saved exception of resolve failure. */
   private BundleException resolveFailException;
+
+
+  /** True during during the state change from active to resolved. */
+  protected Object lock = new Object();
 
 
   /**
@@ -231,7 +223,7 @@ public class BundleImpl implements Bundle {
              Version ver)
   {
     this.fwCtx = fw;
-    this.secure = null;
+    this.secure = fwCtx.perm;
     this.id = id;
     this.location = loc;
     this.protectionDomain = null;
@@ -316,134 +308,125 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#start
    */
-  synchronized public void start(int options) throws BundleException {
+  public void start(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
-    if (isFragment()) {
-      throw new BundleException("Cannot start a fragment bundle",
-                                BundleException.INVALID_OPERATION);
-    }
+    synchronized (lock) {
+      if (isFragment()) {
+        throw new BundleException("Cannot start a fragment bundle",
+                                  BundleException.INVALID_OPERATION);
+      }
 
-    if (state == UNINSTALLED) {
-      throw new IllegalStateException("Bundle is uninstalled");
-    }
+      if (state == UNINSTALLED) {
+        throw new IllegalStateException("Bundle is uninstalled");
+      }
 
-    // The value -1 is used by this implemtation to indicate a bundle
-    // that has not been started, thus ensure that options is != -1.
-    options &= 0xFF;
+      // The value -1 is used by this implemtation to indicate a bundle
+      // that has not been started, thus ensure that options is != -1.
+      options &= 0xFF;
 
-    if (fwCtx.startLevelController != null) {
-      if (state != UNINSTALLED &&
-         getStartLevel() > fwCtx.startLevelController.getStartLevel()) {
-        if ((options & START_TRANSIENT) != 0) {
-          throw new BundleException
-            ("Can not transiently activate bundle with start level "
-             +getStartLevel() +" when running on start level "
-             +fwCtx.startLevelController.getStartLevel(),
-             BundleException.START_TRANSIENT_ERROR);
-        } else {
-          setAutostartSetting(options);
-          return;
+      if (fwCtx.startLevelController != null) {
+        if (state != UNINSTALLED &&
+            getStartLevel() > fwCtx.startLevelController.getStartLevel()) {
+          if ((options & START_TRANSIENT) != 0) {
+            throw new BundleException
+              ("Can not transiently activate bundle with start level "
+               +getStartLevel() +" when running on start level "
+               +fwCtx.startLevelController.getStartLevel(),
+               BundleException.START_TRANSIENT_ERROR);
+          } else {
+            setAutostartSetting(options);
+            return;
+          }
         }
       }
-    }
 
-    // Initialize the activation; checks initialization of lazy
-    // activation.
+      // Initialize the activation; checks initialization of lazy
+      // activation.
 
-    //1: If activating or deactivating, wait a litle
-    waitOnActivation("BundleActivator.start");
+      //1: If activating or deactivating, wait a litle
+      waitOnActivation("Bundle.start", false);
 
-    //2: start() is idempotent, i.e., nothing to do when already started
-    if (state == ACTIVE) {
-      return;
-    }
+      //2: start() is idempotent, i.e., nothing to do when already started
+      if (state == ACTIVE) {
+        return;
+      }
 
-    //3: Record non-transient start requests.
-    if ((options & START_TRANSIENT) == 0) {
-      setAutostartSetting(options);
-    }
+      //3: Record non-transient start requests.
+      if ((options & START_TRANSIENT) == 0) {
+        setAutostartSetting(options);
+      }
 
-    //4: Resolve bundle (if needed)
-    if (INSTALLED == getUpdatedState()) {
-      throw resolveFailException;
-    }
+      //4: Resolve bundle (if needed)
+      if (INSTALLED == getUpdatedState()) {
+        throw resolveFailException;
+      }
 
-    //5: Lazy?
-    if ((options & START_ACTIVATION_POLICY) != 0 && lazyActivation ) {
-      if (STARTING == state) return;
-      state = STARTING;
-      bundleContext = new BundleContextImpl(this);
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.LAZY_ACTIVATION, this));
-    } else {
-      finalizeActivation();
+      //5: Lazy?
+      if ((options & START_ACTIVATION_POLICY) != 0 && lazyActivation ) {
+        if (STARTING == state) return;
+        state = STARTING;
+        bundleContext = new BundleContextImpl(this);
+        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.LAZY_ACTIVATION, this));
+      } else {
+        finalizeActivation();
+      }
     }
   }
 
   // Performs the actual activation.
-  synchronized void finalizeActivation()
+  void finalizeActivation()
     throws BundleException
   {
-    switch (getUpdatedState()) {
-    case INSTALLED:
-      throw resolveFailException;
-    case STARTING:
-      if (activating) return; // finalization already in progress.
-      // Lazy activation; fall through to RESOLVED.
-    case RESOLVED:
-      //6:
-      state = STARTING;
-      activating = true;
-      if (fwCtx.props.debug.lazyActivation) {
-        fwCtx.props.debug.println("activating #" +getBundleId());
-      }
-      //7:
-      if (fwCtx.active) {
-        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING,
-                                                      this));
-      }
-
-      if (null==bundleContext) {
-        bundleContext = new BundleContextImpl(this);
-      }
-
-      try {
-        secure.callStart0(this);
-      } catch (BundleException e) {
-        //8:
-        state = STOPPING;
-        if (fwCtx.active) {
-          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING,
-                                                        this));
+    synchronized (lock) {
+      switch (getUpdatedState()) {
+      case INSTALLED:
+        throw resolveFailException;
+      case STARTING:
+        if (activating) return; // finalization already in progress.
+        // Lazy activation; fall through to RESOLVED.
+      case RESOLVED:
+        //6:
+        state = STARTING;
+        activating = true;
+        if (fwCtx.props.debug.lazyActivation) {
+          fwCtx.props.debug.println("activating #" +getBundleId());
         }
-        removeBundleResources();
-        bundleContext.invalidate();
-        bundleContext = null;
-        state = RESOLVED;
-        if (fwCtx.active) {
-          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED,
-                                                        this));
+        //7:
+        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING, this));
+
+        if (null==bundleContext) {
+          bundleContext = new BundleContextImpl(this);
         }
-        throw e;
+
+        try {
+          secure.callStart0(this);
+        } catch (BundleException e) {
+          //8:
+          state = STOPPING;
+          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+          removeBundleResources();
+          bundleContext.invalidate();
+          bundleContext = null;
+          state = RESOLVED;
+          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
+          throw e;
+        }
+        //10:
+        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
+        break;
+      case ACTIVE:
+        break;
+      case STOPPING:
+        // This happens if call start from inside the BundleActivator.stop method.
+        // Don't allow it.
+        throw new BundleException("start called from BundleActivator.stop",
+                                  BundleException.ACTIVATOR_ERROR);
+      case UNINSTALLED:
+        throw new IllegalStateException("Bundle is in UNINSTALLED state");
       }
-      //10:
-      if (fwCtx.active) {
-        fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED,
-                                                      this));
-      }
-      break;
-    case ACTIVE:
-      break;
-    case STOPPING:
-      // This happens if call start from inside the BundleActivator.stop method.
-      // Don't allow it.
-      throw new BundleException("start called from BundleActivator.stop",
-                                BundleException.ACTIVATOR_ERROR);
-    case UNINSTALLED:
-      throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
   }
-
 
 
   void start0() throws BundleException {
@@ -522,6 +505,7 @@ public class BundleImpl implements Bundle {
       throw new BundleException("Bundle start failed", error_type, t);
     } finally {
       activating = false;
+      lock.notifyAll();
       if (fwCtx.props.debug.lazyActivation) {
         fwCtx.props.debug.println("activating #" +getBundleId() +" completed.");
       }
@@ -541,48 +525,50 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#stop
    */
-  synchronized public void stop(int options) throws BundleException {
+  public void stop(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
-    if (isFragment()) {
-      throw new BundleException("Cannot stop a fragment bundle",
-                                BundleException.INVALID_OPERATION);
-    }
-
-    //1:
-    if (state == UNINSTALLED) {
-      throw new IllegalStateException("Bundle is uninstalled");
-    }
-
-
-    //2: If activating or deactivating, wait a litle
-    waitOnActivation("BundleActivator.stop");
-
-    //3:
-    if ((options & STOP_TRANSIENT) == 0) {
-      setAutostartSetting(-1);
-    }
-
-    switch (state) {
-    case INSTALLED:
-    case RESOLVED:
-    case STOPPING:
-    case UNINSTALLED:
-      //4:
-      return;
-
-    case ACTIVE:
-    case STARTING: // Lazy start...
-      //5-13:
-      final BundleException savedException = secure.callStop0(this);
-      if (savedException != null) {
-        throw savedException;
+    synchronized (lock) {
+      if (isFragment()) {
+        throw new BundleException("Cannot stop a fragment bundle",
+                                  BundleException.INVALID_OPERATION);
       }
-      break;
+
+      //1:
+      if (state == UNINSTALLED) {
+        throw new IllegalStateException("Bundle is uninstalled");
+      }
+
+
+      //2: If activating or deactivating, wait a litle
+      waitOnActivation("Bundle.stop", false);
+
+      //3:
+      if ((options & STOP_TRANSIENT) == 0) {
+        setAutostartSetting(-1);
+      }
+
+      switch (state) {
+      case INSTALLED:
+      case RESOLVED:
+      case STOPPING:
+      case UNINSTALLED:
+        //4:
+        return;
+
+      case ACTIVE:
+      case STARTING: // Lazy start...
+        //5-13:
+        final BundleException savedException = secure.callStop0(this);
+        if (savedException != null) {
+          throw savedException;
+        }
+        break;
+      }
     }
   }
 
-  synchronized BundleException stop0() {
+  BundleException stop0() {
     final boolean wasStarted = ACTIVE == state;
     BundleException res = null;
 
@@ -613,6 +599,7 @@ public class BundleImpl implements Bundle {
     //8-10:
     removeBundleResources();
     deactivating = false;
+    lock.notifyAll();
     if (UNINSTALLED==state) {
       //11:
       res = new BundleException("Bundle uninstalled during stop()",
@@ -635,25 +622,22 @@ public class BundleImpl implements Bundle {
    * @throws BundleException if the ongoing (de-)activation does not
    * finish within reasonable time.
    */
-  private synchronized void waitOnActivation(final String src)
+  void waitOnActivation(final String src, boolean longWait)
     throws BundleException
   {
-    int k = 0;
-    while ((activating || deactivating) && k<10) {
+    synchronized (lock) {
       try {
-        this.wait(10L);
-      } catch (InterruptedException _ie) {
+        lock.wait(longWait ? 1000 : 50);
+      } catch (InterruptedException _ie) { }
+      if (activating) {
+        throw new BundleException(src + " called during start of Bundle",
+                                  BundleException.STATECHANGE_ERROR);
       }
-      k++;
-    }
-    if (activating) {
-      throw new BundleException(src + " called from BundleActivator.start",
-                                BundleException.STATECHANGE_ERROR);
-    }
 
-    if (deactivating) {
-      throw new BundleException(src + " called from BundleActivator.stop",
-                                BundleException.STATECHANGE_ERROR);
+      if (deactivating) {
+        throw new BundleException(src + " called during stop of Bundle",
+                                  BundleException.STATECHANGE_ERROR);
+      }
     }
   }
 
@@ -672,33 +656,35 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#update
    */
-  synchronized public void update(final InputStream in) throws BundleException {
+  public void update(final InputStream in) throws BundleException {
     try {
       secure.checkLifecycleAdminPerm(this);
       if (isExtension()) {
         secure.checkExtensionLifecycleAdminPerm(this);
       }
-      final boolean wasActive = state == ACTIVE;
+      synchronized (lock) {
+        final boolean wasActive = state == ACTIVE;
 
-      switch (getUpdatedState()) {
-      case ACTIVE:
-        stop(STOP_TRANSIENT);
-        // Fall through
-      case RESOLVED:
-      case INSTALLED:
-        // Load new bundle
-        secure.callUpdate0(this, in, wasActive);
-        break;
-      case STARTING:
-        // Wait for RUNNING state, this doesn't happen now
-        // since we are synchronized.
-        throw new IllegalStateException("Bundle is in STARTING state");
-      case STOPPING:
-        // Wait for RESOLVED state, this doesn't happen now
-        // since we are synchronized.
-        throw new IllegalStateException("Bundle is in STOPPING state");
-      case UNINSTALLED:
-        throw new IllegalStateException("Bundle is in UNINSTALLED state");
+        switch (getUpdatedState()) {
+        case ACTIVE:
+          stop(STOP_TRANSIENT);
+          // Fall through
+        case RESOLVED:
+        case INSTALLED:
+          // Load new bundle
+          secure.callUpdate0(this, in, wasActive);
+          break;
+        case STARTING:
+          // Wait for RUNNING state, this doesn't happen now
+          // since we are synchronized.
+          throw new IllegalStateException("Bundle is in STARTING state");
+        case STOPPING:
+          // Wait for RESOLVED state, this doesn't happen now
+          // since we are synchronized.
+          throw new IllegalStateException("Bundle is in STOPPING state");
+        case UNINSTALLED:
+          throw new IllegalStateException("Bundle is in UNINSTALLED state");
+        }
       }
     } finally {
       if (in != null) {
@@ -850,12 +836,14 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#uninstall
    */
-  synchronized public void uninstall() throws BundleException {
+  public void uninstall() throws BundleException {
     secure.checkLifecycleAdminPerm(this);
     if (isExtension()) {
       secure.checkExtensionLifecycleAdminPerm(this);
     }
-    secure.callUninstall0(this);
+    synchronized (lock) {
+      secure.callUninstall0(this);
+    }
   }
 
   void uninstall0() {
@@ -1130,7 +1118,7 @@ public class BundleImpl implements Bundle {
    */
   int getUpdatedState() {
     if (state == INSTALLED) {
-      synchronized (this) {
+      synchronized (lock) {
         if (state == INSTALLED) {
           // NYI! check EE for fragments
           String ee = archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
@@ -1247,27 +1235,29 @@ public class BundleImpl implements Bundle {
    * Reset all package registration.
    * We assume that the bundle is resolved when entering this method.
    */
-  synchronized void setStateInstalled(List savedEvent) {
-    if (isFragment()) {
-      classLoader = null;
-      fragment.removeHost(null);
-    } else {
-      if (classLoader != null) {
-        if(classLoader instanceof BundleClassLoader) {
-          ((BundleClassLoader)classLoader).close();
-        }
+  void setStateInstalled(List savedEvent) {
+    synchronized (lock) {
+      if (isFragment()) {
         classLoader = null;
+        fragment.removeHost(null);
+      } else {
+        if (classLoader != null) {
+          if(classLoader instanceof BundleClassLoader) {
+            ((BundleClassLoader)classLoader).close();
+          }
+          classLoader = null;
+        }
+        bpkgs.unregisterPackages(true);
+        if (isFragmentHost()) {
+          detachFragments(savedEvent);
+        }
+        bpkgs.registerPackages();
       }
-      bpkgs.unregisterPackages(true);
-      if (isFragmentHost()) {
-        detachFragments(savedEvent);
-      }
-      bpkgs.registerPackages();
-    }
 
-    state = INSTALLED;
-    if (savedEvent != null) {
-      savedEvent.add(new BundleEvent(BundleEvent.UNRESOLVED, this));
+      state = INSTALLED;
+      if (savedEvent != null) {
+        savedEvent.add(new BundleEvent(BundleEvent.UNRESOLVED, this));
+      }
     }
   }
 
