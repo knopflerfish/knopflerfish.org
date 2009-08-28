@@ -158,7 +158,7 @@ final public class BundleClassLoader
     super(bpkgs.bundle.fwCtx.parentClassLoader);
 
     this.debug = bpkgs.bundle.fwCtx.props.debug;
-    this.parent = bpkgs.bundle.fwCtx.getClass().getClassLoader();
+    this.parent = bpkgs.bundle.fwCtx.parentClassLoader;
     this.secure = secure;
     protectionDomain = pd;
     this.bpkgs = bpkgs;
@@ -512,7 +512,7 @@ final public class BundleClassLoader
 
 
   /**
-   * Return a string representing this objet
+   * Return a string representing this object
    *
    * @return A message string.
    */
@@ -876,7 +876,7 @@ final public class BundleClassLoader
     } else {
       ep = null;
     }
-    /* 5 */
+    /* 5 + 6 */
     if (this != requestor && ep != null && !ep.checkFilter(name)) {
       return null;
     }
@@ -889,37 +889,6 @@ final public class BundleClassLoader
          return null;
        }
     }
-//     // Must collect and merge all search hits from step 5
-//     // and 6 to handle the case when onlyFirst is false.
-//     Vector /* SearchActionItem */ sais = new Vector();
-
-//     Vector av = archive.componentExists(path, onlyFirst);
-//     if (av != null) {
-//       sais.add( new SearchActionItem( av, archive ) );
-//     }
-//     /* 6 */
-//     if (fragments != null && !(onlyFirst && sais.size()>0) ) {
-//       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-//         BundleArchive ba = (BundleArchive)i.next();
-//         if (debug.classLoader) {
-//           debug.println(this + " Fragment bundle search: " +
-//                         path + " from #" + ba.getBundleId());
-//         }
-//         Vector vec = ba.componentExists(path, onlyFirst);
-//         if (vec != null) {
-//           sais.add( new SearchActionItem( vec, ba ) );
-//           if (onlyFirst) break;
-//         }
-//       }
-//     }
-//     if (sais.size()>0) { /* 5 or 6 found the item */
-//       try {
-//         return action.get(sais, path, name, pkg, this );
-//       } catch (IOException ioe) {
-//         bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
-//         return null;
-//       }
-//     }
 
     /* 7 */
     if (ep != null) {
@@ -960,16 +929,6 @@ final public class BundleClassLoader
     return bundle == bundle.fwCtx.systemBundle;
   }
 
-
-//   static class SearchActionItem {
-//     public Vector /* Integer(class loader internal class path id) */ items;
-//     public BundleArchive ba;
-//     public SearchActionItem(Vector items, BundleArchive ba)
-//     {
-//       this.items = items;
-//       this.ba = ba;
-//     }
-//   }
 
   /**
    *  Search action
@@ -1084,12 +1043,6 @@ final public class BundleClassLoader
         Vector answer = new Vector();
         for(int i = 0; i < items.size(); i++) {
           FileArchive fa = (FileArchive) items.elementAt(i);
-//           for(int j = 0; j < sai.items.size(); j++) {
-//             int subId = ((Integer)sai.items.elementAt(j)).intValue();
-//             URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
-//                                              sai.ba.getBundleId(),
-//                                              subId,
-//                                              path);
              URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
                                               fa.getBundleId(),
                                               fa.getSubId(),

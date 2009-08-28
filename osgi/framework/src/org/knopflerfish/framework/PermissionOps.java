@@ -283,15 +283,6 @@ class PermissionOps {
   }
 
   //
-  // Main Secure operations
-  //
-
-  void callMainRestart() {
-    throw new RuntimeException("NYI");
-    // Main.restart();
-  }
-
-  //
   // PackageAdmin secure operations
   //
 

@@ -213,7 +213,7 @@ public class PackageAdminImpl implements PackageAdmin {
     if (restart) {
       try {
         // will restart the framework.
-        framework.systemBundle.stop(FrameworkContext.EXIT_CODE_RESTART);
+        framework.systemBundle.update();
       } catch (BundleException ignored) {
         /* this can't be happening. */
       }
@@ -244,7 +244,7 @@ public class PackageAdminImpl implements PackageAdmin {
     // in reverse start order
     for (int bx = bi.length; bx-- > 0; ) {
       BundleException be = null;
-      synchronized (bi[bx]) {
+      synchronized (bi[bx].lock) {
         if (bi[bx].state == Bundle.ACTIVE) {
           startList.add(0, bi[bx]);
           be = bi[bx].stop0();
@@ -269,16 +269,14 @@ public class PackageAdminImpl implements PackageAdmin {
       BundleImpl nextStart =  startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
       for (int bx = bi.length; bx-- > 0; ) {
         BundleException be = null;
-        synchronized (bi[bx]) {
+        synchronized (bi[bx].lock) {
           switch (bi[bx].state) {
           case Bundle.STARTING:
           case Bundle.ACTIVE:
-            synchronized (bi[bx]) {
-              if (bi[bx].state == Bundle.ACTIVE) {
-                be = bi[bx].stop0();
-                if (nextStart != bi[bx]) {
-                  startList.add(startPos + 1, bi[bx]);
-                }
+            if (bi[bx].state == Bundle.ACTIVE) {
+              be = bi[bx].stop0();
+              if (nextStart != bi[bx]) {
+                startList.add(startPos + 1, bi[bx]);
               }
             }
           case Bundle.STOPPING:
